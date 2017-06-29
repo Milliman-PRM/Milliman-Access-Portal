@@ -10,7 +10,7 @@
 ## Potential Tasks
 
   - [ ] Link to any related issues or User Stories
-    - [ ] Label with appropriate Milestone (if applicable)
+  - [ ] Label with appropriate Milestone (if applicable)
   - [ ] Fill in DefDone below
   - [ ] Fill in more tasks
   - [ ] ¿¿¿???
