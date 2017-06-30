@@ -4,7 +4,7 @@ C:\Users\ben.wyatt\Documents\GitHub\Milliman-Access-Portal\MillimanAccessPortal\
 C:\Users\ben.wyatt\Documents\GitHub\Milliman-Access-Portal\MillimanAccessPortal\MillimanAccessPortal\bin\Debug\netcoreapp1.1\MillimanAccessPortal.dll
 C:\Users\ben.wyatt\Documents\GitHub\Milliman-Access-Portal\MillimanAccessPortal\MillimanAccessPortal\bin\Debug\netcoreapp1.1\MillimanAccessPortal.pdb
 C:\Users\ben.wyatt\Documents\GitHub\Milliman-Access-Portal\MillimanAccessPortal\MillimanAccessPortal\obj\Debug\netcoreapp1.1\MillimanAccessPortal.csprojResolveAssemblyReference.cache
-C:\Users\ben.wyatt\Documents\GitHub\Milliman-Access-Portal\MillimanAccessPortal\MillimanAccessPortal\obj\Debug\netcoreapp1.1\UserSecretsAssemblyInfo.cs
 C:\Users\ben.wyatt\Documents\GitHub\Milliman-Access-Portal\MillimanAccessPortal\MillimanAccessPortal\obj\Debug\netcoreapp1.1\MillimanAccessPortal.AssemblyInfo.cs
 C:\Users\ben.wyatt\Documents\GitHub\Milliman-Access-Portal\MillimanAccessPortal\MillimanAccessPortal\obj\Debug\netcoreapp1.1\MillimanAccessPortal.dll
 C:\Users\ben.wyatt\Documents\GitHub\Milliman-Access-Portal\MillimanAccessPortal\MillimanAccessPortal\obj\Debug\netcoreapp1.1\MillimanAccessPortal.pdb
+C:\Users\ben.wyatt\Documents\GitHub\Milliman-Access-Portal\MillimanAccessPortal\MillimanAccessPortal\obj\Debug\netcoreapp1.1\UserSecretsAssemblyInfo.cs
