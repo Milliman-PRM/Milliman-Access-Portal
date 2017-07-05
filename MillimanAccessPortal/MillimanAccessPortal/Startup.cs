@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Data;
 using MillimanAccessPortal.Models;
 using MillimanAccessPortal.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace MillimanAccessPortal
 {
@@ -39,6 +40,12 @@ namespace MillimanAccessPortal
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
+            services.Configure<MvcOptions>(options =>
+            {
+                options.Filters.Add(new RequireHttpsAttribute());
+            });
+
             // Add framework services.
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
@@ -74,6 +81,7 @@ namespace MillimanAccessPortal
             app.UseStaticFiles();
 
             app.UseIdentity();
+
 
             // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
 
