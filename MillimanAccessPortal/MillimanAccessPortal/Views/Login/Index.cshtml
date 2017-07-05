@@ -1,10 +1,15 @@
 ﻿@inject Microsoft.ApplicationInsights.AspNetCore.JavaScriptSnippet JavaScriptSnippet
+@{
+    ViewData["Title"] = "Login";
+    Layout = "";
+}
+
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - MillimanAccessPortal</title>
+    <title>@ViewData["Title"] - Milliman Access Portal</title>
 
     <environment names="Development">
         <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
@@ -19,10 +24,31 @@
     @Html.Raw(JavaScriptSnippet.FullScript)
 </head>
 <body>
-    @await Html.PartialAsync("_Navbar")
-    <div class="container body-content">
-        @RenderBody()
-        @Html.Partial("_Footer")
+
+    <div class="container-fluid">
+
+        <div id="login-form" class="screen-center text-center">
+            <div>
+                <img src="images/logo.png" alt="Milliman Logo" />
+            </div>
+            <div class="text-center" style="display: inline-block;">
+                <form>
+                    <div class="form-group">
+                        <input type="text" id="email" placeholder="Email" autofocus>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="password" placeholder="Password">
+                    </div>
+                    <div class="text-right">
+                        <a id="password-reset" href="passwordReset.html">Forgot Password</a>
+                        <button type="submit" id="primary-button" class="btn btn-primary">Login</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    @Html.Partial("_Footer")
+
     </div>
 
     <environment names="Development">
@@ -45,7 +71,5 @@
         </script>
         <script src="~/js/site.min.js" asp-append-version="true"></script>
     </environment>
-
-    @RenderSection("Scripts", required: false)
 </body>
 </html>
