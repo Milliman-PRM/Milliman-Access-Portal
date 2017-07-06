@@ -13,6 +13,11 @@ namespace MillimanAccessPortal.Controllers
             return View();
         }
 
+        public IActionResult PasswordRecovery()
+        {
+            return View();
+        }
+
         public IActionResult Error()
         {
             return View();
