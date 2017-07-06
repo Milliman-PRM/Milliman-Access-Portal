@@ -14,6 +14,8 @@ using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Data;
 using MillimanAccessPortal.Models;
 using MillimanAccessPortal.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 
 namespace MillimanAccessPortal
 {
@@ -55,7 +57,35 @@ namespace MillimanAccessPortal
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
-            services.AddMvc();
+            services.Configure<IdentityOptions>(options =>
+            {
+                // Password settings
+                options.Password.RequireDigit = true;
+                options.Password.RequiredLength = 8;
+                options.Password.RequireNonAlphanumeric = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireLowercase = false;
+
+                // Lockout settings
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+                options.Lockout.MaxFailedAccessAttempts = 5;
+
+                // Cookie settings
+                options.Cookies.ApplicationCookie.ExpireTimeSpan = TimeSpan.FromDays(150);
+                options.Cookies.ApplicationCookie.LoginPath = "/Account/LogIn";
+                options.Cookies.ApplicationCookie.LogoutPath = "/Account/LogOut";
+
+                // User settings
+                options.User.RequireUniqueEmail = true;
+            });
+
+            services.AddMvc(config =>
+            {
+                var policy = new AuthorizationPolicyBuilder()
+                             .RequireAuthenticatedUser()
+                             .Build();
+                config.Filters.Add(new AuthorizeFilter(policy));
+            });
 
             // Add application services.
             services.AddTransient<IEmailSender, AuthMessageSender>();
