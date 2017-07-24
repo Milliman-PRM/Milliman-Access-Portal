@@ -20,12 +20,12 @@
 | |Remove content publisher|x| | | | |
 | |Remove User from System|x| | | | |
 | |Create client|x| | | | |
-| |Set number of users to client| |x| | | |
-| |Modify (other users) user profile| |x| | | |
 | |Set Client Administrator|x|x| | | |
 | |Modify client-level information|x|x| | | |
 | |Create sub client|x|x| | | |
 | |Associate user to client|x|x| | | |
+| |Set number of users to client| |x| | | |
+| |Modify (other users) user profile| |x| | | |
 | |Modify (other users) user profile - within group/client| |x|x| | |
 | |Set user manager|x|x|x| | |
 | |Set content publisher|x|x|x| | |
