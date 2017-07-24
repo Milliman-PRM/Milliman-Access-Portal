@@ -4,8 +4,8 @@
 | ---| ------- | --------- |
 |Super User|Milliman (PRM Support)|Global access|
 |Client Administrator|Internal Milliman Consultants|Manage one or more relationships with clients|
-|User Manager|Client Employees|Manage user access for client|
-|Content Publisher|?|Publishes content items|
+|User Manager|Consultant or Client Employees|Manage user access for client|
+|Content Publisher|Consultant or Client Employees|Publishes content items|
 |Content User|Client Employees|Reads authorized content|
 
 
