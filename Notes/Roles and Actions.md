@@ -20,24 +20,27 @@
 | |Remove content publisher|x| | | | |
 | |Remove User from System|x| | | | |
 | |Create client|x| | | | |
-| |Set Client Administrator|x|x| | | |
-| |Modify client-level information|x|x| | | |
-| |Create sub client|x|x| | | |
-| |Associate user to client|x|x| | | |
+| |Set Client Administrator| |x| | | |
+| |Modify client-level information| |x| | | |
+| |Create sub client| |x| | | |
+| |Associate user to client| |x| | | |
 | |Set number of users to client| |x| | | |
 | |Modify (other users) user profile| |x| | | |
-| |Modify (other users) user profile - within group/client| |x|x| | |
-| |Set user manager|x|x|x| | |
-| |Set content publisher|x|x|x| | |
-| |Create user|x|x|x| | |
-| |Associate user to client - within group/client|x|x|x| | |
-| |Remove user from client|x|x|x| | |
+| |Modify (other users) user profile - within group/client| | |x| | |
+| |Set user manager| |x| | | |
+| |Set content publisher| | |x| | |
+| |Create user| | |x| | |
+| |Associate user to client - within group/client| | |x| | |
+| |Remove user from client| | |x| | |
+| |View User information (such as access dates, etc)| | |x| | |
 | |Modify personal profile|x|x|x|x|x|
 | |Reset own Password|x|x|x|x|x|
-|CONTENT MANAGEMENT|Manage selections for reduced content| |x|x| | |
-| |Publish new reports/content| |x| |x| |
+|CONTENT MANAGEMENT|Manage selections for reduced content| | |x| | |
 | |Update existing reports/content| | | |x| |
-|ContentItemUserGroup MANAGEMENT|Create ContentItemUserGroup| |x|x| | |
-| |Assign users to ContentItemUserGroup (Add users to group with a role)| |x|x| | |
+|ContentItemUserGroup MANAGEMENT|Create ContentItemUserGroup| | |x| | |
+| |Assign users to ContentItemUserGroup (Add users to group with a role)| | |x| | |
 | |Remove users from ContentItemUserGroup| |x|x| | |
+| |Set up Content| |x| | | |
+| |Remove Content| | | |x| |
+| |Remove Content slot| |x| | | |
 |DATA ACCESS|Access assigned reports| | | | |x|
