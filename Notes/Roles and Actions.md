@@ -26,8 +26,8 @@
 | |Associate user to client| |x| | | |
 | |Set number of users to client| |x| | | |
 | |Modify (other users) user profile| |x| | | |
-| |Modify (other users) user profile - within group/client| | |x| | |
 | |Set user manager| |x| | | |
+| |Modify (other users) user profile - within group/client| | |x| | |
 | |Set content publisher| | |x| | |
 | |Create user| | |x| | |
 | |Associate user to client - within group/client| | |x| | |
@@ -37,10 +37,10 @@
 | |Reset own Password|x|x|x|x|x|
 |CONTENT MANAGEMENT|Manage selections for reduced content| | |x| | |
 | |Update existing reports/content| | | |x| |
-|ContentItemUserGroup MANAGEMENT|Create ContentItemUserGroup| | |x| | |
-| |Assign users to ContentItemUserGroup (Add users to group with a role)| | |x| | |
-| |Remove users from ContentItemUserGroup| |x|x| | |
-| |Set up Content| |x| | | |
-| |Remove Content| | | |x| |
+|ContentItemUserGroup MANAGEMENT|Set up Content| |x| | | |
 | |Remove Content slot| |x| | | |
+| |Create ContentItemUserGroup| | |x| | |
+| |Assign users to ContentItemUserGroup (Add users to group with a role)| | |x| | |
+| |Remove users from ContentItemUserGroup| | |x| | |
+| |Remove Content| | | |x| |
 |DATA ACCESS|Access assigned reports| | | | |x|
