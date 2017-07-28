@@ -20,7 +20,7 @@
 | |Remove content publisher|x| | | | |
 | |Remove User from System|x| | | | |
 | |Create client|x| | | | |
-| |Set Client Administrator| |x| | | |
+| |Set Client Administrator|x|x| | | |
 | |Modify client-level information| |x| | | |
 | |Create sub client| |x| | | |
 | |Associate user to client| |x| | | |
