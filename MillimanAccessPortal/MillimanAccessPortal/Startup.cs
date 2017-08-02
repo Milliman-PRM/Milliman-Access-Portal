@@ -16,6 +16,7 @@ using MillimanAccessPortal.Models;
 using MillimanAccessPortal.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using MillimanAccessPortal.Configurations;
 
 namespace MillimanAccessPortal
 {
@@ -118,6 +119,8 @@ namespace MillimanAccessPortal
 
             app.UseIdentity();
 
+            // Populate Identity roles in the database
+            RolesData.SeedRoles(app.ApplicationServices).Wait();
 
             // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
 
