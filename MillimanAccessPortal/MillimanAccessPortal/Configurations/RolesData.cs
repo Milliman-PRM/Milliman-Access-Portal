@@ -1,4 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿/*
+ *  CODE OWNERS: Ben Wyatt
+ *  
+ *  OBJECTIVE: Provide a mechanism to seed the Identity database with the roles that are required for the application.
+ * 
+ */
+
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
