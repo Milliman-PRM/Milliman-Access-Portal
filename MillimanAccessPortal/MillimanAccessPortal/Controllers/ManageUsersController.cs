@@ -131,27 +131,6 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
-        // GET: ManageUsers/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: ManageUsers/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                // TODO: Add delete logic here
-
-                return RedirectToAction("Index");
-            }
-            catch
-            {
-                return View();
-            }
-        }
+        // TODO: Add & implement action to disable (not delete) a user account
     }
 }
