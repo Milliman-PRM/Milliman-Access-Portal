@@ -59,27 +59,35 @@ namespace MillimanAccessPortal.Controllers
                 return View();
             }
         }
-
+        
         // GET: ManageUsers/Edit/5
-        public ActionResult Edit(int id)
+        public async Task<ActionResult> Edit(string id)
         {
-            return View();
+            ApplicationUser user = await _userManager.FindByIdAsync(id);
+            
+            return View(user);
         }
 
         // POST: ManageUsers/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<ActionResult> Edit(string id, IFormCollection collection)
         {
+            ApplicationUser user = await _userManager.FindByIdAsync(id);
+
             try
             {
-                // TODO: Add update logic here
-
+                user.Email = collection["Email"];
+                user.NormalizedEmail = collection["Email"].ToString().ToUpper();
+                user.LockoutEnabled = Convert.ToBoolean(collection["LockoutEnabled"]);
+                
+                await _userManager.UpdateAsync(user);
+                
                 return RedirectToAction("Index");
             }
             catch
             {
-                return View();
+                return View(user);
             }
         }
 
