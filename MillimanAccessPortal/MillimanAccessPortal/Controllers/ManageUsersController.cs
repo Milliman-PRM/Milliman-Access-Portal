@@ -15,7 +15,7 @@ namespace MillimanAccessPortal.Controllers
     public class ManageUsersController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
-
+        
         public ManageUsersController(
             UserManager<ApplicationUser> userManager
             )
@@ -48,13 +48,51 @@ namespace MillimanAccessPortal.Controllers
         // POST: ManageUsers/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task <ActionResult> Create(IFormCollection collection)
         {
             try
             {
-                // TODO: Add insert logic here
+                /*
+                 * Validations needed:
+                 *      Username or email address already exists in the database
+                 *      Email address is a valid address (client-side preferred)
+                 */
 
-                return RedirectToAction("Index");
+                // Make sure the user does not exist in the database already
+                ApplicationUser userByName = await _userManager.FindByEmailAsync(collection["Email"]);
+                ApplicationUser userById = await _userManager.FindByLoginAsync("", collection["Email"]);
+
+                if (userByName != null || userById != null)
+                {
+                    // The specified email address already exists in the database
+                    // TODO: Implement a custom error handler here and redirect back to the form w/ an error
+                    return View();
+                }
+
+                ApplicationUser user = new ApplicationUser(collection["Email"]);
+
+                // Prepare basic profile information
+                user.Email = user.UserName;
+                user.NormalizedEmail = user.Email.ToUpper();
+                user.NormalizedUserName = user.UserName.ToUpper();
+                user.ConcurrencyStamp = new Guid().ToString();
+
+                // Save new user to the database
+                IdentityResult result = await _userManager.CreateAsync(user);
+
+                if (result.Succeeded)
+                {
+                    // TODO: Send welcome email w/ link to set initial password
+                    // TODO: Add a success message to Index
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    // TODO: Raise some kind of error
+                    //return View();
+                    return Content(result.ToString());
+                }
+                
             }
             catch
             {
