@@ -32,9 +32,11 @@ namespace MillimanAccessPortal.Controllers
         }
 
         // GET: ManageUsers/Details/5
-        public ActionResult Details(int id)
+        public async Task<ActionResult> Details(string id)
         {
-            return View();
+            ApplicationUser user = await _userManager.FindByIdAsync(id);
+
+            return View(user);
         }
 
         // GET: ManageUsers/Create
