@@ -4,15 +4,31 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
+using MillimanAccessPortal.Models;
+using MillimanAccessPortal.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace MillimanAccessPortal.Controllers
 {
     public class ManageUsersController : Controller
     {
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public ManageUsersController(
+            UserManager<ApplicationUser> userManager
+            )
+        {
+            _userManager = userManager;
+        }
+
         // GET: ManageUsers
         public ActionResult Index()
         {
-            return View();
+            IQueryable<ApplicationUser> users = _userManager.Users;
+            
+            return View(users);
         }
 
         // GET: ManageUsers/Details/5
