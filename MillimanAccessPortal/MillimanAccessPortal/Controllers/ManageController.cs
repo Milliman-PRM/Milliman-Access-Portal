@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MillimanAccessPortal.Models;
+using MapDbContextLib.Identity;
 using MillimanAccessPortal.Models.ManageViewModels;
 using MillimanAccessPortal.Services;
 

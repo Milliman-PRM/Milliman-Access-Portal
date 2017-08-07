@@ -12,7 +12,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
-using MillimanAccessPortal.Data;
+using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
 
 namespace MillimanAccessPortal.Configurations

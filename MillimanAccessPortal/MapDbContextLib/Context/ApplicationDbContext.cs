@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using MillimanAccessPortal.Models;
+using MapDbContextLib.Identity;
 
-namespace MillimanAccessPortal.Data
+namespace MapDbContextLib.Context
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
@@ -23,6 +23,6 @@ namespace MillimanAccessPortal.Data
             // Add your customizations after calling base.OnModelCreating(builder);
         }
 
-        public DbSet<MillimanAccessPortal.Models.ApplicationUser> ApplicationUser { get; set; }
+        public DbSet<ApplicationUser> ApplicationUser { get; set; }
     }
 }
