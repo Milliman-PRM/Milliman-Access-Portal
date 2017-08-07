@@ -35,6 +35,7 @@ namespace MillimanAccessPortal.Controllers
         {
             ApplicationUser user = await _userManager.FindByIdAsync(id);
 
+            ViewData["isSystemAdmin"] = await user.IsSuperUser(_userManager);
             return View(user);
         }
 

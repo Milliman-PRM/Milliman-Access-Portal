@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace MapDbContextLib.Identity
 {
@@ -15,6 +16,11 @@ namespace MapDbContextLib.Identity
 
         public ApplicationUser(string userName) : base(userName)
         {
+        }
+
+        public async Task<bool> IsSuperUser(UserManager<ApplicationUser> userManager)
+        {
+            return await userManager.IsInRoleAsync(this, "Super User");
         }
     }
 }
