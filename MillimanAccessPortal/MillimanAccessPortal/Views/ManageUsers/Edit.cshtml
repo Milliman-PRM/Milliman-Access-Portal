@@ -35,6 +35,12 @@
             </div>
         </div>
         <div class="form-group">
+            <label for="IsSystemAdmin" class="col-md-2 control-label">System Admin?</label>
+            <div class="checkbox">
+                    @Html.CheckBox("IsSystemAdmin", ViewData["isSystemAdmin"])
+            </div>
+        </div>
+        <div class="form-group">
             <label asp-for="PasswordHash" class="col-md-2 control-label"></label>
             <div class="col-md-10">
                 <input asp-for="PasswordHash" class="form-control" />
