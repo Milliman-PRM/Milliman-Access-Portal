@@ -35,6 +35,7 @@ namespace MillimanAccessPortal.Controllers
         {
             ApplicationUser user = await _userManager.FindByIdAsync(id);
 
+            ViewData["isSystemAdmin"] = await user.IsSuperUser(_userManager);
             return View(user);
         }
 
@@ -103,7 +104,8 @@ namespace MillimanAccessPortal.Controllers
         public async Task<ActionResult> Edit(string id)
         {
             ApplicationUser user = await _userManager.FindByIdAsync(id);
-            
+
+            ViewData["isSystemAdmin"] = await user.IsSuperUser(_userManager);
             return View(user);
         }
 
@@ -116,16 +118,31 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
+                // Process built-in Identity fields
                 user.Email = collection["Email"];
                 user.NormalizedEmail = collection["Email"].ToString().ToUpper();
                 user.LockoutEnabled = Convert.ToBoolean(collection["LockoutEnabled"]);
                 
                 await _userManager.UpdateAsync(user);
+
+                // Process Super User checkbox
+                // The checkbox returns "true,false" or "false,true" if you change the value. The first one is the new value, so we need to grab it.
+                bool IsSuperUser = Convert.ToBoolean(collection["IsSystemAdmin"].ToString().Split(',')[0]);
                 
+                if (IsSuperUser && !(await user.IsSuperUser(_userManager)))
+                {
+                    await _userManager.AddToRoleAsync(user, "Super User");
+                }
+                else if (!IsSuperUser && (await user.IsSuperUser(_userManager)))
+                {
+                    await _userManager.RemoveFromRoleAsync(user, "Super User");
+                }
+
                 return RedirectToAction("Index");
             }
             catch
             {
+                // TODO: Add more robust error handling & display an error message to the user
                 return View(user);
             }
         }
