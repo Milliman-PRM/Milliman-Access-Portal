@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace MillimanAccessPortal.Configurations
@@ -28,17 +29,17 @@ namespace MillimanAccessPortal.Configurations
 
         public static async Task SeedRoles(IServiceProvider serviceProvider)
         {
-            using (var serviceScope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
+            using (IServiceScope serviceScope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
                 var dbContext = serviceScope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                var roleManager = serviceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
 
-                foreach (var role in Roles)
+                foreach (string role in Roles)
                 {
                     if (!await roleManager.RoleExistsAsync(role))
                     {
-                        await roleManager.CreateAsync(new IdentityRole(role));
+                        await roleManager.CreateAsync(new ApplicationRole(role));
                     }
                 }
             }

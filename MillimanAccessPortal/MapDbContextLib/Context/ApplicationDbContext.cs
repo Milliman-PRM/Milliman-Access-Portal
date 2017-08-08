@@ -8,9 +8,10 @@ using MapDbContextLib.Identity;
 
 namespace MapDbContextLib.Context
 {
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, long>
     {
         public DbSet<Client> Client { get; set; }
+        public DbSet<UserAuthorizationToClient> UserRoleForClient { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)

@@ -54,8 +54,8 @@ namespace MillimanAccessPortal
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("MillimanAccessPortal")));
 
-            services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
+            services.AddIdentity<ApplicationUser, ApplicationRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext, long>()
                 .AddDefaultTokenProviders();
 
             services.Configure<IdentityOptions>(options =>
