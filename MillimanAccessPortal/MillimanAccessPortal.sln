@@ -5,7 +5,11 @@ VisualStudioVersion = 15.0.26430.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MillimanAccessPortal", "MillimanAccessPortal\MillimanAccessPortal.csproj", "{87FBC963-6A16-4399-9B50-BEDDD17AD69B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapDbContextLib", "MapDbContextLib\MapDbContextLib.csproj", "{163FEB0A-5083-4D7A-B7B3-A1B2171B4515}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapDbContextLib", "MapDbContextLib\MapDbContextLib.csproj", "{163FEB0A-5083-4D7A-B7B3-A1B2171B4515}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuditLogLib", "AuditLogLib\AuditLogLib.csproj", "{2052F76B-E724-4CB3-BE4C-7318F18E5D44}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuditLogLibTest", "AuditLogLibTest\AuditLogLibTest.csproj", "{0B3B4358-ED7F-4301-B3A7-6571A021C804}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +25,14 @@ Global
 		{163FEB0A-5083-4D7A-B7B3-A1B2171B4515}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{163FEB0A-5083-4D7A-B7B3-A1B2171B4515}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{163FEB0A-5083-4D7A-B7B3-A1B2171B4515}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2052F76B-E724-4CB3-BE4C-7318F18E5D44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2052F76B-E724-4CB3-BE4C-7318F18E5D44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2052F76B-E724-4CB3-BE4C-7318F18E5D44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2052F76B-E724-4CB3-BE4C-7318F18E5D44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B3B4358-ED7F-4301-B3A7-6571A021C804}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B3B4358-ED7F-4301-B3A7-6571A021C804}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B3B4358-ED7F-4301-B3A7-6571A021C804}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B3B4358-ED7F-4301-B3A7-6571A021C804}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
