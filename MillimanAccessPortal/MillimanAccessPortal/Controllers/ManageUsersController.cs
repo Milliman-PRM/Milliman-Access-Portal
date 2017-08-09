@@ -121,7 +121,7 @@ namespace MillimanAccessPortal.Controllers
                 // Process built-in Identity fields
                 user.Email = collection["Email"];
                 user.NormalizedEmail = collection["Email"].ToString().ToUpper();
-                user.LockoutEnabled = Convert.ToBoolean(collection["LockoutEnabled"]);
+                user.LockoutEnabled = Convert.ToBoolean(collection["LockoutEnabled"].ToString().Split(',')[0]);
                 
                 await _userManager.UpdateAsync(user);
 
