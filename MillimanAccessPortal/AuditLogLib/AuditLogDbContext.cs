@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AuditLogLib
 {
     internal class AuditLogDbContext : DbContext
     {
-        []
+        [NotMapped]
         internal static AuditLogDbContext Instance
         {
             get

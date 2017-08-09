@@ -76,6 +76,7 @@ namespace AuditLogLib
                         AuditEvent E = LogEventQueue.Dequeue();
 
                         // TODO persist the event to db
+                        Console.WriteLine(E.EventDetailObject);
                     }
                 }
 

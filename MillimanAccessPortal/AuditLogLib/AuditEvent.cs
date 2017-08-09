@@ -21,11 +21,12 @@ namespace AuditLogLib
             get
             {
                 // TODO deserialize EventDetailJson
-                return null;
+                return EventDetailJson;
             }
             set
             {
                 // TODO serialize to EventDetailJson
+                EventDetailJson = value;
             }
         }
     }
