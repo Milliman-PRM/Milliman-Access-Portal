@@ -7,6 +7,8 @@ namespace AuditLogLib
 {
     internal class AuditEvent
     {
+        internal long Id { get; set; }
+
         internal DateTime TimeStamp { get; set; }
 
         internal string User { get; set; }

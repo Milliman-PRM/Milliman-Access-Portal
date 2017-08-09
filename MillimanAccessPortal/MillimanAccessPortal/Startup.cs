@@ -17,6 +17,7 @@ using MillimanAccessPortal.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using MillimanAccessPortal.Configurations;
+using AuditLogLib;
 
 namespace MillimanAccessPortal
 {
@@ -98,6 +99,7 @@ namespace MillimanAccessPortal
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
+            loggerFactory.AddProvider(new AuditLoggerProvider(new AuditLoggerConfiguration()));
 
             var options = new RewriteOptions()
                .AddRedirectToHttps();

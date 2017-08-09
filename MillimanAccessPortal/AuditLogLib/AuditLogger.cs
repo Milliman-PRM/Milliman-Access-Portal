@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.CompilerServices;
 
 namespace AuditLogLib
 {
@@ -13,10 +15,17 @@ namespace AuditLogLib
         private static Queue<AuditEvent> LogEventQueue = new Queue<AuditEvent>();
         private static Task WorkerTask = null;
         private static object ThreadSafetyLock = new object();
+        private static bool NoStopSignal = true;
+        private AuditLoggerConfiguration Config = null;
 
-        public AuditLogger()
+        public AuditLogger(AuditLoggerConfiguration ConfigArg = null)
         {
-            lock(ThreadSafetyLock)
+            if (ConfigArg == null)
+            {
+                Config = new AuditLoggerConfiguration();
+            }
+
+            lock (ThreadSafetyLock)
             {
                 InstanceCount++;
 
@@ -26,6 +35,7 @@ namespace AuditLogLib
                 }
             }
         }
+
         ~AuditLogger()
         {
             lock(ThreadSafetyLock)
@@ -33,7 +43,8 @@ namespace AuditLogLib
                 InstanceCount--;
                 if (InstanceCount == 0)
                 {
-                    // TODO terminate the task
+                    NoStopSignal = false;
+                    // maybe check WorkerTask.TaskStatus, but it may be unnecessary and could block the calling thread. 
                 }
             }
         }
@@ -51,7 +62,10 @@ namespace AuditLogLib
                 User = "Tom",
             };
 
-            LogEventQueue.Enqueue(NewEvent);
+            lock (ThreadSafetyLock)
+            {
+                LogEventQueue.Enqueue(NewEvent);
+            }
         }
 
         public bool IsEnabled(LogLevel logLevel)
@@ -67,20 +81,28 @@ namespace AuditLogLib
 
         private static void ProcessQueueEvents(object Arg = null)
         {
-            while (true /*while task is not signalled to cancel*/)
+            while (NoStopSignal)
             {
-                using (var db = AuditLogDbContext.Instance)
+                if (LogEventQueue.Count > 0)
                 {
-                    while (LogEventQueue.Count > 0)
+                    using (AuditLogDbContext Db = AuditLogDbContext.Instance)
                     {
-                        AuditEvent E = LogEventQueue.Dequeue();
+                        List<AuditEvent> NewEventsToStore = new List<AuditEvent>();
+                        lock (ThreadSafetyLock)
+                        {
+                            while (LogEventQueue.Count > 0)
+                            {
+                                NewEventsToStore.Add(LogEventQueue.Dequeue());
+                            }
+                        }
 
-                        // TODO persist the event to db
-                        Console.WriteLine(E.EventDetailObject);
+                        Db.AuditEvent.AddRange(NewEventsToStore);
+                        Db.SaveChanges();
                     }
+
                 }
 
-
+                Thread.Sleep(20);
             }
         }
     }

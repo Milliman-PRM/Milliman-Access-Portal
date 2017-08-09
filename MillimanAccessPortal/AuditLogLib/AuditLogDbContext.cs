@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AuditLogLib
@@ -21,9 +22,14 @@ namespace AuditLogLib
             }
         }
 
+        public DbSet<AuditEvent> AuditEvent { get; set; }
+
+        public AuditLogDbContext()
+            : base()
+        {}
         protected AuditLogDbContext(DbContextOptions<AuditLogDbContext> options)
             : base(options)
-        {}
+        { }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -31,6 +37,13 @@ namespace AuditLogLib
             // Customize the ASP.NET Identity model and override the defaults if needed.
             // For example, you can rename the ASP.NET Identity table names and more.
             // Add your customizations after calling base.OnModelCreating(builder);
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder Builder)
+        {
+            // TODO Do something about the type issue here
+            Builder.UseNpgsql("Server=127.0.0.1;Database=MapAuditLog;User Id=postgres;Password=postgres;");
+            return new AuditLogDbContext(Builder.Options);
         }
     }
 }
