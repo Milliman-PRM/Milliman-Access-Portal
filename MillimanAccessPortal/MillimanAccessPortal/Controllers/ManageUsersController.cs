@@ -1,3 +1,9 @@
+/*
+ * CODE OWNERS: Ben Wyatt, Tom Puckett
+ * OBJECTIVE: Provide all application logic for user administration
+ * DEVELOPER NOTES: 
+ */
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

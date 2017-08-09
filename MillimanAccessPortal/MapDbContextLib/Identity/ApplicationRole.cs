@@ -1,4 +1,11 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Tom Puckett, Ben Wyatt
+ * OBJECTIVE: Provide extensions to the base IdentityRole class
+ * DEVELOPER NOTES: When adding a new named role, add a new static property that defines the role name, 
+ *                      then add the property to the NamedRoles array.
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;

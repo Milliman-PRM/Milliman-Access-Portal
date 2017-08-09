@@ -1,4 +1,10 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: Enable granting application users a role for a client
+ * DEVELOPER NOTES: 
+ */
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using MapDbContextLib.Identity;

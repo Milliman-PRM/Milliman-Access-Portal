@@ -1,4 +1,10 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Ben Wyatt
+ * OBJECTIVE: Provide extensions to the base IdentityUser class
+ * DEVELOPER NOTES: 
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;

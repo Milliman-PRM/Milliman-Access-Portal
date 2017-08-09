@@ -1,4 +1,10 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Ben Wyatt, Michael Reisz
+ * OBJECTIVE: Configure application runtime environment at startup
+ * DEVELOPER NOTES: 
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
