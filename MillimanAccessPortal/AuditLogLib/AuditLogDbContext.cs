@@ -11,13 +11,21 @@ namespace AuditLogLib
     internal class AuditLogDbContext : DbContext
     {
         [NotMapped]
+        internal static string ConnectionString = string.Empty;
+
+        [NotMapped]
         internal static AuditLogDbContext Instance
         {
             get
             {
                 // TODO get the connection string from configuration
+                if (ConnectionString == string.Empty)
+                {
+                    ConnectionString = "Server=127.0.0.1;Database=MapAuditLog;User Id=postgres;Password=postgres;";
+                }
+
                 var builder = new DbContextOptionsBuilder<AuditLogDbContext>();
-                builder.UseNpgsql("Server=127.0.0.1;Database=MapAuditLog;User Id=postgres;Password=postgres;");
+                builder.UseNpgsql(ConnectionString);
                 return new AuditLogDbContext(builder.Options);
             }
         }
@@ -26,7 +34,12 @@ namespace AuditLogLib
 
         public AuditLogDbContext()
             : base()
-        {}
+        {
+            // This constructor works in combination with the OnConfiguring override to establish the connection
+            // When te application uses this provider through when building a migration, or if the application instantiates with no argument. 
+            // TODO do this better
+            ConnectionString = "Server=127.0.0.1;Database=MapAuditLog;User Id=postgres;Password=postgres;";
+        }
         protected AuditLogDbContext(DbContextOptions<AuditLogDbContext> options)
             : base(options)
         { }
@@ -41,9 +54,7 @@ namespace AuditLogLib
 
         protected override void OnConfiguring(DbContextOptionsBuilder Builder)
         {
-            // TODO Do something about the type issue here
-            Builder.UseNpgsql("Server=127.0.0.1;Database=MapAuditLog;User Id=postgres;Password=postgres;");
-            return new AuditLogDbContext(Builder.Options);
+            Builder.UseNpgsql(ConnectionString);
         }
     }
 }

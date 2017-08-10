@@ -1,34 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Newtonsoft.Json;
 
 namespace AuditLogLib
 {
-    internal class AuditEvent
+    public class AuditEvent
     {
-        internal long Id { get; set; }
+        public long Id { get; set; }
 
-        internal DateTime TimeStamp { get; set; }
+        public DateTime TimeStamp { get; set; }
 
-        internal string User { get; set; }
+        public string User { get; set; }
 
-        internal string EventType { get; set; }
+        public string SourceApplication { get; set; }
 
-        private string EventDetailJson { get; set; }
+        public string EventType { get; set; }
+
+        [Column(TypeName = "jsonb")]
+        public string EventDetailJsonb { get; set; }
 
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
-        internal string EventDetailObject   // for serialization to jsonb
+        internal object EventDetailObject   // for serialization to jsonb
         {
             get
             {
                 // TODO deserialize EventDetailJson
-                return EventDetailJson;
+                return JsonConvert.DeserializeObject(EventDetailJsonb);
             }
             set
             {
                 // TODO serialize to EventDetailJson
-                EventDetailJson = value;
+                EventDetailJsonb = JsonConvert.SerializeObject(value);
             }
         }
     }

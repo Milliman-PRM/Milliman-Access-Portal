@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +13,7 @@ namespace AuditLogLib
     public class AuditLogger : ILogger
     {
         private static int InstanceCount = 0;
-        private static Queue<AuditEvent> LogEventQueue = new Queue<AuditEvent>();
+        private static ConcurrentQueue<AuditEvent> LogEventQueue = new ConcurrentQueue<AuditEvent>();
         private static Task WorkerTask = null;
         private static object ThreadSafetyLock = new object();
         private static bool NoStopSignal = true;
@@ -31,6 +32,7 @@ namespace AuditLogLib
 
                 if (WorkerTask == null || WorkerTask.Status != TaskStatus.Running)
                 {
+                    NoStopSignal = true;
                     WorkerTask = Task.Run(() => ProcessQueueEvents());
                 }
             }
@@ -43,29 +45,26 @@ namespace AuditLogLib
                 InstanceCount--;
                 if (InstanceCount == 0)
                 {
+                    // Signal the worker thread to gracefully stop asap.
                     NoStopSignal = false;
-                    // maybe check WorkerTask.TaskStatus, but it may be unnecessary and could block the calling thread. 
+                    // WorkerTask.Wait(); // ? maybe check WorkerTask.TaskStatus, but it may be unnecessary.  Don't block the calling thread. 
                 }
             }
         }
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception = null, Func<TState, Exception, string> formatter = null)
         {
-            if (state.GetType() != typeof(AuditLogLib.AuditEvent))
-            {
-                //throw new Exception("AuditLogger.Log called with unexpected state object type");
-            }
+            if (eventId.Id >= AuditEventId.AuditEventBaseId || eventId.Id > AuditEventId.AuditEventMaxId)
+                return;
+
             AuditEvent NewEvent = new AuditEvent
             {
-                EventDetailObject = state as string,
-                EventType = "some type",
+                EventDetailObject = state,
+                EventType = eventId.Name,
                 TimeStamp = DateTime.Now,
-                User = "Tom",
+                User = "Tom",  // TODO Get the UserId from somewhere
             };
 
-            lock (ThreadSafetyLock)
-            {
-                LogEventQueue.Enqueue(NewEvent);
-            }
+            LogEventQueue.Enqueue(NewEvent);
         }
 
         public bool IsEnabled(LogLevel logLevel)
@@ -73,12 +72,22 @@ namespace AuditLogLib
             return true;
         }
 
+        /// <summary>
+        /// Don't use this until it gets implemented
+        /// </summary>
+        /// <typeparam name="TState"></typeparam>
+        /// <param name="state"></param>
+        /// <returns></returns>
         public IDisposable BeginScope<TState>(TState state)
         {
-            // TODO not sure what is expected here
+            // TODO not sure what is expected here.  Implement and adjust the method comment. 
             return null;
         }
 
+        /// <summary>
+        /// Worker thread main entry point
+        /// </summary>
+        /// <param name="Arg"></param>
         private static void ProcessQueueEvents(object Arg = null)
         {
             while (NoStopSignal)
@@ -88,12 +97,11 @@ namespace AuditLogLib
                     using (AuditLogDbContext Db = AuditLogDbContext.Instance)
                     {
                         List<AuditEvent> NewEventsToStore = new List<AuditEvent>();
-                        lock (ThreadSafetyLock)
+
+                        AuditEvent NextEvent;
+                        while (LogEventQueue.TryDequeue(out NextEvent))
                         {
-                            while (LogEventQueue.Count > 0)
-                            {
-                                NewEventsToStore.Add(LogEventQueue.Dequeue());
-                            }
+                            NewEventsToStore.Add(NextEvent);
                         }
 
                         Db.AuditEvent.AddRange(NewEventsToStore);
