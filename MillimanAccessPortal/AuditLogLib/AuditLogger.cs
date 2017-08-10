@@ -7,6 +7,7 @@ using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using System.Runtime.CompilerServices;
+using System.Reflection;
 
 namespace AuditLogLib
 {
@@ -61,8 +62,21 @@ namespace AuditLogLib
                 EventDetailObject = state,
                 EventType = eventId.Name,
                 TimeStamp = DateTime.Now,
-                User = "Tom",  // TODO Get the UserId from somewhere
             };
+
+            // TODO This code is experimental and not done.  I am fishing for the property names in the anonymous object "state".  
+            Type t = state.GetType();
+            var p = t.GetTypeInfo();
+            foreach (var y in p.DeclaredProperties)
+            {
+                if (y.Name == "UserName")
+                {
+                    //NewEvent.User = y.GetValue(state, null);
+                }
+            }
+
+    dynamic x = (dynamic)state;
+            
 
             LogEventQueue.Enqueue(NewEvent);
         }

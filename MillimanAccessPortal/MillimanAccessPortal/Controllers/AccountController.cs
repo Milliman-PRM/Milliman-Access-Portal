@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using MapDbContextLib.Identity;
 using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Services;
+using AuditLogLib;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -69,7 +70,13 @@ namespace MillimanAccessPortal.Controllers
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation(1, "User logged in.");
+                    object LogObject = new
+                    {
+                        User = model.Email,
+                        Description = "User logged in successfully",
+                    };
+                    _logger.Log(LogLevel.Information, AuditEventId.LoginSuccess, LogObject, null, null);
+                    //_logger.LogInformation(AuditEventId.LoginSuccess, "User logged in.");
                     return RedirectToLocal(returnUrl);
                 }
                 if (result.RequiresTwoFactor)
