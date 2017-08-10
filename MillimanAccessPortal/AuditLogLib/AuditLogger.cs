@@ -53,7 +53,7 @@ namespace AuditLogLib
         }
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception = null, Func<TState, Exception, string> formatter = null)
         {
-            if (eventId.Id >= AuditEventId.AuditEventBaseId || eventId.Id > AuditEventId.AuditEventMaxId)
+            if (eventId.Id < AuditEventId.AuditEventBaseId || eventId.Id > AuditEventId.AuditEventMaxId)
                 return;
 
             AuditEvent NewEvent = new AuditEvent
