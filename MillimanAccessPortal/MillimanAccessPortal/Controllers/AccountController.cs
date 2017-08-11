@@ -70,12 +70,9 @@ namespace MillimanAccessPortal.Controllers
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
-                    object LogObject = new
-                    {
-                        User = model.Email,
-                        Description = "User logged in successfully",
-                    };
-                    _logger.Log(LogLevel.Information, AuditEventId.LoginSuccess, LogObject, null, null);
+                    AuditEvent LogObject = AuditEvent.New("", "User Logged in successfully");
+                    // The following is ugly due to need to provide the formatter.  Figure it out. 
+                    _logger.Log(LogLevel.Information, AuditEventId.LoginSuccess, LogObject, null, (a, b) => { return ""; });
                     //_logger.LogInformation(AuditEventId.LoginSuccess, "User logged in.");
                     return RedirectToLocal(returnUrl);
                 }

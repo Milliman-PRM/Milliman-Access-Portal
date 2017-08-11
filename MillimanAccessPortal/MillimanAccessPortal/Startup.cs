@@ -99,7 +99,7 @@ namespace MillimanAccessPortal
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
-            loggerFactory.AddProvider(new AuditLoggerProvider(new AuditLoggerConfiguration()));
+            loggerFactory.AddProvider(new AuditLoggerProvider(new AuditLoggerConfiguration { ConnectionString = Configuration.GetConnectionString("AuditLogConnectionString") }));
 
             var options = new RewriteOptions()
                .AddRedirectToHttps();

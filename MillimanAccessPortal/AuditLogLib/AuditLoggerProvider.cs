@@ -11,12 +11,13 @@ namespace AuditLogLib
 
         public AuditLoggerProvider(AuditLoggerConfiguration ConfigArg)
         {
+            // TODO Think about whether any configurable behaviors should be incorporated based on content of ConfigArg
             Config = ConfigArg;
         }
 
         public ILogger CreateLogger(string CategoryName)
         {
-            return new AuditLogger();
+            return new AuditLogger(Config);
         }
 
         public void Dispose()

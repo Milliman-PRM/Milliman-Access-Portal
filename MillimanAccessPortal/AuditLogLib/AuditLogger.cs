@@ -22,10 +22,7 @@ namespace AuditLogLib
 
         public AuditLogger(AuditLoggerConfiguration ConfigArg = null)
         {
-            if (ConfigArg == null)
-            {
-                Config = new AuditLoggerConfiguration();
-            }
+            Config = ConfigArg != null ? ConfigArg : new AuditLoggerConfiguration(); 
 
             lock (ThreadSafetyLock)
             {
@@ -34,7 +31,7 @@ namespace AuditLogLib
                 if (WorkerTask == null || WorkerTask.Status != TaskStatus.Running)
                 {
                     NoStopSignal = true;
-                    WorkerTask = Task.Run(() => ProcessQueueEvents());
+                    WorkerTask = Task.Run(() => ProcessQueueEvents(Config));
                 }
             }
         }
@@ -52,32 +49,63 @@ namespace AuditLogLib
                 }
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TState"></typeparam>
+        /// <param name="logLevel">Provide one of the enum values</param>
+        /// <param name="eventId">Intended to receive one of the static properties of class AuditEventId</param>
+        /// <param name="state">Object of any type, but should follow conventions</param>
+        /// <param name="exception">Use null if no exception is being documented</param>
+        /// <param name="formatter">If provided, should be compatible with state argument</param>
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception = null, Func<TState, Exception, string> formatter = null)
         {
             if (eventId.Id < AuditEventId.AuditEventBaseId || eventId.Id > AuditEventId.AuditEventMaxId)
                 return;
 
-            AuditEvent NewEvent = new AuditEvent
-            {
-                EventDetailObject = state,
-                EventType = eventId.Name,
-                TimeStamp = DateTime.Now,
-            };
+            AuditEvent NewEvent = null;
 
-            // TODO This code is experimental and not done.  I am fishing for the property names in the anonymous object "state".  
-            Type t = state.GetType();
-            var p = t.GetTypeInfo();
-            foreach (var y in p.DeclaredProperties)
+            if (state.GetType() == typeof(AuditEvent))
             {
-                if (y.Name == "UserName")
+                NewEvent = state as AuditEvent;
+                NewEvent.EventType = eventId.Name;
+            }
+            else
+            {
+                NewEvent = new AuditEvent
                 {
-                    //NewEvent.User = y.GetValue(state, null);
+                    EventType = eventId.Name,
+                    TimeStamp = DateTime.Now,
+                };
+
+                // TODO This code is experimental and not done.  I am fishing for the property names in the anonymous object "state".  
+                Type t = state.GetType();
+                var p = t.GetTypeInfo();
+                foreach (var Property in p.DeclaredProperties)
+                {
+                    switch (Property.Name)
+                    {
+                        case "UserName":
+                            NewEvent.User = Property.GetValue(state) as string;
+                            break;
+                        case "Source":
+                            NewEvent.Source = Property.GetValue(state) as string;
+                            break;
+                        case "Detail":
+                            NewEvent.EventDetailObject = Property.GetValue(state);
+                            break;
+                        case "Summary":
+                            NewEvent.Summary = Property.GetValue(state) as string;
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
 
-    dynamic x = (dynamic)state;
-            
-
+            // Some day instead of an in-process queue, switch to use of MSMQ and a system service to do persistence that the worker thread does now.
+            // The issue here is that if the process is terminated or crashes, any unprocessed log messages in the queue could be lost.  
             LogEventQueue.Enqueue(NewEvent);
         }
 
@@ -104,11 +132,13 @@ namespace AuditLogLib
         /// <param name="Arg"></param>
         private static void ProcessQueueEvents(object Arg = null)
         {
+            AuditLoggerConfiguration Config = Arg as AuditLoggerConfiguration;
+
             while (NoStopSignal)
             {
                 if (LogEventQueue.Count > 0)
                 {
-                    using (AuditLogDbContext Db = AuditLogDbContext.Instance)
+                    using (AuditLogDbContext Db = AuditLogDbContext.Instance(Config.ConnectionString))
                     {
                         List<AuditEvent> NewEventsToStore = new List<AuditEvent>();
 
