@@ -149,10 +149,7 @@ namespace AuditLogLib
                         }
 
                         Db.AuditEvent.AddRange(NewEventsToStore);
-                        DateTime Start = DateTime.Now;
                         Db.SaveChanges();
-                        TimeSpan Duration = DateTime.Now - Start;
-                        Console.Out.WriteLine("Save took " + Duration);
                     }
                 }
 
