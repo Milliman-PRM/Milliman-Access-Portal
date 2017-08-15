@@ -11,18 +11,16 @@ namespace AuditLogLib
 {
     internal class AuditLogDbContext : DbContext
     {
-        internal static string GetConfiguredConnectionString(string ConnectionStringName = "AuditLogConnectionString")
-        {
-            // TODO Figure out how to get the connection string from configuration
-            return "Server=127.0.0.1;Database=MapAuditLog;User Id=postgres;Password=postgres;";
-        }
-
+        /// <summary>
+        /// A convenience method allowing the user simplest access to an instance without the caller going through the contextbuilder for each instantiation
+        /// </summary>
+        /// <param name="ConnectionString">If not provided, a configured value (or default) is used</param>
+        /// <returns></returns>
         internal static AuditLogDbContext Instance(string ConnectionString = "")
         {
             if (string.IsNullOrEmpty(ConnectionString))
             {
-                // use default
-                ConnectionString = GetConfiguredConnectionString();
+                ConnectionString = GetConfiguredConnectionString();  // I could pass a connection string name to get a designated configured value
             }
 
             var builder = new DbContextOptionsBuilder<AuditLogDbContext>();
@@ -58,5 +56,17 @@ namespace AuditLogLib
             //Builder.UseNpgsql(GetConfiguredConnectionString()); // Fix this
             Builder.UseNpgsql(Extension.ConnectionString); // Fix this
         }
+
+        /// <summary>
+        /// Has responsibility for extracting the proper ConfigurationString for this data context
+        /// </summary>
+        /// <param name="ConnectionStringName"></param>
+        /// <returns></returns>
+        internal static string GetConfiguredConnectionString(string ConnectionStringName = "AuditLogConnectionString")
+        {
+            // TODO Figure out how to get the connection string from configuration
+            return "Server=127.0.0.1;Database=MapAuditLog;User Id=postgres;Password=postgres;";
+        }
+
     }
 }

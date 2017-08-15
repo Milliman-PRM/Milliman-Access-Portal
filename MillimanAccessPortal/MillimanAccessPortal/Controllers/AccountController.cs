@@ -63,6 +63,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
+            AuditLogger AuditStore = new AuditLogger(new AuditLoggerConfiguration { ConnectionString = "" });
             if (ModelState.IsValid)
             {
                 // This doesn't count login failures towards account lockout
@@ -70,9 +71,8 @@ namespace MillimanAccessPortal.Controllers
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
-                    AuditEvent LogObject = AuditEvent.New("", "User Logged in successfully");
-                    // The following is ugly due to need to provide the formatter.  Figure it out. 
-                    _logger.Log(LogLevel.Information, AuditEventId.LoginSuccess, LogObject, null, (a, b) => { return ""; });
+                    AuditEvent LogObject = AuditEvent.New("Map Account Controller", "User login successful", null, model.Email);
+                    AuditStore.Log(LogLevel.Information, AuditEventId.LoginSuccess, LogObject);
                     //_logger.LogInformation(AuditEventId.LoginSuccess, "User logged in.");
                     return RedirectToLocal(returnUrl);
                 }
@@ -87,6 +87,9 @@ namespace MillimanAccessPortal.Controllers
                 }
                 else
                 {
+                    AuditEvent LogObject = AuditEvent.New("Map Account Controller", "User login failed", null, model.Email);
+                    AuditStore.Log(LogLevel.Warning, AuditEventId.LoginFailure, LogObject);
+
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                     return View(model);
                 }

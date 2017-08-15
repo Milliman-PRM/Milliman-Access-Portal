@@ -12,25 +12,29 @@ namespace AuditLogLib
         internal static readonly int AuditEventMaxId = AuditEventBaseId + 999;
 
         // These are the members for use by users of AuditLogger.Log()
-        public static readonly EventId Unspecified = CreateNew(AuditEventBaseId, "Unspecified");
-        public static readonly EventId LoginSuccess = CreateNew(AuditEventBaseId + 1, "Login Success");
-        public static readonly EventId LoginFailure = CreateNew(AuditEventBaseId + 2, "Login Failure");
+        public static readonly AuditEventId Unspecified = new AuditEventId(AuditEventBaseId, "Unspecified");
+        public static readonly AuditEventId LoginSuccess = new AuditEventId(AuditEventBaseId + 1, "Login Success");
+        public static readonly AuditEventId LoginFailure = new AuditEventId(AuditEventBaseId + 2, "Login Failure");
 
-
-        /// <summary>
-        /// Internal convenience method to initialize members with bounds checking on Id
-        /// </summary>
-        /// <param name="Id"></param>
-        /// <param name="Name"></param>
-        /// <returns></returns>
-        private static EventId CreateNew(int Id, string Name)
-        {          
-            if (Id < AuditEventBaseId || Id > AuditEventMaxId)
-            {
-                throw new ArgumentOutOfRangeException("Tried to create an AuditEventId object with invalid Id");
-            }
-
-            return new EventId(Id, Name);
+        public AuditEventId(int id, string name = "")
+        {
+            Id = id;
+            Name = name;
         }
+
+        public int Id { get; }
+        public string Name { get; }
+
+        public override string ToString()
+        {
+            return Name;
+        }
+
+        public static implicit operator AuditEventId(int i)
+        {
+            return new AuditEventId(i);
+        }
+
+
     }
 }
