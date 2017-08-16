@@ -5,6 +5,7 @@
  */
 
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 
 namespace MapDbContextLib.Context
 {
@@ -21,5 +22,11 @@ namespace MapDbContextLib.Context
         [ForeignKey("RootContentItem")]
         public long RootContentItemId { get; set; }
         public RootContentItem RootContentItem { get; set; }
+
+        /// <summary>
+        /// This can't be a foreign key due to use of collection type
+        /// </summary>
+        public List<long> SelectedHierarchyFieldValueList { get; set; }
+
     }
 }

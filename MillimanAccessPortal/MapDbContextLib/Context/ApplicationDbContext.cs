@@ -16,7 +16,6 @@ namespace MapDbContextLib.Context
         public DbSet<ContentItemUserGroup> ContentItemUserGroup { get; set; }
         public DbSet<ContentInstance> ContentInstance { get; set; }
         public DbSet<RootContentItem> RootContentItem { get; set; }
-        public DbSet<SelectedHierarchyValue> SelectedHierarchyValue { get; set; }
         public DbSet<HierarchyField> HierarchyField { get; set; }
         public DbSet<HierarchyFieldValue> HierarchyFieldValue { get; set; }
 
