@@ -5,6 +5,7 @@
  */
 
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 
 namespace MapDbContextLib.Context
 {
@@ -12,13 +13,13 @@ namespace MapDbContextLib.Context
     {
         public long Id { get; set; }
 
-        public string ContentType { get; set; }
-
-        [ForeignKey("OwningClient")]
-        public long ClientId { get; set; }
-        public Client OwningClient { get; set; }
-
         public string ContentName { get; set; }
+
+        [ForeignKey("ContentType")]
+        public long ContentTypeId { get; set; }
+        public ContentType ContentType { get; set; }
+
+        public List<long> ClientIdList { get; set; }
 
     }
 }
