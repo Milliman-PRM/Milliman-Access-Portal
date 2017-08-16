@@ -1,3 +1,9 @@
+/*
+ * CODE OWNERS: Ben Wyatt, Tom Puckett
+ * OBJECTIVE: Provide all application logic for user administration
+ * DEVELOPER NOTES: 
+ */
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,7 +41,7 @@ namespace MillimanAccessPortal.Controllers
         {
             ApplicationUser user = await _userManager.FindByIdAsync(id);
 
-            ViewData["isSystemAdmin"] = await user.IsSuperUser(_userManager);
+            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(user, ApplicationRole.SuperUser);
             return View(user);
         }
 
@@ -105,7 +111,7 @@ namespace MillimanAccessPortal.Controllers
         {
             ApplicationUser user = await _userManager.FindByIdAsync(id);
 
-            ViewData["isSystemAdmin"] = await user.IsSuperUser(_userManager);
+            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(user, ApplicationRole.SuperUser);
             return View(user);
         }
 
@@ -121,7 +127,7 @@ namespace MillimanAccessPortal.Controllers
                 // Process built-in Identity fields
                 user.Email = collection["Email"];
                 user.NormalizedEmail = collection["Email"].ToString().ToUpper();
-                user.LockoutEnabled = Convert.ToBoolean(collection["LockoutEnabled"]);
+                user.LockoutEnabled = Convert.ToBoolean(collection["LockoutEnabled"].ToString().Split(',')[0]);
                 
                 await _userManager.UpdateAsync(user);
 
@@ -129,13 +135,13 @@ namespace MillimanAccessPortal.Controllers
                 // The checkbox returns "true,false" or "false,true" if you change the value. The first one is the new value, so we need to grab it.
                 bool IsSuperUser = Convert.ToBoolean(collection["IsSystemAdmin"].ToString().Split(',')[0]);
                 
-                if (IsSuperUser && !(await user.IsSuperUser(_userManager)))
+                if (IsSuperUser && !(await _userManager.IsInRoleAsync(user, ApplicationRole.SuperUser)))
                 {
-                    await _userManager.AddToRoleAsync(user, "Super User");
+                    await _userManager.AddToRoleAsync(user, ApplicationRole.SuperUser);
                 }
-                else if (!IsSuperUser && (await user.IsSuperUser(_userManager)))
+                else if (!IsSuperUser && (await _userManager.IsInRoleAsync(user, ApplicationRole.SuperUser)))
                 {
-                    await _userManager.RemoveFromRoleAsync(user, "Super User");
+                    await _userManager.RemoveFromRoleAsync(user, ApplicationRole.SuperUser);
                 }
 
                 return RedirectToAction("Index");
