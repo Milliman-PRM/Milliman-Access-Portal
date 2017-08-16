@@ -51,10 +51,13 @@ namespace AuditLogLib
 
         protected override void OnConfiguring(DbContextOptionsBuilder Builder)
         {
+            /*
+             * This works when the context has been referenced by dependency injection but for migration purposes that does not happen
             Microsoft.EntityFrameworkCore.Infrastructure.Internal.NpgsqlOptionsExtension Extension = 
                 Builder.Options.Extensions.First(x => x.GetType() == typeof(Microsoft.EntityFrameworkCore.Infrastructure.Internal.NpgsqlOptionsExtension)) as Microsoft.EntityFrameworkCore.Infrastructure.Internal.NpgsqlOptionsExtension;
-            //Builder.UseNpgsql(GetConfiguredConnectionString()); // Fix this
             Builder.UseNpgsql(Extension.ConnectionString); // Fix this
+            */
+            Builder.UseNpgsql(GetConfiguredConnectionString());
         }
 
         /// <summary>
