@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using MapDbContextLib.Identity;
 using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Services;
+using AuditLogLib;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -62,6 +63,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
+            AuditLogger AuditStore = new AuditLogger(new AuditLoggerConfiguration { ConnectionString = "" });
             if (ModelState.IsValid)
             {
                 // This doesn't count login failures towards account lockout
@@ -69,7 +71,9 @@ namespace MillimanAccessPortal.Controllers
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation(1, "User logged in.");
+                    AuditEvent LogObject = AuditEvent.New("Map Account Controller", "User login successful", null, model.Email);
+                    AuditStore.Log(LogLevel.Information, AuditEventId.LoginSuccess, LogObject);
+                    //_logger.LogInformation(AuditEventId.LoginSuccess, "User logged in.");
                     return RedirectToLocal(returnUrl);
                 }
                 if (result.RequiresTwoFactor)
@@ -83,6 +87,9 @@ namespace MillimanAccessPortal.Controllers
                 }
                 else
                 {
+                    AuditEvent LogObject = AuditEvent.New("Map Account Controller", "User login failed", null, model.Email);
+                    AuditStore.Log(LogLevel.Warning, AuditEventId.LoginFailure, LogObject);
+
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                     return View(model);
                 }

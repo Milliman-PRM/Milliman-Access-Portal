@@ -22,6 +22,7 @@ using MapDbContextLib.Identity;
 using MillimanAccessPortal.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using AuditLogLib;
 
 namespace MillimanAccessPortal
 {
