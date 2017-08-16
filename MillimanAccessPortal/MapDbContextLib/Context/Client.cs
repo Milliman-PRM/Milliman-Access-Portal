@@ -1,10 +1,9 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: Data model for the Client entity
+ * OBJECTIVE: An entity representing a Client organization
  * DEVELOPER NOTES: 
  */
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 

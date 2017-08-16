@@ -12,11 +12,22 @@ namespace MapDbContextLib.Context
     {
         public DbSet<Client> Client { get; set; }
         public DbSet<UserAuthorizationToClient> UserRoleForClient { get; set; }
+        public DbSet<UserInContentItemUserGroup> UserRoleForContentItemUserGroup { get; set; }
+        public DbSet<ContentItemUserGroup> ContentItemUserGroup { get; set; }
+        public DbSet<ContentInstance> ContentInstance { get; set; }
+        public DbSet<RootContentItem> RootContentItem { get; set; }
+        public DbSet<SelectedHierarchyValue> SelectedHierarchyValue { get; set; }
+        public DbSet<HierarchyField> HierarchyField { get; set; }
+        public DbSet<HierarchyFieldValue> HierarchyFieldValue { get; set; }
+
+        // Alteration of Identity entities
+        public DbSet<ApplicationUser> ApplicationUser { get; set; }
+        public DbSet<ApplicationRole> ApplicationRole { get; set; }
+
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
-        {
-        }
+        {}
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -26,6 +37,5 @@ namespace MapDbContextLib.Context
             // Add your customizations after calling base.OnModelCreating(builder);
         }
 
-        public DbSet<ApplicationUser> ApplicationUser { get; set; }
     }
 }
