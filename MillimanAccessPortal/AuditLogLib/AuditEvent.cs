@@ -10,6 +10,11 @@ namespace AuditLogLib
 {
     public class AuditEvent
     {
+        public AuditEvent()
+        {
+            TimeStamp = DateTime.Now;
+        }
+
         /// <summary>
         /// Convenience method for AuditLogger.Log() callers to construct an AuditEvent object to pass as the state argument
         /// </summary>

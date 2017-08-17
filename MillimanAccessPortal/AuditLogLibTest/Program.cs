@@ -19,6 +19,7 @@ namespace AuditLogLibTest
             {
                 object DetailObj = new
                 {
+                    // Arbitrary object structure is supported.  Typed class instances should be fine too.  
                     String1 = "xyz",  // serializes as string
                     Array1 = new int[] { 1, 2, 3 },  // serializes as array of number
                     Object1 = new  // serializes as object of:

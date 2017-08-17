@@ -11,18 +11,16 @@ namespace AuditLogLib
 {
     internal class AuditLogDbContext : DbContext
     {
-        internal static string GetConfiguredConnectionString(string ConnectionStringName = "AuditLogConnectionString")
-        {
-            // TODO Figure out how to get the connection string from configuration
-            return "Server=127.0.0.1;Database=MapAuditLog;User Id=postgres;Password=postgres;";
-        }
-
+        /// <summary>
+        /// A convenience method allowing the user simplest access to an instance without the caller going through the contextbuilder for each instantiation
+        /// </summary>
+        /// <param name="ConnectionString">If not provided, a configured value (or default) is used</param>
+        /// <returns></returns>
         internal static AuditLogDbContext Instance(string ConnectionString = "")
         {
             if (string.IsNullOrEmpty(ConnectionString))
             {
-                // use default
-                ConnectionString = GetConfiguredConnectionString();
+                ConnectionString = GetConfiguredConnectionString();  // I could pass a connection string name to get a designated configured value
             }
 
             var builder = new DbContextOptionsBuilder<AuditLogDbContext>();
@@ -53,10 +51,30 @@ namespace AuditLogLib
 
         protected override void OnConfiguring(DbContextOptionsBuilder Builder)
         {
-            Microsoft.EntityFrameworkCore.Infrastructure.Internal.NpgsqlOptionsExtension Extension = 
-                Builder.Options.Extensions.First(x => x.GetType() == typeof(Microsoft.EntityFrameworkCore.Infrastructure.Internal.NpgsqlOptionsExtension)) as Microsoft.EntityFrameworkCore.Infrastructure.Internal.NpgsqlOptionsExtension;
-            //Builder.UseNpgsql(GetConfiguredConnectionString()); // Fix this
-            Builder.UseNpgsql(Extension.ConnectionString); // Fix this
+            if (Builder.Options.Extensions.Any(e => e.GetType() == typeof(Microsoft.EntityFrameworkCore.Infrastructure.Internal.NpgsqlOptionsExtension)))
+            {
+                // This block supports the use of a connection string provided through dependency injection
+                Microsoft.EntityFrameworkCore.Infrastructure.Internal.NpgsqlOptionsExtension Extension =
+                    Builder.Options.Extensions.First(x => x.GetType() == typeof(Microsoft.EntityFrameworkCore.Infrastructure.Internal.NpgsqlOptionsExtension)) as Microsoft.EntityFrameworkCore.Infrastructure.Internal.NpgsqlOptionsExtension;
+                Builder.UseNpgsql(Extension.ConnectionString);
+            }
+            else
+            {
+                // This supports migration updates when no connection string has been provided through dependency injection
+                Builder.UseNpgsql(GetConfiguredConnectionString());
+            }
         }
+
+        /// <summary>
+        /// Has responsibility for extracting the proper ConfigurationString for this data context
+        /// </summary>
+        /// <param name="ConnectionStringName"></param>
+        /// <returns></returns>
+        internal static string GetConfiguredConnectionString(string ConnectionStringName = "AuditLogConnectionString")
+        {
+            // TODO Figure out how to get the connection string from configuration
+            return "Server=127.0.0.1;Database=MapAuditLog;User Id=postgres;Password=postgres;";
+        }
+
     }
 }

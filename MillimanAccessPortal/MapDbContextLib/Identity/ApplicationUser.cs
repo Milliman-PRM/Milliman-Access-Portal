@@ -1,4 +1,10 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Ben Wyatt
+ * OBJECTIVE: Provide extensions to the base IdentityUser class
+ * DEVELOPER NOTES: 
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,10 +25,6 @@ namespace MapDbContextLib.Identity
             // The base class does not have a constructor taking an argument.  
             base.UserName = userName;
         }
-
-        public async Task<bool> IsSuperUser(UserManager<ApplicationUser> userManager)
-        {
-            return await userManager.IsInRoleAsync(this, "Super User");
-        }
+        
     }
 }

@@ -1,4 +1,10 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Ben Wyatt, Michael Reisz
+ * OBJECTIVE: Configure application runtime environment at startup
+ * DEVELOPER NOTES: 
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,7 +22,6 @@ using MapDbContextLib.Identity;
 using MillimanAccessPortal.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
-using MillimanAccessPortal.Configurations;
 using AuditLogLib;
 
 namespace MillimanAccessPortal
@@ -99,7 +104,6 @@ namespace MillimanAccessPortal
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
-            loggerFactory.AddProvider(new AuditLoggerProvider(new AuditLoggerConfiguration { ConnectionString = Configuration.GetConnectionString("AuditLogConnectionString") }));
 
             var options = new RewriteOptions()
                .AddRedirectToHttps();
@@ -122,7 +126,7 @@ namespace MillimanAccessPortal
             app.UseIdentity();
 
             // Populate Identity roles in the database
-            RolesData.SeedRoles(app.ApplicationServices).Wait();
+            ApplicationRole.SeedRoles(app.ApplicationServices).Wait();
 
             // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
 
