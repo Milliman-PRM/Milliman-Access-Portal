@@ -1,6 +1,8 @@
 @echo off
+
+REM Required environment variables: GIT_BRANCH, EPHI_USERNAME, EPHI_PASSWORD
+
 SETLOCAL ENABLEDELAYEDEXPANSION
-SET GIT_BRANCH=AddPublishProfile_CI
 SET publishTarget=d:\installedApplications\MAP_CI\%git_branch%
 SET AppPool=MAP_CI_%git_branch%
 
