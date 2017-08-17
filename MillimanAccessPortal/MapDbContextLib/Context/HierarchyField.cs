@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: 
  */
 
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Collections.Generic;
 
@@ -13,8 +14,10 @@ namespace MapDbContextLib.Context
     {
         public long Id { get; set; }
 
+        [Required]
         public List<string> FieldNameList { get; set; }
 
+        [Required]
         public int HierarchyLevel { get; set; }
 
         [ForeignKey("RootContentItem")]

@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: 
  */
 
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Collections.Generic;
 
@@ -11,15 +12,23 @@ namespace MapDbContextLib.Context
 {
     public class RootContentItem
     {
+        [Key]
         public long Id { get; set; }
 
+        [Required]
         public string ContentName { get; set; }
 
         [ForeignKey("ContentType")]
+        [Required]
         public long ContentTypeId { get; set; }
         public ContentType ContentType { get; set; }
 
+        [Required]
         public List<long> ClientIdList { get; set; }
+
+        [Column(TypeName ="jsonb")]
+        // [Required] This causes a problem with migration database update
+        public string TypeSpecificDetail { get; set; }
 
     }
 }

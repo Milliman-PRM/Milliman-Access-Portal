@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: 
  */
 
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Collections.Generic;
 
@@ -13,7 +14,11 @@ namespace MapDbContextLib.Context
     {
         public long Id { get; set; }
 
+        [Required]
         public string GroupName { get; set; }
+
+        [Required]
+        public string ContentInstanceUrl { get; set; }
 
         [ForeignKey("Client")]
         public long ClientId { get; set; }
@@ -26,6 +31,7 @@ namespace MapDbContextLib.Context
         /// <summary>
         /// This can't be a foreign key due to use of collection type
         /// </summary>
+        [Required]
         public List<long> SelectedHierarchyFieldValueList { get; set; }
 
     }

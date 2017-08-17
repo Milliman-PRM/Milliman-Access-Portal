@@ -5,6 +5,7 @@
  */
 
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MapDbContextLib.Context
@@ -13,13 +14,14 @@ namespace MapDbContextLib.Context
     {
         public long Id { get; set; }
 
+        [Required]
         public string Name { get; set; }
 
+        [Required]
         public List<string> AcceptedEmailDomainList { get; set; }
 
         [ForeignKey("ParentClient")]
         public long? ParentClientId { get; set; }
-
         public Client ParentClient { get; set; }
     }
 }
