@@ -8,7 +8,10 @@ SET AppPool=MAP_CI_%git_branch%
 
 REM Test build before doing anything else
 REM If this build fails, we don't want to do the following (destructive) steps
-cd MillimanAccessPortal
+cd Milliman-access-Portal\MillimanAccessPortal
+
+powershell -C "(Get-Content Appsettings.CI.JSON).replace('((branch_name))', '%GIT_BRANCH%') | Set-Content AppSettings.CI.JSON"
+
 dotnet build
 
 if !errorlevel! neq 0 (
