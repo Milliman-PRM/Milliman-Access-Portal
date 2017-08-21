@@ -27,8 +27,8 @@ if ($errorCode -eq 0)
         $name = "MAP_CI_$branchName"
         $appPool = Get-ChildItem -Path IIS:\AppPools | where {$_.name -eq $name}
 
-        $ci_username = $env:ephi_username
-        $ci_password = $env:ephi_password
+        $ci_username = $env:pool_username
+        $ci_password = $env:pool_password
 
         # Create branch-specific app pool if it doesn't already exist
         if (-not $appPool)
