@@ -173,6 +173,25 @@ if !errorlevel! neq 0 (
 	exit /b !errorlevel!
 )
 
+
+echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Stop application pool
+%windir%\system32\inetsrv\appcmd start apppool %AppPool%
+
+if !errorlevel! neq 0 (
+	echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Failed to start IIS application pool!
+	echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: errorlevel was !errorlevel!
+	exit /b !errorlevel!
+)
+
+echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Configure ASPNETCORE_ENVIRONMENT
+%windir%\system32\inetsrv\appcmd set config "Default Web Site/%AppPool%" -section:system.webServer/AspNetCore /+environmentVariables.[name='ASPNETCORE_ENVIRONMENT',value='CI']
+
+if !errorlevel! neq 0 (
+	echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Failed to configure environment variable!
+	echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: errorlevel was !errorlevel!
+	exit /b !errorlevel!
+)
+
 echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Start application pool
 %windir%\system32\inetsrv\appcmd start apppool %AppPool%
 
