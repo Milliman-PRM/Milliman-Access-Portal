@@ -13,9 +13,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="wwwroot\css\site.scss" />
-    <Content Include="wwwroot\favicon.ico" />
-    <Content Include="wwwroot\images\logo.png" />
+    <!--<Content Include="wwwroot\css\site.scss" />-->
+    <!--<Content Include="wwwroot\favicon.ico" />-->
+    <!--<Content Include="wwwroot\images\logo.png" />-->
     <Content Include="wwwroot\lib\favicon.ico" />
   </ItemGroup>
   <ItemGroup>
