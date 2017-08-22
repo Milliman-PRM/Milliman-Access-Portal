@@ -9,6 +9,7 @@ SET MAPDBNAME=MillimanAccessPortal_CI_%git_branch%
 SET MAPDBNAME_DEVELOP=MillimanAccessPortal_CI_Develop
 SET LOGDBNAME=MapAuditLog_CI_%git_branch%
 SET LOGDBNAME_DEVELOP=MapAuditLog_CI_Develop
+SET PGEXEPATH=c:\program files\postgresql\9.6\bin\
 
 echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Adding the branch name to database names in connection strings
 cd Milliman-access-Portal\MillimanAccessPortal
@@ -51,7 +52,7 @@ if NOT %git_branch%==DEVELOP (
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Copying %MAPDBNAME_DEVELOP% to %MAPDBNAME%
 		
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Executing backup
-		pg_dump -d %MAPDBNAME_DEVELOP% -F c -h localhost -f mapdb_develop.pgsql
+		%PGEXEPATH%pg_dump -d %MAPDBNAME_DEVELOP% -F c -h localhost -f mapdb_develop.pgsql
 		
 		if !errorlevel! neq 0 (
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Failed to back up application database!
@@ -60,7 +61,7 @@ if NOT %git_branch%==DEVELOP (
 		)
 		
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Creating application database
-		psql -d postgres -e -q --command="create database %MAPDBNAME%"
+		%PGEXEPATH%psql -d postgres -e -q --command="create database %MAPDBNAME%"
 		
 		if !errorlevel! neq 0 (
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Failed to create application database!
@@ -69,7 +70,7 @@ if NOT %git_branch%==DEVELOP (
 		)
 		
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Executing restore
-		pg_restore -d %MAPDBNAME% mapdb_develop.pgsql
+		%PGEXEPATH%pg_restore -d %MAPDBNAME% mapdb_develop.pgsql
 		
 		if !errorlevel! neq 0 (
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Failed to restore application database!
@@ -89,7 +90,7 @@ if NOT %git_branch%==DEVELOP (
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Copying %LOGDBNAME_DEVELOP% to %LOGDBNAME%
 		
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Executing backup
-		pg_dump -d %LOGDBNAME_DEVELOP% -F c -h localhost -f logdb_develop.pgsql
+		%PGEXEPATH%pg_dump -d %LOGDBNAME_DEVELOP% -F c -h localhost -f logdb_develop.pgsql
 		
 		if !errorlevel! neq 0 (
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Failed to back up logging database!
@@ -98,7 +99,7 @@ if NOT %git_branch%==DEVELOP (
 		)
 		
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Creating logging database
-		psql -d postgres -e -q --command="create database %LOGDBNAME%"
+		%PGEXEPATH%psql -d postgres -e -q --command="create database %LOGDBNAME%"
 		
 		if !errorlevel! neq 0 (
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Failed to create logging database!
@@ -107,7 +108,7 @@ if NOT %git_branch%==DEVELOP (
 		)
 		
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Executing restore
-		pg_restore -d %LOGDBNAME% -C logdb_develop.pgsql
+		%PGEXEPATH%pg_restore -d %LOGDBNAME% -C logdb_develop.pgsql
 		
 		if !errorlevel! neq 0 (
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Failed to restore logging database!
