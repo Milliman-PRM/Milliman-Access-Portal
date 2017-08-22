@@ -51,7 +51,7 @@ if NOT %git_branch%==DEVELOP (
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Copying %MAPDBNAME_DEVELOP% to %MAPDBNAME%
 		
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Executing backup
-		pg_dump -d %MAPDBNAME_DEVELOP% -h localhost -f mapdb_develop.pgsql
+		pg_dump -d %MAPDBNAME_DEVELOP% -F c -h localhost -f mapdb_develop.pgsql
 		
 		if !errorlevel! neq 0 (
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Failed to back up application database!
@@ -59,8 +59,17 @@ if NOT %git_branch%==DEVELOP (
 			exit /b !errorlevel!
 		)
 		
+		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Creating application database
+		psql -d postgres -e -q --command="create database %MAPDBNAME%"
+		
+		if !errorlevel! neq 0 (
+			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Failed to create application database!
+			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: errorlevel was !errorlevel!
+			exit /b !errorlevel!
+		)
+		
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Executing restore
-		pg_restore -d %MAPDBNAME% -C mapdb_develop.pgsql
+		pg_restore -d %MAPDBNAME% mapdb_develop.pgsql
 		
 		if !errorlevel! neq 0 (
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Failed to restore application database!
@@ -80,10 +89,19 @@ if NOT %git_branch%==DEVELOP (
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Copying %LOGDBNAME_DEVELOP% to %LOGDBNAME%
 		
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Executing backup
-		pg_dump -d %LOGDBNAME_DEVELOP% -h localhost -f logdb_develop.pgsql
+		pg_dump -d %LOGDBNAME_DEVELOP% -F c -h localhost -f logdb_develop.pgsql
 		
 		if !errorlevel! neq 0 (
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Failed to back up logging database!
+			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: errorlevel was !errorlevel!
+			exit /b !errorlevel!
+		)
+		
+		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Creating logging database
+		psql -d postgres -e -q --command="create database %LOGDBNAME%"
+		
+		if !errorlevel! neq 0 (
+			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Failed to create logging database!
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: errorlevel was !errorlevel!
 			exit /b !errorlevel!
 		)
