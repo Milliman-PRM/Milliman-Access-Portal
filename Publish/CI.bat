@@ -12,7 +12,7 @@ SET LOGDBNAME_DEVELOP=MapAuditLog_CI_Develop
 SET PGEXEPATH=c:\program files\postgresql\9.6\bin\
 
 echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Adding the branch name to database names in connection strings
-cd Milliman-access-Portal\MillimanAccessPortal
+cd MillimanAccessPortal\MillimanAccessPortal
 powershell -C "(Get-Content Appsettings.CI.JSON).replace('((branch_name))', '%GIT_BRANCH%') | Set-Content AppSettings.CI.JSON"
 
 echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Test build before publishing
