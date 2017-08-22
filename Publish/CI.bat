@@ -10,6 +10,7 @@ SET MAPDBNAME_DEVELOP=MillimanAccessPortal_CI_Develop
 SET LOGDBNAME=MapAuditLog_CI_%git_branch%
 SET LOGDBNAME_DEVELOP=MapAuditLog_CI_Develop
 SET PGEXEPATH=c:\program files\postgresql\9.6\bin\
+SET ASPNETCORE_ENVIRONMENT=CI
 
 echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Adding the branch name to database names in connection strings
 cd MillimanAccessPortal\MillimanAccessPortal
