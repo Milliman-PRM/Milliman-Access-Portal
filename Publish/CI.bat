@@ -18,6 +18,14 @@ powershell -C "(Get-Content Appsettings.CI.JSON).replace('((branch_name))', '%GI
 
 echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Test build before publishing
 REM If this build fails, we don't want to do the following (destructive) steps
+dotnet restore
+
+if !errorlevel! neq 0 (
+	echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Initial package restore failed!
+	echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: errorlevel was !errorlevel!
+	exit /b !errorlevel!
+)
+
 dotnet build
 
 if !errorlevel! neq 0 (
@@ -40,86 +48,86 @@ if NOT %git_branch%==DEVELOP (
 	echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: This branch is not develop, checking if a database exists
 	SET MAPDBFOUND=0
 	SET LOGDBFOUND=1
-	
+
 	echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Branch is not develop. Checking for existing databases.
 	for %%G in (psql.exe --dbname=postgres --username=%ephi_username% --host=indy-qvtest01 --tuples-only --command="" --echo-errors) DO (
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Checking %G
 		IF %G==%MAPDBNAME% (SET MAPDBFOUND=1)
 		IF %G==%LOGDBNAME% (SET LOGDBFOUND=1)
 	)
-	
+
 	if NOT MAPDBFOUND EQU 1 (
 		REM Back up DEVELOP branch MAP database & restore w/ branch name
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Copying %MAPDBNAME_DEVELOP% to %MAPDBNAME%
-		
+
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Executing backup
 		%PGEXEPATH%pg_dump -d %MAPDBNAME_DEVELOP% -F c -h localhost -f mapdb_develop.pgsql
-		
+
 		if !errorlevel! neq 0 (
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Failed to back up application database!
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: errorlevel was !errorlevel!
 			exit /b !errorlevel!
 		)
-		
+
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Creating application database
 		%PGEXEPATH%psql -d postgres -e -q --command="create database %MAPDBNAME%"
-		
+
 		if !errorlevel! neq 0 (
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Failed to create application database!
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: errorlevel was !errorlevel!
 			exit /b !errorlevel!
 		)
-		
+
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Executing restore
 		%PGEXEPATH%pg_restore -d %MAPDBNAME% mapdb_develop.pgsql
-		
+
 		if !errorlevel! neq 0 (
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Failed to restore application database!
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: errorlevel was !errorlevel!
 			exit /b !errorlevel!
 		)
-		
+
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Deleting backup file
 		rm mapdb_develop.pgsql
-		
+
 	) else (
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: %MAPDBNAME% already exists. No backup/restore is necessary.
 	)
-	
+
 	if NOT LOGDBFOUND EQU 1 (
 		REM Back up DEVELOP branch Logging database & restore w/ branch name
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Copying %LOGDBNAME_DEVELOP% to %LOGDBNAME%
-		
+
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Executing backup
 		%PGEXEPATH%pg_dump -d %LOGDBNAME_DEVELOP% -F c -h localhost -f logdb_develop.pgsql
-		
+
 		if !errorlevel! neq 0 (
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Failed to back up logging database!
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: errorlevel was !errorlevel!
 			exit /b !errorlevel!
 		)
-		
+
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Creating logging database
 		%PGEXEPATH%psql -d postgres -e -q --command="create database %LOGDBNAME%"
-		
+
 		if !errorlevel! neq 0 (
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Failed to create logging database!
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: errorlevel was !errorlevel!
 			exit /b !errorlevel!
 		)
-		
+
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Executing restore
 		%PGEXEPATH%pg_restore -d %LOGDBNAME% -C logdb_develop.pgsql
-		
+
 		if !errorlevel! neq 0 (
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Failed to restore logging database!
 			echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: errorlevel was !errorlevel!
 			exit /b !errorlevel!
 		)
-		
+
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Deleting backup file
 		rm logdb_develop.pgsql
-		
+
 	) else (
 		echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: %LOGDBNAME% already exists. No backup/restore is necessary.
 	)
@@ -152,7 +160,7 @@ if !errorlevel! neq 0 (
 cd ../MillimanAccessPortal
 
 echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Build & publish application files
-dotnet publish -o %publishTarget% 
+dotnet publish -o %publishTarget%
 
 if !errorlevel! neq 0 (
 	echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Build failed!
@@ -161,7 +169,7 @@ if !errorlevel! neq 0 (
 )
 
 echo %~nx0 !DATE:~-4!-!DATE:~4,2!-!DATE:~7,2! !TIME!: Run Powershell configuration script
-powershell -file "..\..\Publish\CI_Publish.ps1" -executionPolicy Bypass 
+powershell -file "..\..\Publish\CI_Publish.ps1" -executionPolicy Bypass
 
 REM Output success or failure
 if !errorlevel! neq 0 (
