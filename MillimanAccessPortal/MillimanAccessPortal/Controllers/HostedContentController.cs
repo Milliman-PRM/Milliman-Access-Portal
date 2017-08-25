@@ -1,17 +1,24 @@
 using System;
 using System.Net;
+using System.Net.Http;
 using System.IO;
 using System.Text;
+using System.Xml.Linq;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Models.HostedContentViewModels;
+using System.Net.Http.Headers;
 
 namespace MillimanAccessPortal.Controllers
 {
     public class HostedContentController : Controller
     {
+        // TODO Put these in config
+        private static string QvServerHostName = "indy-qvtest01.milliman.com";   // Get this from configuration
+        private static string QvServerUriScheme = "http";   // Determine this from configuration
+
         public IActionResult Index()
         {
             return View();
@@ -19,68 +26,73 @@ namespace MillimanAccessPortal.Controllers
 
         public IActionResult WebHostedContent()
         {
-            string QlikviewWebTicket = string.Empty;
-            string WebTicketRequestXml = string.Empty;   // string.Format("<Global method=\"GetWebTicket\"><UserId>{0}</UserId>{1}</Global>", _userId, _userGroups);
-            WebTicketRequestXml = "<Global method = \"GetWebTicket\"><UserId>FRED</UserId></Global>";
-            //<GroupList><string></string></GroupList>
-            //<GroupsIsNames>true</GroupsIsNames>
+            string QlikviewWebTicket = GetQvWebTicket("Tom");  // TODO pass the authenticated end user's id instead
 
-            string Response = PostSomething(WebTicketRequestXml);
-            /*
-             * from sample app
-            using (StreamWriter sw = new StreamWriter(client.GetRequestStream()))
-                sw.WriteLine(webTicketXml);
-            StreamReader sr = new StreamReader(client.GetResponse().GetResponseStream());
-            string result = sr.ReadToEnd();
-
-            XDocument doc = XDocument.Parse(result);
-            return doc.Root.Element("_retval_").Value;
-            */
+            UriBuilder QvServerUri = new UriBuilder
+            {
+                Scheme = QvServerUriScheme,
+                Host = QvServerHostName,
+                Path = "QvAJAXZfc/Authenticate.aspx",
+                // TODO get this right, especially document name
+                Query = "type=html&try=/qvajaxzfc/opendoc.htm?document=" + "Mydoc" + "&back=/&webticket=" + QlikviewWebTicket,
+            };
 
             WebHostedContentViewModel Model = new WebHostedContentViewModel
             {
-                Url = "https://indy-ss01.milliman.com/QvAJAXZfc/AccessPoint.aspx",
-                QueryString = "open=&id=QVS%40indy-ss01%7CNoEPHI%2F2016Q4v2-v4.0.4-IMP-Submitted-June2017.qvw&client=Ajax",
+                Url = QvServerUri.Uri.ToString(),
             };
 
             return View(Model);
         }
 
-        private string PostSomething(string Body)
+        /// <summary>
+        /// This method will eventually move to a Qlikview focused project of its own
+        /// </summary>
+        /// <param name="UserId"></param>
+        /// <returns></returns>
+        private string GetQvWebTicket(string UserId)
         {
-            string Address = "https://indy-ss01.milliman.com/QvAJAXZfc/GetWebTicket.aspx";
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Address);
-/*            if (!Anonymous)
+            UriBuilder QvServerUri = new UriBuilder
             {
-                if (UserName == "" && Password == "")
-                    request.UseDefaultCredentials = true;
-                else
-                    request.Credentials = new NetworkCredential(UserName, Password);
+                Scheme = QvServerUriScheme,
+                Host = QvServerHostName,
+                Path = "QVAJAXZFC/getwebticket.aspx",
+            };
 
-                request.PreAuthenticate = true;
-            }*/
-            request.Method = "POST";
-            //request.Timeout = 30000;
-            request.ContentType = "application/x-www-form-urlencoded";
-            //request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+            string RequestBodyString = string.Format("<Global method=\"GetWebTicket\"><UserId>{0}</UserId></Global>", UserId);
+            Uri x = QvServerUri.Uri;
 
-            //var buffer = Encoding.UTF8.GetBytes(data);
-            var buffer = Encoding.UTF8.GetBytes(Body);
-            //request.ContentLength = buffer.Length;
-            var dataStream = request.BeginGetRequestStream.GetRequestStream();
-            dataStream.Write(buffer, 0, buffer.Length);
-            dataStream.Close();
+            var Handler = new HttpClientHandler
+            {
+                Credentials = new NetworkCredential(@"tom.puckett", ""),  // TODO Get the credentials from configuration
+            };
 
-            var response = (HttpWebResponse)request.GetResponse();
-            var responseStream = response.GetResponseStream();
-            var reader = new StreamReader(responseStream, Encoding.UTF8);
-            var result = reader.ReadToEnd();
+            HttpClient client = new HttpClient(Handler);
+            StringContent RequestContent = new StringContent(RequestBodyString);
+            HttpResponseMessage ResponseMsg = null;
+            try
+            {
+                ResponseMsg = client.PostAsync(QvServerUri.Uri, RequestContent).Result;
+            }
+            catch
+            {
+                // TODO log something
+                return string.Empty;
+            }
 
-            reader.Close();
-            dataStream.Close();
-            response.Close();
+            string ResponseBody = string.Empty;
+            using (var ResponseStream = ResponseMsg.Content.ReadAsStreamAsync().Result)
+            {
+                using (var ResponseReader = new StreamReader(ResponseStream, Encoding.UTF8))
+                {
+                    ResponseBody = ResponseReader.ReadToEnd();
+                }
+            }
 
-            return result;
+            XDocument doc = XDocument.Parse(ResponseBody);
+            string Ticket = doc.Root.Element("_retval_").Value;
+
+            return Ticket;
         }
     }
 }
