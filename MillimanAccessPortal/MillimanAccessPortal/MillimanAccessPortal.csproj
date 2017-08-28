@@ -43,7 +43,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AuditLogLib\AuditLogLib.csproj" />
+    <ProjectReference Include="..\MapCommonLib\MapCommonLib.csproj" />
     <ProjectReference Include="..\MapDbContextLib\MapDbContextLib.csproj" />
+    <ProjectReference Include="..\QlikviewLib\QlikviewLib.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Migrations\" />

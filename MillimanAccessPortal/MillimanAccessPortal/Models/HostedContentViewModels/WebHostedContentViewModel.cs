@@ -7,6 +7,6 @@ namespace MillimanAccessPortal.Models.HostedContentViewModels
 {
     public class WebHostedContentViewModel
     {
-        public string Url { get; set; }
+        public Uri Url { get; set; }
     }
 }
