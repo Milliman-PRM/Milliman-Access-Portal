@@ -1,16 +1,15 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: An entity representing a Client organization
+ * OBJECTIVE: An entity representing a root content item in the persistence data model
  * DEVELOPER NOTES: 
  */
 
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MapDbContextLib.Context
 {
-    public class Client
+    public class ContentType
     {
         public long Id { get; set; }
 
@@ -18,10 +17,7 @@ namespace MapDbContextLib.Context
         public string Name { get; set; }
 
         [Required]
-        public List<string> AcceptedEmailDomainList { get; set; }
+        public bool CanReduce { get; set; }
 
-        [ForeignKey("ParentClient")]
-        public long? ParentClientId { get; set; }
-        public Client ParentClient { get; set; }
     }
 }
