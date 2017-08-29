@@ -24,7 +24,7 @@ namespace MapDbContextLib.Context
         public ContentType ContentType { get; set; }
 
         [Required]
-        public List<long> ClientIdList { get; set; }
+        public long[] ClientIdList { get; set; }
 
         [Column(TypeName ="jsonb")]
         // [Required] This causes a problem with migration database update
