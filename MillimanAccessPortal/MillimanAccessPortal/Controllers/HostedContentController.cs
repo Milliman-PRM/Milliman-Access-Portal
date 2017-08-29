@@ -1,6 +1,4 @@
 using System;
-using System.Net;
-using System.Net.Http;
 using System.IO;
 using System.Text;
 using System.Xml.Linq;
@@ -9,36 +7,82 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Models.HostedContentViewModels;
-using System.Net.Http.Headers;
 using MapCommonLib.ContentTypeSpecific;
 using QlikviewLib;
+using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
 namespace MillimanAccessPortal.Controllers
 {
     public class HostedContentController : Controller
     {
+        private ApplicationDbContext DataContext = null;
+
+        private readonly UserManager<ApplicationUser> UserManager;
+        private readonly ILogger Logger;
+
+        public HostedContentController(
+            UserManager<ApplicationUser> UserManagerArg,
+            ILoggerFactory LoggerFactoryArg,
+            ApplicationDbContext DataContextArg)
+        {
+            UserManager = UserManagerArg;
+            Logger = LoggerFactoryArg.CreateLogger<HostedContentController>();
+            DataContext = DataContextArg;
+        }
+
         public IActionResult Index()
         {
             return View();
         }
 
-        public IActionResult WebHostedContent(int ContentPk)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Id">The primary key value of the user group for the requested content</param>
+        /// <returns></returns>
+        public IActionResult WebHostedContent(long Id)
         {
-            ContentTypeSpecificApiBase ContentSpecificHandler = null;
+            string TypeOfRequestedContent = "Unknown";
+            ContentItemUserGroup UserGroupOfRequestedContent = null;
 
-            ContentType TypeOfContent = ContentType.Qlikview; // TODO query for the content type based on ContentPk
-            switch (TypeOfContent)
+            try
             {
-                case ContentType.Qlikview:
+                UserGroupOfRequestedContent = DataContext.ContentItemUserGroup.Where(g => g.Id == Id).FirstOrDefault();
+
+                // Get the ContentType of the RootContentItem of the requested group
+                IQueryable<ContentType> Query = DataContext.RootContentItem
+                    .Where(item => item.Id == UserGroupOfRequestedContent.RootContentItemId)
+                    .Join(DataContext.ContentType, r => r.ContentTypeId, type => type.Id, (r, type) => type);  // result is the ContentType record
+
+                // execute the query
+                TypeOfRequestedContent = Query.FirstOrDefault().Name;
+            }
+            catch
+            {
+                // The requested user group or associated root content item or content type record could not be found in the database
+                return View("SomeError_View", new object(/*SomeModel*/));
+            }
+
+            // Instantiate the right content handler class
+            ContentTypeSpecificApiBase ContentSpecificHandler = null;
+            switch (TypeOfRequestedContent)
+            {
+                case "Qlikview":
                     ContentSpecificHandler = new QlikviewLibApi();
                     break;
 
                 default:
+                    // The content type of the requested content is not handled
                     return View("SomeError_View", new object(/*SomeModel*/));
             }
 
-            UriBuilder ContentUri = ContentSpecificHandler.GetContentUri();
+            string UserName = UserManager.GetUserName(HttpContext.User);
+            UriBuilder ContentUri = ContentSpecificHandler.GetContentUri(UserGroupOfRequestedContent, UserName);
 
+            // Build a model for the resulting view
             WebHostedContentViewModel Model = new WebHostedContentViewModel
             {
                 Url = ContentUri.Uri,

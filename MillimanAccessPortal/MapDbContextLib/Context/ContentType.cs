@@ -13,6 +13,9 @@ namespace MapDbContextLib.Context
     {
         public long Id { get; set; }
 
+        /// <summary>
+        /// Name should match the enumeration value label
+        /// </summary>
         [Required]
         public string Name { get; set; }
 

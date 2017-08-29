@@ -12,7 +12,7 @@ namespace QlikviewLib.Internal
 {
     internal class QvServerOperations
     {
-        private static string QvServerHostName = "indy-qvtest01.milliman.com";   // TODO Put this in config
+        private static string QvServerHostName = "prm.milliman.com";   // TODO Put this in config
         private static string QvServerUriScheme = "http";
 
         internal static string GetQvWebTicket(string UserId)
@@ -29,7 +29,7 @@ namespace QlikviewLib.Internal
 
             var Handler = new HttpClientHandler
             {
-                Credentials = new NetworkCredential(@"tom.puckett", "Indiana.5235"),  // TODO Get the credentials from configuration
+                Credentials = new NetworkCredential(@"tom.puckett", "..."),  // TODO Get the credentials from configuration
             };
 
             HttpClient client = new HttpClient(Handler);
