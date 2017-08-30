@@ -7,6 +7,6 @@ namespace MapCommonLib.ContentTypeSpecific
 {
     public abstract class ContentTypeSpecificApiBase
     {
-        public abstract UriBuilder GetContentUri(ContentItemUserGroup GroupEntity, string UserName);
+        public abstract UriBuilder GetContentUri(ContentItemUserGroup GroupEntity, string UserName, object ConfigInfo);
     }
 }

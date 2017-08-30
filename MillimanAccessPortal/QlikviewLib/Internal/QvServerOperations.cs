@@ -7,21 +7,21 @@ using System.Xml.Linq;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MapCommonLib;
 
 namespace QlikviewLib.Internal
 {
     internal class QvServerOperations
     {
-        private static string QvServerHostName = "prm.milliman.com";   // TODO Put this in config
         private static string QvServerUriScheme = "http";
 
-        internal static string GetQvWebTicket(string UserId)
+        internal static string GetQvWebTicket(string UserId, QlikviewConfig QvConfig)
         {
             UriBuilder QvServerUri = new UriBuilder
             {
                 Scheme = QvServerUriScheme,
-                Host = QvServerHostName,
-                Path = "QVAJAXZFC/getwebticket.aspx",
+                Host = QvConfig.QvServerHost,
+                Path = "qvajaxzfc/getwebticket.aspx",
             };
 
             string RequestBodyString = string.Format("<Global method=\"GetWebTicket\"><UserId>{0}</UserId></Global>", UserId);
@@ -29,7 +29,7 @@ namespace QlikviewLib.Internal
 
             var Handler = new HttpClientHandler
             {
-                Credentials = new NetworkCredential(@"tom.puckett", "..."),  // TODO Get the credentials from configuration
+                Credentials = new NetworkCredential(QvConfig.QvServerUserName, QvConfig.QvServerPassword, QvConfig.QvServerHost),
             };
 
             HttpClient client = new HttpClient(Handler);
@@ -45,17 +45,23 @@ namespace QlikviewLib.Internal
                 return string.Empty;
             }
 
-            string ResponseBody = string.Empty;
-            using (var ResponseStream = ResponseMsg.Content.ReadAsStreamAsync().Result)
+            string ResponseBody = ResponseMsg.Content.ReadAsStringAsync().Result;
+
+            if (!ResponseMsg.IsSuccessStatusCode)
             {
-                using (var ResponseReader = new StreamReader(ResponseStream, Encoding.UTF8))
-                {
-                    ResponseBody = ResponseReader.ReadToEnd();
-                }
+                throw new MapException(string.Format("Failed to obtain Qlikview web ticket from {0},\r\nHTTP status {1},\r\nresponse body: {2}", QvServerUri.Uri.AbsoluteUri, (int)ResponseMsg.StatusCode, ResponseBody));
             }
 
-            XDocument doc = XDocument.Parse(ResponseBody);
-            string Ticket = doc.Root.Element("_retval_").Value;
+            string Ticket = string.Empty;
+            try
+            {
+                XDocument doc = XDocument.Parse(ResponseBody);
+                Ticket = doc.Root.Element("_retval_").Value;
+            }
+            catch
+            {
+                throw new MapException(string.Format("Failed to parse Qlikview web ticket from server response body"));
+            }
 
             return Ticket;
         }

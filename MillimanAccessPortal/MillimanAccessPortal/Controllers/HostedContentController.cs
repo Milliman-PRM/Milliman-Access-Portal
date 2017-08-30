@@ -13,6 +13,8 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -21,16 +23,26 @@ namespace MillimanAccessPortal.Controllers
         private ApplicationDbContext DataContext = null;
 
         private readonly UserManager<ApplicationUser> UserManager;
+        private readonly IOptions<QlikviewConfig> OptionsAccessor;
         private readonly ILogger Logger;
 
+        /// <summary>
+        /// Constructor.  Accepts injected resources. 
+        /// </summary>
+        /// <param name="UserManagerArg"></param>
+        /// <param name="LoggerFactoryArg"></param>
+        /// <param name="DataContextArg"></param>
+        /// <param name="OptionsAccessorArg"></param>
         public HostedContentController(
             UserManager<ApplicationUser> UserManagerArg,
             ILoggerFactory LoggerFactoryArg,
-            ApplicationDbContext DataContextArg)
+            ApplicationDbContext DataContextArg,
+            IOptions<QlikviewConfig> OptionsAccessorArg)
         {
             UserManager = UserManagerArg;
             Logger = LoggerFactoryArg.CreateLogger<HostedContentController>();
             DataContext = DataContextArg;
+            OptionsAccessor = OptionsAccessorArg;
         }
 
         public IActionResult Index()
@@ -80,7 +92,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             string UserName = UserManager.GetUserName(HttpContext.User);
-            UriBuilder ContentUri = ContentSpecificHandler.GetContentUri(UserGroupOfRequestedContent, UserName);
+            UriBuilder ContentUri = ContentSpecificHandler.GetContentUri(UserGroupOfRequestedContent, UserName, OptionsAccessor.Value);
 
             // Build a model for the resulting view
             WebHostedContentViewModel Model = new WebHostedContentViewModel

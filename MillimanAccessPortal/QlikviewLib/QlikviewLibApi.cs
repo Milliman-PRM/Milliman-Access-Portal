@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using MapCommonLib.ContentTypeSpecific;
+using MapCommonLib;
 using QlikviewLib.Internal;
 using MapDbContextLib.Context;
 
@@ -9,13 +10,13 @@ namespace QlikviewLib
 {
     public class QlikviewLibApi : ContentTypeSpecificApiBase
     {
-        private static string QvServerHostName = "prm.milliman.com";   // TODO Put this in config
-        //private static string QvServerHostName = "indy-qvtest01.milliman.com";   // TODO Put this in config
         private static string QvServerUriScheme = "http";
 
-        public override UriBuilder GetContentUri(ContentItemUserGroup GroupEntity, string UserName)
+        public override UriBuilder GetContentUri(ContentItemUserGroup GroupEntity, string UserName, object ConfigInfoArg)
         {
-            string QlikviewWebTicket = QvServerOperations.GetQvWebTicket(UserName);
+            QlikviewConfig ConfigInfo = (QlikviewConfig)ConfigInfoArg;
+
+            string QlikviewWebTicket = QvServerOperations.GetQvWebTicket(UserName, ConfigInfo as QlikviewConfig);
 
             string[] QueryStringItems = new string[]
             {
@@ -29,11 +30,11 @@ namespace QlikviewLib
             UriBuilder QvServerUri = new UriBuilder
             {
                 Scheme = QvServerUriScheme,
-                Host = QvServerHostName,
-                Path = "QvAJAXZfc/Authenticate.aspx",
+                Host = ConfigInfo.QvServerHost,
+                Path = "/qvajaxzfc/Authenticate.aspx",
                 Query = string.Join("&", QueryStringItems),
             };
-            
+
             return QvServerUri;
         }
     }
