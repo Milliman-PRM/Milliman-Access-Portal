@@ -44,7 +44,7 @@ dotnet restore
 if ($LASTEXITCODE -ne 0) {
 	log_statement "ERROR: Initial package restore failed"
 	log_statement "errorlevel was $LASTEXITCODE"
-	return $LASTEXITCODE
+	exit $LASTEXITCODE
 }
 
 dotnet build
@@ -52,7 +52,7 @@ dotnet build
 if ( $LASTEXITCODE -ne 0 ) {
 	log_statement "ERROR: Initial test build failed"
 	log_statement "errorlevel was $LASTEXITCODE"
-	return $LASTEXITCODE
+	exit $LASTEXITCODE
 }
 
 log_statement "Stop running application pool"
@@ -77,7 +77,7 @@ if ($branchName -ne "DEVELOP") {
     if ($LASTEXITCODE -ne 0) {
         log_statement "ERROR: Failed to query for existing databases"
         log_statement "errorlevel was $LASTEXITCODE"
-        return $LASTEXITCODE
+        exit $LASTEXITCODE
     }
 
     foreach ($db in $output) {
@@ -103,7 +103,7 @@ if ($branchName -ne "DEVELOP") {
 	    if ($LASTEXITCODE -ne 0) {
 		    log_statement "ERROR: Failed to back up application database"
 		    log_statement "errorlevel was $LASTEXITCODE"
-		    return $LASTEXITCODE
+		    exit $LASTEXITCODE
 	    }
 
 	    log_statement "Creating application database"
@@ -113,7 +113,7 @@ if ($branchName -ne "DEVELOP") {
 	    if ($LASTEXITCODE -ne 0) {
 		    log_statement "ERROR: Failed to create application database"
 		    log_statement "errorlevel was $LASTEXITCODE"
-		    return $LASTEXITCODE
+		    exit $LASTEXITCODE
 	    }
 
 		log_statement "Executing restore"
@@ -123,7 +123,7 @@ if ($branchName -ne "DEVELOP") {
 		if ($LASTEXITCODE -ne 0) {
 			log_statement "ERROR: Failed to restore application database"
 			log_statement "errorlevel was $LASTEXITCODE"
-			return $LASTEXITCODE
+			exit $LASTEXITCODE
 		}
 
 		log_statement "Deleting backup file"
@@ -145,7 +145,7 @@ if ($branchName -ne "DEVELOP") {
 		if ($LASTEXITCODE -ne 0) {
 			log_statement "ERROR: Failed to back up logging database"
 			log_statement "errorlevel was $LASTEXITCODE"
-			return $LASTEXITCODE
+			exit $LASTEXITCODE
 		}
 
 		log_statement "Creating logging database"
@@ -155,7 +155,7 @@ if ($branchName -ne "DEVELOP") {
 		if ($LASTEXITCODE -ne 0) {
 			log_statement "ERROR: Failed to create logging database"
 			log_statement "errorlevel was $LASTEXITCODE"
-			return $LASTEXITCODE
+			exit $LASTEXITCODE
 		}
 
 		log_statement "Executing restore"
@@ -165,7 +165,7 @@ if ($branchName -ne "DEVELOP") {
 		if ($LASTEXITCODE -ne 0) {
 			log_statement "ERROR: Failed to restore logging database"
 			log_statement "errorlevel was $LASTEXITCODE"
-			return $LASTEXITCODE
+			exit $LASTEXITCODE
 		}
 
 		log_statement "Deleting backup file"
@@ -187,7 +187,7 @@ dotnet restore
 if ($LASTEXITCODE -ne 0) {
 	log_statement "ERROR: Failed to restore NuGet packages"
 	log_statement "errorlevel was $LASTEXITCODE"
-	return $LASTEXITCODE
+	exit $LASTEXITCODE
 }
 
 dotnet ef database update
@@ -195,7 +195,7 @@ dotnet ef database update
 if ($LASTEXITCODE -ne 0) {
 	log_statement "ERROR: Failed to update application database"
 	log_statement "errorlevel was $LASTEXITCODE"
-	return $LASTEXITCODE
+	exit $LASTEXITCODE
 }
 
 log_statement "Performing logging database migrations"
@@ -205,7 +205,7 @@ dotnet ef database update
 if ($LASTEXITCODE -ne 0) {
 	log_statement "ERROR: Failed to update logging database"
 	log_statement "errorlevel was $LASTEXITCODE"
-	return $LASTEXITCODE
+	exit $LASTEXITCODE
 }
 
 cd ../MillimanAccessPortal
@@ -216,7 +216,7 @@ dotnet publish -o $branchFolder
 if ($LASTEXITCODE -ne 0) {
 	log_statement "Build failed"
 	log_statement "errorlevel was $LASTEXITCODE"
-	return $LASTEXITCODE
+	exit $LASTEXITCODE
 }
 
 
@@ -236,7 +236,7 @@ try
     elseif ($requestResult.returncode -ne 0) {
         log_statement "ERROR: Failed to create application pool"
         log_statement $requestResult.stdout
-        return -1
+        exit -1
     }
 
     # Configure Application Pool credentials  
@@ -250,7 +250,7 @@ try
     if ($requestResult.returncode -ne 0) {
         log_statement "ERROR: Failed to configure application pool credentials"
         log_statement $requestResult.stdout
-        return -1
+        exit -1
     }
     
     # If the web application already exists, remove it
@@ -262,7 +262,7 @@ try
     if ($requestResult.returncode -ne 0 -and $requestResult.returncode -ne 50) {
         log_statement "ERROR: Failed to create the web application"
         log_statement $requestResult.stdout
-        return -1
+        exit -1
     }
 
     # Create web application
@@ -273,7 +273,7 @@ try
     if ($requestResult.returncode -ne 0) {
         log_statement "ERROR: Failed to create the web application"
         log_statement $requestResult.stdout
-        return -1
+        exit -1
     }
 
 
@@ -284,7 +284,7 @@ try
     if ($requestResult.returncode -ne 0) {
         log_statement "ERROR: Failed to configure application environment variable"
         log_statement $requestResult.stdout
-        return -1
+        exit -1
     }
 
     # Stop Pool
@@ -294,7 +294,7 @@ try
     if ($requestResult.returncode -ne 0) {
         log_statement "ERROR: Failed to stop application pool"
         log_statement $requestResult.stdout
-        return -1
+        exit -1
     }
 
     # Start Pool
@@ -304,7 +304,7 @@ try
     if ($requestResult.returncode -ne 0) {
         log_statement "ERROR: Failed to start application pool"
         log_statement $requestResult.stdout
-        return -1
+        exit -1
     }
 
     log_statement "SUCCESS: Published to " ($urlBase + "/" + $name + "/")
@@ -313,5 +313,5 @@ catch [Exception]
 {
     log_statement "ERROR: Publishing failed"
     $_.Exception | format-list -force
-    return -1
+    exit -1
 }
