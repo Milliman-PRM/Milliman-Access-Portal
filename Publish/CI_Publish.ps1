@@ -4,60 +4,314 @@
 #  Run configuration steps for CI builds of Milliman Access Portal
 
 ### DEVELOPER NOTES:
-#  
+#
 
-$branchName = $env:GIT_BRANCH
+function log_statement {
+    Param([string]$statement)
 
-$branchFolder = "D:\installedapplications\map_ci\$branchName\"
-$outputPath = "D:\installedapplications\map_ci\$branchName\error.log"
-$urlFilePath = "D:\installedapplications\map_ci\$branchName\urls.log"
-$urlBase = "https://indy-qvtest01.milliman.com/"
-$errorCode = 0
+    $datestring = get-date -Format "yyyy-MM-dd HH:mm:ss"
 
-import-module webadministration
-
-if ($errorCode -eq 0)
-{
-    # Clear URL file, if it exists
-    set-content -LiteralPath $urlFilePath "Published URL:"
-
-    # (Re-)create applications and log deployed URLs to text file
-    try 
-    {
-        $name = "MAP_CI_$branchName"
-        $appPool = Get-ChildItem -Path IIS:\AppPools | where {$_.name -eq $name}
-
-        $ci_username = $env:pool_username
-        $ci_password = $env:pool_password
-
-        # Create branch-specific app pool if it doesn't already exist
-        if (-not $appPool)
-        {
-            $command = "C:\windows\system32\inetsrv\appcmd.exe add apppool /name:$name /managedRuntimeVersion:v4.0"
-            invoke-expression $command 
-
-            # Configuring credentials must be done separately from creating the application pool
-            $command = "C:\windows\system32\inetsrv\appcmd.exe set config /section:applicationPools `"/[name='$name'].processModel.identityType:SpecificUser`" `"/[name='$name'].processModel.userName:$ci_username`" `"/[name='$name'].processModel.password:$ci_password`""
-            invoke-expression $command
-        }
-
-        # Database migrations for application
-
-        # Database migrations for logger
-
-        # If the web application already exists, remove it
-        if ((Get-WebApplication $name).Count -gt 0) { Remove-WebApplication -Name $name -Site "Default Web Site" }
-
-        # Create web application
-        New-WebApplication -Name $name -PhysicalPath $branchFolder -Site "Default Web Site" -ApplicationPool "$name"
-        Set-Content -LiteralPath $urlFilePath ($urlBase + "/" + $name + "/")
-    }
-    catch [Exception]
-    {
-        $_.Exception | format-list -force
-        $errorCode = 1
-    }
+    write-output $datestring"|"$statement
 }
 
-# Write out the error code
-Set-Content -LiteralPath $outputPath $errorCode
+$branchName = $env:GIT_BRANCH
+$ci_username = $env:pool_username
+$ci_password = $env:pool_password
+
+$branchFolder = "D:\installedapplications\map_ci\$branchName\"
+$AppPool = "MAP_CI_$branchName"
+$MAPDBNAME = "MillimanAccessPortal_CI_$branchName"
+$MAPDBNAME_DEVELOP = "MillimanAccessPortal_CI_Develop"
+$LOGDBNAME = "MapAuditLog_CI_$branchName"
+$LOGDBNAME_DEVELOP = "MapAuditLog_CI_Develop"
+$ASPNETCORE_ENVIRONMENT = "CI"
+$PublishURL = "http://indy-qvtest01/$appPool"
+
+# Set environment variable (utilized by dotnet commands)
+$env:ASPNETCORE_ENVIRONMENT=$ASPNETCORE_ENVIRONMENT
+
+
+log_statement "Adding the branch name to database names in connection strings"
+
+cd MillimanAccessPortal\MillimanAccessPortal
+
+(Get-Content Appsettings.CI.JSON).replace('((branch_name))', '$branchName') | Set-Content AppSettings.CI.JSON
+
+log_statement "Test build before publishing"
+# If this build fails, we don't want to do the subsequent (destructive) steps
+dotnet restore
+
+if ($LASTEXITCODE -ne 0) {
+	log_statement "ERROR: Initial package restore failed"
+	log_statement "errorlevel was $LASTEXITCODE"
+	return $LASTEXITCODE
+}
+
+dotnet build
+
+if ( $LASTEXITCODE -ne 0 ) {
+	log_statement "ERROR: Initial test build failed"
+	log_statement "errorlevel was $LASTEXITCODE"
+	return $LASTEXITCODE
+}
+
+log_statement "Stop running application pool"
+$requestURL = "http://localhost:8042/iis_stop_pool?pool_name=$appPool"
+    $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
+
+    if ($requestResult.returncode -ne 0) {
+        log_statement "ERROR: Failed to stop application pool"
+        log_statement $requestResult.stdout
+        return -1
+    }
+
+if ($branchName -ne "DEVELOP") {
+    log_statement "Copy databases from DEVELOP branch space, if this branch doesn't have its databases yet"
+	$MAPDBFOUND=0
+	$LOGDBFOUND=1
+
+    # Check for existing databases    
+    $command = 'c:\program` files\postgresql\9.6\bin\psql.exe --dbname=postgres --host=indy-qvtest01 --tuples-only --command="select datname from Pg_database" --echo-errors'
+    $output = invoke-expression $command
+
+    if ($LASTEXITCODE -ne 0) {
+        log_statement "ERROR: Failed to query for existing databases"
+        log_statement "errorlevel was $LASTEXITCODE"
+        return $LASTEXITCODE
+    }
+
+    foreach ($db in $output) {
+        if ($db.trim() -eq $MAPDBNAME) {
+            log_statement "MAP application database found for this branch."
+            set $MAPDBFOUND = 1
+        }
+        elseif ($db.trim() -eq $LOGDBNAME) {
+            log_statement "Logging database found for this branch."
+            set $LOGDBFOUND = 1
+        }
+    }
+
+    # Create MAP application database, if necessary
+	if ($MAPDBFOUND -ne 1) {
+		# Back up DEVELOP branch MAP application database & restore w/ branch name
+		log_statement "Copying $MAPDBNAME_DEVELOP to $MAPDBNAME"
+
+        log_statement "Executing backup"
+	    $command = 'c:\program` files\postgresql\9.6\bin\pg_dump.exe -d $MAPDBNAME_DEVELOP -F c -h localhost -f mapdb_develop.pgsql'
+        Invoke-Expression $command
+
+	    if ($LASTEXITCODE -ne 0) {
+		    log_statement "ERROR: Failed to back up application database"
+		    log_statement "errorlevel was $LASTEXITCODE"
+		    return $LASTEXITCODE
+	    }
+
+	    log_statement "Creating application database"
+	    $command = 'c:\program` files\postgresql\9.6\bin\psql.exe -d postgres -e -q --command="create database $MAPDBNAME"'
+        invoke-expression $command
+
+	    if ($LASTEXITCODE -ne 0) {
+		    log_statement "ERROR: Failed to create application database"
+		    log_statement "errorlevel was $LASTEXITCODE"
+		    return $LASTEXITCODE
+	    }
+
+		log_statement "Executing restore"
+		$command = 'c:\program` files\postgresql\9.6\bin\pg_restore.exe -d $MAPDBNAME mapdb_develop.pgsql'
+        Invoke-Expression $command
+
+		if ($LASTEXITCODE -ne 0) {
+			log_statement "ERROR: Failed to restore application database"
+			log_statement "errorlevel was $LASTEXITCODE"
+			return $LASTEXITCODE
+		}
+
+		log_statement "Deleting backup file"
+		rm mapdb_develop.pgsql
+
+	}
+  else {
+		log_statement "$MAPDBNAME already exists. No backup/restore is necessary."
+	}
+
+	if ($LOGDBFOUND -ne 1) {
+		# Back up DEVELOP branch Logging database & restore w/ branch name
+		log_statement "Copying $LOGDBNAME_DEVELOP to $LOGDBNAME"
+
+		log_statement "Executing backup"
+		$command = 'c:\program` files\postgresql\9.6\bin\pg_dump.exe -d $LOGDBNAME_DEVELOP -F c -h localhost -f logdb_develop.pgsql'
+        invoke-expression $command
+
+		if ($LASTEXITCODE -ne 0) {
+			log_statement "ERROR: Failed to back up logging database"
+			log_statement "errorlevel was $LASTEXITCODE"
+			return $LASTEXITCODE
+		}
+
+		log_statement "Creating logging database"
+		$command = 'c:\program` files\postgresql\9.6\bin\psql.exe -d postgres -e -q --command="create database $LOGDBNAME"'
+        Invoke-Expression $command
+        
+		if ($LASTEXITCODE -ne 0) {
+			log_statement "ERROR: Failed to create logging database"
+			log_statement "errorlevel was $LASTEXITCODE"
+			return $LASTEXITCODE
+		}
+
+		log_statement "Executing restore"
+		$command = 'c:\program` files\postgresql\9.6\bin\pg_restore.exe -d $LOGDBNAME -C logdb_develop.pgsql'
+        Invoke-Expression $command
+
+		if ($LASTEXITCODE -ne 0) {
+			log_statement "ERROR: Failed to restore logging database"
+			log_statement "errorlevel was $LASTEXITCODE"
+			return $LASTEXITCODE
+		}
+
+		log_statement "Deleting backup file"
+		rm logdb_develop.pgsql
+
+	}
+    else {
+		log_statement "$LOGDBNAME already exists. No backup/restore is necessary."
+	}
+}
+else {
+	log_statement "Develop branch detected. No database backup/restore is necessary."
+}
+
+log_statement "Performing application database migrations"
+cd MillimanAccessPortal
+dotnet restore
+
+if ($LASTEXITCODE -ne 0) {
+	log_statement "ERROR: Failed to restore NuGet packages"
+	log_statement "errorlevel was $LASTEXITCODE"
+	return $LASTEXITCODE
+}
+
+dotnet ef database update
+
+if ($LASTEXITCODE -ne 0) {
+	log_statement "ERROR: Failed to update application database"
+	log_statement "errorlevel was $LASTEXITCODE"
+	return $LASTEXITCODE
+}
+
+log_statement "Performing logging database migrations"
+cd ../AuditLogLib
+dotnet ef database update
+
+if ($LASTEXITCODE -ne 0) {
+	log_statement "ERROR: Failed to update logging database"
+	log_statement "errorlevel was $LASTEXITCODE"
+	return $LASTEXITCODE
+}
+
+cd ../MillimanAccessPortal
+
+log_statement "Build and publish application files"
+dotnet publish -o $branchFolder
+
+if ($LASTEXITCODE -ne 0) {
+	log_statement "Build failed"
+	log_statement "errorlevel was $LASTEXITCODE"
+	return $LASTEXITCODE
+}
+
+
+# (Re-)create applications
+try
+{
+        
+    $name = "MAP_CI_$branchName"
+
+    # Create application pool if it doesn't already exist
+    $requestURL = "http://localhost:8042/iis_create_pool?pool_name=$name"
+    $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
+
+    if ($requestResult.returncode -eq 183) {
+        log_statement "Application pool already exists."
+    }
+    elseif ($requestResult.returncode -ne 0) {
+        log_statement "ERROR: Failed to create application pool"
+        log_statement $requestResult.stdout
+        return -1
+    }
+
+    # Configure Application Pool credentials  
+    # Configuring credentials must be done separately from creating the application pool
+    $command = "C:\windows\system32\inetsrv\appcmd.exe $config /section:applicationPools `"/[name='$name'].processModel.identityType:SpecificUser`" `"/[name='$name'].processModel.userName:$ci_username`" `"/[name='$name'].processModel.password:$ci_password`""
+    invoke-expression $command
+
+    $requestURL = "http://localhost:8042/iis_create_pool?pool_name=$name&username=$ci_username&password=$ci_password"
+    $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
+
+    if ($requestResult.returncode -ne 0) {
+        log_statement "ERROR: Failed to configure application pool credentials"
+        log_statement $requestResult.stdout
+        return -1
+    }
+    
+    # If the web application already exists, remove it
+    New-WebApplication -Name $name -PhysicalPath $branchFolder -Site "Default Web Site" -ApplicationPool "$name"
+    $requestURL = "http://localhost:8042/iis_delete_app?app_name=$name&action=$delete"
+    $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
+
+    # Return code 50 indicates the app doesn't currently exist. That's fine in this case.
+    if ($requestResult.returncode -ne 0 -and $requestResult.returncode -ne 50) {
+        log_statement "ERROR: Failed to create the web application"
+        log_statement $requestResult.stdout
+        return -1
+    }
+
+    # Create web application
+    New-WebApplication -Name $name -PhysicalPath $branchFolder -Site "Default Web Site" -ApplicationPool "$name"
+    $requestURL = "http://localhost:8042/iis_create_app?app_name=$name&pool_name=$name&folder_path=$branchFolder"
+    $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
+
+    if ($requestResult.returncode -ne 0) {
+        log_statement "ERROR: Failed to create the web application"
+        log_statement $requestResult.stdout
+        return -1
+    }
+
+
+    # Configure Application Pool ASPNETCORE_ENVIRONMENT variable
+    $requestURL = "http://localhost:8042/iis_set_env?app_name=$name&env_variable_name=ASPNETCORE_ENVIRONMENT&env_variable_value=$ASPNETCORE_ENVIRONMENT"
+    $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
+
+    if ($requestResult.returncode -ne 0) {
+        log_statement "ERROR: Failed to configure application environment variable"
+        log_statement $requestResult.stdout
+        return -1
+    }
+
+    # Stop Pool
+    $requestURL = "http://localhost:8042/iis_stop_pool?pool_name=$name"
+    $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
+
+    if ($requestResult.returncode -ne 0) {
+        log_statement "ERROR: Failed to stop application pool"
+        log_statement $requestResult.stdout
+        return -1
+    }
+
+    # Start Pool
+    $requestURL = "http://localhost:8042/iis_start_pool?pool_name=$name"
+    $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
+
+    if ($requestResult.returncode -ne 0) {
+        log_statement "ERROR: Failed to start application pool"
+        log_statement $requestResult.stdout
+        return -1
+    }
+
+    log_statement "SUCCESS: Published to " ($urlBase + "/" + $name + "/")
+}
+catch [Exception]
+{
+    log_statement "ERROR: Publishing failed"
+    $_.Exception | format-list -force
+    return -1
+}
