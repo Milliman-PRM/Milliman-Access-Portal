@@ -59,7 +59,7 @@ log_statement "Stop running application pool"
 $requestURL = "http://localhost:8042/iis_stop_pool?pool_name=$appPool"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
-    if ($requestResult.returncode -ne 0) {
+    if ($requestResult.returncode -ne 0 -and $requestResult.returncode -ne 1062) {
         log_statement "ERROR: Failed to stop application pool"
         log_statement $requestResult.stdout
         return -1
@@ -291,7 +291,7 @@ try
     $requestURL = "http://localhost:8042/iis_stop_pool?pool_name=$name"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
-    if ($requestResult.returncode -ne 0) {
+    if ($requestResult.returncode -ne 0 -and $requestResult.returncode -ne 1062) {
         log_statement "ERROR: Failed to stop application pool"
         log_statement $requestResult.stdout
         exit -1
