@@ -71,7 +71,7 @@ if ($branchName -ne "DEVELOP") {
 	$LOGDBFOUND=1
 
     # Check for existing databases    
-    $command = 'c:\program` files\postgresql\9.6\bin\psql.exe --dbname=postgres -w --tuples-only --command="select datname from Pg_database" --echo-errors'
+    $command = 'c:\program` files\postgresql\9.6\bin\psql.exe --dbname=postgres --tuples-only --command="select datname from Pg_database" --echo-errors'
     $output = invoke-expression $command
 
     if ($LASTEXITCODE -ne 0) {
@@ -107,7 +107,7 @@ if ($branchName -ne "DEVELOP") {
 	    }
 
 	    log_statement "Creating application database"
-	    $command = 'c:\program` files\postgresql\9.6\bin\psql.exe -d postgres -w -e -q --command="create database $MAPDBNAME"'
+	    $command = 'c:\program` files\postgresql\9.6\bin\psql.exe -d postgres -e -q --command="create database $MAPDBNAME"'
         invoke-expression $command
 
 	    if ($LASTEXITCODE -ne 0) {
@@ -149,7 +149,7 @@ if ($branchName -ne "DEVELOP") {
 		}
 
 		log_statement "Creating logging database"
-		$command = 'c:\program` files\postgresql\9.6\bin\psql.exe -d postgres -e -w -q --command="create database $LOGDBNAME"'
+		$command = 'c:\program` files\postgresql\9.6\bin\psql.exe -d postgres -e -q --command="create database $LOGDBNAME"'
         Invoke-Expression $command
         
 		if ($LASTEXITCODE -ne 0) {
