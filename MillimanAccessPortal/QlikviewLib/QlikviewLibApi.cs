@@ -23,7 +23,7 @@ namespace QlikviewLib
                 string.Format("type=html"),
                 // TODO use the relative document path/name in the following
                 string.Format("try=/qvajaxzfc/opendoc.htm?document={0}", GroupEntity.ContentInstanceUrl),
-                string.Format("back=/"),
+                string.Format("back=/"),  // TODO maybe use something other than "/" (root Index page)
                 string.Format("webticket={0}", QlikviewWebTicket),
             };
 

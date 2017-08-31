@@ -129,8 +129,8 @@ namespace MillimanAccessPortal
 
             app.UseIdentity();
 
-            // Populate Identity roles in the database
-            ApplicationRole.SeedRoles(app.ApplicationServices).Wait();
+            // Initialize required records in the database
+            ApplicationDbContext.InitializeAll(app.ApplicationServices);
 
             // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
 

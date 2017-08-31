@@ -36,5 +36,10 @@ namespace MapDbContextLib.Context
             // Add your customizations after calling base.OnModelCreating(builder);
         }
 
+        public static void InitializeAll(IServiceProvider serviceProvider)
+        {
+            Identity.ApplicationRole.SeedRoles(serviceProvider);
+            Context.ContentType.InitializeContentTypes(serviceProvider);
+        }
     }
 }
