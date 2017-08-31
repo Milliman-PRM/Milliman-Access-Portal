@@ -70,7 +70,7 @@ if ($branchName -ne "DEVELOP") {
 	$MAPDBFOUND=0
 	$LOGDBFOUND=1
 
-    # Check for existing databases    
+    # Check for existing databases
     $command = 'c:\program` files\postgresql\9.6\bin\psql.exe --dbname=postgres --tuples-only --command="select datname from Pg_database" --echo-errors'
     $output = invoke-expression $command
 
@@ -151,7 +151,7 @@ if ($branchName -ne "DEVELOP") {
 		log_statement "Creating logging database"
 		$command = 'c:\program` files\postgresql\9.6\bin\psql.exe -d postgres -e -q --command="create database $LOGDBNAME"'
         Invoke-Expression $command
-        
+
 		if ($LASTEXITCODE -ne 0) {
 			log_statement "ERROR: Failed to create logging database"
 			log_statement "errorlevel was $LASTEXITCODE"
@@ -223,7 +223,7 @@ if ($LASTEXITCODE -ne 0) {
 # (Re-)create applications
 try
 {
-        
+
     $name = "MAP_CI_$branchName"
 
     # Create application pool if it doesn't already exist
@@ -239,11 +239,8 @@ try
         exit -1
     }
 
-    # Configure Application Pool credentials  
+    # Configure Application Pool credentials
     # Configuring credentials must be done separately from creating the application pool
-    $command = "C:\windows\system32\inetsrv\appcmd.exe $config /section:applicationPools `"/[name='$name'].processModel.identityType:SpecificUser`" `"/[name='$name'].processModel.userName:$ci_username`" `"/[name='$name'].processModel.password:$ci_password`""
-    invoke-expression $command
-
     $requestURL = "http://localhost:8042/iis_create_pool?pool_name=$name&username=$ci_username&password=$ci_password"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
@@ -252,7 +249,7 @@ try
         log_statement $requestResult.stdout
         exit -1
     }
-    
+
     # If the web application already exists, remove it
     New-WebApplication -Name $name -PhysicalPath $branchFolder -Site "Default Web Site" -ApplicationPool "$name"
     $requestURL = "http://localhost:8042/iis_delete_app?app_name=$name&action=$delete"
