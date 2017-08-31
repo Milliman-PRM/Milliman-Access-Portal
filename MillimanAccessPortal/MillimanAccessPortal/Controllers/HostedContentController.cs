@@ -11,6 +11,7 @@ using MapCommonLib.ContentTypeSpecific;
 using QlikviewLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapCommonLib;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -70,10 +71,13 @@ namespace MillimanAccessPortal.Controllers
                     .Join(DataContext.ContentType, r => r.ContentTypeId, type => type.Id, (r, type) => type);  // result is the ContentType record
 
                 // execute the query
-                TypeOfRequestedContent = Query.FirstOrDefault().Name;
+                ContentType RequestedContentType = Query.FirstOrDefault();
+                // TODO need this:   if (RequestedContentType == null) {what?}
+                TypeOfRequestedContent = RequestedContentType.Name;
             }
-            catch
+            catch (Exception e)
             {
+                string Msg = e.Message;
                 // The requested user group or associated root content item or content type record could not be found in the database
                 return View("SomeError_View", new object(/*SomeModel*/));
             }
@@ -92,7 +96,16 @@ namespace MillimanAccessPortal.Controllers
             }
 
             string UserName = UserManager.GetUserName(HttpContext.User);
-            UriBuilder ContentUri = ContentSpecificHandler.GetContentUri(UserGroupOfRequestedContent, UserName, OptionsAccessor.Value);
+            UriBuilder ContentUri = null;
+            try
+            {
+                ContentUri = ContentSpecificHandler.GetContentUri(UserGroupOfRequestedContent, UserName, OptionsAccessor.Value);
+            }
+            catch (MapException e)
+            {
+                // Some error encountere while building the content reference
+                return View("SomeError_View", new object(/*SomeModel*/));
+            }
 
             // Build a model for the resulting view
             WebHostedContentViewModel Model = new WebHostedContentViewModel

@@ -39,10 +39,9 @@ namespace QlikviewLib.Internal
             {
                 ResponseMsg = client.PostAsync(QvServerUri.Uri, RequestContent).Result;
             }
-            catch
+            catch (Exception e)
             {
-                // TODO log something
-                return string.Empty;
+                throw new MapException(string.Format("Exception from PostAsync() while calling GetWebTicket from {0}\r\nMessage: {1}", QvServerUri.Uri.AbsoluteUri, e.Message));
             }
 
             string ResponseBody = ResponseMsg.Content.ReadAsStringAsync().Result;
