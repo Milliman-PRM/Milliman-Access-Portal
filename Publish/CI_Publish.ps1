@@ -77,6 +77,9 @@ if ($branchName -ne "DEVELOP") {
 
     if ($LASTEXITCODE -ne 0) {
         log_statement "ERROR: Failed to query for existing databases"
+        log_statement "Command was: $command"
+        $user = whoami
+        log_statement "User is $user"
         log_statement "errorlevel was $LASTEXITCODE"
         exit $LASTEXITCODE
     }
@@ -103,6 +106,9 @@ if ($branchName -ne "DEVELOP") {
 
 	    if ($LASTEXITCODE -ne 0) {
 		    log_statement "ERROR: Failed to back up application database"
+        log_statement "Command was: $command"
+        $user = whoami
+        log_statement "User is $user"
 		    log_statement "errorlevel was $LASTEXITCODE"
 		    exit $LASTEXITCODE
 	    }
@@ -113,6 +119,9 @@ if ($branchName -ne "DEVELOP") {
 
 	    if ($LASTEXITCODE -ne 0) {
 		    log_statement "ERROR: Failed to create application database"
+        log_statement "Command was: $command"
+        $user = whoami
+        log_statement "User is $user"
 		    log_statement "errorlevel was $LASTEXITCODE"
 		    exit $LASTEXITCODE
 	    }
@@ -123,6 +132,9 @@ if ($branchName -ne "DEVELOP") {
 
 		if ($LASTEXITCODE -ne 0) {
 			log_statement "ERROR: Failed to restore application database"
+      log_statement "Command was: $command"
+      $user = whoami
+      log_statement "User is $user"
 			log_statement "errorlevel was $LASTEXITCODE"
 			exit $LASTEXITCODE
 		}
@@ -145,6 +157,9 @@ if ($branchName -ne "DEVELOP") {
 
 		if ($LASTEXITCODE -ne 0) {
 			log_statement "ERROR: Failed to back up logging database"
+      log_statement "Command was: $command"
+      $user = whoami
+      log_statement "User is $user"
 			log_statement "errorlevel was $LASTEXITCODE"
 			exit $LASTEXITCODE
 		}
@@ -155,6 +170,9 @@ if ($branchName -ne "DEVELOP") {
 
 		if ($LASTEXITCODE -ne 0) {
 			log_statement "ERROR: Failed to create logging database"
+      log_statement "Command was: $command"
+      $user = whoami
+      log_statement "User is $user"
 			log_statement "errorlevel was $LASTEXITCODE"
 			exit $LASTEXITCODE
 		}
@@ -165,6 +183,9 @@ if ($branchName -ne "DEVELOP") {
 
 		if ($LASTEXITCODE -ne 0) {
 			log_statement "ERROR: Failed to restore logging database"
+      log_statement "Command was: $command"
+      $user = whoami
+      log_statement "User is $user"
 			log_statement "errorlevel was $LASTEXITCODE"
 			exit $LASTEXITCODE
 		}
