@@ -76,12 +76,13 @@ if ($branchName -ne "DEVELOP") {
     $output = invoke-expression $command
 
     if ($LASTEXITCODE -ne 0) {
+        $error = $LASTEXITCODE
         log_statement "ERROR: Failed to query for existing databases"
         log_statement "Command was: $command"
         $user = whoami
         log_statement "User is $user"
         log_statement "errorlevel was $LASTEXITCODE"
-        exit $LASTEXITCODE
+        exit $error
     }
 
     foreach ($db in $output) {
@@ -105,12 +106,13 @@ if ($branchName -ne "DEVELOP") {
         Invoke-Expression $command
 
 	    if ($LASTEXITCODE -ne 0) {
-		    log_statement "ERROR: Failed to back up application database"
+        $error = $LASTEXITCODE
+        log_statement "ERROR: Failed to back up application database"
         log_statement "Command was: $command"
         $user = whoami
         log_statement "User is $user"
 		    log_statement "errorlevel was $LASTEXITCODE"
-		    exit $LASTEXITCODE
+		    exit $error
 	    }
 
 	    log_statement "Creating application database"
@@ -118,12 +120,13 @@ if ($branchName -ne "DEVELOP") {
         invoke-expression $command
 
 	    if ($LASTEXITCODE -ne 0) {
-		    log_statement "ERROR: Failed to create application database"
+        $error = $LASTEXITCODE
+        log_statement "ERROR: Failed to create application database"
         log_statement "Command was: $command"
         $user = whoami
         log_statement "User is $user"
 		    log_statement "errorlevel was $LASTEXITCODE"
-		    exit $LASTEXITCODE
+		    exit $error
 	    }
 
 		log_statement "Executing restore"
@@ -131,12 +134,13 @@ if ($branchName -ne "DEVELOP") {
         Invoke-Expression $command
 
 		if ($LASTEXITCODE -ne 0) {
-			log_statement "ERROR: Failed to restore application database"
+      $error = $LASTEXITCODE
+      log_statement "ERROR: Failed to restore application database"
       log_statement "Command was: $command"
       $user = whoami
       log_statement "User is $user"
 			log_statement "errorlevel was $LASTEXITCODE"
-			exit $LASTEXITCODE
+			exit $error
 		}
 
 		log_statement "Deleting backup file"
@@ -156,12 +160,13 @@ if ($branchName -ne "DEVELOP") {
         invoke-expression $command
 
 		if ($LASTEXITCODE -ne 0) {
-			log_statement "ERROR: Failed to back up logging database"
+      $error = $LASTEXITCODE
+      log_statement "ERROR: Failed to back up logging database"
       log_statement "Command was: $command"
       $user = whoami
       log_statement "User is $user"
 			log_statement "errorlevel was $LASTEXITCODE"
-			exit $LASTEXITCODE
+			exit $error
 		}
 
 		log_statement "Creating logging database"
@@ -169,12 +174,13 @@ if ($branchName -ne "DEVELOP") {
         Invoke-Expression $command
 
 		if ($LASTEXITCODE -ne 0) {
-			log_statement "ERROR: Failed to create logging database"
+      $error = $LASTEXITCODE
+      log_statement "ERROR: Failed to create logging database"
       log_statement "Command was: $command"
       $user = whoami
       log_statement "User is $user"
 			log_statement "errorlevel was $LASTEXITCODE"
-			exit $LASTEXITCODE
+			exit $error
 		}
 
 		log_statement "Executing restore"
