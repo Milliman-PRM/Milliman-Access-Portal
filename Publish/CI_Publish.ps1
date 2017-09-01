@@ -274,7 +274,7 @@ try
 
     # If the web application already exists, remove it
     log_statement "Remove existing web application (if any)"
-    $requestURL = "http://localhost:8042/iis_delete_app?app_name=$name&action=$delete"
+    $requestURL = "http://localhost:8042/iis_delete_app?app_name=$name&action=delete"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
     # Return code 50 indicates the app doesn't currently exist. That's fine in this case.
