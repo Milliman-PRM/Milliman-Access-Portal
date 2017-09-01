@@ -183,7 +183,7 @@ if ($branchName -ne "DEVELOP") {
 		}
 
 		log_statement "Executing restore"
-		$command = "'c:\program` files\postgresql\9.6\bin\pg_restore.exe' -d $LOGDBNAME -h localhost -C logdb_develop.pgsql"
+		$command = "'c:\program` files\postgresql\9.6\bin\pg_restore.exe' -d $LOGDBNAME -h localhost logdb_develop.pgsql"
         invoke-expression "&$command"
 
 		if ($LASTEXITCODE -ne 0) {
