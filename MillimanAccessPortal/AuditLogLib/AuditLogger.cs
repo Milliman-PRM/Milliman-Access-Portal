@@ -1,0 +1,160 @@
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Text;
+using Microsoft.Extensions.Logging;
+using System.Runtime.CompilerServices;
+using System.Reflection;
+
+namespace AuditLogLib
+{
+    public class AuditLogger
+    {
+        private static ConcurrentQueue<AuditEvent> LogEventQueue = new ConcurrentQueue<AuditEvent>();
+        private static Task WorkerTask = null;
+        private static int InstanceCount = 0;
+        private static object ThreadSafetyLock = new object();
+        private AuditLoggerConfiguration Config = null;
+
+        public AuditLogger(AuditLoggerConfiguration ConfigArg = null)
+        {
+            // TODO provide default connection string to AuditLoggerConfiguration constructor
+            Config = ConfigArg != null ? ConfigArg : new AuditLoggerConfiguration();
+
+            lock (ThreadSafetyLock)
+            {
+                InstanceCount++;
+                if (WorkerTask == null || (WorkerTask.Status != TaskStatus.Running && WorkerTask.Status != TaskStatus.WaitingToRun))
+                {
+                    WorkerTask = Task.Run(() => ProcessQueueEvents(Config));
+                    TaskStatus x = WorkerTask.Status;
+                    LogEventQueue.Enqueue(new AuditEvent { Summary = "status is " + x.ToString() });
+                    while (WorkerTask.Status != TaskStatus.Running)
+                    {
+                        LogEventQueue.Enqueue(new AuditEvent { Summary = "status is " + WorkerTask.Status.ToString() });
+                        Thread.Sleep(1);
+                    }
+                }
+            }
+        }
+
+        ~AuditLogger()
+        {
+            // Watch out how this lock is used.  The worker thread needs to be able to stop itself when InstanceCount == 0
+            lock (ThreadSafetyLock)
+            {
+                InstanceCount--;
+                if (InstanceCount == 0 && WaitForWorkerThreadEnd(500))  // TODO not the best stategy
+                {
+                    WorkerTask = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TState"></typeparam>
+        /// <param name="LogLevel">Provide one of the enum values</param>
+        /// <param name="EventId">Intended to receive one of the static properties of class AuditEventId</param>
+        /// <param name="ParamObject">Object of any type, but should follow conventions</param>
+        /// <param name="exception">Use null if no exception is being documented</param>
+        /// <param name="formatter">If provided, should be compatible with state argument</param>
+        public void Log<ParamObj>(LogLevel LogLevel, AuditEventId EventId, ParamObj ParamObject, Exception exception = null, Func<ParamObj, Exception, string> formatter = null)
+        {
+            if (EventId.Id < AuditEventId.AuditEventBaseId || EventId.Id > AuditEventId.AuditEventMaxId)
+                return;
+
+            AuditEvent NewEvent = null;
+
+            if (ParamObject.GetType() == typeof(AuditEvent))
+            {
+                NewEvent = ParamObject as AuditEvent;
+                NewEvent.EventType = EventId.Name;
+            }
+            else
+            {
+                NewEvent = new AuditEvent
+                {
+                    EventType = EventId.Name,
+                    TimeStamp = DateTime.Now,
+                };
+
+                Type t = ParamObject.GetType();
+                var p = t.GetTypeInfo();
+                foreach (var Property in p.DeclaredProperties)
+                {
+                    switch (Property.Name)
+                    {
+                        case "UserName":
+                            NewEvent.User = Property.GetValue(ParamObject) as string;
+                            break;
+                        case "Source":
+                            NewEvent.Source = Property.GetValue(ParamObject) as string;
+                            break;
+                        case "Detail":
+                            NewEvent.EventDetailObject = Property.GetValue(ParamObject);
+                            break;
+                        case "Summary":
+                            NewEvent.Summary = Property.GetValue(ParamObject) as string;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
+            // TODO instead of an in-process queue, switch to use an out of process asynchronous message queue and a system service to service the queue and persist.
+            // Hint, MSMQ was an idea but that probably will never be supported in .NET Core since it is a Windows only service.  
+            // The issue here is that if the process is terminated or crashes, any unprocessed log messages in the queue could be lost.  
+            LogEventQueue.Enqueue(NewEvent);
+        }
+
+        /// <summary>
+        /// Waits for the worker thread to end (if running)
+        /// </summary>
+        /// <param name="MaxWaitMs">Time limit to wait (in ms)</param>
+        /// <returns>true if thread is not running at time of return</returns>
+        public bool WaitForWorkerThreadEnd(int MaxWaitMs = 0)
+        {
+            if (WorkerTask != null && WorkerTask.Status == TaskStatus.Running)
+            {
+                return WorkerTask.Wait(MaxWaitMs);
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Worker thread main entry point
+        /// </summary>
+        /// <param name="Arg"></param>
+        private static void ProcessQueueEvents(object Arg = null)
+        {
+            AuditLoggerConfiguration Config = Arg as AuditLoggerConfiguration;
+
+            while (InstanceCount > 0)
+            {
+                if (LogEventQueue.Count > 0)
+                {
+                    using (AuditLogDbContext Db = AuditLogDbContext.Instance(Config.ConnectionString))
+                    {
+                        List<AuditEvent> NewEventsToStore = new List<AuditEvent>();
+
+                        AuditEvent NextEvent;
+                        while (LogEventQueue.TryDequeue(out NextEvent))
+                        {
+                            NewEventsToStore.Add(NextEvent);
+                        }
+
+                        Db.AuditEvent.AddRange(NewEventsToStore);
+                        Db.SaveChanges();
+                    }
+                }
+
+                Thread.Sleep(20);
+            }
+        }
+    }
+}
