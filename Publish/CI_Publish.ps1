@@ -258,16 +258,18 @@ try
         log_statement $requestResult.stdout
         exit -1
     }
+    elseif ($requestResult.returncode -eq 0) {
+        # This step should only be performed when the application pool is initially created
+        # Configure Application Pool credentials
+        # Configuring credentials must be done separately from creating the application pool
+        $requestURL = "http://localhost:8042/iis_create_pool?pool_name=$name&username=$ci_username&password=$ci_password"
+        $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
-    # Configure Application Pool credentials
-    # Configuring credentials must be done separately from creating the application pool
-    $requestURL = "http://localhost:8042/iis_create_pool?pool_name=$name&username=$ci_username&password=$ci_password"
-    $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
-
-    if ($requestResult.returncode -ne 0) {
-        log_statement "ERROR: Failed to configure application pool credentials"
-        log_statement $requestResult.stdout
-        exit -1
+        if ($requestResult.returncode -ne 0) {
+            log_statement "ERROR: Failed to configure application pool credentials"
+            log_statement $requestResult.stdout
+            exit -1
+        }
     }
 
     # If the web application already exists, remove it
@@ -292,7 +294,6 @@ try
         log_statement $requestResult.stdout
         exit -1
     }
-
 
     # Configure Application Pool ASPNETCORE_ENVIRONMENT variable
     $requestURL = "http://localhost:8042/iis_set_env?app_name=$name&env_variable_name=ASPNETCORE_ENVIRONMENT&env_variable_value=$ASPNETCORE_ENVIRONMENT"
