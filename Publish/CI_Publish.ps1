@@ -287,7 +287,6 @@ try
 
     # Create web application
     log_statement "Creating web application"
-    New-WebApplication -Name $name -PhysicalPath $branchFolder -Site "Default Web Site" -ApplicationPool "$name"
     $requestURL = "http://localhost:8042/iis_create_app?app_name=$name&pool_name=$name&folder_path=$branchFolder"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
