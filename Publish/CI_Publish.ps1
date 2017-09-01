@@ -72,7 +72,7 @@ if ($branchName -ne "DEVELOP") {
 	$LOGDBFOUND=1
 
     # Check for existing databases
-    $command = 'c:\program` files\postgresql\9.6\bin\psql.exe --dbname=postgres  -h localhost -w -U $db_username --tuples-only --command="select datname from Pg_database" --echo-errors'
+    $command = "'c:\program` files\postgresql\9.6\bin\psql.exe' --dbname=postgres  -h localhost -w -U $db_username --tuples-only --command=`"select datname from Pg_database`" --echo-errors'"
     $output = invoke-expression $command
 
     if ($LASTEXITCODE -ne 0) {
@@ -182,12 +182,13 @@ if ($branchName -ne "DEVELOP") {
         Invoke-Expression $command
 
 		if ($LASTEXITCODE -ne 0) {
+      $error = $LASTEXITCODE
 			log_statement "ERROR: Failed to restore logging database"
       log_statement "Command was: $command"
       $user = whoami
       log_statement "User is $user"
 			log_statement "errorlevel was $LASTEXITCODE"
-			exit $LASTEXITCODE
+			exit $error
 		}
 
 		log_statement "Deleting backup file"
