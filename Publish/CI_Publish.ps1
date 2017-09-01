@@ -69,7 +69,7 @@ $requestURL = "http://localhost:8042/iis_stop_pool?pool_name=$appPool"
 if ($branchName -ne "DEVELOP") {
     log_statement "Copy databases from DEVELOP branch space, if this branch doesn't have its databases yet"
 	$MAPDBFOUND=0
-	$LOGDBFOUND=1
+	$LOGDBFOUND=0
 
     # Check for existing databases
     $command = "'c:\program` files\postgresql\9.6\bin\psql.exe' --dbname=postgres  -h localhost -w -U $db_username --tuples-only --command=`"select datname from Pg_database`" --echo-errors'"
