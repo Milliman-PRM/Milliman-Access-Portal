@@ -273,6 +273,7 @@ try
     }
 
     # If the web application already exists, remove it
+    log_statement "Remove existing web application (if any)"
     New-WebApplication -Name $name -PhysicalPath $branchFolder -Site "Default Web Site" -ApplicationPool "$name"
     $requestURL = "http://localhost:8042/iis_delete_app?app_name=$name&action=$delete"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
@@ -285,6 +286,7 @@ try
     }
 
     # Create web application
+    log_statement "Creating web application"
     New-WebApplication -Name $name -PhysicalPath $branchFolder -Site "Default Web Site" -ApplicationPool "$name"
     $requestURL = "http://localhost:8042/iis_create_app?app_name=$name&pool_name=$name&folder_path=$branchFolder"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
@@ -296,6 +298,7 @@ try
     }
 
     # Configure Application Pool ASPNETCORE_ENVIRONMENT variable
+    log_statement "Configuring ASPNETCORE_ENVIRONMENT variable"
     $requestURL = "http://localhost:8042/iis_set_env?app_name=$name&env_variable_name=ASPNETCORE_ENVIRONMENT&env_variable_value=$ASPNETCORE_ENVIRONMENT"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
@@ -306,6 +309,7 @@ try
     }
 
     # Stop Pool
+    log_statement "Stopping application pool to reset it"
     $requestURL = "http://localhost:8042/iis_stop_pool?pool_name=$name"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
@@ -316,6 +320,7 @@ try
     }
 
     # Start Pool
+    log_statement "Final application pool startup"
     $requestURL = "http://localhost:8042/iis_start_pool?pool_name=$name"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
