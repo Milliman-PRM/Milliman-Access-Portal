@@ -35,7 +35,7 @@ log_statement "Adding the branch name to database names in connection strings"
 
 cd MillimanAccessPortal\MillimanAccessPortal
 
-(Get-Content Appsettings.CI.JSON).replace('((branch_name))', '$branchName') | Set-Content AppSettings.CI.JSON
+(Get-Content Appsettings.CI.JSON).replace("((branch_name))", "$branchName") | Set-Content AppSettings.CI.JSON
 
 log_statement "Test build before publishing"
 # If this build fails, we don't want to do the subsequent (destructive) steps
@@ -328,7 +328,7 @@ try
         exit -1
     }
 
-    log_statement "SUCCESS: Published to " ($urlBase + "/" + $name + "/")
+    log_statement "SUCCESS: Published to http://indy-qvtest01.milliman.com/$name"
 }
 catch [Exception]
 {
