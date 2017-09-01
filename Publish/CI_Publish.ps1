@@ -209,14 +209,6 @@ else {
 }
 
 log_statement "Performing application database migrations"
-cd MillimanAccessPortal
-dotnet restore
-
-if ($LASTEXITCODE -ne 0) {
-	log_statement "ERROR: Failed to restore NuGet packages"
-	log_statement "errorlevel was $LASTEXITCODE"
-	exit $LASTEXITCODE
-}
 
 dotnet ef database update
 
