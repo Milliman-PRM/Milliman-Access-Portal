@@ -21,9 +21,9 @@ $ci_password = $env:pool_password
 $branchFolder = "D:\installedapplications\map_ci\$branchName\"
 $AppPool = "MAP_CI_$branchName"
 $MAPDBNAME = "MillimanAccessPortal_CI_$branchName"
-$MAPDBNAME_DEVELOP = "MillimanAccessPortal_CI_Develop"
+$MAPDBNAME_DEVELOP = "millimanaccessportal_ci_develop"
 $LOGDBNAME = "MapAuditLog_CI_$branchName"
-$LOGDBNAME_DEVELOP = "MapAuditLog_CI_Develop"
+$LOGDBNAME_DEVELOP = "mapauditlog_ci_develop"
 $ASPNETCORE_ENVIRONMENT = "CI"
 $PublishURL = "http://indy-qvtest01/$appPool"
 
