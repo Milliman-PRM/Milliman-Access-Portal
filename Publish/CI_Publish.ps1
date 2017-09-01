@@ -274,7 +274,6 @@ try
 
     # If the web application already exists, remove it
     log_statement "Remove existing web application (if any)"
-    New-WebApplication -Name $name -PhysicalPath $branchFolder -Site "Default Web Site" -ApplicationPool "$name"
     $requestURL = "http://localhost:8042/iis_delete_app?app_name=$name&action=$delete"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
