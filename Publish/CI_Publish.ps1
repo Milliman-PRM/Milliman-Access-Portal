@@ -27,7 +27,6 @@ $LOGDBNAME = "MapAuditLog_CI_$branchName"
 $LOGDBNAME_DEVELOP = "MapAuditLog_CI_Develop"
 $ASPNETCORE_ENVIRONMENT = "CI"
 $PublishURL = "http://indy-qvtest01/$appPool"
-$pgsql_bin = "c:\program files\postgresql\9.6\bin"
 
 # Set environment variable (utilized by dotnet commands)
 $env:ASPNETCORE_ENVIRONMENT=$ASPNETCORE_ENVIRONMENT
@@ -64,7 +63,7 @@ $requestURL = "http://localhost:8042/iis_stop_pool?pool_name=$appPool"
     if ($requestResult.returncode -ne 0 -and $requestResult.returncode -ne 1062) {
         log_statement "ERROR: Failed to stop application pool"
         log_statement $requestResult.stdout
-        return -1
+        #return -1
     }
 
 if ($branchName -ne "DEVELOP") {
@@ -73,8 +72,8 @@ if ($branchName -ne "DEVELOP") {
 	$LOGDBFOUND=0
 
     # Check for existing databases
-    $command = "`'$pgsql_bin\psql.exe`' --dbname=postgres  -h localhost -w -U $db_username --tuples-only --command=`"select datname from Pg_database`" --echo-errors"
-    $output = invoke-expression $command
+    $command = "'c:\program` files\postgresql\9.6\bin\psql.exe' --dbname=postgres  -h localhost -w -U $db_username --tuples-only --command=`"select datname from Pg_database`" --echo-errors"
+    $output = invoke-expression "&$command"
 
     if ($LASTEXITCODE -ne 0) {
         $error = $LASTEXITCODE
@@ -103,8 +102,8 @@ if ($branchName -ne "DEVELOP") {
 		log_statement "Copying $MAPDBNAME_DEVELOP to $MAPDBNAME"
 
         log_statement "Executing backup"
-	    $command = "`'$pgsql_bin\pg_dump.exe`' -d $MAPDBNAME_DEVELOP -U $db_username -w -F c -h localhost -f mapdb_develop.pgsql"
-        Invoke-Expression $command
+	    $command = "'c:\program` files\postgresql\9.6\bin\pg_dump.exe' -d $MAPDBNAME_DEVELOP -U $db_username -w -F c -h localhost -f mapdb_develop.pgsql"
+        invoke-expression "&$command"
 
 	    if ($LASTEXITCODE -ne 0) {
         $error = $LASTEXITCODE
@@ -117,8 +116,8 @@ if ($branchName -ne "DEVELOP") {
 	    }
 
 	    log_statement "Creating application database"
-	    $command = "`'$pgsql_bin\psql.exe`' -d postgres -h localhost -w -U $db_username -U $db_username -e -q --command=`"create database $MAPDBNAME`""
-        invoke-expression $command
+	    $command = "'c:\program` files\postgresql\9.6\bin\psql.exe' -d postgres -h localhost -w -U $db_username -U $db_username -e -q --command=`"create database $MAPDBNAME`""
+        invoke-expression "&$command"
 
 	    if ($LASTEXITCODE -ne 0) {
         $error = $LASTEXITCODE
@@ -131,8 +130,8 @@ if ($branchName -ne "DEVELOP") {
 	    }
 
 		log_statement "Executing restore"
-		$command = "`'$pgsql_bin\pg_restore.exe`' -h localhost -U $db_username -w -d $MAPDBNAME mapdb_develop.pgsql"
-        Invoke-Expression $command
+		$command = "'c:\program` files\postgresql\9.6\bin\pg_restore.exe' -h localhost -U $db_username -w -d $MAPDBNAME mapdb_develop.pgsql"
+        invoke-expression "&$command"
 
 		if ($LASTEXITCODE -ne 0) {
       $error = $LASTEXITCODE
@@ -157,8 +156,8 @@ if ($branchName -ne "DEVELOP") {
 		log_statement "Copying $LOGDBNAME_DEVELOP to $LOGDBNAME"
 
 		log_statement "Executing backup"
-		$command = "`'$pgsql_bin\pg_dump.exe`' -d $LOGDBNAME_DEVELOP -U $db_username -w -F c -h localhost -f logdb_develop.pgsql"
-        invoke-expression $command
+		$command = "'c:\program` files\postgresql\9.6\bin\pg_dump.exe' -d $LOGDBNAME_DEVELOP -U $db_username -w -F c -h localhost -f logdb_develop.pgsql"
+        invoke-expression "&$command"
 
 		if ($LASTEXITCODE -ne 0) {
       $error = $LASTEXITCODE
@@ -171,8 +170,8 @@ if ($branchName -ne "DEVELOP") {
 		}
 
 		log_statement "Creating logging database"
-		$command = "`'$pgsql_bin\psql.exe`' -d postgres -h localhost -w -U $db_username -e -q --command=`"create database $LOGDBNAME`""
-        Invoke-Expression $command
+		$command = "'c:\program` files\postgresql\9.6\bin\psql.exe' -d postgres -h localhost -w -U $db_username -e -q --command=`"create database $LOGDBNAME`""
+        invoke-expression "&$command"
 
 		if ($LASTEXITCODE -ne 0) {
       $error = $LASTEXITCODE
@@ -185,8 +184,8 @@ if ($branchName -ne "DEVELOP") {
 		}
 
 		log_statement "Executing restore"
-		$command = "`'$pgsql_bin\pg_restore.exe`' -d $LOGDBNAME -h localhost -U $db_username -w -C logdb_develop.pgsql"
-        Invoke-Expression $command
+		$command = "'c:\program` files\postgresql\9.6\bin\pg_restore.exe' -d $LOGDBNAME -h localhost -U $db_username -w -C logdb_develop.pgsql"
+        invoke-expression "&$command"
 
 		if ($LASTEXITCODE -ne 0) {
       $error = $LASTEXITCODE
