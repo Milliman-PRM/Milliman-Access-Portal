@@ -87,11 +87,11 @@ if ($branchName -ne "DEVELOP") {
     foreach ($db in $output) {
         if ($db.trim() -eq $MAPDBNAME) {
             log_statement "MAP application database found for this branch."
-            set $MAPDBFOUND = 1
+            $MAPDBFOUND = 1
         }
         elseif ($db.trim() -eq $LOGDBNAME) {
             log_statement "Logging database found for this branch."
-            set $LOGDBFOUND = 1
+           $LOGDBFOUND = 1
         }
     }
 
