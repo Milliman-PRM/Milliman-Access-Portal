@@ -170,7 +170,7 @@ if ($branchName -ne "DEVELOP") {
 		}
 
 		log_statement "Creating logging database"
-		$command = "'c:\program` files\postgresql\9.6\bin\psql.exe' -d postgres -h localhost -w -U $db_username -e -q --command=``"create database $LOGDBNAME`""
+		$command = "'c:\program` files\postgresql\9.6\bin\psql.exe' -d postgres -h localhost -w -U $db_username -e -q --command=`"create database $LOGDBNAME`""
         Invoke-Expression $command
 
 		if ($LASTEXITCODE -ne 0) {
