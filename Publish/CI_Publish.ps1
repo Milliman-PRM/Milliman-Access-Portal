@@ -72,7 +72,7 @@ if ($branchName -ne "DEVELOP") {
 	$LOGDBFOUND=0
 
     # Check for existing databases
-    $command = "'c:\program` files\postgresql\9.6\bin\psql.exe' --dbname=postgres  -h localhost -w -U $db_username --tuples-only --command=`"select datname from Pg_database`" --echo-errors'"
+    $command = "'c:\program` files\postgresql\9.6\bin\psql.exe' --dbname=postgres  -h localhost -w -U $db_username --tuples-only --command=`"select datname from Pg_database`" --echo-errors"
     $output = invoke-expression $command
 
     if ($LASTEXITCODE -ne 0) {
