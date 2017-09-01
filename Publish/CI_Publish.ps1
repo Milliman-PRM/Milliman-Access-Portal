@@ -334,6 +334,7 @@ try
 catch [Exception]
 {
     log_statement "ERROR: Publishing failed"
+    log_statement "Last request URL: $requestURL"
     $_.Exception | format-list -force
     exit -1
 }
