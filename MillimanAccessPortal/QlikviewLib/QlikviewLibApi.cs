@@ -16,7 +16,7 @@ namespace QlikviewLib
         {
             QlikviewConfig ConfigInfo = (QlikviewConfig)ConfigInfoArg;
 
-            string QlikviewWebTicket = QvServerOperations.GetQvWebTicket(UserName, ConfigInfo as QlikviewConfig);
+            string QlikviewWebTicket = QvServerOperations.GetQvWebTicket(@"Custom\" + UserName, ConfigInfo as QlikviewConfig);
 
             string[] QueryStringItems = new string[]
             {

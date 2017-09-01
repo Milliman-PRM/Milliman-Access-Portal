@@ -60,6 +60,7 @@ namespace MillimanAccessPortal.Controllers
         {
             string TypeOfRequestedContent = "Unknown";
             ContentItemUserGroup UserGroupOfRequestedContent = null;
+            WebHostedContentViewModel ResponseModel = null;
 
             try
             {
@@ -74,46 +75,37 @@ namespace MillimanAccessPortal.Controllers
                 ContentType RequestedContentType = Query.FirstOrDefault();
                 // TODO need this:   if (RequestedContentType == null) {what?}
                 TypeOfRequestedContent = RequestedContentType.Name;
+
+                // Instantiate the right content handler class
+                ContentTypeSpecificApiBase ContentSpecificHandler = null;
+                switch (TypeOfRequestedContent)
+                {
+                    case "Qlikview":
+                        ContentSpecificHandler = new QlikviewLibApi();
+                        break;
+
+                    default:
+                        // The content type of the requested content is not handled
+                        return View("SomeError_View", new object(/*SomeModel*/));
+                }
+
+                string EndUserName = UserManager.GetUserName(HttpContext.User);
+                UriBuilder ContentUri = null;
+                ContentUri = ContentSpecificHandler.GetContentUri(UserGroupOfRequestedContent, EndUserName, OptionsAccessor.Value);
+
+                ResponseModel = new WebHostedContentViewModel
+                {
+                    Url = ContentUri.Uri,
+                };
             }
-            catch (Exception e)
+            catch (MapException e)
             {
                 string Msg = e.Message;
                 // The requested user group or associated root content item or content type record could not be found in the database
                 return View("SomeError_View", new object(/*SomeModel*/));
             }
 
-            // Instantiate the right content handler class
-            ContentTypeSpecificApiBase ContentSpecificHandler = null;
-            switch (TypeOfRequestedContent)
-            {
-                case "Qlikview":
-                    ContentSpecificHandler = new QlikviewLibApi();
-                    break;
-
-                default:
-                    // The content type of the requested content is not handled
-                    return View("SomeError_View", new object(/*SomeModel*/));
-            }
-
-            string UserName = UserManager.GetUserName(HttpContext.User);
-            UriBuilder ContentUri = null;
-            try
-            {
-                ContentUri = ContentSpecificHandler.GetContentUri(UserGroupOfRequestedContent, UserName, OptionsAccessor.Value);
-            }
-            catch (MapException e)
-            {
-                // Some error encountere while building the content reference
-                return View("SomeError_View", new object(/*SomeModel*/));
-            }
-
-            // Build a model for the resulting view
-            WebHostedContentViewModel Model = new WebHostedContentViewModel
-            {
-                Url = ContentUri.Uri,
-            };
-
-            return View(Model);
+            return View(ResponseModel);
         }
 
     }
