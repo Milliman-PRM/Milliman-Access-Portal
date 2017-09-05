@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MapCommonLib;
+using System.Net;
 
 namespace QlikviewLib
 {
@@ -12,7 +13,19 @@ namespace QlikviewLib
     public class QlikviewConfig
     {
         public string QvServerHost { get; set; }
-        public string QvServerUserName { get; set; }
-        public string QvServerPassword { get; set; }
+        public string QvServerAdminUserAuthenticationDomain { get; set; }
+        public string QvServerAdminUserName { get; set; }
+        public string QvServerAdminUserPassword { get; set; }
+
+        /// <summary>
+        /// Converts config values to a NetworkCredential object, requires an explicit cast. 
+        /// </summary>
+        /// <param name="C"></param>
+        public static explicit operator NetworkCredential(QlikviewConfig C)
+        {
+            return string.IsNullOrEmpty(C.QvServerAdminUserAuthenticationDomain) ?
+                new NetworkCredential(C.QvServerAdminUserName, C.QvServerAdminUserPassword) :
+                new NetworkCredential(C.QvServerAdminUserName, C.QvServerAdminUserPassword, C.QvServerAdminUserAuthenticationDomain);
+        }
     }
 }

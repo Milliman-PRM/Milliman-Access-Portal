@@ -16,19 +16,20 @@ namespace QlikviewLib
         {
             QlikviewConfig ConfigInfo = (QlikviewConfig)ConfigInfoArg;
 
-            string QlikviewWebTicket = QvServerOperations.GetQvWebTicket(@"Custom\" + UserName, ConfigInfo as QlikviewConfig);
+            string QlikviewWebTicket = QvServerOperations.GetQvWebTicket(/*@"Custom\" +*/ UserName, ConfigInfo as QlikviewConfig);
 
             string[] QueryStringItems = new string[]
             {
-                string.Format("type=html"),
-                // TODO use the relative document path/name in the following
-                string.Format("try=/qvajaxzfc/opendoc.htm?document={0}", GroupEntity.ContentInstanceUrl),
-                string.Format("back=/"),  // TODO maybe use something other than "/" (root Index page)
-                string.Format("webticket={0}", QlikviewWebTicket),
+                $"type=html",
+                $"try=/qvajaxzfc/opendoc.htm?document={GroupEntity.ContentInstanceUrl}",  // TODO use the relative document path/name in the following
+                $"back=/",  // TODO probably use something other than "/" (such as a proper error page)
+                $"webticket={QlikviewWebTicket}",
             };
 
             UriBuilder QvServerUri = new UriBuilder
             {
+                // Note that the UriBuilder manages the insertion of literal '?' before the query string.  
+                // You can't include a query string in the Path property because the '?' gets UrlEncoded.  
                 Scheme = QvServerUriScheme,
                 Host = ConfigInfo.QvServerHost,
                 Path = "/qvajaxzfc/Authenticate.aspx",

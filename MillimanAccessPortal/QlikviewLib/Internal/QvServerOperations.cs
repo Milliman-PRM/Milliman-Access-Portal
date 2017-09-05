@@ -29,7 +29,7 @@ namespace QlikviewLib.Internal
 
             var Handler = new HttpClientHandler
             {
-                Credentials = new NetworkCredential(QvConfig.QvServerUserName, QvConfig.QvServerPassword, QvConfig.QvServerHost),
+                Credentials = (NetworkCredential) QvConfig,  // conversion operator defined in class QlikviewConfig
             };
 
             HttpClient client = new HttpClient(Handler);
@@ -41,7 +41,7 @@ namespace QlikviewLib.Internal
             }
             catch (Exception e)
             {
-                throw new MapException(string.Format("Exception from PostAsync() while calling GetWebTicket from {0}\r\nMessage: {1}", QvServerUri.Uri.AbsoluteUri, e.Message));
+                throw new MapException(string.Format("Exception from PostAsync() while calling GetWebTicket.aspx from {0}\r\nMessage: {1}", QvServerUri.Uri.AbsoluteUri, e.Message));
             }
 
             string ResponseBody = ResponseMsg.Content.ReadAsStringAsync().Result;
@@ -59,7 +59,7 @@ namespace QlikviewLib.Internal
             }
             catch
             {
-                throw new MapException(string.Format("Failed to parse Qlikview web ticket from server response body"));
+                throw new MapException(string.Format("Qlikview web ticket not found in server response"));
             }
 
             return Ticket;
