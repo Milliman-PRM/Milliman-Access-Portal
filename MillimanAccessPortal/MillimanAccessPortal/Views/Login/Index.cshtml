@@ -10,7 +10,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Milliman Access Portal</title>
+    <title>@ViewData["Title"] - Milliman Access Portal Environment: @Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")</title>
 
     @if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "CI")
     {
