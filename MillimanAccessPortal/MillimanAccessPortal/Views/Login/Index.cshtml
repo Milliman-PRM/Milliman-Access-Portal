@@ -10,13 +10,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Milliman Access Portal Environment: @Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")</title>
-
-    @if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "CI")
-    {
-        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
-        <link rel="stylesheet" href="~/css/site.css" />
-    }
+    <title>@ViewData["Title"] - Milliman Access Portal</title>
 
     <environment names="Development">
         <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
