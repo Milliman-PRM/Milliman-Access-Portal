@@ -60,7 +60,9 @@ log_statement "Stop running application pool"
 $requestURL = "http://localhost:8042/iis_pool_action?pool_name=$appPool&action=stop"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
-    if ($requestResult.returncode -ne 0 -and $requestResult.returncode -ne 1062) {
+    # Return code 1062 = Pool is already stopped
+    # Return code 1168 = Pool does not exist yet (typically a first-time publish for a new branch)
+    if ($requestResult.returncode -ne 0 -and $requestResult.returncode -ne 1062 -and $requestResult.returncode -ne 1168) {
         log_statement "ERROR: Failed to stop application pool"
         log_statement $requestResult.stdout
         #return -1
