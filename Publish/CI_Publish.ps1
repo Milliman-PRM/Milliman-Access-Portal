@@ -232,7 +232,7 @@ if ($LASTEXITCODE -ne 0) {
 cd ../MillimanAccessPortal
 
 log_statement "Build and publish application files"
-dotnet publish -o $branchFolder
+dotnet publish -o $branchFolder --verbosity detailed
 
 if ($LASTEXITCODE -ne 0) {
 	log_statement "Build failed"
