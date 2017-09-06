@@ -57,7 +57,7 @@ if ( $LASTEXITCODE -ne 0 ) {
 }
 
 log_statement "Stop running application pool"
-$requestURL = "http://localhost:8042/iis_stop_pool?pool_name=$appPool"
+$requestURL = "http://localhost:8042/iis_pool_action?pool_name=$appPool&action=stop"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
     if ($requestResult.returncode -ne 0 -and $requestResult.returncode -ne 1062) {
@@ -248,7 +248,7 @@ try
     $name = "MAP_CI_$branchName"
 
     # Create application pool if it doesn't already exist
-    $requestURL = "http://localhost:8042/iis_create_pool?pool_name=$name"
+    $requestURL = "http://localhost:8042/iis_pool_action?action=add&pool_name=$name"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
     if ($requestResult.returncode -eq 183) {
@@ -263,7 +263,7 @@ try
         # This step should only be performed when the application pool is initially created
         # Configure Application Pool credentials
         # Configuring credentials must be done separately from creating the application pool
-        $requestURL = "http://localhost:8042/iis_create_pool?pool_name=$name&username=$ci_username&password=$ci_password"
+        $requestURL = "http://localhost:8042/iis_configure_pool_user?pool_name=$name&username=$ci_username&password=$ci_password"
         $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
         if ($requestResult.returncode -ne 0) {
@@ -309,7 +309,7 @@ try
 
     # Stop Pool
     log_statement "Stopping application pool to reset it"
-    $requestURL = "http://localhost:8042/iis_stop_pool?pool_name=$name"
+    $requestURL = "http://localhost:8042/iis_pool_action?action=stop&pool_name=$name"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
     if ($requestResult.returncode -ne 0 -and $requestResult.returncode -ne 1062) {
@@ -320,7 +320,7 @@ try
 
     # Start Pool
     log_statement "Final application pool startup"
-    $requestURL = "http://localhost:8042/iis_start_pool?pool_name=$name"
+    $requestURL = "http://localhost:8042/iis_pool_action?action=start&pool_name=$name"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
     if ($requestResult.returncode -ne 0) {
