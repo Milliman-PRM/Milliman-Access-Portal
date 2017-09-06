@@ -1,30 +1,30 @@
-﻿using System;
+﻿/*
+* CODE OWNERS: Tom Puckett
+* OBJECTIVE: For internal use by this class library only.  Some methods relating to interface with a Qlikview server.  
+* DEVELOPER NOTES: No publicly consumable API elements should be implemented here. For internal use only. 
+*/
+
+using System;
 using System.Net;
 using System.Net.Http;
-using System.IO;
-using System.Text;
 using System.Xml.Linq;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using MapCommonLib;
 
 namespace QlikviewLib.Internal
 {
     internal class QvServerOperations
     {
-        private static string QvServerUriScheme = "http";
-
         internal static string GetQvWebTicket(string UserId, QlikviewConfig QvConfig)
         {
             UriBuilder QvServerUri = new UriBuilder
             {
-                Scheme = QvServerUriScheme,
+                Scheme = "https",  // TODO support choice of http and https
                 Host = QvConfig.QvServerHost,
                 Path = "qvajaxzfc/getwebticket.aspx",
             };
 
-            string RequestBodyString = string.Format("<Global method=\"GetWebTicket\"><UserId>{0}</UserId></Global>", UserId);
+            // TODO if a group name(s) is relevant it should be encoded in the xml appropriately
+            string RequestBodyString = $"<Global method=\"GetWebTicket\"><UserId>{UserId}</UserId></Global>";
             Uri x = QvServerUri.Uri;
 
             var Handler = new HttpClientHandler
@@ -48,7 +48,9 @@ namespace QlikviewLib.Internal
 
             if (!ResponseMsg.IsSuccessStatusCode)
             {
-                throw new MapException(string.Format("Failed to obtain Qlikview web ticket from {0},\r\nHTTP status {1},\r\nresponse body: {2}", QvServerUri.Uri.AbsoluteUri, (int)ResponseMsg.StatusCode, ResponseBody));
+                throw new MapException($"Failed to obtain Qlikview web ticket from: {QvServerUri.Uri.AbsoluteUri}" + Environment.NewLine +
+                                       $"HTTP status: {(int)ResponseMsg.StatusCode}" + Environment.NewLine +
+                                       $"response body: {ResponseBody}");
             }
 
             string Ticket = string.Empty;

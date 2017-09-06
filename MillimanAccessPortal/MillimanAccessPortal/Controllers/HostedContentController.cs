@@ -1,10 +1,12 @@
+/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: MVC controller implementing handlers related to accessing hosted content
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
 using System;
-using System.IO;
-using System.Text;
-using System.Xml.Linq;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Models.HostedContentViewModels;
 using MapCommonLib.ContentTypeSpecific;
@@ -21,14 +23,14 @@ namespace MillimanAccessPortal.Controllers
 {
     public class HostedContentController : Controller
     {
+        // Things provided by the application that this controller should need to use
         private ApplicationDbContext DataContext = null;
-
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly IOptions<QlikviewConfig> OptionsAccessor;
         private readonly ILogger Logger;
 
         /// <summary>
-        /// Constructor.  Accepts injected resources. 
+        /// Constructor.  Makes instance copies of injected resources from the application. 
         /// </summary>
         /// <param name="UserManagerArg"></param>
         /// <param name="LoggerFactoryArg"></param>
@@ -46,16 +48,22 @@ namespace MillimanAccessPortal.Controllers
             OptionsAccessor = OptionsAccessorArg;
         }
 
+        /// <summary>
+        /// Index handler to present the user with links to authorized content
+        /// </summary>
+        /// <returns>The view</returns>
         public IActionResult Index()
         {
-            return View();
+            // TODO Create a View and model to present the user with all authorized content
+
+            return View(/*A model that conveys link parameters to all this user's authorized content*/);
         }
 
         /// <summary>
-        /// 
+        /// Handles a request to display content that is hosted by a web server. 
         /// </summary>
-        /// <param name="Id">The primary key value of the user group for the requested content</param>
-        /// <returns></returns>
+        /// <param name="Id">The primary key value of the ContentItemUserGroup authorizing this user to the requested content</param>
+        /// <returns>A View (and model) that displays the requested content</returns>
         public IActionResult WebHostedContent(long Id)
         {
             string TypeOfRequestedContent = "Unknown";
@@ -73,25 +81,22 @@ namespace MillimanAccessPortal.Controllers
 
                 // execute the query
                 ContentType RequestedContentType = Query.FirstOrDefault();
-                // TODO need this:   if (RequestedContentType == null) {what?}
-                TypeOfRequestedContent = RequestedContentType.Name;
+                TypeOfRequestedContent = (RequestedContentType != null) ? RequestedContentType.Name : "Unknown";
 
                 // Instantiate the right content handler class
                 ContentTypeSpecificApiBase ContentSpecificHandler = null;
                 switch (TypeOfRequestedContent)
-                {
+                {   // Never break out of this switch without a valid ContentSpecificHandler object
                     case "Qlikview":
                         ContentSpecificHandler = new QlikviewLibApi();
                         break;
 
                     default:
                         // The content type of the requested content is not handled
-                        return View("SomeError_View", new object(/*SomeModel*/));
+                        return View("SomeError_View", new object(/*SomeModel*/));  // TODO Get this right
                 }
 
-                string EndUserName = UserManager.GetUserName(HttpContext.User);
-                UriBuilder ContentUri = null;
-                ContentUri = ContentSpecificHandler.GetContentUri(UserGroupOfRequestedContent, EndUserName, OptionsAccessor.Value);
+                UriBuilder ContentUri = ContentSpecificHandler.GetContentUri(UserGroupOfRequestedContent, HttpContext, OptionsAccessor.Value);
 
                 ResponseModel = new WebHostedContentViewModel
                 {
@@ -102,10 +107,19 @@ namespace MillimanAccessPortal.Controllers
             {
                 string Msg = e.Message;
                 // The requested user group or associated root content item or content type record could not be found in the database
-                return View("SomeError_View", new object(/*SomeModel*/));
+                return View("SomeError_View", new object(/*SomeModel*/));  // TODO Get this right
             }
 
-            return View(ResponseModel);
+            // Now return the requested content in its view
+            switch (TypeOfRequestedContent)
+            {
+                case "Qlikview":
+                    return View(ResponseModel);
+
+                default:
+                    // Probably can't happen since this is handled above
+                    return View("SomeError_View", new object(/*SomeModel*/));  // TODO Get this right
+            }
         }
 
     }

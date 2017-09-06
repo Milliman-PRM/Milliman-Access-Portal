@@ -1,22 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: Public API of Qlikview functionality, including overrides of MapCommonLib and type specific items
+ * DEVELOPER NOTES: This API should typically provide relatively thin API methods and invoke methods from the .internal namespace
+ */
+
+using System;
 using MapCommonLib.ContentTypeSpecific;
-using MapCommonLib;
 using QlikviewLib.Internal;
 using MapDbContextLib.Context;
+using Microsoft.AspNetCore.Http;
 
 namespace QlikviewLib
 {
     public class QlikviewLibApi : ContentTypeSpecificApiBase
     {
-        private static string QvServerUriScheme = "http";
-
-        public override UriBuilder GetContentUri(ContentItemUserGroup GroupEntity, string UserName, object ConfigInfoArg)
+        public override UriBuilder GetContentUri(ContentItemUserGroup GroupEntity, HttpContext Context, object ConfigInfoArg)
         {
             QlikviewConfig ConfigInfo = (QlikviewConfig)ConfigInfoArg;
 
-            string QlikviewWebTicket = QvServerOperations.GetQvWebTicket(/*@"Custom\" +*/ UserName, ConfigInfo as QlikviewConfig);
+            string QvServerUriScheme = Context.Request.Scheme;  // Scheme of the iframe should match scheme of the top page
+            string EndUserName = Context.User.Identity.Name;  // Is this needed instead?:    string EndUserName = UserManager.GetUserName(HttpContext.User);
+
+            // TODO Resolve the user naming convention for the QV server.  
+            string QlikviewWebTicket = QvServerOperations.GetQvWebTicket(/*@"Custom\" +*/ EndUserName, ConfigInfo as QlikviewConfig);
 
             string[] QueryStringItems = new string[]
             {
@@ -29,7 +35,7 @@ namespace QlikviewLib
             UriBuilder QvServerUri = new UriBuilder
             {
                 // Note that the UriBuilder manages the insertion of literal '?' before the query string.  
-                // You can't include a query string in the Path property because the '?' gets UrlEncoded.  
+                // Don't include a query string with '?' in the Path property because the '?' gets UrlEncoded.  
                 Scheme = QvServerUriScheme,
                 Host = ConfigInfo.QvServerHost,
                 Path = "/qvajaxzfc/Authenticate.aspx",
