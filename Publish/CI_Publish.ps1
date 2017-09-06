@@ -48,7 +48,7 @@ if ($LASTEXITCODE -ne 0) {
 	exit $LASTEXITCODE
 }
 
-dotnet build
+dotnet build /t:Clean
 
 if ( $LASTEXITCODE -ne 0 ) {
 	log_statement "ERROR: Initial test build failed"
