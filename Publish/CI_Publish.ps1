@@ -65,7 +65,7 @@ $requestURL = "http://localhost:8042/iis_pool_action?pool_name=$appPool&action=s
     if ($requestResult.returncode -ne 0 -and $requestResult.returncode -ne 1062 -and $requestResult.returncode -ne 1168) {
         log_statement "ERROR: Failed to stop application pool"
         log_statement $requestResult.stdout
-        #return -1
+        exit -1
     }
 
 if ($branchName -ne "DEVELOP") {
