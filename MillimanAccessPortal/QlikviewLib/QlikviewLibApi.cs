@@ -19,7 +19,7 @@ namespace QlikviewLib
             QlikviewConfig ConfigInfo = (QlikviewConfig)ConfigInfoArg;
 
             string QvServerUriScheme = Context.Request.Scheme;  // Scheme of the iframe should match scheme of the top page
-            string EndUserName = Context.User.Identity.Name;  // Is this needed instead?:    string EndUserName = UserManager.GetUserName(HttpContext.User);
+            string EndUserName = Context.User.Identity.Name;  // TODO Is this needed instead?:    string EndUserName = UserManager.GetUserName(HttpContext.User);
 
             // TODO Resolve the user naming convention for the QV server.  
             string QlikviewWebTicket = QvServerOperations.GetQvWebTicket(/*@"Custom\" +*/ EndUserName, ConfigInfo as QlikviewConfig);
