@@ -79,9 +79,6 @@ if ($branchName -ne "DEVELOP") {
     if ($LASTEXITCODE -ne 0) {
         $error_code = $LASTEXITCODE
         log_statement "ERROR: Failed to query for existing databases"
-        log_statement "Command was: $command"
-        $user = whoami
-        log_statement "User is $user"
         log_statement "errorlevel was $LASTEXITCODE"
         exit $error_code
     }
