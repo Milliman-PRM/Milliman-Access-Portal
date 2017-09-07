@@ -104,10 +104,10 @@ if ($branchName -ne "DEVELOP") {
         invoke-expression "&$command"
 
         if ($LASTEXITCODE -ne 0) {
-        $error_code = $LASTEXITCODE
-        log_statement "ERROR: Failed to back up application database"
-        log_statement "errorlevel was $LASTEXITCODE"
-            exit $error_code
+            $error_code = $LASTEXITCODE
+            log_statement "ERROR: Failed to back up application database"
+            log_statement "errorlevel was $LASTEXITCODE"
+                exit $error_code
         }
 
         log_statement "Creating application database"
@@ -115,10 +115,10 @@ if ($branchName -ne "DEVELOP") {
         invoke-expression "&$command"
 
         if ($LASTEXITCODE -ne 0) {
-        $error_code = $LASTEXITCODE
-        log_statement "ERROR: Failed to create application database"
-        log_statement "errorlevel was $LASTEXITCODE"
-            exit $error_code
+            $error_code = $LASTEXITCODE
+            log_statement "ERROR: Failed to create application database"
+            log_statement "errorlevel was $LASTEXITCODE"
+                exit $error_code
         }
 
         log_statement "Executing restore"
@@ -126,10 +126,10 @@ if ($branchName -ne "DEVELOP") {
         invoke-expression "&$command"
 
         if ($LASTEXITCODE -ne 0) {
-      $error_code = $LASTEXITCODE
-      log_statement "ERROR: Failed to restore application database"
-      log_statement "errorlevel was $LASTEXITCODE"
-            exit $error_code
+            $error_code = $LASTEXITCODE
+            log_statement "ERROR: Failed to restore application database"
+            log_statement "errorlevel was $LASTEXITCODE"
+                exit $error_code
         }
 
         log_statement "Deleting backup file"
@@ -149,10 +149,10 @@ if ($branchName -ne "DEVELOP") {
         invoke-expression "&$command"
 
         if ($LASTEXITCODE -ne 0) {
-      $error_code = $LASTEXITCODE
-      log_statement "ERROR: Failed to back up logging database"
-      log_statement "errorlevel was $LASTEXITCODE"
-            exit $error_code
+            $error_code = $LASTEXITCODE
+            log_statement "ERROR: Failed to back up logging database"
+            log_statement "errorlevel was $LASTEXITCODE"
+                exit $error_code
         }
 
         log_statement "Creating logging database"
@@ -160,10 +160,10 @@ if ($branchName -ne "DEVELOP") {
         invoke-expression "&$command"
 
         if ($LASTEXITCODE -ne 0) {
-      $error_code = $LASTEXITCODE
-      log_statement "ERROR: Failed to create logging database"
-      log_statement "errorlevel was $LASTEXITCODE"
-            exit $error_code
+            $error_code = $LASTEXITCODE
+            log_statement "ERROR: Failed to create logging database"
+            log_statement "errorlevel was $LASTEXITCODE"
+                exit $error_code
         }
 
         log_statement "Executing restore"
@@ -171,10 +171,10 @@ if ($branchName -ne "DEVELOP") {
         invoke-expression "&$command"
 
         if ($LASTEXITCODE -ne 0) {
-      $error_code = $LASTEXITCODE
-            log_statement "ERROR: Failed to restore logging database"
-      log_statement "errorlevel was $LASTEXITCODE"
-            exit $error_code
+            $error_code = $LASTEXITCODE
+                log_statement "ERROR: Failed to restore logging database"
+            log_statement "errorlevel was $LASTEXITCODE"
+                exit $error_code
         }
 
         log_statement "Deleting backup file"
