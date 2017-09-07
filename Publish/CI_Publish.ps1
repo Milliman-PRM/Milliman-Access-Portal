@@ -42,17 +42,17 @@ log_statement "Test build before publishing"
 dotnet restore
 
 if ($LASTEXITCODE -ne 0) {
-	log_statement "ERROR: Initial package restore failed"
-	log_statement "errorlevel was $LASTEXITCODE"
-	exit $LASTEXITCODE
+    log_statement "ERROR: Initial package restore failed"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
 }
 
 dotnet build /t:Clean
 
 if ( $LASTEXITCODE -ne 0 ) {
-	log_statement "ERROR: Initial test build failed"
-	log_statement "errorlevel was $LASTEXITCODE"
-	exit $LASTEXITCODE
+    log_statement "ERROR: Initial test build failed"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
 }
 
 log_statement "Stop running application pool"
@@ -69,8 +69,8 @@ $requestURL = "http://localhost:8042/iis_pool_action?pool_name=$appPool&action=s
 
 if ($branchName -ne "DEVELOP") {
     log_statement "Copy databases from DEVELOP branch space, if this branch doesn't have its databases yet"
-	$MAPDBFOUND=0
-	$LOGDBFOUND=0
+    $MAPDBFOUND=0
+    $LOGDBFOUND=0
 
     # Check for existing databases
     $command = "'c:\program` files\postgresql\9.6\bin\psql.exe' --dbname=postgres  -h localhost --tuples-only --command=`"select datname from Pg_database`" --echo-errors"
@@ -95,98 +95,98 @@ if ($branchName -ne "DEVELOP") {
     }
 
     # Create MAP application database, if necessary
-	if ($MAPDBFOUND -ne 1) {
-		# Back up DEVELOP branch MAP application database & restore w/ branch name
-		log_statement "Copying $MAPDBNAME_DEVELOP to $MAPDBNAME"
+    if ($MAPDBFOUND -ne 1) {
+        # Back up DEVELOP branch MAP application database & restore w/ branch name
+        log_statement "Copying $MAPDBNAME_DEVELOP to $MAPDBNAME"
 
         log_statement "Executing backup"
-	    $command = "'c:\program` files\postgresql\9.6\bin\pg_dump.exe' -d $MAPDBNAME_DEVELOP -F c -h localhost -f mapdb_develop.pgsql"
+        $command = "'c:\program` files\postgresql\9.6\bin\pg_dump.exe' -d $MAPDBNAME_DEVELOP -F c -h localhost -f mapdb_develop.pgsql"
         invoke-expression "&$command"
 
-	    if ($LASTEXITCODE -ne 0) {
+        if ($LASTEXITCODE -ne 0) {
         $error_code = $LASTEXITCODE
         log_statement "ERROR: Failed to back up application database"
         log_statement "errorlevel was $LASTEXITCODE"
-		    exit $error_code
-	    }
+            exit $error_code
+        }
 
-	    log_statement "Creating application database"
-	    $command = "'c:\program` files\postgresql\9.6\bin\psql.exe' -d postgres -h localhost -e -q --command=`"create database $MAPDBNAME`""
+        log_statement "Creating application database"
+        $command = "'c:\program` files\postgresql\9.6\bin\psql.exe' -d postgres -h localhost -e -q --command=`"create database $MAPDBNAME`""
         invoke-expression "&$command"
 
-	    if ($LASTEXITCODE -ne 0) {
+        if ($LASTEXITCODE -ne 0) {
         $error_code = $LASTEXITCODE
         log_statement "ERROR: Failed to create application database"
         log_statement "errorlevel was $LASTEXITCODE"
-		    exit $error_code
-	    }
+            exit $error_code
+        }
 
-		log_statement "Executing restore"
-		$command = "'c:\program` files\postgresql\9.6\bin\pg_restore.exe' -h localhost -d $MAPDBNAME mapdb_develop.pgsql"
+        log_statement "Executing restore"
+        $command = "'c:\program` files\postgresql\9.6\bin\pg_restore.exe' -h localhost -d $MAPDBNAME mapdb_develop.pgsql"
         invoke-expression "&$command"
 
-		if ($LASTEXITCODE -ne 0) {
+        if ($LASTEXITCODE -ne 0) {
       $error_code = $LASTEXITCODE
       log_statement "ERROR: Failed to restore application database"
       log_statement "errorlevel was $LASTEXITCODE"
-			exit $error_code
-		}
+            exit $error_code
+        }
 
-		log_statement "Deleting backup file"
-		rm mapdb_develop.pgsql
+        log_statement "Deleting backup file"
+        rm mapdb_develop.pgsql
 
-	}
+    }
   else {
-		log_statement "$MAPDBNAME already exists. No backup/restore is necessary."
-	}
+        log_statement "$MAPDBNAME already exists. No backup/restore is necessary."
+    }
 
-	if ($LOGDBFOUND -ne 1) {
-		# Back up DEVELOP branch Logging database & restore w/ branch name
-		log_statement "Copying $LOGDBNAME_DEVELOP to $LOGDBNAME"
+    if ($LOGDBFOUND -ne 1) {
+        # Back up DEVELOP branch Logging database & restore w/ branch name
+        log_statement "Copying $LOGDBNAME_DEVELOP to $LOGDBNAME"
 
-		log_statement "Executing backup"
-		$command = "'c:\program` files\postgresql\9.6\bin\pg_dump.exe' -d $LOGDBNAME_DEVELOP -F c -h localhost -f logdb_develop.pgsql"
+        log_statement "Executing backup"
+        $command = "'c:\program` files\postgresql\9.6\bin\pg_dump.exe' -d $LOGDBNAME_DEVELOP -F c -h localhost -f logdb_develop.pgsql"
         invoke-expression "&$command"
 
-		if ($LASTEXITCODE -ne 0) {
+        if ($LASTEXITCODE -ne 0) {
       $error_code = $LASTEXITCODE
       log_statement "ERROR: Failed to back up logging database"
       log_statement "errorlevel was $LASTEXITCODE"
-			exit $error_code
-		}
+            exit $error_code
+        }
 
-		log_statement "Creating logging database"
-		$command = "'c:\program` files\postgresql\9.6\bin\psql.exe' -d postgres -h localhost -e -q --command=`"create database $LOGDBNAME`""
+        log_statement "Creating logging database"
+        $command = "'c:\program` files\postgresql\9.6\bin\psql.exe' -d postgres -h localhost -e -q --command=`"create database $LOGDBNAME`""
         invoke-expression "&$command"
 
-		if ($LASTEXITCODE -ne 0) {
+        if ($LASTEXITCODE -ne 0) {
       $error_code = $LASTEXITCODE
       log_statement "ERROR: Failed to create logging database"
       log_statement "errorlevel was $LASTEXITCODE"
-			exit $error_code
-		}
+            exit $error_code
+        }
 
-		log_statement "Executing restore"
-		$command = "'c:\program` files\postgresql\9.6\bin\pg_restore.exe' -d $LOGDBNAME -h localhost logdb_develop.pgsql"
+        log_statement "Executing restore"
+        $command = "'c:\program` files\postgresql\9.6\bin\pg_restore.exe' -d $LOGDBNAME -h localhost logdb_develop.pgsql"
         invoke-expression "&$command"
 
-		if ($LASTEXITCODE -ne 0) {
+        if ($LASTEXITCODE -ne 0) {
       $error_code = $LASTEXITCODE
-			log_statement "ERROR: Failed to restore logging database"
+            log_statement "ERROR: Failed to restore logging database"
       log_statement "errorlevel was $LASTEXITCODE"
-			exit $error_code
-		}
+            exit $error_code
+        }
 
-		log_statement "Deleting backup file"
-		rm logdb_develop.pgsql
+        log_statement "Deleting backup file"
+        rm logdb_develop.pgsql
 
-	}
+    }
     else {
-		log_statement "$LOGDBNAME already exists. No backup/restore is necessary."
-	}
+        log_statement "$LOGDBNAME already exists. No backup/restore is necessary."
+    }
 }
 else {
-	log_statement "Develop branch detected. No database backup/restore is necessary."
+    log_statement "Develop branch detected. No database backup/restore is necessary."
 }
 
 log_statement "Performing application database migrations"
@@ -194,9 +194,9 @@ log_statement "Performing application database migrations"
 dotnet ef database update
 
 if ($LASTEXITCODE -ne 0) {
-	log_statement "ERROR: Failed to update application database"
-	log_statement "errorlevel was $LASTEXITCODE"
-	exit $LASTEXITCODE
+    log_statement "ERROR: Failed to update application database"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
 }
 
 log_statement "Performing logging database migrations"
@@ -204,9 +204,9 @@ cd ../AuditLogLib
 dotnet ef database update
 
 if ($LASTEXITCODE -ne 0) {
-	log_statement "ERROR: Failed to update logging database"
-	log_statement "errorlevel was $LASTEXITCODE"
-	exit $LASTEXITCODE
+    log_statement "ERROR: Failed to update logging database"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
 }
 
 cd ../MillimanAccessPortal
@@ -215,9 +215,9 @@ log_statement "Build and publish application files"
 dotnet publish -o $branchFolder
 
 if ($LASTEXITCODE -ne 0) {
-	log_statement "Build failed"
-	log_statement "errorlevel was $LASTEXITCODE"
-	exit $LASTEXITCODE
+    log_statement "Build failed"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
 }
 
 
