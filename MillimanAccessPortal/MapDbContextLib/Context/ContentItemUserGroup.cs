@@ -32,7 +32,7 @@ namespace MapDbContextLib.Context
         /// This can't be a foreign key due to use of collection type
         /// </summary>
         [Required]
-        public List<long> SelectedHierarchyFieldValueList { get; set; }
+        public long[] SelectedHierarchyFieldValueList { get; set; }
 
     }
 }

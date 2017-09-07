@@ -18,7 +18,7 @@ namespace MapDbContextLib.Context
         public string Name { get; set; }
 
         [Required]
-        public List<string> AcceptedEmailDomainList { get; set; }
+        public string[] AcceptedEmailDomainList { get; set; }
 
         [ForeignKey("ParentClient")]
         public long? ParentClientId { get; set; }
