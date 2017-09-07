@@ -136,7 +136,7 @@ if ($branchName -ne "DEVELOP") {
         rm mapdb_develop.pgsql
 
     }
-  else {
+    else {
         log_statement "$MAPDBNAME already exists. No backup/restore is necessary."
     }
 
