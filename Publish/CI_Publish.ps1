@@ -14,16 +14,15 @@ function log_statement {
     write-output $datestring"|"$statement
 }
 
-$branchName = $env:git_branch
-$branchName = $branchName.ToLower()
+$branchName = $env:git_branch.ToLower()
 $ci_username = $env:pool_username
 $ci_password = $env:pool_password
 
 $branchFolder = "D:\installedapplications\map_ci\$branchName\"
 $AppPool = "MAP_CI_$branchName"
-$MAPDBNAME = "millimanaccessportal_ci_$branchName".ToLower()
+$MAPDBNAME = "millimanaccessportal_ci_$branchName"
 $MAPDBNAME_DEVELOP = "millimanaccessportal_ci_develop"
-$LOGDBNAME = "mapauditlog_ci_$branchName".ToLower()
+$LOGDBNAME = "mapauditlog_ci_$branchName"
 $LOGDBNAME_DEVELOP = "mapauditlog_ci_develop"
 $ASPNETCORE_ENVIRONMENT = "CI"
 $PublishURL = "http://indy-qvtest01/$appPool"
