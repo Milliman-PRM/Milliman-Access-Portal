@@ -57,15 +57,15 @@ if ( $LASTEXITCODE -ne 0 ) {
 
 log_statement "Stop running application pool"
 $requestURL = "http://localhost:8042/iis_pool_action?pool_name=$appPool&action=stop"
-    $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
+$requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
-    # Return code 1062 = Pool is already stopped
-    # Return code 1168 = Pool does not exist yet (typically a first-time publish for a new branch)
-    if ($requestResult.returncode -ne 0 -and $requestResult.returncode -ne 1062 -and $requestResult.returncode -ne 1168) {
-        log_statement "ERROR: Failed to stop application pool"
-        log_statement $requestResult.stdout
-        exit -1
-    }
+# Return code 1062 = Pool is already stopped
+# Return code 1168 = Pool does not exist yet (typically a first-time publish for a new branch)
+if ($requestResult.returncode -ne 0 -and $requestResult.returncode -ne 1062 -and $requestResult.returncode -ne 1168) {
+    log_statement "ERROR: Failed to stop application pool"
+    log_statement $requestResult.stdout
+    exit -1
+}
 
 if ($branchName -ne "DEVELOP") {
     log_statement "Copy databases from DEVELOP branch space, if this branch doesn't have its databases yet"
