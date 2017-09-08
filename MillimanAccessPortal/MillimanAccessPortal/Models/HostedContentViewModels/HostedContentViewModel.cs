@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Models.HostedContentViewModels
 {
-    public class WebHostedContentViewModel
+    public class HostedContentViewModel
     {
         public Uri Url { get; set; }
+        public long UserGroupId { get; set; }
     }
 }

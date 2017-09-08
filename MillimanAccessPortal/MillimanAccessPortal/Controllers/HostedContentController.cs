@@ -17,6 +17,7 @@ using MapCommonLib;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace MillimanAccessPortal.Controllers
@@ -55,8 +56,25 @@ namespace MillimanAccessPortal.Controllers
         public IActionResult Index()
         {
             // TODO Create a View and model to present the user with all authorized content
+            List<HostedContentViewModel> ModelForView = new List<HostedContentViewModel>();
 
-            return View(/*A model that conveys link parameters to all this user's authorized content*/);
+            // Get all ContentItemUserGroups that the current user is authorized to
+            IQueryable<ContentItemUserGroup> AuthorizedGroupQuery = DataContext.ApplicationUser
+                .Where(u => u.UserName == UserManager.GetUserName(HttpContext.User))
+                .Join(DataContext.UserRoleForContentItemUserGroup, au => au.Id, map => map.UserId, (au, map) => map)  // result is found UserRoleForContentItemUserGroup records
+                .Join(DataContext.ContentItemUserGroup, m => m.ContentItemUserGroupId, g => g.Id, (m, g) => g);  // result is found ContentItemUserGroup records
+
+            // Run query and iterate over results
+            foreach (var Group in AuthorizedGroupQuery)
+            {
+                IQueryable<RootContentItem> RootItemQuery = DataContext.RootContentItem
+                    .Where(r => r.Id == Group.RootContentItemId);
+
+                UriBuilder U = new UriBuilder { Scheme = Request.Scheme, Host = Request.Host.Host, Path = Group.ContentInstanceUrl };
+                ModelForView.Add(new HostedContentViewModel { Url = U.Uri, UserGroupId = Group.Id });
+            }
+
+            return View(ModelForView);
         }
 
         /// <summary>
@@ -68,7 +86,7 @@ namespace MillimanAccessPortal.Controllers
         {
             string TypeOfRequestedContent = "Unknown";
             ContentItemUserGroup UserGroupOfRequestedContent = null;
-            WebHostedContentViewModel ResponseModel = null;
+            HostedContentViewModel ResponseModel = null;
 
             try
             {
@@ -98,9 +116,10 @@ namespace MillimanAccessPortal.Controllers
 
                 UriBuilder ContentUri = ContentSpecificHandler.GetContentUri(UserGroupOfRequestedContent, HttpContext, OptionsAccessor.Value);
 
-                ResponseModel = new WebHostedContentViewModel
+                ResponseModel = new HostedContentViewModel
                 {
                     Url = ContentUri.Uri,
+                    UserGroupId = UserGroupOfRequestedContent.Id,
                 };
             }
             catch (MapException e)

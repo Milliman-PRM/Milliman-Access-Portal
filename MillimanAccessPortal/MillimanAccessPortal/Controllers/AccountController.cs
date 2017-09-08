@@ -74,7 +74,17 @@ namespace MillimanAccessPortal.Controllers
                     AuditEvent LogObject = AuditEvent.New("Map Account Controller", "User login successful", null, model.Email);
                     AuditStore.Log(LogLevel.Information, AuditEventId.LoginSuccess, LogObject);
                     //_logger.LogInformation(AuditEventId.LoginSuccess, "User logged in.");
-                    return RedirectToLocal(returnUrl);
+
+                    // TODO need to get rid of the returnUrl value for normal case.  It might be that standard application launch requests root page "/" and 
+                    // that is why MVC is passing this value in.  I want the default page to be /HostedContent/Index and thought I had set that in startup.cs
+                    if (!string.IsNullOrEmpty(returnUrl))
+                    {
+                        return RedirectToLocal(returnUrl);
+                    }
+                    else
+                    {
+                        return RedirectToAction(nameof(HostedContentController.Index), "HostedContent");
+                    }
                 }
                 if (result.RequiresTwoFactor)
                 {
