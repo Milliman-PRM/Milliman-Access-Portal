@@ -22,6 +22,7 @@ using MapDbContextLib.Identity;
 using MillimanAccessPortal.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using QlikviewLib;
 using AuditLogLib;
 
 namespace MillimanAccessPortal
@@ -33,7 +34,8 @@ namespace MillimanAccessPortal
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+                .AddJsonFile("qlikview.json", optional: false);
 
             if (env.IsDevelopment())
             {
@@ -86,6 +88,8 @@ namespace MillimanAccessPortal
                 options.User.RequireUniqueEmail = true;
             });
 
+            services.Configure<QlikviewConfig>(Configuration);
+
             services.AddMvc(config =>
             {
                 var policy = new AuthorizationPolicyBuilder()
@@ -125,8 +129,8 @@ namespace MillimanAccessPortal
 
             app.UseIdentity();
 
-            // Populate Identity roles in the database
-            ApplicationRole.SeedRoles(app.ApplicationServices).Wait();
+            // Initialize required records in the database
+            ApplicationDbContext.InitializeAll(app.ApplicationServices);
 
             // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
 
