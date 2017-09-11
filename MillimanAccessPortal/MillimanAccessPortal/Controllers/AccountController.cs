@@ -77,7 +77,7 @@ namespace MillimanAccessPortal.Controllers
 
                     // TODO need to get rid of the returnUrl value for normal case.  It might be that standard application launch requests root page "/" and 
                     // that is why MVC is passing this value in.  I want the default page to be /HostedContent/Index and thought I had set that in startup.cs
-                    if (!string.IsNullOrEmpty(returnUrl))
+                    if (!string.IsNullOrEmpty(returnUrl) && returnUrl != "/")
                     {
                         return RedirectToLocal(returnUrl);
                     }

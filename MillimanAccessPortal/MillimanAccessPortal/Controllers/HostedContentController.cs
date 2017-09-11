@@ -29,6 +29,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly IOptions<QlikviewConfig> OptionsAccessor;
         private readonly ILogger Logger;
+        private readonly IServiceProvider ServiceProvider;
 
         /// <summary>
         /// Constructor.  Makes instance copies of injected resources from the application. 
@@ -41,37 +42,36 @@ namespace MillimanAccessPortal.Controllers
             UserManager<ApplicationUser> UserManagerArg,
             ILoggerFactory LoggerFactoryArg,
             ApplicationDbContext DataContextArg,
-            IOptions<QlikviewConfig> OptionsAccessorArg)
+            IOptions<QlikviewConfig> OptionsAccessorArg,
+            IServiceProvider ServiceProviderArg)
         {
             UserManager = UserManagerArg;
             Logger = LoggerFactoryArg.CreateLogger<HostedContentController>();
             DataContext = DataContextArg;
             OptionsAccessor = OptionsAccessorArg;
+            ServiceProvider = ServiceProviderArg;
         }
 
         /// <summary>
         /// Index handler to present the user with links to authorized content
         /// </summary>
         /// <returns>The view</returns>
+        [Authorize]
         public IActionResult Index()
         {
-            // TODO Create a View and model to present the user with all authorized content
             List<HostedContentViewModel> ModelForView = new List<HostedContentViewModel>();
 
-            // Get all ContentItemUserGroups that the current user is authorized to
-            IQueryable<ContentItemUserGroup> AuthorizedGroupQuery = DataContext.ApplicationUser
-                .Where(u => u.UserName == UserManager.GetUserName(HttpContext.User))
-                .Join(DataContext.UserRoleForContentItemUserGroup, au => au.Id, map => map.UserId, (au, map) => map)  // result is found UserRoleForContentItemUserGroup records
-                .Join(DataContext.ContentItemUserGroup, m => m.ContentItemUserGroupId, g => g.Id, (m, g) => g);  // result is found ContentItemUserGroup records
+            List<ContentItemUserGroup> AuthorizedGroups = new MapDbContextLib.StandardQueries(ServiceProvider).GetAuthorizedUserGroups(UserManager.GetUserName(HttpContext.User));
 
             // Run query and iterate over results
-            foreach (var Group in AuthorizedGroupQuery)
+            foreach (var Group in AuthorizedGroups)
             {
                 IQueryable<RootContentItem> RootItemQuery = DataContext.RootContentItem
                     .Where(r => r.Id == Group.RootContentItemId);
+                RootContentItem C = RootItemQuery.FirstOrDefault();
 
                 UriBuilder U = new UriBuilder { Scheme = Request.Scheme, Host = Request.Host.Host, Path = Group.ContentInstanceUrl };
-                ModelForView.Add(new HostedContentViewModel { Url = U.Uri, UserGroupId = Group.Id });
+                ModelForView.Add(new HostedContentViewModel { Url = U.Uri, UserGroupId = Group.Id, ContentName = C.ContentName });
             }
 
             return View(ModelForView);

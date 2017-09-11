@@ -9,5 +9,6 @@ namespace MillimanAccessPortal.Models.HostedContentViewModels
     {
         public Uri Url { get; set; }
         public long UserGroupId { get; set; }
+        public string ContentName { get; set; }
     }
 }

@@ -6,16 +6,23 @@
 
 <h2>Index</h2>
 
+<!--
 <p>
     <a asp-action="Create">Create New</a>
-</p>
+</p> -->
+
 <table class="table">
     <thead>
         <tr>
             <th>
                 @Html.DisplayNameFor(model => model.UserGroupId)
             </th>
-            <th></th>
+            <th>
+                @Html.DisplayNameFor(model => model.Url)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ContentName)
+            </th>
         </tr>
     </thead>
     <tbody>
@@ -25,10 +32,14 @@
                 @Html.DisplayFor(modelItem => item.UserGroupId)
             </td>
             <td>
+                @Html.ActionLink("View This", "WebHostedContent", "HostedContent", new { id=item.UserGroupId })
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ContentName)
                 <!-- Following is template code for list view.  Replace with some rendering of the link to each content item contained in the model -->
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+                <!-- @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) | -->
+                <!-- @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) | -->
+                <!-- @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ }) -->
             </td>
         </tr>
 }
