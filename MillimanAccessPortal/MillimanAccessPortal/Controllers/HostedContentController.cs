@@ -8,6 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Routing;
 using MillimanAccessPortal.Models.HostedContentViewModels;
 using MapCommonLib.ContentTypeSpecific;
 using QlikviewLib;
@@ -82,15 +84,22 @@ namespace MillimanAccessPortal.Controllers
         /// </summary>
         /// <param name="Id">The primary key value of the ContentItemUserGroup authorizing this user to the requested content</param>
         /// <returns>A View (and model) that displays the requested content</returns>
-        public IActionResult WebHostedContent(long Id)
+        public IActionResult ViewWebHostedContent(long Id)
         {
-            string TypeOfRequestedContent = "Unknown";
-            ContentItemUserGroup UserGroupOfRequestedContent = null;
-            HostedContentViewModel ResponseModel = null;
-
             try
             {
-                UserGroupOfRequestedContent = DataContext.ContentItemUserGroup.Where(g => g.Id == Id).FirstOrDefault();
+                // Get the requested (by id) ContentItemUserGroup object
+                ContentItemUserGroup UserGroupOfRequestedContent = DataContext.ContentItemUserGroup.Where(g => g.Id == Id)
+                    .Join(DataContext.UserRoleForContentItemUserGroup, g => g.Id, ur => ur.ContentItemUserGroupId, (g, ur) => new {group=g, userrole=ur })
+                    .Where(r => r.userrole.Role.Name == "Content User")
+                    .Select(o => o.group)
+                    .FirstOrDefault();
+
+                if (UserGroupOfRequestedContent == null)
+                {
+                    // The content type of the requested content is not handled
+                    return RedirectToAction(nameof(ErrorController.NotAuthorized), "Error", new { RequestedId = Id, ReturnToController = "HostedContent", ReturnToAction = "Index" });
+                }
 
                 // Get the ContentType of the RootContentItem of the requested group
                 IQueryable<ContentType> Query = DataContext.RootContentItem
@@ -99,7 +108,7 @@ namespace MillimanAccessPortal.Controllers
 
                 // execute the query
                 ContentType RequestedContentType = Query.FirstOrDefault();
-                TypeOfRequestedContent = (RequestedContentType != null) ? RequestedContentType.Name : "Unknown";
+                string TypeOfRequestedContent = (RequestedContentType != null) ? RequestedContentType.Name : "Unknown";
 
                 // Instantiate the right content handler class
                 ContentTypeSpecificApiBase ContentSpecificHandler = null;
@@ -116,29 +125,30 @@ namespace MillimanAccessPortal.Controllers
 
                 UriBuilder ContentUri = ContentSpecificHandler.GetContentUri(UserGroupOfRequestedContent, HttpContext, OptionsAccessor.Value);
 
-                ResponseModel = new HostedContentViewModel
+                HostedContentViewModel ResponseModel = new HostedContentViewModel
                 {
                     Url = ContentUri.Uri,
                     UserGroupId = UserGroupOfRequestedContent.Id,
                 };
+
+                // Now return the requested content in its view
+                switch (TypeOfRequestedContent)
+                {
+                    case "Qlikview":
+                        return View(ResponseModel);
+
+                    default:
+                        // Probably can't happen since this is handled above
+                        return View("SomeError_View", new object(/*SomeModel*/));  // TODO Get this right
+                }
             }
             catch (MapException e)
             {
-                string Msg = e.Message;
+                string Msg = e.Message; // use this
                 // The requested user group or associated root content item or content type record could not be found in the database
                 return View("SomeError_View", new object(/*SomeModel*/));  // TODO Get this right
             }
 
-            // Now return the requested content in its view
-            switch (TypeOfRequestedContent)
-            {
-                case "Qlikview":
-                    return View(ResponseModel);
-
-                default:
-                    // Probably can't happen since this is handled above
-                    return View("SomeError_View", new object(/*SomeModel*/));  // TODO Get this right
-            }
         }
 
     }

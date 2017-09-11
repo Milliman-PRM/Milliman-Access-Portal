@@ -138,7 +138,7 @@ namespace MillimanAccessPortal
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=HostedContent}/{action=WebHostedContent}/{id?}");
+                    template: "{controller=HostedContent}/{action=Index}/{id?}");
             });
         }
     }

@@ -18,27 +18,32 @@ namespace MapDbContextLib
 
         public List<ContentItemUserGroup> GetAuthorizedUserGroups(string UserName, string[] RoleNamesAuthorizedToViewContent = null)
         {
-            List<ContentItemUserGroup> ReturnList = new List<ContentItemUserGroup>();
-            // Initialize if no roles provided
+            // Initialize to default if no roles provided
             if (RoleNamesAuthorizedToViewContent == null)
             {
                 RoleNamesAuthorizedToViewContent = new string[] { "Content User" };
             }
 
+            // Use Hashset to prevent duplicates
+            HashSet<ContentItemUserGroup> ReturnList = new HashSet<ContentItemUserGroup>();
+
             using (var DataContext = ServiceScope.ServiceProvider.GetService<Context.ApplicationDbContext>())
             {
-                // Get all ContentItemUserGroups that the current user is authorized to
-                IQueryable<ContentItemUserGroup> AuthorizedGroupQuery = DataContext.ApplicationUser
-                    .Where(u => u.UserName == UserName)
-                    .Join(DataContext.UserRoleForContentItemUserGroup, au => au.Id, map => map.UserId, (au, map) => map)  // result is found UserRoleForContentItemUserGroup records
-                    .Join(DataContext.ApplicationRole, urc => urc.RoleId, r => r.Id, (urc, r) => new { urc = urc, roleName = r.Name })
-                    .Where(o => RoleNamesAuthorizedToViewContent.Contains(o.roleName))
-                    .Join(DataContext.ContentItemUserGroup, m => m.urc.ContentItemUserGroupId, g => g.Id, (m, g) => g);  // result is found ContentItemUserGroup records
+                foreach (string RoleName in RoleNamesAuthorizedToViewContent)
+                {
+                    // Get all ContentItemUserGroups that the current user is authorized to
+                    IQueryable<ContentItemUserGroup> AuthorizedGroupQuery = DataContext.ApplicationUser
+                        .Where(u => u.UserName == UserName)
+                        .Join(DataContext.UserRoleForContentItemUserGroup, au => au.Id, map => map.UserId, (au, map) => map)  // result is found UserRoleForContentItemUserGroup records
+                        .Join(DataContext.ApplicationRole, urc => urc.RoleId, r => r.Id, (urc, r) => new { urc = urc, roleName = r.Name })
+                        .Where(o => o.roleName == RoleName)
+                        .Join(DataContext.ContentItemUserGroup, m => m.urc.ContentItemUserGroupId, g => g.Id, (m, g) => g);  // result is found ContentItemUserGroup records
 
-                ReturnList = AuthorizedGroupQuery.ToList();
+                    AuthorizedGroupQuery.ToList().ForEach(G => ReturnList.Add(G));
+                }
             }
 
-            return ReturnList;
+            return ReturnList.ToList();
         }
     }
 }
