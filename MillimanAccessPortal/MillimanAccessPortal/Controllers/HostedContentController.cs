@@ -61,21 +61,19 @@ namespace MillimanAccessPortal.Controllers
         [Authorize]
         public IActionResult Index()
         {
-            List<HostedContentViewModel> ModelForView = new List<HostedContentViewModel>();
-
-            List<ContentItemUserGroup> AuthorizedGroups = new MapDbContextLib.StandardQueries(ServiceProvider).GetAuthorizedUserGroups(UserManager.GetUserName(HttpContext.User));
-
+            List<HostedContentViewModel> ModelForView = new MapDbContextLib.StandardQueries(ServiceProvider).GetAuthorizedUserGroupsAndRoles(UserManager.GetUserName(HttpContext.User));
+/*
             // Run query and iterate over results
-            foreach (var Group in AuthorizedGroups)
+            foreach (var Group in ModelForView)
             {
                 IQueryable<RootContentItem> RootItemQuery = DataContext.RootContentItem
-                    .Where(r => r.Id == Group.RootContentItemId);
+                    .Where(r => r.Id == Group.r);
                 RootContentItem C = RootItemQuery.FirstOrDefault();
 
                 UriBuilder U = new UriBuilder { Scheme = Request.Scheme, Host = Request.Host.Host, Path = Group.ContentInstanceUrl };
                 ModelForView.Add(new HostedContentViewModel { Url = U.Uri, UserGroupId = Group.Id, ContentName = C.ContentName });
             }
-
+            */
             return View(ModelForView);
         }
 
@@ -127,7 +125,7 @@ namespace MillimanAccessPortal.Controllers
 
                 HostedContentViewModel ResponseModel = new HostedContentViewModel
                 {
-                    Url = ContentUri.Uri,
+                    Url = ContentUri.Uri.AbsolutePath,
                     UserGroupId = UserGroupOfRequestedContent.Id,
                 };
 

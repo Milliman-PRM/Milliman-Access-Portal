@@ -23,6 +23,9 @@
             <th>
                 @Html.DisplayNameFor(model => model.ContentName)
             </th>
+            <th>
+                @Html.DisplayNameFor(model => model.RoleNames)
+            </th>
         </tr>
     </thead>
     <tbody>
@@ -33,9 +36,13 @@
             </td>
             <td>
                 @Html.ActionLink("View This", "ViewWebHostedContent", "HostedContent", new { id=item.UserGroupId })
+                <!-- Need other links for user admin, publishing, etc. depending on roles indicated in item.RoleNames -->
             </td>t
             <td>
                 @Html.DisplayFor(modelItem => item.ContentName)
+            </td>
+            <td>
+                @(string.Join(", ", item.RoleNames))
                 <!-- Following is template code for list view.  Replace with some rendering of the link to each content item contained in the model -->
                 <!-- @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) | -->
                 <!-- @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) | -->
