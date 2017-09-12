@@ -18,10 +18,9 @@ namespace AuditLogLib
         private static object ThreadSafetyLock = new object();
         private AuditLoggerConfiguration Config = null;
 
-        public AuditLogger(AuditLoggerConfiguration ConfigArg = null)
+        public AuditLogger(AuditLoggerConfiguration ConfigArg)
         {
-            // TODO provide default connection string to AuditLoggerConfiguration constructor
-            Config = ConfigArg != null ? ConfigArg : new AuditLoggerConfiguration();
+            Config = ConfigArg;
 
             lock (ThreadSafetyLock)
             {
@@ -29,11 +28,8 @@ namespace AuditLogLib
                 if (WorkerTask == null || (WorkerTask.Status != TaskStatus.Running && WorkerTask.Status != TaskStatus.WaitingToRun))
                 {
                     WorkerTask = Task.Run(() => ProcessQueueEvents(Config));
-                    TaskStatus x = WorkerTask.Status;
-                    LogEventQueue.Enqueue(new AuditEvent { Summary = "status is " + x.ToString() });
                     while (WorkerTask.Status != TaskStatus.Running)
                     {
-                        LogEventQueue.Enqueue(new AuditEvent { Summary = "status is " + WorkerTask.Status.ToString() });
                         Thread.Sleep(1);
                     }
                 }
