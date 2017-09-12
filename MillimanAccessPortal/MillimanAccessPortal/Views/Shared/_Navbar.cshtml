@@ -1,46 +1,48 @@
 ﻿<nav id="sidebar-nav">
     <ul>
         <li class="nav-item selected">
-            <a href="#">
+            <a href="#" class="nav-button">
                 <h3 class="nav-label">Reports</h3>
                 <i class="fa fa-fw fa-3x fa-th-large nav-icon" aria-hidden="true"></i>
             </a>
         </li>
         <li class="nav-item">
-            <a href="#">
+            <a href="#" class="nav-button">
                 <h3 class="nav-label">User Profile</h3>
                 <i class="fa fa-fw fa-3x fa-user nav-icon" aria-hidden="true"></i>
             </a>
         </li>
         <li class="nav-item">
-            <a href="#">
+            <a href="#" class="nav-button">
                 <h3 class="nav-label">User Admin</h3>
                 <i class="fa fa-fw fa-3x fa-users nav-icon" aria-hidden="true"></i>
             </a>
         </li>
         <li class="nav-item">
-            <a href="#">
+            <a href="#" class="nav-button">
                 <h3 class="nav-label">Global Admin</h3>
                 <i class="fa fa-fw fa-3x fa-cogs nav-icon" aria-hidden="true"></i>
             </a>
         </li>
         <li class="nav-item">
-            <a href="#">
+            <a href="#" class="nav-button">
                 <h3 class="nav-label">User Guide</h3>
                 <i class="fa fa-fw fa-3x fa-book nav-icon" aria-hidden="true"></i>
             </a>
         </li>
         <li class="nav-item">
-            <a href="#">
+            <a href="#" class="nav-button">
                 <h3 class="nav-label">Contact Support</h3>
                 <i class="fa fa-fw fa-3x fa-envelope nav-icon" aria-hidden="true"></i>
             </a>
         </li>
         <li class="nav-item">
-            <a href="#">
-                <h3 class="nav-label">Logout</h3>
-                <i class="fa fa-fw fa-3x fa-sign-out nav-icon" aria-hidden="true"></i>
-            </a>
+            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" id="logoutForm" class="nav-button">
+                <button type="submit" class="nav-button">
+                    <h3 class="nav-label">Logout</h3>
+                    <i class="fa fa-fw fa-3x fa-sign-out nav-icon" aria-hidden="true"></i>
+                </button>
+            </form>
         </li>
     </ul>
 </nav>

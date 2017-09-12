@@ -124,12 +124,25 @@ Nav Sidebar Styling
             }
         }
 
-        a {
-            color: $nav-font-color;
+        #logoutForm {
+            padding: 0;
         }
 
-        a:hover {
-            color: $nav-hover-font-color;
+        .nav-button {
+            color: $nav-font-color;
+            padding: 0;
+            text-align: left;
+
+            &:hover {
+                color: $nav-hover-font-color;
+            }
+
+            button {
+                background-color: inherit;
+                border: none;
+                margin: 0;
+                width: 100%;
+            }
         }
     }
 

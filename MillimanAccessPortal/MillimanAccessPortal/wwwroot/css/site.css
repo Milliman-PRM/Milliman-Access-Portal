@@ -84,10 +84,19 @@ Nav Sidebar Styling
       background-color: #0091ff; }
       #sidebar-nav .nav-item.selected a:hover {
         color: #242424; }
-    #sidebar-nav .nav-item a {
-      color: #fff; }
-    #sidebar-nav .nav-item a:hover {
-      color: #0091ff; }
+    #sidebar-nav .nav-item #logoutForm {
+      padding: 0; }
+    #sidebar-nav .nav-item .nav-button {
+      color: #fff;
+      padding: 0;
+      text-align: left; }
+      #sidebar-nav .nav-item .nav-button:hover {
+        color: #0091ff; }
+      #sidebar-nav .nav-item .nav-button button {
+        background-color: inherit;
+        border: none;
+        margin: 0;
+        width: 100%; }
   #sidebar-nav .nav-label {
     display: inline-block;
     width: 200px;

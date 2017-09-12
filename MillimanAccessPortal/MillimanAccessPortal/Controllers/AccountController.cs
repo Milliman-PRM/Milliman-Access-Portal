@@ -158,7 +158,7 @@ namespace MillimanAccessPortal.Controllers
         {
             await _signInManager.SignOutAsync();
             _logger.LogInformation(4, "User logged out.");
-            return RedirectToAction(nameof(AccountController.Login), "Login");
+            return RedirectToAction(nameof(AccountController.Login), "Account");
         }
 
         //
@@ -486,7 +486,7 @@ namespace MillimanAccessPortal.Controllers
             }
             else
             {
-                return RedirectToAction(nameof(AccountController.Login), "Login");
+                return RedirectToAction(nameof(AccountController.Login), "Account");
             }
         }
 
