@@ -1,9 +1,9 @@
 @model MillimanAccessPortal.Models.HostedContentViewModels.HostedContentViewModel
 
 @{
-    ViewData["Title"] = "ViewWebHostedContent";
+    ViewData["Title"] = Model.ContentName;
 }
 
 <div id="iframe-container">
-    <iframe id="ContentIframe" src=@(Model.Url.AbsoluteUri)></iframe>
+    <iframe id="ContentIframe" src=@(Model.Url)></iframe>
 </div>

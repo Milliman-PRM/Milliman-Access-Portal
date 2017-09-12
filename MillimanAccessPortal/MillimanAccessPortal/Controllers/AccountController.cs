@@ -63,7 +63,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
-            AuditLogger AuditStore = new AuditLogger(new AuditLoggerConfiguration { ConnectionString = "" });
+            AuditLogger AuditStore = new AuditLogger();
             if (ModelState.IsValid)
             {
                 // This doesn't count login failures towards account lockout
@@ -71,12 +71,12 @@ namespace MillimanAccessPortal.Controllers
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
-                    AuditEvent LogObject = AuditEvent.New("Map Account Controller", "User login successful", null, model.Email);
+                    AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User login successful", null, model.Email);
                     AuditStore.Log(LogLevel.Information, AuditEventId.LoginSuccess, LogObject);
                     //_logger.LogInformation(AuditEventId.LoginSuccess, "User logged in.");
 
-                    // TODO need to get rid of the returnUrl value for normal case.  It might be that standard application launch requests root page "/" and 
-                    // that is why MVC is passing this value in.  I want the default page to be /HostedContent/Index and thought I had set that in startup.cs
+                    // TODO need to get rid of the returnUrl value for normal case.  I want the default page to 
+                    // be /HostedContent/Index and thought I had set that in startup.cs but it's not set right
                     if (!string.IsNullOrEmpty(returnUrl) && returnUrl != "/")
                     {
                         return RedirectToLocal(returnUrl);

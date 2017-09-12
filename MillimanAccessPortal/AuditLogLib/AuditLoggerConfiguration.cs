@@ -4,6 +4,6 @@ namespace AuditLogLib
 {
     public class AuditLoggerConfiguration
     {
-        public string ConnectionString { get; set; }
+        public string AuditLogConnectionString { get; set; }
     }
 }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Runtime.CompilerServices;
 using System.Reflection;
 
@@ -16,14 +17,24 @@ namespace AuditLogLib
         private static Task WorkerTask = null;
         private static int InstanceCount = 0;
         private static object ThreadSafetyLock = new object();
-        private AuditLoggerConfiguration Config = null;
+        private static AuditLoggerConfiguration Config = null;
 
-        public AuditLogger(AuditLoggerConfiguration ConfigArg)
+        public static void ConfigureAuditLogger(AuditLoggerConfiguration ConfigArg)
         {
-            Config = ConfigArg;
-
             lock (ThreadSafetyLock)
             {
+                Config = ConfigArg;
+            }
+        }
+        public AuditLogger()
+        {
+            lock (ThreadSafetyLock)
+            {
+                if (Config == null)
+                {
+                    throw new Exception("Attempt to instantiate AuditLogger before initializing!");
+                }
+
                 InstanceCount++;
                 if (WorkerTask == null || (WorkerTask.Status != TaskStatus.Running && WorkerTask.Status != TaskStatus.WaitingToRun))
                 {
@@ -42,9 +53,10 @@ namespace AuditLogLib
             lock (ThreadSafetyLock)
             {
                 InstanceCount--;
-                if (InstanceCount == 0 && WaitForWorkerThreadEnd(500))  // TODO not the best stategy
+                if (InstanceCount == 0 && WaitForWorkerThreadEnd(1000))  // TODO not the best stategy
                 {
                     WorkerTask = null;
+                    Config = null;
                 }
             }
         }
@@ -126,15 +138,15 @@ namespace AuditLogLib
         /// Worker thread main entry point
         /// </summary>
         /// <param name="Arg"></param>
-        private static void ProcessQueueEvents(object Arg = null)
+        private static void ProcessQueueEvents(object Arg)
         {
-            AuditLoggerConfiguration Config = Arg as AuditLoggerConfiguration;
+            AuditLoggerConfiguration Config = (AuditLoggerConfiguration)Arg;
 
             while (InstanceCount > 0)
             {
                 if (LogEventQueue.Count > 0)
                 {
-                    using (AuditLogDbContext Db = AuditLogDbContext.Instance(Config.ConnectionString))
+                    using (AuditLogDbContext Db = AuditLogDbContext.Instance(Config.AuditLogConnectionString))
                     {
                         List<AuditEvent> NewEventsToStore = new List<AuditEvent>();
 

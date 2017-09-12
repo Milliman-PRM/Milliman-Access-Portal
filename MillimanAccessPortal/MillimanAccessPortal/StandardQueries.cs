@@ -12,7 +12,7 @@ using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using MillimanAccessPortal.Models.HostedContentViewModels;
 
-namespace MapDbContextLib
+namespace MillimanAccessPortal
 {
     public class StandardQueries
     {
@@ -38,7 +38,7 @@ namespace MapDbContextLib
             List<HostedContentViewModel> ReturnList = new List<HostedContentViewModel>();
             Dictionary<long, HostedContentViewModel> ResultBuilder = new Dictionary<long, HostedContentViewModel>();
 
-            using (var DataContext = ServiceScope.ServiceProvider.GetService<Context.ApplicationDbContext>())
+            using (var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>())
             {
                 // Get all ContentItemUserGroups that the current user is authorized to
                 foreach (var Finding in DataContext.ApplicationUser

@@ -16,6 +16,7 @@ using QlikviewLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapCommonLib;
+using AuditLogLib;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -27,9 +28,9 @@ namespace MillimanAccessPortal.Controllers
     public class HostedContentController : Controller
     {
         // Things provided by the application that this controller should need to use
+        private QlikviewConfig QlikviewConfig { get; }  // do not allow set
         private ApplicationDbContext DataContext = null;
         private readonly UserManager<ApplicationUser> UserManager;
-        private readonly IOptions<QlikviewConfig> OptionsAccessor;
         private readonly ILogger Logger;
         private readonly IServiceProvider ServiceProvider;
 
@@ -39,41 +40,30 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="UserManagerArg"></param>
         /// <param name="LoggerFactoryArg"></param>
         /// <param name="DataContextArg"></param>
-        /// <param name="OptionsAccessorArg"></param>
+        /// <param name="QlikviewOptionsAccessorArg"></param>
         public HostedContentController(
+            IOptions<QlikviewConfig> QlikviewOptionsAccessorArg,
             UserManager<ApplicationUser> UserManagerArg,
             ILoggerFactory LoggerFactoryArg,
             ApplicationDbContext DataContextArg,
-            IOptions<QlikviewConfig> OptionsAccessorArg,
             IServiceProvider ServiceProviderArg)
         {
+            QlikviewConfig = QlikviewOptionsAccessorArg.Value;
             UserManager = UserManagerArg;
             Logger = LoggerFactoryArg.CreateLogger<HostedContentController>();
             DataContext = DataContextArg;
-            OptionsAccessor = OptionsAccessorArg;
             ServiceProvider = ServiceProviderArg;
         }
 
         /// <summary>
-        /// Index handler to present the user with links to authorized content
+        /// Index handler to present the user with links to all authorized content
         /// </summary>
         /// <returns>The view</returns>
         [Authorize]
         public IActionResult Index()
         {
-            List<HostedContentViewModel> ModelForView = new MapDbContextLib.StandardQueries(ServiceProvider).GetAuthorizedUserGroupsAndRoles(UserManager.GetUserName(HttpContext.User));
-/*
-            // Run query and iterate over results
-            foreach (var Group in ModelForView)
-            {
-                IQueryable<RootContentItem> RootItemQuery = DataContext.RootContentItem
-                    .Where(r => r.Id == Group.r);
-                RootContentItem C = RootItemQuery.FirstOrDefault();
+            List<HostedContentViewModel> ModelForView = new StandardQueries(ServiceProvider).GetAuthorizedUserGroupsAndRoles(UserManager.GetUserName(HttpContext.User));
 
-                UriBuilder U = new UriBuilder { Scheme = Request.Scheme, Host = Request.Host.Host, Path = Group.ContentInstanceUrl };
-                ModelForView.Add(new HostedContentViewModel { Url = U.Uri, UserGroupId = Group.Id, ContentName = C.ContentName });
-            }
-            */
             return View(ModelForView);
         }
 
@@ -82,8 +72,11 @@ namespace MillimanAccessPortal.Controllers
         /// </summary>
         /// <param name="Id">The primary key value of the ContentItemUserGroup authorizing this user to the requested content</param>
         /// <returns>A View (and model) that displays the requested content</returns>
-        public IActionResult ViewWebHostedContent(long Id)
+        [Authorize]
+        public IActionResult WebHostedContent(long Id)
         {
+            AuditLogger AuditStore = new AuditLogger();
+
             try
             {
                 // Get the requested (by id) ContentItemUserGroup object
@@ -95,7 +88,9 @@ namespace MillimanAccessPortal.Controllers
 
                 if (UserGroupOfRequestedContent == null)
                 {
-                    // The content type of the requested content is not handled
+                    AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Unauthorized request", null, UserManager.GetUserName(HttpContext.User));
+                    LogObject.EventDetailObject = new { GroupIdRequested = Id };
+                    AuditStore.Log(LogLevel.Warning, AuditEventId.LoginSuccess, LogObject);
                     return RedirectToAction(nameof(ErrorController.NotAuthorized), "Error", new { RequestedId = Id, ReturnToController = "HostedContent", ReturnToAction = "Index" });
                 }
 
@@ -121,12 +116,15 @@ namespace MillimanAccessPortal.Controllers
                         return View("SomeError_View", new object(/*SomeModel*/));  // TODO Get this right
                 }
 
-                UriBuilder ContentUri = ContentSpecificHandler.GetContentUri(UserGroupOfRequestedContent, HttpContext, OptionsAccessor.Value);
+                UriBuilder ContentUri = ContentSpecificHandler.GetContentUri(UserGroupOfRequestedContent, HttpContext, QlikviewConfig);
+                RootContentItem Content = DataContext.RootContentItem.Where(r => r.Id == Id).First();
 
                 HostedContentViewModel ResponseModel = new HostedContentViewModel
                 {
-                    Url = ContentUri.Uri.AbsolutePath,
+                    Url = ContentUri.Uri.AbsoluteUri,  // must be absolute because it is used in iframe element
                     UserGroupId = UserGroupOfRequestedContent.Id,
+                    ContentName = Content.ContentName,
+                    RoleNames = new HashSet<string>(),  // empty
                 };
 
                 // Now return the requested content in its view
@@ -142,7 +140,7 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (MapException e)
             {
-                string Msg = e.Message; // use this
+                string Msg = e.Message + e.StackTrace; // use this and maybe other e.properties
                 // The requested user group or associated root content item or content type record could not be found in the database
                 return View("SomeError_View", new object(/*SomeModel*/));  // TODO Get this right
             }
