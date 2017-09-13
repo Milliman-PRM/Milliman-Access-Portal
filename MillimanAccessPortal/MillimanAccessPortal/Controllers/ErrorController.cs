@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using MillimanAccessPortal.Models.ErrorViewModels;
@@ -15,19 +11,19 @@ namespace MillimanAccessPortal.Controllers
         //    return View();
         //}
 
-        public IActionResult NotAuthorized(string RequestedId, string ReturnToController, string ReturnToAction)
+        public IActionResult NotAuthorized()
         {
-            var x = HttpContext.GetRouteData();
-            var y = HttpContext.GetRouteValue("RequestedId");
-            NotAuthorizedViewModel Model = new NotAuthorizedViewModel
+            NotAuthorizedViewModel ErrorModel = new NotAuthorizedViewModel
             {
-                Message = $"You are not authorized to view the requested content (#{RequestedId})",
-                StackTrace = null,
-                ReturnToController = ReturnToController,
-                ReturnToAction = ReturnToAction,
+                Message = TempData["Message"] as string,
+                ReturnToController = TempData["ReturnToController"] as string,
+                ReturnToAction = TempData["ReturnToAction"] as string,
             };
+            TempData.Remove("Message");
+            TempData.Remove("ReturnToController");
+            TempData.Remove("ReturnToAction");
 
-            return View(Model);
+            return View(ErrorModel);
         }
     }
 }

@@ -91,7 +91,13 @@ namespace MillimanAccessPortal.Controllers
                     AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Unauthorized request", null, UserManager.GetUserName(HttpContext.User));
                     LogObject.EventDetailObject = new { GroupIdRequested = Id };
                     AuditStore.Log(LogLevel.Warning, AuditEventId.LoginSuccess, LogObject);
-                    return RedirectToAction(nameof(ErrorController.NotAuthorized), "Error", new { RequestedId = Id, ReturnToController = "HostedContent", ReturnToAction = "Index" });
+
+                    TempData["Message"] = $"You are not authorized to view the requested content (#{Id})";
+                    TempData["ReturnToController"] = "HostedContent";
+                    TempData["ReturnToAction"] = "Index";
+
+                    var x = RedirectToAction(nameof(ErrorController.NotAuthorized), nameof(ErrorController).Replace("Controller", "").ToString());
+                    return x;
                 }
 
                 // Get the ContentType of the RootContentItem of the requested group

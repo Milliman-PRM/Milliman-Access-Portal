@@ -75,15 +75,14 @@ namespace MillimanAccessPortal.Controllers
                     AuditStore.Log(LogLevel.Information, AuditEventId.LoginSuccess, LogObject);
                     //_logger.LogInformation(AuditEventId.LoginSuccess, "User logged in.");
 
-                    // TODO need to get rid of the returnUrl value for normal case.  I want the default page to 
-                    // be /HostedContent/Index and thought I had set that in startup.cs but it's not set right
-                    if (!string.IsNullOrEmpty(returnUrl) && returnUrl != "/")
+                    // The default route is /HostedContent/Index as configured in startup.cs
+                    if (!string.IsNullOrEmpty(returnUrl))
                     {
                         return RedirectToLocal(returnUrl);
                     }
                     else
                     {
-                        return RedirectToAction(nameof(HostedContentController.Index), "HostedContent");
+                        return RedirectToAction(nameof(HostedContentController.Index), nameof(HostedContentController).Replace("Controller",""));
                     }
                 }
                 if (result.RequiresTwoFactor)

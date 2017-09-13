@@ -93,6 +93,9 @@ namespace MillimanAccessPortal
             services.Configure<QlikviewConfig>(Configuration);
             services.Configure<AuditLoggerConfiguration>(Configuration);
 
+            services.AddMemoryCache();
+            services.AddSession();
+
             services.AddMvc(config =>
             {
                 var policy = new AuthorizationPolicyBuilder()
@@ -136,6 +139,8 @@ namespace MillimanAccessPortal
             ApplicationDbContext.InitializeAll(app.ApplicationServices);
 
             // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
+
+            app.UseSession();
 
             app.UseMvc(routes =>
             {
