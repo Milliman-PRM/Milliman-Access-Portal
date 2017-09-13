@@ -13,40 +13,22 @@
     <a asp-action="Create">Create New</a>
 </p> -->
 
+
 <table class="table">
-    <thead>
+    <tr>
+        <th>@Html.DisplayNameFor(model => model.UserGroupId)</th>
+        <th>@Html.DisplayNameFor(model => model.Url)</th>
+        <th>@Html.DisplayNameFor(model => model.ContentName)</th>
+        <th>@Html.DisplayNameFor(model => model.RoleNames)</th>
+    </tr>
+    @foreach (var item in Model)
+    {
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.UserGroupId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Url)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ContentName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RoleNames)
-            </th>
+            <td>@Html.DisplayFor(modelItem => item.UserGroupId)</td>
+            <td>@Html.ActionLink("View This", "WebHostedContent", "HostedContent", new { id = item.UserGroupId })</td>
+            <!-- Need other links for user admin, publishing, etc. depending on roles indicated in item.RoleNames -->
+            <td>@Html.DisplayFor(modelItem => item.ContentName)</td>
+            <td>@(string.Join(", ", item.RoleNames))</td>
         </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model) {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.UserGroupId)
-                </td>
-                <td>
-                    @Html.ActionLink("View This", "WebHostedContent", "HostedContent", new { id=item.UserGroupId })
-                    <!-- Need other links for user admin, publishing, etc. depending on roles indicated in item.RoleNames -->
-                </td>t
-                <td>
-                    @Html.DisplayFor(modelItem => item.ContentName)
-                </td>
-                <td>
-                    @(string.Join(", ", item.RoleNames))
-                </td>
-            </tr>
-        }
-    </tbody>
+    }
 </table>
