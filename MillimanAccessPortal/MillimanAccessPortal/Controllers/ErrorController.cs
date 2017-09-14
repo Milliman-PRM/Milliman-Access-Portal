@@ -6,24 +6,25 @@ namespace MillimanAccessPortal.Controllers
 {
     public class ErrorController : Controller
     {
-        //public IActionResult Index()
-        //{
-        //    return View();
-        //}
-
         public IActionResult NotAuthorized()
         {
-            NotAuthorizedViewModel ErrorModel = new NotAuthorizedViewModel
+            return View(CreateGeneralErrorViewModel());
+        }
+
+        public IActionResult Error()
+        {
+            return View(CreateGeneralErrorViewModel());
+        }
+
+        [NonAction]
+        private GeneralErrorViewModel CreateGeneralErrorViewModel()
+        {
+            return new GeneralErrorViewModel
             {
-                Message = TempData["Message"] as string,
+                Message = (TempData["Message"] as string).Split(new string[] { "\r\n", "<br>" }, System.StringSplitOptions.RemoveEmptyEntries),
                 ReturnToController = TempData["ReturnToController"] as string,
                 ReturnToAction = TempData["ReturnToAction"] as string,
             };
-            TempData.Remove("Message");
-            TempData.Remove("ReturnToController");
-            TempData.Remove("ReturnToAction");
-
-            return View(ErrorModel);
         }
     }
 }

@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Models.ErrorViewModels
 {
-    public class NotAuthorizedViewModel
+    public class GeneralErrorViewModel
     {
-        public string StackTrace { get; set; }
-        public string Message { get; set; }
+        // Each element of the Message array is intended for display on a separate line
+        public string[] Message { get; set; }
         public string ReturnToController { get; set; }
         public string ReturnToAction { get; set; }
     }

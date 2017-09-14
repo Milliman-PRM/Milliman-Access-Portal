@@ -96,8 +96,7 @@ namespace MillimanAccessPortal.Controllers
                     TempData["ReturnToController"] = "HostedContent";
                     TempData["ReturnToAction"] = "Index";
 
-                    var x = RedirectToAction(nameof(ErrorController.NotAuthorized), nameof(ErrorController).Replace("Controller", "").ToString());
-                    return x;
+                    return RedirectToAction(nameof(ErrorController.NotAuthorized), nameof(ErrorController).Replace("Controller", ""));
                 }
 
                 // Get the ContentType of the RootContentItem of the requested group
@@ -117,9 +116,15 @@ namespace MillimanAccessPortal.Controllers
                         ContentSpecificHandler = new QlikviewLibApi();
                         break;
 
+                    //case "Another web hosted type":
+                    //    ContentSpecificHandler = new AnotherTypeSpecificLib();
+                    //    break;
+
                     default:
-                        // The content type of the requested content is not handled
-                        return View("SomeError_View", new object(/*SomeModel*/));  // TODO Get this right
+                        TempData["Message"] = $"Display of an unsupported ContentType was requested: {TypeOfRequestedContent}";
+                        TempData["ReturnToController"] = "HostedContent";
+                        TempData["ReturnToAction"] = "Index";
+                        return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
                 }
 
                 UriBuilder ContentUri = ContentSpecificHandler.GetContentUri(UserGroupOfRequestedContent, HttpContext, QlikviewConfig);
@@ -133,22 +138,29 @@ namespace MillimanAccessPortal.Controllers
                     RoleNames = new HashSet<string>(),  // empty
                 };
 
-                // Now return the requested content in its view
+                // Now return the appropriate view for the requested content
                 switch (TypeOfRequestedContent)
                 {
                     case "Qlikview":
                         return View(ResponseModel);
 
+                    //case "Another web hosted type":
+                        //return TheRightThing;
+
                     default:
-                        // Probably can't happen since this is handled above
-                        return View("SomeError_View", new object(/*SomeModel*/));  // TODO Get this right
+                        // Perhaps this can't happen since this case is handled above
+                        TempData["Message"] = $"An unsupported ContentType was requested: {TypeOfRequestedContent}";
+                        TempData["ReturnToController"] = "HostedContent";
+                        TempData["ReturnToAction"] = "Index";
+                        return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
                 }
             }
             catch (MapException e)
             {
-                string Msg = e.Message + e.StackTrace; // use this and maybe other e.properties
-                // The requested user group or associated root content item or content type record could not be found in the database
-                return View("SomeError_View", new object(/*SomeModel*/));  // TODO Get this right
+                TempData["Message"] = $"{e.Message}<br>{e.StackTrace}";
+                TempData["ReturnToController"] = "HostedContent";
+                TempData["ReturnToAction"] = "Index";
+                return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
             }
 
         }
