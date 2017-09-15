@@ -80,10 +80,13 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 // Get the requested (by id) ContentItemUserGroup object
-                ContentItemUserGroup UserGroupOfRequestedContent = DataContext.ContentItemUserGroup.Where(g => g.Id == Id)
-                    .Join(DataContext.UserRoleForContentItemUserGroup, g => g.Id, ur => ur.ContentItemUserGroupId, (g, ur) => new {group=g, userrole=ur })
-                    .Where(r => r.userrole.Role.Name == "Content User")
-                    .Select(o => o.group)
+                ContentItemUserGroup UserGroupOfRequestedContent = DataContext.ContentItemUserGroup
+                    .Where(g => g.Id == Id)
+                    .Join(DataContext.UserRoleForContentItemUserGroup, g => g.Id, ur => ur.ContentItemUserGroupId, (g, ur) => new { Group = g, UserRole = ur })
+                    .Where(r => r.UserRole.Role.Name == "Content User")  // result is group and rolemap records with 
+                    .Join(DataContext.ApplicationUser, prev => prev.UserRole.Id, u => u.Id, (prev, u) => new { group = prev.Group, userrole = prev.UserRole, AppUser = u })
+                    .Where(prev => prev.AppUser.UserName == UserManager.GetUserName(HttpContext.User))
+                    .Select(prev => prev.group)
                     .FirstOrDefault();
 
                 if (UserGroupOfRequestedContent == null)
