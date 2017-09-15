@@ -77,5 +77,41 @@ namespace MillimanAccessPortal
 
             return ReturnList.ToList();
         }
+
+        /// <summary>
+        /// determines whether the supplied user name is authorized to the supplied group for all supplied role names
+        /// </summary>
+        /// <param name="UserName"></param>
+        /// <param name="GroupId"></param>
+        /// <param name="RequiredRoleArray"></param>
+        /// <returns>true iff user is authorized to the group in all roles</returns>
+        public  bool IsUserAuthorizedToAllRolesForGroup(string UserName, long GroupId, IEnumerable<string> RequiredRoles)
+        {
+            var AuthorizedGroupForUser = GetUserGroupIfAuthorizedToAllRoles(UserName, GroupId, RequiredRoles);
+
+            return AuthorizedGroupForUser != null;
+        }
+
+        /// <summary>
+        /// Tests whether the requested group is authorized to user for all specified roles
+        /// </summary>
+        /// <param name="UserName"></param>
+        /// <param name="GroupId"></param>
+        /// <param name="RequiredRoles"></param>
+        /// <returns></returns>
+        public ContentItemUserGroup GetUserGroupIfAuthorizedToAllRoles(string UserName, long GroupId, IEnumerable<string> RequiredRoles)
+        {
+            using (var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>())
+            {
+                return DataContext.ContentItemUserGroup
+                .Join(DataContext.UserRoleForContentItemUserGroup, g => g.Id, ur => ur.ContentItemUserGroupId, (g, urmap) => new { Group = g, RoleMap = urmap })
+                .Join(DataContext.ApplicationUser, prev => prev.RoleMap.UserId, u => u.Id, (prev, u) => new { Group = prev.Group, RoleMap = prev.RoleMap, AppUser = u })
+                .Where(g => g.Group.Id == GroupId)
+                .Where(r => RequiredRoles.All(e => e.Contains(r.RoleMap.Role.Name)))
+                .Where(u => u.AppUser.UserName == UserName)
+                .Select(s => s.Group)
+                .FirstOrDefault();
+            }
+        }
     }
 }
