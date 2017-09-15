@@ -80,16 +80,9 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 // Get the requested (by id) ContentItemUserGroup object
-                ContentItemUserGroup UserGroupOfRequestedContent = DataContext.ContentItemUserGroup
-                    .Where(g => g.Id == Id)
-                    .Join(DataContext.UserRoleForContentItemUserGroup, g => g.Id, ur => ur.ContentItemUserGroupId, (g, ur) => new { Group = g, UserRole = ur })
-                    .Where(r => r.UserRole.Role.Name == "Content User")  // result is group and rolemap records with 
-                    .Join(DataContext.ApplicationUser, prev => prev.UserRole.Id, u => u.Id, (prev, u) => new { group = prev.Group, userrole = prev.UserRole, AppUser = u })
-                    .Where(prev => prev.AppUser.UserName == UserManager.GetUserName(HttpContext.User))
-                    .Select(prev => prev.group)
-                    .FirstOrDefault();
+                ContentItemUserGroup AuthorizedUserGroup = new StandardQueries(ServiceProvider).GetUserGroupIfAuthorizedToAllRoles(UserManager.GetUserName(HttpContext.User), Id, new string[]{"Content User"});
 
-                if (UserGroupOfRequestedContent == null)
+                if (AuthorizedUserGroup == null)
                 {
                     AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Unauthorized request", null, UserManager.GetUserName(HttpContext.User));
                     LogObject.EventDetailObject = new { GroupIdRequested = Id };
@@ -105,7 +98,7 @@ namespace MillimanAccessPortal.Controllers
 
                 // Get the ContentType of the RootContentItem of the requested group
                 IQueryable<ContentType> Query = DataContext.RootContentItem
-                    .Where(item => item.Id == UserGroupOfRequestedContent.RootContentItemId)
+                    .Where(item => item.Id == AuthorizedUserGroup.RootContentItemId)
                     .Join(DataContext.ContentType, r => r.ContentTypeId, type => type.Id, (r, type) => type);  // result is the ContentType record
 
                 // execute the query
@@ -125,13 +118,13 @@ namespace MillimanAccessPortal.Controllers
                         return View("SomeError_View", new object(/*SomeModel*/));  // TODO Get this right
                 }
 
-                UriBuilder ContentUri = ContentSpecificHandler.GetContentUri(UserGroupOfRequestedContent, HttpContext, QlikviewConfig);
+                UriBuilder ContentUri = ContentSpecificHandler.GetContentUri(AuthorizedUserGroup, HttpContext, QlikviewConfig);
                 RootContentItem Content = DataContext.RootContentItem.Where(r => r.Id == Id).First();
 
                 HostedContentViewModel ResponseModel = new HostedContentViewModel
                 {
                     Url = ContentUri.Uri.AbsoluteUri,  // must be absolute because it is used in iframe element
-                    UserGroupId = UserGroupOfRequestedContent.Id,
+                    UserGroupId = AuthorizedUserGroup.Id,
                     ContentName = Content.ContentName,
                     RoleNames = new HashSet<string>(),  // empty
                 };
