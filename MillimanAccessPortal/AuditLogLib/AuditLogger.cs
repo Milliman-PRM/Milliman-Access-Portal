@@ -53,7 +53,7 @@ namespace AuditLogLib
             lock (ThreadSafetyLock)
             {
                 InstanceCount--;
-                if (InstanceCount == 0 && WaitForWorkerThreadEnd(1000))  // TODO not the best stategy
+                if (InstanceCount == 0 && WaitForWorkerThreadEnd(1000))  // Not the best stategy
                 {
                     WorkerTask = null;
                     Config = null;
@@ -114,7 +114,7 @@ namespace AuditLogLib
                 }
             }
 
-            // TODO instead of an in-process queue, switch to use an out of process asynchronous message queue and a system service to service the queue and persist.
+            // TODO instead of an in-process queue, switch to use an out of process asynchronous message queue.
             // Hint, MSMQ was an idea but that probably will never be supported in .NET Core since it is a Windows only service.  
             // The issue here is that if the process is terminated or crashes, any unprocessed log messages in the queue could be lost.  
             LogEventQueue.Enqueue(NewEvent);
