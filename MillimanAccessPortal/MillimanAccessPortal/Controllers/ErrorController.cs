@@ -1,3 +1,9 @@
+/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: An MVC controller to handle and present error condition(s)
+ * DEVELOPER NOTES: General pattern is to pass error details in TempData and build a model as expected by the appropriate error view
+ */
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using MillimanAccessPortal.Models.ErrorViewModels;
