@@ -17,10 +17,11 @@ namespace MillimanAccessPortal.Services
     // This class is used by the application to send Email and SMS
     // when you turn on two-factor authentication in ASP.NET Identity.
     // For more details see this link https://go.microsoft.com/fwlink/?LinkID=532713
-    public class AuthMessageSender : IEmailSender, ISmsSender
+    public class MessageServices : IEmailSender, ISmsSender
     {
         private SmtpConfig _smtpConfig { get; }
-        
+        private ILogger _logger { get; }
+
         /// <summary>
         /// Constructor. Consumes injected SMTP configuration from application.
         /// </summary>
