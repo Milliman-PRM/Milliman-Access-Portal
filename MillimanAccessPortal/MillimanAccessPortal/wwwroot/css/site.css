@@ -16,7 +16,8 @@ body {
 
 #content-wrapper {
   min-height: 100vh;
-  position: relative; }
+  position: relative;
+  margin-left: 70px; }
 
 input {
   height: 40px;
