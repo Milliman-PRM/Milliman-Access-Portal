@@ -113,5 +113,21 @@ namespace MillimanAccessPortal
                 .FirstOrDefault();
             }
         }
+
+        public List<Client> GetListOfAuthorizedClients(string UserName)
+        {
+            List<Client> ListOfAuthorizedClients = new List<Client>();
+            using (var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>())
+            {
+                IQueryable<Client> FilteredCandidateParents = DataContext.Client.Where(c => c.Id == 2/*modify to: user is authorized to manage c*/);
+                foreach (Client C in FilteredCandidateParents)
+                {
+                    ListOfAuthorizedClients.Add(C);
+                }
+            }
+
+            return ListOfAuthorizedClients;
+        }
+
     }
 }
