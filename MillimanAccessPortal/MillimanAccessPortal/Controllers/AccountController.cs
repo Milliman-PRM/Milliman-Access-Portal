@@ -63,7 +63,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
-            AuditLogger AuditStore = new AuditLogger(new AuditLoggerConfiguration { ConnectionString = "" });
+            AuditLogger AuditStore = new AuditLogger();
             if (ModelState.IsValid)
             {
                 // This doesn't count login failures towards account lockout
@@ -71,10 +71,19 @@ namespace MillimanAccessPortal.Controllers
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
-                    AuditEvent LogObject = AuditEvent.New("Map Account Controller", "User login successful", null, model.Email);
+                    AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User login successful", null, model.Email);
                     AuditStore.Log(LogLevel.Information, AuditEventId.LoginSuccess, LogObject);
                     //_logger.LogInformation(AuditEventId.LoginSuccess, "User logged in.");
-                    return RedirectToLocal(returnUrl);
+
+                    // The default route is /HostedContent/Index as configured in startup.cs
+                    if (!string.IsNullOrEmpty(returnUrl))
+                    {
+                        return RedirectToLocal(returnUrl);
+                    }
+                    else
+                    {
+                        return RedirectToAction(nameof(HostedContentController.Index), nameof(HostedContentController).Replace("Controller",""));
+                    }
                 }
                 if (result.RequiresTwoFactor)
                 {
@@ -148,7 +157,7 @@ namespace MillimanAccessPortal.Controllers
         {
             await _signInManager.SignOutAsync();
             _logger.LogInformation(4, "User logged out.");
-            return RedirectToAction(nameof(LoginController.Index), "Login");
+            return RedirectToAction(nameof(AccountController.Login), "Account");
         }
 
         //
@@ -476,7 +485,7 @@ namespace MillimanAccessPortal.Controllers
             }
             else
             {
-                return RedirectToAction(nameof(LoginController.Index), "Login");
+                return RedirectToAction(nameof(AccountController.Login), "Account");
             }
         }
 

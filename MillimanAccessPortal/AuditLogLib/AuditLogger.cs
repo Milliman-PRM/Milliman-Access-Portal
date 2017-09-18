@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Runtime.CompilerServices;
 using System.Reflection;
 
@@ -16,24 +17,30 @@ namespace AuditLogLib
         private static Task WorkerTask = null;
         private static int InstanceCount = 0;
         private static object ThreadSafetyLock = new object();
-        private AuditLoggerConfiguration Config = null;
+        private static AuditLoggerConfiguration Config = null;
 
-        public AuditLogger(AuditLoggerConfiguration ConfigArg = null)
+        public static void ConfigureAuditLogger(AuditLoggerConfiguration ConfigArg)
         {
-            // TODO provide default connection string to AuditLoggerConfiguration constructor
-            Config = ConfigArg != null ? ConfigArg : new AuditLoggerConfiguration();
-
             lock (ThreadSafetyLock)
             {
+                Config = ConfigArg;
+            }
+        }
+        public AuditLogger()
+        {
+            lock (ThreadSafetyLock)
+            {
+                if (Config == null)
+                {
+                    throw new Exception("Attempt to instantiate AuditLogger before initializing!");
+                }
+
                 InstanceCount++;
                 if (WorkerTask == null || (WorkerTask.Status != TaskStatus.Running && WorkerTask.Status != TaskStatus.WaitingToRun))
                 {
                     WorkerTask = Task.Run(() => ProcessQueueEvents(Config));
-                    TaskStatus x = WorkerTask.Status;
-                    LogEventQueue.Enqueue(new AuditEvent { Summary = "status is " + x.ToString() });
                     while (WorkerTask.Status != TaskStatus.Running)
                     {
-                        LogEventQueue.Enqueue(new AuditEvent { Summary = "status is " + WorkerTask.Status.ToString() });
                         Thread.Sleep(1);
                     }
                 }
@@ -46,9 +53,10 @@ namespace AuditLogLib
             lock (ThreadSafetyLock)
             {
                 InstanceCount--;
-                if (InstanceCount == 0 && WaitForWorkerThreadEnd(500))  // TODO not the best stategy
+                if (InstanceCount == 0 && WaitForWorkerThreadEnd(1000))  // TODO not the best stategy
                 {
                     WorkerTask = null;
+                    Config = null;
                 }
             }
         }
@@ -130,15 +138,15 @@ namespace AuditLogLib
         /// Worker thread main entry point
         /// </summary>
         /// <param name="Arg"></param>
-        private static void ProcessQueueEvents(object Arg = null)
+        private static void ProcessQueueEvents(object Arg)
         {
-            AuditLoggerConfiguration Config = Arg as AuditLoggerConfiguration;
+            AuditLoggerConfiguration Config = (AuditLoggerConfiguration)Arg;
 
             while (InstanceCount > 0)
             {
                 if (LogEventQueue.Count > 0)
                 {
-                    using (AuditLogDbContext Db = AuditLogDbContext.Instance(Config.ConnectionString))
+                    using (AuditLogDbContext Db = AuditLogDbContext.Instance(Config.AuditLogConnectionString))
                     {
                         List<AuditEvent> NewEventsToStore = new List<AuditEvent>();
 

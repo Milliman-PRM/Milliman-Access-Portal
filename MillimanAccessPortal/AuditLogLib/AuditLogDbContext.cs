@@ -60,7 +60,7 @@ namespace AuditLogLib
             }
             else
             {
-                // This supports migration updates when no connection string has been provided through dependency injection
+                // This block supports ef migration add, where no connection string is provided through dependency injection
                 Builder.UseNpgsql(GetConfiguredConnectionString());
             }
         }
@@ -72,7 +72,8 @@ namespace AuditLogLib
         /// <returns></returns>
         internal static string GetConfiguredConnectionString(string ConnectionStringName = "AuditLogConnectionString")
         {
-            // TODO Figure out how to get the connection string from configuration
+            // Probably used only for generating new migrations.  Caller is the dotnet framework command executable, which does not have our config files.
+            // TODO Figure out a better way to get a configured connection string
             return "Server=127.0.0.1;Database=MapAuditLog;User Id=postgres;Password=postgres;";
         }
 
