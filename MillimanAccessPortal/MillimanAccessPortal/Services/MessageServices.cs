@@ -1,4 +1,10 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Ben Wyatt
+ * OBJECTIVE: API for sending messages to users
+ * DEVELOPER NOTES: This class is an expansion of the one included with the Visual Studio template used to create MAP
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using MimeKit;
