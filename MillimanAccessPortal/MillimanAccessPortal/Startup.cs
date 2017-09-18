@@ -34,8 +34,10 @@ namespace MillimanAccessPortal
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
-                .AddJsonFile("qlikview.json", optional: false, reloadOnChange: true);
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                .AddJsonFile("qlikview.json", optional: false, reloadOnChange: true)
+                .AddJsonFile("smtp.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($"smtp.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
 
             if (env.IsDevelopment())
             {
@@ -92,6 +94,7 @@ namespace MillimanAccessPortal
 
             services.Configure<QlikviewConfig>(Configuration);
             services.Configure<AuditLoggerConfiguration>(Configuration);
+            services.Configure<SmtpConfig>(Configuration);
 
             services.AddMemoryCache();
             services.AddSession();

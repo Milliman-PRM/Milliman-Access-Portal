@@ -4,6 +4,7 @@ using System.Linq;
 using MimeKit;
 using MailKit.Net.Smtp;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
 namespace MillimanAccessPortal.Services
 {
@@ -12,6 +13,17 @@ namespace MillimanAccessPortal.Services
     // For more details see this link https://go.microsoft.com/fwlink/?LinkID=532713
     public class AuthMessageSender : IEmailSender, ISmsSender
     {
+        private SmtpConfig _smtpConfig { get; }
+        
+        /// <summary>
+        /// Constructor. Consumes injected SMTP configuration from application.
+        /// </summary>
+        /// <param name="smtpConfigArg"></param>
+        public AuthMessageSender(IOptions<SmtpConfig> smtpConfigArg)
+        {
+            _smtpConfig = smtpConfigArg.Value;
+        }
+
         public Task SendEmailAsync(string email, string subject, string message)
         {
             // TODO: Add support for email templates (future update?)
@@ -19,15 +31,8 @@ namespace MillimanAccessPortal.Services
             try
             {
                 // Configure message
-                
-                // TODO: Get configuration from json
-                string FromAddress = "prm.support@milliman.com";
-                string FromName = "Milliman PRM Analytics Support";
-                string SmtpServer = "smtp.milliman.com";
-                int SmtpPortNumber = 25;
-
                 var MailMessage = new MimeMessage();
-                MailMessage.From.Add(new MailboxAddress(FromName, FromAddress)));
+                MailMessage.From.Add(new MailboxAddress(_smtpConfig.SmtpFromName, _smtpConfig.SmtpFromAddress));
                 MailMessage.To.Add(new MailboxAddress(email));
                 MailMessage.Subject = subject;
                 MailMessage.Body = new TextPart("plain")
@@ -38,15 +43,17 @@ namespace MillimanAccessPortal.Services
                 // Send mail
                 using (var client = new SmtpClient())
                 {
-                    client.Connect(SmtpServer, SmtpPortNumber, false);
+                    client.Connect(_smtpConfig.SmtpServer, _smtpConfig.SmtpPort, MailKit.Security.SecureSocketOptions.None);
                     client.Send(MailMessage);
                     client.Disconnect(true);
                 }
-
             }
             catch (Exception ex)
             {
                 // TODO: Add exception handling
+                Console.WriteLine("Failed to send mail!");
+
+                Console.WriteLine(ex.Message);
             }
 
             // Plug in your email service here to send an email.

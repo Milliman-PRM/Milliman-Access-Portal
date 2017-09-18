@@ -1,0 +1,6 @@
+﻿{
+  "SmtpServer": "smtp.milliman.com",
+  "SmtpPort":  25,
+  "SmtpFromAddress": "prm.support@milliman.com",
+  "SmtpFromName":  "Milliman PRM Analytics Support"
+}
