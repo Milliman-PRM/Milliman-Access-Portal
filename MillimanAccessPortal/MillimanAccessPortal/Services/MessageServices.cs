@@ -11,6 +11,7 @@ using MimeKit;
 using MailKit.Net.Smtp;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 
 namespace MillimanAccessPortal.Services
 {
@@ -26,15 +27,14 @@ namespace MillimanAccessPortal.Services
         /// Constructor. Consumes injected SMTP configuration from application.
         /// </summary>
         /// <param name="smtpConfigArg"></param>
-        public AuthMessageSender(IOptions<SmtpConfig> smtpConfigArg)
+        public MessageServices(IOptions<SmtpConfig> smtpConfigArg, ILoggerFactory loggerFactory)
         {
             _smtpConfig = smtpConfigArg.Value;
+            _logger = loggerFactory.CreateLogger<MessageServices>();
         }
 
         public Task SendEmailAsync(string email, string subject, string message)
         {
-            // TODO: Add support for email templates (future update?)
-
             try
             {
                 // Configure message
@@ -50,20 +50,16 @@ namespace MillimanAccessPortal.Services
                 // Send mail
                 using (var client = new SmtpClient())
                 {
-                    client.Connect(_smtpConfig.SmtpServer, _smtpConfig.SmtpPort, MailKit.Security.SecureSocketOptions.None);
+                    client.Connect(_smtpConfig.SmtpServer, _smtpConfig.SmtpPort, MailKit.Security.SecureSocketOptions.Auto);
                     client.Send(MailMessage);
                     client.Disconnect(true);
                 }
             }
             catch (Exception ex)
             {
-                // TODO: Add exception handling
-                Console.WriteLine("Failed to send mail!");
-
-                Console.WriteLine(ex.Message);
+                _logger.LogWarning(2, ex, "Failed to send mail");
             }
-
-            // Plug in your email service here to send an email.
+            
             return Task.FromResult(0);
         }
 
