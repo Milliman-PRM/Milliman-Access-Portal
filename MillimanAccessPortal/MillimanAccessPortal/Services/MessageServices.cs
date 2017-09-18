@@ -50,7 +50,7 @@ namespace MillimanAccessPortal.Services
                 // Send mail
                 using (var client = new SmtpClient())
                 {
-                    client.Connect(_smtpConfig.SmtpServer, _smtpConfig.SmtpPort, MailKit.Security.SecureSocketOptions.Auto);
+                    client.Connect(_smtpConfig.SmtpServer, _smtpConfig.SmtpPort, MailKit.Security.SecureSocketOptions.None);
                     client.Send(MailMessage);
                     client.Disconnect(true);
                 }
