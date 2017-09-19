@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using MillimanAccessPortal.Models.HostedContentViewModels;
@@ -63,11 +64,12 @@ namespace MillimanAccessPortal
                 {
                     if (!ResultBuilder.Keys.Contains(Finding.UserGroupId))
                     {
+                        // first role for this user/group
                         ResultBuilder.Add(Finding.UserGroupId, Finding);
                     }
                     else
                     {
-                        // second role for this user/group
+                        // additional role for this user/group
                         ResultBuilder[Finding.UserGroupId].RoleNames.Add(Finding.RoleNames.First());
                     }
                 }
@@ -85,7 +87,7 @@ namespace MillimanAccessPortal
         /// <param name="GroupId"></param>
         /// <param name="RequiredRoleArray"></param>
         /// <returns>true iff user is authorized to the group in all roles</returns>
-        public  bool IsUserAuthorizedToAllRolesForGroup(string UserName, long GroupId, IEnumerable<string> RequiredRoles)
+        public  bool IsUserAuthorizedToAllRolesForGroup(string UserName, long GroupId, IEnumerable<RoleEnum> RequiredRoles)
         {
             var AuthorizedGroupForUser = GetUserGroupIfAuthorizedToAllRoles(UserName, GroupId, RequiredRoles);
 
@@ -99,31 +101,37 @@ namespace MillimanAccessPortal
         /// <param name="GroupId"></param>
         /// <param name="RequiredRoles"></param>
         /// <returns></returns>
-        public ContentItemUserGroup GetUserGroupIfAuthorizedToAllRoles(string UserName, long GroupId, IEnumerable<string> RequiredRoles)
+        public ContentItemUserGroup GetUserGroupIfAuthorizedToAllRoles(string UserName, long GroupId, IEnumerable<RoleEnum> RequiredRoles)
         {
             using (var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>())
             {
-                return DataContext.ContentItemUserGroup
+                var ShortList = DataContext.ContentItemUserGroup
                 .Join(DataContext.UserRoleForContentItemUserGroup, g => g.Id, ur => ur.ContentItemUserGroupId, (g, urmap) => new { Group = g, RoleMap = urmap })
                 .Join(DataContext.ApplicationUser, prev => prev.RoleMap.UserId, u => u.Id, (prev, u) => new { Group = prev.Group, RoleMap = prev.RoleMap, AppUser = u })
-                .Where(g => g.Group.Id == GroupId)
-                .Where(r => RequiredRoles.All(e => e.Contains(r.RoleMap.Role.Name)))
                 .Where(u => u.AppUser.UserName == UserName)
-                .Select(s => s.Group)
-                .FirstOrDefault();
+                .Where(g => g.Group.Id == GroupId)
+                .Where(r => RequiredRoles.Contains(r.RoleMap.Role.RoleEnum))
+                .ToList();
+                // result is the user's records related to the requested group, filtered to those authorized roles in the list of required roles
+
+                bool AllRequiredRolesFound = RequiredRoles.All(rr => ShortList.Select(s => s.RoleMap.Role.RoleEnum).Contains(rr));
+
+                return AllRequiredRolesFound ? ShortList.Select(s => s.Group).FirstOrDefault() : null;
             }
         }
 
-        public List<Client> GetListOfAuthorizedClients(string UserName)
+        public List<Client> GetListOfClientsUserIsAuthorizedToManage(string UserName)
         {
             List<Client> ListOfAuthorizedClients = new List<Client>();
             using (var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>())
             {
-                IQueryable<Client> FilteredCandidateParents = DataContext.Client.Where(c => c.Id == 2/*modify to: user is authorized to manage c*/);
-                foreach (Client C in FilteredCandidateParents)
-                {
-                    ListOfAuthorizedClients.Add(C);
-                }
+                IQueryable<Client> AuthorizedClients =
+                    DataContext.UserRoleForClient
+                    .Where(urc => urc.Role.Name == "Client Administrator")
+                    .Where(urc => urc.User.UserName == UserName)
+                    .Join(DataContext.Client, urc => urc.ClientId, c => c.Id, (urc, c) => c);
+
+                ListOfAuthorizedClients.AddRange(AuthorizedClients);  // Query executes here
             }
 
             return ListOfAuthorizedClients;

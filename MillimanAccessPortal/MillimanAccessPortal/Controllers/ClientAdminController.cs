@@ -29,10 +29,10 @@ namespace MillimanAccessPortal.Controllers
         }
 
     // GET: ClientAdmin
-    public async Task<IActionResult> Index()
+    public IActionResult Index()
         {
-            var applicationDbContext = DbContext.Client.Include(c => c.ParentClient);
-            return View(await applicationDbContext.ToListAsync());
+            List<Client> AuthorizedClients = new StandardQueries(ServiceProvider).GetListOfClientsUserIsAuthorizedToManage(UserManager.GetUserName(HttpContext.User));
+            return View(AuthorizedClients);
         }
 
         // GET: ClientAdmin/Details/5
@@ -57,7 +57,7 @@ namespace MillimanAccessPortal.Controllers
         // GET: ClientAdmin/Create
         public IActionResult Create()
         {
-            List<Client> AuthorizedClients = new StandardQueries(ServiceProvider).GetListOfAuthorizedClients(UserManager.GetUserName(HttpContext.User));
+            List<Client> AuthorizedClients = new StandardQueries(ServiceProvider).GetListOfClientsUserIsAuthorizedToManage(UserManager.GetUserName(HttpContext.User));
             // Use this one.  Filter out clients that current user is not authorized to manage
             //IQueryable<Client> FilteredCandidateParents = _context.Client.Where(c => /*user authorized to manage c*/);
             //IQueryable<Client> FilteredCandidateParents = DbContext.Client.Where(c => c.Id == 1/*user authorized to manage c*/);
