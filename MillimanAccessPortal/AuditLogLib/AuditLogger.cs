@@ -56,7 +56,6 @@ namespace AuditLogLib
                 if (InstanceCount == 0 && WaitForWorkerThreadEnd(1000))  // Not the best stategy
                 {
                     WorkerTask = null;
-                    Config = null;
                 }
             }
         }
