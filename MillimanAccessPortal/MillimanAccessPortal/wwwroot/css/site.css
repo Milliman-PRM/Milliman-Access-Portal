@@ -117,6 +117,46 @@ Nav Sidebar Styling
     margin: auto; }
 
 /*****
+Contact Form Styling
+*****/
+#modal-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 50;
+  display: block; }
+  #modal-background.hide {
+    display: none !important; }
+  #modal-background.show {
+    display: block !important; }
+
+#contact-form {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #DEDEE3;
+  border: 2px solid #424242;
+  border-radius: 5px;
+  padding: 25px;
+  z-index: 100; }
+  #contact-form .contact-title {
+    margin: 20px 25px;
+    text-align: center; }
+  #contact-form .form-close {
+    position: absolute;
+    color: #ff4618;
+    top: 10px;
+    right: 5px;
+    cursor: pointer; }
+  #contact-form .form-close:hover {
+    color: #ff2300; }
+
+/*****
 Header Styling
 *****/
 #header {

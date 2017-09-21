@@ -47,21 +47,26 @@
     </ul>
 </nav>
 
-<!-- 
-    Contact Form 
--->
+ 
+@*Contact Form*@
 
-@*<div id="modal-background" class="modal-hidden">
+
+<div id="modal-background" class="hide">
 
     <div id="contact-form">
-        <h1 class="contact-title">Contact Support</h1>
-        <i id="contact-close" class="fa fa-times-circle-o fa-fw form-close fa-2x" aria-hidden="true"></i>
+        <h2 class="contact-title">Contact Support</h2>
+        <i id="contact-close" class="fa fa-close fa-fw fa-2x form-close" aria-hidden="true"></i>
         <form action="/" method="post">
-            <select>
-                <option value="value">text</option>
-            </select>
+            <label for="topic-select"> Topic
+                <select id="topic-select" required>
+                    <option value="">Please Select a Topic</option>
+                    <option value="Account Inquiry">Account Inquiry</option>
+                    <option value="Bug">Report a Bug</option>
+                    <option value="Other">Other</option>
+                </select>
+            </label>
         </form>
     </div>
     
 
-</div>*@
+</div>
