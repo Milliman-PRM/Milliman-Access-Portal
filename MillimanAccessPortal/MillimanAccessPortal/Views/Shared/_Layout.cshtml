@@ -21,11 +21,8 @@
     @Html.Raw(JavaScriptSnippet.FullScript)
 </head>
 <body>
-    @await Html.PartialAsync("_Navbar")
-    <div id="content-wrapper" class="body-content">
-        @RenderBody()
-        @Html.Partial("_Footer")
-    </div>
+    
+    @RenderBody()
 
     <environment names="Development">
         <script src="~/lib/jquery/dist/jquery.js"></script>
@@ -49,5 +46,6 @@
     </environment>
 
     @RenderSection("Scripts", required: false)
+
 </body>
 </html>
