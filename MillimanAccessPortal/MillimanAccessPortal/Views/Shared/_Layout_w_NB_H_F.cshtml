@@ -1,0 +1,13 @@
+﻿@{
+    Layout = "_Layout";
+}
+
+@Html.Partial("_Header")
+
+@await Html.PartialAsync("_Navbar")
+
+<div id="content-wrapper" class="navbar-offset header-offset container-fluid">
+    @RenderBody()
+</div>
+
+@Html.Partial("_Footer")
