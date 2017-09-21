@@ -28,13 +28,14 @@ namespace MillimanAccessPortal.Controllers
             ServiceProvider = ServiceProviderArg;
         }
 
-    // GET: ClientAdmin
-    public IActionResult Index()
+        // GET: ClientAdmin
+        public IActionResult Index()
         {
             List<Client> AuthorizedClients = new StandardQueries(ServiceProvider).GetListOfClientsUserIsAuthorizedToManage(UserManager.GetUserName(HttpContext.User));
             return View(AuthorizedClients);
         }
 
+        // TODO Do we need this at all?  Maybe combine with Edit
         // GET: ClientAdmin/Details/5
         public async Task<IActionResult> Details(long? id)
         {
@@ -55,15 +56,17 @@ namespace MillimanAccessPortal.Controllers
         }
 
         // GET: ClientAdmin/Create
-        public IActionResult Create()
+        // Id argument is the intended parent client id if any
+        public IActionResult Create(int? Id = null)
         {
             List<Client> AuthorizedClients = new StandardQueries(ServiceProvider).GetListOfClientsUserIsAuthorizedToManage(UserManager.GetUserName(HttpContext.User));
-            // Use this one.  Filter out clients that current user is not authorized to manage
-            //IQueryable<Client> FilteredCandidateParents = _context.Client.Where(c => /*user authorized to manage c*/);
-            //IQueryable<Client> FilteredCandidateParents = DbContext.Client.Where(c => c.Id == 1/*user authorized to manage c*/);
-            ViewData["ParentClientId"] = new SelectList(AuthorizedClients, "Id", "Name")
-                                                            .OrderBy(c => c.Text)
-                                                            .Prepend(new SelectListItem {Value = "", Text = "None" });  // for new root client
+
+            // Choose the requested parent client, but only if it is authorized
+            SelectList ParentSelectList = AuthorizedClients.Any(c => c.Id == Id) ?
+                new SelectList(AuthorizedClients, "Id", "Name", Id) : 
+                new SelectList(AuthorizedClients, "Id", "Name");
+
+            ViewData["ParentClientId"] = ParentSelectList.OrderBy(c => c.Text).Prepend(new SelectListItem { Value = "", Text = "None" });  // for new root client;
             return View();
         }
 
@@ -72,7 +75,7 @@ namespace MillimanAccessPortal.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,AcceptedEmailDomainList,ParentClientId")] Client client)
+        public async Task<IActionResult> Create([Bind("Name,AcceptedEmailDomainList,ParentClientId")] Client client)
         {
             if (ModelState.IsValid)
             {
@@ -80,8 +83,8 @@ namespace MillimanAccessPortal.Controllers
                 await DbContext.SaveChangesAsync();
                 return RedirectToAction("Index");
             }
-            ViewData["ParentClientId"] = new SelectList(DbContext.Client, "Id", "Name", client.ParentClientId);
-            return View(client);
+
+            return Create();  // Go back to the empty Create form
         }
 
         // GET: ClientAdmin/Edit/5
@@ -140,6 +143,7 @@ namespace MillimanAccessPortal.Controllers
         // GET: ClientAdmin/Delete/5
         public async Task<IActionResult> Delete(long? id)
         {
+            // TODO need a bunch of code to undo everything that links to the client and effusive validation checks too.  
             if (id == null)
             {
                 return NotFound();

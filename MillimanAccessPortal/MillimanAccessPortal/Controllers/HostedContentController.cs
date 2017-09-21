@@ -80,7 +80,7 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 // Get the requested (by id) ContentItemUserGroup object
-                ContentItemUserGroup AuthorizedUserGroup = new StandardQueries(ServiceProvider).GetUserGroupIfAuthorizedToAllRoles(UserManager.GetUserName(HttpContext.User), Id, new string[]{"Content User"});
+                ContentItemUserGroup AuthorizedUserGroup = new StandardQueries(ServiceProvider).GetUserGroupIfAuthorizedToRole(UserManager.GetUserName(HttpContext.User), Id, RoleEnum.ContentUser);
 
                 if (AuthorizedUserGroup == null)
                 {

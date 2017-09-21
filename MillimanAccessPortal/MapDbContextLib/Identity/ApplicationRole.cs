@@ -28,7 +28,14 @@ namespace MapDbContextLib.Identity
 
     public class ApplicationRole : IdentityRole<long>
     {
-        public static Dictionary<RoleEnum,string> LiveRoles = new Dictionary<RoleEnum, string>();
+        public readonly static Dictionary<RoleEnum,string> MapRoles = new Dictionary<RoleEnum, string>
+            {
+                {RoleEnum.SuperUser, "Super User"},
+                {RoleEnum.ClientAdministrator, "Client Administrator"},
+                {RoleEnum.UserManager, "User Manager"},
+                {RoleEnum.ContentPublisher, "Content Publisher"},
+                {RoleEnum.ContentUser, "Content User"},
+            };
 
         /// <summary>
         /// Used for initialization to ensure explicit assignment of role names to enumeration values
@@ -39,7 +46,7 @@ namespace MapDbContextLib.Identity
 
         public RoleEnum RoleEnum { get; set; }
 
-        #region Role definitions and management
+        #region Database initialization and validation
         /// <summary>
         /// Populate the Identity database with the roles in NamedRoles. This should likely only be called from Startup.cs
         /// </summary>
@@ -47,23 +54,12 @@ namespace MapDbContextLib.Identity
         /// <returns></returns>
         internal static void SeedRoles(IServiceProvider serviceProvider)
         {
-            // The ApplicationRole
-            // This construct enforces that the numeric and string values are consistently paired during db initialization. 
-            Dictionary<RoleEnum, string> RoleNameDict = new Dictionary<RoleEnum, string>
-            {
-                {RoleEnum.SuperUser, "Super User"},
-                {RoleEnum.ClientAdministrator, "Client Administrator"},
-                {RoleEnum.UserManager, "User Manager"},
-                {RoleEnum.ContentPublisher, "Content Publisher"},
-                {RoleEnum.ContentUser, "Content User"},
-            };
-
             using (IServiceScope serviceScope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
                 var roleManager = serviceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
                 using (ApplicationDbContext dbContext = serviceScope.ServiceProvider.GetService<ApplicationDbContext>())
                 {
-                    foreach (KeyValuePair<RoleEnum, string> Role in RoleNameDict)
+                    foreach (KeyValuePair<RoleEnum, string> Role in MapRoles)
                     {
                         ApplicationRole RoleFromDb = roleManager.FindByNameAsync(Role.Value).Result;
                         if (RoleFromDb == null)
@@ -77,13 +73,15 @@ namespace MapDbContextLib.Identity
                         }
                     }
 
-                    foreach (ApplicationRole R in dbContext.ApplicationRole.OrderBy(r => r.Id))
+                    // Read back all role records from persistence
+                    Dictionary<RoleEnum, string> FoundRoleNames = new Dictionary<RoleEnum, string>();
+                    foreach (ApplicationRole R in dbContext.ApplicationRole)
                     {
-                        LiveRoles.Add(R.RoleEnum, R.Name);
+                        FoundRoleNames.Add(R.RoleEnum, R.Name);
                     }
 
-                    // Make sure the database table contains exactly the expected records
-                    if (LiveRoles.Except(RoleNameDict).Count() > 0)
+                    // Make sure the database table contains exactly the expected records and no more
+                    if (!MapRoles.OrderBy(mr=>mr.Key).SequenceEqual(FoundRoleNames.OrderBy(fr => fr.Key)))
                     {
                         throw new Exception("Failed to correctly initialize Roles in database.");
                     }

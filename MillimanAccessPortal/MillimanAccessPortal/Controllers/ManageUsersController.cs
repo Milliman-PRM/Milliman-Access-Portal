@@ -41,7 +41,7 @@ namespace MillimanAccessPortal.Controllers
         {
             ApplicationUser user = await _userManager.FindByIdAsync(id);
 
-            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(user, ApplicationRole.LiveRoles[RoleEnum.SuperUser]);
+            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(user, ApplicationRole.MapRoles[RoleEnum.SuperUser]);
             return View(user);
         }
 
@@ -111,7 +111,7 @@ namespace MillimanAccessPortal.Controllers
         {
             ApplicationUser user = await _userManager.FindByIdAsync(id);
 
-            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(user, ApplicationRole.LiveRoles[RoleEnum.SuperUser]);
+            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(user, ApplicationRole.MapRoles[RoleEnum.SuperUser]);
             return View(user);
         }
 
@@ -135,13 +135,13 @@ namespace MillimanAccessPortal.Controllers
                 // The checkbox returns "true,false" or "false,true" if you change the value. The first one is the new value, so we need to grab it.
                 bool IsSuperUser = Convert.ToBoolean(collection["IsSystemAdmin"].ToString().Split(',')[0]);
                 
-                if (IsSuperUser && !(await _userManager.IsInRoleAsync(user, ApplicationRole.LiveRoles[RoleEnum.SuperUser])))
+                if (IsSuperUser && !(await _userManager.IsInRoleAsync(user, ApplicationRole.MapRoles[RoleEnum.SuperUser])))
                 {
-                    await _userManager.AddToRoleAsync(user, ApplicationRole.LiveRoles[RoleEnum.SuperUser]);
+                    await _userManager.AddToRoleAsync(user, ApplicationRole.MapRoles[RoleEnum.SuperUser]);
                 }
-                else if (!IsSuperUser && (await _userManager.IsInRoleAsync(user, ApplicationRole.LiveRoles[RoleEnum.SuperUser])))
+                else if (!IsSuperUser && (await _userManager.IsInRoleAsync(user, ApplicationRole.MapRoles[RoleEnum.SuperUser])))
                 {
-                    await _userManager.RemoveFromRoleAsync(user, ApplicationRole.LiveRoles[RoleEnum.SuperUser]);
+                    await _userManager.RemoveFromRoleAsync(user, ApplicationRole.MapRoles[RoleEnum.SuperUser]);
                 }
 
                 return RedirectToAction("Index");
