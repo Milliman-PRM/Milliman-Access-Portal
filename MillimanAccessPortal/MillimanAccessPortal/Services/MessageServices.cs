@@ -35,31 +35,6 @@ namespace MillimanAccessPortal.Services
 
         public Task SendEmailAsync(string email, string subject, string message)
         {
-            try
-            {
-                // Configure message
-                var MailMessage = new MimeMessage();
-                MailMessage.From.Add(new MailboxAddress(_smtpConfig.SmtpFromName, _smtpConfig.SmtpFromAddress));
-                MailMessage.To.Add(new MailboxAddress(email));
-                MailMessage.Subject = subject;
-                MailMessage.Body = new TextPart("plain")
-                {
-                    Text = message
-                };
-
-                // Send mail
-                using (var client = new SmtpClient())
-                {
-                    client.Connect(_smtpConfig.SmtpServer, _smtpConfig.SmtpPort, MailKit.Security.SecureSocketOptions.None);
-                    client.Send(MailMessage);
-                    client.Disconnect(true);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(2, ex, "Failed to send mail");
-            }
-            
             return Task.FromResult(0);
         }
 
