@@ -7,7 +7,10 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -87,6 +90,33 @@ namespace MillimanAccessPortal.Controllers
             return Create();  // Go back to the empty Create form
         }
 
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignUser(long? id, List<long> AssignedUsers)
+        {
+            Client ThisClient = await DbContext.Client.SingleOrDefaultAsync(m => m.Id == id);
+            Claim ThisClientMembershipClaim = new Claim("ClientMembership", ThisClient.Name);
+            IList<ApplicationUser> AlreadyAssignedUsers = UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim).Result;
+
+            foreach (var AssignedUserId in AssignedUsers)
+            {
+                ApplicationUser ThisUser = DbContext.ApplicationUser.SingleOrDefault(u => u.Id == AssignedUserId);
+
+                if (!AlreadyAssignedUsers.Select(u=>u.Id).Contains(AssignedUserId))
+                {
+                    // Create a claim for this user and this client
+                    UserManager.AddClaimAsync(ThisUser, ThisClientMembershipClaim).Wait();
+                }
+            }
+            if (ModelState.IsValid)
+            {
+                //UserAuthorizationToClient NewRoleAssignment
+            }
+
+            return RedirectToAction("Edit", new { Id = id });
+        }
+
         // GET: ClientAdmin/Edit/5
         public async Task<IActionResult> Edit(long? id)
         {
@@ -101,6 +131,12 @@ namespace MillimanAccessPortal.Controllers
                 return NotFound();
             }
             ViewData["ParentClientId"] = new SelectList(DbContext.Client, "Id", "Name", client.ParentClientId);
+
+            string ThisClientName = DbContext.Client.Where(m => m.Id == id).Select(c=>c.Name).SingleOrDefault();
+            Claim ThisClientMembershipClaim = new Claim("ClientMembership", ThisClientName);
+            List<long> AlreadyAssignedUserIds = UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim).Result.Select(u=>u.Id).ToList();
+
+            ViewData["AllUsers"] = new MultiSelectList(DbContext.ApplicationUser, "Id", "UserName", AlreadyAssignedUserIds).OrderBy(c => c.Text).Prepend(new SelectListItem { Value = "", Text = "None" }); ;
             return View(client);
         }
 
