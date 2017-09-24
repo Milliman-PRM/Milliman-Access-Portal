@@ -12,3 +12,8 @@ $("#modal-background").click(function (e) {
 function contactFormToggle() {
     $('#modal-background').toggleClass('hide show');
 }
+
+function resetContactForm() {
+    $('#topic-select').val("");
+    $('#body-text').val("");
+}
