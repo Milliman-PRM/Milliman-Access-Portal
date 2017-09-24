@@ -25,7 +25,6 @@ body {
     background-color: $background;
     box-sizing: border-box;
     font-family: 'Noto Sans', sans-serif;
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
     height: 100%;
@@ -44,11 +43,13 @@ body {
     }
 }
 
-input {
+input,
+textarea,
+select {
     height: 40px;
     width: 350px;
     padding: 5px 10px;
-    border: none;
+    border: solid 2px rgba(0, 0, 0, 0);
     border-radius: 5px;
     margin-bottom: 10px;
     transition: border 0.2s;
@@ -58,6 +59,11 @@ input {
     }
 }
 
+textarea {
+    height: auto;
+    resize: none;
+}
+
 .screen-center {
     position: absolute;
     top: 50%;
@@ -65,7 +71,8 @@ input {
     transform: translate(-50%, -70%);
 }
 
-#primary-button {
+#primary-button,
+#form-submit {
     height: 50px;
     width: 90px;
     background-color: $login-button-color;
@@ -207,7 +214,7 @@ Contact Form Styling
     left: 50%;
     transform: translate(-50%, -50%);
     background-color: $form-background;
-    border: 2px solid $form-border;
+    /*border: 2px solid $form-border;*/
     border-radius: 5px;
     padding: 25px;
     z-index: 100;

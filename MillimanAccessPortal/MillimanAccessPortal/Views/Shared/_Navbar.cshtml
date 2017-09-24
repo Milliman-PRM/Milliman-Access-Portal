@@ -57,16 +57,23 @@
         <h2 class="contact-title">Contact Support</h2>
         <i id="contact-close" class="fa fa-close fa-fw fa-2x form-close" aria-hidden="true"></i>
         <form action="/" method="post">
-            <label for="topic-select"> Topic
+            <div>
                 <select id="topic-select" required>
                     <option value="">Please Select a Topic</option>
                     <option value="Account Inquiry">Account Inquiry</option>
                     <option value="Bug">Report a Bug</option>
                     <option value="Other">Other</option>
                 </select>
-            </label>
+            </div>
+            <div>
+                <textarea id="body-text" placeholder="Message" name="message" rows="10" required></textarea>
+            </div>
+            <div class="text-right">
+                <button type="submit" id="form-submit" class="btn btn-primary">Submit</button>
+            </div>
+
         </form>
     </div>
-    
+
 
 </div>

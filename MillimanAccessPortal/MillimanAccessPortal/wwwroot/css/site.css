@@ -9,7 +9,6 @@ body {
   background-color: #DEDEE3;
   box-sizing: border-box;
   font-family: 'Noto Sans', sans-serif;
-  box-sizing: border-box;
   margin: 0;
   padding: 0;
   height: 100%; }
@@ -22,16 +21,24 @@ body {
   #content-wrapper.header-offset {
     padding-top: 50px; }
 
-input {
+input,
+textarea,
+select {
   height: 40px;
   width: 350px;
   padding: 5px 10px;
-  border: none;
+  border: solid 2px transparent;
   border-radius: 5px;
   margin-bottom: 10px;
   transition: border 0.2s; }
-  input:focus {
+  input:focus,
+  textarea:focus,
+  select:focus {
     border: solid 2px #0091ff; }
+
+textarea {
+  height: auto;
+  resize: none; }
 
 .screen-center {
   position: absolute;
@@ -39,13 +46,15 @@ input {
   left: 50%;
   transform: translate(-50%, -70%); }
 
-#primary-button {
+#primary-button,
+#form-submit {
   height: 50px;
   width: 90px;
   background-color: #0091ff;
   margin: 0 20px;
   font-weight: bold; }
-  #primary-button:hover {
+  #primary-button:hover,
+  #form-submit:hover {
     background-color: #0080E2; }
 
 /*****
@@ -140,7 +149,7 @@ Contact Form Styling
   left: 50%;
   transform: translate(-50%, -50%);
   background-color: #DEDEE3;
-  border: 2px solid #424242;
+  /*border: 2px solid $form-border;*/
   border-radius: 5px;
   padding: 25px;
   z-index: 100; }
