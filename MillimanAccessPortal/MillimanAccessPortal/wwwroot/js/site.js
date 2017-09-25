@@ -1,4 +1,23 @@
-﻿// Contact Form
+﻿// Configure toastr options
+toastr.options = {
+    "closeButton": false,
+    "debug": false,
+    "newestOnTop": false,
+    "progressBar": false,
+    "positionClass": "toast-top-right",
+    "preventDuplicates": false,
+    "onclick": null,
+    "showDuration": "300",
+    "hideDuration": "1000",
+    "timeOut": "5000",
+    "extendedTimeOut": "1000",
+    "showEasing": "swing",
+    "hideEasing": "swing",
+    "showMethod": "show",
+    "hideMethod": "hide"
+}
+
+// Contact Form
 $("#contact-button").click(function () {
     contactFormToggle();
 })
