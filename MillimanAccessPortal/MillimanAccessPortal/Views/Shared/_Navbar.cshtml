@@ -53,10 +53,10 @@
 
 <div id="modal-background" class="hide">
 
-    <div id="contact-form">
+    <div id="contact-form-modal">
         <h2 class="contact-title">Contact Support</h2>
         <i id="contact-close" class="fa fa-close fa-fw fa-2x form-close" aria-hidden="true"></i>
-        <form action="/" method="post">
+        <form id="contact-form" asp-controller="Email" asp-action="ContactFormSubmission" method="post">
             <div>
                 <select id="topic-select" required>
                     <option value="">Please Select a Topic</option>
