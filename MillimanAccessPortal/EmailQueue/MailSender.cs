@@ -9,9 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
-using MailKit;
-using MimeKit;
-using MillimanAccessPortal.Services;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Logging;
 
@@ -24,7 +21,7 @@ namespace EmailQueue
         private static int InstanceCount = 0;
         private static object ThreadSafetyLock = new object();
         private static SmtpConfig smtpConfig = null;
-        private ILogger _logger { get; }
+        private static ILogger _logger { get; set; }
 
         public static void ConfigureMailSender(SmtpConfig config)
         {
@@ -32,6 +29,24 @@ namespace EmailQueue
             {
                 smtpConfig = config;
             }
+        }
+
+        public MailSender(ILogger loggerArg)
+        {
+            if (smtpConfig == null)
+            {
+                throw new Exception("Attempt to instantiate MailSender before initializing!");
+            }
+
+            InstanceCount++;
+            _logger = loggerArg;
+        }
+
+        public static Task QueueMessage(MailItem mailItem)
+        {
+            Messages.Enqueue(mailItem);
+
+            return Task.FromResult(0);
         }
 
         ~MailSender()
@@ -56,12 +71,38 @@ namespace EmailQueue
         {
             if (WorkerTask != null && WorkerTask.Status == TaskStatus.Running)
             {
+                WorkerTask = Task.Run(() => ProcessQueueEvents());
                 return WorkerTask.Wait(MaxWaitMs);
             }
             return true;
         }
 
-        public Task SendEmailAsync(MimeMessage message)
+        /// <summary>
+        /// Process and send messages in the queue
+        /// </summary>
+        /// <param name="Arg"></param>
+        private static void ProcessQueueEvents()
+        {
+            while (InstanceCount > 0)
+            {
+                if (Messages.Count > 0)
+                {
+                    MailItem nextMessage;
+                    while (Messages.TryDequeue(out nextMessage))
+                    {
+                        SendEmailAsync(nextMessage).Wait();
+                    }
+                }
+                Thread.Sleep(20);
+            }
+        }
+
+        /// <summary>
+        /// Send mail
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        private static Task SendEmailAsync(MailItem message)
         {
             try
             {
@@ -69,12 +110,17 @@ namespace EmailQueue
                 using (var client = new SmtpClient())
                 {
                     client.Connect(smtpConfig.SmtpServer, smtpConfig.SmtpPort, MailKit.Security.SecureSocketOptions.None);
-                    client.Send(message);
+                    client.Send(message.message);
                     client.Disconnect(true);
                 }
             }
             catch (Exception ex)
             {
+                // If sending fails, we need to re-queue the message with an increased attempt count.
+                // TODO: Add configurable maximum number of attempts to SmtpConfig
+                message.sendAttempts++;
+                Messages.Enqueue(message);
+
                 _logger.LogWarning(2, ex, "Failed to send mail");
             }
 

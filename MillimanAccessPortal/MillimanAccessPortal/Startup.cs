@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using QlikviewLib;
 using AuditLogLib;
+using EmailQueue;
 
 namespace MillimanAccessPortal
 {

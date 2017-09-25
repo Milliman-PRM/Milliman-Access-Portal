@@ -11,6 +11,7 @@ using MimeKit;
 using MailKit.Net.Smtp;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using EmailQueue;
 using Microsoft.Extensions.Logging;
 
 namespace MillimanAccessPortal.Services
@@ -33,9 +34,59 @@ namespace MillimanAccessPortal.Services
             _logger = loggerFactory.CreateLogger<MessageServices>();
         }
 
+        /// <summary>
+        /// A more in-depth message sender, which allows more configuration than the default (below)
+        /// </summary>
+        /// <param name="recipients"></param>
+        /// <param name="subject"></param>
+        /// <param name="message"></param>
+        /// <param name="senderAddress"></param>
+        /// <param name="senderName"></param>
+        /// <returns></returns>
+        public Task SendMailAsync(List<string> recipients, string subject, string message, string senderAddress = null, string senderName = null)
+        {
+            if (String.IsNullOrEmpty(senderAddress))
+            {
+                senderAddress = _smtpConfig.SmtpFromAddress;
+            }
+            if (String.IsNullOrEmpty(senderName))
+            {
+                senderName = _smtpConfig.SmtpFromName;
+            }
+
+            Task queueResult = MailSender.QueueMessage(new MailItem(
+                    subject,
+                    message,
+                    recipients,
+                    senderAddress,
+                    senderName
+                    )
+                );
+
+            return Task.FromResult(queueResult);
+        }
+
+        /// <summary>
+        /// This is the default message call, which is preserved primarily to retain compatibility with modules expecting it to exist.
+        /// 
+        /// This also provides a simple way to send a message to a single recipient from the system default sender.
+        /// </summary>
+        /// <param name="email"></param>
+        /// <param name="subject"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
         public Task SendEmailAsync(string email, string subject, string message)
         {
-            return Task.FromResult(0);
+
+            string senderAddress = _smtpConfig.SmtpFromAddress;
+            string senderName = _smtpConfig.SmtpFromName;
+            List<string> recipient = new List<string>
+            {
+                email
+            };
+
+            Task queueResult = SendMailAsync(recipient, subject, message, senderAddress, senderName);
+            return Task.FromResult(queueResult);
         }
 
         public Task SendSmsAsync(string number, string message)

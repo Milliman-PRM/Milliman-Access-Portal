@@ -5,20 +5,31 @@ using MimeKit;
 
 namespace EmailQueue
 {
-    class MailItem
+    public class MailItem
     {
         public MimeMessage message { get; }
         public int sendAttempts { get; set; } = 0;
 
-        public MailItem(string subject, string messageBody, string recipientAddress)
+        public MailItem(string subject, string messageBody, List<string> recipients, string senderAddress, string senderName)
         {
-            message = new MimeMessage();
-            message.To.Add(new MailboxAddress(recipientAddress));
-            message.Subject = subject;
-            message.Body = new TextPart("plain")
+            // Configure required fields for message
+            
+            MimeEntity encodedBody = new TextPart("plain")
             {
                 Text = messageBody
             };
+
+            MailboxAddress sender = new MailboxAddress(senderName, senderAddress);
+            List<InternetAddress> senderList = new List<InternetAddress>();
+            senderList.Add(sender);
+
+            List<InternetAddress> recipientList = new List<InternetAddress>();
+            foreach (string recipient in recipients)
+            {
+                recipientList.Add(new MailboxAddress(recipient));
+            }
+
+            message = new MimeMessage(senderList, recipientList, subject, encodedBody);
         }
     }
 }
