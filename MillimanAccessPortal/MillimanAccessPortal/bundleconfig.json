@@ -6,9 +6,9 @@
     ]
   },
   {
-    "outputFileName": "wwwroot/js/site.min.js",
+    "outputFileName": "wwwroot/js/contact-form.min.js",
     "inputFiles": [
-      "wwwroot/js/site.js"
+      "wwwroot/js/contact-form.js"
     ],
     "minify": {
       "enabled": true,
