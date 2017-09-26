@@ -45,7 +45,7 @@ namespace MillimanAccessPortal.Services
         /// <param name="senderAddress"></param>
         /// <param name="senderName"></param>
         /// <returns></returns>
-        public Task SendMailAsync(List<string> recipients, string subject, string message, string senderAddress = null, string senderName = null)
+        public Task SendMailAsync(IEnumerable<string> recipients, string subject, string message, string senderAddress = null, string senderName = null)
         {
             if (String.IsNullOrEmpty(senderAddress))
             {
