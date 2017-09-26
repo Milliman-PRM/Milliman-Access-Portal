@@ -35,7 +35,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SendMail (IEnumerable<string> recipients, string subject, string message, string senderAddress=null, string senderName=null)
+        public IActionResult SendEmail (IEnumerable<string> recipients, string subject, string message, string senderAddress=null, string senderName=null)
         {
 
             Task sendResult = _mailSender.SendEmailAsync(recipients, subject, message, senderAddress, senderName);
@@ -61,7 +61,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SendMail (string recipient, string subject, string message)
+        public IActionResult SendEmail (string recipient, string subject, string message)
         {
             Task sendResult = _mailSender.SendEmailAsync(recipient, subject, message);
 
