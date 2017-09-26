@@ -23,6 +23,7 @@ namespace MillimanAccessPortal.Services
     {
         private SmtpConfig _smtpConfig { get; }
         private ILogger _logger { get; }
+        private MailSender _sender { get; set; }
 
         /// <summary>
         /// Constructor. Consumes injected SMTP configuration from application.
@@ -32,6 +33,7 @@ namespace MillimanAccessPortal.Services
         {
             _smtpConfig = smtpConfigArg.Value;
             _logger = loggerFactory.CreateLogger<MessageServices>();
+            _sender = new MailSender(_logger);
         }
 
         /// <summary>
@@ -54,7 +56,7 @@ namespace MillimanAccessPortal.Services
                 senderName = _smtpConfig.SmtpFromName;
             }
 
-            Task queueResult = MailSender.QueueMessage(new MailItem(
+            Task queueResult = _sender.QueueMessage(new MailItem(
                     subject,
                     message,
                     recipients,

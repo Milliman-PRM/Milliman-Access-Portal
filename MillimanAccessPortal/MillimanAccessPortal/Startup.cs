@@ -96,6 +96,7 @@ namespace MillimanAccessPortal
             services.Configure<QlikviewConfig>(Configuration);
             services.Configure<AuditLoggerConfiguration>(Configuration);
             services.Configure<SmtpConfig>(Configuration);
+            services.Configure<MailSender>(Configuration);
 
             services.AddMemoryCache();
             services.AddSession();
@@ -153,10 +154,19 @@ namespace MillimanAccessPortal
                     template: "{controller=HostedContent}/{action=Index}/{id?}");
             });
 
+            MailSender.ConfigureMailSender(new SmtpConfig
+            {
+                SmtpServer = Configuration.GetValue<string>("SmtpServer"),
+                SmtpPort = Configuration.GetValue<int>("SmtpPort"),
+                SmtpFromAddress = Configuration.GetValue<string>("SmtpFromAddress"),
+                SmtpFromName = Configuration.GetValue<string>("SmtpFromName")
+            });
+
             AuditLogger.ConfigureAuditLogger(new AuditLoggerConfiguration
             {
                 AuditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString"),
             });
+            
         }
     }
 }

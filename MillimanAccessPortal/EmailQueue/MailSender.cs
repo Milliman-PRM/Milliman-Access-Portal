@@ -20,7 +20,7 @@ namespace EmailQueue
         private static Task WorkerTask = null;
         private static int InstanceCount = 0;
         private static object ThreadSafetyLock = new object();
-        private static SmtpConfig smtpConfig = null;
+        public static SmtpConfig smtpConfig = null;
         private static ILogger _logger { get; set; }
 
         public static void ConfigureMailSender(SmtpConfig config)
@@ -40,9 +40,18 @@ namespace EmailQueue
 
             InstanceCount++;
             _logger = loggerArg;
+            
+            if (WorkerTask == null || (WorkerTask.Status != TaskStatus.Running && WorkerTask.Status != TaskStatus.WaitingToRun))
+            {
+                WorkerTask = Task.Run(() => ProcessQueueEvents());
+                while (WorkerTask.Status != TaskStatus.Running)
+                {
+                    Thread.Sleep(1);
+                }
+            }
         }
 
-        public static Task QueueMessage(MailItem mailItem)
+        public Task QueueMessage(MailItem mailItem)
         {
             Messages.Enqueue(mailItem);
 
