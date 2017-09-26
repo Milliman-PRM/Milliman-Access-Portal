@@ -10,7 +10,7 @@ namespace EmailQueue
         public MimeMessage message { get; }
         public int sendAttempts { get; set; } = 0;
 
-        public MailItem(string subject, string messageBody, List<string> recipients, string senderAddress, string senderName)
+        public MailItem(string subject, string messageBody, IEnumerable<string> recipients, string senderAddress, string senderName)
         {
             // Configure required fields for message
             
