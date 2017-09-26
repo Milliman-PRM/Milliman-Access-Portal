@@ -110,7 +110,6 @@ namespace MillimanAccessPortal
             });
 
             // Add application services.
-            services.AddTransient<IEmailSender, MessageServices>();
             services.AddTransient<ISmsSender, MessageServices>();
             services.AddTransient<MessageServices>();
         }
