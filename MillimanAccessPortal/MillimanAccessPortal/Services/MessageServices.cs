@@ -7,8 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MimeKit;
-using MailKit.Net.Smtp;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using EmailQueue;
