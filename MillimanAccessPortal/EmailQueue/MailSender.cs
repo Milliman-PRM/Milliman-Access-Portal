@@ -51,11 +51,29 @@ namespace EmailQueue
             }
         }
 
-        public Task QueueMessage(MailItem mailItem)
+        public bool QueueMessage(IEnumerable<string> recipients, string subject, string message, string senderAddress, string senderName)
         {
-            Messages.Enqueue(mailItem);
+            try
+            {
+                if (String.IsNullOrEmpty(senderAddress))
+                {
+                    senderAddress = smtpConfig.SmtpFromAddress;
+                }
+                if (String.IsNullOrEmpty(senderName))
+                {
+                    senderName = smtpConfig.SmtpFromName;
+                }
 
-            return Task.FromResult(0);
+                MailItem mailItem = new MailItem( subject, message, recipients, senderAddress, senderName);
+
+                Messages.Enqueue(mailItem);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
         }
 
         ~MailSender()
@@ -66,7 +84,6 @@ namespace EmailQueue
                 if (InstanceCount == 0 && WaitForWorkerThreadEnd(1000))  // Not the best stategy
                 {
                     WorkerTask = null;
-                    smtpConfig = null;
                 }
             }
         }
@@ -99,7 +116,7 @@ namespace EmailQueue
                     MailItem nextMessage;
                     while (Messages.TryDequeue(out nextMessage))
                     {
-                        SendEmailAsync(nextMessage).Wait();
+                        SendEmail(nextMessage);
                     }
                 }
                 Thread.Sleep(20);
@@ -111,8 +128,10 @@ namespace EmailQueue
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        private static Task SendEmailAsync(MailItem message)
+        private static bool SendEmail(MailItem message)
         {
+            message.sendAttempts++;
+
             try
             {
                 // Send mail
@@ -125,15 +144,21 @@ namespace EmailQueue
             }
             catch (Exception ex)
             {
-                // If sending fails, we need to re-queue the message with an increased attempt count.
-                // TODO: Add configurable maximum number of attempts to SmtpConfig
-                message.sendAttempts++;
+
+                if (message.sendAttempts > smtpConfig.MaximumSendAttempts)
+                {
+                    // TODO what is the semantics of 2 here?
+                    _logger.LogError(2, ex, $"Failed to send email on attempt #{message.sendAttempts}, limit exceed, message discarded.");
+                    return false;
+                }
+
+                _logger.LogWarning(2, ex, $"Failed to send email on attempt #{message.sendAttempts}");
                 Messages.Enqueue(message);
 
-                _logger.LogWarning(2, ex, "Failed to send mail");
+                // allow return true; while max retry limit is not exceeded ?
             }
 
-            return Task.FromResult(0);
+            return true;
         }
     }
 }

@@ -19,7 +19,7 @@ namespace MillimanAccessPortal.Services
     // This class is used by the application to send Email and SMS
     // when you turn on two-factor authentication in ASP.NET Identity.
     // For more details see this link https://go.microsoft.com/fwlink/?LinkID=532713
-    public class MessageServices : IEmailSender, ISmsSender
+    public class MessageServices : ISmsSender
     {
         private SmtpConfig _smtpConfig { get; }
         private ILogger _logger { get; }
@@ -37,58 +37,31 @@ namespace MillimanAccessPortal.Services
         }
 
         /// <summary>
-        /// A more in-depth message sender, which allows more configuration than the default (below)
+        /// A pass through to the same method with signature accepting a collection of message recipients
+        /// </summary>
+        /// <param name="recipient"></param>
+        /// <param name="subject"></param>
+        /// <param name="message"></param>
+        /// <param name="senderAddress">Optional</param>
+        /// <param name="senderName">Optional</param>
+        /// <returns></returns>
+        public bool QueueEmail(string recipient, string subject, string message, string senderAddress = null, string senderName = null)
+        {
+            return QueueEmail(new string[] { recipient }, subject, message, senderAddress, senderName);
+        }
+
+        /// <summary>
+        /// Queues an email message for sending
         /// </summary>
         /// <param name="recipients"></param>
         /// <param name="subject"></param>
         /// <param name="message"></param>
-        /// <param name="senderAddress"></param>
-        /// <param name="senderName"></param>
+        /// <param name="senderAddress">Optional</param>
+        /// <param name="senderName">Optional</param>
         /// <returns></returns>
-        public Task SendEmailAsync(IEnumerable<string> recipients, string subject, string message, string senderAddress = null, string senderName = null)
+        public bool QueueEmail(IEnumerable<string> recipients, string subject, string message, string senderAddress = null, string senderName = null)
         {
-            if (String.IsNullOrEmpty(senderAddress))
-            {
-                senderAddress = _smtpConfig.SmtpFromAddress;
-            }
-            if (String.IsNullOrEmpty(senderName))
-            {
-                senderName = _smtpConfig.SmtpFromName;
-            }
-
-            Task queueResult = _sender.QueueMessage(new MailItem(
-                    subject,
-                    message,
-                    recipients,
-                    senderAddress,
-                    senderName
-                    )
-                );
-
-            return Task.FromResult(queueResult);
-        }
-
-        /// <summary>
-        /// This is the default message call, which is preserved primarily to retain compatibility with modules expecting it to exist.
-        /// 
-        /// This also provides a simple way to send a message to a single recipient from the system default sender.
-        /// </summary>
-        /// <param name="email"></param>
-        /// <param name="subject"></param>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public Task SendEmailAsync(string email, string subject, string message)
-        {
-
-            string senderAddress = _smtpConfig.SmtpFromAddress;
-            string senderName = _smtpConfig.SmtpFromName;
-            List<string> recipient = new List<string>
-            {
-                email
-            };
-
-            Task queueResult = SendEmailAsync(recipient, subject, message, senderAddress, senderName);
-            return Task.FromResult(queueResult);
+            return _sender.QueueMessage(recipients, subject, message, senderAddress, senderName);
         }
 
         public Task SendSmsAsync(string number, string message)

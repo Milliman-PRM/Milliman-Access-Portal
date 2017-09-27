@@ -96,7 +96,6 @@ namespace MillimanAccessPortal
             services.Configure<QlikviewConfig>(Configuration);
             services.Configure<AuditLoggerConfiguration>(Configuration);
             services.Configure<SmtpConfig>(Configuration);
-            services.Configure<MailSender>(Configuration);
 
             services.AddMemoryCache();
             services.AddSession();

@@ -38,9 +38,9 @@ namespace MillimanAccessPortal.Controllers
         public IActionResult SendEmail (IEnumerable<string> recipients, string subject, string message, string senderAddress=null, string senderName=null)
         {
 
-            Task sendResult = _mailSender.SendEmailAsync(recipients, subject, message, senderAddress, senderName);
+            bool Result =_mailSender.QueueEmail(recipients, subject, message, senderAddress, senderName);
 
-            if (sendResult.IsCompleted)
+            if (Result)
             {
                 return Ok();
             }
@@ -63,9 +63,9 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult SendEmail (string recipient, string subject, string message)
         {
-            Task sendResult = _mailSender.SendEmailAsync(recipient, subject, message);
+            bool Result = _mailSender.QueueEmail(recipient, subject, message);
 
-            if (sendResult.IsCompleted)
+            if (Result)
             {
                 return Ok();
             }
