@@ -128,13 +128,13 @@ namespace MillimanAccessPortal.Controllers
         {
             if (id == null)
             {
-                return NotFound();
+                return RedirectToAction(nameof(ClientAdminController.Index));
             }
 
             var ThisClient = await DbContext.Client.SingleOrDefaultAsync(m => m.Id == id);
             if (ThisClient == null)
             {
-                return NotFound();
+                return RedirectToAction(nameof(ClientAdminController.Index));
             }
 
             Client NoParent = new Client { Id = -1, Name = "<None>", ParentClientId = null };
