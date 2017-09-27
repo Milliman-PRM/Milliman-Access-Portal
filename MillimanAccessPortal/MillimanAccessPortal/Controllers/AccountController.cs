@@ -96,7 +96,7 @@ namespace MillimanAccessPortal.Controllers
                 }
                 else
                 {
-                    AuditEvent LogObject = AuditEvent.New("Map Account Controller", "User login failed", null, model.Email);
+                    AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User login failed", null, model.Email);
                     AuditStore.Log(LogLevel.Warning, AuditEventId.LoginFailure, LogObject);
 
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");

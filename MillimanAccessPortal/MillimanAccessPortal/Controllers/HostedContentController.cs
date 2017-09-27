@@ -86,7 +86,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Unauthorized request", null, UserManager.GetUserName(HttpContext.User));
                     LogObject.EventDetailObject = new { GroupIdRequested = Id };
-                    AuditStore.Log(LogLevel.Warning, AuditEventId.LoginSuccess, LogObject);
+                    AuditStore.Log(LogLevel.Warning, AuditEventId.Unauthorized, LogObject);
 
                     TempData["Message"] = $"You are not authorized to view the requested content (#{Id})";
                     TempData["ReturnToController"] = "HostedContent";
