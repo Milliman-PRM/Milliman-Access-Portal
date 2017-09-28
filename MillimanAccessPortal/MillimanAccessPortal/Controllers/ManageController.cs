@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using MapDbContextLib.Identity;
 using MillimanAccessPortal.Models.ManageViewModels;
 using MillimanAccessPortal.Services;
+using EmailQueue;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -19,7 +20,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly string _externalCookieScheme;
-        private readonly IEmailSender _emailSender;
+        private readonly MailSender _emailSender;
         private readonly ISmsSender _smsSender;
         private readonly ILogger _logger;
 
@@ -27,7 +28,7 @@ namespace MillimanAccessPortal.Controllers
           UserManager<ApplicationUser> userManager,
           SignInManager<ApplicationUser> signInManager,
           IOptions<IdentityCookieOptions> identityCookieOptions,
-          IEmailSender emailSender,
+          MailSender emailSender,
           ISmsSender smsSender,
           ILoggerFactory loggerFactory)
         {

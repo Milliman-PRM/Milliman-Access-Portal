@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.8
+VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MillimanAccessPortal", "MillimanAccessPortal\MillimanAccessPortal.csproj", "{87FBC963-6A16-4399-9B50-BEDDD17AD69B}"
 EndProject
@@ -11,9 +11,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuditLogLib", "AuditLogLib\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuditLogLibTest", "AuditLogLibTest\AuditLogLibTest.csproj", "{0B3B4358-ED7F-4301-B3A7-6571A021C804}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapCommonLib", "MapCommonLib\MapCommonLib.csproj", "{0E2593ED-77F8-4122-81F8-AD0B98DBC3A2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapCommonLib", "MapCommonLib\MapCommonLib.csproj", "{0E2593ED-77F8-4122-81F8-AD0B98DBC3A2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QlikviewLib", "QlikviewLib\QlikviewLib.csproj", "{0940C7FB-2C9B-42A3-BFE5-5DF52A68BC59}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QlikviewLib", "QlikviewLib\QlikviewLib.csproj", "{0940C7FB-2C9B-42A3-BFE5-5DF52A68BC59}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmailQueue", "EmailQueue\EmailQueue.csproj", "{ED4DD9CE-1D7C-41AB-AF3A-C02A624ADCD8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{0940C7FB-2C9B-42A3-BFE5-5DF52A68BC59}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0940C7FB-2C9B-42A3-BFE5-5DF52A68BC59}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0940C7FB-2C9B-42A3-BFE5-5DF52A68BC59}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED4DD9CE-1D7C-41AB-AF3A-C02A624ADCD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED4DD9CE-1D7C-41AB-AF3A-C02A624ADCD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED4DD9CE-1D7C-41AB-AF3A-C02A624ADCD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED4DD9CE-1D7C-41AB-AF3A-C02A624ADCD8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
