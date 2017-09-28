@@ -19,7 +19,6 @@ namespace MillimanAccessPortal.Services
     // For more details see this link https://go.microsoft.com/fwlink/?LinkID=532713
     public class MessageServices : ISmsSender
     {
-        private SmtpConfig _smtpConfig { get; }
         private ILogger _logger { get; }
         private MailSender _sender { get; set; }
 
@@ -27,9 +26,8 @@ namespace MillimanAccessPortal.Services
         /// Constructor. Consumes injected SMTP configuration from application.
         /// </summary>
         /// <param name="smtpConfigArg"></param>
-        public MessageServices(IOptions<SmtpConfig> smtpConfigArg, ILoggerFactory loggerFactory)
+        public MessageServices(ILoggerFactory loggerFactory)
         {
-            _smtpConfig = smtpConfigArg.Value;
             _logger = loggerFactory.CreateLogger<MessageServices>();
             _sender = new MailSender(_logger);
         }
