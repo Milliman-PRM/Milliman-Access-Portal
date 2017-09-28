@@ -24,12 +24,11 @@ namespace MillimanAccessPortal.Services
         private MailSender _sender { get; set; }
 
         /// <summary>
-        /// Constructor. Consumes injected SMTP configuration from application.
+        /// Constructor. Consumes ILoggerFactory from application.
         /// </summary>
-        /// <param name="smtpConfigArg"></param>
-        public MessageServices(IOptions<SmtpConfig> smtpConfigArg, ILoggerFactory loggerFactory)
+        /// <param name="loggerFactory"></param>
+        public MessageServices(ILoggerFactory loggerFactory)
         {
-            _smtpConfig = smtpConfigArg.Value;
             _logger = loggerFactory.CreateLogger<MessageServices>();
             _sender = new MailSender(_logger);
         }
