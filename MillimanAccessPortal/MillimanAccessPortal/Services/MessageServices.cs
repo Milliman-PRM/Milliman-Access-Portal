@@ -19,7 +19,6 @@ namespace MillimanAccessPortal.Services
     // For more details see this link https://go.microsoft.com/fwlink/?LinkID=532713
     public class MessageServices : ISmsSender
     {
-        private SmtpConfig _smtpConfig { get; }
         private ILogger _logger { get; }
         private MailSender _sender { get; set; }
 
