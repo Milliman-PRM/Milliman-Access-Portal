@@ -17,7 +17,7 @@ namespace MillimanAccessPortal.Services
     // This class is used by the application to send Email and SMS
     // when you turn on two-factor authentication in ASP.NET Identity.
     // For more details see this link https://go.microsoft.com/fwlink/?LinkID=532713
-    public class MessageServices : ISmsSender
+    public class MessageQueueServices
     {
         private ILogger _logger { get; }
         private MailSender _sender { get; set; }
@@ -26,9 +26,9 @@ namespace MillimanAccessPortal.Services
         /// Constructor. Consumes ILoggerFactory from application.
         /// </summary>
         /// <param name="loggerFactory"></param>
-        public MessageServices(ILoggerFactory loggerFactory)
+        public MessageQueueServices(ILoggerFactory loggerFactory)
         {
-            _logger = loggerFactory.CreateLogger<MessageServices>();
+            _logger = loggerFactory.CreateLogger<MessageQueueServices>();
             _sender = new MailSender(_logger);
         }
 
@@ -60,10 +60,10 @@ namespace MillimanAccessPortal.Services
             return _sender.QueueMessage(recipients, subject, message, senderAddress, senderName);
         }
 
-        public Task SendSmsAsync(string number, string message)
+        public bool QueueSms(string number, string message)
         {
             // Plug in your SMS service here to send a text message.
-            return Task.FromResult(0);
+            return false;
         }
     }
 }

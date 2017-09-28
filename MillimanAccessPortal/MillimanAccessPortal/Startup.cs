@@ -109,8 +109,9 @@ namespace MillimanAccessPortal
             });
 
             // Add application services.
-            services.AddTransient<ISmsSender, MessageServices>();
-            services.AddTransient<MessageServices>();
+            services.AddTransient<MessageQueueServices>();
+            //services.AddTransient<IEmailSender, AuthMessageSender>();
+            //services.AddTransient<ISmsSender, AuthMessageSender>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

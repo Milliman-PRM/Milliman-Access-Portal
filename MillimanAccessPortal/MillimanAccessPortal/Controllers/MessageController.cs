@@ -17,9 +17,9 @@ namespace MillimanAccessPortal.Controllers
 {
     public class MessageController : Controller
     {
-        MessageServices _mailSender { get; set; }
+        MessageQueueServices _mailSender { get; set; }
         
-        public MessageController(MessageServices mailSenderArg)
+        public MessageController(MessageQueueServices mailSenderArg)
         {
             _mailSender = mailSenderArg;
         }

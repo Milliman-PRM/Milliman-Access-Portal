@@ -21,7 +21,7 @@ namespace MillimanAccessPortal.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly MessageServices _emailSender;
+        private readonly MessageQueueServices _emailSender;
         private readonly ISmsSender _smsSender;
         private readonly ILogger _logger;
         private readonly string _externalCookieScheme;
@@ -30,7 +30,7 @@ namespace MillimanAccessPortal.Controllers
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IOptions<IdentityCookieOptions> identityCookieOptions,
-            MessageServices emailSender,
+            MessageQueueServices emailSender,
             ISmsSender smsSender,
             ILoggerFactory loggerFactory)
         {
