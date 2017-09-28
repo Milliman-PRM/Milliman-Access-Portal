@@ -59,7 +59,7 @@ namespace MillimanAccessPortal.Controllers
 
             if (TempData.Keys.Contains(ReturnToActionArg))
             {
-                LocalReturnToController = TempData[ReturnToActionArg] as string;
+                LocalReturnToAction = TempData[ReturnToActionArg] as string;
                 TempData.Remove(ReturnToActionArg);
             }
 

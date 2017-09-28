@@ -30,6 +30,11 @@ namespace MillimanAccessPortal
             ServiceScope = SvcProvider.GetRequiredService<IServiceScopeFactory>().CreateScope();
         }
 
+        ~StandardQueries()
+        {
+            ServiceScope.Dispose();
+        }
+
         /// <summary>
         /// Returns the collection of ContentItemUserGroup instances authorized to the specified user in the specified roles
         /// </summary>
@@ -40,78 +45,122 @@ namespace MillimanAccessPortal
             List<HostedContentViewModel> ReturnList = new List<HostedContentViewModel>();
             Dictionary<long, HostedContentViewModel> ResultBuilder = new Dictionary<long, HostedContentViewModel>();
 
-            using (var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>())
+            var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>();
+
+            var query = DataContext.UserRoleForContentItemUserGroup
+                .Include(urg => urg.User)
+                .Include(urg => urg.Role)
+                .Include(urg => urg.ContentItemUserGroup)
+                    .ThenInclude(ug => ug.RootContentItem)
+                .Include(urg => urg.ContentItemUserGroup)
+                    .ThenInclude(ug => ug.Client)
+                .Where(urg => urg.User.UserName == UserName)
+                .Select(urg => 
+                    new HostedContentViewModel
+                    {
+                        UserGroupId = urg.ContentItemUserGroup.Id,
+                        ContentName = urg.ContentItemUserGroup.RootContentItem.ContentName,
+                        RoleNames = new HashSet<string>(new string[] { urg.Role.Name }),
+                        Url = urg.ContentItemUserGroup.ContentInstanceUrl,
+                        ClientList = new List<HostedContentViewModel.ParentClientTree>
+                        {
+                            new HostedContentViewModel.ParentClientTree
+                            {
+                                Id = urg.ContentItemUserGroup.ClientId,
+                                Name = urg.ContentItemUserGroup.Client.Name,
+                                ParentId = urg.ContentItemUserGroup.Client.ParentClientId,
+                            }
+                        },
+                    }
+                ).ToList();
+
+            foreach (var Finding in query)
             {
-                var query = DataContext.UserRoleForContentItemUserGroup
-                    .Include(urg => urg.User)
-                    .Include(urg => urg.Role)
-                    .Include(urg => urg.ContentItemUserGroup)
-                        .ThenInclude(ug => ug.RootContentItem)
-                    .Include(urg => urg.ContentItemUserGroup)
-                        .ThenInclude(ug => ug.Client)
-                    .Where(urg => urg.User.UserName == UserName)
-                    .Select(urg => 
-                        new HostedContentViewModel
-                        {
-                            UserGroupId = urg.ContentItemUserGroup.Id,
-                            ContentName = urg.ContentItemUserGroup.RootContentItem.ContentName,
-                            RoleNames = new HashSet<string>(new string[] { urg.Role.Name }),
-                            Url = urg.ContentItemUserGroup.ContentInstanceUrl,
-                            ClientList = new List<HostedContentViewModel.ParentClientTree>
-                            {
-                                new HostedContentViewModel.ParentClientTree
-                                {
-                                    Id = urg.ContentItemUserGroup.ClientId,
-                                    Name = urg.ContentItemUserGroup.Client.Name,
-                                    ParentId = urg.ContentItemUserGroup.Client.ParentClientId,
-                                }
-                            },
-                        }
-                    ).ToList();
-
-                foreach (var Finding in query)
+                if (!ResultBuilder.Keys.Contains(Finding.UserGroupId))
                 {
-                    if (!ResultBuilder.Keys.Contains(Finding.UserGroupId))
+                    // Build the list of parent client hierarchy for Finding
+                    while (Finding.ClientList.First().ParentId != null)
                     {
-                        // Build the list of parent client hierarchy for Finding
-                        while (Finding.ClientList.First().ParentId != null)
+                        Client Parent = null;
+                        try
                         {
-                            Client Parent = null;
-                            try
-                            {
-                                Parent = DataContext.Client
-                                    .Where(c => c.Id == Finding.ClientList.First().ParentId)
-                                    .First();  // will throw if not found but that's good
-                            }
-                            catch (Exception e)
-                            {
-                                throw new MapException($"Client record references parent id {Finding.ClientList.Last().ParentId} but an exception occurred while querying for this Client", e);
-                            }
-
-                            // The required order is root down to 
-                            Finding.ClientList.Insert(0,
-                                new HostedContentViewModel.ParentClientTree
-                                {
-                                    Id = Parent.Id,
-                                    Name = Parent.Name,
-                                    ParentId = Parent.ParentClientId,
-                                }
-                            );
+                            Parent = DataContext.Client
+                                .Where(c => c.Id == Finding.ClientList.First().ParentId)
+                                .First();  // will throw if not found but that's good
+                        }
+                        catch (Exception e)
+                        {
+                            throw new MapException($"Client record references parent id {Finding.ClientList.Last().ParentId} but an exception occurred while querying for this Client", e);
                         }
 
-                        ResultBuilder.Add(Finding.UserGroupId, Finding);
+                        // The required order is root down to 
+                        Finding.ClientList.Insert(0,
+                            new HostedContentViewModel.ParentClientTree
+                            {
+                                Id = Parent.Id,
+                                Name = Parent.Name,
+                                ParentId = Parent.ParentClientId,
+                            }
+                        );
                     }
-                    else
-                    {
-                        // additional role for this user/group
-                        ResultBuilder[Finding.UserGroupId].RoleNames.Add(Finding.RoleNames.First());
-                    }
+
+                    ResultBuilder.Add(Finding.UserGroupId, Finding);
+                }
+                else
+                {
+                    // additional role for this user/group
+                    ResultBuilder[Finding.UserGroupId].RoleNames.Add(Finding.RoleNames.First());
                 }
             }
 
             ResultBuilder.ToList().ForEach(h => ReturnList.Add(h.Value));
 
             return ReturnList.ToList();
+        }
+
+        public List<Client> GetAllRelatedClients(Client ClientArg)
+        {
+            List<Client> ReturnList = new List<Client>();
+
+            Client RootClient = GetRootClientOfClient(ClientArg);
+            ReturnList.Add(RootClient);
+            ReturnList.AddRange(GetChildClients(RootClient, true));
+
+            return ReturnList;
+        }
+
+        public Client GetRootClientOfClient(Client ClientArg)
+        {
+            Client ReturnVal = ClientArg;
+            List<Client> AllClients = null;
+            var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>();
+
+            AllClients = DataContext.Client.ToList();
+            while (ReturnVal.ParentClientId != null)
+            {
+                ReturnVal = AllClients.Single(c => c.Id == ReturnVal.ParentClientId);
+            }
+
+            return ReturnVal;
+        }
+
+        private List<Client> GetChildClients(Client ClientArg, bool Recurse=false)
+        {
+            List<Client> ReturnList = new List<Client>();
+
+            var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>();
+            List<Client> ThisLevelClients = DataContext.Client.Where(c => c.ParentClientId == ClientArg.Id).ToList();
+
+            ReturnList.AddRange(ThisLevelClients);
+            if (Recurse)
+            {
+                foreach (Client OneChild in ThisLevelClients)
+                {
+                    ReturnList.AddRange(GetChildClients(OneChild, Recurse));
+                }
+            }
+
+            return ReturnList;
         }
 
         /// <summary>
@@ -121,7 +170,7 @@ namespace MillimanAccessPortal
         /// <param name="GroupId"></param>
         /// <param name="RequiredRoleArray"></param>
         /// <returns>true iff user is authorized to the group in all roles</returns>
-        public  bool IsUserAuthorizedToAllRolesForGroup(string UserName, long GroupId, IEnumerable<RoleEnum> RequiredRoles)
+        public bool IsUserAuthorizedToAllRolesForGroup(string UserName, long GroupId, IEnumerable<RoleEnum> RequiredRoles)
         {
             var AuthorizedGroupForUser = GetUserGroupIfAuthorizedToAllRoles(UserName, GroupId, RequiredRoles);
 
@@ -137,54 +186,49 @@ namespace MillimanAccessPortal
         /// <returns></returns>
         public ContentItemUserGroup GetUserGroupIfAuthorizedToAllRoles(string UserName, long GroupId, IEnumerable<RoleEnum> RequiredRoles)
         {
-            using (var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>())
-            {
-                var ShortList = DataContext.UserRoleForContentItemUserGroup
-                    .Include(urg => urg.Role)
-                    .Include(urg => urg.User)
-                    .Include(urg => urg.ContentItemUserGroup)
-                    .Where(urg => urg.ContentItemUserGroupId == GroupId)
-                    .Where(urg => urg.User.UserName == UserName)
-                    .Where(urg => RequiredRoles.Contains(urg.Role.RoleEnum))
-                    .ToList();
-                // result is the user's authorizations for the requested group, filtered to only roles in the caller provided list of required roles
+            var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>();
+            var ShortList = DataContext.UserRoleForContentItemUserGroup
+                .Include(urg => urg.Role)
+                .Include(urg => urg.User)
+                .Include(urg => urg.ContentItemUserGroup)
+                .Where(urg => urg.ContentItemUserGroupId == GroupId)
+                .Where(urg => urg.User.UserName == UserName)
+                .Where(urg => RequiredRoles.Contains(urg.Role.RoleEnum))
+                .ToList();
+            // result is the user's authorizations for the requested group, filtered to only roles in the caller provided list of required roles
 
-                bool AllRequiredRolesFound = RequiredRoles.All(rr => ShortList.Select(urg => urg.Role.RoleEnum).Contains(rr));
+            bool AllRequiredRolesFound = RequiredRoles.All(rr => ShortList.Select(urg => urg.Role.RoleEnum).Contains(rr));
 
-                return AllRequiredRolesFound ? ShortList.Select(urg => urg.ContentItemUserGroup).FirstOrDefault() : null;
-            }
+            return AllRequiredRolesFound ? ShortList.Select(urg => urg.ContentItemUserGroup).FirstOrDefault() : null;
         }
 
         public ContentItemUserGroup GetUserGroupIfAuthorizedToRole(string UserName, long GroupId, RoleEnum RequiredRole)
         {
-            using (var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>())
-            {
-                var ShortList = DataContext.UserRoleForContentItemUserGroup
-                    .Include(urg => urg.Role)
-                    .Include(urg => urg.User)
-                    .Include(urg => urg.ContentItemUserGroup)
-                    .Where(urg => urg.ContentItemUserGroupId == GroupId)
-                    .Where(urg => urg.User.UserName == UserName)
-                    .Where(urg => urg.Role.RoleEnum == RequiredRole)
-                    .Select(s => s.ContentItemUserGroup);
+            var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                return ShortList.FirstOrDefault();
-            }
+            var ShortList = DataContext.UserRoleForContentItemUserGroup
+                .Include(urg => urg.Role)
+                .Include(urg => urg.User)
+                .Include(urg => urg.ContentItemUserGroup)
+                .Where(urg => urg.ContentItemUserGroupId == GroupId)
+                .Where(urg => urg.User.UserName == UserName)
+                .Where(urg => urg.Role.RoleEnum == RequiredRole)
+                .Select(s => s.ContentItemUserGroup);
+
+            return ShortList.FirstOrDefault();
         }
 
         public List<Client> GetListOfClientsUserIsAuthorizedToManage(string UserName)
         {
             List<Client> ListOfAuthorizedClients = new List<Client>();
-            using (var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>())
-            {
-                IQueryable<Client> AuthorizedClients =
-                    DataContext.UserRoleForClient
-                    .Where(urc => urc.Role.RoleEnum == RoleEnum.ClientAdministrator)
-                    .Where(urc => urc.User.UserName == UserName)
-                    .Join(DataContext.Client, urc => urc.ClientId, c => c.Id, (urc, c) => c);
+            var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>();
+            IQueryable<Client> AuthorizedClients =
+                DataContext.UserRoleForClient
+                .Where(urc => urc.Role.RoleEnum == RoleEnum.ClientAdministrator)
+                .Where(urc => urc.User.UserName == UserName)
+                .Join(DataContext.Client, urc => urc.ClientId, c => c.Id, (urc, c) => c);
 
-                ListOfAuthorizedClients.AddRange(AuthorizedClients);  // Query executes here
-            }
+            ListOfAuthorizedClients.AddRange(AuthorizedClients);  // Query executes here
 
             return ListOfAuthorizedClients;
         }

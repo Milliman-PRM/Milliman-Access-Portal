@@ -1,7 +1,9 @@
-@model MapDbContextLib.Context.Client
+@using MillimanAccessPortal.Models.ClientAdminViewModels
+
+@model MillimanAccessPortal.Models.ClientAdminViewModels.EditClientViewModel
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Client";
     Layout = "_Layout_w_NB_H_F";
 }
 
@@ -9,29 +11,33 @@
 
 <form asp-action="Edit">
     <div class="form-horizontal">
-        <h4>Client</h4>
+        <h4>@($"Client {Model.ThisClient.Id}")</h4>
         <hr />
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-    <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="ThisClient.Id" />
         <div class="form-group">
-            <label asp-for="Name" class="col-md-2 control-label"></label>
+            <label asp-for="ThisClient.Name" class="col-md-2 control-label"></label>
             <div class="col-md-10">
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
+                <input asp-for="ThisClient.Name" class="form-control" />
+                <span asp-validation-for="ThisClient.Name" class="text-danger"></span>
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="AcceptedEmailDomainList" class="col-md-2 control-label"></label>
+            <!-- This field in the model is type string[].  Figure out a good way to reference/render the values -->
+            <label asp-for="ThisClient.AcceptedEmailDomainList" class="col-md-2 control-label"></label>
             <div class="col-md-10">
-                <input asp-for="AcceptedEmailDomainList" class="form-control" />
-                <span asp-validation-for="AcceptedEmailDomainList" class="text-danger"></span>
+                @for (int Index = 0; Index < Model.ThisClient.AcceptedEmailDomainList.Length; Index++)
+                {
+                    <input asp-for="ThisClient.AcceptedEmailDomainList[Index]" value=@(Model.ThisClient.AcceptedEmailDomainList[Index]) class="form-control" />
+                    <span asp-validation-for="ThisClient.AcceptedEmailDomainList[Index]" class="text-danger"></span>
+                }
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="ParentClientId" class="control-label col-md-2"></label>
+            <label asp-for="ThisClient.ParentClientId" class="control-label col-md-2"></label>
             <div class="col-md-10">
-                <select asp-for="ParentClientId" class="form-control" asp-items="ViewBag.ParentClientId"></select>
-                <span asp-validation-for="ParentClientId" class="text-danger"></span>
+                <select asp-for="ThisClient.ParentClientId" class="form-control" asp-items="ViewBag.ParentClientId"></select>
+                <span asp-validation-for="ThisClient.ParentClientId" class="text-danger"></span>
             </div>
         </div>
         <div class="form-group">
@@ -41,6 +47,30 @@
         </div>
     </div>
 </form>
+
+<hr />
+
+@using (Html.BeginForm("AssignUser", "ClientAdmin"))
+{
+    <input type="hidden" asp-for="ThisClient.Id" />
+    <input type="hidden" asp-for="ThisClient.Name" />
+    <input type="hidden" asp-for="ThisClient.ParentClientId" />
+    @for (int Index = 0; Index < Model.ThisClient.AcceptedEmailDomainList.Length; Index++)
+    {
+        <input type="hidden" asp-for="ThisClient.AcceptedEmailDomainList[Index]" />
+    }
+    <div class="form-group">
+        <h2>All Assigned Users</h2>
+        <div>
+            @Html.EditorFor(x => x.ApplicableUsers, "ListOfSelectableNamedThing")
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="submit" value="Save" class="btn btn-default" />
+        </div>
+    </div>
+}
 
 <div>
     <a asp-action="Index">Back to List</a>

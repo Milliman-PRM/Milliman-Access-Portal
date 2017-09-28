@@ -26,24 +26,28 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.AcceptedEmailDomainList)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ParentClient.Name)
-            </td>
-            <td>
-                <a asp-action="Create" asp-route-id="@item.Id">New Child Client</a> |
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @{
+                        string ListString = string.Join(" | ", item.AcceptedEmailDomainList);
+                        @Html.DisplayFor(modelItem => ListString)
+                    }
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ParentClient.Name)
+                </td>
+                <td>
+                    <a asp-action="Create" asp-route-id="@item.Id">New Child Client</a> |
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
