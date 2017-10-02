@@ -55,9 +55,9 @@ namespace MillimanAccessPortal.Controllers
             else
             {
                 // Send attempt failed. Log failure and return failure code.
-                return StatusCode(400);
+                return BadRequest();
             }
-                        
+
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace MillimanAccessPortal.Controllers
             else
             {
                 // Send attempt failed. Log failure and return failure code.
-                return StatusCode(400);
+                return BadRequest();
             }
         }
 
@@ -95,6 +95,13 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult SendEmailFromUser ([FromForm] IFormCollection collection)
         {
+            if (!collection.Keys.Contains("subject") ||
+                !collection.Keys.Contains("message") ||
+                !collection.Keys.Contains("recipient"))
+            {
+                return BadRequest("Form data does not contain required key");
+            }
+
             string subject = collection["subject"].ToString();
             string message = collection["message"].ToString();
             string recipient = collection["recipient"].ToString();
