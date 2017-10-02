@@ -114,7 +114,7 @@ namespace MillimanAccessPortal.Controllers
             else
             {
                 // Send attempt failed. Log failure and return failure code.
-                return StatusCode(400);
+                return BadRequest();
             }
         }
     }
