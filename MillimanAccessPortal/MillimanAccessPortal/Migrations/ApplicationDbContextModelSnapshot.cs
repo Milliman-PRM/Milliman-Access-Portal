@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using MapDbContextLib.Context;
-using System.Collections.Generic;
+using MapDbContextLib.Identity;
 
 namespace MillimanAccessPortal.Migrations
 {
@@ -22,7 +22,7 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<List<string>>("AcceptedEmailDomainList")
+                    b.Property<string[]>("AcceptedEmailDomainList")
                         .IsRequired();
 
                     b.Property<string>("Name")
@@ -52,7 +52,7 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<long>("RootContentItemId");
 
-                    b.Property<List<long>>("SelectedHierarchyFieldValueList")
+                    b.Property<long[]>("SelectedHierarchyFieldValueList")
                         .IsRequired();
 
                     b.HasKey("Id");
@@ -84,7 +84,7 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<List<string>>("FieldNameList")
+                    b.Property<string[]>("FieldNameList")
                         .IsRequired();
 
                     b.Property<int>("HierarchyLevel");
@@ -126,7 +126,7 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<List<long>>("ClientIdList")
+                    b.Property<long[]>("ClientIdList")
                         .IsRequired();
 
                     b.Property<string>("ContentName")
@@ -201,6 +201,8 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(256);
+
+                    b.Property<int>("RoleEnum");
 
                     b.HasKey("Id");
 

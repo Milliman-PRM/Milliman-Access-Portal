@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using QlikviewLib;
 using AuditLogLib;
+using EmailQueue;
 
 namespace MillimanAccessPortal
 {
@@ -34,8 +35,10 @@ namespace MillimanAccessPortal
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
-                .AddJsonFile("qlikview.json", optional: false);
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                .AddJsonFile("qlikview.json", optional: false, reloadOnChange: true)
+                .AddJsonFile("smtp.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($"smtp.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
 
             if (env.IsDevelopment())
             {
@@ -61,6 +64,8 @@ namespace MillimanAccessPortal
             // Add framework services.
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("MillimanAccessPortal")));
+
+            // Do not add AuditLogDbContext.  This context should be protected from direct access.  Use the api class instead.  -TP
 
             services.AddIdentity<ApplicationUser, ApplicationRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext, long>()
@@ -89,6 +94,11 @@ namespace MillimanAccessPortal
             });
 
             services.Configure<QlikviewConfig>(Configuration);
+            services.Configure<AuditLoggerConfiguration>(Configuration);
+            services.Configure<SmtpConfig>(Configuration);
+
+            services.AddMemoryCache();
+            services.AddSession();
 
             services.AddMvc(config =>
             {
@@ -99,8 +109,9 @@ namespace MillimanAccessPortal
             });
 
             // Add application services.
-            services.AddTransient<IEmailSender, AuthMessageSender>();
-            services.AddTransient<ISmsSender, AuthMessageSender>();
+            services.AddTransient<MessageQueueServices>();
+            //services.AddTransient<IEmailSender, AuthMessageSender>();
+            //services.AddTransient<ISmsSender, AuthMessageSender>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -134,12 +145,28 @@ namespace MillimanAccessPortal
 
             // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
 
+            app.UseSession();
+
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=Login}/{action=Index}/{id?}");
+                    template: "{controller=HostedContent}/{action=Index}/{id?}");
             });
+
+            MailSender.ConfigureMailSender(new SmtpConfig
+            {
+                SmtpServer = Configuration.GetValue<string>("SmtpServer"),
+                SmtpPort = Configuration.GetValue<int>("SmtpPort"),
+                SmtpFromAddress = Configuration.GetValue<string>("SmtpFromAddress"),
+                SmtpFromName = Configuration.GetValue<string>("SmtpFromName")
+            });
+
+            AuditLogger.ConfigureAuditLogger(new AuditLoggerConfiguration
+            {
+                AuditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString"),
+            });
+            
         }
     }
 }

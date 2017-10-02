@@ -8,15 +8,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Routing;
 using MillimanAccessPortal.Models.HostedContentViewModels;
 using MapCommonLib.ContentTypeSpecific;
 using QlikviewLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapCommonLib;
+using AuditLogLib;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace MillimanAccessPortal.Controllers
@@ -24,10 +28,11 @@ namespace MillimanAccessPortal.Controllers
     public class HostedContentController : Controller
     {
         // Things provided by the application that this controller should need to use
+        private QlikviewConfig QlikviewConfig { get; }  // do not allow set
         private ApplicationDbContext DataContext = null;
         private readonly UserManager<ApplicationUser> UserManager;
-        private readonly IOptions<QlikviewConfig> OptionsAccessor;
         private readonly ILogger Logger;
+        private readonly IServiceProvider ServiceProvider;
 
         /// <summary>
         /// Constructor.  Makes instance copies of injected resources from the application. 
@@ -35,28 +40,31 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="UserManagerArg"></param>
         /// <param name="LoggerFactoryArg"></param>
         /// <param name="DataContextArg"></param>
-        /// <param name="OptionsAccessorArg"></param>
+        /// <param name="QlikviewOptionsAccessorArg"></param>
         public HostedContentController(
+            IOptions<QlikviewConfig> QlikviewOptionsAccessorArg,
             UserManager<ApplicationUser> UserManagerArg,
             ILoggerFactory LoggerFactoryArg,
             ApplicationDbContext DataContextArg,
-            IOptions<QlikviewConfig> OptionsAccessorArg)
+            IServiceProvider ServiceProviderArg)
         {
+            QlikviewConfig = QlikviewOptionsAccessorArg.Value;
             UserManager = UserManagerArg;
             Logger = LoggerFactoryArg.CreateLogger<HostedContentController>();
             DataContext = DataContextArg;
-            OptionsAccessor = OptionsAccessorArg;
+            ServiceProvider = ServiceProviderArg;
         }
 
         /// <summary>
-        /// Index handler to present the user with links to authorized content
+        /// Index handler to present the user with links to all authorized content
         /// </summary>
         /// <returns>The view</returns>
+        [Authorize]
         public IActionResult Index()
         {
-            // TODO Create a View and model to present the user with all authorized content
+            List<HostedContentViewModel> ModelForView = new StandardQueries(ServiceProvider).GetAuthorizedUserGroupsAndRoles(UserManager.GetUserName(HttpContext.User));
 
-            return View(/*A model that conveys link parameters to all this user's authorized content*/);
+            return View(ModelForView);
         }
 
         /// <summary>
@@ -64,24 +72,37 @@ namespace MillimanAccessPortal.Controllers
         /// </summary>
         /// <param name="Id">The primary key value of the ContentItemUserGroup authorizing this user to the requested content</param>
         /// <returns>A View (and model) that displays the requested content</returns>
+        [Authorize]
         public IActionResult WebHostedContent(long Id)
         {
-            string TypeOfRequestedContent = "Unknown";
-            ContentItemUserGroup UserGroupOfRequestedContent = null;
-            WebHostedContentViewModel ResponseModel = null;
+            AuditLogger AuditStore = new AuditLogger();
 
             try
             {
-                UserGroupOfRequestedContent = DataContext.ContentItemUserGroup.Where(g => g.Id == Id).FirstOrDefault();
+                // Get the requested (by id) ContentItemUserGroup object
+                ContentItemUserGroup AuthorizedUserGroup = new StandardQueries(ServiceProvider).GetUserGroupIfAuthorizedToRole(UserManager.GetUserName(HttpContext.User), Id, RoleEnum.ContentUser);
+
+                if (AuthorizedUserGroup == null)
+                {
+                    AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Unauthorized request", null, UserManager.GetUserName(HttpContext.User));
+                    LogObject.EventDetailObject = new { GroupIdRequested = Id };
+                    AuditStore.Log(LogLevel.Warning, AuditEventId.LoginSuccess, LogObject);
+
+                    TempData["Message"] = $"You are not authorized to view the requested content (#{Id})";
+                    TempData["ReturnToController"] = "HostedContent";
+                    TempData["ReturnToAction"] = "Index";
+
+                    return RedirectToAction(nameof(ErrorController.NotAuthorized), nameof(ErrorController).Replace("Controller", ""));
+                }
 
                 // Get the ContentType of the RootContentItem of the requested group
                 IQueryable<ContentType> Query = DataContext.RootContentItem
-                    .Where(item => item.Id == UserGroupOfRequestedContent.RootContentItemId)
+                    .Where(item => item.Id == AuthorizedUserGroup.RootContentItemId)
                     .Join(DataContext.ContentType, r => r.ContentTypeId, type => type.Id, (r, type) => type);  // result is the ContentType record
 
                 // execute the query
                 ContentType RequestedContentType = Query.FirstOrDefault();
-                TypeOfRequestedContent = (RequestedContentType != null) ? RequestedContentType.Name : "Unknown";
+                string TypeOfRequestedContent = (RequestedContentType != null) ? RequestedContentType.Name : "Unknown";
 
                 // Instantiate the right content handler class
                 ContentTypeSpecificApiBase ContentSpecificHandler = null;
@@ -91,35 +112,53 @@ namespace MillimanAccessPortal.Controllers
                         ContentSpecificHandler = new QlikviewLibApi();
                         break;
 
+                    //case "Another web hosted type":
+                    //    ContentSpecificHandler = new AnotherTypeSpecificLib();
+                    //    break;
+
                     default:
-                        // The content type of the requested content is not handled
-                        return View("SomeError_View", new object(/*SomeModel*/));  // TODO Get this right
+                        TempData["Message"] = $"Display of an unsupported ContentType was requested: {TypeOfRequestedContent}";
+                        TempData["ReturnToController"] = "HostedContent";
+                        TempData["ReturnToAction"] = "Index";
+                        return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
                 }
 
-                UriBuilder ContentUri = ContentSpecificHandler.GetContentUri(UserGroupOfRequestedContent, HttpContext, OptionsAccessor.Value);
+                UriBuilder ContentUri = ContentSpecificHandler.GetContentUri(AuthorizedUserGroup, HttpContext, QlikviewConfig);
+                RootContentItem Content = DataContext.RootContentItem.Where(r => r.Id == Id).First();
 
-                ResponseModel = new WebHostedContentViewModel
+                HostedContentViewModel ResponseModel = new HostedContentViewModel
                 {
-                    Url = ContentUri.Uri,
+                    Url = ContentUri.Uri.AbsoluteUri,  // must be absolute because it is used in iframe element
+                    UserGroupId = AuthorizedUserGroup.Id,
+                    ContentName = Content.ContentName,
+                    RoleNames = new HashSet<string>(),  // empty
                 };
+
+                // Now return the appropriate view for the requested content
+                switch (TypeOfRequestedContent)
+                {
+                    case "Qlikview":
+                        return View(ResponseModel);
+
+                    //case "Another web hosted type":
+                        //return TheRightThing;
+
+                    default:
+                        // Perhaps this can't happen since this case is handled above
+                        TempData["Message"] = $"An unsupported ContentType was requested: {TypeOfRequestedContent}";
+                        TempData["ReturnToController"] = "HostedContent";
+                        TempData["ReturnToAction"] = "Index";
+                        return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
+                }
             }
             catch (MapException e)
             {
-                string Msg = e.Message;
-                // The requested user group or associated root content item or content type record could not be found in the database
-                return View("SomeError_View", new object(/*SomeModel*/));  // TODO Get this right
+                TempData["Message"] = $"{e.Message}<br>{e.StackTrace}";
+                TempData["ReturnToController"] = "HostedContent";
+                TempData["ReturnToAction"] = "Index";
+                return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
             }
 
-            // Now return the requested content in its view
-            switch (TypeOfRequestedContent)
-            {
-                case "Qlikview":
-                    return View(ResponseModel);
-
-                default:
-                    // Probably can't happen since this is handled above
-                    return View("SomeError_View", new object(/*SomeModel*/));  // TODO Get this right
-            }
         }
 
     }

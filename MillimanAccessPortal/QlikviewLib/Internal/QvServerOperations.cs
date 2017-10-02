@@ -18,7 +18,7 @@ namespace QlikviewLib.Internal
         {
             UriBuilder QvServerUri = new UriBuilder
             {
-                Scheme = "https",  // TODO support choice of http and https
+                Scheme = "https",  // Do we need to support choice of http and https in the event that a certificate issue causes failure
                 Host = QvConfig.QvServerHost,
                 Path = "qvajaxzfc/getwebticket.aspx",
             };

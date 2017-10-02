@@ -18,7 +18,7 @@ namespace QlikviewLib
         public string QvServerAdminUserPassword { get; set; }
 
         /// <summary>
-        /// Converts config values to a NetworkCredential object, requires an explicit cast. 
+        /// Cast operator, returns a NetworkCredential object based on an object of this type; requires explicit cast. 
         /// </summary>
         /// <param name="C"></param>
         public static explicit operator NetworkCredential(QlikviewConfig C)

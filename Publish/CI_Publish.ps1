@@ -56,7 +56,7 @@ if ( $LASTEXITCODE -ne 0 ) {
 }
 
 log_statement "Stop running application pool"
-$requestURL = "http://localhost:8042/iis_pool_action?pool_name=$appPool&action=stop"
+$requestURL = "http://localhost:8044/iis_pool_action?pool_name=$appPool&action=stop"
 $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
 # Return code 1062 = Pool is already stopped
@@ -228,7 +228,7 @@ try
     $name = "MAP_CI_$branchName"
 
     # Create application pool if it doesn't already exist
-    $requestURL = "http://localhost:8042/iis_pool_action?action=add&pool_name=$name"
+    $requestURL = "http://localhost:8044/iis_pool_action?action=add&pool_name=$name"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
     if ($requestResult.returncode -eq 183) {
@@ -243,7 +243,7 @@ try
         # This step should only be performed when the application pool is initially created
         # Configure Application Pool credentials
         # Configuring credentials must be done separately from creating the application pool
-        $requestURL = "http://localhost:8042/iis_configure_pool_user?pool_name=$name&username=$ci_username&password=$ci_password"
+        $requestURL = "http://localhost:8044/iis_configure_pool_user?pool_name=$name&username=$ci_username&password=$ci_password"
         $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
         if ($requestResult.returncode -ne 0) {
@@ -255,7 +255,7 @@ try
 
     # If the web application already exists, remove it
     log_statement "Remove existing web application (if any)"
-    $requestURL = "http://localhost:8042/iis_delete_app?app_name=$name&action=delete"
+    $requestURL = "http://localhost:8044/iis_delete_app?app_name=$name&action=delete"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
     # Return code 50 indicates the app doesn't currently exist. That's fine in this case.
@@ -267,7 +267,7 @@ try
 
     # Create web application
     log_statement "Creating web application"
-    $requestURL = "http://localhost:8042/iis_create_app?app_name=$name&pool_name=$name&folder_path=$branchFolder"
+    $requestURL = "http://localhost:8044/iis_create_app?app_name=$name&pool_name=$name&folder_path=$branchFolder"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
     if ($requestResult.returncode -ne 0) {
@@ -278,7 +278,7 @@ try
 
     # Configure Application Pool ASPNETCORE_ENVIRONMENT variable
     log_statement "Configuring ASPNETCORE_ENVIRONMENT variable"
-    $requestURL = "http://localhost:8042/iis_set_env?app_name=$name&env_variable_name=ASPNETCORE_ENVIRONMENT&env_variable_value=$ASPNETCORE_ENVIRONMENT"
+    $requestURL = "http://localhost:8044/iis_set_env?app_name=$name&env_variable_name=ASPNETCORE_ENVIRONMENT&env_variable_value=$ASPNETCORE_ENVIRONMENT"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
     if ($requestResult.returncode -ne 0) {
@@ -289,7 +289,7 @@ try
 
     # Stop Pool
     log_statement "Stopping application pool to reset it"
-    $requestURL = "http://localhost:8042/iis_pool_action?action=stop&pool_name=$name"
+    $requestURL = "http://localhost:8044/iis_pool_action?action=stop&pool_name=$name"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
     if ($requestResult.returncode -ne 0 -and $requestResult.returncode -ne 1062) {
@@ -300,7 +300,7 @@ try
 
     # Start Pool
     log_statement "Final application pool startup"
-    $requestURL = "http://localhost:8042/iis_pool_action?action=start&pool_name=$name"
+    $requestURL = "http://localhost:8044/iis_pool_action?action=start&pool_name=$name"
     $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
     if ($requestResult.returncode -ne 0) {
