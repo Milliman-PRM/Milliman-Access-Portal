@@ -56,9 +56,10 @@
     <div id="contact-form-modal">
         <h2 class="contact-title">Contact Support</h2>
         <i id="contact-close" class="fa fa-close fa-fw fa-2x form-close" aria-hidden="true"></i>
-        <form id="contact-form" asp-controller="Email" asp-action="ContactFormSubmission" method="post">
+        <form id="contact-form" asp-controller="Message" asp-action="SendEmailFromUser" method="post">
+            <input type="hidden" name="recipient" value="prm.support@milliman.com" />
             <div>
-                <select id="topic-select" required>
+                <select name="subject" id="topic-select" required>
                     <option value="">Please Select a Topic</option>
                     <option value="Account Inquiry">Account Inquiry</option>
                     <option value="Bug">Report a Bug</option>

@@ -12,16 +12,24 @@ using Microsoft.AspNetCore.Mvc;
 using EmailQueue;
 using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Services;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
+using MapDbContextLib.Identity;
 
 namespace MillimanAccessPortal.Controllers
 {
     public class MessageController : Controller
     {
         MessageQueueServices _mailSender { get; set; }
+        private readonly UserManager<ApplicationUser> UserManager;
         
-        public MessageController(MessageQueueServices mailSenderArg)
+        public MessageController(MessageQueueServices mailSenderArg,
+            UserManager<ApplicationUser> UserManagerArg)
         {
             _mailSender = mailSenderArg;
+            UserManager = UserManagerArg;
+            
         }
 
         /// <summary>
@@ -64,6 +72,40 @@ namespace MillimanAccessPortal.Controllers
         public IActionResult SendEmail (string recipient, string subject, string message)
         {
             bool Result = _mailSender.QueueEmail(recipient, subject, message);
+
+            if (Result)
+            {
+                return Ok();
+            }
+            else
+            {
+                // Send attempt failed. Log failure and return failure code.
+                return StatusCode(400);
+            }
+        }
+
+        /// <summary>
+        /// Send a message to the specified recipient from the current user
+        /// </summary>
+        /// <param name="recipient"></param>
+        /// <param name="subject"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SendEmailFromUser ([FromForm] IFormCollection collection)
+        {
+            string subject = collection["subject"].ToString();
+            string message = collection["message"].ToString();
+            string recipient = collection["recipient"].ToString();
+
+            Console.WriteLine("Sending mail to " + recipient);
+            // Get the current user's name and email address
+            var user = UserManager.GetUserAsync(User).Result;
+            string senderAddress = user.Email;
+            string senderName = user.UserName;
+
+            bool Result = _mailSender.QueueEmail(new List<string> { recipient }, subject, message, senderAddress, senderName);
 
             if (Result)
             {
