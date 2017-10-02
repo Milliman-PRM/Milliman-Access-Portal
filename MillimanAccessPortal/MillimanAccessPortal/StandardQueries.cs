@@ -151,7 +151,8 @@ namespace MillimanAccessPortal
             ClientAndChildrenViewModel ResultObject = new ClientAndChildrenViewModel { ClientEntity = ClientArg };  // Initialize.  Relies on implicit conversion operator
             ResultObject.AssociatedContentCount = DataContext.RootContentItem.Where(r => r.ClientIdList.Contains(ClientArg.Id)).Count();
             ResultObject.AssociatedUserCount = UserMembersOfThisClient.Count;
-            ResultObject.CanManage = DataContext.UserRoleForClient
+            ResultObject.CanManage = DataContext
+                                        .UserRoleForClient
                                         .Include(URCMap => URCMap.Role)
                                         .Include(URCMap => URCMap.User)
                                         .SingleOrDefault(URCMap => URCMap.UserId == CurrentUserId
@@ -258,13 +259,15 @@ namespace MillimanAccessPortal
         public ContentItemUserGroup GetUserGroupIfAuthorizedToAllRoles(string UserName, long GroupId, IEnumerable<RoleEnum> RequiredRoles)
         {
             var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>();
-            var ShortList = DataContext.UserRoleForContentItemUserGroup
+
+            var ShortList = DataContext
+                .UserRoleForContentItemUserGroup
                 .Include(urg => urg.Role)
                 .Include(urg => urg.User)
                 .Include(urg => urg.ContentItemUserGroup)
-                .Where(urg => urg.ContentItemUserGroupId == GroupId)
-                .Where(urg => urg.User.UserName == UserName)
-                .Where(urg => RequiredRoles.Contains(urg.Role.RoleEnum))
+                .Where(urg => urg.ContentItemUserGroupId == GroupId 
+                           && urg.User.UserName == UserName
+                           && RequiredRoles.Contains(urg.Role.RoleEnum))
                 .ToList();
             // result is the user's authorizations for the requested group, filtered to only roles in the caller provided list of required roles
 
@@ -277,7 +280,8 @@ namespace MillimanAccessPortal
         {
             var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>();
 
-            var ShortList = DataContext.UserRoleForContentItemUserGroup
+            var ShortList = DataContext
+                .UserRoleForContentItemUserGroup
                 .Include(urg => urg.Role)
                 .Include(urg => urg.User)
                 .Include(urg => urg.ContentItemUserGroup)
@@ -293,10 +297,11 @@ namespace MillimanAccessPortal
         {
             List<Client> ListOfAuthorizedClients = new List<Client>();
             var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>();
-            IQueryable<Client> AuthorizedClients =
-                DataContext.UserRoleForClient
-                .Where(urc => urc.Role.RoleEnum == RoleEnum.ClientAdministrator)
-                .Where(urc => urc.User.UserName == UserName)
+
+            IQueryable<Client> AuthorizedClients = DataContext
+                .UserRoleForClient
+                .Where(urc => urc.Role.RoleEnum == RoleEnum.ClientAdministrator
+                           && urc.User.UserName == UserName)
                 .Join(DataContext.Client, urc => urc.ClientId, c => c.Id, (urc, c) => c);
 
             ListOfAuthorizedClients.AddRange(AuthorizedClients);  // Query executes here

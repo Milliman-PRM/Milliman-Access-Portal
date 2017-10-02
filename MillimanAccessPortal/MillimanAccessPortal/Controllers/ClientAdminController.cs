@@ -53,12 +53,12 @@ namespace MillimanAccessPortal.Controllers
         }
 
         // POST: ClientAdmin
-#if false // false = test
-        [HttpGet]
-#else
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-#endif
+#if false // false = test  // remove this
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+#else  // remove this
+        [HttpGet] // remove this
+#endif  // remove this
         public IActionResult ClientUserLists(long? id)
         {
             Client ThisClient = DbContext.Client.SingleOrDefaultAsync(m => m.Id == id).Result;

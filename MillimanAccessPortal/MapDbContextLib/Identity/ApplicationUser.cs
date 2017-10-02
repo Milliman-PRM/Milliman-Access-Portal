@@ -1,5 +1,5 @@
 ﻿/*
- * CODE OWNERS: Ben Wyatt
+ * CODE OWNERS: Ben Wyatt, Tom Puckett
  * OBJECTIVE: Provide extensions to the base IdentityUser class
  * DEVELOPER NOTES: 
  */
