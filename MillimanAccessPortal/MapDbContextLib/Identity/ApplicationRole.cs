@@ -19,6 +19,7 @@ namespace MapDbContextLib.Identity
 {
     public enum RoleEnum : int
     {
+        // Important: Existing numeric values must never be reassigned to a new meaning.  Always add a new role as a new, explicit, higher value. 
         SuperUser = 1,
         ClientAdministrator = 2,
         UserManager = 3,

@@ -14,12 +14,17 @@ using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using MillimanAccessPortal.Models.HostedContentViewModels;
 using Microsoft.EntityFrameworkCore;
+using MillimanAccessPortal.Models.ClientAdminViewModels;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace MillimanAccessPortal
 {
     public class StandardQueries
     {
         private IServiceScope ServiceScope = null;
+        private UserManager<ApplicationUser> UserManager = null;
 
         /// <summary>
         /// Constructor, stores local copy of the caller's IServiceScope
@@ -28,6 +33,7 @@ namespace MillimanAccessPortal
         public StandardQueries(IServiceProvider SvcProvider)
         {
             ServiceScope = SvcProvider.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            UserManager = ServiceScope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         }
 
         ~StandardQueries()
@@ -122,26 +128,74 @@ namespace MillimanAccessPortal
         {
             List<Client> ReturnList = new List<Client>();
 
-            Client RootClient = GetRootClientOfClient(ClientArg);
+            Client RootClient = GetRootClientOfClient(ClientArg.Id);
             ReturnList.Add(RootClient);
             ReturnList.AddRange(GetChildClients(RootClient, true));
 
             return ReturnList;
         }
 
-        public Client GetRootClientOfClient(Client ClientArg)
+        public List<Client> GetAllRootClients()
         {
-            Client ReturnVal = ClientArg;
-            List<Client> AllClients = null;
             var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>();
+            return DataContext.Client.Where(c => c.ParentClientId == null).ToList();
+        }
 
-            AllClients = DataContext.Client.ToList();
-            while (ReturnVal.ParentClientId != null)
+        public ClientAndChildrenViewModel GetDescendentFamilyOfClient(Client ClientArg, long CurrentUserId, bool RecurseDown=true)
+        {
+            ApplicationDbContext DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>();
+
+            Claim ThisClientMembershipClaim = new Claim("ClientMembership", ClientArg.Name);
+            List<ApplicationUser> UserMembersOfThisClient = UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim).Result.ToList();
+
+            ClientAndChildrenViewModel ResultObject = new ClientAndChildrenViewModel { ClientEntity = ClientArg };  // Initialize.  Relies on implicit conversion operator
+            ResultObject.AssociatedContentCount = DataContext.RootContentItem.Where(r => r.ClientIdList.Contains(ClientArg.Id)).Count();
+            ResultObject.AssociatedUserCount = UserMembersOfThisClient.Count;
+            ResultObject.CanManage = DataContext.UserRoleForClient
+                                        .Include(URCMap => URCMap.Role)
+                                        .Include(URCMap => URCMap.User)
+                                        .SingleOrDefault(URCMap => URCMap.UserId == CurrentUserId
+                                                                && URCMap.Role.RoleEnum == RoleEnum.ClientAdministrator
+                                                                && URCMap.ClientId == ClientArg.Id)
+                                        != null;
+
+            if (RecurseDown)
             {
-                ReturnVal = AllClients.Single(c => c.Id == ReturnVal.ParentClientId);
+                List<Client> ChildrenOfThisClient = DataContext.Client.Where(c => c.ParentClientId == ClientArg.Id).ToList();
+                foreach (Client C in ChildrenOfThisClient)
+                {
+                    ResultObject.Children.Add(GetDescendentFamilyOfClient(C, CurrentUserId, RecurseDown));
+                }
             }
 
-            return ReturnVal;
+            return ResultObject;
+        }
+
+        public ClientUserListsViewModel GetClientuserLists(long? id)
+        {
+            ClientUserListsViewModel x = new ClientUserListsViewModel();
+            x.AssignedUsers = null;
+            //x. = null;
+            return x;
+        }
+
+        public Client GetRootClientOfClient(long id)
+        {
+            var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>();
+
+            // Do this so there is only one db query and the rest is done locally in memory
+            List<Client> AllClients = DataContext.Client.ToList();
+
+            // start with the client id supplied
+            Client NextParent = AllClients.SingleOrDefault(c => c.Id == id);
+
+            // search up the parent hierarchy
+            while (NextParent != null && NextParent.ParentClientId != null)
+            {
+                NextParent = AllClients.SingleOrDefault(c => c.Id == NextParent.ParentClientId);
+            }
+
+            return NextParent;
         }
 
         private List<Client> GetChildClients(Client ClientArg, bool Recurse=false)
@@ -162,6 +216,23 @@ namespace MillimanAccessPortal
 
             return ReturnList;
         }
+
+/*        public ClientAndChildrenViewModel GetRootClientViewModelOfClient(long ClientIdArg)
+        {
+            var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>();
+            List<Client> AllClients = DataContext.Client.ToList();
+
+            Client NextParent = AllClients.SingleOrDefault(c => c.Id == ClientIdArg);
+
+            while (NextParent != null && NextParent.ParentClientId != null)
+            {
+                NextParent = AllClients.SingleOrDefault(c => c.Id == NextParent.ParentClientId);
+            }
+
+            return NextParent;
+        }*/
+
+
 
         /// <summary>
         /// determines whether the supplied user name is authorized to the supplied group for all supplied role names
@@ -231,6 +302,22 @@ namespace MillimanAccessPortal
             ListOfAuthorizedClients.AddRange(AuthorizedClients);  // Query executes here
 
             return ListOfAuthorizedClients;
+        }
+
+        public List<string> GetUserRolesForClient(long UserId, long ClientId)
+        {
+            var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>();
+
+            List<string> ReturnVal = DataContext
+                                    .UserRoleForClient
+                                    .Include(urc => urc.Role)
+                                    .Where(urc => urc.UserId == UserId 
+                                               && urc.ClientId == ClientId)
+                                    .Select(urc => urc.Role.NormalizedName)
+                                    .Distinct()
+                                    .ToList();
+
+            return ReturnVal;
         }
 
     }

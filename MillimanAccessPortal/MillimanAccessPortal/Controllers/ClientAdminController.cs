@@ -32,11 +32,113 @@ namespace MillimanAccessPortal.Controllers
             ServiceProvider = ServiceProviderArg;
         }
 
+        // POST: ClientAdmin
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ClientFamilyList()
+        {
+            // TODO authorization check
+
+            long CurrentUserId = GetCurrentUser().Id;
+
+            List<ClientAndChildrenViewModel> Model = new List<ClientAndChildrenViewModel>();
+
+            List<Client> AllRootClients = new StandardQueries(ServiceProvider).GetAllRootClients();
+            foreach (Client C in AllRootClients)
+            {
+                Model.Add(new StandardQueries(ServiceProvider).GetDescendentFamilyOfClient(C, CurrentUserId, true));
+            }
+
+            return Json(Model);
+        }
+
+        // POST: ClientAdmin
+#if false // false = test
+        [HttpGet]
+#else
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+#endif
+        public IActionResult ClientUserLists(long? id)
+        {
+            Client ThisClient = DbContext.Client.SingleOrDefaultAsync(m => m.Id == id).Result;
+            if (id == null || ThisClient == null)
+            {
+                // TODO do better than this?
+                return NotFound();
+            }
+
+            // Authorization check TODO move this to proper authorization mechanism
+            ApplicationUser CurrentUser = GetCurrentUser();
+            if (!DbContext
+                .UserRoleForClient
+                .Include(urc => urc.Role)
+                .Any(urc => urc.UserId == CurrentUser.Id && 
+                            urc.ClientId == id && 
+                            urc.Role.RoleEnum == RoleEnum.ClientAdministrator)
+                )
+            {
+                TempData["Message"] = $"You are not authorized to manage the requested client (#{id})";
+                TempData["ReturnToController"] = "ClientAdmin";
+                TempData["ReturnToAction"] = "Index";
+                return RedirectToAction(nameof(ErrorController.NotAuthorized), nameof(ErrorController).Replace("Controller", ""));
+            }
+
+            ClientUserListsViewModel Model = new ClientUserListsViewModel();
+
+            Claim ThisClientMembershipClaim = new Claim("ClientMembership", ThisClient.Name);
+
+            // Get the list of users already assigned to this client
+            Model.AssignedUsers = UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim)
+                                             .Result
+                                             .Select(ApUser => (UserInfo)ApUser)
+                                             .ToList();
+            // Assign the remaining assigned user properties
+            foreach (UserInfo Item in Model.AssignedUsers)
+            {
+                Item.UserRoles = new StandardQueries(ServiceProvider).GetUserRolesForClient(Item.Id, ThisClient.Id);
+            }
+
+            // Get all users currently member of any related Client (any descendant of the root client)
+            List<Client> AllRelatedClients = new StandardQueries(ServiceProvider).GetAllRelatedClients(ThisClient);
+            List<ApplicationUser> UsersAssignedToClientFamily = new List<ApplicationUser>();
+            foreach (Client OneClient in AllRelatedClients)
+            {
+                ThisClientMembershipClaim = new Claim("ClientMembership", OneClient.Name);
+                UsersAssignedToClientFamily = UsersAssignedToClientFamily.Union(UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim).Result).ToList();
+                // TODO Test whether the other overload of .Union() needs to be called above with an IEqualityComparer to get desired logic.  Equality should probably be based on Id only.
+            }
+
+            foreach (string AcceptableDomain in ThisClient.AcceptedEmailDomainList)
+            {
+                if (string.IsNullOrWhiteSpace(AcceptableDomain))
+                {
+                    continue;
+                }
+                Model.EligibleUsers.AddRange(UsersAssignedToClientFamily.Where(u => u.NormalizedEmail.Contains($"@{AcceptableDomain.ToUpper()}"))
+                                                                        .Select(u=>(UserInfo)u));
+            }
+
+            // Assign the remaining assigned user properties
+            foreach (UserInfo Item in Model.EligibleUsers)
+            {
+                Item.UserRoles = new StandardQueries(ServiceProvider).GetUserRolesForClient(Item.Id, ThisClient.Id);
+            }
+
+            // Subtract the assigned users from the overall list of eligible users
+            Model.EligibleUsers = Model.EligibleUsers.Except(Model.AssignedUsers, new UserInfoEqualityComparer()).ToList();
+
+            return Json(Model);
+        }
+
         // GET: ClientAdmin
+        /// <summary>
+        /// Action leading to the main landing page for Client administration UI
+        /// </summary>
+        /// <returns></returns>
         public IActionResult Index()
         {
-            List<Client> AuthorizedClients = new StandardQueries(ServiceProvider).GetListOfClientsUserIsAuthorizedToManage(UserManager.GetUserName(HttpContext.User));
-            return View(AuthorizedClients);
+            return View();
         }
 
         // TODO Do we need this at all?  Maybe combine with Edit
@@ -248,6 +350,12 @@ namespace MillimanAccessPortal.Controllers
         private bool ClientExists(long id)
         {
             return DbContext.Client.Any(e => e.Id == id);
+        }
+
+        [NonAction]
+        private ApplicationUser GetCurrentUser()
+        {
+            return UserManager.GetUserAsync(HttpContext.User).Result;
         }
     }
 }
