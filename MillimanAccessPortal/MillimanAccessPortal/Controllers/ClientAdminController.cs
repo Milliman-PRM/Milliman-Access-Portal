@@ -32,12 +32,21 @@ namespace MillimanAccessPortal.Controllers
             ServiceProvider = ServiceProviderArg;
         }
 
-        // POST: ClientAdmin
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        // GET: ClientAdmin
+        [HttpGet]
         public IActionResult ClientFamilyList()
         {
-            // TODO authorization check
+            // TODO Decide whether to filter clients returned based on what clients user has this role for.
+            ApplicationUser CurrentUser = GetCurrentUser();
+            if (!DbContext
+                .UserRoleForClient
+                .Include(urc => urc.Role)
+                .Any(urc => urc.UserId == CurrentUser.Id &&
+                            urc.Role.RoleEnum == RoleEnum.ClientAdministrator)
+                )
+            {
+                return Unauthorized();
+            }
 
             long CurrentUserId = GetCurrentUser().Id;
 
@@ -52,17 +61,17 @@ namespace MillimanAccessPortal.Controllers
             return Json(Model);
         }
 
-        // POST: ClientAdmin
-#if false // false = test  // remove this
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-#else  // remove this
-        [HttpGet] // remove this
-#endif  // remove this
-        public IActionResult ClientUserLists(long? id)
+        // GET: ClientAdmin
+        [HttpGet]
+        public IActionResult ClientUserLists([FromBody] long? id)
         {
+            if (id == null)
+            {
+                // TODO do better than this?
+                return NotFound();
+            }
             Client ThisClient = DbContext.Client.SingleOrDefaultAsync(m => m.Id == id).Result;
-            if (id == null || ThisClient == null)
+            if (ThisClient == null)
             {
                 // TODO do better than this?
                 return NotFound();
@@ -78,10 +87,7 @@ namespace MillimanAccessPortal.Controllers
                             urc.Role.RoleEnum == RoleEnum.ClientAdministrator)
                 )
             {
-                TempData["Message"] = $"You are not authorized to manage the requested client (#{id})";
-                TempData["ReturnToController"] = "ClientAdmin";
-                TempData["ReturnToAction"] = "Index";
-                return RedirectToAction(nameof(ErrorController.NotAuthorized), nameof(ErrorController).Replace("Controller", ""));
+                return Unauthorized();
             }
 
             ClientUserListsViewModel Model = new ClientUserListsViewModel();
@@ -106,7 +112,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 ThisClientMembershipClaim = new Claim("ClientMembership", OneClient.Name);
                 UsersAssignedToClientFamily = UsersAssignedToClientFamily.Union(UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim).Result).ToList();
-                // TODO Test whether the other overload of .Union() needs to be called above with an IEqualityComparer to get desired logic.  Equality should probably be based on Id only.
+                // TODO Test whether the other overload of .Union() needs to be used with an IEqualityComparer argument.  For this use equality should probably be based on Id only.
             }
 
             foreach (string AcceptableDomain in ThisClient.AcceptedEmailDomainList)
@@ -140,59 +146,6 @@ namespace MillimanAccessPortal.Controllers
         {
             return View();
         }
-
-        // TODO Do we need this at all?  Maybe combine with Edit
-        // GET: ClientAdmin/Details/5
-        public async Task<IActionResult> Details(long? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var client = await DbContext.Client
-                .Include(c => c.ParentClient)
-                .SingleOrDefaultAsync(m => m.Id == id);
-            if (client == null)
-            {
-                return NotFound();
-            }
-
-            return View(client);
-        }
-
-        // GET: ClientAdmin/Create
-        // Id argument is the intended parent client id if any
-        public IActionResult Create(int? Id = null)
-        {
-            List<Client> AuthorizedClients = new StandardQueries(ServiceProvider).GetListOfClientsUserIsAuthorizedToManage(UserManager.GetUserName(HttpContext.User));
-
-            // Choose the requested parent client, but only if it is authorized
-            SelectList ParentSelectList = AuthorizedClients.Any(c => c.Id == Id) ?
-                new SelectList(AuthorizedClients, "Id", "Name", Id) : 
-                new SelectList(AuthorizedClients, "Id", "Name");
-
-            ViewData["ParentClientId"] = ParentSelectList.OrderBy(c => c.Text).Prepend(new SelectListItem { Value = "", Text = "None" });  // for new root client;
-            return View();
-        }
-
-        // POST: ClientAdmin/Create
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,AcceptedEmailDomainList,ParentClientId")] Client client)
-        {
-            if (ModelState.IsValid)
-            {
-                DbContext.Add(client);
-                await DbContext.SaveChangesAsync();
-                return RedirectToAction("Index");
-            }
-
-            return Create();  // Go back to the empty Create form
-        }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
