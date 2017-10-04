@@ -10,6 +10,10 @@ $nav-background-color: #242424;
 $nav-font-color: #fff;
 $nav-selected-color: #0091ff;
 $nav-hover-font-color: #0091ff;
+$form-background: #DEDEE3;
+$form-border: #424242;
+$form-close: #ff4618;
+$form-close-hover: #ff2300;
 
 @import url('https://fonts.googleapis.com/css?family=Noto+Sans');
 
@@ -21,7 +25,6 @@ body {
     background-color: $background;
     box-sizing: border-box;
     font-family: 'Noto Sans', sans-serif;
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
     height: 100%;
@@ -40,13 +43,15 @@ body {
     margin: 8vh 0 20px 20px;
     text-align: center;
     font-weight: bold;
-} 
+}
 
-input {
+input,
+textarea,
+select {
     height: 40px;
     width: 350px;
     padding: 5px 10px;
-    border: none;
+    border: solid 2px rgba(0, 0, 0, 0);
     border-radius: 5px;
     margin-bottom: 10px;
     transition: border 0.2s;
@@ -56,6 +61,11 @@ input {
     }
 }
 
+textarea {
+    height: auto;
+    resize: none;
+}
+
 .screen-center {
     position: absolute;
     top: 50%;
@@ -63,7 +73,8 @@ input {
     transform: translate(-50%, -70%);
 }
 
-#primary-button {
+#primary-button,
+#form-submit {
     height: 50px;
     width: 90px;
     background-color: $login-button-color;
@@ -176,6 +187,59 @@ Nav Sidebar Styling
     }
 }
 
+/*****
+Contact Form Styling
+*****/
+#modal-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 50;
+    display: block;
+
+    &.hide {
+        display: none !important;
+    }
+
+    &.show {
+        display: block !important;
+    }
+
+}
+
+#contact-form-modal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: $form-background;
+    /*border: 2px solid $form-border;*/
+    border-radius: 5px;
+    padding: 25px;
+    z-index: 100;
+
+    .contact-title {
+        margin: 20px 25px;
+        text-align: center;
+    }
+
+    .form-close {
+        position: absolute;
+        color: $form-close;
+        top: 10px;
+        right: 5px;
+        cursor: pointer;
+    }
+
+    .form-close:hover {
+        color: $form-close-hover;
+    }
+}
+
 
 /*****
 Header Styling
@@ -275,8 +339,8 @@ Client Admin Styling
 
     input .search-box{
         width: 50% !important;
-    } 
-    
+    }
+
     .vertical-scroll {
         overflow-y: auto;
         height: 85%;
@@ -311,12 +375,12 @@ Client Admin Styling
         background-color: lightgray;
         transform: scale(1.02);
     }
-    
+
 
     .client-node-title {
         margin: 5px 0;
-    } 
-    
+    }
+
     .icon-container {
         position: absolute;
         display: inline;
