@@ -31,7 +31,7 @@
             </a>
         </li>
         <li class="nav-item">
-            <a href="#" class="nav-button">
+            <a href="#" class="nav-button" id="contact-button">
                 <h3 class="nav-label">Contact Support</h3>
                 <i class="fa fa-fw fa-3x fa-envelope nav-icon" aria-hidden="true"></i>
             </a>
@@ -47,21 +47,35 @@
     </ul>
 </nav>
 
-<!-- 
-    Contact Form 
--->
+ 
+@*Contact Form*@
 
-@*<div id="modal-background" class="modal-hidden">
 
-    <div id="contact-form">
-        <h1 class="contact-title">Contact Support</h1>
-        <i id="contact-close" class="fa fa-times-circle-o fa-fw form-close fa-2x" aria-hidden="true"></i>
-        <form action="/" method="post">
-            <select>
-                <option value="value">text</option>
-            </select>
+<div id="modal-background" class="hide">
+
+    <div id="contact-form-modal">
+        <h2 class="contact-title">Contact Support</h2>
+        <i id="contact-close" class="fa fa-close fa-fw fa-2x form-close" aria-hidden="true"></i>
+        <form id="contact-form" asp-controller="Message" asp-action="SendEmailFromUser" method="post">
+            <input type="hidden" name="recipient" value="prm.support@milliman.com" />
+            <div>
+                <select name="subject" id="topic-select" required>
+                    <option value="">Please Select a Topic</option>
+                    <option value="Account Inquiry">Account Inquiry</option>
+                    <option value="Bug Report">Report a Bug</option>
+                    <option value="Other Support Question">Other</option>
+                </select>
+            </div>
+            <div>
+                <textarea id="body-text" placeholder="Message" name="message" rows="10" required></textarea>
+            </div>
+            <div class="text-right">
+                <a href="#" onclick="resetContactForm()">Reset</a>
+                <button type="submit" id="form-submit" class="btn btn-primary">Submit</button>
+            </div>
+
         </form>
     </div>
-    
 
-</div>*@
+
+</div>

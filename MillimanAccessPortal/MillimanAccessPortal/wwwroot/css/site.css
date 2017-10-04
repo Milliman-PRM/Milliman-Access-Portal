@@ -9,7 +9,6 @@ body {
   background-color: #DEDEE3;
   box-sizing: border-box;
   font-family: 'Noto Sans', sans-serif;
-  box-sizing: border-box;
   margin: 0;
   padding: 0;
   height: 100%; }
@@ -22,16 +21,24 @@ body {
   #content-wrapper.header-offset {
     padding-top: 50px; }
 
-input {
+input,
+textarea,
+select {
   height: 40px;
   width: 350px;
   padding: 5px 10px;
-  border: none;
+  border: solid 2px transparent;
   border-radius: 5px;
   margin-bottom: 10px;
   transition: border 0.2s; }
-  input:focus {
+  input:focus,
+  textarea:focus,
+  select:focus {
     border: solid 2px #0091ff; }
+
+textarea {
+  height: auto;
+  resize: none; }
 
 .screen-center {
   position: absolute;
@@ -39,13 +46,15 @@ input {
   left: 50%;
   transform: translate(-50%, -70%); }
 
-#primary-button {
+#primary-button,
+#form-submit {
   height: 50px;
   width: 90px;
   background-color: #0091ff;
   margin: 0 20px;
   font-weight: bold; }
-  #primary-button:hover {
+  #primary-button:hover,
+  #form-submit:hover {
     background-color: #0080E2; }
 
 /*****
@@ -115,6 +124,46 @@ Nav Sidebar Styling
     line-height: 55px;
     padding: 0;
     margin: auto; }
+
+/*****
+Contact Form Styling
+*****/
+#modal-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 50;
+  display: block; }
+  #modal-background.hide {
+    display: none !important; }
+  #modal-background.show {
+    display: block !important; }
+
+#contact-form-modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #DEDEE3;
+  /*border: 2px solid $form-border;*/
+  border-radius: 5px;
+  padding: 25px;
+  z-index: 100; }
+  #contact-form-modal .contact-title {
+    margin: 20px 25px;
+    text-align: center; }
+  #contact-form-modal .form-close {
+    position: absolute;
+    color: #ff4618;
+    top: 10px;
+    right: 5px;
+    cursor: pointer; }
+  #contact-form-modal .form-close:hover {
+    color: #ff2300; }
 
 /*****
 Header Styling
