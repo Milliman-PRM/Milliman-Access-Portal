@@ -32,7 +32,7 @@ select {
   padding: 5px 10px;
   border: solid 2px transparent;
   border-radius: 5px;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
   transition: border 0.2s; }
   input:focus,
   textarea:focus,
@@ -44,7 +44,7 @@ textarea {
   resize: none; }
 
 .form-group {
-  margin-bottom: 5px; }
+  margin-bottom: 10px; }
 
 .screen-center {
   position: absolute;
@@ -282,5 +282,6 @@ Client Admin Styling
     right: 10px; }
 
 #client-form h4 {
+  margin-top: 15px;
   font-weight: bold; }
 
