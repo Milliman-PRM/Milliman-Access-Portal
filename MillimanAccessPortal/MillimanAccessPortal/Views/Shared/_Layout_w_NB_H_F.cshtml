@@ -12,7 +12,19 @@
 
 @Html.Partial("_Footer")
 
+<<<<<<< HEAD
 @section Scripts {
     @RenderSection("Scripts", required: false)
 }
 
+=======
+
+@section Scripts {
+    <environment names="Development,CI">
+        <script src="~/js/contact-form.js"></script>
+    </environment>
+    <environment names="Staging,Production">
+        <script src="~/js/contact-form.min.js"></script>
+    </environment>
+}
+>>>>>>> refs/remotes/origin/develop
