@@ -69,35 +69,18 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public IActionResult ClientUserLists(long? id)
         {
-            if (id == null)
+            Client ThisClient = DbContext.Client.SingleOrDefaultAsync(m => m.Id == id).Result;
+            if (ThisClient == null)
             {
-                // TODO do better than this?
                 return NotFound();
             }
-            Client ThisClient = DbContext.Client.SingleOrDefaultAsync(m => m.Id == id).Result;
 
+            // Check current user's authorization to manage the requested Client
             if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = ThisClient.Id }).Result)
             {
                 return Unauthorized();
-            }
-
-            if (ThisClient == null)
-            {
-                // TODO do better than this?
-                return NotFound();
-            }
-
-            // Authorization check TODO move this to proper authorization mechanism
-            ApplicationUser CurrentUser = GetCurrentUser();
-            if (!DbContext
-                .UserRoleForClient
-                .Include(urc => urc.Role)
-                .Any(urc => urc.UserId == CurrentUser.Id && 
-                            urc.ClientId == id && 
-                            urc.Role.RoleEnum == RoleEnum.ClientAdministrator)
-                )
-            {
-                return Unauthorized();
+                // or:
+                // return NotFound();
             }
 
             ClientUserListsViewModel Model = new ClientUserListsViewModel();

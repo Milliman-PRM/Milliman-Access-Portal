@@ -25,10 +25,28 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string[]>("AcceptedEmailDomainList")
                         .IsRequired();
 
+                    b.Property<string>("ClientCode");
+
+                    b.Property<string>("ConsultantEmail");
+
+                    b.Property<string>("ConsultantName");
+
+                    b.Property<string>("ConsultantOffice");
+
+                    b.Property<string>("ContactEmail");
+
+                    b.Property<string>("ContactName");
+
+                    b.Property<string>("ContactPhone");
+
+                    b.Property<string>("ContactTitle");
+
                     b.Property<string>("Name")
                         .IsRequired();
 
                     b.Property<long?>("ParentClientId");
+
+                    b.Property<string>("ProfitCenter");
 
                     b.HasKey("Id");
 
