@@ -53,7 +53,7 @@ select {
     padding: 5px 10px;
     border: solid 2px rgba(0, 0, 0, 0);
     border-radius: 5px;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     transition: border 0.2s;
 
     &:focus {
@@ -64,6 +64,10 @@ select {
 textarea {
     height: auto;
     resize: none;
+}
+
+.form-group {
+    margin-bottom: 5px;
 }
 
 .screen-center {
@@ -387,4 +391,12 @@ Client Admin Styling
         bottom: 10px;
         right: 10px;
     }
+}
+
+#client-form {
+
+    h4 {
+        font-weight: bold;
+    }
+
 }
