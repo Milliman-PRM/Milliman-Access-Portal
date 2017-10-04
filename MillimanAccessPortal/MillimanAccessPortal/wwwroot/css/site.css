@@ -219,7 +219,8 @@ Client Admin Styling
   margin: 10px 5px;
   cursor: pointer; }
   .client-node:hover {
-    background-color: lightgray; }
+    background-color: lightgray;
+    transform: scale(1.02); }
   .client-node .client-node-title {
     margin: 5px 0; }
   .client-node .icon-container {
