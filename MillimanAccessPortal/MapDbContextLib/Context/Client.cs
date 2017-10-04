@@ -17,6 +17,24 @@ namespace MapDbContextLib.Context
         [Required]
         public string Name { get; set; }
 
+        public string ClientCode { get; set; }
+
+        public string ContactName { get; set; }
+
+        public string ContactTitle { get; set; }
+
+        public string ContactEmail { get; set; }
+
+        public string ContactPhone { get; set; }
+
+        public string ConsultantName { get; set; }
+
+        public string ConsultantEmail { get; set; }
+
+        public string ConsultantOffice { get; set; }
+
+        public string ProfitCenter { get; set; }
+
         [Required]
         public string[] AcceptedEmailDomainList { get; set; }
 
