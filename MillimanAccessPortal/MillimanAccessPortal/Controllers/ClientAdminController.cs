@@ -42,7 +42,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public IActionResult ClientFamilyList()
         {
-            if (!AuthorizationService.AuthorizeAsync(User, null, new RoleRequirement { RoleEnum = RoleEnum.ClientAdministrator }).Result)
+            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator }).Result)
             {
                 return Unauthorized();
             }
@@ -67,7 +67,7 @@ namespace MillimanAccessPortal.Controllers
         // GET: ClientAdmin
         // Intended for access by ajax from Index view
         [HttpGet]
-        public IActionResult ClientUserLists([FromBody] long? id)
+        public IActionResult ClientUserLists(long? id)
         {
             if (id == null)
             {
@@ -75,6 +75,12 @@ namespace MillimanAccessPortal.Controllers
                 return NotFound();
             }
             Client ThisClient = DbContext.Client.SingleOrDefaultAsync(m => m.Id == id).Result;
+
+            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = ThisClient.Id }).Result)
+            {
+                return Unauthorized();
+            }
+
             if (ThisClient == null)
             {
                 // TODO do better than this?
