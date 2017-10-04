@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MillimanAccessPortal.Authorization
 {
-    public class RoleInClientHandler : AuthorizationHandler<RoleRequirement>
+    public class RoleInClientHandler : AuthorizationHandler<ClientRoleRequirement>
     {
         private ApplicationDbContext DataContext;
         private UserManager<ApplicationUser> UserManager;
@@ -27,7 +27,7 @@ namespace MillimanAccessPortal.Authorization
         /// <param name="Context"></param>
         /// <param name="Requirement">Leave ClientId property unset or &lt; 0 to test for the role authorization to any client</param>
         /// <returns></returns>
-        protected override Task HandleRequirementAsync(AuthorizationHandlerContext Context, RoleRequirement Requirement)
+        protected override Task HandleRequirementAsync(AuthorizationHandlerContext Context, ClientRoleRequirement Requirement)
         {
             ApplicationUser User = UserManager.GetUserAsync(Context.User).Result;
 
