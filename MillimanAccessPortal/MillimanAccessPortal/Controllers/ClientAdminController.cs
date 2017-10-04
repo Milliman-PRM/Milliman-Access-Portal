@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using System.Security.Claims;
 using MillimanAccessPortal.Models.ClientAdminViewModels;
+using MillimanAccessPortal.Authorization;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -20,48 +22,50 @@ namespace MillimanAccessPortal.Controllers
         private readonly ApplicationDbContext DbContext;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly IServiceProvider ServiceProvider;
+        private readonly IAuthorizationService AuthorizationService;
 
         public ClientAdminController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> UserManagerArg,
-            IServiceProvider ServiceProviderArg
+            IServiceProvider ServiceProviderArg,
+            IAuthorizationService AuthorizationServiceArg
             )
         {
             DbContext = context;
             UserManager = UserManagerArg;
             ServiceProvider = ServiceProviderArg;
+            AuthorizationService = AuthorizationServiceArg;
         }
 
         // GET: ClientAdmin
+        // Intended for access by ajax from Index view
         [HttpGet]
         public IActionResult ClientFamilyList()
         {
-            // TODO Decide whether to filter clients returned based on what clients user has this role for.
-            ApplicationUser CurrentUser = GetCurrentUser();
-            if (!DbContext
-                .UserRoleForClient
-                .Include(urc => urc.Role)
-                .Any(urc => urc.UserId == CurrentUser.Id &&
-                            urc.Role.RoleEnum == RoleEnum.ClientAdministrator)
-                )
+            if (!AuthorizationService.AuthorizeAsync(User, null, new RoleRequirement { RoleEnum = RoleEnum.ClientAdministrator }).Result)
             {
                 return Unauthorized();
             }
 
             long CurrentUserId = GetCurrentUser().Id;
 
-            List<ClientAndChildrenViewModel> Model = new List<ClientAndChildrenViewModel>();
+            List<ClientAndChildrenViewModel> ModelToReturn = new List<ClientAndChildrenViewModel>();
 
             List<Client> AllRootClients = new StandardQueries(ServiceProvider).GetAllRootClients();
-            foreach (Client C in AllRootClients)
+            foreach (Client C in AllRootClients.OrderBy(c=>c.Name))
             {
-                Model.Add(new StandardQueries(ServiceProvider).GetDescendentFamilyOfClient(C, CurrentUserId, true));
+                ClientAndChildrenViewModel ClientModel = new StandardQueries(ServiceProvider).GetDescendentFamilyOfClient(C, CurrentUserId, true);
+                if (ClientModel.IsThisOrAnyChildManageable())
+                {
+                    ModelToReturn.Add(ClientModel);
+                }
             }
 
-            return Json(Model);
+            return Json(ModelToReturn);
         }
 
         // GET: ClientAdmin
+        // Intended for access by ajax from Index view
         [HttpGet]
         public IActionResult ClientUserLists([FromBody] long? id)
         {
