@@ -1,53 +1,157 @@
 @model IEnumerable<MapDbContextLib.Context.Client>
 
 @{
-    ViewData["Title"] = "Client Index";
+    ViewData["Title"] = "Client Administration";
     Layout = "_Layout_w_NB_H_F";
 }
 
-<h2>Index</h2>
+<h2 class="page-title">Client Admin</h2>
 
-<p>
-    <a asp-action="Create">Create A New Client</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-                <th>
-                    @Html.DisplayNameFor(model => model.Name)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.AcceptedEmailDomainList)
-                </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ParentClient)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Name)
-                </td>
-                <td>
-                    @{
-                        string ListString = string.Join(" | ", item.AcceptedEmailDomainList);
-                        @Html.DisplayFor(modelItem => ListString)
-                    }
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.ParentClient.Name)
-                </td>
-                <td>
-                    <a asp-action="Create" asp-route-id="@item.Id">New Child Client</a> |
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<div class="row">
+    <div id="client-tree" class="client-admin-section col-sm-12 col-md-3">
+        <h3 class="client-admin-section-title">Client Tree</h3>
+        <input class="search-box" placeholder="Search for Client" />
+        <div class="vertical-scroll container-fluid">
+            <div class="row">
+                <ul>
+                    <li>
+                        <div class="client-node col-xs-12">
+                            <div class="icon-container">
+                                <i class="fa fa-fw fa-pencil"></i>
+                                <i class="fa fa-fw fa-trash"></i>
+                            </div>
+                            <h2 class="client-node-title">Client Name</h2>
+                            <p>Client information</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="client-node col-xs-offset-1 col-xs-11">
+                            <div class="icon-container">
+                                <i class="fa fa-fw fa-pencil"></i>
+                                <i class="fa fa-fw fa-trash"></i>
+                            </div>
+                            <h3 class="client-node-title">Client Name</h3>
+                            <p>Client information</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="client-node col-xs-offset-2 col-xs-10">
+                            <div class="icon-container">
+                                <i class="fa fa-fw fa-pencil"></i>
+                                <i class="fa fa-fw fa-trash"></i>
+                            </div>
+                            <h4 class="client-node-title">Client Name</h4>
+                            <p>Client information</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="client-node col-xs-offset-1 col-xs-11">
+                            <div class="icon-container">
+                                <i class="fa fa-fw fa-pencil"></i>
+                                <i class="fa fa-fw fa-trash"></i>
+                            </div>
+                            <h3 class="client-node-title">Client Name</h3>
+                            <p>Client information</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="client-node col-xs-offset-2 col-xs-10">
+                            <div class="icon-container">
+                                <i class="fa fa-fw fa-pencil"></i>
+                                <i class="fa fa-fw fa-trash"></i>
+                            </div>
+                            <h4 class="client-node-title">Client Name</h4>
+                            <p>Client information</p>
+                        </div>
+                    </li>
+                    <li class="hr col-xs-12"></li>
+                    <li>
+                        <div class="client-node col-xs-12">
+                            <div class="icon-container">
+                                <i class="fa fa-fw fa-pencil"></i>
+                                <i class="fa fa-fw fa-trash"></i>
+                            </div>
+                            <h2 class="client-node-title">Client Name</h2>
+                            <p>Client information</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="client-node col-xs-offset-1 col-xs-11">
+                            <div class="icon-container">
+                                <i class="fa fa-fw fa-pencil"></i>
+                                <i class="fa fa-fw fa-trash"></i>
+                            </div>
+                            <h3 class="client-node-title">Client Name</h3>
+                            <p>Client information</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="client-node col-xs-offset-2 col-xs-10">
+                            <div class="icon-container">
+                                <i class="fa fa-fw fa-pencil"></i>
+                                <i class="fa fa-fw fa-trash"></i>
+                            </div>
+                            <h4 class="client-node-title">Client Name</h4>
+                            <p>Client information</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="client-node col-xs-offset-1 col-xs-11">
+                            <div class="icon-container">
+                                <i class="fa fa-fw fa-pencil"></i>
+                                <i class="fa fa-fw fa-trash"></i>
+                            </div>
+                            <h3 class="client-node-title">Client Name</h3>
+                            <p>Client information</p>
+                        </div>
+                    </li>
+                    <li>
+                </ul>
+            </div>
+        </div>    
+    </div>
+    <div id="client-info" class="client-admin-section col-sm-12 col-md-6">
+        <h3 class="client-admin-section-title">Client Information</h3>
+        <div class="container-fluid">
+            <form action="/" method="post">
+                <div class="row">
+
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="client-users" class="client-admin-section col-sm-12 col-md-3">
+        <h3 class="client-admin-section-title">Client Users</h3>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+
+        $(function() {
+
+            $.ajax({
+                type: 'GET',
+                url: 'ClientAdmin/ClientFamilyList/'
+            }).done(function (response) {
+                console.log(response);
+            }).fail(function () {
+               console.log('failed to retreive Client Tree data');
+            });
+
+            $.ajax({
+                type: 'GET',
+                url: 'ClientAdmin/ClientUserLists',
+                data: { id: 1 }
+            }).done(function (response) {
+                console.log(response)
+            }).fail(function () {
+                console.log('failed to retrieve Client data');
+            });
+
+        })
+
+
+    </script>
+}

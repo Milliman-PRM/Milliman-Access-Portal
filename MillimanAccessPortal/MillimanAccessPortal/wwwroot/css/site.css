@@ -19,8 +19,11 @@ body {
   position: relative; }
   #content-wrapper.navbar-offset {
     margin-left: 70px; }
-  #content-wrapper.header-offset {
-    padding-top: 50px; }
+
+.page-title {
+  margin: 8vh 0 20px 20px;
+  text-align: center;
+  font-weight: bold; }
 
 input {
   height: 40px;
@@ -59,14 +62,15 @@ Nav Sidebar Styling
 *****/
 #sidebar-nav {
   position: fixed;
+  top: 0;
+  left: -230px;
   width: 300px;
   height: 100vh;
-  left: -230px;
   transition: all 0.5s;
   background-color: #242424;
   color: #fff;
   padding: 0;
-  z-index: 100; }
+  z-index: 90; }
   #sidebar-nav:hover {
     left: 0;
     transition: all 0.5s; }
@@ -123,19 +127,20 @@ Header Styling
   position: absolute;
   top: 0;
   right: 0;
-  display: inline-block; }
+  height: 10vh; }
   #header #logo {
-    width: 400px;
+    height: 100%;
     margin-right: 20px; }
 
 /*****
 Footer Styling
 *****/
 #footer {
-  position: absolute;
+  position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
+  height: 7vh;
   text-align: center; }
   #footer ul {
     list-style: none;
@@ -177,4 +182,49 @@ Report Block Styling
   background-color: #fff;
   margin: 15px 0;
   padding: 20px; }
+
+/*****
+Client Admin Styling
+*****/
+.client-admin-section {
+  overflow-y: hidden;
+  height: 80vh;
+  padding: 10px; }
+  .client-admin-section h3.client-admin-section-title {
+    margin: 10px 10px 20px;
+    text-align: center; }
+  .client-admin-section input .search-box {
+    width: 50% !important; }
+  .client-admin-section .vertical-scroll {
+    overflow-y: auto;
+    height: 85%;
+    width: 100%;
+    margin-bottom: 10px; }
+    .client-admin-section .vertical-scroll ul {
+      list-style-type: none;
+      padding: 5px;
+      margin: 5px; }
+  .client-admin-section .hr {
+    height: 2px;
+    border: 1px solid black;
+    margin: 20px 5px;
+    padding: 0; }
+
+.client-node {
+  position: relative;
+  padding: 5px 10px;
+  background-color: white;
+  border: 2px solid black;
+  border-radius: 5px;
+  margin: 10px 5px;
+  cursor: pointer; }
+  .client-node:hover {
+    background-color: lightgray; }
+  .client-node .client-node-title {
+    margin: 5px 0; }
+  .client-node .icon-container {
+    position: absolute;
+    display: inline;
+    bottom: 10px;
+    right: 10px; }
 

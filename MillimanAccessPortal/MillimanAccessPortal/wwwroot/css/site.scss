@@ -34,11 +34,13 @@ body {
     &.navbar-offset {
         margin-left: 70px;
     }
-
-    &.header-offset {
-        padding-top: 50px;
-    }
 }
+
+.page-title {
+    margin: 8vh 0 20px 20px;
+    text-align: center;
+    font-weight: bold;
+} 
 
 input {
     height: 40px;
@@ -92,14 +94,15 @@ Nav Sidebar Styling
 *****/
 #sidebar-nav {
     position: fixed;
+    top: 0;
+    left: -230px;
     width: 300px;
     height: 100vh;
-    left: -230px;
     transition: all 0.5s;
     background-color: $nav-background-color;
     color: $nav-font-color;
     padding: 0;
-    z-index: 100;
+    z-index: 90;
 
     &:hover {
         left: 0;
@@ -182,10 +185,10 @@ Header Styling
     position: absolute;
     top: 0;
     right: 0;
-    display: inline-block;
+    height: 10vh;
 
     #logo {
-        width: 400px;
+        height: 100%;
         margin-right: 20px;
     }
 }
@@ -195,10 +198,11 @@ Footer Styling
 *****/
 
 #footer {
-    position: absolute;
+    position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
+    height: 7vh;
     text-align: center;
 
     ul {
@@ -253,4 +257,69 @@ Report Block Styling
     background-color: #fff;
     margin: 15px 0;
     padding: 20px;
+}
+
+
+/*****
+Client Admin Styling
+*****/
+.client-admin-section {
+    overflow-y: hidden;
+    height: 80vh;
+    padding: 10px;
+
+    h3.client-admin-section-title {
+        margin: 10px 10px 20px;
+        text-align: center;
+    }
+
+    input .search-box{
+        width: 50% !important;
+    } 
+    
+    .vertical-scroll {
+        overflow-y: auto;
+        height: 85%;
+        width: 100%;
+        margin-bottom: 10px;
+
+        ul {
+            list-style-type: none;
+            padding: 5px;
+            margin: 5px;
+        }
+    }
+
+    .hr {
+        height: 2px;
+        border: 1px solid black;
+        margin: 20px 5px;
+        padding: 0;
+    }
+}
+
+.client-node {
+    position: relative;
+    padding: 5px 10px;
+    background-color: white;
+    border: 2px solid black;
+    border-radius: 5px;
+    margin: 10px 5px;
+    cursor: pointer;
+
+    &:hover {
+        background-color: lightgray;
+    }
+    
+
+    .client-node-title {
+        margin: 5px 0;
+    } 
+    
+    .icon-container {
+        position: absolute;
+        display: inline;
+        bottom: 10px;
+        right: 10px;
+    }
 }
