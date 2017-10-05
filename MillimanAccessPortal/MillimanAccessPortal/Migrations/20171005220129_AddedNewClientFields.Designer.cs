@@ -9,19 +9,21 @@ using MapDbContextLib.Identity;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20171004201850_NewClientProperties")]
-    partial class NewClientProperties
+    [Migration("20171005220129_AddedNewClientFields")]
+    partial class AddedNewClientFields
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
-                .HasAnnotation("ProductVersion", "1.1.2");
+                .HasAnnotation("ProductVersion", "1.1.3");
 
             modelBuilder.Entity("MapDbContextLib.Context.Client", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
+
+                    b.Property<string[]>("AcceptedEmailAddressExceptionList");
 
                     b.Property<string[]>("AcceptedEmailDomainList")
                         .IsRequired();

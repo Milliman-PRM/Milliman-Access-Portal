@@ -15,12 +15,14 @@ namespace MillimanAccessPortal.Migrations
         {
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
-                .HasAnnotation("ProductVersion", "1.1.2");
+                .HasAnnotation("ProductVersion", "1.1.3");
 
             modelBuilder.Entity("MapDbContextLib.Context.Client", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
+
+                    b.Property<string[]>("AcceptedEmailAddressExceptionList");
 
                     b.Property<string[]>("AcceptedEmailDomainList")
                         .IsRequired();

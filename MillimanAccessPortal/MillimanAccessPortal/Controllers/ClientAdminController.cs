@@ -38,6 +38,16 @@ namespace MillimanAccessPortal.Controllers
         }
 
         // GET: ClientAdmin
+        /// <summary>
+        /// Action leading to the main landing page for Client administration UI
+        /// </summary>
+        /// <returns></returns>
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        // GET: ClientAdmin/ClientFamilyList
         // Intended for access by ajax from Index view
         [HttpGet]
         public IActionResult ClientFamilyList()
@@ -64,7 +74,7 @@ namespace MillimanAccessPortal.Controllers
             return Json(ModelToReturn);
         }
 
-        // GET: ClientAdmin
+        // GET: ClientAdmin/ClientUserLists
         // Intended for access by ajax from Index view
         [HttpGet]
         public IActionResult ClientUserLists(long? id)
@@ -108,14 +118,17 @@ namespace MillimanAccessPortal.Controllers
                 // TODO Test whether the other overload of .Union() needs to be used with an IEqualityComparer argument.  For this use equality should probably be based on Id only.
             }
 
-            foreach (string AcceptableDomain in ThisClient.AcceptedEmailDomainList)
+            if (ThisClient.AcceptedEmailDomainList != null)
             {
-                if (string.IsNullOrWhiteSpace(AcceptableDomain))
+                foreach (string AcceptableDomain in ThisClient.AcceptedEmailDomainList)
                 {
-                    continue;
+                    if (string.IsNullOrWhiteSpace(AcceptableDomain))
+                    {
+                        continue;
+                    }
+                    Model.EligibleUsers.AddRange(UsersAssignedToClientFamily.Where(u => u.NormalizedEmail.Contains($"@{AcceptableDomain.ToUpper()}"))
+                                                                            .Select(u => (UserInfo)u));
                 }
-                Model.EligibleUsers.AddRange(UsersAssignedToClientFamily.Where(u => u.NormalizedEmail.Contains($"@{AcceptableDomain.ToUpper()}"))
-                                                                        .Select(u=>(UserInfo)u));
             }
 
             // Assign the remaining assigned user properties
@@ -130,29 +143,61 @@ namespace MillimanAccessPortal.Controllers
             return Json(Model);
         }
 
-        // GET: ClientAdmin
-        /// <summary>
-        /// Action leading to the main landing page for Client administration UI
-        /// </summary>
-        /// <returns></returns>
-        public IActionResult Index()
-        {
-            return View();
-        }
-
+#if true
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AssignUser(EditClientViewModel Model)
+        //[ValidateAntiForgeryToken]
+#else
+        [HttpGet]
+#endif
+        public async Task<IActionResult> AssignUserToClient(ClientUserAssociationViewModel Model)
         {
-            // TODO check whether each assigned user email is from an acceptable domain
+            // Authorization check
+            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.ClientId }).Result)
+            {
+                return Unauthorized();
+            }
 
-            Client ThisClient = await DbContext.Client.SingleOrDefaultAsync(m => m.Id == Model.ThisClient.Id);
+            // Validate the request
+            // 1 Requested client must exist
+            Client RequestedClient = DbContext
+                                     .Client
+                                     .Where(c => c.Id == Model.ClientId)
+                                     .SingleOrDefault();
+            if (RequestedClient == null)
+            {
+                return BadRequest("The requested client does not exist");
+            }
+
+            // 2 Requested user must exist
+            ApplicationUser RequestedUser = DbContext
+                                            .ApplicationUser
+                                            .Where(u => u.Id == Model.UserId)
+                                            .SingleOrDefault();
+            if (RequestedUser == null)
+            {
+                return BadRequest("The requested user does not exist");
+            }
+
+            // 3 Requested User's email must comply with accepted address exception or accepted domain for the client
+            string RequestedUserEmail = RequestedUser.NormalizedEmail.ToUpper();
+            string RequestedUserEmailDomain = RequestedUserEmail.Substring(RequestedUserEmail.IndexOf('@') + 1).ToUpper();
+            bool DomainMatch = RequestedClient.AcceptedEmailDomainList != null && 
+                               RequestedClient.AcceptedEmailDomainList.Select(d=>d.ToUpper()).Contains(RequestedUserEmailDomain);
+            bool EmailMatch = RequestedClient.AcceptedEmailAddressExceptionList != null && 
+                              RequestedClient.AcceptedEmailAddressExceptionList.Select(d => d.ToUpper()).Contains(RequestedUserEmail);
+            if (!EmailMatch && !DomainMatch)
+            {
+                // 412 is Precondition Failed
+                return StatusCode(412, "Requested user's email not allowed for this client");
+            }
+
+            Client ThisClient = await DbContext.Client.SingleOrDefaultAsync(m => m.Id == Model.ClientId);
             Claim ThisClientMembershipClaim = new Claim("ClientMembership", ThisClient.Name);
             IList<ApplicationUser> AlreadyAssignedUsers = UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim).Result;
 
+            /*
             foreach (var UserInSelectList in Model.ApplicableUsers)
             {
-                /*
                 ApplicationUser ThisUser = DbContext.ApplicationUser.SingleOrDefault(u => u.Id == UserInSelectList.);
 
                 if (!AlreadyAssignedUsers.Select(u=>u.Id).Contains(AssignedUserId))
@@ -160,16 +205,21 @@ namespace MillimanAccessPortal.Controllers
                     // Create a claim for this user and this client
                     UserManager.AddClaimAsync(ThisUser, ThisClientMembershipClaim).Wait();
                 }
-                */
                 var x = UserInSelectList;
-            }
-            if (ModelState.IsValid)
-            {
-                //UserAuthorizationToClient NewRoleAssignment
-            }
+                }
+                if (ModelState.IsValid)
+                {
+                    //UserAuthorizationToClient NewRoleAssignment
+                }
 
-            return RedirectToAction("Edit", new { Id = Model.ThisClient.Id });
+            }
+            
+            return RedirectToAction("Edit", new { Id = Model.ClientId });
+            */
+            return RedirectToAction("Index");
         }
+
+        /*
 
         // GET: ClientAdmin/Edit/5
         public async Task<IActionResult> Edit(long? id)
@@ -185,44 +235,9 @@ namespace MillimanAccessPortal.Controllers
                 return RedirectToAction(nameof(ClientAdminController.Index));
             }
 
-            Client NoParent = new Client { Id = -1, Name = "<None>", ParentClientId = null };
-            List<Client> AllClients = DbContext.Client
-                .OrderBy(i => i.Name)
-                .Prepend(NoParent)
-                .ToList();
+            // TODO fill this in
 
-            ViewBag.ParentClientId = new SelectList(AllClients, "Id", "Name", ThisClient.ParentClientId != null ? ThisClient.ParentClientId : NoParent.Id);
-
-            // Get all users currently assigned to any related Client (any descendant of the root client)
-            List<Client> AllRelatedClients = new StandardQueries(ServiceProvider).GetAllRelatedClients(ThisClient);
-            List<ApplicationUser> UsersAssignedToRelatedClients = new List<ApplicationUser>();
-            foreach (Client OneClient in AllRelatedClients)
-            {
-                Claim ThisClientMembershipClaim = new Claim("ClientMembership", OneClient.Name);
-                UsersAssignedToRelatedClients = UsersAssignedToRelatedClients.Union(UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim).Result).ToList();
-            }
-
-            List < ApplicationUser> EligibleUsers = new List<ApplicationUser>();
-            foreach (string AcceptableDomain in ThisClient.AcceptedEmailDomainList)
-            {
-                if (string.IsNullOrWhiteSpace( AcceptableDomain))
-                {
-                    continue;
-                }
-                EligibleUsers.AddRange(DbContext.ApplicationUser.Where(u => u.NormalizedEmail.Contains($"@{AcceptableDomain.ToUpper()}")));
-            }
-
-            EditClientViewModel Model = new EditClientViewModel
-            {
-                ThisClient = ThisClient,
-                //ApplicableUsers = new List<SelectableNamedThing>(EligibleUsers.Intersect(UsersAssignedToRelatedClients).OrderBy(u => u.NormalizedEmail), "Id", "UserName", UsersAssignedToRelatedClients.Select(u => u.Id)).ToList(),
-                ApplicableUsers = EligibleUsers.Intersect(UsersAssignedToRelatedClients)
-                                  .OrderBy(u => u.NormalizedEmail)
-                                  .Select(x => new SelectableNamedThing { Id = x.Id, DisplayName = x.Email, Selected = true }) // TODO fix Selected to indicate those selected for this client
-                                  .ToList()
-            };
-
-            return View(Model);
+            return View();
         }
 
         // POST: ClientAdmin/Edit/5
@@ -231,9 +246,9 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         //public async Task<IActionResult> Edit(long id, [Bind("Id,Name,AcceptedEmailDomainList,ParentClientId")] Client client)
-        public async Task<IActionResult> Edit(long id, EditClientViewModel Model)
+        public async Task<IActionResult> Edit(long id, ClientUserAssociationViewModel Model)
         {
-            if (id != Model.ThisClient.Id)
+            if (id != Model.ClientId)
             {
                 return NotFound();
             }
@@ -242,7 +257,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 try
                 {
-                    DbContext.Update(Model.ThisClient);
+                    DbContext.Update(Model.ClientId);
                     await DbContext.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -260,7 +275,7 @@ namespace MillimanAccessPortal.Controllers
             }
             //ViewData["ParentClientId"] = new SelectList(DbContext.Client, "Id", "Name", client.ParentClientId);
             return RedirectToAction("Edit", new { Id = Model.ThisClient.Id });
-        }
+        }*/
 
         // GET: ClientAdmin/Delete/5
         public async Task<IActionResult> Delete(long? id)

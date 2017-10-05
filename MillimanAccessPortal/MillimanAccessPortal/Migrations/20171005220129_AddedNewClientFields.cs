@@ -4,10 +4,15 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace MillimanAccessPortal.Migrations
 {
-    public partial class NewClientProperties : Migration
+    public partial class AddedNewClientFields : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<string[]>(
+                name: "AcceptedEmailAddressExceptionList",
+                table: "Client",
+                nullable: true);
+
             migrationBuilder.AddColumn<string>(
                 name: "ClientCode",
                 table: "Client",
@@ -56,6 +61,10 @@ namespace MillimanAccessPortal.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropColumn(
+                name: "AcceptedEmailAddressExceptionList",
+                table: "Client");
+
             migrationBuilder.DropColumn(
                 name: "ClientCode",
                 table: "Client");
