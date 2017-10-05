@@ -38,6 +38,8 @@ namespace MapDbContextLib.Context
         [Required]
         public string[] AcceptedEmailDomainList { get; set; }
 
+        public string[] AcceptedEmailAddressExceptionList { get; set; }
+        
         [ForeignKey("ParentClient")]
         public long? ParentClientId { get; set; }
         public Client ParentClient { get; set; }
