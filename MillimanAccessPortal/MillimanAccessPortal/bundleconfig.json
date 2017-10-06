@@ -14,11 +14,5 @@
       "enabled": true,
       "renameLocals": true
     }
-  },
-  {
-    "outputFileName": "wwwroot/css/font-awesome.min.css",
-    "inputFiles": [
-      "wwwroot/css/font-awesome.css"
-    ]
   }
 ]
