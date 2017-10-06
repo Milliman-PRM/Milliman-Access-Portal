@@ -26,6 +26,7 @@ bin/
 obj/
 TestResults/
 .vs/
+**/wwwroot/lib/
 ###################
 # Web publish log #
 ###################
