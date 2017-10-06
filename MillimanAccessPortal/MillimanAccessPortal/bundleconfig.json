@@ -14,5 +14,15 @@
       "enabled": true,
       "renameLocals": true
     }
+  },
+  {
+    "outputFileName": "wwwroot/js/toastr-options.min.js",
+    "inputFiles": [
+      "wwwroot/js/toastr-options.js"
+    ],
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    }
   }
 ]
