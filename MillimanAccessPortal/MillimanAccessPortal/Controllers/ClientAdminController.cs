@@ -3,13 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapCommonLib;
+using AuditLogLib;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using System.Security.Claims;
 using MillimanAccessPortal.Models.ClientAdminViewModels;
@@ -143,13 +147,9 @@ namespace MillimanAccessPortal.Controllers
             return Json(Model);
         }
 
-#if true
         [HttpPost]
-        //[ValidateAntiForgeryToken]
-#else
-        [HttpGet]
-#endif
-        public async Task<IActionResult> AssignUserToClient(ClientUserAssociationViewModel Model)
+        // [ValidateAntiForgeryToken]  // TODO make this work
+        public IActionResult AssignUserToClient(ClientUserAssociationViewModel Model)
         {
             // Authorization check
             if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.ClientId }).Result)
@@ -171,7 +171,7 @@ namespace MillimanAccessPortal.Controllers
             // 2 Requested user must exist
             ApplicationUser RequestedUser = DbContext
                                             .ApplicationUser
-                                            .Where(u => u.Id == Model.UserId)
+                                            .Where(u => u.UserName == Model.UserName)
                                             .SingleOrDefault();
             if (RequestedUser == null)
             {
@@ -180,6 +180,11 @@ namespace MillimanAccessPortal.Controllers
 
             // 3 Requested User's email must comply with accepted address exception or accepted domain for the client
             string RequestedUserEmail = RequestedUser.NormalizedEmail.ToUpper();
+            if (!GlobalFunctions.IsValidEmail(RequestedUserEmail))
+            {
+                Response.Headers.Add("Warning", $"The requested user's email is invalid: ({RequestedUserEmail})");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
+            }
             string RequestedUserEmailDomain = RequestedUserEmail.Substring(RequestedUserEmail.IndexOf('@') + 1).ToUpper();
             bool DomainMatch = RequestedClient.AcceptedEmailDomainList != null && 
                                RequestedClient.AcceptedEmailDomainList.Select(d=>d.ToUpper()).Contains(RequestedUserEmailDomain);
@@ -187,36 +192,33 @@ namespace MillimanAccessPortal.Controllers
                               RequestedClient.AcceptedEmailAddressExceptionList.Select(d => d.ToUpper()).Contains(RequestedUserEmail);
             if (!EmailMatch && !DomainMatch)
             {
-                // 412 is Precondition Failed
-                return StatusCode(412, "Requested user's email not allowed for this client");
+                Response.Headers.Add("Warning", "The requested user's email is not accepted for this client");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);
             }
 
-            Client ThisClient = await DbContext.Client.SingleOrDefaultAsync(m => m.Id == Model.ClientId);
-            Claim ThisClientMembershipClaim = new Claim("ClientMembership", ThisClient.Name);
-            IList<ApplicationUser> AlreadyAssignedUsers = UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim).Result;
+            Claim ThisClientMembershipClaim = new Claim("ClientMembership", RequestedClient.Name);
 
-            /*
-            foreach (var UserInSelectList in Model.ApplicableUsers)
+            if (UserManager.GetClaimsAsync(RequestedUser).Result.Any(claim => claim.Type == ThisClientMembershipClaim.Type && 
+                                                                              claim.Value == ThisClientMembershipClaim.Value))
             {
-                ApplicationUser ThisUser = DbContext.ApplicationUser.SingleOrDefault(u => u.Id == UserInSelectList.);
-
-                if (!AlreadyAssignedUsers.Select(u=>u.Id).Contains(AssignedUserId))
-                {
-                    // Create a claim for this user and this client
-                    UserManager.AddClaimAsync(ThisUser, ThisClientMembershipClaim).Wait();
-                }
-                var x = UserInSelectList;
-                }
-                if (ModelState.IsValid)
-                {
-                    //UserAuthorizationToClient NewRoleAssignment
-                }
-
+                return Ok("User is already assigned to this client");
             }
-            
-            return RedirectToAction("Edit", new { Id = Model.ClientId });
-            */
-            return RedirectToAction("Index");
+            else
+            {
+                IdentityResult x = UserManager.AddClaimAsync(RequestedUser, ThisClientMembershipClaim).Result;
+                if (x != IdentityResult.Success)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, "Failed to assign user to claim (legitimate request)");
+                }
+
+                AuditLogger AuditLog = new AuditLogger();
+                object LogDetails = new { AssignedUserName = RequestedUser.UserName,
+                                          AssignedUserId = RequestedUser.Id,
+                                          AssignedClient = RequestedClient.Name,
+                                          AssignedClientId = RequestedClient.Id};
+                AuditLog.Log(LogLevel.Information, AuditEventId.UserAssignedToClient, AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User Assigned to Client", LogDetails, User.Identity.Name) );
+                return Ok();
+            }
         }
 
         /*

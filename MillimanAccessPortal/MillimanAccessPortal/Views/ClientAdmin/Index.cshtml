@@ -211,6 +211,23 @@
             //    console.log('failed to retrieve Client data');
             //});
 
+            $.ajax({
+                type: 'POST',
+                url: 'ClientAdmin/AssignUserToClient',
+                data: { clientId: 1, UserName: "testid4444@yahoo.com" }
+            }).done(function (response) {
+                console.log(response)
+            }).fail(function (response) {
+                switch (response.status) {
+                    case 412:
+                        toastr["warning"](response.getResponseHeader("Warning"));
+                        break;
+                    default:
+                        alert("ajax AssignUserToClient response code is " + response.status);
+                        break;
+                }
+            });
+
         })
 
 
