@@ -8,10 +8,10 @@
 <h2 class="page-title">Client Admin</h2>
 
 <div class="row">
-    <div id="client-tree" class="client-admin-section col-sm-12 col-md-3">
+    <div id="client-tree" class="client-admin-section no-vertical-scroll col-sm-12 col-md-3">
         <h3 class="client-admin-section-title">Client Tree</h3>
         <input class="search-box" placeholder="Search for Client" />
-        <div class="vertical-scroll container-fluid">
+        <div id="client-tree" class="container-fluid scroll-y">
             <div class="row">
                 <ul>
                     <li>
@@ -112,8 +112,8 @@
     </div>
     <div id="client-info" class="client-admin-section col-sm-12 col-md-6">
         <h3 class="client-admin-section-title">Client Information</h3>
-        <div class="container-fluid">
-            <form id="client-form" action="/" method="post">
+        <div class="container-fluid scroll-y">
+            <form id="client-form" class="read-only" asp-action="/" method="post">
                 <div class="row">
                     <h4>Client Information</h4>
                     <div class="form-group col-md-9">
@@ -142,7 +142,11 @@
                     </div>
                     <h4>Security Information</h4>
                     <div class="form-group col-md-12">
-                        <label for="emailWhitelist">Email/Domain Whitelist</label>
+                        <label for="domainWhitelist">Approved Email Domain</label>
+                        <input type="text" id="domainWhitelist" name="domainWhitelist" class="form-control" />
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label for="emailWhitelist">Email Exception List</label>
                         <input type="text" id="emailWhitelist" name="emailWhitelist" class="form-control" />
                     </div>
                     <h4>Billing Information</h4>
@@ -167,7 +171,7 @@
                         <input type="text" id="profitCenter" name="profitCenter" class="form-control" />
                     </div>
                     <div class="text-right">
-                        <button type="reset" class="btn btn-danger">Reset Form</button>
+                        <button type="reset" class="btn btn-link">Reset Form</button>
                         <button type="submit" id="primary-button" class="btn btn-primary">Save</button>
                     </div>
                 </div>
@@ -185,24 +189,24 @@
 
         $(function() {
 
-            $.ajax({
-                type: 'GET',
-                url: 'ClientAdmin/ClientFamilyList/'
-            }).done(function (response) {
-                console.log(response);
-            }).fail(function () {
-               console.log('failed to retreive Client Tree data');
-            });
+            //$.ajax({
+            //    type: 'GET',
+            //    url: 'ClientAdmin/ClientFamilyList/'
+            //}).done(function (response) {
+            //    console.log(response);
+            //}).fail(function () {
+            //   console.log('failed to retreive Client Tree data');
+            //});
 
-            $.ajax({
-                type: 'GET',
-                url: 'ClientAdmin/ClientUserLists',
-                data: { id: 1 }
-            }).done(function (response) {
-                console.log(response)
-            }).fail(function () {
-                console.log('failed to retrieve Client data');
-            });
+            //$.ajax({
+            //    type: 'GET',
+            //    url: 'ClientAdmin/ClientUserLists',
+            //    data: { id: 1 }
+            //}).done(function (response) {
+            //    console.log(response)
+            //}).fail(function () {
+            //    console.log('failed to retrieve Client data');
+            //});
 
         })
 

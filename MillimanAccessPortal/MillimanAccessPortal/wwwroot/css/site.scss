@@ -53,7 +53,7 @@ select {
     padding: 5px 10px;
     border: solid 2px rgba(0, 0, 0, 0);
     border-radius: 5px;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     transition: border 0.2s;
 
     &:focus {
@@ -332,9 +332,12 @@ Report Block Styling
 Client Admin Styling
 *****/
 .client-admin-section {
-    overflow-y: hidden;
     height: 80vh;
     padding: 10px;
+
+    .scroll-y {
+        overflow-y: auto;
+    }
 
     h3.client-admin-section-title {
         margin: 10px 10px 20px;
@@ -345,8 +348,7 @@ Client Admin Styling
         width: 50% !important;
     }
 
-    .vertical-scroll {
-        overflow-y: auto;
+    #client-tree {
         height: 85%;
         width: 100%;
         margin-bottom: 10px;
@@ -398,5 +400,20 @@ Client Admin Styling
     h4 {
         margin-top: 15px;
         font-weight: bold;
+    }
+
+    &.read-only {
+
+        input:disabled {
+            background-color: $background;
+            border: none;
+            outline: none;
+            border-radius: 0;
+            border-bottom: 1px solid black;
+            box-shadow: none;
+            font-weight: bold;
+            cursor: default;
+            overflow: hidden;
+        }
     }
 }
