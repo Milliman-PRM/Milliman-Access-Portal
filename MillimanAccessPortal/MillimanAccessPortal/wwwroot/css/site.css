@@ -243,6 +243,12 @@ Client Admin Styling
   padding: 10px; }
   .client-admin-section .scroll-y {
     overflow-y: auto; }
+  .client-admin-section .client-admin-section-toolbar {
+    width: 100%;
+    vertical-align: middle; }
+  .client-admin-section .search-box {
+    width: 70% !important;
+    display: inline-block; }
   .client-admin-section h3.client-admin-section-title {
     margin: 10px 10px 20px;
     text-align: center; }

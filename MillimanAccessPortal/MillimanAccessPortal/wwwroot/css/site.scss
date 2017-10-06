@@ -339,12 +339,22 @@ Client Admin Styling
         overflow-y: auto;
     }
 
+    .client-admin-section-toolbar {
+        width: 100%;
+        vertical-align: middle;
+    } 
+    
+    .search-box {
+        width: 70% !important;
+        display: inline-block;
+    }
+
     h3.client-admin-section-title {
         margin: 10px 10px 20px;
         text-align: center;
     }
 
-    input .search-box{
+    input .search-box {
         width: 50% !important;
     }
 
