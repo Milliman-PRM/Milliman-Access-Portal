@@ -157,8 +157,8 @@ namespace MillimanAccessPortal.Controllers
                 return Unauthorized();
             }
 
-            // Validate the request
-            // 1 Requested client must exist
+            #region Validate the request
+            // 1. Requested client must exist
             Client RequestedClient = DbContext
                                      .Client
                                      .Where(c => c.Id == Model.ClientId)
@@ -168,7 +168,7 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest("The requested client does not exist");
             }
 
-            // 2 Requested user must exist
+            // 2. Requested user must exist
             ApplicationUser RequestedUser = DbContext
                                             .ApplicationUser
                                             .Where(u => u.UserName == Model.UserName)
@@ -178,7 +178,7 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest("The requested user does not exist");
             }
 
-            // 3 Requested User's email must comply with accepted address exception or accepted domain for the client
+            // 3. Requested User's email must comply with client email whitelist
             string RequestedUserEmail = RequestedUser.NormalizedEmail.ToUpper();
             if (!GlobalFunctions.IsValidEmail(RequestedUserEmail))
             {
@@ -195,6 +195,7 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The requested user's email is not accepted for this client");
                 return StatusCode(StatusCodes.Status412PreconditionFailed);
             }
+            #endregion
 
             Claim ThisClientMembershipClaim = new Claim("ClientMembership", RequestedClient.Name);
 
@@ -205,8 +206,8 @@ namespace MillimanAccessPortal.Controllers
             }
             else
             {
-                IdentityResult AddClaimResult = UserManager.AddClaimAsync(RequestedUser, ThisClientMembershipClaim).Result;
-                if (AddClaimResult != IdentityResult.Success)
+                IdentityResult ResultOfAddClaim = UserManager.AddClaimAsync(RequestedUser, ThisClientMembershipClaim).Result;
+                if (ResultOfAddClaim != IdentityResult.Success)
                 {
                     return StatusCode(StatusCodes.Status500InternalServerError, "Failed to assign user to claim (legitimate request)");
                 }
@@ -231,8 +232,8 @@ namespace MillimanAccessPortal.Controllers
                 return Unauthorized();
             }
 
-            // Validate the request
-            // 1 Requested client must exist
+            #region Validate the request
+            // 1. Requested client must exist
             Client RequestedClient = DbContext
                                      .Client
                                      .Where(c => c.Id == Model.ClientId)
@@ -242,7 +243,7 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest("The requested client does not exist");
             }
 
-            // 2 Requested user must exist
+            // 2. Requested user must exist
             ApplicationUser RequestedUser = DbContext
                                             .ApplicationUser
                                             .Where(u => u.UserName == Model.UserName)
@@ -252,13 +253,17 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest("The requested user does not exist");
             }
 
+            // TODO If RequestedUser is assigned to any content user groups of this 
+            // client, either reject the request or deassign groups automatically
+            #endregion
+
             Claim ThisClientMembershipClaim = new Claim("ClientMembership", RequestedClient.Name);
 
             if (UserManager.GetClaimsAsync(RequestedUser).Result.Any(claim => claim.Type == ThisClientMembershipClaim.Type &&
                                                                               claim.Value == ThisClientMembershipClaim.Value))
             {
-                IdentityResult RemoveClaimResult = UserManager.RemoveClaimAsync(RequestedUser, ThisClientMembershipClaim).Result;
-                if (RemoveClaimResult != IdentityResult.Success)
+                IdentityResult ResultOfRemoveClaim = UserManager.RemoveClaimAsync(RequestedUser, ThisClientMembershipClaim).Result;
+                if (ResultOfRemoveClaim != IdentityResult.Success)
                 {
                     return StatusCode(StatusCodes.Status500InternalServerError, "Failed to remove user from claim (legitimate request)");
                 }
