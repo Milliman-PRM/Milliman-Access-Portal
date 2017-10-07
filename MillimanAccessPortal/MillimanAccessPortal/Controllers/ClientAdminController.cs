@@ -106,7 +106,7 @@ namespace MillimanAccessPortal.Controllers
                                              .Result
                                              .Select(ApUser => (UserInfo)ApUser)
                                              .OrderBy(u => u.LastName)
-                                             .OrderBy(u => u.FirstName)
+                                             .ThenBy(u => u.FirstName)
                                              .ToList();
             // Assign the remaining assigned user properties
             foreach (UserInfo Item in Model.AssignedUsers)
@@ -147,7 +147,7 @@ namespace MillimanAccessPortal.Controllers
             Model.EligibleUsers = Model.EligibleUsers
                                        .Except(Model.AssignedUsers, new UserInfoEqualityComparer())
                                        .OrderBy(u => u.LastName)
-                                       .OrderBy(u => u.FirstName)
+                                       .ThenBy(u => u.FirstName)
                                        .ToList();
 
             return Json(Model);
