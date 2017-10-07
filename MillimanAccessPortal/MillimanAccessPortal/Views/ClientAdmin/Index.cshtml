@@ -190,31 +190,38 @@
 @section Scripts {
     <script>
 
-        $(function() {
+        $(function () {
 
-            //$.ajax({
-            //    type: 'GET',
-            //    url: 'ClientAdmin/ClientFamilyList/'
-            //}).done(function (response) {
-            //    console.log(response);
-            //}).fail(function () {
-            //   console.log('failed to retreive Client Tree data');
-            //});
+            /*
+            $.ajax({
+                type: 'GET',
+                url: 'ClientAdmin/ClientFamilyList/',
+            }).done(function (response) {
+                console.log(response);
+            }).fail(function () {
+               console.log('failed to retreive Client Tree data');
+            });
 
-            //$.ajax({
-            //    type: 'GET',
-            //    url: 'ClientAdmin/ClientUserLists',
-            //    data: { id: 1 }
-            //}).done(function (response) {
-            //    console.log(response)
-            //}).fail(function () {
-            //    console.log('failed to retrieve Client data');
-            //});
+            $.ajax({
+                type: 'GET',
+                url: 'ClientAdmin/ClientUserLists',
+                data: { id: 1 },
+            }).done(function (response) {
+                console.log(response)
+            }).fail(function () {
+                console.log('failed to retrieve Client data');
+            });
 
+            */
+
+            // Assign a username to a client id
             $.ajax({
                 type: 'POST',
                 url: 'ClientAdmin/AssignUserToClient',
-                data: { clientId: 1, UserName: "testid4444@yahoo.com" }
+                data: { clientId: 1, UserName: "testid4444@yahoo.com" },
+                headers: {
+                    'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
+                },
             }).done(function (response) {
                 console.log(response)
             }).fail(function (response) {
@@ -227,6 +234,31 @@
                         break;
                 }
             });
+            
+            window.setTimeout(function () {  // Delete this entire line
+            // Remove a username from a client id
+            $.ajax({
+                type: 'POST',
+                url: 'ClientAdmin/RemoveUserFromClient',
+                data: { clientId: 1, UserName: "testid4444@yahoo.com" },
+                headers: {
+                    'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
+                },
+            }).done(function (response) {
+                console.log(response)
+            }).fail(function (response) {
+                switch (response.status) {
+                    case 412:
+                        toastr["warning"](response.getResponseHeader("Warning"));
+                        break;
+                    default:
+                        alert("ajax RemoveUserFromClient response code is " + response.status);
+                        break;
+                }
+            })
+            }, 5000)  // Delete this entire line
+            ;
+
 
         })
 

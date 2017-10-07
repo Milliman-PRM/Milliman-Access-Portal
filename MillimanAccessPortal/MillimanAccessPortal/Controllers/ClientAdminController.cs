@@ -148,7 +148,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpPost]
-        // [ValidateAntiForgeryToken]  // TODO make this work
+        [ValidateAntiForgeryToken]
         public IActionResult AssignUserToClient(ClientUserAssociationViewModel Model)
         {
             // Authorization check
@@ -201,12 +201,12 @@ namespace MillimanAccessPortal.Controllers
             if (UserManager.GetClaimsAsync(RequestedUser).Result.Any(claim => claim.Type == ThisClientMembershipClaim.Type && 
                                                                               claim.Value == ThisClientMembershipClaim.Value))
             {
-                return Ok("User is already assigned to this client");
+                return Ok("The requested user is already assigned to the requested client");
             }
             else
             {
-                IdentityResult x = UserManager.AddClaimAsync(RequestedUser, ThisClientMembershipClaim).Result;
-                if (x != IdentityResult.Success)
+                IdentityResult AddClaimResult = UserManager.AddClaimAsync(RequestedUser, ThisClientMembershipClaim).Result;
+                if (AddClaimResult != IdentityResult.Success)
                 {
                     return StatusCode(StatusCodes.Status500InternalServerError, "Failed to assign user to claim (legitimate request)");
                 }
@@ -218,6 +218,65 @@ namespace MillimanAccessPortal.Controllers
                                           AssignedClientId = RequestedClient.Id};
                 AuditLog.Log(LogLevel.Information, AuditEventId.UserAssignedToClient, AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User Assigned to Client", LogDetails, User.Identity.Name) );
                 return Ok();
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult RemoveUserFromClient(ClientUserAssociationViewModel Model)
+        {
+            // Authorization check
+            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.ClientId }).Result)
+            {
+                return Unauthorized();
+            }
+
+            // Validate the request
+            // 1 Requested client must exist
+            Client RequestedClient = DbContext
+                                     .Client
+                                     .Where(c => c.Id == Model.ClientId)
+                                     .SingleOrDefault();
+            if (RequestedClient == null)
+            {
+                return BadRequest("The requested client does not exist");
+            }
+
+            // 2 Requested user must exist
+            ApplicationUser RequestedUser = DbContext
+                                            .ApplicationUser
+                                            .Where(u => u.UserName == Model.UserName)
+                                            .SingleOrDefault();
+            if (RequestedUser == null)
+            {
+                return BadRequest("The requested user does not exist");
+            }
+
+            Claim ThisClientMembershipClaim = new Claim("ClientMembership", RequestedClient.Name);
+
+            if (UserManager.GetClaimsAsync(RequestedUser).Result.Any(claim => claim.Type == ThisClientMembershipClaim.Type &&
+                                                                              claim.Value == ThisClientMembershipClaim.Value))
+            {
+                IdentityResult RemoveClaimResult = UserManager.RemoveClaimAsync(RequestedUser, ThisClientMembershipClaim).Result;
+                if (RemoveClaimResult != IdentityResult.Success)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, "Failed to remove user from claim (legitimate request)");
+                }
+
+                AuditLogger AuditLog = new AuditLogger();
+                object LogDetails = new
+                {
+                    AssignedUserName = RequestedUser.UserName,
+                    AssignedUserId = RequestedUser.Id,
+                    AssignedClient = RequestedClient.Name,
+                    AssignedClientId = RequestedClient.Id
+                };
+                AuditLog.Log(LogLevel.Information, AuditEventId.UserAssignedToClient, AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User removed from Client", LogDetails, User.Identity.Name));
+                return Ok();
+            }
+            else
+            {
+                return Ok("The requested user is not assigned to the requested client.  No action taken.");
             }
         }
 
@@ -277,7 +336,7 @@ namespace MillimanAccessPortal.Controllers
             }
             //ViewData["ParentClientId"] = new SelectList(DbContext.Client, "Id", "Name", client.ParentClientId);
             return RedirectToAction("Edit", new { Id = Model.ThisClient.Id });
-        }*/
+        }
 
         // GET: ClientAdmin/Delete/5
         public async Task<IActionResult> Delete(long? id)
@@ -309,7 +368,7 @@ namespace MillimanAccessPortal.Controllers
             await DbContext.SaveChangesAsync();
             return RedirectToAction("Index");
         }
-
+        */
         private bool ClientExists(long id)
         {
             return DbContext.Client.Any(e => e.Id == id);
