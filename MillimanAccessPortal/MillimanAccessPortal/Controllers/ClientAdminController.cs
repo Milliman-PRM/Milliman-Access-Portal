@@ -253,8 +253,18 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest("The requested user does not exist");
             }
 
-            // TODO If RequestedUser is assigned to any content user groups of this 
-            // client, either reject the request or deassign groups automatically
+            // 3. RequestedUser must not be assigned to any ContentItemUserGroup of RequestedClient
+            //    Deassign groups automatically instead of this?
+            IQueryable<ContentItemUserGroup> AllAuthorizedGroupsQuery =
+                DbContext.UserRoleForContentItemUserGroup
+                         .Include(urc => urc.ContentItemUserGroup)
+                         .Where(urc => urc.UserId == RequestedUser.Id)
+                         .Select(urc => urc.ContentItemUserGroup);
+            if (AllAuthorizedGroupsQuery.Any(group => group.ClientId == RequestedClient.Id))
+            {
+                Response.Headers.Add("Warning", "The requested user is authorized to access content of the requested client");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);
+            }
             #endregion
 
             Claim ThisClientMembershipClaim = new Claim("ClientMembership", RequestedClient.Name);
