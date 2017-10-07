@@ -105,6 +105,8 @@ namespace MillimanAccessPortal.Controllers
             Model.AssignedUsers = UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim)
                                              .Result
                                              .Select(ApUser => (UserInfo)ApUser)
+                                             .OrderBy(u => u.LastName)
+                                             .OrderBy(u => u.FirstName)
                                              .ToList();
             // Assign the remaining assigned user properties
             foreach (UserInfo Item in Model.AssignedUsers)
@@ -142,7 +144,11 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Subtract the assigned users from the overall list of eligible users
-            Model.EligibleUsers = Model.EligibleUsers.Except(Model.AssignedUsers, new UserInfoEqualityComparer()).ToList();
+            Model.EligibleUsers = Model.EligibleUsers
+                                       .Except(Model.AssignedUsers, new UserInfoEqualityComparer())
+                                       .OrderBy(u => u.LastName)
+                                       .OrderBy(u => u.FirstName)
+                                       .ToList();
 
             return Json(Model);
         }
