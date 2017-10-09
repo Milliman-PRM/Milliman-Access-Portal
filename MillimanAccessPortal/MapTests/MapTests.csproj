@@ -11,4 +11,13 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AuditLogLib\AuditLogLib.csproj" />
+    <ProjectReference Include="..\EmailQueue\EmailQueue.csproj" />
+    <ProjectReference Include="..\MapCommonLib\MapCommonLib.csproj" />
+    <ProjectReference Include="..\MapDbContextLib\MapDbContextLib.csproj" />
+    <ProjectReference Include="..\MillimanAccessPortal\MillimanAccessPortal.csproj" />
+    <ProjectReference Include="..\QlikviewLib\QlikviewLib.csproj" />
+  </ItemGroup>
+
 </Project>
