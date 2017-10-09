@@ -358,7 +358,8 @@ Client Admin Styling
         width: 50% !important;
     }
 
-    #client-tree {
+    #client-tree,
+    #user-list {
         height: 85%;
         width: 100%;
         margin-bottom: 10px;
@@ -378,7 +379,7 @@ Client Admin Styling
     }
 }
 
-.client-node {
+.client-admin-card {
     position: relative;
     padding: 5px 10px;
     background-color: white;
@@ -393,7 +394,7 @@ Client Admin Styling
     }
 
 
-    .client-node-title {
+    .client-admin-card-title {
         margin: 5px 0;
     }
 
@@ -402,6 +403,11 @@ Client Admin Styling
         display: inline;
         bottom: 10px;
         right: 10px;
+    }
+
+    .left-icon {
+        display: inline;
+        height: 100%;
     }
 }
 

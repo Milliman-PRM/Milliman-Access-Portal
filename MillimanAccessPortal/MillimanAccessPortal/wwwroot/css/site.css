@@ -254,11 +254,13 @@ Client Admin Styling
     text-align: center; }
   .client-admin-section input .search-box {
     width: 50% !important; }
-  .client-admin-section #client-tree {
+  .client-admin-section #client-tree,
+  .client-admin-section #user-list {
     height: 85%;
     width: 100%;
     margin-bottom: 10px; }
-    .client-admin-section #client-tree ul {
+    .client-admin-section #client-tree ul,
+    .client-admin-section #user-list ul {
       list-style-type: none;
       padding: 5px;
       margin: 5px; }
@@ -268,7 +270,7 @@ Client Admin Styling
     margin: 20px 5px;
     padding: 0; }
 
-.client-node {
+.client-admin-card {
   position: relative;
   padding: 5px 10px;
   background-color: white;
@@ -276,16 +278,19 @@ Client Admin Styling
   border-radius: 5px;
   margin: 10px 5px;
   cursor: pointer; }
-  .client-node:hover {
+  .client-admin-card:hover {
     background-color: lightgray;
     transform: scale(1.02); }
-  .client-node .client-node-title {
+  .client-admin-card .client-admin-card-title {
     margin: 5px 0; }
-  .client-node .icon-container {
+  .client-admin-card .icon-container {
     position: absolute;
     display: inline;
     bottom: 10px;
     right: 10px; }
+  .client-admin-card .left-icon {
+    display: inline;
+    height: 100%; }
 
 #client-form h4 {
   margin-top: 15px;
