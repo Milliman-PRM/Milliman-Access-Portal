@@ -49,6 +49,8 @@ namespace MillimanAccessPortal.Controllers
             // Clear the existing external cookie to ensure a clean login process
             await HttpContext.Authentication.SignOutAsync(_externalCookieScheme);
 
+            Guid.Empty.ToString();
+
             ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
@@ -155,6 +157,15 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
+
+            AuditLogger AuditStore = new AuditLogger();
+            AuditStore.Log(
+                AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User logged out successful", AuditEventId.Logout, null, User.Identity.Name, HttpContext.Session.Id)
+            );
+
+            Response.Cookies.Delete(".AspNetCore.Session");
+            HttpContext.Session.Clear();
+
             _logger.LogInformation(4, "User logged out.");
             return RedirectToAction(nameof(AccountController.Login), "Account");
         }

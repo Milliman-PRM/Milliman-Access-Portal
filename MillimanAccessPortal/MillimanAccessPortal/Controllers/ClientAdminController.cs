@@ -293,7 +293,7 @@ namespace MillimanAccessPortal.Controllers
                 };
                 AuditLog.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                                             "User removed from Client", 
-                                            AuditEventId.UserAssignedToClient, 
+                                            AuditEventId.UserRemovedFromClient, 
                                             LogDetails, 
                                             User.Identity.Name, 
                                             HttpContext.Session.Id));

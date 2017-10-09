@@ -18,9 +18,11 @@ namespace AuditLogLib
         public static readonly AuditEventId LoginSuccess = new AuditEventId(AuditEventBaseId + 1, "Login Success");
         public static readonly AuditEventId LoginFailure = new AuditEventId(AuditEventBaseId + 2, "Login Failure");
         public static readonly AuditEventId Unauthorized = new AuditEventId(AuditEventBaseId + 3, "Unauthorized Request");
+        public static readonly AuditEventId Logout = new AuditEventId(AuditEventBaseId + 4, "Logout Success");
 
         // ClientAdmin related 1101+
         public static readonly AuditEventId UserAssignedToClient = new AuditEventId(AuditEventBaseId + 101, "User Assigned To Client");
+        public static readonly AuditEventId UserRemovedFromClient = new AuditEventId(AuditEventBaseId + 102, "User Removed From Client");
 
         public AuditEventId(int id, string name = "")
         {
