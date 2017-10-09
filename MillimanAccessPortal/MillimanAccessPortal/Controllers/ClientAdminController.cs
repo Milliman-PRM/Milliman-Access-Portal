@@ -223,7 +223,7 @@ namespace MillimanAccessPortal.Controllers
                                           AssignedUserId = RequestedUser.Id,
                                           AssignedClient = RequestedClient.Name,
                                           AssignedClientId = RequestedClient.Id};
-                AuditLog.Log(LogLevel.Information, AuditEventId.UserAssignedToClient, AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User Assigned to Client", LogDetails, User.Identity.Name) );
+                AuditLog.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User Assigned to Client", AuditEventId.UserAssignedToClient, LogDetails, User.Identity.Name, HttpContext.Session.Id) );
                 return Ok();
             }
         }
@@ -291,7 +291,12 @@ namespace MillimanAccessPortal.Controllers
                     AssignedClient = RequestedClient.Name,
                     AssignedClientId = RequestedClient.Id
                 };
-                AuditLog.Log(LogLevel.Information, AuditEventId.UserAssignedToClient, AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User removed from Client", LogDetails, User.Identity.Name));
+                AuditLog.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                                            "User removed from Client", 
+                                            AuditEventId.UserAssignedToClient, 
+                                            LogDetails, 
+                                            User.Identity.Name, 
+                                            HttpContext.Session.Id));
                 return Ok();
             }
             else

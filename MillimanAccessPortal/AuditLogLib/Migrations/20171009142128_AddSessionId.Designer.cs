@@ -8,9 +8,10 @@ using AuditLogLib;
 namespace AuditLogLib.Migrations
 {
     [DbContext(typeof(AuditLogDbContext))]
-    partial class AuditLogDbContextModelSnapshot : ModelSnapshot
+    [Migration("20171009142128_AddSessionId")]
+    partial class AddSessionId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
