@@ -22,7 +22,7 @@ namespace AuditLogLib
         /// <param name="DetailObjectArg"></param>
         /// <param name="UserNameArg"></param>
         /// <returns></returns>
-        public static AuditEvent New(string SourceArg, string SummaryArg, object DetailObjectArg = null, string UserNameArg = "System")
+        public static AuditEvent New(string SourceArg, string SummaryArg, AuditEventId EventIdArg, object DetailObjectArg = null, string UserNameArg = "System", string SessionIdArg = "")
         {
             return new AuditEvent
             {
@@ -31,12 +31,16 @@ namespace AuditLogLib
                 Source = SourceArg,
                 EventDetailObject = DetailObjectArg,
                 Summary = SummaryArg,
+                SessionId = SessionIdArg,
+                EventType = EventIdArg.Name,
             };
         }
 
         public long Id { get; set; }
 
         public DateTime TimeStamp { get; set; }
+
+        public string SessionId { get; set; }
 
         public string Summary { get; set; }
 

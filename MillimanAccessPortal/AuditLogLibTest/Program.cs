@@ -13,6 +13,8 @@ namespace AuditLogLibTest
             // This code demonstrates usage of the AuditLogger as a directly instantiated object, 
             // rather than as accessed through the ILoggerProvider interface implementation.  It works both ways. 
 
+            AuditLoggerConfiguration Cfg = new AuditLoggerConfiguration { AuditLogConnectionString = "127.0.0.1;Database=MapAuditLog;User Id=postgres;Password=postgres;" };
+            AuditLogger.ConfigureAuditLogger(Cfg);
             AuditLogger L = new AuditLogger();
 
             for (int i=0; i < 10; i++)
@@ -35,9 +37,9 @@ namespace AuditLogLibTest
 
                 // DetailObj is serialized and then persisted as jsonb.  Arbitrary structure is supported, including typed or anonymous objects.
                 // It is preferred to use AuditEvent.CreateNew() to enforce the list of user provided field values in the AuditEvent object that get used. 
-                L.Log(LogLevel.Critical, AuditEventId.LoginFailure, AuditEvent.New("AuditLogLibTest", "Incorrect password provided by user", DetailObj, "Bad@there.com"), null, null);
-                L.Log(LogLevel.Critical, AuditEventId.LoginSuccess, AuditEvent.New("AuditLogLibTest", "User logged in using biometric implant", null, "Ok@here.com"), null, null);
-                L.Log(LogLevel.Critical, AuditEventId.Unspecified, AuditEvent.New("AuditLogLibTest", "He came out of nowhere", null, null), null, null);
+                L.Log(AuditEvent.New("AuditLogLibTest", "Incorrect password provided by user", AuditEventId.LoginFailure, DetailObj, "Bad@there.com", new Guid(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).ToString()));
+                L.Log(AuditEvent.New("AuditLogLibTest", "User logged in using biometric implant", AuditEventId.LoginSuccess, null, "Ok@here.com"));
+                L.Log(AuditEvent.New("AuditLogLibTest", "He came out of nowhere", AuditEventId.Unspecified, null, null));
 
                 Thread.Sleep(2000);
             }
