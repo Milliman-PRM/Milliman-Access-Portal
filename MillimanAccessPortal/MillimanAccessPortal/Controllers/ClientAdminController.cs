@@ -103,7 +103,7 @@ namespace MillimanAccessPortal.Controllers
 
             // Get the list of users already assigned to this client
             Model.AssignedUsers = UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim)
-                                             .Result
+                                             .Result  // because the preceding call is async
                                              .Select(ApUser => (UserInfo)ApUser)
                                              .OrderBy(u => u.LastName)
                                              .ThenBy(u => u.FirstName)
@@ -250,10 +250,9 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // 2. Requested user must exist
-            ApplicationUser RequestedUser = DbContext
-                                            .ApplicationUser
-                                            .Where(u => u.UserName == Model.UserName)
-                                            .SingleOrDefault();
+            ApplicationUser RequestedUser = DbContext.ApplicationUser
+                                                     .Where(u => u.UserName == Model.UserName)
+                                                     .SingleOrDefault();
             if (RequestedUser == null)
             {
                 return BadRequest("The requested user does not exist");
@@ -268,7 +267,7 @@ namespace MillimanAccessPortal.Controllers
                          .Select(urc => urc.ContentItemUserGroup);
             if (AllAuthorizedGroupsQuery.Any(group => group.ClientId == RequestedClient.Id))
             {
-                Response.Headers.Add("Warning", "The requested user is authorized to access content of the requested client");
+                Response.Headers.Add("Warning", "The requested user must first be unauthorized to content of the requested client");
                 return StatusCode(StatusCodes.Status412PreconditionFailed);
             }
             #endregion

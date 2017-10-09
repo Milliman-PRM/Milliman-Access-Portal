@@ -218,7 +218,7 @@
             $.ajax({
                 type: 'POST',
                 url: 'ClientAdmin/AssignUserToClient',
-                data: { clientId: 1, UserName: "testid4444@yahoo.com" },
+                data: { clientId: 1, userName: "testid4444@yahoo.com" },
                 headers: {
                     'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
                 },
@@ -240,7 +240,7 @@
             $.ajax({
                 type: 'POST',
                 url: 'ClientAdmin/RemoveUserFromClient',
-                data: { clientId: 1, UserName: "testid4444@yahoo.com" },
+                data: { clientId: 1, userName: "testid4444@yahoo.com" },
                 headers: {
                     'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
                 },
