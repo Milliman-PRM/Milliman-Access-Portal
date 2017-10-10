@@ -27,18 +27,21 @@ namespace MillimanAccessPortal.Controllers
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly IServiceProvider ServiceProvider;
         private readonly IAuthorizationService AuthorizationService;
+        private readonly ILogger Logger;
 
         public ClientAdminController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> UserManagerArg,
             IServiceProvider ServiceProviderArg,
-            IAuthorizationService AuthorizationServiceArg
+            IAuthorizationService AuthorizationServiceArg,
+            ILoggerFactory LoggerFactoryArg
             )
         {
             DbContext = context;
             UserManager = UserManagerArg;
             ServiceProvider = ServiceProviderArg;
             AuthorizationService = AuthorizationServiceArg;
+            Logger = LoggerFactoryArg.CreateLogger<AccountController>();
         }
 
         // GET: ClientAdmin
@@ -191,7 +194,7 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", $"The requested user's email is invalid: ({RequestedUserEmail})");
                 return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
             }
-            string RequestedUserEmailDomain = RequestedUserEmail.Substring(RequestedUserEmail.IndexOf('@') + 1).ToUpper();
+            string RequestedUserEmailDomain = RequestedUserEmail.Substring(RequestedUserEmail.IndexOf('@') + 1);
             bool DomainMatch = RequestedClient.AcceptedEmailDomainList != null && 
                                RequestedClient.AcceptedEmailDomainList.Select(d=>d.ToUpper()).Contains(RequestedUserEmailDomain);
             bool EmailMatch = RequestedClient.AcceptedEmailAddressExceptionList != null && 
@@ -215,6 +218,7 @@ namespace MillimanAccessPortal.Controllers
                 IdentityResult ResultOfAddClaim = UserManager.AddClaimAsync(RequestedUser, ThisClientMembershipClaim).Result;
                 if (ResultOfAddClaim != IdentityResult.Success)
                 {
+                    Logger.LogError($"Failed to add claim for user ({RequestedUser.UserName}): Type={ThisClientMembershipClaim.Type}, Value={ThisClientMembershipClaim.Value}");
                     return StatusCode(StatusCodes.Status500InternalServerError, "Failed to assign user to claim (legitimate request)");
                 }
 
@@ -455,12 +459,18 @@ namespace MillimanAccessPortal.Controllers
             return View(client);
         }
 
+        // POST: ClientAdmin/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(long id)
+        {
+            var client = await DbContext.Client.SingleOrDefaultAsync(m => m.Id == id);
+            DbContext.Client.Remove(client);
+            await DbContext.SaveChangesAsync();
+            return RedirectToAction("Index");
+        }
         */
 
-        private bool ClientExists(long id)
-        {
-            return DbContext.Client.Any(e => e.Id == id);
-        }
 
         [NonAction]
         private ApplicationUser GetCurrentUser()
