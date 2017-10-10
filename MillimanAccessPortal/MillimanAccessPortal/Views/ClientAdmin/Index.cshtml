@@ -342,6 +342,7 @@
         $(function () {
 
             /*
+            // Get the client families
             $.ajax({
                 type: 'GET',
                 url: 'ClientAdmin/ClientFamilyList/',
@@ -350,7 +351,10 @@
             }).fail(function () {
                console.log('failed to retreive Client Tree data');
             });
+            */
 
+            /*
+            // Get the assigned / eligible users for a client
             $.ajax({
                 type: 'GET',
                 url: 'ClientAdmin/ClientUserLists',
@@ -360,53 +364,166 @@
             }).fail(function () {
                 console.log('failed to retrieve Client data');
             });
-
             */
 
-            // Assign a username to a client id
-            //$.ajax({
-            //    type: 'POST',
-            //    url: 'ClientAdmin/AssignUserToClient',
-            //    data: { clientId: 1, userName: "testid4444@yahoo.com" },
-            //    headers: {
-            //        'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
-            //    },
-            //}).done(function (response) {
-            //    console.log(response)
-            //}).fail(function (response) {
-            //    switch (response.status) {
-            //        case 412:
-            //            toastr["warning"](response.getResponseHeader("Warning"));
-            //            break;
-            //        default:
-            //            alert("ajax AssignUserToClient response code is " + response.status);
-            //            break;
-            //    }
-            //});
-            
-            //window.setTimeout(function () {  // Delete this entire line
-            //// Remove a username from a client id
-            //$.ajax({
-            //    type: 'POST',
-            //    url: 'ClientAdmin/RemoveUserFromClient',
-            //    data: { clientId: 1, userName: "testid4444@yahoo.com" },
-            //    headers: {
-            //        'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
-            //    },
-            //}).done(function (response) {
-            //    console.log(response)
-            //}).fail(function (response) {
-            //    switch (response.status) {
-            //        case 412:
-            //            toastr["warning"](response.getResponseHeader("Warning"));
-            //            break;
-            //        default:
-            //            alert("ajax RemoveUserFromClient response code is " + response.status);
-            //            break;
-            //    }
-            //})
-            //}, 5000)  // Delete this entire line
-            //;
+            /*
+             // Assign a user by name to a client id
+             $.ajax({
+                 type: 'POST',
+                 url: 'ClientAdmin/AssignUserToClient',
+                 data: { clientId: 1, userName: "testid4444@yahoo.com" },
+                 headers: {
+                     'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
+                 },
+             }).done(function (response) {
+                 console.log(response)
+             }).fail(function (response) {
+                 switch (response.status) {
+                     case 412:
+                         toastr["warning"](response.getResponseHeader("Warning"));
+                         break;
+                     default:
+                         alert("ajax AssignUserToClient response code is " + response.status);
+                         break;
+                 }
+             });
+            */
+
+            /*
+             window.setTimeout(function () {  // Delete this entire line
+             // Remove a user by name from a client id
+             $.ajax({
+                 type: 'POST',
+                 url: 'ClientAdmin/RemoveUserFromClient',
+                 data: { clientId: 1, userName: "testid4444@yahoo.com" },
+                 headers: {
+                     'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
+                 },
+             }).done(function (response) {
+                 console.log(response)
+             }).fail(function (response) {
+                 switch (response.status) {
+                     case 412:
+                         toastr["warning"](response.getResponseHeader("Warning"));
+                         break;
+                     default:
+                         alert("ajax RemoveUserFromClient response code is " + response.status);
+                         break;
+                 }
+             })
+             }, 2000)  // Delete this entire line
+             ;
+            */
+
+            /*
+            window.setTimeout(function () {  // Delete this entire line
+                // Edit a client record
+                $.ajax({
+                    type: 'POST',
+                    url: 'ClientAdmin/EditClient',
+                    data: {
+                        Id: 4,
+                        Name: "xyz",
+                        ClientCode: "Some Code",
+                        ContactName: "Contact 4",
+                        ContactTitle: "Director of Contacts",
+                        ContactEmail: "Contact4@company.com",
+                        ContactPhone: "1234567890",
+                        ConsultantName: "Phill Ittup",
+                        ConsultantEmail: "Consultant4@milliman.com",
+                        ConsultantOffice: "Indianapolis",
+                        ProfitCenter: "Bulls Eye",
+                        AcceptedEmailDomainList: ["milliman.com", "yahoo.com"],
+                        AcceptedEmailAddressExceptionList: [],
+                        ParentClientId: 1
+                    },
+                    headers: {
+                        'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
+                    },
+                }).done(function (response) {
+                    console.log(response)
+                }).fail(function (response) {
+                    switch (response.status) {
+                        case 412:
+                            toastr["warning"](response.getResponseHeader("Warning"));
+                            break;
+                        default:
+                            alert("ajax RemoveUserFromClient response code is " + response.status);
+                            break;
+                    }
+                })
+            }, 2000)  // Delete this entire line
+            ;
+            */
+
+            /*
+            window.setTimeout(function () {  // Delete this entire line
+                // Save a new client record
+                $.ajax({
+                    type: 'POST',
+                    url: 'ClientAdmin/SaveNewClient',
+                    data: {
+                        Id: null,
+                        Name: "xyzaaa",
+                        ClientCode: "Some Code",
+                        ContactName: "Contact 4",
+                        ContactTitle: "Director of Contacts",
+                        ContactEmail: "Contact4@company.com",
+                        ContactPhone: "1234567890",
+                        ConsultantName: "Phill Ittup",
+                        ConsultantEmail: "Consultant4@milliman.com",
+                        ConsultantOffice: "Indianapolis",
+                        ProfitCenter: "Bulls Eye",
+                        AcceptedEmailDomainList: ["milliman.com", "yahoo.com"],
+                        AcceptedEmailAddressExceptionList: [],
+                        ParentClientId: 1
+                    },
+                    headers: {
+                        'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
+                    },
+                }).done(function (response) {
+                    console.log(response)
+                }).fail(function (response) {
+                    switch (response.status) {
+                        case 412:
+                            toastr["warning"](response.getResponseHeader("Warning"));
+                            break;
+                        default:
+                            alert("ajax SaveNewClient response code is " + response.status + "Warning header value is " + response.getResponseHeader("Warning"));
+                            break;
+                    }
+                })
+            }, 2000)  // Delete this entire line
+            ;
+            */
+
+            /*
+            window.setTimeout(function () {  // Delete this entire line
+                // Delete a client by id
+                $.ajax({
+                    //type: 'GET',
+                    url: 'ClientAdmin/DeleteClient',
+                    data: {
+                        Id: 15,
+                    },
+                    headers: {
+                        'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
+                    },
+                }).done(function (response) {
+                    console.log(response)
+                }).fail(function (response) {
+                    switch (response.status) {
+                        case 412:
+                            toastr["warning"](response.getResponseHeader("Warning"));
+                            break;
+                        default:
+                            alert("ajax DeleteClient response code is " + response.status + "Body is " + response.responseText);
+                            break;
+                    }
+                })
+            }, 10000)  // Delete this entire line
+            ;
+            */
 
 
         })

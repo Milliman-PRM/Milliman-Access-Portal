@@ -218,8 +218,9 @@ namespace MillimanAccessPortal.Controllers
                 IdentityResult ResultOfAddClaim = UserManager.AddClaimAsync(RequestedUser, ThisClientMembershipClaim).Result;
                 if (ResultOfAddClaim != IdentityResult.Success)
                 {
-                    Logger.LogError($"Failed to add claim for user ({RequestedUser.UserName}): Type={ThisClientMembershipClaim.Type}, Value={ThisClientMembershipClaim.Value}");
-                    return StatusCode(StatusCodes.Status500InternalServerError, "Failed to assign user to claim (legitimate request)");
+                    string ErrMsg = $"Failed to add claim for user {RequestedUser.UserName}: Claim={ThisClientMembershipClaim.Type}.{ThisClientMembershipClaim.Value}";
+                    Logger.LogError(ErrMsg);
+                    return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
                 }
 
                 AuditLogger AuditLog = new AuditLogger();
@@ -284,7 +285,9 @@ namespace MillimanAccessPortal.Controllers
                 IdentityResult ResultOfRemoveClaim = UserManager.RemoveClaimAsync(RequestedUser, ThisClientMembershipClaim).Result;
                 if (ResultOfRemoveClaim != IdentityResult.Success)
                 {
-                    return StatusCode(StatusCodes.Status500InternalServerError, "Failed to remove user from claim (legitimate request)");
+                    string ErrMsg = $"Failed to remove user {RequestedUser.UserName}: Claim={ThisClientMembershipClaim.Type}.{ThisClientMembershipClaim.Value}";
+                    Logger.LogError(ErrMsg);
+                    return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
                 }
 
                 AuditLogger AuditLog = new AuditLogger();
@@ -364,7 +367,9 @@ namespace MillimanAccessPortal.Controllers
             }
             catch
             {
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                string ErrMsg = $"Failed to store validated new Client to database";
+                Logger.LogError(ErrMsg);
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
 
             return Ok();
@@ -419,58 +424,68 @@ namespace MillimanAccessPortal.Controllers
             if (DbContext.Client.Any(c => c.Name == Model.Name && 
                                           c.Id != Model.Id))
             {
-                Response.Headers.Add("Warning", $"The client name already exists for another client: ({Model.Name})");
+                Response.Headers.Add("Warning", $"The client name ({Model.Name}) already exists for another client");
                 return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
             }
             #endregion Validation
 
             try
             {
-                DbContext.Client.Add(Model);
+                DbContext.Client.Update(Model);
                 DbContext.SaveChanges();
             }
-            catch
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                string ErrMsg = $"Failed to update client to database";
+                Logger.LogError(ErrMsg + $":\r\n{ ex.Message}\r\n{ ex.StackTrace}");
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
 
             return Ok();
         }
 
-        /*
-
         // GET: ClientAdmin/Delete/5
-        public async Task<IActionResult> Delete(long? id)
+        //public async Task<IActionResult> DeleteClient(long Id)
+        public IActionResult DeleteClient(long Id)
         {
-            // TODO need a bunch of code to undo everything that links to the client and effusive validation checks too.  
-            if (id == null)
+            #region Authorization
+            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Id }).Result)
             {
-                return NotFound();
+                return Unauthorized();
+            }
+            #endregion Authorization
+
+            #region Validation
+            // Client must not be parent of any other Client // TODO consider what would be an acceptable way of handling this automatically
+            // Name must be unique
+            List<long> Children = DbContext.Client.Where(c => c.ParentClientId == Id).Select(c => c.Id).ToList();
+            if (Children.Count > 0)
+            {
+                Response.Headers.Add("Warning", $"The client is the parent of client(s): {string.Join(", ", Children)}");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
+            }
+            #endregion Validation
+
+            try
+            {
+                DbContext.Client.Remove(new Client { Id = Id });
+                DbContext.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                string ErrMsg = $"Failed to delete client from database";
+                Logger.LogError(ErrMsg + $":\r\n{ ex.Message}\r\n{ ex.StackTrace}");
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
 
-            var client = await DbContext.Client
-                .Include(c => c.ParentClient)
-                .SingleOrDefaultAsync(m => m.Id == id);
-            if (client == null)
-            {
-                return NotFound();
-            }
-
-            return View(client);
+            return Ok();
         }
 
-        // POST: ClientAdmin/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(long id)
+        [NonAction]
+        private bool ClientExists(long id)
         {
-            var client = await DbContext.Client.SingleOrDefaultAsync(m => m.Id == id);
-            DbContext.Client.Remove(client);
-            await DbContext.SaveChangesAsync();
-            return RedirectToAction("Index");
+            return DbContext.Client.Any(e => e.Id == id);
         }
-        */
-
 
         [NonAction]
         private ApplicationUser GetCurrentUser()
