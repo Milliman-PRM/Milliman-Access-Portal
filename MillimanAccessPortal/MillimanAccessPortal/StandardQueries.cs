@@ -172,14 +172,6 @@ namespace MillimanAccessPortal
             return ResultObject;
         }
 
-        public ClientUserListsViewModel GetClientuserLists(long? id)
-        {
-            ClientUserListsViewModel x = new ClientUserListsViewModel();
-            x.AssignedUsers = null;
-            //x. = null;
-            return x;
-        }
-
         public Client GetRootClientOfClient(long id)
         {
             var DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>();
