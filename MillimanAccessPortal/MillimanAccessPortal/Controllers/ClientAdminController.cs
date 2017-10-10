@@ -385,6 +385,11 @@ namespace MillimanAccessPortal.Controllers
         //public async Task<IActionResult> EditClient([Bind("Id,Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
         //                                                  "ConsultantOffice,ProfitCenter,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId")] Client Model)
         {
+            if (Model.Id <= 0)
+            {
+                return BadRequest();
+            }
+
             #region Authorization
             if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.Id }).Result)
             {
@@ -446,10 +451,15 @@ namespace MillimanAccessPortal.Controllers
 
         // GET: ClientAdmin/Delete/5
         //public async Task<IActionResult> DeleteClient(long Id)
-        public IActionResult DeleteClient(long Id)
+        public IActionResult DeleteClient(long? Id)
         {
+            if (Id == null || Id.Value <=0)
+            {
+                return BadRequest();
+            }
+
             #region Authorization
-            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Id }).Result)
+            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Id.Value }).Result)
             {
                 return Unauthorized();
             }
@@ -458,7 +468,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             // Client must not be parent of any other Client // TODO consider what would be an acceptable way of handling this automatically
             // Name must be unique
-            List<long> Children = DbContext.Client.Where(c => c.ParentClientId == Id).Select(c => c.Id).ToList();
+            List<long> Children = DbContext.Client.Where(c => c.ParentClientId == Id.Value).Select(c => c.Id).ToList();
             if (Children.Count > 0)
             {
                 Response.Headers.Add("Warning", $"The client is the parent of client(s): {string.Join(", ", Children)}");
@@ -468,7 +478,8 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                DbContext.Client.Remove(new Client { Id = Id });
+                // Only the primary key is needed for delete
+                DbContext.Client.Remove(new Client { Id = Id.Value });
                 DbContext.SaveChanges();
             }
             catch (Exception ex)
