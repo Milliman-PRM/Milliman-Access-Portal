@@ -25,6 +25,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using QlikviewLib;
 using AuditLogLib;
 using EmailQueue;
+using MillimanAccessPortal.Authorization;
 
 namespace MillimanAccessPortal
 {
@@ -107,6 +108,9 @@ namespace MillimanAccessPortal
                              .Build();
                 config.Filters.Add(new AuthorizeFilter(policy));
             });
+
+            // Depends on UserManager from Identity, which is scoped, so don't add the following as singleton
+            services.AddScoped<IAuthorizationHandler, RoleInClientHandler>();
 
             // Add application services.
             services.AddTransient<MessageQueueServices>();

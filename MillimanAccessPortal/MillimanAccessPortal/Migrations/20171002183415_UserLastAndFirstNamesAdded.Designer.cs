@@ -9,46 +9,27 @@ using MapDbContextLib.Identity;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20171002183415_UserLastAndFirstNamesAdded")]
+    partial class UserLastAndFirstNamesAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
-                .HasAnnotation("ProductVersion", "1.1.3");
+                .HasAnnotation("ProductVersion", "1.1.2");
 
             modelBuilder.Entity("MapDbContextLib.Context.Client", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string[]>("AcceptedEmailAddressExceptionList");
-
                     b.Property<string[]>("AcceptedEmailDomainList")
                         .IsRequired();
-
-                    b.Property<string>("ClientCode");
-
-                    b.Property<string>("ConsultantEmail");
-
-                    b.Property<string>("ConsultantName");
-
-                    b.Property<string>("ConsultantOffice");
-
-                    b.Property<string>("ContactEmail");
-
-                    b.Property<string>("ContactName");
-
-                    b.Property<string>("ContactPhone");
-
-                    b.Property<string>("ContactTitle");
 
                     b.Property<string>("Name")
                         .IsRequired();
 
                     b.Property<long?>("ParentClientId");
-
-                    b.Property<string>("ProfitCenter");
 
                     b.HasKey("Id");
 

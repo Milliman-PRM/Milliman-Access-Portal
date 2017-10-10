@@ -18,8 +18,11 @@ body {
   position: relative; }
   #content-wrapper.navbar-offset {
     margin-left: 70px; }
-  #content-wrapper.header-offset {
-    padding-top: 50px; }
+
+.page-title {
+  margin: 8vh 0 20px 20px;
+  text-align: center;
+  font-weight: bold; }
 
 input,
 textarea,
@@ -29,7 +32,7 @@ select {
   padding: 5px 10px;
   border: solid 2px transparent;
   border-radius: 5px;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
   transition: border 0.2s; }
   input:focus,
   textarea:focus,
@@ -39,6 +42,9 @@ select {
 textarea {
   height: auto;
   resize: none; }
+
+.form-group {
+  margin-bottom: 10px; }
 
 .screen-center {
   position: absolute;
@@ -68,14 +74,15 @@ Nav Sidebar Styling
 *****/
 #sidebar-nav {
   position: fixed;
+  top: 0;
+  left: -230px;
   width: 300px;
   height: 100vh;
-  left: -230px;
   transition: all 0.5s;
   background-color: #242424;
   color: #fff;
   padding: 0;
-  z-index: 100; }
+  z-index: 90; }
   #sidebar-nav:hover {
     left: 0;
     transition: all 0.5s; }
@@ -172,19 +179,20 @@ Header Styling
   position: absolute;
   top: 0;
   right: 0;
-  display: inline-block; }
+  height: 10vh; }
   #header #logo {
-    width: 400px;
+    height: 100%;
     margin-right: 20px; }
 
 /*****
 Footer Styling
 *****/
 #footer {
-  position: absolute;
+  position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
+  height: 7vh;
   text-align: center; }
   #footer ul {
     list-style: none;
@@ -226,4 +234,76 @@ Report Block Styling
   background-color: #fff;
   margin: 15px 0;
   padding: 20px; }
+
+/*****
+Client Admin Styling
+*****/
+.client-admin-section {
+  height: 80vh;
+  padding: 10px; }
+  .client-admin-section .scroll-y {
+    overflow-y: auto; }
+  .client-admin-section .client-admin-section-toolbar {
+    width: 100%;
+    vertical-align: middle; }
+  .client-admin-section .search-box {
+    width: 70% !important;
+    display: inline-block; }
+  .client-admin-section h3.client-admin-section-title {
+    margin: 10px 10px 20px;
+    text-align: center; }
+  .client-admin-section input .search-box {
+    width: 50% !important; }
+  .client-admin-section #client-tree,
+  .client-admin-section #user-list {
+    height: 85%;
+    width: 100%;
+    margin-bottom: 10px; }
+    .client-admin-section #client-tree ul,
+    .client-admin-section #user-list ul {
+      list-style-type: none;
+      padding: 5px;
+      margin: 5px; }
+  .client-admin-section .hr {
+    height: 2px;
+    border: 1px solid black;
+    margin: 20px 5px;
+    padding: 0; }
+
+.client-admin-card {
+  position: relative;
+  padding: 5px 10px;
+  background-color: white;
+  border: 2px solid black;
+  border-radius: 5px;
+  margin: 10px 5px;
+  cursor: pointer; }
+  .client-admin-card:hover {
+    background-color: lightgray;
+    transform: scale(1.02); }
+  .client-admin-card .client-admin-card-title {
+    margin: 5px 0; }
+  .client-admin-card .icon-container {
+    position: absolute;
+    display: inline;
+    bottom: 10px;
+    right: 10px; }
+  .client-admin-card .left-icon {
+    display: inline;
+    height: 100%; }
+
+#client-form h4 {
+  margin-top: 15px;
+  font-weight: bold; }
+
+#client-form.read-only input:disabled {
+  background-color: #DEDEE3;
+  border: none;
+  outline: none;
+  border-radius: 0;
+  border-bottom: 1px solid black;
+  box-shadow: none;
+  font-weight: bold;
+  cursor: default;
+  overflow: hidden; }
 

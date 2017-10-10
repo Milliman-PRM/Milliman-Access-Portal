@@ -16,9 +16,13 @@
     }
   },
   {
-    "outputFileName": "wwwroot/css/font-awesome.min.css",
+    "outputFileName": "wwwroot/js/toastr-options.min.js",
     "inputFiles": [
-      "wwwroot/css/font-awesome.css"
-    ]
+      "wwwroot/js/toastr-options.js"
+    ],
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    }
   }
 ]

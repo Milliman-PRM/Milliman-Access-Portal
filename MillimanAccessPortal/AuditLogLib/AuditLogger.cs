@@ -13,6 +13,9 @@ namespace AuditLogLib
 {
     public class AuditLogger
     {
+        // TODO instead of an in-process queue, switch to use an out of process asynchronous message queue.
+        // Hint, MSMQ was an idea but that probably will never be supported in .NET Core since it is a Windows only service.  
+        // The issue here is that if the process is terminated or crashes, any unprocessed log messages in the queue could be lost.  
         private static ConcurrentQueue<AuditEvent> LogEventQueue = new ConcurrentQueue<AuditEvent>();
         private static Task WorkerTask = null;
         private static int InstanceCount = 0;
@@ -61,7 +64,16 @@ namespace AuditLogLib
         }
 
         /// <summary>
-        /// 
+        /// Simplest logging method, does not conform to ILogger, requires a fully formed event object
+        /// </summary>
+        /// <param name="Event">Event data to be logged. Use AuditEvent.New method to enforce proper creation</param>
+        public void Log(AuditEvent Event)
+        {
+            LogEventQueue.Enqueue(Event);
+        }
+
+        /// <summary>
+        /// Compliant with ILogger interface, which is not the primary intended type of use for this class. 
         /// </summary>
         /// <typeparam name="TState"></typeparam>
         /// <param name="LogLevel">Provide one of the enum values</param>
@@ -113,9 +125,6 @@ namespace AuditLogLib
                 }
             }
 
-            // TODO instead of an in-process queue, switch to use an out of process asynchronous message queue.
-            // Hint, MSMQ was an idea but that probably will never be supported in .NET Core since it is a Windows only service.  
-            // The issue here is that if the process is terminated or crashes, any unprocessed log messages in the queue could be lost.  
             LogEventQueue.Enqueue(NewEvent);
         }
 

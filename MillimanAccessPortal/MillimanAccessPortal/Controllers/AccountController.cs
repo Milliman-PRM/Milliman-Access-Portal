@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MapDbContextLib.Identity;
@@ -68,8 +69,10 @@ namespace MillimanAccessPortal.Controllers
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
-                    AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User login successful", null, model.Email);
-                    AuditStore.Log(LogLevel.Information, AuditEventId.LoginSuccess, LogObject);
+                    HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
+
+                    AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User login successful", AuditEventId.LoginSuccess, null, model.Email, HttpContext.Session.Id);
+                    AuditStore.Log(LogObject);
                     //_logger.LogInformation(AuditEventId.LoginSuccess, "User logged in.");
 
                     // The default route is /HostedContent/Index as configured in startup.cs
@@ -93,8 +96,8 @@ namespace MillimanAccessPortal.Controllers
                 }
                 else
                 {
-                    AuditEvent LogObject = AuditEvent.New("Map Account Controller", "User login failed", null, model.Email);
-                    AuditStore.Log(LogLevel.Warning, AuditEventId.LoginFailure, LogObject);
+                    AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User login failed", AuditEventId.LoginFailure, null, model.Email, HttpContext.Session.Id);
+                    AuditStore.Log(LogObject);
 
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                     return View(model);

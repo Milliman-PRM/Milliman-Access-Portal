@@ -1,5 +1,5 @@
 ﻿/*
- * CODE OWNERS: Ben Wyatt
+ * CODE OWNERS: Ben Wyatt, Tom Puckett
  * OBJECTIVE: Provide extensions to the base IdentityUser class
  * DEVELOPER NOTES: 
  */
@@ -20,6 +20,15 @@ namespace MapDbContextLib.Identity
             // The base class does not have a constructor taking an argument.  
             base.UserName = userName;
         }
-        
+
+        //
+        // Summary:
+        //     Gets or sets the user's LastName.
+        public virtual string LastName { get; set; }
+
+        //
+        // Summary:
+        //     Gets or sets the user's FirstName.
+        public virtual string FirstName { get; set; }
     }
 }
