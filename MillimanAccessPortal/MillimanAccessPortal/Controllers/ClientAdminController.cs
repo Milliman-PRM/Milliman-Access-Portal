@@ -305,63 +305,135 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
-        /*
-
-        // GET: ClientAdmin/Edit/5
-        public async Task<IActionResult> Edit(long? id)
-        {
-            if (id == null)
-            {
-                return RedirectToAction(nameof(ClientAdminController.Index));
-            }
-
-            var ThisClient = await DbContext.Client.SingleOrDefaultAsync(m => m.Id == id);
-            if (ThisClient == null)
-            {
-                return RedirectToAction(nameof(ClientAdminController.Index));
-            }
-
-            // TODO fill this in
-
-            return View();
-        }
-
         // POST: ClientAdmin/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         //public async Task<IActionResult> Edit(long id, [Bind("Id,Name,AcceptedEmailDomainList,ParentClientId")] Client client)
-        public async Task<IActionResult> Edit(long id, ClientUserAssociationViewModel Model)
+        public IActionResult SaveNewClient([Bind("Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
+                                                 "ConsultantOffice,ProfitCenter,AcceptedEmailDomainList,ParentClientId")] Client Model)
+        // Members not bound: Id,AcceptedEmailAddressExceptionList
         {
-            if (id != Model.ClientId)
+            #region Authorization
+            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator}).Result)
             {
-                return NotFound();
+                return Unauthorized();
             }
 
-            if (ModelState.IsValid)
+            if (Model.ParentClientId != null && !AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.ParentClientId.Value }).Result)
             {
-                try
-                {
-                    DbContext.Update(Model.ClientId);
-                    await DbContext.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ClientExists(Model.ThisClient.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction("Index");
+                return Unauthorized();
             }
-            //ViewData["ParentClientId"] = new SelectList(DbContext.Client, "Id", "Name", client.ParentClientId);
-            return RedirectToAction("Edit", new { Id = Model.ThisClient.Id });
+            #endregion Authorization
+
+            #region Validation
+            // Valid domains in whitelist
+            foreach (string WhiteListedDomain in Model.AcceptedEmailDomainList)
+            {
+                if (!GlobalFunctions.IsValidEmail("test@" + WhiteListedDomain))
+                {
+                    Response.Headers.Add("Warning", $"The domain is invalid: ({WhiteListedDomain})");
+                    return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
+                }
+            }
+
+            // Parent client must exist if any
+            if (Model.ParentClientId != null && !ClientExists(Model.ParentClientId.Value))
+            {
+                Response.Headers.Add("Warning", $"The specified parent Client is invalid: ({Model.ParentClientId.Value})");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
+            }
+
+            // Name must be unique
+            if (DbContext.Client.Any(c=>c.Name == Model.Name))
+            {
+                Response.Headers.Add("Warning", $"The client name already exists for another client: ({Model.Name})");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
+            }
+            #endregion Validation
+
+            try
+            {
+                DbContext.Client.Add(Model);
+                DbContext.SaveChanges();
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            return Ok();
         }
+
+        // POST: ClientAdmin/Edit
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
+        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditClient([Bind("Id,Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
+                                              "ConsultantOffice,ProfitCenter,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId")] Client Model)
+        //public async Task<IActionResult> EditClient([Bind("Id,Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
+        //                                                  "ConsultantOffice,ProfitCenter,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId")] Client Model)
+        {
+            #region Authorization
+            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.Id }).Result)
+            {
+                return Unauthorized();
+            }
+            #endregion Authorization
+
+            #region Validation
+            // Valid domains in whitelist
+            foreach (string WhiteListedDomain in Model.AcceptedEmailDomainList)
+            {
+                if (!GlobalFunctions.IsValidEmail("test@" + WhiteListedDomain))
+                {
+                    Response.Headers.Add("Warning", $"The domain is invalid: ({WhiteListedDomain})");
+                    return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
+                }
+            }
+
+            // Valid addresses in whitelist
+            foreach (string WhiteListedAddress in Model.AcceptedEmailAddressExceptionList)
+            {
+                if (!GlobalFunctions.IsValidEmail(WhiteListedAddress))
+                {
+                    Response.Headers.Add("Warning", $"The exception address is invalid: ({WhiteListedAddress})");
+                    return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
+                }
+            }
+
+            // Parent client must exist if any
+            if (Model.ParentClientId != null && !ClientExists(Model.ParentClientId.Value))
+            {
+                Response.Headers.Add("Warning", $"The specified parent Client is invalid: ({Model.ParentClientId.Value})");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
+            }
+
+            // Name must be unique
+            if (DbContext.Client.Any(c => c.Name == Model.Name && 
+                                          c.Id != Model.Id))
+            {
+                Response.Headers.Add("Warning", $"The client name already exists for another client: ({Model.Name})");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
+            }
+            #endregion Validation
+
+            try
+            {
+                DbContext.Client.Add(Model);
+                DbContext.SaveChanges();
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            return Ok();
+        }
+
+        /*
 
         // GET: ClientAdmin/Delete/5
         public async Task<IActionResult> Delete(long? id)
@@ -383,17 +455,8 @@ namespace MillimanAccessPortal.Controllers
             return View(client);
         }
 
-        // POST: ClientAdmin/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(long id)
-        {
-            var client = await DbContext.Client.SingleOrDefaultAsync(m => m.Id == id);
-            DbContext.Client.Remove(client);
-            await DbContext.SaveChangesAsync();
-            return RedirectToAction("Index");
-        }
         */
+
         private bool ClientExists(long id)
         {
             return DbContext.Client.Any(e => e.Id == id);
