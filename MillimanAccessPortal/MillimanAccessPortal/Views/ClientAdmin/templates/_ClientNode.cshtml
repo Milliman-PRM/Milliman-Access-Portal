@@ -1,0 +1,51 @@
+<script type="text/template" data-template="clientNode">
+    <li>
+        <div class="{{class}} client-admin-card">
+            <div class="icon-container">
+                <i class="fa fa-fw fa-pencil"></i>
+                <i class="fa fa-fw fa-trash"></i>
+            </div>
+            <h2 class="client-admin-card-title">{{name}}</h2>
+            <p>{{info}}</p>
+        </div>
+    </li>
+</script>
+
+<script>
+    var clientNodeTemplate = $('script[data-template="clientNode"]').html();
+
+    function renderClientNode(client, level) {
+        var template = clientNodeTemplate;
+
+        switch (level) {
+            case 1:
+                template = template.replace(/{{class}}/g, "col-xs-12");
+                break;
+            case 2:
+                template = template.replace(/{{class}}/g, "col-xs-offset-1 col-xs-11");
+                break;
+            default:
+                template = template.replace(/{{class}}/g, "col-xs-offset-2 col-xs-10");
+                break;
+        }
+
+        template = template.replace(/{{name}}/g, client.clientEntity.name);
+        template = template.replace(/{{info}}/g, client.clientEntity.acceptedEmailDomainList);
+
+        $('#client-tree-list').append(template);
+
+        // Render child nodes
+        if (client.children.length) {
+            client.children.forEach(function (childNode) {
+                renderClientNode(childNode, level + 1);
+            })
+        }
+
+    }
+
+    function renderClientTree() {
+
+
+
+    }
+</script>

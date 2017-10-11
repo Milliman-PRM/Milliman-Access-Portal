@@ -18,98 +18,7 @@
         </div>
         <div id="client-tree" class="container-fluid scroll-y">
             <div class="row">
-                <ul>
-                    <li>
-                        <div class="client-admin-card col-xs-12">
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h2 class="client-admin-card-title">Client Name</h2>
-                            <p>Client information</p>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="client-admin-card col-xs-offset-1 col-xs-11">
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h3 class="client-admin-card-title">Client Name</h3>
-                            <p>Client information</p>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="client-admin-card col-xs-offset-2 col-xs-10">
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h4 class="client-admin-card-title">Client Name</h4>
-                            <p>Client information</p>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="client-admin-card col-xs-offset-1 col-xs-11">
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h3 class="client-admin-card-title">Client Name</h3>
-                            <p>Client information</p>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="client-admin-card col-xs-offset-2 col-xs-10">
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h4 class="client-admin-card-title">Client Name</h4>
-                            <p>Client information</p>
-                        </div>
-                    </li>
-                    <li class="hr col-xs-12"></li>
-                    <li>
-                        <div class="client-admin-card col-xs-12">
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h2 class="client-admin-card-title">Client Name</h2>
-                            <p>Client information</p>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="client-admin-card col-xs-offset-1 col-xs-11">
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h3 class="client-admin-card-title">Client Name</h3>
-                            <p>Client information</p>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="client-admin-card col-xs-offset-2 col-xs-10">
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h4 class="client-admin-card-title">Client Name</h4>
-                            <p>Client information</p>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="client-admin-card col-xs-offset-1 col-xs-11">
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h3 class="client-admin-card-title">Client Name</h3>
-                            <p>Client information</p>
-                        </div>
-                    </li>
+                <ul id="client-tree-list">
                 </ul>
             </div>
         </div>    
@@ -337,9 +246,217 @@
 </div>
 
 @section Scripts {
+
+    @Html.Partial("~/Views/ClientAdmin/templates/_ClientNode.cshtml")
+
     <script>
 
         $(function () {
+
+            var clientTree = [
+                {
+                    "clientEntity":
+                    {
+                        "id": 2,
+                        "name": "Client 2",
+                        "acceptedEmailDomainList": ["milliman.com", "hotmail.com"],
+                        "parentClientId": null,
+                        "parentClient": null
+                    },
+                    "canManage": true,
+                    "associatedUserCount": 0,
+                    "associatedContentCount": 1,
+                    "children": []
+                },
+                {
+                    "clientEntity":
+                    {
+                        "id": 6,
+                        "name": "xyz3",
+                        "acceptedEmailDomainList": [],
+                        "parentClientId": null,
+                        "parentClient": null
+                    },
+                    "canManage": true,
+                    "associatedUserCount": 0,
+                    "associatedContentCount": 0,
+                    "children": []
+                },
+                {
+                    "clientEntity":
+                    {
+                        "id": 1,
+                        "name": "Client 1",
+                        "acceptedEmailDomainList": ["milliman.com"],
+                        "parentClientId": null,
+                        "parentClient": null
+                    },
+                    "canManage": true,
+                    "associatedUserCount": 2,
+                    "associatedContentCount": 2,
+                    "children": [
+                        {
+                            "clientEntity":
+                            {
+                                "id": 4,
+                                "name": "xyz",
+                                "acceptedEmailDomainList": ["hotmail.com"],
+                                "parentClientId": 1,
+                                "parentClient": null
+                            },
+                            "canManage": true,
+                            "associatedUserCount": 0,
+                            "associatedContentCount": 0,
+                            "children": [
+                                {
+                                    "clientEntity":
+                                    {
+                                        "id": 5,
+                                        "name": "xyz2",
+                                        "acceptedEmailDomainList": [],
+                                        "parentClientId": 4,
+                                        "parentClient":
+                                        {
+                                            "id": 4,
+                                            "name": "xyz",
+                                            "acceptedEmailDomainList": ["hotmail.com"],
+                                            "parentClientId": 1,
+                                            "parentClient": null
+                                        }
+                                    },
+                                    "canManage": true,
+                                    "associatedUserCount": 0,
+                                    "associatedContentCount": 0,
+                                    "children": []
+                                },
+                                {
+                                    "clientEntity":
+                                    {
+                                        "id": 5,
+                                        "name": "xyz2",
+                                        "acceptedEmailDomainList": [],
+                                        "parentClientId": 4,
+                                        "parentClient":
+                                        {
+                                            "id": 4,
+                                            "name": "xyz",
+                                            "acceptedEmailDomainList": ["hotmail.com"],
+                                            "parentClientId": 1,
+                                            "parentClient": null
+                                        }
+                                    },
+                                    "canManage": true,
+                                    "associatedUserCount": 0,
+                                    "associatedContentCount": 0,
+                                    "children": []
+                                },
+                                {
+                                    "clientEntity":
+                                    {
+                                        "id": 5,
+                                        "name": "xyz2",
+                                        "acceptedEmailDomainList": [],
+                                        "parentClientId": 4,
+                                        "parentClient":
+                                        {
+                                            "id": 4,
+                                            "name": "xyz",
+                                            "acceptedEmailDomainList": ["hotmail.com"],
+                                            "parentClientId": 1,
+                                            "parentClient": null
+                                        }
+                                    },
+                                    "canManage": true,
+                                    "associatedUserCount": 0,
+                                    "associatedContentCount": 0,
+                                    "children": []
+                                }]
+                        },
+                        {
+                            "clientEntity":
+                            {
+                                "id": 4,
+                                "name": "xyz",
+                                "acceptedEmailDomainList": ["hotmail.com"],
+                                "parentClientId": 1,
+                                "parentClient": null
+                            },
+                            "canManage": true,
+                            "associatedUserCount": 0,
+                            "associatedContentCount": 0,
+                            "children": [
+                                {
+                                    "clientEntity":
+                                    {
+                                        "id": 5,
+                                        "name": "xyz2",
+                                        "acceptedEmailDomainList": [],
+                                        "parentClientId": 4,
+                                        "parentClient":
+                                        {
+                                            "id": 4,
+                                            "name": "xyz",
+                                            "acceptedEmailDomainList": ["hotmail.com"],
+                                            "parentClientId": 1,
+                                            "parentClient": null
+                                        }
+                                    },
+                                    "canManage": true,
+                                    "associatedUserCount": 0,
+                                    "associatedContentCount": 0,
+                                    "children": []
+                                },
+                                {
+                                    "clientEntity":
+                                    {
+                                        "id": 5,
+                                        "name": "xyz2",
+                                        "acceptedEmailDomainList": [],
+                                        "parentClientId": 4,
+                                        "parentClient":
+                                        {
+                                            "id": 4,
+                                            "name": "xyz",
+                                            "acceptedEmailDomainList": ["hotmail.com"],
+                                            "parentClientId": 1,
+                                            "parentClient": null
+                                        }
+                                    },
+                                    "canManage": true,
+                                    "associatedUserCount": 0,
+                                    "associatedContentCount": 0,
+                                    "children": []
+                                },
+                                {
+                                    "clientEntity":
+                                    {
+                                        "id": 5,
+                                        "name": "xyz2",
+                                        "acceptedEmailDomainList": [],
+                                        "parentClientId": 4,
+                                        "parentClient":
+                                        {
+                                            "id": 4,
+                                            "name": "xyz",
+                                            "acceptedEmailDomainList": ["hotmail.com"],
+                                            "parentClientId": 1,
+                                            "parentClient": null
+                                        }
+                                    },
+                                    "canManage": true,
+                                    "associatedUserCount": 0,
+                                    "associatedContentCount": 0,
+                                    "children": []
+                                }]
+                        }]
+                }]
+
+
+            clientTree.forEach(function(rootClient) {
+                renderClientNode(rootClient, 1);
+                $('#client-tree-list').append('<li class="hr col-xs-12"></li>');
+            });
+
 
             /*
             $.ajax({
