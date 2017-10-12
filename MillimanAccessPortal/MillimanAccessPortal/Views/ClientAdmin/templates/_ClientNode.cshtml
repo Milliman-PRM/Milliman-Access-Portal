@@ -1,12 +1,12 @@
 <script type="text/template" data-template="clientNode">
     <li>
-        <div class="{{class}} client-admin-card">
-            <div class="icon-container">
-                <i class="fa fa-fw fa-pencil"></i>
-                <i class="fa fa-fw fa-trash"></i>
-            </div>
+        <div class="{{class}} client-admin-card" data-client-id="{{id}}">
             <h2 class="client-admin-card-title">{{name}}</h2>
             <p>{{info}}</p>
+            <div class="icon-container">
+                <i class="fa fa-fw fa-pencil"></i>
+                <i class="fa fa-fw fa-trash" onclick="deleteClient('{{id}}', '{{name}}')"></i>
+            </div>
         </div>
     </li>
 </script>
@@ -29,6 +29,7 @@
                 break;
         }
 
+        template = template.replace(/{{id}}/g, client.clientEntity.id);
         template = template.replace(/{{name}}/g, client.clientEntity.name);
         template = template.replace(/{{info}}/g, client.clientEntity.acceptedEmailDomainList);
 
@@ -41,11 +42,50 @@
             })
         }
 
-    }
+    };
 
     function renderClientTree() {
 
 
 
-    }
+    };
+
+
+    function deleteClient(id, name) {
+
+        bootbox.confirm({
+            title: "Delete " + name + "?",
+            message: "This action can not be undone.  Do you wish to proceed?",
+            className: 'screen-center',
+            backdrop: true,
+            buttons: {
+                confirm: {
+                    label: '<i class="fa fa-trash"></i> Confirm',
+                    className: 'btn-danger'
+                },
+                cancel: {
+                    label: 'Cancel',
+                    className: 'btn-link'
+                },
+            },
+            callback: function (result) {
+                if (result) {
+                    bootbox.prompt({
+                        title: "Please input your password to proceed deletion",
+                        className: 'screen-center',
+                        inputType: 'password',
+                        backdrop: true,
+                        callback: function (result) {
+                            if (result) {
+                                alert(result);
+                            }
+                        }
+                    })
+                }
+            }
+        });
+
+    };
+
+
 </script>
