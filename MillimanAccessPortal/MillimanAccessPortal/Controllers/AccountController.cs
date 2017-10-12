@@ -14,6 +14,7 @@ using MapDbContextLib.Identity;
 using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Services;
 using AuditLogLib;
+using AuditLogLib.Services;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -25,19 +26,22 @@ namespace MillimanAccessPortal.Controllers
         private readonly MessageQueueServices _messageSender;
         private readonly ILogger _logger;
         private readonly string _externalCookieScheme;
+        private readonly IAuditLogger _auditLogger;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IOptions<IdentityCookieOptions> identityCookieOptions,
             MessageQueueServices messageSender,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory,
+            IAuditLogger AuditLoggerArg)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _externalCookieScheme = identityCookieOptions.Value.ExternalCookieAuthenticationScheme;
             _messageSender = messageSender;
             _logger = loggerFactory.CreateLogger<AccountController>();
+            _auditLogger = AuditLoggerArg;
         }
 
         //
@@ -63,7 +67,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
-            AuditLogger AuditStore = new AuditLogger();
+
             if (ModelState.IsValid)
             {
                 // This doesn't count login failures towards account lockout
@@ -74,8 +78,7 @@ namespace MillimanAccessPortal.Controllers
                     HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
 
                     AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User login successful", AuditEventId.LoginSuccess, null, model.Email, HttpContext.Session.Id);
-                    AuditStore.Log(LogObject);
-                    //_logger.LogInformation(AuditEventId.LoginSuccess, "User logged in.");
+                    _auditLogger.Log(LogObject);
 
                     // The default route is /HostedContent/Index as configured in startup.cs
                     if (!string.IsNullOrEmpty(returnUrl))
@@ -99,7 +102,7 @@ namespace MillimanAccessPortal.Controllers
                 else
                 {
                     AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User login failed", AuditEventId.LoginFailure, null, model.Email, HttpContext.Session.Id);
-                    AuditStore.Log(LogObject);
+                    _auditLogger.Log(LogObject);
 
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                     return View(model);
@@ -158,8 +161,7 @@ namespace MillimanAccessPortal.Controllers
         {
             await _signInManager.SignOutAsync();
 
-            AuditLogger AuditStore = new AuditLogger();
-            AuditStore.Log(
+            _auditLogger.Log(
                 AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User logged out successful", AuditEventId.Logout, null, User.Identity.Name, HttpContext.Session.Id)
             );
 

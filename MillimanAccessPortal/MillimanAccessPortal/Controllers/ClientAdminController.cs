@@ -7,15 +7,16 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using MapDbContextLib.Context;
-using MapDbContextLib.Identity;
-using MapCommonLib;
-using AuditLogLib;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using System.Security.Claims;
+using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
+using MapCommonLib;
+using AuditLogLib;
+using AuditLogLib.Services;
 using MillimanAccessPortal.Models.ClientAdminViewModels;
 using MillimanAccessPortal.Authorization;
 
@@ -28,13 +29,15 @@ namespace MillimanAccessPortal.Controllers
         private readonly IServiceProvider ServiceProvider;
         private readonly IAuthorizationService AuthorizationService;
         private readonly ILogger Logger;
+        private readonly IAuditLogger AuditLogger;
 
         public ClientAdminController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> UserManagerArg,
             IServiceProvider ServiceProviderArg,
             IAuthorizationService AuthorizationServiceArg,
-            ILoggerFactory LoggerFactoryArg
+            ILoggerFactory LoggerFactoryArg,
+            IAuditLogger AuditLoggerArg
             )
         {
             DbContext = context;
@@ -42,6 +45,7 @@ namespace MillimanAccessPortal.Controllers
             ServiceProvider = ServiceProviderArg;
             AuthorizationService = AuthorizationServiceArg;
             Logger = LoggerFactoryArg.CreateLogger<AccountController>();
+            AuditLogger = AuditLoggerArg;
         }
 
         // GET: ClientAdmin
@@ -223,12 +227,11 @@ namespace MillimanAccessPortal.Controllers
                     return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
                 }
 
-                AuditLogger AuditLog = new AuditLogger();
                 object LogDetails = new { AssignedUserName = RequestedUser.UserName,
                                           AssignedUserId = RequestedUser.Id,
                                           AssignedClient = RequestedClient.Name,
                                           AssignedClientId = RequestedClient.Id};
-                AuditLog.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User Assigned to Client", AuditEventId.UserAssignedToClient, LogDetails, User.Identity.Name, HttpContext.Session.Id) );
+                AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User Assigned to Client", AuditEventId.UserAssignedToClient, LogDetails, User.Identity.Name, HttpContext.Session.Id) );
                 return Ok();
             }
         }
@@ -290,7 +293,6 @@ namespace MillimanAccessPortal.Controllers
                     return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
                 }
 
-                AuditLogger AuditLog = new AuditLogger();
                 object LogDetails = new
                 {
                     AssignedUserName = RequestedUser.UserName,
@@ -298,7 +300,7 @@ namespace MillimanAccessPortal.Controllers
                     AssignedClient = RequestedClient.Name,
                     AssignedClientId = RequestedClient.Id
                 };
-                AuditLog.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                                             "User removed from Client", 
                                             AuditEventId.UserRemovedFromClient, 
                                             LogDetails, 
