@@ -291,6 +291,10 @@
                         callback: function (result) {
                             if (result) {
                                 toastr['success'](name + " was successfully deleted.");
+                            } 
+                            else if (result == "") {
+                                toastr['warning']("Please enter a password");
+                                return false;
                             }
                             else {
                                 toastr['warning']("Deletion was canceled");
