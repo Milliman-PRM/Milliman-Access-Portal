@@ -20,15 +20,12 @@ namespace AuditLogLib
         private static Task WorkerTask = null;
         private static int InstanceCount = 0;
         private static object ThreadSafetyLock = new object();
-        private static AuditLoggerConfiguration Config = null;
-
-        public static void ConfigureAuditLogger(AuditLoggerConfiguration ConfigArg)
+        public static AuditLoggerConfiguration Config
         {
-            lock (ThreadSafetyLock)
-            {
-                Config = ConfigArg;
-            }
+            set;
+            private get;
         }
+
         public AuditLogger()
         {
             lock (ThreadSafetyLock)

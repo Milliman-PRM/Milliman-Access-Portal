@@ -166,10 +166,10 @@ namespace MillimanAccessPortal
                 SmtpFromName = Configuration.GetValue<string>("SmtpFromName")
             });
 
-            AuditLogger.ConfigureAuditLogger(new AuditLoggerConfiguration
+            AuditLogger.Config = new AuditLoggerConfiguration
             {
                 AuditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString"),
-            });
+            };
             
         }
     }
