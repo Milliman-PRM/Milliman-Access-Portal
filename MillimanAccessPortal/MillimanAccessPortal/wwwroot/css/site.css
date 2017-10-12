@@ -63,6 +63,12 @@ textarea {
   #form-submit:hover {
     background-color: #0080E2; }
 
+.primary-button {
+  height: 50px;
+  width: 90px;
+  margin: 0 20px;
+  font-weight: bold; }
+
 /*****
 Login Page
 *****/

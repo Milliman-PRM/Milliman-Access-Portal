@@ -259,26 +259,42 @@
             message: "This action can not be undone.  Do you wish to proceed?",
             className: 'screen-center',
             backdrop: true,
+            onEscape: true,
             buttons: {
                 confirm: {
-                    label: '<i class="fa fa-trash"></i> Confirm',
-                    className: 'btn-danger'
+                    label: '<i class="fa fa-check"></i> Confirm',
+                    className: 'primary-button btn-danger'
                 },
                 cancel: {
                     label: 'Cancel',
                     className: 'btn-link'
-                },
+                }
             },
             callback: function (result) {
                 if (result) {
                     bootbox.prompt({
-                        title: "Please input your password to proceed deletion",
+                        title: "Please provide your password to proceed with deletion",
                         className: 'screen-center',
                         inputType: 'password',
                         backdrop: true,
+                        onEscape: true,
+                        buttons: {
+                            confirm: {
+                                label: '<i class="fa fa-trash"></i> DELETE',
+                                className: 'primary-button btn-danger'
+                            },
+                            cancel: {
+                                label: 'Cancel',
+                                className: 'btn-link'
+                            }
+                        },
                         callback: function (result) {
                             if (result) {
-                                alert(result);
+                                toastr['success'](name + " was successfully deleted.");
+                            }
+                            else {
+                                toastr['warning']("Deletion was canceled");
+
                             }
                         }
                     })
