@@ -322,19 +322,34 @@ namespace MillimanAccessPortal.Controllers
                                                  "ConsultantOffice,ProfitCenter,AcceptedEmailDomainList,ParentClientId")] Client Model)
         // Members not bound: Id,AcceptedEmailAddressExceptionList
         {
-            #region Authorization
-            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator}).Result)
+            if (!ModelState.IsValid)
             {
-                return Unauthorized();
+                return BadRequest("Invalid Model");
             }
 
-            if (Model.ParentClientId != null && !AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.ParentClientId.Value }).Result)
+            #region Authorization
+            if (Model.ParentClientId == null)
             {
-                return Unauthorized();
+                // Request to create a root client
+                if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.RootClientCreator, ClientId = Model.ParentClientId.Value }).Result)
+                {
+                    return Unauthorized();
+                }
+            }
+            else
+            {
+                // Request to create a child client
+                if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.ParentClientId.Value }).Result)
+                {
+                    return Unauthorized();
+                }
             }
             #endregion Authorization
 
             #region Validation
+            // remove any characters prior to '@'
+            Model.AcceptedEmailDomainList = Model.AcceptedEmailDomainList.Select(d => d.Contains("@") ? d.Substring(d.LastIndexOf('@')+1) : d).ToArray();
+
             // Valid domains in whitelist
             foreach (string WhiteListedDomain in Model.AcceptedEmailDomainList)
             {
@@ -367,7 +382,7 @@ namespace MillimanAccessPortal.Controllers
             }
             catch
             {
-                string ErrMsg = $"Failed to store validated new Client to database";
+                string ErrMsg = $"Failed to store validated new Client \"{Model.Name}\" with parent ID {Model.ParentClientId} to database";
                 Logger.LogError(ErrMsg);
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
@@ -390,14 +405,40 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest();
             }
 
+            var PreviousParentId = DbContext.Client
+                                            .Where(c => c.Id == Model.Id)
+                                            .Select(c => c.ParentClientId)
+                                            .FirstOrDefault();
+
             #region Authorization
-            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.Id }).Result)
+            if (Model.ParentClientId == null && PreviousParentId != null)
             {
-                return Unauthorized();
+                // Request to change a child client to a root client
+                Claim ProfitCenterClaim = new Claim("", "");
+                if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.RootClientCreator, ClientId = Model.Id }).Result
+                    // || !UserManager.GetClaimsAsync(GetCurrentUser()).Result.Contains(ProfitCenterClaim)  // TODO enable this when the profit center entity is implemented
+                    )
+                {
+                    return Unauthorized();
+                }
+            }
+            else
+            {
+                // Request to edit a child client
+                if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.Id }).Result)
+                {
+                    return Unauthorized();
+                }
             }
             #endregion Authorization
 
             #region Validation
+            // Client must exist
+            if (!DbContext.Client.Any(c => c.Id == Model.Id))
+            {
+                return BadRequest($"The requested client {Model.Id} does not exist");
+            }
+
             // Valid domains in whitelist
             foreach (string WhiteListedDomain in Model.AcceptedEmailDomainList)
             {
@@ -441,7 +482,7 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception ex)
             {
-                string ErrMsg = $"Failed to update client to database";
+                string ErrMsg = $"Failed to update client {Model.Id} to database";
                 Logger.LogError(ErrMsg + $":\r\n{ ex.Message}\r\n{ ex.StackTrace}");
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
@@ -467,7 +508,6 @@ namespace MillimanAccessPortal.Controllers
 
             #region Validation
             // Client must not be parent of any other Client // TODO consider what would be an acceptable way of handling this automatically
-            // Name must be unique
             List<long> Children = DbContext.Client.Where(c => c.ParentClientId == Id.Value).Select(c => c.Id).ToList();
             if (Children.Count > 0)
             {
