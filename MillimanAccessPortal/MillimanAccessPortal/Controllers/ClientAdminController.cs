@@ -332,7 +332,7 @@ namespace MillimanAccessPortal.Controllers
             if (Model.ParentClientId == null)
             {
                 // Request to create a root client
-                if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.RootClientCreator, ClientId = Model.ParentClientId.Value }).Result)
+                if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.RootClientCreator }).Result)
                 {
                     return Unauthorized();
                 }
@@ -432,7 +432,7 @@ namespace MillimanAccessPortal.Controllers
             // User must have ClientAdministrator role for the edited Client
             if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.Id }).Result)
             {
-                Response.Headers.Add("Warning", $"The requesting user is not a Client Administrator for the requested client");
+                Response.Headers.Add("Warning", $"The requesting user is not a Client Administrator for the requested client ({Model.Name})");
                 return Unauthorized();
             }
             #endregion Authorization
