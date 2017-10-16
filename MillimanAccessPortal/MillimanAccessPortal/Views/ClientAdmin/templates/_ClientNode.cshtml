@@ -234,6 +234,7 @@
     }
 
     function renderClientTree() {
+        $('#client-tree-list').empty();
         clientTree.forEach(function (rootClient) {
             renderClientNode(rootClient, 1);
             $('#client-tree-list').append('<li class="hr col-xs-12"></li>');
@@ -269,7 +270,6 @@
         }
 
     };
-
 
     function deleteClient(id, name) {
 
@@ -309,6 +309,7 @@
                         },
                         callback: function (result) {
                             if (result) {
+                                removeClientNode(id);
                                 toastr['success'](name + " was successfully deleted.");
                             } 
                             else if (result == "") {
@@ -326,6 +327,23 @@
         });
 
     };
+
+    function removeClientNode(clientId) {
+        recursiveClientNodeSearch(clientTree, clientId);
+        renderClientTree();
+    };
+
+    function recursiveClientNodeSearch(array, clientId) {
+        for (var i = 0; i < array.length; i++) {
+            if (array[i].clientEntity.id == clientId) {
+                array.splice(i, 1);
+                return;
+            }
+            if (array[i].children.length > 0) {
+                recursiveClientNodeSearch(array[i].children, clientId);
+            }
+        }
+    }
 
 
 </script>
