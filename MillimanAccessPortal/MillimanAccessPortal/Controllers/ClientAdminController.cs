@@ -237,11 +237,12 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult RemoveUserFromClient(ClientUserAssociationViewModel Model)
         {
-            // Authorization check
+            #region Authorization
             if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.ClientId }).Result)
             {
                 return Unauthorized();
             }
+            #endregion
 
             #region Validate the request
             // 1. Requested client must exist
@@ -347,7 +348,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion Authorization
 
             #region Validation
-            // remove any characters prior to '@'
+            // remove any leading characters up to last '@'
             Model.AcceptedEmailDomainList = Model.AcceptedEmailDomainList.Select(d => d.Contains("@") ? d.Substring(d.LastIndexOf('@')+1) : d).ToArray();
 
             // Valid domains in whitelist
@@ -411,24 +412,28 @@ namespace MillimanAccessPortal.Controllers
                                             .FirstOrDefault();
 
             #region Authorization
+            // TODO Reconsider this entire authorization section when implementing the ProfitCenter entity.  Cover all use cases in github issue #61
+            // Claim ProfitCenterClaim = new Claim("ProfitCenterAssociation", "TheProfitCenterReferencedByTheClient");
+
+            // Changing a child Client to root Client
             if (Model.ParentClientId == null && PreviousParentId != null)
             {
                 // Request to change a child client to a root client
-                Claim ProfitCenterClaim = new Claim("", "");
-                if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.RootClientCreator, ClientId = Model.Id }).Result
+                if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.RootClientCreator }).Result
                     // || !UserManager.GetClaimsAsync(GetCurrentUser()).Result.Contains(ProfitCenterClaim)  // TODO enable this when the profit center entity is implemented
                     )
                 {
+                    Response.Headers.Add("Warning", $"Unable to convert child client to root client, user is not a RootClientCreator");
                     return Unauthorized();
                 }
             }
-            else
+            // else The request is to simply edit a root or child client or move a root to child
+
+            // User must have ClientAdministrator role for the edited Client
+            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.Id }).Result)
             {
-                // Request to edit a child client
-                if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.Id }).Result)
-                {
-                    return Unauthorized();
-                }
+                Response.Headers.Add("Warning", $"The requesting user is not a Client Administrator for the requested client");
+                return Unauthorized();
             }
             #endregion Authorization
 
@@ -511,7 +516,7 @@ namespace MillimanAccessPortal.Controllers
             List<long> Children = DbContext.Client.Where(c => c.ParentClientId == Id.Value).Select(c => c.Id).ToList();
             if (Children.Count > 0)
             {
-                Response.Headers.Add("Warning", $"The client is the parent of client(s): {string.Join(", ", Children)}");
+                Response.Headers.Add("Warning", $"Can't delete. The client is the parent of client(s): {string.Join(", ", Children)}");
                 return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
             }
             #endregion Validation
