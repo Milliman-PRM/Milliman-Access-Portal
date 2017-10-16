@@ -259,12 +259,9 @@
 
     <script>
 
-        $(function () {
+        $(document).ready(function () {
 
-            clientTree.forEach(function(rootClient) {
-                renderClientNode(rootClient, 1);
-                $('#client-tree-list').append('<li class="hr col-xs-12"></li>');
-            });
+            getClientTree();
 
 
             /*

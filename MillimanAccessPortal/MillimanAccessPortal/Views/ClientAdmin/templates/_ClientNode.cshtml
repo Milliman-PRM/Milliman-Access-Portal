@@ -214,6 +214,31 @@
 
 
     var clientNodeTemplate = $('script[data-template="clientNode"]').html();
+    var clientTree;
+
+    function getClientTree() {
+        $.ajax({
+            'type': 'GET',
+            'url': 'ClientAdmin/ClientFamilyList/'
+        }).done(function (response) {
+            clientTree = response;
+            renderClientTree();
+        }).fail(function (response) {
+            if (response.status == 401) {
+                toastr['error']('You are not authorized to view any clients');
+            }
+            else {
+                toaster['error']('An error has occurred');
+            }
+        });
+    }
+
+    function renderClientTree() {
+        clientTree.forEach(function (rootClient) {
+            renderClientNode(rootClient, 1);
+            $('#client-tree-list').append('<li class="hr col-xs-12"></li>');
+        });
+    };
 
     function renderClientNode(client, level) {
         var template = clientNodeTemplate;
@@ -242,12 +267,6 @@
                 renderClientNode(childNode, level + 1);
             })
         }
-
-    };
-
-    function renderClientTree() {
-
-
 
     };
 
