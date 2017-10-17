@@ -202,21 +202,6 @@
                 }
             }
         }
-
-        $('.client-admin-card').each(function () {
-            if (searchString.length > 0) {
-                if ($(this).find('.client-admin-card-title').val().toUpperCase().indexOf(searchString.toUpperCase) != -1) {
-                    $(this).show()
-                }
-            }
-            else {
-                $(this).hide();
-            }
-
-        })
-        $('.client-admin-card').each(function () {
-            $(this).show();
-        })
     }
 
 
