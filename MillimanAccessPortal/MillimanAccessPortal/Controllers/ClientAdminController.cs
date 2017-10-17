@@ -382,6 +382,9 @@ namespace MillimanAccessPortal.Controllers
             {
                 DbContext.Client.Add(Model);
                 DbContext.SaveChanges();
+
+                object LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, };
+                AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New Client Saved", AuditEventId.NewClientSaved, LogDetails, User.Identity.Name, HttpContext.Session.Id));
             }
             catch
             {
@@ -486,6 +489,9 @@ namespace MillimanAccessPortal.Controllers
             {
                 DbContext.Client.Update(Model);
                 DbContext.SaveChanges();
+
+                object LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, };
+                AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Client Edited", AuditEventId.ClientEdited, LogDetails, User.Identity.Name, HttpContext.Session.Id));
             }
             catch (Exception ex)
             {
@@ -528,6 +534,9 @@ namespace MillimanAccessPortal.Controllers
                 // Only the primary key is needed for delete
                 DbContext.Client.Remove(new Client { Id = Id.Value });
                 DbContext.SaveChanges();
+
+                object LogDetails = new { ClientId = Id.Value };
+                AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Client Deleted", AuditEventId.ClientDeleted, LogDetails, User.Identity.Name, HttpContext.Session.Id));
             }
             catch (Exception ex)
             {
