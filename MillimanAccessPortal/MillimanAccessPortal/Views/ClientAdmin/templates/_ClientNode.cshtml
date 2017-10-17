@@ -68,7 +68,19 @@
         template = template.replace(/{{name}}/g, client.clientEntity.name);
         template = template.replace(/{{info}}/g, client.clientEntity.acceptedEmailDomainList);
 
-        $('#client-tree-list').append(template);
+
+        // convert template to DOM element for jQuery manipulation
+        var $template = $(template.toString());
+
+        if (!client.canManage) {
+            $('.icon-container', $template).remove();
+        }
+
+        if (level == 3) {  // Don't include the add child client button on lowest level
+            $('.card-button-background-add', $template).remove();
+        }
+
+        $('#client-tree-list').append($template);
 
         // Render child nodes
         if (client.children.length) {
