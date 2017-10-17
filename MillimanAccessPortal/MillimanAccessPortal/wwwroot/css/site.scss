@@ -12,9 +12,15 @@ $nav-selected-color: #0091ff;
 $nav-hover-font-color: #0091ff;
 $form-background: #DEDEE3;
 $form-border: #424242;
-$form-close: #ff4618;
-$form-close-hover: #ff2300;
-
+$form-close: #d9534f;
+$form-close-hover: #c9302c;
+$button-warning: #d9534f;
+$button-warning-hover: #c9302c;
+$button-confirm: #0091ff;
+$button-confirm-hover: #0080E2;
+$button-save: #5cb85c;
+$button-save-hover: #449d44;
+    
 @import url('https://fonts.googleapis.com/css?family=Noto+Sans');
 
 /******
@@ -24,7 +30,7 @@ General Styling
 body {
     background-color: $background;
     box-sizing: border-box;
-    font-family: 'Noto Sans', sans-serif;
+    font-family: 'Noto Sans', 'Arial', sans-serif;
     margin: 0;
     padding: 0;
     height: 100%;
@@ -331,6 +337,8 @@ Client Admin Styling
 
         .scroll-y {
             overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 25px;
         }
 
         .client-admin-section-toolbar {
@@ -362,6 +370,10 @@ Client Admin Styling
                 list-style-type: none;
                 padding: 5px;
                 margin: 5px;
+
+                li {
+                    margin-bottom: 15px;
+                }
             }
         }
 
@@ -373,38 +385,84 @@ Client Admin Styling
         }
     }
 
-    .client-admin-card {
-        position: relative;
-        padding: 5px 10px;
-        background-color: white;
-        border: 2px solid black;
-        border-radius: 5px;
-        margin-top: 10px;
-        margin-bottom: 10px;
-        cursor: pointer;
+.client-admin-card {
+    position: relative;
+    padding: 5px 10px;
+    background-color: white;
+    border: 2px solid black;
+    border-radius: 5px;
+    margin-top: 10px;
+    margin-bottom: 30px;
+    cursor: pointer;
+    min-height: 85px;
 
-        &:hover {
-            background-color: lightgray;
-            transform: scale(1.02);
-        }
+    &:hover {
+        background-color: lightgray;
+        transform: scale(1.02);
+    }
 
 
-        .client-admin-card-title {
-            margin: 5px 0;
-        }
+    .client-admin-card-title {
+        margin: 5px 0;
+    }
 
-        .icon-container {
-            position: absolute;
-            display: inline;
-            bottom: 10px;
-            right: 10px;
-        }
+    .icon-container {
+        position: absolute;
+        display: inline;
+        right: 0;
+        top: 50%;
+        text-align: right;
+        transform: translate(50%, -50%);
 
-        .left-icon {
-            display: inline;
-            height: 100%;
+        .card-button-background {
+            border-radius: 50%;
+            display: block;
+            margin: 10px;
+            text-align: center;
+            vertical-align: middle;
+            padding: 2px;
+            transform-origin: center center;
+
+            &.card-button-background-edit {
+                background-color: $button-confirm;
+
+                &:hover {
+                    background-color: $button-confirm-hover;
+                }
+            }
+
+            &.card-button-background-delete {
+                background-color: $button-warning;
+
+                &:hover {
+                    background-color: $button-warning-hover;
+                }
+            }
+
+            &.card-button-background-add {
+                background-color: $button-save;
+
+                &:hover {
+                    background-color: $button-save-hover;
+                }
+            }
+
+            &:hover {
+                transform: scale(1.25);
+                transform-origin: center center;
+            }
+
+            i {
+                color: white;
+            }
         }
     }
+
+    .left-icon {
+        display: inline;
+        height: 100%;
+    }
+}
 
     #client-form {
 

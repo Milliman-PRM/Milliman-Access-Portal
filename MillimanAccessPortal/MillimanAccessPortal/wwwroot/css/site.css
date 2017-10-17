@@ -8,7 +8,7 @@ General Styling
 body {
   background-color: #DEDEE3;
   box-sizing: border-box;
-  font-family: 'Noto Sans', sans-serif;
+  font-family: 'Noto Sans', 'Arial', sans-serif;
   margin: 0;
   padding: 0;
   height: 100%; }
@@ -171,12 +171,12 @@ Contact Form Styling
     text-align: center; }
   #contact-form-modal .form-close {
     position: absolute;
-    color: #ff4618;
+    color: #d9534f;
     top: 10px;
     right: 5px;
     cursor: pointer; }
   #contact-form-modal .form-close:hover {
-    color: #ff2300; }
+    color: #c9302c; }
 
 /*****
 Header Styling
@@ -248,7 +248,9 @@ Client Admin Styling
   height: 80vh;
   padding: 10px; }
   .client-admin-section .scroll-y {
-    overflow-y: auto; }
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 25px; }
   .client-admin-section .client-admin-section-toolbar {
     width: 100%;
     vertical-align: middle; }
@@ -270,6 +272,9 @@ Client Admin Styling
       list-style-type: none;
       padding: 5px;
       margin: 5px; }
+      .client-admin-section #client-tree ul li,
+      .client-admin-section #user-list ul li {
+        margin-bottom: 15px; }
   .client-admin-section .hr {
     height: 2px;
     border: 1px solid black;
@@ -283,8 +288,9 @@ Client Admin Styling
   border: 2px solid black;
   border-radius: 5px;
   margin-top: 10px;
-  margin-bottom: 10px;
-  cursor: pointer; }
+  margin-bottom: 30px;
+  cursor: pointer;
+  min-height: 85px; }
   .client-admin-card:hover {
     background-color: lightgray;
     transform: scale(1.02); }
@@ -293,8 +299,35 @@ Client Admin Styling
   .client-admin-card .icon-container {
     position: absolute;
     display: inline;
-    bottom: 10px;
-    right: 10px; }
+    right: 0;
+    top: 50%;
+    text-align: right;
+    transform: translate(50%, -50%); }
+    .client-admin-card .icon-container .card-button-background {
+      border-radius: 50%;
+      display: block;
+      margin: 10px;
+      text-align: center;
+      vertical-align: middle;
+      padding: 2px;
+      transform-origin: center center; }
+      .client-admin-card .icon-container .card-button-background.card-button-background-edit {
+        background-color: #0091ff; }
+        .client-admin-card .icon-container .card-button-background.card-button-background-edit:hover {
+          background-color: #0080E2; }
+      .client-admin-card .icon-container .card-button-background.card-button-background-delete {
+        background-color: #d9534f; }
+        .client-admin-card .icon-container .card-button-background.card-button-background-delete:hover {
+          background-color: #c9302c; }
+      .client-admin-card .icon-container .card-button-background.card-button-background-add {
+        background-color: #5cb85c; }
+        .client-admin-card .icon-container .card-button-background.card-button-background-add:hover {
+          background-color: #449d44; }
+      .client-admin-card .icon-container .card-button-background:hover {
+        transform: scale(1.25);
+        transform-origin: center center; }
+      .client-admin-card .icon-container .card-button-background i {
+        color: white; }
   .client-admin-card .left-icon {
     display: inline;
     height: 100%; }

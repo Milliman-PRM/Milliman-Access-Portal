@@ -1,217 +1,24 @@
 <script type="text/template" data-template="clientNode">
     <li>
         <div class="{{class}} client-admin-card" data-client-id="{{id}}">
-            <h2 class="client-admin-card-title">{{name}}</h2>
+            <h{{header-level}} class="client-admin-card-title">{{name}}</h{{header-level}}>
             <p>{{info}}</p>
             <div class="icon-container">
-                <i class="fa fa-fw fa-pencil"></i>
-                <i class="fa fa-fw fa-trash" onclick="deleteClient('{{id}}', '{{name}}')"></i>
+                <div class="card-button-background card-button-background-edit">
+                    <i class="fa fa-fw fa-pencil"></i>
+                </div>
+                <div class="card-button-background card-button-background-delete">
+                    <i class="fa fa-fw fa-trash" onclick="deleteClient('{{id}}', '{{name}}')"></i>
+                </div>
+               <div class="card-button-background card-button-background-add">
+                    <i class="fa fa-fw fa-plus"></i>
+                </div>
             </div>
         </div>
     </li>
 </script>
 
 <script>
-
-
-    var clientTree = [
-        {
-            "clientEntity":
-            {
-                "id": 2,
-                "name": "Client 2",
-                "acceptedEmailDomainList": ["milliman.com", "hotmail.com"],
-                "parentClientId": null,
-                "parentClient": null
-            },
-            "canManage": true,
-            "associatedUserCount": 0,
-            "associatedContentCount": 1,
-            "children": []
-        },
-        {
-            "clientEntity":
-            {
-                "id": 6,
-                "name": "xyz3",
-                "acceptedEmailDomainList": [],
-                "parentClientId": null,
-                "parentClient": null
-            },
-            "canManage": true,
-            "associatedUserCount": 0,
-            "associatedContentCount": 0,
-            "children": []
-        },
-        {
-            "clientEntity":
-            {
-                "id": 1,
-                "name": "Client 1",
-                "acceptedEmailDomainList": ["milliman.com"],
-                "parentClientId": null,
-                "parentClient": null
-            },
-            "canManage": true,
-            "associatedUserCount": 2,
-            "associatedContentCount": 2,
-            "children": [
-                {
-                    "clientEntity":
-                    {
-                        "id": 4,
-                        "name": "xyz",
-                        "acceptedEmailDomainList": ["hotmail.com"],
-                        "parentClientId": 1,
-                        "parentClient": null
-                    },
-                    "canManage": true,
-                    "associatedUserCount": 0,
-                    "associatedContentCount": 0,
-                    "children": [
-                        {
-                            "clientEntity":
-                            {
-                                "id": 5,
-                                "name": "xyz2",
-                                "acceptedEmailDomainList": [],
-                                "parentClientId": 4,
-                                "parentClient":
-                                {
-                                    "id": 4,
-                                    "name": "xyz",
-                                    "acceptedEmailDomainList": ["hotmail.com"],
-                                    "parentClientId": 1,
-                                    "parentClient": null
-                                }
-                            },
-                            "canManage": true,
-                            "associatedUserCount": 0,
-                            "associatedContentCount": 0,
-                            "children": []
-                        },
-                        {
-                            "clientEntity":
-                            {
-                                "id": 5,
-                                "name": "xyz2",
-                                "acceptedEmailDomainList": [],
-                                "parentClientId": 4,
-                                "parentClient":
-                                {
-                                    "id": 4,
-                                    "name": "xyz",
-                                    "acceptedEmailDomainList": ["hotmail.com"],
-                                    "parentClientId": 1,
-                                    "parentClient": null
-                                }
-                            },
-                            "canManage": true,
-                            "associatedUserCount": 0,
-                            "associatedContentCount": 0,
-                            "children": []
-                        },
-                        {
-                            "clientEntity":
-                            {
-                                "id": 5,
-                                "name": "xyz2",
-                                "acceptedEmailDomainList": [],
-                                "parentClientId": 4,
-                                "parentClient":
-                                {
-                                    "id": 4,
-                                    "name": "xyz",
-                                    "acceptedEmailDomainList": ["hotmail.com"],
-                                    "parentClientId": 1,
-                                    "parentClient": null
-                                }
-                            },
-                            "canManage": true,
-                            "associatedUserCount": 0,
-                            "associatedContentCount": 0,
-                            "children": []
-                        }]
-                },
-                {
-                    "clientEntity":
-                    {
-                        "id": 4,
-                        "name": "xyz",
-                        "acceptedEmailDomainList": ["hotmail.com"],
-                        "parentClientId": 1,
-                        "parentClient": null
-                    },
-                    "canManage": true,
-                    "associatedUserCount": 0,
-                    "associatedContentCount": 0,
-                    "children": [
-                        {
-                            "clientEntity":
-                            {
-                                "id": 5,
-                                "name": "xyz2",
-                                "acceptedEmailDomainList": [],
-                                "parentClientId": 4,
-                                "parentClient":
-                                {
-                                    "id": 4,
-                                    "name": "xyz",
-                                    "acceptedEmailDomainList": ["hotmail.com"],
-                                    "parentClientId": 1,
-                                    "parentClient": null
-                                }
-                            },
-                            "canManage": true,
-                            "associatedUserCount": 0,
-                            "associatedContentCount": 0,
-                            "children": []
-                        },
-                        {
-                            "clientEntity":
-                            {
-                                "id": 5,
-                                "name": "xyz2",
-                                "acceptedEmailDomainList": [],
-                                "parentClientId": 4,
-                                "parentClient":
-                                {
-                                    "id": 4,
-                                    "name": "xyz",
-                                    "acceptedEmailDomainList": ["hotmail.com"],
-                                    "parentClientId": 1,
-                                    "parentClient": null
-                                }
-                            },
-                            "canManage": true,
-                            "associatedUserCount": 0,
-                            "associatedContentCount": 0,
-                            "children": []
-                        },
-                        {
-                            "clientEntity":
-                            {
-                                "id": 5,
-                                "name": "xyz2",
-                                "acceptedEmailDomainList": [],
-                                "parentClientId": 4,
-                                "parentClient":
-                                {
-                                    "id": 4,
-                                    "name": "xyz",
-                                    "acceptedEmailDomainList": ["hotmail.com"],
-                                    "parentClientId": 1,
-                                    "parentClient": null
-                                }
-                            },
-                            "canManage": true,
-                            "associatedUserCount": 0,
-                            "associatedContentCount": 0,
-                            "children": []
-                        }]
-                }]
-        }]
-
 
     var clientNodeTemplate = $('script[data-template="clientNode"]').html();
     var clientTree;
@@ -256,6 +63,7 @@
                 break;
         }
 
+        template = template.replace(/{{header-level}}/g, (level + 1))
         template = template.replace(/{{id}}/g, client.clientEntity.id);
         template = template.replace(/{{name}}/g, client.clientEntity.name);
         template = template.replace(/{{info}}/g, client.clientEntity.acceptedEmailDomainList);
