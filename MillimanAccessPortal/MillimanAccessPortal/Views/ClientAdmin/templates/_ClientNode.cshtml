@@ -2,7 +2,7 @@
     <li>
         <div class="{{class}} client-admin-card" data-client-id="{{id}}">
             <h{{header-level}} class="client-admin-card-title">{{name}}</h{{header-level}}>
-            <p>{{clientCode}}</p>
+            <p class="client-admin-card-clientcode">{{clientCode}}</p>
             <div class="icon-container">
                 <div class="card-button-background card-button-background-edit">
                     <i class="fa fa-fw fa-pencil"></i>
@@ -183,6 +183,40 @@
                 recursiveClientNodeSearch(array[i].children, clientId);
             }
         }
+    }
+
+    function searchClientTree(searchString) {
+        searchString = searchString.toUpperCase();
+        nodes = document.getElementsByClassName('client-admin-card');
+
+        for (i = 0; i < nodes.length; i++) {
+            title = nodes[i].getElementsByClassName('client-admin-card-title')[0];
+            clientCode = nodes[i].getElementsByClassName('client-admin-card-clientcode')[0];
+            if (title || clientCode) {
+                if (title.innerHTML.toUpperCase().indexOf(searchString) > -1 ||
+                    clientCode.innerHTML.toUpperCase().indexOf(searchString) > -1) {
+                    nodes[i].style.display = "";
+                }
+                else {
+                    nodes[i].style.display = "none";
+                }
+            }
+        }
+
+        $('.client-admin-card').each(function () {
+            if (searchString.length > 0) {
+                if ($(this).find('.client-admin-card-title').val().toUpperCase().indexOf(searchString.toUpperCase) != -1) {
+                    $(this).show()
+                }
+            }
+            else {
+                $(this).hide();
+            }
+
+        })
+        $('.client-admin-card').each(function () {
+            $(this).show();
+        })
     }
 
 
