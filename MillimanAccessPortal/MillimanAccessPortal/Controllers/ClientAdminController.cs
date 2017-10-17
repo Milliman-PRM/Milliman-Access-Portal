@@ -506,7 +506,7 @@ namespace MillimanAccessPortal.Controllers
         // DELETE: ClientAdmin/Delete/5
         //public async Task<IActionResult> DeleteClient(long Id)
         [HttpDelete]
-        public IActionResult DeleteClient(long? Id)
+        public IActionResult DeleteClient(long? Id, string Password)
         {
             if (Id == null || Id.Value <=0)
             {
@@ -514,7 +514,8 @@ namespace MillimanAccessPortal.Controllers
             }
 
             #region Authorization
-            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Id.Value }).Result)
+            if (!UserManager.CheckPasswordAsync(UserManager.GetUserAsync(HttpContext.User).Result, Password).Result ||
+                !AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Id.Value }).Result)
             {
                 return Unauthorized();
             }

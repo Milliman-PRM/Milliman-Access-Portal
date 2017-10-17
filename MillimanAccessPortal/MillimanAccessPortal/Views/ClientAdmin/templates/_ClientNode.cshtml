@@ -135,7 +135,7 @@
                         },
                         callback: function (result) {
                             if (result) {
-                                removeClientNode(id, name);
+                                removeClientNode(id, name, result);
                             } 
                             else if (result == "") {
                                 toastr['warning']("Please enter a password");
@@ -153,12 +153,13 @@
 
     };
 
-    function removeClientNode(clientId, clientName) {
+    function removeClientNode(clientId, clientName, password) {
         $.ajax({
             type: 'DELETE',
             url: 'ClientAdmin/DeleteClient',
             data: {
                 Id: clientId,
+                Password: password
             },
             headers: {
                 'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
