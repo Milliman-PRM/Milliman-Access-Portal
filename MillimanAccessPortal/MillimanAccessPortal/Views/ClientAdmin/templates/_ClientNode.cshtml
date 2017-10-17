@@ -135,8 +135,7 @@
                         },
                         callback: function (result) {
                             if (result) {
-                                removeClientNode(id);
-                                toastr['success'](name + " was successfully deleted.");
+                                removeClientNode(id, name);
                             } 
                             else if (result == "") {
                                 toastr['warning']("Please enter a password");
@@ -154,9 +153,23 @@
 
     };
 
-    function removeClientNode(clientId) {
-        recursiveClientNodeSearch(clientTree, clientId);
-        renderClientTree();
+    function removeClientNode(clientId, clientName) {
+        $.ajax({
+            type: 'DELETE',
+            url: 'ClientAdmin/DeleteClient',
+            data: {
+                Id: clientId,
+            },
+            headers: {
+                'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
+            },
+        }).done(function (response) {
+            recursiveClientNodeSearch(clientTree, clientId);
+            renderClientTree();
+            toastr['success'](clientName + " was successfully deleted.");
+        }).fail(function (response) {
+            toastr["warning"](response.getResponseHeader("Warning"));
+        })
     };
 
     function recursiveClientNodeSearch(array, clientId) {

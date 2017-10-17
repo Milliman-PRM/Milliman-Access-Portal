@@ -417,36 +417,6 @@
             }, 2000)  // Delete this entire line
             ;
             */
-
-            /*
-            window.setTimeout(function () {  // Delete this entire line
-                // Delete a client by id
-                $.ajax({
-                    //type: 'GET',
-                    url: 'ClientAdmin/DeleteClient',
-                    data: {
-                        Id: 15,
-                    },
-                    headers: {
-                        'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
-                    },
-                }).done(function (response) {
-                    console.log(response)
-                }).fail(function (response) {
-                    switch (response.status) {
-                        case 412:
-                            toastr["warning"](response.getResponseHeader("Warning"));
-                            break;
-                        default:
-                            alert("ajax DeleteClient response code is " + response.status + "Body is " + response.responseText);
-                            break;
-                    }
-                })
-            }, 10000)  // Delete this entire line
-            ;
-            */
-
-
         })
 
 

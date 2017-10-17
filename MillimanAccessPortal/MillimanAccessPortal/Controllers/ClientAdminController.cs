@@ -503,8 +503,9 @@ namespace MillimanAccessPortal.Controllers
             return Ok();
         }
 
-        // GET: ClientAdmin/Delete/5
+        // DELETE: ClientAdmin/Delete/5
         //public async Task<IActionResult> DeleteClient(long Id)
+        [HttpDelete]
         public IActionResult DeleteClient(long? Id)
         {
             if (Id == null || Id.Value <=0)
