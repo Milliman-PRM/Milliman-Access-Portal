@@ -13,8 +13,7 @@ namespace AuditLogLibTest
             // This code demonstrates usage of the AuditLogger as a directly instantiated object, 
             // rather than as accessed through the ILoggerProvider interface implementation.  It works both ways. 
 
-            AuditLoggerConfiguration Cfg = new AuditLoggerConfiguration { AuditLogConnectionString = "127.0.0.1;Database=MapAuditLog;User Id=postgres;Password=postgres;" };
-            AuditLogger.ConfigureAuditLogger(Cfg);
+            AuditLogger.Config = new AuditLoggerConfiguration { AuditLogConnectionString = "127.0.0.1;Database=MapAuditLog;User Id=postgres;Password=postgres;" };
             AuditLogger L = new AuditLogger();
 
             for (int i=0; i < 10; i++)

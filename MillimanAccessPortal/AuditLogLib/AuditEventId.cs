@@ -15,12 +15,17 @@ namespace AuditLogLib
 
         // ClientAdmin related 1001+
         public static readonly AuditEventId Unspecified = new AuditEventId(AuditEventBaseId, "Unspecified");
-        public static readonly AuditEventId LoginSuccess = new AuditEventId(AuditEventBaseId + 1, "Login Success");
-        public static readonly AuditEventId LoginFailure = new AuditEventId(AuditEventBaseId + 2, "Login Failure");
-        public static readonly AuditEventId Unauthorized = new AuditEventId(AuditEventBaseId + 3, "Unauthorized Request");
+        public static readonly AuditEventId LoginSuccess = new AuditEventId(AuditEventBaseId + 1, "Login success");
+        public static readonly AuditEventId LoginFailure = new AuditEventId(AuditEventBaseId + 2, "Login failure");
+        public static readonly AuditEventId Unauthorized = new AuditEventId(AuditEventBaseId + 3, "Unauthorized request");
+        public static readonly AuditEventId Logout = new AuditEventId(AuditEventBaseId + 4, "Logout success");
 
         // ClientAdmin related 1101+
-        public static readonly AuditEventId UserAssignedToClient = new AuditEventId(AuditEventBaseId + 101, "User Assigned To Client");
+        public static readonly AuditEventId UserAssignedToClient = new AuditEventId(AuditEventBaseId + 101, "User assigned To Client");
+        public static readonly AuditEventId UserRemovedFromClient = new AuditEventId(AuditEventBaseId + 102, "User removed From Client");
+        public static readonly AuditEventId NewClientSaved = new AuditEventId(AuditEventBaseId + 103, "New client saved");
+        public static readonly AuditEventId ClientEdited = new AuditEventId(AuditEventBaseId + 104, "Client edited");
+        public static readonly AuditEventId ClientDeleted = new AuditEventId(AuditEventBaseId + 105, "Client deleted");
 
         public AuditEventId(int id, string name = "")
         {

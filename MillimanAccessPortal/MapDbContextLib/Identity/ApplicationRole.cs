@@ -25,6 +25,7 @@ namespace MapDbContextLib.Identity
         UserManager = 3,
         ContentPublisher = 4,
         ContentUser = 5,
+        RootClientCreator = 6,
     };
 
     public class ApplicationRole : IdentityRole<long>
@@ -36,6 +37,7 @@ namespace MapDbContextLib.Identity
                 {RoleEnum.UserManager, "User Manager"},
                 {RoleEnum.ContentPublisher, "Content Publisher"},
                 {RoleEnum.ContentUser, "Content User"},
+                {RoleEnum.RootClientCreator, "Root Client Creator"},
             };
 
         /// <summary>

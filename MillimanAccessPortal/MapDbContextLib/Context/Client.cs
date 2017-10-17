@@ -12,6 +12,12 @@ namespace MapDbContextLib.Context
 {
     public class Client
     {
+        public Client()
+        {
+            AcceptedEmailDomainList = new string[0];
+            AcceptedEmailAddressExceptionList = new string[0];
+        }
+
         public long Id { get; set; }
 
         [Required]
