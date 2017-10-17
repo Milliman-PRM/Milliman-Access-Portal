@@ -2,7 +2,7 @@
     <li>
         <div class="{{class}} client-admin-card" data-client-id="{{id}}">
             <h{{header-level}} class="client-admin-card-title">{{name}}</h{{header-level}}>
-            <p>{{info}}</p>
+            <p>{{clientCode}}</p>
             <div class="icon-container">
                 <div class="card-button-background card-button-background-edit">
                     <i class="fa fa-fw fa-pencil"></i>
@@ -66,7 +66,12 @@
         template = template.replace(/{{header-level}}/g, (level + 1))
         template = template.replace(/{{id}}/g, client.clientEntity.id);
         template = template.replace(/{{name}}/g, client.clientEntity.name);
-        template = template.replace(/{{info}}/g, client.clientEntity.acceptedEmailDomainList);
+        if (client.clientEntity.clientCode) {
+            template = template.replace(/{{clientCode}}/g, client.clientEntity.clientCode);
+        }
+        else {
+            template = template.replace(/{{clientCode}}/g, '');
+        }
 
 
         // convert template to DOM element for jQuery manipulation
@@ -74,6 +79,7 @@
 
         if (!client.canManage) {
             $('.icon-container', $template).remove();
+            $('.client-admin-card', $template).addClass('disabled');
         }
 
         if (level == 3) {  // Don't include the add child client button on lowest level

@@ -20,6 +20,8 @@ $button-confirm: #0091ff;
 $button-confirm-hover: #0080E2;
 $button-save: #5cb85c;
 $button-save-hover: #449d44;
+$button-disabled: #DDD;
+$text-disabled: #424242;
     
 @import url('https://fonts.googleapis.com/css?family=Noto+Sans');
 
@@ -397,8 +399,13 @@ Client Admin Styling
     min-height: 85px;
 
     &:hover {
-        background-color: lightgray;
+        /*background-color: lightgray;*/
         transform: scale(1.02);
+    }
+
+    &.disabled {
+        color: $text-disabled !important;
+        background-color: $button-disabled !important;
     }
 
 

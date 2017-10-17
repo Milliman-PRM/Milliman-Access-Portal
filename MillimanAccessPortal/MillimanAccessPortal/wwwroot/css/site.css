@@ -292,8 +292,11 @@ Client Admin Styling
   cursor: pointer;
   min-height: 85px; }
   .client-admin-card:hover {
-    background-color: lightgray;
+    /*background-color: lightgray;*/
     transform: scale(1.02); }
+  .client-admin-card.disabled {
+    color: #424242 !important;
+    background-color: #DDD !important; }
   .client-admin-card .client-admin-card-title {
     margin: 5px 0; }
   .client-admin-card .icon-container {
