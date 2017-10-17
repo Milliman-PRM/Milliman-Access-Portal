@@ -8,10 +8,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Runtime.CompilerServices;
 using System.Reflection;
+using AuditLogLib.Services;
 
 namespace AuditLogLib
 {
-    public class AuditLogger
+    public class AuditLogger : IAuditLogger
     {
         // TODO instead of an in-process queue, switch to use an out of process asynchronous message queue.
         // Hint, MSMQ was an idea but that probably will never be supported in .NET Core since it is a Windows only service.  
@@ -20,15 +21,12 @@ namespace AuditLogLib
         private static Task WorkerTask = null;
         private static int InstanceCount = 0;
         private static object ThreadSafetyLock = new object();
-        private static AuditLoggerConfiguration Config = null;
-
-        public static void ConfigureAuditLogger(AuditLoggerConfiguration ConfigArg)
+        public static AuditLoggerConfiguration Config
         {
-            lock (ThreadSafetyLock)
-            {
-                Config = ConfigArg;
-            }
+            set;
+            private get;
         }
+
         public AuditLogger()
         {
             lock (ThreadSafetyLock)
@@ -145,7 +143,7 @@ namespace AuditLogLib
         /// <summary>
         /// Worker thread main entry point
         /// </summary>
-        /// <param name="Arg"></param>
+        /// <param name="Arg">Configuration object</param>
         private static void ProcessQueueEvents(object Arg)
         {
             AuditLoggerConfiguration Config = (AuditLoggerConfiguration)Arg;
