@@ -47,9 +47,9 @@ namespace MapDbContextLib.Context
         public long? ParentClientId { get; set; }
         public Client ParentClient { get; set; }
 
-        //[Required]
+        [Required]  // This will cause schema migration failure to any database populated with Clients but without the ProfitCenter entity
         [ForeignKey("ProfitCenter")]
-        public long? ProfitCenterId { get; set; }
+        public long ProfitCenterId { get; set; }
         public ProfitCenter ProfitCenter { get; set; }
     }
 }

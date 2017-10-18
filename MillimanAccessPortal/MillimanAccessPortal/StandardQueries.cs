@@ -141,7 +141,7 @@ namespace MillimanAccessPortal
             return DataContext.Client.Where(c => c.ParentClientId == null).ToList();
         }
 
-        public ClientAndChildrenModel GetDescendentFamilyOfClient(Client ClientArg, long CurrentUserId, bool RecurseDown=true)
+        public ClientAndChildrenModel GetDescendentFamilyOfClient(Client ClientArg, ApplicationUser CurrentUser, bool RecurseDown=true)
         {
             ApplicationDbContext DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>();
 
@@ -151,21 +151,24 @@ namespace MillimanAccessPortal
             ClientAndChildrenModel ResultObject = new ClientAndChildrenModel { ClientEntity = ClientArg };  // Initialize.  Relies on implicit conversion operator
             ResultObject.AssociatedContentCount = DataContext.RootContentItem.Where(r => r.ClientIdList.Contains(ClientArg.Id)).Count();
             ResultObject.AssociatedUserCount = UserMembersOfThisClient.Count;
-            ResultObject.CanManage = DataContext
-                                        .UserRoleForClient
-                                        .Include(URCMap => URCMap.Role)
-                                        .Include(URCMap => URCMap.User)
-                                        .SingleOrDefault(URCMap => URCMap.UserId == CurrentUserId
-                                                                && URCMap.Role.RoleEnum == RoleEnum.ClientAdministrator
-                                                                && URCMap.ClientId == ClientArg.Id)
-                                        != null;
+            ResultObject.CanManage = DataContext.UserRoleForClient
+                                                .Include(URCMap => URCMap.Role)
+                                                .Include(URCMap => URCMap.User)
+                                                .Join(DataContext.UserClaims, URCMap => URCMap.UserId, claim => claim.UserId, (URCMap,claim) => new { URCMap=URCMap, Claim = claim })
+                                                .SingleOrDefault(rec => rec.URCMap.UserId == CurrentUser.Id
+                                                                        && rec.URCMap.Role.RoleEnum == RoleEnum.ClientAdministrator
+                                                                        && rec.URCMap.ClientId == ClientArg.Id
+                                                                        // verify that the user has a claim of ProfitCenterManager to the ProfitCenter of the client
+                                                                        && rec.Claim.ClaimType == ClaimNames.ProfitCenterManager.ToString()
+                                                                        && rec.Claim.ClaimValue == ClientArg.ProfitCenterId.ToString())
+                                                != null;
 
             if (RecurseDown)
             {
                 List<Client> ChildrenOfThisClient = DataContext.Client.Where(c => c.ParentClientId == ClientArg.Id).ToList();
                 foreach (Client C in ChildrenOfThisClient)
                 {
-                    ResultObject.Children.Add(GetDescendentFamilyOfClient(C, CurrentUserId, RecurseDown));
+                    ResultObject.Children.Add(GetDescendentFamilyOfClient(C, CurrentUser, RecurseDown));
                 }
             }
 

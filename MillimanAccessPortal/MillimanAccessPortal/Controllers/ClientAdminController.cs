@@ -63,21 +63,24 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public IActionResult ClientFamilyList()
         {
-
+            #region Authorization
+            // User must have ClientAdministrator role to at least 1 Client
             if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator }).Result)
             {
                 return Unauthorized();
             }
+            #endregion
 
-            long CurrentUserId = GetCurrentUser().Id;
-
+            #region Create model to return
+            // Instantiate working variables
             ClientAndChildrenViewModel ModelToReturn = new ClientAndChildrenViewModel();
+            ApplicationUser CurrentUser = GetCurrentUser();  // Query once, use twice
 
             // Add all appropriate client trees
-            List<Client> AllRootClients = new StandardQueries(ServiceProvider).GetAllRootClients();
+            List<Client> AllRootClients = new StandardQueries(ServiceProvider).GetAllRootClients();  // list to memory so utilization is fast and no lingering transaction
             foreach (Client C in AllRootClients.OrderBy(c=>c.Name))
             {
-                ClientAndChildrenModel ClientModel = new StandardQueries(ServiceProvider).GetDescendentFamilyOfClient(C, CurrentUserId, true);
+                ClientAndChildrenModel ClientModel = new StandardQueries(ServiceProvider).GetDescendentFamilyOfClient(C, CurrentUser, true);
                 if (ClientModel.IsThisOrAnyChildManageable())
                 {
                     ModelToReturn.ClientTree.Add(ClientModel);
@@ -86,13 +89,13 @@ namespace MillimanAccessPortal.Controllers
 
             // Add all authorized ProfitCenters
             // First iterate over all ProfitCenterManager claims for the current user
-            foreach (Claim ProfitCenterClaim in UserManager.GetClaimsAsync(GetCurrentUser())
+            foreach (Claim ProfitCenterClaim in UserManager.GetClaimsAsync(CurrentUser)
                                                            .Result
                                                            .Where(c => c.Type == ClaimNames.ProfitCenterManager.ToString()))
             {
                 // Second find a corresponding ProfitCenter table record
                 ProfitCenter AuthorizedProfitCenter = DbContext.ProfitCenter
-                                                               .Where(p => p.ProfitCenterCode.ToUpper() == ProfitCenterClaim.Value.ToUpper())
+                                                               .Where(p => p.Id.ToString() == ProfitCenterClaim.Value)
                                                                .FirstOrDefault();
 
                 // If a valid ProfitCenter is found, add it to the ViewModel
@@ -101,6 +104,7 @@ namespace MillimanAccessPortal.Controllers
                     ModelToReturn.AuthorizedProfitCenterList.Add(new AuthorizedProfitCenterModel(AuthorizedProfitCenter));
                 }
             }
+            #endregion
 
             return Json(ModelToReturn);
         }
@@ -437,7 +441,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             // TODO Reconsider this entire authorization section when implementing the ProfitCenter entity.  Cover all use cases in github issue #61
-            // Claim ProfitCenterClaim = new Claim("ProfitCenterManager", "TheProfitCenterReferencedByTheClient");
+            // Claim ProfitCenterClaim = new Claim(ClaimNames.ProfitCenterManager.ToString(), "TheProfitCenterReferencedByTheClient");
 
             // Changing a child Client to root Client
             if (Model.ParentClientId == null && PreviousParentId != null)
