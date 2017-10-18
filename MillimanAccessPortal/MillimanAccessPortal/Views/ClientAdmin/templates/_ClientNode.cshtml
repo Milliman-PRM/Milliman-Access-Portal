@@ -186,12 +186,12 @@
     }
 
     function searchClientTree(searchString) {
-        searchString = searchString.toUpperCase();
-        nodes = document.getElementsByClassName('client-admin-card');
+        var searchString = searchString.toUpperCase();
+        var nodes = document.getElementById('client-tree-list').getElementsByClassName('client-admin-card');
 
         for (i = 0; i < nodes.length; i++) {
-            title = nodes[i].getElementsByClassName('client-admin-card-title')[0];
-            clientCode = nodes[i].getElementsByClassName('client-admin-card-clientcode')[0];
+            var title = nodes[i].getElementsByClassName('client-admin-card-title')[0];
+            var clientCode = nodes[i].getElementsByClassName('client-admin-card-clientcode')[0];
             if (title || clientCode) {
                 if (title.innerHTML.toUpperCase().indexOf(searchString) > -1 ||
                     clientCode.innerHTML.toUpperCase().indexOf(searchString) > -1) {
