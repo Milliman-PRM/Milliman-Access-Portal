@@ -47,6 +47,14 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+bower install
+
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: Bower package restore failed"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
 dotnet build /t:Clean
 
 if ( $LASTEXITCODE -ne 0 ) {
