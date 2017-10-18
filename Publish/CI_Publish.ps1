@@ -47,7 +47,8 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-bower install
+$command = '"C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Web\External\bower.cmd" install'
+invoke-expression "&$command"
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Bower package restore failed"
