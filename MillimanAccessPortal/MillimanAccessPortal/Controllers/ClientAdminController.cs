@@ -63,6 +63,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public IActionResult ClientFamilyList()
         {
+
             if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator }).Result)
             {
                 return Unauthorized();
@@ -70,15 +71,34 @@ namespace MillimanAccessPortal.Controllers
 
             long CurrentUserId = GetCurrentUser().Id;
 
-            List<ClientAndChildrenViewModel> ModelToReturn = new List<ClientAndChildrenViewModel>();
+            ClientAndChildrenViewModel ModelToReturn = new ClientAndChildrenViewModel();
 
+            // Add all appropriate client trees
             List<Client> AllRootClients = new StandardQueries(ServiceProvider).GetAllRootClients();
             foreach (Client C in AllRootClients.OrderBy(c=>c.Name))
             {
-                ClientAndChildrenViewModel ClientModel = new StandardQueries(ServiceProvider).GetDescendentFamilyOfClient(C, CurrentUserId, true);
+                ClientAndChildrenModel ClientModel = new StandardQueries(ServiceProvider).GetDescendentFamilyOfClient(C, CurrentUserId, true);
                 if (ClientModel.IsThisOrAnyChildManageable())
                 {
-                    ModelToReturn.Add(ClientModel);
+                    ModelToReturn.ClientTree.Add(ClientModel);
+                }
+            }
+
+            // Add all authorized ProfitCenters
+            // First iterate over all ProfitCenterManager claims for the current user
+            foreach (Claim ProfitCenterClaim in UserManager.GetClaimsAsync(GetCurrentUser())
+                                                           .Result
+                                                           .Where(c => c.Type == ClaimNames.ProfitCenterManager.ToString()))
+            {
+                // Second find a corresponding ProfitCenter table record
+                ProfitCenter AuthorizedProfitCenter = DbContext.ProfitCenter
+                                                               .Where(p => p.ProfitCenterCode.ToUpper() == ProfitCenterClaim.Value.ToUpper())
+                                                               .FirstOrDefault();
+
+                // If a valid ProfitCenter is found, add it to the ViewModel
+                if (AuthorizedProfitCenter != null)
+                {
+                    ModelToReturn.AuthorizedProfitCenterList.Add(new AuthorizedProfitCenterModel(AuthorizedProfitCenter));
                 }
             }
 
@@ -106,7 +126,7 @@ namespace MillimanAccessPortal.Controllers
 
             ClientUserListsViewModel Model = new ClientUserListsViewModel();
 
-            Claim ThisClientMembershipClaim = new Claim("ClientMembership", ThisClient.Name);
+            Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ThisClient.Name);
 
             // Get the list of users already assigned to this client
             Model.AssignedUsers = UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim)
@@ -126,7 +146,7 @@ namespace MillimanAccessPortal.Controllers
             List<ApplicationUser> UsersAssignedToClientFamily = new List<ApplicationUser>();
             foreach (Client OneClient in AllRelatedClients)
             {
-                ThisClientMembershipClaim = new Claim("ClientMembership", OneClient.Name);
+                ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), OneClient.Name);
                 UsersAssignedToClientFamily = UsersAssignedToClientFamily.Union(UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim).Result).ToList();
                 // TODO Test whether the other overload of .Union() needs to be used with an IEqualityComparer argument.  For this use equality should probably be based on Id only.
             }
@@ -210,7 +230,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            Claim ThisClientMembershipClaim = new Claim("ClientMembership", RequestedClient.Name);
+            Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), RequestedClient.Name);
 
             if (UserManager.GetClaimsAsync(RequestedUser).Result.Any(claim => claim.Type == ThisClientMembershipClaim.Type && 
                                                                               claim.Value == ThisClientMembershipClaim.Value))
@@ -281,7 +301,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            Claim ThisClientMembershipClaim = new Claim("ClientMembership", RequestedClient.Name);
+            Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), RequestedClient.Name);
 
             if (UserManager.GetClaimsAsync(RequestedUser).Result.Any(claim => claim.Type == ThisClientMembershipClaim.Type &&
                                                                               claim.Value == ThisClientMembershipClaim.Value))
@@ -320,10 +340,9 @@ namespace MillimanAccessPortal.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Edit(long id, [Bind("Id,Name,AcceptedEmailDomainList,ParentClientId")] Client client)
         public IActionResult SaveNewClient([Bind("Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
-                                                 "ConsultantOffice,ProfitCenter,AcceptedEmailDomainList,ParentClientId")] Client Model)
-        // Members not bound: Id,AcceptedEmailAddressExceptionList
+                                                 "ConsultantOffice,ProfitCenter,AcceptedEmailDomainList,ParentClientId,ProfitCenterId")] Client Model)
+        // Members intentionally not bound: Id, AcceptedEmailAddressExceptionList
         {
             if (!ModelState.IsValid)
             {
@@ -402,7 +421,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult EditClient([Bind("Id,Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
-                                              "ConsultantOffice,ProfitCenter,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId")] Client Model)
+                                              "ConsultantOffice,ProfitCenter,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId,ProfitCenterId")] Client Model)
         //public async Task<IActionResult> EditClient([Bind("Id,Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
         //                                                  "ConsultantOffice,ProfitCenter,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId")] Client Model)
         {
@@ -418,7 +437,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             // TODO Reconsider this entire authorization section when implementing the ProfitCenter entity.  Cover all use cases in github issue #61
-            // Claim ProfitCenterClaim = new Claim("ProfitCenterAssociation", "TheProfitCenterReferencedByTheClient");
+            // Claim ProfitCenterClaim = new Claim("ProfitCenterManager", "TheProfitCenterReferencedByTheClient");
 
             // Changing a child Client to root Client
             if (Model.ParentClientId == null && PreviousParentId != null)

@@ -141,14 +141,14 @@ namespace MillimanAccessPortal
             return DataContext.Client.Where(c => c.ParentClientId == null).ToList();
         }
 
-        public ClientAndChildrenViewModel GetDescendentFamilyOfClient(Client ClientArg, long CurrentUserId, bool RecurseDown=true)
+        public ClientAndChildrenModel GetDescendentFamilyOfClient(Client ClientArg, long CurrentUserId, bool RecurseDown=true)
         {
             ApplicationDbContext DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>();
 
-            Claim ThisClientMembershipClaim = new Claim("ClientMembership", ClientArg.Name);
+            Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientArg.Name);
             List<ApplicationUser> UserMembersOfThisClient = UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim).Result.ToList();
 
-            ClientAndChildrenViewModel ResultObject = new ClientAndChildrenViewModel { ClientEntity = ClientArg };  // Initialize.  Relies on implicit conversion operator
+            ClientAndChildrenModel ResultObject = new ClientAndChildrenModel { ClientEntity = ClientArg };  // Initialize.  Relies on implicit conversion operator
             ResultObject.AssociatedContentCount = DataContext.RootContentItem.Where(r => r.ClientIdList.Contains(ClientArg.Id)).Count();
             ResultObject.AssociatedUserCount = UserMembersOfThisClient.Count;
             ResultObject.CanManage = DataContext

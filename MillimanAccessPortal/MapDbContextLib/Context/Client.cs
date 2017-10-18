@@ -4,7 +4,6 @@
  * DEVELOPER NOTES: 
  */
 
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -39,8 +38,6 @@ namespace MapDbContextLib.Context
 
         public string ConsultantOffice { get; set; }
 
-        public string ProfitCenter { get; set; }
-
         [Required]
         public string[] AcceptedEmailDomainList { get; set; }
 
@@ -49,5 +46,10 @@ namespace MapDbContextLib.Context
         [ForeignKey("ParentClient")]
         public long? ParentClientId { get; set; }
         public Client ParentClient { get; set; }
+
+        //[Required]
+        [ForeignKey("ProfitCenter")]
+        public long? ProfitCenterId { get; set; }
+        public ProfitCenter ProfitCenter { get; set; }
     }
 }

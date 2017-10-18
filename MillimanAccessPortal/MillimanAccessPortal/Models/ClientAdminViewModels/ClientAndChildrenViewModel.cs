@@ -5,11 +5,31 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
 {
     public class ClientAndChildrenViewModel
     {
+        public List<ClientAndChildrenModel> ClientTree = new List<ClientAndChildrenModel>();
+        public List<AuthorizedProfitCenterModel> AuthorizedProfitCenterList = new List<AuthorizedProfitCenterModel>();
+    }
+
+    public class AuthorizedProfitCenterModel
+    {
+        public long Id;
+        public string Name;
+        public string Code;
+
+        public AuthorizedProfitCenterModel(ProfitCenter Arg)
+        {
+            this.Id = Arg.Id;
+            this.Name = Arg.Name;
+            this.Code = Arg.ProfitCenterCode;
+        }
+    }
+
+    public class ClientAndChildrenModel
+    {
         public Client ClientEntity { get; set; }
         public bool CanManage { get; set; }
         public int AssociatedUserCount { get; set; } = 0;
         public int AssociatedContentCount { get; set; } = 0;
-        public List<ClientAndChildrenViewModel> Children { get; set; } = new List<ClientAndChildrenViewModel>();
+        public List<ClientAndChildrenModel> Children { get; set; } = new List<ClientAndChildrenModel>();
 
         /// <summary>
         /// Convenience method to establish whether this instance or any child has CanManage == true

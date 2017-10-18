@@ -18,6 +18,7 @@ namespace MapDbContextLib.Context
         public DbSet<HierarchyField> HierarchyField { get; set; }
         public DbSet<HierarchyFieldValue> HierarchyFieldValue { get; set; }
         public DbSet<ContentType> ContentType { get; set; }
+        public DbSet<ProfitCenter> ProfitCenter { get; set; }
 
         // Alteration of Identity entities
         public DbSet<ApplicationUser> ApplicationUser { get; set; }
