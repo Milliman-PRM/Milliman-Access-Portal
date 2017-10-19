@@ -1,8 +1,18 @@
 <script type="text/template" data-template="clientNode">
     <li>
         <div class="{{class}} client-admin-card" data-client-id="{{id}}">
-            <h{{header-level}} class="client-admin-card-title">{{name}}</h{{header-level}}>
-            <p class="client-admin-card-clientcode">{{clientCode}}</p>
+            <div class="client-information">
+                <h{{header-level}} class="client-admin-card-title">{{name}}</h{{header-level}}>
+                <p class="client-admin-card-clientcode">{{clientCode}}</p>
+            </div>
+            <div class="client-stats">
+                <div class="client-stat-container">
+                    <i class="fa fa-fw fa-users fa-2x pull-left"></i><h4>{{users}}</h4>
+                </div>
+                <div class="client-stat-container">
+                    <i class="fa fa-fw fa-file fa-2x pull-left"></i><h4>{{content}}</h4>
+                </div>
+            </div>
             <div class="icon-container">
                 <div class="card-button-background card-button-background-delete">
                     <i class="fa fa-fw fa-trash" onclick="deleteClient('{{id}}', '{{name}}')"></i>
@@ -72,6 +82,8 @@
         else {
             template = template.replace(/{{clientCode}}/g, '');
         }
+        template = template.replace(/{{users}}/g, client.associatedUserCount);
+        template = template.replace(/{{content}}/g, client.associatedContentCount);
 
 
         // convert template to DOM element for jQuery manipulation
