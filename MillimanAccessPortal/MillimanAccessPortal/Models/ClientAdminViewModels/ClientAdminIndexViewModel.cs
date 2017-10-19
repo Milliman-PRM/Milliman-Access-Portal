@@ -3,7 +3,7 @@ using MapDbContextLib.Context;
 
 namespace MillimanAccessPortal.Models.ClientAdminViewModels
 {
-    public class ClientAndChildrenViewModel
+    public class ClientAdminIndexViewModel
     {
         public List<ClientAndChildrenModel> ClientTree = new List<ClientAndChildrenModel>();
         public List<AuthorizedProfitCenterModel> AuthorizedProfitCenterList = new List<AuthorizedProfitCenterModel>();

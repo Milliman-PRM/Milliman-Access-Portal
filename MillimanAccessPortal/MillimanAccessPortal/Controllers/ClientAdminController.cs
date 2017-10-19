@@ -73,7 +73,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Create model to return
             // Instantiate working variables
-            ClientAndChildrenViewModel ModelToReturn = new ClientAndChildrenViewModel();
+            ClientAdminIndexViewModel ModelToReturn = new ClientAdminIndexViewModel();
             ApplicationUser CurrentUser = GetCurrentUser();  // Query once, use twice
 
             // Add all appropriate client trees
@@ -90,7 +90,7 @@ namespace MillimanAccessPortal.Controllers
             // Add all authorized ProfitCenters
             // First iterate over all ProfitCenterManager claims for the current user
             foreach (Claim ProfitCenterClaim in UserManager.GetClaimsAsync(CurrentUser)
-                                                           .Result
+                                                           .Result  // accumulate all responses to memory
                                                            .Where(c => c.Type == ClaimNames.ProfitCenterManager.ToString()))
             {
                 // Second find a corresponding ProfitCenter table record
