@@ -187,19 +187,34 @@
 
     function searchClientTree(searchString) {
         var searchString = searchString.toUpperCase();
-        var nodes = document.getElementById('client-tree-list').getElementsByClassName('client-admin-card');
+        var nodes = document.getElementById('client-tree-list').getElementsByTagName('li');
+        var hrSwitch = 0;
 
         for (i = 0; i < nodes.length; i++) {
-            var title = nodes[i].getElementsByClassName('client-admin-card-title')[0];
-            var clientCode = nodes[i].getElementsByClassName('client-admin-card-clientcode')[0];
-            if (title || clientCode) {
-                if (title.innerHTML.toUpperCase().indexOf(searchString) > -1 ||
-                    clientCode.innerHTML.toUpperCase().indexOf(searchString) > -1) {
-                    nodes[i].style.display = "";
+            var title, clientCode;
+            if (nodes[i].getElementsByClassName('client-admin-card-title').length > 0) {
+                title = nodes[i].getElementsByClassName('client-admin-card-title')[0];
+                clientCode = nodes[i].getElementsByClassName('client-admin-card-clientcode')[0];
+                if (title || clientCode) {
+                    if (title.innerHTML.toUpperCase().indexOf(searchString) > -1 ||
+                        clientCode.innerHTML.toUpperCase().indexOf(searchString) > -1) {
+                        nodes[i].style.display = "";
+                        hrSwitch = 1;
+                    }
+                    else {
+                        nodes[i].style.display = "none";
+                    }
                 }
-                else {
+            }
+            else {
+                if (hrSwitch == 0) {
                     nodes[i].style.display = "none";
                 }
+                else {
+                    nodes[i].style.display = "";
+
+                }
+                hrSwitch = 0;
             }
         }
     }
