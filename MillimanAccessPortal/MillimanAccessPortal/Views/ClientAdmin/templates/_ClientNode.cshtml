@@ -4,11 +4,11 @@
             <h{{header-level}} class="client-admin-card-title">{{name}}</h{{header-level}}>
             <p class="client-admin-card-clientcode">{{clientCode}}</p>
             <div class="icon-container">
-                <div class="card-button-background card-button-background-edit">
-                    <i class="fa fa-fw fa-pencil"></i>
-                </div>
                 <div class="card-button-background card-button-background-delete">
                     <i class="fa fa-fw fa-trash" onclick="deleteClient('{{id}}', '{{name}}')"></i>
+                </div>
+                <div class="card-button-background card-button-background-edit">
+                    <i class="fa fa-fw fa-pencil"></i>
                 </div>
                <div class="card-button-background card-button-background-add">
                     <i class="fa fa-fw fa-plus"></i>
@@ -80,6 +80,10 @@
         if (!client.canManage) {
             $('.icon-container', $template).remove();
             $('.client-admin-card', $template).addClass('disabled');
+        }
+
+        if (client.children.length != 0) {  // Only include the delete button on client nodes without children
+            $('.card-button-background-delete', $template).remove();
         }
 
         if (level == 3) {  // Don't include the add child client button on lowest level
