@@ -71,40 +71,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            #region Create model to return
-            // Instantiate working variables
-            ClientAdminIndexViewModel ModelToReturn = new ClientAdminIndexViewModel();
-            ApplicationUser CurrentUser = GetCurrentUser();  // Query once, use twice
-
-            // Add all appropriate client trees
-            List<Client> AllRootClients = new StandardQueries(ServiceProvider).GetAllRootClients();  // list to memory so utilization is fast and no lingering transaction
-            foreach (Client C in AllRootClients.OrderBy(c=>c.Name))
-            {
-                ClientAndChildrenModel ClientModel = new StandardQueries(ServiceProvider).GetDescendentFamilyOfClient(C, CurrentUser, true);
-                if (ClientModel.IsThisOrAnyChildManageable())
-                {
-                    ModelToReturn.ClientTree.Add(ClientModel);
-                }
-            }
-
-            // Add all authorized ProfitCenters
-            // First iterate over all ProfitCenterManager claims for the current user
-            foreach (Claim ProfitCenterClaim in UserManager.GetClaimsAsync(CurrentUser)
-                                                           .Result  // accumulate all responses to memory
-                                                           .Where(c => c.Type == ClaimNames.ProfitCenterManager.ToString()))
-            {
-                // Second find a corresponding ProfitCenter table record
-                ProfitCenter AuthorizedProfitCenter = DbContext.ProfitCenter
-                                                               .Where(p => p.Id.ToString() == ProfitCenterClaim.Value)
-                                                               .FirstOrDefault();
-
-                // If a valid ProfitCenter is found, add it to the ViewModel
-                if (AuthorizedProfitCenter != null)
-                {
-                    ModelToReturn.AuthorizedProfitCenterList.Add(new AuthorizedProfitCenterModel(AuthorizedProfitCenter));
-                }
-            }
-            #endregion
+            ClientAdminIndexViewModel ModelToReturn = GetClientAdminIndexModelForUser(GetCurrentUser());
 
             return Json(ModelToReturn);
         }
@@ -115,11 +82,15 @@ namespace MillimanAccessPortal.Controllers
         public IActionResult ClientUserLists(long? id)
         {
             Client ThisClient = DbContext.Client.SingleOrDefaultAsync(m => m.Id == id).Result;
+
+            #region Preliminary Validation
             if (ThisClient == null)
             {
                 return NotFound();
             }
+            #endregion
 
+            #region Authorization
             // Check current user's authorization to manage the requested Client
             if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = ThisClient.Id }).Result)
             {
@@ -127,6 +98,7 @@ namespace MillimanAccessPortal.Controllers
                 // or:
                 // return NotFound();
             }
+            #endregion
 
             ClientUserListsViewModel Model = new ClientUserListsViewModel();
 
@@ -582,5 +554,56 @@ namespace MillimanAccessPortal.Controllers
         {
             return UserManager.GetUserAsync(HttpContext.User).Result;
         }
+
+        /// <summary>
+        /// Create and return the 2 lists: 1-Clients and 2-ProfitCenters associated with the provided ApplicationUser
+        /// </summary>
+        /// <param name="CurrentUser">Must be populated with Id.  Best if returned from EF query</param>
+        /// <returns></returns>
+        [NonAction]
+        private ClientAdminIndexViewModel GetClientAdminIndexModelForUser(ApplicationUser CurrentUser)
+        {
+            #region Validation
+            if (CurrentUser == null)
+            {
+                return null;
+            }
+            #endregion
+
+            // Instantiate working variables
+            ClientAdminIndexViewModel ModelToReturn = new ClientAdminIndexViewModel();
+
+            // Add all appropriate client trees
+            List<Client> AllRootClients = new StandardQueries(ServiceProvider).GetAllRootClients();  // list to memory so utilization is fast and no lingering transaction
+            foreach (Client C in AllRootClients.OrderBy(c => c.Name))
+            {
+                ClientAndChildrenModel ClientModel = new StandardQueries(ServiceProvider).GetDescendentFamilyOfClient(C, CurrentUser, true);
+                if (ClientModel.IsThisOrAnyChildManageable())
+                {
+                    ModelToReturn.ClientTree.Add(ClientModel);
+                }
+            }
+
+            // Add all authorized ProfitCenters
+            // First iterate over all ProfitCenterManager claims for the current user
+            foreach (Claim ProfitCenterClaim in UserManager.GetClaimsAsync(CurrentUser)
+                                                           .Result  // .Result accumulate all responses to memory
+                                                           .Where(c => c.Type == ClaimNames.ProfitCenterManager.ToString()))
+            {
+                // Second find a corresponding ProfitCenter table record
+                ProfitCenter AuthorizedProfitCenter = DbContext.ProfitCenter
+                                                               .Where(p => p.Id.ToString() == ProfitCenterClaim.Value)
+                                                               .FirstOrDefault();
+
+                // If a valid ProfitCenter is found, add it to the ViewModel
+                if (AuthorizedProfitCenter != null)
+                {
+                    ModelToReturn.AuthorizedProfitCenterList.Add(new AuthorizedProfitCenterModel(AuthorizedProfitCenter));
+                }
+            }
+
+            return ModelToReturn;
+        }
+
     }
 }
