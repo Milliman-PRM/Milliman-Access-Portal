@@ -111,7 +111,7 @@ namespace MillimanAccessPortal
             });
 
             // Depends on UserManager from Identity, which is scoped, so don't add the following as singleton
-            services.AddScoped<IAuthorizationHandler, RoleInClientHandler>();
+            services.AddScoped<IAuthorizationHandler, MapAuthorizationHandler>();
             services.AddScoped<IAuditLogger, AuditLogger>();
 
             // Add application services.

@@ -1,18 +1,49 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using MapDbContextLib.Identity;
-using Microsoft.AspNetCore.Authorization;
+using MapDbContextLib.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace MillimanAccessPortal.Authorization
 {
-    public class ClientRoleRequirement : IAuthorizationRequirement
+    public class ClientRoleRequirement : MapAuthorizationRequirementBase
     {
         /// <summary>
         /// Unset or &lt;= 0 to require test for authorization to any client.
         /// </summary>
         public long ClientId { get; set; } = -1;
         public RoleEnum RoleEnum { get; set; }
+
+        internal override MapAuthorizationRequirementResult EvaluateRequirement(ApplicationUser User, ApplicationDbContext DataContext)
+        {
+            IQueryable<UserAuthorizationToClient> Query;
+
+            if (ClientId > 0)
+            {
+                Query = DataContext
+                        .UserRoleForClient
+                        .Include(urc => urc.Role)
+                        .Where(urc => urc.UserId == User.Id &&
+                                      urc.ClientId == ClientId &&
+                                      urc.Role.RoleEnum == RoleEnum);
+            }
+            else
+            {
+                Query = DataContext
+                        .UserRoleForClient
+                        .Include(urc => urc.Role)
+                        .Where(urc => urc.UserId == User.Id &&
+                                      urc.Role.RoleEnum == RoleEnum);
+            }
+
+            if (Query.Any())  // Query executes here
+            {
+                return MapAuthorizationRequirementResult.Succeed;
+            }
+            else
+            {
+                return MapAuthorizationRequirementResult.Fail;
+            }
+        }
     }
 }
