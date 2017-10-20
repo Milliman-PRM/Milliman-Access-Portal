@@ -510,6 +510,7 @@ namespace MillimanAccessPortal.Controllers
         {
             if (Id == null || Id.Value <=0)
             {
+                Response.Headers.Add("Warning", "This action could not be completed");
                 return BadRequest();
             }
 
@@ -517,6 +518,7 @@ namespace MillimanAccessPortal.Controllers
             if (!UserManager.CheckPasswordAsync(UserManager.GetUserAsync(HttpContext.User).Result, Password).Result ||
                 !AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Id.Value }).Result)
             {
+                Response.Headers.Add("Warning", "You are not authorized to perform this action");
                 return Unauthorized();
             }
             #endregion Authorization
