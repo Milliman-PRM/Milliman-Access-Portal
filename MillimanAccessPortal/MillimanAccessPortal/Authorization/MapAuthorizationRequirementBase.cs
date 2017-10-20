@@ -16,7 +16,7 @@ namespace MillimanAccessPortal.Authorization
         Pass,
 
         /// <summary>
-        /// Requirement should force the authorization to fail 
+        /// Requirement should force the authorization to fail despite any other requirement result
         /// </summary>
         Fail,
 

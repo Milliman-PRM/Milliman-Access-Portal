@@ -81,7 +81,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public IActionResult ClientUserLists(long? id)
         {
-            Client ThisClient = DbContext.Client.SingleOrDefaultAsync(m => m.Id == id).Result;
+            Client ThisClient = DbContext.Client.Find(id);
 
             #region Preliminary Validation
             if (ThisClient == null)
@@ -95,8 +95,6 @@ namespace MillimanAccessPortal.Controllers
             if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = ThisClient.Id }).Result)
             {
                 return Unauthorized();
-                // or:
-                // return NotFound();
             }
             #endregion
 
@@ -160,24 +158,29 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult AssignUserToClient(ClientUserAssociationViewModel Model)
         {
-            // Authorization check
-            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.ClientId }).Result)
-            {
-                return Unauthorized();
-            }
+            Client RequestedClient = DbContext.Client.Find(Model.ClientId);
 
-            #region Validate the request
-            // 1. Requested client must exist
-            Client RequestedClient = DbContext
-                                     .Client
-                                     .Where(c => c.Id == Model.ClientId)
-                                     .SingleOrDefault();
+            #region Preliminary validation - Requested client must exist
             if (RequestedClient == null)
             {
                 return BadRequest("The requested client does not exist");
             }
+            #endregion
 
-            // 2. Requested user must exist
+            #region Authorization
+            if (!AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
+                {
+                    new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.ClientId },
+                    new ProfitCenterAuthorizationRequirement { ProfitCenterId = RequestedClient.ProfitCenterId },
+                }
+                ).Result)
+            {
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validate the request
+            // 1. Requested user must exist
             ApplicationUser RequestedUser = DbContext
                                             .ApplicationUser
                                             .Where(u => u.UserName == Model.UserName)
@@ -187,7 +190,7 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest("The requested user does not exist");
             }
 
-            // 3. Requested User's email must comply with client email whitelist
+            // 2. Requested User's email must comply with client email whitelist
             string RequestedUserEmail = RequestedUser.NormalizedEmail.ToUpper();
             if (!GlobalFunctions.IsValidEmail(RequestedUserEmail))
             {
@@ -236,25 +239,30 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult RemoveUserFromClient(ClientUserAssociationViewModel Model)
         {
+            Client RequestedClient = DbContext.Client.Find(Model.ClientId);
+
+            #region Preliminary validation
+            // Requested client must exist
+            if (RequestedClient == null)
+            {
+                return BadRequest("The requested client does not exist");
+            }
+            #endregion
+
             #region Authorization
-            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.ClientId }).Result)
+            if (!AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
+                {
+                    new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.ClientId },
+                    new ProfitCenterAuthorizationRequirement { ProfitCenterId = RequestedClient.ProfitCenterId },
+                }
+                ).Result)
             {
                 return Unauthorized();
             }
             #endregion
 
             #region Validate the request
-            // 1. Requested client must exist
-            Client RequestedClient = DbContext
-                                     .Client
-                                     .Where(c => c.Id == Model.ClientId)
-                                     .SingleOrDefault();
-            if (RequestedClient == null)
-            {
-                return BadRequest("The requested client does not exist");
-            }
-
-            // 2. Requested user must exist
+            // 1. Requested user must exist
             ApplicationUser RequestedUser = DbContext.ApplicationUser
                                                      .Where(u => u.UserName == Model.UserName)
                                                      .SingleOrDefault();
@@ -263,7 +271,7 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest("The requested user does not exist");
             }
 
-            // 3. RequestedUser must not be assigned to any ContentItemUserGroup of RequestedClient
+            // 2. RequestedUser must not be assigned to any ContentItemUserGroup of RequestedClient
             //    Deassign groups automatically instead of this?
             IQueryable<ContentItemUserGroup> AllAuthorizedGroupsQuery =
                 DbContext.UserRoleForContentItemUserGroup
@@ -320,16 +328,28 @@ namespace MillimanAccessPortal.Controllers
                                                  "ConsultantOffice,ProfitCenter,AcceptedEmailDomainList,ParentClientId,ProfitCenterId")] Client Model)
         // Members intentionally not bound: Id, AcceptedEmailAddressExceptionList
         {
+            #region Preliminary Validation
             if (!ModelState.IsValid)
             {
                 return BadRequest("Invalid Model");
             }
+            if (Model.ParentClientId == Model.Id)
+            {
+                return BadRequest("Client cannot have itself as a parent Client");
+            }
+            #endregion
 
             #region Authorization
             if (Model.ParentClientId == null)
             {
                 // Request to create a root client
-                if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.RootClientCreator }).Result)
+                if (!AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
+                {
+                    new UserGlobalRoleRequirement { RoleEnum = RoleEnum.RootClientCreator },
+                    new ProfitCenterAuthorizationRequirement { ProfitCenterId = Model.ProfitCenterId },
+                }
+                ).Result)
+                    //, new ClientRoleRequirement { RoleEnum = RoleEnum.RootClientCreator }).Result)
                 {
                     return Unauthorized();
                 }
@@ -337,7 +357,12 @@ namespace MillimanAccessPortal.Controllers
             else
             {
                 // Request to create a child client
-                if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.ParentClientId.Value }).Result)
+                if (!AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
+                {
+                    new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.ParentClientId.Value },
+                    new ProfitCenterAuthorizationRequirement { ProfitCenterId = Model.ProfitCenterId },
+                }
+                ).Result)
                 {
                     return Unauthorized();
                 }
@@ -376,6 +401,7 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 DbContext.Client.Add(Model);
+                // TODO assign current user ClientAdmin role to the new Client
                 DbContext.SaveChanges();
 
                 object LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, };
@@ -394,54 +420,87 @@ namespace MillimanAccessPortal.Controllers
         // POST: ClientAdmin/Edit
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        /// <summary>
+        /// Supports: Edit with no change to parent or ProfitCenter, change of parent if no children
+        /// </summary>
+        /// <param name="Model"></param>
+        /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult EditClient([Bind("Id,Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
                                               "ConsultantOffice,ProfitCenter,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId,ProfitCenterId")] Client Model)
-        //public async Task<IActionResult> EditClient([Bind("Id,Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
-        //                                                  "ConsultantOffice,ProfitCenter,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId")] Client Model)
         {
+            #region Preliminary Validation
             if (Model.Id <= 0)
             {
-                return BadRequest();
+                return BadRequest($"Requested Client.Id ({Model.Id}) not valid");
             }
 
-            var PreviousParentId = DbContext.Client
-                                            .Where(c => c.Id == Model.Id)
-                                            .Select(c => c.ParentClientId)
-                                            .FirstOrDefault();
+            if (Model.ParentClientId == Model.Id)
+            {
+                return BadRequest("Client cannot have itself as a parent Client");
+            }
+            #endregion
+
+            // Query for the existing record to be modified
+            Client ExistingClientRecord = DbContext.Client.Find(Model.Id);
 
             #region Authorization
-            // TODO Reconsider this entire authorization section when implementing the ProfitCenter entity.  Cover all use cases in github issue #61
-            // Claim ProfitCenterClaim = new Claim(ClaimNames.ProfitCenterManager.ToString(), "TheProfitCenterReferencedByTheClient");
-
-            // Changing a child Client to root Client
-            if (Model.ParentClientId == null && PreviousParentId != null)
+            if (Model.ParentClientId == ExistingClientRecord.ParentClientId &&
+                Model.ProfitCenterId == ExistingClientRecord.ProfitCenterId)
             {
-                // Request to change a child client to a root client
-                if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.RootClientCreator }).Result
-                    // || !UserManager.GetClaimsAsync(GetCurrentUser()).Result.Contains(ProfitCenterClaim)  // TODO enable this when the profit center entity is implemented
-                    )
+                // Simple edit, no change of FK (could be root or child)
+                if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.Id }).Result)
                 {
-                    Response.Headers.Add("Warning", $"Unable to convert child client to root client, user is not a RootClientCreator");
+                    Response.Headers.Add("Warning", $"The requesting user is not a ClientAdministrator for the requested client ({ExistingClientRecord.Name})");
                     return Unauthorized();
                 }
             }
-            // else The request is to simply edit a root or child client or move a root to child
+            else if (Model.ParentClientId == null && ExistingClientRecord.ParentClientId != null)
+            {
+                // Request to change a child client to a root client
+                if (!AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
+                    {
+                        new UserGlobalRoleRequirement { RoleEnum = RoleEnum.RootClientCreator },
+                        new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.Id },
+                        new ProfitCenterAuthorizationRequirement { ProfitCenterId = Model.ProfitCenterId },
+                        new ProfitCenterAuthorizationRequirement { ProfitCenterId = ExistingClientRecord.ProfitCenterId },
+                    }
+                    ).Result)
+                {
+                    Response.Headers.Add("Warning", "Unable to convert child client to root client, authorization failure");
+                    return Unauthorized();
+                }
+            }
+            else if (Model.ParentClientId != null && ExistingClientRecord.ParentClientId == null)
+            {
+                // Request to change a root client to a child client
+                return Unauthorized();  // Currently not supported
+            }
+            else // The request is to simply edit a root or child client or move a root to child
+            {
+                // TODO ?
+            }
 
             // User must have ClientAdministrator role for the edited Client
             if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.Id }).Result)
             {
-                Response.Headers.Add("Warning", $"The requesting user is not a Client Administrator for the requested client ({Model.Name})");
+                Response.Headers.Add("Warning", $"The requesting user is not a ClientAdministrator for the requested client ({ExistingClientRecord.Name})");
                 return Unauthorized();
             }
             #endregion Authorization
 
             #region Validation
             // Client must exist
-            if (!DbContext.Client.Any(c => c.Id == Model.Id))
+            if (ExistingClientRecord == null)
             {
                 return BadRequest($"The requested client {Model.Id} does not exist");
+            }
+
+            // If changing ParentClientId, Client must not have any children
+            if (ExistingClientRecord.ParentClientId != Model.ParentClientId && DbContext.Client.Any(c => c.ParentClientId == Model.Id))
+            {
+                return BadRequest("Modifying the parent of the requested client requires that it has no child Clients");
             }
 
             // Valid domains in whitelist

@@ -22,10 +22,10 @@ namespace MillimanAccessPortal.Authorization
         }
 
         /// <summary>
-        /// Test the current user for authorization to specified client role
+        /// Test the current user for authorization to the specified requirement using logic provided in the requirement
         /// </summary>
         /// <param name="Context"></param>
-        /// <param name="Requirement">Leave ClientId property unset or &lt; 0 to test for the role authorization to any client</param>
+        /// <param name="Requirement"></param>
         /// <returns></returns>
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext Context, MapAuthorizationRequirementBase Requirement)
         {
