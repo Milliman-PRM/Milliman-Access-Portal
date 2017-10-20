@@ -1,30 +1,69 @@
-﻿<nav id="sidebar-nav">
+﻿@{
+    string HostedContentActive = "";
+    string UserProfileActive = "";
+    string UserAdminActive = "";
+    string ClientAdminActive = "";
+    string SystemAdminActive = "";
+    string UserGuideActive = "";
+
+    switch ((String)ViewData["NavIcon"])
+    {
+        case "HostedContent":
+            HostedContentActive = "selected";
+            break;
+        case "UserProfile":
+            UserProfileActive = "selected";
+            break;
+        case "UserAdmin":
+            UserAdminActive = "selected";
+            break;
+        case "ClientAdmin":
+            ClientAdminActive = "selected";
+            break;
+        case "SystemAdmin":
+            SystemAdminActive = "selected";
+            break;  
+        case "UserGuide":
+            UserGuideActive = "selected";
+            break;
+
+    }
+
+}
+
+<nav id="sidebar-nav">
     <ul>
-        <li class="nav-item selected">
+        <li class="nav-item @HostedContentActive">
             <a asp-controller="HostedContent" asp-action="Index" class="nav-button">
                 <h3 class="nav-label">Reports</h3>
                 <i class="fa fa-fw fa-3x fa-th-large nav-icon" aria-hidden="true"></i>
             </a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item @UserProfileActive">
             <a href="#" class="nav-button">
                 <h3 class="nav-label">User Profile</h3>
                 <i class="fa fa-fw fa-3x fa-user nav-icon" aria-hidden="true"></i>
             </a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item @UserAdminActive">
             <a href="#" class="nav-button">
                 <h3 class="nav-label">User Admin</h3>
                 <i class="fa fa-fw fa-3x fa-users nav-icon" aria-hidden="true"></i>
             </a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item @ClientAdminActive">
             <a asp-controller="ClientAdmin" asp-action="Index" class="nav-button">
-                <h3 class="nav-label">Global Admin</h3>
-                <i class="fa fa-fw fa-3x fa-cogs nav-icon" aria-hidden="true"></i>
+                <h3 class="nav-label">Client Admin</h3>
+                <i class="fa fa-fw fa-3x fa-institution nav-icon" aria-hidden="true"></i>
             </a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item @SystemAdminActive">
+            <a href="#" class="nav-button">
+                <h3 class="nav-label">System Admin</h3>
+                <i class="fa fa-fw fa-3x fa-server nav-icon" aria-hidden="true"></i>
+            </a>
+        </li>
+        <li class="nav-item @UserGuideActive">
             <a href="#" class="nav-button">
                 <h3 class="nav-label">User Guide</h3>
                 <i class="fa fa-fw fa-3x fa-book nav-icon" aria-hidden="true"></i>
