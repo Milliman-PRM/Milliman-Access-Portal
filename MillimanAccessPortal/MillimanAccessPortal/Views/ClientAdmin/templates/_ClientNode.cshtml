@@ -152,7 +152,7 @@
                         callback: function (result) {
                             if (result) {
                                 removeClientNode(id, name, result);
-                            } 
+                            }
                             else if (result == "") {
                                 toastr['warning']("Please enter a password");
                                 return false;
@@ -163,6 +163,12 @@
                             }
                         }
                     })
+
+                    $('.bootbox-input-password').on('keyup', function (e) {
+                        if (e.which === 13) {
+                            $('button[data-bb-handler="confirm"]').trigger('click');
+                        }
+                    });
                 }
             }
         });
