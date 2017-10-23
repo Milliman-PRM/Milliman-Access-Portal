@@ -37,6 +37,16 @@ namespace MapDbContextLib.Context
             // Add your customizations after calling base.OnModelCreating(builder);
         }
 
+        public bool ClientExists(long id)
+        {
+            return Client.Any(e => e.Id == id);
+        }
+
+        private bool ProfitCenterExists(long id)
+        {
+            return ProfitCenter.Any(pc => pc.Id == id);
+        }
+
         public static void InitializeAll(IServiceProvider serviceProvider)
         {
             Identity.ApplicationRole.SeedRoles(serviceProvider);

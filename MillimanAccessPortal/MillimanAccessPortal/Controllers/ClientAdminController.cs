@@ -59,7 +59,10 @@ namespace MillimanAccessPortal.Controllers
         }
 
         // GET: ClientAdmin/ClientFamilyList
-        // Intended for access by ajax from Index view
+        /// <summary>
+        /// Returns the list of Client families that the current user has visibility to (defined by GetClientAdminIndexModelForUser(...)
+        /// </summary>
+        /// <returns>JsonResult or UnauthorizedResult</returns>
         [HttpGet]
         public IActionResult ClientFamilyList()
         {
@@ -71,13 +74,18 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ClientAdminIndexViewModel ModelToReturn = GetClientAdminIndexModelForUser(GetCurrentUser());
+            ClientAdminIndexViewModel ModelToReturn = GetClientAdminIndexModelForUser(GetCurrentApplicationUser());
 
             return Json(ModelToReturn);
         }
 
         // GET: ClientAdmin/ClientUserLists
         // Intended for access by ajax from Index view
+        /// <summary>
+        /// Returns the lists of eligible and already assigned users associated with a Client. Requires GET. 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>JsonResult or UnauthorizedResult</returns>
         [HttpGet]
         public IActionResult ClientUserLists(long? id)
         {
@@ -154,6 +162,11 @@ namespace MillimanAccessPortal.Controllers
             return Json(Model);
         }
 
+        /// <summary>
+        /// Assigns a requested ApplicationUser to a requested Client.  Requires POST.
+        /// </summary>
+        /// <param name="Model">type ClientUserAssociationViewModel</param>
+        /// <returns>BadRequestObjectResult, UnauthorizedResult, or OkResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult AssignUserToClient(ClientUserAssociationViewModel Model)
@@ -214,7 +227,8 @@ namespace MillimanAccessPortal.Controllers
             if (UserManager.GetClaimsAsync(RequestedUser).Result.Any(claim => claim.Type == ThisClientMembershipClaim.Type && 
                                                                               claim.Value == ThisClientMembershipClaim.Value))
             {
-                return Ok("The requested user is already assigned to the requested client");
+                Response.Headers.Add("Warning", "The requested user is already assigned to the requested client");
+                return ClientUserLists(RequestedClient.Id);
             }
             else
             {
@@ -231,10 +245,16 @@ namespace MillimanAccessPortal.Controllers
                                           AssignedClient = RequestedClient.Name,
                                           AssignedClientId = RequestedClient.Id};
                 AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User Assigned to Client", AuditEventId.UserAssignedToClient, LogDetails, User.Identity.Name, HttpContext.Session.Id) );
-                return Ok();
+
+                return ClientUserLists(RequestedClient.Id);
             }
         }
 
+        /// <summary>
+        /// Removes a requested user from a requested Client. Requires POST. 
+        /// </summary>
+        /// <param name="Model"></param>
+        /// <returns>BadRequestObjectResult, UnauthorizedResult, OkResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult RemoveUserFromClient(ClientUserAssociationViewModel Model)
@@ -311,17 +331,24 @@ namespace MillimanAccessPortal.Controllers
                                             LogDetails, 
                                             User.Identity.Name, 
                                             HttpContext.Session.Id));
-                return Ok();
+
+                return ClientUserLists(RequestedClient.Id);
             }
             else
             {
-                return Ok("The requested user is not assigned to the requested client.  No action taken.");
+                Response.Headers.Add("Warning", "The requested user is not assigned to the requested client.  No action taken.");
+                return ClientUserLists(RequestedClient.Id);
             }
         }
 
         // POST: ClientAdmin/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        /// <summary>
+        /// Saves a new client object
+        /// </summary>
+        /// <param name="Model">Type Client</param>
+        /// <returns>BadRequestObjectResult, UnauthorizedResult, </returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult SaveNewClient([Bind("Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
@@ -384,7 +411,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Parent client must exist if any
-            if (Model.ParentClientId != null && !ClientExists(Model.ParentClientId.Value))
+            if (Model.ParentClientId != null && !DbContext.ClientExists(Model.ParentClientId.Value))
             {
                 Response.Headers.Add("Warning", $"The specified parent Client is invalid: ({Model.ParentClientId.Value})");
                 return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
@@ -414,7 +441,7 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
 
-            return Ok();
+            return ClientFamilyList();
         }
 
         // POST: ClientAdmin/Edit
@@ -440,94 +467,81 @@ namespace MillimanAccessPortal.Controllers
             {
                 return BadRequest("Client cannot have itself as a parent Client");
             }
-            #endregion
 
             // Query for the existing record to be modified
             Client ExistingClientRecord = DbContext.Client.Find(Model.Id);
 
-            #region Authorization
-            if (Model.ParentClientId == ExistingClientRecord.ParentClientId &&
-                Model.ProfitCenterId == ExistingClientRecord.ProfitCenterId)
-            {
-                // Simple edit, no change of FK (could be root or child)
-                if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.Id }).Result)
-                {
-                    Response.Headers.Add("Warning", $"The requesting user is not a ClientAdministrator for the requested client ({ExistingClientRecord.Name})");
-                    return Unauthorized();
-                }
-            }
-            else if (Model.ParentClientId == null && ExistingClientRecord.ParentClientId != null)
-            {
-                // Request to change a child client to a root client
-                if (!AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
-                    {
-                        new UserGlobalRoleRequirement { RoleEnum = RoleEnum.RootClientCreator },
-                        new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.Id },
-                        new ProfitCenterAuthorizationRequirement { ProfitCenterId = Model.ProfitCenterId },
-                        new ProfitCenterAuthorizationRequirement { ProfitCenterId = ExistingClientRecord.ProfitCenterId },
-                    }
-                    ).Result)
-                {
-                    Response.Headers.Add("Warning", "Unable to convert child client to root client, authorization failure");
-                    return Unauthorized();
-                }
-            }
-            else if (Model.ParentClientId != null && ExistingClientRecord.ParentClientId == null)
-            {
-                // Request to change a root client to a child client
-                return Unauthorized();  // Currently not supported
-            }
-            else // The request is to simply edit a root or child client or move a root to child
-            {
-                // TODO ?
-            }
-
-            // User must have ClientAdministrator role for the edited Client
-            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.Id }).Result)
-            {
-                Response.Headers.Add("Warning", $"The requesting user is not a ClientAdministrator for the requested client ({ExistingClientRecord.Name})");
-                return Unauthorized();
-            }
-            #endregion Authorization
-
-            #region Validation
             // Client must exist
             if (ExistingClientRecord == null)
             {
                 return BadRequest($"The requested client {Model.Id} does not exist");
             }
+            #endregion
 
-            // If changing ParentClientId, Client must not have any children
-            if (ExistingClientRecord.ParentClientId != Model.ParentClientId && DbContext.Client.Any(c => c.ParentClientId == Model.Id))
+            #region Authorization
+            // 1) Changing Parent is not supported
+            if (Model.ParentClientId != ExistingClientRecord.ParentClientId)
             {
-                return BadRequest("Modifying the parent of the requested client requires that it has no child Clients");
+                Response.Headers.Add("Warning", "Client may not be moved to a new parent Client");
+                return Unauthorized();
             }
 
-            // Valid domains in whitelist
+            // 2) User must have ClientAdministrator role for the edited Client
+            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Model.Id }).Result)
+            {
+                Response.Headers.Add("Warning", $"The requesting user is not a ClientAdministrator for the requested client ({ExistingClientRecord.Name})");
+                return Unauthorized();
+            }
+
+            // 3) Conditionally handle special cases
+            if (Model.ProfitCenterId != ExistingClientRecord.ProfitCenterId)
+            {
+                // Request to change the Client's ProfitCenter reference
+                if (!AuthorizationService.AuthorizeAsync(User, null, new ProfitCenterAuthorizationRequirement { ProfitCenterId = Model.ProfitCenterId }).Result)
+                {
+                    Response.Headers.Add("Warning", "Unable to change the Client's ProfitCenter, authorization failure");
+                    return Unauthorized();
+                }
+            }
+            else
+            {
+                // 
+            }
+            #endregion Authorization
+
+            #region Validation
+            // Valid domains in domain whitelist
             foreach (string WhiteListedDomain in Model.AcceptedEmailDomainList)
             {
                 if (!GlobalFunctions.IsValidEmail("test@" + WhiteListedDomain))
                 {
                     Response.Headers.Add("Warning", $"The domain is invalid: ({WhiteListedDomain})");
-                    return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
+                    return StatusCode(StatusCodes.Status412PreconditionFailed);
                 }
             }
 
-            // Valid addresses in whitelist
+            // Valid addresses in address whitelist
             foreach (string WhiteListedAddress in Model.AcceptedEmailAddressExceptionList)
             {
                 if (!GlobalFunctions.IsValidEmail(WhiteListedAddress))
                 {
                     Response.Headers.Add("Warning", $"The exception address is invalid: ({WhiteListedAddress})");
-                    return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
+                    return StatusCode(StatusCodes.Status412PreconditionFailed);
                 }
             }
 
-            // Parent client must exist if any
-            if (Model.ParentClientId != null && !ClientExists(Model.ParentClientId.Value))
+            // Parent client must exist (if any)
+            if (Model.ParentClientId != null && !DbContext.ClientExists(Model.ParentClientId.Value))
             {
                 Response.Headers.Add("Warning", $"The specified parent Client is invalid: ({Model.ParentClientId.Value})");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
+                return StatusCode(StatusCodes.Status412PreconditionFailed);
+            }
+
+            // ProfitCenter must exist
+            if (!DbContext.ProfitCenter.Any(pc => pc.Id == Model.ProfitCenterId))
+            {
+                Response.Headers.Add("Warning", $"The specified ProfitCenter is invalid: ({Model.ProfitCenterId})");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);
             }
 
             // Name must be unique
@@ -535,7 +549,7 @@ namespace MillimanAccessPortal.Controllers
                                           c.Id != Model.Id))
             {
                 Response.Headers.Add("Warning", $"The client name ({Model.Name}) already exists for another client");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
+                return StatusCode(StatusCodes.Status412PreconditionFailed);
             }
             #endregion Validation
 
@@ -554,31 +568,39 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
 
-            return Ok();
+            return ClientFamilyList();
         }
 
         // GET: ClientAdmin/Delete/5
         //public async Task<IActionResult> DeleteClient(long Id)
         public IActionResult DeleteClient(long? Id)
         {
-            if (Id == null || Id.Value <=0)
+            // Query for the existing record to be modified
+            Client ExistingClient = DbContext.Client.Find(Id);
+
+            #region Preliminary validation
+            if (ExistingClient == null)
             {
+                Response.Headers.Add("Warning", "Client not found");
                 return BadRequest();
             }
+            #endregion
 
             #region Authorization
-            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Id.Value }).Result)
+            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Id.Value }).Result ||
+                !AuthorizationService.AuthorizeAsync(User, null, new ProfitCenterAuthorizationRequirement { ProfitCenterId = ExistingClient.ProfitCenterId }).Result)
             {
+                Response.Headers.Add("Warning", "Not authorized");
                 return Unauthorized();
             }
             #endregion Authorization
 
             #region Validation
-            // Client must not be parent of any other Client // TODO consider what would be an acceptable way of handling this automatically
-            List<long> Children = DbContext.Client.Where(c => c.ParentClientId == Id.Value).Select(c => c.Id).ToList();
+            // Client must not be parent of any other Client
+            List<string> Children = DbContext.Client.Where(c => c.ParentClientId == Id.Value).Select(c => c.Name).ToList();
             if (Children.Count > 0)
             {
-                Response.Headers.Add("Warning", $"Can't delete. The client is the parent of client(s): {string.Join(", ", Children)}");
+                Response.Headers.Add("Warning", $"Can't delete Client {ExistingClient.Name}. The client has child client(s): {string.Join(", ", Children)}");
                 return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
             }
             #endregion Validation
@@ -599,19 +621,13 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
 
-            return Ok();
+            return ClientFamilyList();
         }
 
         [NonAction]
-        private bool ClientExists(long id)
+        private ApplicationUser GetCurrentApplicationUser()
         {
-            return DbContext.Client.Any(e => e.Id == id);
-        }
-
-        [NonAction]
-        private ApplicationUser GetCurrentUser()
-        {
-            return UserManager.GetUserAsync(HttpContext.User).Result;
+            return UserManager.GetUserAsync(User).Result;
         }
 
         /// <summary>

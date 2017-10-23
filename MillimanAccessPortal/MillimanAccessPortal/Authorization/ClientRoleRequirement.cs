@@ -9,7 +9,7 @@ namespace MillimanAccessPortal.Authorization
     public class ClientRoleRequirement : MapAuthorizationRequirementBase
     {
         /// <summary>
-        /// Unset or &lt;= 0 to require test for authorization to any client.
+        /// Unset, null, or &lt;= 0 to require test for authorization to ANY client.
         /// </summary>
         public long ClientId { get; set; } = -1;
         public RoleEnum RoleEnum { get; set; }
