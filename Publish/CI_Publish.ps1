@@ -47,6 +47,15 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+$command = '"C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Web\External\bower.cmd" install'
+invoke-expression "&$command"
+
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: Bower package restore failed"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
 dotnet build /t:Clean
 
 if ( $LASTEXITCODE -ne 0 ) {
@@ -191,7 +200,7 @@ else {
 
 log_statement "Performing application database migrations"
 
-dotnet ef database update
+dotnet ef database update -e "CI"
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Failed to update application database"
@@ -201,7 +210,7 @@ if ($LASTEXITCODE -ne 0) {
 
 log_statement "Performing logging database migrations"
 cd ../AuditLogLib
-dotnet ef database update
+dotnet ef database update -e "CI"
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Failed to update logging database"

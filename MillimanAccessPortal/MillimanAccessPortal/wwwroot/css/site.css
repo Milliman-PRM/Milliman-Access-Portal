@@ -8,7 +8,7 @@ General Styling
 body {
   background-color: #DEDEE3;
   box-sizing: border-box;
-  font-family: 'Noto Sans', sans-serif;
+  font-family: 'Noto Sans', 'Arial', sans-serif;
   margin: 0;
   padding: 0;
   height: 100%; }
@@ -50,7 +50,7 @@ textarea {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -70%); }
+  transform: translate(-50%, -50%); }
 
 #primary-button,
 #form-submit {
@@ -62,6 +62,12 @@ textarea {
   #primary-button:hover,
   #form-submit:hover {
     background-color: #0080E2; }
+
+.primary-button {
+  height: 50px;
+  width: 90px;
+  margin: 0 20px;
+  font-weight: bold; }
 
 /*****
 Login Page
@@ -165,12 +171,12 @@ Contact Form Styling
     text-align: center; }
   #contact-form-modal .form-close {
     position: absolute;
-    color: #ff4618;
+    color: #d9534f;
     top: 10px;
     right: 5px;
     cursor: pointer; }
   #contact-form-modal .form-close:hover {
-    color: #ff2300; }
+    color: #c9302c; }
 
 /*****
 Header Styling
@@ -242,7 +248,9 @@ Client Admin Styling
   height: 80vh;
   padding: 10px; }
   .client-admin-section .scroll-y {
-    overflow-y: auto; }
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 25px; }
   .client-admin-section .client-admin-section-toolbar {
     width: 100%;
     vertical-align: middle; }
@@ -264,6 +272,9 @@ Client Admin Styling
       list-style-type: none;
       padding: 5px;
       margin: 5px; }
+      .client-admin-section #client-tree ul li,
+      .client-admin-section #user-list ul li {
+        margin-bottom: 15px; }
   .client-admin-section .hr {
     height: 2px;
     border: 1px solid black;
@@ -272,22 +283,84 @@ Client Admin Styling
 
 .client-admin-card {
   position: relative;
-  padding: 5px 10px;
+  padding: 0;
   background-color: white;
   border: 2px solid black;
   border-radius: 5px;
-  margin: 10px 5px;
-  cursor: pointer; }
+  margin-top: 10px;
+  margin-bottom: 30px;
+  cursor: pointer;
+  min-height: 85px; }
   .client-admin-card:hover {
-    background-color: lightgray;
+    /*background-color: lightgray;*/
     transform: scale(1.02); }
+  .client-admin-card.disabled {
+    color: #424242 !important;
+    background-color: #DDD !important; }
   .client-admin-card .client-admin-card-title {
     margin: 5px 0; }
+  .client-admin-card .client-information {
+    display: inline-block;
+    margin: 0;
+    padding: 5px 10px;
+    height: 100%;
+    width: 75%; }
+  .client-admin-card .client-stats {
+    display: inline-block;
+    position: absolute;
+    right: 0;
+    top: 0;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 25%;
+    background-color: #242424;
+    color: #fff; }
+    .client-admin-card .client-stats .client-stat-container {
+      position: relative;
+      height: 50%;
+      margin: 0;
+      padding-left: 3.5em; }
+      .client-admin-card .client-stats .client-stat-container h4 {
+        display: inline-block;
+        line-height: 100%; }
+      .client-admin-card .client-stats .client-stat-container i {
+        position: absolute;
+        top: 50%;
+        left: 5px;
+        transform: translate(0, -50%); }
   .client-admin-card .icon-container {
     position: absolute;
     display: inline;
-    bottom: 10px;
-    right: 10px; }
+    right: 0;
+    top: 50%;
+    text-align: right;
+    transform: translate(60%, -50%); }
+    .client-admin-card .icon-container .card-button-background {
+      border-radius: 50%;
+      display: block;
+      margin: 10px;
+      text-align: center;
+      vertical-align: middle;
+      padding: 2px;
+      transform-origin: center center; }
+      .client-admin-card .icon-container .card-button-background.card-button-background-edit {
+        background-color: #0091ff; }
+        .client-admin-card .icon-container .card-button-background.card-button-background-edit:hover {
+          background-color: #0080E2; }
+      .client-admin-card .icon-container .card-button-background.card-button-background-delete {
+        background-color: #d9534f; }
+        .client-admin-card .icon-container .card-button-background.card-button-background-delete:hover {
+          background-color: #c9302c; }
+      .client-admin-card .icon-container .card-button-background.card-button-background-add {
+        background-color: #5cb85c; }
+        .client-admin-card .icon-container .card-button-background.card-button-background-add:hover {
+          background-color: #449d44; }
+      .client-admin-card .icon-container .card-button-background:hover {
+        transform: scale(1.25);
+        transform-origin: center center; }
+      .client-admin-card .icon-container .card-button-background i {
+        color: white; }
   .client-admin-card .left-icon {
     display: inline;
     height: 100%; }

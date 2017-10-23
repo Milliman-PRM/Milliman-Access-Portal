@@ -352,7 +352,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult SaveNewClient([Bind("Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
-                                                 "ConsultantOffice,ProfitCenter,AcceptedEmailDomainList,ParentClientId,ProfitCenterId")] Client Model)
+                                                 "ConsultantOffice,AcceptedEmailDomainList,ParentClientId,ProfitCenterId")] Client Model)
         // Members intentionally not bound: Id, AcceptedEmailAddressExceptionList
         {
             #region Preliminary Validation
@@ -455,7 +455,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult EditClient([Bind("Id,Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
-                                              "ConsultantOffice,ProfitCenter,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId,ProfitCenterId")] Client Model)
+                                              "ConsultantOffice,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId,ProfitCenterId")] Client Model)
         {
             #region Preliminary Validation
             if (Model.Id <= 0)
@@ -571,9 +571,10 @@ namespace MillimanAccessPortal.Controllers
             return ClientFamilyList();
         }
 
-        // GET: ClientAdmin/Delete/5
+        // DELETE: ClientAdmin/Delete/5
         //public async Task<IActionResult> DeleteClient(long Id)
-        public IActionResult DeleteClient(long? Id)
+        [HttpDelete]
+        public IActionResult DeleteClient(long? Id, string Password)
         {
             // Query for the existing record to be modified
             Client ExistingClient = DbContext.Client.Find(Id);
@@ -581,16 +582,17 @@ namespace MillimanAccessPortal.Controllers
             #region Preliminary validation
             if (ExistingClient == null)
             {
-                Response.Headers.Add("Warning", "Client not found");
+                Response.Headers.Add("Warning", "This action could not be completed");
                 return BadRequest();
             }
             #endregion
 
             #region Authorization
-            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Id.Value }).Result ||
+            if (!UserManager.CheckPasswordAsync(UserManager.GetUserAsync(HttpContext.User).Result, Password).Result ||
+		!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement { RoleEnum = RoleEnum.ClientAdministrator, ClientId = Id.Value }).Result ||
                 !AuthorizationService.AuthorizeAsync(User, null, new ProfitCenterAuthorizationRequirement { ProfitCenterId = ExistingClient.ProfitCenterId }).Result)
             {
-                Response.Headers.Add("Warning", "Not authorized");
+                Response.Headers.Add("Warning", "You are not authorized to perform this action");
                 return Unauthorized();
             }
             #endregion Authorization

@@ -131,7 +131,7 @@ namespace MillimanAccessPortal
 
             app.UseRewriter(options);
 
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.EnvironmentName == "CI")
             {
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
