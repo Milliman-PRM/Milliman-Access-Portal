@@ -24,5 +24,11 @@
       "enabled": true,
       "renameLocals": true
     }
+  },
+  {
+    "outputFileName": "wwwroot/lib/bootbox.js/bootbox.min.js",
+    "inputFiles": [
+      "wwwroot/lib/bootbox.js/bootbox.js"
+    ]
   }
 ]
