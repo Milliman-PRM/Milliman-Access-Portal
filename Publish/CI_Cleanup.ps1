@@ -22,6 +22,7 @@ $MAPDBNAME_DEVELOP = "millimanaccessportal_ci_develop"
 $LOGDBNAME = "mapauditlog_ci_$branchName"
 $LOGDBNAME_DEVELOP = "mapauditlog_ci_develop"
 $ASPNETCORE_ENVIRONMENT = "CI"
+$name = "MAP_CI_$branchName"
 $errorCount = 0 # Tally errors as we go, rather than failing the script immediately
 
 log_statement "Deleting web application"
