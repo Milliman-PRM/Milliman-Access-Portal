@@ -1,18 +1,57 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using MapDbContextLib.Identity;
-using Microsoft.AspNetCore.Authorization;
+using MapDbContextLib.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace MillimanAccessPortal.Authorization
 {
-    public class ClientRoleRequirement : IAuthorizationRequirement
+    public class ClientRoleRequirement : MapAuthorizationRequirementBase
     {
+        private RoleEnum RoleEnum { get; set; }
+        private long ClientId { get; set; }
+
         /// <summary>
-        /// Unset or &lt;= 0 to require test for authorization to any client.
+        /// Constructor; the only way to instantiate this type
         /// </summary>
-        public long ClientId { get; set; } = -1;
-        public RoleEnum RoleEnum { get; set; }
+        /// <param name="RoleEnumArg"></param>
+        /// <param name="ClientIdArg">null or &lt;= 0 to evaluate for ANY Client</param>
+        public ClientRoleRequirement(RoleEnum RoleEnumArg, long? ClientIdArg)
+        {
+            ClientId = ClientIdArg.HasValue ? ClientIdArg.Value : -1;
+            RoleEnum = RoleEnumArg;
+        }
+
+        internal override MapAuthorizationRequirementResult EvaluateRequirement(ApplicationUser User, ApplicationDbContext DataContext)
+        {
+            IQueryable<UserAuthorizationToClient> Query;
+
+            if (ClientId > 0)
+            {
+                Query = DataContext
+                        .UserRoleForClient
+                        .Include(urc => urc.Role)
+                        .Where(urc => urc.UserId == User.Id &&
+                                      urc.ClientId == ClientId &&
+                                      urc.Role.RoleEnum == RoleEnum);
+            }
+            else
+            {
+                Query = DataContext
+                        .UserRoleForClient
+                        .Include(urc => urc.Role)
+                        .Where(urc => urc.UserId == User.Id &&
+                                      urc.Role.RoleEnum == RoleEnum);
+            }
+
+            if (Query.Any())  // Query executes here
+            {
+                return MapAuthorizationRequirementResult.Succeed;
+            }
+            else
+            {
+                return MapAuthorizationRequirementResult.Fail;
+            }
+        }
     }
 }
