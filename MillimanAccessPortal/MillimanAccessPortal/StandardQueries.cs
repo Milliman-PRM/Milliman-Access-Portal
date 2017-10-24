@@ -145,7 +145,7 @@ namespace MillimanAccessPortal
         {
             ApplicationDbContext DataContext = ServiceScope.ServiceProvider.GetService<ApplicationDbContext>();
 
-            Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientArg.Name);
+            Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientArg.Id.ToString());
             List<ApplicationUser> UserMembersOfThisClient = UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim).Result.ToList();
 
             ClientAndChildrenModel ResultObject = new ClientAndChildrenModel { ClientEntity = ClientArg };  // Initialize.
