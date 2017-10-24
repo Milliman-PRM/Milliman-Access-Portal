@@ -26,6 +26,7 @@ namespace MillimanAccessPortal.Controllers
     {
         private readonly ApplicationDbContext DbContext;
         private readonly UserManager<ApplicationUser> UserManager;
+        private readonly RoleManager<ApplicationRole> RoleManager;
         private readonly IServiceProvider ServiceProvider;
         private readonly IAuthorizationService AuthorizationService;
         private readonly ILogger Logger;
@@ -37,7 +38,8 @@ namespace MillimanAccessPortal.Controllers
             IServiceProvider ServiceProviderArg,
             IAuthorizationService AuthorizationServiceArg,
             ILoggerFactory LoggerFactoryArg,
-            IAuditLogger AuditLoggerArg
+            IAuditLogger AuditLoggerArg,
+            RoleManager<ApplicationRole> RoleManagerArg
             )
         {
             DbContext = context;
@@ -46,6 +48,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationService = AuthorizationServiceArg;
             Logger = LoggerFactoryArg.CreateLogger<AccountController>();
             AuditLogger = AuditLoggerArg;
+            RoleManager = RoleManagerArg;
         }
 
         // GET: ClientAdmin
@@ -427,16 +430,35 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
+                // Add the new Client to local context
                 DbContext.Client.Add(Model);
-                // TODO assign current user ClientAdmin role to the new Client
+
+                // Add current user's role as ClientAdministrator of new Client to local context
+                DbContext.UserRoleForClient.Add(new UserAuthorizationToClient
+                    {
+                        Client = Model,
+                        Role = RoleManager.FindByNameAsync(ApplicationRole.MapRoles[RoleEnum.ClientAdministrator]).Result,
+                        UserId = GetCurrentApplicationUser().Id
+                    });
+
+                // Store to database
                 DbContext.SaveChanges();
 
+                // Log new client store and ClientAdministrator role authorization events
                 object LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, };
                 AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New Client Saved", AuditEventId.NewClientSaved, LogDetails, User.Identity.Name, HttpContext.Session.Id));
+
+                LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, User = User.Identity.Name, Role = ApplicationRole.MapRoles[RoleEnum.ClientAdministrator] };
+                AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New Client Saved", AuditEventId.ClientRoleAssigned, LogDetails, User.Identity.Name, HttpContext.Session.Id));
             }
-            catch
+            catch (Exception e)
             {
                 string ErrMsg = $"Failed to store validated new Client \"{Model.Name}\" with parent ID {Model.ParentClientId} to database";
+                while (e != null)
+                {
+                    ErrMsg += $"\r\n{e.Message}";
+                    e = e.InnerException;
+                }
                 Logger.LogError(ErrMsg);
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }

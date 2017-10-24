@@ -26,6 +26,8 @@ namespace AuditLogLib
         public static readonly AuditEventId NewClientSaved = new AuditEventId(AuditEventBaseId + 103, "New client saved");
         public static readonly AuditEventId ClientEdited = new AuditEventId(AuditEventBaseId + 104, "Client edited");
         public static readonly AuditEventId ClientDeleted = new AuditEventId(AuditEventBaseId + 105, "Client deleted");
+        public static readonly AuditEventId ClientRoleAssigned = new AuditEventId(AuditEventBaseId + 106, "Client role assigned");
+        public static readonly AuditEventId ClientRoleRemoved = new AuditEventId(AuditEventBaseId + 107, "Client role removed");
 
         public AuditEventId(int id, string name = "")
         {

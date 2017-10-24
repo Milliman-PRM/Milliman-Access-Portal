@@ -279,7 +279,7 @@
             });
             */
 
-            ///*
+            /*
             // Get the assigned / eligible users for a client
             $.ajax({
                 type: 'GET',
@@ -290,7 +290,7 @@
             }).fail(function () {
                 console.log('failed to retrieve Client data');
             });
-            //*/
+            */
 
             /*
              // Assign a user by name to a client id
@@ -390,7 +390,7 @@
                     url: 'ClientAdmin/SaveNewClient',
                     data: {
                         Id: null,
-                        Name: "xyzaaa",
+                        Name: "xyzaab",
                         ClientCode: "Some Code",
                         ContactName: "Contact 4",
                         ContactTitle: "Director of Contacts",
@@ -402,7 +402,8 @@
                         ProfitCenter: "Bulls Eye",
                         AcceptedEmailDomainList: ["milliman.com", "yahoo.com"],
                         AcceptedEmailAddressExceptionList: [],
-                        ParentClientId: 1
+                        ParentClientId: 1,
+                        ProfitCenterId: 1
                     },
                     headers: {
                         'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
