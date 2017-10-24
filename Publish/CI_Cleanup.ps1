@@ -30,7 +30,7 @@ $requestURL = "http://localhost:8044/iis_delete_app?app_name=$name&action=delete
 $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 # Return code 50 indicates the app doesn't currently exist. That's fine in this case.
 if ($requestResult.returncode -ne 0 -and $requestResult.returncode -ne 50) {
-    log_statement "ERROR: Failed to create the web application"
+    log_statement "ERROR: Failed to delete the web application"
     log_statement $requestResult.stdout
     $errorCount += 1
 }
@@ -80,4 +80,7 @@ if ($errorCount -gt 0) {
     log_statement "Review previous log statements to diagnose errors"
     log_statement "Manual cleanup of some items may be required"
     exit -1
+}
+else {
+    log_statement "Cleanup completed successfully"
 }
