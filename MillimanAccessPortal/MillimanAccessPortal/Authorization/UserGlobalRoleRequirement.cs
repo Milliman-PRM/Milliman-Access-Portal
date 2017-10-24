@@ -8,7 +8,16 @@ namespace MillimanAccessPortal.Authorization
 {
     public class UserGlobalRoleRequirement : MapAuthorizationRequirementBase
     {
-        public RoleEnum RoleEnum { get; set; }
+        private RoleEnum RoleEnum { get; set; }
+
+        /// <summary>
+        /// Constructor; the only way to instantiate this type
+        /// </summary>
+        /// <param name="RoleEnumArg"></param>
+        public UserGlobalRoleRequirement(RoleEnum RoleEnumArg)
+        {
+            RoleEnum = RoleEnumArg;
+        }
 
         internal override MapAuthorizationRequirementResult EvaluateRequirement(ApplicationUser User, ApplicationDbContext DataContext)
         {

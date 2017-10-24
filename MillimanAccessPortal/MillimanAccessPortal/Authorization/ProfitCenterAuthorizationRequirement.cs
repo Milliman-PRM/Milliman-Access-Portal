@@ -9,10 +9,16 @@ namespace MillimanAccessPortal.Authorization
 {
     public class ProfitCenterAuthorizationRequirement : MapAuthorizationRequirementBase
     {
+        private long ProfitCenterId { get; set; }
+
         /// <summary>
-        /// Unset or &lt;= 0 to require test for authorization to any ProfitCenter.
+        /// Constructor; the only way to instantiate this type
         /// </summary>
-        public long ProfitCenterId { get; set; } = -1;
+        /// <param name="ProfitCenterIdArg">Unset or &lt;= 0 to require test for authorization to any ProfitCenter.</param>
+        public ProfitCenterAuthorizationRequirement(long ProfitCenterIdArg)
+        {
+            ProfitCenterId = ProfitCenterId;
+        }
 
         internal override MapAuthorizationRequirementResult EvaluateRequirement(ApplicationUser User, ApplicationDbContext DataContext)
         {

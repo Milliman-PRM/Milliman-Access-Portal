@@ -8,11 +8,19 @@ namespace MillimanAccessPortal.Authorization
 {
     public class ClientRoleRequirement : MapAuthorizationRequirementBase
     {
+        private RoleEnum RoleEnum { get; set; }
+        private long ClientId { get; set; }
+
         /// <summary>
-        /// Unset, null, or &lt;= 0 to require test for authorization to ANY client.
+        /// Constructor; the only way to instantiate this type
         /// </summary>
-        public long ClientId { get; set; } = -1;
-        public RoleEnum RoleEnum { get; set; }
+        /// <param name="RoleEnumArg"></param>
+        /// <param name="ClientIdArg">null or &lt;= 0 to evaluate for ANY Client</param>
+        public ClientRoleRequirement(RoleEnum RoleEnumArg, long? ClientIdArg)
+        {
+            ClientId = ClientIdArg.HasValue ? ClientIdArg.Value : -1;
+            RoleEnum = RoleEnumArg;
+        }
 
         internal override MapAuthorizationRequirementResult EvaluateRequirement(ApplicationUser User, ApplicationDbContext DataContext)
         {
