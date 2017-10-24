@@ -449,7 +449,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New Client Saved", AuditEventId.NewClientSaved, LogDetails, User.Identity.Name, HttpContext.Session.Id));
 
                 LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, User = User.Identity.Name, Role = ApplicationRole.MapRoles[RoleEnum.ClientAdministrator] };
-                AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New Client Saved", AuditEventId.ClientRoleAssigned, LogDetails, User.Identity.Name, HttpContext.Session.Id));
+                AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Client Administrator role assigned", AuditEventId.ClientRoleAssigned, LogDetails, User.Identity.Name, HttpContext.Session.Id));
             }
             catch (Exception e)
             {
