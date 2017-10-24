@@ -111,7 +111,7 @@ namespace MillimanAccessPortal.Controllers
 
             ClientUserListsViewModel Model = new ClientUserListsViewModel();
 
-            Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ThisClient.Name);
+            Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ThisClient.Id.ToString());
 
             // Get the list of users already assigned to this client
             Model.AssignedUsers = UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim)
@@ -131,7 +131,7 @@ namespace MillimanAccessPortal.Controllers
             List<ApplicationUser> UsersAssignedToClientFamily = new List<ApplicationUser>();
             foreach (Client OneClient in AllRelatedClients)
             {
-                ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), OneClient.Name);
+                ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), OneClient.Id.ToString());
                 UsersAssignedToClientFamily = UsersAssignedToClientFamily.Union(UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim).Result).ToList();
                 // TODO Test whether the other overload of .Union() needs to be used with an IEqualityComparer argument.  For this use equality should probably be based on Id only.
             }
@@ -225,7 +225,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), RequestedClient.Name);
+            Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), RequestedClient.Id.ToString());
 
             if (UserManager.GetClaimsAsync(RequestedUser).Result.Any(claim => claim.Type == ThisClientMembershipClaim.Type && 
                                                                               claim.Value == ThisClientMembershipClaim.Value))
@@ -308,7 +308,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), RequestedClient.Name);
+            Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), RequestedClient.Id.ToString());
 
             if (UserManager.GetClaimsAsync(RequestedUser).Result.Any(claim => claim.Type == ThisClientMembershipClaim.Type &&
                                                                               claim.Value == ThisClientMembershipClaim.Value))
