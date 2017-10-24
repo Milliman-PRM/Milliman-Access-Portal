@@ -1,6 +1,6 @@
 ﻿{
-  "SmtpServer": "smtp.milliman.com",
-  "SmtpPort": 25,
+  "SmtpServer": "",
+  "SmtpPort": "",
   "SmtpFromAddress": "prm.support@milliman.com",
   "SmtpFromName": "Milliman PRM Analytics Support",
   "MaximumSendAttempts": 5
