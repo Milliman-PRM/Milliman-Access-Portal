@@ -4,7 +4,7 @@
     /*
      * CODE OWNERS: Ben Wyatt
      * OBJECTIVE: Add new application user
-     * DEVELOPER NOTES: 
+     * DEVELOPER NOTES:
      */
     ViewData["Title"] = "Create";
 }
@@ -16,10 +16,25 @@
         <h4>ApplicationUser</h4>
         <hr />
         <div class="form-group">
-            <label asp-for="Email" class="col-md-2 control-label"></label>
+            <label asp-for="Email" class="col-md-2 control-label">User's Email</label>
             <div class="col-md-10">
                 <input asp-for="Email" class="form-control" />
                 <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="UserName" class="col-md-2 control-label">User ID</label>
+            <div class="col-md-10">
+                <input asp-for="UserName" class="form-control" />
+                <span asp-validation-for="UserName" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-4">
+                <label id="EmailForUserName" class="col-md-6 control-label">Use Email As UserName</label>
+                <div class="col-md-6">
+                    @Html.CheckBox("UserNameEqualsEmail", true)
+                </div>
             </div>
         </div>
         <div class="form-group">
@@ -36,4 +51,36 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+
+    <script>
+    $(document).ready(function () {
+
+        $("#Email").on('change keyup paste', function (eventData) {
+            if ($("#UserNameEqualsEmail").is(':checked') == true) {
+                $("#UserName").val(eventData.currentTarget.value);
+            }
+        });
+
+        $("#UserName").on('keyup paste', function (eventData) {
+            if ($("#UserName").val() != $("#Email").val() && $("#UserNameEqualsEmail").is(':checked') == true) {
+                $("#UserNameEqualsEmail").click();
+            }
+        });
+
+        var disabledColor = "silver";
+        $("#UserName").css("background-color", disabledColor);
+        $("#UserNameEqualsEmail").on('change', function (eventData) {
+            if ($("#UserNameEqualsEmail").is(':checked') == true) {
+                $("#UserName").css("background-color", disabledColor);
+            }
+            else {
+                $("#UserName").css("background-color", "white");
+            }
+        });
+
+    });
+
+    </script>
+
 }
