@@ -40,7 +40,7 @@ $requestURL = "http://localhost:8044/iis_pool_action?pool_name=$appPool&action=d
 $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
 
 if ($requestResult.returncode -ne 0) {
-    log_statement "ERROR: Failed to stop application pool"
+    log_statement "ERROR: Failed to delete application pool"
     log_statement $requestResult.stdout
     $errorCount += 1
 }
@@ -52,7 +52,7 @@ invoke-expression "&$command"
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
     log_statement "ERROR: Failed to drop application database"
-    log_statement "errorlevel was $LASTEXITCODE"
+    log_statement $requestResult.stdout
     $error_count += 1
 }
 
@@ -63,7 +63,7 @@ invoke-expression "&$command"
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
     log_statement "ERROR: Failed to drop logging database"
-    log_statement "errorlevel was $LASTEXITCODE"
+    log_statement $requestResult.stdout
     $error_count += 1
 }
 
@@ -71,6 +71,7 @@ log_statement "Deleting deployed files"
 remove-item $branchFolder -Recurse
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Failure during file deletion cleanup"
+    log_statement $requestResult.stdout
     $error_count += 1
 }
 
