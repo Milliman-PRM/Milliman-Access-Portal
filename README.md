@@ -1,3 +1,1 @@
-# Milliman-Access-Portal
-
-A repository for work related to the Milliman Access Portal web application
+Don't mind me. This is just a garbage branch for testing.
