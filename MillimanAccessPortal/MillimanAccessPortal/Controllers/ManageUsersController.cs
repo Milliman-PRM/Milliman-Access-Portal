@@ -14,18 +14,23 @@ using Microsoft.AspNetCore.Identity;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using AuditLogLib;
+using AuditLogLib.Services;
 
 namespace MillimanAccessPortal.Controllers
 {
     public class ManageUsersController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IAuditLogger _auditLogger;
         
         public ManageUsersController(
-            UserManager<ApplicationUser> userManager
+            UserManager<ApplicationUser> userManager,
+            IAuditLogger AuditLoggerArg
             )
         {
             _userManager = userManager;
+            _auditLogger = AuditLoggerArg;
         }
 
         // GET: ManageUsers

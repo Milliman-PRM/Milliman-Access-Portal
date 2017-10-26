@@ -1,69 +1,43 @@
-﻿@{
-    string HostedContentActive = "";
-    string UserProfileActive = "";
-    string UserAdminActive = "";
-    string ClientAdminActive = "";
-    string SystemAdminActive = "";
-    string UserGuideActive = "";
-
-    switch ((String)ViewData["NavIcon"])
+﻿@functions {
+    public string GetSelectedClassString(string NavIconFromMainView)
     {
-        case "HostedContent":
-            HostedContentActive = "selected";
-            break;
-        case "UserProfile":
-            UserProfileActive = "selected";
-            break;
-        case "UserAdmin":
-            UserAdminActive = "selected";
-            break;
-        case "ClientAdmin":
-            ClientAdminActive = "selected";
-            break;
-        case "SystemAdmin":
-            SystemAdminActive = "selected";
-            break;
-        case "UserGuide":
-            UserGuideActive = "selected";
-            break;
-
+        return ViewData["NavIcon"].ToString() == NavIconFromMainView ? "selected" : "";
     }
-
 }
 
 <nav id="sidebar-nav">
     <ul>
-        <li class="nav-item @HostedContentActive">
+        <li class="nav-item @GetSelectedClassString("HostedContent")">
             <a asp-controller="HostedContent" asp-action="Index" class="nav-button">
                 <h3 class="nav-label">Reports</h3>
                 <i class="fa fa-fw fa-3x fa-th-large nav-icon" aria-hidden="true"></i>
             </a>
         </li>
-        <li class="nav-item @UserProfileActive">
+        <li class="nav-item @GetSelectedClassString("UserProfile")">
             <a href="#" class="nav-button">
                 <h3 class="nav-label">User Profile</h3>
                 <i class="fa fa-fw fa-3x fa-user nav-icon" aria-hidden="true"></i>
             </a>
         </li>
-        <li class="nav-item @UserAdminActive">
-            <a href="#" class="nav-button">
+        <li class="nav-item @GetSelectedClassString("UserAdmin")">
+            <a asp-controller="ManageUsers" asp-action="Index" class="nav-button">
                 <h3 class="nav-label">User Admin</h3>
                 <i class="fa fa-fw fa-3x fa-users nav-icon" aria-hidden="true"></i>
             </a>
         </li>
-        <li class="nav-item @ClientAdminActive">
+        <li class="nav-item @GetSelectedClassString("ClientAdmin")">
             <a asp-controller="ClientAdmin" asp-action="Index" class="nav-button">
                 <h3 class="nav-label">Client Admin</h3>
                 <i class="fa fa-fw fa-3x fa-institution nav-icon" aria-hidden="true"></i>
             </a>
         </li>
-        <li class="nav-item @SystemAdminActive">
+        <li class="nav-item @GetSelectedClassString("SystemAdmin")">
             <a href="#" class="nav-button">
                 <h3 class="nav-label">System Admin</h3>
                 <i class="fa fa-fw fa-3x fa-server nav-icon" aria-hidden="true"></i>
             </a>
         </li>
-        <li class="nav-item @UserGuideActive">
+        <li class="nav-item @GetSelectedClassString("UserGuide")">
             <a href="#" class="nav-button">
                 <h3 class="nav-label">User Guide</h3>
                 <i class="fa fa-fw fa-3x fa-book nav-icon" aria-hidden="true"></i>
