@@ -30,5 +30,10 @@ namespace MapDbContextLib.Identity
         // Summary:
         //     Gets or sets the user's FirstName.
         public virtual string FirstName { get; set; }
+
+        //
+        // Summary:
+        //     Gets or sets the user's Employer.
+        public virtual string Employer { get; set; }
     }
 }

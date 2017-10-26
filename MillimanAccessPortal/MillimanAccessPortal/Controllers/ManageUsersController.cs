@@ -16,6 +16,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using AuditLogLib;
 using AuditLogLib.Services;
+using Microsoft.AspNetCore.Authorization;
+using MillimanAccessPortal.Authorization;
+using MapCommonLib;
+using MillimanAccessPortal.Services;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -23,14 +27,20 @@ namespace MillimanAccessPortal.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IAuditLogger _auditLogger;
-        
+        private readonly IAuthorizationService AuthorizationService;
+        private readonly MessageQueueServices MessageQueueService;
+
         public ManageUsersController(
             UserManager<ApplicationUser> userManager,
-            IAuditLogger AuditLoggerArg
+            IAuditLogger AuditLoggerArg,
+            IAuthorizationService AuthorizationServiceArg,
+            MessageQueueServices MessageQueueServiceArg
             )
         {
             _userManager = userManager;
             _auditLogger = AuditLoggerArg;
+            AuthorizationService = AuthorizationServiceArg;
+            MessageQueueService = MessageQueueServiceArg;
         }
 
         // GET: ManageUsers
@@ -61,39 +71,64 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task <ActionResult> Create(IFormCollection collection)
         {
+            // TODO need to convert the argument to a specialized class so that named members can be referenced
+
             try
             {
-                /*
-                 * Validations needed:
-                 *      Username or email address already exists in the database
-                 *      Email address is a valid address (client-side preferred)
-                 */
-
-                // Make sure the user does not exist in the database already
-                ApplicationUser userByName = await _userManager.FindByEmailAsync(collection["Email"]);
-                ApplicationUser userById = await _userManager.FindByLoginAsync("", collection["Email"]);
-
-                if (userByName != null || userById != null)
+                #region Authorization
+                // What is the required role to authorize this action
+                if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement(RoleEnum.UserManager, null)).Result)
                 {
-                    // The specified email address already exists in the database
-                    // TODO: Implement a custom error handler here and redirect back to the form w/ an error
-                    return View();
+                    //return Unauthorized();
+                }
+                #endregion
+
+                #region Validation
+                // 1. Email must be a valid address
+                if (!GlobalFunctions.IsValidEmail(collection["Email"]))
+                {
+                    Response.Headers.Add("Warning", $"The provided email address is not valid");
+                    return StatusCode(StatusCodes.Status412PreconditionFailed);
                 }
 
-                ApplicationUser user = new ApplicationUser(collection["Email"]);
+                // 2. Make sure the Email does not exist in the database already
+                ApplicationUser userByEmail = await _userManager.FindByEmailAsync(collection["Email"]);
+                if (userByEmail != null)
+                {
+                    Response.Headers.Add("Warning", $"The provided email address already exists");
+                    return StatusCode(StatusCodes.Status412PreconditionFailed);
+                }
 
-                // Prepare basic profile information
-                user.Email = user.UserName;
-                user.NormalizedEmail = user.Email.ToUpper();
-                user.NormalizedUserName = user.UserName.ToUpper();
-                user.ConcurrencyStamp = new Guid().ToString();
+                // 3. Make sure the UserName does not exist in the database already
+                ApplicationUser userByUserName = await _userManager.FindByLoginAsync("", collection["UserName"]);
+                if (userByUserName != null)
+                {
+                    Response.Headers.Add("Warning", $"The provided user name already exists");
+                    return StatusCode(StatusCodes.Status412PreconditionFailed);
+                }
+                #endregion
+
+                ApplicationUser NewUser = new ApplicationUser
+                {
+                    UserName = collection["UserName"],
+                    Email = collection["Email"],
+                    LastName = collection["LastName"],
+                    FirstName = collection["FirstName"],
+                    Employer = collection["Employer"],
+                };
 
                 // Save new user to the database
-                IdentityResult result = await _userManager.CreateAsync(user);
+                IdentityResult result = await _userManager.CreateAsync(NewUser);
 
                 if (result.Succeeded)
                 {
+                    var LogDetailObject = new { NewUserId = NewUser.UserName, Email = NewUser.Email, };
+                    AuditEvent LogEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New user created", AuditEventId.UserAccountCreated, LogDetailObject, User.Identity.Name, HttpContext.Session.Id);
+                    _auditLogger.Log(LogEvent);
+
                     // TODO: Send welcome email w/ link to set initial password
+                    MessageQueueService.QueueEmail(NewUser.Email, "Welcome to Milliman blah blah", "Message text");
+
                     // TODO: Add a success message to Index
                     return RedirectToAction("Index");
                 }
