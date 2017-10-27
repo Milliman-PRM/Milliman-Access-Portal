@@ -21,11 +21,11 @@ using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MapCommonLib;
 using MillimanAccessPortal.Services;
-using MillimanAccessPortal.Models.ManageUsersViewModels;
+using MillimanAccessPortal.Models.UserAdminViewModels;
 
 namespace MillimanAccessPortal.Controllers
 {
-    public class ManageUsersController : Controller
+    public class UserAdminController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IAuditLogger _auditLogger;
@@ -33,7 +33,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly MessageQueueServices MessageQueueService;
         private readonly ILogger _logger;
 
-        public ManageUsersController(
+        public UserAdminController(
             UserManager<ApplicationUser> userManager,
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
@@ -45,10 +45,10 @@ namespace MillimanAccessPortal.Controllers
             _auditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
             MessageQueueService = MessageQueueServiceArg;
-            _logger = LoggerFactoryArg.CreateLogger<ManageUsersController>();
+            _logger = LoggerFactoryArg.CreateLogger<UserAdminController>();
         }
 
-        // GET: ManageUsers
+        // GET: UserAdmin
         public ActionResult Index()
         {
             List<ApplicationUserViewModel> Model = _userManager.Users.ToList()
@@ -57,7 +57,7 @@ namespace MillimanAccessPortal.Controllers
             return View(Model);
         }
 
-        // GET: ManageUsers/Details/5
+        // GET: UserAdmin/Details/5
         public async Task<ActionResult> Details(string id)
         {
             ApplicationUser user = await _userManager.FindByIdAsync(id);
@@ -66,13 +66,13 @@ namespace MillimanAccessPortal.Controllers
             return View(user);
         }
 
-        // GET: ManageUsers/Create
+        // GET: UserAdmin/Create
         public ActionResult Create()
         {
             return View();
         }
 
-        // POST: ManageUsers/Create
+        // POST: UserAdmin/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task <ActionResult> Create(ApplicationUserViewModel Model)
@@ -160,8 +160,8 @@ namespace MillimanAccessPortal.Controllers
                 return View();
             }
         }
-        
-        // GET: ManageUsers/Edit/5
+
+        // GET: UserAdmin/Edit/5
         public async Task<ActionResult> Edit(string id)
         {
             ApplicationUser user = await _userManager.FindByIdAsync(id);
@@ -170,7 +170,7 @@ namespace MillimanAccessPortal.Controllers
             return View(user);
         }
 
-        // POST: ManageUsers/Edit/5
+        // POST: UserAdmin/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(string id, IFormCollection collection)

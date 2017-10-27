@@ -1,6 +1,6 @@
 ﻿using MapDbContextLib.Identity;
 
-namespace MillimanAccessPortal.Models.ManageUsersViewModels
+namespace MillimanAccessPortal.Models.UserAdminViewModels
 {
     /// <summary>
     /// A POCO class representing a MAP user without the sensitive information from Identity
