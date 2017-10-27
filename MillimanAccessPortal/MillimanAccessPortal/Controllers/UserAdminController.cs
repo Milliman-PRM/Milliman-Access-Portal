@@ -97,17 +97,15 @@ namespace MillimanAccessPortal.Controllers
                     return StatusCode(StatusCodes.Status412PreconditionFailed);
                 }
 
-                // 2. Make sure the Email does not exist in the database already
-                ApplicationUser userByEmail = await _userManager.FindByEmailAsync(Model.Email);
-                if (userByEmail != null)
+                // 2. Make sure the Email does not exist in the database already as an Email or UserName
+                if (await _userManager.FindByEmailAsync(Model.Email) != null || await _userManager.FindByLoginAsync("", Model.Email) != null)
                 {
                     Response.Headers.Add("Warning", $"The provided email address ({Model.Email}) already exists in the system");
                     return StatusCode(StatusCodes.Status412PreconditionFailed);
                 }
 
-                // 3. Make sure the UserName does not exist in the database already
-                ApplicationUser userByUserName = await _userManager.FindByLoginAsync("", Model.UserName);
-                if (userByUserName != null)
+                // 3. Make sure the UserName does not exist in the database already as an Email or UserName
+                if (await _userManager.FindByEmailAsync(Model.UserName) != null || await _userManager.FindByLoginAsync("", Model.UserName) != null)
                 {
                     Response.Headers.Add("Warning", $"The provided user name ({Model.UserName}) already exists in the system");
                     return StatusCode(StatusCodes.Status412PreconditionFailed);
