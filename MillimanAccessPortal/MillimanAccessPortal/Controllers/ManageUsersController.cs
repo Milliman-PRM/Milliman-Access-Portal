@@ -17,9 +17,11 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using AuditLogLib;
 using AuditLogLib.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MapCommonLib;
 using MillimanAccessPortal.Services;
+using MillimanAccessPortal.Models.ManageUsersViewModels;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -29,26 +31,30 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuditLogger _auditLogger;
         private readonly IAuthorizationService AuthorizationService;
         private readonly MessageQueueServices MessageQueueService;
+        private readonly ILogger _logger;
 
         public ManageUsersController(
             UserManager<ApplicationUser> userManager,
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
-            MessageQueueServices MessageQueueServiceArg
+            MessageQueueServices MessageQueueServiceArg,
+            ILoggerFactory LoggerFactoryArg
             )
         {
             _userManager = userManager;
             _auditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
             MessageQueueService = MessageQueueServiceArg;
+            _logger = LoggerFactoryArg.CreateLogger<ManageUsersController>();
         }
 
         // GET: ManageUsers
         public ActionResult Index()
         {
-            IQueryable<ApplicationUser> users = _userManager.Users;
-            
-            return View(users);
+            List<ApplicationUserViewModel> Model = _userManager.Users.ToList()
+                .Select(u => new ApplicationUserViewModel(u)).ToList();
+
+            return View(Model);
         }
 
         // GET: ManageUsers/Details/5
@@ -69,7 +75,7 @@ namespace MillimanAccessPortal.Controllers
         // POST: ManageUsers/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task <ActionResult> Create(IFormCollection collection)
+        public async Task <ActionResult> Create(ApplicationUserViewModel Model)
         {
             // TODO need to convert the argument to a specialized class so that named members can be referenced
 
@@ -85,36 +91,37 @@ namespace MillimanAccessPortal.Controllers
 
                 #region Validation
                 // 1. Email must be a valid address
-                if (!GlobalFunctions.IsValidEmail(collection["Email"]))
+                if (!GlobalFunctions.IsValidEmail(Model.Email))
                 {
-                    Response.Headers.Add("Warning", $"The provided email address is not valid");
+                    Response.Headers.Add("Warning", $"The provided email address ({Model.Email}) is not valid");
                     return StatusCode(StatusCodes.Status412PreconditionFailed);
                 }
 
                 // 2. Make sure the Email does not exist in the database already
-                ApplicationUser userByEmail = await _userManager.FindByEmailAsync(collection["Email"]);
+                ApplicationUser userByEmail = await _userManager.FindByEmailAsync(Model.Email);
                 if (userByEmail != null)
                 {
-                    Response.Headers.Add("Warning", $"The provided email address already exists");
+                    Response.Headers.Add("Warning", $"The provided email address ({Model.Email}) already exists in the system");
                     return StatusCode(StatusCodes.Status412PreconditionFailed);
                 }
 
                 // 3. Make sure the UserName does not exist in the database already
-                ApplicationUser userByUserName = await _userManager.FindByLoginAsync("", collection["UserName"]);
+                ApplicationUser userByUserName = await _userManager.FindByLoginAsync("", Model.UserName);
                 if (userByUserName != null)
                 {
-                    Response.Headers.Add("Warning", $"The provided user name already exists");
+                    Response.Headers.Add("Warning", $"The provided user name ({Model.UserName}) already exists in the system");
                     return StatusCode(StatusCodes.Status412PreconditionFailed);
                 }
                 #endregion
 
                 ApplicationUser NewUser = new ApplicationUser
                 {
-                    UserName = collection["UserName"],
-                    Email = collection["Email"],
-                    LastName = collection["LastName"],
-                    FirstName = collection["FirstName"],
-                    Employer = collection["Employer"],
+                    UserName = Model.UserName,
+                    Email = Model.Email,
+                    LastName = Model.LastName,
+                    FirstName = Model.FirstName,
+                    PhoneNumber = Model.PhoneNumber,
+                    Employer = Model.Employer,
                 };
 
                 // Save new user to the database
@@ -134,14 +141,22 @@ namespace MillimanAccessPortal.Controllers
                 }
                 else
                 {
-                    // TODO: Raise some kind of error
+                    string ErrMsg = $"Failed to store new user \"{Model.UserName}\" ";
+                    _logger.LogError(ErrMsg);
                     //return View();
-                    return Content(result.ToString());
+                    return Content(ErrMsg);
                 }
                 
             }
-            catch
+            catch (Exception e)
             {
+                string ErrMsg = $"Exception while creating new user \"{Model.UserName}\" ";
+                while (e != null)
+                {
+                    ErrMsg += $"\r\n{e.Message}";
+                    e = e.InnerException;
+                }
+                _logger.LogError(ErrMsg);
                 return View();
             }
         }

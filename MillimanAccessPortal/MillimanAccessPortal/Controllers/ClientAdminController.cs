@@ -46,7 +46,7 @@ namespace MillimanAccessPortal.Controllers
             UserManager = UserManagerArg;
             ServiceProvider = ServiceProviderArg;
             AuthorizationService = AuthorizationServiceArg;
-            Logger = LoggerFactoryArg.CreateLogger<AccountController>();
+            Logger = LoggerFactoryArg.CreateLogger<ClientAdminController>();
             AuditLogger = AuditLoggerArg;
             RoleManager = RoleManagerArg;
         }
