@@ -80,7 +80,7 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 #region Authorization
-                if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.UserCreator)).Result)
+                if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.SuperUser)).Result)
                 {
                     return Unauthorized();
                 }
@@ -114,27 +114,16 @@ namespace MillimanAccessPortal.Controllers
                 }
                 #endregion
 
-                ApplicationUser NewUser = new ApplicationUser
-                {
-                    UserName = Model.UserName,
-                    Email = Model.Email,
-                    LastName = Model.LastName,
-                    FirstName = Model.FirstName,
-                    PhoneNumber = Model.PhoneNumber,
-                    Employer = Model.Employer,
-                };
-
-                // Save new user to the database
-                IdentityResult result = await _userManager.CreateAsync(NewUser);
+                IdentityResult result = await InsertUser(Model);
 
                 if (result.Succeeded)
                 {
-                    var LogDetailObject = new { NewUserId = NewUser.UserName, Email = NewUser.Email, };
+                    var LogDetailObject = new { NewUserId = Model.UserName, Email = Model.Email, };
                     AuditEvent LogEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New user created", AuditEventId.UserAccountCreated, LogDetailObject, User.Identity.Name, HttpContext.Session.Id);
                     _auditLogger.Log(LogEvent);
 
                     // TODO: Send welcome email w/ link to set initial password
-                    MessageQueueService.QueueEmail(NewUser.Email, "Welcome to Milliman blah blah", "Message text");
+                    MessageQueueService.QueueEmail(Model.Email, "Welcome to Milliman blah blah", "Message text");
 
                     // TODO: Add a success message to Index
                     return RedirectToAction("Index");
@@ -159,6 +148,28 @@ namespace MillimanAccessPortal.Controllers
                 _logger.LogError(ErrMsg);
                 return View();
             }
+        }
+
+        /// <summary>
+        /// Reusable private method to execute new user insertion
+        /// </summary>
+        /// <param name="Model"></param>
+        /// <returns></returns>
+        [NonAction]
+        private async Task<IdentityResult> InsertUser(ApplicationUserViewModel Model)
+        {
+            ApplicationUser NewUser = new ApplicationUser
+            {
+                UserName = Model.UserName,
+                Email = Model.Email,
+                LastName = Model.LastName,
+                FirstName = Model.FirstName,
+                PhoneNumber = Model.PhoneNumber,
+                Employer = Model.Employer,
+            };
+
+            // Save new user to the database
+            return await _userManager.CreateAsync(NewUser);
         }
 
         // GET: UserAdmin/Edit/5
