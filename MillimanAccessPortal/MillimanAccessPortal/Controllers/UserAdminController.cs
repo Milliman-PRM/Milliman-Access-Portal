@@ -80,8 +80,7 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 #region Authorization
-                // TODO Is this the required role to authorize this action
-                if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.UserManager)).Result)
+                if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.UserCreator)).Result)
                 {
                     return Unauthorized();
                 }
@@ -91,6 +90,7 @@ namespace MillimanAccessPortal.Controllers
                 // 1. Email must be a valid address
                 if (!GlobalFunctions.IsValidEmail(Model.Email))
                 {
+                    Response.Headers.Add("MapReason", "101");
                     Response.Headers.Add("Warning", $"The provided email address ({Model.Email}) is not valid");
                     return StatusCode(StatusCodes.Status412PreconditionFailed);
                 }
@@ -99,6 +99,7 @@ namespace MillimanAccessPortal.Controllers
                 if (await _userManager.FindByEmailAsync(Model.Email) != null || 
                     await _userManager.FindByLoginAsync("", Model.Email) != null)
                 {
+                    Response.Headers.Add("MapReason", "102");
                     Response.Headers.Add("Warning", $"The provided email address ({Model.Email}) already exists in the system");
                     return StatusCode(StatusCodes.Status412PreconditionFailed);
                 }
@@ -107,6 +108,7 @@ namespace MillimanAccessPortal.Controllers
                 if (await _userManager.FindByEmailAsync(Model.UserName) != null || 
                     await _userManager.FindByLoginAsync("", Model.UserName) != null)
                 {
+                    Response.Headers.Add("MapReason", "103");
                     Response.Headers.Add("Warning", $"The provided user name ({Model.UserName}) already exists in the system");
                     return StatusCode(StatusCodes.Status412PreconditionFailed);
                 }
@@ -177,7 +179,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 #region Authorization
                 // TODO Is this the required role to authorize this action
-                if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.UserManager)).Result)
+                if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.SuperUser)).Result)
                 {
                     return Unauthorized();
                 }
@@ -193,6 +195,7 @@ namespace MillimanAccessPortal.Controllers
                     if (await _userManager.FindByEmailAsync(Model.UserName) != null || 
                         await _userManager.FindByLoginAsync("", Model.UserName) != null)
                     {
+                        Response.Headers.Add("MapReason", "101");
                         Response.Headers.Add("Warning", $"The provided user name ({Model.UserName}) already exists in the system");
                         return StatusCode(StatusCodes.Status412PreconditionFailed);
                     }
@@ -206,6 +209,7 @@ namespace MillimanAccessPortal.Controllers
                     // Make sure the Email is Valid format
                     if (!GlobalFunctions.IsValidEmail(Model.Email))
                     {
+                        Response.Headers.Add("MapReason", "102");
                         Response.Headers.Add("Warning", $"The provided email address ({Model.Email}) is not valid");
                         return StatusCode(StatusCodes.Status412PreconditionFailed);
                     }
@@ -214,6 +218,7 @@ namespace MillimanAccessPortal.Controllers
                     if (await _userManager.FindByEmailAsync(Model.Email) != null || 
                         await _userManager.FindByLoginAsync("", Model.Email) != null)
                     {
+                        Response.Headers.Add("MapReason", "103");
                         Response.Headers.Add("Warning", $"The provided email address ({Model.Email}) already exists in the system");
                         return StatusCode(StatusCodes.Status412PreconditionFailed);
                     }

@@ -79,6 +79,13 @@
     <a asp-action="Index">Back to List</a>
 </div>
 
+<environment names="Development,CI">
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+</environment>
+<environment names="Staging,Production">
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+</environment>
+
 <script>
         $(document).ready(function () {
 

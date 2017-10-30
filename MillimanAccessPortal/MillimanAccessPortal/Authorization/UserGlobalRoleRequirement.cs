@@ -28,11 +28,11 @@ namespace MillimanAccessPortal.Authorization
 
             if (Query.Any())  // Query executes here
             {
-                return MapAuthorizationRequirementResult.Pass;
+                return MapAuthorizationRequirementResult.Succeed;
             }
             else
             {
-                return MapAuthorizationRequirementResult.Fail;
+                return MapAuthorizationRequirementResult.NotPass;
             }
         }
     }

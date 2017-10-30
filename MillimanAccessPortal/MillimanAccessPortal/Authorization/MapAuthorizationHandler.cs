@@ -37,11 +37,14 @@ namespace MillimanAccessPortal.Authorization
                     Context.Fail();
                     break;
 
+                case MapAuthorizationRequirementResult.Succeed:
+                    Context.Succeed(Requirement);
+                    break;
+
                 case MapAuthorizationRequirementResult.Pass:
                     break;
 
-                case MapAuthorizationRequirementResult.Succeed:
-                    Context.Succeed(Requirement);
+                case MapAuthorizationRequirementResult.NotPass:
                     break;
             }
 
