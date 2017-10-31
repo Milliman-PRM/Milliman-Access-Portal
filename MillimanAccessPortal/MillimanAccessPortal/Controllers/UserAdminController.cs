@@ -62,7 +62,7 @@ namespace MillimanAccessPortal.Controllers
         {
             ApplicationUser user = await _userManager.FindByIdAsync(id);
 
-            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(user, ApplicationRole.MapRoles[RoleEnum.SuperUser]);
+            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(user, ApplicationRole.MapRoles[RoleEnum.SystemAdmin]);
             return View(user);
         }
 
@@ -80,7 +80,7 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 #region Authorization
-                if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.SuperUser)).Result)
+                if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.SystemAdmin)).Result)
                 {
                     return Unauthorized();
                 }
@@ -177,7 +177,7 @@ namespace MillimanAccessPortal.Controllers
         {
             ApplicationUser user = await _userManager.FindByIdAsync(id);
 
-            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(user, ApplicationRole.MapRoles[RoleEnum.SuperUser]);
+            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(user, ApplicationRole.MapRoles[RoleEnum.SystemAdmin]);
             return View(user);
         }
 
@@ -190,7 +190,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 #region Authorization
                 // TODO Is this the required role to authorize this action
-                if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.SuperUser)).Result)
+                if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.SystemAdmin)).Result)
                 {
                     return Unauthorized();
                 }
@@ -265,7 +265,7 @@ namespace MillimanAccessPortal.Controllers
                 await _userManager.UpdateAsync(ExistingUser);
 
                 // Process Super User checkbox
-                if (await _userManager.IsInRoleAsync(await _userManager.GetUserAsync(HttpContext.User), ApplicationRole.MapRoles[RoleEnum.SuperUser]))
+                if (await _userManager.IsInRoleAsync(await _userManager.GetUserAsync(HttpContext.User), ApplicationRole.MapRoles[RoleEnum.SystemAdmin]))
                 {
                     // The checkbox returns "true,false" or "false,true" if you change the value. The first one is the new value, so we need to grab it.
 
@@ -274,13 +274,13 @@ namespace MillimanAccessPortal.Controllers
                     /* 
                     bool IsSuperUser = Convert.ToBoolean(collection["IsSystemAdmin"].ToString().Split(',')[0]);
 
-                    if (IsSuperUser && !(await _userManager.IsInRoleAsync(ExistingUser, ApplicationRole.MapRoles[RoleEnum.SuperUser])))
+                    if (IsSuperUser && !(await _userManager.IsInRoleAsync(ExistingUser, ApplicationRole.MapRoles[RoleEnum.SystemAdmin])))
                     {
-                        await _userManager.AddToRoleAsync(ExistingUser, ApplicationRole.MapRoles[RoleEnum.SuperUser]);
+                        await _userManager.AddToRoleAsync(ExistingUser, ApplicationRole.MapRoles[RoleEnum.SystemAdmin]);
                     }
-                    else if (!IsSuperUser && (await _userManager.IsInRoleAsync(ExistingUser, ApplicationRole.MapRoles[RoleEnum.SuperUser])))
+                    else if (!IsSuperUser && (await _userManager.IsInRoleAsync(ExistingUser, ApplicationRole.MapRoles[RoleEnum.SystemAdmin])))
                     {
-                        await _userManager.RemoveFromRoleAsync(ExistingUser, ApplicationRole.MapRoles[RoleEnum.SuperUser]);
+                        await _userManager.RemoveFromRoleAsync(ExistingUser, ApplicationRole.MapRoles[RoleEnum.SystemAdmin]);
                     }
 
                     */

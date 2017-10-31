@@ -21,7 +21,7 @@ namespace MapDbContextLib.Identity
     public enum RoleEnum : long  // Inherited type must be same as ApplicationRole.Id
     {
         // Important: Existing numeric values must never be reassigned to a new meaning.  Always add a new role as a new, explicit, higher value. 
-        SuperUser = 1,
+        SystemAdmin = 1,
         ClientAdministrator = 2,
         UserAdmin = 3,
         ContentPublisher = 4,
@@ -34,7 +34,7 @@ namespace MapDbContextLib.Identity
     {
         public readonly static Dictionary<RoleEnum,string> MapRoles = new Dictionary<RoleEnum, string>
             {
-                {RoleEnum.SuperUser, "Super User"},
+                {RoleEnum.SystemAdmin, "System Administrator"},
                 {RoleEnum.ClientAdministrator, "Client Administrator"},
                 {RoleEnum.UserAdmin, "User Administrator"},
                 {RoleEnum.ContentPublisher, "Content Publisher"},
@@ -78,14 +78,14 @@ namespace MapDbContextLib.Identity
                 {
                     foreach (KeyValuePair<RoleEnum, string> Role in MapRoles)
                     {
-                        ApplicationRole RoleFromDb = roleManager.FindByNameAsync(Role.Value).Result;
+                        ApplicationRole RoleFromDb = roleManager.FindByIdAsync(((long)Role.Key).ToString()).Result;
                         if (RoleFromDb == null)
                         {
                             roleManager.CreateAsync(new ApplicationRole { Name = Role.Value, RoleEnum = Role.Key }).Wait();
                         }
-                        else if (RoleFromDb.RoleEnum != Role.Key)
+                        else if (RoleFromDb.Name != Role.Value)
                         {
-                            RoleFromDb.RoleEnum = Role.Key;
+                            RoleFromDb.Name = Role.Value;
                             roleManager.UpdateAsync(RoleFromDb).Wait();
                         }
                     }
