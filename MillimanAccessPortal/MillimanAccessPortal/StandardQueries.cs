@@ -156,7 +156,7 @@ namespace MillimanAccessPortal
                                                 .Include(URCMap => URCMap.User)
                                                 .Join(DataContext.UserClaims, URCMap => URCMap.UserId, claim => claim.UserId, (URCMap,claim) => new { URCMap=URCMap, Claim = claim })
                                                 .SingleOrDefault(rec => rec.URCMap.UserId == CurrentUser.Id
-                                                                     && rec.URCMap.Role.RoleEnum == RoleEnum.ClientAdministrator
+                                                                     && rec.URCMap.Role.RoleEnum == RoleEnum.ClientAdmin
                                                                      && rec.URCMap.ClientId == ClientArg.Id
                                                                      // verify that the user has a claim of ProfitCenterManager to the ProfitCenter of the client
                                                                      && rec.Claim.ClaimType == ClaimNames.ProfitCenterManager.ToString()
@@ -295,7 +295,7 @@ namespace MillimanAccessPortal
 
             IQueryable<Client> AuthorizedClients = DataContext
                 .UserRoleForClient
-                .Where(urc => urc.Role.RoleEnum == RoleEnum.ClientAdministrator
+                .Where(urc => urc.Role.RoleEnum == RoleEnum.ClientAdmin
                            && urc.User.UserName == UserName)
                 .Join(DataContext.Client, urc => urc.ClientId, c => c.Id, (urc, c) => c);
 

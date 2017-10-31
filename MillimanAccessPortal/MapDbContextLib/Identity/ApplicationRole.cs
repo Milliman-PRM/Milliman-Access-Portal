@@ -22,7 +22,7 @@ namespace MapDbContextLib.Identity
     {
         // Important: Existing numeric values must never be reassigned to a new meaning.  Always add a new role as a new, explicit, higher value. 
         SystemAdmin = 1,
-        ClientAdministrator = 2,
+        ClientAdmin = 2,
         UserAdmin = 3,
         ContentPublisher = 4,
         ContentUser = 5,
@@ -35,7 +35,7 @@ namespace MapDbContextLib.Identity
         public readonly static Dictionary<RoleEnum,string> MapRoles = new Dictionary<RoleEnum, string>
             {
                 {RoleEnum.SystemAdmin, "System Administrator"},
-                {RoleEnum.ClientAdministrator, "Client Administrator"},
+                {RoleEnum.ClientAdmin, "Client Administrator"},
                 {RoleEnum.UserAdmin, "User Administrator"},
                 {RoleEnum.ContentPublisher, "Content Publisher"},
                 {RoleEnum.ContentUser, "Content User"},
