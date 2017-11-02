@@ -1,8 +1,8 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett, Ben Wyatt
  * OBJECTIVE: Provide extensions to the base IdentityRole class
- * DEVELOPER NOTES: When adding a new named role, add a new static property that defines the role name, 
- *                      then add the property to the NamedRoles array.
+ * DEVELOPER NOTES: When adding a new named role, add the role to the RoleEnum enumeration,
+ *                      then add a new dictionary element that defines the role name.
  */
 
 using System;
@@ -10,6 +10,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Identity;
@@ -17,27 +18,31 @@ using MapDbContextLib.Context;
 
 namespace MapDbContextLib.Identity
 {
-    public enum RoleEnum : int
+    public enum RoleEnum : long  // Inherited type must be same as ApplicationRole.Id
     {
         // Important: Existing numeric values must never be reassigned to a new meaning.  Always add a new role as a new, explicit, higher value. 
-        SuperUser = 1,
-        ClientAdministrator = 2,
-        UserManager = 3,
+        SystemAdmin = 1,
+        ClientAdmin = 2,
+        UserAdmin = 3,
         ContentPublisher = 4,
         ContentUser = 5,
         RootClientCreator = 6,
+        UserCreator = 7,
+        ContentAdmin = 8,
     };
 
     public class ApplicationRole : IdentityRole<long>
     {
         public readonly static Dictionary<RoleEnum,string> MapRoles = new Dictionary<RoleEnum, string>
             {
-                {RoleEnum.SuperUser, "Super User"},
-                {RoleEnum.ClientAdministrator, "Client Administrator"},
-                {RoleEnum.UserManager, "User Manager"},
+                {RoleEnum.SystemAdmin, "System Administrator"},
+                {RoleEnum.ClientAdmin, "Client Administrator"},
+                {RoleEnum.UserAdmin, "User Administrator"},
                 {RoleEnum.ContentPublisher, "Content Publisher"},
                 {RoleEnum.ContentUser, "Content User"},
                 {RoleEnum.RootClientCreator, "Root Client Creator"},
+                {RoleEnum.UserCreator, "User Creator"},
+                {RoleEnum.ContentAdmin, "Content Administrator"},
             };
 
         /// <summary>
@@ -47,7 +52,18 @@ namespace MapDbContextLib.Identity
 
         public ApplicationRole(string RoleName) : base(RoleName) { }
 
-        public RoleEnum RoleEnum { get; set; }
+        [NotMapped]
+        public RoleEnum RoleEnum
+        {
+            get
+            {
+                return (RoleEnum)Id;
+            }
+            set
+            {
+                Id = (long)value;  // Cast must be to type of this.Id
+            }
+        }
 
         #region Database initialization and validation
         /// <summary>
@@ -64,14 +80,14 @@ namespace MapDbContextLib.Identity
                 {
                     foreach (KeyValuePair<RoleEnum, string> Role in MapRoles)
                     {
-                        ApplicationRole RoleFromDb = roleManager.FindByNameAsync(Role.Value).Result;
+                        ApplicationRole RoleFromDb = roleManager.FindByIdAsync(((long)Role.Key).ToString()).Result;
                         if (RoleFromDb == null)
                         {
                             roleManager.CreateAsync(new ApplicationRole { Name = Role.Value, RoleEnum = Role.Key }).Wait();
                         }
-                        else if (RoleFromDb.RoleEnum != Role.Key)
+                        else if (RoleFromDb.Name != Role.Value)
                         {
-                            RoleFromDb.RoleEnum = Role.Key;
+                            RoleFromDb.Name = Role.Value;
                             roleManager.UpdateAsync(RoleFromDb).Wait();
                         }
                     }

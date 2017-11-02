@@ -62,7 +62,7 @@ namespace MillimanAccessPortal.Controllers
         {
             ApplicationUser user = await _userManager.FindByIdAsync(id);
 
-            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(user, ApplicationRole.MapRoles[RoleEnum.SuperUser]);
+            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(user, ApplicationRole.MapRoles[RoleEnum.SystemAdmin]);
             return View(user);
         }
 
@@ -77,15 +77,12 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task <ActionResult> Create(ApplicationUserViewModel Model)
         {
-            // TODO need to convert the argument to a specialized class so that named members can be referenced
-
             try
             {
                 #region Authorization
-                // What is the required role to authorize this action
-                if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement(RoleEnum.UserManager, null)).Result)
+                if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.SystemAdmin)).Result)
                 {
-                    //return Unauthorized();
+                    return Unauthorized();
                 }
                 #endregion
 
@@ -93,46 +90,40 @@ namespace MillimanAccessPortal.Controllers
                 // 1. Email must be a valid address
                 if (!GlobalFunctions.IsValidEmail(Model.Email))
                 {
+                    Response.Headers.Add("MapReason", "101");
                     Response.Headers.Add("Warning", $"The provided email address ({Model.Email}) is not valid");
                     return StatusCode(StatusCodes.Status412PreconditionFailed);
                 }
 
                 // 2. Make sure the Email does not exist in the database already as an Email or UserName
-                if (await _userManager.FindByEmailAsync(Model.Email) != null || await _userManager.FindByLoginAsync("", Model.Email) != null)
+                if (await _userManager.FindByEmailAsync(Model.Email) != null || 
+                    await _userManager.FindByLoginAsync("", Model.Email) != null)
                 {
+                    Response.Headers.Add("MapReason", "102");
                     Response.Headers.Add("Warning", $"The provided email address ({Model.Email}) already exists in the system");
                     return StatusCode(StatusCodes.Status412PreconditionFailed);
                 }
 
                 // 3. Make sure the UserName does not exist in the database already as an Email or UserName
-                if (await _userManager.FindByEmailAsync(Model.UserName) != null || await _userManager.FindByLoginAsync("", Model.UserName) != null)
+                if (await _userManager.FindByEmailAsync(Model.UserName) != null || 
+                    await _userManager.FindByLoginAsync("", Model.UserName) != null)
                 {
+                    Response.Headers.Add("MapReason", "103");
                     Response.Headers.Add("Warning", $"The provided user name ({Model.UserName}) already exists in the system");
                     return StatusCode(StatusCodes.Status412PreconditionFailed);
                 }
                 #endregion
 
-                ApplicationUser NewUser = new ApplicationUser
-                {
-                    UserName = Model.UserName,
-                    Email = Model.Email,
-                    LastName = Model.LastName,
-                    FirstName = Model.FirstName,
-                    PhoneNumber = Model.PhoneNumber,
-                    Employer = Model.Employer,
-                };
-
-                // Save new user to the database
-                IdentityResult result = await _userManager.CreateAsync(NewUser);
+                IdentityResult result = await InsertUser(Model);
 
                 if (result.Succeeded)
                 {
-                    var LogDetailObject = new { NewUserId = NewUser.UserName, Email = NewUser.Email, };
+                    var LogDetailObject = new { NewUserId = Model.UserName, Email = Model.Email, };
                     AuditEvent LogEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New user created", AuditEventId.UserAccountCreated, LogDetailObject, User.Identity.Name, HttpContext.Session.Id);
                     _auditLogger.Log(LogEvent);
 
                     // TODO: Send welcome email w/ link to set initial password
-                    MessageQueueService.QueueEmail(NewUser.Email, "Welcome to Milliman blah blah", "Message text");
+                    MessageQueueService.QueueEmail(Model.Email, "Welcome to Milliman blah blah", "Message text");
 
                     // TODO: Add a success message to Index
                     return RedirectToAction("Index");
@@ -159,42 +150,140 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
+        /// <summary>
+        /// Reusable private method to execute new user insertion
+        /// </summary>
+        /// <param name="Model"></param>
+        /// <returns></returns>
+        [NonAction]
+        private async Task<IdentityResult> InsertUser(ApplicationUserViewModel Model)
+        {
+            ApplicationUser NewUser = new ApplicationUser
+            {
+                UserName = Model.UserName,
+                Email = Model.Email,
+                LastName = Model.LastName,
+                FirstName = Model.FirstName,
+                PhoneNumber = Model.PhoneNumber,
+                Employer = Model.Employer,
+            };
+
+            // Save new user to the database
+            return await _userManager.CreateAsync(NewUser);
+        }
+
         // GET: UserAdmin/Edit/5
         public async Task<ActionResult> Edit(string id)
         {
             ApplicationUser user = await _userManager.FindByIdAsync(id);
 
-            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(user, ApplicationRole.MapRoles[RoleEnum.SuperUser]);
+            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(user, ApplicationRole.MapRoles[RoleEnum.SystemAdmin]);
             return View(user);
         }
 
         // POST: UserAdmin/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(string id, IFormCollection collection)
+        public async Task<ActionResult> Edit(ApplicationUserViewModel Model)
         {
-            ApplicationUser user = await _userManager.FindByIdAsync(id);
-
             try
             {
-                // Process built-in Identity fields
-                user.Email = collection["Email"];
-                user.NormalizedEmail = collection["Email"].ToString().ToUpper();
-                user.LockoutEnabled = Convert.ToBoolean(collection["LockoutEnabled"].ToString().Split(',')[0]);
-                
-                await _userManager.UpdateAsync(user);
+                #region Authorization
+                // TODO Is this the required role to authorize this action
+                if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.SystemAdmin)).Result)
+                {
+                    return Unauthorized();
+                }
+                #endregion
+
+                // Get the existing user record from db
+                ApplicationUser ExistingUser = await _userManager.FindByIdAsync(Model.UserName);
+
+                #region Validation  // Validate field by field
+                // UserName
+                if (Model.UserName != ExistingUser.UserName)
+                {
+                    if (await _userManager.FindByEmailAsync(Model.UserName) != null || 
+                        await _userManager.FindByLoginAsync("", Model.UserName) != null)
+                    {
+                        Response.Headers.Add("MapReason", "101");
+                        Response.Headers.Add("Warning", $"The provided user name ({Model.UserName}) already exists in the system");
+                        return StatusCode(StatusCodes.Status412PreconditionFailed);
+                    }
+
+                    ExistingUser.UserName = Model.UserName;
+                }
+
+                // Email
+                if (Model.Email != ExistingUser.Email)
+                {
+                    // Make sure the Email is Valid format
+                    if (!GlobalFunctions.IsValidEmail(Model.Email))
+                    {
+                        Response.Headers.Add("MapReason", "102");
+                        Response.Headers.Add("Warning", $"The provided email address ({Model.Email}) is not valid");
+                        return StatusCode(StatusCodes.Status412PreconditionFailed);
+                    }
+
+                    // Make sure the Email does not exist in the database already as an Email or UserName
+                    if (await _userManager.FindByEmailAsync(Model.Email) != null || 
+                        await _userManager.FindByLoginAsync("", Model.Email) != null)
+                    {
+                        Response.Headers.Add("MapReason", "103");
+                        Response.Headers.Add("Warning", $"The provided email address ({Model.Email}) already exists in the system");
+                        return StatusCode(StatusCodes.Status412PreconditionFailed);
+                    }
+
+                    ExistingUser.Email = Model.Email;
+                }
+
+                if (Model.LastName != ExistingUser.LastName)
+                {
+                    // no test
+                    ExistingUser.LastName = Model.LastName;
+                }
+
+                if (Model.FirstName != ExistingUser.FirstName)
+                {
+                    // no test
+                    ExistingUser.FirstName = Model.FirstName;
+                }
+
+                if (Model.PhoneNumber != ExistingUser.PhoneNumber)
+                {
+                    // no test
+                    ExistingUser.PhoneNumber = Model.PhoneNumber;
+                }
+
+                if (Model.Employer != ExistingUser.Employer)
+                {
+                    // no test
+                    ExistingUser.Employer = Model.Employer;
+                }
+                #endregion
+
+                await _userManager.UpdateAsync(ExistingUser);
 
                 // Process Super User checkbox
-                // The checkbox returns "true,false" or "false,true" if you change the value. The first one is the new value, so we need to grab it.
-                bool IsSuperUser = Convert.ToBoolean(collection["IsSystemAdmin"].ToString().Split(',')[0]);
-                
-                if (IsSuperUser && !(await _userManager.IsInRoleAsync(user, ApplicationRole.MapRoles[RoleEnum.SuperUser])))
+                if (await _userManager.IsInRoleAsync(await _userManager.GetUserAsync(HttpContext.User), ApplicationRole.MapRoles[RoleEnum.SystemAdmin]))
                 {
-                    await _userManager.AddToRoleAsync(user, ApplicationRole.MapRoles[RoleEnum.SuperUser]);
-                }
-                else if (!IsSuperUser && (await _userManager.IsInRoleAsync(user, ApplicationRole.MapRoles[RoleEnum.SuperUser])))
-                {
-                    await _userManager.RemoveFromRoleAsync(user, ApplicationRole.MapRoles[RoleEnum.SuperUser]);
+                    // The checkbox returns "true,false" or "false,true" if you change the value. The first one is the new value, so we need to grab it.
+
+                    // TODO need to alter the model for this
+
+                    /* 
+                    bool IsSuperUser = Convert.ToBoolean(collection["IsSystemAdmin"].ToString().Split(',')[0]);
+
+                    if (IsSuperUser && !(await _userManager.IsInRoleAsync(ExistingUser, ApplicationRole.MapRoles[RoleEnum.SystemAdmin])))
+                    {
+                        await _userManager.AddToRoleAsync(ExistingUser, ApplicationRole.MapRoles[RoleEnum.SystemAdmin]);
+                    }
+                    else if (!IsSuperUser && (await _userManager.IsInRoleAsync(ExistingUser, ApplicationRole.MapRoles[RoleEnum.SystemAdmin])))
+                    {
+                        await _userManager.RemoveFromRoleAsync(ExistingUser, ApplicationRole.MapRoles[RoleEnum.SystemAdmin]);
+                    }
+
+                    */
                 }
 
                 return RedirectToAction("Index");
@@ -202,7 +291,8 @@ namespace MillimanAccessPortal.Controllers
             catch
             {
                 // TODO: Add more robust error handling & display an error message to the user
-                return View(user);
+                // TODO Modify the View to accept this model type
+                return View(Model);
             }
         }
 

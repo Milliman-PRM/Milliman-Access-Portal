@@ -16,6 +16,11 @@ namespace MillimanAccessPortal.Authorization
         Pass,
 
         /// <summary>
+        /// Requirement does not pass, though another passed requirement may allow the authorization to succeed
+        /// </summary>
+        NotPass,
+
+        /// <summary>
         /// Requirement should force the authorization to fail despite any other requirement result
         /// </summary>
         Fail,

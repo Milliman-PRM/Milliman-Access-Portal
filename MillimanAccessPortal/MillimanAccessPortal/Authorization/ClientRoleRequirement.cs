@@ -50,7 +50,7 @@ namespace MillimanAccessPortal.Authorization
             }
             else
             {
-                return MapAuthorizationRequirementResult.Fail;
+                return MapAuthorizationRequirementResult.NotPass;
             }
         }
     }

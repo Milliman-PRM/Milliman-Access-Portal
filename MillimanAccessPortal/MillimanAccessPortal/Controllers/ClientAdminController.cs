@@ -71,7 +71,7 @@ namespace MillimanAccessPortal.Controllers
         {
             #region Authorization
             // User must have ClientAdministrator role to at least 1 Client
-            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement (RoleEnum.ClientAdministrator, null)).Result)
+            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement (RoleEnum.ClientAdmin, null)).Result)
             {
                 return Unauthorized();
             }
@@ -103,7 +103,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             // Check current user's authorization to manage the requested Client
-            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement(RoleEnum.ClientAdministrator, ThisClient.Id)).Result)
+            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement(RoleEnum.ClientAdmin, ThisClient.Id)).Result)
             {
                 return Unauthorized();
             }
@@ -186,7 +186,7 @@ namespace MillimanAccessPortal.Controllers
             #region Authorization
             if (!AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
                 {
-                    new ClientRoleRequirement(RoleEnum.ClientAdministrator, Model.ClientId),
+                    new ClientRoleRequirement(RoleEnum.ClientAdmin, Model.ClientId),
                     new ProfitCenterAuthorizationRequirement(RequestedClient.ProfitCenterId),
                 }
                 ).Result)
@@ -275,7 +275,7 @@ namespace MillimanAccessPortal.Controllers
             #region Authorization
             if (!AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
                 {
-                    new ClientRoleRequirement(RoleEnum.ClientAdministrator, Model.ClientId),
+                    new ClientRoleRequirement(RoleEnum.ClientAdmin, Model.ClientId),
                     new ProfitCenterAuthorizationRequirement(RequestedClient.ProfitCenterId),
                 }
                 ).Result)
@@ -389,7 +389,7 @@ namespace MillimanAccessPortal.Controllers
                 // Request to create a child client
                 if (!AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
                 {
-                    new ClientRoleRequirement(RoleEnum.ClientAdministrator, Model.ParentClientId.Value),
+                    new ClientRoleRequirement(RoleEnum.ClientAdmin, Model.ParentClientId.Value),
                     new ProfitCenterAuthorizationRequirement(Model.ProfitCenterId),
                 }
                 ).Result)
@@ -437,7 +437,7 @@ namespace MillimanAccessPortal.Controllers
                 DbContext.UserRoleForClient.Add(new UserAuthorizationToClient
                     {
                         Client = Model,
-                        Role = RoleManager.FindByNameAsync(ApplicationRole.MapRoles[RoleEnum.ClientAdministrator]).Result,
+                        Role = RoleManager.FindByNameAsync(ApplicationRole.MapRoles[RoleEnum.ClientAdmin]).Result,
                         UserId = GetCurrentApplicationUser().Id
                     });
 
@@ -448,7 +448,7 @@ namespace MillimanAccessPortal.Controllers
                 object LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, };
                 AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New Client Saved", AuditEventId.NewClientSaved, LogDetails, User.Identity.Name, HttpContext.Session.Id));
 
-                LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, User = User.Identity.Name, Role = ApplicationRole.MapRoles[RoleEnum.ClientAdministrator] };
+                LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, User = User.Identity.Name, Role = ApplicationRole.MapRoles[RoleEnum.ClientAdmin] };
                 AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Client Administrator role assigned", AuditEventId.ClientRoleAssigned, LogDetails, User.Identity.Name, HttpContext.Session.Id));
             }
             catch (Exception e)
@@ -509,7 +509,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // 2) User must have ClientAdministrator role for the edited Client
-            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement(RoleEnum.ClientAdministrator, Model.Id)).Result)
+            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement(RoleEnum.ClientAdmin, Model.Id)).Result)
             {
                 Response.Headers.Add("Warning", $"The requesting user is not a ClientAdministrator for the requested client ({ExistingClientRecord.Name})");
                 return Unauthorized();
@@ -611,7 +611,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             if (!UserManager.CheckPasswordAsync(UserManager.GetUserAsync(HttpContext.User).Result, Password).Result ||
-		        !AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement(RoleEnum.ClientAdministrator, Id.Value)).Result ||
+		        !AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement(RoleEnum.ClientAdmin, Id.Value)).Result ||
                 !AuthorizationService.AuthorizeAsync(User, null, new ProfitCenterAuthorizationRequirement(ExistingClient.ProfitCenterId)).Result)
             {
                 Response.Headers.Add("Warning", "You are not authorized to perform this action");
