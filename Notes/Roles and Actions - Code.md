@@ -1,20 +1,19 @@
 ## Role Descriptions
 
-|Role|Assignment|Description|
-| ---| ----- | --------- |
-|SystemAdmin|Global|System support and issue recovery|
-|ClientAdmin|Client|Administers the hierchies of Clients and their relationships|
-|UserCreator|Global|Creates user accounts|
-|UserAdmin|Client|Administers user authorization to clients and content|
-|ContentPublisher|Client||
-|ContentUser|ContentItemGroup||
-|RootClientCreator|Global||
-
-|Claim|Description|
-| ---| --------- |
-|ClientMembership|Associates a user with a client; a prerequisite for a UserAdmin to manage the user's authorizations|
-|ProfitCenterManager|Associates a ClientAdmin user with a profit center as a filter for the ClientAdmin role|
-
+|Role|Relation To|Description|Assigned By|
+|----|-----------|-----------|-----------|
+|Admin|Global|Users with this UserRole are SystemAdmin|SystemAdmin|
+|Admin|Client|Administers client|SystemAdmin, ClientAdmin|
+|Admin|ProfitCenter|Manage ProfitCenter. In combination with Admin role on a related entity, authorizes elevated administrative actions on that entity|SystemAdmin, ClientAdmin with this ProfitCenter|
+|----|-----------|-----------|-----------|
+|UserCreator|Global|Creates/Deletes user accounts not targeted to a client|ClientAdmin w/ ProfitCenter
+|UserCreator|Client|Creates user accounts targeted to a client|ClientAdmin|
+|UserAdmin|Client|Assign user accounts to client and manage content access selections for assigned user|ClientAdmin|
+|----|----------|------------|-----------|
+|ContentAdmin|RootContentItem|Authorizes distribution of content to client-related RootContentItems|ClientAdmin|
+|ContentAdmin|Client|Authorizes create/delete of RootContentItems|ClientAdmin|
+|----|----------|------------|-----------|
+|ContentUser|RootContentItem ?|Authorizes eligibility to be assigned to a ContentItemGroup||
 
 ## Possible User Actions
 
