@@ -15,23 +15,20 @@ namespace MillimanAccessPortal.Controllers
     {
         private readonly ApplicationDbContext DbContext;
         private readonly UserManager<ApplicationUser> UserManager;
-        private readonly IServiceProvider ServiceProvider;
 
         public ClientAdminController(
             ApplicationDbContext context,
-            UserManager<ApplicationUser> UserManagerArg,
-            IServiceProvider ServiceProviderArg
+            UserManager<ApplicationUser> UserManagerArg
             )
         {
             DbContext = context;
             UserManager = UserManagerArg;
-            ServiceProvider = ServiceProviderArg;
         }
 
         // GET: ClientAdmin
         public IActionResult Index()
         {
-            List<Client> AuthorizedClients = new StandardQueries(ServiceProvider).GetListOfClientsUserIsAuthorizedToManage(UserManager.GetUserName(HttpContext.User));
+            List<Client> AuthorizedClients = new StandardQueries(DbContext).GetListOfClientsUserIsAuthorizedToManage(UserManager.GetUserName(HttpContext.User));
             return View(AuthorizedClients);
         }
 
@@ -59,7 +56,7 @@ namespace MillimanAccessPortal.Controllers
         // Id argument is the intended parent client id if any
         public IActionResult Create(int? Id = null)
         {
-            List<Client> AuthorizedClients = new StandardQueries(ServiceProvider).GetListOfClientsUserIsAuthorizedToManage(UserManager.GetUserName(HttpContext.User));
+            List<Client> AuthorizedClients = new StandardQueries(DbContext).GetListOfClientsUserIsAuthorizedToManage(UserManager.GetUserName(HttpContext.User));
 
             // Choose the requested parent client, but only if it is authorized
             SelectList ParentSelectList = AuthorizedClients.Any(c => c.Id == Id) ?

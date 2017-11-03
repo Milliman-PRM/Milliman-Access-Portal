@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 using System;
+using System.Collections.Generic;
 using Moq;
 using Xunit;
 using MillimanAccessPortal.Controllers;
@@ -157,16 +158,17 @@ namespace MapTests
                 RoleId = 5 // Content User
             });
 
-            // Configure UserManager to return valid values
-            UserManager = new Mock<UserManager<ApplicationUser>>();
-            UserManager.Setup(manager => manager.GetUserName(It.IsAny<ClaimsPrincipal>()))
-                .Returns("test@example.com");
+            // TODO figure out this issue:
+            DataContext.Setup(x => x.UserRoleForClient).Returns(new DbSet<UserAuthorizationToClient>());
+            DataContext.Setup(x => x.UserRoleForContentItemUserGroup).Returns(DataContext.Object.UserRoleForContentItemUserGroup);
 
-            TestController = new HostedContentController(QlikViewConfig,
-                UserManager.Object,
-                Logger,
-                DataContext.Object,
-                ServiceProvider);
+            // Configure UserManager to return valid values
+            var UserStore = new Mock<IUserStore<ApplicationUser>>();
+            UserManager = new Mock<UserManager<ApplicationUser>>(UserStore.Object, null, null, null, null, null, null, null, null);
+            UserManager.Setup(manager => manager.GetUserName(It.IsAny<ClaimsPrincipal>()))
+                       .Returns("test@example.com");
+
+            TestController = new HostedContentController(QlikViewConfig, UserManager.Object, Logger, DataContext.Object);
         }
         
         /// <summary>
