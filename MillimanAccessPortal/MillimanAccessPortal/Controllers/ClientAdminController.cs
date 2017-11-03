@@ -82,10 +82,10 @@ namespace MillimanAccessPortal.Controllers
             return Json(ModelToReturn);
         }
 
-        // GET: ClientAdmin/ClientUserLists
+        // GET: ClientAdmin/ClientDetail
         // Intended for access by ajax from Index view
         /// <summary>
-        /// Returns the lists of eligible and already assigned users associated with a Client. Requires GET. 
+        /// Returns the requested Client and lists of eligible and already assigned users associated with a Client. Requires GET. 
         /// </summary>
         /// <param name="id"></param>
         /// <returns>JsonResult or UnauthorizedResult</returns>
