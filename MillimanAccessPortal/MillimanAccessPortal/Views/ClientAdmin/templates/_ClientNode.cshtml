@@ -15,7 +15,7 @@
             </div>
             <div class="icon-container">
                 <div class="card-button-background card-button-background-delete">
-                    <i class="fa fa-fw fa-trash" onclick="deleteClient('{{id}}', '{{name}}')"></i>
+                    <i class="fa fa-fw fa-trash" onclick="deleteClient(event, '{{id}}', '{{name}}')"></i>
                 </div>
                 <div class="card-button-background card-button-background-edit">
                     <i class="fa fa-fw fa-pencil"></i>
@@ -47,7 +47,42 @@
             else {
                 toaster['error']('An error has occurred');
             }
+        }).always(function () { 
+            $('div.client-admin-card').on('click', function () {
+                GetClientDetail($(this));
+            })
         });
+
+    }
+
+    function GetClientDetail(clientDiv) {
+
+        var clientId = clientDiv.attr('data-client-id').valueOf();
+
+        if (clientDiv.hasClass('selected')) {
+            clearSelectedClient();
+            return false;
+        }
+
+        $.ajax({
+            type: 'GET',
+            url: 'ClientAdmin/ClientDetail/' + clientId,
+            headers: {
+                'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
+            },
+        }).done(function (response) {
+            console.log(response.clientEntity);
+            console.log(response.assignedUsers);
+            // Change the dom to reflect the selected client
+            clearSelectedClient()
+            clientDiv.addClass('selected');
+        }).fail(function (response) {
+            toastr["warning"](response.getResponseHeader("Warning"));
+        })
+    };
+
+    function clearSelectedClient() {
+        $('#client-tree-list div.selected').removeClass('selected');
     }
 
     function renderClientTree() {
@@ -113,7 +148,9 @@
 
     };
 
-    function deleteClient(id, name) {
+    function deleteClient(event, id, name) {
+
+        event.stopPropagation();
 
         bootbox.confirm({
             title: "Delete " + name + "?",

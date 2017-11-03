@@ -14,6 +14,8 @@ $form-background: #DEDEE3;
 $form-border: #424242;
 $form-close: #d9534f;
 $form-close-hover: #c9302c;
+$card-background-color: #fff;
+$card-selected-background-color: #0091ff;
 $client-admin-stats-background: #242424;
 $client-admin-stats-font: #fff;
 $button-warning: #d9534f;
@@ -325,13 +327,13 @@ Content Block Styling
     /*****
 Report Block Styling
 *****/
-    .report-card {
-        border: 2px solid #000;
-        border-radius: 5px;
-        background-color: #fff;
-        margin: 15px 0;
-        padding: 20px;
-    }
+.report-card {
+    border: 2px solid #000;
+    border-radius: 5px;
+    background-color: $card-background-color;
+    margin: 15px 0;
+    padding: 20px;
+}
     /*****
 Client Admin Styling
 *****/
@@ -392,7 +394,7 @@ Client Admin Styling
 .client-admin-card {
     position: relative;
     padding: 0;
-    background-color: white;
+    background-color: $card-background-color;
     border: 2px solid black;
     border-radius: 5px;
     margin-top: 10px;
@@ -408,6 +410,11 @@ Client Admin Styling
     &.disabled {
         color: $text-disabled !important;
         background-color: $button-disabled !important;
+    }
+
+    &.selected {
+        color: white;
+        background-color: $card-selected-background-color;
     }
 
 
