@@ -346,7 +346,7 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
-        // POST: ClientAdmin/Edit/5
+        // POST: ClientAdmin/SaveNewClient
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         /// <summary>
@@ -468,7 +468,7 @@ namespace MillimanAccessPortal.Controllers
             return ClientFamilyList();
         }
 
-        // POST: ClientAdmin/Edit
+        // POST: ClientAdmin/EditClient
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         /// <summary>
