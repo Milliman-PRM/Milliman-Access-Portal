@@ -90,7 +90,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="id"></param>
         /// <returns>JsonResult or UnauthorizedResult</returns>
         [HttpGet]
-        public IActionResult ClientUserLists(long? id)
+        public IActionResult ClientDetail(long? id)
         {
             Client ThisClient = DbContext.Client.Find(id);
 
@@ -109,7 +109,9 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ClientUserListsViewModel Model = new ClientUserListsViewModel();
+            ClientDetailViewModel Model = new ClientDetailViewModel();
+
+            Model.ClientEntity = ThisClient;
 
             Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ThisClient.Id.ToString());
 
@@ -231,7 +233,7 @@ namespace MillimanAccessPortal.Controllers
                                                                               claim.Value == ThisClientMembershipClaim.Value))
             {
                 Response.Headers.Add("Warning", "The requested user is already assigned to the requested client");
-                return ClientUserLists(RequestedClient.Id);
+                return ClientDetail(RequestedClient.Id);
             }
             else
             {
@@ -249,7 +251,7 @@ namespace MillimanAccessPortal.Controllers
                                           AssignedClientId = RequestedClient.Id};
                 AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User Assigned to Client", AuditEventId.UserAssignedToClient, LogDetails, User.Identity.Name, HttpContext.Session.Id) );
 
-                return ClientUserLists(RequestedClient.Id);
+                return ClientDetail(RequestedClient.Id);
             }
         }
 
@@ -335,12 +337,12 @@ namespace MillimanAccessPortal.Controllers
                                             User.Identity.Name, 
                                             HttpContext.Session.Id));
 
-                return ClientUserLists(RequestedClient.Id);
+                return ClientDetail(RequestedClient.Id);
             }
             else
             {
                 Response.Headers.Add("Warning", $"User {RequestedUser.UserName} is not assigned to client {RequestedClient.Name}.  No action taken.");
-                return ClientUserLists(RequestedClient.Id);
+                return ClientDetail(RequestedClient.Id);
             }
         }
 
