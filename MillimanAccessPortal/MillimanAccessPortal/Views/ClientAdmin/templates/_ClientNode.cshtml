@@ -61,6 +61,7 @@
 
         if (clientDiv.hasClass('selected')) {
             clearSelectedClient();
+            hideClientForm();
             return false;
         }
 
@@ -76,13 +77,38 @@
             // Change the dom to reflect the selected client
             clearSelectedClient()
             clientDiv.addClass('selected');
+            // Show the form in readonly mode
+            makeFormReadOnly();
+            showClientForm();
+            
         }).fail(function (response) {
             toastr["warning"](response.getResponseHeader("Warning"));
+            hideClientForm();
         })
     };
 
     function clearSelectedClient() {
         $('#client-tree-list div.selected').removeClass('selected');
+    }
+
+    function makeFormReadOnly() {
+        $('#client-form :input').attr('readonly', 'readonly');
+    }
+
+    function makeFormWriteable() {
+        $('#client-form :input').removeAttr('readonly');
+    }
+
+    function showClientForm() {
+        var showTime = 50;
+        $('#client-info').show(showTime, function () {
+            $('#client-users').show(showTime);
+        });
+    }
+
+    function hideClientForm() {
+        $('#client-info').hide();
+        $('#client-users').hide();
     }
 
     function renderClientTree() {

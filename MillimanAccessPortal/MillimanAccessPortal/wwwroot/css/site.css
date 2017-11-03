@@ -247,6 +247,8 @@ Client Admin Styling
 .client-admin-section {
   height: 80vh;
   padding: 10px; }
+  .client-admin-section.hidden-on-load {
+    display: none; }
   .client-admin-section .scroll-y {
     overflow-y: auto;
     overflow-x: hidden;
