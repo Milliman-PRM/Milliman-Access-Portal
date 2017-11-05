@@ -72,7 +72,7 @@
                 'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
             },
         }).done(function (response) {
-            console.log(response.clientEntity);
+            populateClientDetails(response.clientEntity);
             console.log(response.assignedUsers);
             // Change the dom to reflect the selected client
             clearSelectedClient()
@@ -117,6 +117,13 @@
             renderClientNode(rootClient, 1);
             $('#client-tree-list').append('<li class="hr col-xs-12"></li>');
         });
+    };
+
+    function populateClientDetails(clientEntity) {
+        $.each(clientEntity, function (key, value) {
+            var ctrl = $('[name=' + key + ']', '#client-info');
+            ctrl.val(value);
+        });  
     };
 
     function renderClientNode(client, level) {
