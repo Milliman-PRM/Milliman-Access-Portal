@@ -28,6 +28,9 @@
             <form id="client-form" class="read-only" asp-action="/" method="post">
                 <div class="row">
                     <h4>Client Information</h4>
+                    <div class="hidden">
+                        <input type="hidden" id="parentClientId" name="parentClientId" />
+                    </div>
                     <div class="form-group col-md-9">
                         <label for="clientName">Client Name</label>
                         <input type="text" id="clientName" name="name" class="form-control" />
