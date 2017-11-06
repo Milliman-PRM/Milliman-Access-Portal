@@ -83,11 +83,15 @@
                     </div>
                     <div class="form-group col-md-3">
                         <label for="profitCenter">Profit Center</label>
-                        <select id="profitCenter" name="profitCenter" class="form-control">
+                        <select id="profitCenter" name="profitCenterId" class="form-control">
                             <option value="">Make a Selection</option>
+                            <option value="1">Option 1</option>
+                            <option value="2">Option 2</option>
+                            <option value="3">Option 3</option>
+                            <option disabled>Option 4</option>
                         </select>
                     </div>
-                    <div class="text-right">
+                    <div id="form-buttons" class="text-right">
                         <button type="reset" class="btn btn-link">Reset Form</button>
                         <button type="submit" id="primary-button" class="btn btn-primary">Save</button>
                     </div>

@@ -93,10 +93,14 @@
 
     function makeFormReadOnly() {
         $('#client-form :input').attr('readonly', 'readonly');
+        $('#client-form select').attr('disabled', 'disabled');
+        $('#client-form #form-buttons').hide();
     }
 
     function makeFormWriteable() {
         $('#client-form :input').removeAttr('readonly');
+        $('#client-form select').removeAttr('disabled');
+        $('#client-form #form-buttons').show();
     }
 
     function showClientForm() {
@@ -111,19 +115,24 @@
         $('#client-users').hide();
     }
 
+    function populateClientDetails(clientEntity) {
+        $.each(clientEntity, function (key, value) {
+            var ctrl = $('[name=' + key + ']', '#client-info');
+            if (ctrl.is('select')) {
+                ctrl.val(value).change();
+            }
+            else {
+                ctrl.val(value);
+            }
+        });  
+    };
+
     function renderClientTree() {
         $('#client-tree-list').empty();
         clientTree.forEach(function (rootClient) {
             renderClientNode(rootClient, 1);
             $('#client-tree-list').append('<li class="hr col-xs-12"></li>');
         });
-    };
-
-    function populateClientDetails(clientEntity) {
-        $.each(clientEntity, function (key, value) {
-            var ctrl = $('[name=' + key + ']', '#client-info');
-            ctrl.val(value);
-        });  
     };
 
     function renderClientNode(client, level) {
