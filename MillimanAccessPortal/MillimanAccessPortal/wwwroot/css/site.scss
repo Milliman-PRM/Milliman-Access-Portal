@@ -71,6 +71,18 @@ select {
     &:focus {
         border: solid 2px $input-focus;
     }
+
+    &:read-only,
+    &:disabled {
+        font-size-adjust: 1.1;
+        font-weight: bold;
+        border: none !important;
+        border-bottom: solid 1px black !important;
+        border-radius: 0 !important;
+        background-color: transparent !important;
+        box-shadow: none;
+        cursor: default !important;
+    }
 }
 
 textarea {

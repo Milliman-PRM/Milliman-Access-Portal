@@ -38,6 +38,19 @@ select {
   textarea:focus,
   select:focus {
     border: solid 2px #0091ff; }
+  input:read-only, input:disabled,
+  textarea:read-only,
+  textarea:disabled,
+  select:read-only,
+  select:disabled {
+    font-size-adjust: 1.1;
+    font-weight: bold;
+    border: none !important;
+    border-bottom: solid 1px black !important;
+    border-radius: 0 !important;
+    background-color: transparent !important;
+    box-shadow: none;
+    cursor: default !important; }
 
 textarea {
   height: auto;
