@@ -36,12 +36,10 @@ namespace MillimanAccessPortal
             .ConfigureAppConfiguration((hostContext, config) =>
             {
                 config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                // TODO: Fix environment-specific Json configuration inclusion
-                //.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("EnvironmentName")}.json", optional: true, reloadOnChange: true)
                 .AddJsonFile("qlikview.json", optional: false, reloadOnChange: true)
                 .AddJsonFile("smtp.json", optional: false, reloadOnChange: true)
-                // TODO: Fix environment-specific inclusion
-                //.AddJsonFile($"smtp.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"smtp.{Environment.GetEnvironmentVariable("EnvironmentName")}.json", optional: true, reloadOnChange: true)
                 ;
             }).UseApplicationInsights()    
             .Build();
