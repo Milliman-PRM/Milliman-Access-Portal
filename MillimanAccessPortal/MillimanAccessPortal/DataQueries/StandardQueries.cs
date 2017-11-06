@@ -1,7 +1,7 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: Frequently used database queries for use by the application rather than using messy code in controllers
- * DEVELOPER NOTES: Might be better in the main project, depends on whether the queries tend to be useful to only one application -TP
+ * OBJECTIVE: Wrapper for database queries.  Reusable methods appear in this file, methods for single caller appear in files named for the caller
+ * DEVELOPER NOTES: 
  */
 
 using System;
@@ -15,9 +15,9 @@ using Microsoft.Extensions.DependencyInjection;
 using MillimanAccessPortal.Models.HostedContentViewModels;
 using Microsoft.EntityFrameworkCore;
 
-namespace MillimanAccessPortal
+namespace MillimanAccessPortal.DataQueries
 {
-    public class StandardQueries
+    public partial class StandardQueries
     {
         private ApplicationDbContext DataContext = null;
 
@@ -109,44 +109,6 @@ namespace MillimanAccessPortal
             ResultBuilder.ToList().ForEach(h => ReturnList.Add(h.Value));
 
             return ReturnList.ToList();
-        }
-
-        /// <summary>
-        /// determines whether the supplied user name is authorized to the supplied group for all supplied role names
-        /// </summary>
-        /// <param name="UserName"></param>
-        /// <param name="GroupId"></param>
-        /// <param name="RequiredRoleArray"></param>
-        /// <returns>true iff user is authorized to the group in all roles</returns>
-        public  bool IsUserAuthorizedToAllRolesForGroup(string UserName, long GroupId, IEnumerable<RoleEnum> RequiredRoles)
-        {
-            var AuthorizedGroupForUser = GetUserGroupIfAuthorizedToAllRoles(UserName, GroupId, RequiredRoles);
-
-            return AuthorizedGroupForUser != null;
-        }
-
-        /// <summary>
-        /// Tests whether the requested group is authorized to user for all specified roles
-        /// </summary>
-        /// <param name="UserName"></param>
-        /// <param name="GroupId"></param>
-        /// <param name="RequiredRoles"></param>
-        /// <returns></returns>
-        public ContentItemUserGroup GetUserGroupIfAuthorizedToAllRoles(string UserName, long GroupId, IEnumerable<RoleEnum> RequiredRoles)
-        {
-            var ShortList = DataContext.UserRoleForContentItemUserGroup
-                .Include(urg => urg.Role)
-                .Include(urg => urg.User)
-                .Include(urg => urg.ContentItemUserGroup)
-                .Where(urg => urg.ContentItemUserGroupId == GroupId)
-                .Where(urg => urg.User.UserName == UserName)
-                .Where(urg => RequiredRoles.Contains(urg.Role.RoleEnum))
-                .ToList();
-            // result is the user's authorizations for the requested group, filtered to only roles in the caller provided list of required roles
-
-            bool AllRequiredRolesFound = RequiredRoles.All(rr => ShortList.Select(urg => urg.Role.RoleEnum).Contains(rr));
-
-            return AllRequiredRolesFound ? ShortList.Select(urg => urg.ContentItemUserGroup).FirstOrDefault() : null;
         }
 
         public ContentItemUserGroup GetUserGroupIfAuthorizedToRole(string UserName, long GroupId, RoleEnum RequiredRole)

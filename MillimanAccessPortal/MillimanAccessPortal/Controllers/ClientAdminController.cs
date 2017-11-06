@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Identity;
+using MillimanAccessPortal.DataQueries;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -15,6 +16,7 @@ namespace MillimanAccessPortal.Controllers
     {
         private readonly ApplicationDbContext DbContext;
         private readonly UserManager<ApplicationUser> UserManager;
+        private readonly StandardQueries Queries;
 
         public ClientAdminController(
             ApplicationDbContext context,
@@ -23,12 +25,13 @@ namespace MillimanAccessPortal.Controllers
         {
             DbContext = context;
             UserManager = UserManagerArg;
+            Queries = new StandardQueries(DbContext);
         }
 
         // GET: ClientAdmin
         public IActionResult Index()
         {
-            List<Client> AuthorizedClients = new StandardQueries(DbContext).GetListOfClientsUserIsAuthorizedToManage(UserManager.GetUserName(HttpContext.User));
+            List<Client> AuthorizedClients = Queries.GetListOfClientsUserIsAuthorizedToManage(UserManager.GetUserName(HttpContext.User));
             return View(AuthorizedClients);
         }
 
@@ -56,7 +59,7 @@ namespace MillimanAccessPortal.Controllers
         // Id argument is the intended parent client id if any
         public IActionResult Create(int? Id = null)
         {
-            List<Client> AuthorizedClients = new StandardQueries(DbContext).GetListOfClientsUserIsAuthorizedToManage(UserManager.GetUserName(HttpContext.User));
+            List<Client> AuthorizedClients = Queries.GetListOfClientsUserIsAuthorizedToManage(UserManager.GetUserName(HttpContext.User));
 
             // Choose the requested parent client, but only if it is authorized
             SelectList ParentSelectList = AuthorizedClients.Any(c => c.Id == Id) ?

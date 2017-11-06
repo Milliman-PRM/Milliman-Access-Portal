@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Authorization;
+using MillimanAccessPortal.DataQueries;
 
 
 namespace MillimanAccessPortal.Controllers
@@ -32,6 +33,7 @@ namespace MillimanAccessPortal.Controllers
         private ApplicationDbContext DataContext = null;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly ILogger Logger;
+        private readonly StandardQueries Queries;
 
         /// <summary>
         /// Constructor.  Makes instance copies of injected resources from the application. 
@@ -50,6 +52,7 @@ namespace MillimanAccessPortal.Controllers
             UserManager = UserManagerArg;
             Logger = LoggerFactoryArg.CreateLogger<HostedContentController>();
             DataContext = DataContextArg;
+            Queries = new StandardQueries(DataContext);
         }
 
         /// <summary>
@@ -59,7 +62,7 @@ namespace MillimanAccessPortal.Controllers
         [Authorize]
         public IActionResult Index()
         {
-            List<HostedContentViewModel> ModelForView = new StandardQueries(DataContext).GetAuthorizedUserGroupsAndRoles(UserManager.GetUserName(HttpContext.User));
+            List<HostedContentViewModel> ModelForView = Queries.GetAuthorizedUserGroupsAndRoles(UserManager.GetUserName(HttpContext.User));
 
             return View(ModelForView);
         }
@@ -77,7 +80,7 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 // Get the requested (by id) ContentItemUserGroup object
-                ContentItemUserGroup AuthorizedUserGroup = new StandardQueries(DataContext).GetUserGroupIfAuthorizedToRole(UserManager.GetUserName(HttpContext.User), Id, RoleEnum.ContentUser);
+                ContentItemUserGroup AuthorizedUserGroup = Queries.GetUserGroupIfAuthorizedToRole(UserManager.GetUserName(HttpContext.User), Id, RoleEnum.ContentUser);
 
                 if (AuthorizedUserGroup == null)
                 {
