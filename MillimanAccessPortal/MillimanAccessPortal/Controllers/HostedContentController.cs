@@ -46,13 +46,14 @@ namespace MillimanAccessPortal.Controllers
             IOptions<QlikviewConfig> QlikviewOptionsAccessorArg,
             UserManager<ApplicationUser> UserManagerArg,
             ILoggerFactory LoggerFactoryArg,
-            ApplicationDbContext DataContextArg)
+            ApplicationDbContext DataContextArg,
+            StandardQueries QueryArg)
         {
             QlikviewConfig = QlikviewOptionsAccessorArg.Value;
             UserManager = UserManagerArg;
             Logger = LoggerFactoryArg.CreateLogger<HostedContentController>();
             DataContext = DataContextArg;
-            Queries = new StandardQueries(DataContext);
+            Queries = QueryArg;
         }
 
         /// <summary>

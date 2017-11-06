@@ -20,12 +20,13 @@ namespace MillimanAccessPortal.Controllers
 
         public ClientAdminController(
             ApplicationDbContext context,
-            UserManager<ApplicationUser> UserManagerArg
+            UserManager<ApplicationUser> UserManagerArg,
+            StandardQueries QueryArg
             )
         {
             DbContext = context;
             UserManager = UserManagerArg;
-            Queries = new StandardQueries(DbContext);
+            Queries = QueryArg;
         }
 
         // GET: ClientAdmin

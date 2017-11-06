@@ -20,6 +20,7 @@ using Microsoft.Extensions.Logging;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MillimanAccessPortal.Services;
+using MillimanAccessPortal.DataQueries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using QlikviewLib;
@@ -110,6 +111,7 @@ namespace MillimanAccessPortal
 
             // Add application services.
             services.AddTransient<MessageQueueServices>();
+            services.AddScoped<StandardQueries>();
             //services.AddTransient<IEmailSender, AuthMessageSender>();
             //services.AddTransient<ISmsSender, AuthMessageSender>();
         }
