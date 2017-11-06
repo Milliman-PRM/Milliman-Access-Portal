@@ -75,7 +75,7 @@ namespace MapDbContextLib.Identity
         {
             using (IServiceScope serviceScope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
-                var roleManager = serviceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+                var roleManager = serviceScope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
                 using (ApplicationDbContext dbContext = serviceScope.ServiceProvider.GetService<ApplicationDbContext>())
                 {
                     foreach (KeyValuePair<RoleEnum, string> Role in MapRoles)
