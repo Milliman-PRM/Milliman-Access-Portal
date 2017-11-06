@@ -27,6 +27,8 @@ obj/
 TestResults/
 .vs/
 **/wwwroot/lib/
+**/wwwroot/css/site.css
+**/wwwroot/css/site.min.css
 ###################
 # Web publish log #
 ###################
