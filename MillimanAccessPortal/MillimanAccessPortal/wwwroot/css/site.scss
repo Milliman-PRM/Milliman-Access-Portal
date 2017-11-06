@@ -72,7 +72,6 @@ select {
         border: solid 2px $input-focus;
     }
 
-    &:read-only,
     &:disabled {
         font-size-adjust: 1.1;
         font-weight: bold;
@@ -80,8 +79,15 @@ select {
         border-bottom: solid 1px black !important;
         border-radius: 0 !important;
         background-color: transparent !important;
+        background: transparent !important;
         box-shadow: none;
         cursor: default !important;
+        -moz-appearance: none !important;
+        -webkit-appearance: none !important;
+
+        &::-ms-expand {
+            display: none;
+        }
     }
 }
 
@@ -545,18 +551,4 @@ Client Admin Styling
             font-weight: bold;
         }
 
-        &.read-only {
-
-            input:disabled {
-                background-color: $background;
-                border: none;
-                outline: none;
-                border-radius: 0;
-                border-bottom: 1px solid black;
-                box-shadow: none;
-                font-weight: bold;
-                cursor: default;
-                overflow: hidden;
-            }
-        }
     }

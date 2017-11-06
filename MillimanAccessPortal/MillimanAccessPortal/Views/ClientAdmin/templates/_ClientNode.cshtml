@@ -93,13 +93,13 @@
 
     function makeFormReadOnly() {
         $('#client-form :input').attr('readonly', 'readonly');
-        $('#client-form select').attr('disabled', 'disabled');
+        $('#client-form :input, #client-form select').attr('disabled', 'disabled');
         $('#client-form #form-buttons').hide();
     }
 
     function makeFormWriteable() {
         $('#client-form :input').removeAttr('readonly');
-        $('#client-form select').removeAttr('disabled');
+        $('#client-form :input, #client-form select').removeAttr('disabled');
         $('#client-form #form-buttons').show();
     }
 
