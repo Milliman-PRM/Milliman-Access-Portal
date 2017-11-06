@@ -35,7 +35,7 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="UserName"></param>
         /// <returns></returns>
-        public List<HostedContentViewModel> GetAuthorizedUserGroupsAndRoles(string UserName)
+        public virtual List<HostedContentViewModel> GetAuthorizedUserGroupsAndRoles(string UserName)
         {
             List<HostedContentViewModel> ReturnList = new List<HostedContentViewModel>();
             Dictionary<long, HostedContentViewModel> ResultBuilder = new Dictionary<long, HostedContentViewModel>();
