@@ -51,8 +51,7 @@ namespace MillimanAccessPortal
 
             // Add framework services.
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("MillimanAccessPortal")))
-                .AddIdentity<ApplicationUser, ApplicationRole>();
+                options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("MillimanAccessPortal")));
 
             // Do not add AuditLogDbContext.  This context should be protected from direct access.  Use the api class instead.  -TP
 
