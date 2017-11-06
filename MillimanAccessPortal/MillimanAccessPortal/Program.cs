@@ -43,7 +43,7 @@ namespace MillimanAccessPortal
                 // TODO: Fix environment-specific inclusion
                 //.AddJsonFile($"smtp.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
                 ;
-            })    
+            }).UseApplicationInsights()    
             .Build();
     }
 }
