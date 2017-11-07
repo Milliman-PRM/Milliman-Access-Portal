@@ -65,6 +65,8 @@
 
     function GetClientDetail(clientDiv) {
 
+        removeClientInserts()
+
         var clientId = clientDiv.attr('data-client-id').valueOf();
 
         if (clientDiv.hasClass('selected')) {
@@ -97,6 +99,8 @@
 
     function EditClientDetail(clientDiv) {
 
+        removeClientInserts()
+
         var clientId = clientDiv.attr('data-client-id').valueOf();
 
         $.ajax({
@@ -121,23 +125,32 @@
 
 
     function newClientFormSetup() {
+        removeClientInserts()
         clearFormData();
         clearSelectedClient();
         makeFormWriteable();
         showClientForm();
     }
 
-    function newChildClientFormSetup(clientDiv) {
+    function newChildClientFormSetup(parentClientDiv) {
 
         clearFormData();
 
-        var clientId = clientDiv.attr('data-client-id').valueOf();
+        var parentClientId = parentClientDiv.attr('data-client-id').valueOf();
     
-        $('#client-form #parentClientId').val(clientId);
+        $('#client-form #parentClientId').val(parentClientId);
+
+        removeClientInserts()
+        parentClientDiv.parent().after('<li class="client-insert col-xs-12"></li>');
 
         clearSelectedClient();
         makeFormWriteable();
         showClientForm();
+    }
+
+
+    function removeClientInserts() {
+        $('#client-tree li.client-insert').remove();
     }
 
     function clearFormData() {
