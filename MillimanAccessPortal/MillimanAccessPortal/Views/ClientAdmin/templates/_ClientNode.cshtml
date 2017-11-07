@@ -142,7 +142,13 @@
         $('#client-form #parentClientId').val(parentClientId);
 
         removeClientInserts()
-        parentClientDiv.parent().after('<li class="client-insert col-xs-12"></li>');
+        parentClientDiv.parent().after('<li class="client-insert">' +
+            '<div class="col-xs-offset-2 col-xs-10 client-admin-card">' +
+            '<div class="client-information">' +
+            '<h4 class="client-admin-card-title">New Child Client</h4>' +
+            '</div >' +
+            '</div>' +
+            '</li>');
 
         clearSelectedClient();
         makeFormWriteable();
