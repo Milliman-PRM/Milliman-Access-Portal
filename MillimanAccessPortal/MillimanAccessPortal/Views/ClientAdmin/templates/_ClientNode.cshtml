@@ -47,10 +47,18 @@
             else {
                 toaster['error']('An error has occurred');
             }
-        }).always(function () { 
+        }).always(function () {
             $('div.client-admin-card').on('click', function () {
                 GetClientDetail($(this));
-            })
+            });
+            $('div.card-button-background-edit').on('click', function(event) {
+                EditClientDetail($(this).parents('div[data-client-id]'));
+                event.stopPropagation();
+            });
+            $('div.card-button-background-add').on('click', function (event) {
+                newChildClientFormSetup($(this).parents('div[data-client-id]'));
+                event.stopPropagation();
+            });
         });
 
     }
@@ -86,6 +94,55 @@
             hideClientForm();
         })
     };
+
+    function EditClientDetail(clientDiv) {
+
+        var clientId = clientDiv.attr('data-client-id').valueOf();
+
+        $.ajax({
+            type: 'GET',
+            url: 'ClientAdmin/ClientDetail/' + clientId,
+            headers: {
+                'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
+            },
+        }).done(function (response) {
+            populateClientDetails(response.clientEntity);
+            // Change the dom to reflect the selected client
+            clearSelectedClient()
+            clientDiv.addClass('selected');
+            // Show the form in read/write mode
+            makeFormWriteable();
+            showClientForm();
+        }).fail(function (response) {
+            toastr["warning"](response.getResponseHeader("Warning"));
+            hideClientForm();
+        })
+    };
+
+
+    function newClientFormSetup() {
+        clearFormData();
+        clearSelectedClient();
+        makeFormWriteable();
+        showClientForm();
+    }
+
+    function newChildClientFormSetup(clientDiv) {
+
+        clearFormData();
+
+        var clientId = clientDiv.attr('data-client-id').valueOf();
+    
+        $('#client-form #parentClientId').val(clientId);
+
+        clearSelectedClient();
+        makeFormWriteable();
+        showClientForm();
+    }
+
+    function clearFormData() {
+        $('#client-form :input, #client-form select').val("");
+    }
 
     function clearSelectedClient() {
         $('#client-tree-list div.selected').removeClass('selected');

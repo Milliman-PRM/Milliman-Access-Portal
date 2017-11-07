@@ -11,9 +11,9 @@
         <h3 class="client-admin-section-title">Client Tree</h3>
         <div class="client-admin-section-toolbar container-fluid">
             <input id="client-search-box" class="search-box" placeholder="Search for Client" />
-            @*<a href="#">
+            <a href="#" onclick="newClientFormSetup()">
                 <i class="fa fa-2x fa-plus pull-right"></i>
-            </a>*@        
+            </a>        
         </div>
         <div id="client-tree" class="container-fluid scroll-y">
             <div class="row">
@@ -29,6 +29,7 @@
                 <div class="row">
                     <h4>Client Information</h4>
                     <div class="hidden">
+                        <input type="hidden" id="clientId" name="id" />
                         <input type="hidden" id="parentClientId" name="parentClientId" />
                     </div>
                     <div class="form-group col-md-9">
@@ -277,18 +278,6 @@
             });
 
 
-            /*
-            // Get the assigned / eligible users for a client
-            $.ajax({
-                type: 'GET',
-                url: 'ClientAdmin/ClientDetail',
-                data: { id: 4 },
-            }).done(function (response) {
-                console.log(response)
-            }).fail(function () {
-                console.log('failed to retrieve Client data');
-            });
-            */
 
             /*
              // Assign a user by name to a client id
