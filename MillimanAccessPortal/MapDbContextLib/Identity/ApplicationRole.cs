@@ -73,38 +73,34 @@ namespace MapDbContextLib.Identity
         /// <returns></returns>
         internal static void SeedRoles(IServiceProvider serviceProvider)
         {
-            using (IServiceScope serviceScope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+            ApplicationDbContext dbContext = serviceProvider.GetService<ApplicationDbContext>();
+
+            foreach (KeyValuePair<RoleEnum, string> Role in MapRoles)
             {
-                var roleManager = serviceScope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
-                using (ApplicationDbContext dbContext = serviceScope.ServiceProvider.GetService<ApplicationDbContext>())
+                ApplicationRole RoleFromDb = roleManager.FindByIdAsync(((long)Role.Key).ToString()).Result;
+                if (RoleFromDb == null)
                 {
-                    foreach (KeyValuePair<RoleEnum, string> Role in MapRoles)
-                    {
-                        ApplicationRole RoleFromDb = roleManager.FindByIdAsync(((long)Role.Key).ToString()).Result;
-                        if (RoleFromDb == null)
-                        {
-                            roleManager.CreateAsync(new ApplicationRole { Name = Role.Value, RoleEnum = Role.Key }).Wait();
-                        }
-                        else if (RoleFromDb.Name != Role.Value)
-                        {
-                            RoleFromDb.Name = Role.Value;
-                            roleManager.UpdateAsync(RoleFromDb).Wait();
-                        }
-                    }
-
-                    // Read back all role records from persistence
-                    Dictionary<RoleEnum, string> FoundRoleNames = new Dictionary<RoleEnum, string>();
-                    foreach (ApplicationRole R in dbContext.ApplicationRole)
-                    {
-                        FoundRoleNames.Add(R.RoleEnum, R.Name);
-                    }
-
-                    // Make sure the database table contains exactly the expected records and no more
-                    if (!MapRoles.OrderBy(mr=>mr.Key).SequenceEqual(FoundRoleNames.OrderBy(fr => fr.Key)))
-                    {
-                        throw new Exception("Failed to correctly initialize Roles in database.");
-                    }
+                    roleManager.CreateAsync(new ApplicationRole { Name = Role.Value, RoleEnum = Role.Key }).Wait();
                 }
+                else if (RoleFromDb.Name != Role.Value)
+                {
+                    RoleFromDb.Name = Role.Value;
+                    roleManager.UpdateAsync(RoleFromDb).Wait();
+                }
+            }
+
+            // Read back all role records from persistence
+            Dictionary<RoleEnum, string> FoundRoleNames = new Dictionary<RoleEnum, string>();
+            foreach (ApplicationRole R in dbContext.ApplicationRole)
+            {
+                FoundRoleNames.Add(R.RoleEnum, R.Name);
+            }
+
+            // Make sure the database table contains exactly the expected records and no more
+            if (!MapRoles.OrderBy(mr=>mr.Key).SequenceEqual(FoundRoleNames.OrderBy(fr => fr.Key)))
+            {
+                throw new Exception("Failed to correctly initialize Roles in database.");
             }
         }
         #endregion

@@ -81,7 +81,7 @@ namespace MillimanAccessPortal
                 {
                     options.LoginPath = "/Account/LogIn";
                     options.LogoutPath = "/Account/LogOut";
-                    options.ExpireTimeSpan = TimeSpan.FromDays(150);
+                    options.ExpireTimeSpan = TimeSpan.FromDays(150);  // TODO consider what is the right cookie expiration
                 }
             );
 
@@ -135,9 +135,6 @@ namespace MillimanAccessPortal
             app.UseStaticFiles();
 
             app.UseAuthentication();
-
-            // Initialize required records in the database
-            ApplicationDbContext.InitializeAll(app.ApplicationServices);
 
             // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
 

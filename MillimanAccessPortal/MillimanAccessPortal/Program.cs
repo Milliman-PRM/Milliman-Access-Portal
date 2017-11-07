@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using MapDbContextLib.Context;
 
 namespace MillimanAccessPortal
 {
@@ -26,22 +24,36 @@ namespace MillimanAccessPortal
 
         public static void Main(string[] args)
         {
-            BuildWebHost(args).Run();
-            
+            var host = BuildWebHost(args);
+
+            using (var scope = host.Services.CreateScope())
+            {
+                IServiceProvider serviceProvider = scope.ServiceProvider;
+                ApplicationDbContext.InitializeAll(serviceProvider);
+            }
+
+            host.Run();
         }
 
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>()
+            .UseStartup<Startup>()
             .ConfigureAppConfiguration((hostContext, config) =>
-            {
-                config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("EnvironmentName")}.json", optional: true, reloadOnChange: true)
-                .AddJsonFile("qlikview.json", optional: false, reloadOnChange: true)
-                .AddJsonFile("smtp.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"smtp.{Environment.GetEnvironmentVariable("EnvironmentName")}.json", optional: true, reloadOnChange: true)
-                ;
-            }).UseApplicationInsights()    
+                {
+                    config
+                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                    .AddJsonFile($"appsettings.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                    .AddJsonFile("qlikview.json", optional: false, reloadOnChange: true)
+                    .AddJsonFile("smtp.json", optional: false, reloadOnChange: true)
+                    .AddJsonFile($"smtp.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                    ;
+
+                    if (hostContext.HostingEnvironment.IsDevelopment())
+                    {
+                        config.AddUserSecrets<Startup>();
+                    }
+                })
+            .UseApplicationInsights()    
             .Build();
     }
 }
