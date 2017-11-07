@@ -67,7 +67,7 @@ namespace MapTests
                 },
             };
 
-            var MockStandardQueries = new Mock<StandardQueries>(MockDataContext.Object);
+            var MockStandardQueries = new Mock<StandardQueries>(MockDataContext.Object, MockUserManager.Object);
             MockStandardQueries.Setup(q => q.GetAuthorizedUserGroupsAndRoles(It.IsAny<string>())).Returns(() => ModelExpected);
 
             HostedContentController sut = new HostedContentController(MockQlikViewConfig, 
