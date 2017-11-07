@@ -69,7 +69,7 @@
 
         var clientId = clientDiv.attr('data-client-id').valueOf();
 
-        if (clientDiv.hasClass('selected')) {
+        if (clientDiv.hasClass('selected') && !clientDiv.hasClass('editing')) {
             clearSelectedClient();
             hideClientForm();
             return false;
@@ -114,6 +114,7 @@
             // Change the dom to reflect the selected client
             clearSelectedClient()
             clientDiv.addClass('selected');
+            clientDiv.addClass('editing');
             // Show the form in read/write mode
             makeFormWriteable();
             showClientForm();
@@ -159,6 +160,7 @@
 
     function clearSelectedClient() {
         $('#client-tree-list div.selected').removeClass('selected');
+        $('#client-tree-list div.editing').removeClass('editing');
     }
 
     function makeFormReadOnly() {
