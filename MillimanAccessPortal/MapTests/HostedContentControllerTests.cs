@@ -55,26 +55,26 @@ namespace MapTests
         public void Index_ReturnsAViewResult()
         {
             //Arrange
-            var ModelToBeReturned = new HostedContentViewModel
+            List<HostedContentViewModel> ModelExpected = new List<HostedContentViewModel>
             {
-                ContentName = "My CCR",
-                Url = "Folder/Document.qvw",
-                UserGroupId = 1,
-                RoleNames = new HashSet<string> { "", "" },
-                ClientList = null,
+                new HostedContentViewModel
+                {
+                    ContentName = "My CCR",
+                    Url = "Folder/MyCCR.qvw",
+                    UserGroupId = 1,
+                    RoleNames = new HashSet<string> { "Content User" },
+                    ClientList = null,
+                },
             };
 
             var MockStandardQueries = new Mock<StandardQueries>(MockDataContext.Object);
-            MockStandardQueries.Setup(q => q.GetAuthorizedUserGroupsAndRoles(It.IsAny<string>())).Returns(() => new List<HostedContentViewModel>
-            {
-                ModelToBeReturned
-            });
+            MockStandardQueries.Setup(q => q.GetAuthorizedUserGroupsAndRoles(It.IsAny<string>())).Returns(() => ModelExpected);
 
             HostedContentController sut = new HostedContentController(MockQlikViewConfig, 
-                                                                                 MockUserManager.Object, 
-                                                                                 Logger, 
-                                                                                 null,
-                                                                                 MockStandardQueries.Object);
+                                                                      MockUserManager.Object, 
+                                                                      Logger, 
+                                                                      null,
+                                                                      MockStandardQueries.Object);
             sut.ControllerContext = TestInitialization.GenerateControllerContext(UserName: "test@example.com");
 
             // Act
@@ -86,11 +86,10 @@ namespace MapTests
             ViewResult viewResult = view as ViewResult;
             Assert.IsType(typeof(List<HostedContentViewModel>), viewResult.Model);
 
-            List<HostedContentViewModel> model = (List<HostedContentViewModel>)viewResult.Model;
-            Assert.Equal(1, model.Count);
+            List<HostedContentViewModel> ModelReturned = (List<HostedContentViewModel>)viewResult.Model;
+            Assert.Equal(1, ModelReturned.Count);
 
-            HostedContentViewModel modelZero = model[0];
-            Assert.Equal(ModelToBeReturned.ContentName, modelZero.ContentName);
+            Assert.Equal(ModelExpected[0].ContentName, ModelReturned[0].ContentName);
         }
 
         /// <summary>
