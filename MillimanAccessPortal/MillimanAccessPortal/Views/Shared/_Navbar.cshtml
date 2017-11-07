@@ -1,30 +1,43 @@
-﻿<nav id="sidebar-nav">
+﻿@functions {
+    public string GetSelectedClassString(string NavIconFromMainView)
+    {
+        return ViewData["NavIcon"].ToString() == NavIconFromMainView ? "selected" : "";
+    }
+}
+
+<nav id="sidebar-nav">
     <ul>
-        <li class="nav-item selected">
+        <li class="nav-item @GetSelectedClassString("HostedContent")">
             <a asp-controller="HostedContent" asp-action="Index" class="nav-button">
                 <h3 class="nav-label">Reports</h3>
                 <i class="fa fa-fw fa-3x fa-th-large nav-icon" aria-hidden="true"></i>
             </a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item @GetSelectedClassString("UserProfile")">
             <a href="#" class="nav-button">
                 <h3 class="nav-label">User Profile</h3>
                 <i class="fa fa-fw fa-3x fa-user nav-icon" aria-hidden="true"></i>
             </a>
         </li>
-        <li class="nav-item">
-            <a href="#" class="nav-button">
+        <li class="nav-item @GetSelectedClassString("UserAdmin")">
+            <a asp-controller="UserAdmin" asp-action="Index" class="nav-button">
                 <h3 class="nav-label">User Admin</h3>
                 <i class="fa fa-fw fa-3x fa-users nav-icon" aria-hidden="true"></i>
             </a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item @GetSelectedClassString("ClientAdmin")">
             <a asp-controller="ClientAdmin" asp-action="Index" class="nav-button">
-                <h3 class="nav-label">Global Admin</h3>
-                <i class="fa fa-fw fa-3x fa-cogs nav-icon" aria-hidden="true"></i>
+                <h3 class="nav-label">Client Admin</h3>
+                <i class="fa fa-fw fa-3x fa-institution nav-icon" aria-hidden="true"></i>
             </a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item @GetSelectedClassString("SystemAdmin")">
+            <a href="#" class="nav-button">
+                <h3 class="nav-label">System Admin</h3>
+                <i class="fa fa-fw fa-3x fa-server nav-icon" aria-hidden="true"></i>
+            </a>
+        </li>
+        <li class="nav-item @GetSelectedClassString("UserGuide")">
             <a href="#" class="nav-button">
                 <h3 class="nav-label">User Guide</h3>
                 <i class="fa fa-fw fa-3x fa-book nav-icon" aria-hidden="true"></i>
@@ -47,7 +60,7 @@
     </ul>
 </nav>
 
- 
+
 @*Contact Form*@
 
 

@@ -25,7 +25,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using QlikviewLib;
 using AuditLogLib;
+using AuditLogLib.Services;
 using EmailQueue;
+using MillimanAccessPortal.Authorization;
 
 namespace MillimanAccessPortal
 {
@@ -109,6 +111,10 @@ namespace MillimanAccessPortal
                 config.Filters.Add(new AuthorizeFilter(policy));
             });
 
+            // Depends on UserManager from Identity, which is scoped, so don't add the following as singleton
+            services.AddScoped<IAuthorizationHandler, MapAuthorizationHandler>();
+            services.AddScoped<IAuditLogger, AuditLogger>();
+
             // Add application services.
             services.AddTransient<MessageQueueServices>();
             services.AddScoped<StandardQueries>();
@@ -127,7 +133,7 @@ namespace MillimanAccessPortal
 
             app.UseRewriter(options);
 
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.EnvironmentName == "CI")
             {
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
@@ -164,10 +170,10 @@ namespace MillimanAccessPortal
                 SmtpFromName = Configuration.GetValue<string>("SmtpFromName")
             });
 
-            AuditLogger.ConfigureAuditLogger(new AuditLoggerConfiguration
+            AuditLogger.Config = new AuditLoggerConfiguration
             {
                 AuditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString"),
-            });
+            };
             
         }
     }

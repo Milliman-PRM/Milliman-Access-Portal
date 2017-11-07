@@ -45,34 +45,6 @@
     <None Include="wwwroot\images\logo.png" />
     <None Include="wwwroot\js\contact-form.js" />
     <None Include="wwwroot\js\contact-form.min.js" />
-    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-theme.css" />
-    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-theme.css.map" />
-    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-theme.min.css" />
-    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-theme.min.css.map" />
-    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap.css" />
-    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap.css.map" />
-    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap.min.css" />
-    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap.min.css.map" />
-    <None Include="wwwroot\lib\bootstrap\dist\fonts\glyphicons-halflings-regular.eot" />
-    <None Include="wwwroot\lib\bootstrap\dist\fonts\glyphicons-halflings-regular.svg" />
-    <None Include="wwwroot\lib\bootstrap\dist\fonts\glyphicons-halflings-regular.ttf" />
-    <None Include="wwwroot\lib\bootstrap\dist\fonts\glyphicons-halflings-regular.woff" />
-    <None Include="wwwroot\lib\bootstrap\dist\fonts\glyphicons-halflings-regular.woff2" />
-    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.js" />
-    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.min.js" />
-    <None Include="wwwroot\lib\bootstrap\dist\js\npm.js" />
-    <None Include="wwwroot\lib\bootstrap\LICENSE" />
-    <None Include="wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.js" />
-    <None Include="wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.min.js" />
-    <None Include="wwwroot\lib\jquery-validation\dist\additional-methods.js" />
-    <None Include="wwwroot\lib\jquery-validation\dist\additional-methods.min.js" />
-    <None Include="wwwroot\lib\jquery-validation\dist\jquery.validate.js" />
-    <None Include="wwwroot\lib\jquery-validation\dist\jquery.validate.min.js" />
-    <None Include="wwwroot\lib\jquery-validation\LICENSE.md" />
-    <None Include="wwwroot\lib\jquery\dist\jquery.js" />
-    <None Include="wwwroot\lib\jquery\dist\jquery.min.js" />
-    <None Include="wwwroot\lib\jquery\dist\jquery.min.map" />
-    <None Include="wwwroot\lib\jquery\LICENSE.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AuditLogLib\AuditLogLib.csproj" />
@@ -83,6 +55,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\PublishProfiles\" />
+    <Folder Include="Views\ClientAdmin\templates\" />
+    <Folder Include="wwwroot\lib\" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="qlikview.json">

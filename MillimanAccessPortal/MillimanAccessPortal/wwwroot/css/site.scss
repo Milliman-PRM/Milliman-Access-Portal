@@ -12,9 +12,19 @@ $nav-selected-color: #0091ff;
 $nav-hover-font-color: #0091ff;
 $form-background: #DEDEE3;
 $form-border: #424242;
-$form-close: #ff4618;
-$form-close-hover: #ff2300;
-
+$form-close: #d9534f;
+$form-close-hover: #c9302c;
+$client-admin-stats-background: #242424;
+$client-admin-stats-font: #fff;
+$button-warning: #d9534f;
+$button-warning-hover: #c9302c;
+$button-confirm: #0091ff;
+$button-confirm-hover: #0080E2;
+$button-save: #5cb85c;
+$button-save-hover: #449d44;
+$button-disabled: #DDD;
+$text-disabled: #424242;
+    
 @import url('https://fonts.googleapis.com/css?family=Noto+Sans');
 
 /******
@@ -24,7 +34,7 @@ General Styling
 body {
     background-color: $background;
     box-sizing: border-box;
-    font-family: 'Noto Sans', sans-serif;
+    font-family: 'Noto Sans', 'Arial', sans-serif;
     margin: 0;
     padding: 0;
     height: 100%;
@@ -37,10 +47,12 @@ body {
     &.navbar-offset {
         margin-left: 70px;
     }
+}
 
-    &.header-offset {
-        padding-top: 50px;
-    }
+.page-title {
+    margin: 8vh 0 20px 20px;
+    text-align: center;
+    font-weight: bold;
 }
 
 input,
@@ -51,7 +63,7 @@ select {
     padding: 5px 10px;
     border: solid 2px rgba(0, 0, 0, 0);
     border-radius: 5px;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     transition: border 0.2s;
 
     &:focus {
@@ -64,11 +76,15 @@ textarea {
     resize: none;
 }
 
+.form-group {
+    margin-bottom: 10px;
+}
+
 .screen-center {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -70%);
+    transform: translate(-50%, -50%);
 }
 
 #primary-button,
@@ -84,237 +100,438 @@ textarea {
     }
 }
 
+.primary-button {
+    height: 50px;
+    width: 90px;
+    margin: 0 20px;
+    font-weight: bold;
+}
+
+
 /*****
 Login Page
 *****/
+    #login-form {
 
-#login-form {
-
-    img {
-        width: 400px;
+        img {
+            width: 400px;
+        }
     }
-}
 
-#password-reset-form {
-}
-
-/*****
+    #password-reset-form {
+    }
+    /*****
 Nav Sidebar Styling
 *****/
-#sidebar-nav {
-    position: fixed;
-    width: 300px;
-    height: 100vh;
-    left: -230px;
-    transition: all 0.5s;
-    background-color: $nav-background-color;
-    color: $nav-font-color;
-    padding: 0;
-    z-index: 100;
-
-    &:hover {
-        left: 0;
+    #sidebar-nav {
+        position: fixed;
+        top: 0;
+        left: -230px;
+        width: 300px;
+        height: 100vh;
         transition: all 0.5s;
-    }
-
-    ul {
-        position: absolute;
-        top: 50%;
-        transform: translate(0, -50%);
-        list-style: none;
-        display: inline-block;
+        background-color: $nav-background-color;
+        color: $nav-font-color;
         padding: 0;
-        margin: 0;
-        width: 100%;
-    }
+        z-index: 90;
 
-
-    .nav-item {
-        width: 100%;
-        height: 55px;
-        padding: 0;
-        margin: 10px 0;
-
-        &.selected {
-            background-color: $nav-selected-color;
-
-            a:hover {
-                color: $nav-background-color;
-            }
+        &:hover {
+            left: 0;
+            transition: all 0.5s;
         }
 
-        #logoutForm {
+        ul {
+            position: absolute;
+            top: 50%;
+            transform: translate(0, -50%);
+            list-style: none;
+            display: inline-block;
             padding: 0;
+            margin: 0;
+            width: 100%;
         }
 
-        .nav-button {
-            color: $nav-font-color;
+
+        .nav-item {
+            width: 100%;
+            height: 55px;
             padding: 0;
-            text-align: left;
+            margin: 10px 0;
 
-            &:hover {
-                color: $nav-hover-font-color;
+            &.selected {
+                background-color: $nav-selected-color;
+
+                a:hover {
+                    color: $nav-background-color;
+                }
             }
 
-            button {
-                background-color: inherit;
-                border: none;
-                margin: 0;
-                width: 100%;
+            #logoutForm {
+                padding: 0;
+            }
+
+            .nav-button {
+                color: $nav-font-color;
+                padding: 0;
+                text-align: left;
+
+                &:hover {
+                    color: $nav-hover-font-color;
+                }
+
+                button {
+                    background-color: inherit;
+                    border: none;
+                    margin: 0;
+                    width: 100%;
+                }
             }
         }
-    }
 
-    .nav-label {
-        display: inline-block;
-        width: 200px;
-        height: 55px;
-        line-height: 55px;
-        margin: auto 0 auto 15px;
-    }
+        .nav-label {
+            display: inline-block;
+            width: 200px;
+            height: 55px;
+            line-height: 55px;
+            margin: auto 0 auto 15px;
+        }
 
-    .nav-icon {
-        display: inline-block;
-        float: right;
-        width: 70px;
-        height: 55px;
-        line-height: 55px;
-        padding: 0;
-        margin: auto;
+        .nav-icon {
+            display: inline-block;
+            float: right;
+            width: 70px;
+            height: 55px;
+            line-height: 55px;
+            padding: 0;
+            margin: auto;
+        }
     }
-}
-
-/*****
+    /*****
 Contact Form Styling
 *****/
-#modal-background {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    width: 100vw;
-    margin: 0;
-    background-color: rgba(0, 0, 0, 0.4);
-    z-index: 50;
-    display: block;
-
-    &.hide {
-        display: none !important;
-    }
-
-    &.show {
-        display: block !important;
-    }
-
-}
-
-#contact-form-modal {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: $form-background;
-    /*border: 2px solid $form-border;*/
-    border-radius: 5px;
-    padding: 25px;
-    z-index: 100;
-
-    .contact-title {
-        margin: 20px 25px;
-        text-align: center;
-    }
-
-    .form-close {
-        position: absolute;
-        color: $form-close;
-        top: 10px;
-        right: 5px;
-        cursor: pointer;
-    }
-
-    .form-close:hover {
-        color: $form-close-hover;
-    }
-}
-
-
-/*****
-Header Styling
-*****/
-
-#header {
-    position: absolute;
-    top: 0;
-    right: 0;
-    display: inline-block;
-
-    #logo {
-        width: 400px;
-        margin-right: 20px;
-    }
-}
-
-/*****
-Footer Styling
-*****/
-
-#footer {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    text-align: center;
-
-    ul {
-        list-style: none;
-        display: inline-block;
-        padding: 0;
-
-        li {
-            display: inline-block;
-            margin: 5px 10px;
-        }
-    }
-
-    #copyright-div {
-        text-align: right;
-        padding: 0 20px 20px;
-
-        #copyright {
-            font-size: 12px;
-            font-style: italic;
-        }
-    }
-}
-
-/*****
-Content Block Styling
-*****/
-#iframe-container {
-    position: relative;
-    height: 100vh;
-    width: 100%;
-    overflow: hidden;
-
-    iframe {
-        position: absolute;
+    #modal-background {
+        position: fixed;
         top: 0;
         left: 0;
+        height: 100vh;
+        width: 100vw;
+        margin: 0;
+        background-color: rgba(0, 0, 0, 0.4);
+        z-index: 50;
+        display: block;
+
+        &.hide {
+            display: none !important;
+        }
+
+        &.show {
+            display: block !important;
+        }
+    }
+
+    #contact-form-modal {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: $form-background;
+        /*border: 2px solid $form-border;*/
+        border-radius: 5px;
+        padding: 25px;
+        z-index: 100;
+
+        .contact-title {
+            margin: 20px 25px;
+            text-align: center;
+        }
+
+        .form-close {
+            position: absolute;
+            color: $form-close;
+            top: 10px;
+            right: 5px;
+            cursor: pointer;
+        }
+
+        .form-close:hover {
+            color: $form-close-hover;
+        }
+    }
+    /*****
+Header Styling
+*****/
+    #header {
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 10vh;
+
+        #logo {
+            height: 100%;
+            margin-right: 20px;
+        }
+    }
+    /*****
+Footer Styling
+*****/
+    #footer {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 7vh;
+        text-align: center;
+
+        ul {
+            list-style: none;
+            display: inline-block;
+            padding: 0;
+
+            li {
+                display: inline-block;
+                margin: 5px 10px;
+            }
+        }
+
+        #copyright-div {
+            text-align: right;
+            padding: 0 20px 20px;
+
+            #copyright {
+                font-size: 12px;
+                font-style: italic;
+            }
+        }
+    }
+    /*****
+Content Block Styling
+*****/
+    #iframe-container {
+        position: relative;
+        height: 100vh;
         width: 100%;
+        overflow: hidden;
+
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: scale(1.00);
+            transform-origin: top left;
+        }
+    }
+    /*****
+Report Block Styling
+*****/
+    .report-card {
+        border: 2px solid #000;
+        border-radius: 5px;
+        background-color: #fff;
+        margin: 15px 0;
+        padding: 20px;
+    }
+    /*****
+Client Admin Styling
+*****/
+    .client-admin-section {
+        height: 80vh;
+        padding: 10px;
+
+        .scroll-y {
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 25px;
+        }
+
+        .client-admin-section-toolbar {
+            width: 100%;
+            vertical-align: middle;
+        }
+
+        .search-box {
+            width: 70% !important;
+            display: inline-block;
+        }
+
+        h3.client-admin-section-title {
+            margin: 10px 10px 20px;
+            text-align: center;
+        }
+
+        input .search-box {
+            width: 50% !important;
+        }
+
+        #client-tree,
+        #user-list {
+            height: 85%;
+            width: 100%;
+            margin-bottom: 10px;
+
+            ul {
+                list-style-type: none;
+                padding: 5px;
+                margin: 5px;
+
+                li {
+                    margin-bottom: 15px;
+                }
+            }
+        }
+
+        .hr {
+            height: 2px;
+            border: 1px solid black;
+            margin: 20px 5px;
+            padding: 0;
+        }
+    }
+
+.client-admin-card {
+    position: relative;
+    padding: 0;
+    background-color: white;
+    border: 2px solid black;
+    border-radius: 5px;
+    margin-top: 10px;
+    margin-bottom: 30px;
+    cursor: pointer;
+    min-height: 85px;
+
+    &:hover {
+        /*background-color: lightgray;*/
+        transform: scale(1.02);
+    }
+
+    &.disabled {
+        color: $text-disabled !important;
+        background-color: $button-disabled !important;
+    }
+
+
+    .client-admin-card-title {
+        margin: 5px 0;
+    }
+
+    .client-information {
+        display: inline-block;
+        margin: 0;
+        padding: 5px 10px;
         height: 100%;
-        transform: scale(1.00);
-        transform-origin: top left;
+        width: 75%;
+    }
+
+    .client-stats {
+        display: inline-block;
+        position: absolute;
+        right: 0;
+        top: 0;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 25%;
+        background-color: $client-admin-stats-background;
+        color: $client-admin-stats-font;
+
+        .client-stat-container {
+            position: relative;
+            height: 50%;
+            margin: 0;
+            padding-left: 3.5em;
+
+            h4 {
+                display: inline-block;
+                line-height: 100%;
+            }
+
+            i {
+                position: absolute;
+                top: 50%;
+                left: 5px;
+                transform: translate(0, -50%);
+            }
+        }
+    }
+
+    .icon-container {
+        position: absolute;
+        display: inline;
+        right: 0;
+        top: 50%;
+        text-align: right;
+        transform: translate(60%, -50%);
+
+        .card-button-background {
+            border-radius: 50%;
+            display: block;
+            margin: 10px;
+            text-align: center;
+            vertical-align: middle;
+            padding: 2px;
+            transform-origin: center center;
+
+            &.card-button-background-edit {
+                background-color: $button-confirm;
+
+                &:hover {
+                    background-color: $button-confirm-hover;
+                }
+            }
+
+            &.card-button-background-delete {
+                background-color: $button-warning;
+
+                &:hover {
+                    background-color: $button-warning-hover;
+                }
+            }
+
+            &.card-button-background-add {
+                background-color: $button-save;
+
+                &:hover {
+                    background-color: $button-save-hover;
+                }
+            }
+
+            &:hover {
+                transform: scale(1.25);
+                transform-origin: center center;
+            }
+
+            i {
+                color: white;
+            }
+        }
+    }
+
+    .left-icon {
+        display: inline;
+        height: 100%;
     }
 }
 
+    #client-form {
 
-/*****
-Report Block Styling
-*****/
-.report-card {
-    border: 2px solid #000;
-    border-radius: 5px;
-    background-color: #fff;
-    margin: 15px 0;
-    padding: 20px;
-}
+        h4 {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        &.read-only {
+
+            input:disabled {
+                background-color: $background;
+                border: none;
+                outline: none;
+                border-radius: 0;
+                border-bottom: 1px solid black;
+                box-shadow: none;
+                font-weight: bold;
+                cursor: default;
+                overflow: hidden;
+            }
+        }
+    }

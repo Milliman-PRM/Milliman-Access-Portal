@@ -26,6 +26,8 @@ namespace AuditLogLib.Migrations
 
                     b.Property<string>("EventType");
 
+                    b.Property<string>("SessionId");
+
                     b.Property<string>("Source");
 
                     b.Property<string>("Summary");

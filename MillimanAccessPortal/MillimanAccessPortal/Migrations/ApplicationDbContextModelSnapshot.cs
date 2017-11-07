@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using MapDbContextLib.Context;
-using MapDbContextLib.Identity;
 
 namespace MillimanAccessPortal.Migrations
 {
@@ -22,17 +21,39 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<string[]>("AcceptedEmailAddressExceptionList");
+
                     b.Property<string[]>("AcceptedEmailDomainList")
                         .IsRequired();
+
+                    b.Property<string>("ClientCode");
+
+                    b.Property<string>("ConsultantEmail");
+
+                    b.Property<string>("ConsultantName");
+
+                    b.Property<string>("ConsultantOffice");
+
+                    b.Property<string>("ContactEmail");
+
+                    b.Property<string>("ContactName");
+
+                    b.Property<string>("ContactPhone");
+
+                    b.Property<string>("ContactTitle");
 
                     b.Property<string>("Name")
                         .IsRequired();
 
                     b.Property<long?>("ParentClientId");
 
+                    b.Property<long>("ProfitCenterId");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ParentClientId");
+
+                    b.HasIndex("ProfitCenterId");
 
                     b.ToTable("Client");
                 });
@@ -121,6 +142,31 @@ namespace MillimanAccessPortal.Migrations
                     b.ToTable("HierarchyFieldValue");
                 });
 
+            modelBuilder.Entity("MapDbContextLib.Context.ProfitCenter", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("ContactEmail");
+
+                    b.Property<string>("ContactName");
+
+                    b.Property<string>("ContactPhone");
+
+                    b.Property<string>("ContactTitle");
+
+                    b.Property<string>("MillimanOffice");
+
+                    b.Property<string>("Name")
+                        .IsRequired();
+
+                    b.Property<string>("ProfitCenterCode");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ProfitCenter");
+                });
+
             modelBuilder.Entity("MapDbContextLib.Context.RootContentItem", b =>
                 {
                     b.Property<long>("Id")
@@ -202,8 +248,6 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(256);
 
-                    b.Property<int>("RoleEnum");
-
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedName")
@@ -227,6 +271,12 @@ namespace MillimanAccessPortal.Migrations
                         .HasMaxLength(256);
 
                     b.Property<bool>("EmailConfirmed");
+
+                    b.Property<string>("Employer");
+
+                    b.Property<string>("FirstName");
+
+                    b.Property<string>("LastName");
 
                     b.Property<bool>("LockoutEnabled");
 
@@ -349,6 +399,11 @@ namespace MillimanAccessPortal.Migrations
                     b.HasOne("MapDbContextLib.Context.Client", "ParentClient")
                         .WithMany()
                         .HasForeignKey("ParentClientId");
+
+                    b.HasOne("MapDbContextLib.Context.ProfitCenter", "ProfitCenter")
+                        .WithMany()
+                        .HasForeignKey("ProfitCenterId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.ContentItemUserGroup", b =>
