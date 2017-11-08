@@ -28,7 +28,7 @@ TestResults/
 .vs/
 **/wwwroot/lib/
 **/wwwroot/css/site.css
-**/wwwroot/css/site.min.css
+**/wwwroot/*/*.min.*
 ###################
 # Web publish log #
 ###################
