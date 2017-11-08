@@ -119,7 +119,13 @@
             makeFormWriteable();
             $('#client-form #form-buttons-new').hide();
             $('#client-form #form-buttons-edit').show();
+            $('#undo-changes-button').hide();
             showClientForm();
+            $('#client-form :input, #client-form select').on('keyup', function () {
+                if ($(this).value != $(this).attr('data-original-value')) {
+                    $('#undo-changes-button').show();
+                }
+            })
         }).fail(function (response) {
             toastr["warning"](response.getResponseHeader("Warning"));
             hideClientForm();
@@ -167,6 +173,7 @@
     }
 
     function clearFormData() {
+        $('#client-form :input, #client-form select').removeAttr('data-original-value');
         $('#client-form :input, #client-form select').val("");
     }
 
@@ -200,6 +207,7 @@
     }
 
     function populateClientDetails(clientEntity) {
+        $('#client-form :input, #client-form select').removeAttr('data-original-value');
         $.each(clientEntity, function (key, value) {
             var ctrl = $('[name=' + key + ']', '#client-info');
             if (ctrl.is('select')) {
@@ -208,6 +216,7 @@
             else {
                 ctrl.val(value);
             }
+            ctrl.attr('data-original-value', value);
         });  
     };
 
