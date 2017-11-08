@@ -30,5 +30,11 @@
     "inputFiles": [
       "wwwroot/lib/bootbox.js/bootbox.js"
     ]
+  },
+  {
+    "outputFileName": "wwwroot/js/client-admin.min.js",
+    "inputFiles": [
+      "wwwroot/js/client-admin.js"
+    ]
   }
 ]

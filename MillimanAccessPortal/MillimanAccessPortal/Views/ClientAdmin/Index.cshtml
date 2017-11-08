@@ -260,15 +260,16 @@
 
 @section Scripts {
 
+    @Html.Partial("~/Views/ClientAdmin/templates/_ClientNode.cshtml")
+
     <environment names="Development,CI">
         <script src="~/lib/bootbox.js/bootbox.js"></script>
+        <script src="~/js/client-admin.js"></script>
     </environment>
     <environment names="Staging,Production">
         <script src="~/lib/bootbox.js/bootbox.min.js"></script>
+        <script src="~/js/client-admin.min.js"></script>
     </environment>
-
-
-    @Html.Partial("~/Views/ClientAdmin/templates/_ClientNode.cshtml")
 
     <script>
 
