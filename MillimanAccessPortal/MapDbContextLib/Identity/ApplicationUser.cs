@@ -4,7 +4,7 @@
  * DEVELOPER NOTES: 
  */
 
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace MapDbContextLib.Identity
 {

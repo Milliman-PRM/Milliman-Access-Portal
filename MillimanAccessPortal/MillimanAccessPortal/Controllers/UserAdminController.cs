@@ -80,7 +80,7 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 #region Authorization
-                if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.SystemAdmin)).Result)
+                if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.SystemAdmin)).Result.Succeeded)
                 {
                     return Unauthorized();
                 }
@@ -190,7 +190,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 #region Authorization
                 // TODO Is this the required role to authorize this action
-                if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.SystemAdmin)).Result)
+                if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.SystemAdmin)).Result.Succeeded)
                 {
                     return Unauthorized();
                 }

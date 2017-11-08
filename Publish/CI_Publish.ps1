@@ -200,7 +200,7 @@ else {
 
 log_statement "Performing application database migrations"
 
-dotnet ef database update -e "CI"
+dotnet ef database update
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Failed to update application database"
@@ -210,7 +210,7 @@ if ($LASTEXITCODE -ne 0) {
 
 log_statement "Performing logging database migrations"
 cd ../AuditLogLib
-dotnet ef database update -e "CI"
+dotnet ef database update
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Failed to update logging database"
