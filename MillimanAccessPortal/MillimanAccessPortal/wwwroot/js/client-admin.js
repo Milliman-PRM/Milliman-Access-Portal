@@ -123,7 +123,15 @@ function newChildClientFormSetup(parentClientDiv) {
     removeClientInserts()
     clearSelectedClient();
 
-    parentClientDiv.parent().after(childNodePlaceholder);
+    var template = childNodePlaceholder;
+    if (parentClientDiv.hasClass('col-xs-12')) {
+        template = template.replace(/{{class}}/g, "col-xs-offset-1 col-xs-11");
+    }
+    else {
+        template = template.replace(/{{class}}/g, "col-xs-offset-2 col-xs-10");
+    }
+
+    parentClientDiv.parent().after(template);
 
     makeFormWriteable();
     $('#client-form #form-buttons-edit').hide();
