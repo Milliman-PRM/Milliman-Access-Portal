@@ -421,7 +421,6 @@ Client Admin Styling
     margin-top: 10px;
     margin-bottom: 30px;
     cursor: pointer;
-    min-height: 85px;
 
     &:hover {
         /*background-color: lightgray;*/
@@ -440,7 +439,6 @@ Client Admin Styling
 
 
     &.editing {
-
     }
 
 
@@ -538,6 +536,14 @@ Client Admin Styling
                 color: white;
             }
         }
+    }
+
+    .placeholder-arrow {
+        display: inline;
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translate(0, -50%);
     }
 
     .left-icon {

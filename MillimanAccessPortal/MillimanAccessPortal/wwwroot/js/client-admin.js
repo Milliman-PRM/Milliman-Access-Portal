@@ -1,4 +1,5 @@
 ﻿var clientNodeTemplate = $('script[data-template="clientNode"]').html();
+var childNodePlaceholder = $('script[data-template="childNodePlaceholder"]').html();
 var clientTree;
 
 function getClientTree() {
@@ -120,15 +121,10 @@ function newChildClientFormSetup(parentClientDiv) {
     $('#client-form #parentClientId').val(parentClientId);
 
     removeClientInserts()
-    parentClientDiv.parent().after('<li class="client-insert">' +
-        '<div class="col-xs-offset-2 col-xs-10 client-admin-card">' +
-        '<div class="client-information">' +
-        '<h4 class="client-admin-card-title">New Child Client</h4>' +
-        '</div >' +
-        '</div>' +
-        '</li>');
-
     clearSelectedClient();
+
+    parentClientDiv.parent().after(childNodePlaceholder);
+
     makeFormWriteable();
     $('#client-form #form-buttons-edit').hide();
     $('#client-form #form-buttons-new').show();
