@@ -108,9 +108,10 @@ textarea {
 }
 
 #primary-button,
-#form-submit {
+#form-submit,
+.primary-button {
     height: 50px;
-    width: 90px;
+    min-width: 90px;
     background-color: $login-button-color;
     margin: 0 20px;
     font-weight: bold;
@@ -118,13 +119,6 @@ textarea {
     &:hover {
         background-color: $login-button-hover;
     }
-}
-
-.primary-button {
-    height: 50px;
-    width: 90px;
-    margin: 0 20px;
-    font-weight: bold;
 }
 
 
@@ -442,6 +436,11 @@ Client Admin Styling
     &.selected {
         color: white;
         background-color: $card-selected-background-color;
+    }
+
+
+    &.editing {
+
     }
 
 

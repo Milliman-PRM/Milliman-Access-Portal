@@ -117,6 +117,8 @@
             clientDiv.addClass('editing');
             // Show the form in read/write mode
             makeFormWriteable();
+            $('#client-form #form-buttons-new').hide();
+            $('#client-form #form-buttons-edit').show();
             showClientForm();
         }).fail(function (response) {
             toastr["warning"](response.getResponseHeader("Warning"));
@@ -130,6 +132,8 @@
         clearFormData();
         clearSelectedClient();
         makeFormWriteable();
+        $('#client-form #form-buttons-edit').hide();
+        $('#client-form #form-buttons-new').show();
         showClientForm();
     }
 
@@ -152,6 +156,8 @@
 
         clearSelectedClient();
         makeFormWriteable();
+        $('#client-form #form-buttons-edit').hide();
+        $('#client-form #form-buttons-new').show();
         showClientForm();
     }
 
@@ -172,13 +178,13 @@
     function makeFormReadOnly() {
         $('#client-form :input').attr('readonly', 'readonly');
         $('#client-form :input, #client-form select').attr('disabled', 'disabled');
-        $('#client-form #form-buttons').hide();
+        $('#client-form #form-buttons-new').hide();
+        $('#client-form #form-buttons-edit').hide();
     }
 
     function makeFormWriteable() {
         $('#client-form :input').removeAttr('readonly');
         $('#client-form :input, #client-form select').removeAttr('disabled');
-        $('#client-form #form-buttons').show();
     }
 
     function showClientForm() {
