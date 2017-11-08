@@ -82,7 +82,7 @@ namespace MillimanAccessPortal
                 {
                     options.LoginPath = "/Account/LogIn";
                     options.LogoutPath = "/Account/LogOut";
-                    options.ExpireTimeSpan = TimeSpan.FromDays(150);  // TODO consider what is the right cookie expiration
+                    options.ExpireTimeSpan = TimeSpan.FromDays(150);
                 }
             );
 

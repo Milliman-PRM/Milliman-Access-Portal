@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using Moq;
 using Xunit;
@@ -54,6 +55,33 @@ namespace MapTests
         [Fact]
         public void Index_ReturnsAViewResult()
         {
+            List<ProfitCenter> ProfitCenterData = new List<ProfitCenter>
+                {
+                    new ProfitCenter {Id=1, Name="Name1", ProfitCenterCode="xyz1" },
+                    new ProfitCenter {Id=2, Name="Name2", ProfitCenterCode="xyz2" },
+                    new ProfitCenter {Id=3, Name="Name3", ProfitCenterCode="xyz3" },
+                    new ProfitCenter {Id=4, Name="Name4", ProfitCenterCode="xyz4" },
+                    new ProfitCenter {Id=5, Name="Name5", ProfitCenterCode="xyz5" },
+                };
+            Mock<DbSet<ProfitCenter>> MockProfitCenter = MockDbSet<ProfitCenter>.New(ref ProfitCenterData);
+
+            // Refer to https://msdn.microsoft.com/en-us/library/dn314429(v=vs.113).aspx
+            var x = MockProfitCenter.Object.Where(p => p.Id==2);
+            MockProfitCenter.Object.Add(new ProfitCenter { Id = 7, Name = "Name7", ProfitCenterCode = "xyz7" });
+            MockProfitCenter.Object.Add(new ProfitCenter { Id = 8, Name = "Name8", ProfitCenterCode = "xyz8" });
+            MockProfitCenter.Object.Add(new ProfitCenter { Id = 8, Name = "Name9", ProfitCenterCode = "xyz9" });
+
+
+
+
+
+
+
+
+
+
+
+
             //Arrange
             List<HostedContentViewModel> ModelExpected = new List<HostedContentViewModel>
             {
