@@ -98,6 +98,15 @@ namespace MillimanAccessPortal
                              .RequireAuthenticatedUser()
                              .Build();
                 config.Filters.Add(new AuthorizeFilter(policy));
+            })
+            .AddJsonOptions(opt =>
+            {
+                var resolver = opt.SerializerSettings.ContractResolver;
+                if (resolver != null)
+                {
+                    var res = resolver as Newtonsoft.Json.Serialization.DefaultContractResolver;
+                    res.NamingStrategy = null;  // Remove the default lowerCamelCasing of the json output
+                }
             });
 
             // Depends on UserManager from Identity, which is scoped, so don't add the following as singleton

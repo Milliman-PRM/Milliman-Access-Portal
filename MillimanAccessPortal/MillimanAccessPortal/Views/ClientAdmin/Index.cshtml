@@ -1,3 +1,5 @@
+@model MapDbContextLib.Context.Client;
+
 @{
     ViewData["Title"] = "Client Administration";
     Layout = "_Layout_w_NB_H_F";
@@ -29,62 +31,62 @@
                 <div class="row">
                     <h4>Client Information</h4>
                     <div class="hidden">
-                        <input type="hidden" id="clientId" name="id" />
-                        <input type="hidden" id="parentClientId" name="parentClientId" />
+                        <input asp-for="Id" />
+                        <input asp-for="ParentClientId" />
                     </div>
                     <div class="form-group col-md-9">
-                        <label for="clientName">Client Name</label>
-                        <input type="text" id="clientName" name="name" class="form-control" />
+                        <label asp-for="Name"></label>
+                        <input asp-for="Name" class="form-control" />
                     </div>
                     <div class="form-group col-md-3">
-                        <label for="clientCode">Client Code</label>
-                        <input type="text" id="clientCode" name="clientCode" class="form-control" />
+                        <label asp-for="ClientCode"></label>
+                        <input asp-for="ClientCode" class="form-control" />
                     </div>
                     <div class="form-group col-md-6">
-                        <label for="ccName">Primary Client Contact</label>
-                        <input type="text" id="ccName" name="contactName" class="form-control" />
+                        <label asp-for="ContactName"></label>
+                        <input asp-for="ContactName" class="form-control" />
                     </div>
                     <div class="form-group col-md-6">
-                        <label for="ccTitle">Client Contact Title</label>
-                        <input type="text" id="ccTitle" name="contactTitle" class="form-control" />
+                        <label asp-for="ContactTitle"></label>
+                        <input asp-for="ContactTitle" class="form-control" />
                     </div>
                     <div class="form-group col-md-9">
-                        <label for="ccEmail">Client Contact Email</label>
-                        <input type="email" id="ccEmail" name="contactEmail" class="form-control" />
+                        <label asp-for="ContactEmail"></label>
+                        <input asp-for="ContactEmail" class="form-control" />
                     </div>
                     <div class="form-group col-md-3">
-                        <label for="ccPhone">Client Contact Phone</label>
-                        <input type="tel" id="ccPhone" name="contactPhone" class="form-control" />
+                        <label asp-for="ContactPhone"></label>
+                        <input asp-for="ContactPhone" class="form-control" />
                     </div>
                     <h4>Security Information</h4>
                     <div class="form-group col-md-12">
-                        <label for="domainWhitelist">Approved Email Domain</label>
-                        <input type="text" id="domainWhitelist" name="acceptedEmailDomainList" class="form-control" />
+                        <label asp-for="AcceptedEmailDomainList"></label>
+                        <input asp-for="AcceptedEmailDomainList" class="form-control" />
                     </div>
                     <div class="form-group col-md-12">
-                        <label for="emailWhitelist">Email Exception List</label>
-                        <input type="text" id="emailWhitelist" name="acceptedEmailAddressExceptionList" class="form-control" />
+                        <label asp-for="AcceptedEmailAddressExceptionList"></label>
+                        <input asp-for="AcceptedEmailAddressExceptionList" class="form-control" />
                     </div>
                     <h4>Billing Information</h4>
                     <div class="form-group col-md-6">
-                        <label for="consultantName">Primary Consultant</label>
-                        <input type="text" id="consultantName" name="consultantName" class="form-control" />
+                        <label asp-for="ConsultantName"></label>
+                        <input asp-for="ConsultantName" class="form-control" />
                     </div>
-                    <div class="form-group col-md-6">
+                    @*<div class="form-group col-md-6">
                         <label for="consultantTitle">Primary Consultant Title</label>
                         <input type="text" id="consultantTitle" name="consultantTitle" class="form-control" />
-                    </div>
+                    </div>*@
                     <div class="form-group col-md-6">
-                        <label for="consultantEmail">Primary Consultant Email</label>
-                        <input type="email" id="consultantEmail" name="consultantEmail" class="form-control" />
+                        <label asp-for="ConsultantEmail"></label>
+                        <input asp-for="ConsultantEmail" class="form-control" />
                     </div>
                     <div class="form-group col-md-3">
-                        <label for="billingOffice">Office</label>
-                        <input type="text" id="billingOffice" name="consultantOffice" class="form-control" />
+                        <label asp-for="ConsultantOffice"></label>
+                        <input asp-for="ConsultantOffice" class="form-control" />
                     </div>
                     <div class="form-group col-md-3">
-                        <label for="profitCenter">Profit Center</label>
-                        <select id="profitCenter" name="profitCenterId" class="form-control">
+                        <label asp-for="ProfitCenterId"></label>
+                        <select asp-for="ProfitCenterId" class="form-control">
                             <option value="">Make a Selection</option>
                             <option value="1">Option 1</option>
                             <option value="2">Option 2</option>

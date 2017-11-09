@@ -7,7 +7,7 @@ function getClientTree() {
         'type': 'GET',
         'url': 'ClientAdmin/ClientFamilyList/'
     }).done(function (response) {
-        clientTree = response.clientTree;
+        clientTree = response.ClientTree;
         renderClientTree();
     }).fail(function (response) {
         if (response.status == 401) {
@@ -51,8 +51,8 @@ function GetClientDetail(clientDiv) {
             'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
         },
     }).done(function (response) {
-        populateClientDetails(response.clientEntity);
-        console.log(response.assignedUsers);
+        populateClientDetails(response.ClientEntity);
+        console.log(response.AssignedUsers);
         // Change the dom to reflect the selected client
         clearSelectedClient()
         clientDiv.addClass('selected');
@@ -79,7 +79,7 @@ function EditClientDetail(clientDiv) {
             'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
         },
     }).done(function (response) {
-        populateClientDetails(response.clientEntity);
+        populateClientDetails(response.ClientEntity);
         // Change the dom to reflect the selected client
         clearSelectedClient()
         clientDiv.addClass('selected');
@@ -178,9 +178,9 @@ function hideClientForm() {
     $('#client-users').hide();
 }
 
-function populateClientDetails(clientEntity) {
+function populateClientDetails(ClientEntity) {
     $('#client-form :input, #client-form select').removeAttr('data-original-value');
-    $.each(clientEntity, function (key, value) {
+    $.each(ClientEntity, function (key, value) {
         var ctrl = $('[name=' + key + ']', '#client-info');
         if (ctrl.is('select')) {
             ctrl.val(value).change();
@@ -216,27 +216,27 @@ function renderClientNode(client, level) {
     }
 
     template = template.replace(/{{header-level}}/g, (level + 1))
-    template = template.replace(/{{id}}/g, client.clientEntity.id);
-    template = template.replace(/{{name}}/g, client.clientEntity.name);
-    if (client.clientEntity.clientCode) {
-        template = template.replace(/{{clientCode}}/g, client.clientEntity.clientCode);
+    template = template.replace(/{{id}}/g, client.ClientEntity.Id);
+    template = template.replace(/{{name}}/g, client.ClientEntity.Name);
+    if (client.ClientEntity.ClientCode) {
+        template = template.replace(/{{clientCode}}/g, client.ClientEntity.ClientCode);
     }
     else {
         template = template.replace(/{{clientCode}}/g, '');
     }
-    template = template.replace(/{{users}}/g, client.associatedUserCount);
-    template = template.replace(/{{content}}/g, client.associatedContentCount);
+    template = template.replace(/{{users}}/g, client.AssociatedUserCount);
+    template = template.replace(/{{content}}/g, client.AssociatedContentCount);
 
 
     // convert template to DOM element for jQuery manipulation
     var $template = $(template.toString());
 
-    if (!client.canManage) {
+    if (!client.CanManage) {
         $('.icon-container', $template).remove();
         $('.client-admin-card', $template).addClass('disabled');
     }
 
-    if (client.children.length != 0) {  // Only include the delete button on client nodes without children
+    if (client.Children.length != 0) {  // Only include the delete button on client nodes without children
         $('.card-button-background-delete', $template).remove();
     }
 
@@ -247,8 +247,8 @@ function renderClientNode(client, level) {
     $('#client-tree-list').append($template);
 
     // Render child nodes
-    if (client.children.length) {
-        client.children.forEach(function (childNode) {
+    if (client.Children.length) {
+        client.Children.forEach(function (childNode) {
             renderClientNode(childNode, level + 1);
         })
     }
@@ -341,7 +341,7 @@ function removeClientNode(clientId, clientName, password) {
 
 function recursiveClientNodeSearch(array, clientId) {
     for (var i = 0; i < array.length; i++) {
-        if (array[i].clientEntity.id == clientId) {
+        if (array[i].ClientEntity.Id == clientId) {
             array.splice(i, 1);
             return;
         }
