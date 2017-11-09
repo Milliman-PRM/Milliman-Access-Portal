@@ -27,7 +27,7 @@
     <div id="client-info" class="client-admin-section col-sm-12 col-md-6 hidden-on-load">
         <h3 class="client-admin-section-title">Client Information</h3>
         <div class="container-fluid scroll-y">
-            <form id="client-form" class="read-only" asp-action="/" method="post">
+            <form id="client-form">
                 <div class="row">
                     <h4>Client Information</h4>
                     <div class="hidden">
@@ -36,41 +36,68 @@
                     </div>
                     <div class="form-group col-md-9">
                         <label asp-for="Name"></label>
-                        <input asp-for="Name" class="form-control" />
+                        <div>
+                            <input asp-for="Name" class="form-control" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>                    
                     </div>
                     <div class="form-group col-md-3">
                         <label asp-for="ClientCode"></label>
-                        <input asp-for="ClientCode" class="form-control" />
+                        <div>
+                            <input asp-for="ClientCode" class="form-control" />
+                            <span asp-validation-for="ClientCode" class="text-danger"></span>
+                        </div>
                     </div>
                     <div class="form-group col-md-6">
                         <label asp-for="ContactName"></label>
-                        <input asp-for="ContactName" class="form-control" />
+                        <div>
+                            <input asp-for="ContactName" class="form-control" />
+                            <span asp-validation-for="ContactName" class="text-danger"></span>
+                        </div>
                     </div>
                     <div class="form-group col-md-6">
                         <label asp-for="ContactTitle"></label>
-                        <input asp-for="ContactTitle" class="form-control" />
+                        <div>
+                            <input asp-for="ContactTitle" class="form-control" />
+                            <span asp-validation-for="ContactTitle" class="text-danger"></span>
+                        </div>
                     </div>
                     <div class="form-group col-md-9">
                         <label asp-for="ContactEmail"></label>
-                        <input asp-for="ContactEmail" class="form-control" />
+                        <div>
+                            <input asp-for="ContactEmail" class="form-control" />
+                            <span asp-validation-for="ContactEmail" class="text-danger"></span>
+                        </div>
                     </div>
                     <div class="form-group col-md-3">
                         <label asp-for="ContactPhone"></label>
-                        <input asp-for="ContactPhone" class="form-control" />
+                        <div>
+                            <input asp-for="ContactPhone" class="form-control" />
+                            <span asp-validation-for="ContactPhone" class="text-danger"></span>
+                        </div>
                     </div>
                     <h4>Security Information</h4>
                     <div class="form-group col-md-12">
                         <label asp-for="AcceptedEmailDomainList"></label>
-                        <input asp-for="AcceptedEmailDomainList" class="form-control" />
+                        <div>
+                            <input asp-for="AcceptedEmailDomainList" class="form-control" />
+                            <span asp-validation-for="AcceptedEmailDomainList" class="text-danger"></span>
+                        </div>                    
                     </div>
                     <div class="form-group col-md-12">
                         <label asp-for="AcceptedEmailAddressExceptionList"></label>
-                        <input asp-for="AcceptedEmailAddressExceptionList" class="form-control" />
+                        <div>
+                            <input asp-for="AcceptedEmailAddressExceptionList" class="form-control" />
+                            <span asp-validation-for="AcceptedEmailAddressExceptionList" class="text-danger"></span>
+                        </div>
                     </div>
                     <h4>Billing Information</h4>
                     <div class="form-group col-md-6">
                         <label asp-for="ConsultantName"></label>
-                        <input asp-for="ConsultantName" class="form-control" />
+                        <div>
+                            <input asp-for="ConsultantName" class="form-control" />
+                            <span asp-validation-for="ConsultantName" class="text-danger"></span>
+                        </div>
                     </div>
                     @*<div class="form-group col-md-6">
                         <label for="consultantTitle">Primary Consultant Title</label>
@@ -78,25 +105,35 @@
                     </div>*@
                     <div class="form-group col-md-6">
                         <label asp-for="ConsultantEmail"></label>
-                        <input asp-for="ConsultantEmail" class="form-control" />
+                        <div>
+                            <input asp-for="ConsultantEmail" class="form-control" />
+                            <span asp-validation-for="ConsultantEmail" class="text-danger"></span>
+                        </div>
                     </div>
                     <div class="form-group col-md-3">
                         <label asp-for="ConsultantOffice"></label>
-                        <input asp-for="ConsultantOffice" class="form-control" />
+                        <div>
+                            <input asp-for="ConsultantOffice" class="form-control" />
+                            <span asp-validation-for="ConsultantOffice" class="text-danger"></span>
+                        </div>
                     </div>
                     <div class="form-group col-md-3">
                         <label asp-for="ProfitCenterId"></label>
-                        <select asp-for="ProfitCenterId" class="form-control">
-                            <option value="">Make a Selection</option>
-                            <option value="1">Option 1</option>
-                            <option value="2">Option 2</option>
-                            <option value="3">Option 3</option>
-                            <option disabled>Option 4</option>
-                        </select>
+                        <div>
+                            <select asp-for="ProfitCenterId" class="form-control">
+                                <option value="">Make a Selection</option>
+                                <option value="1">Option 1</option>
+                                <option value="2">Option 2</option>
+                                <option value="3">Option 3</option>
+                                <option disabled>Option 4</option>
+                            </select>
+                            <span asp-validation-for="ProfitCenterId" class="text-danger"></span>
+                        </div>
                     </div>
+                    @Html.AntiForgeryToken()
                     <div id="form-buttons-new" class="text-right">
                         <button type="reset" class="btn btn-link">Reset Form</button>
-                        <button type="submit" id="create-new-button" class="btn btn-primary primary-button">Create New Client</button>
+                        <button id="create-new-button" class="btn btn-primary primary-button" onclick="submitNewClient(event)">Create New Client</button>
                     </div>
                     <div id="form-buttons-edit" class="text-right">
                         <button id="undo-changes-button" class="btn btn-link">Undo Changes</button>
@@ -265,10 +302,14 @@
     @Html.Partial("~/Views/ClientAdmin/templates/_ClientNode.cshtml")
 
     <environment names="Development,CI">
+        <script src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
+        <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
         <script src="~/lib/bootbox.js/bootbox.js"></script>
         <script src="~/js/client-admin.js"></script>
     </environment>
     <environment names="Staging,Production">
+        <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+        <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
         <script src="~/lib/bootbox.js/bootbox.min.js"></script>
         <script src="~/js/client-admin.min.js"></script>
     </environment>

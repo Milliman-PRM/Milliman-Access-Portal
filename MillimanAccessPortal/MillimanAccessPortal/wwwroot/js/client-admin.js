@@ -17,19 +17,23 @@ function getClientTree() {
             toaster['error']('An error has occurred');
         }
     }).always(function () {
-        $('div.client-admin-card').on('click', function () {
-            GetClientDetail($(this));
-        });
-        $('div.card-button-background-edit').on('click', function (event) {
-            EditClientDetail($(this).parents('div[data-client-id]'));
-            event.stopPropagation();
-        });
-        $('div.card-button-background-add').on('click', function (event) {
-            newChildClientFormSetup($(this).parents('div[data-client-id]'));
-            event.stopPropagation();
-        });
+        applyClickEvents();
     });
 
+}
+
+function applyClickEvents() {
+    $('div.client-admin-card').on('click', function () {
+        GetClientDetail($(this));
+    });
+    $('div.card-button-background-edit').on('click', function (event) {
+        EditClientDetail($(this).parents('div[data-client-id]'));
+        event.stopPropagation();
+    });
+    $('div.card-button-background-add').on('click', function (event) {
+        newChildClientFormSetup($(this).parents('div[data-client-id]'));
+        event.stopPropagation();
+    });
 }
 
 function GetClientDetail(clientDiv) {
@@ -118,7 +122,7 @@ function newChildClientFormSetup(parentClientDiv) {
 
     var parentClientId = parentClientDiv.attr('data-client-id').valueOf();
 
-    $('#client-form #parentClientId').val(parentClientId);
+    $('#client-form #ParentClientId').val(parentClientId);
 
     removeClientInserts()
     clearSelectedClient();
@@ -146,7 +150,7 @@ function removeClientInserts() {
 
 function clearFormData() {
     $('#client-form :input, #client-form select').removeAttr('data-original-value');
-    $('#client-form :input, #client-form select').val("");
+    $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').val("");
 }
 
 function clearSelectedClient() {
@@ -383,4 +387,33 @@ function searchClientTree(searchString) {
             hrSwitch = 0;
         }
     }
+}
+
+function submitNewClient(event) {
+
+    event.preventDefault();
+
+    var form = $('#client-form');
+    var clientId = $('#client-form #Id').val();
+    var clientName = $('#client-form #Name').val();
+
+    $.ajax({
+        type: 'POST',
+        url: 'ClientAdmin/SaveNewClient',
+        data: form.serialize(),
+        headers: {
+            'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
+        },
+    }).done(function (response) {
+        hideClientForm();
+        clearFormData();
+        clientTree = response.ClientTree;
+        renderClientTree();
+        applyClickEvents();
+        toastr['success'](clientName + " was successfully created.");
+        $('div.client-admin-card[data-client-id="' + clientId + '"]').click();
+    }).fail(function (response) {
+        toastr["warning"]("Could not create client");
+    })
+
 }
