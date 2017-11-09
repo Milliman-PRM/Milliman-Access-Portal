@@ -19,7 +19,6 @@ namespace MapDbContextLib.Context
         }
 
         [HiddenInput]
-        [Required]
         [Display(Name = "Client ID")]
         public long Id { get; set; }
 
