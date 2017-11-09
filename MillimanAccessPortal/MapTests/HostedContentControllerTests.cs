@@ -55,6 +55,9 @@ namespace MapTests
         [Fact]
         public void Index_ReturnsAViewResult()
         {
+            // Reference https://msdn.microsoft.com/en-us/library/dn314429(v=vs.113).aspx
+
+#region Use of Mocked DbSet
             List<ProfitCenter> ProfitCenterData = new List<ProfitCenter>
                 {
                     new ProfitCenter {Id=1, Name="Name1", ProfitCenterCode="xyz1" },
@@ -63,24 +66,33 @@ namespace MapTests
                     new ProfitCenter {Id=4, Name="Name4", ProfitCenterCode="xyz4" },
                     new ProfitCenter {Id=5, Name="Name5", ProfitCenterCode="xyz5" },
                 };
-            Mock<DbSet<ProfitCenter>> MockProfitCenter = MockDbSet<ProfitCenter>.New(ref ProfitCenterData);
+            // The way to bulk initialize contents of a mocked DbSet
+            DbSet<ProfitCenter> MockProfitCenter = MockDbSet<ProfitCenter>.New(ProfitCenterData);
 
-            // Refer to https://msdn.microsoft.com/en-us/library/dn314429(v=vs.113).aspx
-            var x = MockProfitCenter.Object.Where(p => p.Id==2);
-            MockProfitCenter.Object.Add(new ProfitCenter { Id = 7, Name = "Name7", ProfitCenterCode = "xyz7" });
-            MockProfitCenter.Object.Add(new ProfitCenter { Id = 8, Name = "Name8", ProfitCenterCode = "xyz8" });
-            MockProfitCenter.Object.Add(new ProfitCenter { Id = 8, Name = "Name9", ProfitCenterCode = "xyz9" });
+            // To Add more content to the DbSet
+            MockProfitCenter.Add(new ProfitCenter { Id = 7, Name = "Name7", ProfitCenterCode = "xyz7" });
+            // To Add multiple content to the DbSet
+            MockProfitCenter.AddRange(new ProfitCenter[] {
+                new ProfitCenter { Id = 8, Name = "Name8", ProfitCenterCode = "xyz8" },
+                new ProfitCenter { Id = 8, Name = "Name9", ProfitCenterCode = "xyz9" },
+                });
 
+            // To query a DbSet
+            var ShouldBeNonNull = MockProfitCenter.Where(p => p.Id == 2).ToList();
+            var ShouldBeNull = MockProfitCenter.Where(p => p.Id == 6).ToList();
 
+            // To remove from a DbSet
+            MockProfitCenter.Remove(ShouldBeNonNull[0]);
 
-
-
-
-
-
-
-
-
+            // To update a Dbset record
+            // Important: you must create a new instance with Id matching the existing record to be updated
+            // Modifying a property 
+            // ProfitCenter ToBeEdited = MockProfitCenter.First(); 
+            // Above line copies a reference to the stored object and any property changes persist immediately
+            ProfitCenter ToBeEdited = new ProfitCenter { Id = 4, Name = "Edited4", ProfitCenterCode = "updated4" };
+            ToBeEdited.ContactPhone = "modified";  // This causes the DbSet object to be modified already
+            MockProfitCenter.Update(ToBeEdited); // Technically this works, but a new local object must be passed
+#endregion
 
             //Arrange
             List<HostedContentViewModel> ModelExpected = new List<HostedContentViewModel>
