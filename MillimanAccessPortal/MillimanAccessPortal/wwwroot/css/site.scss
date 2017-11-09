@@ -95,7 +95,8 @@ select {
 input:-webkit-autofill,
 input:-webkit-autofill,
 input:-webkit-autofill {
-    background-color: transparent !important;
+    -webkit-transition-delay: 9999s;
+    -webkit-transition: color 9999s ease-out, background-color 9999s ease-out;
 }
 
 textarea {
