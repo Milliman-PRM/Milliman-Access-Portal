@@ -417,3 +417,70 @@ function submitNewClient(event) {
     })
 
 }
+
+function resetNewClientForm() {
+
+    event.preventDefault();
+
+    $('#client-form :input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select').each(function () {
+        if ($(this).val() != "") {
+            bootbox.confirm({
+                title: "Discard changes?",
+                message: "Would you like to discard the unsaved changes?",
+                className: 'screen-center',
+                backdrop: true,
+                onEscape: true,
+                buttons: {
+                    confirm: {
+                        label: '<i class="fa fa-check"></i> Confirm',
+                        className: 'primary-button'
+                    },
+                    cancel: {
+                        label: 'Cancel',
+                        className: 'btn-link'
+                    }
+                },
+                callback: function (result) {
+                    if (result) {
+                        $('#client-form :input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select').val("");
+                    }
+                    else {
+                        return false;
+                    }
+                }
+            })
+            return false;
+        }
+    })
+}
+
+function undoChangesEditClientForm(event) {
+
+    event.preventDefault();
+
+    var clientId = $('#client-form #Id').val();
+
+    bootbox.confirm({
+        title: "Discard changes?",
+        message: "Would you like to discard the unsaved changes?",
+        className: 'screen-center',
+        backdrop: true,
+        onEscape: true,
+        buttons: {
+            confirm: {
+                label: '<i class="fa fa-check"></i> Confirm',
+                className: 'primary-button'
+            },
+            cancel: {
+                label: 'Cancel',
+                className: 'btn-link'
+            }
+        },
+        callback: function (result) {
+            if (result) {
+                EditClientDetail($('#client-tree div[data-client-id="' + clientId + '"]'));
+            }
+        }
+    })
+
+}

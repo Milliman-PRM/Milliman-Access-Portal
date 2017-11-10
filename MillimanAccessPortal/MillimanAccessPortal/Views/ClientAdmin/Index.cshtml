@@ -132,11 +132,11 @@
                     </div>
                     @Html.AntiForgeryToken()
                     <div id="form-buttons-new" class="text-right">
-                        <button type="reset" class="btn btn-link">Reset Form</button>
+                        <button class="btn btn-link" onclick="resetNewClientForm(event)">Reset Form</button>
                         <button id="create-new-button" class="btn btn-primary primary-button" onclick="submitNewClient(event)">Create New Client</button>
                     </div>
                     <div id="form-buttons-edit" class="text-right">
-                        <button id="undo-changes-button" class="btn btn-link">Undo Changes</button>
+                        <button id="undo-changes-button" class="btn btn-link" onclick="undoChangesEditClientForm(event)">Undo Changes</button>
                         <button type="submit" id="save-changes-button" class="btn btn-primary primary-button">Save Changes</button>
                     </div>
                 </div>
