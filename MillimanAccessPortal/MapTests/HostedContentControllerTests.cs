@@ -56,66 +56,103 @@ namespace MapTests
         public void Index_ReturnsAViewResult()
         {
             // Reference https://msdn.microsoft.com/en-us/library/dn314429(v=vs.113).aspx
+            
+            #region Arrange
+            // Had to implement a parameterless constructor in the context class, I hope this doesn't cause any problem in EF
+            var MockContext = new Mock<ApplicationDbContext>();
 
-#region Use of Mocked DbSet
-            List<ProfitCenter> ProfitCenterData = new List<ProfitCenter>
+            // Mock Roles
+            Mock<DbSet<ApplicationRole>> MoqApplicationRole = MockDbSet<ApplicationRole>.New(GetSystemRolesList());
+            MockContext.Setup(m => m.ApplicationRole).Returns(MoqApplicationRole.Object);
+
+            // Mock Users
+            Mock<DbSet<ApplicationUser>> MoqApplicationUser = MockDbSet<ApplicationUser>.New(new List<ApplicationUser>
+                {
+                    new ApplicationUser {Id=1, UserName="test1", Email="test1@example.com", Employer ="example", FirstName="FN1", 
+                                         LastName="LN1", NormalizedEmail="test@example.com".ToUpper(), PhoneNumber="3171234567"},
+                    new ApplicationUser {Id=2, UserName="test2", Email="test2@example.com", Employer ="example", FirstName="FN2",
+                                         LastName="LN2", NormalizedEmail ="test@example.com".ToUpper(), PhoneNumber="3171234567"},
+                });
+            MockContext.Setup(m => m.ApplicationUser).Returns(MoqApplicationUser.Object);
+
+            // Mock ContentType
+            Mock<DbSet<ContentType>> MoqContentType = MockDbSet<ContentType>.New(new List<ContentType>
+                {
+                    new ContentType{Id=1, Name="Qlikview", CanReduce=true},
+                });
+            MockContext.Setup(m => m.ContentType).Returns(MoqContentType.Object);
+
+            // Mock ProfitCenters
+            Mock<DbSet<ProfitCenter>> MoqProfitCenter = MockDbSet<ProfitCenter>.New(new List<ProfitCenter>
                 {
                     new ProfitCenter {Id=1, Name="Name1", ProfitCenterCode="xyz1" },
                     new ProfitCenter {Id=2, Name="Name2", ProfitCenterCode="xyz2" },
-                    new ProfitCenter {Id=3, Name="Name3", ProfitCenterCode="xyz3" },
-                    new ProfitCenter {Id=4, Name="Name4", ProfitCenterCode="xyz4" },
-                    new ProfitCenter {Id=5, Name="Name5", ProfitCenterCode="xyz5" },
-                };
-            // The way to bulk initialize contents of a mocked DbSet
-            DbSet<ProfitCenter> MockProfitCenter = MockDbSet<ProfitCenter>.New(ProfitCenterData);
-
-            // To Add more content to the DbSet
-            MockProfitCenter.Add(new ProfitCenter { Id = 7, Name = "Name7", ProfitCenterCode = "xyz7" });
-            // To Add multiple content to the DbSet
-            MockProfitCenter.AddRange(new ProfitCenter[] {
-                new ProfitCenter { Id = 8, Name = "Name8", ProfitCenterCode = "xyz8" },
-                new ProfitCenter { Id = 8, Name = "Name9", ProfitCenterCode = "xyz9" },
                 });
+            MockContext.Setup(m => m.ProfitCenter).Returns(MoqProfitCenter.Object);
 
-            // To query a DbSet
-            var ShouldBeNonNull = MockProfitCenter.Where(p => p.Id == 2).ToList();
-            var ShouldBeNull = MockProfitCenter.Where(p => p.Id == 6).ToList();
-
-            // To remove from a DbSet
-            MockProfitCenter.Remove(ShouldBeNonNull[0]);
-
-            // To update a Dbset record
-            // Important: you must create a new instance with Id matching the existing record to be updated
-            // Modifying a property 
-            // ProfitCenter ToBeEdited = MockProfitCenter.First(); 
-            // Above line copies a reference to the stored object and any property changes persist immediately
-            ProfitCenter ToBeEdited = new ProfitCenter { Id = 4, Name = "Edited4", ProfitCenterCode = "updated4" };
-            ToBeEdited.ContactPhone = "modified";  // This causes the DbSet object to be modified already
-            MockProfitCenter.Update(ToBeEdited); // Technically this works, but a new local object must be passed
-#endregion
-
-            //Arrange
-            List<HostedContentViewModel> ModelExpected = new List<HostedContentViewModel>
-            {
-                new HostedContentViewModel
+            // Mock Clients
+            Mock<DbSet<Client>> MoqClient = MockDbSet<Client>.New(new List<Client>
                 {
-                    ContentName = "My CCR",
-                    Url = "Folder/MyCCR.qvw",
-                    UserGroupId = 1,
-                    RoleNames = new HashSet<string> { "Content User" },
-                    ClientList = null,
-                },
-            };
+                    new Client {Id=1, Name="Name1", ClientCode="ClientCode1", ProfitCenterId=1, ParentClientId=null },
+                    new Client {Id=2, Name="Name2", ClientCode="ClientCode2", ProfitCenterId=1, ParentClientId=1 },
+                });
+            MockContext.Setup(m => m.Client).Returns(MoqClient.Object);
 
-            var MockStandardQueries = new Mock<StandardQueries>(MockDataContext.Object, MockUserManager.Object);
-            MockStandardQueries.Setup(q => q.GetAuthorizedUserGroupsAndRoles(It.IsAny<string>())).Returns(() => ModelExpected);
+            // Mock UserInContentItemUserGroups
+            Mock<DbSet<UserAuthorizationToClient>> MoqUserAuthorizationToClient = MockDbSet<UserAuthorizationToClient>.New(new List<UserAuthorizationToClient>
+                {
+                    new UserAuthorizationToClient {Id = 1, ClientId=?, RoleId=?, UserId=?},
+                });
+            MockContext.Setup(m => m.UserRoleForClient).Returns(MoqUserAuthorizationToClient.Object);
+
+            // Mock RootContentItem
+            Mock<DbSet<RootContentItem>> MoqRootContentItem = MockDbSet<RootContentItem>.New(new List<RootContentItem>
+                {
+                    new RootContentItem{Id = 1, ClientIdList=new long[]{1}, },
+                });
+            MockContext.Setup(m => m.RootContentItem).Returns(MoqRootContentItem.Object);
+
+            // Mock HierarchyFieldValue
+            Mock<DbSet<HierarchyFieldValue>> MoqHierarchyFieldValue = MockDbSet<HierarchyFieldValue>.New(new List<HierarchyFieldValue>
+                {
+                    new HierarchyFieldValue {Id = 1, HierarchyLevel=?, ParentHierarchyFieldValueId=null, RootContentItemId=1, RootContentItem=MoqRootContentItem.Object},
+                });
+            MockContext.Setup(m => m.HierarchyFieldValue).Returns(MoqHierarchyFieldValue.Object);
+
+            // Mock HierarchyField
+            Mock<DbSet<HierarchyField>> MoqHierarchyField = MockDbSet<HierarchyField>.New(new List<HierarchyField>
+                {
+                    new HierarchyField {Id = 1, RootContentItemId=1, HierarchyLevel=0},
+                });
+            MockContext.Setup(m => m.HierarchyField).Returns(MoqHierarchyField.Object);
+
+            // Mock ContentItemUserGroups
+            Mock<DbSet<ContentItemUserGroup>> MoqContentItemUserGroup = MockDbSet<ContentItemUserGroup>.New(new List<ContentItemUserGroup>
+                {
+                    new ContentItemUserGroup {Id = 1, ClientId=1, ContentInstanceUrl="Folder1/File1"},
+                    new ContentItemUserGroup {Id = 2, ClientId=2, ContentInstanceUrl="Folder1/File1", RootContentItemId=1, GroupName="Group For Content1"},
+                });
+            MockContext.Setup(m => m.ContentItemUserGroup).Returns(MoqContentItemUserGroup.Object);
+
+            // Mock UserInContentItemUserGroups
+            Mock<DbSet<UserInContentItemUserGroup>> MoqUserInContentItemUserGroup = MockDbSet<UserInContentItemUserGroup>.New(new List<UserInContentItemUserGroup>
+                {
+                    new UserInContentItemUserGroup {Id = 1, ContentItemUserGroupId=1, RoleId=1, UserId=1},
+                });
+            MockContext.Setup(m => m.UserRoleForContentItemUserGroup).Returns(MoqUserInContentItemUserGroup.Object);
+
+            //var MockStandardQueries = new Mock<StandardQueries>(MockDataContext.Object, MockUserManager.Object);
+            //MockStandardQueries.Setup(q => q.GetAuthorizedUserGroupsAndRoles(It.IsAny<string>())).Returns(() => ModelExpected);
+            StandardQueries QueriesObj = new StandardQueries(MockContext.Object, MockUserManager.Object);
 
             HostedContentController sut = new HostedContentController(MockQlikViewConfig, 
                                                                       MockUserManager.Object, 
                                                                       Logger, 
-                                                                      null,
-                                                                      MockStandardQueries.Object);
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserName: "test@example.com");
+                                                                      MockContext.Object,
+                                                                      QueriesObj);
+
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserName: MoqApplicationUser.Object.Single().UserName);
+            #endregion
 
             // Act
             var view = sut.Index();
@@ -160,6 +197,17 @@ namespace MapTests
 
             // TODO: Boilerplate. Remove when the test is written.
             throw new NotImplementedException();
+        }
+
+        private List<ApplicationRole> GetSystemRolesList()
+        {
+            List<ApplicationRole> ReturnList = new List<ApplicationRole>();
+
+            foreach (var x in ApplicationRole.MapRoles)
+            {
+                ReturnList.Add(new ApplicationRole { Id = (long)x.Key, RoleEnum = x.Key, Name = x.Value, NormalizedName = x.Value.ToString() });
+            }
+            return ReturnList;
         }
     }
 }
