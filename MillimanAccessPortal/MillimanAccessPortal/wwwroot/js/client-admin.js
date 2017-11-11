@@ -8,6 +8,7 @@ function getClientTree() {
         'url': 'ClientAdmin/ClientFamilyList/'
     }).done(function (response) {
         clientTree = response.ClientTree;
+        populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
         renderClientTree();
     }).fail(function (response) {
         if (response.status == 401) {
@@ -34,6 +35,13 @@ function applyClickEvents() {
         newChildClientFormSetup($(this).parents('div[data-client-id]'));
         event.stopPropagation();
     });
+}
+
+function populateProfitCenterDropDown(profitCenters) {
+    $('#ProfitCenterId option:not(option[value = ""])').remove();
+    $.each(profitCenters, function () {
+        $('#ProfitCenterId').append($("<option />").val(this.Id).text(this.Name + ' (' + this.Code + ')'));
+    })
 }
 
 function GetClientDetail(clientDiv) {
