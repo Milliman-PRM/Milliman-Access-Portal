@@ -450,6 +450,8 @@ function resetNewClientForm() {
                 },
                 callback: function (result) {
                     if (result) {
+                        $('#client-form .input-validation-error').removeClass('input-validation-error');
+                        $('#client-form span.field-validation-error > span').remove();
                         $('#client-form :input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select').val("");
                     }
                     else {
