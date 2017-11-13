@@ -181,7 +181,12 @@ function makeFormWriteable() {
 function showClientForm() {
     var showTime = 50;
     $('#client-info').show(showTime, function () {
-        $('#client-users').show(showTime);
+        if ($('#client-form #Id').val()) {
+            $('#client-users').show(showTime);
+        }
+        else {
+            $('#client-users').hide();
+        }
     });
 }
 
