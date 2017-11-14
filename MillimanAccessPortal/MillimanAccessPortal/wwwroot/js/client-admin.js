@@ -406,17 +406,30 @@ function searchClientTree(searchString) {
     }
 }
 
-function submitNewClient(event) {
+function submitClientForm(event) {
 
     event.preventDefault();
 
     var form = $('#client-form');
     var clientId = $('#client-form #Id').val();
     var clientName = $('#client-form #Name').val();
+    var urlAction = 'ClientAdmin/';
+    var successResponse, failResponse;
+
+    if (clientId) {
+        urlAction += 'EditClient';
+        successResponse = clientName + ' was successfully updated';
+        failResponse = 'Could not update client information';
+    }
+    else {
+        urlAction += 'SaveNewClient';
+        successResponse = clientName + ' was successfully created';
+        failResponse = 'Could not create client';
+    }
 
     $.ajax({
         type: 'POST',
-        url: 'ClientAdmin/SaveNewClient',
+        url: urlAction,
         data: form.serialize(),
         headers: {
             'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
@@ -427,10 +440,10 @@ function submitNewClient(event) {
         clientTree = response.ClientTree;
         renderClientTree();
         applyClickEvents();
-        toastr['success'](clientName + " was successfully created.");
+        toastr['success'](successResponse);
         $('div.client-admin-card[data-client-id="' + clientId + '"]').click();
     }).fail(function (response) {
-        toastr["warning"]("Could not create client");
+        toastr["warning"](failResponse);
     })
 
 }
