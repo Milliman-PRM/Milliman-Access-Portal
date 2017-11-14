@@ -1,9 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Moq;
+using Newtonsoft.Json;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace MapTests
 {
@@ -28,16 +30,55 @@ namespace MapTests
             return Set;
         }
 
+        public static void AssignNavigationProperty<U>(Mock<DbSet<T>> ReferencingDbSet, string ReferencingFkFieldName, Mock<DbSet<U>> ReferencedDbSet) where U : class
+        {
+            Type TType = typeof(T);
+            Type UType = typeof(U);
+
+            PropertyInfo NavigationPropertyInfo = TType.GetMembers().OfType<PropertyInfo>().Single(p => p.PropertyType == UType);
+            PropertyInfo ForeignKeyPropertyInfo = TType.GetProperty(ReferencingFkFieldName);
+
+            Type ReferenceKeyPropertyType = ForeignKeyPropertyInfo.PropertyType;
+            var a = UType.GetMembers().OfType<PropertyInfo>();
+            var b = a.Where(m => m.PropertyType == ReferenceKeyPropertyType);
+            var c = b.Where(m => m.PropertyType == ReferenceKeyPropertyType).Where(m => m.CustomAttributes.Any(at => at.AttributeType == typeof(KeyAttribute)));
+            PropertyInfo ReferencedPkPropertyInfo = UType.GetMembers().OfType<PropertyInfo>().Single(m => m.PropertyType == ReferenceKeyPropertyType && m.CustomAttributes.Any(at => at.AttributeType == typeof(KeyAttribute)));
+
+            foreach (T ReferencingRecord in ReferencingDbSet.Object)
+            {
+                var ReferencingKeyValue = ForeignKeyPropertyInfo.GetValue(ReferencingRecord).ToString();
+
+                foreach (U UItem in ReferencedDbSet.Object)
+                {
+                    var PkValue = ReferencedPkPropertyInfo.GetValue(UItem).ToString();
+                    if (PkValue == ReferencingKeyValue)
+                    {
+                        NavigationPropertyInfo.SetMethod.Invoke(ReferencingRecord, new object[] { UItem });
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// To support DbSet.Update, replaces one list element with another when an element with matching key value is found in the list
+        /// </summary>
+        /// <param name="SearchFor"></param>
+        /// <param name="InList"></param>
+        /// <param name="KeyPropertyName"></param>
+        /// <returns></returns>
         private static bool ReplaceGenericListElement(T SearchFor, List<T> InList, string KeyPropertyName)
         {
             try
             {
-                var KeyProperty = SearchFor.GetType().GetProperty(KeyPropertyName);
+                PropertyInfo KeyProperty = SearchFor.GetType().GetProperty(KeyPropertyName);  // uses reflection
 
-                dynamic x = KeyProperty.GetValue(SearchFor);
-                T ElementFound = InList.Single(e => {
-                    dynamic eKey = KeyProperty.GetValue(e);
-                    return x == eKey;
+                dynamic KeyValue = KeyProperty.GetValue(SearchFor);
+                // following returns the List element with matching key, or throws if no match is found
+                T ElementFound = InList.Single(e => 
+                    {
+                        dynamic eKey = KeyProperty.GetValue(e);
+                        return KeyValue == eKey;  // returns only from this code block
                     });
                 int IndexOfElement = InList.IndexOf(ElementFound);
                 InList[IndexOfElement] = SearchFor;
@@ -48,6 +89,58 @@ namespace MapTests
                 string x = e.Message;
                 return false;
             }
+        }
+
+
+
+
+        //internal static void Include<U>(DbSet<T> ReferencingSet, string TReferencingKeyName, string NavigationPropertyName, string UPkName, ref DbSet<object> ReferencedSet)
+        //{
+        //    // uses reflection
+        //    var TFkPropertyInfo = typeof(T).GetProperty(TReferencingKeyName);  // e.g. RootContentId
+        //    var TNavigationPropertyInfo = typeof(T).GetProperty(NavigationPropertyName);  // RootContent
+        //    var UPkPropertyInfo = typeof(U).GetProperty(UPkName);  // e.g. Id
+
+        //    if (TFkPropertyInfo.PropertyType != typeof(long) || 
+        //        UPkPropertyInfo.PropertyType != typeof(long))
+        //    {
+        //        // when the pk type changes, modify this function
+        //        throw new NotImplementedException();
+        //    }
+
+        //    foreach (T Element in ReferencingSet) // Do this for each record
+        //    {
+        //        dynamic TFkValue = TFkPropertyInfo.GetValue(Element);
+        //        long LongKey = TFkValue;
+
+        //        U ReferencedInstance = (U)ReferencedSet.FirstOrDefault(s => (long)UPkPropertyInfo.GetValue(s) == LongKey);
+
+        //        TNavigationPropertyInfo.SetMethod.Invoke(Element, new object[] { ReferencedInstance });
+        //    }
+
+        //}
+
+        /// <summary>
+        /// Not for use
+        /// </summary>
+        /// <param name="JsonString">Must be an array of objects that conform to the template type invoked</param>
+        /// <returns></returns>
+        internal static List<T> DeserializeTestData(string JsonString)
+        {
+            var A = JsonConvert.DeserializeObject(
+                "[{'x': 123}]"
+                );
+
+            List<T> Result = new List<T>();
+
+            /*
+             * foreach (var record in DeserializeRecord()) 
+             * {
+             *     Result.Add(record as T)
+             * }
+             */
+
+            return Result;
         }
     }
 }
