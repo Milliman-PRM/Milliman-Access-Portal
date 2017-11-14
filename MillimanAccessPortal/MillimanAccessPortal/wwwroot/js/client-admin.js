@@ -157,7 +157,7 @@ function removeClientInserts() {
 }
 
 function clearFormData() {
-    $('#client-form :input, #client-form select').removeAttr('data-original-value');
+    $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').attr('data-original-value', '');
     $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').val("");
 }
 
@@ -167,6 +167,8 @@ function clearSelectedClient() {
 }
 
 function makeFormReadOnly() {
+    $('#edit-client-icon').show();
+    $('#cancel-edit-client-icon').hide();
     $('#client-form :input').attr('readonly', 'readonly');
     $('#client-form :input, #client-form select').attr('disabled', 'disabled');
     $('#client-form #form-buttons-new').hide();
@@ -174,6 +176,8 @@ function makeFormReadOnly() {
 }
 
 function makeFormWriteable() {
+    $('#edit-client-icon').hide();
+    $('#cancel-edit-client-icon').show();
     $('#client-form :input').removeAttr('readonly');
     $('#client-form :input, #client-form select').removeAttr('disabled');
 }
@@ -498,4 +502,72 @@ function undoChangesEditClientForm(event) {
         }
     })
 
+}
+
+function toggleEditExistingClient() {
+    EditClientDetail($('div.selected'));
+}
+
+function cancelClientEdit() {
+
+    var clientId = $('#client-form #Id').val();
+
+    if (pendingChanges()) {
+        bootbox.confirm({
+            title: "Discard changes?",
+            message: "Would you like to discard the unsaved changes?",
+            className: 'screen-center',
+            backdrop: true,
+            onEscape: true,
+            buttons: {
+                confirm: {
+                    label: '<i class="fa fa-check"></i> Confirm',
+                    className: 'primary-button'
+                },
+                cancel: {
+                    label: 'Cancel',
+                    className: 'btn-link'
+                }
+            },
+            callback: function (result) {
+                if (result) {
+                    cancelEditTasks(clientId);
+                }
+            }
+        })
+    }
+    else {
+        cancelEditTasks(clientId);
+    }
+}
+
+function pendingChanges() {
+    var inputsList = $('#client-form input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select');
+
+    for (i = 0; i < inputsList.length; i++) {
+        if ($(inputsList[i]).val() != $(inputsList[i]).attr('data-original-value')) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function resetFormValues() {
+    var inputsList = $('#client-form input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select');
+
+    for (i = 0; i < inputsList.length; i++) {
+        $(inputsList[i]).val($(inputsList[i]).attr('data-original-value'));
+    }
+}
+
+
+function cancelEditTasks(clientId) {
+    resetFormValues();
+    makeFormReadOnly();
+    if (!clientId) {
+        removeClientInserts();
+        clearFormData();
+        hideClientForm();
+    }
 }

@@ -26,6 +26,8 @@ $button-save: #5cb85c;
 $button-save-hover: #449d44;
 $button-disabled: #DDD;
 $text-disabled: #424242;
+$admin-action-icon: #424242;
+$admin-action-icon-hover: #000;
     
 @import url('https://fonts.googleapis.com/css?family=Noto+Sans');
 
@@ -129,16 +131,24 @@ textarea {
     }
 }
 
+.admin-action-icon {
+    color: $admin-action-icon;
+    cursor: pointer;
+
+    &:hover {
+        color: $admin-action-icon-hover;
+    }
+}
 
 /*****
 Login Page
 *****/
-    #login-form {
+#login-form {
 
-        img {
-            width: 400px;
-        }
+    img {
+        width: 400px;
     }
+}
 
     #password-reset-form {
     }
