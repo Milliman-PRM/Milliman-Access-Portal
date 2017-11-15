@@ -157,8 +157,8 @@ function removeClientInserts() {
 }
 
 function clearFormData() {
-    $('#client-form #AcceptedEmailDomainList').selectize.clear();
-    $('#client-form #AcceptedEmailDomainList').selectize.clearOptions();
+    $('#client-form #AcceptedEmailDomainList')[0].selectize.clear();
+    $('#client-form #AcceptedEmailDomainList')[0].selectize.clearOptions();
     $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').attr('data-original-value', '');
     $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').val("");
 }
@@ -175,6 +175,8 @@ function makeFormReadOnly() {
     $('#client-form :input, #client-form select').attr('disabled', 'disabled');
     $('#client-form #form-buttons-new').hide();
     $('#client-form #form-buttons-edit').hide();
+    $('#client-form #AcceptedEmailDomainList')[0].selectize.disable();
+    $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.disable();
 }
 
 function makeFormWriteable() {
@@ -182,6 +184,8 @@ function makeFormWriteable() {
     $('#cancel-edit-client-icon').show();
     $('#client-form :input').removeAttr('readonly');
     $('#client-form :input, #client-form select').removeAttr('disabled');
+    $('#client-form #AcceptedEmailDomainList')[0].selectize.enable();
+    $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.enable();
 }
 
 function showClientForm() {
