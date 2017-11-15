@@ -102,7 +102,7 @@ function EditClientDetail(clientDiv) {
         $('#client-form #form-buttons-edit').show();
         $('#undo-changes-button').hide();
         showClientForm();
-        $('#client-form :input, #client-form select').on('keyup', function () {
+        $('#client-form :input, #client-form select').on('change', function () {
             if ($(this).value != $(this).attr('data-original-value')) {
                 $('#undo-changes-button').show();
             }
@@ -157,6 +157,8 @@ function removeClientInserts() {
 }
 
 function clearFormData() {
+    $('#client-form #AcceptedEmailDomainList').selectize.clear();
+    $('#client-form #AcceptedEmailDomainList').selectize.clearOptions();
     $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').attr('data-original-value', '');
     $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').val("");
 }
@@ -202,9 +204,19 @@ function hideClientForm() {
 function populateClientDetails(ClientEntity) {
     $('#client-form :input, #client-form select').removeAttr('data-original-value');
     $.each(ClientEntity, function (key, value) {
-        var ctrl = $('[name=' + key + ']', '#client-info');
+        var ctrl = $('#' + key, '#client-info');
         if (ctrl.is('select')) {
             ctrl.val(value).change();
+        }
+        else if (ctrl.hasClass('selectize-custom-input')) {
+            ctrl[0].selectize.clear();
+            ctrl[0].selectize.clearOptions();
+            if (value) {
+                for (i = 0; i < value.length; i++) {
+                    ctrl[0].selectize.addOption({ value: value[i], text: value[i] });
+                    ctrl[0].selectize.addItem(value[i]);
+                }
+            }
         }
         else {
             ctrl.val(value);
