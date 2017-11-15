@@ -28,6 +28,7 @@ $button-disabled: #DDD;
 $text-disabled: #424242;
 $admin-action-icon: #424242;
 $admin-action-icon-hover: #000;
+$disabled-text-color: #555;
     
 @import url('https://fonts.googleapis.com/css?family=Noto+Sans');
 
@@ -78,8 +79,6 @@ select {
         font-size-adjust: 1.1;
         font-weight: bold;
         border: none !important;
-        border-bottom: solid 1px black !important;
-        border-radius: 0 !important;
         background-color: transparent !important;
         background: transparent !important;
         box-shadow: none;
@@ -91,7 +90,6 @@ select {
             display: none;
         }
     }
-
 }
 
 input:-webkit-autofill,
@@ -99,6 +97,33 @@ input:-webkit-autofill,
 input:-webkit-autofill {
     -webkit-transition-delay: 9999s;
     -webkit-transition: color 9999s ease-out, background-color 9999s ease-out;
+}
+
+div.selectize-input {
+    min-height: 40px;
+    border-radius: 5px;
+    transition: border 0.2s;
+
+    &.disabled {
+        font-size-adjust: 1.1;
+        font-weight: bold;
+        border: none !important;
+        background-color: $background !important;
+        box-shadow: none;
+        cursor: default !important;
+        -moz-appearance: none !important;
+        -webkit-appearance: none !important;
+
+        div.item {
+            background: $button-disabled !important;
+            color: $disabled-text-color !important;
+            border: none !important;
+            
+            a.remove {
+                display: none;
+            }
+        }
+    }
 }
 
 textarea {
