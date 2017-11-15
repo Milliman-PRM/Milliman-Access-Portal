@@ -127,7 +127,6 @@ namespace MapTests
                     new RootContentItem{Id = 2, ClientIdList=new long[]{2}, ContentName="RootContent 2"},
                 });
             MockDbSet<RootContentItem>.AssignNavigationProperty<ContentType>(MoqRootContentItem, "ContentTypeId", MoqContentType);
-            MockDbSet<RootContentItem>.AssignNavigationProperty<Client>(MoqRootContentItem, "ClientId", MoqClient);
             MockContext.Setup(m => m.RootContentItem).Returns(MoqRootContentItem.Object);
             #endregion
 
