@@ -36,5 +36,11 @@
     "inputFiles": [
       "wwwroot/js/client-admin.js"
     ]
+  },
+  {
+    "outputFileName": "wwwroot/lib/selectize/dist/css/selectize.default.min.css",
+    "inputFiles": [
+      "wwwroot/lib/selectize/dist/css/selectize.default.css"
+    ]
   }
 ]
