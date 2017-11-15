@@ -27,7 +27,6 @@ namespace MapTests
     public class HostedContentControllerTests
     {
         private IOptions<QlikviewConfig> MockQlikViewConfig { get; set; }
-        private Mock<ApplicationDbContext> MockDataContext { get; set; }
         private readonly Mock<UserManager<ApplicationUser>> MockUserManager;
         private readonly ILoggerFactory Logger;
 
@@ -40,9 +39,6 @@ namespace MapTests
 
             MockQlikViewConfig = new Mock<IOptions<QlikviewConfig>>().Object;
             Logger = new LoggerFactory();
-
-            // Configure DataContext required by injected services
-            MockDataContext = new Mock<ApplicationDbContext>(new DbContextOptions<ApplicationDbContext>());
 
             // Configure UserManager to avoid accessing a database
             Mock<IUserStore<ApplicationUser>> MockUserStore = new Mock<IUserStore<ApplicationUser>>();
