@@ -102,7 +102,7 @@ function EditClientDetail(clientDiv) {
         $('#client-form #form-buttons-edit').show();
         $('#undo-changes-button').hide();
         showClientForm();
-        $('#client-form :input, #client-form select').on('keyup', function () {
+        $('#client-form :input, #client-form select').on('change', function () {
             if ($(this).value != $(this).attr('data-original-value')) {
                 $('#undo-changes-button').show();
             }
