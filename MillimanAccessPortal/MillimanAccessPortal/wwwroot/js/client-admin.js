@@ -202,9 +202,19 @@ function hideClientForm() {
 function populateClientDetails(ClientEntity) {
     $('#client-form :input, #client-form select').removeAttr('data-original-value');
     $.each(ClientEntity, function (key, value) {
-        var ctrl = $('[name=' + key + ']', '#client-info');
+        var ctrl = $('#' + key, '#client-info');
         if (ctrl.is('select')) {
             ctrl.val(value).change();
+        }
+        else if (ctrl.hasClass('selectize-custom-input')) {
+            ctrl[0].selectize.clear();
+            ctrl[0].selectize.clearOptions();
+            if (value) {
+                for (i = 0; i < value.length; i++) {
+                    ctrl[0].selectize.addOption({ value: value[i], text: value[i] });
+                    ctrl[0].selectize.addItem(value[i]);
+                }
+            }
         }
         else {
             ctrl.val(value);
