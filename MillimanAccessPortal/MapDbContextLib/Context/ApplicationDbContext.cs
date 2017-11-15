@@ -18,6 +18,7 @@ namespace MapDbContextLib.Context
         public DbSet<HierarchyField> HierarchyField { get; set; }
         public DbSet<HierarchyFieldValue> HierarchyFieldValue { get; set; }
         public DbSet<ContentType> ContentType { get; set; }
+        public DbSet<ProfitCenter> ProfitCenter { get; set; }
 
         // Alteration of Identity entities
         public DbSet<ApplicationUser> ApplicationUser { get; set; }
@@ -34,6 +35,16 @@ namespace MapDbContextLib.Context
             // Customize the ASP.NET Identity model and override the defaults if needed.
             // For example, you can rename the ASP.NET Identity table names and more.
             // Add your customizations after calling base.OnModelCreating(builder);
+        }
+
+        public bool ClientExists(long id)
+        {
+            return Client.Any(e => e.Id == id);
+        }
+
+        private bool ProfitCenterExists(long id)
+        {
+            return ProfitCenter.Any(pc => pc.Id == id);
         }
 
         public static void InitializeAll(IServiceProvider serviceProvider)

@@ -4,13 +4,15 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
 
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20171026184126_AddUserEmployer")]
+    partial class AddUserEmployer
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
@@ -247,6 +249,8 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(256);
+
+                    b.Property<int>("RoleEnum");
 
                     b.HasKey("Id");
 

@@ -33,7 +33,7 @@ namespace MapDbContextLib.Context
         /// </summary>
         /// <param name="ServiceProvider">Application Services provide connectivity to the identity database.</param>
         /// <returns></returns>
-        internal static void InitializeContentTypes(IServiceProvider ServiceProvider)
+        internal static void InitializeContentTypes(IServiceProvider serviceProvider)
         {
             List<ContentType> AllProposedContentTypes = new List<ContentType>
             {
@@ -41,18 +41,15 @@ namespace MapDbContextLib.Context
                 //new ContentType { Id = 2, Name = "AnotherType", CanReduce = true },
             };
 
-            using (IServiceScope ServiceScope = ServiceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
+            ApplicationDbContext Db = serviceProvider.GetService<Context.ApplicationDbContext>();
+
+            // Eliminate any proposed objects already in the database
+            AllProposedContentTypes.RemoveAll(t => AreSameContentType(t, Db.ContentType.Find(t.Id)));
+
+            if (AllProposedContentTypes.Count > 0)
             {
-                ApplicationDbContext Db = ServiceScope.ServiceProvider.GetService<Context.ApplicationDbContext>();
-
-                // Eliminate any proposed objects already in the database
-                AllProposedContentTypes.RemoveAll(t => AreSameContentType(t, Db.ContentType.Find(t.Id)));
-
-                if (AllProposedContentTypes.Count > 0)
-                {
-                    Db.ContentType.AddRange(AllProposedContentTypes);
-                    Db.SaveChanges();
-                }
+                Db.ContentType.AddRange(AllProposedContentTypes);
+                Db.SaveChanges();
             }
         }
 

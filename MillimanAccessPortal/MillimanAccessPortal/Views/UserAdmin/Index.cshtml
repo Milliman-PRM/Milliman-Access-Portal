@@ -1,4 +1,4 @@
-@model IEnumerable<MapDbContextLib.Identity.ApplicationUser>
+@model IEnumerable<MillimanAccessPortal.Models.UserAdminViewModels.ApplicationUserViewModel>
 
 @{
     /*
@@ -6,7 +6,10 @@
      * OBJECTIVE: List application users and provide navigation to management functions
      * DEVELOPER NOTES: 
      */
-    ViewData["Title"] = "View";
+
+    ViewData["Title"] = "User Administration";
+    Layout = "_Layout_w_NB_H_F";
+    ViewData["NavIcon"] = "UserAdmin";
 }
 
 <h2>View</h2>
@@ -17,12 +20,12 @@
 <table class="table">
     <thead>
         <tr>
-                <th>
-                    @Html.DisplayNameFor(model => model.UserName)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.Email)
-                </th>
+            <th>
+                @Html.DisplayNameFor(model => model.UserName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Email)
+            </th>
             <th></th>
         </tr>
     </thead>

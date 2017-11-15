@@ -1,4 +1,5 @@
 @model MapDbContextLib.Identity.ApplicationUser
+<!--Eventually we should use a custom ViewModel since the ApplicationUser has sensitive fields-->
 
 @{
     /*
@@ -6,7 +7,9 @@
      * OBJECTIVE: Edit application user profile
      * DEVELOPER NOTES: 
      */
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "User Administration";
+    Layout = "_Layout_w_NB_H_F";
+    ViewData["NavIcon"] = "UserAdmin";
 }
 
 <h2>Edit</h2>
