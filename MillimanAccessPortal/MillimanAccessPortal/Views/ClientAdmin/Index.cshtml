@@ -6,6 +6,18 @@
     ViewData["NavIcon"] = "ClientAdmin";
 }
 
+@section CSS {
+
+<environment names="Development,CI">
+    <link rel="stylesheet" href="~/lib/selectize/dist/css/selectize.default.css" />
+</environment>
+<environment names="Staging,Production">
+    <link rel="stylesheet" href="~/lib/selectize/dist/css/selectize.default.min.css" />
+</environment>
+
+
+}
+
 <h2 class="page-title">Client Admin</h2>
 
 <div class="row">
@@ -302,12 +314,14 @@
     @Html.Partial("~/Views/ClientAdmin/templates/_ClientNode.cshtml")
 
     <environment names="Development,CI">
+        <script src="~/lib/selectize/dist/js/standalone/selectize.js"></script>
         <script src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
         <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
         <script src="~/lib/bootbox.js/bootbox.js"></script>
         <script src="~/js/client-admin.js"></script>
     </environment>
     <environment names="Staging,Production">
+        <script src="~/lib/selectize/dist/js/standalone/selectize.min.js"></script>
         <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
         <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
         <script src="~/lib/bootbox.js/bootbox.min.js"></script>
