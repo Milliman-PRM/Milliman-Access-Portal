@@ -58,10 +58,9 @@ namespace MapTests
         public void Index_ReturnsAViewResult()
         {
             // Reference https://msdn.microsoft.com/en-us/library/dn314429(v=vs.113).aspx
-            
-            #region Mock Context
-            // Had to implement a parameterless constructor in the context class, I hope this doesn't cause any problem in EF
-            var MockContext = TestInitialization.GenerateStandardDataset().Object;
+
+            #region Arrange
+            var MockContext = TestInitialization.GenerateTestDataset(new DataSelection[] { DataSelection.Basic }).Object;
 
             StandardQueries QueriesObj = new StandardQueries(MockContext, MockUserManager.Object);
 

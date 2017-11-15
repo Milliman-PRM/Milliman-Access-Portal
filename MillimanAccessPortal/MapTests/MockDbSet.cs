@@ -23,7 +23,7 @@ namespace MapTests
 
             // Setup mocked object methods to interact with persisted data
             Set.Setup(d => d.Add(It.IsAny<T>())).Callback<T>((s) => Data.Add(s));
-            Set.Setup(d => d.AddRange(It.IsAny<T[]>())).Callback<T[]>((s) => Data.AddRange(s));
+            Set.Setup(d => d.AddRange(It.IsAny<IEnumerable<T>>())).Callback<IEnumerable<T>>((s) => Data.AddRange(s));
             Set.Setup(d => d.Remove(It.IsAny<T>())).Callback<T>((s) => Data.Remove(s));
             Set.Setup(d => d.Update(It.IsAny<T>())).Callback<T>((s) => ReplaceGenericListElement(s, Data, "Id"));
 
