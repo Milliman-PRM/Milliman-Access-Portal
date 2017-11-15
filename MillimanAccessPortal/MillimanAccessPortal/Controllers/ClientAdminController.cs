@@ -614,7 +614,7 @@ namespace MillimanAccessPortal.Controllers
                 ExistingClientRecord.ConsultantOffice = Model.ConsultantOffice;
                 ExistingClientRecord.AcceptedEmailDomainList = Model.AcceptedEmailDomainList;
                 ExistingClientRecord.AcceptedEmailAddressExceptionList = Model.AcceptedEmailAddressExceptionList;
-                //Currently not supported:  ExistingClientRecord.ParentClientId = Model.ParentClientId;
+                //Not supported:  ExistingClientRecord.ParentClientId = Model.ParentClientId;
                 ExistingClientRecord.ProfitCenterId = Model.ProfitCenterId;
 
                 DbContext.Client.Update(ExistingClientRecord);

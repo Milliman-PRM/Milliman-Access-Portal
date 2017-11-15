@@ -124,7 +124,7 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 UriBuilder ContentUri = ContentSpecificHandler.GetContentUri(AuthorizedUserGroup, HttpContext, QlikviewConfig);
-                RootContentItem Content = DataContext.RootContentItem.Where(r => r.Id == Id).First();
+                RootContentItem Content = DataContext.RootContentItem.Where(r => r.Id == AuthorizedUserGroup.RootContentItemId).First();
 
                 HostedContentViewModel ResponseModel = new HostedContentViewModel
                 {
