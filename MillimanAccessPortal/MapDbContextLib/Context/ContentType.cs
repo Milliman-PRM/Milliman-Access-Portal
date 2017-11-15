@@ -14,6 +14,7 @@ namespace MapDbContextLib.Context
 {
     public class ContentType
     {
+        [Key]
         public long Id { get; set; }
 
         /// <summary>

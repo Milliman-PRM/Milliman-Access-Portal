@@ -10,20 +10,22 @@ namespace MapDbContextLib.Context
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, long>
     {
-        public DbSet<Client> Client { get; set; }
-        public DbSet<UserAuthorizationToClient> UserRoleForClient { get; set; }
-        public DbSet<UserInContentItemUserGroup> UserRoleForContentItemUserGroup { get; set; }
-        public DbSet<ContentItemUserGroup> ContentItemUserGroup { get; set; }
-        public DbSet<RootContentItem> RootContentItem { get; set; }
-        public DbSet<HierarchyField> HierarchyField { get; set; }
-        public DbSet<HierarchyFieldValue> HierarchyFieldValue { get; set; }
-        public DbSet<ContentType> ContentType { get; set; }
-        public DbSet<ProfitCenter> ProfitCenter { get; set; }
+        public virtual DbSet<Client> Client { get; set; }
+        public virtual DbSet<UserAuthorizationToClient> UserRoleForClient { get; set; }
+        public virtual DbSet<UserInContentItemUserGroup> UserRoleForContentItemUserGroup { get; set; }
+        public virtual DbSet<ContentItemUserGroup> ContentItemUserGroup { get; set; }
+        public virtual DbSet<RootContentItem> RootContentItem { get; set; }
+        public virtual DbSet<HierarchyField> HierarchyField { get; set; }
+        public virtual DbSet<HierarchyFieldValue> HierarchyFieldValue { get; set; }
+        public virtual DbSet<ContentType> ContentType { get; set; }
+        public virtual DbSet<ProfitCenter> ProfitCenter { get; set; }
 
         // Alteration of Identity entities
-        public DbSet<ApplicationUser> ApplicationUser { get; set; }
-        public DbSet<ApplicationRole> ApplicationRole { get; set; }
+        public virtual DbSet<ApplicationUser> ApplicationUser { get; set; }
+        public virtual DbSet<ApplicationRole> ApplicationRole { get; set; }
 
+        // Had to implement this parameterless constructor for Mocking in unit tests, I hope this doesn't cause any problem in EF
+        public ApplicationDbContext() { }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)

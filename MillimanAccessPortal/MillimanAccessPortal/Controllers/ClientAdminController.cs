@@ -15,6 +15,7 @@ using System.Security.Claims;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapCommonLib;
+using MillimanAccessPortal.DataQueries;
 using AuditLogLib;
 using AuditLogLib.Services;
 using MillimanAccessPortal.Models.ClientAdminViewModels;
@@ -26,16 +27,16 @@ namespace MillimanAccessPortal.Controllers
     {
         private readonly ApplicationDbContext DbContext;
         private readonly UserManager<ApplicationUser> UserManager;
-        private readonly RoleManager<ApplicationRole> RoleManager;
-        private readonly IServiceProvider ServiceProvider;
+        private readonly StandardQueries Queries;
         private readonly IAuthorizationService AuthorizationService;
         private readonly ILogger Logger;
         private readonly IAuditLogger AuditLogger;
+        private readonly RoleManager<ApplicationRole> RoleManager;
 
         public ClientAdminController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> UserManagerArg,
-            IServiceProvider ServiceProviderArg,
+            StandardQueries QueryArg,
             IAuthorizationService AuthorizationServiceArg,
             ILoggerFactory LoggerFactoryArg,
             IAuditLogger AuditLoggerArg,
@@ -44,7 +45,7 @@ namespace MillimanAccessPortal.Controllers
         {
             DbContext = context;
             UserManager = UserManagerArg;
-            ServiceProvider = ServiceProviderArg;
+            Queries = QueryArg;
             AuthorizationService = AuthorizationServiceArg;
             Logger = LoggerFactoryArg.CreateLogger<ClientAdminController>();
             AuditLogger = AuditLoggerArg;
@@ -123,11 +124,11 @@ namespace MillimanAccessPortal.Controllers
             // Assign the remaining assigned user properties
             foreach (UserInfo Item in Model.AssignedUsers)
             {
-                Item.UserRoles = new StandardQueries(ServiceProvider).GetUserRolesForClient(Item.Id, ThisClient.Id);
+                List<Client> AuthorizedClients = Queries.GetListOfClientsUserIsAuthorizedToManage(UserManager.GetUserName(HttpContext.User));
             }
 
             // Get all users currently member of any related Client (any descendant of the root client)
-            List<Client> AllRelatedClients = new StandardQueries(ServiceProvider).GetAllRelatedClients(ThisClient);
+            List<Client> AllRelatedClients = Queries.GetAllRelatedClients(ThisClient);
             List<ApplicationUser> UsersAssignedToClientFamily = new List<ApplicationUser>();
             foreach (Client OneClient in AllRelatedClients)
             {
@@ -152,7 +153,7 @@ namespace MillimanAccessPortal.Controllers
             // Assign the remaining assigned user properties
             foreach (UserInfo Item in Model.EligibleUsers)
             {
-                Item.UserRoles = new StandardQueries(ServiceProvider).GetUserRolesForClient(Item.Id, ThisClient.Id);
+                Item.UserRoles = Queries.GetUserRolesForClient(Item.Id, ThisClient.Id);
             }
 
             // Subtract the assigned users from the overall list of eligible users
@@ -673,10 +674,10 @@ namespace MillimanAccessPortal.Controllers
             ClientAdminIndexViewModel ModelToReturn = new ClientAdminIndexViewModel();
 
             // Add all appropriate client trees
-            List<Client> AllRootClients = new StandardQueries(ServiceProvider).GetAllRootClients();  // list to memory so utilization is fast and no lingering transaction
+            List<Client> AllRootClients = Queries.GetAllRootClients();  // list to memory so utilization is fast and no lingering transaction
             foreach (Client C in AllRootClients.OrderBy(c => c.Name))
             {
-                ClientAndChildrenModel ClientModel = new StandardQueries(ServiceProvider).GetDescendentFamilyOfClient(C, CurrentUser, true);
+                ClientAndChildrenModel ClientModel = Queries.GetDescendentFamilyOfClient(C, CurrentUser, true);
                 if (ClientModel.IsThisOrAnyChildManageable())
                 {
                     ModelToReturn.ClientTree.Add(ClientModel);

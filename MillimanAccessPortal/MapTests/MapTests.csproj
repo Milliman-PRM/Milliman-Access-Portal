@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>    
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
+    <PackageReference Include="Moq" Version="4.7.145" />
+    <PackageReference Include="xunit" Version="2.2.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AuditLogLib\AuditLogLib.csproj" />
+    <ProjectReference Include="..\EmailQueue\EmailQueue.csproj" />
+    <ProjectReference Include="..\MapCommonLib\MapCommonLib.csproj" />
+    <ProjectReference Include="..\MapDbContextLib\MapDbContextLib.csproj" />
+    <ProjectReference Include="..\MillimanAccessPortal\MillimanAccessPortal.csproj" />
+    <ProjectReference Include="..\QlikviewLib\QlikviewLib.csproj" />
+  </ItemGroup>
+
+</Project>

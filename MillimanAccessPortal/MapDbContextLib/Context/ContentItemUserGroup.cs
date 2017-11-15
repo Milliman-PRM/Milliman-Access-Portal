@@ -12,6 +12,7 @@ namespace MapDbContextLib.Context
 {
     public class ContentItemUserGroup
     {
+        [Key]
         public long Id { get; set; }
 
         [Required]

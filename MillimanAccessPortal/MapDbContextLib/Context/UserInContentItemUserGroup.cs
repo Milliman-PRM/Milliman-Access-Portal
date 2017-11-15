@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: 
  */
 
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using MapDbContextLib.Identity;
 
@@ -11,6 +12,7 @@ namespace MapDbContextLib.Context
 {
     public class UserInContentItemUserGroup
     {
+        [Key]
         public long Id { get; set; }
 
         [ForeignKey("ContentItemUserGroup")]

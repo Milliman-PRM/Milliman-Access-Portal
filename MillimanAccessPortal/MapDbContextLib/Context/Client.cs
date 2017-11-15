@@ -17,6 +17,7 @@ namespace MapDbContextLib.Context
             AcceptedEmailAddressExceptionList = new string[0];
         }
 
+        [Key]
         public long Id { get; set; }
 
         [Required]
