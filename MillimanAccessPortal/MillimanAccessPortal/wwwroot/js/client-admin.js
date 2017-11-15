@@ -157,6 +157,8 @@ function removeClientInserts() {
 }
 
 function clearFormData() {
+    $('#client-form #AcceptedEmailDomainList').selectize.clear();
+    $('#client-form #AcceptedEmailDomainList').selectize.clearOptions();
     $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').attr('data-original-value', '');
     $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').val("");
 }
