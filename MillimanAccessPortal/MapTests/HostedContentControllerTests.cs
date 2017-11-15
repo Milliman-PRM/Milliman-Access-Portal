@@ -119,16 +119,5 @@ namespace MapTests
             // TODO: Boilerplate. Remove when the test is written.
             throw new NotImplementedException();
         }
-
-        private List<ApplicationRole> GetSystemRolesList()
-        {
-            List<ApplicationRole> ReturnList = new List<ApplicationRole>();
-
-            foreach (var x in ApplicationRole.MapRoles)
-            {
-                ReturnList.Add(new ApplicationRole { Id = (long)x.Key, RoleEnum = x.Key, Name = x.Value, NormalizedName = x.Value.ToString() });
-            }
-            return ReturnList;
-        }
     }
 }
