@@ -69,9 +69,10 @@
         </div>
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Create" class="btn btn-default" />
+                <input type="submit" value="Create" class="btn btn-default" onclick="submitSaveNewUser(event)"/>
             </div>
         </div>
+
     </div>
 </form>
 
@@ -112,6 +113,37 @@
                 }
             });
         });
+
+    function submitSaveNewUser(event) {
+
+        event.preventDefault();
+
+        var form = $('form');
+        var email = $('#Email').val();
+        var userName = $('#UserName').val();
+        var firstName = $('#FirstName').val();
+        var lastName = $('#LastName').val();
+        var phoneNumber = $('#PhoneNumber').val();
+        var employer = $('#Employer').val();
+        var urlAction = 'SaveNewUser';
+        var successResponse, failResponse;
+
+        $.ajax({
+            type: 'POST',
+            url: urlAction,
+            data: form.serialize(),
+            headers: {
+                'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
+            },
+        }).done(function (response) {
+            var d = response
+            //toastr['success'](successResponse);
+        }).fail(function (response) {
+            var f = response
+            //toastr["warning"](failResponse);
+        })
+
+    }
 
 </script>
 

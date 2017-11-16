@@ -69,6 +69,7 @@ namespace MillimanAccessPortal.Controllers
         // GET: UserAdmin/Create
         public ActionResult Create()
         {
+            // NEXT TODO return a ViewModel with the list of clients the current user is authorized to admin
             return View();
         }
 
@@ -126,14 +127,14 @@ namespace MillimanAccessPortal.Controllers
                     MessageQueueService.QueueEmail(Model.Email, "Welcome to Milliman blah blah", "Message text");
 
                     // TODO: Add a success message to Index
-                    return RedirectToAction("Index");
+                    return Ok("New User saved successfully");
                 }
                 else
                 {
                     string ErrMsg = $"Failed to store new user \"{Model.UserName}\" ";
                     _logger.LogError(ErrMsg);
                     //return View();
-                    return Content(ErrMsg);
+                    return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
                 }
                 
             }
@@ -146,7 +147,7 @@ namespace MillimanAccessPortal.Controllers
                     e = e.InnerException;
                 }
                 _logger.LogError(ErrMsg);
-                return View();
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
         }
 
