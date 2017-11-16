@@ -20,6 +20,7 @@ using Microsoft.Extensions.Logging;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MillimanAccessPortal.Services;
+using MillimanAccessPortal.DataQueries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using QlikviewLib;
@@ -81,7 +82,7 @@ namespace MillimanAccessPortal
                 {
                     options.LoginPath = "/Account/LogIn";
                     options.LogoutPath = "/Account/LogOut";
-                    options.ExpireTimeSpan = TimeSpan.FromDays(150);  // TODO consider what is the right cookie expiration
+                    options.ExpireTimeSpan = TimeSpan.FromDays(150);
                 }
             );
 
@@ -115,6 +116,7 @@ namespace MillimanAccessPortal
 
             // Add application services.
             services.AddTransient<MessageQueueServices>();
+            services.AddScoped<StandardQueries>();
             //services.AddTransient<IEmailSender, AuthMessageSender>();
             //services.AddTransient<ISmsSender, AuthMessageSender>();
         }

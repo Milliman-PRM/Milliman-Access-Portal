@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Authorization;
+using MillimanAccessPortal.DataQueries;
 
 
 namespace MillimanAccessPortal.Controllers
@@ -32,7 +33,7 @@ namespace MillimanAccessPortal.Controllers
         private ApplicationDbContext DataContext = null;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly ILogger Logger;
-        private readonly IServiceProvider ServiceProvider;
+        private readonly StandardQueries Queries;
 
         /// <summary>
         /// Constructor.  Makes instance copies of injected resources from the application. 
@@ -46,13 +47,13 @@ namespace MillimanAccessPortal.Controllers
             UserManager<ApplicationUser> UserManagerArg,
             ILoggerFactory LoggerFactoryArg,
             ApplicationDbContext DataContextArg,
-            IServiceProvider ServiceProviderArg)
+            StandardQueries QueryArg)
         {
             QlikviewConfig = QlikviewOptionsAccessorArg.Value;
             UserManager = UserManagerArg;
             Logger = LoggerFactoryArg.CreateLogger<HostedContentController>();
             DataContext = DataContextArg;
-            ServiceProvider = ServiceProviderArg;
+            Queries = QueryArg;
         }
 
         /// <summary>
@@ -62,7 +63,7 @@ namespace MillimanAccessPortal.Controllers
         [Authorize]
         public IActionResult Index()
         {
-            List<HostedContentViewModel> ModelForView = new StandardQueries(ServiceProvider).GetAuthorizedUserGroupsAndRoles(UserManager.GetUserName(HttpContext.User));
+            List<HostedContentViewModel> ModelForView = Queries.GetAuthorizedUserGroupsAndRoles(UserManager.GetUserName(HttpContext.User));
 
             return View(ModelForView);
         }
@@ -80,7 +81,7 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 // Get the requested (by id) ContentItemUserGroup object
-                ContentItemUserGroup AuthorizedUserGroup = new StandardQueries(ServiceProvider).GetUserGroupIfAuthorizedToRole(UserManager.GetUserName(HttpContext.User), Id, RoleEnum.ContentUser);
+                ContentItemUserGroup AuthorizedUserGroup = Queries.GetUserGroupIfAuthorizedToRole(UserManager.GetUserName(HttpContext.User), Id, RoleEnum.ContentUser);
 
                 if (AuthorizedUserGroup == null)
                 {

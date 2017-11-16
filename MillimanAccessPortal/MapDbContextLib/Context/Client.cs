@@ -18,6 +18,7 @@ namespace MapDbContextLib.Context
             AcceptedEmailAddressExceptionList = new string[0];
         }
 
+        [Key]
         [HiddenInput]
         [Display(Name = "Client ID")]
         public long Id { get; set; }

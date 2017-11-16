@@ -10,6 +10,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,6 +52,10 @@ namespace MapDbContextLib.Identity
         public ApplicationRole() : base() { }
 
         public ApplicationRole(string RoleName) : base(RoleName) { }
+
+        /// This overide is here only to apply the explicit [Key] attribute, required in unit tests
+        [Key]
+        public override long Id { get; set; }
 
         [NotMapped]
         public RoleEnum RoleEnum
