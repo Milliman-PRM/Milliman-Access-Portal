@@ -1,4 +1,14 @@
-﻿using MapDbContextLib.Identity;
+﻿/*
+ * CODE OWNERS: Tom Puckett, 
+ * OBJECTIVE: A class representing a user without sensitive fields
+ * DEVELOPER NOTES: 
+ */
+
+using System.Security.Claims;
+using System.Linq;
+using Microsoft.AspNetCore.Identity;
+using MapDbContextLib.Identity;
+using MapDbContextLib.Context;
 
 namespace MillimanAccessPortal.Models.UserAdminViewModels
 {
@@ -8,9 +18,14 @@ namespace MillimanAccessPortal.Models.UserAdminViewModels
     public class ApplicationUserViewModel
     {
         public ApplicationUserViewModel()
-        {}
+        { }
 
-        public ApplicationUserViewModel(ApplicationUser UserArg)
+        /// <summary>
+        /// Type conversion constructor, converts an ApplicationUser to this type
+        /// </summary>
+        /// <param name="UserArg"></param>
+        /// <param name="userManager">Provide this if an array of client membership Ids is to be assigned</param>
+        public ApplicationUserViewModel(ApplicationUser UserArg, UserManager<ApplicationUser> userManager = null)
         {
             Id = UserArg.Id;
             UserName = UserArg.UserName;
@@ -19,6 +34,20 @@ namespace MillimanAccessPortal.Models.UserAdminViewModels
             LastName = UserArg.LastName;
             PhoneNumber = UserArg.PhoneNumber;
             Employer = UserArg.Employer;
+
+            if (userManager != null)
+            {
+                long ClientIdOfClaim;
+                MemberOfClientIdArray = userManager.GetClaimsAsync(UserArg)
+                                               .Result
+                                               .Where(c => c.Type == ClaimNames.ClientMembership.ToString())
+                                               .Select(c =>
+                                                    {
+                                                        long.TryParse(c.Value, out ClientIdOfClaim);
+                                                        return ClientIdOfClaim;
+                                                    })
+                                               .ToArray();
+            }
         }
 
         public long Id { get; set; }
@@ -34,6 +63,8 @@ namespace MillimanAccessPortal.Models.UserAdminViewModels
         public string PhoneNumber { get; set; }
 
         public string Employer { get; set; }
+
+        public long[] MemberOfClientIdArray { get; set; }
 
     }
 }

@@ -52,7 +52,7 @@ namespace MillimanAccessPortal.Controllers
         public ActionResult Index()
         {
             List<ApplicationUserViewModel> Model = _userManager.Users.ToList()
-                .Select(u => new ApplicationUserViewModel(u)).ToList();
+                .Select(u => new ApplicationUserViewModel(u, _userManager)).ToList();
 
             return View(Model);
         }
@@ -72,10 +72,10 @@ namespace MillimanAccessPortal.Controllers
             return View();
         }
 
-        // POST: UserAdmin/Create
+        // POST: UserAdmin/SaveNewUser
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task <ActionResult> Create(ApplicationUserViewModel Model)
+        public async Task <ActionResult> SaveNewUser(ApplicationUserViewModel Model)
         {
             try
             {
