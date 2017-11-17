@@ -8,8 +8,9 @@ function getClientTree() {
         'url': 'ClientAdmin/ClientFamilyList/'
     }).done(function (response) {
         clientTree = response.ClientTree;
+        console.log(response);
         populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
-        renderClientTree();
+        renderClientTree(response.RelevantClientId);
     }).fail(function (response) {
         if (response.status == 401) {
             toastr['error']('You are not authorized to view any clients');
@@ -17,24 +18,10 @@ function getClientTree() {
         else {
             toaster['error']('An error has occurred');
         }
-    }).always(function () {
-        applyClickEvents();
     });
 
-}
 
-function applyClickEvents() {
-    $('div.client-admin-card').on('click', function () {
-        GetClientDetail($(this));
-    });
-    $('div.card-button-background-edit').on('click', function (event) {
-        EditClientDetail($(this).parents('div[data-client-id]'));
-        event.stopPropagation();
-    });
-    $('div.card-button-background-add').on('click', function (event) {
-        newChildClientFormSetup($(this).parents('div[data-client-id]'));
-        event.stopPropagation();
-    });
+
 }
 
 function populateProfitCenterDropDown(profitCenters) {
@@ -64,7 +51,7 @@ function GetClientDetail(clientDiv) {
         },
     }).done(function (response) {
         populateClientDetails(response.ClientEntity);
-        console.log(response.AssignedUsers);
+        //console.log(response.AssignedUsers);
         // Change the dom to reflect the selected client
         clearSelectedClient()
         clientDiv.addClass('selected');
@@ -231,12 +218,26 @@ function populateClientDetails(ClientEntity) {
     });
 };
 
-function renderClientTree() {
+function renderClientTree(clientId) {
     $('#client-tree-list').empty();
     clientTree.forEach(function (rootClient) {
         renderClientNode(rootClient, 1);
         $('#client-tree-list').append('<li class="hr col-xs-12"></li>');
     });
+    $('div.client-admin-card').on('click', function () {
+        GetClientDetail($(this));
+    });
+    $('div.card-button-background-edit').on('click', function (event) {
+        EditClientDetail($(this).parents('div[data-client-id]'));
+        event.stopPropagation();
+    });
+    $('div.card-button-background-add').on('click', function (event) {
+        newChildClientFormSetup($(this).parents('div[data-client-id]'));
+        event.stopPropagation();
+    });
+    if (clientId) {
+        $('[data-client-id="' + clientId + '"]').click();
+    }
 };
 
 function renderClientNode(client, level) {
@@ -370,25 +371,13 @@ function removeClientNode(clientId, clientName, password) {
             'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
         },
     }).done(function (response) {
-        recursiveClientNodeSearch(clientTree, clientId);
-        renderClientTree();
+        clientTree = response.ClientTree;
+        renderClientTree(response.RelevantClientId);
         toastr['success'](clientName + " was successfully deleted.");
     }).fail(function (response) {
         toastr["warning"](response.getResponseHeader("Warning"));
     })
 };
-
-function recursiveClientNodeSearch(array, clientId) {
-    for (var i = 0; i < array.length; i++) {
-        if (array[i].ClientEntity.Id == clientId) {
-            array.splice(i, 1);
-            return;
-        }
-        if (array[i].children.length > 0) {
-            recursiveClientNodeSearch(array[i].children, clientId);
-        }
-    }
-}
 
 function searchClientTree(searchString) {
     var searchString = searchString.toUpperCase();
@@ -456,8 +445,7 @@ function submitClientForm(event) {
         hideClientForm();
         clearFormData();
         clientTree = response.ClientTree;
-        renderClientTree();
-        applyClickEvents();
+        renderClientTree(response.RelevantClientId);
         toastr['success'](successResponse);
         $('div.client-admin-card[data-client-id="' + clientId + '"]').click();
     }).fail(function (response) {
