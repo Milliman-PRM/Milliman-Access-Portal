@@ -604,7 +604,7 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 // Must update the instance that's tracked by EF, can't update the context with the untracked Model object
-                ExistingClientRecord.Name = Model.ContactEmail;
+                ExistingClientRecord.Name = Model.Name;
                 ExistingClientRecord.ClientCode = Model.ClientCode;
                 ExistingClientRecord.ContactName = Model.ContactName;
                 ExistingClientRecord.ContactTitle = Model.ContactTitle;
