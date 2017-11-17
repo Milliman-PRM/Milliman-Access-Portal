@@ -159,6 +159,8 @@ function removeClientInserts() {
 function clearFormData() {
     $('#client-form #AcceptedEmailDomainList')[0].selectize.clear();
     $('#client-form #AcceptedEmailDomainList')[0].selectize.clearOptions();
+    $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.clear();
+    $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.clearOptions();
     $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').attr('data-original-value', '');
     $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').val("");
 }
@@ -490,7 +492,7 @@ function resetNewClientForm() {
                     if (result) {
                         $('#client-form .input-validation-error').removeClass('input-validation-error');
                         $('#client-form span.field-validation-error > span').remove();
-                        $('#client-form :input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select').val("");
+                        clearFormData();
                     }
                     else {
                         return false;
