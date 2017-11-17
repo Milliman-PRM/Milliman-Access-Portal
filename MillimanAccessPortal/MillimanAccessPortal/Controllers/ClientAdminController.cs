@@ -93,7 +93,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public IActionResult ClientDetail(long? id)
         {
-            Client ThisClient = DbContext.Client.Find(id);
+            Client ThisClient = DbContext.Client.Include(c => c.ProfitCenter).FirstOrDefault(c => c.Id == id);
 
             #region Preliminary Validation
             if (ThisClient == null)
