@@ -114,15 +114,9 @@ namespace MillimanAccessPortal.DataQueries
             ResultObject.AssociatedUserCount = UserMembersOfThisClient.Count;
             ResultObject.CanManage = DataContext.UserRoleForClient
                                                 .Include(URCMap => URCMap.Role)
-                                                .Include(URCMap => URCMap.User)
-                                                .Join(DataContext.UserClaims, URCMap => URCMap.UserId, claim => claim.UserId, (URCMap, claim) => new { URCMap = URCMap, Claim = claim })
-                                                .SingleOrDefault(rec => rec.URCMap.UserId == CurrentUser.Id
-                                                                     && rec.URCMap.Role.RoleEnum == RoleEnum.ClientAdmin
-                                                                     && rec.URCMap.ClientId == ClientArg.Id
-                                                                     // verify that the user has a claim of ProfitCenterManager to the ProfitCenter of the client
-                                                                     && rec.Claim.ClaimType == ClaimNames.ProfitCenterManager.ToString()
-                                                                     && rec.Claim.ClaimValue == ClientArg.ProfitCenterId.ToString())
-                                                != null;
+                                                .Any(URCMap => URCMap.UserId == CurrentUser.Id
+                                                            && URCMap.Role.RoleEnum == RoleEnum.ClientAdmin
+                                                            && URCMap.ClientId == ClientArg.Id);
 
             if (RecurseDown)
             {
