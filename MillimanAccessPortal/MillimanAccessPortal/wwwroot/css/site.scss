@@ -76,7 +76,6 @@ select {
     }
 
     &:disabled {
-        font-size-adjust: 1.1;
         font-weight: bold;
         border: none !important;
         background-color: transparent !important;
@@ -101,17 +100,19 @@ input:-webkit-autofill {
 }
 
 div.selectize-input {
+    color: #555;
     min-height: 40px;
     border-radius: 5px;
     transition: border 0.2s;
+    padding: 2px 5px;
 
     &.disabled {
-        font-size-adjust: 1.1;
         font-weight: bold;
         border: none !important;
-        background-color: $background !important;
+        background-color: transparent !important;
         box-shadow: none;
         cursor: default !important;
+        opacity: 1 !important;
         -moz-appearance: none !important;
         -webkit-appearance: none !important;
 
@@ -119,11 +120,18 @@ div.selectize-input {
             background: $button-disabled !important;
             color: $disabled-text-color !important;
             border: none !important;
-            
+            font-size: 14px;
+            z-index: 99;
+            opacity: 1;
+
             a.remove {
                 display: none;
             }
         }
+    }
+
+    input {
+        height: 30px;
     }
 }
 
