@@ -37,16 +37,15 @@ namespace MillimanAccessPortal.Models.UserAdminViewModels
 
             if (userManager != null)
             {
-                long ClientIdOfClaim;
                 MemberOfClientIdArray = userManager.GetClaimsAsync(UserArg)
-                                               .Result
-                                               .Where(c => c.Type == ClaimNames.ClientMembership.ToString())
-                                               .Select(c =>
-                                                    {
-                                                        long.TryParse(c.Value, out ClientIdOfClaim);
-                                                        return ClientIdOfClaim;
-                                                    })
-                                               .ToArray();
+                                                   .Result
+                                                   .Where(c => c.Type == ClaimNames.ClientMembership.ToString())
+                                                   .Select(c =>
+                                                        {
+                                                            long.TryParse(c.Value, out long ClientIdOfClaim);
+                                                            return ClientIdOfClaim;
+                                                        })
+                                                   .ToArray();
             }
         }
 
@@ -64,7 +63,7 @@ namespace MillimanAccessPortal.Models.UserAdminViewModels
 
         public string Employer { get; set; }
 
-        public long[] MemberOfClientIdArray { get; set; }
+        public long[] MemberOfClientIdArray { get; set; } = new long[0];
 
     }
 }
