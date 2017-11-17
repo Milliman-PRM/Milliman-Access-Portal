@@ -494,10 +494,8 @@ Client Admin Styling
         background-color: $card-selected-background-color;
     }
 
-
     &.editing {
     }
-
 
     .client-admin-card-title {
         margin: 5px 0;
@@ -606,6 +604,24 @@ Client Admin Styling
     .left-icon {
         display: inline;
         height: 100%;
+    }
+
+    &.action-card {
+        color: #777;
+
+        .center-text-card {
+            text-align: center;
+            margin: 15px 0;
+
+            i {
+                vertical-align: middle;
+            }
+
+        }
+
+        &:hover {
+            color: #424242;
+        }
     }
 }
 

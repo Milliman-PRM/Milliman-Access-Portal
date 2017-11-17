@@ -1,5 +1,6 @@
 ﻿var clientNodeTemplate = $('script[data-template="clientNode"]').html();
 var childNodePlaceholder = $('script[data-template="childNodePlaceholder"]').html();
+var clientCard = $('script[data-template="createNewClientCard"]').html();
 var clientTree;
 
 function getClientTree() {
@@ -240,6 +241,9 @@ function renderClientTree(clientId) {
     });
     if (clientId) {
         $('[data-client-id="' + clientId + '"]').click();
+    }
+    if ($('#add-client-icon').length) {
+        $('#client-tree-list').append(clientCard);
     }
 };
 
