@@ -8,7 +8,6 @@ function getClientTree() {
         'url': 'ClientAdmin/ClientFamilyList/'
     }).done(function (response) {
         clientTree = response.ClientTree;
-        console.log(response);
         populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
         renderClientTree(response.RelevantClientId);
     }).fail(function (response) {
@@ -196,9 +195,13 @@ function hideClientForm() {
 
 function populateClientDetails(ClientEntity) {
     $('#client-form :input, #client-form select').removeAttr('data-original-value');
+    $('#client-form #ProfitCenterId option[temporary-profitcenter]').remove();
     $.each(ClientEntity, function (key, value) {
         var ctrl = $('#' + key, '#client-info');
         if (ctrl.is('select')) {
+            if ($('#client-form #' + key + ' option[value="' + value + '"]').length == 0) {
+                $('#' + key).append($("<option temporary-profitcenter />").val(ClientEntity.ProfitCenterId).text(ClientEntity.ProfitCenter.Name + ' (' + ClientEntity.ProfitCenter.ProfitCenterCode + ')'));
+            }
             ctrl.val(value).change();
         }
         else if (ctrl.hasClass('selectize-custom-input')) {
