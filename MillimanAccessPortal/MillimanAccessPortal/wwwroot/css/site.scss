@@ -487,6 +487,10 @@ Client Admin Styling
     &.disabled {
         color: $text-disabled !important;
         background-color: $button-disabled !important;
+
+        &.selected {
+            border: 5px solid $card-selected-background-color;
+        }
     }
 
     &.selected {
@@ -616,7 +620,6 @@ Client Admin Styling
             i {
                 vertical-align: middle;
             }
-
         }
 
         &:hover {
