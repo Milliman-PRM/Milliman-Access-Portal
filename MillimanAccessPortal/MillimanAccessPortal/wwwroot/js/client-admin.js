@@ -383,6 +383,8 @@ function removeClientNode(clientId, clientName, password) {
     }).done(function (response) {
         clientTree = response.ClientTree;
         renderClientTree(response.RelevantClientId);
+        clearFormData();
+        hideClientForm();
         toastr['success'](clientName + " was successfully deleted.");
     }).fail(function (response) {
         toastr["warning"](response.getResponseHeader("Warning"));
