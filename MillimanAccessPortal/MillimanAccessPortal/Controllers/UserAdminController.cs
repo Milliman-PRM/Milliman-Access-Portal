@@ -62,7 +62,7 @@ namespace MillimanAccessPortal.Controllers
         {
             ApplicationUser user = await _userManager.FindByIdAsync(id);
 
-            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(user, ApplicationRole.MapRoles[RoleEnum.SystemAdmin]);
+            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(user, RoleEnum.Admin.ToString());
             return View(user);
         }
 
@@ -177,7 +177,7 @@ namespace MillimanAccessPortal.Controllers
         {
             ApplicationUser user = await _userManager.FindByIdAsync(id);
 
-            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(user, ApplicationRole.MapRoles[RoleEnum.SystemAdmin]);
+            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(user, RoleEnum.Admin.ToString());
             return View(user);
         }
 
@@ -265,7 +265,7 @@ namespace MillimanAccessPortal.Controllers
                 await _userManager.UpdateAsync(ExistingUser);
 
                 // Process Super User checkbox
-                if (await _userManager.IsInRoleAsync(await _userManager.GetUserAsync(HttpContext.User), ApplicationRole.MapRoles[RoleEnum.SystemAdmin]))
+                if (await _userManager.IsInRoleAsync(await _userManager.GetUserAsync(HttpContext.User), RoleEnum.Admin.ToString()))
                 {
                     // The checkbox returns "true,false" or "false,true" if you change the value. The first one is the new value, so we need to grab it.
 

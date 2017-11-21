@@ -22,28 +22,22 @@ namespace MapDbContextLib.Identity
     public enum RoleEnum : long  // Inherited type must be same as ApplicationRole.Id
     {
         // Important: Existing numeric values must never be reassigned to a new meaning.  Always add a new role as a new, explicit, higher value. 
-        SystemAdmin = 1,
-        ClientAdmin = 2,
+        Admin = 1,
+        UserCreator = 2,
         UserAdmin = 3,
-        ContentPublisher = 4,
+        ContentAdmin = 4,
         ContentUser = 5,
-        RootClientCreator = 6,
-        UserCreator = 7,
-        ContentAdmin = 8,
     };
 
     public class ApplicationRole : IdentityRole<long>
     {
         public readonly static Dictionary<RoleEnum,string> MapRoles = new Dictionary<RoleEnum, string>
             {
-                {RoleEnum.SystemAdmin, "System Administrator"},
-                {RoleEnum.ClientAdmin, "Client Administrator"},
-                {RoleEnum.UserAdmin, "User Administrator"},
-                {RoleEnum.ContentPublisher, "Content Publisher"},
-                {RoleEnum.ContentUser, "Content User"},
-                {RoleEnum.RootClientCreator, "Root Client Creator"},
+                {RoleEnum.Admin, "Administrator"},
                 {RoleEnum.UserCreator, "User Creator"},
+                {RoleEnum.UserAdmin, "User Administrator"},
                 {RoleEnum.ContentAdmin, "Content Administrator"},
+                {RoleEnum.ContentUser, "Content User"},
             };
 
         /// <summary>
@@ -81,29 +75,31 @@ namespace MapDbContextLib.Identity
             var roleManager = serviceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
             ApplicationDbContext dbContext = serviceProvider.GetService<ApplicationDbContext>();
 
-            foreach (KeyValuePair<RoleEnum, string> Role in MapRoles)
+            foreach (RoleEnum Role in Enum.GetValues(typeof(RoleEnum)))
             {
-                ApplicationRole RoleFromDb = roleManager.FindByIdAsync(((long)Role.Key).ToString()).Result;
+                string RoleName = Role.ToString();
+                ApplicationRole RoleFromDb = roleManager.FindByIdAsync(((long)Role).ToString()).Result;
                 if (RoleFromDb == null)
                 {
-                    roleManager.CreateAsync(new ApplicationRole { Name = Role.Value, RoleEnum = Role.Key }).Wait();
+                    roleManager.CreateAsync(new ApplicationRole { Name = RoleName, RoleEnum = Role }).Wait();
                 }
-                else if (RoleFromDb.Name != Role.Value)
+                else if (RoleFromDb.Name != RoleName)
                 {
-                    RoleFromDb.Name = Role.Value;
+                    RoleFromDb.Name = RoleName;
                     roleManager.UpdateAsync(RoleFromDb).Wait();
                 }
             }
 
             // Read back all role records from persistence
-            Dictionary<RoleEnum, string> FoundRoleNames = new Dictionary<RoleEnum, string>();
+            Dictionary<RoleEnum, string> FoundRolesInDb = new Dictionary<RoleEnum, string>();
             foreach (ApplicationRole R in dbContext.ApplicationRole)
             {
-                FoundRoleNames.Add(R.RoleEnum, R.Name);
+                FoundRolesInDb.Add(R.RoleEnum, R.Name);
             }
 
             // Make sure the database table contains exactly the expected records and no more
-            if (!MapRoles.OrderBy(mr=>mr.Key).SequenceEqual(FoundRoleNames.OrderBy(fr => fr.Key)))
+            var RolesInitialized = Enum.GetValues(typeof(RoleEnum)).Cast<RoleEnum>().OrderBy(r => r).Select(r => new KeyValuePair<RoleEnum, string>(r, r.ToString()));
+            if (!RolesInitialized.SequenceEqual(FoundRolesInDb.OrderBy(fr => fr.Key)))
             {
                 throw new Exception("Failed to correctly initialize Roles in database.");
             }

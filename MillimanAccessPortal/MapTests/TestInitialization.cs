@@ -213,9 +213,9 @@ namespace MapTests
         {
             List<ApplicationRole> ReturnList = new List<ApplicationRole>();
 
-            foreach (var x in ApplicationRole.MapRoles)
+            foreach (RoleEnum x in Enum.GetValues(typeof(RoleEnum)))
             {
-                ReturnList.Add(new ApplicationRole { Id = (long)x.Key, RoleEnum = x.Key, Name = x.Value, NormalizedName = x.Value.ToString() });
+                ReturnList.Add(new ApplicationRole { Id = (long)x, RoleEnum = x, Name = x.ToString(), NormalizedName = x.ToString().ToUpper() });
             }
             return ReturnList;
         }

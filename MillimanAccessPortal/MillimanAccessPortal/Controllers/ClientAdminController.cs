@@ -438,7 +438,7 @@ namespace MillimanAccessPortal.Controllers
                 DbContext.UserRoleForClient.Add(new UserRoleInClient
                     {
                         Client = Model,
-                        Role = RoleManager.FindByNameAsync(ApplicationRole.MapRoles[RoleEnum.ClientAdmin]).Result,
+                        Role = RoleManager.FindByNameAsync(RoleEnum.Admin.ToString()).Result,
                         UserId = GetCurrentApplicationUser().Id
                     });
 
@@ -449,7 +449,7 @@ namespace MillimanAccessPortal.Controllers
                 object LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, };
                 AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New Client Saved", AuditEventId.NewClientSaved, LogDetails, User.Identity.Name, HttpContext.Session.Id));
 
-                LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, User = User.Identity.Name, Role = ApplicationRole.MapRoles[RoleEnum.ClientAdmin] };
+                LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, User = User.Identity.Name, Role = RoleEnum.Admin.ToString() };
                 AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Client Administrator role assigned", AuditEventId.ClientRoleAssigned, LogDetails, User.Identity.Name, HttpContext.Session.Id));
             }
             catch (Exception e)
