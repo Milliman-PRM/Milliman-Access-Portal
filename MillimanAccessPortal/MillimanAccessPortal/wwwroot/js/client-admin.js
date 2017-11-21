@@ -425,6 +425,8 @@ function searchClientTree(searchString) {
 
 function submitClientForm(event) {
 
+    if ($('#client-form').valid()) {
+
     event.preventDefault();
 
     var form = $('#client-form');
@@ -460,6 +462,7 @@ function submitClientForm(event) {
         toastr["warning"](response.getResponseHeader("Warning"));
     })
 
+    }
 }
 
 function resetNewClientForm() {
