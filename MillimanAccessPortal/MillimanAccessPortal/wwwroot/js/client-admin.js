@@ -57,6 +57,9 @@ function GetClientDetail(clientDiv) {
         clientDiv.addClass('selected');
         // Show the form in readonly mode
         makeFormReadOnly();
+        if (clientDiv.hasClass('disabled')) {
+            $('#client-info #edit-client-icon').hide();
+        }
         showClientForm();
 
     }).fail(function (response) {
