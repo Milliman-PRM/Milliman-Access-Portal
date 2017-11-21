@@ -336,22 +336,41 @@
 
             $('#client-form #AcceptedEmailDomainList').selectize({
                 plugins: ['remove_button'],
-                //delimiter: ',',
                 persist: false,
-                create: true
+                create: function (input) {
+                    if (input.match(domainValRegex)) {
+                        return {
+                            value: input,
+                            text: input
+                        };
+                    } else {
+                        bootbox.alert('The Approved Email Domain List only accepts the email domain (e.g. <i>username@@</i><strong><u>domain.com</u></strong>)', function () { 
+                            $('#AcceptedEmailDomainList-selectized').val(input);
+                            $('#client-form #AcceptedEmailDomainList')[0].selectize.unlock();
+                            $('#client-form #AcceptedEmailDomainList')[0].selectize.focus();
+                        });
+                    }
+                }
             });
 
             $('#client-form #AcceptedEmailAddressExceptionList').selectize({
                 plugins: ['remove_button'],
                 delimiter: ',',
                 persist: false,
-                create: true
-                //create: function (input) {
-                //    return {
-                //        value: input,
-                //        text: input
-                //    }
-                //}
+                create: function (input) {
+                    if (input.match(emailValRegex)) {
+                        return {
+                            value: input,
+                            text: input
+                        };
+                    } else {
+                        bootbox.alert('The Approved Email Address Exception List only accepts valid email addresses (e.g. username@domain.com)', function () {
+                            $('#AcceptedEmailAddressExceptionList-selectized').val(input);
+                            $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.unlock();
+                            $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.focus();
+                        });
+                    }
+                }
             });
 
 
