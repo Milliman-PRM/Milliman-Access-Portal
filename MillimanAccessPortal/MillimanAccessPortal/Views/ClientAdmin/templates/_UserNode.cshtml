@@ -1,0 +1,29 @@
+<script type="text/template" data-template="userNode">
+    <li>
+        <div class="col-xs-12 client-admin-card" data-user-id="{{id}}">
+            <div class="client-information">
+                <h3 class="client-admin-card-title">{{name}}</h3>
+                <p class="client-admin-card-clientcode">{{clientCode}}</p>
+            </div>
+            <div class="icon-container">
+                <div class="card-button-background card-button-background-delete">
+                    <i class="fa fa-fw fa-times"></i>
+                </div>
+                <div class="card-button-background card-button-background-edit">
+                    <i class="fa fa-fw fa-wrench"></i>
+                </div>
+            </div>
+        </div>
+    </li>
+</script>
+
+<script type="text/template" data-template="createNewUserCard">
+    <li>
+        <div class="col-xs-12 client-admin-card action-card" onclick="newClientUserSetup()">
+            <h2 class="center-text-card">
+                <i class="fa fa-plus"></i>
+                <span>Add User</span>
+            </h2>
+        </div>
+    </li>
+</script>
