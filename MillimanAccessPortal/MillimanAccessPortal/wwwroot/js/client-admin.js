@@ -183,6 +183,7 @@ function makeFormWriteable() {
 function showClientForm() {
     var showTime = 50;
     $('#client-info').show(showTime, function () {
+        $('#client-form #Name').focus();
         if ($('#client-form #Id').val()) {
             $('#client-users').show(showTime);
         }
@@ -318,7 +319,7 @@ function deleteClient(event, id, name) {
         buttons: {
             confirm: {
                 label: '<i class="fa fa-check"></i> Confirm',
-                className: 'primary-button btn-danger'
+                className: 'primary-button btn btn-danger'
             },
             cancel: {
                 label: 'Cancel',
@@ -336,7 +337,7 @@ function deleteClient(event, id, name) {
                     buttons: {
                         confirm: {
                             label: '<i class="fa fa-trash"></i> DELETE',
-                            className: 'primary-button btn-danger'
+                            className: 'primary-button btn btn-danger'
                         },
                         cancel: {
                             label: 'Cancel',

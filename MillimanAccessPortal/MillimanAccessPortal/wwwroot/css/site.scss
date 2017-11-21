@@ -163,6 +163,14 @@ textarea {
     &:hover {
         background-color: $login-button-hover;
     }
+
+    &.btn-danger {
+        background-color: $button-warning;
+
+        &:hover {
+            background-color: $button-warning-hover;
+        }
+    }
 }
 
 .admin-action-icon {
