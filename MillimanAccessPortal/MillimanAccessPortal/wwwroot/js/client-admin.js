@@ -12,8 +12,8 @@ function getClientTree() {
         populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
         renderClientTree(response.RelevantClientId);
     }).fail(function (response) {
-        if (response.status == 401) {
-            toastr['error']('You are not authorized to view any clients');
+        if (response.getResponseHeader("Warning")) {
+            toastr["warning"](response.getResponseHeader("Warning"));
         }
         else {
             toaster['error']('An error has occurred');
@@ -428,17 +428,15 @@ function submitClientForm(event) {
     var clientId = $('#client-form #Id').val();
     var clientName = $('#client-form #Name').val();
     var urlAction = 'ClientAdmin/';
-    var successResponse, failResponse;
+    var successResponse;
 
     if (clientId) {
         urlAction += 'EditClient';
         successResponse = clientName + ' was successfully updated';
-        failResponse = 'Could not update client information';
     }
     else {
         urlAction += 'SaveNewClient';
         successResponse = clientName + ' was successfully created';
-        failResponse = 'Could not create client';
     }
 
     $.ajax({
@@ -456,7 +454,7 @@ function submitClientForm(event) {
         toastr['success'](successResponse);
         $('div.client-admin-card[data-client-id="' + clientId + '"]').click();
     }).fail(function (response) {
-        toastr["warning"](failResponse);
+        toastr["warning"](response.getResponseHeader("Warning"));
     })
 
 }
