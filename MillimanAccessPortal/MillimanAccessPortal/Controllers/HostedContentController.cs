@@ -81,7 +81,7 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 // Get the requested (by id) ContentItemUserGroup object
-                ContentItemUserGroup AuthorizedUserGroup = Queries.GetUserGroupIfAuthorizedToRole(UserManager.GetUserName(HttpContext.User), Id, RoleEnum.ContentUser);
+                ContentItemUserGroup AuthorizedUserGroup = Queries.GetUserGroupIfAuthorized(UserManager.GetUserName(HttpContext.User), Id);
 
                 if (AuthorizedUserGroup == null)
                 {
@@ -132,7 +132,6 @@ namespace MillimanAccessPortal.Controllers
                     Url = ContentUri.Uri.AbsoluteUri,  // must be absolute because it is used in iframe element
                     UserGroupId = AuthorizedUserGroup.Id,
                     ContentName = Content.ContentName,
-                    RoleNames = new HashSet<string>(),  // empty
                 };
 
                 // Now return the appropriate view for the requested content

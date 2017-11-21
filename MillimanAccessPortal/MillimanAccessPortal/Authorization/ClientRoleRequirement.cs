@@ -24,7 +24,7 @@ namespace MillimanAccessPortal.Authorization
 
         internal override MapAuthorizationRequirementResult EvaluateRequirement(ApplicationUser User, ApplicationDbContext DataContext)
         {
-            IQueryable<UserAuthorizationToClient> Query;
+            IQueryable<UserRoleInClient> Query;
 
             if (ClientId > 0)
             {

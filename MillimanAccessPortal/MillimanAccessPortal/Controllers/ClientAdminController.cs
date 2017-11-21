@@ -435,7 +435,7 @@ namespace MillimanAccessPortal.Controllers
                 DbContext.Client.Add(Model);
 
                 // Add current user's role as ClientAdministrator of new Client to local context
-                DbContext.UserRoleForClient.Add(new UserAuthorizationToClient
+                DbContext.UserRoleForClient.Add(new UserRoleInClient
                     {
                         Client = Model,
                         Role = RoleManager.FindByNameAsync(ApplicationRole.MapRoles[RoleEnum.ClientAdmin]).Result,

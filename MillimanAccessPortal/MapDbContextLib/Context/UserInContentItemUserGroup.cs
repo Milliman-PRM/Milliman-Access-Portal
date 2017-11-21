@@ -19,10 +19,6 @@ namespace MapDbContextLib.Context
         public long ContentItemUserGroupId { get; set; }
         public ContentItemUserGroup ContentItemUserGroup { get; set; }
 
-        [ForeignKey("Role")]
-        public long RoleId { get; set; }
-        public ApplicationRole Role { get; set; }
-
         [ForeignKey("User")]
         public long UserId { get; set; }
         public ApplicationUser User { get; set; }

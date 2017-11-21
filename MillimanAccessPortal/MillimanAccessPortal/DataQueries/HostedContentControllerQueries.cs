@@ -18,7 +18,7 @@ namespace MillimanAccessPortal.DataQueries
     public partial class StandardQueries
     {
         /// <summary>
-        /// Returns the collection of ContentItemUserGroup instances authorized to the specified user in the specified roles
+        /// Returns the collection of ContentItemUserGroup instances authorized to the specified user
         /// </summary>
         /// <param name="UserName"></param>
         /// <returns></returns>
@@ -30,7 +30,6 @@ namespace MillimanAccessPortal.DataQueries
             // Get a list of all content item groups authorized for user, converted to type HostedContentViewModel plus content related properties
             List<HostedContentViewModel> query = DataContext.UserRoleForContentItemUserGroup
                 .Include(urg => urg.User)
-                .Include(urg => urg.Role)
                 .Include(urg => urg.ContentItemUserGroup)
                     .ThenInclude(ug => ug.RootContentItem)
                 .Include(urg => urg.ContentItemUserGroup)
@@ -41,7 +40,6 @@ namespace MillimanAccessPortal.DataQueries
                     {
                         UserGroupId = urg.ContentItemUserGroup.Id,
                         ContentName = urg.ContentItemUserGroup.RootContentItem.ContentName,
-                        RoleNames = new HashSet<string>(new string[] { urg.Role.Name }),
                         Url = urg.ContentItemUserGroup.ContentInstanceUrl,
                         ClientList = new List<HostedContentViewModel.ParentClientTree>
                         {
@@ -87,11 +85,6 @@ namespace MillimanAccessPortal.DataQueries
 
                     ResultBuilder.Add(Finding.UserGroupId, Finding);
                 }
-                else
-                {
-                    // additional role for this user/group
-                    ResultBuilder[Finding.UserGroupId].RoleNames.Add(Finding.RoleNames.First());
-                }
             }
 
             ResultBuilder.ToList().ForEach(h => ReturnList.Add(h.Value));
@@ -106,15 +99,13 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="GroupId"></param>
         /// <param name="RequiredRole"></param>
         /// <returns></returns>
-        public ContentItemUserGroup GetUserGroupIfAuthorizedToRole(string UserName, long GroupId, RoleEnum RequiredRole)
+        public ContentItemUserGroup GetUserGroupIfAuthorized(string UserName, long GroupId)
         {
             var ShortList = DataContext.UserRoleForContentItemUserGroup
-                .Include(urg => urg.Role)
                 .Include(urg => urg.User)
                 .Include(urg => urg.ContentItemUserGroup)
                 .Where(urg => urg.ContentItemUserGroupId == GroupId)
                 .Where(urg => urg.User.UserName == UserName)
-                .Where(urg => urg.Role.RoleEnum == RequiredRole)
                 .Select(s => s.ContentItemUserGroup);
 
             return ShortList.FirstOrDefault();

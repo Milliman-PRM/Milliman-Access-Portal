@@ -32,7 +32,7 @@ namespace MapTests
         private static Mock<DbSet<ContentType>> MoqContentType = null;
         private static Mock<DbSet<ProfitCenter>> MoqProfitCenter = null;
         private static Mock<DbSet<Client>> MoqClient = null;
-        private static Mock<DbSet<UserAuthorizationToClient>> MoqUserAuthorizationToClient = null;
+        private static Mock<DbSet<UserRoleInClient>> MoqUserAuthorizationToClient = null;
         private static Mock<DbSet<RootContentItem>> MoqRootContentItem = null;
         private static Mock<DbSet<HierarchyFieldValue>> MoqHierarchyFieldValue = null;
         private static Mock<DbSet<HierarchyField>> MoqHierarchyField = null;
@@ -89,7 +89,7 @@ namespace MapTests
             MoqClient = MockDbSet<Client>.New(new List<Client>());
             MockContext.Setup(m => m.Client).Returns(MoqClient.Object);
 
-            MoqUserAuthorizationToClient = MockDbSet<UserAuthorizationToClient>.New(new List<UserAuthorizationToClient>());
+            MoqUserAuthorizationToClient = MockDbSet<UserRoleInClient>.New(new List<UserRoleInClient>());
             MockContext.Setup(m => m.UserRoleForClient).Returns(MoqUserAuthorizationToClient.Object);
 
             MoqRootContentItem = MockDbSet<RootContentItem>.New(new List<RootContentItem>());
@@ -153,13 +153,13 @@ namespace MapTests
             #endregion
 
             #region Initialize UserRoleForClient
-            MoqUserAuthorizationToClient.Object.AddRange(new List<UserAuthorizationToClient>
+            MoqUserAuthorizationToClient.Object.AddRange(new List<UserRoleInClient>
                 {
-                    new UserAuthorizationToClient {Id = 1, ClientId=1, RoleId=2, UserId=1},
+                    new UserRoleInClient {Id = 1, ClientId=1, RoleId=2, UserId=1},
                 });
-            MockDbSet<UserAuthorizationToClient>.AssignNavigationProperty<Client>(MoqUserAuthorizationToClient, "ClientId", MoqClient);
-            MockDbSet<UserAuthorizationToClient>.AssignNavigationProperty<ApplicationUser>(MoqUserAuthorizationToClient, "UserId", MoqApplicationUser);
-            MockDbSet<UserAuthorizationToClient>.AssignNavigationProperty<ApplicationRole>(MoqUserAuthorizationToClient, "RoleId", MoqApplicationRole);
+            MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(MoqUserAuthorizationToClient, "ClientId", MoqClient);
+            MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(MoqUserAuthorizationToClient, "UserId", MoqApplicationUser);
+            MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationRole>(MoqUserAuthorizationToClient, "RoleId", MoqApplicationRole);
             #endregion
 
             #region Initialize RootContentItem
@@ -201,7 +201,7 @@ namespace MapTests
             #region Initialize UserInContentItemUserGroups
             MoqUserInContentItemUserGroup.Object.AddRange(new List<UserInContentItemUserGroup>
                 {
-                    new UserInContentItemUserGroup {Id = 1, ContentItemUserGroupId=1, RoleId=1, UserId=1},
+                    new UserInContentItemUserGroup {Id = 1, ContentItemUserGroupId=1, UserId=1},
                 });
             MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ContentItemUserGroup>(MoqUserInContentItemUserGroup, "ContentItemUserGroupId", MoqContentItemUserGroup);
             MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ApplicationUser>(MoqUserInContentItemUserGroup, "UserId", MoqApplicationUser);
