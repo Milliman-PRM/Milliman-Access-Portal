@@ -32,6 +32,5 @@
 |ClientAdmin|RemoveUserFromClient|Admin for [requested Client & ProfitCenter]|Done|
 |ClientAdmin|SaveNewClient|Admin to ProfitCenter & parent Client|Done|
 |ClientAdmin|EditClient|Admin for client|Done|
-|ClientAdmin||||
 |----------|------|-----|------|
-|UserAdmin|Index|Requires UserAdmin for any Client or any RootContentItem|Client Admin|
+|UserAdmin|Index|Requires UserAdmin for any (Client or RootContentItem)|Done|

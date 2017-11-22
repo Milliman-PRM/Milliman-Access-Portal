@@ -69,6 +69,16 @@ namespace MillimanAccessPortal.Controllers
         [Authorize]
         public IActionResult Index()
         {
+#if true // unit testing
+            if (!AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
+                {
+                    new UserGlobalRoleRequirement(RoleEnum.Admin),
+                }).Result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
+                return Unauthorized();
+            }
+#endif
             List<HostedContentViewModel> ModelForView = Queries.GetAssignedUserGroups(UserManager.GetUserName(HttpContext.User));
 
             return View(ModelForView);

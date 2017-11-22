@@ -6,21 +6,24 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using Moq;
-using Xunit;
-using MillimanAccessPortal.Controllers;
-using MillimanAccessPortal.DataQueries;
-using MapDbContextLib.Context;
-using MapDbContextLib.Identity;
 using System.Threading.Tasks;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using QlikviewLib;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
-using MillimanAccessPortal.Models.HostedContentViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Moq;
+using Xunit;
+using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
+using QlikviewLib;
+using MillimanAccessPortal.Controllers;
+using MillimanAccessPortal.DataQueries;
+using MillimanAccessPortal.Models.HostedContentViewModels;
+using MillimanAccessPortal.Authorization;
 
 namespace MapTests
 {
@@ -44,6 +47,7 @@ namespace MapTests
             Mock<IUserStore<ApplicationUser>> MockUserStore = new Mock<IUserStore<ApplicationUser>>();
             MockUserManager = new Mock<UserManager<ApplicationUser>>(MockUserStore.Object, null, null, null, null, null, null, null, null);
             MockUserManager.Setup(m => m.GetUserName(It.IsAny<System.Security.Claims.ClaimsPrincipal>())).Returns("test1");
+
         }
 
         /// <summary>
@@ -58,13 +62,16 @@ namespace MapTests
             #region Arrange
             var MockContext = TestInitialization.GenerateTestDataset(new DataSelection[] { DataSelection.Basic }).Object;
 
+            var x = AuthorizationServiceMockExtensionFactory_RequirementList_Failure();
+
             StandardQueries QueriesObj = new StandardQueries(MockContext, MockUserManager.Object);
 
             HostedContentController sut = new HostedContentController(MockQlikViewConfig, 
                                                                       MockUserManager.Object, 
                                                                       Logger, 
                                                                       MockContext,
-                                                                      QueriesObj);
+                                                                      QueriesObj,
+                                                                      x.Object);
 
             sut.ControllerContext = TestInitialization.GenerateControllerContext(UserName: MockContext.ApplicationUser.First().UserName);
             #endregion
@@ -115,5 +122,44 @@ namespace MapTests
             // TODO: Boilerplate. Remove when the test is written.
             throw new NotImplementedException();
         }
+
+        public Mock<IAuthorizationService> AuthorizationServiceMockExtensionFactory_Success()
+        {
+            var mockRepository = new Moq.MockRepository(Moq.MockBehavior.Strict);
+            var mockFactory = mockRepository.Create<IAuthorizationService>();
+            var ClaimsPrincipal = mockRepository.Create<ClaimsPrincipal>();
+            mockFactory.Setup(x => x.AuthorizeAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<object>(), It.IsAny<IAuthorizationRequirement>())).ReturnsAsync(AuthorizationResult.Success());
+            return mockFactory;
+        }
+
+        public Mock<IAuthorizationService> AuthorizationServiceMockExtensionFactory_Failure()
+        {
+            var mockRepository = new Moq.MockRepository(Moq.MockBehavior.Strict);
+            var mockFactory = mockRepository.Create<IAuthorizationService>();
+            var ClaimsPrincipal = mockRepository.Create<ClaimsPrincipal>();
+            mockFactory.Setup(x => x.AuthorizeAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<object>(), It.IsAny<IAuthorizationRequirement>())).ReturnsAsync(AuthorizationResult.Failed());
+            return mockFactory;
+        }
+
+        public Mock<IAuthorizationService> AuthorizationServiceMockExtensionFactory_RequirementList_Success()
+        {
+            var mockRepository = new Moq.MockRepository(Moq.MockBehavior.Strict);
+            var mockFactory = mockRepository.Create<IAuthorizationService>();
+            var ClaimsPrincipal = mockRepository.Create<ClaimsPrincipal>();
+            mockFactory.Setup(x => x.AuthorizeAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<object>(), It.IsAny<IEnumerable<IAuthorizationRequirement>>())).ReturnsAsync(AuthorizationResult.Success());
+            return mockFactory;
+        }
+
+        public Mock<IAuthorizationService> AuthorizationServiceMockExtensionFactory_RequirementList_Failure()
+        {
+            var mockRepository = new Moq.MockRepository(Moq.MockBehavior.Strict);
+            var mockFactory = mockRepository.Create<IAuthorizationService>();
+            var ClaimsPrincipal = mockRepository.Create<ClaimsPrincipal>();
+            mockFactory.Setup(x => x.AuthorizeAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<object>(), It.IsAny<IEnumerable<IAuthorizationRequirement>>())).ReturnsAsync(AuthorizationResult.Failed());
+            return mockFactory;
+        }
     }
 }
+
+#if false
+#endif

@@ -205,7 +205,6 @@ namespace MapTests
                 });
             MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ContentItemUserGroup>(MoqUserInContentItemUserGroup, "ContentItemUserGroupId", MoqContentItemUserGroup);
             MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ApplicationUser>(MoqUserInContentItemUserGroup, "UserId", MoqApplicationUser);
-            MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ApplicationRole>(MoqUserInContentItemUserGroup, "RoleId", MoqApplicationRole);
             #endregion
         }
 
