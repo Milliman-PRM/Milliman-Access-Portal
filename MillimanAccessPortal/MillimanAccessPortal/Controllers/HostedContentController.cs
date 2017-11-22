@@ -63,7 +63,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>
-        /// Index handler to present the user with links to all authorized content
+        /// Presents the user with links to all authorized content.  This is the application landing page.
         /// </summary>
         /// <returns>The view</returns>
         [Authorize]
@@ -92,7 +92,7 @@ namespace MillimanAccessPortal.Controllers
                                                         .FirstOrDefault();
             if (UserGroup == null || UserGroup.RootContentItem == null || UserGroup.RootContentItem.ContentType == null)
             {
-#if true    // need to pick one of these 2 strategies and use it throughout this controller
+#if true    // need to pick one of these 2 strategies and use it throughout this controller.  This is issue #104
                 TempData["Message"] = $"Error while querying for the requested user group, root content item, or content type";
                 TempData["ReturnToController"] = "HostedContent";
                 TempData["ReturnToAction"] = "Index";
@@ -123,11 +123,9 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                string TypeOfRequestedContent = UserGroup.RootContentItem.ContentType.Name;
-
                 // Instantiate the right content handler class
                 ContentTypeSpecificApiBase ContentSpecificHandler = null;
-                switch (TypeOfRequestedContent)
+                switch (UserGroup.RootContentItem.ContentType.Name)
                 {   // Never break out of this switch without a valid ContentSpecificHandler object
                     case "Qlikview":
                         ContentSpecificHandler = new QlikviewLibApi();
@@ -138,7 +136,7 @@ namespace MillimanAccessPortal.Controllers
                     //    break;
 
                     default:
-                        TempData["Message"] = $"Display of an unsupported ContentType was requested: {TypeOfRequestedContent}";
+                        TempData["Message"] = $"Display of an unsupported ContentType was requested: {UserGroup.RootContentItem.ContentType.Name}";
                         TempData["ReturnToController"] = "HostedContent";
                         TempData["ReturnToAction"] = "Index";
                         return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
@@ -154,7 +152,7 @@ namespace MillimanAccessPortal.Controllers
                 };
 
                 // Now return the appropriate view for the requested content
-                switch (TypeOfRequestedContent)
+                switch (UserGroup.RootContentItem.ContentType.Name)
                 {
                     case "Qlikview":
                         return View(ResponseModel);
@@ -164,7 +162,7 @@ namespace MillimanAccessPortal.Controllers
 
                     default:
                         // Perhaps this can't happen since this case is handled above
-                        TempData["Message"] = $"An unsupported ContentType was requested: {TypeOfRequestedContent}";
+                        TempData["Message"] = $"An unsupported ContentType was requested: {UserGroup.RootContentItem.ContentType.Name}";
                         TempData["ReturnToController"] = "HostedContent";
                         TempData["ReturnToAction"] = "Index";
                         return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));

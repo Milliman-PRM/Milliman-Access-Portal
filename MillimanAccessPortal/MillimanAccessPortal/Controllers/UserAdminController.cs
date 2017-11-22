@@ -51,6 +51,13 @@ namespace MillimanAccessPortal.Controllers
         // GET: UserAdmin
         public ActionResult Index()
         {
+            if (!AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserAdmin, null)).Result.Succeeded &&
+                !AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.UserAdmin, null)).Result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized as a user admin.");
+                return Unauthorized();
+            }
+
             List<ApplicationUserViewModel> Model = _userManager.Users.ToList()
                 .Select(u => new ApplicationUserViewModel(u)).ToList();
 
@@ -60,10 +67,10 @@ namespace MillimanAccessPortal.Controllers
         // GET: UserAdmin/Details/5
         public async Task<ActionResult> Details(string id)
         {
-            ApplicationUser user = await _userManager.FindByIdAsync(id);
+            ApplicationUser RequestedUser = await _userManager.FindByIdAsync(id);
 
-            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(user, RoleEnum.Admin.ToString());
-            return View(user);
+            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(RequestedUser, RoleEnum.Admin.ToString());
+            return View(RequestedUser);
         }
 
         // GET: UserAdmin/Create
@@ -80,6 +87,7 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 #region Authorization
+                // TODO will need to add the ability to accept optional assigned Client, which would require UserAdmin for the requested Client(s) too
                 if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.UserCreator)).Result.Succeeded)
                 {
                     Response.Headers.Add("MapReason", "401");
@@ -159,6 +167,7 @@ namespace MillimanAccessPortal.Controllers
         [NonAction]
         private async Task<IdentityResult> InsertUser(ApplicationUserViewModel Model)
         {
+            // Authorization not required, this is a private non-action for internal use
             ApplicationUser NewUser = new ApplicationUser
             {
                 UserName = Model.UserName,
@@ -171,15 +180,6 @@ namespace MillimanAccessPortal.Controllers
 
             // Save new user to the database
             return await _userManager.CreateAsync(NewUser);
-        }
-
-        // GET: UserAdmin/Edit/5
-        public async Task<ActionResult> Edit(string id)
-        {
-            ApplicationUser user = await _userManager.FindByIdAsync(id);
-
-            ViewData["isSystemAdmin"] = await _userManager.IsInRoleAsync(user, RoleEnum.Admin.ToString());
-            return View(user);
         }
 
         // POST: UserAdmin/Edit/5

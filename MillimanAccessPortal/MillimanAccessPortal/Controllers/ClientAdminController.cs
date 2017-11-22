@@ -65,6 +65,15 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         public IActionResult Index()
         {
+            #region Authorization
+            // User must have ClientAdministrator role to at least 1 Client
+            if (!AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, null)).Result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the Client Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
             return View();
         }
 
@@ -618,11 +627,20 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            if (!UserManager.CheckPasswordAsync(UserManager.GetUserAsync(HttpContext.User).Result, Password).Result ||
-		        !AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, Id.Value)).Result.Succeeded ||
-                !AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin, ExistingClient.ProfitCenterId)).Result.Succeeded)
+            if (!UserManager.CheckPasswordAsync(UserManager.GetUserAsync(HttpContext.User).Result, Password).Result)
             {
-                Response.Headers.Add("Warning", "You are not authorized to perform this action");
+                Response.Headers.Add("Warning", "Incorrect password");
+                return Unauthorized();
+            }
+
+            if (!AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
+                {
+                    new RoleInClientRequirement(RoleEnum.Admin, Id.Value),
+                    new RoleInProfitCenterRequirement(RoleEnum.Admin, ExistingClient.ProfitCenterId)
+                }
+                ).Result.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to delete this client");
                 return Unauthorized();
             }
             #endregion Authorization

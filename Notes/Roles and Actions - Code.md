@@ -34,3 +34,4 @@
 |ClientAdmin|EditClient|Admin for client|Done|
 |ClientAdmin||||
 |----------|------|-----|------|
+|UserAdmin|Index|Requires UserAdmin for any Client or any RootContentItem|Client Admin|
