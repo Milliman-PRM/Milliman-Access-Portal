@@ -12,25 +12,26 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MillimanAccessPortal.Authorization
 {
-    public class UserGlobalRoleRequirement : MapAuthorizationRequirementBase
+    public class UserInContentItemUserGroupRequirement : MapAuthorizationRequirementBase
     {
-        private RoleEnum RoleEnum { get; set; }
+        private long ContentItemUserGroupId { get; set; }
 
         /// <summary>
         /// Constructor; the only way to instantiate this type
         /// </summary>
         /// <param name="RoleEnumArg"></param>
-        public UserGlobalRoleRequirement(RoleEnum RoleEnumArg)
+        /// <param name="ClientIdArg">null or &lt;= 0 to evaluate for ANY Client</param>
+        public UserInContentItemUserGroupRequirement(long ContentItemUserGroupIdArg)
         {
-            RoleEnum = RoleEnumArg;
+            ContentItemUserGroupId = ContentItemUserGroupIdArg;
         }
 
         internal override MapAuthorizationRequirementResult EvaluateRequirement(ApplicationUser User, ApplicationDbContext DataContext)
         {
-            var Query = DataContext.UserRoles
-                                   .Join(DataContext.ApplicationRole, ur => ur.RoleId, ar => ar.Id, (ur, ar) => new { UserRole = ur, AppRole = ar })
-                                   .Where(obj => obj.UserRole.UserId == User.Id
-                                              && obj.AppRole.RoleEnum == RoleEnum);
+            IQueryable<UserInContentItemUserGroup> Query =
+                DataContext.UserInContentItemUserGroup
+                           .Where(ug => ug.UserId == User.Id
+                                     && ug.ContentItemUserGroupId == ContentItemUserGroupId);
 
             if (Query.Any())  // Query executes here
             {

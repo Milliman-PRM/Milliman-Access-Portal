@@ -1,4 +1,10 @@
-﻿using MapDbContextLib.Identity;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: MVC controller implementing handlers related to accessing hosted content
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using MapDbContextLib.Identity;
 
 namespace MillimanAccessPortal.Models.UserAdminViewModels
 {

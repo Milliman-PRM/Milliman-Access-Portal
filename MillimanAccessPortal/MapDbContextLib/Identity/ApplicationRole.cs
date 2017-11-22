@@ -31,15 +31,6 @@ namespace MapDbContextLib.Identity
 
     public class ApplicationRole : IdentityRole<long>
     {
-        public readonly static Dictionary<RoleEnum,string> MapRoles = new Dictionary<RoleEnum, string>
-            {
-                {RoleEnum.Admin, "Administrator"},
-                {RoleEnum.UserCreator, "User Creator"},
-                {RoleEnum.UserAdmin, "User Administrator"},
-                {RoleEnum.ContentAdmin, "Content Administrator"},
-                {RoleEnum.ContentUser, "Content User"},
-            };
-
         /// <summary>
         /// Used for initialization to ensure explicit assignment of role names to enumeration values
         /// </summary>
@@ -85,8 +76,7 @@ namespace MapDbContextLib.Identity
                 }
                 else if (RoleFromDb.Name != RoleName)
                 {
-                    RoleFromDb.Name = RoleName;
-                    roleManager.UpdateAsync(RoleFromDb).Wait();
+                    throw new Exception($"It is not possible to change ApplicationRole name in database from {RoleFromDb.Name} to {RoleName}.");
                 }
             }
 
@@ -101,7 +91,7 @@ namespace MapDbContextLib.Identity
             var RolesInitialized = Enum.GetValues(typeof(RoleEnum)).Cast<RoleEnum>().OrderBy(r => r).Select(r => new KeyValuePair<RoleEnum, string>(r, r.ToString()));
             if (!RolesInitialized.SequenceEqual(FoundRolesInDb.OrderBy(fr => fr.Key)))
             {
-                throw new Exception("Failed to correctly initialize Roles in database.");
+                throw new Exception("ApplicationRole records in database are not as expected after initialization.");
             }
         }
         #endregion

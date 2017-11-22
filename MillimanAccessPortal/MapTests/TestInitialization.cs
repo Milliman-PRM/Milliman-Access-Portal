@@ -90,7 +90,7 @@ namespace MapTests
             MockContext.Setup(m => m.Client).Returns(MoqClient.Object);
 
             MoqUserAuthorizationToClient = MockDbSet<UserRoleInClient>.New(new List<UserRoleInClient>());
-            MockContext.Setup(m => m.UserRoleForClient).Returns(MoqUserAuthorizationToClient.Object);
+            MockContext.Setup(m => m.UserRoleInClient).Returns(MoqUserAuthorizationToClient.Object);
 
             MoqRootContentItem = MockDbSet<RootContentItem>.New(new List<RootContentItem>());
             MockContext.Setup(m => m.RootContentItem).Returns(MoqRootContentItem.Object);
@@ -105,7 +105,7 @@ namespace MapTests
             MockContext.Setup(m => m.ContentItemUserGroup).Returns(MoqContentItemUserGroup.Object);
 
             MoqUserInContentItemUserGroup = MockDbSet<UserInContentItemUserGroup>.New(new List<UserInContentItemUserGroup>());
-            MockContext.Setup(m => m.UserRoleForContentItemUserGroup).Returns(MoqUserInContentItemUserGroup.Object);
+            MockContext.Setup(m => m.UserInContentItemUserGroup).Returns(MoqUserInContentItemUserGroup.Object);
             #endregion
 
             foreach (DataSelection Selection in DataSelections.Distinct())

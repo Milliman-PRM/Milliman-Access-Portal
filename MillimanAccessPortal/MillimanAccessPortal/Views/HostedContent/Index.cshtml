@@ -19,7 +19,6 @@
         <th>@Html.DisplayNameFor(model => model.UserGroupId)</th>
         <th>@Html.DisplayNameFor(model => model.Url)</th>
         <th>@Html.DisplayNameFor(model => model.ContentName)</th>
-        <th>@Html.DisplayNameFor(model => model.RoleNames)</th>
         <th>@Html.DisplayNameFor(model => model.ClientList)</th>
     </tr>
     @foreach (var item in Model)
@@ -29,7 +28,6 @@
             <td>@Html.ActionLink("View This", "WebHostedContent", "HostedContent", new { id = item.UserGroupId })</td>
             <!-- Also need action links for user admin, publishing, etc. depending on roles indicated in item.RoleNames -->
             <td>@Html.DisplayFor(modelItem => item.ContentName)</td>
-            <td>@(string.Join(", ", item.RoleNames))</td>
             <td>@(string.Join("|", item.ClientList.Select(c=>$"{c.Id}-{c.Name}")))</td>
         </tr>
     }

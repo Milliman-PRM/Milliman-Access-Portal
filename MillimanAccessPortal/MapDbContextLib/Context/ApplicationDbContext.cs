@@ -11,8 +11,10 @@ namespace MapDbContextLib.Context
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, long>
     {
         public virtual DbSet<Client> Client { get; set; }
-        public virtual DbSet<UserRoleInClient> UserRoleForClient { get; set; }
-        public virtual DbSet<UserInContentItemUserGroup> UserRoleForContentItemUserGroup { get; set; }
+        public virtual DbSet<UserRoleInClient> UserRoleInClient { get; set; }
+        public virtual DbSet<UserRoleInProfitCenter> UserRoleInProfitCenter { get; set; }
+        public virtual DbSet<UserRoleInRootContentItem> UserRoleInRootContentItem { get; set; }
+        public virtual DbSet<UserInContentItemUserGroup> UserInContentItemUserGroup { get; set; }
         public virtual DbSet<ContentItemUserGroup> ContentItemUserGroup { get; set; }
         public virtual DbSet<RootContentItem> RootContentItem { get; set; }
         public virtual DbSet<HierarchyField> HierarchyField { get; set; }

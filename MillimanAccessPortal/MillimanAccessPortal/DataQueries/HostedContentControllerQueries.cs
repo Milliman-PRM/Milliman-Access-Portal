@@ -18,36 +18,37 @@ namespace MillimanAccessPortal.DataQueries
     public partial class StandardQueries
     {
         /// <summary>
-        /// Returns the collection of ContentItemUserGroup instances authorized to the specified user
+        /// Returns a collection of HostedContentViewModel representing ContentItemUserGroup instances assigned to the specified user
         /// </summary>
         /// <param name="UserName"></param>
         /// <returns></returns>
-        public virtual List<HostedContentViewModel> GetAuthorizedUserGroupsAndRoles(string UserName)
+        public virtual List<HostedContentViewModel> GetAssignedUserGroups(string UserName)
         {
             List<HostedContentViewModel> ReturnList = new List<HostedContentViewModel>();
             Dictionary<long, HostedContentViewModel> ResultBuilder = new Dictionary<long, HostedContentViewModel>();
 
             // Get a list of all content item groups authorized for user, converted to type HostedContentViewModel plus content related properties
-            List<HostedContentViewModel> query = DataContext.UserRoleForContentItemUserGroup
-                .Include(urg => urg.User)
-                .Include(urg => urg.ContentItemUserGroup)
+            List<HostedContentViewModel> query = DataContext.UserInContentItemUserGroup
+                .Include(ug => ug.User)
+                .Include(ug => ug.ContentItemUserGroup)
                     .ThenInclude(ug => ug.RootContentItem)
-                .Include(urg => urg.ContentItemUserGroup)
+                .Include(ug => ug.ContentItemUserGroup)
                     .ThenInclude(ug => ug.Client)
-                .Where(urg => urg.User.UserName == UserName)
-                .Select(urg =>
+                .Where(ug => ug.User.UserName == UserName)
+                .Distinct()
+                .Select(ug =>
                     new HostedContentViewModel
                     {
-                        UserGroupId = urg.ContentItemUserGroup.Id,
-                        ContentName = urg.ContentItemUserGroup.RootContentItem.ContentName,
-                        Url = urg.ContentItemUserGroup.ContentInstanceUrl,
+                        UserGroupId = ug.ContentItemUserGroup.Id,
+                        ContentName = ug.ContentItemUserGroup.RootContentItem.ContentName,
+                        Url = ug.ContentItemUserGroup.ContentInstanceUrl,
                         ClientList = new List<HostedContentViewModel.ParentClientTree>
                         {
                             new HostedContentViewModel.ParentClientTree
                             {
-                                Id = urg.ContentItemUserGroup.ClientId,
-                                Name = urg.ContentItemUserGroup.Client.Name,
-                                ParentId = urg.ContentItemUserGroup.Client.ParentClientId,
+                                Id = ug.ContentItemUserGroup.ClientId,
+                                Name = ug.ContentItemUserGroup.Client.Name,
+                                ParentId = ug.ContentItemUserGroup.Client.ParentClientId,
                             }
                         },
                     })
@@ -55,60 +56,39 @@ namespace MillimanAccessPortal.DataQueries
 
             foreach (var Finding in query)
             {
-                if (!ResultBuilder.Keys.Contains(Finding.UserGroupId))
+                // Build the list of parent client hierarchy for Finding
+                while (Finding.ClientList.First().ParentId != null)
                 {
-                    // Build the list of parent client hierarchy for Finding
-                    while (Finding.ClientList.First().ParentId != null)
+                    Client Parent = null;
+                    try
                     {
-                        Client Parent = null;
-                        try
-                        {
-                            Parent = DataContext.Client
-                                .Where(c => c.Id == Finding.ClientList.First().ParentId)
-                                .First();  // will throw if not found but that's good
-                        }
-                        catch (Exception e)
-                        {
-                            throw new MapException($"Client record references parent id {Finding.ClientList.Last().ParentId} but an exception occurred while querying for this Client", e);
-                        }
-
-                        // The required order is root down to 
-                        Finding.ClientList.Insert(0,
-                            new HostedContentViewModel.ParentClientTree
-                            {
-                                Id = Parent.Id,
-                                Name = Parent.Name,
-                                ParentId = Parent.ParentClientId,
-                            }
-                        );
+                        // Verify that the referenced parent exists
+                        Parent = DataContext.Client
+                            .Where(c => c.Id == Finding.ClientList.First().ParentId)
+                            .First();  // will throw if not found but that's what I'm checking
+                    }
+                    catch (Exception e)
+                    {
+                        throw new MapException($"Client record references parent id {Finding.ClientList.Last().ParentId} but an exception occurred while querying for this Client", e);
                     }
 
-                    ResultBuilder.Add(Finding.UserGroupId, Finding);
+                    // The required order is root down to 
+                    Finding.ClientList.Insert(0,
+                        new HostedContentViewModel.ParentClientTree
+                        {
+                            Id = Parent.Id,
+                            Name = Parent.Name,
+                            ParentId = Parent.ParentClientId,
+                        }
+                    );
                 }
+
+                ResultBuilder.Add(Finding.UserGroupId, Finding);
             }
 
             ResultBuilder.ToList().ForEach(h => ReturnList.Add(h.Value));
 
             return ReturnList.ToList();
-        }
-
-        /// <summary>
-        /// Returns the requested ContentItemUserGroup entity object if the supplied user is authorized in the supplied role
-        /// </summary>
-        /// <param name="UserName"></param>
-        /// <param name="GroupId"></param>
-        /// <param name="RequiredRole"></param>
-        /// <returns></returns>
-        public ContentItemUserGroup GetUserGroupIfAuthorized(string UserName, long GroupId)
-        {
-            var ShortList = DataContext.UserRoleForContentItemUserGroup
-                .Include(urg => urg.User)
-                .Include(urg => urg.ContentItemUserGroup)
-                .Where(urg => urg.ContentItemUserGroupId == GroupId)
-                .Where(urg => urg.User.UserName == UserName)
-                .Select(s => s.ContentItemUserGroup);
-
-            return ShortList.FirstOrDefault();
         }
 
     }
