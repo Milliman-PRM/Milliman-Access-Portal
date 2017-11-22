@@ -12,8 +12,8 @@ function getClientTree() {
         populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
         renderClientTree(response.RelevantClientId);
     }).fail(function (response) {
-        if (response.status == 401) {
-            toastr['error']('You are not authorized to view any clients');
+        if (response.getResponseHeader("Warning")) {
+            toastr["warning"](response.getResponseHeader("Warning"));
         }
         else {
             toaster['error']('An error has occurred');
@@ -57,6 +57,9 @@ function GetClientDetail(clientDiv) {
         clientDiv.addClass('selected');
         // Show the form in readonly mode
         makeFormReadOnly();
+        if (clientDiv.hasClass('disabled')) {
+            $('#client-info #edit-client-icon').hide();
+        }
         showClientForm();
 
     }).fail(function (response) {
@@ -180,6 +183,7 @@ function makeFormWriteable() {
 function showClientForm() {
     var showTime = 50;
     $('#client-info').show(showTime, function () {
+        $('#client-form #Name').focus();
         if ($('#client-form #Id').val()) {
             $('#client-users').show(showTime);
         }
@@ -315,7 +319,7 @@ function deleteClient(event, id, name) {
         buttons: {
             confirm: {
                 label: '<i class="fa fa-check"></i> Confirm',
-                className: 'primary-button btn-danger'
+                className: 'primary-button btn btn-danger'
             },
             cancel: {
                 label: 'Cancel',
@@ -333,7 +337,7 @@ function deleteClient(event, id, name) {
                     buttons: {
                         confirm: {
                             label: '<i class="fa fa-trash"></i> DELETE',
-                            className: 'primary-button btn-danger'
+                            className: 'primary-button btn btn-danger'
                         },
                         cancel: {
                             label: 'Cancel',
@@ -380,6 +384,8 @@ function removeClientNode(clientId, clientName, password) {
     }).done(function (response) {
         clientTree = response.ClientTree;
         renderClientTree(response.RelevantClientId);
+        clearFormData();
+        hideClientForm();
         toastr['success'](clientName + " was successfully deleted.");
     }).fail(function (response) {
         toastr["warning"](response.getResponseHeader("Warning"));
@@ -422,23 +428,23 @@ function searchClientTree(searchString) {
 
 function submitClientForm(event) {
 
+    if ($('#client-form').valid()) {
+
     event.preventDefault();
 
     var form = $('#client-form');
     var clientId = $('#client-form #Id').val();
     var clientName = $('#client-form #Name').val();
     var urlAction = 'ClientAdmin/';
-    var successResponse, failResponse;
+    var successResponse;
 
     if (clientId) {
         urlAction += 'EditClient';
         successResponse = clientName + ' was successfully updated';
-        failResponse = 'Could not update client information';
     }
     else {
         urlAction += 'SaveNewClient';
         successResponse = clientName + ' was successfully created';
-        failResponse = 'Could not create client';
     }
 
     $.ajax({
@@ -456,9 +462,10 @@ function submitClientForm(event) {
         toastr['success'](successResponse);
         $('div.client-admin-card[data-client-id="' + clientId + '"]').click();
     }).fail(function (response) {
-        toastr["warning"](failResponse);
+        toastr["warning"](response.getResponseHeader("Warning"));
     })
 
+    }
 }
 
 function resetNewClientForm() {

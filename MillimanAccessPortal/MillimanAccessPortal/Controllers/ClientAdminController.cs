@@ -72,8 +72,10 @@ namespace MillimanAccessPortal.Controllers
         {
             #region Authorization
             // User must have ClientAdministrator role to at least 1 Client
-            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement (RoleEnum.ClientAdmin, null)).Result.Succeeded)
+            if (!AuthorizationService.AuthorizeAsync(User, null, new ClientRoleRequirement (RoleEnum.ClientAdmin, null)).Result.Succeeded
+                && !AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.RootClientCreator)).Result.Succeeded)
             {
+                Response.Headers.Add("Warning", $"You are not authorized as a client administrator or root client creator");
                 return Unauthorized();
             }
             #endregion

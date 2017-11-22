@@ -146,11 +146,11 @@
                 </div>
                 @Html.AntiForgeryToken()
                 <div id="form-buttons-new" class="text-right">
-                    <button class="btn btn-link" onclick="resetNewClientForm(event)">Reset Form</button>
-                    <button id="create-new-button" class="btn btn-primary primary-button" onclick="submitClientForm(event)">Create New Client</button>
+                    <button type="button" class="btn btn-link" onclick="resetNewClientForm(event)">Reset Form</button>
+                    <button type="submit" id="create-new-button" class="btn btn-primary primary-button" onclick="submitClientForm(event)">Create New Client</button>
                 </div>
                 <div id="form-buttons-edit" class="text-right">
-                    <button id="undo-changes-button" class="btn btn-link" onclick="undoChangesEditClientForm(event)">Undo Changes</button>
+                    <button type="button" id="undo-changes-button" class="btn btn-link" onclick="undoChangesEditClientForm(event)">Undo Changes</button>
                     <button type="submit" id="save-changes-button" class="btn btn-primary primary-button" onclick="submitClientForm(event)">Save Changes</button>
                 </div>
             </form>
@@ -314,15 +314,11 @@
 
     <environment names="Development,CI">
         <script src="~/lib/selectize/dist/js/standalone/selectize.js"></script>
-        <script src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
-        <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
         <script src="~/lib/bootbox.js/bootbox.js"></script>
         <script src="~/js/client-admin.js"></script>
     </environment>
     <environment names="Staging,Production">
         <script src="~/lib/selectize/dist/js/standalone/selectize.min.js"></script>
-        <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-        <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
         <script src="~/lib/bootbox.js/bootbox.min.js"></script>
         <script src="~/js/client-admin.min.js"></script>
     </environment>
@@ -340,22 +336,41 @@
 
             $('#client-form #AcceptedEmailDomainList').selectize({
                 plugins: ['remove_button'],
-                //delimiter: ',',
                 persist: false,
-                create: true
+                create: function (input) {
+                    if (input.match(domainValRegex)) {
+                        return {
+                            value: input,
+                            text: input
+                        };
+                    } else {
+                        bootbox.alert('The Approved Email Domain List only accepts the email domain (e.g. <i>username@@</i><strong><u>domain.com</u></strong>)', function () { 
+                            $('#AcceptedEmailDomainList-selectized').val(input);
+                            $('#client-form #AcceptedEmailDomainList')[0].selectize.unlock();
+                            $('#client-form #AcceptedEmailDomainList')[0].selectize.focus();
+                        });
+                    }
+                }
             });
 
             $('#client-form #AcceptedEmailAddressExceptionList').selectize({
                 plugins: ['remove_button'],
                 delimiter: ',',
                 persist: false,
-                create: true
-                //create: function (input) {
-                //    return {
-                //        value: input,
-                //        text: input
-                //    }
-                //}
+                create: function (input) {
+                    if (input.match(emailValRegex)) {
+                        return {
+                            value: input,
+                            text: input
+                        };
+                    } else {
+                        bootbox.alert('The Approved Email Address Exception List only accepts valid email addresses (e.g. username@domain.com)', function () {
+                            $('#AcceptedEmailAddressExceptionList-selectized').val(input);
+                            $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.unlock();
+                            $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.focus();
+                        });
+                    }
+                }
             });
 
 

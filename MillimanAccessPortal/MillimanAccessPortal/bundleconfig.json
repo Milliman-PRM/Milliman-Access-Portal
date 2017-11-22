@@ -16,9 +16,9 @@
     }
   },
   {
-    "outputFileName": "wwwroot/js/toastr-options.min.js",
+    "outputFileName": "wwwroot/js/lib-options.min.js",
     "inputFiles": [
-      "wwwroot/js/toastr-options.js"
+      "wwwroot/js/lib-options.js"
     ],
     "minify": {
       "enabled": true,

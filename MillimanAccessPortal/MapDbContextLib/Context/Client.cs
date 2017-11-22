@@ -58,7 +58,7 @@ namespace MapDbContextLib.Context
         [Display(Name = "Approved Email Domain List")]
         public string[] AcceptedEmailDomainList { get; set; }
 
-        [Display(Name = "Approved Email Exception List")]
+        [Display(Name = "Approved Email Address Exception List")]
         public string[] AcceptedEmailAddressExceptionList { get; set; }
         
         [ForeignKey("ParentClient")]
