@@ -10,6 +10,7 @@
 |UserCreator|Client|Creates user accounts targeted to a client|ClientAdmin|
 |----|-----------|-----------|-----------|
 |UserAdmin|Client|Assign user accounts to client and manage content access selections for assigned user|ClientAdmin|
+|UserAdmin|RootContentItem|Manages users' hierarchy selections for a RootContentItem|ClientAdmin|
 |----|----------|------------|-----------|
 |ContentAdmin|RootContentItem|Authorizes distribution of content to client-related RootContentItems|ClientAdmin|
 |ContentAdmin|Client|Authorizes create/delete of RootContentItems|ClientAdmin|
@@ -30,6 +31,6 @@
 |ClientAdmin|AssignUserToClient|Admin for [requested Client & ProfitCenter]|Done|
 |ClientAdmin|RemoveUserFromClient|Admin for [requested Client & ProfitCenter]|Done|
 |ClientAdmin|SaveNewClient|Admin to ProfitCenter & parent Client|Done|
-|ClientAdmin|EditClient|Admin for client & ProfitCenter|Done|
+|ClientAdmin|EditClient|Admin for client|Done|
 |ClientAdmin||||
 |----------|------|-----|------|
