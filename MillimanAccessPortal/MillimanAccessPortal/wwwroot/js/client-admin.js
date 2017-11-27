@@ -51,10 +51,11 @@ function GetClientDetail(clientDiv) {
             'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
         },
     }).done(function (response) {
+        clearValidationErrors();
         populateClientDetails(response.ClientEntity);
         console.log(response);
         // Change the dom to reflect the selected client
-        clearSelectedClient()
+        clearSelectedClient();
         clientDiv.addClass('selected');
         // Show the form in readonly mode
         makeFormReadOnly();
@@ -72,6 +73,8 @@ function GetClientDetail(clientDiv) {
 function EditClientDetail(clientDiv) {
 
     removeClientInserts()
+
+    clearValidationErrors();
 
     var clientId = clientDiv.attr('data-client-id').valueOf();
 
@@ -154,6 +157,12 @@ function clearFormData() {
     $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.clearOptions();
     $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').attr('data-original-value', '');
     $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').val("");
+    clearValidationErrors();
+}
+
+function clearValidationErrors() {
+    $('#client-form .input-validation-error').removeClass('input-validation-error');
+    $('#client-form span.field-validation-error > span').remove();
 }
 
 function clearSelectedClient() {
@@ -473,6 +482,8 @@ function resetNewClientForm() {
 
     event.preventDefault();
 
+    clearValidationErrors();
+
     $('#client-form :input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select').each(function () {
         if ($(this).val() != "") {
             bootbox.confirm({
@@ -510,6 +521,8 @@ function resetNewClientForm() {
 function undoChangesEditClientForm(event) {
 
     event.preventDefault();
+
+    clearValidationErrors();
 
     var clientId = $('#client-form #Id').val();
 
