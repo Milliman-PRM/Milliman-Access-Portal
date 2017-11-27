@@ -1,6 +1,7 @@
 ﻿var clientNodeTemplate = $('script[data-template="clientNode"]').html();
 var childNodePlaceholder = $('script[data-template="childNodePlaceholder"]').html();
 var clientCard = $('script[data-template="createNewClientCard"]').html();
+var userNodeTemplate = $('script[data-template="userNode"]').html();
 var clientTree;
 
 function getClientTree() {
@@ -51,7 +52,7 @@ function GetClientDetail(clientDiv) {
         },
     }).done(function (response) {
         populateClientDetails(response.ClientEntity);
-        //console.log(response.AssignedUsers);
+        console.log(response);
         // Change the dom to reflect the selected client
         clearSelectedClient()
         clientDiv.addClass('selected');
@@ -232,7 +233,7 @@ function renderClientTree(clientId) {
         renderClientNode(rootClient, 1);
         $('#client-tree-list').append('<li class="hr col-xs-12"></li>');
     });
-    $('div.client-admin-card').on('click', function () {
+    $('#client-tree-list div.client-admin-card').on('click', function () {
         GetClientDetail($(this));
     });
     $('div.card-button-background-edit').on('click', function (event) {
@@ -604,3 +605,49 @@ function cancelEditTasks(clientId) {
         hideClientForm();
     }
 }
+
+
+
+//function renderUserList(userId) {
+//    $('#client-user-list').empty();
+//    clientUsers.forEach(function (user) {
+//        renderUserNode(user);
+//    });
+
+//    //$('div.client-admin-card').on('click', function () {
+//    //    GetClientDetail($(this));
+//    //});
+//    //$('div.card-button-background-edit').on('click', function (event) {
+//    //    EditClientDetail($(this).parents('div[data-client-id]'));
+//    //    event.stopPropagation();
+//    //});
+//    //$('div.card-button-background-add').on('click', function (event) {
+//    //    newChildClientFormSetup($(this).parents('div[data-client-id]'));
+//    //    event.stopPropagation();
+//    //});
+
+//    $('#client-user-list').append(userCard);
+
+//    if (userId) {
+//        $('[data-user-id="' + userId + '"]').click();
+//    }
+
+//};
+
+//function renderClientNode(user) {
+//    var template = userNodeTemplate;
+
+//    //template = template.replace(/{{id}}/g, client.ClientEntity.Id);
+//    //template = template.replace(/{{name}}/g, client.ClientEntity.Name);
+
+//    //// convert template to DOM element for jQuery manipulation
+//    //var $template = $(template.toString());
+
+//    //if (!client.CanManage) {
+//    //    $('.icon-container', $template).remove();
+//    //    $('.client-admin-card', $template).addClass('disabled');
+//    //}
+
+//    //$('#client-user-list').append($template);
+
+//};

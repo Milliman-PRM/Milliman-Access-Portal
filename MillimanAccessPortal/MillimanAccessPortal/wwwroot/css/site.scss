@@ -724,3 +724,151 @@ Client Admin Styling
         font-weight: bold;
     }
 }
+
+
+
+
+
+.card-container {
+    position: relative;
+    padding: 5px 0;
+    background-color: $card-background-color;
+    border: 2px solid black;
+    border-radius: 5px;
+    margin-top: 10px;
+    margin-bottom: 30px;
+    cursor: pointer;
+
+    &:hover {
+        transform: scale(1.02);
+    }
+
+    &.disabled {
+        color: $text-disabled !important;
+        background-color: $button-disabled !important;
+
+        &.selected {
+            border: 5px solid $card-selected-background-color;
+        }
+    }
+
+    &.selected {
+        color: white;
+        background-color: $card-selected-background-color;
+    }
+
+    &.editing {
+    }
+
+    .card-body-main-container {
+
+        .card-body-primary-text {
+            margin: 5px 0;
+        }
+
+        .card-body-secondary-text {
+            display: inline-block;
+            margin: 0;
+            padding: 5px 10px;
+            height: 100%;
+            width: 75%;
+        }
+    }
+
+    .card-body-secondary-container {
+
+        .card-stat-container {
+
+            &.card-stat-container-top {
+            }
+
+            &.card-stat-container-bottom {
+            }
+
+            .card-stat-icon {
+            }
+
+            .card-stat-value {
+            }
+        }
+
+        .card-user-icon {
+        }
+
+        .card-user-role-indicator {
+        }
+    }
+
+    .card-button-side-container {
+        position: absolute;
+        display: inline;
+        right: 0;
+        top: 50%;
+        text-align: right;
+        transform: translate(60%, -50%);
+    }
+
+    .card-button-bottom-container {
+
+        .card-expansion-button {
+        }
+    }
+
+    .card-button-background {
+
+        .card-button-delete,
+        .card-button-remove-user,
+        .card-button-close {
+            background-color: $button-warning;
+
+            &:hover {
+                background-color: $button-warning-hover;
+            }
+        }
+
+        .card-button-edit,
+        .card-button-options {
+            background-color: $button-confirm;
+
+            &:hover {
+                background-color: $button-confirm-hover;
+            }
+        }
+
+        .card-button-new-child {
+            background-color: $button-save;
+
+            &:hover {
+                background-color: $button-save-hover;
+            }
+        }
+
+        &:hover {
+            transform: scale(1.25);
+            transform-origin: center center;
+        }
+
+        .card-button-icon {
+            color: white;
+        }
+    }
+
+
+    .card-expansion-container {
+
+        &.minimized {
+            max-height: 0;
+        }
+
+        &.maximized {
+            max-height: 1000px;
+        }
+
+        .card-expansion-category-label {
+        }
+
+        .card-expansion-option-label {
+        }
+    }
+}
+
