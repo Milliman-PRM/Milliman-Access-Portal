@@ -14,6 +14,8 @@ $form-background: #DEDEE3;
 $form-border: #424242;
 $form-close: #d9534f;
 $form-close-hover: #c9302c;
+$card-background-color: #fff;
+$card-selected-background-color: #0091ff;
 $client-admin-stats-background: #242424;
 $client-admin-stats-font: #fff;
 $button-warning: #d9534f;
@@ -24,6 +26,9 @@ $button-save: #5cb85c;
 $button-save-hover: #449d44;
 $button-disabled: #DDD;
 $text-disabled: #424242;
+$admin-action-icon: #424242;
+$admin-action-icon-hover: #000;
+$disabled-text-color: #555;
     
 @import url('https://fonts.googleapis.com/css?family=Noto+Sans');
 
@@ -69,6 +74,65 @@ select {
     &:focus {
         border: solid 2px $input-focus;
     }
+
+    &:disabled {
+        font-weight: bold;
+        border: none !important;
+        background-color: transparent !important;
+        background: transparent !important;
+        box-shadow: none;
+        cursor: default !important;
+        -moz-appearance: none !important;
+        -webkit-appearance: none !important;
+
+        &::-ms-expand {
+            display: none;
+        }
+    }
+}
+
+
+input:-webkit-autofill,
+input:-webkit-autofill,
+input:-webkit-autofill {
+    -webkit-transition-delay: 9999s;
+    -webkit-transition: color 9999s ease-out, background-color 9999s ease-out;
+}
+
+div.selectize-input {
+    color: #555;
+    min-height: 40px;
+    border-radius: 5px;
+    transition: border 0.2s;
+    padding: 2px 5px;
+
+    &.disabled {
+        font-weight: bold;
+        border: none !important;
+        background-color: transparent !important;
+        box-shadow: none;
+        cursor: default !important;
+        opacity: 1 !important;
+        -moz-appearance: none !important;
+        -webkit-appearance: none !important;
+
+        div.item {
+            background: $button-disabled !important;
+            color: $disabled-text-color !important;
+            border: none !important;
+            font-size: 14px;
+            z-index: 99;
+            opacity: 1;
+
+            a.remove {
+                display: none;
+            }
+        }
+    }
+
+    input {
+        height: 30px;
+    }
 }
 
 textarea {
@@ -88,9 +152,10 @@ textarea {
 }
 
 #primary-button,
-#form-submit {
+#form-submit,
+.primary-button {
     height: 50px;
-    width: 90px;
+    min-width: 90px;
     background-color: $login-button-color;
     margin: 0 20px;
     font-weight: bold;
@@ -98,307 +163,329 @@ textarea {
     &:hover {
         background-color: $login-button-hover;
     }
+
+    &.btn-danger {
+        background-color: $button-warning;
+
+        &:hover {
+            background-color: $button-warning-hover;
+        }
+    }
 }
 
-.primary-button {
-    height: 50px;
-    width: 90px;
-    margin: 0 20px;
-    font-weight: bold;
-}
+.admin-action-icon {
+    color: $admin-action-icon;
+    cursor: pointer;
 
+    &:hover {
+        color: $admin-action-icon-hover;
+    }
+}
 
 /*****
 Login Page
 *****/
-    #login-form {
+#login-form {
 
-        img {
-            width: 400px;
-        }
+    img {
+        width: 400px;
     }
+}
 
-    #password-reset-form {
-    }
-    /*****
+#password-reset-form {
+}
+
+/*****
 Nav Sidebar Styling
 *****/
-    #sidebar-nav {
-        position: fixed;
-        top: 0;
-        left: -230px;
-        width: 300px;
-        height: 100vh;
-        transition: all 0.5s;
-        background-color: $nav-background-color;
-        color: $nav-font-color;
-        padding: 0;
-        z-index: 90;
+#sidebar-nav {
+    position: fixed;
+    top: 0;
+    left: -230px;
+    width: 300px;
+    height: 100vh;
+    transition: all 0.5s;
+    background-color: $nav-background-color;
+    color: $nav-font-color;
+    padding: 0;
+    z-index: 90;
 
-        &:hover {
-            left: 0;
-            transition: all 0.5s;
-        }
-
-        ul {
-            position: absolute;
-            top: 50%;
-            transform: translate(0, -50%);
-            list-style: none;
-            display: inline-block;
-            padding: 0;
-            margin: 0;
-            width: 100%;
-        }
-
-
-        .nav-item {
-            width: 100%;
-            height: 55px;
-            padding: 0;
-            margin: 10px 0;
-
-            &.selected {
-                background-color: $nav-selected-color;
-
-                a:hover {
-                    color: $nav-background-color;
-                }
-            }
-
-            #logoutForm {
-                padding: 0;
-            }
-
-            .nav-button {
-                color: $nav-font-color;
-                padding: 0;
-                text-align: left;
-
-                &:hover {
-                    color: $nav-hover-font-color;
-                }
-
-                button {
-                    background-color: inherit;
-                    border: none;
-                    margin: 0;
-                    width: 100%;
-                }
-            }
-        }
-
-        .nav-label {
-            display: inline-block;
-            width: 200px;
-            height: 55px;
-            line-height: 55px;
-            margin: auto 0 auto 15px;
-        }
-
-        .nav-icon {
-            display: inline-block;
-            float: right;
-            width: 70px;
-            height: 55px;
-            line-height: 55px;
-            padding: 0;
-            margin: auto;
-        }
-    }
-    /*****
-Contact Form Styling
-*****/
-    #modal-background {
-        position: fixed;
-        top: 0;
+    &:hover {
         left: 0;
-        height: 100vh;
-        width: 100vw;
-        margin: 0;
-        background-color: rgba(0, 0, 0, 0.4);
-        z-index: 50;
-        display: block;
-
-        &.hide {
-            display: none !important;
-        }
-
-        &.show {
-            display: block !important;
-        }
+        transition: all 0.5s;
     }
 
-    #contact-form-modal {
+    ul {
         position: absolute;
         top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: $form-background;
-        /*border: 2px solid $form-border;*/
-        border-radius: 5px;
-        padding: 25px;
-        z-index: 100;
+        transform: translate(0, -50%);
+        list-style: none;
+        display: inline-block;
+        padding: 0;
+        margin: 0;
+        width: 100%;
+    }
 
-        .contact-title {
-            margin: 20px 25px;
-            text-align: center;
+
+    .nav-item {
+        width: 100%;
+        height: 55px;
+        padding: 0;
+        margin: 10px 0;
+
+        &.selected {
+            background-color: $nav-selected-color;
+
+            a:hover {
+                color: $nav-background-color;
+            }
         }
 
-        .form-close {
-            position: absolute;
-            color: $form-close;
-            top: 10px;
-            right: 5px;
-            cursor: pointer;
+        #logoutForm {
+            padding: 0;
         }
 
-        .form-close:hover {
-            color: $form-close-hover;
+        .nav-button {
+            color: $nav-font-color;
+            padding: 0;
+            text-align: left;
+
+            &:hover {
+                color: $nav-hover-font-color;
+            }
+
+            button {
+                background-color: inherit;
+                border: none;
+                margin: 0;
+                width: 100%;
+            }
         }
     }
-    /*****
+
+    .nav-label {
+        display: inline-block;
+        width: 200px;
+        height: 55px;
+        line-height: 55px;
+        margin: auto 0 auto 15px;
+    }
+
+    .nav-icon {
+        display: inline-block;
+        float: right;
+        width: 70px;
+        height: 55px;
+        line-height: 55px;
+        padding: 0;
+        margin: auto;
+    }
+}
+
+/*****
+Contact Form Styling
+*****/
+#modal-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 50;
+    display: block;
+
+    &.hide {
+        display: none !important;
+    }
+
+    &.show {
+        display: block !important;
+    }
+}
+
+#contact-form-modal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: $form-background;
+    /*border: 2px solid $form-border;*/
+    border-radius: 5px;
+    padding: 25px;
+    z-index: 100;
+
+    .contact-title {
+        margin: 20px 25px;
+        text-align: center;
+    }
+
+    .form-close {
+        position: absolute;
+        color: $form-close;
+        top: 10px;
+        right: 5px;
+        cursor: pointer;
+    }
+
+    .form-close:hover {
+        color: $form-close-hover;
+    }
+}
+
+/*****
 Header Styling
 *****/
-    #header {
-        position: absolute;
-        top: 0;
-        right: 0;
-        height: 10vh;
+#header {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 10vh;
 
-        #logo {
-            height: 100%;
-            margin-right: 20px;
-        }
+    #logo {
+        height: 100%;
+        margin-right: 20px;
     }
-    /*****
+}
+
+/*****
 Footer Styling
 *****/
-    #footer {
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        height: 7vh;
-        text-align: center;
+#footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 7vh;
+    text-align: center;
 
-        ul {
-            list-style: none;
+    ul {
+        list-style: none;
+        display: inline-block;
+        padding: 0;
+
+        li {
             display: inline-block;
-            padding: 0;
-
-            li {
-                display: inline-block;
-                margin: 5px 10px;
-            }
-        }
-
-        #copyright-div {
-            text-align: right;
-            padding: 0 20px 20px;
-
-            #copyright {
-                font-size: 12px;
-                font-style: italic;
-            }
+            margin: 5px 10px;
         }
     }
-    /*****
+
+    #copyright-div {
+        text-align: right;
+        padding: 0 20px 20px;
+
+        #copyright {
+            font-size: 12px;
+            font-style: italic;
+        }
+    }
+}
+
+/*****
 Content Block Styling
 *****/
-    #iframe-container {
-        position: relative;
-        height: 100vh;
-        width: 100%;
-        overflow: hidden;
+#iframe-container {
+    position: relative;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
 
-        iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            transform: scale(1.00);
-            transform-origin: top left;
-        }
+    iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        transform: scale(1.00);
+        transform-origin: top left;
     }
-    /*****
+}
+
+/*****
 Report Block Styling
 *****/
-    .report-card {
-        border: 2px solid #000;
-        border-radius: 5px;
-        background-color: #fff;
-        margin: 15px 0;
-        padding: 20px;
-    }
-    /*****
+.report-card {
+    border: 2px solid #000;
+    border-radius: 5px;
+    background-color: $card-background-color;
+    margin: 15px 0;
+    padding: 20px;
+}
+
+/*****
 Client Admin Styling
 *****/
-    .client-admin-section {
-        height: 80vh;
-        padding: 10px;
+.client-admin-section {
+    height: 80vh;
+    padding: 10px;
 
-        .scroll-y {
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding-right: 25px;
-        }
+    &.hidden-on-load {
+        display: none;
+    }
 
-        .client-admin-section-toolbar {
-            width: 100%;
-            vertical-align: middle;
-        }
+    .scroll-y {
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 25px;
+    }
 
-        .search-box {
-            width: 70% !important;
-            display: inline-block;
-        }
+    .client-admin-section-toolbar {
+        width: 100%;
+        vertical-align: middle;
+    }
 
-        h3.client-admin-section-title {
-            margin: 10px 10px 20px;
-            text-align: center;
-        }
+    .search-box {
+        width: 70% !important;
+        display: inline-block;
+    }
 
-        input .search-box {
-            width: 50% !important;
-        }
+    h3.client-admin-section-title {
+        margin: 10px 10px 20px;
+        text-align: center;
+    }
 
-        #client-tree,
-        #user-list {
-            height: 85%;
-            width: 100%;
-            margin-bottom: 10px;
+    input .search-box {
+        width: 50% !important;
+    }
 
-            ul {
-                list-style-type: none;
-                padding: 5px;
-                margin: 5px;
+    #client-tree,
+    #user-list {
+        height: 85%;
+        width: 100%;
+        margin-bottom: 10px;
 
-                li {
-                    margin-bottom: 15px;
-                }
+        ul {
+            list-style-type: none;
+            padding: 5px;
+            margin: 5px;
+
+            li {
+                margin-bottom: 15px;
             }
         }
-
-        .hr {
-            height: 2px;
-            border: 1px solid black;
-            margin: 20px 5px;
-            padding: 0;
-        }
     }
+
+    .hr {
+        height: 2px;
+        border: 1px solid black;
+        margin: 20px 5px;
+        padding: 0;
+    }
+
+    .client-insert {
+    }
+}
 
 .client-admin-card {
     position: relative;
     padding: 0;
-    background-color: white;
+    background-color: $card-background-color;
     border: 2px solid black;
     border-radius: 5px;
     margin-top: 10px;
     margin-bottom: 30px;
     cursor: pointer;
-    min-height: 85px;
 
     &:hover {
         /*background-color: lightgray;*/
@@ -408,8 +495,19 @@ Client Admin Styling
     &.disabled {
         color: $text-disabled !important;
         background-color: $button-disabled !important;
+
+        &.selected {
+            border: 5px solid $card-selected-background-color;
+        }
     }
 
+    &.selected {
+        color: white;
+        background-color: $card-selected-background-color;
+    }
+
+    &.editing {
+    }
 
     .client-admin-card-title {
         margin: 5px 0;
@@ -507,31 +605,41 @@ Client Admin Styling
         }
     }
 
+    .placeholder-arrow {
+        display: inline;
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translate(0, -50%);
+    }
+
     .left-icon {
         display: inline;
         height: 100%;
     }
-}
 
-    #client-form {
+    &.action-card {
+        color: #777;
 
-        h4 {
-            margin-top: 15px;
-            font-weight: bold;
-        }
+        .center-text-card {
+            text-align: center;
+            margin: 15px 0;
 
-        &.read-only {
-
-            input:disabled {
-                background-color: $background;
-                border: none;
-                outline: none;
-                border-radius: 0;
-                border-bottom: 1px solid black;
-                box-shadow: none;
-                font-weight: bold;
-                cursor: default;
-                overflow: hidden;
+            i {
+                vertical-align: middle;
             }
         }
+
+        &:hover {
+            color: #424242;
+        }
     }
+}
+
+#client-form {
+
+    h4 {
+        margin-top: 10px;
+        font-weight: bold;
+    }
+}

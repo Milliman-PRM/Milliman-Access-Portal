@@ -7,6 +7,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
     {
         public List<ClientAndChildrenModel> ClientTree = new List<ClientAndChildrenModel>();
         public List<AuthorizedProfitCenterModel> AuthorizedProfitCenterList = new List<AuthorizedProfitCenterModel>();
+        public long RelevantClientId = -1;
     }
 
     public class AuthorizedProfitCenterModel

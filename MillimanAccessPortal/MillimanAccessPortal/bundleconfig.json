@@ -16,9 +16,9 @@
     }
   },
   {
-    "outputFileName": "wwwroot/js/toastr-options.min.js",
+    "outputFileName": "wwwroot/js/lib-options.min.js",
     "inputFiles": [
-      "wwwroot/js/toastr-options.js"
+      "wwwroot/js/lib-options.js"
     ],
     "minify": {
       "enabled": true,
@@ -29,6 +29,18 @@
     "outputFileName": "wwwroot/lib/bootbox.js/bootbox.min.js",
     "inputFiles": [
       "wwwroot/lib/bootbox.js/bootbox.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/client-admin.min.js",
+    "inputFiles": [
+      "wwwroot/js/client-admin.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/lib/selectize/dist/css/selectize.default.min.css",
+    "inputFiles": [
+      "wwwroot/lib/selectize/dist/css/selectize.default.css"
     ]
   }
 ]
