@@ -15,7 +15,8 @@
 |ContentAdmin|RootContentItem|Authorizes distribution of content to client-related RootContentItems|ClientAdmin|
 |ContentAdmin|Client|Authorizes create/delete of RootContentItems|ClientAdmin|
 |----|----------|------------|-----------|
-|ContentUser|RootContentItem ?|Authorizes eligibility to be assigned to a ContentItemGroup|UserAdmin|
+|ContentUser|Client|Authorizes eligibility for ContentUser role on an associated RootContentItem|ClientAdmin|
+|ContentUser|RootContentItem|Authorizes eligibility to be assigned to a ContentItemGroup|UserAdmin|
 
 ## Possible User Actions
 
