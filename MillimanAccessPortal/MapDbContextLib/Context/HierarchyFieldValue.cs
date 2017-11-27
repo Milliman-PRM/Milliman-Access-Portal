@@ -11,6 +11,7 @@ namespace MapDbContextLib.Context
 {
     public class HierarchyFieldValue
     {
+        [Key]
         public long Id { get; set; }
 
         [Required]

@@ -2,6 +2,10 @@
     Layout = "_Layout";
 }
 
+@section CSS {
+    @RenderSection("CSS", required: false)
+}
+
 @Html.Partial("_Header")
 
 @await Html.PartialAsync("_Navbar")

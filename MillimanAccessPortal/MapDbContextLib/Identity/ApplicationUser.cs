@@ -5,6 +5,7 @@
  */
 
 using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 
 namespace MapDbContextLib.Identity
 {
@@ -20,6 +21,10 @@ namespace MapDbContextLib.Identity
             // The base class does not have a constructor taking an argument.  
             base.UserName = userName;
         }
+
+        /// This overide is here only to apply the explicit [Key] attribute, required in unit tests
+        [Key]
+        public override long Id { get; set; }
 
         //
         // Summary:
