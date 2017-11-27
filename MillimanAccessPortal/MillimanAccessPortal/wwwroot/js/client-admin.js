@@ -50,10 +50,11 @@ function GetClientDetail(clientDiv) {
             'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
         },
     }).done(function (response) {
+        clearValidationErrors();
         populateClientDetails(response.ClientEntity);
         //console.log(response.AssignedUsers);
         // Change the dom to reflect the selected client
-        clearSelectedClient()
+        clearSelectedClient();
         clientDiv.addClass('selected');
         // Show the form in readonly mode
         makeFormReadOnly();
@@ -153,6 +154,12 @@ function clearFormData() {
     $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.clearOptions();
     $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').attr('data-original-value', '');
     $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').val("");
+    clearValidationErrors();
+}
+
+function clearValidationErrors() {
+    $('#client-form .input-validation-error').removeClass('input-validation-error');
+    $('#client-form span.field-validation-error > span').remove();
 }
 
 function clearSelectedClient() {
@@ -471,6 +478,8 @@ function submitClientForm(event) {
 function resetNewClientForm() {
 
     event.preventDefault();
+
+    clearValidationErrors();
 
     $('#client-form :input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select').each(function () {
         if ($(this).val() != "") {
