@@ -73,6 +73,8 @@ function EditClientDetail(clientDiv) {
 
     removeClientInserts()
 
+    clearValidationErrors();
+
     var clientId = clientDiv.attr('data-client-id').valueOf();
 
     $.ajax({
@@ -518,6 +520,8 @@ function resetNewClientForm() {
 function undoChangesEditClientForm(event) {
 
     event.preventDefault();
+
+    clearValidationErrors();
 
     var clientId = $('#client-form #Id').val();
 
