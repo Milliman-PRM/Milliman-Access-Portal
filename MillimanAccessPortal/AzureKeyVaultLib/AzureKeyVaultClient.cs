@@ -12,11 +12,13 @@ namespace AzureKeyVaultLib
         public ClientAssertionCertificate AssertionCert { get; set; }
         public string CertificateThumbprint { get; set; }
         public string ClientId { get; set; }
+        public string VaultURL { get; set; }
 
-        public AzureKeyVaultClient(string _thumbprint, string _clientId)
+        public AzureKeyVaultClient(string _thumbprint, string _clientId, string _vaultURL)
         {
             var clientAssertionCertPfx = CertificateHelper.FindCertificateByThumbprint(CertificateThumbprint);
             AssertionCert = new ClientAssertionCertificate(ClientId, clientAssertionCertPfx);
+            VaultURL = _vaultURL;
         }
         
         public async Task<string> GetAccessToken(string authority, string resource, string scope)
@@ -27,8 +29,9 @@ namespace AzureKeyVaultLib
             return result.AccessToken;
         }
 
-        public async Task<string> GetNamedSecret(string secretURL)
+        public async Task<string> GetNamedSecret(string secretName)
         {
+            string secretURL = VaultURL + "/secrets/" + secretName;
             var kv = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(GetAccessToken));
             var sec = await kv.GetSecretAsync(secretURL);
 
