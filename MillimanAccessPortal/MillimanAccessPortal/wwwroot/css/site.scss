@@ -761,41 +761,68 @@ Client Admin Styling
     }
 
     .card-body-main-container {
+        position: relative;
+        padding: 5px 10px;
+        margin: 0;
+        width: 100%;
+        flex-flow: row nowrap;
+        justify-content: flex-start;
+        align-items: stretch;
+        align-content: stretch;
+        display: flex;
 
-        .card-body-primary-text {
-            margin: 5px 0;
-        }
-
-        .card-body-secondary-text {
+        .card-body-primary-container {
             display: inline-block;
-            margin: 0;
-            padding: 5px 10px;
-            height: 100%;
-            width: 75%;
-        }
-    }
+            flex: 4 0 80%;
+            flex-basis: auto;
+            padding-left: 15px;
+            margin: auto;
 
-    .card-body-secondary-container {
-
-        .card-stat-container {
-
-            &.card-stat-container-top {
+            .card-body-primary-text {
+                margin: 5px 0;
             }
 
-            &.card-stat-container-bottom {
-            }
-
-            .card-stat-icon {
-            }
-
-            .card-stat-value {
+            .card-body-secondary-text {
+                display: inline-block;
+                margin: 0;
+                height: 100%;
+                width: 75%;
             }
         }
 
-        .card-user-icon {
-        }
+        .card-body-secondary-container {
+            display: inline-block;
+            position: relative;
+            text-align: center;
+            flex: 0 1 auto;
+            margin: auto;
 
-        .card-user-role-indicator {
+            .card-stat-container {
+
+                &.card-stat-container-top {
+                }
+
+                &.card-stat-container-bottom {
+                }
+
+                .card-stat-icon {
+                }
+
+                .card-stat-value {
+                }
+            }
+
+            .card-user-icon {
+                vertical-align: middle;
+                margin: auto;
+            }
+
+            .card-user-role-indicator {
+                position: absolute;
+                top: 5%;
+                left: 60%;
+                color: $button-save;
+            }
         }
     }
 
@@ -805,20 +832,37 @@ Client Admin Styling
         right: 0;
         top: 50%;
         text-align: right;
-        transform: translate(60%, -50%);
+        transform: translate(50%, -50%);
     }
 
     .card-button-bottom-container {
+        position: absolute;
+        display: inline;
+        right: 25px;
+        bottom: 0;
+        transform: translate(0, 50%);
 
         .card-expansion-button {
+            background-color: $button-save;
+
+            &:hover {
+                background-color: $button-save-hover;
+            }
         }
     }
 
     .card-button-background {
+        border-radius: 50%;
+        display: block;
+        text-align: center;
+        vertical-align: middle;
+        padding: 2px;
+        transform-origin: center center;
+        color: #fff;
 
-        .card-button-delete,
-        .card-button-remove-user,
-        .card-button-close {
+        &.card-button-delete,
+        &.card-button-remove-user,
+        &.card-button-close {
             background-color: $button-warning;
 
             &:hover {
@@ -826,8 +870,9 @@ Client Admin Styling
             }
         }
 
-        .card-button-edit,
-        .card-button-options {
+        &.card-button-edit,
+        &.card-button-options,
+        &.card-button-expansion {
             background-color: $button-confirm;
 
             &:hover {
@@ -835,7 +880,7 @@ Client Admin Styling
             }
         }
 
-        .card-button-new-child {
+        &.card-button-new-child {
             background-color: $button-save;
 
             &:hover {
@@ -850,14 +895,20 @@ Client Admin Styling
 
         .card-button-icon {
             color: white;
+            vertical-align: middle;
         }
     }
 
 
     .card-expansion-container {
+        overflow: hidden;
+        padding: 5px 10px;
+        border-top: 1px solid lightgray;
+        margin: 5px 5px 0;
 
         &.minimized {
             max-height: 0;
+            border: none;
         }
 
         &.maximized {
@@ -865,6 +916,7 @@ Client Admin Styling
         }
 
         .card-expansion-category-label {
+            font-weight: bold;
         }
 
         .card-expansion-option-label {
