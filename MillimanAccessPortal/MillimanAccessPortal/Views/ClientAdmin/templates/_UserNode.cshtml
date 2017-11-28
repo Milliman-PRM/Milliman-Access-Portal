@@ -1,14 +1,15 @@
 <script type="text/template" data-template="userNode">
     <li>
-        <div class="col-xs-12 card-container" data-user-id="{{id}}">
+        <div class="col-xs-12 card-container" data-client-id="{{clientId}} data-user-id="{{id}}">
             <div class="card-body-main-container">
                 <div class="card-body-secondary-container">
                     <i class="fa fa-fw fa-user fa-4x card-user-icon"></i>
                     <i class="fa fa-fw fa-plus fa-2x card-user-role-indicator"></i>
                 </div>
                 <div class="card-body-primary-container">
-                    <h3 class="card-body-primary-text">{{first}} {{last}} {{title}}</h3>
+                    <h3 class="card-body-primary-text">{{name}}</h3>
                     <p class="card-body-secondary-text">{{username}}</p>
+                    <p class="card-body-secondary-text">{{email}} (email)</p>
                 </div>
                 <div class="card-button-side-container">
                     <div class="card-button-background card-button-remove-user">
@@ -21,7 +22,7 @@
                     <i class="fa fa-fw fa-chevron-down"></i>
                 </div>
             </div>
-            <div class="card-expansion-container maximized">
+            <div class="card-expansion-container minimized">
                 <h4 class="card-expansion-category-label">Client Roles</h4>
                 <div class="switch-container">
                     <div class="toggle-switch">

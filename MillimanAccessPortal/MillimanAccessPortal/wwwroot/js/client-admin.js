@@ -53,7 +53,7 @@ function GetClientDetail(clientDiv) {
     }).done(function (response) {
         clearValidationErrors();
         populateClientDetails(response.ClientEntity);
-        console.log(response);
+        renderUserList(response);
         // Change the dom to reflect the selected client
         clearSelectedClient();
         clientDiv.addClass('selected');
@@ -621,46 +621,55 @@ function cancelEditTasks(clientId) {
 
 
 
-//function renderUserList(userId) {
-//    $('#client-user-list').empty();
-//    clientUsers.forEach(function (user) {
-//        renderUserNode(user);
-//    });
+function renderUserList(client, userId) {
+    $('#client-user-list').empty();
+    client.AssignedUsers.forEach(function (user) {
+        renderUserNode(client.ClientEntity.Id, user);
+    });
 
-//    //$('div.client-admin-card').on('click', function () {
-//    //    GetClientDetail($(this));
-//    //});
-//    //$('div.card-button-background-edit').on('click', function (event) {
-//    //    EditClientDetail($(this).parents('div[data-client-id]'));
-//    //    event.stopPropagation();
-//    //});
-//    //$('div.card-button-background-add').on('click', function (event) {
-//    //    newChildClientFormSetup($(this).parents('div[data-client-id]'));
-//    //    event.stopPropagation();
-//    //});
+    $('div.card-button-remove-user').on('click', function (event) {
+        removeUserFromClient($(this).parents('div[data-client-id][data-user-id]'));
+        event.stopPropagation();
+    });
+    $('div.card-button-expansion').on('click', function (event) {
+        expandUserSettingsPanel($(this).parents('div[data-client-id][data-user-id]'));
+        event.stopPropagation();
+    });
 
-//    $('#client-user-list').append(userCard);
+    //$('#client-user-list').append(userCard);
 
-//    if (userId) {
-//        $('[data-user-id="' + userId + '"]').click();
-//    }
+    if (client.EligibleUsers) {
+        console.log(client.EligibleUsers);
+    }
 
-//};
+    if (userId) {
+        $('[data-user-id="' + userId + '"]').click();
+    }
 
-//function renderClientNode(user) {
-//    var template = userNodeTemplate;
+};
 
-//    //template = template.replace(/{{id}}/g, client.ClientEntity.Id);
-//    //template = template.replace(/{{name}}/g, client.ClientEntity.Name);
+function renderUserNode(clientId, user) {
+    var template = userNodeTemplate;
 
-//    //// convert template to DOM element for jQuery manipulation
-//    //var $template = $(template.toString());
+    template = template.replace(/{{clientId}}/g, clientId);
+    template = template.replace(/{{id}}/g, user.Id);
+    template = template.replace(/{{name}}/g, user.FirstName + " " + user.LastName);
+    template = template.replace(/{{username}}/g, user.UserName);
+    if (user.UserName != user.Email) {
+        template = template.replace(/{{email}}/g, user.Email);
+    }
 
-//    //if (!client.CanManage) {
-//    //    $('.icon-container', $template).remove();
-//    //    $('.client-admin-card', $template).addClass('disabled');
-//    //}
 
-//    //$('#client-user-list').append($template);
+    // convert template to DOM element for jQuery manipulation
+    var $template = $(template.toString());
 
-//};
+    $('.card-body-secondary-text:contains("{{email}}")', $template).remove();
+
+    //if (!client.CanManage) {
+    //    $('.icon-container', $template).remove();
+    //    $('.card-container', $template).addClass('disabled');
+    //}
+
+    $('#client-user-list').append($template);
+
+};
