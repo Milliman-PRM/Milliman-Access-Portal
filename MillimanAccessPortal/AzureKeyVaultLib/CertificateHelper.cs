@@ -7,7 +7,7 @@ namespace AzureKeyVaultLib
     {
         public static X509Certificate2 FindCertificateByThumbprint(string findValue)
         {
-            X509Store store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+            X509Store store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
             try
             {
                 store.Open(OpenFlags.ReadOnly);
