@@ -1,43 +1,67 @@
 <script type="text/template" data-template="userNode">
     <li>
-        <div class="col-xs-12 client-admin-card" data-user-id="{{id}}">
-            <div class="client-information">
-                <h3 class="client-admin-card-title">{{name}}</h3>
-                <p class="client-admin-card-clientcode">{{clientCode}}</p>
-            </div>
-            <div class="card-expansion minimized">
-                <h4>Client Roles</h4>
-                <div class="toggle-switch">
-                    <input type="checkbox" name="toggle-switch" class="toggle-switch-checkbox" id="mytoggle-switch" checked>
-                    <label class="toggle-switch-label" for="mytoggle-switch">
-                        <span class="toggle-switch-inner"></span>
-                        <span class="toggle-switch-switch"></span>
-                    </label>
-                    <label for="mytoggle-switch">Client Administrator</label>
+        <div class="col-xs-12 card-container" data-user-id="{{id}}">
+            <div class="card-body-main-container">
+                <div class="card-body-secondary-container">
+                    <i class="fa fa-fw fa-user fa-4x card-user-icon"></i>
+                    <i class="fa fa-fw fa-plus fa-2x card-user-role-indicator"></i>
                 </div>
-                <div class="toggle-switch">
-                    <input type="checkbox" name="toggle-switch" class="toggle-switch-checkbox" id="mytoggle-switch" checked>
-                    <label class="toggle-switch-label" for="mytoggle-switch">
-                        <span class="toggle-switch-inner"></span>
-                        <span class="toggle-switch-switch"></span>
-                    </label>
-                    <label for="mytoggle-switch">User Administrator</label>
+                <div class="card-body-primary-container">
+                    <h3 class="card-body-primary-text">{{first}} {{last}} {{title}}</h3>
+                    <p class="card-body-secondary-text">{{username}}</p>
                 </div>
-                <div class="toggle-switch">
-                    <input type="checkbox" name="toggle-switch" class="toggle-switch-checkbox" id="mytoggle-switch" checked>
-                    <label class="toggle-switch-label" for="mytoggle-switch">
-                        <span class="toggle-switch-inner"></span>
-                        <span class="toggle-switch-switch"></span>
-                    </label>
-                    <label for="mytoggle-switch">Content Administrator</label>
+                <div class="card-button-side-container">
+                    <div class="card-button-background card-button-remove-user">
+                        <i class="fa fa-fw fa-times"></i>
+                    </div>
                 </div>
             </div>
-            <div class="icon-container">
-                <div class="card-button-background card-button-background-delete">
-                    <i class="fa fa-fw fa-times"></i>
+            <div class="card-button-bottom-container">
+                <div class="card-button-background card-button-expansion">
+                    <i class="fa fa-fw fa-chevron-down"></i>
                 </div>
-                <div class="card-button-background card-button-background-edit">
-                    <i class="fa fa-fw fa-wrench"></i>
+            </div>
+            <div class="card-expansion-container maximized">
+                <h4 class="card-expansion-category-label">Client Roles</h4>
+                <div class="switch-container">
+                    <div class="toggle-switch">
+                        <input type="checkbox" name="clientAdmin" class="toggle-switch-checkbox" id="clientAdmin" checked>
+                        <label class="toggle-switch-label" for="clientAdmin">
+                            <span class="toggle-switch-inner"></span>
+                            <span class="toggle-switch-switch"></span>
+                        </label>
+                    </div>
+                    <label for="clientAdmin" class="switch-label">Client Administrator</label>
+                </div>
+                <div class="switch-container">
+                    <div class="toggle-switch">
+                        <input type="checkbox" name="userAdmin" class="toggle-switch-checkbox" id="userAdmin" checked>
+                        <label class="toggle-switch-label" for="userAdmin">
+                            <span class="toggle-switch-inner"></span>
+                            <span class="toggle-switch-switch"></span>
+                        </label>
+                    </div>
+                    <label for="userAdmin" class="switch-label">User Administrator</label>
+                </div>
+                <div class="switch-container">
+                    <div class="toggle-switch">
+                        <input type="checkbox" name="contentAdmin" class="toggle-switch-checkbox" id="contentAdmin" checked>
+                        <label class="toggle-switch-label" for="contentAdmin">
+                            <span class="toggle-switch-inner"></span>
+                            <span class="toggle-switch-switch"></span>
+                        </label>
+                    </div>
+                    <label for="contentAdmin" class="switch-label">Content Administrator</label>
+                </div>
+                <div class="switch-container">
+                    <div class="toggle-switch">
+                        <input type="checkbox" name="contentUser" class="toggle-switch-checkbox" id="contentUser" checked>
+                        <label class="toggle-switch-label" for="contentUser">
+                            <span class="toggle-switch-inner"></span>
+                            <span class="toggle-switch-switch"></span>
+                        </label>
+                    </div>
+                    <label for="clientAdmin" class="switch-label">Content Eligible</label>
                 </div>
             </div>
         </div>
