@@ -50,9 +50,9 @@ namespace MillimanAccessPortal
                     .AddJsonFile($"appsettings.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
                     .AddJsonFile("qlikview.json", optional: false, reloadOnChange: true)
                     .AddJsonFile("smtp.json", optional: false, reloadOnChange: true)
+                    .AddJsonFile($"smtp.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
                     .AddJsonFile("AzureKeyVault.json", optional: false, reloadOnChange: true)
                     .AddJsonFile($"AzureKeyVault.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-                    .AddJsonFile($"smtp.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
                     ;
 
                     #region Configure Azure Key Vault
@@ -67,7 +67,10 @@ namespace MillimanAccessPortal
                         builtConfig["AzureClientID"],
                         cert.OfType<X509Certificate2>().Single()
                         );
-                    
+
+                    // TODO: Remove this line
+                    var newConfig = config.Build();
+
                     #endregion
 
                     if (hostContext.HostingEnvironment.IsDevelopment())
