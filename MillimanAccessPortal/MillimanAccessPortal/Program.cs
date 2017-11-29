@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using MapDbContextLib.Context;
 using System.Security.Cryptography.X509Certificates;
 using System.Linq;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
 
@@ -51,29 +50,22 @@ namespace MillimanAccessPortal
                     .AddJsonFile($"appsettings.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
                     .AddJsonFile("qlikview.json", optional: false, reloadOnChange: true)
                     .AddJsonFile("smtp.json", optional: false, reloadOnChange: true)
+                    .AddJsonFile("AzureKeyVault.json", optional: false, reloadOnChange: true)
+                    .AddJsonFile($"AzureKeyVault.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
                     .AddJsonFile($"smtp.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
                     ;
 
                     #region Configure Azure Key Vault
-
-                    // The configuration provider doesn't provide access to values before Build() is executed below. 
-                    // As a result, we need to pull in the AzureKeyVault.json ourselves & parse the values here.
-                    
-                    string json = File.ReadAllText(@"AzureKeyVault.json");
-
-                    Dictionary<string, string> azureKeyVaultConfig = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+                    var builtConfig = config.Build();
 
                     var store = new X509Store(StoreLocation.LocalMachine);
                     store.Open(OpenFlags.ReadOnly);
-                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, azureKeyVaultConfig["AzureCertificateThumbprint"], false);
-
-                    X509Certificate2 certObject = cert.OfType<X509Certificate2>().Single();
-
+                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
+                    
                     config.AddAzureKeyVault(
-                        azureKeyVaultConfig["AzureVaultName"],
-                        azureKeyVaultConfig["AzureClientID"],
-                        certObject,
-                        new DefaultKeyVaultSecretManager()
+                        builtConfig["AzureVaultName"],
+                        builtConfig["AzureClientID"],
+                        cert.OfType<X509Certificate2>().Single()
                         );
                     
                     #endregion
