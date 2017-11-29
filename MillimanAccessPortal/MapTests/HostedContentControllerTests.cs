@@ -6,6 +6,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
@@ -15,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Moq;
 using Xunit;
 using MapDbContextLib.Context;
@@ -30,24 +32,15 @@ namespace MapTests
     public class HostedContentControllerTests
     {
         private IOptions<QlikviewConfig> MockQlikViewConfig { get; set; }
-        private readonly Mock<UserManager<ApplicationUser>> MockUserManager;
-        private readonly ILoggerFactory Logger;
+        private Mock<UserManager<ApplicationUser>> MockUserManager;
 
         /// <summary>
         /// Constructor sets up requirements and data for the controller being tested.
         /// </summary>
         public HostedContentControllerTests()
         {
-            // Mock requirements for HostedContentController
-
+            // Mock some requirements for HostedContentController that are alike for all tests in this class
             MockQlikViewConfig = new Mock<IOptions<QlikviewConfig>>().Object;
-            Logger = new LoggerFactory();
-
-            // Configure UserManager to avoid accessing a database
-            Mock<IUserStore<ApplicationUser>> MockUserStore = new Mock<IUserStore<ApplicationUser>>();
-            MockUserManager = new Mock<UserManager<ApplicationUser>>(MockUserStore.Object, null, null, null, null, null, null, null, null);
-            MockUserManager.Setup(m => m.GetUserName(It.IsAny<System.Security.Claims.ClaimsPrincipal>())).Returns("test1");
-
         }
 
         /// <summary>
@@ -60,20 +53,26 @@ namespace MapTests
             // Reference https://msdn.microsoft.com/en-us/library/dn314429(v=vs.113).aspx
 
             #region Arrange
-            var MockContext = TestInitialization.GenerateTestDataset(new DataSelection[] { DataSelection.Basic }).Object;
+            Mock<ApplicationDbContext> MockDbContext;
+            Mock<UserManager<ApplicationUser>> MockUserManager;
+            DefaultAuthorizationService AuthorizationService;
+            ILoggerFactory Logger;
+            StandardQueries QueriesObj;
 
-            var x = AuthorizationServiceMockExtensionFactory_RequirementList_Failure();
+            // initialize dependencies
+            (MockDbContext, MockUserManager, AuthorizationService, Logger, QueriesObj) = TestInitialization.GenerateDependencies();
 
-            StandardQueries QueriesObj = new StandardQueries(MockContext, MockUserManager.Object);
+            // initialize data
+            TestInitialization.GenerateTestData(new DataSelection[] { DataSelection.Basic }, MockDbContext);
 
             HostedContentController sut = new HostedContentController(MockQlikViewConfig, 
                                                                       MockUserManager.Object, 
                                                                       Logger, 
-                                                                      MockContext,
+                                                                      MockDbContext.Object,
                                                                       QueriesObj,
-                                                                      x.Object);
+                                                                      AuthorizationService);
 
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserName: MockContext.ApplicationUser.First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserName: MockDbContext.Object.ApplicationUser.First().UserName);
             #endregion
 
             #region Act
@@ -89,7 +88,7 @@ namespace MapTests
             List<HostedContentViewModel> ModelReturned = (List<HostedContentViewModel>)viewResult.Model;
             Assert.Equal(1, ModelReturned.Count);
 
-            Assert.Equal(MockContext.RootContentItem.FirstOrDefault().ContentName, ModelReturned[0].ContentName);
+            Assert.Equal(MockDbContext.Object.RootContentItem.FirstOrDefault().ContentName, ModelReturned[0].ContentName);
             #endregion
         }
 
@@ -123,6 +122,36 @@ namespace MapTests
             throw new NotImplementedException();
         }
 
+        public Mock<IAuthorizationService> AuthorizationServiceMockExtensionFactory<T1>(AuthorizationResult Result1) 
+            where T1 : MapAuthorizationRequirementBase
+        {
+            var mockRepository = new Moq.MockRepository(Moq.MockBehavior.Strict);
+            var mockFactory = mockRepository.Create<IAuthorizationService>();
+            var ClaimsPrincipal = mockRepository.Create<ClaimsPrincipal>();
+            mockFactory.Setup(x => x.AuthorizeAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<object>(), It.IsAny<T1>())).ReturnsAsync(Result1);
+            return mockFactory;
+        }
+
+        /// <summary>
+        /// To be used where the handler is expected to service 2 separate requirement types in the system under test
+        /// </summary>
+        /// <typeparam name="T1"></typeparam>
+        /// <typeparam name="T2"></typeparam>
+        /// <param name="Result1"></param>
+        /// <param name="Result2"></param>
+        /// <returns></returns>
+        public static Mock<IAuthorizationService> AuthorizationServiceMockExtensionFactory<T1,T2>(AuthorizationResult Result1, AuthorizationResult Result2) 
+            where T1 : MapAuthorizationRequirementBase
+            where T2 : MapAuthorizationRequirementBase
+        {
+            var mockRepository = new Moq.MockRepository(Moq.MockBehavior.Strict);
+            var mockFactory = mockRepository.Create<IAuthorizationService>();
+            var ClaimsPrincipal = mockRepository.Create<ClaimsPrincipal>();
+            mockFactory.Setup(x => x.AuthorizeAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<object>(), It.IsAny<T1>())).ReturnsAsync(Result1);
+            mockFactory.Setup(x => x.AuthorizeAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<object>(), It.IsAny<T2>())).ReturnsAsync(Result2);
+            return mockFactory;
+        }
+
         public Mock<IAuthorizationService> AuthorizationServiceMockExtensionFactory_Success()
         {
             var mockRepository = new Moq.MockRepository(Moq.MockBehavior.Strict);
@@ -146,7 +175,7 @@ namespace MapTests
             var mockRepository = new Moq.MockRepository(Moq.MockBehavior.Strict);
             var mockFactory = mockRepository.Create<IAuthorizationService>();
             var ClaimsPrincipal = mockRepository.Create<ClaimsPrincipal>();
-            mockFactory.Setup(x => x.AuthorizeAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<object>(), It.IsAny<IEnumerable<IAuthorizationRequirement>>())).ReturnsAsync(AuthorizationResult.Success());
+            mockFactory.Setup(x => x.AuthorizeAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<object>(), It.IsAny<IEnumerable<MapAuthorizationRequirementBase>>())).ReturnsAsync(AuthorizationResult.Success());
             return mockFactory;
         }
 
@@ -155,7 +184,7 @@ namespace MapTests
             var mockRepository = new Moq.MockRepository(Moq.MockBehavior.Strict);
             var mockFactory = mockRepository.Create<IAuthorizationService>();
             var ClaimsPrincipal = mockRepository.Create<ClaimsPrincipal>();
-            mockFactory.Setup(x => x.AuthorizeAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<object>(), It.IsAny<IEnumerable<IAuthorizationRequirement>>())).ReturnsAsync(AuthorizationResult.Failed());
+            mockFactory.Setup(x => x.AuthorizeAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<object>(), It.IsAny<IEnumerable<MapAuthorizationRequirementBase>>())).ReturnsAsync(AuthorizationResult.Failed());
             return mockFactory;
         }
     }

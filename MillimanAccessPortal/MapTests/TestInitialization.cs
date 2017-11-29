@@ -1,14 +1,21 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Collections.Generic;
-using System.Text;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using MapDbContextLib.Context;
-using Moq;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
+using Moq;
+using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MillimanAccessPortal.Authorization;
+using MillimanAccessPortal.DataQueries;
 
 namespace MapTests
 {
@@ -38,6 +45,7 @@ namespace MapTests
         private static Mock<DbSet<HierarchyField>> MoqHierarchyField = null;
         private static Mock<DbSet<ContentItemUserGroup>> MoqContentItemUserGroup = null;
         private static Mock<DbSet<UserInContentItemUserGroup>> MoqUserInContentItemUserGroup = null;
+        private static Mock<DbSet<IdentityUserRole<long>>> MoqIdentityUserRole = null;
 
         /// <summary>
         /// Associates each DataSelection enum value with the function that implements it
@@ -57,17 +65,36 @@ namespace MapTests
         {
             ClaimsPrincipal TestUserPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.Name, UserName) }));
 
+            return GenerateControllerContext(TestUserPrincipal);
+        }
+
+        /// <summary>
+        /// Initializes a ControllerContext as needed to construct a functioning controller. 
+        /// </summary>
+        /// <param name="TestUserPrincipal"></param>
+        /// <returns></returns>
+        internal static ControllerContext GenerateControllerContext(ClaimsPrincipal TestUserPrincipal)
+        {
             return new ControllerContext
             {
                 HttpContext = new DefaultHttpContext() { User = TestUserPrincipal }
             };
         }
 
+        public static void GenerateTestData(IEnumerable<DataSelection> DataSelections, Mock<ApplicationDbContext> MockContext)
+        {
+            foreach (DataSelection Selection in DataSelections.Distinct())
+            {
+                DataGenFunctionDict[Selection](MockContext);
+            }
+        }
+
         /// <summary>
         /// Construct and return a standard dataset to be used by most tests
         /// </summary>
-        /// <returns></returns>
-        public static Mock<ApplicationDbContext> GenerateTestDataset(IEnumerable<DataSelection> DataSelections)
+        /// <returns>A tuple with the context and associated UserManager</returns>
+        public static (Mock<ApplicationDbContext> MockContext, Mock<UserManager<ApplicationUser>> MockUserManager, DefaultAuthorizationService AuthorizationService, ILoggerFactory Logger, StandardQueries QueriesObject) 
+            GenerateDependencies()
         {
             #region Instantiate context and contained DbSet objects
             // Had to implement a parameterless constructor in the context class, I hope this doesn't cause any problem in EF
@@ -75,46 +102,85 @@ namespace MapTests
 
             // Roles are standard throughout the system, should only be initialized once
             MoqApplicationRole = MockDbSet<ApplicationRole>.New(GetSystemRolesList());
-            MockContext.Setup(m => m.ApplicationRole).Returns(MoqApplicationRole.Object);
+            //MockContext.Setup(m => m.ApplicationRole).Returns(MoqApplicationRole.Object);
+            MockContext.Object.ApplicationRole = MoqApplicationRole.Object;
 
             MoqApplicationUser = MockDbSet<ApplicationUser>.New(new List<ApplicationUser>());
-            MockContext.Setup(m => m.ApplicationUser).Returns(MoqApplicationUser.Object);
+            //MockContext.Setup(m => m.ApplicationUser).Returns(MoqApplicationUser.Object);
+            MockContext.Object.ApplicationUser = MoqApplicationUser.Object;
 
             MoqContentType = MockDbSet<ContentType>.New(new List<ContentType>());
-            MockContext.Setup(m => m.ContentType).Returns(MoqContentType.Object);
+            //MockContext.Setup(m => m.ContentType).Returns(MoqContentType.Object);
+            MockContext.Object.ContentType = MoqContentType.Object;
 
             MoqProfitCenter = MockDbSet<ProfitCenter>.New(new List<ProfitCenter>());
-            MockContext.Setup(m => m.ProfitCenter).Returns(MoqProfitCenter.Object);
+            //MockContext.Setup(m => m.ProfitCenter).Returns(MoqProfitCenter.Object);
+            MockContext.Object.ProfitCenter = MoqProfitCenter.Object;
 
             MoqClient = MockDbSet<Client>.New(new List<Client>());
-            MockContext.Setup(m => m.Client).Returns(MoqClient.Object);
+            //MockContext.Setup(m => m.Client).Returns(MoqClient.Object);
+            MockContext.Object.Client = MoqClient.Object;
 
             MoqUserAuthorizationToClient = MockDbSet<UserRoleInClient>.New(new List<UserRoleInClient>());
-            MockContext.Setup(m => m.UserRoleInClient).Returns(MoqUserAuthorizationToClient.Object);
+            //MockContext.Setup(m => m.UserRoleInClient).Returns(MoqUserAuthorizationToClient.Object);
+            MockContext.Object.UserRoleInClient = MoqUserAuthorizationToClient.Object;
 
             MoqRootContentItem = MockDbSet<RootContentItem>.New(new List<RootContentItem>());
-            MockContext.Setup(m => m.RootContentItem).Returns(MoqRootContentItem.Object);
+            //MockContext.Setup(m => m.RootContentItem).Returns(MoqRootContentItem.Object);
+            MockContext.Object.RootContentItem = MoqRootContentItem.Object;
 
             MoqHierarchyFieldValue = MockDbSet<HierarchyFieldValue>.New(new List<HierarchyFieldValue>());
-            MockContext.Setup(m => m.HierarchyFieldValue).Returns(MoqHierarchyFieldValue.Object);
+            //MockContext.Setup(m => m.HierarchyFieldValue).Returns(MoqHierarchyFieldValue.Object);
+            MockContext.Object.HierarchyFieldValue = MoqHierarchyFieldValue.Object;
 
             MoqHierarchyField = MockDbSet<HierarchyField>.New(new List<HierarchyField>());
-            MockContext.Setup(m => m.HierarchyField).Returns(MoqHierarchyField.Object);
+            //MockContext.Setup(m => m.HierarchyField).Returns(MoqHierarchyField.Object);
+            MockContext.Object.HierarchyField = MoqHierarchyField.Object;
 
             MoqContentItemUserGroup = MockDbSet<ContentItemUserGroup>.New(new List<ContentItemUserGroup>());
-            MockContext.Setup(m => m.ContentItemUserGroup).Returns(MoqContentItemUserGroup.Object);
+            //MockContext.Setup(m => m.ContentItemUserGroup).Returns(MoqContentItemUserGroup.Object);
+            MockContext.Object.ContentItemUserGroup = MoqContentItemUserGroup.Object;
 
             MoqUserInContentItemUserGroup = MockDbSet<UserInContentItemUserGroup>.New(new List<UserInContentItemUserGroup>());
-            MockContext.Setup(m => m.UserInContentItemUserGroup).Returns(MoqUserInContentItemUserGroup.Object);
+            //MockContext.Setup(m => m.UserInContentItemUserGroup).Returns(MoqUserInContentItemUserGroup.Object);
+            MockContext.Object.UserInContentItemUserGroup = MoqUserInContentItemUserGroup.Object;
+
+            MoqIdentityUserRole = MockDbSet<IdentityUserRole<long>>.New(new List<IdentityUserRole<long>>());
+            MockContext.Object.UserRoles = MoqIdentityUserRole.Object;
             #endregion
 
-            foreach (DataSelection Selection in DataSelections.Distinct())
-            {
-                DataGenFunctionDict[Selection](MockContext);
-            }
+            #region Construct a UserManager<ApplicationUser> that binds to the users in the context
+            Mock<IUserStore<ApplicationUser>> UserStore = MockUserStore.New(MockContext);
+            Mock<UserManager<ApplicationUser>> MockUserManager = new Mock<UserManager<ApplicationUser>>(UserStore.Object, null, null, null, null, null, null, null, null);
 
-            return MockContext;
+            MockUserManager.Setup(m => m.GetUserName(It.IsAny<ClaimsPrincipal>())).Returns<ClaimsPrincipal>(cp => UserStore.Object.FindByIdAsync(cp.Identity.Name, CancellationToken.None).Result.UserName);
+            MockUserManager.Setup(m => m.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync<ClaimsPrincipal, UserManager<ApplicationUser>, ApplicationUser>(cp => UserStore.Object.FindByIdAsync(cp.Identity.Name, CancellationToken.None).Result);
+            // more Setups?
+            #endregion
+
+            ILoggerFactory Logger = new LoggerFactory();
+
+            IAuthorizationPolicyProvider PolicyProvider = new DefaultAuthorizationPolicyProvider(Options.Create(new AuthorizationOptions()));
+            AuthorizationOptions AuthOptions = new AuthorizationOptions();
+            AuthOptions.InvokeHandlersAfterFailure = true;
+            AuthOptions.DefaultPolicy = new AuthorizationPolicy(new IAuthorizationRequirement[] { new DenyAnonymousAuthorizationRequirement() }, new string[0]);
+
+            AuthorizationHandler<MapAuthorizationRequirementBase> Handler = new MapAuthorizationHandler(MockContext.Object, MockUserManager.Object);
+            I​Authorization​Handler​Provider Authorization​Handler​Provider = new Default​Authorization​Handler​Provider(new IAuthorizationHandler[] { Handler });
+            IAuthorizationHandlerContextFactory AuthorizationContext = new Default​Authorization​Handler​Context​Factory();
+            DefaultAuthorizationService AuthorizationService = new DefaultAuthorizationService(
+                                                                            PolicyProvider,
+                                                                            Authorization​Handler​Provider,
+                                                                            Logger.CreateLogger<DefaultAuthorizationService>(),
+                                                                            AuthorizationContext,
+                                                                            new DefaultAuthorizationEvaluator(),
+                                                                            new OptionsWrapper<AuthorizationOptions>(AuthOptions));
+
+            StandardQueries QueriesObj = new StandardQueries(MockContext.Object, MockUserManager.Object);
+
+            return (MockContext, MockUserManager, AuthorizationService, Logger, QueriesObj);
         }
+
 
         private static void GenerateBasicTestData(ref Mock<ApplicationDbContext> MockContext)
         {
@@ -205,6 +271,13 @@ namespace MapTests
                 });
             MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ContentItemUserGroup>(MoqUserInContentItemUserGroup, "ContentItemUserGroupId", MoqContentItemUserGroup);
             MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ApplicationUser>(MoqUserInContentItemUserGroup, "UserId", MoqApplicationUser);
+            #endregion
+
+            #region Initialize UserRoles
+            MoqIdentityUserRole.Object.AddRange(new List<IdentityUserRole<long>>
+                {
+                    new IdentityUserRole<long> { RoleId=1, UserId = 1},
+                });
             #endregion
         }
 

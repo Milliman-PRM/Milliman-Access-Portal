@@ -92,8 +92,6 @@ namespace MapTests
         }
 
 
-
-
         //internal static void Include<U>(DbSet<T> ReferencingSet, string TReferencingKeyName, string NavigationPropertyName, string UPkName, ref DbSet<object> ReferencedSet)
         //{
         //    // uses reflection
@@ -120,27 +118,5 @@ namespace MapTests
 
         //}
 
-        /// <summary>
-        /// Not for use
-        /// </summary>
-        /// <param name="JsonString">Must be an array of objects that conform to the template type invoked</param>
-        /// <returns></returns>
-        internal static List<T> DeserializeTestData(string JsonString)
-        {
-            var A = JsonConvert.DeserializeObject(
-                "[{'x': 123}]"
-                );
-
-            List<T> Result = new List<T>();
-
-            /*
-             * foreach (var record in DeserializeRecord()) 
-             * {
-             *     Result.Add(record as T)
-             * }
-             */
-
-            return Result;
-        }
     }
 }

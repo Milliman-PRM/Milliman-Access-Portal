@@ -70,10 +70,7 @@ namespace MillimanAccessPortal.Controllers
         public IActionResult Index()
         {
 #if true // unit testing
-            if (!AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
-                {
-                    new UserGlobalRoleRequirement(RoleEnum.Admin),
-                }).Result.Succeeded)
+            if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin)).Result.Succeeded)
             {
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
                 return Unauthorized();

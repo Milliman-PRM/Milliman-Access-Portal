@@ -15,7 +15,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MillimanAccessPortal.Authorization
 {
-    internal class MapAuthorizationHandler : AuthorizationHandler<MapAuthorizationRequirementBase>
+    public class MapAuthorizationHandler : AuthorizationHandler<MapAuthorizationRequirementBase>
     {
         private ApplicationDbContext DataContext;
         private UserManager<ApplicationUser> UserManager;

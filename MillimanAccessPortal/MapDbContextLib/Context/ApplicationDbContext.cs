@@ -10,21 +10,21 @@ namespace MapDbContextLib.Context
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, long>
     {
-        public virtual DbSet<Client> Client { get; set; }
-        public virtual DbSet<UserRoleInClient> UserRoleInClient { get; set; }
-        public virtual DbSet<UserRoleInProfitCenter> UserRoleInProfitCenter { get; set; }
-        public virtual DbSet<UserRoleInRootContentItem> UserRoleInRootContentItem { get; set; }
-        public virtual DbSet<UserInContentItemUserGroup> UserInContentItemUserGroup { get; set; }
-        public virtual DbSet<ContentItemUserGroup> ContentItemUserGroup { get; set; }
-        public virtual DbSet<RootContentItem> RootContentItem { get; set; }
-        public virtual DbSet<HierarchyField> HierarchyField { get; set; }
-        public virtual DbSet<HierarchyFieldValue> HierarchyFieldValue { get; set; }
-        public virtual DbSet<ContentType> ContentType { get; set; }
-        public virtual DbSet<ProfitCenter> ProfitCenter { get; set; }
+        public DbSet<Client> Client { get; set; }
+        public DbSet<UserRoleInClient> UserRoleInClient { get; set; }
+        public DbSet<UserRoleInProfitCenter> UserRoleInProfitCenter { get; set; }
+        public DbSet<UserRoleInRootContentItem> UserRoleInRootContentItem { get; set; }
+        public DbSet<UserInContentItemUserGroup> UserInContentItemUserGroup { get; set; }
+        public DbSet<ContentItemUserGroup> ContentItemUserGroup { get; set; }
+        public DbSet<RootContentItem> RootContentItem { get; set; }
+        public DbSet<HierarchyField> HierarchyField { get; set; }
+        public DbSet<HierarchyFieldValue> HierarchyFieldValue { get; set; }
+        public DbSet<ContentType> ContentType { get; set; }
+        public DbSet<ProfitCenter> ProfitCenter { get; set; }
 
         // Alteration of Identity entities
-        public virtual DbSet<ApplicationUser> ApplicationUser { get; set; }
-        public virtual DbSet<ApplicationRole> ApplicationRole { get; set; }
+        public DbSet<ApplicationUser> ApplicationUser { get; set; }
+        public DbSet<ApplicationRole> ApplicationRole { get; set; }
 
         // Had to implement this parameterless constructor for Mocking in unit tests, I hope this doesn't cause any problem in EF
         public ApplicationDbContext() { }
