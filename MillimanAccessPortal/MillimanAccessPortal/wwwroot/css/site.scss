@@ -752,7 +752,7 @@ Client Admin Styling
     cursor: pointer;
 
     &:hover {
-        transform: scale(1.02);
+        box-shadow: rgba(0, 0, 0, .3) 3px 3px 10px;
     }
 
     &.disabled {
@@ -871,6 +871,7 @@ Client Admin Styling
         padding: 2px;
         transform-origin: center center;
         color: #fff;
+        transition: .2s all linear;
 
         &.card-button-delete,
         &.card-button-remove-user,
@@ -886,7 +887,6 @@ Client Admin Styling
         &.card-button-options,
         &.card-button-expansion {
             background-color: $button-confirm;
-            transition: .2s all linear;
 
             &:hover {
                 background-color: $button-confirm-hover;
