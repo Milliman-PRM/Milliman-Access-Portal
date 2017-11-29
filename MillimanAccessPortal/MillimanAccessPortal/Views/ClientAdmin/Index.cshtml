@@ -160,7 +160,9 @@
         <h3 class="client-admin-section-title">Client Users</h3>
         <div class="client-admin-section-toolbar container-fluid">
             <input class="search-box" placeholder="Search for User" />
-            <i id="add-user-icon" class="admin-action-icon fa fa-2x fa-plus pull-right"></i>
+            <i id="add-user-icon" class="admin-action-icon fa fa-2x fa-user-plus pull-right"></i>
+            <i id="expand-user-icon" class="admin-action-icon fa fa-2x fa-toggle-down pull-right" onclick="expandAllUsers()"></i>
+            <i id="collapse-user-icon" class="admin-action-icon fa fa-2x fa-toggle-up pull-right" onclick="collapseAllUsers()"></i>
         </div>
         <div id="user-list" class="container-fluid scroll-y">
             <div class="row">

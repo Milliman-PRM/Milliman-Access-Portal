@@ -1,6 +1,6 @@
 <script type="text/template" data-template="userNode">
     <li>
-        <div class="col-xs-12 card-container" data-client-id="{{clientId}} data-user-id="{{id}}">
+        <div class="col-xs-12 card-container" data-client-id="{{clientId}}" data-user-id="{{id}}">
             <div class="card-body-main-container">
                 <div class="card-body-secondary-container">
                     <i class="fa fa-fw fa-user fa-4x card-user-icon"></i>
@@ -17,52 +17,52 @@
                     </div>
                 </div>
             </div>
-            <div class="card-button-bottom-container">
-                <div class="card-button-background card-button-expansion">
-                    <i class="fa fa-fw fa-chevron-down"></i>
-                </div>
-            </div>
             <div class="card-expansion-container minimized">
                 <h4 class="card-expansion-category-label">Client Roles</h4>
                 <div class="switch-container">
                     <div class="toggle-switch">
-                        <input type="checkbox" name="clientAdmin" class="toggle-switch-checkbox" id="clientAdmin" checked>
-                        <label class="toggle-switch-label" for="clientAdmin">
+                        <input type="checkbox" name="clientAdmin{{id}}" class="toggle-switch-checkbox" id="clientAdmin{{id}}">
+                        <label class="toggle-switch-label" for="clientAdmin{{id}}">
                             <span class="toggle-switch-inner"></span>
                             <span class="toggle-switch-switch"></span>
                         </label>
                     </div>
-                    <label for="clientAdmin" class="switch-label">Client Administrator</label>
+                    <label for="clientAdmin{{id}}" class="switch-label">Client Administrator</label>
                 </div>
                 <div class="switch-container">
                     <div class="toggle-switch">
-                        <input type="checkbox" name="userAdmin" class="toggle-switch-checkbox" id="userAdmin" checked>
-                        <label class="toggle-switch-label" for="userAdmin">
+                        <input type="checkbox" name="userAdmin{{id}}" class="toggle-switch-checkbox" id="userAdmin{{id}}">
+                        <label class="toggle-switch-label" for="userAdmin{{id}}">
                             <span class="toggle-switch-inner"></span>
                             <span class="toggle-switch-switch"></span>
                         </label>
                     </div>
-                    <label for="userAdmin" class="switch-label">User Administrator</label>
+                    <label for="userAdmin{{id}}" class="switch-label">User Administrator</label>
                 </div>
                 <div class="switch-container">
                     <div class="toggle-switch">
-                        <input type="checkbox" name="contentAdmin" class="toggle-switch-checkbox" id="contentAdmin" checked>
-                        <label class="toggle-switch-label" for="contentAdmin">
+                        <input type="checkbox" name="contentAdmin{{id}}" class="toggle-switch-checkbox" id="contentAdmin{{id}}">
+                        <label class="toggle-switch-label" for="contentAdmin{{id}}">
                             <span class="toggle-switch-inner"></span>
                             <span class="toggle-switch-switch"></span>
                         </label>
                     </div>
-                    <label for="contentAdmin" class="switch-label">Content Administrator</label>
+                    <label for="contentAdmin{{id}}" class="switch-label">Content Administrator</label>
                 </div>
                 <div class="switch-container">
                     <div class="toggle-switch">
-                        <input type="checkbox" name="contentUser" class="toggle-switch-checkbox" id="contentUser" checked>
-                        <label class="toggle-switch-label" for="contentUser">
+                        <input type="checkbox" name="contentUser{{id}}" class="toggle-switch-checkbox" id="contentUser{{id}}">
+                        <label class="toggle-switch-label" for="contentUser{{id}}">
                             <span class="toggle-switch-inner"></span>
                             <span class="toggle-switch-switch"></span>
                         </label>
                     </div>
-                    <label for="clientAdmin" class="switch-label">Content Eligible</label>
+                    <label for="clientAdmin{{id}}" class="switch-label">Content Eligible</label>
+                </div>
+            </div>
+            <div class="card-button-bottom-container">
+                <div class="card-button-background card-button-expansion">
+                    <i class="fa fa-fw fa-chevron-down"></i>
                 </div>
             </div>
         </div>

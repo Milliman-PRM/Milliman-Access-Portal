@@ -190,6 +190,7 @@ input:-webkit-autofill {
 .switch-label {
     margin-left: 10px;
     flex: 2;
+    cursor: pointer;
 }
 
 div.selectize-input {
@@ -747,7 +748,7 @@ Client Admin Styling
     border: 2px solid black;
     border-radius: 5px;
     margin-top: 10px;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     cursor: pointer;
 
     &:hover {
@@ -885,6 +886,7 @@ Client Admin Styling
         &.card-button-options,
         &.card-button-expansion {
             background-color: $button-confirm;
+            transition: .2s all linear;
 
             &:hover {
                 background-color: $button-confirm-hover;
@@ -920,10 +922,22 @@ Client Admin Styling
         &.minimized {
             max-height: 0;
             border: none;
+            padding: 0 10px;
+            transition: .25s all linear;
         }
 
         &.maximized {
-            max-height: 1000px;
+            max-height: 200px;
+            transition: .25s all linear;
+
+            & + div.card-button-bottom-container > .card-button-expansion {
+                -webkit-transform: rotateX(180deg);
+                -moz-transform: rotateX(180deg);
+                -o-transform: rotateX(180deg);
+                -ms-transform: rotateX(180deg);
+                transform: rotateX(180deg);
+                transition: .2s all linear;
+            }
         }
 
         .card-expansion-category-label {

@@ -628,14 +628,16 @@ function renderUserList(client, userId) {
     });
 
     $('div.card-button-remove-user').on('click', function (event) {
-        removeUserFromClient($(this).parents('div[data-client-id][data-user-id]'));
+        //removeUserFromClient($(this).parents('div[data-client-id][data-user-id]'));
         event.stopPropagation();
     });
-    $('div.card-button-expansion').on('click', function (event) {
-        expandUserSettingsPanel($(this).parents('div[data-client-id][data-user-id]'));
+    $('div[data-client-id][data-user-id]').on('click', function (event) {
+        $(this).find('div.card-expansion-container').toggleClass('minimized maximized');
+        toggleExpandCollapse();
         event.stopPropagation();
     });
 
+    toggleExpandCollapse();
     //$('#client-user-list').append(userCard);
 
     if (client.EligibleUsers) {
@@ -673,3 +675,27 @@ function renderUserNode(clientId, user) {
     $('#client-user-list').append($template);
 
 };
+
+function expandAllUsers() {
+    $('div.card-expansion-container.minimized').toggleClass('minimized maximized');
+    toggleExpandCollapse();
+}
+
+function collapseAllUsers() {
+    $('div.card-expansion-container.maximized').toggleClass('maximized minimized');
+    toggleExpandCollapse();
+}
+
+function toggleExpandCollapse() {
+    if ($('div.card-expansion-container.minimized').length > 0) {
+        $('#expand-user-icon').show();
+    } else {
+        $('#expand-user-icon').hide();
+    }
+
+    if ($('div.card-expansion-container.maximized').length > 0) {
+        $('#collapse-user-icon').show();
+    } else {
+        $('#collapse-user-icon').hide();
+    }
+}
