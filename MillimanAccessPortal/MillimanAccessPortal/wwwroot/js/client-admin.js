@@ -661,9 +661,14 @@ function renderUserNode(clientId, user) {
         template = template.replace(/{{email}}/g, user.Email);
     }
 
-
     // convert template to DOM element for jQuery manipulation
     var $template = $(template.toString());
+
+    $('div.card-container[data-search-string]', $template).attr('data-search-string',
+        user.FirstName.toUpperCase() + "|" +
+        user.LastName.toUpperCase() + "|" +
+        user.UserName.toUpperCase() + "|" +
+        user.Email.toUpperCase());
 
     $('.card-body-secondary-text:contains("{{email}}")', $template).remove();
 
