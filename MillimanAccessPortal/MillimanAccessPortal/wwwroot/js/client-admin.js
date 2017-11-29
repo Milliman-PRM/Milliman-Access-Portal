@@ -1,6 +1,7 @@
 ﻿var clientNodeTemplate = $('script[data-template="clientNode"]').html();
 var childNodePlaceholder = $('script[data-template="childNodePlaceholder"]').html();
 var clientCard = $('script[data-template="createNewClientCard"]').html();
+var userNodeTemplate = $('script[data-template="userNode"]').html();
 var clientTree;
 
 function getClientTree() {
@@ -52,7 +53,7 @@ function GetClientDetail(clientDiv) {
     }).done(function (response) {
         clearValidationErrors();
         populateClientDetails(response.ClientEntity);
-        //console.log(response.AssignedUsers);
+        renderUserList(response);
         // Change the dom to reflect the selected client
         clearSelectedClient();
         clientDiv.addClass('selected');
@@ -241,7 +242,7 @@ function renderClientTree(clientId) {
         renderClientNode(rootClient, 1);
         $('#client-tree-list').append('<li class="hr col-xs-12"></li>');
     });
-    $('div.client-admin-card').on('click', function () {
+    $('#client-tree-list div.client-admin-card').on('click', function () {
         GetClientDetail($(this));
     });
     $('div.card-button-background-edit').on('click', function (event) {
@@ -615,5 +616,104 @@ function cancelEditTasks(clientId) {
         removeClientInserts();
         clearFormData();
         hideClientForm();
+    }
+}
+
+
+
+function renderUserList(client, userId) {
+    $('#client-user-list').empty();
+    client.AssignedUsers.forEach(function (user) {
+        renderUserNode(client.ClientEntity.Id, user);
+    });
+
+    $('div.card-button-remove-user').on('click', function (event) {
+        //removeUserFromClient($(this).parents('div[data-client-id][data-user-id]'));
+        event.stopPropagation();
+    });
+    $('div[data-client-id][data-user-id]').on('click', function (event) {
+        $(this).find('div.card-expansion-container').toggleClass('minimized maximized');
+        toggleExpandCollapse();
+        event.stopPropagation();
+    });
+
+    toggleExpandCollapse();
+    //$('#client-user-list').append(userCard);
+
+    if (client.EligibleUsers) {
+        console.log(client.EligibleUsers);
+    }
+
+    if (userId) {
+        $('[data-user-id="' + userId + '"]').click();
+    }
+
+};
+
+function renderUserNode(clientId, user) {
+    var template = userNodeTemplate;
+
+    template = template.replace(/{{clientId}}/g, clientId);
+    template = template.replace(/{{id}}/g, user.Id);
+    template = template.replace(/{{name}}/g, user.FirstName + " " + user.LastName);
+    template = template.replace(/{{username}}/g, user.UserName);
+    if (user.UserName != user.Email) {
+        template = template.replace(/{{email}}/g, user.Email);
+    }
+
+    // convert template to DOM element for jQuery manipulation
+    var $template = $(template.toString());
+
+    $('div.card-container[data-search-string]', $template).attr('data-search-string',
+        user.FirstName.toUpperCase() + " " +
+        user.LastName.toUpperCase() + "|" +
+        user.UserName.toUpperCase() + "|" +
+        user.Email.toUpperCase());
+
+    $('.card-body-secondary-text:contains("{{email}}")', $template).remove();
+
+    //if (!client.CanManage) {
+    //    $('.icon-container', $template).remove();
+    //    $('.card-container', $template).addClass('disabled');
+    //}
+
+    $('#client-user-list').append($template);
+
+};
+
+function expandAllUsers() {
+    $('div.card-expansion-container.minimized').toggleClass('minimized maximized');
+    toggleExpandCollapse();
+}
+
+function collapseAllUsers() {
+    $('div.card-expansion-container.maximized').toggleClass('maximized minimized');
+    toggleExpandCollapse();
+}
+
+function toggleExpandCollapse() {
+    if ($('div.card-expansion-container.minimized').length > 0) {
+        $('#expand-user-icon').show();
+    } else {
+        $('#expand-user-icon').hide();
+    }
+
+    if ($('div.card-expansion-container.maximized').length > 0) {
+        $('#collapse-user-icon').show();
+    } else {
+        $('#collapse-user-icon').hide();
+    }
+}
+
+function searchUser(searchString) {
+    var searchString = searchString.toUpperCase();
+    var nodes = $('#client-user-list div[data-search-string]');
+
+    for (i = 0; i < nodes.length; i++) {
+        if ($(nodes[i]).attr('data-search-string').indexOf(searchString) > -1) {
+            nodes[i].style.display = "";
+        } else {
+            nodes[i].style.display = "none";
+        }
     }
 }
