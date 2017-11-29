@@ -665,7 +665,7 @@ function renderUserNode(clientId, user) {
     var $template = $(template.toString());
 
     $('div.card-container[data-search-string]', $template).attr('data-search-string',
-        user.FirstName.toUpperCase() + "|" +
+        user.FirstName.toUpperCase() + " " +
         user.LastName.toUpperCase() + "|" +
         user.UserName.toUpperCase() + "|" +
         user.Email.toUpperCase());
@@ -702,5 +702,18 @@ function toggleExpandCollapse() {
         $('#collapse-user-icon').show();
     } else {
         $('#collapse-user-icon').hide();
+    }
+}
+
+function searchUser(searchString) {
+    var searchString = searchString.toUpperCase();
+    var nodes = $('#client-user-list div[data-search-string]');
+
+    for (i = 0; i < nodes.length; i++) {
+        if ($(nodes[i]).attr('data-search-string').indexOf(searchString) > -1) {
+            nodes[i].style.display = "";
+        } else {
+            nodes[i].style.display = "none";
+        }
     }
 }
