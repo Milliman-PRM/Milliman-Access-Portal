@@ -69,13 +69,6 @@ namespace MillimanAccessPortal.Controllers
         [Authorize]
         public IActionResult Index()
         {
-#if true // unit testing
-            if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin)).Result.Succeeded)
-            {
-                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
-                return Unauthorized();
-            }
-#endif
             List<HostedContentViewModel> ModelForView = Queries.GetAssignedUserGroups(UserManager.GetUserName(HttpContext.User));
 
             return View(ModelForView);
@@ -99,15 +92,17 @@ namespace MillimanAccessPortal.Controllers
                                                         .FirstOrDefault();
             if (UserGroup == null || UserGroup.RootContentItem == null || UserGroup.RootContentItem.ContentType == null)
             {
+                string ErrMsg = $"Failed to obtain the requested user group, root content item, or content type";
+                Logger.LogError(ErrMsg);
+
 #if true    // need to pick one of these 2 strategies and use it throughout this controller.  This is issue #104
-                TempData["Message"] = $"Error while querying for the requested user group, root content item, or content type";
+                TempData["Message"] = ErrMsg;
                 TempData["ReturnToController"] = "HostedContent";
                 TempData["ReturnToAction"] = "Index";
                 return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
 #else
-                string ErrMsg = $"Failed to obtain the requested user group, root content item, or content type";
-                Logger.LogError(ErrMsg);
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+                // something that appropriately returns to a logical next view
 #endif
             }
 #endregion
