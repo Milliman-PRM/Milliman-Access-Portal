@@ -1,4 +1,19 @@
-﻿// Configure toastr options
+﻿// Configure default vex options
+vex.defaultOptions = {
+    content: '',
+    unsafeContent: '',
+    showCloseButton: true,
+    escapeButtonCloses: true,
+    overlayClosesOnClick: true,
+    appendLocation: 'body',
+    className: 'vex-theme-default screen-center',
+    overlayClassName: '',
+    contentClassName: '',
+    closeClassName: '',
+    closeAllOnPopState: false
+}
+
+// Configure toastr options
 toastr.options = {
     "closeButton": false,
     "debug": false,
