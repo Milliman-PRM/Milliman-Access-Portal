@@ -107,64 +107,66 @@ namespace MapTests
         /// </summary>
         private void GenerateDependencies()
         {
-            #region Instantiate DbContext and contained DbSet objects
-            // Had to implement a parameterless constructor in the context class, I hope this doesn't cause any problem in EF
-            MockDbContext = new Mock<ApplicationDbContext>();
-            DbContextObject.ApplicationRole = MockDbSet<ApplicationRole>.New(GetSystemRolesList()).Object;
-            DbContextObject.ApplicationUser = MockDbSet<ApplicationUser>.New(new List<ApplicationUser>()).Object;
-            DbContextObject.ContentType = MockDbSet<ContentType>.New(new List<ContentType>()).Object;
-            DbContextObject.ProfitCenter = MockDbSet<ProfitCenter>.New(new List<ProfitCenter>()).Object;
-            DbContextObject.Client = MockDbSet<Client>.New(new List<Client>()).Object;
-            DbContextObject.UserRoleInClient = MockDbSet<UserRoleInClient>.New(new List<UserRoleInClient>()).Object;
-            DbContextObject.RootContentItem = MockDbSet<RootContentItem>.New(new List<RootContentItem>()).Object;
-            DbContextObject.HierarchyFieldValue = MockDbSet<HierarchyFieldValue>.New(new List<HierarchyFieldValue>()).Object;
-            DbContextObject.HierarchyField = MockDbSet<HierarchyField>.New(new List<HierarchyField>()).Object;
-            DbContextObject.ContentItemUserGroup = MockDbSet<ContentItemUserGroup>.New(new List<ContentItemUserGroup>()).Object;
-            DbContextObject.UserInContentItemUserGroup = MockDbSet<UserInContentItemUserGroup>.New(new List<UserInContentItemUserGroup>()).Object;
-            DbContextObject.UserRoles = MockDbSet<IdentityUserRole<long>>.New(new List<IdentityUserRole<long>>()).Object;
-            #endregion
-
-            #region Construct a UserManager<ApplicationUser> that binds to the users in the context
-            Mock<IUserStore<ApplicationUser>> UserStore = MockUserStore.New(MockDbContext);
-            MockUserManager = new Mock<UserManager<ApplicationUser>>(UserStore.Object, null, null, null, null, null, null, null, null);
-
-            MockUserManager.Setup(m => m.GetUserName(It.IsAny<ClaimsPrincipal>())).Returns<ClaimsPrincipal>(cp => UserStore.Object.FindByNameAsync(cp.Identity.Name, CancellationToken.None).Result.UserName);
-            MockUserManager.Setup(m => m.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync<ClaimsPrincipal, UserManager<ApplicationUser>, ApplicationUser>(cp => UserStore.Object.FindByNameAsync(cp.Identity.Name, CancellationToken.None).Result);
-            MockUserManager.Setup(m => m.FindByNameAsync(It.IsAny<string>())).ReturnsAsync<string, UserManager<ApplicationUser>, ApplicationUser>(name => UserStore.Object.FindByNameAsync(name, CancellationToken.None).Result);
-            // more Setups as needed
-            #endregion
-
-            #region Create LoggerFactory
+            MockDbContext = GenerateDbContext();
+            MockUserManager = GenerateUserManager(MockDbContext);
             LoggerFactory = new LoggerFactory();
-            #endregion
+            AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
+            QueriesObj = new StandardQueries(DbContextObject, UserManagerObject);
+            MockQlikViewConfig = new Mock<IOptions<QlikviewConfig>>();
+        }
 
-            #region Create AuthorizationService
+        private Mock<ApplicationDbContext> GenerateDbContext()
+        {
+            // Had to implement a parameterless constructor in the context class, I hope this doesn't cause any problem in EF
+            Mock<ApplicationDbContext> ReturnMockContext = new Mock<ApplicationDbContext>();
+            ReturnMockContext.Object.ApplicationRole = MockDbSet<ApplicationRole>.New(GetSystemRolesList()).Object;
+            ReturnMockContext.Object.ApplicationUser = MockDbSet<ApplicationUser>.New(new List<ApplicationUser>()).Object;
+            ReturnMockContext.Object.ContentType = MockDbSet<ContentType>.New(new List<ContentType>()).Object;
+            ReturnMockContext.Object.ProfitCenter = MockDbSet<ProfitCenter>.New(new List<ProfitCenter>()).Object;
+            ReturnMockContext.Object.Client = MockDbSet<Client>.New(new List<Client>()).Object;
+            ReturnMockContext.Object.UserRoleInClient = MockDbSet<UserRoleInClient>.New(new List<UserRoleInClient>()).Object;
+            ReturnMockContext.Object.RootContentItem = MockDbSet<RootContentItem>.New(new List<RootContentItem>()).Object;
+            ReturnMockContext.Object.HierarchyFieldValue = MockDbSet<HierarchyFieldValue>.New(new List<HierarchyFieldValue>()).Object;
+            ReturnMockContext.Object.HierarchyField = MockDbSet<HierarchyField>.New(new List<HierarchyField>()).Object;
+            ReturnMockContext.Object.ContentItemUserGroup = MockDbSet<ContentItemUserGroup>.New(new List<ContentItemUserGroup>()).Object;
+            ReturnMockContext.Object.UserInContentItemUserGroup = MockDbSet<UserInContentItemUserGroup>.New(new List<UserInContentItemUserGroup>()).Object;
+            ReturnMockContext.Object.UserRoles = MockDbSet<IdentityUserRole<long>>.New(new List<IdentityUserRole<long>>()).Object;
+
+            return ReturnMockContext;
+        }
+
+        private Mock<UserManager<ApplicationUser>> GenerateUserManager(Mock<ApplicationDbContext> MockDbContextArg)
+        {
+            Mock<IUserStore<ApplicationUser>> UserStore = MockUserStore.New(MockDbContextArg);
+            Mock<UserManager<ApplicationUser>> ReturnMockUserManager = new Mock<UserManager<ApplicationUser>>(UserStore.Object, null, null, null, null, null, null, null, null);
+            ReturnMockUserManager.Setup(m => m.GetUserName(It.IsAny<ClaimsPrincipal>())).Returns<ClaimsPrincipal>(cp => UserStore.Object.FindByNameAsync(cp.Identity.Name, CancellationToken.None).Result.UserName);
+            ReturnMockUserManager.Setup(m => m.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync<ClaimsPrincipal, UserManager<ApplicationUser>, ApplicationUser>(cp => UserStore.Object.FindByNameAsync(cp.Identity.Name, CancellationToken.None).Result);
+            ReturnMockUserManager.Setup(m => m.FindByNameAsync(It.IsAny<string>())).ReturnsAsync<string, UserManager<ApplicationUser>, ApplicationUser>(name => UserStore.Object.FindByNameAsync(name, CancellationToken.None).Result);
+            // more Setups as needed
+
+            return ReturnMockUserManager;
+        }
+
+        private DefaultAuthorizationService GenerateAuthorizationService(ApplicationDbContext ContextArg, UserManager<ApplicationUser> UserMgrArg, ILoggerFactory LoggerFactoryArg)
+        {
             IAuthorizationPolicyProvider PolicyProvider = new DefaultAuthorizationPolicyProvider(Options.Create(new AuthorizationOptions()));
             AuthorizationOptions AuthOptions = new AuthorizationOptions();
             AuthOptions.InvokeHandlersAfterFailure = true;
             AuthOptions.DefaultPolicy = new AuthorizationPolicy(new IAuthorizationRequirement[] { new DenyAnonymousAuthorizationRequirement() }, new string[0]);
 
-            AuthorizationHandler<MapAuthorizationRequirementBase> Handler = new MapAuthorizationHandler(DbContextObject, MockUserManager.Object);
+            AuthorizationHandler<MapAuthorizationRequirementBase> Handler = new MapAuthorizationHandler(ContextArg, UserMgrArg);
             I​Authorization​Handler​Provider Authorization​Handler​Provider = new Default​Authorization​Handler​Provider(new IAuthorizationHandler[] { Handler });
             IAuthorizationHandlerContextFactory AuthorizationContext = new Default​Authorization​Handler​Context​Factory();
-            AuthorizationService = new DefaultAuthorizationService(
-                                                                    PolicyProvider,
-                                                                    Authorization​Handler​Provider,
-                                                                    LoggerFactory.CreateLogger<DefaultAuthorizationService>(),
-                                                                    AuthorizationContext,
-                                                                    new DefaultAuthorizationEvaluator(),
-                                                                    new OptionsWrapper<AuthorizationOptions>(AuthOptions));
-            #endregion
+            DefaultAuthorizationService ReturnService = new DefaultAuthorizationService(
+                                                                            PolicyProvider,
+                                                                            Authorization​Handler​Provider,
+                                                                            LoggerFactoryArg.CreateLogger<DefaultAuthorizationService>(),
+                                                                            AuthorizationContext,
+                                                                            new DefaultAuthorizationEvaluator(),
+                                                                            new OptionsWrapper<AuthorizationOptions>(AuthOptions));
 
-            #region Create QueriesObject
-            QueriesObj = new StandardQueries(DbContextObject, MockUserManager.Object);
-            #endregion
-
-            #region Create QlikviewConfig
-            MockQlikViewConfig = new Mock<IOptions<QlikviewConfig>>();
-            #endregion
+            return ReturnService;
         }
-
 
         private void GenerateBasicTestData()
         {
