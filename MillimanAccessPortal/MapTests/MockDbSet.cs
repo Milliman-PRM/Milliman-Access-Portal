@@ -30,7 +30,7 @@ namespace MapTests
             return Set;
         }
 
-        public static void AssignNavigationProperty<U>(Mock<DbSet<T>> ReferencingDbSet, string ReferencingFkFieldName, Mock<DbSet<U>> ReferencedDbSet) where U : class
+        public static void AssignNavigationProperty<U>(DbSet<T> ReferencingDbSet, string ReferencingFkFieldName, DbSet<U> ReferencedDbSet) where U : class
         {
             Type TType = typeof(T);
             Type UType = typeof(U);
@@ -44,11 +44,11 @@ namespace MapTests
             var c = b.Where(m => m.PropertyType == ReferenceKeyPropertyType).Where(m => m.CustomAttributes.Any(at => at.AttributeType == typeof(KeyAttribute)));
             PropertyInfo ReferencedPkPropertyInfo = UType.GetMembers().OfType<PropertyInfo>().Single(m => m.PropertyType == ReferenceKeyPropertyType && m.CustomAttributes.Any(at => at.AttributeType == typeof(KeyAttribute)));
 
-            foreach (T ReferencingRecord in ReferencingDbSet.Object)
+            foreach (T ReferencingRecord in ReferencingDbSet)
             {
                 var ReferencingKeyValue = ForeignKeyPropertyInfo.GetValue(ReferencingRecord).ToString();
 
-                foreach (U UItem in ReferencedDbSet.Object)
+                foreach (U UItem in ReferencedDbSet)
                 {
                     var PkValue = ReferencedPkPropertyInfo.GetValue(UItem).ToString();
                     if (PkValue == ReferencingKeyValue)

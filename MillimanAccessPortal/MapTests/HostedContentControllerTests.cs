@@ -21,7 +21,6 @@ using Moq;
 using Xunit;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
-using QlikviewLib;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.HostedContentViewModels;
@@ -31,17 +30,11 @@ namespace MapTests
 {
     public class HostedContentControllerTests
     {
-        private IOptions<QlikviewConfig> MockQlikViewConfig { get; set; }
-        private Mock<UserManager<ApplicationUser>> MockUserManager;
-
         /// <summary>
         /// Constructor sets up requirements and data for the controller being tested.
         /// </summary>
         public HostedContentControllerTests()
-        {
-            // Mock some requirements for HostedContentController that are alike for all tests in this class
-            MockQlikViewConfig = new Mock<IOptions<QlikviewConfig>>().Object;
-        }
+        {}
 
         /// <summary>
         /// Test that the Index returns a view containing a list of content items the test user can access.
@@ -53,29 +46,30 @@ namespace MapTests
             // Reference https://msdn.microsoft.com/en-us/library/dn314429(v=vs.113).aspx
 
             #region Arrange
-            Mock<ApplicationDbContext> MockDbContext;
-            Mock<UserManager<ApplicationUser>> MockUserManager;
-            DefaultAuthorizationService AuthorizationService;
-            ILoggerFactory Logger;
-            StandardQueries QueriesObj;
-
             // initialize dependencies
-            (MockDbContext, MockUserManager, AuthorizationService, Logger, QueriesObj) = TestInitialization.GenerateDependencies();
+            TestInitialization TestResources = new TestInitialization();
 
             // initialize data
-            TestInitialization.GenerateTestData(new DataSelection[] { DataSelection.Basic }, MockDbContext);
+            TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
 
-            HostedContentController sut = new HostedContentController(MockQlikViewConfig, 
-                                                                      MockUserManager.Object, 
-                                                                      Logger, 
-                                                                      MockDbContext.Object,
-                                                                      QueriesObj,
-                                                                      AuthorizationService);
+            // Create the system under test (sut)
+            HostedContentController sut = new HostedContentController(TestResources.QlikViewConfigObject,
+                                                                      TestResources.UserManagerObject,
+                                                                      TestResources.LoggerFactory,
+                                                                      TestResources.DbContextObject,
+                                                                      TestResources.QueriesObj,
+                                                                      TestResources.AuthorizationService);
 
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserName: MockDbContext.Object.ApplicationUser.First().UserName);
+            // For illustration only, the same result comes from any of the following 3 techniques:
+            // This one should never throw even if the user name is not in the context data
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            // Following 2 throw if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName=="test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.UserManagerObject.FindByNameAsync("test1").Result.UserName);
             #endregion
 
             #region Act
+            // invoke the controller action to be tested
             var view = sut.Index();
             #endregion
 
@@ -88,7 +82,7 @@ namespace MapTests
             List<HostedContentViewModel> ModelReturned = (List<HostedContentViewModel>)viewResult.Model;
             Assert.Equal(1, ModelReturned.Count);
 
-            Assert.Equal(MockDbContext.Object.RootContentItem.FirstOrDefault().ContentName, ModelReturned[0].ContentName);
+            Assert.Equal(TestResources.DbContextObject.RootContentItem.FirstOrDefault().ContentName, ModelReturned[0].ContentName);
             #endregion
         }
 

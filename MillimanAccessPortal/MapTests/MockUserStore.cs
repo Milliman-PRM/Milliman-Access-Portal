@@ -19,7 +19,8 @@ namespace MapTests
 
             // Setup mocked object methods to interact with persisted data
             NewStore.Setup(d => d.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<CancellationToken>())).Callback<ApplicationUser, CancellationToken>((au, ct) => Context.Object.ApplicationUser.Add(au));
-            NewStore.Setup(d => d.FindByIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync<string, CancellationToken, IUserStore<ApplicationUser>, ApplicationUser>((Id, ct) => Context.Object.ApplicationUser.SingleOrDefault(au => au.UserName == Id));
+            NewStore.Setup(d => d.FindByIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync<string, CancellationToken, IUserStore<ApplicationUser>, ApplicationUser>((id, ct) => Context.Object.ApplicationUser.SingleOrDefault(au => au.Id == long.Parse(id)));
+            NewStore.Setup(d => d.FindByNameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync<string, CancellationToken, IUserStore<ApplicationUser>, ApplicationUser>((nm, ct) => Context.Object.ApplicationUser.SingleOrDefault(au => au.UserName == nm));
             // more?
 
             return NewStore;
