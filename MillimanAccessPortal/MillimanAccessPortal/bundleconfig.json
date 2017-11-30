@@ -42,5 +42,17 @@
     "inputFiles": [
       "wwwroot/lib/selectize/dist/css/selectize.default.css"
     ]
+  },
+  {
+    "outputFileName": "wwwroot/lib/vex/dist/css/vex.min.css",
+    "inputFiles": [
+      "wwwroot/lib/vex/dist/css/vex.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/lib/vex/dist/css/vex-theme-default.min.css",
+    "inputFiles": [
+      "wwwroot/lib/vex/dist/css/vex-theme-default.css"
+    ]
   }
 ]
