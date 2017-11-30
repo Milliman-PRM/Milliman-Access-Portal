@@ -320,64 +320,43 @@ function deleteClient(event, id, name) {
 
     event.stopPropagation();
 
-    bootbox.confirm({
-        title: "Delete " + name + "?",
-        message: "This action can not be undone.  Do you wish to proceed?",
-        className: 'screen-center',
-        backdrop: true,
-        onEscape: true,
-        buttons: {
-            confirm: {
-                label: '<i class="fa fa-check"></i> Confirm',
-                className: 'primary-button btn btn-danger'
-            },
-            cancel: {
-                label: 'Cancel',
-                className: 'btn-link'
-            }
-        },
+    vex.dialog.confirm({
+        unsafeMessage: '<h3>Delete ' + name + '?</h3>' +
+            '<p>This action can not be undone.  Do you wish to proceed?</p>',
+        buttons: [
+            $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'btn-danger'}),
+            $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'btn-link' })
+        ],
         callback: function (result) {
             if (result) {
-                bootbox.prompt({
-                    title: "Please provide your password to proceed with deletion",
-                    className: 'screen-center',
-                    inputType: 'password',
-                    backdrop: true,
-                    onEscape: true,
-                    buttons: {
-                        confirm: {
-                            label: '<i class="fa fa-trash"></i> DELETE',
-                            className: 'primary-button btn btn-danger'
-                        },
-                        cancel: {
-                            label: 'Cancel',
-                            className: 'btn-link'
-                        }
-                    },
+                vex.dialog.prompt({
+                    message: 'Please provide your password to proceed with deletion',
+                    input: [
+                        '<input name="password" type="password" placeholder="Password" required />'
+                    ].join(''),
+                    buttons: [
+                        $.extend({}, vex.dialog.buttons.YES, { text: 'DELETE', className: 'btn-danger' }),
+                        $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'btn-link' })
+                    ],
                     callback: function (result) {
                         if (result) {
                             removeClientNode(id, name, result);
                         }
                         else if (result == "") {
-                            toastr['warning']("Please enter a password");
+                            toastr['warning']("Please enter your password to proceed");
                             return false;
                         }
                         else {
-                            toastr['warning']("Deletion was canceled");
-
+                            toastr['info']("Deletion was canceled");
                         }
                     }
                 })
-
-                $('.bootbox-input-password').on('keyup', function (e) {
-                    if (e.which === 13) {
-                        $('button[data-bb-handler="confirm"]').trigger('click');
-                    }
-                });
+            }
+            else {
+                toastr['info']("Deletion was canceled");
             }
         }
-    });
-
+    })
 };
 
 function removeClientNode(clientId, clientName, password) {
@@ -486,22 +465,12 @@ function resetNewClientForm() {
 
     $('#client-form :input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select').each(function () {
         if ($(this).val() != "") {
-            bootbox.confirm({
-                title: "Discard changes?",
-                message: "Would you like to discard the unsaved changes?",
-                className: 'screen-center',
-                backdrop: true,
-                onEscape: true,
-                buttons: {
-                    confirm: {
-                        label: '<i class="fa fa-check"></i> Confirm',
-                        className: 'primary-button'
-                    },
-                    cancel: {
-                        label: 'Cancel',
-                        className: 'btn-link'
-                    }
-                },
+            vex.dialog.confirm({
+                message: 'Would you like to discard the unsaved changes?',
+                buttons: [
+                    $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm' }),
+                    $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'btn-link' })
+                ],
                 callback: function (result) {
                     if (result) {
                         $('#client-form .input-validation-error').removeClass('input-validation-error');
@@ -512,7 +481,7 @@ function resetNewClientForm() {
                         return false;
                     }
                 }
-            })
+            });
             return false;
         }
     })
@@ -526,29 +495,19 @@ function undoChangesEditClientForm(event) {
 
     var clientId = $('#client-form #Id').val();
 
-    bootbox.confirm({
-        title: "Discard changes?",
-        message: "Would you like to discard the unsaved changes?",
-        className: 'screen-center',
-        backdrop: true,
-        onEscape: true,
-        buttons: {
-            confirm: {
-                label: '<i class="fa fa-check"></i> Confirm',
-                className: 'primary-button'
-            },
-            cancel: {
-                label: 'Cancel',
-                className: 'btn-link'
-            }
-        },
+
+    vex.dialog.confirm({
+        message: 'Would you like to discard the unsaved changes?',
+        buttons: [
+            $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm' }),
+            $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'btn-link' })
+        ],
         callback: function (result) {
             if (result) {
                 EditClientDetail($('#client-tree div[data-client-id="' + clientId + '"]'));
             }
         }
-    })
-
+    });
 }
 
 function toggleEditExistingClient() {
@@ -560,28 +519,18 @@ function cancelClientEdit() {
     var clientId = $('#client-form #Id').val();
 
     if (pendingChanges()) {
-        bootbox.confirm({
-            title: "Discard changes?",
-            message: "Would you like to discard the unsaved changes?",
-            className: 'screen-center',
-            backdrop: true,
-            onEscape: true,
-            buttons: {
-                confirm: {
-                    label: '<i class="fa fa-check"></i> Confirm',
-                    className: 'primary-button'
-                },
-                cancel: {
-                    label: 'Cancel',
-                    className: 'btn-link'
-                }
-            },
+        vex.dialog.confirm({
+            message: 'Would you like to discard the unsaved changes?',
+            buttons: [
+                $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm' }),
+                $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'btn-link' })
+            ],
             callback: function (result) {
                 if (result) {
                     cancelEditTasks(clientId);
                 }
             }
-        })
+        });
     }
     else {
         cancelEditTasks(clientId);
