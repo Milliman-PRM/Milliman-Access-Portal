@@ -36,23 +36,25 @@ namespace MillimanAccessPortal
                     .AddJsonFile("qlikview.json", optional: false, reloadOnChange: true)
                     .AddJsonFile("smtp.json", optional: false, reloadOnChange: true)
                     .AddJsonFile($"smtp.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-                    .AddJsonFile("AzureKeyVault.json", optional: false, reloadOnChange: true)
-                    .AddJsonFile($"AzureKeyVault.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
                     ;
 
-                    #region Configure Azure Key Vault
-                    var builtConfig = config.Build();
+                    #region Configure Azure Key Vault for CI & Production
+                    if (hostContext.HostingEnvironment.EnvironmentName == "CI" || hostContext.HostingEnvironment.EnvironmentName == "Production")
+                    {
+                        config.AddJsonFile($"AzureKeyVault.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true);
 
-                    var store = new X509Store(StoreLocation.LocalMachine);
-                    store.Open(OpenFlags.ReadOnly);
-                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
-                    
-                    config.AddAzureKeyVault(
-                        builtConfig["AzureVaultName"],
-                        builtConfig["AzureClientID"],
-                        cert.OfType<X509Certificate2>().Single()
-                        );
+                        var builtConfig = config.Build();
 
+                        var store = new X509Store(StoreLocation.LocalMachine);
+                        store.Open(OpenFlags.ReadOnly);
+                        var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
+
+                        config.AddAzureKeyVault(
+                            builtConfig["AzureVaultName"],
+                            builtConfig["AzureClientID"],
+                            cert.OfType<X509Certificate2>().Single()
+                            );
+                    }
                     #endregion
 
                     if (hostContext.HostingEnvironment.IsDevelopment())
