@@ -2,30 +2,15 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.DependencyInjection;
 using MapDbContextLib.Context;
 using System.Security.Cryptography.X509Certificates;
 using System.Linq;
-using System.Collections.Generic;
-using System.IO;
 
 namespace MillimanAccessPortal
 {
     public class Program
     {
-        //public static void Main(string[] args)
-        //{
-        //    var host = new WebHostBuilder()
-        //        .UseKestrel()
-        //        .UseContentRoot(Directory.GetCurrentDirectory())
-        //        .UseIISIntegration()
-        //        .UseStartup<Startup>()
-        //        .UseApplicationInsights()
-        //        .Build();
-
-        //    host.Run();
-        //}
 
         public static void Main(string[] args)
         {
@@ -67,9 +52,6 @@ namespace MillimanAccessPortal
                         builtConfig["AzureClientID"],
                         cert.OfType<X509Certificate2>().Single()
                         );
-
-                    // TODO: Remove this line
-                    var newConfig = config.Build();
 
                     #endregion
 
