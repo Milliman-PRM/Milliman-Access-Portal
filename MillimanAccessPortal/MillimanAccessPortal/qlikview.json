@@ -1,8 +1,8 @@
 ﻿{
-  "QvServerHost": "indy-qvtest01.milliman.com",
+  "QvServerHost": "",
   // If the server user is to be authenticated on the default domain, omit the "QvServerUserAuthenticationDomain" setting or use empty value
   // If the server user is to be authenticated locally on the server, use the same value as the above "QvServerHost" setting
-  "QvServerAdminUserAuthenticationDomain": "indy-qvtest01.milliman.com",
-  "QvServerAdminUserName": "QlikviewAdmin",
+  "QvServerAdminUserAuthenticationDomain": "",
+  "QvServerAdminUserName": "",
   "QvServerAdminUserPassword": ""
 }

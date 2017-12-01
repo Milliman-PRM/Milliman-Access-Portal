@@ -1,7 +1,21 @@
+@model MapDbContextLib.Context.Client;
+
 @{
     ViewData["Title"] = "Client Administration";
     Layout = "_Layout_w_NB_H_F";
     ViewData["NavIcon"] = "ClientAdmin";
+}
+
+@section CSS {
+
+<environment names="Development,CI">
+    <link rel="stylesheet" href="~/lib/selectize/dist/css/selectize.default.css" />
+</environment>
+<environment names="Staging,Production">
+    <link rel="stylesheet" href="~/lib/selectize/dist/css/selectize.default.min.css" />
+</environment>
+
+
 }
 
 <h2 class="page-title">Client Admin</h2>
@@ -11,10 +25,11 @@
         <h3 class="client-admin-section-title">Client Tree</h3>
         <div class="client-admin-section-toolbar container-fluid">
             <input id="client-search-box" class="search-box" placeholder="Search for Client" />
-            @*<a href="#">
-                <i class="fa fa-2x fa-plus pull-right"></i>
-            </a>*@        
-        </div>
+            @if (this.User.IsInRole(ApplicationRole.MapRoles[RoleEnum.RootClientCreator]))
+            {
+                <i id="add-client-icon" class="admin-action-icon fa fa-2x fa-plus pull-right" onclick="newClientFormSetup()"></i>
+            }
+       </div>
         <div id="client-tree" class="container-fluid scroll-y">
             <div class="row">
                 <ul id="client-tree-list">
@@ -22,222 +37,136 @@
             </div>
         </div>
     </div>
-    <div id="client-info" class="client-admin-section col-sm-12 col-md-6 hidden">
+    <div id="client-info" class="client-admin-section col-sm-12 col-md-6 hidden-on-load">
         <h3 class="client-admin-section-title">Client Information</h3>
+        <div class="client-admin-section-toolbar container-fluid">
+            <i id="edit-client-icon" class="admin-action-icon fa fa-2x fa-pencil pull-right" onclick="toggleEditExistingClient()"></i>
+            <i id="cancel-edit-client-icon" class="admin-action-icon fa fa-2x fa-close pull-right" onclick="cancelClientEdit()"></i>
+        </div>
         <div class="container-fluid scroll-y">
-            <form id="client-form" class="read-only" asp-action="/" method="post">
+            <form id="client-form">
                 <div class="row">
                     <h4>Client Information</h4>
-                    <div class="form-group col-md-9">
-                        <label for="clientName">Client Name</label>
-                        <input type="text" id="clientName" name="clientName" class="form-control" />
-                    </div>
-                    <div class="form-group col-md-3">
-                        <label for="clientCode">Client Code</label>
-                        <input type="text" id="clientCode" name="clientCode" class="form-control" />
-                    </div>
-                    <div class="form-group col-md-6">
-                        <label for="ccName">Primary Client Contact</label>
-                        <input type="text" id="ccName" name="ccName" class="form-control" />
-                    </div>
-                    <div class="form-group col-md-6">
-                        <label for="ccTitle">Client Contact Title</label>
-                        <input type="text" id="ccTitle" name="ccTitle" class="form-control" />
+                    <div class="hidden">
+                        <input asp-for="Id" />
+                        <input asp-for="ParentClientId" />
                     </div>
                     <div class="form-group col-md-9">
-                        <label for="ccEmail">Client Contact Email</label>
-                        <input type="email" id="ccEmail" name="ccEmail" class="form-control" />
+                        <label asp-for="Name"></label>
+                        <div>
+                            <input asp-for="Name" class="form-control" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>                    
                     </div>
                     <div class="form-group col-md-3">
-                        <label for="ccPhone">Client Contact Phone</label>
-                        <input type="tel" id="ccPhone" name="ccPhone" class="form-control" />
+                        <label asp-for="ClientCode"></label>
+                        <div>
+                            <input asp-for="ClientCode" class="form-control" />
+                            <span asp-validation-for="ClientCode" class="text-danger"></span>
+                        </div>
                     </div>
-                    <h4>Security Information</h4>
+                    <div class="form-group col-md-6">
+                        <label asp-for="ContactName"></label>
+                        <div>
+                            <input asp-for="ContactName" class="form-control" />
+                            <span asp-validation-for="ContactName" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label asp-for="ContactTitle"></label>
+                        <div>
+                            <input asp-for="ContactTitle" class="form-control" />
+                            <span asp-validation-for="ContactTitle" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-9">
+                        <label asp-for="ContactEmail"></label>
+                        <div>
+                            <input asp-for="ContactEmail" class="form-control" />
+                            <span asp-validation-for="ContactEmail" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label asp-for="ContactPhone"></label>
+                        <div>
+                            <input asp-for="ContactPhone" class="form-control" />
+                            <span asp-validation-for="ContactPhone" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+                <h4>Security Information</h4>
+                <div class="row">
                     <div class="form-group col-md-12">
-                        <label for="domainWhitelist">Approved Email Domain</label>
-                        <input type="text" id="domainWhitelist" name="domainWhitelist" class="form-control" />
+                        <label asp-for="AcceptedEmailDomainList"></label>
+                        <div>
+                            <input asp-for="AcceptedEmailDomainList" class="selectize-custom-input" />
+                            <span asp-validation-for="AcceptedEmailDomainList" class="text-danger"></span>
+                        </div>                    
                     </div>
                     <div class="form-group col-md-12">
-                        <label for="emailWhitelist">Email Exception List</label>
-                        <input type="text" id="emailWhitelist" name="emailWhitelist" class="form-control" />
+                        <label asp-for="AcceptedEmailAddressExceptionList"></label>
+                        <div>
+                            <input asp-for="AcceptedEmailAddressExceptionList" class="selectize-custom-input" />
+                            <span asp-validation-for="AcceptedEmailAddressExceptionList" class="text-danger"></span>
+                        </div>
                     </div>
-                    <h4>Billing Information</h4>
+                </div>
+                <h4>Billing Information</h4>
+                <div class="row">
                     <div class="form-group col-md-6">
-                        <label for="consultantName">Primary Consultant</label>
-                        <input type="text" id="consultantName" name="consultantName" class="form-control" />
+                        <label asp-for="ConsultantName"></label>
+                        <div>
+                            <input asp-for="ConsultantName" class="form-control" />
+                            <span asp-validation-for="ConsultantName" class="text-danger"></span>
+                        </div>
                     </div>
                     <div class="form-group col-md-6">
-                        <label for="consultantTitle">Primary Consultant Title</label>
-                        <input type="text" id="consultantTitle" name="consultantTitle" class="form-control" />
+                        <label asp-for="ConsultantEmail"></label>
+                        <div>
+                            <input asp-for="ConsultantEmail" class="form-control" />
+                            <span asp-validation-for="ConsultantEmail" class="text-danger"></span>
+                        </div>
                     </div>
                     <div class="form-group col-md-6">
-                        <label for="consultantEmail">Primary Consultant Email</label>
-                        <input type="email" id="consultantEmail" name="consultantEmail" class="form-control" />
+                        <label asp-for="ConsultantOffice"></label>
+                        <div>
+                            <input asp-for="ConsultantOffice" class="form-control" />
+                            <span asp-validation-for="ConsultantOffice" class="text-danger"></span>
+                        </div>
                     </div>
-                    <div class="form-group col-md-3">
-                        <label for="billingOffice">Office</label>
-                        <input type="text" id="billingOffice" name="billingOffice" class="form-control" />
+                    <div class="form-group col-md-6">
+                        <label asp-for="ProfitCenterId"></label>
+                        <div>
+                            <select asp-for="ProfitCenterId" class="form-control">
+                                <option value="">Make a Selection</option>
+                            </select>
+                            <span asp-validation-for="ProfitCenterId" class="text-danger"></span>
+                        </div>
                     </div>
-                    <div class="form-group col-md-3">
-                        <label for="profitCenter">Profit Center</label>
-                        <input type="text" id="profitCenter" name="profitCenter" class="form-control" />
-                    </div>
-                    <div class="text-right">
-                        <button type="reset" class="btn btn-link">Reset Form</button>
-                        <button type="submit" id="primary-button" class="btn btn-primary">Save</button>
-                    </div>
+                </div>
+                @Html.AntiForgeryToken()
+                <div id="form-buttons-new" class="text-right">
+                    <button type="button" class="btn btn-link" onclick="resetNewClientForm(event)">Reset Form</button>
+                    <button type="submit" id="create-new-button" class="btn btn-primary primary-button" onclick="submitClientForm(event)">Create New Client</button>
+                </div>
+                <div id="form-buttons-edit" class="text-right">
+                    <button type="button" id="undo-changes-button" class="btn btn-link" onclick="undoChangesEditClientForm(event)">Undo Changes</button>
+                    <button type="submit" id="save-changes-button" class="btn btn-primary primary-button" onclick="submitClientForm(event)">Save Changes</button>
                 </div>
             </form>
         </div>
     </div>
-    <div id="client-users" class="client-admin-section col-sm-12 col-md-3 hidden">
+    <div id="client-users" class="client-admin-section col-sm-12 col-md-3 hidden-on-load">
         <h3 class="client-admin-section-title">Client Users</h3>
         <div class="client-admin-section-toolbar container-fluid">
-            <input class="search-box" placeholder="Search for User" />
-            <a href="#">
-                <i class="fa fa-2x fa-plus pull-right"></i>
-            </a>
+            <input id="user-search-box" class="search-box" placeholder="Search for User" />
+            <i id="add-user-icon" class="admin-action-icon fa fa-2x fa-user-plus pull-right"></i>
+            <i id="expand-user-icon" class="admin-action-icon fa fa-2x fa-toggle-down pull-right" onclick="expandAllUsers()"></i>
+            <i id="collapse-user-icon" class="admin-action-icon fa fa-2x fa-toggle-up pull-right" onclick="collapseAllUsers()"></i>
         </div>
         <div id="user-list" class="container-fluid scroll-y">
             <div class="row">
-                <ul>
-                    <li>
-                        <div class="client-admin-card col-xs-12">
-                            <i class="fa fa-fw fa-4x fa-user left-icon pull-left"></i>
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h2 class="client-admin-card-title">Last, First</h2>
-                            <p>first.last@email.com</p>
-                        </div>
-                        <div class="client-admin-card col-xs-12">
-                            <i class="fa fa-fw fa-4x fa-user left-icon pull-left"></i>
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h2 class="client-admin-card-title">Last, First</h2>
-                            <p>first.last@email.com</p>
-                        </div>
-                        <div class="client-admin-card col-xs-12">
-                            <i class="fa fa-fw fa-4x fa-user left-icon pull-left"></i>
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h2 class="client-admin-card-title">Last, First</h2>
-                            <p>first.last@email.com</p>
-                        </div>
-                        <div class="client-admin-card col-xs-12">
-                            <i class="fa fa-fw fa-4x fa-user left-icon pull-left"></i>
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h2 class="client-admin-card-title">Last, First</h2>
-                            <p>first.last@email.com</p>
-                        </div>
-                        <div class="client-admin-card col-xs-12">
-                            <i class="fa fa-fw fa-4x fa-user left-icon pull-left"></i>
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h2 class="client-admin-card-title">Last, First</h2>
-                            <p>first.last@email.com</p>
-                        </div>
-                        <div class="client-admin-card col-xs-12">
-                            <i class="fa fa-fw fa-4x fa-user left-icon pull-left"></i>
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h2 class="client-admin-card-title">Last, First</h2>
-                            <p>first.last@email.com</p>
-                        </div>
-                        <div class="client-admin-card col-xs-12">
-                            <i class="fa fa-fw fa-4x fa-user left-icon pull-left"></i>
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h2 class="client-admin-card-title">Last, First</h2>
-                            <p>first.last@email.com</p>
-                        </div>
-                        <div class="client-admin-card col-xs-12">
-                            <i class="fa fa-fw fa-4x fa-user left-icon pull-left"></i>
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h2 class="client-admin-card-title">Last, First</h2>
-                            <p>first.last@email.com</p>
-                        </div>
-                        <div class="client-admin-card col-xs-12">
-                            <i class="fa fa-fw fa-4x fa-user left-icon pull-left"></i>
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h2 class="client-admin-card-title">Last, First</h2>
-                            <p>first.last@email.com</p>
-                        </div>
-                        <div class="client-admin-card col-xs-12">
-                            <i class="fa fa-fw fa-4x fa-user left-icon pull-left"></i>
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h2 class="client-admin-card-title">Last, First</h2>
-                            <p>first.last@email.com</p>
-                        </div>
-                        <div class="client-admin-card col-xs-12">
-                            <i class="fa fa-fw fa-4x fa-user left-icon pull-left"></i>
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h2 class="client-admin-card-title">Last, First</h2>
-                            <p>first.last@email.com</p>
-                        </div>
-                        <div class="client-admin-card col-xs-12">
-                            <i class="fa fa-fw fa-4x fa-user left-icon pull-left"></i>
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h2 class="client-admin-card-title">Last, First</h2>
-                            <p>first.last@email.com</p>
-                        </div>
-                        <div class="client-admin-card col-xs-12">
-                            <i class="fa fa-fw fa-4x fa-user left-icon pull-left"></i>
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h2 class="client-admin-card-title">Last, First</h2>
-                            <p>first.last@email.com</p>
-                        </div>
-                        <div class="client-admin-card col-xs-12">
-                            <i class="fa fa-fw fa-4x fa-user left-icon pull-left"></i>
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h2 class="client-admin-card-title">Last, First</h2>
-                            <p>first.last@email.com</p>
-                        </div>
-                        <div class="client-admin-card col-xs-12">
-                            <i class="fa fa-fw fa-4x fa-user left-icon pull-left"></i>
-                            <div class="icon-container">
-                                <i class="fa fa-fw fa-pencil"></i>
-                                <i class="fa fa-fw fa-trash"></i>
-                            </div>
-                            <h2 class="client-admin-card-title">Last, First</h2>
-                            <p>first.last@email.com</p>
-                        </div>
-                    </li>
+                <ul id="client-user-list">
                 </ul>
             </div>
         </div>
@@ -246,15 +175,20 @@
 
 @section Scripts {
 
+    @Html.Partial("~/Views/ClientAdmin/templates/_ClientNode.cshtml")
+    @Html.Partial("~/Views/ClientAdmin/templates/_UserNode.cshtml")
+
+
     <environment names="Development,CI">
+        <script src="~/lib/selectize/dist/js/standalone/selectize.js"></script>
         <script src="~/lib/bootbox.js/bootbox.js"></script>
+        <script src="~/js/client-admin.js"></script>
     </environment>
     <environment names="Staging,Production">
+        <script src="~/lib/selectize/dist/js/standalone/selectize.min.js"></script>
         <script src="~/lib/bootbox.js/bootbox.min.js"></script>
+        <script src="~/js/client-admin.min.js"></script>
     </environment>
-
-
-    @Html.Partial("~/Views/ClientAdmin/templates/_ClientNode.cshtml")
 
     <script>
 
@@ -267,30 +201,50 @@
                 searchClientTree(searchString);
             });
 
-            /*
-            // Get the client families
-            $.ajax({
-                type: 'GET',
-                url: 'ClientAdmin/ClientFamilyList/',
-            }).done(function (response) {
-                console.log(response);
-            }).fail(function () {
-               console.log('failed to retreive Client Tree data');
+            $('#user-search-box').keyup(function () {
+                var searchString = $(this).val();
+                searchUser(searchString);
             });
-            */
 
-            /*
-            // Get the assigned / eligible users for a client
-            $.ajax({
-                type: 'GET',
-                url: 'ClientAdmin/ClientUserLists',
-                data: { id: 4 },
-            }).done(function (response) {
-                console.log(response)
-            }).fail(function () {
-                console.log('failed to retrieve Client data');
+            $('#client-form #AcceptedEmailDomainList').selectize({
+                plugins: ['remove_button'],
+                persist: false,
+                create: function (input) {
+                    if (input.match(domainValRegex)) {
+                        return {
+                            value: input,
+                            text: input
+                        };
+                    } else {
+                        bootbox.alert('The Approved Email Domain List only accepts the email domain (e.g. <i>username@@</i><strong><u>domain.com</u></strong>)', function () { 
+                            $('#AcceptedEmailDomainList-selectized').val(input);
+                            $('#client-form #AcceptedEmailDomainList')[0].selectize.unlock();
+                            $('#client-form #AcceptedEmailDomainList')[0].selectize.focus();
+                        });
+                    }
+                }
             });
-            */
+
+            $('#client-form #AcceptedEmailAddressExceptionList').selectize({
+                plugins: ['remove_button'],
+                delimiter: ',',
+                persist: false,
+                create: function (input) {
+                    if (input.match(emailValRegex)) {
+                        return {
+                            value: input,
+                            text: input
+                        };
+                    } else {
+                        bootbox.alert('The Approved Email Address Exception List only accepts valid email addresses (e.g. username@domain.com)', function () {
+                            $('#AcceptedEmailAddressExceptionList-selectized').val(input);
+                            $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.unlock();
+                            $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.focus();
+                        });
+                    }
+                }
+            });
+
 
             /*
              // Assign a user by name to a client id

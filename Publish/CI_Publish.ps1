@@ -30,8 +30,15 @@ $PublishURL = "http://indy-qvtest01/$appPool"
 # Set environment variable (utilized by dotnet commands)
 $env:ASPNETCORE_ENVIRONMENT=$ASPNETCORE_ENVIRONMENT
 
+log_statement "Adding the branch name to database names in AuditLogLib connection strings"
+
+cd MillimanAccessPortal\AuditLogLib
+
+(Get-Content ConnectionStrings.CI.JSON).replace("((branch_name))", "$branchName") | Set-Content ConnectionStrings.CI.JSON
 
 log_statement "Adding the branch name to database names in connection strings"
+
+cd ..\..\
 
 cd MillimanAccessPortal\MillimanAccessPortal
 

@@ -89,6 +89,7 @@ namespace MillimanAccessPortal.Controllers
             // User must have ClientAdministrator role to at least 1 Client
             if (!AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement (RoleEnum.Admin, null)).Result.Succeeded)
             {
+                Response.Headers.Add("Warning", $"You are not authorized as a client administrator or root client creator");
                 return Unauthorized();
             }
             #endregion
@@ -98,43 +99,46 @@ namespace MillimanAccessPortal.Controllers
             return Json(ModelToReturn);
         }
 
-        // GET: ClientAdmin/ClientUserLists
+        // GET: ClientAdmin/ClientDetail
         // Intended for access by ajax from Index view
         /// <summary>
-        /// Returns the (2) lists of eligible and already assigned users associated with a Client. Requires GET. 
+        /// Returns the requested Client and lists of eligible and already assigned users associated with a Client. Requires GET. 
         /// </summary>
         /// <param name="id"></param>
         /// <returns>JsonResult or UnauthorizedResult</returns>
         [HttpGet]
-        public IActionResult ClientUserLists(long? id)
+        public IActionResult ClientDetail(long? id)
         {
-            Client ThisClient = DbContext.Client.Find(id);
+            Client ThisClient = DbContext.Client.Include(c => c.ProfitCenter).FirstOrDefault(c => c.Id == id);
 
             #region Preliminary Validation
             if (ThisClient == null)
             {
-                Response.Headers.Add("Warning", $"No client id was provided in ClientUserLists action");
+                Response.Headers.Add("Warning", $"An invalid client id ({id}) was provided in ClientUserLists action");
                 return NotFound();
             }
             #endregion
 
             #region Authorization
             // Check current user's authorization to manage the requested Client
-            if (!AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, ThisClient.Id)).Result.Succeeded)
+            List<long> AllRelatedClientsList = Queries.GetAllRelatedClients(ThisClient).Select(c => c.Id).ToList();
+            if (!AuthorizationService.AuthorizeAsync(User, null, new RoleInAnySuppliedClientRequirement(RoleEnum.Admin, AllRelatedClientsList)).Result.Succeeded)
             {
                 Response.Headers.Add("Warning", $"You are not authorized to administer the requested client");
                 return Unauthorized();
             }
             #endregion
 
-            ClientUserListsViewModel Model = new ClientUserListsViewModel();
+            ClientDetailViewModel Model = new ClientDetailViewModel();
+
+            Model.ClientEntity = ThisClient;
 
             Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ThisClient.Id.ToString());
 
             // Get the list of users already members of this client
             Model.AssignedUsers = UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim)
-                                             .Result  // accumulate the result of the preceding async call
-                                             .Select(ApUser => (UserInfo)ApUser)  // leverage the UserInfo type conversion operator
+                                             .Result  // because the preceding call is async
+                                             .Select(ApUser => (UserInfo)ApUser)  // use the UserInfo type conversion operator
                                              .OrderBy(u => u.LastName)
                                              .ThenBy(u => u.FirstName)
                                              .ToList();
@@ -249,7 +253,7 @@ namespace MillimanAccessPortal.Controllers
                                                                               claim.Value == ThisClientMembershipClaim.Value))
             {
                 Response.Headers.Add("Warning", "The requested user is already assigned to the requested client");
-                return ClientUserLists(RequestedClient.Id);
+                return ClientDetail(RequestedClient.Id);
             }
             else
             {
@@ -267,7 +271,7 @@ namespace MillimanAccessPortal.Controllers
                                           AssignedClientId = RequestedClient.Id};
                 AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User Assigned to Client", AuditEventId.UserAssignedToClient, LogDetails, User.Identity.Name, HttpContext.Session.Id) );
 
-                return ClientUserLists(RequestedClient.Id);
+                return ClientDetail(RequestedClient.Id);
             }
         }
 
@@ -353,16 +357,16 @@ namespace MillimanAccessPortal.Controllers
                                             User.Identity.Name, 
                                             HttpContext.Session.Id));
 
-                return ClientUserLists(RequestedClient.Id);
+                return ClientDetail(RequestedClient.Id);
             }
             else
             {
                 Response.Headers.Add("Warning", $"User {RequestedUser.UserName} is not assigned to client {RequestedClient.Name}.  No action taken.");
-                return ClientUserLists(RequestedClient.Id);
+                return ClientDetail(RequestedClient.Id);
             }
         }
 
-        // POST: ClientAdmin/Edit/5
+        // POST: ClientAdmin/SaveNewClient
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         /// <summary>
@@ -376,6 +380,8 @@ namespace MillimanAccessPortal.Controllers
                                                  "ConsultantOffice,AcceptedEmailDomainList,ParentClientId,ProfitCenterId")] Client Model)
         // Members intentionally not bound: Id, AcceptedEmailAddressExceptionList
         {
+            ApplicationUser CurrentApplicationUser = GetCurrentApplicationUser();
+
             #region Preliminary Validation
             if (!ModelState.IsValid)
             {
@@ -417,16 +423,27 @@ namespace MillimanAccessPortal.Controllers
             #endregion Authorization
 
             #region Validation
-            // remove any leading characters up to last '@'
-            Model.AcceptedEmailDomainList = Model.AcceptedEmailDomainList.Select(d => d.Contains("@") ? d.Substring(d.LastIndexOf('@')+1) : d).ToArray();
+            // Convert delimited strings bound from the browser to a proper array
+            Model.AcceptedEmailDomainList = GetCleanClientEmailWhitelistArray(Model.AcceptedEmailDomainList, true);
+            Model.AcceptedEmailAddressExceptionList = GetCleanClientEmailWhitelistArray(Model.AcceptedEmailAddressExceptionList, false);
 
-            // Valid domains in whitelist
+            // Valid domain(s) in whitelist
             foreach (string WhiteListedDomain in Model.AcceptedEmailDomainList)
             {
                 if (!GlobalFunctions.IsValidEmail("test@" + WhiteListedDomain))
                 {
-                    Response.Headers.Add("Warning", $"The domain is invalid: ({WhiteListedDomain})");
-                    return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
+                    Response.Headers.Add("Warning", $"An email domain is invalid: ({WhiteListedDomain})");
+                    return StatusCode(StatusCodes.Status412PreconditionFailed);
+                }
+            }
+
+            // Valid email address(es) in whitelist
+            foreach (string WhiteListedAddress in Model.AcceptedEmailAddressExceptionList)
+            {
+                if (!GlobalFunctions.IsValidEmail(WhiteListedAddress))
+                {
+                    Response.Headers.Add("Warning", $"An email address is invalid: ({WhiteListedAddress})");
+                    return StatusCode(StatusCodes.Status412PreconditionFailed);
                 }
             }
 
@@ -434,14 +451,14 @@ namespace MillimanAccessPortal.Controllers
             if (Model.ParentClientId != null && !DbContext.ClientExists(Model.ParentClientId.Value))
             {
                 Response.Headers.Add("Warning", $"The specified parent Client is invalid: ({Model.ParentClientId.Value})");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
+                return StatusCode(StatusCodes.Status412PreconditionFailed);
             }
 
             // Name must be unique
             if (DbContext.Client.Any(c=>c.Name == Model.Name))
             {
                 Response.Headers.Add("Warning", $"The client name already exists for another client: ({Model.Name})");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
+                return StatusCode(StatusCodes.Status412PreconditionFailed);
             }
             #endregion Validation
 
@@ -455,11 +472,13 @@ namespace MillimanAccessPortal.Controllers
                     {
                         Client = Model,
                         Role = RoleManager.FindByNameAsync(RoleEnum.Admin.ToString()).Result,
-                        UserId = GetCurrentApplicationUser().Id
+                        UserId = CurrentApplicationUser.Id
                     });
 
                 // Store to database
                 DbContext.SaveChanges();
+
+                UserManager.AddClaimAsync(CurrentApplicationUser, new Claim(ClaimNames.ClientMembership.ToString(), Model.Id.ToString())).Wait();
 
                 // Log new client store and ClientAdministrator role authorization events
                 object LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, };
@@ -480,10 +499,13 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
 
-            return ClientFamilyList();
+            ClientAdminIndexViewModel ModelToReturn = GetClientAdminIndexModelForUser(CurrentApplicationUser);
+            ModelToReturn.RelevantClientId = Model.Id;
+
+            return Json(ModelToReturn);
         }
 
-        // POST: ClientAdmin/Edit
+        // POST: ClientAdmin/EditClient
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         /// <summary>
@@ -549,6 +571,10 @@ namespace MillimanAccessPortal.Controllers
             #endregion Authorization
 
             #region Validation
+            // Convert delimited strings bound from the browser to a proper array
+            Model.AcceptedEmailDomainList = GetCleanClientEmailWhitelistArray(Model.AcceptedEmailDomainList, true);
+            Model.AcceptedEmailAddressExceptionList = GetCleanClientEmailWhitelistArray(Model.AcceptedEmailAddressExceptionList, false);
+            
             // Valid domains in domain whitelist
             foreach (string WhiteListedDomain in Model.AcceptedEmailDomainList)
             {
@@ -592,9 +618,25 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion Validation
 
+            // Perform the update
             try
             {
-                DbContext.Client.Update(Model);
+                // Must update the instance that's tracked by EF, can't update the context with the untracked Model object
+                ExistingClientRecord.Name = Model.Name;
+                ExistingClientRecord.ClientCode = Model.ClientCode;
+                ExistingClientRecord.ContactName = Model.ContactName;
+                ExistingClientRecord.ContactTitle = Model.ContactTitle;
+                ExistingClientRecord.ContactEmail = Model.ContactEmail;
+                ExistingClientRecord.ContactPhone = Model.ContactPhone;
+                ExistingClientRecord.ConsultantName = Model.ConsultantName;
+                ExistingClientRecord.ConsultantEmail = Model.ConsultantEmail;
+                ExistingClientRecord.ConsultantOffice = Model.ConsultantOffice;
+                ExistingClientRecord.AcceptedEmailDomainList = Model.AcceptedEmailDomainList;
+                ExistingClientRecord.AcceptedEmailAddressExceptionList = Model.AcceptedEmailAddressExceptionList;
+                //Not supported:  ExistingClientRecord.ParentClientId = Model.ParentClientId;
+                ExistingClientRecord.ProfitCenterId = Model.ProfitCenterId;
+
+                DbContext.Client.Update(ExistingClientRecord);
                 DbContext.SaveChanges();
 
                 object LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, };
@@ -607,7 +649,10 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
 
-            return ClientFamilyList();
+            ClientAdminIndexViewModel ModelToReturn = GetClientAdminIndexModelForUser(GetCurrentApplicationUser());
+            ModelToReturn.RelevantClientId = ExistingClientRecord.Id;
+
+            return Json(ModelToReturn);
         }
 
         // DELETE: ClientAdmin/Delete/5
@@ -658,7 +703,7 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 // Only the primary key is needed for delete
-                DbContext.Client.Remove(new Client { Id = Id.Value });
+                DbContext.Client.Remove(ExistingClient);
                 DbContext.SaveChanges();
 
                 object LogDetails = new { ClientId = Id.Value };
@@ -671,7 +716,9 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
 
-            return ClientFamilyList();
+            ClientAdminIndexViewModel ModelToReturn = GetClientAdminIndexModelForUser(GetCurrentApplicationUser());
+
+            return Json(ModelToReturn);
         }
 
         [NonAction]
@@ -728,6 +775,37 @@ namespace MillimanAccessPortal.Controllers
             }
 
             return ModelToReturn;
+        }
+
+        /// <summary>
+        /// Returns a clean array without null elements, optionally tested for validity as either domain or full email address
+        /// </summary>
+        /// <param name="InArray"></param>
+        /// <param name="CleanDomain">If true, strip characters up through '@' from each found element</param>
+        /// <returns></returns>
+        private string[] GetCleanClientEmailWhitelistArray(string[] InArray, bool CleanDomain)
+        {
+            char[] StringDelimiters = new char[] { ',', ';', ' ' };
+
+            string[] Result = new string[0];
+
+            foreach (string Element in InArray)  // Normally from model binding there will be exactly 1
+            {
+                if (!string.IsNullOrWhiteSpace(Element))  // Model binding passes null when nothing provided
+                {
+                    foreach (string GoodElement in InArray[0].Split(StringDelimiters, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        Result = Result.Append(GoodElement).ToArray();
+                    }
+                }
+            }
+
+            if (CleanDomain)
+            {
+                Result = Result.Select(d => d.Contains("@") ? d.Substring(d.LastIndexOf('@') + 1) : d).ToArray();
+            }
+
+            return Result;
         }
 
     }

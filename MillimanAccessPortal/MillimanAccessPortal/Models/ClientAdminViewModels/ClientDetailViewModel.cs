@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Context;
 
 namespace MillimanAccessPortal.Models.ClientAdminViewModels
 {
@@ -52,9 +53,10 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
         }
     }
 
-    public class ClientUserListsViewModel
+    public class ClientDetailViewModel
     {
         public List<UserInfo> EligibleUsers { get; set; } = new List<UserInfo>();
         public List<UserInfo> AssignedUsers { get; set; } = new List<UserInfo>();
+        public Client ClientEntity { get; set; }
     }
 }
