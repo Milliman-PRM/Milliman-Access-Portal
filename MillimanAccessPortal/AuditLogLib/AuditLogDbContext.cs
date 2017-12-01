@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.Extensions.Configuration;
+using System.Security.Cryptography.X509Certificates;
 
 namespace AuditLogLib
 {
@@ -66,7 +67,7 @@ namespace AuditLogLib
         }
 
         /// <summary>
-        /// Has responsibility for extracting the proper ConfigurationString for this data context
+        /// Has responsibility for extracting the proper ConfigurationString for this data context. Only called when performing database migrations.
         /// </summary>
         /// <param name="ConnectionStringName"></param>
         /// <returns></returns>
@@ -75,19 +76,38 @@ namespace AuditLogLib
             var configurationBuilder = new ConfigurationBuilder();
             string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-            if (environmentName == "CI" || environmentName == "Production") 
+            // Determine location to fetch the connection string
+            switch (environmentName)
             {
-                configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: true, reloadOnChange: true);
-            }
-            else if (environmentName == "Development")
-            {
-                configurationBuilder.AddUserSecrets<AuditLogDbContext>();
-            }
-            
-            var configuration = configurationBuilder.Build();
+                case "Production": // Get connection string from Azure Key Vault for Production
+                    configurationBuilder.AddJsonFile(path: "AzureKeyVault.Production.json", optional: false);
 
-            // Probably used only for generating new migrations.  Caller is the dotnet framework command executable, which does not have our config files.
-            // TODO Figure out a better way to get a configured connection string
+                    var built = configurationBuilder.Build();
+
+                    var store = new X509Store(StoreLocation.LocalMachine);
+                    store.Open(OpenFlags.ReadOnly);
+                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
+
+                    configurationBuilder.AddAzureKeyVault(
+                        built["AzureVaultName"],
+                        built["AzureClientID"],
+                        cert.OfType<X509Certificate2>().Single());
+                    break;
+
+                case "CI":// Get connection string from local JSON in CI
+                    configurationBuilder.AddJsonFile(path: "ConnectionStrings.CI.json", optional: false);
+                    break;
+
+                case "Development": // Get connection string from user secrets in Development
+                    configurationBuilder.AddUserSecrets<AuditLogDbContext>();
+                    break;
+
+                default: // Unsupported environment name
+                    throw new InvalidOperationException($"Current environment name ({environmentName}) is not configured for AuditLogLib migrations");
+            }
+
+            var configuration = configurationBuilder.Build();
+            
             return configuration.GetConnectionString("AuditLogConnectionString");
         }
 
