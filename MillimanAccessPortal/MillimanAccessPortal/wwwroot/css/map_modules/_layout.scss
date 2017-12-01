@@ -1,0 +1,106 @@
+﻿/* Content Alignment */
+.left-align-content  { text-align: left;    }
+.center-content      { text-align: center;  }
+.right_align-content { text-align: right;   }
+.justify-content     { text-align: justify; }
+
+/* Display */
+//   Note: Display Flex included with the grid classes
+.display-none         { display: none;         }
+.display-block        { display: block;        }
+.display-inline       { display: inline;       }
+.display-inline-block { display: inline-block; }
+
+@include for-phone-only {
+     .display-none-for-phone-only           { display: none;         }
+     .display-block-for-phone-only          { display: block;        }
+     .display-inline-for-phone-only         { display: inline;       }
+     .display-inline-block-for-phone-only   { display: inline-block; }
+}
+@include for-tablet-down {
+     .display-none-for-tablet-down          { display: none;         }
+     .display-block-for-tablet-down         { display: block;        }
+     .display-inline-for-tablet-down        { display: inline;       }
+     .display-inline-block-for-tablet-down  { display: inline-block; }
+}
+@include for-laptop-down {
+     .display-none-for-laptop-down          { display: none;         }
+     .display-block-for-laptop-down         { display: block;        }
+     .display-inline-for-laptop-down        { display: inline;       }
+     .display-inline-block-for-laptop-down  { display: inline-block; }
+}
+@include for-desktop-down {
+     .display-none-for-desktop-down         { display: none;         }
+     .display-block-for-desktop-down        { display: block;        }
+     .display-inline-for-desktop-down       { display: inline;       }
+     .display-inline-block-for-desktop-down { display: inline-block; }
+}
+
+/* Position */
+.position-relative  { position: relative; }
+.position-absolute  { position: absolute; }
+.position-fixed     { position: fixed;    }
+
+/* Padding/Margin */
+//   Note: We will not be using margin-top to improve consistency
+@each $label, $size in (0,         0    ),
+                       (pt1em,     .1em ),
+                       (pt25em,    .25em),
+                       (pt5em,     .5em ),
+                       (pt75em,    .75em),
+                       (1em,       1em  ),
+                       (1pt5em,    1.5em),
+                       (2em,       2em  ),
+                       (2pt5em,    2.5em){
+
+     .margin-#{$label}         { margin:         0 $size $size; }
+     .margin-left-#{$label}    { margin-left:    $size;         }
+     .margin-bottom-#{$label}  { margin-bottom:  $size;         }
+     .margin-right-#{$label}   { margin-right:   $size;         }
+     .padding-#{$label}        { padding:        $size;         }
+     .padding-top-#{$label}    { padding-top:    $size;         }
+     .padding-right-#{$label}  { padding-right:  $size;         }
+     .padding-bottom-#{$label} { padding-bottom: $size;         }
+     .padding-left-#{$label}   { padding-left:   $size;         }
+}
+
+/* Height/Width */
+@each $label, $size in (pt1em,     .1em),
+                       (1em,       1em ),
+                       (25pct,     25% ),
+                       (50pct,     50% ),
+                       (75pct,     75% ),
+                       (100pct,    100%),
+                       (auto,      auto){
+
+     .height-#{$label} { height: $size; }
+     .width-#{$label}  { width:  $size; }
+}
+
+/* Max/Min Height/Width */
+//   Note: These won't get used much, so they will just be added as needed
+.max-height-0      { max-height: 0;     }
+.max-height-7em    { max-height: 7em;   }
+.max-height-2pt5em { max-height: 2.5em; }
+.max-width-25em    { max-width:  25em;  }
+.min-height-100vh  { min-height: 100vh; }
+.min-height-2rem   { min-height: 2rem;  }
+
+/* Top/Left/Bottom/Right */
+@each $label, $pct in (0,      0   ),
+                      (25pct,  25% ),
+                      (50pct,  50% ),
+                      (75pct,  75% ),
+                      (100pct, 100%) {
+
+     .#{$label}-from-top    { top:    $pct; }
+     .#{$label}-from-right  { right:  $pct; }
+     .#{$label}-from-bottom { bottom: $pct; }
+     .#{$label}-from-left   { left:   $pct; }
+
+}
+
+/* Z-Index */
+@for $level from 0 through 10 {
+     .z-index-#{$level} { z-index: $level; }
+}

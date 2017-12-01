@@ -1,0 +1,72 @@
+﻿body {
+    background-color: $light-grey;
+    color: $charcoal;
+}
+
+a {
+    color: $blue;
+
+    &:hover {
+        color: darken( $blue, 10% );
+    }
+
+    &:visited {
+         color: darken( $blue, 50% );
+    }
+}
+
+button,
+.button {
+    border: none;
+    border-radius: .25em;
+    padding: 1em 2em;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    -webkit-transition: all 4s;
+    transition: all .4s;
+}
+
+input,
+textarea,
+select {
+    display: block;
+    height: $input-height;
+    font-size: 1rem;
+    width: 100%;
+    padding: .5em;
+    border: solid .1em transparent;
+    border-radius: .25em;
+    margin: 0 .25em .5em;
+    transition: border 0.2s;
+
+    &:focus {
+        border: solid .1em $blue;
+    }
+
+    &[disabled] {
+        font-weight: bold;
+        border: none;
+        background-color: transparent;
+        background: transparent;
+        box-shadow: none;
+        cursor: default;
+        -moz-appearance: none;
+        -webkit-appearance: none;
+
+        &::-ms-expand {
+            display: none;
+        }
+    }
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill,
+input:-webkit-autofill {
+    -webkit-transition-delay: 9999s;
+    -webkit-transition: color 9999s ease-out,
+    background-color 9999s ease-out;
+}
