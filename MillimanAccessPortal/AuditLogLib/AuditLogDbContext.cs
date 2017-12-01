@@ -108,7 +108,7 @@ namespace AuditLogLib
 
             var configuration = configurationBuilder.Build();
             
-            return configuration.GetConnectionString("AuditLogConnectionString");
+            return configuration.GetConnectionString(ConnectionStringName);
         }
 
     }
