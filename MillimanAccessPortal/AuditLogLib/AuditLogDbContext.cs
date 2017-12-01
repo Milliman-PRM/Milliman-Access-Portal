@@ -72,9 +72,23 @@ namespace AuditLogLib
         /// <returns></returns>
         internal static string GetConfiguredConnectionString(string ConnectionStringName = "AuditLogConnectionString")
         {
+            var configurationBuilder = new ConfigurationBuilder();
+            string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+            if (environmentName == "CI" || environmentName == "Production") 
+            {
+                configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: true, reloadOnChange: true);
+            }
+            else if (environmentName == "Development")
+            {
+                configurationBuilder.AddUserSecrets<AuditLogDbContext>();
+            }
+            
+            var configuration = configurationBuilder.Build();
+
             // Probably used only for generating new migrations.  Caller is the dotnet framework command executable, which does not have our config files.
             // TODO Figure out a better way to get a configured connection string
-            return "Server=127.0.0.1;Database=MapAuditLog;User Id=postgres;Password=postgres;";
+            return configuration.GetConnectionString("AuditLogConnectionString");
         }
 
     }
