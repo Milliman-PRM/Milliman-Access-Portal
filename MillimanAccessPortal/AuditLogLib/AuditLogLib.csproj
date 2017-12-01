@@ -11,6 +11,7 @@
   <ItemGroup>
     <Content Include="ConnectionStrings.CI.json">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="AzureKeyVault.CI.json">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>

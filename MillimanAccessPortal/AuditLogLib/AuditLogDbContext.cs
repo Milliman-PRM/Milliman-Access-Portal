@@ -95,7 +95,6 @@ namespace AuditLogLib
                     break;
 
                 case "CI":// Get connection string from local JSON in CI
-                    configurationBuilder.SetBasePath(Environment.CurrentDirectory);
                     configurationBuilder.AddJsonFile(path: "ConnectionStrings.CI.json", optional: false);
                     break;
 
