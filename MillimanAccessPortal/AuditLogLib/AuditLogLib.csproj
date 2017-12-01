@@ -9,6 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="ConnectionStrings.CI.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
     <Content Include="AzureKeyVault.CI.json">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
