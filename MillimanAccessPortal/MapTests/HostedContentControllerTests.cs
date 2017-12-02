@@ -101,7 +101,8 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<UnauthorizedResult>(view);
+            Assert.IsType<ObjectResult>(view);
+            Assert.Equal(500, ((ObjectResult)view).StatusCode);
             #endregion
         }
 
