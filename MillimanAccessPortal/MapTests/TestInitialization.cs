@@ -50,7 +50,7 @@ namespace MapTests
 
         public StandardQueries QueriesObj { get; set; }
         #endregion
-
+        
         /// <summary>
         /// Associates each DataSelection enum value with the function that implements it
         /// </summary>
@@ -62,6 +62,12 @@ namespace MapTests
         public TestInitialization()
         {
             GenerateDependencies();
+
+            #region Configure AuditLogger
+            AuditLogLib.AuditLoggerConfiguration auditLogConfig = new AuditLogLib.AuditLoggerConfiguration();
+            auditLogConfig.AuditLogConnectionString = "";
+            AuditLogLib.AuditLogger.Config = auditLogConfig;
+            #endregion
 
             DataGenFunctionDict = new Dictionary<DataSelection, Action>
             {
