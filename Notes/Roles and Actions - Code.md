@@ -10,11 +10,13 @@
 |UserCreator|Client|Creates user accounts targeted to a client|ClientAdmin|
 |----|-----------|-----------|-----------|
 |UserAdmin|Client|Assign user accounts to client and manage content access selections for assigned user|ClientAdmin|
+|UserAdmin|RootContentItem|Manages users' hierarchy selections for a RootContentItem|ClientAdmin|
 |----|----------|------------|-----------|
 |ContentAdmin|RootContentItem|Authorizes distribution of content to client-related RootContentItems|ClientAdmin|
 |ContentAdmin|Client|Authorizes create/delete of RootContentItems|ClientAdmin|
 |----|----------|------------|-----------|
-|ContentUser|RootContentItem ?|Authorizes eligibility to be assigned to a ContentItemGroup|UserAdmin|
+|ContentUser|Client|Authorizes eligibility for ContentUser role on an associated RootContentItem|ClientAdmin|
+|ContentUser|RootContentItem|Authorizes eligibility to be assigned to a ContentItemGroup|UserAdmin|
 
 ## Possible User Actions
 
@@ -30,6 +32,6 @@
 |ClientAdmin|AssignUserToClient|Admin for [requested Client & ProfitCenter]|Done|
 |ClientAdmin|RemoveUserFromClient|Admin for [requested Client & ProfitCenter]|Done|
 |ClientAdmin|SaveNewClient|Admin to ProfitCenter & parent Client|Done|
-|ClientAdmin|EditClient|Admin for client & ProfitCenter|Done|
-|ClientAdmin||||
+|ClientAdmin|EditClient|Admin for client|Done|
 |----------|------|-----|------|
+|UserAdmin|Index|Requires UserAdmin for any (Client or RootContentItem)|Done|

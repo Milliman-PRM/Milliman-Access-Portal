@@ -35,20 +35,20 @@ namespace MillimanAccessPortal.DataQueries
         }
 
         /// <summary>
-        /// Returns a list of the Clients to which the user is assigned ClientAdministrator role
+        /// Returns a list of the Clients to which the user is assigned Admin role
         /// </summary>
         /// <param name="UserName"></param>
         /// <returns></returns>
         public List<Client> GetListOfClientsUserIsAuthorizedToManage(string UserName)
         {
             List<Client> ListOfAuthorizedClients = new List<Client>();
-            IQueryable<Client> AuthorizedClients =
-                DataContext.UserRoleForClient
-                .Where(urc => urc.Role.RoleEnum == RoleEnum.ClientAdmin)
+            IQueryable<Client> AuthorizedClientsQuery =
+                DataContext.UserRoleInClient
+                .Where(urc => urc.Role.RoleEnum == RoleEnum.Admin)
                 .Where(urc => urc.User.UserName == UserName)
                 .Join(DataContext.Client, urc => urc.ClientId, c => c.Id, (urc, c) => c);
 
-            ListOfAuthorizedClients.AddRange(AuthorizedClients);  // Query executes here
+            ListOfAuthorizedClients.AddRange(AuthorizedClientsQuery);  // Query executes here
 
             return ListOfAuthorizedClients;
         }
@@ -68,14 +68,15 @@ namespace MillimanAccessPortal.DataQueries
         {
             List<Client> ReturnList = new List<Client>();
 
-            List<Client> ThisLevelClients = DataContext.Client.Where(c => c.ParentClientId == ClientArg.Id).ToList();
+            List<Client> FoundChildClients = DataContext.Client.Where(c => c.ParentClientId == ClientArg.Id).ToList();
 
-            ReturnList.AddRange(ThisLevelClients);
+            ReturnList.AddRange(FoundChildClients);
             if (Recurse)
             {
-                foreach (Client OneChild in ThisLevelClients)
+                // Get grandchildren too
+                foreach (Client ChildClient in FoundChildClients)
                 {
-                    ReturnList.AddRange(GetChildClients(OneChild, Recurse));
+                    ReturnList.AddRange(GetChildClients(ChildClient, Recurse));
                 }
             }
 
@@ -84,19 +85,19 @@ namespace MillimanAccessPortal.DataQueries
 
         public Client GetRootClientOfClient(long id)
         {
-            // Do this so there is only one db query and the rest is done locally in memory
+            // Execute query here so there is only one db query and the rest is done locally in memory
             List<Client> AllClients = DataContext.Client.ToList();
 
             // start with the client id supplied
-            Client NextParent = AllClients.SingleOrDefault(c => c.Id == id);
+            Client CandidateResult = AllClients.SingleOrDefault(c => c.Id == id);
 
             // search up the parent hierarchy
-            while (NextParent != null && NextParent.ParentClientId != null)
+            while (CandidateResult != null && CandidateResult.ParentClientId != null)
             {
-                NextParent = AllClients.SingleOrDefault(c => c.Id == NextParent.ParentClientId);
+                CandidateResult = AllClients.SingleOrDefault(c => c.Id == CandidateResult.ParentClientId);
             }
 
-            return NextParent;
+            return CandidateResult;
         }
 
         public List<Client> GetAllRootClients()
@@ -112,28 +113,39 @@ namespace MillimanAccessPortal.DataQueries
             ClientAndChildrenModel ResultObject = new ClientAndChildrenModel { ClientEntity = ClientArg };  // Initialize.
             ResultObject.AssociatedContentCount = DataContext.RootContentItem.Where(r => r.ClientIdList.Contains(ClientArg.Id)).Count();
             ResultObject.AssociatedUserCount = UserMembersOfThisClient.Count;
-            ResultObject.CanManage = DataContext.UserRoleForClient
-                                                .Include(URCMap => URCMap.Role)
-                                                .Any(URCMap => URCMap.UserId == CurrentUser.Id
-                                                            && URCMap.Role.RoleEnum == RoleEnum.ClientAdmin
-                                                            && URCMap.ClientId == ClientArg.Id);
+            ResultObject.CanManage = DataContext.UserRoleInClient
+                                                .Include(URC => URC.Role)
+                                                .Join(DataContext.UserClaims, URC => URC.UserId, claim => claim.UserId, (URC, claim) => new { URC = URC, Claim = claim })
+                                                .SingleOrDefault(rec => rec.URC.UserId == CurrentUser.Id
+                                                                     && rec.URC.Role.RoleEnum == RoleEnum.Admin
+                                                                     && rec.URC.ClientId == ClientArg.Id
+                                                                     // verify that the user has a claim of ProfitCenterManager to the ProfitCenter of the client
+                                                                     && rec.Claim.ClaimType == ClaimNames.ProfitCenterManager.ToString()
+                                                                     && rec.Claim.ClaimValue == ClientArg.ProfitCenterId.ToString())
+                                                != null;
 
             if (RecurseDown)
             {
                 List<Client> ChildrenOfThisClient = DataContext.Client.Where(c => c.ParentClientId == ClientArg.Id).ToList();
-                foreach (Client C in ChildrenOfThisClient)
+                foreach (Client ChildOfThisClient in ChildrenOfThisClient)
                 {
-                    ResultObject.Children.Add(GetDescendentFamilyOfClient(C, CurrentUser, RecurseDown));
+                    ResultObject.Children.Add(GetDescendentFamilyOfClient(ChildOfThisClient, CurrentUser, RecurseDown));
                 }
             }
 
             return ResultObject;
         }
 
+        /// <summary>
+        /// Returns list of normalized role names authorized to provided Client for provided UserId
+        /// </summary>
+        /// <param name="UserId"></param>
+        /// <param name="ClientId"></param>
+        /// <returns></returns>
         public List<string> GetUserRolesForClient(long UserId, long ClientId)
         {
             List<string> ReturnVal = DataContext
-                                    .UserRoleForClient
+                                    .UserRoleInClient
                                     .Include(urc => urc.Role)
                                     .Where(urc => urc.UserId == UserId
                                                && urc.ClientId == ClientId)

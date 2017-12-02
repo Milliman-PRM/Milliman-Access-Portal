@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using MapDbContextLib.Context;
 using System.Security.Cryptography.X509Certificates;
 using System.Linq;
@@ -19,7 +20,15 @@ namespace MillimanAccessPortal
             using (var scope = host.Services.CreateScope())
             {
                 IServiceProvider serviceProvider = scope.ServiceProvider;
-                ApplicationDbContext.InitializeAll(serviceProvider);
+                try
+                {
+                    ApplicationDbContext.InitializeAll(serviceProvider);
+                }
+                catch (Exception e)
+                {
+                    serviceProvider.GetService<ILoggerFactory>().CreateLogger<ApplicationDbContext>().LogError($"ApplicationDbContext.InitializeAll() failed: {e.Message}");
+                    throw;
+                }
             }
 
             host.Run();

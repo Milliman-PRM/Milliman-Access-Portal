@@ -1,51 +1,21 @@
 ﻿/*
- * CODE OWNERS: Ben Wyatt
+ * CODE OWNERS: Ben Wyatt, Tom Puckett
  * OBJECTIVE: Perform unit tests against HostedContentController
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using Moq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Xunit;
 using MillimanAccessPortal.Controllers;
-using MillimanAccessPortal.DataQueries;
-using MapDbContextLib.Context;
-using MapDbContextLib.Identity;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using QlikviewLib;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
 using MillimanAccessPortal.Models.HostedContentViewModels;
-using Microsoft.AspNetCore.Mvc;
 
 namespace MapTests
 {
     public class HostedContentControllerTests
     {
-        private IOptions<QlikviewConfig> MockQlikViewConfig { get; set; }
-        private readonly Mock<UserManager<ApplicationUser>> MockUserManager;
-        private readonly ILoggerFactory Logger;
-
-        /// <summary>
-        /// Constructor sets up requirements and data for the controller being tested.
-        /// </summary>
-        public HostedContentControllerTests()
-        {
-            // Mock requirements for HostedContentController
-
-            MockQlikViewConfig = new Mock<IOptions<QlikviewConfig>>().Object;
-            Logger = new LoggerFactory();
-
-            // Configure UserManager to avoid accessing a database
-            Mock<IUserStore<ApplicationUser>> MockUserStore = new Mock<IUserStore<ApplicationUser>>();
-            MockUserManager = new Mock<UserManager<ApplicationUser>>(MockUserStore.Object, null, null, null, null, null, null, null, null);
-            MockUserManager.Setup(m => m.GetUserName(It.IsAny<System.Security.Claims.ClaimsPrincipal>())).Returns("test1");
-        }
-
         /// <summary>
         /// Test that the Index returns a view containing a list of content items the test user can access.
         /// </summary>
@@ -53,23 +23,31 @@ namespace MapTests
         [Fact]
         public void Index_ReturnsAViewResult()
         {
-            // Reference https://msdn.microsoft.com/en-us/library/dn314429(v=vs.113).aspx
-
             #region Arrange
-            var MockContext = TestInitialization.GenerateTestDataset(new DataSelection[] { DataSelection.Basic }).Object;
+            // initialize dependencies
+            TestInitialization TestResources = new TestInitialization();
 
-            StandardQueries QueriesObj = new StandardQueries(MockContext, MockUserManager.Object);
+            // initialize data
+            TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
 
-            HostedContentController sut = new HostedContentController(MockQlikViewConfig, 
-                                                                      MockUserManager.Object, 
-                                                                      Logger, 
-                                                                      MockContext,
-                                                                      QueriesObj);
+            // Create the system under test (sut)
+            HostedContentController sut = new HostedContentController(TestResources.QlikViewConfigObject,
+                                                                      TestResources.UserManagerObject,
+                                                                      TestResources.LoggerFactory,
+                                                                      TestResources.DbContextObject,
+                                                                      TestResources.QueriesObj,
+                                                                      TestResources.AuthorizationService);
 
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserName: MockContext.ApplicationUser.First().UserName);
+            // For illustration only, the same result comes from any of the following 3 techniques:
+            // This one should never throw even if the user name is not in the context data
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            // Following 2 throw if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName=="test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.UserManagerObject.FindByNameAsync("test1").Result.UserName);
             #endregion
 
             #region Act
+            // invoke the controller action to be tested
             var view = sut.Index();
             #endregion
 
@@ -82,7 +60,7 @@ namespace MapTests
             List<HostedContentViewModel> ModelReturned = (List<HostedContentViewModel>)viewResult.Model;
             Assert.Equal(1, ModelReturned.Count);
 
-            Assert.Equal(MockContext.RootContentItem.FirstOrDefault().ContentName, ModelReturned[0].ContentName);
+            Assert.Equal(TestResources.DbContextObject.RootContentItem.FirstOrDefault().ContentName, ModelReturned[0].ContentName);
             #endregion
         }
 
@@ -115,5 +93,7 @@ namespace MapTests
             // TODO: Boilerplate. Remove when the test is written.
             throw new NotImplementedException();
         }
+
     }
 }
+

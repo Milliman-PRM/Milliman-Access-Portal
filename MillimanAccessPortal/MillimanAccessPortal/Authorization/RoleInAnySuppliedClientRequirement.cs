@@ -26,7 +26,7 @@ namespace MillimanAccessPortal.Authorization
 
         internal override MapAuthorizationRequirementResult EvaluateRequirement(ApplicationUser User, ApplicationDbContext DataContext)
         {
-            var AuthorizedClientIds = DataContext.UserRoleForClient
+            var AuthorizedClientIds = DataContext.UserRoleInClient
                                                  .Include(urc => urc.Role)
                                                  .Where(urc => urc.Role.RoleEnum == SuppliedRoleEnum
                                                             && urc.UserId == User.Id)

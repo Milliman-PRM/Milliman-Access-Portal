@@ -10,7 +10,7 @@ using MapDbContextLib.Identity;
 
 namespace MapDbContextLib.Context
 {
-    public class UserAuthorizationToClient
+    public class UserRoleInClient
     {
         [Key]
         public long Id { get; set; }

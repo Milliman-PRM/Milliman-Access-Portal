@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: An entity representing a user's membership in a usergroup with a particular role
+ * OBJECTIVE: An entity representing a user with a particular role for a particular ProfitCenter
  * DEVELOPER NOTES: 
  */
 
@@ -10,14 +10,18 @@ using MapDbContextLib.Identity;
 
 namespace MapDbContextLib.Context
 {
-    public class UserInContentItemUserGroup
+    public class UserRoleInProfitCenter
     {
         [Key]
         public long Id { get; set; }
 
-        [ForeignKey("ContentItemUserGroup")]
-        public long ContentItemUserGroupId { get; set; }
-        public ContentItemUserGroup ContentItemUserGroup { get; set; }
+        [ForeignKey("ProfitCenter")]
+        public long ProfitCenterId { get; set; }
+        public ProfitCenter ProfitCenter{ get; set; }
+
+        [ForeignKey("Role")]
+        public long RoleId { get; set; }
+        public ApplicationRole Role { get; set; }
 
         [ForeignKey("User")]
         public long UserId { get; set; }
