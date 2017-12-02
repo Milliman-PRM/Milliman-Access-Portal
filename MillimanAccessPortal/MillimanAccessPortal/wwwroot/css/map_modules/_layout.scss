@@ -93,10 +93,10 @@
                       (75pct,  75% ),
                       (100pct, 100%) {
 
-     .#{$label}-from-top    { top:    $pct; }
-     .#{$label}-from-right  { right:  $pct; }
-     .#{$label}-from-bottom { bottom: $pct; }
-     .#{$label}-from-left   { left:   $pct; }
+     .from-top-#{$label}    { top:    $pct; }
+     .from-right-#{$label}  { right:  $pct; }
+     .from-bottom-#{$label} { bottom: $pct; }
+     .from-left-#{$label}   { left:   $pct; }
 
 }
 

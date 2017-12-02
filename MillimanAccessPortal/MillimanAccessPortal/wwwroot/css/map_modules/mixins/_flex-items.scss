@@ -1,0 +1,17 @@
+@mixin generate-flex-items($label:"") {
+
+     @each $denominator in 10, 12 {
+
+          @for $numerator from 1 through $denominator {
+
+               .flex-item#{$label}-#{$numerator}-#{$denominator} {
+                    -ms-flex:      0 0 percentage($numerator/$denominator);
+                    flex:          0 0 percentage($numerator/$denominator);
+                    max-width:         percentage($numerator/$denominator);
+                    min-height:    1px;
+                    padding-right: 1rem;
+                    padding-left:  1rem;
+               }
+          }
+     }
+}
