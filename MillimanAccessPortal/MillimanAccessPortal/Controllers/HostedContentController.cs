@@ -95,15 +95,8 @@ namespace MillimanAccessPortal.Controllers
                 string ErrMsg = $"Failed to obtain the requested user group, root content item, or content type";
                 Logger.LogError(ErrMsg);
 
-#if true    // need to pick one of these 2 strategies and use it throughout this controller.  This is issue #104
-                TempData["Message"] = ErrMsg;
-                TempData["ReturnToController"] = "HostedContent";
-                TempData["ReturnToAction"] = "Index";
-                return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
-#else
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
                 // something that appropriately returns to a logical next view
-#endif
             }
 #endregion
 
