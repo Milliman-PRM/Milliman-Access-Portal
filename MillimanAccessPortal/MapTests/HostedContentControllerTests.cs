@@ -72,11 +72,37 @@ namespace MapTests
         public void WebHostedContent_ErrorWhenNotAuthorized()
         {
             // Attempt to load the content view for unauthorized content
+            #region Arrange
+            // initialize dependencies
+            TestInitialization TestResources = new TestInitialization();
 
+            // initialize data
+            TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
+
+            // Create the system under test (sut)
+            HostedContentController sut = new HostedContentController(TestResources.QlikViewConfigObject,
+                                                                      TestResources.UserManagerObject,
+                                                                      TestResources.LoggerFactory,
+                                                                      TestResources.DbContextObject,
+                                                                      TestResources.QueriesObj,
+                                                                      TestResources.AuthorizationService);
+
+            // For illustration only, the same result comes from any of the following 3 techniques:
+            // This one should never throw even if the user name is not in the context data
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            // Following 2 throw if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.UserManagerObject.FindByNameAsync("test1").Result.UserName);
+            #endregion
             // Test that the ErrorController was loaded instead
 
-            // TODO: Boilerplate. Remove when the test is written.
-            throw new NotImplementedException();
+            #region Act
+            var view = sut.WebHostedContent(2); // User "test1" is not authorized to RootContentItem w/ ID 2
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            #endregion
         }
 
         /// <summary>
