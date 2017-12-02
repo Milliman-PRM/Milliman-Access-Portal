@@ -114,7 +114,7 @@ namespace MillimanAccessPortal.Controllers
             #region Preliminary Validation
             if (ThisClient == null)
             {
-                Response.Headers.Add("Warning", $"An invalid client id ({id}) was provided in ClientUserLists action");
+                Response.Headers.Add("Warning", $"The selected client ({ThisClient.Name}) was not found");
                 return NotFound();
             }
             #endregion
