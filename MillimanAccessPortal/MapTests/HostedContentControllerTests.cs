@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Xunit;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.HostedContentViewModels;
+using MapDbContextLib.Context;
 
 namespace MapTests
 {
@@ -31,7 +32,7 @@ namespace MapTests
             TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
 
             // Create the system under test (sut)
-            HostedContentController sut = new HostedContentController(TestResources.QlikViewConfigObject,
+            HostedContentController sut = new HostedContentController(TestResources.QvConfig,
                                                                       TestResources.UserManagerObject,
                                                                       TestResources.LoggerFactory,
                                                                       TestResources.DbContextObject,
@@ -80,7 +81,7 @@ namespace MapTests
             TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
 
             // Create the system under test (sut)
-            HostedContentController sut = new HostedContentController(TestResources.QlikViewConfigObject,
+            HostedContentController sut = new HostedContentController(TestResources.QvConfig,
                                                                       TestResources.UserManagerObject,
                                                                       TestResources.LoggerFactory,
                                                                       TestResources.DbContextObject,
@@ -112,14 +113,46 @@ namespace MapTests
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public Task WebHostedContent_DisplaysWhenAuthorized()
+        public void WebHostedContent_DisplaysWhenAuthorized()
         {
+            #region Arrange
+            // initialize dependencies
+            TestInitialization TestResources = new TestInitialization();
+
+            // initialize data
+            TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
+
+            // Create the system under test (sut)
+            HostedContentController sut = new HostedContentController(TestResources.QvConfig,
+                                                                      TestResources.UserManagerObject,
+                                                                      TestResources.LoggerFactory,
+                                                                      TestResources.DbContextObject,
+                                                                      TestResources.QueriesObj,
+                                                                      TestResources.AuthorizationService);
+
+            // For illustration only, the same result comes from any of the following 3 techniques:
+            // This one should never throw even if the user name is not in the context data
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            // Following 2 throw if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.UserManagerObject.FindByNameAsync("test1").Result.UserName);
+            #endregion
+
+            #region Act
             // Attempt to load the content view for authorized content
+            var view = sut.WebHostedContent(1); // User "test1" is authorized to RootContentItem w/ ID 1
+            #endregion
 
-            // Test that the content view was returned
+            #region Assert
+            // Test that a content view was returned
+            Assert.IsType<ViewResult>(view);
 
-            // TODO: Boilerplate. Remove when the test is written.
-            throw new NotImplementedException();
+            // Test that the expected content item was returned
+            ViewResult viewResult = view as ViewResult;
+            HostedContentViewModel ModelReturned = (HostedContentViewModel)viewResult.Model;
+            Assert.Equal("RootContent 1", ModelReturned.ContentName);
+            Assert.Equal(1, ModelReturned.UserGroupId);
+            #endregion
         }
 
     }
