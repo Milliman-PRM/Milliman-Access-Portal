@@ -94,13 +94,14 @@ namespace MapTests
             sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
             sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.UserManagerObject.FindByNameAsync("test1").Result.UserName);
             #endregion
-            // Test that the ErrorController was loaded instead
+            
 
             #region Act
             var view = sut.WebHostedContent(2); // User "test1" is not authorized to RootContentItem w/ ID 2
             #endregion
 
             #region Assert
+            // Test that a 500 error was returned instead of the content
             Assert.IsType<ObjectResult>(view);
             Assert.Equal(500, ((ObjectResult)view).StatusCode);
             #endregion
