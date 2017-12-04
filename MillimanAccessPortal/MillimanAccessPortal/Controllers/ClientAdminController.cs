@@ -67,14 +67,24 @@ namespace MillimanAccessPortal.Controllers
         {
             #region Authorization
             // User must have ClientAdministrator role to at least 1 Client
-            if (!AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, null)).Result.Succeeded)
+            if (!AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, null)).Result.Succeeded &&
+                !AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin, null)).Result.Succeeded)
             {
                 Response.Headers.Add("Warning", $"You are not authorized to the Client Admin page.");
                 return Unauthorized();
             }
             #endregion
 
-            return View();
+            List<ProfitCenter> Model = DbContext.UserRoleInProfitCenter
+                                                .Include(urpc => urpc.Role)
+                                                .Include(urpc => urpc.ProfitCenter)
+                                                .Where(urpc => urpc.Role.RoleEnum == RoleEnum.Admin
+                                                            && urpc.UserId == GetCurrentApplicationUser().Id)
+                                                .Distinct()
+                                                .Select(urpc => urpc.ProfitCenter)
+                                                .ToList();
+
+            return View(Model);
         }
 
         // GET: ClientAdmin/ClientFamilyList
@@ -781,21 +791,16 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Add all authorized ProfitCenters
-            // First iterate over all ProfitCenterManager claims for the current user
-            foreach (Claim ProfitCenterClaim in UserManager.GetClaimsAsync(CurrentUser)
-                                                           .Result  // .Result accumulate all responses to memory
-                                                           .Where(c => c.Type == ClaimNames.ProfitCenterManager.ToString()))
+            // Iterate over all ProfitCenterManager authorizations for the current user
+            foreach (var AuthorizedProfitCenter in DbContext.UserRoleInProfitCenter
+                                                            .Include(urpc => urpc.Role)
+                                                            .Include(urpc => urpc.ProfitCenter)
+                                                            .Where(urpc => urpc.Role.RoleEnum == RoleEnum.Admin
+                                                                        && urpc.UserId == CurrentUser.Id)
+                                                            .Distinct()
+                                                            .Select(urpc => urpc.ProfitCenter))
             {
-                // Second find a corresponding ProfitCenter table record
-                ProfitCenter AuthorizedProfitCenter = DbContext.ProfitCenter
-                                                               .Where(p => p.Id.ToString() == ProfitCenterClaim.Value)
-                                                               .FirstOrDefault();
-
-                // If a valid ProfitCenter is found, add it to the ViewModel
-                if (AuthorizedProfitCenter != null)
-                {
-                    ModelToReturn.AuthorizedProfitCenterList.Add(new AuthorizedProfitCenterModel(AuthorizedProfitCenter));
-                }
+                ModelToReturn.AuthorizedProfitCenterList.Add(new AuthorizedProfitCenterModel(AuthorizedProfitCenter));
             }
 
             return ModelToReturn;
