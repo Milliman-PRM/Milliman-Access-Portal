@@ -10,36 +10,26 @@
     Layout = "_Layout_w_F";
 }
 
-
-    <div class="container-fluid">
-
-        <div id="login-form" class="screen-center text-center">
-            <div>
-                <img src="~/images/logo.png" alt="Milliman Logo" />
-            </div>
-            <div class="text-center" style="display: inline-block;">
-                <form asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
-                    <div asp-validation-summary="All" class="text-danger"></div>
-                    <div class="form-group">
-                        <input asp-for="Email" id="email" placeholder="Email" autofocus>
-                        <span asp-validation-for="Email" class="text-danger"></span>
-                    </div>
-                    <div class="form-group">
-                        <input asp-for="Password" id="password" placeholder="Password">
-                        <span asp-validation-for="Password" class="text-danger"></span>
-                    </div>
-                    <div class="text-right">
-                        @*<div class="checkbox">
-                            <label asp-for="RememberMe">
-                                <input asp-for="RememberMe" />
-                                @Html.DisplayNameFor(m => m.RememberMe)
-                            </label>
-                        </div>*@
-                        <a asp-action="ResetPassword" id="password-reset">Forgot Password</a>
-                        <button type="submit" id="primary-button" class="btn btn-primary">Login</button>
-                    </div>
-                </form>
-            </div>
+    <div class="center-content content-item-flex-2 flex-container flex-column-no-wrap content-center items-align-center max-width-90pct">
+        <div class="width-25em max-width-100pct margin-left-auto margin-right-auto margin-bottom-0">
+            <img src="~/images/logo.png" alt="Milliman Access Portal Logo" class="width-100pct"/>
+        </div>
+        <div class="width-25em max-width-100pct center-content display-inline-block margin-left-auto margin-right-auto">
+            <form asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <div class="margin-bottom-1em">
+                    <input asp-for="Email" id="email" placeholder="Email" autofocus>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="margin-bottom-1em">
+                    <input asp-for="Password" id="password" placeholder="Password">
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+                <div class="right-align-content">
+                    <a asp-action="ResetPassword" id="password-reset">Forgot Password</a>
+                    <button type="submit" id="primary-button" class="margin-left-2em bg-color-blue bg-color-blue-hover font-color-white">Login</button>
+                </div>
+            </form>
         </div>
     </div>
 
