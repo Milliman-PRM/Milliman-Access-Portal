@@ -137,6 +137,7 @@ namespace MapTests
             ReturnMockContext.Object.ContentItemUserGroup = MockDbSet<ContentItemUserGroup>.New(new List<ContentItemUserGroup>()).Object;
             ReturnMockContext.Object.UserInContentItemUserGroup = MockDbSet<UserInContentItemUserGroup>.New(new List<UserInContentItemUserGroup>()).Object;
             ReturnMockContext.Object.UserRoles = MockDbSet<IdentityUserRole<long>>.New(new List<IdentityUserRole<long>>()).Object;
+            ReturnMockContext.Object.UserRoleInRootContentItem = MockDbSet<UserRoleInRootContentItem>.New(new List<UserRoleInRootContentItem>()).Object;
 
             return ReturnMockContext;
         }
@@ -223,8 +224,8 @@ namespace MapTests
             #region Initialize RootContentItem
             DbContextObject.RootContentItem.AddRange(new List<RootContentItem>
                 {
-                    new RootContentItem{Id = 1, ClientIdList=new long[]{1}, ContentName="RootContent 1"},
-                    new RootContentItem{Id = 2, ClientIdList=new long[]{2}, ContentName="RootContent 2"},
+                    new RootContentItem{Id = 1, ClientIdList=new long[]{1}, ContentName="RootContent 1", ContentTypeId = 1},
+                    new RootContentItem{Id = 2, ClientIdList=new long[]{2}, ContentName="RootContent 2", ContentTypeId = 1},
                 });
             MockDbSet<RootContentItem>.AssignNavigationProperty<ContentType>(DbContextObject.RootContentItem, "ContentTypeId", DbContextObject.ContentType);
             #endregion
@@ -270,6 +271,16 @@ namespace MapTests
                 {
                     new IdentityUserRole<long> { RoleId = (long)RoleEnum.Admin, UserId = 1},
                 });
+            #endregion
+
+            #region Initialize UserRoleInRootContentItem
+            DbContextObject.UserRoleInRootContentItem.AddRange(new List<UserRoleInRootContentItem>
+            {
+                new UserRoleInRootContentItem {Id = 1, RoleId = 5, UserId = 1, RootContentItemId = 1}
+            });
+            MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInRootContentItem, "RoleId", DbContextObject.ApplicationRole);
+            MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInRootContentItem, "UserId", DbContextObject.ApplicationUser);
+            MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<RootContentItem>(DbContextObject.UserRoleInRootContentItem, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
         }
 
