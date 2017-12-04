@@ -20,6 +20,7 @@ button,
     border: none;
     border-radius: .25em;
     padding: 1em 2em;
+    margin-left: 2em;
     text-align: center;
     text-decoration: none;
     display: inline-block;
@@ -27,7 +28,6 @@ button,
     font-weight: bold;
     cursor: pointer;
     -webkit-transition: all 4s;
-    transition: all .4s;
 }
 
 input,

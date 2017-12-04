@@ -4,10 +4,10 @@
                                                              (red,         $red,        Y, Y, Y, Y),
                                                              (orange,      $orange,     Y, N, N, Y),
                                                              (white,       $white,      Y, N, Y, N),
-                                                             (light-grey,  $light-grey, Y, N, Y, Y),
-                                                             (grey,        $grey,       Y, N, Y, Y),
-                                                             (dark-grey,   $dark-grey,  Y, N, Y, Y),
-                                                             (charcoal,    $charcoal,   Y, N, Y, Y),
+                                                             (lightgray,   $light-grey, Y, N, Y, Y),
+                                                             (gray,        $grey,       Y, N, Y, Y),
+                                                             (darkgray,    $dark-grey,  Y, N, Y, Y),
+                                                             (charcoal,     $charcoal,   Y, N, Y, Y),
                                                              (black,       $black,      Y, N, Y, Y),
                                                              (transparent, transparent, Y, N, N, Y){
 
@@ -18,7 +18,7 @@
 
     // Background Hover Colors
     @if $hover == Y {
-        .bg-color-#{$label}-hover { transition: all .5s; }
+        .bg-color-#{$label}-hover { transition: all .2s; }
         .bg-color-#{$label}-hover:hover { background-color: darken( $color, 10% ); }
     }
 

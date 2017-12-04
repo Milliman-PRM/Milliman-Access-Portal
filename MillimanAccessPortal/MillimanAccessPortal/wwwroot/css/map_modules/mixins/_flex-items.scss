@@ -1,17 +1,22 @@
-@mixin generate-flex-items($label:"") {
+@mixin generate-flex-items($label: "") {
 
-     @each $denominator in 10, 12 {
+    .align-self-start#{$label}   { align-self: flex-start; }
+    .align-self-center#{$label}  { align-self: center;     }
+    .align-self-end#{$label}     { align-self: flex-end;   }
+    .align-self-stretch#{$label} { align-self: stretch;    }
 
-          @for $numerator from 1 through $denominator {
+    @each $denominator in 10, 12 {
 
-               .flex-item#{$label}-#{$numerator}-#{$denominator} {
-                    -ms-flex:      0 0 percentage($numerator/$denominator);
-                    flex:          0 0 percentage($numerator/$denominator);
-                    max-width:         percentage($numerator/$denominator);
-                    min-height:    1px;
-                    padding-right: 1rem;
-                    padding-left:  1rem;
-               }
-          }
-     }
+        @for $numerator from 1 through $denominator {
+
+            .flex-item#{$label}-#{$numerator}-#{$denominator} {
+                -ms-flex:      0 0 percentage($numerator/$denominator);
+                flex:          0 0 percentage($numerator/$denominator);
+                max-width:     percentage($numerator/$denominator);
+                min-height:    1px;
+                padding-right: 0;
+                padding-left:  0;
+            }
+        }
+    }
 }

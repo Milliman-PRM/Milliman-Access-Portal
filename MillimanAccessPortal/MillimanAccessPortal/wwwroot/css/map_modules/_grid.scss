@@ -2,7 +2,6 @@
 .flex-container {
      display: flex;
      display: -ms-flexbox;
-     margin: 0 -1rem;
 }
 
 .flex-column-no-wrap  { flex-flow: column nowrap; }
@@ -24,14 +23,14 @@
 .content-align-end    { align-content: flex-end;   }
 .content-stretch      { align-content: stretch;    }
 
-.no-gutter {
-     margin-right: 0;
-     margin-left:  0;
+.with-gutter {
+    margin-right: -1em;
+    margin-left:  -1em;
 }
 
-.no-gutter > [class*="flex-item"] {
-     padding-right: 0;
-     padding-left:  0;
+.with-gutter > [class*="flex-item"] {
+    padding-right: 1rem;
+    padding-left:  1rem;
 }
 
 /* Flex Items */
@@ -52,5 +51,7 @@
      @include generate-flex-items(-for-big-desktop-up)
 }
 
-.content-item-equal-row { flex: 1;    }
-.content-item-expand    { flex: auto; }
+.content-item-flex-0 { flex: 0;    }
+.content-item-flex-1 { flex: 1;    }
+.content-item-flex-2 { flex: 2;    }
+.content-item-expand { flex: auto; }
