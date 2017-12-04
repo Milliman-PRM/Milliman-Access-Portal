@@ -48,5 +48,11 @@
     "inputFiles": [
       "wwwroot/lib/vex/dist/css/vex-theme-default.css"
     ]
+  },
+  {
+    "outputFileName": "wwwroot/css/map.min.css",
+    "inputFiles": [
+      "wwwroot/css/map.css"
+    ]
   }
 ]
