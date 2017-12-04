@@ -1,57 +1,30 @@
-﻿/* Flex Container */
-.flex-container {
-     display: flex;
-     display: -ms-flexbox;
-}
-
-.flex-column-no-wrap  { flex-flow: column nowrap; }
-.flex-column-wrap     { flex-flow: column wrap;   }
-.flex-row-no-wrap     { flex-flow: row nowrap;    }
-.flex-row-wrap        { flex-flow: row wrap;      }
-
-.content-at-start     { justify-content: flex-start; }
-.content-center       { justify-content: center;     }
-.content-at-end       { justify-content: flex-end;   }
-
-.items-align-start  { align-items: flex-start; }
-.items-align-center { align-items: center;     }
-.items-align-end    { align-items: flex-end;   }
-.items-stretch      { align-items: stretch;    }
-
-.content-align-start  { align-content: flex-start; }
-.content-align-center { align-content: center;     }
-.content-align-end    { align-content: flex-end;   }
-.content-stretch      { align-content: stretch;    }
-
-.with-gutter {
-    margin-right: -1em;
-    margin-left:  -1em;
-}
-
-.with-gutter > [class*="flex-item"] {
-    padding-right: 1rem;
-    padding-left:  1rem;
-}
+﻿/* Flex Containers */
+@include generate-flex-container-classes();
 
 /* Flex Items */
-@include generate-flex-items()
+@include generate-flex-items();
+
 @include for-phone-only {
-     @include generate-flex-items(-for-phone-only)
-}
-@include for-tablet-up {
-     @include generate-flex-items(-for-tablet-up)
-}
-@include for-laptop-up {
-     @include generate-flex-items(-for-laptop-up)
-}
-@include for-desktop-up {
-     @include generate-flex-items(-for-desktop-up)
-}
-@include for-big-desktop-up {
-     @include generate-flex-items(-for-big-desktop-up)
+    @include generate-flex-container-classes(-for-phone-only);
+    @include generate-flex-items(-for-phone-only);
 }
 
-.content-item-flex-0 { flex: 0;    }
-.content-item-flex-1 { flex: 1;    }
-.content-item-flex-2 { flex: 2;    }
-.content-item-expand { flex: auto; }
+@include for-tablet-up {
+    @include generate-flex-container-classes(-for-tablet-up);
+    @include generate-flex-items(-for-tablet-up);
+}
+
+@include for-laptop-up {
+    @include generate-flex-container-classes(-for-laptop-up);
+    @include generate-flex-items(-for-laptop-up);
+}
+
+@include for-desktop-up {
+    @include generate-flex-container-classes(-for-desktop-up);
+    @include generate-flex-items(-for-desktop-up);
+}
+
+@include for-big-desktop-up {
+    @include generate-flex-container-classes(-for-big-desktop-up);
+    @include generate-flex-items(-for-big-desktop-up);
+}

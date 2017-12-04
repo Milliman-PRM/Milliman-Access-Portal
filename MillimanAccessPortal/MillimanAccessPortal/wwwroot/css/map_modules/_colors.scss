@@ -19,7 +19,7 @@
     // Background Hover Colors
     @if $hover == Y {
         .bg-color-#{$label}-hover { transition: all .2s; }
-        .bg-color-#{$label}-hover:hover { background-color: darken( $color, 10% ); }
+        .bg-color-#{$label}-hover:hover { background-color: darken( $color, 5% ); }
     }
 
     // Font Colors

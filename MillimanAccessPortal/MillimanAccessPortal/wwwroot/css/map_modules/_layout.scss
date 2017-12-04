@@ -4,6 +4,31 @@
 .right-align-content { text-align: right;   }
 .justify-content     { text-align: justify; }
 
+@include for-phone-only {
+    .left-align-content-for-phone-only    { text-align: left;    }
+    .center-content-for-phone-only        { text-align: center;  }
+    .right-align-content-for-phone-only   { text-align: right;   }
+    .justify-content-for-phone-only       { text-align: justify; }
+}
+@include for-tablet-up {
+    .left-align-content-for-tablet-up   { text-align: left;    }
+    .center-content-for-tablet-up       { text-align: center;  }
+    .right-align-content-for-tablet-up  { text-align: right;   }
+    .justify-content-for-tablet-up      { text-align: justify; }
+}
+@include for-laptop-up {
+    .left-align-content-for-laptop-up   { text-align: left;    }
+    .center-content-for-laptop-up       { text-align: center;  }
+    .right-align-content-for-laptop-up  { text-align: right;   }
+    .justify-content-for-laptop-up      { text-align: justify; }
+}
+@include for-desktop-up {
+    .left-align-content-for-desktop-up  { text-align: left;    }
+    .center-content-for-desktop-up      { text-align: center;  }
+    .right-align-content-for-desktop-up { text-align: right;   }
+    .justify-content-for-desktop-up     { text-align: justify; }
+}
+
 /* Display */
 //   Note: Display Flex included with the grid classes
 .display-none         { display: none;         }
@@ -17,23 +42,23 @@
      .display-inline-for-phone-only         { display: inline;       }
      .display-inline-block-for-phone-only   { display: inline-block; }
 }
-@include for-tablet-down {
-     .display-none-for-tablet-down          { display: none;         }
-     .display-block-for-tablet-down         { display: block;        }
-     .display-inline-for-tablet-down        { display: inline;       }
-     .display-inline-block-for-tablet-down  { display: inline-block; }
+@include for-tablet-up {
+     .display-none-for-tablet-up          { display: none;         }
+     .display-block-for-tablet-up         { display: block;        }
+     .display-inline-for-tablet-up        { display: inline;       }
+     .display-inline-block-for-tablet-up  { display: inline-block; }
 }
-@include for-laptop-down {
-     .display-none-for-laptop-down          { display: none;         }
-     .display-block-for-laptop-down         { display: block;        }
-     .display-inline-for-laptop-down        { display: inline;       }
-     .display-inline-block-for-laptop-down  { display: inline-block; }
+@include for-laptop-up {
+     .display-none-for-laptop-up          { display: none;         }
+     .display-block-for-laptop-up         { display: block;        }
+     .display-inline-for-laptop-up        { display: inline;       }
+     .display-inline-block-for-laptop-up  { display: inline-block; }
 }
-@include for-desktop-down {
-     .display-none-for-desktop-down         { display: none;         }
-     .display-block-for-desktop-down        { display: block;        }
-     .display-inline-for-desktop-down       { display: inline;       }
-     .display-inline-block-for-desktop-down { display: inline-block; }
+@include for-desktop-up {
+     .display-none-for-desktop-up         { display: none;         }
+     .display-block-for-desktop-up        { display: block;        }
+     .display-inline-for-desktop-up       { display: inline;       }
+     .display-inline-block-for-desktop-up { display: inline-block; }
 }
 
 /* Position */
@@ -86,6 +111,7 @@
 .max-height-7em    { max-height: 7em;   }
 .max-height-2pt5em { max-height: 2.5em; }
 .max-width-25em    { max-width:  25em;  }
+.max-width-100vw   { max-width:  100vw; }
 .max-width-90pct   { max-width:  90%;   }
 .min-height-100vh  { min-height: 100vh; }
 .min-height-2rem   { min-height: 2rem;  }
