@@ -142,16 +142,21 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="UserId"></param>
         /// <param name="ClientId"></param>
         /// <returns></returns>
-        public List<string> GetUserRolesForClient(long UserId, long ClientId)
+        public List<AssignedRoleInfo> GetUserRolesForClient(long UserId, long ClientId)
         {
-            List<string> ReturnVal = DataContext
-                                    .UserRoleInClient
-                                    .Include(urc => urc.Role)
-                                    .Where(urc => urc.UserId == UserId
-                                               && urc.ClientId == ClientId)
-                                    .Select(urc => urc.Role.NormalizedName)
-                                    .Distinct()
-                                    .ToList();
+            List<AssignedRoleInfo> ReturnVal = DataContext.UserRoleInClient
+                                                          .Include(urc => urc.Role)
+                                                          .Where(urc => urc.UserId == UserId
+                                                                     && urc.ClientId == ClientId)
+                                                          .Select(urc => 
+                                                              new AssignedRoleInfo
+                                                              {
+                                                                  RoleEnum = urc.Role.RoleEnum,
+                                                                  RoleDisplayValue = ApplicationRole.RoleDisplayNames[urc.Role.RoleEnum],
+                                                                  IsAssigned = true,
+                                                              })
+                                                          .Distinct()
+                                                          .ToList();
 
             return ReturnVal;
         }

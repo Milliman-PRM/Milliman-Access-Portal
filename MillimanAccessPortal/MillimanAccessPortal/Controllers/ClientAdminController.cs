@@ -143,9 +143,22 @@ namespace MillimanAccessPortal.Controllers
                                              .ThenBy(u => u.FirstName)
                                              .ToList();
             // Assign the remaining assigned user properties
-            foreach (UserInfo Item in Model.AssignedUsers)
+            foreach (UserInfo UserInfoItem in Model.AssignedUsers)
             {
-                List<Client> AuthorizedClients = Queries.GetListOfClientsUserIsAuthorizedToManage(UserManager.GetUserName(HttpContext.User));
+                UserInfoItem.UserRoles = Queries.GetUserRolesForClient(UserInfoItem.Id, ThisClient.Id);
+
+                List<RoleEnum> RolesToInclude = new List<RoleEnum> { RoleEnum.Admin, RoleEnum.ContentAdmin, RoleEnum.ContentUser, RoleEnum.UserAdmin };
+
+                // any roles that were not found need to be included with IsAssigned=false
+                UserInfoItem.UserRoles.AddRange(RolesToInclude.Except(UserInfoItem.UserRoles.Select(ur => ur.RoleEnum)).Select(re =>
+                    new AssignedRoleInfo
+                    {
+                        RoleEnum = re,
+                        RoleDisplayValue = ApplicationRole.RoleDisplayNames[re],
+                        IsAssigned = false
+                    }));
+
+                //List<Client> AuthorizedClients = Queries.GetListOfClientsUserIsAuthorizedToManage(UserManager.GetUserName(HttpContext.User));
             }
 
             // Get all users currently member of any related Client (any descendant of the root client)
@@ -172,9 +185,20 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Assign the remaining assigned user properties
-            foreach (UserInfo Item in Model.EligibleUsers)
+            foreach (UserInfo UserInfoItem in Model.EligibleUsers)
             {
-                Item.UserRoles = Queries.GetUserRolesForClient(Item.Id, ThisClient.Id);
+                UserInfoItem.UserRoles = Queries.GetUserRolesForClient(UserInfoItem.Id, ThisClient.Id);
+
+                List<RoleEnum> RolesToInclude = new List<RoleEnum> { RoleEnum.Admin, RoleEnum.ContentAdmin, RoleEnum.ContentUser, RoleEnum.UserAdmin };
+
+                // any roles that were not found need to be included with IsAssigned=false
+                UserInfoItem.UserRoles.AddRange(RolesToInclude.Except(UserInfoItem.UserRoles.Select(ur => ur.RoleEnum)).Select(re => 
+                    new AssignedRoleInfo
+                    {
+                        RoleEnum = re,
+                        RoleDisplayValue = ApplicationRole.RoleDisplayNames[re],
+                        IsAssigned = false
+                    }));
             }
 
             // Subtract the assigned users from the overall list of eligible users

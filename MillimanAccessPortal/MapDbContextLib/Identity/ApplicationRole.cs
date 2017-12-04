@@ -31,6 +31,15 @@ namespace MapDbContextLib.Identity
 
     public class ApplicationRole : IdentityRole<long>
     {
+        public static Dictionary<RoleEnum, string> RoleDisplayNames = new Dictionary<RoleEnum, string>
+        {
+            { RoleEnum.Admin, "Admin"},
+            { RoleEnum.UserCreator, "User Creator"},
+            { RoleEnum.UserAdmin, "User Admin"},
+            { RoleEnum.ContentAdmin, "Content Admin"},
+            { RoleEnum.ContentUser, "Content User"},
+        };
+
         /// <summary>
         /// Used for initialization to ensure explicit assignment of role names to enumeration values
         /// </summary>
@@ -41,6 +50,8 @@ namespace MapDbContextLib.Identity
         /// This overide is here only to apply the explicit [Key] attribute, required in unit tests
         [Key]
         public override long Id { get; set; }
+
+        public string DisplayName { get; set; }
 
         [NotMapped]
         public RoleEnum RoleEnum
@@ -63,7 +74,7 @@ namespace MapDbContextLib.Identity
         /// <returns></returns>
         internal static void SeedRoles(IServiceProvider serviceProvider)
         {
-            var roleManager = serviceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+            RoleManager<ApplicationRole> roleManager = serviceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
             ApplicationDbContext dbContext = serviceProvider.GetService<ApplicationDbContext>();
 
             foreach (RoleEnum Role in Enum.GetValues(typeof(RoleEnum)))
@@ -72,24 +83,33 @@ namespace MapDbContextLib.Identity
                 ApplicationRole RoleFromDb = roleManager.FindByIdAsync(((long)Role).ToString()).Result;
                 if (RoleFromDb == null)
                 {
-                    roleManager.CreateAsync(new ApplicationRole { Name = RoleName, RoleEnum = Role }).Wait();
+                    roleManager.CreateAsync(new ApplicationRole { Name = RoleName, RoleEnum = Role, DisplayName = RoleDisplayNames[Role] }).Wait();
                 }
                 else if (RoleFromDb.Name != RoleName)
                 {
                     throw new Exception($"It is not possible to change ApplicationRole name in database from {RoleFromDb.Name} to {RoleName}.");
                 }
+                else if (RoleFromDb.DisplayName != RoleDisplayNames[Role])
+                {
+                    RoleFromDb.DisplayName = RoleDisplayNames[Role];
+                    roleManager.UpdateAsync(RoleFromDb).Wait();
+                }
             }
 
             // Read back all role records from persistence
             Dictionary<RoleEnum, string> FoundRolesInDb = new Dictionary<RoleEnum, string>();
+            Dictionary<RoleEnum, string> FoundDisplayNamesInDb = new Dictionary<RoleEnum, string>();
             foreach (ApplicationRole R in dbContext.ApplicationRole)
             {
                 FoundRolesInDb.Add(R.RoleEnum, R.Name);
+                FoundDisplayNamesInDb.Add(R.RoleEnum, R.DisplayName);
             }
 
             // Make sure the database table contains exactly the expected records and no more
-            var RolesInitialized = Enum.GetValues(typeof(RoleEnum)).Cast<RoleEnum>().OrderBy(r => r).Select(r => new KeyValuePair<RoleEnum, string>(r, r.ToString()));
-            if (!RolesInitialized.SequenceEqual(FoundRolesInDb.OrderBy(fr => fr.Key)))
+            var RoleNamesInitialized = Enum.GetValues(typeof(RoleEnum)).Cast<RoleEnum>().OrderBy(r => r).Select(r => new KeyValuePair<RoleEnum, string>(r, r.ToString()));
+            var RoleDisplayNamesInitialized = Enum.GetValues(typeof(RoleEnum)).Cast<RoleEnum>().OrderBy(r => r).Select(r => new KeyValuePair<RoleEnum, string>(r, RoleDisplayNames[r]));
+            if (!RoleNamesInitialized.SequenceEqual(FoundRolesInDb.OrderBy(fr => fr.Key)) ||
+                !RoleDisplayNamesInitialized.SequenceEqual(FoundDisplayNamesInDb.OrderBy(fr => fr.Key)))
             {
                 throw new Exception("ApplicationRole records in database are not as expected after initialization.");
             }

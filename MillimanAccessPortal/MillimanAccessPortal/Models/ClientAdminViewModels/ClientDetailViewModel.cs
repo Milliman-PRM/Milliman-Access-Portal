@@ -2,11 +2,30 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
 
 namespace MillimanAccessPortal.Models.ClientAdminViewModels
 {
+    public class AssignedRoleInfo
+    {
+        public RoleEnum RoleEnum { get; set; }
+        public string RoleDisplayValue { get; set; }
+        public bool IsAssigned { get; set; }
+
+        public static explicit operator AssignedRoleInfo(RoleEnum RoleEnumArg)
+        {
+            return new AssignedRoleInfo
+            {
+                RoleEnum = RoleEnumArg,
+                RoleDisplayValue = ApplicationRole.RoleDisplayNames[RoleEnumArg],
+                IsAssigned = false,  // to be assigned externally
+            };
+        }
+    }
+
     public class UserInfo
     {
         public long Id { get; set; }
@@ -14,7 +33,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
         public string FirstName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
-        public List<string> UserRoles { get; set; } = new List<string>();
+        public List<AssignedRoleInfo> UserRoles { get; set; } = new List<AssignedRoleInfo>();
 
         public static explicit operator UserInfo(ApplicationUser U)
         {
