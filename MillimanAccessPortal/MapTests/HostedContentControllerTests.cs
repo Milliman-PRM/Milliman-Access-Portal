@@ -94,17 +94,18 @@ namespace MapTests
             // Following 2 throw if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
             sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
             sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.UserManagerObject.FindByNameAsync("test1").Result.UserName);
+            sut.ControllerContext.ActionDescriptor = new Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor { ActionName = "WebHostedContent" };
+            sut.HttpContext.Session = new MockSession();
             #endregion
-            
+
 
             #region Act
-            var view = sut.WebHostedContent(2); // User "test1" is not authorized to RootContentItem w/ ID 2
+            var view = sut.WebHostedContent(3); // User "test1" is not authorized to RootContentItem for ContentItemUserGroup w/ ID 3
             #endregion
 
             #region Assert
             // Test that a 500 error was returned instead of the content
-            Assert.IsType<ObjectResult>(view);
-            Assert.Equal(500, ((ObjectResult)view).StatusCode);
+            Assert.IsType<UnauthorizedResult>(view);
             #endregion
         }
 
