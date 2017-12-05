@@ -1,4 +1,10 @@
-﻿using System.Collections.Generic;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: A ViewModel representing Clients and authorizations associated with actions that the current user is authorized to
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+ using System.Collections.Generic;
 using MapDbContextLib.Context;
 
 namespace MillimanAccessPortal.Models.ClientAdminViewModels

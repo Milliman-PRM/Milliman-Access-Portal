@@ -1,9 +1,10 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: A ViewModel to communicate selected Client entity and related properties
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
 
