@@ -121,5 +121,190 @@ namespace MapTests
         {
             throw new NotImplementedException();
         }
+
+        /// <summary>
+        /// Validate that an UnauthorizedResult is returned if the user is not authorized to remove users from the requested client
+        /// Multiple authorizations are checked, so multiple scenarios should be tested
+        /// </summary>
+        [Fact]
+        public void RemoveUserFromClient_ErrorWhenUnauthorized()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Validate that a BadRequestResult is returned if the client, user, or both do not exist
+        /// </summary>
+        [Fact]
+        public void RemoveUserFromClient_ErrorWhenNotFound()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Validate that a user is removed from a client when a request is made by an authorized user for a valid user & client
+        /// </summary>
+        [Fact]
+        public void RemoveUserFromClient_Success()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Validate that an invalid request returns a BadRequestResult
+        /// Multiple types of validations are checked, so multiple tests should be run
+        /// </summary>
+        [Fact]
+        public void SaveNewClient_ErrorWhenInvalidRequest()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Validate that an UnauthorizedResult is returned for unauthorized users
+        /// Multiple authorization checks are made and must be tested
+        /// </summary>
+        [Fact]
+        public void SaveNewClient_ErrorWhenNothAuthorized()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Validate that status code 412 is returned when invalid email domains or addresses are provided
+        /// </summary>
+        [Fact]
+        public void SaveNewClient_ErrorWhenEmailInvalid()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Validate that new clients are added successfully when the model is valid and the user is authorized
+        /// </summary>
+        [Fact]
+        public void SaveNewClient_Success()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Validate that an invalid request results in a BadRequestResult
+        /// </summary>
+        [Fact]
+        public void EditClient_ErrorWhenInvalidRequest()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Validate that unauthorized users receive an UnauthorizedResult
+        /// Multiple authorizations are checked and must be tested
+        /// </summary>
+        [Fact]
+        public void EditClient_ErrorWhenUnauthorized()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Validate that invalid data causes return code 412
+        /// Multiple scenarios should cause code 412 and must be tested
+        /// </summary>
+        [Fact]
+        public void EditClient_ErrorWhenInvalid()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Validate that client edits are made and saved successfully when the model is valid and the user is authorized
+        /// </summary>
+        [Fact]
+        public void EditClient_Success()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Fact]
+        public void DeleteClient_ErrorWhenBadRequest()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Fact]
+        public void DeleteClient_ErrorWhenUnauthorized()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Fact]
+        public void DeleteClient_ErrorWhenInvalid()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Fact]
+        public void DeleteClient_Success()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Fact]
+        public void DeleteClient_Failed()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Fact]
+        public void GetCurrentApplicationUser_ReturnsCorrectUser()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Fact]
+        public void GetClientAdminIndexModelForUser_ReturnsNullForNullUser()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Fact]
+        public void GetClientAdminIndexModelForUser_ReturnsValidModel()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Fact]
+        public void GetCleanClientEmailWhitelistArray_ReturnsCleanArray()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
