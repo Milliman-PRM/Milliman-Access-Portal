@@ -37,7 +37,7 @@ namespace MapTests
                 TestResources.AuditLogger,
                 TestResources.RoleManagerObject);
 
-            testController.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.UserManagerObject.FindByNameAsync("test1").Result.UserName);
+            testController.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.UserManagerObject.FindByNameAsync(UserName).Result.UserName);
             testController.HttpContext.Session = new MockSession();
 
             return testController;
