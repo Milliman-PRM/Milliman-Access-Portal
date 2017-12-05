@@ -69,7 +69,6 @@ namespace MapTests
             #region Assert
             Assert.IsType<ViewResult>(view);
             #endregion
-            throw new NotImplementedException();
         }
 
         /// <summary>
