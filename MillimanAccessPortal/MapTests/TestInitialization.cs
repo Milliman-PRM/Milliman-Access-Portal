@@ -122,6 +122,7 @@ namespace MapTests
         {
             MockDbContext = GenerateDbContext();
             MockUserManager = GenerateUserManager(MockDbContext);
+            MockRoleManager = GenerateRoleManager(MockDbContext);
             LoggerFactory = new LoggerFactory();
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject);
@@ -199,6 +200,22 @@ namespace MapTests
             // more Setups as needed
 
             return ReturnMockUserManager;
+        }
+
+        /// <summary>
+        /// Perform mocking operations for the MockRoleManager
+        /// </summary>
+        /// <param name="MockDbContextArg"></param>
+        /// <returns></returns>
+        private Mock<RoleManager<ApplicationRole>> GenerateRoleManager(Mock<ApplicationDbContext> MockDbContextArg)
+        {
+            Mock<IRoleStore<ApplicationRole>> NewRoleStore = MockRoleStore.NewStore(MockDbContextArg);
+            Mock<RoleManager<ApplicationRole>> ReturnMockRoleManager = new Mock<RoleManager<ApplicationRole>>(NewRoleStore.Object, null, null, null, null);
+            
+            ReturnMockRoleManager.Setup(m => m.FindByIdAsync(It.IsAny<string>())).Returns<ApplicationRole>(role => NewRoleStore.Object.FindByIdAsync(role.Id.ToString(), CancellationToken.None));
+            ReturnMockRoleManager.Setup(m => m.FindByNameAsync(It.IsAny<string>())).Returns<ApplicationRole>(role => NewRoleStore.Object.FindByNameAsync(role.Name, CancellationToken.None));
+
+            return ReturnMockRoleManager;
         }
 
         private DefaultAuthorizationService GenerateAuthorizationService(ApplicationDbContext ContextArg, UserManager<ApplicationUser> UserMgrArg, ILoggerFactory LoggerFactoryArg)
