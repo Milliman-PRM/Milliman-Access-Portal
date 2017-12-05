@@ -5,11 +5,43 @@ using Microsoft.AspNetCore.Mvc;
 using Xunit;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.ClientAdminViewModels;
+using System.Linq;
 
 namespace MapTests
 {
     public class ClientAdminControllerTests
     {
+        internal TestInitialization TestResources { get; set; }
+
+        /// <summary>
+        /// Constructor is called for each test execution
+        /// </summary>
+        public ClientAdminControllerTests()
+        {
+            TestResources = new TestInitialization();
+            TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
+        }
+
+        /// <summary>
+        /// Common controller constructor to be used by all tests
+        /// </summary>
+        /// <param name="UserName"></param>
+        /// <returns></returns>
+        public ClientAdminController GetControllerForUser(string UserName)
+        {
+            ClientAdminController testController = new ClientAdminController(TestResources.DbContextObject,
+                TestResources.UserManagerObject,
+                TestResources.QueriesObj,
+                TestResources.AuthorizationService,
+                TestResources.LoggerFactory,
+                TestResources.AuditLogger,
+                TestResources.RoleManagerObject);
+
+            testController.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.UserManagerObject.FindByNameAsync("test1").Result.UserName);
+            testController.HttpContext.Session = new MockSession();
+
+            return testController;
+        }
 
         /// <summary>
         /// Checks whether the Index action returns an UnauthorizedResult when the user is not authorized to view the ClientAdmin page

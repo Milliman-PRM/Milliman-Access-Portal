@@ -19,6 +19,7 @@ using MillimanAccessPortal.DataQueries;
 using QlikviewLib;
 using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography.X509Certificates;
+using AuditLogLib;
 
 namespace MapTests
 {
@@ -43,11 +44,16 @@ namespace MapTests
         public Mock<UserManager<ApplicationUser>> MockUserManager { get; set; }
         public UserManager<ApplicationUser> UserManagerObject { get => MockUserManager.Object; }
 
+        public Mock<RoleManager<ApplicationRole>> MockRoleManager { get; set;  }
+        public RoleManager<ApplicationRole> RoleManagerObject { get => MockRoleManager.Object; }
+
         public IOptions<QlikviewConfig> QvConfig { get; set; }
 
         public DefaultAuthorizationService AuthorizationService { get; set; }
 
         public ILoggerFactory LoggerFactory { get; set; }
+
+        public AuditLogger AuditLogger { get; set; }
 
         public StandardQueries QueriesObj { get; set; }
         #endregion
@@ -65,7 +71,7 @@ namespace MapTests
             GenerateDependencies();
 
             #region Configure AuditLogger
-            AuditLogLib.AuditLoggerConfiguration auditLogConfig = new AuditLogLib.AuditLoggerConfiguration();
+            AuditLoggerConfiguration auditLogConfig = new AuditLogLib.AuditLoggerConfiguration();
             auditLogConfig.AuditLogConnectionString = "";
             AuditLogLib.AuditLogger.Config = auditLogConfig;
             #endregion
