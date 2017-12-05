@@ -75,16 +75,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            List<ProfitCenter> Model = DbContext.UserRoleInProfitCenter
-                                                .Include(urpc => urpc.Role)
-                                                .Include(urpc => urpc.ProfitCenter)
-                                                .Where(urpc => urpc.Role.RoleEnum == RoleEnum.Admin
-                                                            && urpc.UserId == GetCurrentApplicationUser().Id)
-                                                .Distinct()
-                                                .Select(urpc => urpc.ProfitCenter)
-                                                .ToList();
-
-            return View(Model);
+            return View();
         }
 
         // GET: ClientAdmin/ClientFamilyList

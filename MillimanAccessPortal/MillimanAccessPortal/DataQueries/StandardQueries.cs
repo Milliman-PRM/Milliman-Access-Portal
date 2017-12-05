@@ -144,19 +144,20 @@ namespace MillimanAccessPortal.DataQueries
         /// <returns></returns>
         public List<AssignedRoleInfo> GetUserRolesForClient(long UserId, long ClientId)
         {
-            List<AssignedRoleInfo> ReturnVal = DataContext.UserRoleInClient
-                                                          .Include(urc => urc.Role)
-                                                          .Where(urc => urc.UserId == UserId
-                                                                     && urc.ClientId == ClientId)
-                                                          .Select(urc => 
-                                                              new AssignedRoleInfo
-                                                              {
-                                                                  RoleEnum = urc.Role.RoleEnum,
-                                                                  RoleDisplayValue = ApplicationRole.RoleDisplayNames[urc.Role.RoleEnum],
-                                                                  IsAssigned = true,
-                                                              })
-                                                          .Distinct()
-                                                          .ToList();
+            IQueryable<AssignedRoleInfo> Query = DataContext.UserRoleInClient
+                                                            .Include(urc => urc.Role)
+                                                            .Where(urc => urc.UserId == UserId
+                                                                       && urc.ClientId == ClientId)
+                                                            .Distinct()
+                                                            .Select(urc => 
+                                                                new AssignedRoleInfo
+                                                                {
+                                                                    RoleEnum = urc.Role.RoleEnum,
+                                                                    RoleDisplayValue = ApplicationRole.RoleDisplayNames[urc.Role.RoleEnum],
+                                                                    IsAssigned = true,
+                                                                });
+
+            List<AssignedRoleInfo> ReturnVal = Query.ToList();
 
             return ReturnVal;
         }
