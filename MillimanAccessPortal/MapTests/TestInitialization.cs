@@ -231,7 +231,9 @@ namespace MapTests
                                          LastName="LN1", NormalizedEmail="test@example.com".ToUpper(), PhoneNumber="3171234567"},
                     new ApplicationUser {Id=2, UserName="test2", Email="test2@example.com", Employer ="example", FirstName="FN2",
                                          LastName="LN2", NormalizedEmail ="test@example.com".ToUpper(), PhoneNumber="3171234567"},
-                });
+                    new ApplicationUser {Id=3, UserName="ClientAdmin1", Email="clientadmin1@example.com", Employer="example", FirstName="Client",
+                                         LastName="Admin1", NormalizedEmail="clientadmin1@example.com".ToUpper(), PhoneNumber="3171234567"}
+            });
             #endregion
 
             #region Initialize ContentType
@@ -262,6 +264,7 @@ namespace MapTests
             DbContextObject.UserRoleInClient.AddRange(new List<UserRoleInClient>
                 {
                     new UserRoleInClient {Id = 1, ClientId=1, RoleId=2, UserId=1},
+                    new UserRoleInClient {Id = 2, ClientId=1, RoleId=1, UserId=3}
                 });
             MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
             MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);

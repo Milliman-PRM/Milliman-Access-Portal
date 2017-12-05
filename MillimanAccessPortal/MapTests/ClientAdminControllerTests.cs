@@ -58,6 +58,17 @@ namespace MapTests
         [Fact]
         public void Index_ReturnsAView()
         {
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            #endregion
+
+            #region Act
+            var view = controller.Index();
+            #endregion
+
+            #region Assert
+            Assert.IsType<ViewResult>(view);
+            #endregion
             throw new NotImplementedException();
         }
 
