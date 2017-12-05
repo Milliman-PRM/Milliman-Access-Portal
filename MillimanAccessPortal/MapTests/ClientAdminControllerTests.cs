@@ -37,6 +37,7 @@ namespace MapTests
                 TestResources.AuditLogger,
                 TestResources.RoleManagerObject);
 
+            // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
             testController.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.UserManagerObject.FindByNameAsync(UserName).Result.UserName);
             testController.HttpContext.Session = new MockSession();
 
@@ -49,7 +50,17 @@ namespace MapTests
         [Fact]
         public void Index_ErrorWhenUnauthorized()
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("test1");
+            #endregion
+
+            #region Act
+            var view = controller.Index();
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            #endregion
         }
 
         /// <summary>
@@ -77,7 +88,17 @@ namespace MapTests
         [Fact]
         public void ClientFamilyList_ErrorWhenUnauthorized()
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("test1");
+            #endregion
+
+            #region Act
+            var view = controller.ClientFamilyList();
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            #endregion
         }
 
         /// <summary>
