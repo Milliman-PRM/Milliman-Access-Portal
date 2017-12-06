@@ -31,6 +31,8 @@ namespace MillimanAccessPortal.Controllers
 {
     public class ClientAdminController : Controller
     {
+        private readonly static List<RoleEnum> RolesToManage = new List<RoleEnum> { RoleEnum.Admin, RoleEnum.ContentAdmin, RoleEnum.ContentUser, RoleEnum.UserAdmin };
+
         private readonly ApplicationDbContext DbContext;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly StandardQueries Queries;
@@ -148,10 +150,8 @@ namespace MillimanAccessPortal.Controllers
             {
                 UserInfoItem.UserRoles = Queries.GetUserRolesForClient(UserInfoItem.Id, ThisClient.Id);
 
-                List<RoleEnum> RolesToInclude = new List<RoleEnum> { RoleEnum.Admin, RoleEnum.ContentAdmin, RoleEnum.ContentUser, RoleEnum.UserAdmin };
-
                 // any roles that were not found need to be included with IsAssigned=false
-                UserInfoItem.UserRoles.AddRange(RolesToInclude.Except(UserInfoItem.UserRoles.Select(ur => ur.RoleEnum)).Select(re =>
+                UserInfoItem.UserRoles.AddRange(RolesToManage.Except(UserInfoItem.UserRoles.Select(ur => ur.RoleEnum)).Select(re =>
                     new AssignedRoleInfo
                     {
                         RoleEnum = re,
@@ -190,10 +190,8 @@ namespace MillimanAccessPortal.Controllers
             {
                 UserInfoItem.UserRoles = Queries.GetUserRolesForClient(UserInfoItem.Id, ThisClient.Id);
 
-                List<RoleEnum> RolesToInclude = new List<RoleEnum> { RoleEnum.Admin, RoleEnum.ContentAdmin, RoleEnum.ContentUser, RoleEnum.UserAdmin };
-
                 // any roles that were not found need to be included with IsAssigned=false
-                UserInfoItem.UserRoles.AddRange(RolesToInclude.Except(UserInfoItem.UserRoles.Select(ur => ur.RoleEnum)).Select(re => 
+                UserInfoItem.UserRoles.AddRange(RolesToManage.Except(UserInfoItem.UserRoles.Select(ur => ur.RoleEnum)).Select(re => 
                     new AssignedRoleInfo
                     {
                         RoleEnum = re,
@@ -298,6 +296,94 @@ namespace MillimanAccessPortal.Controllers
 
                 return ClientDetail(RequestedClient.Id);
             }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetUserRoleInClient([Bind("ClientId,UserName")]ClientUserAssociationViewModel ClientUserModel, [Bind("RoleEnum,IsAssigned")]AssignedRoleInfo AssignedRoleInfoArg)
+        {
+            #region Authorization
+            if (!AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, ClientUserModel.ClientId)).Result.Succeeded)
+            {
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            // requested user must exist
+            ApplicationUser RequestedUser = await UserManager.FindByNameAsync(ClientUserModel.UserName);
+            if (RequestedUser == null)
+            {
+                Response.Headers.Add("Warning", $"The requested user was not found");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);
+            }
+
+            // requested client must exist
+            Client RequestedClient = DbContext.Client.Find(ClientUserModel.ClientId);
+            if (RequestedClient == null)
+            {
+                Response.Headers.Add("Warning", $"The requested client was not found");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);
+            }
+
+            // Requested user must be member of requested client
+            Claim ClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientUserModel.ClientId.ToString());
+            if (!UserManager.GetUsersForClaimAsync(ClientMembershipClaim).Result.Contains(RequestedUser))
+            {
+                Response.Headers.Add("Warning", $"The requested user is not associated with the requested client");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);
+            }
+
+            // requested role must exist
+            ApplicationRole RequestedRole = RoleManager.FindByIdAsync(((long)AssignedRoleInfoArg.RoleEnum).ToString()).Result;
+            if (RequestedRole == null)
+            {
+                Response.Headers.Add("Warning", $"The requested role was not found");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);
+            }
+            #endregion
+
+            IQueryable<UserRoleInClient> ExistingRecordsQuery = DbContext.UserRoleInClient
+                                                                         .Where(urc => urc.UserId == RequestedUser.Id
+                                                                                    && urc.ClientId == RequestedClient.Id
+                                                                                    && urc.RoleId == RequestedRole.Id);
+
+            #region perform the requested action
+            List<UserRoleInClient> ExistingRecords = ExistingRecordsQuery.ToList();
+
+            if (AssignedRoleInfoArg.IsAssigned)
+            {
+                // Create role assignment, only if it's not already there
+                if (ExistingRecords.Count == 0)
+                {
+                    DbContext.UserRoleInClient.Add(new UserRoleInClient { UserId = RequestedUser.Id, RoleId = RequestedRole.Id, ClientId = RequestedClient.Id });
+                    DbContext.SaveChanges();
+                }
+            }
+            else
+            {
+                // Remove role.  There should be only one, but act to remove any number
+                DbContext.UserRoleInClient.RemoveRange(ExistingRecords);
+                DbContext.SaveChanges();
+            }
+            #endregion
+
+            #region Build resulting model
+            ExistingRecords = ExistingRecordsQuery.ToList();
+
+            List<AssignedRoleInfo> ReturnModel = new List<AssignedRoleInfo>();
+            foreach (RoleEnum x in RolesToManage)
+            {
+                ReturnModel.Add(new AssignedRoleInfo
+                {
+                    RoleEnum = x,
+                    RoleDisplayValue = ApplicationRole.RoleDisplayNames[x],
+                    IsAssigned = ExistingRecords.Any(urc => urc.RoleId == (long)x),
+                });
+            }
+            #endregion
+
+            return Json(ReturnModel);
         }
 
         /// <summary>

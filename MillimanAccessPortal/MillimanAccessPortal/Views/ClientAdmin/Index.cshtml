@@ -245,6 +245,23 @@
                 }
             });
 
+            $.ajax({
+                type: 'POST',
+                url: 'ClientAdmin/SetUserRoleInClient',
+                data: {
+                    ClientId: "1",
+                    UserName: "tom.puckett@milliman.com",
+                    RoleEnum: "4",
+                    IsAssigned: false
+                },
+                headers: {
+                    'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
+                },
+            }).done(function (response) {
+                alert("Success");
+            }).fail(function (response) {
+                alert("Fail");
+            });
 
             /*
              // Assign a user by name to a client id

@@ -11,9 +11,5 @@ namespace MapDbContextLib.Context
         /// </summary>
         ClientMembership,
 
-        /// <summary>
-        /// Values for ProfitCenterManager claims are PK of the referenced ProfitCenter
-        /// </summary>
-        ProfitCenterManager,
     }
 }
