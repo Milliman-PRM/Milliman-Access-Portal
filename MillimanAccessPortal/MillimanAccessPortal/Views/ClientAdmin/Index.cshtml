@@ -18,157 +18,146 @@
 
 }
 
-<h2 class="page-title">Client Admin</h2>
-
-<div class="row">
-    <div id="client-tree" class="client-admin-section no-vertical-scroll col-sm-12 col-md-3">
-        <h3 class="client-admin-section-title">Client Tree</h3>
-        <div class="client-admin-section-toolbar container-fluid">
-            <input type="search" id="client-search-box" class="search-box" placeholder="Search for Client" />
-            @if (this.User.IsInRole(ApplicationRole.MapRoles[RoleEnum.RootClientCreator]))
-            {
-                <i id="add-client-icon" class="admin-action-icon fa fa-2x fa-plus pull-right" onclick="newClientFormSetup()"></i>
-            }
-       </div>
-        <div id="client-tree" class="container-fluid scroll-y">
-            <div class="row">
-                <ul id="client-tree-list">
-                </ul>
-            </div>
+<div id="client-tree" class="flex-container flex-column-no-wrap overflow-hidden flex-item-12-12 flex-item-for-tablet-up-3-12">
+    <h3 class="center-content padding-1em">Client Tree</h3>
+    <div class="flex-container flex-row-no-wrap items-align-center padding-1em">
+        <input type="search" id="client-search-box" class="flex-item-9-12" placeholder="Search for Client" />
+        <i id="add-client-icon" class="fa fa-2x fa-plus flex-item-3-12 right-align-content" onclick="newClientFormSetup()"></i>
+    </div>
+    <div id="client-tree" class="container-fluid scroll-y">
+        <div class="row">
+            <ul id="client-tree-list">
+            </ul>
         </div>
     </div>
-    <div id="client-info" class="client-admin-section col-sm-12 col-md-6 hidden-on-load">
-        <h3 class="client-admin-section-title">Client Information</h3>
-        <div class="client-admin-section-toolbar container-fluid">
-            <i id="edit-client-icon" class="admin-action-icon fa fa-2x fa-pencil pull-right" onclick="toggleEditExistingClient()"></i>
-            <i id="cancel-edit-client-icon" class="admin-action-icon fa fa-2x fa-close pull-right" onclick="cancelClientEdit()"></i>
-        </div>
-        <div class="container-fluid scroll-y">
-            <form id="client-form">
-                <div class="row">
-                    <h4>Client Information</h4>
-                    <div class="hidden">
-                        <input asp-for="Id" />
-                        <input asp-for="ParentClientId" />
-                    </div>
-                    <div class="form-group col-md-9">
-                        <label asp-for="Name"></label>
-                        <div>
-                            <input asp-for="Name" class="form-control" />
-                            <span asp-validation-for="Name" class="text-danger"></span>
-                        </div>                    
-                    </div>
-                    <div class="form-group col-md-3">
-                        <label asp-for="ClientCode"></label>
-                        <div>
-                            <input asp-for="ClientCode" class="form-control" />
-                            <span asp-validation-for="ClientCode" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="form-group col-md-6">
-                        <label asp-for="ContactName"></label>
-                        <div>
-                            <input asp-for="ContactName" class="form-control" />
-                            <span asp-validation-for="ContactName" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="form-group col-md-6">
-                        <label asp-for="ContactTitle"></label>
-                        <div>
-                            <input asp-for="ContactTitle" class="form-control" />
-                            <span asp-validation-for="ContactTitle" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="form-group col-md-9">
-                        <label asp-for="ContactEmail"></label>
-                        <div>
-                            <input asp-for="ContactEmail" class="form-control" />
-                            <span asp-validation-for="ContactEmail" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="form-group col-md-3">
-                        <label asp-for="ContactPhone"></label>
-                        <div>
-                            <input asp-for="ContactPhone" class="form-control" />
-                            <span asp-validation-for="ContactPhone" class="text-danger"></span>
-                        </div>
+</div>
+<div id="client-info" class="client-admin-section flex-item-12-12 flex-item-for-tablet-up-6-12" @*style="display: none;"*@>
+    <h3 class="client-admin-section-title">Client Information</h3>
+    <div class="client-admin-section-toolbar container-fluid">
+        <i id="edit-client-icon" class="admin-action-icon fa fa-2x fa-pencil pull-right" onclick="toggleEditExistingClient()"></i>
+        <i id="cancel-edit-client-icon" class="admin-action-icon fa fa-2x fa-close pull-right" onclick="cancelClientEdit()"></i>
+    </div>
+    <div class="overflow-y-scroll">
+        <form id="client-form">
+            <div class="flex-container with-gutter flex-row-wrap">
+                <h4 class="flex-item-12-12 padding-top-1em">Client Information</h4>
+                <div class="display-none">
+                    <input asp-for="Id" />
+                    <input asp-for="ParentClientId" />
+                </div>
+                <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-9-12">
+                    <label asp-for="Name"></label>
+                    <div>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
                     </div>
                 </div>
-                <h4>Security Information</h4>
-                <div class="row">
-                    <div class="form-group col-md-12">
-                        <label asp-for="AcceptedEmailDomainList"></label>
-                        <div>
-                            <input asp-for="AcceptedEmailDomainList" class="selectize-custom-input" />
-                            <span asp-validation-for="AcceptedEmailDomainList" class="text-danger"></span>
-                        </div>                    
-                    </div>
-                    <div class="form-group col-md-12">
-                        <label asp-for="AcceptedEmailAddressExceptionList"></label>
-                        <div>
-                            <input asp-for="AcceptedEmailAddressExceptionList" class="selectize-custom-input" />
-                            <span asp-validation-for="AcceptedEmailAddressExceptionList" class="text-danger"></span>
-                        </div>
+                <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-3-12">
+                    <label asp-for="ClientCode"></label>
+                    <div>
+                        <input asp-for="ClientCode" class="form-control" />
+                        <span asp-validation-for="ClientCode" class="text-danger"></span>
                     </div>
                 </div>
-                <h4>Billing Information</h4>
-                <div class="row">
-                    <div class="form-group col-md-6">
-                        <label asp-for="ConsultantName"></label>
-                        <div>
-                            <input asp-for="ConsultantName" class="form-control" />
-                            <span asp-validation-for="ConsultantName" class="text-danger"></span>
-                        </div>
+                <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                    <label asp-for="ContactName"></label>
+                    <div>
+                        <input asp-for="ContactName" class="form-control" />
+                        <span asp-validation-for="ContactName" class="text-danger"></span>
                     </div>
-                    <div class="form-group col-md-6">
-                        <label asp-for="ConsultantEmail"></label>
-                        <div>
-                            <input asp-for="ConsultantEmail" class="form-control" />
-                            <span asp-validation-for="ConsultantEmail" class="text-danger"></span>
-                        </div>
+                </div>
+                <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                    <label asp-for="ContactTitle"></label>
+                    <div>
+                        <input asp-for="ContactTitle" class="form-control" />
+                        <span asp-validation-for="ContactTitle" class="text-danger"></span>
                     </div>
-                    <div class="form-group col-md-6">
-                        <label asp-for="ConsultantOffice"></label>
-                        <div>
-                            <input asp-for="ConsultantOffice" class="form-control" />
-                            <span asp-validation-for="ConsultantOffice" class="text-danger"></span>
-                        </div>
+                </div>
+                <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-9-12">
+                    <label asp-for="ContactEmail"></label>
+                    <div>
+                        <input asp-for="ContactEmail" class="form-control" />
+                        <span asp-validation-for="ContactEmail" class="text-danger"></span>
                     </div>
-                    <div class="form-group col-md-6">
-                        <label asp-for="ProfitCenterId"></label>
-                        <div>
-                            <select asp-for="ProfitCenterId" class="form-control">
-                                <option value="">Make a Selection</option>
-                            </select>
-                            <span asp-validation-for="ProfitCenterId" class="text-danger"></span>
-                        </div>
+                </div>
+                <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-3-12">
+                    <label asp-for="ContactPhone"></label>
+                    <div>
+                        <input asp-for="ContactPhone" class="form-control" />
+                        <span asp-validation-for="ContactPhone" class="text-danger"></span>
+                    </div>
+                </div>
+                <h4 class="flex-item-12-12 padding-top-1em">Security Information</h4>
+                <div class="flex-item-12-12">
+                    <label asp-for="AcceptedEmailDomainList"></label>
+                    <div>
+                        <input asp-for="AcceptedEmailDomainList" class="selectize-custom-input" />
+                        <span asp-validation-for="AcceptedEmailDomainList" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="flex-item-12-12">
+                    <label asp-for="AcceptedEmailAddressExceptionList"></label>
+                    <div>
+                        <input asp-for="AcceptedEmailAddressExceptionList" class="selectize-custom-input" />
+                        <span asp-validation-for="AcceptedEmailAddressExceptionList" class="text-danger"></span>
+                    </div>
+                </div>
+                <h4 class="flex-item-12-12 padding-top-1em">Billing Information</h4>
+                <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                    <label asp-for="ConsultantName"></label>
+                    <div>
+                        <input asp-for="ConsultantName" class="form-control" />
+                        <span asp-validation-for="ConsultantName" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                    <label asp-for="ConsultantEmail"></label>
+                    <div>
+                        <input asp-for="ConsultantEmail" class="form-control" />
+                        <span asp-validation-for="ConsultantEmail" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                    <label asp-for="ConsultantOffice"></label>
+                    <div>
+                        <input asp-for="ConsultantOffice" class="form-control" />
+                        <span asp-validation-for="ConsultantOffice" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                    <label asp-for="ProfitCenterId"></label>
+                    <div>
+                        <select asp-for="ProfitCenterId" class="form-control">
+                            <option value="">Make a Selection</option>
+                        </select>
+                        <span asp-validation-for="ProfitCenterId" class="text-danger"></span>
                     </div>
                 </div>
                 @Html.AntiForgeryToken()
-                <div id="form-buttons-new" class="text-right">
-                    <button type="button" class="btn btn-link" onclick="resetNewClientForm(event)">Reset Form</button>
-                    <button type="submit" id="create-new-button" class="btn btn-primary primary-button" onclick="submitClientForm(event)">Create New Client</button>
-                </div>
-                <div id="form-buttons-edit" class="text-right">
-                    <button type="button" id="undo-changes-button" class="btn btn-link" onclick="undoChangesEditClientForm(event)">Undo Changes</button>
-                    <button type="submit" id="save-changes-button" class="btn btn-primary primary-button" onclick="submitClientForm(event)">Save Changes</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    <div id="client-users" class="client-admin-section col-sm-12 col-md-3 hidden-on-load">
-        <h3 class="client-admin-section-title">Client Users</h3>
-        <div class="client-admin-section-toolbar container-fluid">
-            <input type="search" id="user-search-box" class="search-box" placeholder="Search for User" />
-            <i id="add-user-icon" class="admin-action-icon fa fa-2x fa-user-plus pull-right"></i>
-            <i id="expand-user-icon" class="admin-action-icon fa fa-2x fa-toggle-down pull-right" onclick="expandAllUsers()"></i>
-            <i id="collapse-user-icon" class="admin-action-icon fa fa-2x fa-toggle-up pull-right" onclick="collapseAllUsers()"></i>
-        </div>
-        <div id="user-list" class="container-fluid scroll-y">
-            <div class="row">
-                <ul id="client-user-list">
-                </ul>
+            </div>            
+            <div id="form-buttons-new" class="text-right" style="display: none;">
+                <button type="button" class="btn btn-link" onclick="resetNewClientForm(event)">Reset Form</button>
+                <button type="submit" id="create-new-button" class="btn btn-primary primary-button" onclick="submitClientForm(event)">Create New Client</button>
             </div>
+            <div id="form-buttons-edit" class="text-right" style="display: none;">
+                <button type="button" id="undo-changes-button" class="btn btn-link" onclick="undoChangesEditClientForm(event)">Undo Changes</button>
+                <button type="submit" id="save-changes-button" class="btn btn-primary primary-button" onclick="submitClientForm(event)">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="client-users" class="client-admin-section flex-item-12-12 flex-item-for-tablet-up-6-12" @*style="display: none;"*@>
+    <h3 class="client-admin-section-title">Client Users</h3>
+    <div class="client-admin-section-toolbar container-fluid">
+        <input type="search" id="user-search-box" class="search-box" placeholder="Search for User" />
+        <i id="add-user-icon" class="admin-action-icon fa fa-2x fa-user-plus pull-right"></i>
+        <i id="expand-user-icon" class="admin-action-icon fa fa-2x fa-toggle-down pull-right" onclick="expandAllUsers()"></i>
+        <i id="collapse-user-icon" class="admin-action-icon fa fa-2x fa-toggle-up pull-right" onclick="collapseAllUsers()"></i>
+    </div>
+    <div id="user-list" class="container-fluid scroll-y">
+        <div class="row">
+            <ul id="client-user-list">
+            </ul>
         </div>
     </div>
 </div>

@@ -1,3 +1,7 @@
-﻿<div id="header">
-    <img id="logo" src="~/images/logo.png" alt="Milliman Logo" />
+﻿<div id="header" class="padding-right-1em padding-left-1em flex-container flex-row-wrap items-align-center content-item-flex-none">
+    @if (ViewData["Title"] != null)
+    {
+        <h2 class="display-inline-block content-item-flex-1 content-item-order-2-for-phone-only">@ViewData["Title"]</h2>
+    }
+    <img id="logo" class="content-item-order-1-for-phone-only" src="~/images/logo.png" alt="Milliman Logo" />
 </div>

@@ -68,16 +68,18 @@
 
 /* Padding/Margin */
 //   Note: We will not be using margin-top to improve consistency
-@each $label, $size in (0,         0    ),
-                       (pt1em,     .1em ),
-                       (pt25em,    .25em),
-                       (pt5em,     .5em ),
-                       (pt75em,    .75em),
-                       (1em,       1em  ),
-                       (1pt5em,    1.5em),
-                       (2em,       2em  ),
-                       (2pt5em,    2.5em),
-                       (auto,      auto ){
+@each $label, $size in (0,         0     ),
+                       (pt1em,     .1em  ),
+                       (pt25em,    .25em ),
+                       (pt5em,     .5em  ),
+                       (pt75em,    .75em ),
+                       (1em,       1em   ),
+                       (1pt5em,    1.5em ),
+                       (2em,       2em   ),
+                       (2pt5em,    2.5em ),
+                       (4pt5rem,   4.5rem),
+                       (5pt5rem,   5.5rem),
+                       (auto,      auto  ){
 
      .margin-#{$label}         { margin:         0 $size $size; }
      .margin-left-#{$label}    { margin-left:    $size;         }
@@ -91,7 +93,8 @@
 }
 
 /* Height/Width */
-@each $label, $size in (pt1em,     .1em ),
+@each $label, $size in (18rem,     18rem),
+                       (pt1em,     .1em ),
                        (1em,       1em  ),
                        (25em,      25em ),
                        (25pct,     25%  ),
@@ -99,6 +102,7 @@
                        (75pct,     75%  ),
                        (100pct,    100% ),
                        (100vh,     100vh),
+                       (100vw,     100vw),
                        (auto,      auto ){
 
      .height-#{$label} { height: $size; }
@@ -110,6 +114,7 @@
 .max-height-0      { max-height: 0;     }
 .max-height-7em    { max-height: 7em;   }
 .max-height-2pt5em { max-height: 2.5em; }
+.max-height-100vh  { max-height: 100vh; }
 .max-width-25em    { max-width:  25em;  }
 .max-width-100vw   { max-width:  100vw; }
 .max-width-90pct   { max-width:  90%;   }
@@ -117,16 +122,17 @@
 .min-height-2rem   { min-height: 2rem;  }
 
 /* Top/Left/Bottom/Right */
-@each $label, $pct in (0,      0   ),
-                      (25pct,  25% ),
-                      (50pct,  50% ),
-                      (75pct,  75% ),
-                      (100pct, 100%) {
+@each $label, $size in (neg14rem, -14rem)
+                       (0,        0     ),
+                       (25pct,    25%   ),
+                       (50pct,    50%   ),
+                       (75pct,    75%   ),
+                       (100pct,   100%  ) {
 
-     .from-top-#{$label}    { top:    $pct; }
-     .from-right-#{$label}  { right:  $pct; }
-     .from-bottom-#{$label} { bottom: $pct; }
-     .from-left-#{$label}   { left:   $pct; }
+     .from-top-#{$label}    { top:    $size; }
+     .from-right-#{$label}  { right:  $size; }
+     .from-bottom-#{$label} { bottom: $size; }
+     .from-left-#{$label}   { left:   $size; }
 
 }
 
@@ -134,3 +140,7 @@
 @for $level from 0 through 10 {
      .z-index-#{$level} { z-index: $level; }
 }
+
+/* Overflow */
+.overflow-hidden   { overflow: hidden;                       }
+.overflow-y-scroll { overflow-y: auto; overflow-x: hidden; }
