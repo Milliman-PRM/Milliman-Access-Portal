@@ -245,6 +245,7 @@
                 }
             });
 
+            /*
             $.ajax({
                 type: 'POST',
                 url: 'ClientAdmin/SetUserRoleInClient',
@@ -252,7 +253,7 @@
                     ClientId: "1",
                     UserName: "tom.puckett@milliman.com",
                     RoleEnum: "4",
-                    IsAssigned: false
+                    IsAssigned: false  // true to assign, false to unassign
                 },
                 headers: {
                     'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
@@ -262,6 +263,7 @@
             }).fail(function (response) {
                 alert("Fail");
             });
+            */
 
             /*
              // Assign a user by name to a client id
