@@ -115,34 +115,9 @@ namespace MillimanAccessPortal.DataQueries
             ResultObject.AssociatedUserCount = UserMembersOfThisClient.Count;
             ResultObject.CanManage = DataContext.UserRoleInClient
                                                 .Include(URC => URC.Role)
-
-                                                //which rule is best?
-
-                                                //This tests for Admin role for either client or ProfitCenter
-                                                // This does not work because .Join only returns matching records where both exist
-                                                //.Include(URC => URC.Client)
-                                                //.Join(DataContext.UserRoleInProfitCenter, URC => URC.UserId, URPC => URPC.UserId, (URC, URPC) => new { URC, URPC })
-                                                //.SingleOrDefault(rec => rec.URC.UserId == CurrentUser.Id
-                                                //                     && ( (rec.URC.Role.RoleEnum == RoleEnum.Admin && rec.URC.ClientId == ClientArg.Id)
-                                                //                           || 
-                                                //                          (rec.URPC.Role.RoleEnum == RoleEnum.Admin && rec.URPC.ProfitCenterId == rec.URC.Client.ProfitCenterId)
-                                                //                        )
-                                                //                )
-
-                                                //This tests only for Admin role for Client, does not require the join or the .Include(client)
                                                 .SingleOrDefault(URC => URC.UserId == CurrentUser.Id
                                                                      && URC.Role.RoleEnum == RoleEnum.Admin
                                                                      && URC.ClientId == ClientArg.Id)
-
-                                                //This tests for Admin role for both Client and ProfitCenter
-                                                //.SingleOrDefault(rec => rec.URC.UserId == CurrentUser.Id
-                                                //.Include(URC => URC.Client)
-                                                //.Join(DataContext.UserRoleInProfitCenter, URC => URC.UserId, URPC => URPC.UserId, (URC, URPC) => new { URC, URPC })
-                                                //                     && rec.URC.Role.RoleEnum == RoleEnum.Admin
-                                                //                     && rec.URC.ClientId == ClientArg.Id
-                                                //                     // TODO should this profitcenter check be included, maybe not?
-                                                //                     && rec.URPC.Role.RoleEnum == RoleEnum.Admin
-                                                //                     && rec.URPC.ProfitCenterId == rec.URC.Client.ProfitCenterId)
                                                 != null;
 
             if (RecurseDown)
