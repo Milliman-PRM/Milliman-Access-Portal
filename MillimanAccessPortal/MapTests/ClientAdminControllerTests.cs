@@ -107,7 +107,17 @@ namespace MapTests
         [Fact]
         public void ClientFamilyList_ReturnsAList()
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            #endregion
+
+            #region Act
+            var view = controller.ClientFamilyList();
+            #endregion
+
+            #region Assert
+            Assert.IsType<ViewResult>(view);
+            #endregion
         }
 
         /// <summary>

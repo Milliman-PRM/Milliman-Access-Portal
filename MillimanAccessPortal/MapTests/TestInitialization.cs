@@ -197,7 +197,19 @@ namespace MapTests
             ReturnMockUserManager.Setup(m => m.GetUserName(It.IsAny<ClaimsPrincipal>())).Returns<ClaimsPrincipal>(cp => UserStore.Object.FindByNameAsync(cp.Identity.Name, CancellationToken.None).Result.UserName);
             ReturnMockUserManager.Setup(m => m.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync<ClaimsPrincipal, UserManager<ApplicationUser>, ApplicationUser>(cp => UserStore.Object.FindByNameAsync(cp.Identity.Name, CancellationToken.None).Result);
             ReturnMockUserManager.Setup(m => m.FindByNameAsync(It.IsAny<string>())).ReturnsAsync<string, UserManager<ApplicationUser>, ApplicationUser>(name => UserStore.Object.FindByNameAsync(name, CancellationToken.None).Result);
-            // more Setups as needed
+            
+            // Re-Create Identity's GetUsersForClaimAsync
+            ReturnMockUserManager.Setup(m => m.GetUsersForClaimAsync(It.IsAny<Claim>()))
+                .ReturnsAsync
+                    ((Claim claim) => 
+                       DbContextObject.UserClaims.Join(
+                           DbContextObject.Users,
+                           cl => cl.UserId,
+                           us => us.Id,
+                           (cl, us) => new { cl, us }
+                           ).Where(dat => dat.cl.ClaimValue == claim.Value && dat.cl.ClaimType == ClaimNames.ClientMembership.ToString())
+                           .Select(usrs => usrs.us).ToList()
+                    );
 
             return ReturnMockUserManager;
         }
@@ -287,7 +299,7 @@ namespace MapTests
             MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
             MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInClient, "RoleId", DbContextObject.ApplicationRole);
             #endregion
-
+            
             #region Initialize RootContentItem
             DbContextObject.RootContentItem.AddRange(new List<RootContentItem>
                 {
@@ -349,6 +361,13 @@ namespace MapTests
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInRootContentItem, "UserId", DbContextObject.ApplicationUser);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<RootContentItem>(DbContextObject.UserRoleInRootContentItem, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
+            
+            #region Initialize UserClaims
+            DbContextObject.UserClaims.AddRange(new List<IdentityUserClaim<long>>
+            {
+                new IdentityUserClaim<long>{ Id =1, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = 1.ToString(), UserId = 3 }
+            });
+            #endregion 
         }
 
         private static List<ApplicationRole> GetSystemRolesList()
