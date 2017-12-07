@@ -21,23 +21,21 @@
 <div id="client-tree" class="flex-container flex-column-no-wrap overflow-hidden flex-item-12-12 flex-item-for-tablet-up-3-12">
     <h3 class="center-content padding-1em">Client Tree</h3>
     <div class="flex-container flex-row-no-wrap items-align-center padding-1em">
-        <input type="search" id="client-search-box" class="flex-item-9-12" placeholder="Search for Client" />
-        <i id="add-client-icon" class="fa fa-2x fa-plus flex-item-3-12 right-align-content" onclick="newClientFormSetup()"></i>
+        <input type="search" id="client-search-box" class="width-65pct" placeholder="Search for Client" />
+        <i id="add-client-icon" class="fa fa-2x fa-plus right-align-content flex-item-4-12 padding-left-pt5em" onclick="newClientFormSetup()"></i>
     </div>
-    <div id="client-tree" class="container-fluid scroll-y">
-        <div class="row">
-            <ul id="client-tree-list">
-            </ul>
-        </div>
+    <div id="client-tree" class="overflow-y-scroll padding-1em">
+        <ul id="client-tree-list">
+        </ul>
     </div>
 </div>
-<div id="client-info" class="client-admin-section flex-item-12-12 flex-item-for-tablet-up-6-12" @*style="display: none;"*@>
-    <h3 class="client-admin-section-title">Client Information</h3>
-    <div class="client-admin-section-toolbar container-fluid">
-        <i id="edit-client-icon" class="admin-action-icon fa fa-2x fa-pencil pull-right" onclick="toggleEditExistingClient()"></i>
-        <i id="cancel-edit-client-icon" class="admin-action-icon fa fa-2x fa-close pull-right" onclick="cancelClientEdit()"></i>
+<div id="client-info" class="flex-container flex-column-no-wrap client-admin-section flex-item-12-12 flex-item-for-tablet-up-6-12 padding-1em" @*style="display: none;"*@>
+    <h3 class="center-content padding-1em">Client Information</h3>
+    <div class="align-self-end right-align-content content-align-center width-100pct">
+        <i id="edit-client-icon" class="fa fa-2x fa-pencil padding-left-pt25em" onclick="toggleEditExistingClient()"></i>
+        <i id="cancel-edit-client-icon" class="fa fa-2x fa-close padding-left-pt25em" onclick="cancelClientEdit()"></i>
     </div>
-    <div class="overflow-y-scroll">
+    <div class="overflow-y-scroll padding-1em">
         <form id="client-form">
             <div class="flex-container with-gutter flex-row-wrap">
                 <h4 class="flex-item-12-12 padding-top-1em">Client Information</h4>
@@ -146,19 +144,19 @@
         </form>
     </div>
 </div>
-<div id="client-users" class="client-admin-section flex-item-12-12 flex-item-for-tablet-up-6-12" @*style="display: none;"*@>
-    <h3 class="client-admin-section-title">Client Users</h3>
-    <div class="client-admin-section-toolbar container-fluid">
-        <input type="search" id="user-search-box" class="search-box" placeholder="Search for User" />
-        <i id="add-user-icon" class="admin-action-icon fa fa-2x fa-user-plus pull-right"></i>
-        <i id="expand-user-icon" class="admin-action-icon fa fa-2x fa-toggle-down pull-right" onclick="expandAllUsers()"></i>
-        <i id="collapse-user-icon" class="admin-action-icon fa fa-2x fa-toggle-up pull-right" onclick="collapseAllUsers()"></i>
+<div id="client-users" class="flex-container flex-column-no-wrap overflow-hidden flex-item-12-12 flex-item-for-tablet-up-3-12" @*style="display: none;"*@>
+    <h3 class="center-content padding-1em">Client Users</h3>
+    <div class="flex-container flex-row-no-wrap items-align-center padding-1em">
+        <input type="search" id="user-search-box" class="width-65pct" placeholder="Search for User" />
+        <div class="right-align-content flex-item-4-12">
+            <i id="collapse-user-icon" class="fa fa-2x fa-toggle-up padding-left-pt25em" onclick="collapseAllUsers()"></i>
+            <i id="expand-user-icon" class="fa fa-2x fa-toggle-down padding-left-pt25em" onclick="expandAllUsers()"></i>
+            <i id="add-user-icon" class="fa fa-2x fa-user-plus padding-left-pt25em"></i>
+        </div>    
     </div>
-    <div id="user-list" class="container-fluid scroll-y">
-        <div class="row">
-            <ul id="client-user-list">
-            </ul>
-        </div>
+    <div id="user-list" class="overflow-y-scroll padding-1em">
+        <ul id="client-user-list">
+        </ul>
     </div>
 </div>
 

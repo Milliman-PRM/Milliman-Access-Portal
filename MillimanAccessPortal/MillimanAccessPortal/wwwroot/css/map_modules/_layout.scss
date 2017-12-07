@@ -93,17 +93,18 @@
 }
 
 /* Height/Width */
-@each $label, $size in (18rem,     18rem),
-                       (pt1em,     .1em ),
-                       (1em,       1em  ),
-                       (25em,      25em ),
-                       (25pct,     25%  ),
-                       (50pct,     50%  ),
-                       (75pct,     75%  ),
-                       (100pct,    100% ),
-                       (100vh,     100vh),
-                       (100vw,     100vw),
-                       (auto,      auto ){
+@each $label, $size in (18rem,     18rem ),
+                       (pt1em,     .1em  ),
+                       (1em,       1em   ),
+                       (25em,      25em  ),
+                       (25pct,     25%   ),
+                       (50pct,     50%   ),
+                       (65pct,     65%   ),
+                       (75pct,     75%   ),
+                       (100pct,    100%  ),
+                       (100vh,     100vh ),
+                       (100vw,     100vw ),
+                       (auto,      auto  ){
 
      .height-#{$label} { height: $size; }
      .width-#{$label}  { width:  $size; }
