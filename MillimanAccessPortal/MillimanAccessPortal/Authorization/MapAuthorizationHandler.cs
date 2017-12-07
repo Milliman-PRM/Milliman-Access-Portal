@@ -1,4 +1,10 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: MVC controller implementing handlers related to accessing hosted content
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +15,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MillimanAccessPortal.Authorization
 {
-    internal class MapAuthorizationHandler : AuthorizationHandler<MapAuthorizationRequirementBase>
+    public class MapAuthorizationHandler : AuthorizationHandler<MapAuthorizationRequirementBase>
     {
         private ApplicationDbContext DataContext;
         private UserManager<ApplicationUser> UserManager;

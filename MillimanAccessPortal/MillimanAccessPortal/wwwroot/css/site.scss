@@ -66,7 +66,7 @@ select {
     height: 40px;
     width: 350px;
     padding: 5px 10px;
-    border: solid 2px rgba(0, 0, 0, 0);
+    border: solid 2px rgba(0, 0, 0, 0); 
     border-radius: 5px;
     margin-bottom: 5px;
     transition: border 0.2s;
@@ -76,7 +76,6 @@ select {
     }
 
     &:disabled {
-        font-size-adjust: 1.1;
         font-weight: bold;
         border: none !important;
         background-color: transparent !important;
@@ -100,18 +99,114 @@ input:-webkit-autofill {
     -webkit-transition: color 9999s ease-out, background-color 9999s ease-out;
 }
 
+.switch-container {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    margin-bottom: 10px;
+} 
+
+.toggle-switch {
+    display: inline-block;
+    position: relative;
+    width: 65px;
+    margin-left: 15px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    flex: 0 1 65px;
+}
+
+.toggle-switch-checkbox {
+    display: none;
+}
+
+.toggle-switch-label {
+    display: block;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid #555555;
+    border-radius: 50px;
+    margin: 0;
+}
+
+.toggle-switch-inner {
+    display: block;
+    width: 200%;
+    margin-left: -100%;
+    transition: margin 0.3s ease-in 0s;
+}
+
+.toggle-switch-inner:before, .toggle-switch-inner:after {
+    display: block;
+    float: left;
+    width: 50%;
+    height: 20px;
+    padding: 0;
+    line-height: 20px;
+    font-size: 14px;
+    color: white;
+    font-weight: bold;
+    box-sizing: border-box;
+}
+
+.toggle-switch-inner:before {
+    content: "ON";
+    padding-left: 10px;
+    background-color: #0091FF;
+    color: #FFFFFF;
+}
+
+.toggle-switch-inner:after {
+    content: "OFF";
+    padding-right: 10px;
+    background-color: #DEDEE3;
+    color: #555555;
+    text-align: right;
+}
+
+.toggle-switch-switch {
+    display: block;
+    width: 20px;
+    margin: 3px;
+    background: #FFFFFF;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 39px;
+    border: 2px solid #555555;
+    border-radius: 50px;
+    transition: all 0.3s ease-in 0s;
+}
+
+.toggle-switch-checkbox:checked + .toggle-switch-label .toggle-switch-inner {
+    margin-left: 0;
+}
+
+.toggle-switch-checkbox:checked + .toggle-switch-label .toggle-switch-switch {
+    right: 0px;
+}
+
+.switch-label {
+    margin-left: 10px;
+    flex: 2;
+    cursor: pointer;
+}
+
 div.selectize-input {
+    color: #555;
     min-height: 40px;
     border-radius: 5px;
     transition: border 0.2s;
+    padding: 2px 5px;
 
     &.disabled {
-        font-size-adjust: 1.1;
         font-weight: bold;
         border: none !important;
-        background-color: $background !important;
+        background-color: transparent !important;
         box-shadow: none;
         cursor: default !important;
+        opacity: 1 !important;
         -moz-appearance: none !important;
         -webkit-appearance: none !important;
 
@@ -119,11 +214,18 @@ div.selectize-input {
             background: $button-disabled !important;
             color: $disabled-text-color !important;
             border: none !important;
-            
+            font-size: 14px;
+            z-index: 99;
+            opacity: 1;
+
             a.remove {
                 display: none;
             }
         }
+    }
+
+    input {
+        height: 30px;
     }
 }
 
@@ -154,6 +256,14 @@ textarea {
 
     &:hover {
         background-color: $login-button-hover;
+    }
+
+    &.btn-danger {
+        background-color: $button-warning;
+
+        &:hover {
+            background-color: $button-warning-hover;
+        }
     }
 }
 
@@ -472,13 +582,16 @@ Client Admin Styling
     cursor: pointer;
 
     &:hover {
-        /*background-color: lightgray;*/
         transform: scale(1.02);
     }
 
     &.disabled {
         color: $text-disabled !important;
         background-color: $button-disabled !important;
+
+        &.selected {
+            border: 5px solid $card-selected-background-color;
+        }
     }
 
     &.selected {
@@ -486,10 +599,8 @@ Client Admin Styling
         background-color: $card-selected-background-color;
     }
 
-
     &.editing {
     }
-
 
     .client-admin-card-title {
         margin: 5px 0;
@@ -599,6 +710,23 @@ Client Admin Styling
         display: inline;
         height: 100%;
     }
+
+    &.action-card {
+        color: #777;
+
+        .center-text-card {
+            text-align: center;
+            margin: 15px 0;
+
+            i {
+                vertical-align: middle;
+            }
+        }
+
+        &:hover {
+            color: #424242;
+        }
+    }
 }
 
 #client-form {
@@ -608,3 +736,216 @@ Client Admin Styling
         font-weight: bold;
     }
 }
+
+
+
+
+
+.card-container {
+    position: relative;
+    padding: 5px 0;
+    background-color: $card-background-color;
+    border: 2px solid black;
+    border-radius: 5px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    cursor: pointer;
+
+    &:hover {
+        box-shadow: rgba(0, 0, 0, .3) 3px 3px 10px;
+    }
+
+    &.disabled {
+        color: $text-disabled !important;
+        background-color: $button-disabled !important;
+
+        &.selected {
+            border: 5px solid $card-selected-background-color;
+        }
+    }
+
+    &.selected {
+        color: white;
+        background-color: $card-selected-background-color;
+    }
+
+    &.editing {
+    }
+
+    .card-body-main-container {
+        position: relative;
+        padding: 5px 10px;
+        margin: 0;
+        width: 100%;
+        flex-flow: row nowrap;
+        justify-content: flex-start;
+        align-items: stretch;
+        align-content: stretch;
+        display: flex;
+
+        .card-body-primary-container {
+            display: inline-block;
+            flex: 4 0 80%;
+            flex-basis: auto;
+            padding-left: 15px;
+            margin: auto;
+
+            .card-body-primary-text {
+                margin: 5px 0;
+            }
+
+            .card-body-secondary-text {
+                display: inline-block;
+                margin: 0;
+                height: 100%;
+                width: 75%;
+            }
+        }
+
+        .card-body-secondary-container {
+            display: inline-block;
+            position: relative;
+            text-align: center;
+            flex: 0 1 auto;
+            margin: auto;
+
+            .card-stat-container {
+
+                &.card-stat-container-top {
+                }
+
+                &.card-stat-container-bottom {
+                }
+
+                .card-stat-icon {
+                }
+
+                .card-stat-value {
+                }
+            }
+
+            .card-user-icon {
+                vertical-align: middle;
+                margin: auto;
+            }
+
+            .card-user-role-indicator {
+                position: absolute;
+                top: 5%;
+                left: 60%;
+                color: $button-save;
+            }
+        }
+    }
+
+    .card-button-side-container {
+        position: absolute;
+        display: inline;
+        right: 0;
+        top: 50%;
+        text-align: right;
+        transform: translate(50%, -50%);
+    }
+
+    .card-button-bottom-container {
+        position: absolute;
+        display: inline;
+        right: 25px;
+        bottom: 0;
+        transform: translate(0, 50%);
+
+        .card-expansion-button {
+            background-color: $button-save;
+
+            &:hover {
+                background-color: $button-save-hover;
+            }
+        }
+    }
+
+    .card-button-background {
+        border-radius: 50%;
+        display: block;
+        text-align: center;
+        vertical-align: middle;
+        padding: 2px;
+        transform-origin: center center;
+        color: #fff;
+        transition: .2s all linear;
+
+        &.card-button-delete,
+        &.card-button-remove-user,
+        &.card-button-close {
+            background-color: $button-warning;
+
+            &:hover {
+                background-color: $button-warning-hover;
+            }
+        }
+
+        &.card-button-edit,
+        &.card-button-options,
+        &.card-button-expansion {
+            background-color: $button-confirm;
+
+            &:hover {
+                background-color: $button-confirm-hover;
+            }
+        }
+
+        &.card-button-new-child {
+            background-color: $button-save;
+
+            &:hover {
+                background-color: $button-save-hover;
+            }
+        }
+
+        &:hover {
+            transform: scale(1.25);
+            transform-origin: center center;
+        }
+
+        .card-button-icon {
+            color: white;
+            vertical-align: middle;
+        }
+    }
+
+
+    .card-expansion-container {
+        overflow: hidden;
+        padding: 5px 10px;
+        border-top: 1px solid lightgray;
+        margin: 5px 5px 0;
+
+        &.minimized {
+            max-height: 0;
+            border: none;
+            padding: 0 10px;
+            transition: .25s all linear;
+        }
+
+        &.maximized {
+            max-height: 200px;
+            transition: .25s all linear;
+
+            & + div.card-button-bottom-container > .card-button-expansion {
+                -webkit-transform: rotateX(180deg);
+                -moz-transform: rotateX(180deg);
+                -o-transform: rotateX(180deg);
+                -ms-transform: rotateX(180deg);
+                transform: rotateX(180deg);
+                transition: .2s all linear;
+            }
+        }
+
+        .card-expansion-category-label {
+            font-weight: bold;
+        }
+
+        .card-expansion-option-label {
+        }
+    }
+}
+

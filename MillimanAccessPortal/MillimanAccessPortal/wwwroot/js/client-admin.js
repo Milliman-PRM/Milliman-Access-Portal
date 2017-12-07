@@ -1,5 +1,7 @@
 ﻿var clientNodeTemplate = $('script[data-template="clientNode"]').html();
 var childNodePlaceholder = $('script[data-template="childNodePlaceholder"]').html();
+var clientCard = $('script[data-template="createNewClientCard"]').html();
+var userNodeTemplate = $('script[data-template="userNode"]').html();
 var clientTree;
 
 function getClientTree() {
@@ -9,32 +11,18 @@ function getClientTree() {
     }).done(function (response) {
         clientTree = response.ClientTree;
         populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
-        renderClientTree();
+        renderClientTree(response.RelevantClientId);
     }).fail(function (response) {
-        if (response.status == 401) {
-            toastr['error']('You are not authorized to view any clients');
+        if (response.getResponseHeader("Warning")) {
+            toastr["warning"](response.getResponseHeader("Warning"));
         }
         else {
             toaster['error']('An error has occurred');
         }
-    }).always(function () {
-        applyClickEvents();
     });
 
-}
 
-function applyClickEvents() {
-    $('div.client-admin-card').on('click', function () {
-        GetClientDetail($(this));
-    });
-    $('div.card-button-background-edit').on('click', function (event) {
-        EditClientDetail($(this).parents('div[data-client-id]'));
-        event.stopPropagation();
-    });
-    $('div.card-button-background-add').on('click', function (event) {
-        newChildClientFormSetup($(this).parents('div[data-client-id]'));
-        event.stopPropagation();
-    });
+
 }
 
 function populateProfitCenterDropDown(profitCenters) {
@@ -63,13 +51,17 @@ function GetClientDetail(clientDiv) {
             'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
         },
     }).done(function (response) {
+        clearValidationErrors();
         populateClientDetails(response.ClientEntity);
-        console.log(response.AssignedUsers);
+        renderUserList(response);
         // Change the dom to reflect the selected client
-        clearSelectedClient()
+        clearSelectedClient();
         clientDiv.addClass('selected');
         // Show the form in readonly mode
         makeFormReadOnly();
+        if (clientDiv.hasClass('disabled')) {
+            $('#client-info #edit-client-icon').hide();
+        }
         showClientForm();
 
     }).fail(function (response) {
@@ -81,6 +73,8 @@ function GetClientDetail(clientDiv) {
 function EditClientDetail(clientDiv) {
 
     removeClientInserts()
+
+    clearValidationErrors();
 
     var clientId = clientDiv.attr('data-client-id').valueOf();
 
@@ -159,8 +153,16 @@ function removeClientInserts() {
 function clearFormData() {
     $('#client-form #AcceptedEmailDomainList')[0].selectize.clear();
     $('#client-form #AcceptedEmailDomainList')[0].selectize.clearOptions();
+    $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.clear();
+    $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.clearOptions();
     $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').attr('data-original-value', '');
     $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').val("");
+    clearValidationErrors();
+}
+
+function clearValidationErrors() {
+    $('#client-form .input-validation-error').removeClass('input-validation-error');
+    $('#client-form span.field-validation-error > span').remove();
 }
 
 function clearSelectedClient() {
@@ -191,6 +193,7 @@ function makeFormWriteable() {
 function showClientForm() {
     var showTime = 50;
     $('#client-info').show(showTime, function () {
+        $('#client-form #Name').focus();
         if ($('#client-form #Id').val()) {
             $('#client-users').show(showTime);
         }
@@ -207,9 +210,13 @@ function hideClientForm() {
 
 function populateClientDetails(ClientEntity) {
     $('#client-form :input, #client-form select').removeAttr('data-original-value');
+    $('#client-form #ProfitCenterId option[temporary-profitcenter]').remove();
     $.each(ClientEntity, function (key, value) {
         var ctrl = $('#' + key, '#client-info');
         if (ctrl.is('select')) {
+            if ($('#client-form #' + key + ' option[value="' + value + '"]').length == 0) {
+                $('#' + key).append($("<option temporary-profitcenter />").val(ClientEntity.ProfitCenterId).text(ClientEntity.ProfitCenter.Name + ' (' + ClientEntity.ProfitCenter.ProfitCenterCode + ')'));
+            }
             ctrl.val(value).change();
         }
         else if (ctrl.hasClass('selectize-custom-input')) {
@@ -229,12 +236,29 @@ function populateClientDetails(ClientEntity) {
     });
 };
 
-function renderClientTree() {
+function renderClientTree(clientId) {
     $('#client-tree-list').empty();
     clientTree.forEach(function (rootClient) {
         renderClientNode(rootClient, 1);
         $('#client-tree-list').append('<li class="hr col-xs-12"></li>');
     });
+    $('#client-tree-list div.client-admin-card').on('click', function () {
+        GetClientDetail($(this));
+    });
+    $('div.card-button-background-edit').on('click', function (event) {
+        EditClientDetail($(this).parents('div[data-client-id]'));
+        event.stopPropagation();
+    });
+    $('div.card-button-background-add').on('click', function (event) {
+        newChildClientFormSetup($(this).parents('div[data-client-id]'));
+        event.stopPropagation();
+    });
+    if (clientId) {
+        $('[data-client-id="' + clientId + '"]').click();
+    }
+    if ($('#add-client-icon').length) {
+        $('#client-tree-list').append(clientCard);
+    }
 };
 
 function renderClientNode(client, level) {
@@ -305,7 +329,7 @@ function deleteClient(event, id, name) {
         buttons: {
             confirm: {
                 label: '<i class="fa fa-check"></i> Confirm',
-                className: 'primary-button btn-danger'
+                className: 'primary-button btn btn-danger'
             },
             cancel: {
                 label: 'Cancel',
@@ -323,7 +347,7 @@ function deleteClient(event, id, name) {
                     buttons: {
                         confirm: {
                             label: '<i class="fa fa-trash"></i> DELETE',
-                            className: 'primary-button btn-danger'
+                            className: 'primary-button btn btn-danger'
                         },
                         cancel: {
                             label: 'Cancel',
@@ -368,25 +392,15 @@ function removeClientNode(clientId, clientName, password) {
             'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
         },
     }).done(function (response) {
-        recursiveClientNodeSearch(clientTree, clientId);
-        renderClientTree();
+        clientTree = response.ClientTree;
+        renderClientTree(response.RelevantClientId);
+        clearFormData();
+        hideClientForm();
         toastr['success'](clientName + " was successfully deleted.");
     }).fail(function (response) {
         toastr["warning"](response.getResponseHeader("Warning"));
     })
 };
-
-function recursiveClientNodeSearch(array, clientId) {
-    for (var i = 0; i < array.length; i++) {
-        if (array[i].ClientEntity.Id == clientId) {
-            array.splice(i, 1);
-            return;
-        }
-        if (array[i].children.length > 0) {
-            recursiveClientNodeSearch(array[i].children, clientId);
-        }
-    }
-}
 
 function searchClientTree(searchString) {
     var searchString = searchString.toUpperCase();
@@ -424,23 +438,23 @@ function searchClientTree(searchString) {
 
 function submitClientForm(event) {
 
+    if ($('#client-form').valid()) {
+
     event.preventDefault();
 
     var form = $('#client-form');
     var clientId = $('#client-form #Id').val();
     var clientName = $('#client-form #Name').val();
     var urlAction = 'ClientAdmin/';
-    var successResponse, failResponse;
+    var successResponse;
 
     if (clientId) {
         urlAction += 'EditClient';
         successResponse = clientName + ' was successfully updated';
-        failResponse = 'Could not update client information';
     }
     else {
         urlAction += 'SaveNewClient';
         successResponse = clientName + ' was successfully created';
-        failResponse = 'Could not create client';
     }
 
     $.ajax({
@@ -454,19 +468,21 @@ function submitClientForm(event) {
         hideClientForm();
         clearFormData();
         clientTree = response.ClientTree;
-        renderClientTree();
-        applyClickEvents();
+        renderClientTree(response.RelevantClientId);
         toastr['success'](successResponse);
         $('div.client-admin-card[data-client-id="' + clientId + '"]').click();
     }).fail(function (response) {
-        toastr["warning"](failResponse);
+        toastr["warning"](response.getResponseHeader("Warning"));
     })
 
+    }
 }
 
 function resetNewClientForm() {
 
     event.preventDefault();
+
+    clearValidationErrors();
 
     $('#client-form :input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select').each(function () {
         if ($(this).val() != "") {
@@ -490,7 +506,7 @@ function resetNewClientForm() {
                     if (result) {
                         $('#client-form .input-validation-error').removeClass('input-validation-error');
                         $('#client-form span.field-validation-error > span').remove();
-                        $('#client-form :input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select').val("");
+                        clearFormData();
                     }
                     else {
                         return false;
@@ -505,6 +521,8 @@ function resetNewClientForm() {
 function undoChangesEditClientForm(event) {
 
     event.preventDefault();
+
+    clearValidationErrors();
 
     var clientId = $('#client-form #Id').val();
 
@@ -598,5 +616,104 @@ function cancelEditTasks(clientId) {
         removeClientInserts();
         clearFormData();
         hideClientForm();
+    }
+}
+
+
+
+function renderUserList(client, userId) {
+    $('#client-user-list').empty();
+    client.AssignedUsers.forEach(function (user) {
+        renderUserNode(client.ClientEntity.Id, user);
+    });
+
+    $('div.card-button-remove-user').on('click', function (event) {
+        //removeUserFromClient($(this).parents('div[data-client-id][data-user-id]'));
+        event.stopPropagation();
+    });
+    $('div[data-client-id][data-user-id]').on('click', function (event) {
+        $(this).find('div.card-expansion-container').toggleClass('minimized maximized');
+        toggleExpandCollapse();
+        event.stopPropagation();
+    });
+
+    toggleExpandCollapse();
+    //$('#client-user-list').append(userCard);
+
+    if (client.EligibleUsers) {
+        console.log(client.EligibleUsers);
+    }
+
+    if (userId) {
+        $('[data-user-id="' + userId + '"]').click();
+    }
+
+};
+
+function renderUserNode(clientId, user) {
+    var template = userNodeTemplate;
+
+    template = template.replace(/{{clientId}}/g, clientId);
+    template = template.replace(/{{id}}/g, user.Id);
+    template = template.replace(/{{name}}/g, user.FirstName + " " + user.LastName);
+    template = template.replace(/{{username}}/g, user.UserName);
+    if (user.UserName != user.Email) {
+        template = template.replace(/{{email}}/g, user.Email);
+    }
+
+    // convert template to DOM element for jQuery manipulation
+    var $template = $(template.toString());
+
+    $('div.card-container[data-search-string]', $template).attr('data-search-string',
+        user.FirstName.toUpperCase() + " " +
+        user.LastName.toUpperCase() + "|" +
+        user.UserName.toUpperCase() + "|" +
+        user.Email.toUpperCase());
+
+    $('.card-body-secondary-text:contains("{{email}}")', $template).remove();
+
+    //if (!client.CanManage) {
+    //    $('.icon-container', $template).remove();
+    //    $('.card-container', $template).addClass('disabled');
+    //}
+
+    $('#client-user-list').append($template);
+
+};
+
+function expandAllUsers() {
+    $('div.card-expansion-container.minimized').toggleClass('minimized maximized');
+    toggleExpandCollapse();
+}
+
+function collapseAllUsers() {
+    $('div.card-expansion-container.maximized').toggleClass('maximized minimized');
+    toggleExpandCollapse();
+}
+
+function toggleExpandCollapse() {
+    if ($('div.card-expansion-container.minimized').length > 0) {
+        $('#expand-user-icon').show();
+    } else {
+        $('#expand-user-icon').hide();
+    }
+
+    if ($('div.card-expansion-container.maximized').length > 0) {
+        $('#collapse-user-icon').show();
+    } else {
+        $('#collapse-user-icon').hide();
+    }
+}
+
+function searchUser(searchString) {
+    var searchString = searchString.toUpperCase();
+    var nodes = $('#client-user-list div[data-search-string]');
+
+    for (i = 0; i < nodes.length; i++) {
+        if ($(nodes[i]).attr('data-search-string').indexOf(searchString) > -1) {
+            nodes[i].style.display = "";
+        } else {
+            nodes[i].style.display = "none";
+        }
     }
 }

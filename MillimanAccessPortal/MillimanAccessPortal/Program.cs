@@ -3,24 +3,15 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using MapDbContextLib.Context;
+using System.Security.Cryptography.X509Certificates;
+using System.Linq;
 
 namespace MillimanAccessPortal
 {
     public class Program
     {
-        //public static void Main(string[] args)
-        //{
-        //    var host = new WebHostBuilder()
-        //        .UseKestrel()
-        //        .UseContentRoot(Directory.GetCurrentDirectory())
-        //        .UseIISIntegration()
-        //        .UseStartup<Startup>()
-        //        .UseApplicationInsights()
-        //        .Build();
-
-        //    host.Run();
-        //}
 
         public static void Main(string[] args)
         {
@@ -29,7 +20,15 @@ namespace MillimanAccessPortal
             using (var scope = host.Services.CreateScope())
             {
                 IServiceProvider serviceProvider = scope.ServiceProvider;
-                ApplicationDbContext.InitializeAll(serviceProvider);
+                try
+                {
+                    ApplicationDbContext.InitializeAll(serviceProvider);
+                }
+                catch (Exception e)
+                {
+                    serviceProvider.GetService<ILoggerFactory>().CreateLogger<ApplicationDbContext>().LogError($"ApplicationDbContext.InitializeAll() failed: {e.Message}");
+                    throw;
+                }
             }
 
             host.Run();
@@ -47,6 +46,25 @@ namespace MillimanAccessPortal
                     .AddJsonFile("smtp.json", optional: false, reloadOnChange: true)
                     .AddJsonFile($"smtp.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
                     ;
+
+                    #region Configure Azure Key Vault for CI & Production
+                    if (hostContext.HostingEnvironment.EnvironmentName == "CI" || hostContext.HostingEnvironment.EnvironmentName == "Production")
+                    {
+                        config.AddJsonFile($"AzureKeyVault.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true);
+
+                        var builtConfig = config.Build();
+
+                        var store = new X509Store(StoreLocation.LocalMachine);
+                        store.Open(OpenFlags.ReadOnly);
+                        var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
+
+                        config.AddAzureKeyVault(
+                            builtConfig["AzureVaultName"],
+                            builtConfig["AzureClientID"],
+                            cert.OfType<X509Certificate2>().Single()
+                            );
+                    }
+                    #endregion
 
                     if (hostContext.HostingEnvironment.IsDevelopment())
                     {
