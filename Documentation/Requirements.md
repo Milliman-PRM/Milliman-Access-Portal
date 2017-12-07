@@ -53,7 +53,26 @@ Naomi Bornemann|Penetration Tester|Penetration Testing
 
 ### 2.3 Architecture/Design Requirements
 
-*List of architecture and design requirements (The system architecture must be able to...)*
+### 2.3.1 Controllers
+
+### 2.3.1.1 UserAdminController
+The following methods will be implemented to handle incoming requests.
+
+### 2.3.1.1.1 `Index()`
+This responds with the landing page for User Admin actions.  The User Admin link in the application nav bar leads here.  
+### 2.3.1.1.2 `AddUser()`
+This is the landing page for User Admin actions.  The User Admin link in the application nav bar leads here.  
+### 2.3.1.1.2 `()`
+This is ...  
+
+### 2.3.1.1.2 `()`
+This is ...  
+
+### 2.3.1.1.2 `()`
+This is ...  
+
+### 2.3.1.1.2 `()`
+This is ...  
 
 ### 2.4 Performance Requirements
 
