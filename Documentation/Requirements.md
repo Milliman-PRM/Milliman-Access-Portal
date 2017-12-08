@@ -50,6 +50,17 @@ Naomi Bornemann|Penetration Tester|Penetration Testing
 ### 2.2 Functional Requirements
 
 *List of functional requirements (System must do...)*
+### 2.2.1 User Administration
+  - Create new user
+    - Option to control whether welcome email is sent
+    - Option to immediately associate with a client
+  - Bulk create new user
+    - Same options?
+  - Assign user(s) to clients?
+  - Assign user(s) to (root) content
+  - Initiate password reset
+
+  - Administer security selections (where applicanble)
 
 ### 2.3 Architecture/Design Requirements
 
@@ -62,16 +73,16 @@ The following methods will be implemented to handle incoming requests.
 This responds with the landing page for User Admin actions.  The User Admin link in the application nav bar leads here.  
 ### 2.3.1.1.2 `AddUser()`
 This is the landing page for User Admin actions.  The User Admin link in the application nav bar leads here.  
-### 2.3.1.1.2 `()`
+### 2.3.1.1.3 `()`
 This is ...  
 
-### 2.3.1.1.2 `()`
+### 2.3.1.1.4 `()`
 This is ...  
 
-### 2.3.1.1.2 `()`
+### 2.3.1.1.5 `()`
 This is ...  
 
-### 2.3.1.1.2 `()`
+### 2.3.1.1.6 `()`
 This is ...  
 
 ### 2.4 Performance Requirements
