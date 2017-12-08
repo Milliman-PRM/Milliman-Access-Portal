@@ -18,7 +18,7 @@ namespace MapTests
         internal static Mock<UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>> New(Mock<ApplicationDbContext> Context)
         {
             //Mock<IUserStore<ApplicationUser>> NewStore = new Mock<IUserStore<ApplicationUser>>();
-            Mock<UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>> NewStore = new Mock<UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>>() {CallBase=true };
+            Mock<UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>> NewStore = new Mock<UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>>(Context.Object, null) {CallBase=true };
 
             // Setup mocked object methods to interact with persisted data
             NewStore.Setup(d => d.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<CancellationToken>())).Callback<ApplicationUser, CancellationToken>((au, ct) => Context.Object.ApplicationUser.Add(au));
@@ -33,8 +33,8 @@ namespace MapTests
                                             ).Where(dat => dat.cl.ClaimValue == claim.Value && dat.cl.ClaimType == ClaimNames.ClientMembership.ToString())
                                             .Select(usrs => usrs.us).ToList()
                                         );
-            NewStore.Setup(d => d.AddClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>(), It.IsAny<CancellationToken>())).Callback<ApplicationUser, IEnumerable<Claim>>((usr, claims) => Context.Object.UserClaims.AddRange(BuildClaimList(usr, claims)));
-            NewStore.Setup(d => d.RemoveClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>(), It.IsAny<CancellationToken>())).Callback<ApplicationUser, IEnumerable<Claim>>((usr, claims) => Context.Object.UserClaims.RemoveRange(BuildClaimList(usr, claims)));
+            NewStore.Setup(d => d.AddClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>(), It.IsAny<CancellationToken>())).Callback<ApplicationUser, IEnumerable<Claim>, CancellationToken>((usr, claims, ct) => Context.Object.UserClaims.AddRange(BuildClaimList(usr, claims)));
+            NewStore.Setup(d => d.RemoveClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>(), It.IsAny<CancellationToken>())).Callback<ApplicationUser, IEnumerable<Claim>, CancellationToken>((usr, claims, ct) => Context.Object.UserClaims.RemoveRange(BuildClaimList(usr, claims)));
             NewStore.Setup(d => d.GetClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<CancellationToken>())).ReturnsAsync<ApplicationUser, CancellationToken, UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>, IList<Claim>>((usr, ct) => Context.Object.UserClaims.Where(uc => uc.UserId == usr.Id).Cast<Claim>().ToList());
             NewStore.Setup(d => d.FindByEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync<string, CancellationToken, UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>, ApplicationUser>((em, ct) => Context.Object.ApplicationUser.SingleOrDefault(au => au.Email == em));
             NewStore.Setup(d => d.GetUserNameAsync(It.IsAny<ApplicationUser>(), It.IsAny<CancellationToken>())).ReturnsAsync<ApplicationUser, CancellationToken, UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>, string>((usr, ct) => Context.Object.Users.SingleOrDefault(ausr => ausr.Id == usr.Id).UserName);
