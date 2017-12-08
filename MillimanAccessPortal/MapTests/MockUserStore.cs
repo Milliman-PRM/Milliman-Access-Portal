@@ -24,8 +24,7 @@ namespace MapTests
             NewStore.Setup(d => d.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<CancellationToken>())).Callback<ApplicationUser, CancellationToken>((au, ct) => Context.Object.ApplicationUser.Add(au));
             NewStore.Setup(d => d.FindByIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync<string, CancellationToken, UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>, ApplicationUser>((id, ct) => Context.Object.ApplicationUser.SingleOrDefault(au => au.Id == long.Parse(id)));
             NewStore.Setup(d => d.FindByNameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync<string, CancellationToken, UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>, ApplicationUser>((nm, ct) => Context.Object.ApplicationUser.SingleOrDefault(au => au.UserName == nm));
-
-            NewStore.Setup(d => d.GetUsersForClaimAsync(It.IsAny<Claim>(), It.IsAny<CancellationToken>())).ReturnsAsync<Claim, UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>, IList<ApplicationUser>>((Claim claim) => 
+            NewStore.Setup(d => d.GetUsersForClaimAsync(It.IsAny<Claim>(), It.IsAny<CancellationToken>())).ReturnsAsync<Claim, UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>, IList<ApplicationUser>>((Claim claim) =>
                                             Context.Object.UserClaims.Join(
                                             Context.Object.Users,
                                             cl => cl.UserId,
@@ -34,6 +33,15 @@ namespace MapTests
                                             ).Where(dat => dat.cl.ClaimValue == claim.Value && dat.cl.ClaimType == ClaimNames.ClientMembership.ToString())
                                             .Select(usrs => usrs.us).ToList()
                     );
+
+            // TODO: Implement these methods
+            NewStore.Setup(d => d.AddClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>())).ReturnsAsync();
+            NewStore.Setup(d => d.RemoveClaimsAsync((It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>(), It.IsAny<CancellationToken>()))).ReturnsAsync();
+            NewStore.Setup(d => d.GetClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<CancellationToken>())).ReturnsAsync();
+            NewStore.Setup(d => d.FindByEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync();
+            NewStore.Setup(d => d.GetUserNameAsync(It.IsAny<ApplicationUser>(), It.IsAny<CancellationToken>())).ReturnsAsync();
+            
+            
             // more?
 
             return NewStore;

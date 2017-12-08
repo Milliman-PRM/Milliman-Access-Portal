@@ -42,8 +42,8 @@ namespace MapTests
         public Mock<ApplicationDbContext> MockDbContext { get; set; }
         public ApplicationDbContext DbContextObject { get => MockDbContext.Object; }
 
-        //public Mock<UserManager<ApplicationUser>> MockUserManager { get; set; }
-        public UserManager<ApplicationUser> UserManagerObject { get; set; }
+        public Mock<UserManager<ApplicationUser>> MockUserManager { get; set; }
+        public UserManager<ApplicationUser> UserManagerObject { get => MockUserManager.Object; }
 
         public Mock<RoleManager<ApplicationRole>> MockRoleManager { get; set;  }
         public RoleManager<ApplicationRole> RoleManagerObject { get => MockRoleManager.Object; }
@@ -122,8 +122,7 @@ namespace MapTests
         private void GenerateDependencies()
         {
             MockDbContext = GenerateDbContext();
-            //MockUserManager = GenerateUserManager(MockDbContext);
-            UserManagerObject = GenerateUserManager(MockDbContext.Object);
+            MockUserManager = MapTests.MockUserManager.New(MockDbContext);
             MockRoleManager = GenerateRoleManager(MockDbContext);
             LoggerFactory = new LoggerFactory();
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
@@ -189,41 +188,10 @@ namespace MapTests
             ReturnMockContext.Object.UserRoles = MockDbSet<IdentityUserRole<long>>.New(new List<IdentityUserRole<long>>()).Object;
             ReturnMockContext.Object.UserRoleInRootContentItem = MockDbSet<UserRoleInRootContentItem>.New(new List<UserRoleInRootContentItem>()).Object;
 
+            ReturnMockContext.Object.Users = ReturnMockContext.Object.ApplicationUser;
+            ReturnMockContext.Object.Roles = ReturnMockContext.Object.ApplicationRole;
+
             return ReturnMockContext;
-        }
-
-        /*private Mock<UserManager<ApplicationUser>> GenerateUserManager(Mock<ApplicationDbContext> MockDbContextArg)
-        {
-            Mock<IUserStore<ApplicationUser>> UserStore = MockUserStore.New(MockDbContextArg);
-            Mock<UserManager<ApplicationUser>> ReturnMockUserManager = new Mock<UserManager<ApplicationUser>>(UserStore.Object, null, null, null, null, null, null, null, null);
-            ReturnMockUserManager.Setup(m => m.GetUserName(It.IsAny<ClaimsPrincipal>())).Returns<ClaimsPrincipal>(cp => UserStore.Object.FindByNameAsync(cp.Identity.Name, CancellationToken.None).Result.UserName);
-            ReturnMockUserManager.Setup(m => m.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync<ClaimsPrincipal, UserManager<ApplicationUser>, ApplicationUser>(cp => UserStore.Object.FindByNameAsync(cp.Identity.Name, CancellationToken.None).Result);
-            ReturnMockUserManager.Setup(m => m.FindByNameAsync(It.IsAny<string>())).ReturnsAsync<string, UserManager<ApplicationUser>, ApplicationUser>(name => UserStore.Object.FindByNameAsync(name, CancellationToken.None).Result);
-            
-            // Re-Create Identity's GetUsersForClaimAsync
-            /*ReturnMockUserManager.Setup(m => m.GetUsersForClaimAsync(It.IsAny<Claim>()))
-                .ReturnsAsync
-                    ((Claim claim) => 
-                       DbContextObject.UserClaims.Join(
-                           DbContextObject.Users,
-                           cl => cl.UserId,
-                           us => us.Id,
-                           (cl, us) => new { cl, us }
-                           ).Where(dat => dat.cl.ClaimValue == claim.Value && dat.cl.ClaimType == ClaimNames.ClientMembership.ToString())
-                           .Select(usrs => usrs.us).ToList()
-                    );
-                    
-
-            return ReturnMockUserManager;
-        }*/
-    
-
-        private UserManager<ApplicationUser> GenerateUserManager(ApplicationDbContext DbContextArg)
-        {
-            UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long> userStore = new UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>(DbContextArg);
-            UserManager<ApplicationUser> userManager = new UserManager<ApplicationUser>(userStore, null, null, null, null, null, null, null, null);
-            
-            return userManager;
         }
 
         /// <summary>
