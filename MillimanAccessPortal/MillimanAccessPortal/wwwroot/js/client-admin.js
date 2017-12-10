@@ -242,14 +242,14 @@ function renderClientTree(clientId) {
         renderClientNode(rootClient, 1);
         $('#client-tree-list').append('<li class="hr col-xs-12"></li>');
     });
-    $('#client-tree-list div.client-admin-card').on('click', function () {
+    $('#client-tree-list div.card-container').on('click', function () {
         GetClientDetail($(this));
     });
-    $('div.card-button-background-edit').on('click', function (event) {
+    $('div.card-button-edit').on('click', function (event) {
         EditClientDetail($(this).parents('div[data-client-id]'));
         event.stopPropagation();
     });
-    $('div.card-button-background-add').on('click', function (event) {
+    $('div.card-button-new-child').on('click', function (event) {
         newChildClientFormSetup($(this).parents('div[data-client-id]'));
         event.stopPropagation();
     });

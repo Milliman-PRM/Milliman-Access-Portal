@@ -1,26 +1,28 @@
 <script type="text/template" data-template="clientNode">
     <li>
-        <div class="{{class}} client-admin-card" data-client-id="{{id}}">
-            <div class="client-information">
-                <h{{header-level}} class="client-admin-card-title">{{name}}</h{{header-level}}>
-                <p class="client-admin-card-clientcode">{{clientCode}}</p>
-            </div>
-            <div class="client-stats">
-                <div class="client-stat-container">
-                    <i class="fa fa-fw fa-users fa-2x pull-left"></i><h4>{{users}}</h4>
-                </div>
-                <div class="client-stat-container">
-                    <i class="fa fa-fw fa-file fa-2x pull-left"></i><h4>{{content}}</h4>
+        <div class="{{class}} card-container" data-search-string data-client-id="{{id}}">
+            <div class="card-body-main-container">
+                <div class="card-body-primary-container">
+                    <h{{header-level}} class="card-body-primary-text">{{name}}</h{{header-level}}>
+                    <p class="card-body-secondary-text">{{clientCode}}</p>
                 </div>
             </div>
-            <div class="icon-container">
-                <div class="card-button-background card-button-background-delete">
+            <div class="card-stats-container">            
+                <div class="card-stat-container">
+                    <i class="fa fa-fw fa-users fa-2x card-stat-icon"></i><h4 class="card-stat-value">{{users}}</h4>
+                </div>
+                <div class="card-stat-container">
+                    <i class="fa fa-fw fa-file fa-2x card-stat-icon"></i><h4 class="card-stat-value">{{content}}</h4>
+                </div>
+            </div>
+            <div class="card-button-side-container">
+                <div class="card-button-background card-button-delete">
                     <i class="fa fa-fw fa-trash" onclick="deleteClient(event, '{{id}}', '{{name}}')"></i>
                 </div>
-                <div class="card-button-background card-button-background-edit">
+                <div class="card-button-background card-button-edit">
                     <i class="fa fa-fw fa-pencil"></i>
                 </div>
-               <div class="card-button-background card-button-background-add">
+               <div class="card-button-background card-button-new-child">
                     <i class="fa fa-fw fa-plus"></i>
                 </div>
             </div>
