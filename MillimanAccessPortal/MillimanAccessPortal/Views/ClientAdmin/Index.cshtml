@@ -20,18 +20,18 @@
 
 <div id="client-tree" class="flex-container flex-column-no-wrap overflow-hidden flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12">
     <h3 class="center-content padding-1em">Client Tree</h3>
-    <div class="flex-container flex-row-no-wrap items-align-center padding-1em content-item-flex-none">
+    <div class="flex-container flex-row-no-wrap items-align-center padding-bottom-1em content-item-flex-none">
         <input type="search" id="client-search-box" class="width-65pct" placeholder="Search for Client" />
         <i id="add-client-icon" class="fa fa-2x fa-plus right-align-content flex-item-4-12 padding-left-pt5em action-icon" onclick="newClientFormSetup()"></i>
     </div>
-    <div id="client-tree" class="overflow-y-scroll padding-1em">
+    <div id="client-tree" class="overflow-y-scroll padding-right-1em">
         <ul id="client-tree-list" class="list-style-none padding-0 position-relative">
         </ul>
     </div>
 </div>
-<div id="client-info" class="flex-container flex-column-no-wrap client-admin-section flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-6-12 padding-1em" style="display: none;">
+<div id="client-info" class="flex-container flex-column-no-wrap client-admin-section flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-6-12" style="display: none;">
     <h3 class="center-content padding-1em">Client Information</h3>
-    <div class="align-self-end right-align-content content-align-center width-100pct content-item-flex-none">
+    <div class="align-self-end right-align-content content-align-center padding-bottom-1em width-100pct content-item-flex-none">
         <i id="edit-client-icon" class="fa fa-2x fa-pencil padding-left-pt25em action-icon" onclick="toggleEditExistingClient()"></i>
         <i id="cancel-edit-client-icon" class="fa fa-2x fa-close padding-left-pt25em action-icon" onclick="cancelClientEdit()"></i>
     </div>
@@ -146,7 +146,7 @@
 </div>
 <div id="client-users" class="flex-container flex-column-no-wrap overflow-hidden flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12" style="display: none;">
     <h3 class="center-content padding-1em">Client Users</h3>
-    <div class="flex-container flex-row-no-wrap items-align-center padding-1em content-item-flex-none">
+    <div class="flex-container flex-row-no-wrap items-align-center padding-bottom-1em content-item-flex-none">
         <input type="search" id="user-search-box" class="width-65pct" placeholder="Search for User" />
         <div class="right-align-content flex-item-4-12">
             <i id="collapse-user-icon" class="fa fa-2x fa-toggle-up padding-left-pt25em action-icon" onclick="collapseAllUsers()"></i>
@@ -154,7 +154,7 @@
             <i id="add-user-icon" class="fa fa-2x fa-user-plus padding-left-pt25em action-icon"></i>
         </div>    
     </div>
-    <div id="user-list" class="overflow-y-scroll padding-1em">
+    <div id="user-list" class="overflow-y-scroll padding-right-1em">
         <ul id="client-user-list" class="list-style-none padding-0">
         </ul>
     </div>
