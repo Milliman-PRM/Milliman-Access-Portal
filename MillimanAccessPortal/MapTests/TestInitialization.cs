@@ -280,18 +280,36 @@ namespace MapTests
             MockDbSet<Client>.AssignNavigationProperty<ProfitCenter>(DbContextObject.Client, "ProfitCenterId", DbContextObject.ProfitCenter);
             #endregion
 
-            #region Initialize UserRoleForClient
-            DbContextObject.UserRoleInClient.AddRange(new List<UserRoleInClient>
-                {
-                    new UserRoleInClient {Id = 1, ClientId=1, RoleId=2, UserId=1},
-                    new UserRoleInClient {Id = 2, ClientId=1, RoleId=1, UserId=3},
-                    new UserRoleInClient {Id=3, ClientId=4, RoleId=1, UserId=3}
-                });
-            MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
-            MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
-            MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInClient, "RoleId", DbContextObject.ApplicationRole);
-            #endregion
+            #region Initialize User associations with Clients
+                /*
+                 * There has to be a UserClaim for each user who is associated with a client
+                 * 
+                 * The number of user claims will not necessarily match the number of UserRoleForClient records, 
+                 *      since a user can have multiple roles with a client
+                 */
             
+                #region Initialize UserRoleForClient
+                DbContextObject.UserRoleInClient.AddRange(new List<UserRoleInClient>
+                    {
+                        new UserRoleInClient {Id = 1, ClientId=1, RoleId=2, UserId=1},
+                        new UserRoleInClient {Id = 2, ClientId=1, RoleId=1, UserId=3},
+                        new UserRoleInClient {Id=3, ClientId=4, RoleId=1, UserId=3}
+                    });
+                MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
+                MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
+                MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInClient, "RoleId", DbContextObject.ApplicationRole);
+                #endregion
+
+                #region Initialize UserClaims
+                DbContextObject.UserClaims.AddRange(new List<IdentityUserClaim<long>>
+                {
+                    new IdentityUserClaim<long>{ Id =1, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "1", UserId = 3 },
+                    new IdentityUserClaim<long>{ Id =2, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "4", UserId = 3 },
+                    new IdentityUserClaim<long>{ Id = 3, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "1", UserId = 1}
+                });
+                #endregion
+            #endregion 
+
             #region Initialize RootContentItem
             DbContextObject.RootContentItem.AddRange(new List<RootContentItem>
                 {
@@ -353,13 +371,6 @@ namespace MapTests
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInRootContentItem, "UserId", DbContextObject.ApplicationUser);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<RootContentItem>(DbContextObject.UserRoleInRootContentItem, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
-            
-            #region Initialize UserClaims
-            DbContextObject.UserClaims.AddRange(new List<IdentityUserClaim<long>>
-            {
-                new IdentityUserClaim<long>{ Id =1, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = 1.ToString(), UserId = 3 }
-            });
-            #endregion 
         }
 
         private static List<ApplicationRole> GetSystemRolesList()
