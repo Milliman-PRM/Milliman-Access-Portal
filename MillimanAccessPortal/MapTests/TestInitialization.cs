@@ -178,6 +178,7 @@ namespace MapTests
             ReturnMockContext.Object.ApplicationUser = MockDbSet<ApplicationUser>.New(new List<ApplicationUser>()).Object;
             ReturnMockContext.Object.ContentType = MockDbSet<ContentType>.New(new List<ContentType>()).Object;
             ReturnMockContext.Object.ProfitCenter = MockDbSet<ProfitCenter>.New(new List<ProfitCenter>()).Object;
+            ReturnMockContext.Object.UserRoleInProfitCenter = MockDbSet<UserRoleInProfitCenter>.New(new List<UserRoleInProfitCenter>()).Object;
             ReturnMockContext.Object.Client = MockDbSet<Client>.New(new List<Client>()).Object;
             ReturnMockContext.Object.UserRoleInClient = MockDbSet<UserRoleInClient>.New(new List<UserRoleInClient>()).Object;
             ReturnMockContext.Object.RootContentItem = MockDbSet<RootContentItem>.New(new List<RootContentItem>()).Object;
@@ -260,12 +261,21 @@ namespace MapTests
                 });
             #endregion
 
+            #region Initialize UserRoleInProfitCenter
+            DbContextObject.UserRoleInProfitCenter.AddRange(new List<UserRoleInProfitCenter>
+            {
+                new UserRoleInProfitCenter {Id=1, ProfitCenterId=1, UserId=3, RoleId=1}
+            });
+            MockDbSet<UserRoleInProfitCenter>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInProfitCenter, "RoleId", DbContextObject.ApplicationRole);
+            #endregion
+
             #region Initialize Clients
             DbContextObject.Client.AddRange(new List<Client>
                 {
                     new Client {Id=1, Name="Name1", ClientCode="ClientCode1", ProfitCenterId=1, ParentClientId=null },
                     new Client {Id=2, Name="Name2", ClientCode="ClientCode2", ProfitCenterId=1, ParentClientId=1 },
-                    new Client {Id=3, Name="Name3", ClientCode="ClientCode3", ProfitCenterId=1, ParentClientId=null}
+                    new Client {Id=3, Name="Name3", ClientCode="ClientCode3", ProfitCenterId=1, ParentClientId=null},
+                    new Client {Id=4, Name="Name4", ClientCode="ClientCode4", ProfitCenterId=2, ParentClientId=3}
                 });
             MockDbSet<Client>.AssignNavigationProperty<ProfitCenter>(DbContextObject.Client, "ProfitCenterId", DbContextObject.ProfitCenter);
             #endregion
@@ -274,7 +284,8 @@ namespace MapTests
             DbContextObject.UserRoleInClient.AddRange(new List<UserRoleInClient>
                 {
                     new UserRoleInClient {Id = 1, ClientId=1, RoleId=2, UserId=1},
-                    new UserRoleInClient {Id = 2, ClientId=1, RoleId=1, UserId=3}
+                    new UserRoleInClient {Id = 2, ClientId=1, RoleId=1, UserId=3},
+                    new UserRoleInClient {Id=3, ClientId=4, RoleId=1, UserId=3}
                 });
             MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
             MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
