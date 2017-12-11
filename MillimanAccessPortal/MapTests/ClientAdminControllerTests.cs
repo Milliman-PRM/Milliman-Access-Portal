@@ -185,10 +185,23 @@ namespace MapTests
         /// Checks whether AssignUserToClient returns an error for unauthorized users
         /// Multiple authorization checks are made, so multiple users should be tested w/ various rights
         /// </summary>
-        [Fact]
-        public void AssignUserToClient_ErrorWhenUnauthorized()
+        [Theory]
+        [InlineData("ClientAdmin1", 3, "test1")] // User isn't admin on the requested client but is admin on the requested client's profit center
+        [InlineData("ClientAdmin1", 4, "test1")] // User is admin on the requested client but isn't admin on the requested client's profit center
+        public void AssignUserToClient_ErrorWhenUnauthorized(string userArg, long clientIdArg, string userAssignArg)
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser(userArg);
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel{ ClientId = clientIdArg, UserName = userAssignArg };
+            #endregion
+
+            #region Act
+            var view = controller.AssignUserToClient(viewModel);
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            #endregion
         }
 
         /// <summary>

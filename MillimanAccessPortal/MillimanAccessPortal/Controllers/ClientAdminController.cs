@@ -229,7 +229,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // 2. Requested User's email must comply with client email whitelist
-            string RequestedUserEmail = RequestedUser.NormalizedEmail.ToUpper();
+            string RequestedUserEmail = RequestedUser.Email.ToUpper();
             if (!GlobalFunctions.IsValidEmail(RequestedUserEmail))
             {
                 Response.Headers.Add("Warning", $"The requested user's email is invalid: ({RequestedUserEmail})");
