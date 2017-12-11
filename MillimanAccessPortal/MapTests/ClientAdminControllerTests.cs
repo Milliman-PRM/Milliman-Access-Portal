@@ -205,21 +205,56 @@ namespace MapTests
         }
 
         /// <summary>
-        /// Verify a NotFoundResult is returned when the user or client is not found
+        /// Verify a BadRequestObjectResult is returned when the user or client is not found
         /// </summary>
-        [Fact]
-        public void AssignUserToClient_ErrorWhenNotFound()
+        [Theory]
+        [InlineData("ClientAdmin1", -1, "test1")] // User exists, but client does not
+        [InlineData("ClientAdmin1", 1, "__fake1")] // Client exists, but user does not (User is authorized to specified client & its profit center)
+        public void AssignUserToClient_ErrorWhenNotFound(string userArg, long clientIdArg, string userAssignArg)
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser(userArg);
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = clientIdArg, UserName = userAssignArg };
+            #endregion
+
+            #region Act
+            var view = controller.AssignUserToClient(viewModel);
+            #endregion
+
+            #region Assert
+            Assert.IsType<BadRequestObjectResult>(view);
+            #endregion
         }
 
         /// <summary>
-        /// Verify that a warning is raised when adding a user to a client they are already assigned to
+        /// Verify that no data is changed when adding a user to a client they are already assigned to
         /// </summary>
         [Fact]
-        public void AssignUserToClient_WarningWhenAssigned()
+        public void AssignUserToClient_NoActionWhenAssigned()
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 1, UserName = "test1" };
+
+            // Before acting on the input data, we need to gather initial data to compare the result to
+            JsonResult preView = (JsonResult) controller.ClientDetail(viewModel.ClientId);
+            ClientDetailViewModel preViewModel = (ClientDetailViewModel) preView.Value;
+            string preActionCount = preViewModel.AssignedUsers.Count.ToString();
+            #endregion
+
+            #region Act
+            var view = controller.AssignUserToClient(viewModel);
+            
+            // Capture the number of users assigned to the client after the call to AssignUserToClient
+            JsonResult viewResult = (JsonResult)view;
+            ClientDetailViewModel afterViewModel = (ClientDetailViewModel)viewResult.Value;
+            string afterActionCount = afterViewModel.AssignedUsers.Count.ToString();
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(view);
+            Assert.Equal(preActionCount, afterActionCount);
+            #endregion
         }
 
         /// <summary>
