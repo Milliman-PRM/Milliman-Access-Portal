@@ -258,14 +258,25 @@ namespace MapTests
         }
 
         /// <summary>
-        /// Verify that all the various email domain checks function correctly
-        /// Multiple checks are made, so multiple users should be tested w/ various email addresses & domains
-        /// Return code from the request should be 412 - Precondition Failed
+        /// Verify that Status Code 412 is returned when the requested user's email address is not valid for the selected client
         /// </summary>
         [Fact]
         public void AssignUserToClient_ErrorForInvalidEmail()
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 5, UserName = "test1" };
+            #endregion
+
+            #region Act
+            var view = controller.AssignUserToClient(viewModel);
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(view);
+            StatusCodeResult viewResult = (StatusCodeResult)view;
+            Assert.Equal("412", viewResult.StatusCode.ToString());
+            #endregion
         }
 
         /// <summary>

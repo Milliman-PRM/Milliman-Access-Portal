@@ -241,8 +241,8 @@ namespace MapTests
                                          LastName="LN1", NormalizedEmail="test@example.com".ToUpper(), PhoneNumber="3171234567"},
                     new ApplicationUser {Id=2, UserName="test2", Email="test2@example.com", Employer ="example", FirstName="FN2",
                                          LastName="LN2", NormalizedEmail ="test@example.com".ToUpper(), PhoneNumber="3171234567"},
-                    new ApplicationUser {Id=3, UserName="ClientAdmin1", Email="clientadmin1@example.com", Employer="example", FirstName="Client",
-                                         LastName="Admin1", NormalizedEmail="clientadmin1@example.com".ToUpper(), PhoneNumber="3171234567"}
+                    new ApplicationUser {Id=3, UserName="ClientAdmin1", Email="clientadmin1@example2.com", Employer="example", FirstName="Client",
+                                         LastName="Admin1", NormalizedEmail="clientadmin1@example2.com".ToUpper(), PhoneNumber="3171234567"}
             });
             #endregion
 
@@ -273,9 +273,10 @@ namespace MapTests
             DbContextObject.Client.AddRange(new List<Client>
                 {
                     new Client {Id=1, Name="Name1", ClientCode="ClientCode1", ProfitCenterId=1, ParentClientId=null, AcceptedEmailDomainList = new string[] { "example.com" } },
-                    new Client {Id=2, Name="Name2", ClientCode="ClientCode2", ProfitCenterId=1, ParentClientId=1 },
-                    new Client {Id=3, Name="Name3", ClientCode="ClientCode3", ProfitCenterId=1, ParentClientId=null},
-                    new Client {Id=4, Name="Name4", ClientCode="ClientCode4", ProfitCenterId=2, ParentClientId=3}
+                    new Client {Id=2, Name="Name2", ClientCode="ClientCode2", ProfitCenterId=1, ParentClientId=1, AcceptedEmailDomainList = new string[] { "example.com" }  },
+                    new Client {Id=3, Name="Name3", ClientCode="ClientCode3", ProfitCenterId=1, ParentClientId=null, AcceptedEmailDomainList = new string[] { "example2.com" } },
+                    new Client {Id=4, Name="Name4", ClientCode="ClientCode4", ProfitCenterId=2, ParentClientId=null, AcceptedEmailDomainList = new string[] { "example2.com" } },
+                    new Client {Id=5, Name="Name5", ClientCode="ClientCode5", ProfitCenterId=1, ParentClientId=null, AcceptedEmailDomainList = new string[] { "example2.com" } }
                 });
             MockDbSet<Client>.AssignNavigationProperty<ProfitCenter>(DbContextObject.Client, "ProfitCenterId", DbContextObject.ProfitCenter);
             #endregion
@@ -293,7 +294,8 @@ namespace MapTests
                     {
                         new UserRoleInClient {Id = 1, ClientId=1, RoleId=2, UserId=1},
                         new UserRoleInClient {Id = 2, ClientId=1, RoleId=1, UserId=3},
-                        new UserRoleInClient {Id=3, ClientId=4, RoleId=1, UserId=3}
+                        new UserRoleInClient {Id=3, ClientId=4, RoleId=1, UserId=3},
+                        new UserRoleInClient {Id=4, ClientId=5, RoleId=1, UserId=3}
                     });
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
@@ -305,6 +307,7 @@ namespace MapTests
                 {
                     new IdentityUserClaim<long>{ Id =1, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "1", UserId = 3 },
                     new IdentityUserClaim<long>{ Id =2, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "4", UserId = 3 },
+                    new IdentityUserClaim<long>{ Id =2, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "5", UserId = 3 },
                     new IdentityUserClaim<long>{ Id = 3, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "1", UserId = 1}
                 });
                 #endregion
