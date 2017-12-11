@@ -265,6 +265,7 @@ namespace MapTests
                 {
                     new Client {Id=1, Name="Name1", ClientCode="ClientCode1", ProfitCenterId=1, ParentClientId=null },
                     new Client {Id=2, Name="Name2", ClientCode="ClientCode2", ProfitCenterId=1, ParentClientId=1 },
+                    new Client {Id=3, Name="Name3", ClientCode="ClientCode3", ProfitCenterId=1, ParentClientId=null}
                 });
             MockDbSet<Client>.AssignNavigationProperty<ProfitCenter>(DbContextObject.Client, "ProfitCenterId", DbContextObject.ProfitCenter);
             #endregion

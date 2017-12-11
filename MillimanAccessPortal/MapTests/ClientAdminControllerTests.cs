@@ -126,25 +126,59 @@ namespace MapTests
         [Fact]
         public void ClientDetail_ErrorWhenNotFound()
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            #endregion
+
+            #region Act
+            var view = controller.ClientDetail(-100);
+            #endregion
+
+            #region Assert
+            Assert.IsType<NotFoundResult>(view);
+            #endregion
         }
 
         /// <summary>
-        /// Checks whether ClientDetail returns an error when the user is not authorized to view the ClientAdmin page
+        /// Checks whether ClientDetail returns an error when the user is not authorized to view the ClientAdmin page or to admin a related client
         /// </summary>
-        [Fact]
-        public void ClientDetail_ErrorWhenUnauthorized()
+        [Theory]
+        [InlineData("ClientAdmin1", 3)] // Authorized to client admin, but not the specified client
+        [InlineData("test1", 1)] // Not authorized to perform client admin
+        public void ClientDetail_ErrorWhenUnauthorized(string userArg, long clientIdArg)
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser(userArg);
+            #endregion
+
+            #region Act
+            var view = controller.ClientDetail(clientIdArg);
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            #endregion
         }
 
         /// <summary>
         /// Checks whether ClientDetail returns the ClientDetail Json model to authorized users
         /// </summary>
-        [Fact]
-        public void ClientDetail_ReturnsDetails()
+        [Theory]
+        [InlineData("ClientAdmin1", 1)] // Directly authorized to this client
+        [InlineData("ClientAdmin1", 2)] // Authorized to a related (parent) client
+        public void ClientDetail_ReturnsDetails(string userArg, long clientIdArg)
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser(userArg);
+            #endregion
+
+            #region Act
+            var view = controller.ClientDetail(clientIdArg);
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(view);
+            #endregion
         }
 
         /// <summary>
