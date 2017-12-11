@@ -86,15 +86,16 @@ namespace MillimanAccessPortal.Controllers
         public IActionResult ClientFamilyList()
         {
             #region Authorization
-            // User must have ClientAdministrator role to at least 1 Client
-            if (!AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement (RoleEnum.Admin, null)).Result.Succeeded)
+            // User must have Admin role to at least 1 Client or ProfitCenter
+            if (!AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement (RoleEnum.Admin, null)).Result.Succeeded &&
+                !AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin, null)).Result.Succeeded)
             {
-                Response.Headers.Add("Warning", $"You are not authorized as a client administrator or root client creator");
+                Response.Headers.Add("Warning", $"You are not authorized as a client admin or profit center admin");
                 return Unauthorized();
             }
             #endregion
 
-            ClientAdminIndexViewModel ModelToReturn = GetClientAdminIndexModelForUser(GetCurrentApplicationUser());
+            ClientAdminIndexViewModel ModelToReturn = GetClientAdminIndexModelForUser(Queries.GetCurrentApplicationUser(User));
 
             return Json(ModelToReturn);
         }
@@ -380,7 +381,7 @@ namespace MillimanAccessPortal.Controllers
                                                  "ConsultantOffice,AcceptedEmailDomainList,ParentClientId,ProfitCenterId")] Client Model)
         // Members intentionally not bound: Id, AcceptedEmailAddressExceptionList
         {
-            ApplicationUser CurrentApplicationUser = GetCurrentApplicationUser();
+            ApplicationUser CurrentApplicationUser = Queries.GetCurrentApplicationUser(User);
 
             #region Preliminary Validation
             if (!ModelState.IsValid)
@@ -649,7 +650,7 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
 
-            ClientAdminIndexViewModel ModelToReturn = GetClientAdminIndexModelForUser(GetCurrentApplicationUser());
+            ClientAdminIndexViewModel ModelToReturn = GetClientAdminIndexModelForUser(Queries.GetCurrentApplicationUser(User));
             ModelToReturn.RelevantClientId = ExistingClientRecord.Id;
 
             return Json(ModelToReturn);
@@ -716,15 +717,9 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
 
-            ClientAdminIndexViewModel ModelToReturn = GetClientAdminIndexModelForUser(GetCurrentApplicationUser());
+            ClientAdminIndexViewModel ModelToReturn = GetClientAdminIndexModelForUser(Queries.GetCurrentApplicationUser(User));
 
             return Json(ModelToReturn);
-        }
-
-        [NonAction]
-        private ApplicationUser GetCurrentApplicationUser()
-        {
-            return UserManager.GetUserAsync(User).Result;
         }
 
         /// <summary>
@@ -747,9 +742,9 @@ namespace MillimanAccessPortal.Controllers
 
             // Add all appropriate client trees
             List<Client> AllRootClients = Queries.GetAllRootClients();  // list to memory so utilization is fast and no lingering transaction
-            foreach (Client C in AllRootClients.OrderBy(c => c.Name))
+            foreach (Client RootClient in AllRootClients.OrderBy(c => c.Name))
             {
-                ClientAndChildrenModel ClientModel = Queries.GetDescendentFamilyOfClient(C, CurrentUser, true);
+                ClientAndChildrenModel ClientModel = Queries.GetDescendentFamilyOfClient(RootClient, CurrentUser, RoleEnum.Admin, true, true);
                 if (ClientModel.IsThisOrAnyChildManageable())
                 {
                     ModelToReturn.ClientTree.Add(ClientModel);
@@ -757,22 +752,13 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Add all authorized ProfitCenters
-            // First iterate over all ProfitCenterManager claims for the current user
-            foreach (Claim ProfitCenterClaim in UserManager.GetClaimsAsync(CurrentUser)
-                                                           .Result  // .Result accumulate all responses to memory
-                                                           .Where(c => c.Type == ClaimNames.ProfitCenterManager.ToString()))
-            {
-                // Second find a corresponding ProfitCenter table record
-                ProfitCenter AuthorizedProfitCenter = DbContext.ProfitCenter
-                                                               .Where(p => p.Id.ToString() == ProfitCenterClaim.Value)
-                                                               .FirstOrDefault();
+            IQueryable<AuthorizedProfitCenterModel> Query = DbContext.UserRoleInProfitCenter
+                                                                     .Where(URP => URP.UserId == CurrentUser.Id)
+                                                                     .Distinct()
+                                                                     .Include(URP => URP.ProfitCenter)
+                                                                     .Select(URP => new AuthorizedProfitCenterModel(URP.ProfitCenter));
 
-                // If a valid ProfitCenter is found, add it to the ViewModel
-                if (AuthorizedProfitCenter != null)
-                {
-                    ModelToReturn.AuthorizedProfitCenterList.Add(new AuthorizedProfitCenterModel(AuthorizedProfitCenter));
-                }
-            }
+            ModelToReturn.AuthorizedProfitCenterList = Query.ToList();
 
             return ModelToReturn;
         }

@@ -105,7 +105,7 @@ namespace MillimanAccessPortal.DataQueries
             return DataContext.Client.Where(c => c.ParentClientId == null).ToList();
         }
 
-        public ClientAndChildrenModel GetDescendentFamilyOfClient(Client ClientArg, ApplicationUser CurrentUser, bool RecurseDown = true)
+        public ClientAndChildrenModel GetDescendentFamilyOfClient(Client ClientArg, ApplicationUser CurrentUser, RoleEnum ClientRoleRequiredToManage, bool RequireProfitCenterAuthority, bool RecurseDown = true)
         {
             Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientArg.Id.ToString());
             List<ApplicationUser> UserMembersOfThisClient = UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim).Result.ToList();
@@ -113,23 +113,44 @@ namespace MillimanAccessPortal.DataQueries
             ClientAndChildrenModel ResultObject = new ClientAndChildrenModel { ClientEntity = ClientArg };  // Initialize.
             ResultObject.AssociatedContentCount = DataContext.RootContentItem.Where(r => r.ClientIdList.Contains(ClientArg.Id)).Count();
             ResultObject.AssociatedUserCount = UserMembersOfThisClient.Count;
-            ResultObject.CanManage = DataContext.UserRoleInClient
-                                                .Include(URC => URC.Role)
-                                                .Join(DataContext.UserClaims, URC => URC.UserId, claim => claim.UserId, (URC, claim) => new { URC = URC, Claim = claim })
-                                                .SingleOrDefault(rec => rec.URC.UserId == CurrentUser.Id
-                                                                     && rec.URC.Role.RoleEnum == RoleEnum.Admin
-                                                                     && rec.URC.ClientId == ClientArg.Id
-                                                                     // verify that the user has a claim of ProfitCenterManager to the ProfitCenter of the client
-                                                                     && rec.Claim.ClaimType == ClaimNames.ProfitCenterManager.ToString()
-                                                                     && rec.Claim.ClaimValue == ClientArg.ProfitCenterId.ToString())
-                                                != null;
+
+            IQueryable<Object> Query = null;
+
+            if (RequireProfitCenterAuthority)
+            {
+                Query = DataContext.UserRoleInClient
+                                   .Join(DataContext.UserRoleInProfitCenter, URC => URC.UserId, URP => URP.UserId, (URC, URP) => new { URC = URC, URP = URP })
+                                   .Include(rec => rec.URC.Role)
+                                   .Include(rec => rec.URC.Client)
+                                   .Include(rec => rec.URP.Role)
+                                   .Where(rec => rec.URC.UserId == CurrentUser.Id
+                                              && rec.URC.Role.RoleEnum == ClientRoleRequiredToManage
+                                              && rec.URC.ClientId == ClientArg.Id
+                                              // verify that the user has a claim of ProfitCenterManager to the ProfitCenter of the client
+                                              && rec.URP.UserId == CurrentUser.Id
+                                              && rec.URP.Role.RoleEnum == RoleEnum.Admin
+                                              && rec.URP.ProfitCenterId == rec.URC.Client.ProfitCenterId);
+            }
+            else
+            {
+                Query = DataContext.UserRoleInClient
+                                   .Include(URC => URC.Role)
+                                   .Where(URC => URC.UserId == CurrentUser.Id
+                                              && URC.Role.RoleEnum == ClientRoleRequiredToManage
+                                              && URC.ClientId == ClientArg.Id);
+
+            }
+
+            var TestQuery = Query.SingleOrDefault();
+
+            ResultObject.CanManage = TestQuery != null;
 
             if (RecurseDown)
             {
                 List<Client> ChildrenOfThisClient = DataContext.Client.Where(c => c.ParentClientId == ClientArg.Id).ToList();
                 foreach (Client ChildOfThisClient in ChildrenOfThisClient)
                 {
-                    ResultObject.Children.Add(GetDescendentFamilyOfClient(ChildOfThisClient, CurrentUser, RecurseDown));
+                    ResultObject.Children.Add(GetDescendentFamilyOfClient(ChildOfThisClient, CurrentUser, ClientRoleRequiredToManage, RecurseDown));
                 }
             }
 
@@ -155,6 +176,12 @@ namespace MillimanAccessPortal.DataQueries
 
             return ReturnVal;
         }
+
+        internal ApplicationUser GetCurrentApplicationUser(ClaimsPrincipal User)
+        {
+            return UserManager.GetUserAsync(User).Result;
+        }
+
 
     }
 }

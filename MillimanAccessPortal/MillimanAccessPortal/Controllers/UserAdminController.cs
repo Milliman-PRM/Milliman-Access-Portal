@@ -11,34 +11,41 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
-using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using AuditLogLib;
-using AuditLogLib.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
-using MillimanAccessPortal.Authorization;
+using AuditLogLib;
+using AuditLogLib.Services;
 using MapCommonLib;
+using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.Services;
+using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.UserAdminViewModels;
+using MillimanAccessPortal.Models.ClientAdminViewModels;
+using MapDbContextLib.Identity;
+using MapDbContextLib.Context;
 
 namespace MillimanAccessPortal.Controllers
 {
     public class UserAdminController : Controller
     {
+        private readonly ApplicationDbContext DbContext;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IAuditLogger _auditLogger;
         private readonly IAuthorizationService AuthorizationService;
         private readonly MessageQueueServices MessageQueueService;
         private readonly ILogger _logger;
+        private readonly StandardQueries Queries;
 
         public UserAdminController(
             UserManager<ApplicationUser> userManager,
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
             MessageQueueServices MessageQueueServiceArg,
-            ILoggerFactory LoggerFactoryArg
+            ILoggerFactory LoggerFactoryArg,
+            ApplicationDbContext DbContextArg,
+            StandardQueries QueriesArg
             )
         {
             _userManager = userManager;
@@ -46,6 +53,8 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationService = AuthorizationServiceArg;
             MessageQueueService = MessageQueueServiceArg;
             _logger = LoggerFactoryArg.CreateLogger<UserAdminController>();
+            DbContext = DbContextArg;
+            Queries = QueriesArg;
         }
 
         // GET: UserAdmin
@@ -64,6 +73,54 @@ namespace MillimanAccessPortal.Controllers
             return View(Model);
         }
 
+        public ActionResult ClientFamilyList()
+        {
+            #region Authorization
+            // User must have UserAdmin role to at least 1 Client
+            if (!AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserAdmin, null)).Result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized as a user admin");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            #endregion
+
+            UserAdminClientFamilyListViewModel Model = GetUserAdminClientListModel(Queries.GetCurrentApplicationUser(User));
+
+            return Json(Model);
+        }
+
+        [NonAction]  // maybe move this elsewhere, (e.g. the model class itself)
+        private UserAdminClientFamilyListViewModel GetUserAdminClientListModel(ApplicationUser CurrentUser)
+        {
+            #region Validation
+            if (CurrentUser == null)
+            {
+                return null;
+            }
+            #endregion            
+            
+            // Instantiate working variables
+            UserAdminClientFamilyListViewModel ModelToReturn = new UserAdminClientFamilyListViewModel();
+
+            // Add all appropriate client trees
+            List<Client> AllRootClients = Queries.GetAllRootClients();  // list to memory so utilization is fast and no lingering transaction
+            foreach (Client RootClient in AllRootClients.OrderBy(c => c.Name))
+            {
+                ClientAndChildrenModel ClientModel = Queries.GetDescendentFamilyOfClient(RootClient, CurrentUser, RoleEnum.UserAdmin, false, true);
+                if (ClientModel.IsThisOrAnyChildManageable())
+                {
+                    ModelToReturn.ClientTree.Add(ClientModel);
+                }
+            }
+
+            return ModelToReturn;
+        }
+
+
+        
         // GET: UserAdmin/Details/5
         public async Task<ActionResult> Details(string id)
         {
