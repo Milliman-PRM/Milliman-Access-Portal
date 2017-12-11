@@ -26,8 +26,17 @@ namespace MapTests
             Set.Setup(d => d.AddRange(It.IsAny<IEnumerable<T>>())).Callback<IEnumerable<T>>((s) => Data.AddRange(s));
             Set.Setup(d => d.Remove(It.IsAny<T>())).Callback<T>((s) => Data.Remove(s));
             Set.Setup(d => d.Update(It.IsAny<T>())).Callback<T>((s) => ReplaceGenericListElement(s, Data, "Id"));
-
+            Set.Setup(d => d.Find(It.IsAny<object[]>())).Returns<object[]>((input) => Data.FirstOrDefault(d => GetIdValue(d) == input[0].ToString()));
             return Set;
+        }
+
+        public static string GetIdValue(object TargetedItem)
+        {
+            Type TType = TargetedItem.GetType();
+
+            PropertyInfo PkPropertyInfo = TType.GetMembers().OfType<PropertyInfo>().Single(m => m.CustomAttributes.Any(at => at.AttributeType == typeof(KeyAttribute)));
+            
+            return PkPropertyInfo.GetValue(TargetedItem).ToString();
         }
 
         public static void AssignNavigationProperty<U>(DbSet<T> ReferencingDbSet, string ReferencingFkFieldName, DbSet<U> ReferencedDbSet) where U : class
