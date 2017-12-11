@@ -114,7 +114,7 @@ namespace MillimanAccessPortal.Controllers
             #region Preliminary Validation
             if (ThisClient == null)
             {
-                Response.Headers.Add("Warning", $"The selected client ({ThisClient.Name}) was not found");
+                Response.Headers.Add("Warning", $"The requested client was not found");
                 return NotFound();
             }
             #endregion
