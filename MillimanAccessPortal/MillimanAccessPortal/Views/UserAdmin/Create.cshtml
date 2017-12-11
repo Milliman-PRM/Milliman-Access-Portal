@@ -68,8 +68,15 @@
             </div>
         </div>
         <div class="form-group">
+            <label asp-for="MemberOfClientIdArray" class="col-md-2 control-label">MemberOfClientIdArray</label>
+            <div class="col-md-10">
+                <input asp-for="MemberOfClientIdArray" class="form-control" />
+                <span asp-validation-for="MemberOfClientIdArray" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Create" class="btn btn-default" onclick="submitSaveNewUser(event)"/>
+                <input type="submit" value="Create" class="btn btn-default" onclick="submitSaveNewUser(event)" />
             </div>
         </div>
 
