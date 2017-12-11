@@ -226,7 +226,7 @@ Cards
 
     .card-body-main-container {
         position: relative;
-        padding: 0 0 .5em;
+        padding: .25em;
         margin: 0;
         width: 100%;
         flex: 1;
@@ -410,5 +410,25 @@ Cards
 
         .card-expansion-option-label {
         }
+    }
+}
+
+.hr {
+    height: .1em;
+    border: 1px solid $charcoal;
+    margin: 0 0 3em;
+    padding: 0;
+}
+
+
+
+/* Action Icons */
+
+.action-icon {
+    color: $charcoal;
+    cursor: pointer;
+
+    &:hover {
+        color: lighten($charcoal, 10%);
     }
 }

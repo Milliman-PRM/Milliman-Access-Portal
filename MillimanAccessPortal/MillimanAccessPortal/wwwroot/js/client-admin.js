@@ -113,6 +113,7 @@ function newClientFormSetup() {
     clearFormData();
     clearSelectedClient();
     makeFormWriteable();
+    $('#client-tree #create-new-client-card').attr('selected', '');
     $('#client-form #form-buttons-edit').hide();
     $('#client-form #form-buttons-new').show();
     showClientForm();
@@ -565,6 +566,7 @@ function cancelEditTasks(clientId) {
         removeClientInserts();
         clearFormData();
         hideClientForm();
+        clearSelectedClient();
     }
 }
 
