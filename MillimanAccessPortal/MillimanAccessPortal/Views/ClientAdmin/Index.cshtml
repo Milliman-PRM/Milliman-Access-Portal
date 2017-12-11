@@ -37,7 +37,7 @@
     </div>
     <div class="overflow-y-scroll padding-1em">
         <form id="client-form">
-            <div class="flex-container with-gutter flex-row-wrap">
+            <div class="flex-container with-gutter flex-row-wrap margin-bottom-1pt5em">
                 <h4 class="flex-item-12-12 padding-top-1em">Client Information</h4>
                 <div class="display-none">
                     <input asp-for="Id" />
@@ -133,13 +133,13 @@
                 </div>
                 @Html.AntiForgeryToken()
             </div>            
-            <div id="form-buttons-new" class="text-right" style="display: none;">
-                <button type="button" class="btn btn-link" onclick="resetNewClientForm(event)">Reset Form</button>
-                <button type="submit" id="create-new-button" class="btn btn-primary primary-button" onclick="submitClientForm(event)">Create New Client</button>
+            <div id="form-buttons-new" class="right-align-content" style="display: none;">
+                <button type="button" class="link-button" onclick="resetNewClientForm(event)">Reset Form</button>
+                <button type="submit" id="create-new-button" class="font-color-white bg-color-green bg-color-green-hover" onclick="submitClientForm(event)">Create New Client</button>
             </div>
-            <div id="form-buttons-edit" class="text-right" style="display: none;">
-                <button type="button" id="undo-changes-button" class="btn btn-link" onclick="undoChangesEditClientForm(event)">Undo Changes</button>
-                <button type="submit" id="save-changes-button" class="btn btn-primary primary-button" onclick="submitClientForm(event)">Save Changes</button>
+            <div id="form-buttons-edit" class="right-align-content" style="display: none;">
+                <button type="button" id="undo-changes-button" class="link-button" onclick="undoChangesEditClientForm(event)">Undo Changes</button>
+                <button type="submit" id="save-changes-button" class="font-color-white bg-color-blue bg-color-blue-hover" onclick="submitClientForm(event)">Save Changes</button>
             </div>
         </form>
     </div>

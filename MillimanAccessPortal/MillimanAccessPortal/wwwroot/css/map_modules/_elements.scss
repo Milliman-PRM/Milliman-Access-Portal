@@ -3,11 +3,14 @@
     color: $charcoal;
 }
 
-a {
+a,
+.link-button {
     color: $blue;
+    background-color: transparent;
 
     &:hover {
         color: darken( $blue, 10% );
+        text-decoration: underline;
     }
 
     &:visited {
@@ -20,7 +23,7 @@ button,
     border: none;
     border-radius: .25em;
     padding: 1em 2em;
-    margin-left: 2em;
+    margin-left: 1.5em;
     text-align: center;
     text-decoration: none;
     display: inline-block;
@@ -50,7 +53,6 @@ select {
         font-weight: bold;
         border: solid 1px $grey;
         background-color: $light-grey;
-        /*background: transparent;*/
         box-shadow: none;
         cursor: default;
         -moz-appearance: none;

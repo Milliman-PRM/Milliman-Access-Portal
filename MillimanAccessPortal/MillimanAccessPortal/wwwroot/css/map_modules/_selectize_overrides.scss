@@ -1,27 +1,37 @@
 div.selectize-input {
-    color: #555;
+    color: $charcoal;
     min-height: 40px;
-    border-radius: 5px;
+    border-radius: .25em;
+    border: solid 1px transparent;
     transition: border 0.2s;
-    padding: 2px 5px;
+    padding: .25em .5em;
+    font-size: 1rem;
+    margin: 0 .25em .5em;
+    box-shadow: none;
+    -webkit-box-shadow: none;
+
+    &:focus {
+        border: solid 1px $blue;
+    }
 
     &.disabled {
         font-weight: bold;
-        border: none;
-        background-color: transparent;
+        border: solid 1px $grey;
+        background-color: $light-grey !important;
         box-shadow: none;
         cursor: default;
-        opacity: 1;
         -moz-appearance: none;
         -webkit-appearance: none;
+        opacity: 1 !important;
 
         div.item {
             background: $grey;
-            color: $dark-grey;
+            color: $dark-grey !important;
             border: none;
-            font-size: 14px;
-            z-index: 99;
+            font-size: 1em;
+            z-index: 10;
             opacity: 1;
+            padding-right: 1em !important;
 
             a.remove {
                 display: none;
