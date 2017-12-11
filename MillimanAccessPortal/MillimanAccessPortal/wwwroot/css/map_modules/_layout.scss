@@ -79,6 +79,8 @@
                        (2pt5em,    2.5em ),
                        (4pt5rem,   4.5rem),
                        (5pt5rem,   5.5rem),
+                       (10pct,     10%   ),
+                       (20pct,     20%   ),
                        (auto,      auto  ){
 
      .margin-#{$label}         { margin:         0 $size $size; }
@@ -101,6 +103,8 @@
                        (50pct,     50%   ),
                        (65pct,     65%   ),
                        (75pct,     75%   ),
+                       (80pct,     80%   ),
+                       (90pct,     90%   ),
                        (100pct,    100%  ),
                        (100vh,     100vh ),
                        (100vw,     100vw ),
@@ -142,5 +146,5 @@
 }
 
 /* Overflow */
-.overflow-hidden   { overflow: hidden;                       }
+.overflow-hidden   { overflow: hidden;                     }
 .overflow-y-scroll { overflow-y: auto; overflow-x: hidden; }
