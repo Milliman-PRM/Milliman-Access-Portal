@@ -38,7 +38,7 @@ function GetClientDetail(clientDiv) {
 
     var clientId = clientDiv.attr('data-client-id').valueOf();
 
-    if (clientDiv.hasClass('selected') && !clientDiv.hasClass('editing')) {
+    if (clientDiv.is('[selected]') && !clientDiv.is('[editing]')) {
         clearSelectedClient();
         hideClientForm();
         return false;
@@ -56,10 +56,10 @@ function GetClientDetail(clientDiv) {
         renderUserList(response);
         // Change the dom to reflect the selected client
         clearSelectedClient();
-        clientDiv.addClass('selected');
+        clientDiv.attr('selected', '');
         // Show the form in readonly mode
         makeFormReadOnly();
-        if (clientDiv.hasClass('disabled')) {
+        if (clientDiv.is('[disabled]')) {
             $('#client-info #edit-client-icon').hide();
         }
         showClientForm();
@@ -88,8 +88,8 @@ function EditClientDetail(clientDiv) {
         populateClientDetails(response.ClientEntity);
         // Change the dom to reflect the selected client
         clearSelectedClient()
-        clientDiv.addClass('selected');
-        clientDiv.addClass('editing');
+        clientDiv.attr('selected', '');
+        clientDiv.attr('editing', '');
         // Show the form in read/write mode
         makeFormWriteable();
         $('#client-form #form-buttons-new').hide();
@@ -130,11 +130,11 @@ function newChildClientFormSetup(parentClientDiv) {
     clearSelectedClient();
 
     var template = childNodePlaceholder;
-    if (parentClientDiv.hasClass('col-xs-12')) {
-        template = template.replace(/{{class}}/g, "col-xs-offset-1 col-xs-11");
+    if (parentClientDiv.hasClass('width-100pct')) {
+        template = template.replace(/{{class}}/g, "margin-left-10pct width-90pct");
     }
     else {
-        template = template.replace(/{{class}}/g, "col-xs-offset-2 col-xs-10");
+        template = template.replace(/{{class}}/g, "margin-left-20pct width-80pct");
     }
 
     parentClientDiv.parent().after(template);
@@ -166,8 +166,8 @@ function clearValidationErrors() {
 }
 
 function clearSelectedClient() {
-    $('#client-tree-list div.selected').removeClass('selected');
-    $('#client-tree-list div.editing').removeClass('editing');
+    $('#client-tree-list div[selected]').removeAttr('selected');
+    $('#client-tree-list div[editing]').removeAttr('editing');
 }
 
 function makeFormReadOnly() {
@@ -240,7 +240,7 @@ function renderClientTree(clientId) {
     $('#client-tree-list').empty();
     clientTree.forEach(function (rootClient) {
         renderClientNode(rootClient, 1);
-        $('#client-tree-list').append('<li class="hr col-xs-12"></li>');
+        $('#client-tree-list').append('<li class="hr width-100pct"></li>');
     });
     $('#client-tree-list div.card-container').on('click', function () {
         GetClientDetail($(this));
@@ -266,13 +266,13 @@ function renderClientNode(client, level) {
 
     switch (level) {
         case 1:
-            template = template.replace(/{{class}}/g, "col-xs-12");
+            template = template.replace(/{{class}}/g, "width-100pct");
             break;
         case 2:
-            template = template.replace(/{{class}}/g, "col-xs-offset-1 col-xs-11");
+            template = template.replace(/{{class}}/g, "margin-left-10pct width-90pct");
             break;
         default:
-            template = template.replace(/{{class}}/g, "col-xs-offset-2 col-xs-10");
+            template = template.replace(/{{class}}/g, "margin-left-20pct width-80pct");
             break;
     }
 
@@ -294,7 +294,7 @@ function renderClientNode(client, level) {
 
     if (!client.CanManage) {
         $('.icon-container', $template).remove();
-        $('.client-admin-card', $template).addClass('disabled');
+        $('.client-admin-card', $template).attr('disabled', '');
     }
 
     if (client.Children.length != 0) {  // Only include the delete button on client nodes without children
@@ -324,8 +324,8 @@ function deleteClient(event, id, name) {
         unsafeMessage: '<h3>Delete ' + name + '?</h3>' +
             '<p>This action can not be undone.  Do you wish to proceed?</p>',
         buttons: [
-            $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'btn-danger'}),
-            $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'btn-link' })
+            $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'button bg-color-red bg-color-hover-red'}),
+            $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
         ],
         callback: function (result) {
             if (result) {
@@ -335,8 +335,8 @@ function deleteClient(event, id, name) {
                         '<input name="password" type="password" placeholder="Password" required />'
                     ].join(''),
                     buttons: [
-                        $.extend({}, vex.dialog.buttons.YES, { text: 'DELETE', className: 'btn-danger' }),
-                        $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'btn-link' })
+                        $.extend({}, vex.dialog.buttons.YES, { text: 'DELETE', className: 'button bg-color-red bg-color-hover-red' }),
+                        $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
                     ],
                     callback: function (result) {
                         if (result) {
@@ -468,8 +468,8 @@ function resetNewClientForm() {
             vex.dialog.confirm({
                 message: 'Would you like to discard the unsaved changes?',
                 buttons: [
-                    $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm' }),
-                    $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'btn-link' })
+                    $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'button bg-color-green bg-color-hover-green' }),
+                    $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
                 ],
                 callback: function (result) {
                     if (result) {
@@ -499,8 +499,8 @@ function undoChangesEditClientForm(event) {
     vex.dialog.confirm({
         message: 'Would you like to discard the unsaved changes?',
         buttons: [
-            $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm' }),
-            $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'btn-link' })
+            $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'button bg-color-green bg-color-hover-green' }),
+            $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
         ],
         callback: function (result) {
             if (result) {
@@ -511,7 +511,7 @@ function undoChangesEditClientForm(event) {
 }
 
 function toggleEditExistingClient() {
-    EditClientDetail($('div.selected'));
+    EditClientDetail($('div[selected]'));
 }
 
 function cancelClientEdit() {
@@ -522,8 +522,8 @@ function cancelClientEdit() {
         vex.dialog.confirm({
             message: 'Would you like to discard the unsaved changes?',
             buttons: [
-                $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm' }),
-                $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'btn-link' })
+                $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'button bg-color-green bg-color-hover-green' }),
+                $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
             ],
             callback: function (result) {
                 if (result) {
@@ -581,7 +581,11 @@ function renderUserList(client, userId) {
         event.stopPropagation();
     });
     $('div[data-client-id][data-user-id]').on('click', function (event) {
-        $(this).find('div.card-expansion-container').toggleClass('minimized maximized');
+        if ($(this).find('div.card-expansion-container').is('[maximized]')) {
+            $(this).find('div.card-expansion-container').removeAttr('maximized');
+        } else {
+            $(this).find('div.card-expansion-container').attr('maximized', '');
+        }
         toggleExpandCollapse();
         event.stopPropagation();
     });
@@ -631,23 +635,23 @@ function renderUserNode(clientId, user) {
 };
 
 function expandAllUsers() {
-    $('div.card-expansion-container.minimized').toggleClass('minimized maximized');
+    $('#client-user-list div.card-expansion-container').attr('maximized', '');
     toggleExpandCollapse();
 }
 
 function collapseAllUsers() {
-    $('div.card-expansion-container.maximized').toggleClass('maximized minimized');
+    $('#client-user-list div.card-expansion-container[maximized]').removeAttr('maximized');
     toggleExpandCollapse();
 }
 
 function toggleExpandCollapse() {
-    if ($('div.card-expansion-container.minimized').length > 0) {
+    if ($('div.card-expansion-container:not([maximized])').length > 0) {
         $('#expand-user-icon').show();
     } else {
         $('#expand-user-icon').hide();
     }
 
-    if ($('div.card-expansion-container.maximized').length > 0) {
+    if ($('div.card-expansion-container[maximized]').length > 0) {
         $('#collapse-user-icon').show();
     } else {
         $('#collapse-user-icon').hide();
