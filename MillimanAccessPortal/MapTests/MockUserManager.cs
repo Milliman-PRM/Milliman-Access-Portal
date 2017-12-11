@@ -42,8 +42,8 @@ namespace MapTests
             ReturnMockUserManager.Setup(m => m.AddClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>())).Callback<ApplicationUser, IEnumerable<Claim>>((user, claims) => UserStore.Object.AddClaimsAsync(user, claims, CancellationToken.None));
             ReturnMockUserManager.Setup(m => m.RemoveClaimAsync(It.IsAny<ApplicationUser>(), It.IsAny<Claim>())).Callback<ApplicationUser, Claim>((user, claim) => UserStore.Object.RemoveClaimsAsync(user, new List<Claim>() { claim }, CancellationToken.None));
             ReturnMockUserManager.Setup(m => m.RemoveClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>())).Callback<ApplicationUser, IEnumerable<Claim>>((user, claims) => UserStore.Object.RemoveClaimsAsync(user, claims, CancellationToken.None));
-            ReturnMockUserManager.Setup(m => m.GetUsersForClaimAsync(It.IsAny<Claim>())).Returns<Claim>(claim => UserStore.Object.GetUsersForClaimAsync(claim, CancellationToken.None));
-
+            ReturnMockUserManager.Setup(m => m.GetUsersForClaimAsync(It.IsAny<Claim>())).ReturnsAsync<Claim, UserManager<ApplicationUser>, IList<ApplicationUser>>(claim => UserStore.Object.GetUsersForClaimAsync(claim, CancellationToken.None).Result);
+            
             Claim thisClaim = new Claim("type", "value");
             var Claims = new List<Claim>() { thisClaim };
 

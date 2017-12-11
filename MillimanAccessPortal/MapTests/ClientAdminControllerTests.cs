@@ -116,7 +116,7 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<ViewResult>(view);
+            Assert.IsType<JsonResult>(view);
             #endregion
         }
 

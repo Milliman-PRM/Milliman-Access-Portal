@@ -35,10 +35,27 @@ namespace MapTests
                                         );
             NewStore.Setup(d => d.AddClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>(), It.IsAny<CancellationToken>())).Callback<ApplicationUser, IEnumerable<Claim>, CancellationToken>((usr, claims, ct) => Context.Object.UserClaims.AddRange(BuildClaimList(usr, claims)));
             NewStore.Setup(d => d.RemoveClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>(), It.IsAny<CancellationToken>())).Callback<ApplicationUser, IEnumerable<Claim>, CancellationToken>((usr, claims, ct) => Context.Object.UserClaims.RemoveRange(BuildClaimList(usr, claims)));
-            NewStore.Setup(d => d.GetClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<CancellationToken>())).ReturnsAsync<ApplicationUser, CancellationToken, UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>, IList<Claim>>((usr, ct) => Context.Object.UserClaims.Where(uc => uc.UserId == usr.Id).Cast<Claim>().ToList());
+            
             NewStore.Setup(d => d.FindByEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync<string, CancellationToken, UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>, ApplicationUser>((em, ct) => Context.Object.ApplicationUser.SingleOrDefault(au => au.Email == em));
             NewStore.Setup(d => d.GetUserNameAsync(It.IsAny<ApplicationUser>(), It.IsAny<CancellationToken>())).ReturnsAsync<ApplicationUser, CancellationToken, UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>, string>((usr, ct) => Context.Object.Users.SingleOrDefault(ausr => ausr.Id == usr.Id).UserName);
-            
+
+            /*
+             * Because UserClaims contains IdentityUserClaims but GetClaimsAsync needs to return a list of generic Claim objects,
+             *      this mock requires a more complicated return block than most others.
+             */
+            NewStore.Setup(d => d.GetClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync<ApplicationUser, CancellationToken, UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>, IList<Claim>>
+                    ((usr, ct) => 
+                        {
+                            var Claims = Context.Object.UserClaims.Where(uc => uc.UserId == usr.Id).ToList();
+                            List<Claim> claimList = new List<Claim>();
+                            foreach (IdentityUserClaim<long> claim in Claims)
+                            {
+                                claimList.Add(claim.ToClaim());
+                            }
+                            return claimList;
+                        });
+
             // more?
 
             return NewStore;
