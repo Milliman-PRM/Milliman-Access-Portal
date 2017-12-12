@@ -131,11 +131,11 @@ function newChildClientFormSetup(parentClientDiv) {
     clearSelectedClient();
 
     var template = childNodePlaceholder;
-    if (parentClientDiv.hasClass('width-100pct')) {
-        template = template.replace(/{{class}}/g, "margin-left-10pct width-90pct");
+    if (parentClientDiv.hasClass('card-100')) {
+        template = template.replace(/{{class}}/g, "card-90");
     }
     else {
-        template = template.replace(/{{class}}/g, "margin-left-20pct width-80pct");
+        template = template.replace(/{{class}}/g, "card-80");
     }
 
     parentClientDiv.parent().after(template);
@@ -267,13 +267,13 @@ function renderClientNode(client, level) {
 
     switch (level) {
         case 1:
-            template = template.replace(/{{class}}/g, "width-100pct");
+            template = template.replace(/{{class}}/g, "card-100");
             break;
         case 2:
-            template = template.replace(/{{class}}/g, "margin-left-10pct width-90pct");
+            template = template.replace(/{{class}}/g, "card-90");
             break;
         default:
-            template = template.replace(/{{class}}/g, "margin-left-20pct width-80pct");
+            template = template.replace(/{{class}}/g, "card-80");
             break;
     }
 
@@ -325,7 +325,7 @@ function deleteClient(event, id, name) {
         unsafeMessage: '<h3>Delete ' + name + '?</h3>' +
             '<p>This action can not be undone.  Do you wish to proceed?</p>',
         buttons: [
-            $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'button bg-color-red bg-color-red-hover'}),
+            $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'red-button'}),
             $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
         ],
         callback: function (result) {
@@ -336,7 +336,7 @@ function deleteClient(event, id, name) {
                         '<input name="password" type="password" placeholder="Password" required />'
                     ].join(''),
                     buttons: [
-                        $.extend({}, vex.dialog.buttons.YES, { text: 'DELETE', className: 'button bg-color-red bg-color-red-hover' }),
+                        $.extend({}, vex.dialog.buttons.YES, { text: 'DELETE', className: 'red-button' }),
                         $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
                     ],
                     callback: function (result) {
@@ -469,7 +469,7 @@ function resetNewClientForm() {
             vex.dialog.confirm({
                 message: 'Would you like to discard the unsaved changes?',
                 buttons: [
-                    $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'button bg-color-green bg-color-green-hover' }),
+                    $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'green-button' }),
                     $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
                 ],
                 callback: function (result) {
@@ -500,7 +500,7 @@ function undoChangesEditClientForm(event) {
     vex.dialog.confirm({
         message: 'Would you like to discard the unsaved changes?',
         buttons: [
-            $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'button bg-color-green bg-color-green-hover' }),
+            $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'green-button' }),
             $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
         ],
         callback: function (result) {
@@ -523,7 +523,7 @@ function cancelClientEdit() {
         vex.dialog.confirm({
             message: 'Would you like to discard the unsaved changes?',
             buttons: [
-                $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'button bg-color-green bg-color-green-hover' }),
+                $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'green-button' }),
                 $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
             ],
             callback: function (result) {

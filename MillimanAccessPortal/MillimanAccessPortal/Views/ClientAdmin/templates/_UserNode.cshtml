@@ -1,6 +1,6 @@
 <script type="text/template" data-template="userNode">
     <li>
-        <div class="width-100pct card-container" data-search-string data-client-id="{{clientId}}" data-user-id="{{id}}">
+        <div class="card-container card-100" data-search-string data-client-id="{{clientId}}" data-user-id="{{id}}">
             <div class="card-body-main-container">
                 <div class="card-body-secondary-container">
                     <i class="fa fa-fw fa-user fa-4x card-user-icon"></i>
@@ -69,13 +69,15 @@
     </li>
 </script>
 
-<script type="text/template" data-template="createNewUserCard">
+<script type="text/template" data-template="addUserCard">
     <li>
-        <div class="col-xs-12 client-admin-card action-card" onclick="newClientUserSetup()">
-            <h2 class="center-text-card">
-                <i class="fa fa-plus"></i>
-                <span>Add User</span>
-            </h2>
+        <div id="add-user-card" class="card-container card-100 action-card" onclick="newUserSetup()">
+            <div class="card-body-main-container">
+                <h2 class="card-body-primary-text">
+                    <i class="fa fa-plus"></i>
+                    <span>Add User</span>
+                </h2>
+            </div>
         </div>
     </li>
 </script>

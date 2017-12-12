@@ -34,20 +34,18 @@
     <li class="client-insert">
         <div class="{{class}} card-container flex-container flex-row-no-wrap items-align-center" selected>
             <div class="card-body-main-container content-item-flex-1">
-                <h2 class="card-body-primary-text margin-bottom-0">New Child Client</h2>
+                <h3 class="card-body-primary-text">New Child Client</h3>
             </div>
-            <div class="placeholder-arrow">
-                <i class="fa fa-fw fa-2x fa-chevron-right"></i>
-            </div>
+            <i class="fa fa-fw fa-2x fa-chevron-right"></i>
         </div>
     </li>
 </script>
 
 <script type="text/template" data-template="createNewClientCard">
     <li>
-        <div id="create-new-client-card" class="width-100pct card-container flex-row-no-wrap items-align-center center-content" onclick="newClientFormSetup()">
-            <div class="card-body-main-container content-item-flex-1">
-                <h2 class="card-body-primary-text margin-bottom-0 width-100pct">
+        <div id="create-new-client-card" class="card-container card-100 action-card" onclick="newClientFormSetup()">
+            <div class="card-body-main-container">
+                <h2 class="card-body-primary-text">
                     <i class="fa fa-plus"></i>
                     <span>Create New Client</span>
                 </h2>

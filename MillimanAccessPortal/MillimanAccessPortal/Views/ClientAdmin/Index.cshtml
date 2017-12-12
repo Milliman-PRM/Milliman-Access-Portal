@@ -18,144 +18,154 @@
 
 }
 
-<div id="client-tree" class="flex-container flex-column-no-wrap overflow-hidden flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12">
-    <h3 class="center-content padding-1em">Client Tree</h3>
-    <div class="flex-container flex-row-no-wrap items-align-center padding-bottom-1em content-item-flex-none">
-        <input type="search" id="client-search-box" class="width-65pct" placeholder="Search for Client" />
-        <i id="add-client-icon" class="fa fa-2x fa-plus right-align-content flex-item-4-12 padding-left-pt5em action-icon" onclick="newClientFormSetup()"></i>
+<div id="client-tree" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12">
+    <h3 class="admin-panel-header">Client Tree</h3>
+    <div class="admin-panel-toolbar">
+        <input id="client-search-box" class="admin-panel-searchbar" type="search" placeholder="Search for Client" />
+        <div class="admin-panel-action-icons-container">
+            <i id="add-client-icon" class="fa fa-2x fa-plus action-icon" onclick="newClientFormSetup()"></i>
+        </div>
     </div>
-    <div id="client-tree" class="overflow-y-scroll padding-right-1em">
-        <ul id="client-tree-list" class="list-style-none padding-0 position-relative">
+    <div id="client-tree" class="admin-panel-content-container">
+        <ul id="client-tree-list" class="admin-panel-content">
         </ul>
     </div>
 </div>
-<div id="client-info" class="flex-container flex-column-no-wrap client-admin-section flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-6-12" style="display: none;">
-    <h3 class="center-content padding-1em">Client Information</h3>
-    <div class="align-self-end right-align-content content-align-center padding-bottom-1em width-100pct content-item-flex-none">
-        <i id="edit-client-icon" class="fa fa-2x fa-pencil padding-left-pt25em action-icon" onclick="toggleEditExistingClient()"></i>
-        <i id="cancel-edit-client-icon" class="fa fa-2x fa-close padding-left-pt25em action-icon" onclick="cancelClientEdit()"></i>
+<div id="client-info" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-6-12" style="display: none;">
+    <h3 class="admin-panel-header">Client Information</h3>
+    <div class="admin-panel-toolbar">
+        <div class="admin-panel-action-icons-container">
+            <i id="edit-client-icon" class="fa fa-2x fa-pencil action-icon" onclick="toggleEditExistingClient()"></i>
+            <i id="cancel-edit-client-icon" class="fa fa-2x fa-close action-icon" onclick="cancelClientEdit()"></i>
+        </div>    
     </div>
-    <div class="overflow-y-scroll padding-left-pt25em padding-right-pt25em">
+    <div class="admin-panel-content-container">
         <form id="client-form">
-            <div class="flex-container with-gutter flex-row-wrap margin-bottom-1pt5em">
-                <h4 class="flex-item-12-12 section-label">Client Information</h4>
-                <div class="display-none">
-                    <input asp-for="Id" />
-                    <input asp-for="ParentClientId" />
-                </div>
-                <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-9-12">
-                    <label asp-for="Name"></label>
-                    <div>
-                        <input asp-for="Name" class="form-control" />
-                        <span asp-validation-for="Name" class="text-danger"></span>
+            <div class="form-container">
+                <h4 class="form-section-header">Client Information</h4>
+                <div class="form-section-container">
+                    <div style="display: none;">
+                        <input asp-for="Id" />
+                        <input asp-for="ParentClientId" />
+                    </div>
+                    <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-9-12">
+                        <label asp-for="Name"></label>
+                        <div>
+                            <input asp-for="Name" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-3-12">
+                        <label asp-for="ClientCode"></label>
+                        <div>
+                            <input asp-for="ClientCode" />
+                            <span asp-validation-for="ClientCode" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                        <label asp-for="ContactName"></label>
+                        <div>
+                            <input asp-for="ContactName" />
+                            <span asp-validation-for="ContactName" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                        <label asp-for="ContactTitle"></label>
+                        <div>
+                            <input asp-for="ContactTitle" />
+                            <span asp-validation-for="ContactTitle" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-9-12">
+                        <label asp-for="ContactEmail"></label>
+                        <div>
+                            <input asp-for="ContactEmail" />
+                            <span asp-validation-for="ContactEmail" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-3-12">
+                        <label asp-for="ContactPhone"></label>
+                        <div>
+                            <input asp-for="ContactPhone" />
+                            <span asp-validation-for="ContactPhone" class="text-danger"></span>
+                        </div>
                     </div>
                 </div>
-                <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-3-12">
-                    <label asp-for="ClientCode"></label>
-                    <div>
-                        <input asp-for="ClientCode" class="form-control" />
-                        <span asp-validation-for="ClientCode" class="text-danger"></span>
+                <h4 class="form-section-header">Security Information</h4>
+                <div class="form-section-container">
+                    <div class="form-input flex-item-12-12">
+                        <label asp-for="AcceptedEmailDomainList"></label>
+                        <div>
+                            <input asp-for="AcceptedEmailDomainList" class="selectize-custom-input" />
+                            <span asp-validation-for="AcceptedEmailDomainList" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-input flex-item-12-12">
+                        <label asp-for="AcceptedEmailAddressExceptionList"></label>
+                        <div>
+                            <input asp-for="AcceptedEmailAddressExceptionList" class="selectize-custom-input" />
+                            <span asp-validation-for="AcceptedEmailAddressExceptionList" class="text-danger"></span>
+                        </div>
                     </div>
                 </div>
-                <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
-                    <label asp-for="ContactName"></label>
-                    <div>
-                        <input asp-for="ContactName" class="form-control" />
-                        <span asp-validation-for="ContactName" class="text-danger"></span>
+                <h4 class="form-section-header">Billing Information</h4>
+                <div class="form-section-container">
+                    <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                        <label asp-for="ConsultantName"></label>
+                        <div>
+                            <input asp-for="ConsultantName" />
+                            <span asp-validation-for="ConsultantName" class="text-danger"></span>
+                        </div>
                     </div>
-                </div>
-                <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
-                    <label asp-for="ContactTitle"></label>
-                    <div>
-                        <input asp-for="ContactTitle" class="form-control" />
-                        <span asp-validation-for="ContactTitle" class="text-danger"></span>
+                    <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                        <label asp-for="ConsultantEmail"></label>
+                        <div>
+                            <input asp-for="ConsultantEmail" />
+                            <span asp-validation-for="ConsultantEmail" class="text-danger"></span>
+                        </div>
                     </div>
-                </div>
-                <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-9-12">
-                    <label asp-for="ContactEmail"></label>
-                    <div>
-                        <input asp-for="ContactEmail" class="form-control" />
-                        <span asp-validation-for="ContactEmail" class="text-danger"></span>
+                    <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                        <label asp-for="ConsultantOffice"></label>
+                        <div>
+                            <input asp-for="ConsultantOffice" />
+                            <span asp-validation-for="ConsultantOffice" class="text-danger"></span>
+                        </div>
                     </div>
-                </div>
-                <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-3-12">
-                    <label asp-for="ContactPhone"></label>
-                    <div>
-                        <input asp-for="ContactPhone" class="form-control" />
-                        <span asp-validation-for="ContactPhone" class="text-danger"></span>
+                    <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                        <label asp-for="ProfitCenterId"></label>
+                        <div>
+                            <select asp-for="ProfitCenterId">
+                                <option value="">Make a Selection</option>
+                            </select>
+                            <span asp-validation-for="ProfitCenterId" class="text-danger"></span>
+                        </div>
                     </div>
+                    @Html.AntiForgeryToken()
                 </div>
-                <h4 class="flex-item-12-12 section-label">Security Information</h4>
-                <div class="flex-item-12-12">
-                    <label asp-for="AcceptedEmailDomainList"></label>
-                    <div>
-                        <input asp-for="AcceptedEmailDomainList" class="selectize-custom-input" />
-                        <span asp-validation-for="AcceptedEmailDomainList" class="text-danger"></span>
-                    </div>
+                <div id="form-buttons-new" class="form-button-container" style="display: none;">
+                    <button type="button" id="reset-form-button" class="link-button" onclick="resetNewClientForm(event)">Reset Form</button>
+                    <button type="submit" id="create-new-button" class="green-button" onclick="submitClientForm(event)">Create New Client</button>
                 </div>
-                <div class="flex-item-12-12">
-                    <label asp-for="AcceptedEmailAddressExceptionList"></label>
-                    <div>
-                        <input asp-for="AcceptedEmailAddressExceptionList" class="selectize-custom-input" />
-                        <span asp-validation-for="AcceptedEmailAddressExceptionList" class="text-danger"></span>
-                    </div>
+                <div id="form-buttons-edit" class="form-button-container" style="display: none;">
+                    <button type="button" id="undo-changes-button" class="link-button" onclick="undoChangesEditClientForm(event)">Undo Changes</button>
+                    <button type="submit" id="save-changes-button" class="blue-button" onclick="submitClientForm(event)">Save Changes</button>
                 </div>
-                <h4 class="flex-item-12-12 section-label">Billing Information</h4>
-                <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
-                    <label asp-for="ConsultantName"></label>
-                    <div>
-                        <input asp-for="ConsultantName" class="form-control" />
-                        <span asp-validation-for="ConsultantName" class="text-danger"></span>
-                    </div>
-                </div>
-                <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
-                    <label asp-for="ConsultantEmail"></label>
-                    <div>
-                        <input asp-for="ConsultantEmail" class="form-control" />
-                        <span asp-validation-for="ConsultantEmail" class="text-danger"></span>
-                    </div>
-                </div>
-                <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
-                    <label asp-for="ConsultantOffice"></label>
-                    <div>
-                        <input asp-for="ConsultantOffice" class="form-control" />
-                        <span asp-validation-for="ConsultantOffice" class="text-danger"></span>
-                    </div>
-                </div>
-                <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
-                    <label asp-for="ProfitCenterId"></label>
-                    <div>
-                        <select asp-for="ProfitCenterId" class="form-control">
-                            <option value="">Make a Selection</option>
-                        </select>
-                        <span asp-validation-for="ProfitCenterId" class="text-danger"></span>
-                    </div>
-                </div>
-                @Html.AntiForgeryToken()
             </div>            
-            <div id="form-buttons-new" class="right-align-content" style="display: none;">
-                <button type="button" class="link-button" onclick="resetNewClientForm(event)">Reset Form</button>
-                <button type="submit" id="create-new-button" class="font-color-white bg-color-green bg-color-green-hover" onclick="submitClientForm(event)">Create New Client</button>
-            </div>
-            <div id="form-buttons-edit" class="right-align-content" style="display: none;">
-                <button type="button" id="undo-changes-button" class="link-button" onclick="undoChangesEditClientForm(event)">Undo Changes</button>
-                <button type="submit" id="save-changes-button" class="font-color-white bg-color-blue bg-color-blue-hover" onclick="submitClientForm(event)">Save Changes</button>
-            </div>
         </form>
     </div>
 </div>
-<div id="client-users" class="flex-container flex-column-no-wrap overflow-hidden flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12" style="display: none;">
-    <h3 class="center-content padding-1em">Client Users</h3>
-    <div class="flex-container flex-row-no-wrap items-align-center padding-bottom-1em content-item-flex-none">
-        <input type="search" id="user-search-box" class="width-65pct" placeholder="Search for User" />
-        <div class="right-align-content flex-item-4-12">
-            <i id="collapse-user-icon" class="fa fa-2x fa-toggle-up padding-left-pt25em action-icon" onclick="collapseAllUsers()"></i>
-            <i id="expand-user-icon" class="fa fa-2x fa-toggle-down padding-left-pt25em action-icon" onclick="expandAllUsers()"></i>
-            <i id="add-user-icon" class="fa fa-2x fa-user-plus padding-left-pt25em action-icon"></i>
+<div id="client-users" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12" style="display: none;">
+    <h3 class="admin-panel-header">Client Users</h3>
+    <div class="admin-panel-toolbar">
+        <input id="user-search-box" class="admin-panel-searchbar" type="search" placeholder="Search for User" />
+        <div class="admin-panel-action-icons-container">
+            <i id="collapse-user-icon" class="fa fa-2x fa-toggle-up action-icon" onclick="collapseAllUsers()"></i>
+            <i id="expand-user-icon" class="fa fa-2x fa-toggle-down action-icon" onclick="expandAllUsers()"></i>
+            <i id="add-user-icon" class="fa fa-2x fa-user-plus action-icon"></i>
         </div>    
     </div>
-    <div id="user-list" class="overflow-y-scroll padding-right-1em">
-        <ul id="client-user-list" class="list-style-none padding-0">
+    <div id="user-list" class="admin-panel-content-container">
+        <ul id="client-user-list" class="admin-panel-content">
         </ul>
     </div>
 </div>
