@@ -237,7 +237,7 @@ namespace MillimanAccessPortal.Controllers
                         ClientAssignResult &= ResultOfAddClaim.Succeeded;
 
                         // Audit log
-                        var AssignedClientDetailObject = new { NewUserId = Model.UserName, Email = Model.Email, ClientId = ClientId, RequestedClientIds = string.Join(",", Model.MemberOfClientIdArray), };
+                        var AssignedClientDetailObject = new { NewUserId = Model.UserName, ClientId = ClientId, RequestedClientIds = string.Join(",", Model.MemberOfClientIdArray), };
                         LogEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New user assigned to client", AuditEventId.UserAssignedToClient, AssignedClientDetailObject, User.Identity.Name, HttpContext.Session.Id);
                         _auditLogger.Log(LogEvent);
                     }
@@ -310,11 +310,12 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            // I would test for existence of the client record, but the authorization test would have already failed if it does not exist
+            // I would validate existence of the client record, but the authorization test would have already failed above
             #endregion
 
             UserAdminClientDetailViewModel ReturnModel = UserAdminClientDetailViewModel.GetModel(RequestedClientId, DbContext);
 
+            var x = Json(ReturnModel);
             return Json(ReturnModel);
         }
 

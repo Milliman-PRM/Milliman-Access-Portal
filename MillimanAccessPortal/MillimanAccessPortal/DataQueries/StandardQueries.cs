@@ -114,36 +114,21 @@ namespace MillimanAccessPortal.DataQueries
             ResultObject.AssociatedContentCount = DataContext.RootContentItem.Where(r => r.ClientIdList.Contains(ClientArg.Id)).Count();
             ResultObject.AssociatedUserCount = UserMembersOfThisClient.Count;
 
-            IQueryable<Object> Query = null;
+            ResultObject.CanManage = DataContext.UserRoleInClient
+                                                .Include(urc => urc.Role)
+                                                .Include(urc => urc.Client)
+                                                .Any(urc => urc.UserId == CurrentUser.Id
+                                                         && urc.Role.RoleEnum == ClientRoleRequiredToManage
+                                                         && urc.ClientId == ClientArg.Id);
 
             if (RequireProfitCenterAuthority)
             {
-                Query = DataContext.UserRoleInClient
-                                   .Join(DataContext.UserRoleInProfitCenter, URC => URC.UserId, URP => URP.UserId, (URC, URP) => new { URC = URC, URP = URP })
-                                   .Include(rec => rec.URC.Role)
-                                   .Include(rec => rec.URC.Client)
-                                   .Include(rec => rec.URP.Role)
-                                   .Where(rec => rec.URC.UserId == CurrentUser.Id
-                                              && rec.URC.Role.RoleEnum == ClientRoleRequiredToManage
-                                              && rec.URC.ClientId == ClientArg.Id
-                                              // verify that the user has a claim of ProfitCenterManager to the ProfitCenter of the client
-                                              && rec.URP.UserId == CurrentUser.Id
-                                              && rec.URP.Role.RoleEnum == RoleEnum.Admin
-                                              && rec.URP.ProfitCenterId == rec.URC.Client.ProfitCenterId);
+                ResultObject.CanManage &= DataContext.UserRoleInProfitCenter
+                                                     .Include(urp => urp.Role)
+                                                     .Any(urp => urp.UserId == CurrentUser.Id
+                                                              && urp.Role.RoleEnum == RoleEnum.Admin
+                                                              && urp.ProfitCenterId == ClientArg.ProfitCenterId);
             }
-            else
-            {
-                Query = DataContext.UserRoleInClient
-                                   .Include(URC => URC.Role)
-                                   .Where(URC => URC.UserId == CurrentUser.Id
-                                              && URC.Role.RoleEnum == ClientRoleRequiredToManage
-                                              && URC.ClientId == ClientArg.Id);
-
-            }
-
-            var TestQuery = Query.SingleOrDefault();
-
-            ResultObject.CanManage = TestQuery != null;
 
             if (RecurseDown)
             {

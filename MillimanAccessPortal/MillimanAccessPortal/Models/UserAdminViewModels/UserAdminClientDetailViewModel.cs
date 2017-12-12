@@ -9,7 +9,8 @@ namespace MillimanAccessPortal.Models.UserAdminViewModels
 {
     public class UserAdminClientDetailViewModel
     {
-        List<RootContentDetailViewModel> ContentList;
+        List<RootContentDetailViewModel> ContentList= new List<RootContentDetailViewModel>();
+        int xyz = 7;
 
         internal static UserAdminClientDetailViewModel GetModel(long ClientId, ApplicationDbContext DbContext)
         {
@@ -19,7 +20,7 @@ namespace MillimanAccessPortal.Models.UserAdminViewModels
                                                  .Include(rc => rc.ContentType)
                                                  .Where(rc => rc.ClientIdList.Contains(ClientId)))
             {
-                Model.ContentList.Add(RootContentDetailViewModel.GetModel(RootContent));
+                Model.ContentList.Add(RootContentDetailViewModel.GetModel(RootContent, DbContext));
             }
 
             return Model;
