@@ -294,6 +294,30 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
+        [HttpGet]
+        public IActionResult GetContentForClient(long RequestedClientId)
+        {
+            #region Authorization
+            if (!AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserAdmin, RequestedClientId)).Result.Succeeded)
+            {
+                var AssignedClientDetailObject = new { RequestedClientId };
+                AuditEvent LogEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Request to get client details without required role", AuditEventId.Unauthorized, AssignedClientDetailObject, User.Identity.Name, HttpContext.Session.Id);
+                _auditLogger.Log(LogEvent);
+
+                Response.Headers.Add("Warning", "You are not authorized to view details of the selected client");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            // I would test for existence of the client record, but the authorization test would have already failed if it does not exist
+            #endregion
+
+            UserAdminClientDetailViewModel ReturnModel = UserAdminClientDetailViewModel.GetModel(RequestedClientId, DbContext);
+
+            return Json(ReturnModel);
+        }
+
         /// <summary>
         /// Reusable private method to execute new user insertion
         /// </summary>
