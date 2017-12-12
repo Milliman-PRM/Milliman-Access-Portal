@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace MapTests
 {
@@ -33,7 +34,10 @@ namespace MapTests
                                             ).Where(dat => dat.cl.ClaimValue == claim.Value && dat.cl.ClaimType == claim.Type)
                                             .Select(usrs => usrs.us).ToList()
                                         );
-            NewStore.Setup(d => d.AddClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>(), It.IsAny<CancellationToken>())).Callback<ApplicationUser, IEnumerable<Claim>, CancellationToken>((usr, claims, ct) => Context.Object.UserClaims.AddRange(BuildClaimList(usr, claims)));
+            //, UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>, IdentityResult
+            NewStore.Setup(d => d.AddClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>(), It.IsAny<CancellationToken>())).Returns<ApplicationUser, IEnumerable<Claim>, CancellationToken>((usr, claims, ct) => 
+                Context.Object.UserClaims.AddRangeAsync(BuildClaimList(usr, claims), ct)
+            );
             NewStore.Setup(d => d.RemoveClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>(), It.IsAny<CancellationToken>())).Callback<ApplicationUser, IEnumerable<Claim>, CancellationToken>((usr, claims, ct) => Context.Object.UserClaims.RemoveRange(BuildClaimList(usr, claims)));
             
             NewStore.Setup(d => d.FindByEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync<string, CancellationToken, UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>, ApplicationUser>((em, ct) => Context.Object.ApplicationUser.SingleOrDefault(au => au.Email == em));

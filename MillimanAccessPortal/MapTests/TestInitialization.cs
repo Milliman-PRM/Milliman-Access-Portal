@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
@@ -75,6 +76,7 @@ namespace MapTests
             AuditLoggerConfiguration auditLogConfig = new AuditLogLib.AuditLoggerConfiguration();
             auditLogConfig.AuditLogConnectionString = "";
             AuditLogLib.AuditLogger.Config = auditLogConfig;
+            AuditLogger = new AuditLogger();
             #endregion
 
             DataGenFunctionDict = new Dictionary<DataSelection, Action>
@@ -104,7 +106,8 @@ namespace MapTests
         {
             return new ControllerContext
             {
-                HttpContext = new DefaultHttpContext() { User = UserAsClaimsPrincipal }
+                HttpContext = new DefaultHttpContext() { User = UserAsClaimsPrincipal },
+                ActionDescriptor = new ControllerActionDescriptor { ActionName = "Unit Test" }
             };
         }
 
@@ -240,9 +243,11 @@ namespace MapTests
                     new ApplicationUser {Id=1, UserName="test1", Email="test1@example.com", Employer ="example", FirstName="FN1",
                                          LastName="LN1", NormalizedEmail="test@example.com".ToUpper(), PhoneNumber="3171234567"},
                     new ApplicationUser {Id=2, UserName="test2", Email="test2@example.com", Employer ="example", FirstName="FN2",
-                                         LastName="LN2", NormalizedEmail ="test@example.com".ToUpper(), PhoneNumber="3171234567"},
+                                         LastName="LN2", NormalizedEmail ="test2@example.com".ToUpper(), PhoneNumber="3171234567"},
                     new ApplicationUser {Id=3, UserName="ClientAdmin1", Email="clientadmin1@example2.com", Employer="example", FirstName="Client",
-                                         LastName="Admin1", NormalizedEmail="clientadmin1@example2.com".ToUpper(), PhoneNumber="3171234567"}
+                                         LastName="Admin1", NormalizedEmail="clientadmin1@example2.com".ToUpper(), PhoneNumber="3171234567"},
+                    new ApplicationUser {Id=4, UserName="test3", Email="test3@example2.com", Employer ="example", FirstName="FN3",
+                                         LastName="LN3", NormalizedEmail ="test3@example2.com".ToUpper(), PhoneNumber="3171234567"}
             });
             #endregion
 

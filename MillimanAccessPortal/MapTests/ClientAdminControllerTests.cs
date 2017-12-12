@@ -285,7 +285,29 @@ namespace MapTests
         [Fact]
         public void AssignUserToClient_Success()
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 5, UserName = "test3" };
+
+            // Before acting on the input data, we need to gather initial data to compare the result to
+            JsonResult preView = (JsonResult)controller.ClientDetail(viewModel.ClientId);
+            ClientDetailViewModel preViewModel = (ClientDetailViewModel)preView.Value;
+            int preActionCount = preViewModel.AssignedUsers.Count;
+            #endregion
+
+            #region Act
+            var view = controller.AssignUserToClient(viewModel);
+
+            // Capture the number of users assigned to the client after the call to AssignUserToClient
+            JsonResult viewResult = (JsonResult)view;
+            ClientDetailViewModel afterViewModel = (ClientDetailViewModel)viewResult.Value;
+            string afterActionCount = afterViewModel.AssignedUsers.Count.ToString();
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(view);
+            Assert.Equal((preActionCount + 1).ToString(), afterActionCount);
+            #endregion
         }
 
         /// <summary>
