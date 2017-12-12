@@ -1,0 +1,233 @@
+﻿/* Card */
+
+.card-container {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: flex-start;
+    align-content: stretch;
+    position: relative;
+    padding: 0;
+    background-color: $white;
+    border: 2px solid black;
+    border-radius: .25em;
+    margin-top: 0;
+    margin-bottom: 1.75em;
+    min-height: 5em;
+    cursor: pointer;
+
+    &:hover {
+        box-shadow: rgba(0, 0, 0, .3) .2em .2em .75em;
+    }
+
+    &[disabled] {
+        color: $dark-grey !important;
+        background-color: $grey !important;
+
+        &[selected] {
+            border: 5px solid $blue;
+        }
+    }
+
+    &[selected] {
+        color: $white;
+        background-color: $blue;
+    }
+
+    &[editing] {
+    }
+
+    .card-body-main-container {
+        position: relative;
+        padding: .25em;
+        margin: 0;
+        width: 100%;
+        flex: 1;
+        flex-flow: row nowrap;
+        justify-content: flex-start;
+        align-items: stretch;
+        align-content: stretch;
+        display: flex;
+
+        .card-body-primary-container {
+            display: inline-block;
+            flex: 1;
+            flex-basis: auto;
+            padding: 0 .5em;
+            margin: auto;
+
+            .card-body-primary-text {
+                margin: 0;
+            }
+
+            .card-body-secondary-text {
+                display: inline-block;
+                margin: 0;
+                height: 100%;
+                width: 75%;
+            }
+        }
+
+        .card-body-secondary-container {
+            position: relative;
+            text-align: center;
+            flex: 0 1 auto;
+            margin: auto;
+
+            .card-user-icon {
+                vertical-align: middle;
+                margin: auto;
+            }
+
+            .card-user-role-indicator {
+                position: absolute;
+                top: 5%;
+                left: 60%;
+                color: $green;
+            }
+        }
+    }
+
+    .card-stats-container {
+
+        .card-stat-container {
+            display: flex;
+            flex-flow: row nowrap;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+            height: 50%;
+            min-width: 6.5em;
+            background-color: $charcoal;
+            color: $white;
+
+            .card-stat-icon {
+                margin-left: .1em
+            }
+
+            .card-stat-value {
+                flex: 1;
+                margin-left: .5em
+            }
+        }
+    }
+
+    .card-button-side-container {
+        position: absolute;
+        display: flex;
+        flex-flow: column nowrap;
+        justify-content: space-between;
+        right: 0;
+        top: 50%;
+        /*text-align: right;*/
+        transform: translate(50%, -50%);
+    }
+
+    .card-button-bottom-container {
+        position: absolute;
+        display: inline;
+        right: 1.5em;
+        bottom: 0;
+        transform: translate(0, 50%);
+
+        .card-expansion-button {
+            background-color: $green;
+
+            &:hover {
+                background-color: darken($green, 5%);
+            }
+        }
+    }
+
+    .card-button-background {
+        border-radius: 50%;
+        display: block;
+        text-align: center;
+        vertical-align: middle;
+        padding: .1em;
+        margin-top: .25em;
+        margin-bottom: .25em;
+        transform-origin: center center;
+        color: $white;
+        transition: .2s all linear;
+
+        &.card-button-delete,
+        &.card-button-remove-user,
+        &.card-button-close {
+            background-color: $red;
+
+            &:hover {
+                background-color: darken($red, 5%);
+            }
+        }
+
+        &.card-button-edit,
+        &.card-button-options,
+        &.card-button-expansion {
+            background-color: $blue;
+
+            &:hover {
+                background-color: darken($blue, 5%);
+            }
+        }
+
+        &.card-button-new-child {
+            background-color: $green;
+
+            &:hover {
+                background-color: darken($green, 5%);
+            }
+        }
+
+        &:hover {
+            transform: scale(1.25);
+            transform-origin: center center;
+        }
+
+        .card-button-icon {
+            height: 1.3em;
+            width: 1.3em;
+            color: white;
+            line-height: inherit;
+        }
+    }
+
+
+    .card-expansion-container {
+        overflow: hidden;
+        padding: .25em .75em;
+        border-top: 1px solid $light-grey;
+        margin: .25em .25em 0;
+        max-height: 0;
+        border: none;
+        padding: 0 .75em;
+        transition: .25s all linear;
+
+        &[maximized] {
+            max-height: 15.5em;
+            transition: .25s all linear;
+
+            & + div.card-button-bottom-container > .card-button-expansion {
+                -webkit-transform: rotateX(180deg);
+                -moz-transform: rotateX(180deg);
+                -o-transform: rotateX(180deg);
+                -ms-transform: rotateX(180deg);
+                transform: rotateX(180deg);
+                transition: .2s all linear;
+            }
+        }
+
+        .card-expansion-category-label {
+            font-weight: bold;
+        }
+
+        .card-expansion-option-label {
+        }
+    }
+}
+
+.hr {
+    height: .1em;
+    border: 1px solid $charcoal;
+    margin: 0 0 3em;
+    padding: 0;
+}

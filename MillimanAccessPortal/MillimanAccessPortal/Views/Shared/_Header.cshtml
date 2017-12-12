@@ -1,7 +1,7 @@
-﻿<div id="header" class="padding-right-1em padding-left-1em flex-container flex-row-wrap items-align-center content-item-flex-none">
+﻿<header>
     @if (ViewData["Title"] != null)
     {
-        <h1 class="display-inline-block content-item-flex-1 content-item-order-2-for-phone-only">@ViewData["Title"]</h1>
+        <h1 id="page-title">@ViewData["Title"]</h1>
     }
-    <img id="logo" class="content-item-order-1-for-phone-only" src="~/images/logo.png" alt="Milliman Logo" />
-</div>
+    <img id="header-logo" src="~/images/logo.png" alt="Milliman Access Portal" />
+</header>

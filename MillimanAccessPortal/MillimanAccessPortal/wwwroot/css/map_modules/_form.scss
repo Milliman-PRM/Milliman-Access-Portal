@@ -1,7 +1,4 @@
-﻿body {
-    background-color: $light-grey;
-    color: $charcoal;
-}
+﻿/* Form Elements */
 
 a,
 .link-button {
@@ -14,7 +11,7 @@ a,
     }
 
     &:visited {
-         color: darken( $blue, 50% );
+        color: darken( $blue, 50% );
     }
 }
 
@@ -35,10 +32,29 @@ button,
     font-size: 1rem;
     font-weight: bold !important;
     cursor: pointer;
+
+    &:focus {
+        animation: none !important;
+    }
+
+    &.blue-button {
+        background-color: $blue;
+        color: $white;
+
+        &:hover {
+            background-color: darken($blue, 5%);
+        }
+    }
+}
+
+.section-label {
+    padding-top: .5em;
+    text-transform: uppercase
 }
 
 label {
     padding-top: .25rem;
+    font-weight: 700;
 }
 
 input,
@@ -59,7 +75,6 @@ select {
     }
 
     &[disabled] {
-        font-weight: bold;
         border: solid 1px $grey;
         color: $charcoal;
         background-color: $light-grey;
@@ -78,6 +93,5 @@ input:-webkit-autofill,
 input:-webkit-autofill,
 input:-webkit-autofill {
     -webkit-transition-delay: 9999s;
-    -webkit-transition: color 9999s ease-out,
-    background-color 9999s ease-out;
+    -webkit-transition: color 9999s ease-out, background-color 9999s ease-out;
 }

@@ -1,0 +1,16 @@
+﻿/* Admin Panel */
+
+
+
+
+
+/* Action Icons */
+
+.action-icon {
+    color: $charcoal;
+    cursor: pointer;
+
+    &:hover {
+        color: lighten($charcoal, 10%);
+    }
+}

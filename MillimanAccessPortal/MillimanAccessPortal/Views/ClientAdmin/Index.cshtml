@@ -38,7 +38,7 @@
     <div class="overflow-y-scroll padding-left-pt25em padding-right-pt25em">
         <form id="client-form">
             <div class="flex-container with-gutter flex-row-wrap margin-bottom-1pt5em">
-                <h4 class="flex-item-12-12 padding-top-pt5em">Client Information</h4>
+                <h4 class="flex-item-12-12 section-label">Client Information</h4>
                 <div class="display-none">
                     <input asp-for="Id" />
                     <input asp-for="ParentClientId" />
@@ -85,7 +85,7 @@
                         <span asp-validation-for="ContactPhone" class="text-danger"></span>
                     </div>
                 </div>
-                <h4 class="flex-item-12-12 padding-top-pt5em">Security Information</h4>
+                <h4 class="flex-item-12-12 section-label">Security Information</h4>
                 <div class="flex-item-12-12">
                     <label asp-for="AcceptedEmailDomainList"></label>
                     <div>
@@ -100,7 +100,7 @@
                         <span asp-validation-for="AcceptedEmailAddressExceptionList" class="text-danger"></span>
                     </div>
                 </div>
-                <h4 class="flex-item-12-12 padding-top-pt5em">Billing Information</h4>
+                <h4 class="flex-item-12-12 section-label">Billing Information</h4>
                 <div class="flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
                     <label asp-for="ConsultantName"></label>
                     <div>

@@ -1,0 +1,13 @@
+﻿body {
+    background-color: $light-grey;
+    color: $charcoal;
+    height: 100%;
+    width: 100%;
+}
+
+
+@include for-tablet-down {
+    .hide-for-tablet-down {
+        display: none;
+    }
+}

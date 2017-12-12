@@ -325,7 +325,7 @@ function deleteClient(event, id, name) {
         unsafeMessage: '<h3>Delete ' + name + '?</h3>' +
             '<p>This action can not be undone.  Do you wish to proceed?</p>',
         buttons: [
-            $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'button bg-color-red bg-color-hover-red'}),
+            $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'button bg-color-red bg-color-red-hover'}),
             $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
         ],
         callback: function (result) {
@@ -336,7 +336,7 @@ function deleteClient(event, id, name) {
                         '<input name="password" type="password" placeholder="Password" required />'
                     ].join(''),
                     buttons: [
-                        $.extend({}, vex.dialog.buttons.YES, { text: 'DELETE', className: 'button bg-color-red bg-color-hover-red' }),
+                        $.extend({}, vex.dialog.buttons.YES, { text: 'DELETE', className: 'button bg-color-red bg-color-red-hover' }),
                         $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
                     ],
                     callback: function (result) {
@@ -469,7 +469,7 @@ function resetNewClientForm() {
             vex.dialog.confirm({
                 message: 'Would you like to discard the unsaved changes?',
                 buttons: [
-                    $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'button bg-color-green bg-color-hover-green' }),
+                    $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'button bg-color-green bg-color-green-hover' }),
                     $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
                 ],
                 callback: function (result) {
@@ -500,7 +500,7 @@ function undoChangesEditClientForm(event) {
     vex.dialog.confirm({
         message: 'Would you like to discard the unsaved changes?',
         buttons: [
-            $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'button bg-color-green bg-color-hover-green' }),
+            $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'button bg-color-green bg-color-green-hover' }),
             $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
         ],
         callback: function (result) {
@@ -523,7 +523,7 @@ function cancelClientEdit() {
         vex.dialog.confirm({
             message: 'Would you like to discard the unsaved changes?',
             buttons: [
-                $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'button bg-color-green bg-color-hover-green' }),
+                $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'button bg-color-green bg-color-green-hover' }),
                 $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
             ],
             callback: function (result) {

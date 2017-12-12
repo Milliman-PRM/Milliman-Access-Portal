@@ -15,7 +15,6 @@ div.selectize-input {
     }
 
     &.disabled {
-        font-weight: bold;
         border: solid 1px $grey;
         background-color: $light-grey !important;
         box-shadow: none;
