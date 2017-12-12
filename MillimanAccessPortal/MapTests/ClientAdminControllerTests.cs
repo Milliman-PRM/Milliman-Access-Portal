@@ -314,19 +314,45 @@ namespace MapTests
         /// Validate that an UnauthorizedResult is returned if the user is not authorized to remove users from the requested client
         /// Multiple authorizations are checked, so multiple scenarios should be tested
         /// </summary>
-        [Fact]
-        public void RemoveUserFromClient_ErrorWhenUnauthorized()
+        [Theory]
+        [InlineData("ClientAdmin1", 3, "test1")] // User isn't admin on the requested client but is admin on the requested client's profit center
+        [InlineData("ClientAdmin1", 4, "test1")] // User is admin on the requested client but isn't admin on the requested client's profit center
+        public void RemoveUserFromClient_ErrorWhenUnauthorized(string userArg, long clientIdArg, string userAssignArg)
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser(userArg);
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = clientIdArg, UserName = userAssignArg };
+            #endregion
+
+            #region Act
+            var view = controller.RemoveUserFromClient(viewModel);
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            #endregion
         }
 
         /// <summary>
         /// Validate that a BadRequestResult is returned if the client, user, or both do not exist
         /// </summary>
-        [Fact]
-        public void RemoveUserFromClient_ErrorWhenNotFound()
+        [Theory]
+        [InlineData("ClientAdmin1", -1, "test1")] // User exists, but client does not
+        [InlineData("ClientAdmin1", 1, "__fake1")] // Client exists, but user does not (User is authorized to specified client & its profit center)
+        public void RemoveUserFromClient_ErrorWhenNotFound(string userArg, long clientIdArg, string userAssignArg)
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser(userArg);
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = clientIdArg, UserName = userAssignArg };
+            #endregion
+
+            #region Act
+            var view = controller.RemoveUserFromClient(viewModel);
+            #endregion
+
+            #region Assert
+            Assert.IsType<BadRequestObjectResult>(view);
+            #endregion
         }
 
         /// <summary>
