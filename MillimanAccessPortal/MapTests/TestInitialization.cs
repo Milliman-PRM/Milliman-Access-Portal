@@ -208,8 +208,8 @@ namespace MapTests
             Mock<IRoleStore<ApplicationRole>> NewRoleStore = MockRoleStore.NewStore(MockDbContextArg);
             Mock<RoleManager<ApplicationRole>> ReturnMockRoleManager = new Mock<RoleManager<ApplicationRole>>(NewRoleStore.Object, null, null, null, null);
             
-            ReturnMockRoleManager.Setup(m => m.FindByIdAsync(It.IsAny<string>())).Returns<ApplicationRole>(role => NewRoleStore.Object.FindByIdAsync(role.Id.ToString(), CancellationToken.None));
-            ReturnMockRoleManager.Setup(m => m.FindByNameAsync(It.IsAny<string>())).Returns<ApplicationRole>(role => NewRoleStore.Object.FindByNameAsync(role.Name, CancellationToken.None));
+            ReturnMockRoleManager.Setup(m => m.FindByIdAsync(It.IsAny<string>())).ReturnsAsync<string, RoleManager<ApplicationRole>, ApplicationRole>(roleId => NewRoleStore.Object.FindByIdAsync(roleId.ToString(), CancellationToken.None).Result);
+            ReturnMockRoleManager.Setup(m => m.FindByNameAsync(It.IsAny<string>())).ReturnsAsync<string, RoleManager<ApplicationRole>, ApplicationRole>(roleName => NewRoleStore.Object.FindByNameAsync(roleName, CancellationToken.None).Result);
 
             return ReturnMockRoleManager;
         }
