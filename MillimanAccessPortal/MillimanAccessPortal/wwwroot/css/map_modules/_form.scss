@@ -141,3 +141,21 @@ input:-webkit-autofill {
         text-align: right;
     }
 }
+
+/* Contact Form */
+#contact-title {
+    text-align: center;
+    margin-bottom: 1em;
+}
+
+#contact-form {
+
+    #subject {
+        margin-bottom: 1em;
+    }
+
+    #message {
+        height: 10em;
+        margin-bottom: 1em;
+    }
+}

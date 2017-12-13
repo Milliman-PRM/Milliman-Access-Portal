@@ -1,52 +1,82 @@
 ﻿// Contact Form
+
+function initializeContactForm() {
+    vex.dialog.open({
+        input: [
+            '<h2 id="contact-title">Contact Support</h2>',
+            '<form id="contact-form" asp-controller="Message" asp-action="SendEmailFromUser" method="post">',
+            '<input id="recipient" type="hidden" name="recipient" value="prm.support@milliman.com" />',
+            '<div>',
+            '<select id="subject" name="subject" required>',
+            '<option value="">Please Select a Topic</option>',
+            '<option value="Account Inquiry">Account Inquiry</option>',
+            '<option value="Bug Report">Report a Bug</option>',
+            '<option value="Other Support Question">Other</option>',
+            '</select>',
+            '</div>',
+            '<div>',
+            '<textarea id="message" name="message" placeholder="Message" required></textarea>',
+            '</div>',
+            '</form>'
+        ].join(''),
+        buttons: [
+            $.extend({}, vex.dialog.buttons.NO, {
+                text: 'SUBMIT',
+                className: 'blue-button',
+                click: function () {
+                    if ($('#subject').val() && $('#message').val()) {
+                        submitForm();
+                        vex.closeAll();
+                    } else {
+                        toastr['warning']('Please provide a subject and message');
+                        return false;
+                    }
+                }
+            }),
+            $.extend({}, vex.dialog.buttons.NO, {
+                text: 'Reset',
+                className: 'link-button',
+                click: function () {
+                    resetContactForm();
+                    return false;
+                }
+            }),
+        ],
+        callback: function () {
+            return false;
+        }
+    })
+};
+
 $("#contact-button").click(function () {
-    contactFormToggle();
+    initializeContactForm();
 });
-
-$("#modal-background").click(function (e) {
-    if (e.target.id === 'modal-background' || e.target.id === 'contact-close') {
-        contactFormToggle();
-    }
-});
-
-function contactFormToggle() {
-    $('#modal-background').toggleClass('hide show');
-}
 
 function resetContactForm() {
-    $('#topic-select').val("");
-    $('#body-text').val("");
+    $('#subject').val("");
+    $('#message').val("");
 }
 
-$(function () {
+function submitForm() {
     var form = $('#contact-form');
 
-    $(form).submit(function (event) {
-        // Stop the browser from performing its default behavior of submitting the form to make this asynchronous
-        event.preventDefault();
+    // Serialize the form data.
+    var formData = $(form).serialize();
+    console.log(formData);
 
-        // Serialize the form data.
-        var formData = $(form).serialize();
-
-        // Submit the form using AJAX.
-        $.ajax({
-            type: 'POST',
-            url: $(form).attr('action'),
-            data: formData
-        })
-
-            // Success
-            .done(function (response) {
-                toastr["success"]("Your message has been sent");
-                resetContactForm();
-                contactFormToggle();
-            })
-
-            // Failure
-            .fail(function (response) {
-                toastr["error"]("Your message was unable to be delivered");
-            });
-
+    // Submit the form using AJAX.
+    $.ajax({
+        type: 'POST',
+        url: $(form).attr('action'),
+        data: {
+            'recipient': $('#contact-form #recipient').val(),
+            'subject': $('#contact-form #subject').val(),
+            'message': $('#contact-form #message').val()
+        }
+    }).done(function (response) {
+        toastr["success"]("Your message has been sent");
+    }).fail(function (response) {
+        toastr["error"]("Your message was unable to be delivered");
     });
 
-});
+};
