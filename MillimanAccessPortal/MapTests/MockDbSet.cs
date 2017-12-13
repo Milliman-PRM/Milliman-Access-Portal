@@ -24,13 +24,49 @@ namespace MapTests
             // Setup mocked object methods to interact with persisted data
             Set.Setup(d => d.Add(It.IsAny<T>())).Callback<T>((s) => Data.Add(s));
             Set.Setup(d => d.AddRange(It.IsAny<IEnumerable<T>>())).Callback<IEnumerable<T>>((s) => Data.AddRange(s));
-            Set.Setup(d => d.Remove(It.IsAny<T>())).Callback<T>((s) => Data.Remove(s));
+            Set.Setup(d => d.Remove(It.IsAny<T>())).Callback<T>((s) =>
+            {
+                int foundIndex = -1;
+
+                // Iterate over collection to find Index of item that matches input
+                foreach (T item in Data)
+                {
+                    if (GetIdValue(item) == GetIdValue(s))
+                    {
+                        foundIndex = Data.IndexOf(item);
+                        break;
+                    }
+                }
+
+                if (foundIndex > -1)
+                {
+                    Data.RemoveAt(foundIndex);
+                }
+                
+            });
+            Set.Setup(d => d.RemoveRange(It.IsAny<IEnumerable<T>>())).Callback<IEnumerable<T>>((removeSet) =>
+            {
+                foreach (T item in removeSet)
+                {
+                    Set.Object.Remove(item);
+                }
+            }
+            );
             Set.Setup(d => d.Update(It.IsAny<T>())).Callback<T>((s) => ReplaceGenericListElement(s, Data, "Id"));
-            Set.Setup(d => d.Find(It.IsAny<object[]>())).Returns<object[]>((input) => Data.FirstOrDefault(d => GetIdValue(d) == input[0].ToString()));
+            Set.Setup(d => d.Find(It.IsAny<object[]>())).Returns<object[]>((input) => Data.FirstOrDefault(d => GetPkValue(d) == input[0].ToString()));
             return Set;
         }
 
         public static string GetIdValue(object TargetedItem)
+        {
+            Type TType = TargetedItem.GetType();
+
+            PropertyInfo IdPropertyInfo = TType.GetMembers().OfType<PropertyInfo>().Single(m => m.Name == "Id");
+
+            return IdPropertyInfo.GetValue(TargetedItem).ToString();
+        }
+
+        public static string GetPkValue(object TargetedItem)
         {
             Type TType = TargetedItem.GetType();
 
