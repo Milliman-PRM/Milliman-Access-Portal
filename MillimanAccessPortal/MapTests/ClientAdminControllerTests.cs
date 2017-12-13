@@ -6,6 +6,7 @@ using Xunit;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.ClientAdminViewModels;
 using System.Linq;
+using MapDbContextLib.Context;
 
 namespace MapTests
 {
@@ -42,6 +43,31 @@ namespace MapTests
             testController.HttpContext.Session = new MockSession();
 
             return testController;
+        }
+
+        /// <summary>
+        /// Convenience method to build a client object for the various tests that need one.
+        /// Tests will modify the returned client as needed to perform their test actions.
+        /// </summary>
+        /// <returns></returns>
+        public Client GetValidClient()
+        {
+            return new Client {
+                Id = 0,
+                Name = "Placeholder Test Client",
+                ClientCode = "Test Client 0001",
+                ContactName = "Contact person",
+                ContactTitle = "Manager",
+                ContactEmail = "manager@placeholder.com",
+                ContactPhone = "1234567890",
+                ConsultantEmail = "consultant@example.com",
+                ConsultantName = "Test Consultant",
+                ConsultantOffice = "Indy PRM Testing",
+                AcceptedEmailAddressExceptionList = new string[] { },
+                AcceptedEmailDomainList = new string[] { "placeholder.com" },
+                ParentClientId = 1,
+                ProfitCenterId = 1
+            };
         }
 
         /// <summary>
@@ -192,7 +218,7 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = GetControllerForUser(userArg);
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel{ ClientId = clientIdArg, UserName = userAssignArg };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = clientIdArg, UserName = userAssignArg };
             #endregion
 
             #region Act
@@ -237,14 +263,14 @@ namespace MapTests
             ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 1, UserName = "test1" };
 
             // Before acting on the input data, we need to gather initial data to compare the result to
-            JsonResult preView = (JsonResult) controller.ClientDetail(viewModel.ClientId);
-            ClientDetailViewModel preViewModel = (ClientDetailViewModel) preView.Value;
+            JsonResult preView = (JsonResult)controller.ClientDetail(viewModel.ClientId);
+            ClientDetailViewModel preViewModel = (ClientDetailViewModel)preView.Value;
             string preActionCount = preViewModel.AssignedUsers.Count.ToString();
             #endregion
 
             #region Act
             var view = controller.AssignUserToClient(viewModel);
-            
+
             // Capture the number of users assigned to the client after the call to AssignUserToClient
             JsonResult viewResult = (JsonResult)view;
             ClientDetailViewModel afterViewModel = (ClientDetailViewModel)viewResult.Value;
@@ -388,23 +414,71 @@ namespace MapTests
         }
 
         /// <summary>
-        /// Validate that an invalid request returns a BadRequestResult
-        /// Multiple types of validations are checked, so multiple tests should be run
+        /// Validate that trying to save a client with itself as the test client results in a bad request
         /// </summary>
         [Fact]
-        public void SaveNewClient_ErrorWhenInvalidRequest()
+        public void SaveNewClient_ErrorWhenParentIdIsClientId()
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            Client testClient = GetValidClient();
+            #endregion
+
+            #region Act
+            testClient.ParentClientId = testClient.Id;
+            var view = controller.SaveNewClient(testClient);
+            #endregion
+
+            #region Assert
+            Assert.IsType<BadRequestObjectResult>(view);
+            #endregion
+        }
+
+        /// <summary>
+        /// Validate that a bad request is returned when ModelState.IsValid returns false
+        /// </summary>
+        [Fact]
+        public void SaveNewClient_ErrorWhenModelStateInvalid()
+        {
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            Client testClient = GetValidClient();
+            #endregion
+
+            #region Act
+            controller.ModelState.AddModelError("BadModel", "This is a forced bad model.");
+            var view = controller.SaveNewClient(testClient);
+            #endregion
+
+            #region Assert
+            Assert.IsType<BadRequestObjectResult>(view);
+            #endregion
         }
 
         /// <summary>
         /// Validate that an UnauthorizedResult is returned for unauthorized users
         /// Multiple authorization checks are made and must be tested
         /// </summary>
-        [Fact]
-        public void SaveNewClient_ErrorWhenNothAuthorized()
+        [Theory]
+        [InlineData("test1", null, 1)]// Request new root client; user is not an admin of requested profit center
+        [InlineData("ClientAdmin1", 4, 2)]// Request new child client; user is admin of parent client but not profit center
+        [InlineData("ClientAdmin1", 3, 1)]// Request new child client; user is admin of profit center but not parent client
+        public void SaveNewClient_ErrorWhenNotAuthorized(string userArg, int? parentClientIdArg, int? profitCenterIdArg)
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser(userArg);
+            Client testClient = GetValidClient();
+            #endregion
+
+            #region Act
+            testClient.ParentClientId = parentClientIdArg;
+            testClient.ProfitCenterId = (long)profitCenterIdArg;
+            var view = controller.SaveNewClient(testClient);
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            #endregion
         }
 
         /// <summary>
