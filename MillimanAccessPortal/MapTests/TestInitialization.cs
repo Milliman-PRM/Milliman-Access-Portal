@@ -312,8 +312,9 @@ namespace MapTests
                 {
                     new IdentityUserClaim<long>{ Id =1, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "1", UserId = 3 },
                     new IdentityUserClaim<long>{ Id =2, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "4", UserId = 3 },
-                    new IdentityUserClaim<long>{ Id =2, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "5", UserId = 3 },
-                    new IdentityUserClaim<long>{ Id = 3, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "1", UserId = 1}
+                    new IdentityUserClaim<long>{ Id =3, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "5", UserId = 3 },
+                    new IdentityUserClaim<long>{ Id = 4, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "1", UserId = 1},
+                    new IdentityUserClaim<long>{ Id = 5, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "5", UserId = 2}
                 });
                 #endregion
             #endregion 

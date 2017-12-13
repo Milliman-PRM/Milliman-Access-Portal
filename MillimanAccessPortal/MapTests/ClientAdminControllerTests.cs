@@ -361,7 +361,30 @@ namespace MapTests
         [Fact]
         public void RemoveUserFromClient_Success()
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 5, UserName = "test2" };
+
+            JsonResult preView = (JsonResult)controller.ClientDetail(viewModel.ClientId);
+            ClientDetailViewModel preViewModel = (ClientDetailViewModel)preView.Value;
+            int preActionCount = preViewModel.AssignedUsers.Count;
+            int expectedAfterActionCount = preActionCount - 1;
+            #endregion
+
+            #region Act
+            var view = controller.RemoveUserFromClient(viewModel);
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(view);
+
+            // Capture the number of users assigned to the client after the call to RemoveUserFromClient
+            JsonResult viewResult = (JsonResult)view;
+            ClientDetailViewModel afterViewModel = (ClientDetailViewModel)viewResult.Value;
+            int afterActionCount = afterViewModel.AssignedUsers.Count;
+
+            Assert.Equal<int>(expectedAfterActionCount, afterActionCount);
+            #endregion
         }
 
         /// <summary>
