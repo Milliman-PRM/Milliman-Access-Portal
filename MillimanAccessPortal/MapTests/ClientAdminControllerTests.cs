@@ -523,7 +523,24 @@ namespace MapTests
         [Fact]
         public void SaveNewClient_Success()
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            Client testClient = GetValidClient();
+
+            int beforeCount = Enumerable.Count(TestResources.DbContextObject.Client);
+            int expectedAfterCount = beforeCount + 1;
+            #endregion
+
+            #region Act
+            var view = controller.SaveNewClient(testClient);
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(view);
+
+            int afterCount = Enumerable.Count(TestResources.DbContextObject.Client);
+            Assert.Equal<int>(expectedAfterCount, afterCount);
+            #endregion
         }
 
         /// <summary>
