@@ -26,7 +26,6 @@ function initializeContactForm() {
                 click: function () {
                     if ($('#subject').val() && $('#message').val()) {
                         submitForm();
-                        vex.closeAll();
                     } else {
                         toastr['warning']('Please provide a subject and message');
                         return false;
@@ -75,6 +74,7 @@ function submitForm() {
         }
     }).done(function (response) {
         toastr["success"]("Your message has been sent");
+        vex.closeAll();
     }).fail(function (response) {
         toastr["error"]("Your message was unable to be delivered");
     });
