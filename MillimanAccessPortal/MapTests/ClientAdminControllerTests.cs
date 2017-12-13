@@ -484,10 +484,37 @@ namespace MapTests
         /// <summary>
         /// Validate that status code 412 is returned when invalid email domains or addresses are provided
         /// </summary>
-        [Fact]
-        public void SaveNewClient_ErrorWhenEmailInvalid()
+        [Theory]
+        [InlineData(new string[] {"test"}, null)] // invalid domain (no @)
+        [InlineData(null, new string[] { "user@test" })] // invalid email address format (no TLD)
+        [InlineData(null, new string[] { "test.com" })] // invalid email address format (no user, no @)
+        [InlineData(null, new string[] { "@test.com" })] // invalid email address format (no user before @)
+        public void SaveNewClient_ErrorWhenEmailInvalid(string[] domainListArg, string[] emailListArg)
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            Client testClient = GetValidClient();
+            #endregion
+
+            #region Act
+            if (domainListArg != null)
+            {
+                testClient.AcceptedEmailDomainList = domainListArg;
+            }
+            if (emailListArg != null)
+            {
+                testClient.AcceptedEmailAddressExceptionList = emailListArg;
+            }
+            var view = controller.SaveNewClient(testClient);
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(view);
+
+            StatusCodeResult viewResult = (StatusCodeResult)view;
+            Assert.Equal<int>(412, viewResult.StatusCode);
+
+            #endregion
         }
 
         /// <summary>
