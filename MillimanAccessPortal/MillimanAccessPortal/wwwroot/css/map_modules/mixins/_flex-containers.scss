@@ -1,0 +1,44 @@
+﻿@mixin generate-flex-container-classes($label: "") {
+
+    /* Flex Container */
+    .flex-container {
+         display: flex;
+         display: -ms-flexbox;
+    }
+
+    /* Flex Flow */
+    .flex-column-no-wrap#{$label}  { flex-flow: column nowrap; }
+    .flex-column-wrap#{$label}     { flex-flow: column wrap;   }
+    .flex-row-no-wrap#{$label}     { flex-flow: row nowrap;    }
+    .flex-row-wrap#{$label}        { flex-flow: row wrap;      }
+
+    /* Justify Content */
+    .content-at-start#{$label}     { justify-content: flex-start; }
+    .content-center#{$label}       { justify-content: center;     }
+    .content-at-end#{$label}       { justify-content: flex-end;   }
+
+    /* Align Items */
+    .items-align-start#{$label}    { align-items: flex-start; }
+    .items-align-center#{$label}   { align-items: center;     }
+    .items-align-end#{$label}      { align-items: flex-end;   }
+    .items-stretch#{$label}        { align-items: stretch;    }
+
+    /* Align Content */
+    .content-align-start#{$label}  { align-content: flex-start; }
+    .content-align-center#{$label} { align-content: center;     }
+    .content-align-end#{$label}    { align-content: flex-end;   }
+    .content-stretch#{$label}      { align-content: stretch;    }
+    
+    /* Flex Container Modifiers */
+    .with-gutter#{$label} {
+        margin-right: -1em;
+        margin-left: -1em;
+    }
+
+    .with-gutter#{$label} > [class*="flex-item"] {
+        padding-right: 1rem;
+        padding-left: 1rem;
+    }
+
+
+}

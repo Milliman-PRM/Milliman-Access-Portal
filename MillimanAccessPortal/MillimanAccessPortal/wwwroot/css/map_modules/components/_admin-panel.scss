@@ -1,0 +1,97 @@
+﻿/* Admin Panel */
+
+.admin-panel-container {
+    display: flex;
+    flex-flow: column nowrap;
+    overflow: hidden;
+    padding: 1em;
+
+    .admin-panel-header {
+        text-align: center;
+        padding: 1em;
+    }
+
+    .admin-panel-toolbar {
+        display: flex;
+        flex-flow: row nowrap;
+        flex: none;
+        align-items: center;
+        padding-bottom: 1em;
+
+        .admin-panel-searchbar {
+            width: 60%;
+        }
+
+        .admin-panel-action-icons-container {
+            flex: 1;
+            text-align: right;
+
+            .action-icon {
+                color: $charcoal;
+                cursor: pointer;
+                padding-left: .5em;
+
+                &:hover {
+                    color: lighten($charcoal, 20%);
+                }
+            }
+        }
+    }
+
+    .admin-panel-content-container {
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 1em;
+
+        .admin-panel-content {
+            position: relative;
+            list-style: none;
+            padding: 0;
+
+            .card-100 {
+                width: 100%;
+            }
+
+            .card-90 {
+                width: 90%;
+                margin-left: 10%;
+            }
+
+            .card-80 {
+                width: 80%;
+                margin-left: 20%;
+            }
+
+            .action-card {
+                display: flex;
+                flex-flow: row nowrap;
+                align-items: center;
+                text-align: center;
+
+                &:hover {
+                    color: lighten($charcoal, 20%);
+                }
+
+                h2.card-body-primary-text {
+                    width: 100%;
+                    margin: 0;
+                    /*padding: 0;*/
+                }
+            }
+        }
+    }
+}
+
+
+
+
+/* Action Icons */
+
+.action-icon {
+    color: $charcoal;
+    cursor: pointer;
+
+    &:hover {
+        color: lighten($charcoal, 10%);
+    }
+}

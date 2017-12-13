@@ -1,0 +1,40 @@
+﻿footer {
+    display:       flex;
+    flex-flow:     row wrap;
+    align-content: stretch;
+    align-items:   stretch;
+    width:         100%;
+    font-size:     .75em;
+    padding:       0 2em;
+
+    @include for-phone-only {
+        flex-flow: column nowrap;
+    }
+
+    #footer-nav-container {
+        flex:       1;
+        align-self: center;
+
+        #footer-nav {
+            display:       inline-block;
+            list-style:    none;
+            padding:       0;
+            margin-bottom: 1em;
+
+            @include for-laptop-up {
+                text-align: center;
+            }
+
+            & > li {
+                display: inline-block;
+                margin:  0 .75em .75em;
+            }
+        }
+    }
+
+    #copyright-container {
+        align-self:    center;
+        text-align:    right;
+        margin-bottom: 1em;
+    }
+}

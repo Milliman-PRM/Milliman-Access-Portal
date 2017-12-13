@@ -38,7 +38,7 @@ function GetClientDetail(clientDiv) {
 
     var clientId = clientDiv.attr('data-client-id').valueOf();
 
-    if (clientDiv.hasClass('selected') && !clientDiv.hasClass('editing')) {
+    if (clientDiv.is('[selected]') && !clientDiv.is('[editing]')) {
         clearSelectedClient();
         hideClientForm();
         return false;
@@ -56,10 +56,10 @@ function GetClientDetail(clientDiv) {
         renderUserList(response);
         // Change the dom to reflect the selected client
         clearSelectedClient();
-        clientDiv.addClass('selected');
+        clientDiv.attr('selected', '');
         // Show the form in readonly mode
         makeFormReadOnly();
-        if (clientDiv.hasClass('disabled')) {
+        if (clientDiv.is('[disabled]')) {
             $('#client-info #edit-client-icon').hide();
         }
         showClientForm();
@@ -88,8 +88,8 @@ function EditClientDetail(clientDiv) {
         populateClientDetails(response.ClientEntity);
         // Change the dom to reflect the selected client
         clearSelectedClient()
-        clientDiv.addClass('selected');
-        clientDiv.addClass('editing');
+        clientDiv.attr('selected', '');
+        clientDiv.attr('editing', '');
         // Show the form in read/write mode
         makeFormWriteable();
         $('#client-form #form-buttons-new').hide();
@@ -113,6 +113,7 @@ function newClientFormSetup() {
     clearFormData();
     clearSelectedClient();
     makeFormWriteable();
+    $('#client-tree #create-new-client-card').attr('selected', '');
     $('#client-form #form-buttons-edit').hide();
     $('#client-form #form-buttons-new').show();
     showClientForm();
@@ -130,11 +131,11 @@ function newChildClientFormSetup(parentClientDiv) {
     clearSelectedClient();
 
     var template = childNodePlaceholder;
-    if (parentClientDiv.hasClass('col-xs-12')) {
-        template = template.replace(/{{class}}/g, "col-xs-offset-1 col-xs-11");
+    if (parentClientDiv.hasClass('card-100')) {
+        template = template.replace(/{{class}}/g, "card-90");
     }
     else {
-        template = template.replace(/{{class}}/g, "col-xs-offset-2 col-xs-10");
+        template = template.replace(/{{class}}/g, "card-80");
     }
 
     parentClientDiv.parent().after(template);
@@ -166,8 +167,8 @@ function clearValidationErrors() {
 }
 
 function clearSelectedClient() {
-    $('#client-tree-list div.selected').removeClass('selected');
-    $('#client-tree-list div.editing').removeClass('editing');
+    $('#client-tree-list div[selected]').removeAttr('selected');
+    $('#client-tree-list div[editing]').removeAttr('editing');
 }
 
 function makeFormReadOnly() {
@@ -240,16 +241,16 @@ function renderClientTree(clientId) {
     $('#client-tree-list').empty();
     clientTree.forEach(function (rootClient) {
         renderClientNode(rootClient, 1);
-        $('#client-tree-list').append('<li class="hr col-xs-12"></li>');
+        $('#client-tree-list').append('<li class="hr width-100pct"></li>');
     });
-    $('#client-tree-list div.client-admin-card').on('click', function () {
+    $('#client-tree-list div.card-container').on('click', function () {
         GetClientDetail($(this));
     });
-    $('div.card-button-background-edit').on('click', function (event) {
+    $('div.card-button-edit').on('click', function (event) {
         EditClientDetail($(this).parents('div[data-client-id]'));
         event.stopPropagation();
     });
-    $('div.card-button-background-add').on('click', function (event) {
+    $('div.card-button-new-child').on('click', function (event) {
         newChildClientFormSetup($(this).parents('div[data-client-id]'));
         event.stopPropagation();
     });
@@ -266,13 +267,13 @@ function renderClientNode(client, level) {
 
     switch (level) {
         case 1:
-            template = template.replace(/{{class}}/g, "col-xs-12");
+            template = template.replace(/{{class}}/g, "card-100");
             break;
         case 2:
-            template = template.replace(/{{class}}/g, "col-xs-offset-1 col-xs-11");
+            template = template.replace(/{{class}}/g, "card-90");
             break;
         default:
-            template = template.replace(/{{class}}/g, "col-xs-offset-2 col-xs-10");
+            template = template.replace(/{{class}}/g, "card-80");
             break;
     }
 
@@ -294,7 +295,7 @@ function renderClientNode(client, level) {
 
     if (!client.CanManage) {
         $('.icon-container', $template).remove();
-        $('.client-admin-card', $template).addClass('disabled');
+        $('.client-admin-card', $template).attr('disabled', '');
     }
 
     if (client.Children.length != 0) {  // Only include the delete button on client nodes without children
@@ -320,64 +321,43 @@ function deleteClient(event, id, name) {
 
     event.stopPropagation();
 
-    bootbox.confirm({
-        title: "Delete " + name + "?",
-        message: "This action can not be undone.  Do you wish to proceed?",
-        className: 'screen-center',
-        backdrop: true,
-        onEscape: true,
-        buttons: {
-            confirm: {
-                label: '<i class="fa fa-check"></i> Confirm',
-                className: 'primary-button btn btn-danger'
-            },
-            cancel: {
-                label: 'Cancel',
-                className: 'btn-link'
-            }
-        },
+    vex.dialog.confirm({
+        unsafeMessage: '<h3>Delete ' + name + '?</h3>' +
+            '<p>This action can not be undone.  Do you wish to proceed?</p>',
+        buttons: [
+            $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'red-button'}),
+            $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
+        ],
         callback: function (result) {
             if (result) {
-                bootbox.prompt({
-                    title: "Please provide your password to proceed with deletion",
-                    className: 'screen-center',
-                    inputType: 'password',
-                    backdrop: true,
-                    onEscape: true,
-                    buttons: {
-                        confirm: {
-                            label: '<i class="fa fa-trash"></i> DELETE',
-                            className: 'primary-button btn btn-danger'
-                        },
-                        cancel: {
-                            label: 'Cancel',
-                            className: 'btn-link'
-                        }
-                    },
+                vex.dialog.prompt({
+                    message: 'Please provide your password to proceed with deletion',
+                    input: [
+                        '<input name="password" type="password" placeholder="Password" required />'
+                    ].join(''),
+                    buttons: [
+                        $.extend({}, vex.dialog.buttons.YES, { text: 'DELETE', className: 'red-button' }),
+                        $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
+                    ],
                     callback: function (result) {
                         if (result) {
                             removeClientNode(id, name, result);
                         }
                         else if (result == "") {
-                            toastr['warning']("Please enter a password");
+                            toastr['warning']("Please enter your password to proceed");
                             return false;
                         }
                         else {
-                            toastr['warning']("Deletion was canceled");
-
+                            toastr['info']("Deletion was canceled");
                         }
                     }
                 })
-
-                $('.bootbox-input-password').on('keyup', function (e) {
-                    if (e.which === 13) {
-                        $('button[data-bb-handler="confirm"]').trigger('click');
-                    }
-                });
+            }
+            else {
+                toastr['info']("Deletion was canceled");
             }
         }
-    });
-
+    })
 };
 
 function removeClientNode(clientId, clientName, password) {
@@ -486,22 +466,12 @@ function resetNewClientForm() {
 
     $('#client-form :input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select').each(function () {
         if ($(this).val() != "") {
-            bootbox.confirm({
-                title: "Discard changes?",
-                message: "Would you like to discard the unsaved changes?",
-                className: 'screen-center',
-                backdrop: true,
-                onEscape: true,
-                buttons: {
-                    confirm: {
-                        label: '<i class="fa fa-check"></i> Confirm',
-                        className: 'primary-button'
-                    },
-                    cancel: {
-                        label: 'Cancel',
-                        className: 'btn-link'
-                    }
-                },
+            vex.dialog.confirm({
+                message: 'Would you like to discard the unsaved changes?',
+                buttons: [
+                    $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'green-button' }),
+                    $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
+                ],
                 callback: function (result) {
                     if (result) {
                         $('#client-form .input-validation-error').removeClass('input-validation-error');
@@ -512,7 +482,7 @@ function resetNewClientForm() {
                         return false;
                     }
                 }
-            })
+            });
             return false;
         }
     })
@@ -526,33 +496,23 @@ function undoChangesEditClientForm(event) {
 
     var clientId = $('#client-form #Id').val();
 
-    bootbox.confirm({
-        title: "Discard changes?",
-        message: "Would you like to discard the unsaved changes?",
-        className: 'screen-center',
-        backdrop: true,
-        onEscape: true,
-        buttons: {
-            confirm: {
-                label: '<i class="fa fa-check"></i> Confirm',
-                className: 'primary-button'
-            },
-            cancel: {
-                label: 'Cancel',
-                className: 'btn-link'
-            }
-        },
+
+    vex.dialog.confirm({
+        message: 'Would you like to discard the unsaved changes?',
+        buttons: [
+            $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'green-button' }),
+            $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
+        ],
         callback: function (result) {
             if (result) {
                 EditClientDetail($('#client-tree div[data-client-id="' + clientId + '"]'));
             }
         }
-    })
-
+    });
 }
 
 function toggleEditExistingClient() {
-    EditClientDetail($('div.selected'));
+    EditClientDetail($('div[selected]'));
 }
 
 function cancelClientEdit() {
@@ -560,28 +520,18 @@ function cancelClientEdit() {
     var clientId = $('#client-form #Id').val();
 
     if (pendingChanges()) {
-        bootbox.confirm({
-            title: "Discard changes?",
-            message: "Would you like to discard the unsaved changes?",
-            className: 'screen-center',
-            backdrop: true,
-            onEscape: true,
-            buttons: {
-                confirm: {
-                    label: '<i class="fa fa-check"></i> Confirm',
-                    className: 'primary-button'
-                },
-                cancel: {
-                    label: 'Cancel',
-                    className: 'btn-link'
-                }
-            },
+        vex.dialog.confirm({
+            message: 'Would you like to discard the unsaved changes?',
+            buttons: [
+                $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'green-button' }),
+                $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
+            ],
             callback: function (result) {
                 if (result) {
                     cancelEditTasks(clientId);
                 }
             }
-        })
+        });
     }
     else {
         cancelEditTasks(clientId);
@@ -616,6 +566,7 @@ function cancelEditTasks(clientId) {
         removeClientInserts();
         clearFormData();
         hideClientForm();
+        clearSelectedClient();
     }
 }
 
@@ -632,7 +583,11 @@ function renderUserList(client, userId) {
         event.stopPropagation();
     });
     $('div[data-client-id][data-user-id]').on('click', function (event) {
-        $(this).find('div.card-expansion-container').toggleClass('minimized maximized');
+        if ($(this).find('div.card-expansion-container').is('[maximized]')) {
+            $(this).find('div.card-expansion-container').removeAttr('maximized');
+        } else {
+            $(this).find('div.card-expansion-container').attr('maximized', '');
+        }
         toggleExpandCollapse();
         event.stopPropagation();
     });
@@ -682,23 +637,23 @@ function renderUserNode(clientId, user) {
 };
 
 function expandAllUsers() {
-    $('div.card-expansion-container.minimized').toggleClass('minimized maximized');
+    $('#client-user-list div.card-expansion-container').attr('maximized', '');
     toggleExpandCollapse();
 }
 
 function collapseAllUsers() {
-    $('div.card-expansion-container.maximized').toggleClass('maximized minimized');
+    $('#client-user-list div.card-expansion-container[maximized]').removeAttr('maximized');
     toggleExpandCollapse();
 }
 
 function toggleExpandCollapse() {
-    if ($('div.card-expansion-container.minimized').length > 0) {
+    if ($('div.card-expansion-container:not([maximized])').length > 0) {
         $('#expand-user-icon').show();
     } else {
         $('#expand-user-icon').hide();
     }
 
-    if ($('div.card-expansion-container.maximized').length > 0) {
+    if ($('div.card-expansion-container[maximized]').length > 0) {
         $('#collapse-user-icon').show();
     } else {
         $('#collapse-user-icon').hide();
