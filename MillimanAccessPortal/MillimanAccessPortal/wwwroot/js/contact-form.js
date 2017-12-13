@@ -58,20 +58,20 @@ function resetContactForm() {
 }
 
 function submitForm() {
-    var form = $('#contact-form');
+    var formRecipient = $('#contact-form #recipient').val();
+    var formSubject = $('#contact-form #subject').val();
+    var formMessage = $('#contact-form #message').val();
 
-    // Serialize the form data.
-    var formData = $(form).serialize();
-    console.log(formData);
-
-    // Submit the form using AJAX.
     $.ajax({
         type: 'POST',
-        url: $(form).attr('action'),
+        url: 'Message/SendEmailFromUser',
         data: {
-            'recipient': $('#contact-form #recipient').val(),
-            'subject': $('#contact-form #subject').val(),
-            'message': $('#contact-form #message').val()
+            recipient: formRecipient,
+            subject: formSubject,
+            message: formMessage
+        },
+        headers: {
+            'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
         }
     }).done(function (response) {
         toastr["success"]("Your message has been sent");
