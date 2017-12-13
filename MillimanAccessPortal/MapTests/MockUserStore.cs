@@ -38,8 +38,24 @@ namespace MapTests
             NewStore.Setup(d => d.AddClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>(), It.IsAny<CancellationToken>())).Returns<ApplicationUser, IEnumerable<Claim>, CancellationToken>((usr, claims, ct) => 
                 Context.Object.UserClaims.AddRangeAsync(BuildClaimList(usr, claims), ct)
             );
-            NewStore.Setup(d => d.RemoveClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>(), It.IsAny<CancellationToken>())).Callback<ApplicationUser, IEnumerable<Claim>, CancellationToken>((usr, claims, ct) => Context.Object.UserClaims.RemoveRange(BuildClaimList(usr, claims)));
-            
+            NewStore.Setup(d => d.RemoveClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>(), It.IsAny<CancellationToken>())).Returns<ApplicationUser, IEnumerable<Claim>, CancellationToken>((usr, claims, ct) =>
+                {
+                    int initialCount = Enumerable.Count(Context.Object.UserClaims);
+                    int removeCount = Enumerable.Count(claims);
+                    int expectedFinalCount = initialCount - removeCount;
+
+                    List<IdentityUserClaim<long>> claimsList = BuildClaimList(usr, claims, Context.Object);
+
+                    Context.Object.UserClaims.RemoveRange(claimsList);
+
+                    int finalCount = Enumerable.Count(Context.Object.UserClaims);
+                    
+                    if (finalCount == expectedFinalCount)
+                        return Task.CompletedTask;
+                    else
+                        return Task.FromException(new Exception("Failed to remove claims"));                    
+                }
+            );
             NewStore.Setup(d => d.FindByEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync<string, CancellationToken, UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>, ApplicationUser>((em, ct) => Context.Object.ApplicationUser.SingleOrDefault(au => au.Email == em));
             NewStore.Setup(d => d.GetUserNameAsync(It.IsAny<ApplicationUser>(), It.IsAny<CancellationToken>())).ReturnsAsync<ApplicationUser, CancellationToken, UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>, string>((usr, ct) => Context.Object.Users.SingleOrDefault(ausr => ausr.Id == usr.Id).UserName);
 
@@ -70,14 +86,22 @@ namespace MapTests
         /// </summary>
         /// <param name="userArg">The targeted user</param>
         /// <param name="claimsArg">The list of generic claim objects to transform to IdentityUserClaim objects</param>
+        /// <param name="contextArg">The Context to search for an existing claim. Useful for building claims to be removed.</param>
         /// <returns></returns>
-        internal static List<IdentityUserClaim<long>> BuildClaimList(ApplicationUser userArg, IEnumerable<Claim> claimsArg)
+        internal static List<IdentityUserClaim<long>> BuildClaimList(ApplicationUser userArg, IEnumerable<Claim> claimsArg, ApplicationDbContext contextArg = null)
         {
             List<IdentityUserClaim<long>> returnList = new List<IdentityUserClaim<long>>();
 
             foreach (Claim claimInput in claimsArg)
             {
-                returnList.Add(new IdentityUserClaim<long> { UserId = userArg.Id, ClaimType = claimInput.Type, ClaimValue = claimInput.Value });
+                int idVal = 0;
+                if (contextArg != null)
+                {
+                    idVal = contextArg.UserClaims.FirstOrDefault(uc => uc.ClaimValue == claimInput.Value &&
+                                                                       uc.ClaimType == claimInput.Type &&
+                                                                       uc.UserId == userArg.Id).Id;
+                }
+                returnList.Add(new IdentityUserClaim<long> { Id = idVal, UserId = userArg.Id, ClaimType = claimInput.Type, ClaimValue = claimInput.Value });
             }
 
             return returnList;

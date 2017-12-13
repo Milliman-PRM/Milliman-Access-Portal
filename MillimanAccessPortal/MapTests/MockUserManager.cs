@@ -47,8 +47,14 @@ namespace MapTests
                 return AddClaims(UserStore.Object, user, claims);
             });
 
-            ReturnMockUserManager.Setup(m => m.RemoveClaimAsync(It.IsAny<ApplicationUser>(), It.IsAny<Claim>())).Callback<ApplicationUser, Claim>((user, claim) => UserStore.Object.RemoveClaimsAsync(user, new List<Claim>() { claim }, CancellationToken.None));
-            ReturnMockUserManager.Setup(m => m.RemoveClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>())).Callback<ApplicationUser, IEnumerable<Claim>>((user, claims) => UserStore.Object.RemoveClaimsAsync(user, claims, CancellationToken.None));
+            ReturnMockUserManager.Setup(m => m.RemoveClaimAsync(It.IsAny<ApplicationUser>(), It.IsAny<Claim>())).ReturnsAsync<ApplicationUser, Claim, UserManager<ApplicationUser>, IdentityResult>((user, claim) =>
+            {
+                return RemoveClaims(UserStore.Object, user, new List<Claim> { claim });
+            });
+            ReturnMockUserManager.Setup(m => m.RemoveClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>())).ReturnsAsync<ApplicationUser, IEnumerable<Claim>, UserManager<ApplicationUser>, IdentityResult>((user, claims) =>
+            {
+                return RemoveClaims(UserStore.Object, user, claims);
+            });
             ReturnMockUserManager.Setup(m => m.GetUsersForClaimAsync(It.IsAny<Claim>())).ReturnsAsync<Claim, UserManager<ApplicationUser>, IList<ApplicationUser>>(claim => UserStore.Object.GetUsersForClaimAsync(claim, CancellationToken.None).Result);
 
             return ReturnMockUserManager;
@@ -82,6 +88,24 @@ namespace MapTests
 
             if (finalCount == expectedFinalCount)
                 return IdentityResult.Success;
+            else
+                return IdentityResult.Failed();
+        }
+
+        public static IdentityResult RemoveClaims(UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long> userStoreArg, ApplicationUser userArg, IEnumerable<Claim> claimsArg)
+        {
+            int beforeCount = Queryable.Count(userStoreArg.Context.UserClaims);
+            int removingCount = Enumerable.Count(claimsArg);
+            int expectedFinalCount = beforeCount - removingCount;
+
+            userStoreArg.RemoveClaimsAsync(userArg, claimsArg, CancellationToken.None);
+
+            int finalCount = Queryable.Count(userStoreArg.Context.UserClaims);
+
+            if (finalCount == expectedFinalCount)
+            {
+                return IdentityResult.Success;
+            }
             else
                 return IdentityResult.Failed();
         }
