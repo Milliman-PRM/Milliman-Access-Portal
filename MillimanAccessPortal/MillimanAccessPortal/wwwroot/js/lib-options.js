@@ -1,4 +1,4 @@
-﻿// Configure default vex options
+// Configure default vex options
 vex.defaultOptions = {
     content: '',
     unsafeContent: '',
