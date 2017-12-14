@@ -578,6 +578,35 @@ namespace MapTests
         }
 
         /// <summary>
+        /// Validate that changing the parent client is not supported
+        /// </summary>
+        [Fact]
+        public void EditClient_UnauthorizedWhenChangingParentClient()
+        {
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            Client testClient = GetValidClient();
+            #endregion
+
+            #region Act
+            /*
+             * Requirements/Assumptions for the test client:
+             *       The test user must be a client admin
+             *       The parent client must not be null
+             *       The parent client specified must be changed from the client's current parent
+             */
+            testClient.Id = 6;
+            testClient.ParentClientId = 2; // Original value was 1
+            
+            var view = controller.EditClient(testClient);
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            #endregion
+        }
+
+        /// <summary>
         /// Validate that invalid data causes return code 412
         /// Multiple scenarios should cause code 412 and must be tested
         /// </summary>
