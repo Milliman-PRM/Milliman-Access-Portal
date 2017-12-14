@@ -293,9 +293,10 @@ function renderClientNode(client, level) {
     // convert template to DOM element for jQuery manipulation
     var $template = $(template.toString());
 
+    console.log(client.CanManage);
     if (!client.CanManage) {
-        $('.icon-container', $template).remove();
-        $('.client-admin-card', $template).attr('disabled', '');
+        $('.card-button-side-container', $template).remove();
+        $('.card-container', $template).attr('disabled', '');
     }
 
     if (client.Children.length != 0) {  // Only include the delete button on client nodes without children
@@ -450,7 +451,7 @@ function submitClientForm(event) {
             clientTree = response.ClientTree;
             renderClientTree(response.RelevantClientId);
             toastr['success'](successResponse);
-            $('div.client-admin-card[data-client-id="' + clientId + '"]').click();
+            $('#client-tree div.card-container[data-client-id="' + clientId + '"]').click();
         }).fail(function (response) {
             toastr["warning"](response.getResponseHeader("Warning"));
         })

@@ -21,7 +21,7 @@
 
     &[disabled] {
         color: $dark-grey !important;
-        background-color: $grey !important;
+        background-color: darken($light-grey, 5%) !important;
 
         &[selected] {
             border: 5px solid $blue;
