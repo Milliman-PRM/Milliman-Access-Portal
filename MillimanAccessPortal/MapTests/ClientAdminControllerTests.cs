@@ -726,10 +726,23 @@ namespace MapTests
         /// <summary>
         /// 
         /// </summary>
-        [Fact]
-        public void DeleteClient_ErrorWhenUnauthorized()
+        [Theory]
+        [InlineData(1, null)]// Password check fails
+        [InlineData(2, "password")]// User is not authorized as Admin of the client
+        [InlineData(4, "password")]// User is not authorized as Admin of the client's profit center
+        public void DeleteClient_ErrorWhenUnauthorized(long clientIdArg, string passwordArg)
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            #endregion
+
+            #region Act
+            var view = controller.DeleteClient(clientIdArg, passwordArg);
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            #endregion
         }
 
         /// <summary>
