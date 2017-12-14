@@ -749,18 +749,46 @@ namespace MapTests
         /// 
         /// </summary>
         [Fact]
-        public void DeleteClient_ErrorWhenInvalid()
+        public void DeleteClient_ErrorWhenClientHasChildren()
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            #endregion
+
+            #region Act
+            var view = controller.DeleteClient(1, "password");
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(view);
+
+            StatusCodeResult viewResult = (StatusCodeResult)view;
+            Assert.Equal<int>(412, viewResult.StatusCode);
+            #endregion
         }
 
         /// <summary>
-        /// 
+        /// Verify that a deleted client is removed from persistence
         /// </summary>
         [Fact]
         public void DeleteClient_Success()
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+
+            int preCount = Enumerable.Count(TestResources.DbContextObject.Client);
+            #endregion
+
+            #region Act
+            var view = controller.DeleteClient(6, "password");
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(view);
+
+            int postCount = Enumerable.Count(TestResources.DbContextObject.Client);
+            Assert.Equal<int>((preCount - 1), postCount);
+            #endregion
         }
 
         /// <summary>
