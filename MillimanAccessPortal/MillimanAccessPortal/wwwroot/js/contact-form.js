@@ -70,8 +70,8 @@ function submitForm() {
             message: formMessage
         },
         headers: {
-            'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
-        }
+            RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
+        },
     }).done(function (response) {
         toastr["success"]("Your message has been sent");
         vex.closeAll();

@@ -6,8 +6,8 @@ var clientTree;
 
 function getClientTree() {
     $.ajax({
-        'type': 'GET',
-        'url': 'ClientAdmin/ClientFamilyList/'
+        type: 'GET',
+        url: 'ClientAdmin/ClientFamilyList/',
     }).done(function (response) {
         clientTree = response.ClientTree;
         populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
@@ -48,7 +48,7 @@ function GetClientDetail(clientDiv) {
         type: 'GET',
         url: 'ClientAdmin/ClientDetail/' + clientId,
         headers: {
-            'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
+            RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
         },
     }).done(function (response) {
         clearValidationErrors();
@@ -82,7 +82,7 @@ function EditClientDetail(clientDiv) {
         type: 'GET',
         url: 'ClientAdmin/ClientDetail/' + clientId,
         headers: {
-            'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
+            RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
         },
     }).done(function (response) {
         populateClientDetails(response.ClientEntity);
@@ -366,10 +366,10 @@ function removeClientNode(clientId, clientName, password) {
         url: 'ClientAdmin/DeleteClient',
         data: {
             Id: clientId,
-            Password: password
+            Password: password,
         },
         headers: {
-            'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
+            RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
         },
     }).done(function (response) {
         clientTree = response.ClientTree;
@@ -442,7 +442,7 @@ function submitClientForm(event) {
             url: urlAction,
             data: form.serialize(),
             headers: {
-                'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
+                RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
             },
         }).done(function (response) {
             hideClientForm();
