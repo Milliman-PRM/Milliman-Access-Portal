@@ -708,9 +708,19 @@ namespace MapTests
         /// 
         /// </summary>
         [Fact]
-        public void DeleteClient_ErrorWhenBadRequest()
+        public void DeleteClient_ErrorWhenClientNotFound()
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            #endregion
+
+            #region Act
+            var view = controller.DeleteClient(424242, "password");
+            #endregion
+
+            #region Assert
+            Assert.IsType<BadRequestResult>(view);
+            #endregion
         }
 
         /// <summary>
@@ -736,15 +746,6 @@ namespace MapTests
         /// </summary>
         [Fact]
         public void DeleteClient_Success()
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [Fact]
-        public void DeleteClient_Failed()
         {
             throw new NotImplementedException();
         }
