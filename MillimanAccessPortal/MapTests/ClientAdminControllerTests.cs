@@ -543,10 +543,26 @@ namespace MapTests
         /// <summary>
         /// Validate that an invalid request results in a BadRequestResult
         /// </summary>
-        [Fact]
-        public void EditClient_ErrorWhenInvalidRequest()
+        [Theory]
+        [InlineData(-1,1)]// Client ID less than 0
+        [InlineData(1,1)]// Parent client ID matches client ID
+        [InlineData(424242,1)]// Attempt to edit a non-existent client
+        public void EditClient_ErrorWhenInvalidRequest(int clientIdArg, int parentClientIdArg)
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            Client testClient = GetValidClient();
+            #endregion
+
+            #region Act
+            testClient.ParentClientId = parentClientIdArg;
+            testClient.Id = clientIdArg;
+            var view = controller.EditClient(testClient);
+            #endregion
+
+            #region Assert
+            Assert.IsType<BadRequestObjectResult>(view);
+            #endregion
         }
 
         /// <summary>
