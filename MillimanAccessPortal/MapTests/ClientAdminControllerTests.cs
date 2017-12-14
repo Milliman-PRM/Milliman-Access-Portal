@@ -790,41 +790,5 @@ namespace MapTests
             Assert.Equal<int>((preCount - 1), postCount);
             #endregion
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [Fact]
-        public void GetCurrentApplicationUser_ReturnsCorrectUser()
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [Fact]
-        public void GetClientAdminIndexModelForUser_ReturnsNullForNullUser()
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [Fact]
-        public void GetClientAdminIndexModelForUser_ReturnsValidModel()
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [Fact]
-        public void GetCleanClientEmailWhitelistArray_ReturnsCleanArray()
-        {
-            throw new NotImplementedException();
-        }
     }
 }
