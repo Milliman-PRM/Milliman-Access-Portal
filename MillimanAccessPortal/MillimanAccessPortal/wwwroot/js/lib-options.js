@@ -11,7 +11,7 @@ vex.defaultOptions = {
   contentClassName: '',
   closeClassName: '',
   closeAllOnPopState: false,
-}
+};
 
 // Configure toastr options
 toastr.options = {
@@ -37,4 +37,4 @@ var domainValRegex = /^[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 var emailValRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 $.validator.methods.email = function (value, element) {
   return this.optional(element) || emailValRegex.test(value);
-}
+};

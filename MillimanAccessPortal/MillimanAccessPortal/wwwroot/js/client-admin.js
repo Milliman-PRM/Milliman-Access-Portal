@@ -29,12 +29,12 @@ function populateProfitCenterDropDown(profitCenters) {
   $('#ProfitCenterId option:not(option[value = ""])').remove();
   $.each(profitCenters, function () {
     $('#ProfitCenterId').append($("<option />").val(this.Id).text(this.Name + ' (' + this.Code + ')'));
-  })
+  });
 }
 
 function GetClientDetail(clientDiv) {
 
-  removeClientInserts()
+  removeClientInserts();
 
   var clientId = clientDiv.attr('data-client-id').valueOf();
 
@@ -68,11 +68,11 @@ function GetClientDetail(clientDiv) {
     toastr["warning"](response.getResponseHeader("Warning"));
     hideClientForm();
   })
-};
+}
 
 function EditClientDetail(clientDiv) {
 
-  removeClientInserts()
+  removeClientInserts();
 
   clearValidationErrors();
 
@@ -87,7 +87,7 @@ function EditClientDetail(clientDiv) {
   }).done(function (response) {
     populateClientDetails(response.ClientEntity);
     // Change the dom to reflect the selected client
-    clearSelectedClient()
+    clearSelectedClient();
     clientDiv.attr('selected', '');
     clientDiv.attr('editing', '');
     // Show the form in read/write mode
@@ -104,12 +104,12 @@ function EditClientDetail(clientDiv) {
   }).fail(function (response) {
     toastr["warning"](response.getResponseHeader("Warning"));
     hideClientForm();
-  })
+  });
 };
 
 
 function newClientFormSetup() {
-  removeClientInserts()
+  removeClientInserts();
   clearFormData();
   clearSelectedClient();
   makeFormWriteable();
@@ -127,7 +127,7 @@ function newChildClientFormSetup(parentClientDiv) {
 
   $('#client-form #ParentClientId').val(parentClientId);
 
-  removeClientInserts()
+  removeClientInserts();
   clearSelectedClient();
 
   var template = childNodePlaceholder;
@@ -216,7 +216,7 @@ function populateClientDetails(ClientEntity) {
     var ctrl = $('#' + key, '#client-info');
     if (ctrl.is('select')) {
       if ($('#client-form #' + key + ' option[value="' + value + '"]').length == 0) {
-          $('#' + key).append($("<option temporary-profitcenter />").val(ClientEntity.ProfitCenterId).text(ClientEntity.ProfitCenter.Name + ' (' + ClientEntity.ProfitCenter.ProfitCenterCode + ')'));
+        $('#' + key).append($("<option temporary-profitcenter />").val(ClientEntity.ProfitCenterId).text(ClientEntity.ProfitCenter.Name + ' (' + ClientEntity.ProfitCenter.ProfitCenterCode + ')'));
       }
       ctrl.val(value).change();
     }
@@ -235,7 +235,7 @@ function populateClientDetails(ClientEntity) {
     }
     ctrl.attr('data-original-value', value);
   });
-};
+}
 
 function renderClientTree(clientId) {
   $('#client-tree-list').empty();
@@ -260,7 +260,7 @@ function renderClientTree(clientId) {
   if ($('#add-client-icon').length) {
     $('#client-tree-list').append(clientCard);
   }
-};
+}
 
 function renderClientNode(client, level) {
   var template = clientNodeTemplate;
@@ -277,7 +277,7 @@ function renderClientNode(client, level) {
       break;
   }
 
-  template = template.replace(/{{header-level}}/g, (level + 1))
+  template = template.replace(/{{header-level}}/g, (level + 1));
   template = template.replace(/{{id}}/g, client.ClientEntity.Id);
   template = template.replace(/{{name}}/g, client.ClientEntity.Name);
   if (client.ClientEntity.ClientCode) {
@@ -326,18 +326,18 @@ function deleteClient(event, id, name) {
       '<p>This action can not be undone.  Do you wish to proceed?</p>',
     buttons: [
       $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'red-button'}),
-      $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
+      $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
     ],
     callback: function (result) {
       if (result) {
         vex.dialog.prompt({
           message: 'Please provide your password to proceed with deletion',
           input: [
-            '<input name="password" type="password" placeholder="Password" required />'
+            '<input name="password" type="password" placeholder="Password" required />',
           ].join(''),
           buttons: [
             $.extend({}, vex.dialog.buttons.YES, { text: 'DELETE', className: 'red-button' }),
-            $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
+            $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
           ],
           callback: function (result) {
             if (result) {
@@ -358,7 +358,7 @@ function deleteClient(event, id, name) {
       }
     }
   })
-};
+}
 
 function removeClientNode(clientId, clientName, password) {
   $.ajax({
@@ -380,7 +380,7 @@ function removeClientNode(clientId, clientName, password) {
   }).fail(function (response) {
     toastr["warning"](response.getResponseHeader("Warning"));
   })
-};
+}
 
 function searchClientTree(searchString) {
   var searchString = searchString.toUpperCase();
@@ -453,7 +453,7 @@ function submitClientForm(event) {
       $('div.client-admin-card[data-client-id="' + clientId + '"]').click();
     }).fail(function (response) {
       toastr["warning"](response.getResponseHeader("Warning"));
-    })
+    });
 
   }
 }
@@ -470,7 +470,7 @@ function resetNewClientForm() {
         message: 'Would you like to discard the unsaved changes?',
         buttons: [
           $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'green-button' }),
-          $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
+          $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
         ],
         callback: function (result) {
           if (result) {
@@ -481,11 +481,11 @@ function resetNewClientForm() {
           else {
             return false;
           }
-        }
+        },
       });
       return false;
     }
-  })
+  });
 }
 
 function undoChangesEditClientForm(event) {
@@ -501,13 +501,13 @@ function undoChangesEditClientForm(event) {
     message: 'Would you like to discard the unsaved changes?',
     buttons: [
       $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'green-button' }),
-      $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
+      $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
     ],
     callback: function (result) {
       if (result) {
         EditClientDetail($('#client-tree div[data-client-id="' + clientId + '"]'));
       }
-    }
+    },
   });
 }
 
@@ -530,7 +530,7 @@ function cancelClientEdit() {
         if (result) {
           cancelEditTasks(clientId);
         }
-      }
+      },
     });
   }
   else {
@@ -603,7 +603,7 @@ function renderUserList(client, userId) {
     $('[data-user-id="' + userId + '"]').click();
   }
 
-};
+}
 
 function renderUserNode(clientId, user) {
   var template = userNodeTemplate;
@@ -634,7 +634,7 @@ function renderUserNode(clientId, user) {
 
   $('#client-user-list').append($template);
 
-};
+}
 
 function expandAllUsers() {
   $('#client-user-list div.card-expansion-container').attr('maximized', '');

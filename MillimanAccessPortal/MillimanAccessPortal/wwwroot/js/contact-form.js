@@ -17,7 +17,7 @@ function initializeContactForm() {
       '<div>',
       '<textarea id="message" name="message" placeholder="Message" required></textarea>',
       '</div>',
-      '</form>'
+      '</form>',
     ].join(''),
     buttons: [
       $.extend({}, vex.dialog.buttons.NO, {
@@ -30,7 +30,7 @@ function initializeContactForm() {
             toastr['warning']('Please provide a subject and message');
             return false;
           }
-        }
+        },
       }),
       $.extend({}, vex.dialog.buttons.NO, {
         text: 'Reset',
@@ -38,14 +38,14 @@ function initializeContactForm() {
         click: function () {
           resetContactForm();
           return false;
-        }
+        },
       }),
     ],
     callback: function () {
       return false;
-    }
-  })
-};
+    },
+  });
+}
 
 $("#contact-button").click(function () {
   initializeContactForm();
@@ -67,11 +67,11 @@ function submitForm() {
     data: {
       recipient: formRecipient,
       subject: formSubject,
-      message: formMessage
+      message: formMessage,
     },
     headers: {
-      'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
-    }
+      'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val(),
+    },
   }).done(function (response) {
     toastr["success"]("Your message has been sent");
     vex.closeAll();
@@ -79,4 +79,4 @@ function submitForm() {
     toastr["error"]("Your message was unable to be delivered");
   });
 
-};
+}
