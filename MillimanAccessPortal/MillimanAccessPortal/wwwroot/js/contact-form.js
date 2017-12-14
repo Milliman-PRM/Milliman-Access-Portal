@@ -30,6 +30,7 @@ function initializeContactForm() {
             toastr.warning('Please provide a subject and message');
             return false;
           }
+          return true;
         },
       }),
       $.extend({}, vex.dialog.buttons.NO, {
@@ -72,10 +73,10 @@ function submitForm() {
     headers: {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
     },
-  }).done((response) => {
+  }).done(() => {
     toastr.success('Your message has been sent');
     vex.closeAll();
-  }).fail((response) => {
+  }).fail(() => {
     toastr.error('Your message was unable to be delivered');
   });
 }

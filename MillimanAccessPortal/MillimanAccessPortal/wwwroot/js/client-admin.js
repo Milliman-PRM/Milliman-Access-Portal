@@ -322,15 +322,16 @@ function deleteClient(event, id, name) {
             $.extend({}, vex.dialog.buttons.YES, { text: 'DELETE', className: 'red-button' }),
             $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
           ],
-          callback(result) {
-            if (result) {
-              removeClientNode(id, name, result);
+          callback(innerResult) {
+            if (innerResult) {
+              removeClientNode(id, name, innerResult);
             } else if (result == '') {
               toastr.warning('Please enter your password to proceed');
               return false;
             } else {
               toastr.info('Deletion was canceled');
             }
+            return true;
           }
         })
       } else {
@@ -449,6 +450,7 @@ function resetNewClientForm() {
           } else {
             return false;
           }
+          return true;
         },
       });
       return false;
