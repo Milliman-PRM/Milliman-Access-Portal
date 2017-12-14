@@ -15,14 +15,10 @@ function getClientTree() {
   }).fail((response) => {
     if (response.getResponseHeader('Warning')) {
       toastr.warning(response.getResponseHeader('Warning'));
-    }
-    else {
+    } else {
       toaster.error('An error has occurred');
     }
   });
-
-
-
 }
 
 function populateProfitCenterDropDown(profitCenters) {
@@ -33,7 +29,6 @@ function populateProfitCenterDropDown(profitCenters) {
 }
 
 function GetClientDetail(clientDiv) {
-
   removeClientInserts();
 
   const clientId = clientDiv.attr('data-client-id').valueOf();
@@ -63,7 +58,6 @@ function GetClientDetail(clientDiv) {
       $('#client-info #edit-client-icon').hide();
     }
     showClientForm();
-
   }).fail((response) => {
     toastr.warning(response.getResponseHeader('Warning'));
     hideClientForm();
@@ -71,7 +65,6 @@ function GetClientDetail(clientDiv) {
 }
 
 function EditClientDetail(clientDiv) {
-
   removeClientInserts();
 
   clearValidationErrors();
@@ -107,7 +100,6 @@ function EditClientDetail(clientDiv) {
   });
 };
 
-
 function newClientFormSetup() {
   removeClientInserts();
   clearFormData();
@@ -120,7 +112,6 @@ function newClientFormSetup() {
 }
 
 function newChildClientFormSetup(parentClientDiv) {
-
   clearFormData();
 
   const parentClientId = parentClientDiv.attr('data-client-id').valueOf();
@@ -133,8 +124,7 @@ function newChildClientFormSetup(parentClientDiv) {
   let template = childNodePlaceholder;
   if (parentClientDiv.hasClass('card-100')) {
     template = template.replace(/{{class}}/g, 'card-90');
-  }
-  else {
+  } else {
     template = template.replace(/{{class}}/g, 'card-80');
   }
 
@@ -145,7 +135,6 @@ function newChildClientFormSetup(parentClientDiv) {
   $('#client-form #form-buttons-new').show();
   showClientForm();
 }
-
 
 function removeClientInserts() {
   $('#client-tree li.client-insert').remove();
@@ -197,8 +186,7 @@ function showClientForm() {
     $('#client-form #Name').focus();
     if ($('#client-form #Id').val()) {
       $('#client-users').show(showTime);
-    }
-    else {
+    } else {
       $('#client-users').hide();
     }
   });
@@ -219,8 +207,7 @@ function populateClientDetails(ClientEntity) {
         $('#' + key).append($('<option temporary-profitcenter />').val(ClientEntity.ProfitCenterId).text(ClientEntity.ProfitCenter.Name + ' (' + ClientEntity.ProfitCenter.ProfitCenterCode + ')'));
       }
       ctrl.val(value).change();
-    }
-    else if (ctrl.hasClass('selectize-custom-input')) {
+    } else if (ctrl.hasClass('selectize-custom-input')) {
       ctrl[0].selectize.clear();
       ctrl[0].selectize.clearOptions();
       if (value) {
@@ -229,8 +216,7 @@ function populateClientDetails(ClientEntity) {
           ctrl[0].selectize.addItem(value[i]);
         }
       }
-    }
-    else {
+    } else {
       ctrl.val(value);
     }
     ctrl.attr('data-original-value', value);
@@ -282,8 +268,7 @@ function renderClientNode(client, level) {
   template = template.replace(/{{name}}/g, client.ClientEntity.Name);
   if (client.ClientEntity.ClientCode) {
     template = template.replace(/{{clientCode}}/g, client.ClientEntity.ClientCode);
-  }
-  else {
+  } else {
     template = template.replace(/{{clientCode}}/g, '');
   }
   template = template.replace(/{{users}}/g, client.AssociatedUserCount);
@@ -314,11 +299,9 @@ function renderClientNode(client, level) {
       renderClientNode(childNode, level + 1);
     })
   }
-
 };
 
 function deleteClient(event, id, name) {
-
   event.stopPropagation();
 
   vex.dialog.confirm({
@@ -342,18 +325,15 @@ function deleteClient(event, id, name) {
           callback(result) {
             if (result) {
               removeClientNode(id, name, result);
-            }
-            else if (result == '') {
+            } else if (result == '') {
               toastr.warning('Please enter your password to proceed');
               return false;
-            }
-            else {
+            } else {
               toastr.info('Deletion was canceled');
             }
           }
         })
-      }
-      else {
+      } else {
         toastr.info('Deletion was canceled');
       }
     }
@@ -395,19 +375,15 @@ function searchClientTree(searchString) {
           clientCode.innerHTML.toUpperCase().indexOf(searchStringUpper) > -1) {
           nodes[i].style.display = '';
           hrSwitch = 1;
-        }
-        else {
+        } else {
           nodes[i].style.display = 'none';
         }
       }
-    }
-    else {
+    } else {
       if (hrSwitch == 0) {
         nodes[i].style.display = 'none';
-      }
-      else {
+      } else {
         nodes[i].style.display = '';
-
       }
       hrSwitch = 0;
     }
@@ -415,9 +391,7 @@ function searchClientTree(searchString) {
 }
 
 function submitClientForm(event) {
-
   if ($('#client-form').valid()) {
-
     event.preventDefault();
 
     const form = $('#client-form');
@@ -429,8 +403,7 @@ function submitClientForm(event) {
     if (clientId) {
       urlAction += 'EditClient';
       successResponse = clientName + ' was successfully updated';
-    }
-    else {
+    } else {
       urlAction += 'SaveNewClient';
       successResponse = clientName + ' was successfully created';
     }
@@ -452,12 +425,10 @@ function submitClientForm(event) {
     }).fail((response) => {
       toastr.warning(response.getResponseHeader('Warning'));
     })
-
   }
 }
 
 function resetNewClientForm() {
-
   event.preventDefault();
 
   clearValidationErrors();
@@ -475,8 +446,7 @@ function resetNewClientForm() {
             $('#client-form .input-validation-error').removeClass('input-validation-error');
             $('#client-form span.field-validation-error > span').remove();
             clearFormData();
-          }
-          else {
+          } else {
             return false;
           }
         },
@@ -487,7 +457,6 @@ function resetNewClientForm() {
 }
 
 function undoChangesEditClientForm(event) {
-
   event.preventDefault();
 
   clearValidationErrors();
@@ -514,7 +483,6 @@ function toggleEditExistingClient() {
 }
 
 function cancelClientEdit() {
-
   let clientId = $('#client-form #Id').val();
 
   if (pendingChanges()) {
@@ -530,8 +498,7 @@ function cancelClientEdit() {
         }
       },
     });
-  }
-  else {
+  } else {
     cancelEditTasks(clientId);
   }
 }
@@ -556,7 +523,6 @@ function resetFormValues() {
   }
 }
 
-
 function cancelEditTasks(clientId) {
   resetFormValues();
   makeFormReadOnly();
@@ -567,8 +533,6 @@ function cancelEditTasks(clientId) {
     clearSelectedClient();
   }
 }
-
-
 
 function renderUserList(client, userId) {
   $('#client-user-list').empty();
@@ -600,7 +564,6 @@ function renderUserList(client, userId) {
   if (userId) {
     $('[data-user-id="' + userId + '"]').click();
   }
-
 }
 
 function renderUserNode(clientId, user) {
@@ -631,7 +594,6 @@ function renderUserNode(clientId, user) {
   //}
 
   $('#client-user-list').append($template);
-
 }
 
 function expandAllUsers() {

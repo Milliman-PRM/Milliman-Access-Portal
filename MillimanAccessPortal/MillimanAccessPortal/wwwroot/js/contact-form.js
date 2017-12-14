@@ -78,5 +78,4 @@ function submitForm() {
   }).fail((response) => {
     toastr.error('Your message was unable to be delivered');
   });
-
 }
