@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 
 namespace MapTests
 {
@@ -24,6 +25,8 @@ namespace MapTests
             // Setup mocked object methods to interact with persisted data
             Set.Setup(d => d.Add(It.IsAny<T>())).Callback<T>((s) => Data.Add(s));
             Set.Setup(d => d.AddRange(It.IsAny<IEnumerable<T>>())).Callback<IEnumerable<T>>((s) => Data.AddRange(s));
+            Set.Setup(d => d.AddRangeAsync(It.IsAny<IEnumerable<T>>(), It.IsAny<CancellationToken>())).Callback<IEnumerable<T>, CancellationToken>((s, ct) => 
+            Data.AddRange(s));
             Set.Setup(d => d.Remove(It.IsAny<T>())).Callback<T>((s) =>
             {
                 int foundIndex = -1;
