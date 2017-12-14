@@ -609,16 +609,16 @@ namespace MapTests
         /// <summary>
         /// Validate that invalid data causes return code 412
         /// Multiple scenarios should cause code 412 and must be tested
+        /// 
+        /// Providing a null value for an argument will retain the current value for the corresponding property
         /// </summary>
         [Theory]
-        [InlineData("Name1", null, null, null, null)]// Client name already exists for other client
-        [InlineData(null, 424242, null, null, null)]// Specified profit center does not exist
-        [InlineData(null, null, 424242, null, null)]// Specified parent client does not exist
-        [InlineData(null, null, null, new string[] { "test" }, null)]// Email domain whitelist invalid (no TLD)
-        [InlineData(null, null, null, null, new string[] { "test" })] // Email address whitelist invalid (no tld)
-        [InlineData(null, null, null, null, new string[] { "test.com" })] // Email address whitelist invalid (no @)
-        [InlineData(null, null, null, null, new string[] { "@test.com" })] // Email address whitelist invalid (no user)
-        public void EditClient_ErrorWhenInvalid(string clientNameArg, long? profitCenterIdArg, long? parentClientIdArg, string[] domainWhitelistArg, string[] addressWhitelistArg)
+        [InlineData("Name1", null, null)]// Client name already exists for other client
+        [InlineData(null, new string[] { "test" }, null)]// Email domain whitelist invalid (no TLD)
+        [InlineData(null, null, new string[] { "test" })] // Email address whitelist invalid (no @, no tld)
+        [InlineData(null, null, new string[] { "test.com" })] // Email address whitelist invalid (no @)
+        [InlineData(null, null, new string[] { "@test.com" })] // Email address whitelist invalid (no user)
+        public void EditClient_ErrorWhenInvalid(string clientNameArg, string[] domainWhitelistArg, string[] addressWhitelistArg)
         {
             #region Arrange
             ClientAdminController controller = GetControllerForUser("ClientAdmin1");
@@ -639,16 +639,6 @@ namespace MapTests
             if (!String.IsNullOrEmpty(clientNameArg))
             {
                 testClient.Name = clientNameArg;
-            }
-
-            if (parentClientIdArg != null)
-            {
-                testClient.ParentClientId = (long)parentClientIdArg;
-            }
-
-            if (profitCenterIdArg != null)
-            {
-                testClient.ProfitCenterId = (long)profitCenterIdArg;
             }
 
             if (domainWhitelistArg != null)
