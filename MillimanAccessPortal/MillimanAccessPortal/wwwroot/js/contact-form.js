@@ -1,5 +1,34 @@
 // Contact Form
 
+function submitForm() {
+  const formRecipient = $('#contact-form #recipient').val();
+  const formSubject = $('#contact-form #subject').val();
+  const formMessage = $('#contact-form #message').val();
+
+  $.ajax({
+    type: 'POST',
+    url: 'Message/SendEmailFromUser',
+    data: {
+      recipient: formRecipient,
+      subject: formSubject,
+      message: formMessage,
+    },
+    headers: {
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
+    },
+  }).done(() => {
+    toastr.success('Your message has been sent');
+    vex.closeAll();
+  }).fail(() => {
+    toastr.error('Your message was unable to be delivered');
+  });
+}
+
+function resetContactForm() {
+  $('#subject').val('');
+  $('#message').val('');
+}
+
 function initializeContactForm() {
   vex.dialog.open({
     input: [
@@ -51,32 +80,3 @@ function initializeContactForm() {
 $('#contact-button').click(() => {
   initializeContactForm();
 });
-
-function resetContactForm() {
-  $('#subject').val('');
-  $('#message').val('');
-}
-
-function submitForm() {
-  const formRecipient = $('#contact-form #recipient').val();
-  const formSubject = $('#contact-form #subject').val();
-  const formMessage = $('#contact-form #message').val();
-
-  $.ajax({
-    type: 'POST',
-    url: 'Message/SendEmailFromUser',
-    data: {
-      recipient: formRecipient,
-      subject: formSubject,
-      message: formMessage,
-    },
-    headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
-    },
-  }).done(() => {
-    toastr.success('Your message has been sent');
-    vex.closeAll();
-  }).fail(() => {
-    toastr.error('Your message was unable to be delivered');
-  });
-}
