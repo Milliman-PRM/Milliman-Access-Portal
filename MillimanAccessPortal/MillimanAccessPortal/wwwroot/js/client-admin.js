@@ -7,7 +7,7 @@ let clientTree = {};
 function populateProfitCenterDropDown(profitCenters) {
   $('#ProfitCenterId option:not(option[value = ""])').remove();
   $.each(profitCenters, () => {
-    $('#ProfitCenterId').append($('<option />').val(this.Id).text(this.Name + ' (' + this.Code + ')'));
+    $('#ProfitCenterId').append($('<option />').val(this.Id).text(`${this.Name} (${this.Code})`));
   });
 }
 
@@ -46,11 +46,13 @@ function renderClientNode(client, level) {
     $('.client-admin-card', $template).attr('disabled', '');
   }
 
-  if (client.Children.length != 0) {  // Only include the delete button on client nodes without children
+  // Only include the delete button on client nodes without children
+  if (client.Children.length !== 0) {
     $('.card-button-delete', $template).remove();
   }
 
-  if (level == 3) {  // Don't include the add child client button on lowest level
+  // Don't include the add child client button on lowest level
+  if (level === 3) {
     $('.card-button-new-child', $template).remove();
   }
 
@@ -87,17 +89,17 @@ function populateClientDetails(ClientEntity) {
   $('#client-form :input, #client-form select').removeAttr('data-original-value');
   $('#client-form #ProfitCenterId option[temporary-profitcenter]').remove();
   $.each(ClientEntity, (key, value) => {
-    const ctrl = $('#' + key, '#client-info');
+    const ctrl = $(`#${key}`, '#client-info');
     if (ctrl.is('select')) {
-      if ($('#client-form #' + key + ' option[value="' + value + '"]').length == 0) {
-        $('#' + key).append($('<option temporary-profitcenter />').val(ClientEntity.ProfitCenterId).text(ClientEntity.ProfitCenter.Name + ' (' + ClientEntity.ProfitCenter.ProfitCenterCode + ')'));
+      if ($(`#client-form #${key} option[value="${value}"]`).length === 0) {
+        $(`#${key}`).append($('<option temporary-profitcenter />').val(ClientEntity.ProfitCenterId).text(`${ClientEntity.ProfitCenter.Name} (${ClientEntity.ProfitCenter.ProfitCenterCode})`));
       }
       ctrl.val(value).change();
     } else if (ctrl.hasClass('selectize-custom-input')) {
       ctrl[0].selectize.clear();
       ctrl[0].selectize.clearOptions();
       if (value) {
-        for (let i = 0; i < value.length; i++) {
+        for (let i = 0; i < value.length; i += 1) {
           ctrl[0].selectize.addOption({ value: value[i], text: value[i] });
           ctrl[0].selectize.addItem(value[i]);
         }
@@ -114,27 +116,26 @@ function renderUserNode(clientId, user) {
 
   template = template.replace(/{{clientId}}/g, clientId);
   template = template.replace(/{{id}}/g, user.Id);
-  template = template.replace(/{{name}}/g, user.FirstName + ' ' + user.LastName);
+  template = template.replace(/{{name}}/g, `${user.FirstName} ${user.LastName}`);
   template = template.replace(/{{username}}/g, user.UserName);
-  if (user.UserName != user.Email) {
+  if (user.UserName !== user.Email) {
     template = template.replace(/{{email}}/g, user.Email);
   }
 
   // convert template to DOM element for jQuery manipulation
   const $template = $(template.toString());
 
-  $('div.card-container[data-search-string]', $template).attr('data-search-string',
-    user.FirstName.toUpperCase() + ' ' +
-    user.LastName.toUpperCase() + '|' +
-    user.UserName.toUpperCase() + '|' +
-    user.Email.toUpperCase());
+  $('div.card-container[data-search-string]', $template).attr(
+    'data-search-string',
+    `${user.FirstName} ${user.LastName.toUpperCase()}|${user.UserName.toUpperCase()}|${user.Email.toUpperCase()}`.toUpperCase(),
+  );
 
   $('.card-body-secondary-text:contains("{{email}}")', $template).remove();
 
-  //if (!client.CanManage) {
-  //    $('.icon-container', $template).remove();
-  //    $('.card-container', $template).addClass('disabled');
-  //}
+  // if (!client.CanManage) {
+  //     $('.icon-container', $template).remove();
+  //     $('.card-container', $template).addClass('disabled');
+  // }
 
   $('#client-user-list').append($template);
 }
@@ -160,7 +161,7 @@ function renderUserList(client, userId) {
   });
 
   $('div.card-button-remove-user').on('click', (event) => {
-    //removeUserFromClient($(this).parents('div[data-client-id][data-user-id]'));
+    // removeUserFromClient($(this).parents('div[data-client-id][data-user-id]'));
     event.stopPropagation();
   });
   $('div[data-client-id][data-user-id]').on('click', (event) => {
@@ -174,14 +175,14 @@ function renderUserList(client, userId) {
   });
 
   toggleExpandCollapse();
-  //$('#client-user-list').append(userCard);
+  // $('#client-user-list').append(userCard);
 
-  if (client.EligibleUsers) {
-    console.log(client.EligibleUsers);
-  }
+  // if (client.EligibleUsers) {
+  //   console.log(client.EligibleUsers);
+  // }
 
   if (userId) {
-    $('[data-user-id="' + userId + '"]').click();
+    $(`[data-user-id="${userId}"]`).click();
   }
 }
 
@@ -221,7 +222,7 @@ function GetClientDetail(clientDiv) {
 
   $.ajax({
     type: 'GET',
-    url: 'ClientAdmin/ClientDetail/' + clientId,
+    url: `ClientAdmin/ClientDetail/${clientId}`,
     headers: {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
     },
@@ -262,7 +263,7 @@ function EditClientDetail(clientDiv) {
 
   $.ajax({
     type: 'GET',
-    url: 'ClientAdmin/ClientDetail/' + clientId,
+    url: `ClientAdmin/ClientDetail/${clientId}`,
     headers: {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
     },
@@ -279,7 +280,7 @@ function EditClientDetail(clientDiv) {
     $('#undo-changes-button').hide();
     showClientForm();
     $('#client-form :input, #client-form select').on('change', () => {
-      if ($(this).value != $(this).attr('data-original-value')) {
+      if ($(this).value !== $(this).attr('data-original-value')) {
         $('#undo-changes-button').show();
       }
     });
@@ -342,7 +343,7 @@ function renderClientTree(clientId) {
     event.stopPropagation();
   });
   if (clientId) {
-    $('[data-client-id="' + clientId + '"]').click();
+    $(`[data-client-id="${clientId}"]`).click();
   }
   if ($('#add-client-icon').length) {
     $('#client-tree-list').append(clientCard);
@@ -364,7 +365,7 @@ function removeClientNode(clientId, clientName, password) {
     renderClientTree(response.RelevantClientId);
     clearFormData();
     hideClientForm();
-    toastr.success(clientName + ' was successfully deleted.');
+    toastr.success(`${clientName} was successfully deleted.`);
   }).fail((response) => {
     toastr.warning(response.getResponseHeader('Warning'));
   });
@@ -373,7 +374,7 @@ function removeClientNode(clientId, clientName, password) {
 function resetFormValues() {
   const inputsList = $('#client-form input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select');
 
-  for (let i = 0; i < inputsList.length; i++) {
+  for (let i = 0; i < inputsList.length; i += 1) {
     $(inputsList[i]).val($(inputsList[i]).attr('data-original-value'));
   }
 }
@@ -392,8 +393,8 @@ function cancelEditTasks(clientId) {
 function pendingChanges() {
   const inputsList = $('#client-form input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select');
 
-  for (let i = 0; i < inputsList.length; i++) {
-    if ($(inputsList[i]).val() != $(inputsList[i]).attr('data-original-value')) {
+  for (let i = 0; i < inputsList.length; i += 1) {
+    if ($(inputsList[i]).val() !== $(inputsList[i]).attr('data-original-value')) {
       return true;
     }
   }
@@ -414,7 +415,7 @@ function getClientTree() {
     if (response.getResponseHeader('Warning')) {
       toastr.warning(response.getResponseHeader('Warning'));
     } else {
-      toaster.error('An error has occurred');
+      toastr.error('An error has occurred');
     }
   });
 }
@@ -434,10 +435,9 @@ function deleteClient(event, id, name) {
   event.stopPropagation();
 
   vex.dialog.confirm({
-    unsafeMessage: '<h3>Delete ' + name + '?</h3>' +
-      '<p>This action can not be undone.  Do you wish to proceed?</p>',
+    unsafeMessage: `<h3>Delete ${name}?</h3><p>This action can not be undone.  Do you wish to proceed?</p>`,
     buttons: [
-      $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'red-button'}),
+      $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'red-button' }),
       $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
     ],
     callback(result) {
@@ -454,7 +454,7 @@ function deleteClient(event, id, name) {
           callback(innerResult) {
             if (innerResult) {
               removeClientNode(id, name, innerResult);
-            } else if (result == '') {
+            } else if (result === '') {
               toastr.warning('Please enter your password to proceed');
               return false;
             } else {
@@ -472,10 +472,10 @@ function deleteClient(event, id, name) {
 
 function searchClientTree(searchString) {
   const searchStringUpper = searchString.toUpperCase();
-  const nodes = document.getElementById('client-tree-list').getElementsByTagName('li');
+  const nodes = $('#client-tree-list > li');
   let hrSwitch = 0;
 
-  for (let i = 0; i < nodes.length; i++) {
+  for (let i = 0; i < nodes.length; i += 1) {
     if (nodes[i].getElementsByClassName('card-body-primary-text').length > 0) {
       const title = nodes[i].getElementsByClassName('card-body-primary-text')[0];
       const clientCode = nodes[i].getElementsByClassName('card-body-secondary-text')[0];
@@ -489,7 +489,7 @@ function searchClientTree(searchString) {
         }
       }
     } else {
-      if (hrSwitch == 0) {
+      if (hrSwitch === 0) {
         nodes[i].style.display = 'none';
       } else {
         nodes[i].style.display = '';
@@ -511,10 +511,10 @@ function submitClientForm(event) {
 
     if (clientId) {
       urlAction += 'EditClient';
-      successResponse = clientName + ' was successfully updated';
+      successResponse = `${clientName} was successfully updated`;
     } else {
       urlAction += 'SaveNewClient';
-      successResponse = clientName + ' was successfully created';
+      successResponse = `${clientName} was successfully created`;
     }
 
     $.ajax({
@@ -530,20 +530,20 @@ function submitClientForm(event) {
       clientTree = response.ClientTree;
       renderClientTree(response.RelevantClientId);
       toastr.success(successResponse);
-      $('div.client-admin-card[data-client-id="' + clientId + '"]').click();
+      $(`div.client-admin-card[data-client-id="${clientId}"]`).click();
     }).fail((response) => {
       toastr.warning(response.getResponseHeader('Warning'));
     });
   }
 }
 
-function resetNewClientForm() {
+function resetNewClientForm(event) {
   event.preventDefault();
 
   clearValidationErrors();
 
   $('#client-form :input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select').each(() => {
-    if ($(this).val() != '') {
+    if ($(this).val() !== '') {
       vex.dialog.confirm({
         message: 'Would you like to discard the unsaved changes?',
         buttons: [
@@ -583,7 +583,7 @@ function undoChangesEditClientForm(event) {
     ],
     callback(result) {
       if (result) {
-        EditClientDetail($('#client-tree div[data-client-id="' + clientId + '"]'));
+        EditClientDetail($(`#client-tree div[data-client-id="${clientId}"]`));
       }
     },
   });
@@ -628,7 +628,7 @@ function searchUser(searchString) {
   const searchStringUpper = searchString.toUpperCase();
   const nodes = $('#client-user-list div[data-search-string]');
 
-  for (let i = 0; i < nodes.length; i++) {
+  for (let i = 0; i < nodes.length; i += 1) {
     if ($(nodes[i]).attr('data-search-string').indexOf(searchStringUpper) > -1) {
       nodes[i].style.display = '';
     } else {
