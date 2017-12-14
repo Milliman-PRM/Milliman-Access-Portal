@@ -57,6 +57,9 @@ namespace MapTests
             });
             ReturnMockUserManager.Setup(m => m.GetUsersForClaimAsync(It.IsAny<Claim>())).ReturnsAsync<Claim, UserManager<ApplicationUser>, IList<ApplicationUser>>(claim => UserStore.Object.GetUsersForClaimAsync(claim, CancellationToken.None).Result);
 
+            // Return true if the password is not null
+            ReturnMockUserManager.Setup(m => m.CheckPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).ReturnsAsync<ApplicationUser, string, UserManager<ApplicationUser>, bool>((usr, pwd) => !String.IsNullOrEmpty(pwd));
+
             return ReturnMockUserManager;
         }
 
