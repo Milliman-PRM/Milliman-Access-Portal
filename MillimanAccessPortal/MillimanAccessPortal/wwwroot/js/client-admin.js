@@ -299,11 +299,11 @@ function renderClientNode(client, level) {
     }
 
     if (client.Children.length != 0) {  // Only include the delete button on client nodes without children
-        $('.card-button-background-delete', $template).remove();
+        $('.card-button-delete', $template).remove();
     }
 
     if (level == 3) {  // Don't include the add child client button on lowest level
-        $('.card-button-background-add', $template).remove();
+        $('.card-button-new-child', $template).remove();
     }
 
     $('#client-tree-list').append($template);
@@ -389,9 +389,9 @@ function searchClientTree(searchString) {
 
     for (i = 0; i < nodes.length; i++) {
         var title, clientCode;
-        if (nodes[i].getElementsByClassName('client-admin-card-title').length > 0) {
-            title = nodes[i].getElementsByClassName('client-admin-card-title')[0];
-            clientCode = nodes[i].getElementsByClassName('client-admin-card-clientcode')[0];
+        if (nodes[i].getElementsByClassName('card-body-primary-text').length > 0) {
+            title = nodes[i].getElementsByClassName('card-body-primary-text')[0];
+            clientCode = nodes[i].getElementsByClassName('card-body-secondary-text')[0];
             if (title || clientCode) {
                 if (title.innerHTML.toUpperCase().indexOf(searchString) > -1 ||
                     clientCode.innerHTML.toUpperCase().indexOf(searchString) > -1) {
@@ -420,40 +420,40 @@ function submitClientForm(event) {
 
     if ($('#client-form').valid()) {
 
-    event.preventDefault();
+        event.preventDefault();
 
-    var form = $('#client-form');
-    var clientId = $('#client-form #Id').val();
-    var clientName = $('#client-form #Name').val();
-    var urlAction = 'ClientAdmin/';
-    var successResponse;
+        var form = $('#client-form');
+        var clientId = $('#client-form #Id').val();
+        var clientName = $('#client-form #Name').val();
+        var urlAction = 'ClientAdmin/';
+        var successResponse;
 
-    if (clientId) {
-        urlAction += 'EditClient';
-        successResponse = clientName + ' was successfully updated';
-    }
-    else {
-        urlAction += 'SaveNewClient';
-        successResponse = clientName + ' was successfully created';
-    }
+        if (clientId) {
+            urlAction += 'EditClient';
+            successResponse = clientName + ' was successfully updated';
+        }
+        else {
+            urlAction += 'SaveNewClient';
+            successResponse = clientName + ' was successfully created';
+        }
 
-    $.ajax({
-        type: 'POST',
-        url: urlAction,
-        data: form.serialize(),
-        headers: {
-            'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
-        },
-    }).done(function (response) {
-        hideClientForm();
-        clearFormData();
-        clientTree = response.ClientTree;
-        renderClientTree(response.RelevantClientId);
-        toastr['success'](successResponse);
-        $('div.client-admin-card[data-client-id="' + clientId + '"]').click();
-    }).fail(function (response) {
-        toastr["warning"](response.getResponseHeader("Warning"));
-    })
+        $.ajax({
+            type: 'POST',
+            url: urlAction,
+            data: form.serialize(),
+            headers: {
+                'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
+            },
+        }).done(function (response) {
+            hideClientForm();
+            clearFormData();
+            clientTree = response.ClientTree;
+            renderClientTree(response.RelevantClientId);
+            toastr['success'](successResponse);
+            $('div.client-admin-card[data-client-id="' + clientId + '"]').click();
+        }).fail(function (response) {
+            toastr["warning"](response.getResponseHeader("Warning"));
+        })
 
     }
 }
