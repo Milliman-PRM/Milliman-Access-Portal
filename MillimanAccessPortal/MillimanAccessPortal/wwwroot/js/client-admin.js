@@ -13,11 +13,11 @@ function getClientTree() {
     populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
     renderClientTree(response.RelevantClientId);
   }).fail((response) => {
-    if (response.getResponseHeader("Warning")) {
-      toastr["warning"](response.getResponseHeader("Warning"));
+    if (response.getResponseHeader('Warning')) {
+      toastr.warning(response.getResponseHeader('Warning'));
     }
     else {
-      toaster['error']('An error has occurred');
+      toaster.error('An error has occurred');
     }
   });
 
@@ -28,7 +28,7 @@ function getClientTree() {
 function populateProfitCenterDropDown(profitCenters) {
   $('#ProfitCenterId option:not(option[value = ""])').remove();
   $.each(profitCenters, () => {
-    $('#ProfitCenterId').append($("<option />").val(this.Id).text(this.Name + ' (' + this.Code + ')'));
+    $('#ProfitCenterId').append($('<option />').val(this.Id).text(this.Name + ' (' + this.Code + ')'));
   });
 }
 
@@ -65,7 +65,7 @@ function GetClientDetail(clientDiv) {
     showClientForm();
 
   }).fail((response) => {
-    toastr["warning"](response.getResponseHeader("Warning"));
+    toastr.warning(response.getResponseHeader('Warning'));
     hideClientForm();
   })
 }
@@ -102,7 +102,7 @@ function EditClientDetail(clientDiv) {
       }
     })
   }).fail((response) => {
-    toastr["warning"](response.getResponseHeader("Warning"));
+    toastr.warning(response.getResponseHeader('Warning'));
     hideClientForm();
   });
 };
@@ -132,10 +132,10 @@ function newChildClientFormSetup(parentClientDiv) {
 
   let template = childNodePlaceholder;
   if (parentClientDiv.hasClass('card-100')) {
-    template = template.replace(/{{class}}/g, "card-90");
+    template = template.replace(/{{class}}/g, 'card-90');
   }
   else {
-    template = template.replace(/{{class}}/g, "card-80");
+    template = template.replace(/{{class}}/g, 'card-80');
   }
 
   parentClientDiv.parent().after(template);
@@ -157,7 +157,7 @@ function clearFormData() {
   $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.clear();
   $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.clearOptions();
   $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').attr('data-original-value', '');
-  $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').val("");
+  $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').val('');
   clearValidationErrors();
 }
 
@@ -216,7 +216,7 @@ function populateClientDetails(ClientEntity) {
     const ctrl = $('#' + key, '#client-info');
     if (ctrl.is('select')) {
       if ($('#client-form #' + key + ' option[value="' + value + '"]').length == 0) {
-        $('#' + key).append($("<option temporary-profitcenter />").val(ClientEntity.ProfitCenterId).text(ClientEntity.ProfitCenter.Name + ' (' + ClientEntity.ProfitCenter.ProfitCenterCode + ')'));
+        $('#' + key).append($('<option temporary-profitcenter />').val(ClientEntity.ProfitCenterId).text(ClientEntity.ProfitCenter.Name + ' (' + ClientEntity.ProfitCenter.ProfitCenterCode + ')'));
       }
       ctrl.val(value).change();
     }
@@ -267,13 +267,13 @@ function renderClientNode(client, level) {
 
   switch (level) {
     case 1:
-      template = template.replace(/{{class}}/g, "card-100");
+      template = template.replace(/{{class}}/g, 'card-100');
       break;
     case 2:
-      template = template.replace(/{{class}}/g, "card-90");
+      template = template.replace(/{{class}}/g, 'card-90');
       break;
     default:
-      template = template.replace(/{{class}}/g, "card-80");
+      template = template.replace(/{{class}}/g, 'card-80');
       break;
   }
 
@@ -343,18 +343,18 @@ function deleteClient(event, id, name) {
             if (result) {
               removeClientNode(id, name, result);
             }
-            else if (result == "") {
-              toastr['warning']("Please enter your password to proceed");
+            else if (result == '') {
+              toastr.warning('Please enter your password to proceed');
               return false;
             }
             else {
-              toastr['info']("Deletion was canceled");
+              toastr.info('Deletion was canceled');
             }
           }
         })
       }
       else {
-        toastr['info']("Deletion was canceled");
+        toastr.info('Deletion was canceled');
       }
     }
   })
@@ -375,9 +375,9 @@ function removeClientNode(clientId, clientName, password) {
     renderClientTree(response.RelevantClientId);
     clearFormData();
     hideClientForm();
-    toastr['success'](clientName + " was successfully deleted.");
+    toastr.success(clientName + ' was successfully deleted.');
   }).fail((response) => {
-    toastr["warning"](response.getResponseHeader("Warning"));
+    toastr.warning(response.getResponseHeader('Warning'));
   })
 }
 
@@ -393,20 +393,20 @@ function searchClientTree(searchString) {
       if (title || clientCode) {
         if (title.innerHTML.toUpperCase().indexOf(searchStringUpper) > -1 ||
           clientCode.innerHTML.toUpperCase().indexOf(searchStringUpper) > -1) {
-          nodes[i].style.display = "";
+          nodes[i].style.display = '';
           hrSwitch = 1;
         }
         else {
-          nodes[i].style.display = "none";
+          nodes[i].style.display = 'none';
         }
       }
     }
     else {
       if (hrSwitch == 0) {
-        nodes[i].style.display = "none";
+        nodes[i].style.display = 'none';
       }
       else {
-        nodes[i].style.display = "";
+        nodes[i].style.display = '';
 
       }
       hrSwitch = 0;
@@ -447,11 +447,11 @@ function submitClientForm(event) {
       clearFormData();
       clientTree = response.ClientTree;
       renderClientTree(response.RelevantClientId);
-      toastr['success'](successResponse);
+      toastr.success(successResponse);
       $('div.client-admin-card[data-client-id="' + clientId + '"]').click();
     }).fail((response) => {
-      toastr["warning"](response.getResponseHeader("Warning"));
-    });
+      toastr.warning(response.getResponseHeader('Warning'));
+    })
 
   }
 }
@@ -463,7 +463,7 @@ function resetNewClientForm() {
   clearValidationErrors();
 
   $('#client-form :input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select').each(() => {
-    if ($(this).val() != "") {
+    if ($(this).val() != '') {
       vex.dialog.confirm({
         message: 'Would you like to discard the unsaved changes?',
         buttons: [
@@ -608,7 +608,7 @@ function renderUserNode(clientId, user) {
 
   template = template.replace(/{{clientId}}/g, clientId);
   template = template.replace(/{{id}}/g, user.Id);
-  template = template.replace(/{{name}}/g, user.FirstName + " " + user.LastName);
+  template = template.replace(/{{name}}/g, user.FirstName + ' ' + user.LastName);
   template = template.replace(/{{username}}/g, user.UserName);
   if (user.UserName != user.Email) {
     template = template.replace(/{{email}}/g, user.Email);
@@ -618,9 +618,9 @@ function renderUserNode(clientId, user) {
   const $template = $(template.toString());
 
   $('div.card-container[data-search-string]', $template).attr('data-search-string',
-    user.FirstName.toUpperCase() + " " +
-    user.LastName.toUpperCase() + "|" +
-    user.UserName.toUpperCase() + "|" +
+    user.FirstName.toUpperCase() + ' ' +
+    user.LastName.toUpperCase() + '|' +
+    user.UserName.toUpperCase() + '|' +
     user.Email.toUpperCase());
 
   $('.card-body-secondary-text:contains("{{email}}")', $template).remove();
@@ -664,9 +664,9 @@ function searchUser(searchString) {
 
   for (let i = 0; i < nodes.length; i++) {
     if ($(nodes[i]).attr('data-search-string').indexOf(searchStringUpper) > -1) {
-      nodes[i].style.display = "";
+      nodes[i].style.display = '';
     } else {
-      nodes[i].style.display = "none";
+      nodes[i].style.display = 'none';
     }
   }
 }

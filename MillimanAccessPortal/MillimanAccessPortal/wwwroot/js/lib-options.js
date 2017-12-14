@@ -1,6 +1,6 @@
 // Configure jQuery validation overrides
 const domainValRegex = /^[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-const emailValRegex = /^(([^<>()[]\\.,;:\s@"]+(\.[^<>()[]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+const emailValRegex = /^(([^<>()[]\\.,;:\s@']+(\.[^<>()[]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 $.validator.methods.email = function validateEmail(value, element) {
   return this.optional(element) || emailValRegex.test(value);
 };
@@ -26,15 +26,15 @@ toastr.options = {
   debug: false,
   newestOnTop: false,
   progressBar: false,
-  positionClass: "toast-bottom-right",
+  positionClass: 'toast-bottom-right',
   preventDuplicates: false,
   onclick: null,
-  showDuration: "300",
-  hideDuration: "1000",
-  timeOut: "5000",
-  extendedTimeOut: "1000",
-  showEasing: "swing",
-  hideEasing: "swing",
-  showMethod: "show",
-  hideMethod: "hide",
+  showDuration: '300',
+  hideDuration: '1000',
+  timeOut: '5000',
+  extendedTimeOut: '1000',
+  showEasing: 'swing',
+  hideEasing: 'swing',
+  showMethod: 'show',
+  hideMethod: 'hide',
 };

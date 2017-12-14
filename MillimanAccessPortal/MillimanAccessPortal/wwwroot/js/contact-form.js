@@ -27,7 +27,7 @@ function initializeContactForm() {
           if ($('#subject').val() && $('#message').val()) {
             submitForm();
           } else {
-            toastr['warning']('Please provide a subject and message');
+            toastr.warning('Please provide a subject and message');
             return false;
           }
         },
@@ -47,13 +47,13 @@ function initializeContactForm() {
   });
 }
 
-$("#contact-button").click(() => {
+$('#contact-button').click(() => {
   initializeContactForm();
 });
 
 function resetContactForm() {
-  $('#subject').val("");
-  $('#message').val("");
+  $('#subject').val('');
+  $('#message').val('');
 }
 
 function submitForm() {
@@ -70,13 +70,13 @@ function submitForm() {
       message: formMessage,
     },
     headers: {
-      'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val(),
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
     },
   }).done((response) => {
-    toastr["success"]("Your message has been sent");
+    toastr.success('Your message has been sent');
     vex.closeAll();
   }).fail((response) => {
-    toastr["error"]("Your message was unable to be delivered");
+    toastr.error('Your message was unable to be delivered');
   });
 
 }
