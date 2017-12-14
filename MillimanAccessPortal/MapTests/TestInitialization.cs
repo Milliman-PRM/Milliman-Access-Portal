@@ -281,7 +281,8 @@ namespace MapTests
                     new Client {Id=2, Name="Name2", ClientCode="ClientCode2", ProfitCenterId=1, ParentClientId=1, AcceptedEmailDomainList = new string[] { "example.com" }  },
                     new Client {Id=3, Name="Name3", ClientCode="ClientCode3", ProfitCenterId=1, ParentClientId=null, AcceptedEmailDomainList = new string[] { "example2.com" } },
                     new Client {Id=4, Name="Name4", ClientCode="ClientCode4", ProfitCenterId=2, ParentClientId=null, AcceptedEmailDomainList = new string[] { "example2.com" } },
-                    new Client {Id=5, Name="Name5", ClientCode="ClientCode5", ProfitCenterId=1, ParentClientId=null, AcceptedEmailDomainList = new string[] { "example2.com" } }
+                    new Client {Id=5, Name="Name5", ClientCode="ClientCode5", ProfitCenterId=1, ParentClientId=null, AcceptedEmailDomainList = new string[] { "example2.com" } },
+                    new Client {Id=6, Name="Name6", ClientCode="ClientCode6", ProfitCenterId=1, ParentClientId=1, AcceptedEmailDomainList = new string[] { "example2.com" } }
                 });
             MockDbSet<Client>.AssignNavigationProperty<ProfitCenter>(DbContextObject.Client, "ProfitCenterId", DbContextObject.ProfitCenter);
             #endregion
@@ -300,7 +301,8 @@ namespace MapTests
                         new UserRoleInClient {Id = 1, ClientId=1, RoleId=2, UserId=1},
                         new UserRoleInClient {Id = 2, ClientId=1, RoleId=1, UserId=3},
                         new UserRoleInClient {Id=3, ClientId=4, RoleId=1, UserId=3},
-                        new UserRoleInClient {Id=4, ClientId=5, RoleId=1, UserId=3}
+                        new UserRoleInClient {Id=4, ClientId=5, RoleId=1, UserId=3},
+                        new UserRoleInClient {Id=5, ClientId=6, RoleId=1, UserId=3}
                     });
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
@@ -313,6 +315,7 @@ namespace MapTests
                     new IdentityUserClaim<long>{ Id =1, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "1", UserId = 3 },
                     new IdentityUserClaim<long>{ Id =2, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "4", UserId = 3 },
                     new IdentityUserClaim<long>{ Id =3, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "5", UserId = 3 },
+                    new IdentityUserClaim<long>{ Id =6, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "6", UserId = 3 },
                     new IdentityUserClaim<long>{ Id = 4, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "1", UserId = 1},
                     new IdentityUserClaim<long>{ Id = 5, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "5", UserId = 2}
                 });

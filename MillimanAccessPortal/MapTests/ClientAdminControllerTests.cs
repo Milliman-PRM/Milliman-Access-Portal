@@ -65,7 +65,7 @@ namespace MapTests
                 ConsultantOffice = "Indy PRM Testing",
                 AcceptedEmailAddressExceptionList = new string[] { },
                 AcceptedEmailDomainList = new string[] { "placeholder.com" },
-                ParentClientId = 1,
+                ParentClientId = 2,
                 ProfitCenterId = 1
             };
         }
@@ -494,6 +494,7 @@ namespace MapTests
             #endregion
 
             #region Act
+            testClient.ParentClientId = null;
             if (domainListArg != null)
             {
                 testClient.AcceptedEmailDomainList = domainListArg;
@@ -579,10 +580,67 @@ namespace MapTests
         /// Validate that invalid data causes return code 412
         /// Multiple scenarios should cause code 412 and must be tested
         /// </summary>
-        [Fact]
-        public void EditClient_ErrorWhenInvalid()
+        [Theory]
+        [InlineData("Name1", null, null, null, null)]// Client name already exists for other client
+        [InlineData(null, 424242, null, null, null)]// Specified profit center does not exist
+        [InlineData(null, null, 424242, null, null)]// Specified parent client does not exist
+        [InlineData(null, null, null, new string[] { "test" }, null)]// Email domain whitelist invalid (no TLD)
+        [InlineData(null, null, null, null, new string[] { "test" })] // Email address whitelist invalid (no tld)
+        [InlineData(null, null, null, null, new string[] { "test.com" })] // Email address whitelist invalid (no @)
+        [InlineData(null, null, null, null, new string[] { "@test.com" })] // Email address whitelist invalid (no user)
+        public void EditClient_ErrorWhenInvalid(string clientNameArg, long? profitCenterIdArg, long? parentClientIdArg, string[] domainWhitelistArg, string[] addressWhitelistArg)
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            Client testClient = GetValidClient();
+            #endregion
+
+            #region Act
+            /*
+             * Requirements/Assumptions for the test client:
+             *       The test user must be a client admin
+             *       The parent client must not be null
+             *       The parent client specified must be the current parent of the test client
+             */
+            testClient.Id = 6;
+            testClient.ParentClientId = 1;
+
+            #region Manipulate data for test scenarios
+            if (!String.IsNullOrEmpty(clientNameArg))
+            {
+                testClient.Name = clientNameArg;
+            }
+
+            if (parentClientIdArg != null)
+            {
+                testClient.ParentClientId = (long)parentClientIdArg;
+            }
+
+            if (profitCenterIdArg != null)
+            {
+                testClient.ProfitCenterId = (long)profitCenterIdArg;
+            }
+
+            if (domainWhitelistArg != null)
+            {
+                testClient.AcceptedEmailDomainList = domainWhitelistArg;
+            }
+
+            if (addressWhitelistArg != null)
+            {
+                testClient.AcceptedEmailAddressExceptionList = addressWhitelistArg;
+            }
+            #endregion 
+
+            var view = controller.EditClient(testClient);
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(view);
+
+            StatusCodeResult statusCodeResult = (StatusCodeResult)view;
+            Assert.Equal<int>(412, statusCodeResult.StatusCode);
+            #endregion
         }
 
         /// <summary>
