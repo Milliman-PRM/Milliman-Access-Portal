@@ -23,7 +23,7 @@ function initializeContactForm() {
       $.extend({}, vex.dialog.buttons.NO, {
         text: 'SUBMIT',
         className: 'blue-button',
-        click: function () {
+        click() {
           if ($('#subject').val() && $('#message').val()) {
             submitForm();
           } else {
@@ -35,19 +35,19 @@ function initializeContactForm() {
       $.extend({}, vex.dialog.buttons.NO, {
         text: 'Reset',
         className: 'link-button',
-        click: function () {
+        click() {
           resetContactForm();
           return false;
         },
       }),
     ],
-    callback: function () {
+    callback() {
       return false;
     },
   });
 }
 
-$("#contact-button").click(function () {
+$("#contact-button").click(() => {
   initializeContactForm();
 });
 
@@ -57,9 +57,9 @@ function resetContactForm() {
 }
 
 function submitForm() {
-  var formRecipient = $('#contact-form #recipient').val();
-  var formSubject = $('#contact-form #subject').val();
-  var formMessage = $('#contact-form #message').val();
+  const formRecipient = $('#contact-form #recipient').val();
+  const formSubject = $('#contact-form #subject').val();
+  const formMessage = $('#contact-form #message').val();
 
   $.ajax({
     type: 'POST',
@@ -72,10 +72,10 @@ function submitForm() {
     headers: {
       'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val(),
     },
-  }).done(function (response) {
+  }).done((response) => {
     toastr["success"]("Your message has been sent");
     vex.closeAll();
-  }).fail(function (response) {
+  }).fail((response) => {
     toastr["error"]("Your message was unable to be delivered");
   });
 
