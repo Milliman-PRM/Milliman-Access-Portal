@@ -4,22 +4,20 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Context;
 
 namespace MillimanAccessPortal.Models.UserAdminViewModels
 {
-    internal class RootContentDetailViewModel
+    public class RootContentDetailViewModel
     {
-        string ContentName { get; set; }
-        string ContentType { get; set; }
-        bool CanReduce { get; set; }
-        int NumberOfGroups { get; set; }
-        int NumberOfAssignedUsers { get; set; }
+        public string ContentName { get; set; }
+        public string ContentType { get; set; }
+        public bool CanReduce { get; set; }
+        public int NumberOfGroups { get; set; }
+        public int NumberOfAssignedUsers { get; set; }
 
         /// <summary>
         /// Converts a RootContentItem to an instance of this ViewModel type

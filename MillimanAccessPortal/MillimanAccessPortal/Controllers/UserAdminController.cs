@@ -315,7 +315,6 @@ namespace MillimanAccessPortal.Controllers
 
             UserAdminClientDetailViewModel ReturnModel = UserAdminClientDetailViewModel.GetModel(RequestedClientId, DbContext);
 
-            var x = Json(ReturnModel);
             return Json(ReturnModel);
         }
 

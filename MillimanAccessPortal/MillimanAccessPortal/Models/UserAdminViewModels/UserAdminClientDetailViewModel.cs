@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Context;
 
@@ -9,8 +7,7 @@ namespace MillimanAccessPortal.Models.UserAdminViewModels
 {
     public class UserAdminClientDetailViewModel
     {
-        List<RootContentDetailViewModel> ContentList= new List<RootContentDetailViewModel>();
-        int xyz = 7;
+        public List<RootContentDetailViewModel> ContentList= new List<RootContentDetailViewModel>();
 
         internal static UserAdminClientDetailViewModel GetModel(long ClientId, ApplicationDbContext DbContext)
         {
