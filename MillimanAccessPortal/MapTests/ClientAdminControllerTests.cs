@@ -573,6 +573,7 @@ namespace MapTests
         [Fact]
         public void EditClient_ErrorWhenUnauthorized()
         {
+            // TODO: This test should not be implemented until we make a decision about the business rules around changing parent clients & profit centers
             throw new NotImplementedException();
         }
 
@@ -649,7 +650,58 @@ namespace MapTests
         [Fact]
         public void EditClient_Success()
         {
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            Client testClient = GetValidClient();
+            #endregion
+
+            #region Act
+            /*
+             * Requirements/Assumptions for the test client:
+             *       The test user must be a client admin
+             *       The parent client must not be null
+             *       The parent client specified must be the current parent of the test client
+             */
+            testClient.Id = 6;
+            testClient.ParentClientId = 1;
+
+            // Change some data that can be validated after the edit
+            #region Manipulate model data
+            testClient.Name = "Edit Client Name";
+            testClient.ClientCode = "Edit client code";
+            testClient.ContactName = "Edit contact name";
+            testClient.ContactEmail = "edit@example.com";
+            testClient.ContactPhone = "0987654321";
+            testClient.ContactTitle = "Edit contact title";
+            testClient.ConsultantEmail = "editconsultant@example2.com";
+            testClient.ConsultantName = "Edit consultant name";
+            testClient.ConsultantOffice = "Edit consultant office";
+            testClient.AcceptedEmailAddressExceptionList = new string[] { "edit1@example.com", "edit2@example.com" };
+            testClient.AcceptedEmailDomainList = new string[] { "editexample.com" };
+            #endregion 
+
+            var view = controller.EditClient(testClient);
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(view);
+
+            #region Check that all updated data now matches
+            Client resultClient = TestResources.DbContextObject.Client.Single(c => c.Id == testClient.Id);
+
+            Assert.Equal(testClient.Name, resultClient.Name);
+            Assert.Equal(testClient.ClientCode, resultClient.ClientCode);
+            Assert.Equal(testClient.ContactName, resultClient.ContactName);
+            Assert.Equal(testClient.ContactEmail, resultClient.ContactEmail);
+            Assert.Equal(testClient.ContactPhone, resultClient.ContactPhone);
+            Assert.Equal(testClient.ContactTitle, resultClient.ContactTitle);
+            Assert.Equal(testClient.ConsultantEmail, resultClient.ConsultantEmail);
+            Assert.Equal(testClient.ConsultantName, resultClient.ConsultantName);
+            Assert.Equal(testClient.ConsultantOffice, resultClient.ConsultantOffice);
+            Assert.Equal(testClient.AcceptedEmailAddressExceptionList, resultClient.AcceptedEmailAddressExceptionList);
+            Assert.Equal(testClient.AcceptedEmailDomainList, resultClient.AcceptedEmailDomainList);
+            #endregion
+            #endregion
         }
 
         /// <summary>
