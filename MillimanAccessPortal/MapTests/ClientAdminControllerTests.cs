@@ -570,11 +570,34 @@ namespace MapTests
         /// Validate that unauthorized users receive an UnauthorizedResult
         /// Multiple authorizations are checked and must be tested
         /// </summary>
-        [Fact]
-        public void EditClient_ErrorWhenUnauthorized()
+        [Theory]
+        [InlineData(2, 1)] // User is not an admin on the edited client
+        [InlineData(5, 2)] // User is not an admin on the new profit center
+        public void EditClient_ErrorWhenUnauthorized(long clientIdArg, long profitCenterIdArg)
         {
-            // TODO: This test should not be implemented until we make a decision about the business rules around changing parent clients & profit centers
-            throw new NotImplementedException();
+            #region Arrange
+            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            Client testClient = GetValidClient();
+            #endregion
+
+            #region Act
+            /*
+             * Requirements/Assumptions for the test client:
+             *       The test user must be a client admin
+             *       The parent client must not be null
+             *       The parent client specified must be the current parent of the test client
+             */
+            testClient.Id = clientIdArg;
+            // Ensure we're passing the current parent client, whatever it is
+            testClient.ParentClientId = TestResources.DbContextObject.Client.Single(c => c.Id == clientIdArg).ParentClientId;
+            testClient.ProfitCenterId = profitCenterIdArg;
+
+            var view = controller.EditClient(testClient);
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            #endregion
         }
 
         /// <summary>
