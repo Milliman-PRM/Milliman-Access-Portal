@@ -316,23 +316,20 @@ namespace MapTests
             ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 5, UserName = "test3" };
 
             // Before acting on the input data, we need to gather initial data to compare the result to
-            JsonResult preView = (JsonResult)controller.ClientDetail(viewModel.ClientId);
-            ClientDetailViewModel preViewModel = (ClientDetailViewModel)preView.Value;
-            int preActionCount = preViewModel.AssignedUsers.Count;
+            int beforeCount = Enumerable.Count(TestResources.DbContextObject.UserClaims);
+            int expectedAfterCount = beforeCount + 1;
             #endregion
 
             #region Act
             var view = controller.AssignUserToClient(viewModel);
 
             // Capture the number of users assigned to the client after the call to AssignUserToClient
-            JsonResult viewResult = (JsonResult)view;
-            ClientDetailViewModel afterViewModel = (ClientDetailViewModel)viewResult.Value;
-            string afterActionCount = afterViewModel.AssignedUsers.Count.ToString();
+            int afterActionCount = Enumerable.Count(TestResources.DbContextObject.UserClaims);
             #endregion
 
             #region Assert
             Assert.IsType<JsonResult>(view);
-            Assert.Equal((preActionCount + 1).ToString(), afterActionCount);
+            Assert.Equal<int>(expectedAfterCount, afterActionCount);
             #endregion
         }
 
