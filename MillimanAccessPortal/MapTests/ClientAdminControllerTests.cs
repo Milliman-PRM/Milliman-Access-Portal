@@ -375,6 +375,8 @@ namespace MapTests
 
         /// <summary>
         /// Validate that a user is removed from a client when a request is made by an authorized user for a valid user & client
+        /// 
+        /// Checks to make sure claims & roles are both removed
         /// </summary>
         [Fact]
         public void RemoveUserFromClient_Success()
@@ -395,8 +397,14 @@ namespace MapTests
 
             // Capture the number of users assigned to the client after the call to RemoveUserFromClient
             int afterActionCount = Enumerable.Count(TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()));
-
             Assert.Equal(preActionCount - 1, afterActionCount);
+
+            // Ensure that the user no longer has roles on the client they were removed from
+            int userRoleCountInClient = 
+                    Enumerable.Count(TestResources.DbContextObject.UserRoleInClient.Where(ur => 
+                        ur.ClientId == viewModel.ClientId && 
+                        ur.UserId == TestResources.UserManagerObject.FindByNameAsync(viewModel.UserName).Id));
+            Assert.Equal(0, userRoleCountInClient);
             #endregion
         }
 

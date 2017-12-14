@@ -302,7 +302,8 @@ namespace MapTests
                         new UserRoleInClient {Id = 2, ClientId=1, RoleId=1, UserId=3},
                         new UserRoleInClient {Id=3, ClientId=4, RoleId=1, UserId=3},
                         new UserRoleInClient {Id=4, ClientId=5, RoleId=1, UserId=3},
-                        new UserRoleInClient {Id=5, ClientId=6, RoleId=1, UserId=3}
+                        new UserRoleInClient {Id=5, ClientId=6, RoleId=1, UserId=3},
+                        new UserRoleInClient {Id = 6, ClientId=5, RoleId=5, UserId=2}
                     });
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
