@@ -369,6 +369,17 @@ function newChildClientFormSetup(parentClientDiv) {
   showClientForm();
 }
 
+function newClientFormSetup() {
+  removeClientInserts();
+  clearFormData();
+  clearSelectedClient();
+  makeFormWriteable();
+  $('#client-tree #create-new-client-card').attr('selected', '');
+  $('#client-form #form-buttons-edit').hide();
+  $('#client-form #form-buttons-new').show();
+  showClientForm();
+}
+
 function renderClientTree(clientId) {
   $('#client-tree-list').empty();
   clientTree.forEach((rootClient) => {
@@ -399,6 +410,7 @@ function renderClientTree(clientId) {
   }
   if ($('#add-client-icon').length) {
     $('#client-tree-list').append(clientCard);
+    $('#create-new-client-card').click(newClientFormSetup);
   }
 }
 
@@ -470,17 +482,6 @@ function getClientTree() {
       toastr.error('An error has occurred');
     }
   });
-}
-
-function newClientFormSetup() {
-  removeClientInserts();
-  clearFormData();
-  clearSelectedClient();
-  makeFormWriteable();
-  $('#client-tree #create-new-client-card').attr('selected', '');
-  $('#client-form #form-buttons-edit').hide();
-  $('#client-form #form-buttons-new').show();
-  showClientForm();
 }
 
 function searchClientTree(searchString) {
@@ -614,8 +615,6 @@ $(document).ready(() => {
   $('#save-changes-button').click(submitClientForm);
   $('#collapse-user-icon').click(collapseAllUsers);
   $('#expand-user-icon').click(expandAllUsers);
-  $('#create-new-client-card').click(newClientFormSetup);
-  // $('#add-user-card').click(newUserSetup());
 
   $('#client-search-box').keyup(function clientSearchBoxKeyup() {
     searchClientTree($(this).val());
