@@ -284,7 +284,7 @@ function deleteClient(clientDiv) {
           callback(innerResult) {
             if (innerResult) {
               removeClientNode(clientId, clientName, innerResult);
-            } else if (result === '') {
+            } else if (innerResult === '') {
               toastr.warning('Please enter your password to proceed');
               return false;
             } else {
