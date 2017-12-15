@@ -1,3 +1,5 @@
+/* global domainValRegex, emailValRegex */
+
 const clientNodeTemplate = $('script[data-template="clientNode"]').html();
 const childNodePlaceholder = $('script[data-template="childNodePlaceholder"]').html();
 const clientCard = $('script[data-template="createNewClientCard"]').html();
@@ -181,11 +183,6 @@ function renderUserList(client, userId) {
     });
 
   toggleExpandCollapse();
-  // $('#client-user-list').append(userCard);
-
-  // if (client.EligibleUsers) {
-  //   console.log(client.EligibleUsers);
-  // }
 
   if (userId) {
     $(`[data-user-id="${userId}"]`).click();
@@ -562,7 +559,7 @@ function resetNewClientForm() {
     });
 }
 
-function undoChangesEditClientForm(event) {
+function undoChangesEditClientForm() {
   confirmDiscardDialog(() => {
     const clientId = $('#client-form #Id').val();
     EditClientDetail($(`#client-tree div[data-client-id="${clientId}"]`));
@@ -603,3 +600,73 @@ function searchUser(searchString) {
     }
   });
 }
+
+
+$(document).ready(() => {
+  getClientTree();
+
+  $('#add-client-icon').click(newClientFormSetup);
+  $('#edit-client-icon').click(toggleEditExistingClient);
+  $('#cancel-edit-client-icon').click(cancelClientEdit);
+  $('#reset-form-button').click(resetNewClientForm);
+  $('#create-new-button').click(submitClientForm);
+  $('#undo-changes-button').click(undoChangesEditClientForm);
+  $('#save-changes-button').click(submitClientForm);
+  $('#collapse-user-icon').click(collapseAllUsers);
+  $('#expand-user-icon').click(expandAllUsers);
+  $('#create-new-client-card').click(newClientFormSetup);
+  // $('#add-user-card').click(newUserSetup());
+
+  $('#client-search-box').keyup(function clientSearchBoxKeyup() {
+    searchClientTree($(this).val());
+  });
+
+  $('#user-search-box').keyup(function userSearchBoxKeyup() {
+    searchUser($(this).val());
+  });
+
+  $('#client-form #AcceptedEmailDomainList').selectize({
+    plugins: ['remove_button'],
+    persist: false,
+    create(input) {
+      if (input.match(domainValRegex)) {
+        return {
+          value: input,
+          text: input,
+        };
+      }
+      vex.dialog.alert({
+        unsafeMessage: 'The Approved Email Domain List only accepts the email domain (e.g. <i>username@@</i><strong><u>domain.com</u></strong>)',
+        callback() {
+          $('#AcceptedEmailDomainList-selectized').val(input);
+          $('#client-form #AcceptedEmailDomainList')[0].selectize.unlock();
+          $('#client-form #AcceptedEmailDomainList')[0].selectize.focus();
+        },
+      });
+      return {};
+    },
+  });
+
+  $('#client-form #AcceptedEmailAddressExceptionList').selectize({
+    plugins: ['remove_button'],
+    delimiter: ',',
+    persist: false,
+    create(input) {
+      if (input.match(emailValRegex)) {
+        return {
+          value: input,
+          text: input,
+        };
+      }
+      vex.dialog.alert({
+        unsafeMessage: 'The Approved Email Address Exception List only accepts valid email addresses (e.g. <strong><u>username@domain.com</u></strong>)',
+        callback() {
+          $('#AcceptedEmailAddressExceptionList-selectized').val(input);
+          $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.unlock();
+          $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.focus();
+        },
+      });
+      return {};
+    },
+  });
+});
