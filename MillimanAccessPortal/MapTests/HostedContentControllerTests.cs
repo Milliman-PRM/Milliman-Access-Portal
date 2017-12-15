@@ -53,13 +53,13 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType(typeof(ViewResult), view);
+            Assert.IsType<ViewResult>(view);
 
             ViewResult viewResult = view as ViewResult;
-            Assert.IsType(typeof(List<HostedContentViewModel>), viewResult.Model);
+            Assert.IsType<List<HostedContentViewModel>>(viewResult.Model);
 
             List<HostedContentViewModel> ModelReturned = (List<HostedContentViewModel>)viewResult.Model;
-            Assert.Equal(1, ModelReturned.Count);
+            Assert.Single(ModelReturned);
 
             Assert.Equal(TestResources.DbContextObject.RootContentItem.FirstOrDefault().ContentName, ModelReturned[0].ContentName);
             #endregion
