@@ -41,6 +41,11 @@ function renderClientNode(client, level) {
   // convert template to DOM element for jQuery manipulation
   const $template = $(template.toString());
 
+  $('div.card-container[data-search-string]', $template).attr(
+    'data-search-string',
+    `${client.ClientEntity.Name}|${client.ClientEntity.ClientCode}`.toUpperCase(),
+  );
+
   if (!client.CanManage) {
     $('.icon-container', $template).remove();
     $('.client-admin-card', $template).attr('disabled', '');
@@ -482,32 +487,13 @@ function newClientFormSetup() {
 }
 
 function searchClientTree(searchString) {
-  const searchStringUpper = searchString.toUpperCase();
-  const nodes = $('#client-tree-list > li');
-  let hrSwitch = 0;
-
-  for (let i = 0; i < nodes.length; i += 1) {
-    if (nodes[i].getElementsByClassName('card-body-primary-text').length > 0) {
-      const title = nodes[i].getElementsByClassName('card-body-primary-text')[0];
-      const clientCode = nodes[i].getElementsByClassName('card-body-secondary-text')[0];
-      if (title || clientCode) {
-        if (title.innerHTML.toUpperCase().indexOf(searchStringUpper) > -1 ||
-          clientCode.innerHTML.toUpperCase().indexOf(searchStringUpper) > -1) {
-          nodes[i].style.display = '';
-          hrSwitch = 1;
-        } else {
-          nodes[i].style.display = 'none';
-        }
-      }
+  $('#client-tree-list div[data-search-string]').each((index, element) => {
+    if ($(element).attr('data-search-string').indexOf(searchString.toUpperCase()) > -1) {
+      $(element).show();
     } else {
-      if (hrSwitch === 0) {
-        nodes[i].style.display = 'none';
-      } else {
-        nodes[i].style.display = '';
-      }
-      hrSwitch = 0;
+      $(element).hide();
     }
-  }
+  });
 }
 
 function submitClientForm(event) {
@@ -637,14 +623,11 @@ function collapseAllUsers() {
 }
 
 function searchUser(searchString) {
-  const searchStringUpper = searchString.toUpperCase();
-  const nodes = $('#client-user-list div[data-search-string]');
-
-  for (let i = 0; i < nodes.length; i += 1) {
-    if ($(nodes[i]).attr('data-search-string').indexOf(searchStringUpper) > -1) {
-      nodes[i].style.display = '';
+  $('#client-user-list div[data-search-string]').each((index, element) => {
+    if ($(element).attr('data-search-string').indexOf(searchString.toUpperCase()) > -1) {
+      $(element).show();
     } else {
-      nodes[i].style.display = 'none';
+      $(element).hide();
     }
-  }
+  });
 }
