@@ -534,45 +534,7 @@ function submitClientForm(event) {
   }
 }
 
-function resetNewClientForm(event) {
-  event.preventDefault();
-
-  clearValidationErrors();
-
-  $('#client-form :input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select')
-    .each(function resetClientForm() {
-      if ($(this).val() !== '') {
-        vex.dialog.confirm({
-          message: 'Would you like to discard the unsaved changes?',
-          buttons: [
-            $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'green-button' }),
-            $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
-          ],
-          callback(result) {
-            if (result) {
-              $('#client-form .input-validation-error').removeClass('input-validation-error');
-              $('#client-form span.field-validation-error > span').remove();
-              clearFormData();
-            } else {
-              return false;
-            }
-            return true;
-          },
-        });
-        return false;
-      }
-      return true;
-    });
-}
-
-function undoChangesEditClientForm(event) {
-  event.preventDefault();
-
-  clearValidationErrors();
-
-  const clientId = $('#client-form #Id').val();
-
-
+function confirmDiscardDialog(callback) {
   vex.dialog.confirm({
     message: 'Would you like to discard the unsaved changes?',
     buttons: [
@@ -581,9 +543,29 @@ function undoChangesEditClientForm(event) {
     ],
     callback(result) {
       if (result) {
-        EditClientDetail($(`#client-tree div[data-client-id="${clientId}"]`));
+        callback();
       }
     },
+  });
+}
+
+function resetNewClientForm() {
+  $('#client-form :input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select')
+    .each(function resetClientForm() {
+      if ($(this).val() !== '') {
+        confirmDiscardDialog(() => {
+          $('#client-form .input-validation-error').removeClass('input-validation-error');
+          $('#client-form span.field-validation-error > span').remove();
+          clearFormData();
+        });
+      }
+    });
+}
+
+function undoChangesEditClientForm(event) {
+  confirmDiscardDialog(() => {
+    const clientId = $('#client-form #Id').val();
+    EditClientDetail($(`#client-tree div[data-client-id="${clientId}"]`));
   });
 }
 
@@ -593,19 +575,9 @@ function toggleEditExistingClient() {
 
 function cancelClientEdit() {
   const clientId = $('#client-form #Id').val();
-
   if (pendingChanges()) {
-    vex.dialog.confirm({
-      message: 'Would you like to discard the unsaved changes?',
-      buttons: [
-        $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'green-button' }),
-        $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
-      ],
-      callback(result) {
-        if (result) {
-          cancelEditTasks(clientId);
-        }
-      },
+    confirmDiscardDialog(() => {
+      cancelEditTasks(clientId);
     });
   } else {
     cancelEditTasks(clientId);
