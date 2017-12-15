@@ -115,7 +115,7 @@ namespace MillimanAccessPortal.Controllers
             #region Preliminary Validation
             if (ThisClient == null)
             {
-                Response.Headers.Add("Warning", $"The selected client ({ThisClient.Name}) was not found");
+                Response.Headers.Add("Warning", $"The requested client was not found");
                 return NotFound();
             }
             #endregion
@@ -230,7 +230,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // 2. Requested User's email must comply with client email whitelist
-            string RequestedUserEmail = RequestedUser.NormalizedEmail.ToUpper();
+            string RequestedUserEmail = RequestedUser.Email.ToUpper();
             if (!GlobalFunctions.IsValidEmail(RequestedUserEmail))
             {
                 Response.Headers.Add("Warning", $"The requested user's email is invalid: ({RequestedUserEmail})");
