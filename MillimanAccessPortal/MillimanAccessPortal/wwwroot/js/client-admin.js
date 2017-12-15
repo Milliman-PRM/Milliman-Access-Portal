@@ -255,6 +255,46 @@ function makeFormWriteable() {
   $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.enable();
 }
 
+function deleteClient(clientDiv) {
+  const clientId = clientDiv.attr('data-client-id').valueOf();
+  const clientName = clientDiv.find('.card-body-primary-text').first().text();
+
+  vex.dialog.confirm({
+    unsafeMessage: `<h3>Delete ${clientName}?</h3><p>This action can not be undone.  Do you wish to proceed?</p>`,
+    buttons: [
+      $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'red-button' }),
+      $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
+    ],
+    callback(result) {
+      if (result) {
+        vex.dialog.prompt({
+          message: 'Please provide your password to proceed with deletion',
+          input: [
+            '<input name="password" type="password" placeholder="Password" required />',
+          ].join(''),
+          buttons: [
+            $.extend({}, vex.dialog.buttons.YES, { text: 'DELETE', className: 'red-button' }),
+            $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
+          ],
+          callback(innerResult) {
+            if (innerResult) {
+              removeClientNode(clientId, clientName, innerResult);
+            } else if (result === '') {
+              toastr.warning('Please enter your password to proceed');
+              return false;
+            } else {
+              toastr.info('Deletion was canceled');
+            }
+            return true;
+          },
+        });
+      } else {
+        toastr.info('Deletion was canceled');
+      }
+    },
+  });
+}
+
 function EditClientDetail(clientDiv) {
   removeClientInserts();
 
@@ -336,6 +376,11 @@ function renderClientTree(clientId) {
   $('#client-tree-list div.card-container')
     .on('click', function getClientDetailClickHandler() {
       GetClientDetail($(this));
+    });
+  $('div.card-button-delete')
+    .on('click', function deleteClientClickHandler(event) {
+      deleteClient($(this).parents('div[data-client-id]'));
+      event.stopPropagation();
     });
   $('div.card-button-edit')
     .on('click', function editClientDetailClickHandler(event) {
@@ -434,45 +479,6 @@ function newClientFormSetup() {
   $('#client-form #form-buttons-edit').hide();
   $('#client-form #form-buttons-new').show();
   showClientForm();
-}
-
-function deleteClient(event, id, name) {
-  event.stopPropagation();
-
-  vex.dialog.confirm({
-    unsafeMessage: `<h3>Delete ${name}?</h3><p>This action can not be undone.  Do you wish to proceed?</p>`,
-    buttons: [
-      $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'red-button' }),
-      $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
-    ],
-    callback(result) {
-      if (result) {
-        vex.dialog.prompt({
-          message: 'Please provide your password to proceed with deletion',
-          input: [
-            '<input name="password" type="password" placeholder="Password" required />',
-          ].join(''),
-          buttons: [
-            $.extend({}, vex.dialog.buttons.YES, { text: 'DELETE', className: 'red-button' }),
-            $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
-          ],
-          callback(innerResult) {
-            if (innerResult) {
-              removeClientNode(id, name, innerResult);
-            } else if (result === '') {
-              toastr.warning('Please enter your password to proceed');
-              return false;
-            } else {
-              toastr.info('Deletion was canceled');
-            }
-            return true;
-          },
-        });
-      } else {
-        toastr.info('Deletion was canceled');
-      }
-    },
-  });
 }
 
 function searchClientTree(searchString) {
