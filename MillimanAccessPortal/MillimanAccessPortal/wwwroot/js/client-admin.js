@@ -6,7 +6,7 @@ let clientTree = {};
 
 function populateProfitCenterDropDown(profitCenters) {
   $('#ProfitCenterId option:not(option[value = ""])').remove();
-  $.each(profitCenters, () => {
+  $.each(profitCenters, function populateProfitCenter() {
     $('#ProfitCenterId').append($('<option />').val(this.Id).text(`${this.Name} (${this.Code})`));
   });
 }
@@ -164,15 +164,16 @@ function renderUserList(client, userId) {
     // removeUserFromClient($(this).parents('div[data-client-id][data-user-id]'));
     event.stopPropagation();
   });
-  $('div[data-client-id][data-user-id]').on('click', (event) => {
-    if ($(this).find('div.card-expansion-container').is('[maximized]')) {
-      $(this).find('div.card-expansion-container').removeAttr('maximized');
-    } else {
-      $(this).find('div.card-expansion-container').attr('maximized', '');
-    }
-    toggleExpandCollapse();
-    event.stopPropagation();
-  });
+  $('div[data-client-id][data-user-id]')
+    .on('click', function toggleCard(event) {
+      if ($(this).find('div.card-expansion-container').is('[maximized]')) {
+        $(this).find('div.card-expansion-container').removeAttr('maximized');
+      } else {
+        $(this).find('div.card-expansion-container').attr('maximized', '');
+      }
+      toggleExpandCollapse();
+      event.stopPropagation();
+    });
 
   toggleExpandCollapse();
   // $('#client-user-list').append(userCard);
@@ -279,11 +280,12 @@ function EditClientDetail(clientDiv) {
     $('#client-form #form-buttons-edit').show();
     $('#undo-changes-button').hide();
     showClientForm();
-    $('#client-form :input, #client-form select').on('change', () => {
-      if ($(this).value !== $(this).attr('data-original-value')) {
-        $('#undo-changes-button').show();
-      }
-    });
+    $('#client-form :input, #client-form select')
+      .on('change', function checkFormChanges() {
+        if ($(this).value !== $(this).attr('data-original-value')) {
+          $('#undo-changes-button').show();
+        }
+      });
   }).fail((response) => {
     toastr.warning(response.getResponseHeader('Warning'));
     hideClientForm();
@@ -331,17 +333,20 @@ function renderClientTree(clientId) {
     renderClientNode(rootClient, 1);
     $('#client-tree-list').append('<li class="hr width-100pct"></li>');
   });
-  $('#client-tree-list div.card-container').on('click', () => {
-    GetClientDetail($(this));
-  });
-  $('div.card-button-edit').on('click', (event) => {
-    EditClientDetail($(this).parents('div[data-client-id]'));
-    event.stopPropagation();
-  });
-  $('div.card-button-new-child').on('click', (event) => {
-    newChildClientFormSetup($(this).parents('div[data-client-id]'));
-    event.stopPropagation();
-  });
+  $('#client-tree-list div.card-container')
+    .on('click', function getClientDetailClickHandler() {
+      GetClientDetail($(this));
+    });
+  $('div.card-button-edit')
+    .on('click', function editClientDetailClickHandler(event) {
+      EditClientDetail($(this).parents('div[data-client-id]'));
+      event.stopPropagation();
+    });
+  $('div.card-button-new-child')
+    .on('click', function newClientFormSetupClickHandler(event) {
+      newChildClientFormSetup($(this).parents('div[data-client-id]'));
+      event.stopPropagation();
+    });
   if (clientId) {
     $(`[data-client-id="${clientId}"]`).click();
   }
@@ -542,29 +547,30 @@ function resetNewClientForm(event) {
 
   clearValidationErrors();
 
-  $('#client-form :input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select').each(() => {
-    if ($(this).val() !== '') {
-      vex.dialog.confirm({
-        message: 'Would you like to discard the unsaved changes?',
-        buttons: [
-          $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'green-button' }),
-          $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
-        ],
-        callback(result) {
-          if (result) {
-            $('#client-form .input-validation-error').removeClass('input-validation-error');
-            $('#client-form span.field-validation-error > span').remove();
-            clearFormData();
-          } else {
-            return false;
-          }
-          return true;
-        },
-      });
-      return false;
-    }
-    return true;
-  });
+  $('#client-form :input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select')
+    .each(function resetClientForm() {
+      if ($(this).val() !== '') {
+        vex.dialog.confirm({
+          message: 'Would you like to discard the unsaved changes?',
+          buttons: [
+            $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'green-button' }),
+            $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
+          ],
+          callback(result) {
+            if (result) {
+              $('#client-form .input-validation-error').removeClass('input-validation-error');
+              $('#client-form span.field-validation-error > span').remove();
+              clearFormData();
+            } else {
+              return false;
+            }
+            return true;
+          },
+        });
+        return false;
+      }
+      return true;
+    });
 }
 
 function undoChangesEditClientForm(event) {
