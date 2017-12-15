@@ -31,23 +31,22 @@ function resetContactForm() {
 
 function initializeContactForm() {
   vex.dialog.open({
-    input: [
-      '<h2 id="contact-title">Contact Support</h2>',
-      '<form id="contact-form" asp-controller="Message" asp-action="SendEmailFromUser" method="post">',
-      '<input id="recipient" type="hidden" name="recipient" value="prm.support@milliman.com" />',
-      '<div>',
-      '<select id="subject" name="subject" required>',
-      '<option value="">Please Select a Topic</option>',
-      '<option value="Account Inquiry">Account Inquiry</option>',
-      '<option value="Bug Report">Report a Bug</option>',
-      '<option value="Other Support Question">Other</option>',
-      '</select>',
-      '</div>',
-      '<div>',
-      '<textarea id="message" name="message" placeholder="Message" required></textarea>',
-      '</div>',
-      '</form>',
-    ].join(''),
+    input:
+`<h2 id="contact-title">Contact Support</h2>
+<form id="contact-form" asp-controller="Message" asp-action="SendEmailFromUser" method="post">
+  <input id="recipient" type="hidden" name="recipient" value="prm.support@milliman.com" />
+  <div>
+    <select id="subject" name="subject" required>
+      <option value="">Please Select a Topic</option>
+      <option value="Account Inquiry">Account Inquiry</option>
+      <option value="Bug Report">Report a Bug</option>
+      <option value="Other Support Question">Other</option>
+    </select>
+  </div>
+  <div>
+    <textarea id="message" name="message" placeholder="Message" required></textarea>
+  </div>
+</form>`,
     buttons: [
       $.extend({}, vex.dialog.buttons.NO, {
         text: 'SUBMIT',
