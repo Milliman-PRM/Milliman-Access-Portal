@@ -52,7 +52,7 @@ function initializeContactForm() {
       $.extend({}, vex.dialog.buttons.NO, {
         text: 'SUBMIT',
         className: 'blue-button',
-        click() {
+        click: function () {
           if ($('#subject').val() && $('#message').val()) {
             submitForm();
           } else {
@@ -65,13 +65,13 @@ function initializeContactForm() {
       $.extend({}, vex.dialog.buttons.NO, {
         text: 'Reset',
         className: 'link-button',
-        click() {
+        click: function () {
           resetContactForm();
           return false;
         },
       }),
     ],
-    callback() {
+    callback: function () {
       return false;
     },
   });

@@ -267,7 +267,7 @@ function deleteClient(clientDiv) {
       $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'red-button' }),
       $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
     ],
-    callback(result) {
+    callback: function (result) {
       if (result) {
         vex.dialog.prompt({
           message: 'Please provide your password to proceed with deletion',
@@ -278,7 +278,7 @@ function deleteClient(clientDiv) {
             $.extend({}, vex.dialog.buttons.YES, { text: 'DELETE', className: 'red-button' }),
             $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
           ],
-          callback(innerResult) {
+          callback: function (innerResult) {
             if (innerResult) {
               removeClientNode(clientId, clientName, innerResult);
             } else if (innerResult === '') {
@@ -539,7 +539,7 @@ function confirmDiscardDialog(callback) {
       $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'green-button' }),
       $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
     ],
-    callback(result) {
+    callback: function (result) {
       if (result) {
         callback();
       }
@@ -627,7 +627,7 @@ $(document).ready(function () {
   $('#client-form #AcceptedEmailDomainList').selectize({
     plugins: ['remove_button'],
     persist: false,
-    create(input) {
+    create: function (input) {
       if (input.match(domainValRegex)) {
         return {
           value: input,
@@ -636,7 +636,7 @@ $(document).ready(function () {
       }
       vex.dialog.alert({
         unsafeMessage: 'The Approved Email Domain List only accepts the email domain (e.g. <i>username@@</i><strong><u>domain.com</u></strong>)',
-        callback() {
+        callback: function () {
           $('#AcceptedEmailDomainList-selectized').val(input);
           $('#client-form #AcceptedEmailDomainList')[0].selectize.unlock();
           $('#client-form #AcceptedEmailDomainList')[0].selectize.focus();
@@ -650,7 +650,7 @@ $(document).ready(function () {
     plugins: ['remove_button'],
     delimiter: ',',
     persist: false,
-    create(input) {
+    create: function (input) {
       if (input.match(emailValRegex)) {
         return {
           value: input,
@@ -659,7 +659,7 @@ $(document).ready(function () {
       }
       vex.dialog.alert({
         unsafeMessage: 'The Approved Email Address Exception List only accepts valid email addresses (e.g. <strong><u>username@domain.com</u></strong>)',
-        callback() {
+        callback: function () {
           $('#AcceptedEmailAddressExceptionList-selectized').val(input);
           $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.unlock();
           $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.focus();
