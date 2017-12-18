@@ -16,10 +16,10 @@ function submitForm() {
     headers: {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
     },
-  }).done(() => {
+  }).done(function () {
     toastr.success('Your message has been sent');
     vex.closeAll();
-  }).fail(() => {
+  }).fail(function () {
     toastr.error('Your message was unable to be delivered');
   });
 }
@@ -77,6 +77,6 @@ function initializeContactForm() {
   });
 }
 
-$('#contact-button').click(() => {
+$('#contact-button').click(function () {
   initializeContactForm();
 });
