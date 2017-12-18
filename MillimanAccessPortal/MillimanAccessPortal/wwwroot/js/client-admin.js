@@ -444,7 +444,8 @@ function removeClientNode(clientId, clientName, password) {
     headers: {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
-  }).done(function onFail(response) {
+  }).done(function onDone(response) {
+    clientTree = response.ClientTree;
     renderClientTree(response.RelevantClientId);
     clearFormData();
     hideClientForm();
@@ -458,7 +459,7 @@ function getClientTree() {
   $.ajax({
     type: 'GET',
     url: 'ClientAdmin/ClientFamilyList/'
-  }).done(function onFail(response) {
+  }).done(function onDone(response) {
     clientTree = response.ClientTree;
     populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
     renderClientTree(response.RelevantClientId);
