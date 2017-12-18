@@ -1,10 +1,10 @@
 /* global domainValRegex, emailValRegex */
 
-const clientNodeTemplate = $('script[data-template="clientNode"]').html();
-const childNodePlaceholder = $('script[data-template="childNodePlaceholder"]').html();
-const clientCard = $('script[data-template="createNewClientCard"]').html();
-const userNodeTemplate = $('script[data-template="userNode"]').html();
-let clientTree = {};
+var clientNodeTemplate = $('script[data-template="clientNode"]').html();
+var childNodePlaceholder = $('script[data-template="childNodePlaceholder"]').html();
+var clientCard = $('script[data-template="createNewClientCard"]').html();
+var userNodeTemplate = $('script[data-template="userNode"]').html();
+var clientTree = {};
 
 function populateProfitCenterDropDown(profitCenters) {
   $('#ProfitCenterId option:not(option[value = ""])').remove();
@@ -14,7 +14,7 @@ function populateProfitCenterDropDown(profitCenters) {
 }
 
 function renderClientNode(client, level) {
-  let template = clientNodeTemplate;
+  var template = clientNodeTemplate;
 
   switch (level) {
     case 1:
@@ -41,7 +41,7 @@ function renderClientNode(client, level) {
 
 
   // convert template to DOM element for jQuery manipulation
-  const $template = $(template.toString());
+  var $template = $(template.toString());
 
   $('div.card-container[data-search-string]', $template).attr(
     'data-search-string',
@@ -96,7 +96,7 @@ function populateClientDetails(ClientEntity) {
   $('#client-form :input, #client-form select').removeAttr('data-original-value');
   $('#client-form #ProfitCenterId option[temporary-profitcenter]').remove();
   $.each(ClientEntity, (key, value) => {
-    const ctrl = $(`#${key}`, '#client-info');
+    var ctrl = $(`#${key}`, '#client-info');
     if (ctrl.is('select')) {
       if ($(`#client-form #${key} option[value="${value}"]`).length === 0) {
         $(`#${key}`).append($('<option temporary-profitcenter />').val(ClientEntity.ProfitCenterId).text(`${ClientEntity.ProfitCenter.Name} (${ClientEntity.ProfitCenter.ProfitCenterCode})`));
@@ -106,7 +106,7 @@ function populateClientDetails(ClientEntity) {
       ctrl[0].selectize.clear();
       ctrl[0].selectize.clearOptions();
       if (value) {
-        for (let i = 0; i < value.length; i += 1) {
+        for (var i = 0; i < value.length; i += 1) {
           ctrl[0].selectize.addOption({ value: value[i], text: value[i] });
           ctrl[0].selectize.addItem(value[i]);
         }
@@ -119,7 +119,7 @@ function populateClientDetails(ClientEntity) {
 }
 
 function renderUserNode(clientId, user) {
-  let template = userNodeTemplate;
+  var template = userNodeTemplate;
 
   template = template.replace(/{{clientId}}/g, clientId);
   template = template.replace(/{{id}}/g, user.Id);
@@ -130,7 +130,7 @@ function renderUserNode(clientId, user) {
   }
 
   // convert template to DOM element for jQuery manipulation
-  const $template = $(template.toString());
+  var $template = $(template.toString());
 
   $('div.card-container[data-search-string]', $template).attr(
     'data-search-string',
@@ -201,7 +201,7 @@ function makeFormReadOnly() {
 }
 
 function showClientForm() {
-  const showTime = 50;
+  var showTime = 50;
   $('#client-info').show(showTime, () => {
     $('#client-form #Name').focus();
     if ($('#client-form #Id').val()) {
@@ -215,7 +215,7 @@ function showClientForm() {
 function GetClientDetail(clientDiv) {
   removeClientInserts();
 
-  const clientId = clientDiv.attr('data-client-id').valueOf();
+  var clientId = clientDiv.attr('data-client-id').valueOf();
 
   if (clientDiv.is('[selected]') && !clientDiv.is('[editing]')) {
     clearSelectedClient();
@@ -258,8 +258,8 @@ function makeFormWriteable() {
 }
 
 function deleteClient(clientDiv) {
-  const clientId = clientDiv.attr('data-client-id').valueOf();
-  const clientName = clientDiv.find('.card-body-primary-text').first().text();
+  var clientId = clientDiv.attr('data-client-id').valueOf();
+  var clientName = clientDiv.find('.card-body-primary-text').first().text();
 
   vex.dialog.confirm({
     unsafeMessage: `<h3>Delete ${clientName}?</h3><p>This action can not be undone.  Do you wish to proceed?</p>`,
@@ -302,7 +302,7 @@ function EditClientDetail(clientDiv) {
 
   clearValidationErrors();
 
-  const clientId = clientDiv.attr('data-client-id').valueOf();
+  var clientId = clientDiv.attr('data-client-id').valueOf();
 
   $.ajax({
     type: 'GET',
@@ -347,14 +347,14 @@ function clearFormData() {
 function newChildClientFormSetup(parentClientDiv) {
   clearFormData();
 
-  const parentClientId = parentClientDiv.attr('data-client-id').valueOf();
+  var parentClientId = parentClientDiv.attr('data-client-id').valueOf();
 
   $('#client-form #ParentClientId').val(parentClientId);
 
   removeClientInserts();
   clearSelectedClient();
 
-  let template = childNodePlaceholder;
+  var template = childNodePlaceholder;
   if (parentClientDiv.hasClass('card-100')) {
     template = template.replace(/{{class}}/g, 'card-90');
   } else {
@@ -436,9 +436,9 @@ function removeClientNode(clientId, clientName, password) {
 }
 
 function resetFormValues() {
-  const inputsList = $('#client-form input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select');
+  var inputsList = $('#client-form input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select');
 
-  for (let i = 0; i < inputsList.length; i += 1) {
+  for (var i = 0; i < inputsList.length; i += 1) {
     $(inputsList[i]).val($(inputsList[i]).attr('data-original-value'));
   }
 }
@@ -455,9 +455,9 @@ function cancelEditTasks(clientId) {
 }
 
 function pendingChanges() {
-  const inputsList = $('#client-form input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select');
+  var inputsList = $('#client-form input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select');
 
-  for (let i = 0; i < inputsList.length; i += 1) {
+  for (var i = 0; i < inputsList.length; i += 1) {
     if ($(inputsList[i]).val() !== $(inputsList[i]).attr('data-original-value')) {
       return true;
     }
@@ -498,11 +498,11 @@ function submitClientForm(event) {
   if ($('#client-form').valid()) {
     event.preventDefault();
 
-    const form = $('#client-form');
-    const clientId = $('#client-form #Id').val();
-    const clientName = $('#client-form #Name').val();
-    let urlAction = 'ClientAdmin/';
-    let successResponse;
+    var form = $('#client-form');
+    var clientId = $('#client-form #Id').val();
+    var clientName = $('#client-form #Name').val();
+    var urlAction = 'ClientAdmin/';
+    var successResponse;
 
     if (clientId) {
       urlAction += 'EditClient';
@@ -562,7 +562,7 @@ function resetNewClientForm() {
 
 function undoChangesEditClientForm() {
   confirmDiscardDialog(() => {
-    const clientId = $('#client-form #Id').val();
+    var clientId = $('#client-form #Id').val();
     EditClientDetail($(`#client-tree div[data-client-id="${clientId}"]`));
   });
 }
@@ -572,7 +572,7 @@ function toggleEditExistingClient() {
 }
 
 function cancelClientEdit() {
-  const clientId = $('#client-form #Id').val();
+  var clientId = $('#client-form #Id').val();
   if (pendingChanges()) {
     confirmDiscardDialog(() => {
       cancelEditTasks(clientId);

@@ -1,9 +1,9 @@
 // Contact Form
 
 function submitForm() {
-  const formRecipient = $('#contact-form #recipient').val();
-  const formSubject = $('#contact-form #subject').val();
-  const formMessage = $('#contact-form #message').val();
+  var formRecipient = $('#contact-form #recipient').val();
+  var formSubject = $('#contact-form #subject').val();
+  var formMessage = $('#contact-form #message').val();
 
   $.ajax({
     type: 'POST',
