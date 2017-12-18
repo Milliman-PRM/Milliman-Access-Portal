@@ -611,7 +611,6 @@ function searchUser(searchString) {
   });
 }
 
-
 $(document).ready(function onReady() {
   getClientTree();
 
