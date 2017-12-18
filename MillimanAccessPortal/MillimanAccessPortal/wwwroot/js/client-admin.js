@@ -593,9 +593,12 @@ function cancelEditClientForm() {
 }
 
 function searchClientTree(searchString) {
+  $('#client-tree-list').children('.hr').hide();
   $('#client-tree-list div[data-search-string]').each(function forEach(index, element) {
     if ($(element).attr('data-search-string').indexOf(searchString.toUpperCase()) > -1) {
       $(element).show();
+      $(element).closest('li').nextAll('li.hr').first()
+        .show();
     } else {
       $(element).hide();
     }
