@@ -9,7 +9,7 @@ var clientTree = {};
 function populateProfitCenterDropDown(profitCenters) {
   $('#ProfitCenterId option:not(option[value = ""])').remove();
   $.each(profitCenters, function populateProfitCenter() {
-    $('#ProfitCenterId').append($('<option />').val(this.Id).text(`${this.Name} (${this.Code})`));
+    $('#ProfitCenterId').append($('<option />').val(this.Id).text(this.Name + ' (' + this.Code + ')'));
   });
 }
 
@@ -45,7 +45,7 @@ function renderClientNode(client, level) {
 
   $('div.card-container[data-search-string]', $template).attr(
     'data-search-string',
-    `${client.ClientEntity.Name}|${client.ClientEntity.ClientCode}`.toUpperCase(),
+    (client.ClientEntity.Name + '|' + client.ClientEntity.ClientCode).toUpperCase(),
   );
 
   if (!client.CanManage) {
@@ -96,10 +96,10 @@ function populateClientDetails(ClientEntity) {
   $('#client-form :input, #client-form select').removeAttr('data-original-value');
   $('#client-form #ProfitCenterId option[temporary-profitcenter]').remove();
   $.each(ClientEntity, (key, value) => {
-    var ctrl = $(`#${key}`, '#client-info');
+    var ctrl = $('#' + key, '#client-info');
     if (ctrl.is('select')) {
-      if ($(`#client-form #${key} option[value="${value}"]`).length === 0) {
-        $(`#${key}`).append($('<option temporary-profitcenter />').val(ClientEntity.ProfitCenterId).text(`${ClientEntity.ProfitCenter.Name} (${ClientEntity.ProfitCenter.ProfitCenterCode})`));
+      if ($('#client-form #' + key + ' option[value="' + value + '"]').length === 0) {
+        $('#' + key).append($('<option temporary-profitcenter />').val(ClientEntity.ProfitCenterId).text(ClientEntity.ProfitCenter.Name + ' (' + ClientEntity.ProfitCenter.ProfitCenterCode + ')'));
       }
       ctrl.val(value).change();
     } else if (ctrl.hasClass('selectize-custom-input')) {
@@ -123,7 +123,7 @@ function renderUserNode(clientId, user) {
 
   template = template.replace(/{{clientId}}/g, clientId);
   template = template.replace(/{{id}}/g, user.Id);
-  template = template.replace(/{{name}}/g, `${user.FirstName} ${user.LastName}`);
+  template = template.replace(/{{name}}/g, user.FirstName + ' ' + user.LastName);
   template = template.replace(/{{username}}/g, user.UserName);
   if (user.UserName !== user.Email) {
     template = template.replace(/{{email}}/g, user.Email);
@@ -134,7 +134,7 @@ function renderUserNode(clientId, user) {
 
   $('div.card-container[data-search-string]', $template).attr(
     'data-search-string',
-    `${user.FirstName} ${user.LastName.toUpperCase()}|${user.UserName.toUpperCase()}|${user.Email.toUpperCase()}`.toUpperCase(),
+    (user.FirstName + ' ' + user.LastName + '|' + user.UserName + '|' + user.Email).toUpperCase(),
   );
 
   $('.card-body-secondary-text:contains("{{email}}")', $template).remove();
@@ -185,7 +185,7 @@ function renderUserList(client, userId) {
   toggleExpandCollapse();
 
   if (userId) {
-    $(`[data-user-id="${userId}"]`).click();
+    $('[data-user-id="' + userId + '"]').click();
   }
 }
 
@@ -225,7 +225,7 @@ function GetClientDetail(clientDiv) {
 
   $.ajax({
     type: 'GET',
-    url: `ClientAdmin/ClientDetail/${clientId}`,
+    url: 'ClientAdmin/ClientDetail/' + clientId,
     headers: {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
     },
@@ -262,7 +262,7 @@ function deleteClient(clientDiv) {
   var clientName = clientDiv.find('.card-body-primary-text').first().text();
 
   vex.dialog.confirm({
-    unsafeMessage: `<h3>Delete ${clientName}?</h3><p>This action can not be undone.  Do you wish to proceed?</p>`,
+    unsafeMessage: '<h3>Delete ' + clientName + '?</h3><p>This action can not be undone.  Do you wish to proceed?</p>',
     buttons: [
       $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'red-button' }),
       $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
@@ -306,7 +306,7 @@ function EditClientDetail(clientDiv) {
 
   $.ajax({
     type: 'GET',
-    url: `ClientAdmin/ClientDetail/${clientId}`,
+    url: 'ClientAdmin/ClientDetail/' + clientId,
     headers: {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
     },
@@ -406,7 +406,7 @@ function renderClientTree(clientId) {
       event.stopPropagation();
     });
   if (clientId) {
-    $(`[data-client-id="${clientId}"]`).click();
+    $('[data-client-id="' + clientId + '"]').click();
   }
   if ($('#add-client-icon').length) {
     $('#client-tree-list').append(clientCard);
@@ -429,7 +429,7 @@ function removeClientNode(clientId, clientName, password) {
     renderClientTree(response.RelevantClientId);
     clearFormData();
     hideClientForm();
-    toastr.success(`${clientName} was successfully deleted.`);
+    toastr.success(clientName + ' was successfully deleted.');
   }).fail((response) => {
     toastr.warning(response.getResponseHeader('Warning'));
   });
@@ -506,10 +506,10 @@ function submitClientForm(event) {
 
     if (clientId) {
       urlAction += 'EditClient';
-      successResponse = `${clientName} was successfully updated`;
+      successResponse = clientName + ' was successfully updated';
     } else {
       urlAction += 'SaveNewClient';
-      successResponse = `${clientName} was successfully created`;
+      successResponse = clientName + ' was successfully created';
     }
 
     $.ajax({
@@ -525,7 +525,7 @@ function submitClientForm(event) {
       clientTree = response.ClientTree;
       renderClientTree(response.RelevantClientId);
       toastr.success(successResponse);
-      $(`div.client-admin-card[data-client-id="${clientId}"]`).click();
+      $('div.client-admin-card[data-client-id="' + clientId + '"]').click();
     }).fail((response) => {
       toastr.warning(response.getResponseHeader('Warning'));
     });
@@ -563,7 +563,7 @@ function resetNewClientForm() {
 function undoChangesEditClientForm() {
   confirmDiscardDialog(() => {
     var clientId = $('#client-form #Id').val();
-    EditClientDetail($(`#client-tree div[data-client-id="${clientId}"]`));
+    EditClientDetail($('#client-tree div[data-client-id="' + clientId + '"]'));
   });
 }
 
