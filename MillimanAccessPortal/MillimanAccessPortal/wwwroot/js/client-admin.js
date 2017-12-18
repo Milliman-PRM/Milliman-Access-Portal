@@ -67,7 +67,7 @@ function renderClientNode(client, level) {
 
   // Render child nodes
   if (client.Children.length) {
-    client.Children.forEach(function (childNode) {
+    client.Children.forEach(function forEach(childNode) {
       renderClientNode(childNode, level + 1);
     });
   }
@@ -95,7 +95,7 @@ function clearValidationErrors() {
 function populateClientDetails(ClientEntity) {
   $('#client-form :input, #client-form select').removeAttr('data-original-value');
   $('#client-form #ProfitCenterId option[temporary-profitcenter]').remove();
-  $.each(ClientEntity, function (key, value) {
+  $.each(ClientEntity, function forEach(key, value) {
     var ctrl = $('#' + key, '#client-info');
     if (ctrl.is('select')) {
       if ($('#client-form #' + key + ' option[value="' + value + '"]').length === 0) {
@@ -163,11 +163,11 @@ function toggleExpandCollapse() {
 
 function renderUserList(client, userId) {
   $('#client-user-list').empty();
-  client.AssignedUsers.forEach(function (user) {
+  client.AssignedUsers.forEach(function forEach(user) {
     renderUserNode(client.ClientEntity.Id, user);
   });
 
-  $('div.card-button-remove-user').on('click', function (event) {
+  $('div.card-button-remove-user').on('click', function onClick(event) {
     // removeUserFromClient($(this).parents('div[data-client-id][data-user-id]'));
     event.stopPropagation();
   });
@@ -202,7 +202,7 @@ function makeFormReadOnly() {
 
 function showClientForm() {
   var showTime = 50;
-  $('#client-info').show(showTime, function () {
+  $('#client-info').show(showTime, function onShow() {
     $('#client-form #Name').focus();
     if ($('#client-form #Id').val()) {
       $('#client-users').show(showTime);
@@ -229,7 +229,7 @@ function GetClientDetail(clientDiv) {
     headers: {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
-  }).done(function (response) {
+  }).done(function onDone(response) {
     clearValidationErrors();
     populateClientDetails(response.ClientEntity);
     renderUserList(response);
@@ -242,7 +242,7 @@ function GetClientDetail(clientDiv) {
       $('#client-info #edit-client-icon').hide();
     }
     showClientForm();
-  }).fail(function (response) {
+  }).fail(function onFail(response) {
     toastr.warning(response.getResponseHeader('Warning'));
     hideClientForm();
   });
@@ -267,7 +267,7 @@ function deleteClient(clientDiv) {
       $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'red-button' }),
       $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
     ],
-    callback: function (result) {
+    callback: function onSelect(result) {
       if (result) {
         vex.dialog.prompt({
           message: 'Please provide your password to proceed with deletion',
@@ -278,10 +278,10 @@ function deleteClient(clientDiv) {
             $.extend({}, vex.dialog.buttons.YES, { text: 'DELETE', className: 'red-button' }),
             $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
           ],
-          callback: function (innerResult) {
-            if (innerResult) {
-              removeClientNode(clientId, clientName, innerResult);
-            } else if (innerResult === '') {
+          callback: function onSelectInner(resultInner) {
+            if (resultInner) {
+              removeClientNode(clientId, clientName, resultInner);
+            } else if (resultInner === '') {
               toastr.warning('Please enter your password to proceed');
               return false;
             } else {
@@ -310,7 +310,7 @@ function EditClientDetail(clientDiv) {
     headers: {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
-  }).done(function (response) {
+  }).done(function onDone(response) {
     populateClientDetails(response.ClientEntity);
     // Change the dom to reflect the selected client
     clearSelectedClient();
@@ -328,7 +328,7 @@ function EditClientDetail(clientDiv) {
           $('#undo-changes-button').show();
         }
       });
-  }).fail(function (response) {
+  }).fail(function onFail(response) {
     toastr.warning(response.getResponseHeader('Warning'));
     hideClientForm();
   });
@@ -382,7 +382,7 @@ function newClientFormSetup() {
 
 function renderClientTree(clientId) {
   $('#client-tree-list').empty();
-  clientTree.forEach(function (rootClient) {
+  clientTree.forEach(function forEach(rootClient) {
     renderClientNode(rootClient, 1);
     $('#client-tree-list').append('<li class="hr width-100pct"></li>');
   });
@@ -425,12 +425,12 @@ function removeClientNode(clientId, clientName, password) {
     headers: {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
-  }).done(function (response) {
+  }).done(function onFail(response) {
     renderClientTree(response.RelevantClientId);
     clearFormData();
     hideClientForm();
     toastr.success(clientName + ' was successfully deleted.');
-  }).fail(function (response) {
+  }).fail(function onFail(response) {
     toastr.warning(response.getResponseHeader('Warning'));
   });
 }
@@ -471,11 +471,11 @@ function getClientTree() {
   $.ajax({
     type: 'GET',
     url: 'ClientAdmin/ClientFamilyList/'
-  }).done(function (response) {
+  }).done(function onFail(response) {
     clientTree = response.ClientTree;
     populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
     renderClientTree(response.RelevantClientId);
-  }).fail(function (response) {
+  }).fail(function onFail(response) {
     if (response.getResponseHeader('Warning')) {
       toastr.warning(response.getResponseHeader('Warning'));
     } else {
@@ -485,7 +485,7 @@ function getClientTree() {
 }
 
 function searchClientTree(searchString) {
-  $('#client-tree-list div[data-search-string]').each(function (index, element) {
+  $('#client-tree-list div[data-search-string]').each(function forEach(index, element) {
     if ($(element).attr('data-search-string').indexOf(searchString.toUpperCase()) > -1) {
       $(element).show();
     } else {
@@ -519,14 +519,14 @@ function submitClientForm(event) {
       headers: {
         RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
       }
-    }).done(function (response) {
+    }).done(function onDone(response) {
       hideClientForm();
       clearFormData();
       clientTree = response.ClientTree;
       renderClientTree(response.RelevantClientId);
       toastr.success(successResponse);
       $('div.client-admin-card[data-client-id="' + clientId + '"]').click();
-    }).fail(function (response) {
+    }).fail(function onFail(response) {
       toastr.warning(response.getResponseHeader('Warning'));
     });
   }
@@ -539,7 +539,7 @@ function confirmDiscardDialog(callback) {
       $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'green-button' }),
       $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
     ],
-    callback: function (result) {
+    callback: function onSelect(result) {
       if (result) {
         callback();
       }
@@ -551,7 +551,7 @@ function resetNewClientForm() {
   $('#client-form :input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select')
     .each(function resetClientForm() {
       if ($(this).val() !== '') {
-        confirmDiscardDialog(function () {
+        confirmDiscardDialog(function confirm() {
           $('#client-form .input-validation-error').removeClass('input-validation-error');
           $('#client-form span.field-validation-error > span').remove();
           clearFormData();
@@ -561,7 +561,7 @@ function resetNewClientForm() {
 }
 
 function undoChangesEditClientForm() {
-  confirmDiscardDialog(function () {
+  confirmDiscardDialog(function confirm() {
     var clientId = $('#client-form #Id').val();
     EditClientDetail($('#client-tree div[data-client-id="' + clientId + '"]'));
   });
@@ -574,7 +574,7 @@ function toggleEditExistingClient() {
 function cancelClientEdit() {
   var clientId = $('#client-form #Id').val();
   if (pendingChanges()) {
-    confirmDiscardDialog(function () {
+    confirmDiscardDialog(function confirm() {
       cancelEditTasks(clientId);
     });
   } else {
@@ -593,7 +593,7 @@ function collapseAllUsers() {
 }
 
 function searchUser(searchString) {
-  $('#client-user-list div[data-search-string]').each(function (index, element) {
+  $('#client-user-list div[data-search-string]').each(function forEach(index, element) {
     if ($(element).attr('data-search-string').indexOf(searchString.toUpperCase()) > -1) {
       $(element).show();
     } else {
@@ -603,7 +603,7 @@ function searchUser(searchString) {
 }
 
 
-$(document).ready(function () {
+$(document).ready(function onReady() {
   getClientTree();
 
   $('#add-client-icon').click(newClientFormSetup);
@@ -627,7 +627,7 @@ $(document).ready(function () {
   $('#client-form #AcceptedEmailDomainList').selectize({
     plugins: ['remove_button'],
     persist: false,
-    create: function (input) {
+    create: function onCreate(input) {
       if (input.match(domainValRegex)) {
         return {
           value: input,
@@ -636,7 +636,7 @@ $(document).ready(function () {
       }
       vex.dialog.alert({
         unsafeMessage: 'The Approved Email Domain List only accepts the email domain (e.g. <i>username@@</i><strong><u>domain.com</u></strong>)',
-        callback: function () {
+        callback: function onAlert() {
           $('#AcceptedEmailDomainList-selectized').val(input);
           $('#client-form #AcceptedEmailDomainList')[0].selectize.unlock();
           $('#client-form #AcceptedEmailDomainList')[0].selectize.focus();
@@ -650,7 +650,7 @@ $(document).ready(function () {
     plugins: ['remove_button'],
     delimiter: ',',
     persist: false,
-    create: function (input) {
+    create: function onCreate(input) {
       if (input.match(emailValRegex)) {
         return {
           value: input,
@@ -659,7 +659,7 @@ $(document).ready(function () {
       }
       vex.dialog.alert({
         unsafeMessage: 'The Approved Email Address Exception List only accepts valid email addresses (e.g. <strong><u>username@domain.com</u></strong>)',
-        callback: function () {
+        callback: function onAlert() {
           $('#AcceptedEmailAddressExceptionList-selectized').val(input);
           $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.unlock();
           $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.focus();

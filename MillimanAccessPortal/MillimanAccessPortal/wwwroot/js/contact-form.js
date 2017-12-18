@@ -16,10 +16,10 @@ function submitForm() {
     headers: {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
-  }).done(function () {
+  }).done(function onDone() {
     toastr.success('Your message has been sent');
     vex.closeAll();
-  }).fail(function () {
+  }).fail(function onFail() {
     toastr.error('Your message was unable to be delivered');
   });
 }
@@ -52,7 +52,7 @@ function initializeContactForm() {
       $.extend({}, vex.dialog.buttons.NO, {
         text: 'SUBMIT',
         className: 'blue-button',
-        click: function () {
+        click: function onClick() {
           if ($('#subject').val() && $('#message').val()) {
             submitForm();
           } else {
@@ -65,18 +65,18 @@ function initializeContactForm() {
       $.extend({}, vex.dialog.buttons.NO, {
         text: 'Reset',
         className: 'link-button',
-        click: function () {
+        click: function onClick() {
           resetContactForm();
           return false;
         }
       })
     ],
-    callback: function () {
+    callback: function callback() {
       return false;
     }
   });
 }
 
-$('#contact-button').click(function () {
+$('#contact-button').click(function onClick() {
   initializeContactForm();
 });
