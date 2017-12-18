@@ -6,74 +6,6 @@ var clientCard = $('script[data-template="createNewClientCard"]').html();
 var userNodeTemplate = $('script[data-template="userNode"]').html();
 var clientTree = {};
 
-function populateProfitCenterDropDown(profitCenters) {
-  $('#ProfitCenterId option:not(option[value = ""])').remove();
-  $.each(profitCenters, function populateProfitCenter() {
-    $('#ProfitCenterId').append($('<option />').val(this.Id).text(this.Name + ' (' + this.Code + ')'));
-  });
-}
-
-function renderClientNode(client, level) {
-  var template = clientNodeTemplate;
-  var $template;
-
-  switch (level) {
-    case 1:
-      template = template.replace(/{{class}}/g, 'card-100');
-      break;
-    case 2:
-      template = template.replace(/{{class}}/g, 'card-90');
-      break;
-    default:
-      template = template.replace(/{{class}}/g, 'card-80');
-      break;
-  }
-
-  template = template.replace(/{{header-level}}/g, (level + 1));
-  template = template.replace(/{{id}}/g, client.ClientEntity.Id);
-  template = template.replace(/{{name}}/g, client.ClientEntity.Name);
-  if (client.ClientEntity.ClientCode) {
-    template = template.replace(/{{clientCode}}/g, client.ClientEntity.ClientCode);
-  } else {
-    template = template.replace(/{{clientCode}}/g, '');
-  }
-  template = template.replace(/{{users}}/g, client.AssociatedUserCount);
-  template = template.replace(/{{content}}/g, client.AssociatedContentCount);
-
-
-  // convert template to DOM element for jQuery manipulation
-  $template = $(template.toString());
-
-  $('div.card-container[data-search-string]', $template).attr(
-    'data-search-string',
-    (client.ClientEntity.Name + '|' + client.ClientEntity.ClientCode).toUpperCase()
-  );
-
-  if (!client.CanManage) {
-    $('.icon-container', $template).remove();
-    $('.client-admin-card', $template).attr('disabled', '');
-  }
-
-  // Only include the delete button on client nodes without children
-  if (client.Children.length !== 0) {
-    $('.card-button-delete', $template).remove();
-  }
-
-  // Don't include the add child client button on lowest level
-  if (level === 3) {
-    $('.card-button-new-child', $template).remove();
-  }
-
-  $('#client-tree-list').append($template);
-
-  // Render child nodes
-  if (client.Children.length) {
-    client.Children.forEach(function forEach(childNode) {
-      renderClientNode(childNode, level + 1);
-    });
-  }
-}
-
 function removeClientInserts() {
   $('#client-tree li.client-insert').remove();
 }
@@ -120,6 +52,79 @@ function populateClientDetails(ClientEntity) {
   });
 }
 
+function populateProfitCenterDropDown(profitCenters) {
+  $('#ProfitCenterId option:not(option[value = ""])').remove();
+  $.each(profitCenters, function populateProfitCenter() {
+    $('#ProfitCenterId').append($('<option />').val(this.Id).text(this.Name + ' (' + this.Code + ')'));
+  });
+}
+
+function toggleExpandCollapse() {
+  if ($('div.card-expansion-container:not([maximized])').length > 0) {
+    $('#expand-user-icon').show();
+  } else {
+    $('#expand-user-icon').hide();
+  }
+
+  if ($('div.card-expansion-container[maximized]').length > 0) {
+    $('#collapse-user-icon').show();
+  } else {
+    $('#collapse-user-icon').hide();
+  }
+}
+
+function expandAllUsers() {
+  $('#client-user-list div.card-expansion-container').attr('maximized', '');
+  toggleExpandCollapse();
+}
+
+function collapseAllUsers() {
+  $('#client-user-list div.card-expansion-container[maximized]').removeAttr('maximized');
+  toggleExpandCollapse();
+}
+
+function makeFormReadOnly() {
+  $('#edit-client-icon').show();
+  $('#cancel-edit-client-icon').hide();
+  $('#client-form :input').attr('readonly', 'readonly');
+  $('#client-form :input, #client-form select').attr('disabled', 'disabled');
+  $('#client-form #form-buttons-new').hide();
+  $('#client-form #form-buttons-edit').hide();
+  $('#client-form #AcceptedEmailDomainList')[0].selectize.disable();
+  $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.disable();
+}
+
+function showClientForm() {
+  var showTime = 50;
+  $('#client-info').show(showTime, function onShow() {
+    $('#client-form #Name').focus();
+    if ($('#client-form #Id').val()) {
+      $('#client-users').show(showTime);
+    } else {
+      $('#client-users').hide();
+    }
+  });
+}
+
+function makeFormWriteable() {
+  $('#edit-client-icon').hide();
+  $('#cancel-edit-client-icon').show();
+  $('#client-form :input').removeAttr('readonly');
+  $('#client-form :input, #client-form select').removeAttr('disabled');
+  $('#client-form #AcceptedEmailDomainList')[0].selectize.enable();
+  $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.enable();
+}
+
+function clearFormData() {
+  $('#client-form #AcceptedEmailDomainList')[0].selectize.clear();
+  $('#client-form #AcceptedEmailDomainList')[0].selectize.clearOptions();
+  $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.clear();
+  $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.clearOptions();
+  $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').attr('data-original-value', '');
+  $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').val('');
+  clearValidationErrors();
+}
+
 function renderUserNode(clientId, user) {
   var template = userNodeTemplate;
   var $template;
@@ -150,20 +155,6 @@ function renderUserNode(clientId, user) {
   $('#client-user-list').append($template);
 }
 
-function toggleExpandCollapse() {
-  if ($('div.card-expansion-container:not([maximized])').length > 0) {
-    $('#expand-user-icon').show();
-  } else {
-    $('#expand-user-icon').hide();
-  }
-
-  if ($('div.card-expansion-container[maximized]').length > 0) {
-    $('#collapse-user-icon').show();
-  } else {
-    $('#collapse-user-icon').hide();
-  }
-}
-
 function renderUserList(client, userId) {
   $('#client-user-list').empty();
   client.AssignedUsers.forEach(function forEach(user) {
@@ -192,27 +183,42 @@ function renderUserList(client, userId) {
   }
 }
 
-function makeFormReadOnly() {
-  $('#edit-client-icon').show();
-  $('#cancel-edit-client-icon').hide();
-  $('#client-form :input').attr('readonly', 'readonly');
-  $('#client-form :input, #client-form select').attr('disabled', 'disabled');
-  $('#client-form #form-buttons-new').hide();
+function newClientFormSetup() {
+  removeClientInserts();
+  clearFormData();
+  clearSelectedClient();
+  makeFormWriteable();
+  $('#client-tree #create-new-client-card').attr('selected', '');
   $('#client-form #form-buttons-edit').hide();
-  $('#client-form #AcceptedEmailDomainList')[0].selectize.disable();
-  $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.disable();
+  $('#client-form #form-buttons-new').show();
+  showClientForm();
 }
 
-function showClientForm() {
-  var showTime = 50;
-  $('#client-info').show(showTime, function onShow() {
-    $('#client-form #Name').focus();
-    if ($('#client-form #Id').val()) {
-      $('#client-users').show(showTime);
-    } else {
-      $('#client-users').hide();
-    }
-  });
+function newChildClientFormSetup(parentClientDiv) {
+  var parentClientId;
+  var template;
+
+  clearFormData();
+  parentClientId = parentClientDiv.attr('data-client-id').valueOf();
+
+  $('#client-form #ParentClientId').val(parentClientId);
+
+  removeClientInserts();
+  clearSelectedClient();
+
+  template = childNodePlaceholder;
+  if (parentClientDiv.hasClass('card-100')) {
+    template = template.replace(/{{class}}/g, 'card-90');
+  } else {
+    template = template.replace(/{{class}}/g, 'card-80');
+  }
+
+  parentClientDiv.parent().after(template);
+
+  makeFormWriteable();
+  $('#client-form #form-buttons-edit').hide();
+  $('#client-form #form-buttons-new').show();
+  showClientForm();
 }
 
 function GetClientDetail(clientDiv) {
@@ -252,13 +258,45 @@ function GetClientDetail(clientDiv) {
   });
 }
 
-function makeFormWriteable() {
-  $('#edit-client-icon').hide();
-  $('#cancel-edit-client-icon').show();
-  $('#client-form :input').removeAttr('readonly');
-  $('#client-form :input, #client-form select').removeAttr('disabled');
-  $('#client-form #AcceptedEmailDomainList')[0].selectize.enable();
-  $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.enable();
+function EditClientDetail(clientDiv) {
+  var clientId;
+
+  removeClientInserts();
+  clearValidationErrors();
+  clientId = clientDiv.attr('data-client-id').valueOf();
+
+  $.ajax({
+    type: 'GET',
+    url: 'ClientAdmin/ClientDetail/' + clientId,
+    headers: {
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+    }
+  }).done(function onDone(response) {
+    populateClientDetails(response.ClientEntity);
+    // Change the dom to reflect the selected client
+    clearSelectedClient();
+    clientDiv.attr('selected', '');
+    clientDiv.attr('editing', '');
+    // Show the form in read/write mode
+    makeFormWriteable();
+    $('#client-form #form-buttons-new').hide();
+    $('#client-form #form-buttons-edit').show();
+    $('#undo-changes-button').hide();
+    showClientForm();
+    $('#client-form :input, #client-form select')
+      .on('change', function checkFormChanges() {
+        if ($(this).value !== $(this).attr('data-original-value')) {
+          $('#undo-changes-button').show();
+        }
+      });
+  }).fail(function onFail(response) {
+    toastr.warning(response.getResponseHeader('Warning'));
+    hideClientForm();
+  });
+}
+
+function toggleEditExistingClient() {
+  EditClientDetail($('div[selected]'));
 }
 
 function deleteClient(clientDiv) {
@@ -301,89 +339,64 @@ function deleteClient(clientDiv) {
   });
 }
 
-function EditClientDetail(clientDiv) {
-  var clientId;
+function renderClientNode(client, level) {
+  var template = clientNodeTemplate;
+  var $template;
 
-  removeClientInserts();
-  clearValidationErrors();
-  clientId = clientDiv.attr('data-client-id').valueOf();
-
-  $.ajax({
-    type: 'GET',
-    url: 'ClientAdmin/ClientDetail/' + clientId,
-    headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
-    }
-  }).done(function onDone(response) {
-    populateClientDetails(response.ClientEntity);
-    // Change the dom to reflect the selected client
-    clearSelectedClient();
-    clientDiv.attr('selected', '');
-    clientDiv.attr('editing', '');
-    // Show the form in read/write mode
-    makeFormWriteable();
-    $('#client-form #form-buttons-new').hide();
-    $('#client-form #form-buttons-edit').show();
-    $('#undo-changes-button').hide();
-    showClientForm();
-    $('#client-form :input, #client-form select')
-      .on('change', function checkFormChanges() {
-        if ($(this).value !== $(this).attr('data-original-value')) {
-          $('#undo-changes-button').show();
-        }
-      });
-  }).fail(function onFail(response) {
-    toastr.warning(response.getResponseHeader('Warning'));
-    hideClientForm();
-  });
-}
-
-function clearFormData() {
-  $('#client-form #AcceptedEmailDomainList')[0].selectize.clear();
-  $('#client-form #AcceptedEmailDomainList')[0].selectize.clearOptions();
-  $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.clear();
-  $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.clearOptions();
-  $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').attr('data-original-value', '');
-  $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').val('');
-  clearValidationErrors();
-}
-
-function newChildClientFormSetup(parentClientDiv) {
-  var parentClientId;
-  var template;
-
-  clearFormData();
-  parentClientId = parentClientDiv.attr('data-client-id').valueOf();
-
-  $('#client-form #ParentClientId').val(parentClientId);
-
-  removeClientInserts();
-  clearSelectedClient();
-
-  template = childNodePlaceholder;
-  if (parentClientDiv.hasClass('card-100')) {
-    template = template.replace(/{{class}}/g, 'card-90');
-  } else {
-    template = template.replace(/{{class}}/g, 'card-80');
+  switch (level) {
+    case 1:
+      template = template.replace(/{{class}}/g, 'card-100');
+      break;
+    case 2:
+      template = template.replace(/{{class}}/g, 'card-90');
+      break;
+    default:
+      template = template.replace(/{{class}}/g, 'card-80');
+      break;
   }
 
-  parentClientDiv.parent().after(template);
+  template = template.replace(/{{header-level}}/g, (level + 1));
+  template = template.replace(/{{id}}/g, client.ClientEntity.Id);
+  template = template.replace(/{{name}}/g, client.ClientEntity.Name);
+  if (client.ClientEntity.ClientCode) {
+    template = template.replace(/{{clientCode}}/g, client.ClientEntity.ClientCode);
+  } else {
+    template = template.replace(/{{clientCode}}/g, '');
+  }
+  template = template.replace(/{{users}}/g, client.AssociatedUserCount);
+  template = template.replace(/{{content}}/g, client.AssociatedContentCount);
 
-  makeFormWriteable();
-  $('#client-form #form-buttons-edit').hide();
-  $('#client-form #form-buttons-new').show();
-  showClientForm();
-}
+  // convert template to DOM element for jQuery manipulation
+  $template = $(template.toString());
 
-function newClientFormSetup() {
-  removeClientInserts();
-  clearFormData();
-  clearSelectedClient();
-  makeFormWriteable();
-  $('#client-tree #create-new-client-card').attr('selected', '');
-  $('#client-form #form-buttons-edit').hide();
-  $('#client-form #form-buttons-new').show();
-  showClientForm();
+  $('div.card-container[data-search-string]', $template).attr(
+    'data-search-string',
+    (client.ClientEntity.Name + '|' + client.ClientEntity.ClientCode).toUpperCase()
+  );
+
+  if (!client.CanManage) {
+    $('.icon-container', $template).remove();
+    $('.client-admin-card', $template).attr('disabled', '');
+  }
+
+  // Only include the delete button on client nodes without children
+  if (client.Children.length !== 0) {
+    $('.card-button-delete', $template).remove();
+  }
+
+  // Don't include the add child client button on lowest level
+  if (level === 3) {
+    $('.card-button-new-child', $template).remove();
+  }
+
+  $('#client-tree-list').append($template);
+
+  // Render child nodes
+  if (client.Children.length) {
+    client.Children.forEach(function forEach(childNode) {
+      renderClientNode(childNode, level + 1);
+    });
+  }
 }
 
 function renderClientTree(clientId) {
@@ -441,40 +454,6 @@ function removeClientNode(clientId, clientName, password) {
   });
 }
 
-function resetFormValues() {
-  var inputsList = $('#client-form input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select');
-  var i;
-
-  for (i = 0; i < inputsList.length; i += 1) {
-    $(inputsList[i]).val($(inputsList[i]).attr('data-original-value'));
-  }
-}
-
-function cancelEditTasks(clientId) {
-  resetFormValues();
-  makeFormReadOnly();
-  if (!clientId) {
-    removeClientInserts();
-    clearFormData();
-    hideClientForm();
-    clearSelectedClient();
-  }
-}
-
-function pendingChanges() {
-  var inputsList = $('#client-form input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select');
-  var i;
-
-  for (i = 0; i < inputsList.length; i += 1) {
-    if ($(inputsList[i]).val() !== $(inputsList[i]).attr('data-original-value')) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-
 function getClientTree() {
   $.ajax({
     type: 'GET',
@@ -488,16 +467,6 @@ function getClientTree() {
       toastr.warning(response.getResponseHeader('Warning'));
     } else {
       toastr.error('An error has occurred');
-    }
-  });
-}
-
-function searchClientTree(searchString) {
-  $('#client-tree-list div[data-search-string]').each(function forEach(index, element) {
-    if ($(element).attr('data-search-string').indexOf(searchString.toUpperCase()) > -1) {
-      $(element).show();
-    } else {
-      $(element).hide();
     }
   });
 }
@@ -579,11 +548,39 @@ function undoChangesEditClientForm() {
   });
 }
 
-function toggleEditExistingClient() {
-  EditClientDetail($('div[selected]'));
+function pendingChanges() {
+  var inputsList = $('#client-form input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select');
+  var i;
+
+  for (i = 0; i < inputsList.length; i += 1) {
+    if ($(inputsList[i]).val() !== $(inputsList[i]).attr('data-original-value')) {
+      return true;
+    }
+  }
+  return false;
 }
 
-function cancelClientEdit() {
+function resetFormValues() {
+  var inputsList = $('#client-form input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select');
+  var i;
+
+  for (i = 0; i < inputsList.length; i += 1) {
+    $(inputsList[i]).val($(inputsList[i]).attr('data-original-value'));
+  }
+}
+
+function cancelEditTasks(clientId) {
+  resetFormValues();
+  makeFormReadOnly();
+  if (!clientId) {
+    removeClientInserts();
+    clearFormData();
+    hideClientForm();
+    clearSelectedClient();
+  }
+}
+
+function cancelEditClientForm() {
   var clientId = $('#client-form #Id').val();
   if (pendingChanges()) {
     confirmDiscardDialog(function confirm() {
@@ -594,14 +591,14 @@ function cancelClientEdit() {
   }
 }
 
-function expandAllUsers() {
-  $('#client-user-list div.card-expansion-container').attr('maximized', '');
-  toggleExpandCollapse();
-}
-
-function collapseAllUsers() {
-  $('#client-user-list div.card-expansion-container[maximized]').removeAttr('maximized');
-  toggleExpandCollapse();
+function searchClientTree(searchString) {
+  $('#client-tree-list div[data-search-string]').each(function forEach(index, element) {
+    if ($(element).attr('data-search-string').indexOf(searchString.toUpperCase()) > -1) {
+      $(element).show();
+    } else {
+      $(element).hide();
+    }
+  });
 }
 
 function searchUser(searchString) {
@@ -618,15 +615,15 @@ function searchUser(searchString) {
 $(document).ready(function onReady() {
   getClientTree();
 
+  $('#expand-user-icon').click(expandAllUsers);
+  $('#collapse-user-icon').click(collapseAllUsers);
   $('#add-client-icon').click(newClientFormSetup);
   $('#edit-client-icon').click(toggleEditExistingClient);
-  $('#cancel-edit-client-icon').click(cancelClientEdit);
-  $('#reset-form-button').click(resetNewClientForm);
   $('#create-new-button').click(submitClientForm);
-  $('#undo-changes-button').click(undoChangesEditClientForm);
   $('#save-changes-button').click(submitClientForm);
-  $('#collapse-user-icon').click(collapseAllUsers);
-  $('#expand-user-icon').click(expandAllUsers);
+  $('#reset-form-button').click(resetNewClientForm);
+  $('#undo-changes-button').click(undoChangesEditClientForm);
+  $('#cancel-edit-client-icon').click(cancelEditClientForm);
 
   $('#client-search-box').keyup(function clientSearchBoxKeyup() {
     searchClientTree($(this).val());
