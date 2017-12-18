@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
@@ -80,7 +81,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="Id">The primary key value of the ContentItemUserGroup authorizing this user to the requested content</param>
         /// <returns>A View (and model) that displays the requested content</returns>
         [Authorize]
-        public IActionResult WebHostedContent(long Id)
+        public async Task<IActionResult> WebHostedContent(long Id)
         {
             AuditLogger AuditStore = new AuditLogger();
 
@@ -98,14 +99,15 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
                 // something that appropriately returns to a logical next view
             }
-#endregion
+            #endregion
 
-#region Authorization
-            if (!AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
+            #region Authorization
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
                 {
                     new UserInContentItemUserGroupRequirement(Id),
                     new RoleInRootContentItemRequirement(RoleEnum.ContentUser, UserGroup.RootContentItem.Id),
-                }).Result.Succeeded)
+                });
+            if (!Result1.Succeeded)
             {
                 AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Unauthorized request", AuditEventId.Unauthorized, null, UserManager.GetUserName(HttpContext.User), HttpContext.Session.Id);
                 LogObject.EventDetailObject = new { GroupIdRequested = Id };
@@ -137,7 +139,7 @@ namespace MillimanAccessPortal.Controllers
                         return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
                 }
 
-                UriBuilder ContentUri = ContentSpecificHandler.GetContentUri(UserGroup, HttpContext, QlikviewConfig);
+                UriBuilder ContentUri = await ContentSpecificHandler.GetContentUri(UserGroup, HttpContext, QlikviewConfig);
 
                 HostedContentViewModel ResponseModel = new HostedContentViewModel
                 {

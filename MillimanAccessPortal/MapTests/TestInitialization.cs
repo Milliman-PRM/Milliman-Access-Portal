@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
@@ -207,9 +208,9 @@ namespace MapTests
         {
             Mock<IRoleStore<ApplicationRole>> NewRoleStore = MockRoleStore.NewStore(MockDbContextArg);
             Mock<RoleManager<ApplicationRole>> ReturnMockRoleManager = new Mock<RoleManager<ApplicationRole>>(NewRoleStore.Object, null, null, null, null);
-            
-            ReturnMockRoleManager.Setup(m => m.FindByIdAsync(It.IsAny<string>())).ReturnsAsync<string, RoleManager<ApplicationRole>, ApplicationRole>(roleId => NewRoleStore.Object.FindByIdAsync(roleId.ToString(), CancellationToken.None).Result);
-            ReturnMockRoleManager.Setup(m => m.FindByNameAsync(It.IsAny<string>())).ReturnsAsync<string, RoleManager<ApplicationRole>, ApplicationRole>(roleName => NewRoleStore.Object.FindByNameAsync(roleName, CancellationToken.None).Result);
+
+            ReturnMockRoleManager.Setup(m => m.FindByIdAsync(It.IsAny<string>())).Returns(async (string roleId) => await NewRoleStore.Object.FindByIdAsync(roleId, CancellationToken.None));
+            ReturnMockRoleManager.Setup(m => m.FindByNameAsync(It.IsAny<string>())).Returns(async (string name) => await NewRoleStore.Object.FindByNameAsync(name, CancellationToken.None));
 
             return ReturnMockRoleManager;
         }
@@ -272,6 +273,8 @@ namespace MapTests
                 new UserRoleInProfitCenter {Id=1, ProfitCenterId=1, UserId=3, RoleId=1}
             });
             MockDbSet<UserRoleInProfitCenter>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInProfitCenter, "RoleId", DbContextObject.ApplicationRole);
+            MockDbSet<UserRoleInProfitCenter>.AssignNavigationProperty<ProfitCenter>(DbContextObject.UserRoleInProfitCenter, "ProfitCenterId", DbContextObject.ProfitCenter);
+            MockDbSet<UserRoleInProfitCenter>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInProfitCenter, "UserId", DbContextObject.ApplicationUser);
             #endregion
 
             #region Initialize Clients

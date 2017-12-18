@@ -59,17 +59,24 @@ namespace MillimanAccessPortal.Controllers
         }
 
         // GET: UserAdmin
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
-            if (!AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserAdmin, null)).Result.Succeeded &&
-                !AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.UserAdmin, null)).Result.Succeeded)
+            Task<AuthorizationResult> Task1 = AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserAdmin, null));
+            Task<AuthorizationResult> Task2 = AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.UserAdmin, null));
+            AuthorizationResult Result1 = await Task1;
+            AuthorizationResult Result2 = await Task2;
+            if (!Result1.Succeeded && !Result2.Succeeded)
             {
                 Response.Headers.Add("Warning", $"You are not authorized as a user admin.");
                 return Unauthorized();
             }
 
-            List<ApplicationUserViewModel> Model = _userManager.Users.ToList()
-                .Select(u => new ApplicationUserViewModel(u, _userManager)).ToList();
+            List<ApplicationUser> AllUsers = _userManager.Users.ToList();
+            List<ApplicationUserViewModel> Model = new List<ApplicationUserViewModel>();
+            foreach (ApplicationUser U in AllUsers)
+            {
+                Model.Add(await ApplicationUserViewModel.New(U, _userManager));
+            }
 
             return View(Model);
         }
@@ -80,18 +87,19 @@ namespace MillimanAccessPortal.Controllers
         /// </summary>
         /// <returns>JsonResult or UnauthorizedResult</returns>
         [HttpGet]
-        public ActionResult ClientFamilyList()
+        public async Task<ActionResult> ClientFamilyList()
         {
             #region Authorization
             // User must have UserAdmin role to at least 1 Client
-            if (!AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserAdmin, null)).Result.Succeeded)
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserAdmin, null));
+            if (!Result1.Succeeded)
             {
                 Response.Headers.Add("Warning", $"You are not authorized as a user admin");
                 return Unauthorized();
             }
             #endregion
 
-            UserAdminClientFamilyListViewModel Model = GetUserAdminClientListModel(Queries.GetCurrentApplicationUser(User));
+            UserAdminClientFamilyListViewModel Model = await GetUserAdminClientListModel(await Queries.GetCurrentApplicationUser(User));
 
             return Json(Model);
         }
@@ -102,7 +110,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="CurrentUser"></param>
         /// <returns></returns>
         [NonAction]  // maybe move this elsewhere, (e.g. the model class itself?)
-        private UserAdminClientFamilyListViewModel GetUserAdminClientListModel(ApplicationUser CurrentUser)
+        private async Task<UserAdminClientFamilyListViewModel> GetUserAdminClientListModel(ApplicationUser CurrentUser)
         {
             #region Validation
             if (CurrentUser == null)
@@ -118,7 +126,7 @@ namespace MillimanAccessPortal.Controllers
             List<Client> AllRootClients = Queries.GetAllRootClients();  // list to memory so utilization is fast and no lingering transaction
             foreach (Client RootClient in AllRootClients.OrderBy(c => c.Name))
             {
-                ClientAndChildrenModel ClientModel = Queries.GetDescendentFamilyOfClient(RootClient, CurrentUser, RoleEnum.UserAdmin, false, true);
+                ClientAndChildrenModel ClientModel = await Queries.GetDescendentFamilyOfClient(RootClient, CurrentUser, RoleEnum.UserAdmin, false, true);
                 if (ClientModel.IsThisOrAnyChildManageable())
                 {
                     ModelToReturn.ClientTree.Add(ClientModel);
@@ -155,7 +163,8 @@ namespace MillimanAccessPortal.Controllers
             {
                 #region Authorization
                 // User must be UserCreator in the system
-                if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.UserCreator)).Result.Succeeded)
+                AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.UserCreator));
+                if (!Result1.Succeeded)
                 {
                     var AssignedClientDetailObject = new { RequestedUser = Model.UserName, RequiredRole = RoleEnum.UserCreator.ToString(), RequestedClientIds = string.Join(",", Model.MemberOfClientIdArray) };
                     AuditEvent LogEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Request to create user without required role", AuditEventId.Unauthorized, AssignedClientDetailObject, User.Identity.Name, HttpContext.Session.Id);
@@ -168,7 +177,8 @@ namespace MillimanAccessPortal.Controllers
                 // If client assignment is requested, user must be UserAdmin for the requested client
                 foreach (var AssignedClientId in Model.MemberOfClientIdArray)
                 {
-                    if (!AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserAdmin, AssignedClientId)).Result.Succeeded)
+                    AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserAdmin, AssignedClientId));
+                    if (!Result2.Succeeded)
                     {
                         Client UnauthorizedClient = DbContext.Client.Find(AssignedClientId);
                         if (UnauthorizedClient != null)
@@ -233,7 +243,7 @@ namespace MillimanAccessPortal.Controllers
                     foreach (var ClientId in Model.MemberOfClientIdArray)
                     {
                         Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientId.ToString());
-                        IdentityResult ResultOfAddClaim = _userManager.AddClaimAsync(NewUser, ThisClientMembershipClaim).Result;
+                        IdentityResult ResultOfAddClaim = await _userManager.AddClaimAsync(NewUser, ThisClientMembershipClaim);
                         ClientAssignResult &= ResultOfAddClaim.Succeeded;
 
                         // Audit log
@@ -254,7 +264,7 @@ namespace MillimanAccessPortal.Controllers
                         foreach (var ClientId in Model.MemberOfClientIdArray)
                         {
                             Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientId.ToString());
-                            IdentityResult ResultOfAddClaim = _userManager.RemoveClaimAsync(NewUser, ThisClientMembershipClaim).Result;
+                            IdentityResult ResultOfAddClaim = await _userManager.RemoveClaimAsync(NewUser, ThisClientMembershipClaim);
 
                             // Audit log
                             var RemovedClientDetailObject = new { NewUserId = Model.UserName, Email = Model.Email, RequestedClientIds = string.Join(",", Model.MemberOfClientIdArray), ClientId = ClientId, Reason = "Error assigning user to a requested client, transaction rollback", };
@@ -295,10 +305,11 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetContentForClient(long RequestedClientId)
+        public async Task<IActionResult> GetContentForClient(long RequestedClientId)
         {
             #region Authorization
-            if (!AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserAdmin, RequestedClientId)).Result.Succeeded)
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserAdmin, RequestedClientId));
+            if (!Result1.Succeeded)
             {
                 var AssignedClientDetailObject = new { RequestedClientId };
                 AuditEvent LogEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Request to get client details without required role", AuditEventId.Unauthorized, AssignedClientDetailObject, User.Identity.Name, HttpContext.Session.Id);
@@ -352,7 +363,8 @@ namespace MillimanAccessPortal.Controllers
             {
                 #region Authorization
                 // TODO Is this the required role to authorize this action
-                if (!AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin)).Result.Succeeded)
+                AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+                if (!Result1.Succeeded)
                 {
                     return Unauthorized();
                 }

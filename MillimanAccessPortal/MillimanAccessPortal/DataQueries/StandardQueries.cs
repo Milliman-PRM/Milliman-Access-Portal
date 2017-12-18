@@ -4,7 +4,7 @@
  * DEVELOPER NOTES: 
  */
 
-using System;
+using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
 using System.Security.Claims;
@@ -105,10 +105,10 @@ namespace MillimanAccessPortal.DataQueries
             return DataContext.Client.Where(c => c.ParentClientId == null).ToList();
         }
 
-        public ClientAndChildrenModel GetDescendentFamilyOfClient(Client ClientArg, ApplicationUser CurrentUser, RoleEnum ClientRoleRequiredToManage, bool RequireProfitCenterAuthority, bool RecurseDown = true)
+        public async Task<ClientAndChildrenModel> GetDescendentFamilyOfClient(Client ClientArg, ApplicationUser CurrentUser, RoleEnum ClientRoleRequiredToManage, bool RequireProfitCenterAuthority, bool RecurseDown = true)
         {
             Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientArg.Id.ToString());
-            List<ApplicationUser> UserMembersOfThisClient = UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim).Result.ToList();
+            List<ApplicationUser> UserMembersOfThisClient = (await UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim)).ToList();
 
             ClientAndChildrenModel ResultObject = new ClientAndChildrenModel { ClientEntity = ClientArg };  // Initialize.
             ResultObject.AssociatedContentCount = DataContext.RootContentItem.Where(r => r.ClientIdList.Contains(ClientArg.Id)).Count();
@@ -135,7 +135,7 @@ namespace MillimanAccessPortal.DataQueries
                 List<Client> ChildrenOfThisClient = DataContext.Client.Where(c => c.ParentClientId == ClientArg.Id).ToList();
                 foreach (Client ChildOfThisClient in ChildrenOfThisClient)
                 {
-                    ResultObject.Children.Add(GetDescendentFamilyOfClient(ChildOfThisClient, CurrentUser, ClientRoleRequiredToManage, RecurseDown));
+                    ResultObject.Children.Add(await GetDescendentFamilyOfClient(ChildOfThisClient, CurrentUser, ClientRoleRequiredToManage, RecurseDown));
                 }
             }
 
@@ -162,9 +162,9 @@ namespace MillimanAccessPortal.DataQueries
             return ReturnVal;
         }
 
-        internal ApplicationUser GetCurrentApplicationUser(ClaimsPrincipal User)
+        internal async Task<ApplicationUser> GetCurrentApplicationUser(ClaimsPrincipal User)
         {
-            return UserManager.GetUserAsync(User).Result;
+            return await UserManager.GetUserAsync(User);
         }
 
 
