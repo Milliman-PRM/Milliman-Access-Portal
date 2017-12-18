@@ -17,7 +17,7 @@ vex.defaultOptions = {
   overlayClassName: '',
   contentClassName: '',
   closeClassName: '',
-  closeAllOnPopState: false,
+  closeAllOnPopState: false
 };
 
 // Configure toastr options
@@ -36,5 +36,5 @@ toastr.options = {
   showEasing: 'swing',
   hideEasing: 'swing',
   showMethod: 'show',
-  hideMethod: 'hide',
+  hideMethod: 'hide'
 };

@@ -45,7 +45,7 @@ function renderClientNode(client, level) {
 
   $('div.card-container[data-search-string]', $template).attr(
     'data-search-string',
-    (client.ClientEntity.Name + '|' + client.ClientEntity.ClientCode).toUpperCase(),
+    (client.ClientEntity.Name + '|' + client.ClientEntity.ClientCode).toUpperCase()
   );
 
   if (!client.CanManage) {
@@ -134,7 +134,7 @@ function renderUserNode(clientId, user) {
 
   $('div.card-container[data-search-string]', $template).attr(
     'data-search-string',
-    (user.FirstName + ' ' + user.LastName + '|' + user.UserName + '|' + user.Email).toUpperCase(),
+    (user.FirstName + ' ' + user.LastName + '|' + user.UserName + '|' + user.Email).toUpperCase()
   );
 
   $('.card-body-secondary-text:contains("{{email}}")', $template).remove();
@@ -227,8 +227,8 @@ function GetClientDetail(clientDiv) {
     type: 'GET',
     url: 'ClientAdmin/ClientDetail/' + clientId,
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
-    },
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+    }
   }).done(function (response) {
     clearValidationErrors();
     populateClientDetails(response.ClientEntity);
@@ -265,18 +265,18 @@ function deleteClient(clientDiv) {
     unsafeMessage: '<h3>Delete ' + clientName + '?</h3><p>This action can not be undone.  Do you wish to proceed?</p>',
     buttons: [
       $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'red-button' }),
-      $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
+      $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
     ],
     callback: function (result) {
       if (result) {
         vex.dialog.prompt({
           message: 'Please provide your password to proceed with deletion',
           input: [
-            '<input name="password" type="password" placeholder="Password" required />',
+            '<input name="password" type="password" placeholder="Password" required />'
           ].join(''),
           buttons: [
             $.extend({}, vex.dialog.buttons.YES, { text: 'DELETE', className: 'red-button' }),
-            $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
+            $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
           ],
           callback: function (innerResult) {
             if (innerResult) {
@@ -288,12 +288,12 @@ function deleteClient(clientDiv) {
               toastr.info('Deletion was canceled');
             }
             return true;
-          },
+          }
         });
       } else {
         toastr.info('Deletion was canceled');
       }
-    },
+    }
   });
 }
 
@@ -308,8 +308,8 @@ function EditClientDetail(clientDiv) {
     type: 'GET',
     url: 'ClientAdmin/ClientDetail/' + clientId,
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
-    },
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+    }
   }).done(function (response) {
     populateClientDetails(response.ClientEntity);
     // Change the dom to reflect the selected client
@@ -420,11 +420,11 @@ function removeClientNode(clientId, clientName, password) {
     url: 'ClientAdmin/DeleteClient',
     data: {
       Id: clientId,
-      Password: password,
+      Password: password
     },
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
-    },
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+    }
   }).done(function (response) {
     renderClientTree(response.RelevantClientId);
     clearFormData();
@@ -470,7 +470,7 @@ function pendingChanges() {
 function getClientTree() {
   $.ajax({
     type: 'GET',
-    url: 'ClientAdmin/ClientFamilyList/',
+    url: 'ClientAdmin/ClientFamilyList/'
   }).done(function (response) {
     clientTree = response.ClientTree;
     populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
@@ -517,8 +517,8 @@ function submitClientForm(event) {
       url: urlAction,
       data: form.serialize(),
       headers: {
-        RequestVerificationToken: $("input[name='__RequestVerificationToken']").val(),
-      },
+        RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+      }
     }).done(function (response) {
       hideClientForm();
       clearFormData();
@@ -537,13 +537,13 @@ function confirmDiscardDialog(callback) {
     message: 'Would you like to discard the unsaved changes?',
     buttons: [
       $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'green-button' }),
-      $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' }),
+      $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
     ],
     callback: function (result) {
       if (result) {
         callback();
       }
-    },
+    }
   });
 }
 
@@ -631,7 +631,7 @@ $(document).ready(function () {
       if (input.match(domainValRegex)) {
         return {
           value: input,
-          text: input,
+          text: input
         };
       }
       vex.dialog.alert({
@@ -640,10 +640,10 @@ $(document).ready(function () {
           $('#AcceptedEmailDomainList-selectized').val(input);
           $('#client-form #AcceptedEmailDomainList')[0].selectize.unlock();
           $('#client-form #AcceptedEmailDomainList')[0].selectize.focus();
-        },
+        }
       });
       return {};
-    },
+    }
   });
 
   $('#client-form #AcceptedEmailAddressExceptionList').selectize({
@@ -654,7 +654,7 @@ $(document).ready(function () {
       if (input.match(emailValRegex)) {
         return {
           value: input,
-          text: input,
+          text: input
         };
       }
       vex.dialog.alert({
@@ -663,9 +663,9 @@ $(document).ready(function () {
           $('#AcceptedEmailAddressExceptionList-selectized').val(input);
           $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.unlock();
           $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.focus();
-        },
+        }
       });
       return {};
-    },
+    }
   });
 });
