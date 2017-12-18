@@ -72,6 +72,12 @@
                     color: lighten($charcoal, 20%);
                 }
 
+                &[selected] {
+                    &:hover {
+                        color: $white;
+                    }
+                }
+
                 h2.card-body-primary-text {
                     width: 100%;
                     margin: 0;
