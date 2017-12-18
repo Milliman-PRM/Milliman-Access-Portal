@@ -15,6 +15,7 @@ function populateProfitCenterDropDown(profitCenters) {
 
 function renderClientNode(client, level) {
   var template = clientNodeTemplate;
+  var $template;
 
   switch (level) {
     case 1:
@@ -41,7 +42,7 @@ function renderClientNode(client, level) {
 
 
   // convert template to DOM element for jQuery manipulation
-  var $template = $(template.toString());
+  $template = $(template.toString());
 
   $('div.card-container[data-search-string]', $template).attr(
     'data-search-string',
@@ -96,6 +97,7 @@ function populateClientDetails(ClientEntity) {
   $('#client-form :input, #client-form select').removeAttr('data-original-value');
   $('#client-form #ProfitCenterId option[temporary-profitcenter]').remove();
   $.each(ClientEntity, function forEach(key, value) {
+    var i;
     var ctrl = $('#' + key, '#client-info');
     if (ctrl.is('select')) {
       if ($('#client-form #' + key + ' option[value="' + value + '"]').length === 0) {
@@ -106,7 +108,7 @@ function populateClientDetails(ClientEntity) {
       ctrl[0].selectize.clear();
       ctrl[0].selectize.clearOptions();
       if (value) {
-        for (var i = 0; i < value.length; i += 1) {
+        for (i = 0; i < value.length; i += 1) {
           ctrl[0].selectize.addOption({ value: value[i], text: value[i] });
           ctrl[0].selectize.addItem(value[i]);
         }
@@ -120,6 +122,7 @@ function populateClientDetails(ClientEntity) {
 
 function renderUserNode(clientId, user) {
   var template = userNodeTemplate;
+  var $template;
 
   template = template.replace(/{{clientId}}/g, clientId);
   template = template.replace(/{{id}}/g, user.Id);
@@ -130,7 +133,7 @@ function renderUserNode(clientId, user) {
   }
 
   // convert template to DOM element for jQuery manipulation
-  var $template = $(template.toString());
+  $template = $(template.toString());
 
   $('div.card-container[data-search-string]', $template).attr(
     'data-search-string',
@@ -213,9 +216,10 @@ function showClientForm() {
 }
 
 function GetClientDetail(clientDiv) {
-  removeClientInserts();
+  var clientId;
 
-  var clientId = clientDiv.attr('data-client-id').valueOf();
+  removeClientInserts();
+  clientId = clientDiv.attr('data-client-id').valueOf();
 
   if (clientDiv.is('[selected]') && !clientDiv.is('[editing]')) {
     clearSelectedClient();
@@ -298,11 +302,11 @@ function deleteClient(clientDiv) {
 }
 
 function EditClientDetail(clientDiv) {
+  var clientId;
+
   removeClientInserts();
-
   clearValidationErrors();
-
-  var clientId = clientDiv.attr('data-client-id').valueOf();
+  clientId = clientDiv.attr('data-client-id').valueOf();
 
   $.ajax({
     type: 'GET',
@@ -345,16 +349,18 @@ function clearFormData() {
 }
 
 function newChildClientFormSetup(parentClientDiv) {
-  clearFormData();
+  var parentClientId;
+  var template;
 
-  var parentClientId = parentClientDiv.attr('data-client-id').valueOf();
+  clearFormData();
+  parentClientId = parentClientDiv.attr('data-client-id').valueOf();
 
   $('#client-form #ParentClientId').val(parentClientId);
 
   removeClientInserts();
   clearSelectedClient();
 
-  var template = childNodePlaceholder;
+  template = childNodePlaceholder;
   if (parentClientDiv.hasClass('card-100')) {
     template = template.replace(/{{class}}/g, 'card-90');
   } else {
@@ -437,8 +443,9 @@ function removeClientNode(clientId, clientName, password) {
 
 function resetFormValues() {
   var inputsList = $('#client-form input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select');
+  var i;
 
-  for (var i = 0; i < inputsList.length; i += 1) {
+  for (i = 0; i < inputsList.length; i += 1) {
     $(inputsList[i]).val($(inputsList[i]).attr('data-original-value'));
   }
 }
@@ -456,8 +463,9 @@ function cancelEditTasks(clientId) {
 
 function pendingChanges() {
   var inputsList = $('#client-form input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select');
+  var i;
 
-  for (var i = 0; i < inputsList.length; i += 1) {
+  for (i = 0; i < inputsList.length; i += 1) {
     if ($(inputsList[i]).val() !== $(inputsList[i]).attr('data-original-value')) {
       return true;
     }
@@ -495,14 +503,18 @@ function searchClientTree(searchString) {
 }
 
 function submitClientForm(event) {
+  var form;
+  var clientId;
+  var clientName;
+  var urlAction;
+  var successResponse;
   if ($('#client-form').valid()) {
     event.preventDefault();
 
-    var form = $('#client-form');
-    var clientId = $('#client-form #Id').val();
-    var clientName = $('#client-form #Name').val();
-    var urlAction = 'ClientAdmin/';
-    var successResponse;
+    form = $('#client-form');
+    clientId = $('#client-form #Id').val();
+    clientName = $('#client-form #Name').val();
+    urlAction = 'ClientAdmin/';
 
     if (clientId) {
       urlAction += 'EditClient';
