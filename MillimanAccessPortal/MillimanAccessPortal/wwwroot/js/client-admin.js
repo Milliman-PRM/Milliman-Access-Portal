@@ -304,20 +304,20 @@ function deleteClient(clientDiv) {
   var clientName = clientDiv.find('.card-body-primary-text').first().text();
 
   vex.dialog.confirm({
-    unsafeMessage: '<h3>Delete ' + clientName + '?</h3><p>This action can not be undone.  Do you wish to proceed?</p>',
+    unsafeMessage: 'Do you want to delete client <strong>' + clientName + '</strong>? This actions cannot be undone.',
     buttons: [
-      $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'red-button' }),
+      $.extend({}, vex.dialog.buttons.YES, { text: 'Delete', className: 'red-button' }),
       $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
     ],
     callback: function onSelect(result) {
       if (result) {
         vex.dialog.prompt({
-          message: 'Please provide your password to proceed with deletion',
+          message: 'Please provide your password to delete client <strong>' + clientName + '</strong>.',
           input: [
             '<input name="password" type="password" placeholder="Password" required />'
           ].join(''),
           buttons: [
-            $.extend({}, vex.dialog.buttons.YES, { text: 'DELETE', className: 'red-button' }),
+            $.extend({}, vex.dialog.buttons.YES, { text: 'Delete', className: 'red-button' }),
             $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
           ],
           callback: function onSelectInner(resultInner) {
@@ -516,10 +516,25 @@ function submitClientForm(event) {
 
 function confirmDiscardDialog(callback) {
   vex.dialog.confirm({
-    message: 'Would you like to discard the unsaved changes?',
+    message: 'Do you want to discard unsaved changes?',
     buttons: [
-      $.extend({}, vex.dialog.buttons.YES, { text: 'Confirm', className: 'green-button' }),
-      $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
+      $.extend({}, vex.dialog.buttons.YES, { text: 'Discard', className: 'green-button' }),
+      $.extend({}, vex.dialog.buttons.NO, { text: 'Continue Editing', className: 'link-button' })
+    ],
+    callback: function onSelect(result) {
+      if (result) {
+        callback();
+      }
+    }
+  });
+}
+
+function confirmResetDialog(callback) {
+  vex.dialog.confirm({
+    message: 'Do you want to reset the new client form?',
+    buttons: [
+      $.extend({}, vex.dialog.buttons.YES, { text: 'Reset', className: 'green-button' }),
+      $.extend({}, vex.dialog.buttons.NO, { text: 'Continue Editing', className: 'link-button' })
     ],
     callback: function onSelect(result) {
       if (result) {
@@ -533,7 +548,7 @@ function resetNewClientForm() {
   $('#client-form :input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select')
     .each(function resetClientForm() {
       if ($(this).val() !== '') {
-        confirmDiscardDialog(function confirm() {
+        confirmResetDialog(function confirm() {
           $('#client-form .input-validation-error').removeClass('input-validation-error');
           $('#client-form span.field-validation-error > span').remove();
           clearFormData();
