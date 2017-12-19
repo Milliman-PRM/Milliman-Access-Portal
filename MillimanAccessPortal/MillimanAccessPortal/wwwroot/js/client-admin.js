@@ -304,7 +304,7 @@ function deleteClient(clientDiv) {
   var clientName = clientDiv.find('.card-body-primary-text').first().text();
 
   vex.dialog.confirm({
-    unsafeMessage: 'Do you want to delete client <strong>' + clientName + '</strong>? This actions cannot be undone.',
+    unsafeMessage: 'Do you want to delete <strong>' + clientName + '</strong>?<br /><br /> This action <strong><u>cannot</u></strong> be undone.',
     buttons: [
       $.extend({}, vex.dialog.buttons.YES, { text: 'Delete', className: 'red-button' }),
       $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
@@ -312,7 +312,7 @@ function deleteClient(clientDiv) {
     callback: function onSelect(result) {
       if (result) {
         vex.dialog.prompt({
-          message: 'Please provide your password to delete client <strong>' + clientName + '</strong>.',
+          unsafeMessage: 'Please provide your password to delete <strong>' + clientName + '</strong>.',
           input: [
             '<input name="password" type="password" placeholder="Password" required />'
           ].join(''),
