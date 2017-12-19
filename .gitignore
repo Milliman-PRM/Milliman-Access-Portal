@@ -1,4 +1,4 @@
-###################
+﻿###################
 # compiled source #
 ###################
 *.com
@@ -27,8 +27,9 @@ obj/
 TestResults/
 .vs/
 **/wwwroot/lib/
-**/wwwroot/css/site.css
+**/wwwroot/css/*.css
 **/wwwroot/*/*.min.*
+**/wwwroot/css/*/*.css
 ###################
 # Web publish log #
 ###################

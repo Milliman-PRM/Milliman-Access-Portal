@@ -1,3 +1,7 @@
-﻿<div id="header">
-    <img id="logo" src="~/images/logo.png" alt="Milliman Logo" />
-</div>
+﻿<header>
+    @if (ViewData["Title"] != null)
+    {
+        <h1 id="page-title">@ViewData["Title"]</h1>
+    }
+    <img id="header-logo" src="~/images/logo.png" alt="Milliman Access Portal" />
+</header>

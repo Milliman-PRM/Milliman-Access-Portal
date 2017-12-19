@@ -18,92 +18,89 @@
 
 }
 
-<h2 class="page-title">Client Admin</h2>
-
-<div class="row">
-    <div id="client-tree" class="client-admin-section no-vertical-scroll col-sm-12 col-md-3">
-        <h3 class="client-admin-section-title">Client Tree</h3>
-        <div class="client-admin-section-toolbar container-fluid">
-            <input id="client-search-box" class="search-box" placeholder="Search for Client" />
-            @if (this.User.IsInRole(ApplicationRole.MapRoles[RoleEnum.RootClientCreator]))
-            {
-                <i id="add-client-icon" class="admin-action-icon fa fa-2x fa-plus pull-right" onclick="newClientFormSetup()"></i>
-            }
-       </div>
-        <div id="client-tree" class="container-fluid scroll-y">
-            <div class="row">
-                <ul id="client-tree-list">
-                </ul>
-            </div>
+<div id="client-tree" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12">
+    <h3 class="admin-panel-header">Client Tree</h3>
+    <div class="admin-panel-toolbar">
+        <input id="client-search-box" class="admin-panel-searchbar" type="search" placeholder="Search for Client" />
+        <div class="admin-panel-action-icons-container">
+            <i id="add-client-icon" class="fa fa-2x fa-plus action-icon"></i>
         </div>
     </div>
-    <div id="client-info" class="client-admin-section col-sm-12 col-md-6 hidden-on-load">
-        <h3 class="client-admin-section-title">Client Information</h3>
-        <div class="client-admin-section-toolbar container-fluid">
-            <i id="edit-client-icon" class="admin-action-icon fa fa-2x fa-pencil pull-right" onclick="toggleEditExistingClient()"></i>
-            <i id="cancel-edit-client-icon" class="admin-action-icon fa fa-2x fa-close pull-right" onclick="cancelClientEdit()"></i>
+    <div id="client-tree" class="admin-panel-content-container">
+        <ul id="client-tree-list" class="admin-panel-content">
+        </ul>
+    </div>
+</div>
+<div id="client-info" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-6-12" style="display: none;">
+    <h3 class="admin-panel-header">Client Information</h3>
+    <div class="admin-panel-toolbar">
+        <div class="admin-panel-action-icons-container">
+            <i id="edit-client-icon" class="fa fa-2x fa-pencil action-icon"></i>
+            <i id="cancel-edit-client-icon" class="fa fa-2x fa-close action-icon"></i>
         </div>
-        <div class="container-fluid scroll-y">
-            <form id="client-form">
-                <div class="row">
-                    <h4>Client Information</h4>
-                    <div class="hidden">
+    </div>
+    <div class="admin-panel-content-container">
+        <form id="client-form">
+            <div class="form-container">
+                <h4 class="form-section-header">Client Information</h4>
+                <div class="form-section-container">
+                    <div style="display: none;">
                         <input asp-for="Id" />
                         <input asp-for="ParentClientId" />
                     </div>
-                    <div class="form-group col-md-9">
+                    <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-9-12">
                         <label asp-for="Name"></label>
                         <div>
-                            <input asp-for="Name" class="form-control" />
+                            <input asp-for="Name" />
                             <span asp-validation-for="Name" class="text-danger"></span>
-                        </div>                    
+                        </div>
                     </div>
-                    <div class="form-group col-md-3">
+                    <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-3-12">
                         <label asp-for="ClientCode"></label>
                         <div>
-                            <input asp-for="ClientCode" class="form-control" />
+                            <input asp-for="ClientCode" />
                             <span asp-validation-for="ClientCode" class="text-danger"></span>
                         </div>
                     </div>
-                    <div class="form-group col-md-6">
+                    <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
                         <label asp-for="ContactName"></label>
                         <div>
-                            <input asp-for="ContactName" class="form-control" />
+                            <input asp-for="ContactName" />
                             <span asp-validation-for="ContactName" class="text-danger"></span>
                         </div>
                     </div>
-                    <div class="form-group col-md-6">
+                    <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
                         <label asp-for="ContactTitle"></label>
                         <div>
-                            <input asp-for="ContactTitle" class="form-control" />
+                            <input asp-for="ContactTitle" />
                             <span asp-validation-for="ContactTitle" class="text-danger"></span>
                         </div>
                     </div>
-                    <div class="form-group col-md-9">
+                    <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-9-12">
                         <label asp-for="ContactEmail"></label>
                         <div>
-                            <input asp-for="ContactEmail" class="form-control" />
+                            <input asp-for="ContactEmail" />
                             <span asp-validation-for="ContactEmail" class="text-danger"></span>
                         </div>
                     </div>
-                    <div class="form-group col-md-3">
+                    <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-3-12">
                         <label asp-for="ContactPhone"></label>
                         <div>
-                            <input asp-for="ContactPhone" class="form-control" />
+                            <input asp-for="ContactPhone" />
                             <span asp-validation-for="ContactPhone" class="text-danger"></span>
                         </div>
                     </div>
                 </div>
-                <h4>Security Information</h4>
-                <div class="row">
-                    <div class="form-group col-md-12">
+                <h4 class="form-section-header">Security Information</h4>
+                <div class="form-section-container">
+                    <div class="form-input flex-item-12-12">
                         <label asp-for="AcceptedEmailDomainList"></label>
                         <div>
                             <input asp-for="AcceptedEmailDomainList" class="selectize-custom-input" />
                             <span asp-validation-for="AcceptedEmailDomainList" class="text-danger"></span>
-                        </div>                    
+                        </div>
                     </div>
-                    <div class="form-group col-md-12">
+                    <div class="form-input flex-item-12-12">
                         <label asp-for="AcceptedEmailAddressExceptionList"></label>
                         <div>
                             <input asp-for="AcceptedEmailAddressExceptionList" class="selectize-custom-input" />
@@ -111,65 +108,65 @@
                         </div>
                     </div>
                 </div>
-                <h4>Billing Information</h4>
-                <div class="row">
-                    <div class="form-group col-md-6">
+                <h4 class="form-section-header">Billing Information</h4>
+                <div class="form-section-container">
+                    <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
                         <label asp-for="ConsultantName"></label>
                         <div>
-                            <input asp-for="ConsultantName" class="form-control" />
+                            <input asp-for="ConsultantName" />
                             <span asp-validation-for="ConsultantName" class="text-danger"></span>
                         </div>
                     </div>
-                    <div class="form-group col-md-6">
+                    <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
                         <label asp-for="ConsultantEmail"></label>
                         <div>
-                            <input asp-for="ConsultantEmail" class="form-control" />
+                            <input asp-for="ConsultantEmail" />
                             <span asp-validation-for="ConsultantEmail" class="text-danger"></span>
                         </div>
                     </div>
-                    <div class="form-group col-md-6">
+                    <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
                         <label asp-for="ConsultantOffice"></label>
                         <div>
-                            <input asp-for="ConsultantOffice" class="form-control" />
+                            <input asp-for="ConsultantOffice" />
                             <span asp-validation-for="ConsultantOffice" class="text-danger"></span>
                         </div>
                     </div>
-                    <div class="form-group col-md-6">
+                    <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
                         <label asp-for="ProfitCenterId"></label>
                         <div>
-                            <select asp-for="ProfitCenterId" class="form-control">
+                            <select asp-for="ProfitCenterId">
                                 <option value="">Make a Selection</option>
                             </select>
                             <span asp-validation-for="ProfitCenterId" class="text-danger"></span>
                         </div>
                     </div>
+                    @Html.AntiForgeryToken()
                 </div>
-                @Html.AntiForgeryToken()
-                <div id="form-buttons-new" class="text-right">
-                    <button type="button" class="btn btn-link" onclick="resetNewClientForm(event)">Reset Form</button>
-                    <button type="submit" id="create-new-button" class="btn btn-primary primary-button" onclick="submitClientForm(event)">Create New Client</button>
+                <div id="form-buttons-new" class="form-button-container" style="display: none;">
+                    <button type="button" id="reset-form-button" class="link-button">Reset Form</button>
+                    <button type="submit" id="create-new-button" class="green-button">Create Client</button>
                 </div>
-                <div id="form-buttons-edit" class="text-right">
-                    <button type="button" id="undo-changes-button" class="btn btn-link" onclick="undoChangesEditClientForm(event)">Undo Changes</button>
-                    <button type="submit" id="save-changes-button" class="btn btn-primary primary-button" onclick="submitClientForm(event)">Save Changes</button>
+                <div id="form-buttons-edit" class="form-button-container" style="display: none;">
+                    <button type="button" id="undo-changes-button" class="link-button">Discard Changes</button>
+                    <button type="submit" id="save-changes-button" class="blue-button">Save Changes</button>
                 </div>
-            </form>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="client-users" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12" style="display: none;">
+    <h3 class="admin-panel-header">Client Users</h3>
+    <div class="admin-panel-toolbar">
+        <input id="user-search-box" class="admin-panel-searchbar" type="search" placeholder="Search for User" />
+        <div class="admin-panel-action-icons-container">
+            <i id="collapse-user-icon" class="fa fa-2x fa-toggle-up action-icon"></i>
+            <i id="expand-user-icon" class="fa fa-2x fa-toggle-down action-icon"></i>
+            <i id="add-user-icon" class="fa fa-2x fa-user-plus action-icon"></i>
         </div>
     </div>
-    <div id="client-users" class="client-admin-section col-sm-12 col-md-3 hidden-on-load">
-        <h3 class="client-admin-section-title">Client Users</h3>
-        <div class="client-admin-section-toolbar container-fluid">
-            <input id="user-search-box" class="search-box" placeholder="Search for User" />
-            <i id="add-user-icon" class="admin-action-icon fa fa-2x fa-user-plus pull-right"></i>
-            <i id="expand-user-icon" class="admin-action-icon fa fa-2x fa-toggle-down pull-right" onclick="expandAllUsers()"></i>
-            <i id="collapse-user-icon" class="admin-action-icon fa fa-2x fa-toggle-up pull-right" onclick="collapseAllUsers()"></i>
-        </div>
-        <div id="user-list" class="container-fluid scroll-y">
-            <div class="row">
-                <ul id="client-user-list">
-                </ul>
-            </div>
-        </div>
+    <div id="user-list" class="admin-panel-content-container">
+        <ul id="client-user-list" class="admin-panel-content">
+        </ul>
     </div>
 </div>
 
@@ -181,204 +178,11 @@
 
     <environment names="Development,CI">
         <script src="~/lib/selectize/dist/js/standalone/selectize.js"></script>
-        <script src="~/lib/bootbox.js/bootbox.js"></script>
         <script src="~/js/client-admin.js"></script>
     </environment>
     <environment names="Staging,Production">
         <script src="~/lib/selectize/dist/js/standalone/selectize.min.js"></script>
-        <script src="~/lib/bootbox.js/bootbox.min.js"></script>
         <script src="~/js/client-admin.min.js"></script>
     </environment>
 
-    <script>
-
-        $(document).ready(function () {
-
-            getClientTree();
-
-            $('#client-search-box').keyup(function () {
-                var searchString = $(this).val();
-                searchClientTree(searchString);
-            });
-
-            $('#user-search-box').keyup(function () {
-                var searchString = $(this).val();
-                searchUser(searchString);
-            });
-
-            $('#client-form #AcceptedEmailDomainList').selectize({
-                plugins: ['remove_button'],
-                persist: false,
-                create: function (input) {
-                    if (input.match(domainValRegex)) {
-                        return {
-                            value: input,
-                            text: input
-                        };
-                    } else {
-                        bootbox.alert('The Approved Email Domain List only accepts the email domain (e.g. <i>username@@</i><strong><u>domain.com</u></strong>)', function () { 
-                            $('#AcceptedEmailDomainList-selectized').val(input);
-                            $('#client-form #AcceptedEmailDomainList')[0].selectize.unlock();
-                            $('#client-form #AcceptedEmailDomainList')[0].selectize.focus();
-                        });
-                    }
-                }
-            });
-
-            $('#client-form #AcceptedEmailAddressExceptionList').selectize({
-                plugins: ['remove_button'],
-                delimiter: ',',
-                persist: false,
-                create: function (input) {
-                    if (input.match(emailValRegex)) {
-                        return {
-                            value: input,
-                            text: input
-                        };
-                    } else {
-                        bootbox.alert('The Approved Email Address Exception List only accepts valid email addresses (e.g. username@domain.com)', function () {
-                            $('#AcceptedEmailAddressExceptionList-selectized').val(input);
-                            $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.unlock();
-                            $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.focus();
-                        });
-                    }
-                }
-            });
-
-
-            /*
-             // Assign a user by name to a client id
-             $.ajax({
-                 type: 'POST',
-                 url: 'ClientAdmin/AssignUserToClient',
-                 data: { clientId: 1, userName: "testid4444@yahoo.com" },
-                 headers: {
-                     'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
-                 },
-             }).done(function (response) {
-                 console.log(response)
-             }).fail(function (response) {
-                 switch (response.status) {
-                     case 412:
-                         toastr["warning"](response.getResponseHeader("Warning"));
-                         break;
-                     default:
-                         alert("ajax AssignUserToClient response code is " + response.status);
-                         break;
-                 }
-             });
-            */
-
-            /*
-             window.setTimeout(function () {  // Delete this entire line
-             // Remove a user by name from a client id
-             $.ajax({
-                 type: 'POST',
-                 url: 'ClientAdmin/RemoveUserFromClient',
-                 data: { clientId: 1, userName: "testid4444@yahoo.com" },
-                 headers: {
-                     'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
-                 },
-             }).done(function (response) {
-                 console.log(response)
-             }).fail(function (response) {
-                 switch (response.status) {
-                     case 412:
-                         toastr["warning"](response.getResponseHeader("Warning"));
-                         break;
-                     default:
-                         alert("ajax RemoveUserFromClient response code is " + response.status);
-                         break;
-                 }
-             })
-             }, 2000)  // Delete this entire line
-             ;
-            */
-
-            /*
-            window.setTimeout(function () {  // Delete this entire line
-                // Edit a client record
-                $.ajax({
-                    type: 'POST',
-                    url: 'ClientAdmin/EditClient',
-                    data: {
-                        Id: 4,
-                        Name: "xyz",
-                        ClientCode: "Some Code",
-                        ContactName: "Contact 4",
-                        ContactTitle: "Director of Contacts",
-                        ContactEmail: "Contact4@company.com",
-                        ContactPhone: "1234567890",
-                        ConsultantName: "Phill Ittup",
-                        ConsultantEmail: "Consultant4@milliman.com",
-                        ConsultantOffice: "Indianapolis",
-                        ProfitCenter: "Bulls Eye",
-                        AcceptedEmailDomainList: ["milliman.com", "yahoo.com"],
-                        AcceptedEmailAddressExceptionList: [],
-                        ParentClientId: 1
-                    },
-                    headers: {
-                        'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
-                    },
-                }).done(function (response) {
-                    console.log(response)
-                }).fail(function (response) {
-                    switch (response.status) {
-                        case 412:
-                            toastr["warning"](response.getResponseHeader("Warning"));
-                            break;
-                        default:
-                            alert("ajax RemoveUserFromClient response code is " + response.status);
-                            break;
-                    }
-                })
-            }, 2000)  // Delete this entire line
-            ;
-            */
-
-            /*
-            window.setTimeout(function () {  // Delete this entire line
-                // Save a new client record
-                $.ajax({
-                    type: 'POST',
-                    url: 'ClientAdmin/SaveNewClient',
-                    data: {
-                        Id: null,
-                        Name: "xyzaab",
-                        ClientCode: "Some Code",
-                        ContactName: "Contact 4",
-                        ContactTitle: "Director of Contacts",
-                        ContactEmail: "Contact4@company.com",
-                        ContactPhone: "1234567890",
-                        ConsultantName: "Phill Ittup",
-                        ConsultantEmail: "Consultant4@milliman.com",
-                        ConsultantOffice: "Indianapolis",
-                        ProfitCenter: "Bulls Eye",
-                        AcceptedEmailDomainList: ["milliman.com", "yahoo.com"],
-                        AcceptedEmailAddressExceptionList: [],
-                        ParentClientId: 1,
-                        ProfitCenterId: 1
-                    },
-                    headers: {
-                        'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
-                    },
-                }).done(function (response) {
-                    console.log(response)
-                }).fail(function (response) {
-                    switch (response.status) {
-                        case 412:
-                            toastr["warning"](response.getResponseHeader("Warning"));
-                            break;
-                        default:
-                            alert("ajax SaveNewClient response code is " + response.status + "Warning header value is " + response.getResponseHeader("Warning"));
-                            break;
-                    }
-                })
-            }, 2000)  // Delete this entire line
-            ;
-            */
-        })
-
-
-    </script>
 }
