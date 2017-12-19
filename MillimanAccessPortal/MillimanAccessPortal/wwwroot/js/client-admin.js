@@ -545,16 +545,19 @@ function confirmResetDialog(callback) {
 }
 
 function resetNewClientForm() {
-  $('#client-form :input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select')
-    .each(function resetClientForm() {
-      if ($(this).val() !== '') {
-        confirmResetDialog(function confirm() {
-          $('#client-form .input-validation-error').removeClass('input-validation-error');
-          $('#client-form span.field-validation-error > span').remove();
-          clearFormData();
-        });
-      }
+  var numChanges = $('#client-form')
+    .find('input[name!="__RequestVerificationToken"][type!="hidden"],select')
+    .not('div.selectize-input input')
+    .map(function checkValue() {
+      return ($(this).val() === '' ? this : null);
+    }).length;
+  if (numChanges) {
+    confirmResetDialog(function confirm() {
+      $('#client-form .input-validation-error').removeClass('input-validation-error');
+      $('#client-form span.field-validation-error > span').remove();
+      clearFormData();
     });
+  }
 }
 
 function undoChangesEditClientForm() {
