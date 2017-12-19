@@ -565,15 +565,13 @@ function undoChangesEditClientForm() {
 }
 
 function pendingChanges() {
-  var inputsList = $('#client-form input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select');
-  var i;
-
-  for (i = 0; i < inputsList.length; i += 1) {
-    if ($(inputsList[i]).val() !== $(inputsList[i]).attr('data-original-value')) {
-      return true;
-    }
-  }
-  return false;
+  return $('#client-form')
+    .find('input[name!="__RequestVerificationToken"][type!="hidden"],select')
+    .not('div.selectize-input input')
+    .map(function compareValue() {
+      return ($(this).val() === $(this).attr('data-original-value') ? null : this);
+    })
+    .length;
 }
 
 function resetFormValues() {
