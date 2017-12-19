@@ -23,7 +23,7 @@
     <div class="admin-panel-toolbar">
         <input id="client-search-box" class="admin-panel-searchbar" type="search" placeholder="Search for Client" />
         <div class="admin-panel-action-icons-container">
-            <i id="add-client-icon" class="fa fa-2x fa-plus action-icon" onclick="newClientFormSetup()"></i>
+            <i id="add-client-icon" class="fa fa-2x fa-plus action-icon"></i>
         </div>
     </div>
     <div id="client-tree" class="admin-panel-content-container">
@@ -35,9 +35,9 @@
     <h3 class="admin-panel-header">Client Information</h3>
     <div class="admin-panel-toolbar">
         <div class="admin-panel-action-icons-container">
-            <i id="edit-client-icon" class="fa fa-2x fa-pencil action-icon" onclick="toggleEditExistingClient()"></i>
-            <i id="cancel-edit-client-icon" class="fa fa-2x fa-close action-icon" onclick="cancelClientEdit()"></i>
-        </div>    
+            <i id="edit-client-icon" class="fa fa-2x fa-pencil action-icon"></i>
+            <i id="cancel-edit-client-icon" class="fa fa-2x fa-close action-icon"></i>
+        </div>
     </div>
     <div class="admin-panel-content-container">
         <form id="client-form">
@@ -143,14 +143,14 @@
                     @Html.AntiForgeryToken()
                 </div>
                 <div id="form-buttons-new" class="form-button-container" style="display: none;">
-                    <button type="button" id="reset-form-button" class="link-button" onclick="resetNewClientForm(event)">Reset Form</button>
-                    <button type="submit" id="create-new-button" class="green-button" onclick="submitClientForm(event)">Create New Client</button>
+                    <button type="button" id="reset-form-button" class="link-button">Reset Form</button>
+                    <button type="submit" id="create-new-button" class="green-button">Create New Client</button>
                 </div>
                 <div id="form-buttons-edit" class="form-button-container" style="display: none;">
-                    <button type="button" id="undo-changes-button" class="link-button" onclick="undoChangesEditClientForm(event)">Undo Changes</button>
-                    <button type="submit" id="save-changes-button" class="blue-button" onclick="submitClientForm(event)">Save Changes</button>
+                    <button type="button" id="undo-changes-button" class="link-button">Undo Changes</button>
+                    <button type="submit" id="save-changes-button" class="blue-button">Save Changes</button>
                 </div>
-            </div>            
+            </div>
         </form>
     </div>
 </div>
@@ -159,10 +159,10 @@
     <div class="admin-panel-toolbar">
         <input id="user-search-box" class="admin-panel-searchbar" type="search" placeholder="Search for User" />
         <div class="admin-panel-action-icons-container">
-            <i id="collapse-user-icon" class="fa fa-2x fa-toggle-up action-icon" onclick="collapseAllUsers()"></i>
-            <i id="expand-user-icon" class="fa fa-2x fa-toggle-down action-icon" onclick="expandAllUsers()"></i>
+            <i id="collapse-user-icon" class="fa fa-2x fa-toggle-up action-icon"></i>
+            <i id="expand-user-icon" class="fa fa-2x fa-toggle-down action-icon"></i>
             <i id="add-user-icon" class="fa fa-2x fa-user-plus action-icon"></i>
-        </div>    
+        </div>
     </div>
     <div id="user-list" class="admin-panel-content-container">
         <ul id="client-user-list" class="admin-panel-content">
@@ -185,201 +185,4 @@
         <script src="~/js/client-admin.min.js"></script>
     </environment>
 
-    <script>
-
-        $(document).ready(function () {
-
-            getClientTree();
-
-            $('#client-search-box').keyup(function () {
-                var searchString = $(this).val();
-                searchClientTree(searchString);
-            });
-
-            $('#user-search-box').keyup(function () {
-                var searchString = $(this).val();
-                searchUser(searchString);
-            });
-
-            $('#client-form #AcceptedEmailDomainList').selectize({
-                plugins: ['remove_button'],
-                persist: false,
-                create: function (input) {
-                    if (input.match(domainValRegex)) {
-                        return {
-                            value: input,
-                            text: input
-                        };
-                    } else {
-                        vex.dialog.alert({
-                            unsafeMessage: 'The Approved Email Domain List only accepts the email domain (e.g. <i>username@@</i><strong><u>domain.com</u></strong>)',
-                            callback: function () {
-                                $('#AcceptedEmailDomainList-selectized').val(input);
-                                $('#client-form #AcceptedEmailDomainList')[0].selectize.unlock();
-                                $('#client-form #AcceptedEmailDomainList')[0].selectize.focus();
-                            }
-                        });
-                    }
-                }
-            });
-
-            $('#client-form #AcceptedEmailAddressExceptionList').selectize({
-                plugins: ['remove_button'],
-                delimiter: ',',
-                persist: false,
-                create: function (input) {
-                    if (input.match(emailValRegex)) {
-                        return {
-                            value: input,
-                            text: input
-                        };
-                    } else {
-                        vex.dialog.alert({
-                            unsafeMessage: 'The Approved Email Address Exception List only accepts valid email addresses (e.g. <strong><u>username@domain.com</u></strong>)',
-                            callback: function () {
-                                $('#AcceptedEmailAddressExceptionList-selectized').val(input);
-                                $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.unlock();
-                                $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.focus();
-                            }
-                        });
-                    }
-                }
-            });
-
-
-            /*
-             // Assign a user by name to a client id
-             $.ajax({
-                 type: 'POST',
-                 url: 'ClientAdmin/AssignUserToClient',
-                 data: { clientId: 1, userName: "testid4444@yahoo.com" },
-                 headers: {
-                     'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
-                 },
-             }).done(function (response) {
-                 console.log(response)
-             }).fail(function (response) {
-                 switch (response.status) {
-                     case 412:
-                         toastr["warning"](response.getResponseHeader("Warning"));
-                         break;
-                     default:
-                         alert("ajax AssignUserToClient response code is " + response.status);
-                         break;
-                 }
-             });
-            */
-
-            /*
-             window.setTimeout(function () {  // Delete this entire line
-             // Remove a user by name from a client id
-             $.ajax({
-                 type: 'POST',
-                 url: 'ClientAdmin/RemoveUserFromClient',
-                 data: { clientId: 1, userName: "testid4444@yahoo.com" },
-                 headers: {
-                     'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
-                 },
-             }).done(function (response) {
-                 console.log(response)
-             }).fail(function (response) {
-                 switch (response.status) {
-                     case 412:
-                         toastr["warning"](response.getResponseHeader("Warning"));
-                         break;
-                     default:
-                         alert("ajax RemoveUserFromClient response code is " + response.status);
-                         break;
-                 }
-             })
-             }, 2000)  // Delete this entire line
-             ;
-            */
-
-            /*
-            window.setTimeout(function () {  // Delete this entire line
-                // Edit a client record
-                $.ajax({
-                    type: 'POST',
-                    url: 'ClientAdmin/EditClient',
-                    data: {
-                        Id: 4,
-                        Name: "xyz",
-                        ClientCode: "Some Code",
-                        ContactName: "Contact 4",
-                        ContactTitle: "Director of Contacts",
-                        ContactEmail: "Contact4@company.com",
-                        ContactPhone: "1234567890",
-                        ConsultantName: "Phill Ittup",
-                        ConsultantEmail: "Consultant4@milliman.com",
-                        ConsultantOffice: "Indianapolis",
-                        ProfitCenter: "Bulls Eye",
-                        AcceptedEmailDomainList: ["milliman.com", "yahoo.com"],
-                        AcceptedEmailAddressExceptionList: [],
-                        ParentClientId: 1
-                    },
-                    headers: {
-                        'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
-                    },
-                }).done(function (response) {
-                    console.log(response)
-                }).fail(function (response) {
-                    switch (response.status) {
-                        case 412:
-                            toastr["warning"](response.getResponseHeader("Warning"));
-                            break;
-                        default:
-                            alert("ajax RemoveUserFromClient response code is " + response.status);
-                            break;
-                    }
-                })
-            }, 2000)  // Delete this entire line
-            ;
-            */
-
-            /*
-            window.setTimeout(function () {  // Delete this entire line
-                // Save a new client record
-                $.ajax({
-                    type: 'POST',
-                    url: 'ClientAdmin/SaveNewClient',
-                    data: {
-                        Id: null,
-                        Name: "xyzaab",
-                        ClientCode: "Some Code",
-                        ContactName: "Contact 4",
-                        ContactTitle: "Director of Contacts",
-                        ContactEmail: "Contact4@company.com",
-                        ContactPhone: "1234567890",
-                        ConsultantName: "Phill Ittup",
-                        ConsultantEmail: "Consultant4@milliman.com",
-                        ConsultantOffice: "Indianapolis",
-                        ProfitCenter: "Bulls Eye",
-                        AcceptedEmailDomainList: ["milliman.com", "yahoo.com"],
-                        AcceptedEmailAddressExceptionList: [],
-                        ParentClientId: 1,
-                        ProfitCenterId: 1
-                    },
-                    headers: {
-                        'RequestVerificationToken': $("input[name='__RequestVerificationToken']").val()
-                    },
-                }).done(function (response) {
-                    console.log(response)
-                }).fail(function (response) {
-                    switch (response.status) {
-                        case 412:
-                            toastr["warning"](response.getResponseHeader("Warning"));
-                            break;
-                        default:
-                            alert("ajax SaveNewClient response code is " + response.status + "Warning header value is " + response.getResponseHeader("Warning"));
-                            break;
-                    }
-                })
-            }, 2000)  // Delete this entire line
-            ;
-            */
-        })
-
-
-    </script>
 }
