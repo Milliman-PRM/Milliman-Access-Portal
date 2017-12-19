@@ -6,9 +6,22 @@
     overflow: hidden;
     padding: 1em;
 
+    @include for-tablet-down() {
+        flex: none;
+        margin-bottom: 3em;
+    }
+
+
     .admin-panel-header {
         text-align: center;
         padding: 1em;
+
+        @include for-tablet-down() {
+            text-align: left;
+            text-decoration: underline;
+            padding: 0;
+            margin-bottom: 1em;
+        }
     }
 
     .admin-panel-toolbar {
@@ -42,6 +55,7 @@
         overflow-y: auto;
         overflow-x: hidden;
         padding-right: 1em;
+        padding-top: .75em;
 
         .admin-panel-content {
             position: relative;

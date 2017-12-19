@@ -142,6 +142,17 @@ input:-webkit-autofill {
     }
 }
 
+/* Validation Error Styling */
+.input-validation-error {
+    border: solid 2px $red !important;
+}
+
+span.field-validation-error {
+    color: $red;
+    font-weight: bold;
+    font-style: italic;
+}
+
 /* Contact Form */
 #contact-title {
     text-align: center;
