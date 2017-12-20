@@ -553,8 +553,7 @@ function resetNewClientForm() {
     }).length;
   if (numChanges) {
     confirmResetDialog(function confirm() {
-      $('#client-form .input-validation-error').removeClass('input-validation-error');
-      $('#client-form span.field-validation-error > span').remove();
+      clearValidationErrors();
       clearFormData();
     });
   }
