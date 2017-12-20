@@ -5,11 +5,11 @@
     }
 }
 
-<nav id="sidebar-nav">
+<nav id="sidebar-nav" class="position-fixed from-top-0 from-left-neg14rem width-18rem">
     <ul>
         <li class="nav-item @GetSelectedClassString("HostedContent")">
             <a asp-controller="HostedContent" asp-action="Index" class="nav-button">
-                <h3 class="nav-label">Reports</h3>
+                <h3 class="nav-label">Authorized Content</h3>
                 <i class="fa fa-fw fa-3x fa-th-large nav-icon" aria-hidden="true"></i>
             </a>
         </li>
@@ -59,36 +59,3 @@
         </li>
     </ul>
 </nav>
-
-
-@*Contact Form*@
-
-
-<div id="modal-background" class="hide">
-
-    <div id="contact-form-modal">
-        <h2 class="contact-title">Contact Support</h2>
-        <i id="contact-close" class="fa fa-close fa-fw fa-2x form-close" aria-hidden="true"></i>
-        <form id="contact-form" asp-controller="Message" asp-action="SendEmailFromUser" method="post">
-            <input type="hidden" name="recipient" value="prm.support@milliman.com" />
-            <div>
-                <select name="subject" id="topic-select" required>
-                    <option value="">Please Select a Topic</option>
-                    <option value="Account Inquiry">Account Inquiry</option>
-                    <option value="Bug Report">Report a Bug</option>
-                    <option value="Other Support Question">Other</option>
-                </select>
-            </div>
-            <div>
-                <textarea id="body-text" placeholder="Message" name="message" rows="10" required></textarea>
-            </div>
-            <div class="text-right">
-                <a href="#" onclick="resetContactForm()">Reset</a>
-                <button type="submit" id="form-submit" class="btn btn-primary">Submit</button>
-            </div>
-
-        </form>
-    </div>
-
-
-</div>

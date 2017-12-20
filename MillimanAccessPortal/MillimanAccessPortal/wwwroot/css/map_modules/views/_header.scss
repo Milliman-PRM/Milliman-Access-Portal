@@ -1,0 +1,29 @@
+﻿header {
+    display: flex;
+    flex-flow: row wrap;
+    flex: none;
+    align-items: center;
+    padding: 0 1em;
+
+    #page-title {
+        display: inline-block;
+        flex: 1;
+        order: 1;
+    }
+
+    @include for-phone-only {
+        #page-title {
+            order: 2;
+        }
+    }
+
+    #header-logo {
+        order: 2;
+    }
+    
+    @include for-phone-only {
+        #header-logo {
+            order: 1;
+        }
+    }
+}

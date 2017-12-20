@@ -1,11 +1,5 @@
 [
   {
-    "outputFileName": "wwwroot/css/site.min.css",
-    "inputFiles": [
-      "wwwroot/css/site.css"
-    ]
-  },
-  {
     "outputFileName": "wwwroot/js/contact-form.min.js",
     "inputFiles": [
       "wwwroot/js/contact-form.js"
@@ -26,12 +20,6 @@
     }
   },
   {
-    "outputFileName": "wwwroot/lib/bootbox.js/bootbox.min.js",
-    "inputFiles": [
-      "wwwroot/lib/bootbox.js/bootbox.js"
-    ]
-  },
-  {
     "outputFileName": "wwwroot/js/client-admin.min.js",
     "inputFiles": [
       "wwwroot/js/client-admin.js"
@@ -41,6 +29,24 @@
     "outputFileName": "wwwroot/lib/selectize/dist/css/selectize.default.min.css",
     "inputFiles": [
       "wwwroot/lib/selectize/dist/css/selectize.default.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/lib/vex/dist/css/vex.min.css",
+    "inputFiles": [
+      "wwwroot/lib/vex/dist/css/vex.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/lib/vex/dist/css/vex-theme-default.min.css",
+    "inputFiles": [
+      "wwwroot/lib/vex/dist/css/vex-theme-default.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/map.min.css",
+    "inputFiles": [
+      "wwwroot/css/map.css"
     ]
   }
 ]

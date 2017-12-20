@@ -1,0 +1,11 @@
+{
+  "extends": "airbnb-base/legacy",
+  "env": {
+    "browser": true,
+    "jquery": true
+  },
+  "globals": {
+    "toastr": false,
+    "vex": false
+  }
+}

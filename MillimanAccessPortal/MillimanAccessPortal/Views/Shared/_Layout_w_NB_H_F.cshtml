@@ -6,15 +6,17 @@
     @RenderSection("CSS", required: false)
 }
 
-@Html.Partial("_Header")
 
 @await Html.PartialAsync("_Navbar")
 
-<div id="content-wrapper" class="navbar-offset container-fluid">
-    @RenderBody()
+<div id="content-wrapper" class="navbar-offset">
+    @Html.Partial("_Header")
+    <div id="content-container">
+        @RenderBody()
+    </div>    
+    @Html.Partial("_Footer")
 </div>
 
-@Html.Partial("_Footer")
 
 
 @section Scripts {

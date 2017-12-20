@@ -10,41 +10,31 @@
     Layout = "_Layout_w_F";
 }
 
-
-    <div class="container-fluid">
-
-        <div id="login-form" class="screen-center text-center">
-            <div>
-                <img src="~/images/logo.png" alt="Milliman Logo" />
-            </div>
-            <div class="text-center" style="display: inline-block;">
-                <form asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
-                    <div asp-validation-summary="All" class="text-danger"></div>
-                    <div class="form-group">
-                        <input asp-for="Email" id="email" placeholder="Email" autofocus>
-                        <span asp-validation-for="Email" class="text-danger"></span>
-                    </div>
-                    <div class="form-group">
-                        <input asp-for="Password" id="password" placeholder="Password">
-                        <span asp-validation-for="Password" class="text-danger"></span>
-                    </div>
-                    <div class="text-right">
-                        @*<div class="checkbox">
-                            <label asp-for="RememberMe">
-                                <input asp-for="RememberMe" />
-                                @Html.DisplayNameFor(m => m.RememberMe)
-                            </label>
-                        </div>*@
-                        <a asp-action="ResetPassword" id="password-reset">Forgot Password</a>
-                        <button type="submit" id="primary-button" class="btn btn-primary">Login</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+<section id="login-container">
+    <div id="login-logo-container">
+        <img id="login-logo" src="~/images/logo.png" alt="Milliman Access Portal Logo" />
     </div>
+    <div id="login-form-container">
+        <form id="login-form" asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="login-form-input-container">
+                <input asp-for="Email" id="email" placeholder="Email" autofocus>
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="login-form-input-container">
+                <input asp-for="Password" id="password" placeholder="Password">
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="login-form-button-container">
+                <a asp-action="ResetPassword" class="link-button">Forgot Password</a>
+                <button type="submit" class="blue-button">Login</button>
+            </div>
+        </form>
+    </div>
+</section>
 
 
-    @*@section Scripts {
-        @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
-    }*@
+@*@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}*@
 
