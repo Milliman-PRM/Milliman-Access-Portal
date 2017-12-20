@@ -61,7 +61,7 @@ namespace MapDbContextLib.Identity
         /// </summary>
         /// <param name="serviceProvider">Application Services provide connectivity to the identity database.</param>
         /// <returns></returns>
-        internal static async Task SeedRoles(IServiceProvider serviceProvider)
+        internal static async void SeedRoles(IServiceProvider serviceProvider)
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
             ApplicationDbContext dbContext = serviceProvider.GetService<ApplicationDbContext>();
@@ -72,7 +72,7 @@ namespace MapDbContextLib.Identity
                 ApplicationRole RoleFromDb = await roleManager.FindByIdAsync(((long)Role).ToString());
                 if (RoleFromDb == null)
                 {
-                    roleManager.CreateAsync(new ApplicationRole { Name = RoleName, RoleEnum = Role }).Wait();
+                    await roleManager.CreateAsync(new ApplicationRole { Name = RoleName, RoleEnum = Role });
                 }
                 else if (RoleFromDb.Name != RoleName)
                 {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -50,17 +51,18 @@ namespace MapTests
         public Mock<RoleManager<ApplicationRole>> MockRoleManager { get; set;  }
         public RoleManager<ApplicationRole> RoleManagerObject { get => MockRoleManager.Object; }
 
+        public Mock<AuditLogger> MockAuditLogger { get; set; }
+        public AuditLogger AuditLoggerObject { get => MockAuditLogger.Object; }
+
         public IOptions<QlikviewConfig> QvConfig { get; set; }
 
         public DefaultAuthorizationService AuthorizationService { get; set; }
 
         public ILoggerFactory LoggerFactory { get; set; }
 
-        public AuditLogger AuditLogger { get; set; }
-
         public StandardQueries QueriesObj { get; set; }
         #endregion
-        
+
         /// <summary>
         /// Associates each DataSelection enum value with the function that implements it
         /// </summary>
@@ -72,13 +74,6 @@ namespace MapTests
         public TestInitialization()
         {
             GenerateDependencies();
-
-            #region Configure AuditLogger
-            AuditLoggerConfiguration auditLogConfig = new AuditLogLib.AuditLoggerConfiguration();
-            auditLogConfig.AuditLogConnectionString = "";
-            AuditLogLib.AuditLogger.Config = auditLogConfig;
-            AuditLogger = new AuditLogger();
-            #endregion
 
             DataGenFunctionDict = new Dictionary<DataSelection, Action>
             {
@@ -132,6 +127,7 @@ namespace MapTests
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject);
             QvConfig = BuildQvConfig();
+            MockAuditLogger = GenerateAuditLogger();
         }
 
         private IOptions<QlikviewConfig> BuildQvConfig()
@@ -234,6 +230,15 @@ namespace MapTests
                                                                             new OptionsWrapper<AuthorizationOptions>(AuthOptions));
 
             return ReturnService;
+        }
+
+        private Mock<AuditLogger> GenerateAuditLogger()
+        {
+            AuditLogLib.AuditLogger.Config = new AuditLogLib.AuditLoggerConfiguration { AuditLogConnectionString = "" };
+            Mock<AuditLogger> ReturnObject = new Mock<AuditLogger>();
+            ReturnObject.Setup(al => al.Log(It.IsAny<AuditEvent>())).Callback(() => { });
+
+            return ReturnObject;
         }
 
         private void GenerateBasicTestData()

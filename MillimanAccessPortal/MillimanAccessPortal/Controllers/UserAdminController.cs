@@ -254,7 +254,7 @@ namespace MillimanAccessPortal.Controllers
 
                     if (!ClientAssignResult)
                     {
-                        _userManager.DeleteAsync(NewUser).Wait();
+                        await _userManager.DeleteAsync(NewUser);
 
                         // Audit log
                         var DeletedUserDetailObject = new { DeletedUserId = Model.UserName, Email = Model.Email, RequestedClientIds = string.Join(",", Model.MemberOfClientIdArray), Reason = "Error assigning user to a requested client, transaction rollback" };

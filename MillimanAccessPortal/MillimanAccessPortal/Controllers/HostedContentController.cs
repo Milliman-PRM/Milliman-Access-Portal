@@ -39,6 +39,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly ILogger Logger;
         private readonly StandardQueries Queries;
         private readonly IAuthorizationService AuthorizationService;
+        private readonly AuditLogger AuditLogger;
 
         /// <summary>
         /// Constructor.  Makes instance copies of injected resources from the application. 
@@ -53,7 +54,8 @@ namespace MillimanAccessPortal.Controllers
             ILoggerFactory LoggerFactoryArg,
             ApplicationDbContext DataContextArg,
             StandardQueries QueryArg,
-            IAuthorizationService AuthorizationServiceArg)
+            IAuthorizationService AuthorizationServiceArg,
+            AuditLogger AuditLoggerArg)
         {
             QlikviewConfig = QlikviewOptionsAccessorArg.Value;
             UserManager = UserManagerArg;
@@ -61,6 +63,7 @@ namespace MillimanAccessPortal.Controllers
             DataContext = DataContextArg;
             Queries = QueryArg;
             AuthorizationService = AuthorizationServiceArg;
+            AuditLogger = AuditLoggerArg;
         }
 
         /// <summary>
@@ -83,8 +86,6 @@ namespace MillimanAccessPortal.Controllers
         [Authorize]
         public async Task<IActionResult> WebHostedContent(long Id)
         {
-            AuditLogger AuditStore = new AuditLogger();
-
 #region Validation
             ContentItemUserGroup UserGroup = DataContext.ContentItemUserGroup
                                                         .Include(ug => ug.RootContentItem)
@@ -111,7 +112,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Unauthorized request", AuditEventId.Unauthorized, null, UserManager.GetUserName(HttpContext.User), HttpContext.Session.Id);
                 LogObject.EventDetailObject = new { GroupIdRequested = Id };
-                AuditStore.Log(LogObject);
+                AuditLogger.Log(LogObject);
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
                 return Unauthorized();

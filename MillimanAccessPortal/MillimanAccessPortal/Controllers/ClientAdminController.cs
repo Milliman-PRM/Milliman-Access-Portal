@@ -486,7 +486,7 @@ namespace MillimanAccessPortal.Controllers
                 // Store to database
                 DbContext.SaveChanges();
 
-                UserManager.AddClaimAsync(CurrentApplicationUser, new Claim(ClaimNames.ClientMembership.ToString(), Model.Id.ToString())).Wait();
+                await UserManager.AddClaimAsync(CurrentApplicationUser, new Claim(ClaimNames.ClientMembership.ToString(), Model.Id.ToString()));
 
                 // Log new client store and ClientAdministrator role authorization events
                 object LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, };

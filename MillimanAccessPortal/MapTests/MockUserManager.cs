@@ -22,7 +22,7 @@ namespace MapTests
 
             // Re-create methods we're calling against the UserManager
             // User-related methods
-            ReturnMockUserManager.Setup(m => m.GetUserName(It.IsAny<ClaimsPrincipal>())).Returns<ClaimsPrincipal>(cp => UserStore.Object.FindByNameAsync(cp.Identity.Name, CancellationToken.None).Result.UserName);
+            ReturnMockUserManager.Setup(m => m.GetUserName(It.IsAny<ClaimsPrincipal>())).Returns<ClaimsPrincipal>(cp => cp.Identity.Name);
 
             ReturnMockUserManager.Setup(m => m.GetUserAsync(It.IsAny<ClaimsPrincipal>())).Returns(async (ClaimsPrincipal cp) => await UserStore.Object.FindByNameAsync(cp.Identity.Name, CancellationToken.None));
             ReturnMockUserManager.Setup(m => m.FindByNameAsync(It.IsAny<string>())).Returns(async (string name) => await UserStore.Object.FindByNameAsync(name, CancellationToken.None));

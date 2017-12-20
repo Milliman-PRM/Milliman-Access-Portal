@@ -37,7 +37,8 @@ namespace MapTests
                                                                       TestResources.LoggerFactory,
                                                                       TestResources.DbContextObject,
                                                                       TestResources.QueriesObj,
-                                                                      TestResources.AuthorizationService);
+                                                                      TestResources.AuthorizationService,
+                                                                      TestResources.AuditLoggerObject);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
@@ -61,6 +62,7 @@ namespace MapTests
             Assert.Single(ModelReturned);
 
             Assert.Equal(TestResources.DbContextObject.RootContentItem.FirstOrDefault().ContentName, ModelReturned[0].ContentName);
+
             #endregion
         }
 
@@ -85,13 +87,15 @@ namespace MapTests
                                                                       TestResources.LoggerFactory,
                                                                       TestResources.DbContextObject,
                                                                       TestResources.QueriesObj,
-                                                                      TestResources.AuthorizationService);
+                                                                      TestResources.AuthorizationService,
+                                                                      TestResources.AuditLoggerObject);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
             sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
             sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+
             sut.ControllerContext.ActionDescriptor = new Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor { ActionName = "WebHostedContent" };
             sut.HttpContext.Session = new MockSession();
             #endregion
@@ -127,7 +131,8 @@ namespace MapTests
                                                                       TestResources.LoggerFactory,
                                                                       TestResources.DbContextObject,
                                                                       TestResources.QueriesObj,
-                                                                      TestResources.AuthorizationService);
+                                                                      TestResources.AuthorizationService,
+                                                                      TestResources.AuditLoggerObject);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
