@@ -11,9 +11,7 @@ function removeClientInserts() {
 }
 
 function clearClientSelection() {
-  var $clientTreeList = $('#client-tree-list');
-  $clientTreeList.find('div[selected]').removeAttr('selected');
-  $clientTreeList.find('div[editing]').removeAttr('editing');
+  $('.card-container').removeAttr('editing selected');
 }
 
 function hideClientForm() {
@@ -262,8 +260,7 @@ function EditClientDetail(clientDiv) {
     populateClientDetails(response.ClientEntity);
     // Change the dom to reflect the selected client
     clearClientSelection();
-    clientDiv.attr('selected', '');
-    clientDiv.attr('editing', '');
+    clientDiv.attr({ selected: '', editing: '' });
     // Show the form in read/write mode
     makeFormWriteable();
     $('#client-form #form-buttons-new').hide();
@@ -383,6 +380,66 @@ function renderClientNode(client, level) {
     client.Children.forEach(function forEach(childNode) {
       renderClientNode(childNode, level + 1);
     });
+  }
+}
+
+// TODO: handle card insert click event
+function cardClickHandler(clickedCard) {
+  var $clientTree = $('#clientTree');
+  var sameCard = (clickedCard === $clientTree.find('[selected]'));
+  if ($clientTree.has('[editing]')) {
+    // confirm, reset
+    // closeClientForm
+    if ($('.client-insert').length) {
+      // remove client insert
+    } else if (!sameCard) {
+      // openClientFormReadOnly
+    }
+  } else if ($clientTree.has('[selected]')) {
+    // closeClientForm
+    if (!sameCard) {
+      // openClientFormReadOnly
+    }
+  } else {
+    if (clickedCard.is('#create-new-client-card')) {
+      // clearFormData
+      // openClientFormWriteable
+    }
+    // openClientFormReadOnly... unless new client card
+  }
+}
+
+function cardDeleteClickHandler(clickedCard) {
+  // do nothing for now
+}
+
+function cardEditClickHandler(clickedCard) {
+  var $clientTree = $('#clientTree');
+  var sameCard = (clickedCard === $clientTree.find('[selected]'));
+  if ($clientTree.has('[editing]')) {
+    if (!sameCard) {
+      // confirm, reset
+      // load client
+      // openClientFormWriteable
+    }
+  } else {
+    // load client
+    // openClientFormWriteable
+  }
+}
+
+function cardAddChildClickHandler(clickedCard) {
+  var $clientTree = $('#clientTree');
+  var sameCard = (clickedCard === $clientTree.find('[selected]').parent().prev().find('.card-container'));
+  if ($clientTree.has('[editing]')) {
+    if (!sameCard) {
+      // confirm, reset
+      // create new form
+      // openClientFormWriteable
+    }
+  } else {
+    // create new form
+    // openClientFormWriteable
   }
 }
 
@@ -577,7 +634,7 @@ function undoChangesEditClientForm() {
 
 function cancelEditTasks(clientId) {
   makeFormReadOnly();
-  // TODO: evaluate whether this can possibly run
+  // runs when canceling a new user form
   if (!clientId) {
     removeClientInserts();
     resetFormData();
