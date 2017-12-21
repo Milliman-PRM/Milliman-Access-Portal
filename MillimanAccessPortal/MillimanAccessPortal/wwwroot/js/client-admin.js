@@ -21,12 +21,6 @@ function hideClientForm() {
   $('#client-users').hide();
 }
 
-function clearValidationErrors() {
-  var $clientForm = $('#client-form');
-  $clientForm.find('.input-validation-error').removeClass('input-validation-error');
-  $clientForm.find('span.field-validation-error > span').remove();
-}
-
 function populateClientDetails(ClientEntity) {
   $('#client-form :input, #client-form select').removeAttr('data-original-value');
   $('#client-form #ProfitCenterId option[temporary-profitcenter]').remove();
@@ -117,14 +111,9 @@ function makeFormWriteable() {
   $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.enable();
 }
 
-function clearFormData() {
-  $('#client-form #AcceptedEmailDomainList')[0].selectize.clear();
-  $('#client-form #AcceptedEmailDomainList')[0].selectize.clearOptions();
-  $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.clear();
-  $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.clearOptions();
-  $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').attr('data-original-value', '');
-  $('#client-form :input:not(input[name="__RequestVerificationToken"]), #client-form select').val('');
-  clearValidationErrors();
+function resetValidation() {
+  $('#client-form').validate().resetForm();
+  $('.field-validation-error > span').remove();
 }
 
 function renderUserNode(clientId, user) {
@@ -187,7 +176,6 @@ function renderUserList(client, userId) {
 
 function newClientFormSetup() {
   removeClientInserts();
-  clearFormData();
   clearClientSelection();
   makeFormWriteable();
   $('#client-tree #create-new-client-card').attr('selected', '');
@@ -200,7 +188,6 @@ function newChildClientFormSetup(parentClientDiv) {
   var parentClientId;
   var template;
 
-  clearFormData();
   parentClientId = parentClientDiv.attr('data-client-id').valueOf();
 
   $('#client-form #ParentClientId').val(parentClientId);
@@ -242,7 +229,6 @@ function GetClientDetail(clientDiv) {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
   }).done(function onDone(response) {
-    clearValidationErrors();
     populateClientDetails(response.ClientEntity);
     renderUserList(response);
     // Change the dom to reflect the selected client
@@ -264,7 +250,6 @@ function EditClientDetail(clientDiv) {
   var clientId;
 
   removeClientInserts();
-  clearValidationErrors();
   clientId = clientDiv.attr('data-client-id').valueOf();
 
   $.ajax({
@@ -449,7 +434,6 @@ function removeClientNode(clientId, clientName, password) {
   }).done(function onDone(response) {
     clientTree = response.ClientTree;
     renderClientTree(response.RelevantClientId);
-    clearFormData();
     hideClientForm();
     toastr.success(clientName + ' was successfully deleted.');
   }).fail(function onFail(response) {
@@ -505,7 +489,6 @@ function submitClientForm(event) {
       }
     }).done(function onDone(response) {
       hideClientForm();
-      clearFormData();
       clientTree = response.ClientTree;
       renderClientTree(response.RelevantClientId);
       toastr.success(successResponse);
@@ -546,17 +529,40 @@ function confirmResetDialog(callback) {
   });
 }
 
-function resetNewClientForm() {
-  var numChanges = $('#client-form')
+function getModifiedInputs() {
+  return $('#client-form')
     .find('input[name!="__RequestVerificationToken"][type!="hidden"],select')
     .not('div.selectize-input input')
-    .map(function checkValue() {
-      return ($(this).val() === '' ? this : null);
-    }).length;
-  if (numChanges) {
+    .map(function compareValue() {
+      return ($(this).val() === ($(this).attr('data-original-value') || '') ? null : this);
+    });
+}
+
+function clearFormData() {
+  var $clientForm = $('#client-form');
+  $clientForm.find('.selectized').each(function clear() {
+    this.selectize.clear();
+    this.selectize.clearOptions();
+  });
+  $clientForm.find('input[name!="__RequestVerificationToken"][type!="hidden"],select')
+    .not('div.selectize-input input')
+    .attr('data-original-value', '').val('');
+  resetValidation();
+}
+
+function resetFormData() {
+  var $modifiedInputs = getModifiedInputs();
+  $modifiedInputs.each(function resetValue() {
+    $(this).val($(this).attr('data-original-value'));
+  });
+  resetValidation();
+}
+
+function resetNewClientForm() {
+  var $modifiedInputs = getModifiedInputs();
+  if ($modifiedInputs.length) {
     confirmResetDialog(function confirm() {
-      clearValidationErrors();
-      clearFormData();
+      resetFormData();
     });
   }
 }
@@ -568,26 +574,12 @@ function undoChangesEditClientForm() {
   });
 }
 
-function modifiedInputs() {
-  return $('#client-form')
-    .find('input[name!="__RequestVerificationToken"][type!="hidden"],select')
-    .not('div.selectize-input input')
-    .map(function compareValue() {
-      return ($(this).val() === $(this).attr('data-original-value') ? null : this);
-    });
-}
-
-function resetFormValues() {
-  modifiedInputs().each(function resetValue() {
-    $(this).val($(this).attr('data-original-value')).valid();
-  });
-}
-
 function cancelEditTasks(clientId) {
   makeFormReadOnly();
+  // TODO: evaluate whether this can possibly run
   if (!clientId) {
     removeClientInserts();
-    clearFormData();
+    resetFormData();
     hideClientForm();
     clearClientSelection();
   }
@@ -595,9 +587,9 @@ function cancelEditTasks(clientId) {
 
 function cancelEditClientForm() {
   var clientId = $('#client-form #Id').val();
-  if (modifiedInputs().length) {
+  if (getModifiedInputs().length) {
     confirmDiscardDialog(function confirm() {
-      resetFormValues();
+      resetFormData();
       cancelEditTasks(clientId);
     });
   } else {
