@@ -152,12 +152,12 @@ function renderUserList(client, userId) {
     renderUserNode(client.ClientEntity.Id, user);
   });
 
-  $('div.card-button-remove-user').on('click', function onClick(event) {
+  $('div.card-button-remove-user').click(function onClick(event) {
     // removeUserFromClient($(this).parents('div[data-client-id][data-user-id]'));
     event.stopPropagation();
   });
   $('div[data-client-id][data-user-id]')
-    .on('click', function toggleCard(event) {
+    .click(function toggleCard(event) {
       if ($(this).find('div.card-expansion-container').is('[maximized]')) {
         $(this).find('div.card-expansion-container').removeAttr('maximized');
       } else {
@@ -393,21 +393,21 @@ function renderClientTree(clientId) {
     $('#client-tree-list').append('<li class="hr width-100pct"></li>');
   });
   $('#client-tree-list div.card-container')
-    .on('click', function getClientDetailClickHandler() {
+    .click(function getClientDetailClickHandler() {
       GetClientDetail($(this));
     });
   $('div.card-button-delete')
-    .on('click', function deleteClientClickHandler(event) {
+    .click(function deleteClientClickHandler(event) {
       deleteClient($(this).parents('div[data-client-id]'));
       event.stopPropagation();
     });
   $('div.card-button-edit')
-    .on('click', function editClientDetailClickHandler(event) {
+    .click(function editClientDetailClickHandler(event) {
       EditClientDetail($(this).parents('div[data-client-id]'));
       event.stopPropagation();
     });
   $('div.card-button-new-child')
-    .on('click', function newClientFormSetupClickHandler(event) {
+    .click(function newClientFormSetupClickHandler(event) {
       newChildClientFormSetup($(this).parents('div[data-client-id]'));
       event.stopPropagation();
     });
