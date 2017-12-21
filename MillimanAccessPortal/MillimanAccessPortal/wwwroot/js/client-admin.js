@@ -10,9 +10,10 @@ function removeClientInserts() {
   $('#client-tree li.client-insert').remove();
 }
 
-function clearSelectedClient() {
-  $('#client-tree-list div[selected]').removeAttr('selected');
-  $('#client-tree-list div[editing]').removeAttr('editing');
+function clearClientSelection() {
+  var $clientTreeList = $('#client-tree-list');
+  $clientTreeList.find('div[selected]').removeAttr('selected');
+  $clientTreeList.find('div[editing]').removeAttr('editing');
 }
 
 function hideClientForm() {
@@ -21,8 +22,9 @@ function hideClientForm() {
 }
 
 function clearValidationErrors() {
-  $('#client-form .input-validation-error').removeClass('input-validation-error');
-  $('#client-form span.field-validation-error > span').remove();
+  var $clientForm = $('#client-form');
+  $clientForm.find('.input-validation-error').removeClass('input-validation-error');
+  $clientForm.find('span.field-validation-error > span').remove();
 }
 
 function populateClientDetails(ClientEntity) {
@@ -186,7 +188,7 @@ function renderUserList(client, userId) {
 function newClientFormSetup() {
   removeClientInserts();
   clearFormData();
-  clearSelectedClient();
+  clearClientSelection();
   makeFormWriteable();
   $('#client-tree #create-new-client-card').attr('selected', '');
   $('#client-form #form-buttons-edit').hide();
@@ -204,7 +206,7 @@ function newChildClientFormSetup(parentClientDiv) {
   $('#client-form #ParentClientId').val(parentClientId);
 
   removeClientInserts();
-  clearSelectedClient();
+  clearClientSelection();
 
   template = childNodePlaceholder;
   if (parentClientDiv.hasClass('card-100')) {
@@ -228,7 +230,7 @@ function GetClientDetail(clientDiv) {
   clientId = clientDiv.attr('data-client-id').valueOf();
 
   if (clientDiv.is('[selected]') && !clientDiv.is('[editing]')) {
-    clearSelectedClient();
+    clearClientSelection();
     hideClientForm();
     return false;
   }
@@ -244,7 +246,7 @@ function GetClientDetail(clientDiv) {
     populateClientDetails(response.ClientEntity);
     renderUserList(response);
     // Change the dom to reflect the selected client
-    clearSelectedClient();
+    clearClientSelection();
     clientDiv.attr('selected', '');
     // Show the form in readonly mode
     makeFormReadOnly();
@@ -274,7 +276,7 @@ function EditClientDetail(clientDiv) {
   }).done(function onDone(response) {
     populateClientDetails(response.ClientEntity);
     // Change the dom to reflect the selected client
-    clearSelectedClient();
+    clearClientSelection();
     clientDiv.attr('selected', '');
     clientDiv.attr('editing', '');
     // Show the form in read/write mode
@@ -566,40 +568,36 @@ function undoChangesEditClientForm() {
   });
 }
 
-function pendingChanges() {
+function modifiedInputs() {
   return $('#client-form')
     .find('input[name!="__RequestVerificationToken"][type!="hidden"],select')
     .not('div.selectize-input input')
     .map(function compareValue() {
       return ($(this).val() === $(this).attr('data-original-value') ? null : this);
-    })
-    .length;
+    });
 }
 
 function resetFormValues() {
-  var inputsList = $('#client-form input:not(input[name="__RequestVerificationToken"], input[type="hidden"]), #client-form select');
-  var i;
-
-  for (i = 0; i < inputsList.length; i += 1) {
-    $(inputsList[i]).val($(inputsList[i]).attr('data-original-value'));
-  }
+  modifiedInputs().each(function resetValue() {
+    $(this).val($(this).attr('data-original-value')).valid();
+  });
 }
 
 function cancelEditTasks(clientId) {
-  resetFormValues();
   makeFormReadOnly();
   if (!clientId) {
     removeClientInserts();
     clearFormData();
     hideClientForm();
-    clearSelectedClient();
+    clearClientSelection();
   }
 }
 
 function cancelEditClientForm() {
   var clientId = $('#client-form #Id').val();
-  if (pendingChanges()) {
+  if (modifiedInputs().length) {
     confirmDiscardDialog(function confirm() {
+      resetFormValues();
       cancelEditTasks(clientId);
     });
   } else {
