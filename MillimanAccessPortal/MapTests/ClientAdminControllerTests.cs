@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
@@ -28,18 +29,18 @@ namespace MapTests
         /// </summary>
         /// <param name="UserName"></param>
         /// <returns></returns>
-        public ClientAdminController GetControllerForUser(string UserName)
+        public async Task<ClientAdminController> GetControllerForUser(string UserName)
         {
             ClientAdminController testController = new ClientAdminController(TestResources.DbContextObject,
                 TestResources.UserManagerObject,
                 TestResources.QueriesObj,
                 TestResources.AuthorizationService,
                 TestResources.LoggerFactory,
-                TestResources.AuditLogger,
+                TestResources.AuditLoggerObject,
                 TestResources.RoleManagerObject);
 
             // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
-            testController.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.UserManagerObject.FindByNameAsync(UserName).Result.UserName);
+            testController.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: (await TestResources.UserManagerObject.FindByNameAsync(UserName)).UserName);
             testController.HttpContext.Session = new MockSession();
 
             return testController;
@@ -74,14 +75,14 @@ namespace MapTests
         /// Checks whether the Index action returns an UnauthorizedResult when the user is not authorized to view the ClientAdmin page
         /// </summary>
         [Fact]
-        public void Index_ErrorWhenUnauthorized()
+        public async Task Index_ErrorWhenUnauthorized()
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("test1");
+            ClientAdminController controller = await GetControllerForUser("test1");
             #endregion
 
             #region Act
-            var view = controller.Index();
+            var view = await controller.Index();
             #endregion
 
             #region Assert
@@ -93,14 +94,14 @@ namespace MapTests
         /// Checks whether the Index returns a view for authorized users
         /// </summary>
         [Fact]
-        public void Index_ReturnsAView()
+        public async Task Index_ReturnsAView()
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             #endregion
 
             #region Act
-            var view = controller.Index();
+            var view = await controller.Index();
             #endregion
 
             #region Assert
@@ -112,14 +113,14 @@ namespace MapTests
         /// Checks whether ClientFamilyList returns an error when the user is not authorized to view the ClientAdmin page
         /// </summary>
         [Fact]
-        public void ClientFamilyList_ErrorWhenUnauthorized()
+        public async Task ClientFamilyList_ErrorWhenUnauthorized()
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("test1");
+            ClientAdminController controller = await GetControllerForUser("test1");
             #endregion
 
             #region Act
-            var view = controller.ClientFamilyList();
+            var view = await controller.ClientFamilyList();
             #endregion
 
             #region Assert
@@ -131,14 +132,14 @@ namespace MapTests
         /// Checks whether ClientFamilyList returns a list of clients for authorized users
         /// </summary>
         [Fact]
-        public void ClientFamilyList_ReturnsAList()
+        public async Task ClientFamilyList_ReturnsAList()
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             #endregion
 
             #region Act
-            var view = controller.ClientFamilyList();
+            var view = await controller.ClientFamilyList();
             #endregion
 
             #region Assert
@@ -150,14 +151,14 @@ namespace MapTests
         /// Checks whether ClientDetail returns an error when the client is not found
         /// </summary>
         [Fact]
-        public void ClientDetail_ErrorWhenNotFound()
+        public async Task ClientDetail_ErrorWhenNotFound()
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             #endregion
 
             #region Act
-            var view = controller.ClientDetail(-100);
+            var view = await controller.ClientDetail(-100);
             #endregion
 
             #region Assert
@@ -171,14 +172,14 @@ namespace MapTests
         [Theory]
         [InlineData("ClientAdmin1", 3)] // Authorized to client admin, but not the specified client
         [InlineData("test1", 1)] // Not authorized to perform client admin
-        public void ClientDetail_ErrorWhenUnauthorized(string userArg, long clientIdArg)
+        public async Task ClientDetail_ErrorWhenUnauthorized(string userArg, long clientIdArg)
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser(userArg);
+            ClientAdminController controller = await GetControllerForUser(userArg);
             #endregion
 
             #region Act
-            var view = controller.ClientDetail(clientIdArg);
+            var view = await controller.ClientDetail(clientIdArg);
             #endregion
 
             #region Assert
@@ -192,14 +193,14 @@ namespace MapTests
         [Theory]
         [InlineData("ClientAdmin1", 1)] // Directly authorized to this client
         [InlineData("ClientAdmin1", 2)] // Authorized to a related (parent) client
-        public void ClientDetail_ReturnsDetails(string userArg, long clientIdArg)
+        public async Task ClientDetail_ReturnsDetails(string userArg, long clientIdArg)
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser(userArg);
+            ClientAdminController controller = await GetControllerForUser(userArg);
             #endregion
 
             #region Act
-            var view = controller.ClientDetail(clientIdArg);
+            var view = await controller.ClientDetail(clientIdArg);
             #endregion
 
             #region Assert
@@ -214,15 +215,15 @@ namespace MapTests
         [Theory]
         [InlineData("ClientAdmin1", 3, "test1")] // User isn't admin on the requested client but is admin on the requested client's profit center
         [InlineData("ClientAdmin1", 4, "test1")] // User is admin on the requested client but isn't admin on the requested client's profit center
-        public void AssignUserToClient_ErrorWhenUnauthorized(string userArg, long clientIdArg, string userAssignArg)
+        public async Task AssignUserToClient_ErrorWhenUnauthorized(string userArg, long clientIdArg, string userAssignArg)
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser(userArg);
+            ClientAdminController controller = await GetControllerForUser(userArg);
             ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = clientIdArg, UserName = userAssignArg };
             #endregion
 
             #region Act
-            var view = controller.AssignUserToClient(viewModel);
+            var view = await controller.AssignUserToClient(viewModel);
             #endregion
 
             #region Assert
@@ -236,15 +237,15 @@ namespace MapTests
         [Theory]
         [InlineData("ClientAdmin1", -1, "test1")] // User exists, but client does not
         [InlineData("ClientAdmin1", 1, "__fake1")] // Client exists, but user does not (User is authorized to specified client & its profit center)
-        public void AssignUserToClient_ErrorWhenNotFound(string userArg, long clientIdArg, string userAssignArg)
+        public async Task AssignUserToClient_ErrorWhenNotFound(string userArg, long clientIdArg, string userAssignArg)
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser(userArg);
+            ClientAdminController controller = await GetControllerForUser(userArg);
             ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = clientIdArg, UserName = userAssignArg };
             #endregion
 
             #region Act
-            var view = controller.AssignUserToClient(viewModel);
+            var view = await controller.AssignUserToClient(viewModel);
             #endregion
 
             #region Assert
@@ -256,10 +257,10 @@ namespace MapTests
         /// Verify that no data is changed when adding a user to a client they are already assigned to
         /// </summary>
         [Fact]
-        public void AssignUserToClient_NoActionWhenAssigned()
+        public async Task AssignUserToClient_NoActionWhenAssigned()
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 1, UserName = "test1" };
 
             // Count users assigned to the client before attempting change
@@ -267,7 +268,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = controller.AssignUserToClient(viewModel);
+            var view = await controller.AssignUserToClient(viewModel);
 
             // Capture the number of users assigned to the client after the call to AssignUserToClient
             int afterActionCount = Enumerable.Count(TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()));
@@ -283,15 +284,15 @@ namespace MapTests
         /// Verify that Status Code 412 is returned when the requested user's email address is not valid for the selected client
         /// </summary>
         [Fact]
-        public void AssignUserToClient_ErrorForInvalidEmail()
+        public async Task AssignUserToClient_ErrorForInvalidEmail()
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 5, UserName = "test1" };
             #endregion
 
             #region Act
-            var view = controller.AssignUserToClient(viewModel);
+            var view = await controller.AssignUserToClient(viewModel);
             #endregion
 
             #region Assert
@@ -305,10 +306,10 @@ namespace MapTests
         /// Validate that the user is assigned to the client correctly when a valid request is made
         /// </summary>
         [Fact]
-        public void AssignUserToClient_Success()
+        public async Task AssignUserToClient_Success()
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 5, UserName = "test3" };
 
             // Before acting on the input data, we need to gather initial data to compare the result to
@@ -316,7 +317,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = controller.AssignUserToClient(viewModel);
+            var view = await controller.AssignUserToClient(viewModel);
 
             // Capture the number of users assigned to the client after the call to AssignUserToClient
             int afterActionCount = Enumerable.Count(TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()));
@@ -335,15 +336,15 @@ namespace MapTests
         [Theory]
         [InlineData("ClientAdmin1", 3, "test1")] // User isn't admin on the requested client but is admin on the requested client's profit center
         [InlineData("ClientAdmin1", 4, "test1")] // User is admin on the requested client but isn't admin on the requested client's profit center
-        public void RemoveUserFromClient_ErrorWhenUnauthorized(string userArg, long clientIdArg, string userAssignArg)
+        public async Task RemoveUserFromClient_ErrorWhenUnauthorized(string userArg, long clientIdArg, string userAssignArg)
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser(userArg);
+            ClientAdminController controller = await GetControllerForUser(userArg);
             ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = clientIdArg, UserName = userAssignArg };
             #endregion
 
             #region Act
-            var view = controller.RemoveUserFromClient(viewModel);
+            var view = await controller.RemoveUserFromClient(viewModel);
             #endregion
 
             #region Assert
@@ -357,15 +358,15 @@ namespace MapTests
         [Theory]
         [InlineData("ClientAdmin1", -1, "test1")] // User exists, but client does not
         [InlineData("ClientAdmin1", 1, "__fake1")] // Client exists, but user does not (User is authorized to specified client & its profit center)
-        public void RemoveUserFromClient_ErrorWhenNotFound(string userArg, long clientIdArg, string userAssignArg)
+        public async Task RemoveUserFromClient_ErrorWhenNotFound(string userArg, long clientIdArg, string userAssignArg)
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser(userArg);
+            ClientAdminController controller = await GetControllerForUser(userArg);
             ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = clientIdArg, UserName = userAssignArg };
             #endregion
 
             #region Act
-            var view = controller.RemoveUserFromClient(viewModel);
+            var view = await controller.RemoveUserFromClient(viewModel);
             #endregion
 
             #region Assert
@@ -379,17 +380,17 @@ namespace MapTests
         /// Checks to make sure claims & roles are both removed
         /// </summary>
         [Fact]
-        public void RemoveUserFromClient_Success()
+        public async Task RemoveUserFromClient_Success()
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 5, UserName = "test2" };
 
             int preActionCount = Enumerable.Count(TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()));
             #endregion
 
             #region Act
-            var view = controller.RemoveUserFromClient(viewModel);
+            var view = await controller.RemoveUserFromClient(viewModel);
             #endregion
 
             #region Assert
@@ -412,16 +413,16 @@ namespace MapTests
         /// Validate that trying to save a client with itself as the test client results in a bad request
         /// </summary>
         [Fact]
-        public void SaveNewClient_ErrorWhenParentIdIsClientId()
+        public async Task SaveNewClient_ErrorWhenParentIdIsClientId()
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             Client testClient = GetValidClient();
             #endregion
 
             #region Act
             testClient.ParentClientId = testClient.Id;
-            var view = controller.SaveNewClient(testClient);
+            var view = await controller.SaveNewClient(testClient);
             #endregion
 
             #region Assert
@@ -433,16 +434,16 @@ namespace MapTests
         /// Validate that a bad request is returned when ModelState.IsValid returns false
         /// </summary>
         [Fact]
-        public void SaveNewClient_ErrorWhenModelStateInvalid()
+        public async Task SaveNewClient_ErrorWhenModelStateInvalid()
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             Client testClient = GetValidClient();
             #endregion
 
             #region Act
             controller.ModelState.AddModelError("BadModel", "This is a forced bad model.");
-            var view = controller.SaveNewClient(testClient);
+            var view = await controller.SaveNewClient(testClient);
             #endregion
 
             #region Assert
@@ -458,17 +459,17 @@ namespace MapTests
         [InlineData("test1", null, 1)]// Request new root client; user is not an admin of requested profit center
         [InlineData("ClientAdmin1", 4, 2)]// Request new child client; user is admin of parent client but not profit center
         [InlineData("ClientAdmin1", 3, 1)]// Request new child client; user is admin of profit center but not parent client
-        public void SaveNewClient_ErrorWhenNotAuthorized(string userArg, long? parentClientIdArg, long? profitCenterIdArg)
+        public async Task SaveNewClient_ErrorWhenNotAuthorized(string userArg, long? parentClientIdArg, long? profitCenterIdArg)
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser(userArg);
+            ClientAdminController controller = await GetControllerForUser(userArg);
             Client testClient = GetValidClient();
             #endregion
 
             #region Act
             testClient.ParentClientId = parentClientIdArg;
             testClient.ProfitCenterId = (long)profitCenterIdArg;
-            var view = controller.SaveNewClient(testClient);
+            var view = await controller.SaveNewClient(testClient);
             #endregion
 
             #region Assert
@@ -484,10 +485,10 @@ namespace MapTests
         [InlineData(null, new string[] { "user@test" })] // invalid email address format (no TLD)
         [InlineData(null, new string[] { "test.com" })] // invalid email address format (no user, no @)
         [InlineData(null, new string[] { "@test.com" })] // invalid email address format (no user before @)
-        public void SaveNewClient_ErrorWhenEmailInvalid(string[] domainListArg, string[] emailListArg)
+        public async Task SaveNewClient_ErrorWhenEmailInvalid(string[] domainListArg, string[] emailListArg)
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             Client testClient = GetValidClient();
             #endregion
 
@@ -501,7 +502,7 @@ namespace MapTests
             {
                 testClient.AcceptedEmailAddressExceptionList = emailListArg;
             }
-            var view = controller.SaveNewClient(testClient);
+            var view = await controller.SaveNewClient(testClient);
             #endregion
 
             #region Assert
@@ -517,10 +518,10 @@ namespace MapTests
         /// Validate that new clients are added successfully when the model is valid and the user is authorized
         /// </summary>
         [Fact]
-        public void SaveNewClient_Success()
+        public async Task SaveNewClient_Success()
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             Client testClient = GetValidClient();
 
             int beforeCount = Enumerable.Count(TestResources.DbContextObject.Client);
@@ -530,7 +531,7 @@ namespace MapTests
             #region Act
             testClient.ParentClientId = null;
             testClient.ProfitCenterId = 1;
-            var view = controller.SaveNewClient(testClient);
+            var view = await controller.SaveNewClient(testClient);
             #endregion
 
             #region Assert
@@ -548,17 +549,17 @@ namespace MapTests
         [InlineData(-1,1)]// Client ID less than 0
         [InlineData(1,1)]// Parent client ID matches client ID
         [InlineData(424242,1)]// Attempt to edit a non-existent client
-        public void EditClient_ErrorWhenInvalidRequest(long clientIdArg, long parentClientIdArg)
+        public async Task EditClient_ErrorWhenInvalidRequest(long clientIdArg, long parentClientIdArg)
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             Client testClient = GetValidClient();
             #endregion
 
             #region Act
             testClient.ParentClientId = parentClientIdArg;
             testClient.Id = clientIdArg;
-            var view = controller.EditClient(testClient);
+            var view = await controller.EditClient(testClient);
             #endregion
 
             #region Assert
@@ -573,10 +574,10 @@ namespace MapTests
         [Theory]
         [InlineData(2, 1)] // User is not an admin on the edited client
         [InlineData(5, 2)] // User is not an admin on the new profit center
-        public void EditClient_ErrorWhenUnauthorized(long clientIdArg, long profitCenterIdArg)
+        public async Task EditClient_ErrorWhenUnauthorized(long clientIdArg, long profitCenterIdArg)
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             Client testClient = GetValidClient();
             #endregion
 
@@ -592,7 +593,7 @@ namespace MapTests
             testClient.ParentClientId = TestResources.DbContextObject.Client.Single(c => c.Id == clientIdArg).ParentClientId;
             testClient.ProfitCenterId = profitCenterIdArg;
 
-            var view = controller.EditClient(testClient);
+            var view = await controller.EditClient(testClient);
             #endregion
 
             #region Assert
@@ -604,10 +605,10 @@ namespace MapTests
         /// Validate that changing the parent client is not supported
         /// </summary>
         [Fact]
-        public void EditClient_UnauthorizedWhenChangingParentClient()
+        public async Task EditClient_UnauthorizedWhenChangingParentClient()
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             Client testClient = GetValidClient();
             #endregion
 
@@ -621,7 +622,7 @@ namespace MapTests
             testClient.Id = 6;
             testClient.ParentClientId = 2; // Original value was 1
             
-            var view = controller.EditClient(testClient);
+            var view = await controller.EditClient(testClient);
             #endregion
 
             #region Assert
@@ -641,10 +642,10 @@ namespace MapTests
         [InlineData(null, null, new string[] { "test" })] // Email address whitelist invalid (no @, no tld)
         [InlineData(null, null, new string[] { "test.com" })] // Email address whitelist invalid (no @)
         [InlineData(null, null, new string[] { "@test.com" })] // Email address whitelist invalid (no user)
-        public void EditClient_ErrorWhenInvalid(string clientNameArg, string[] domainWhitelistArg, string[] addressWhitelistArg)
+        public async Task EditClient_ErrorWhenInvalid(string clientNameArg, string[] domainWhitelistArg, string[] addressWhitelistArg)
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             Client testClient = GetValidClient();
             #endregion
 
@@ -675,7 +676,7 @@ namespace MapTests
             }
             #endregion 
 
-            var view = controller.EditClient(testClient);
+            var view = await controller.EditClient(testClient);
             #endregion
 
             #region Assert
@@ -690,10 +691,10 @@ namespace MapTests
         /// Validate that client edits are made and saved successfully when the model is valid and the user is authorized
         /// </summary>
         [Fact]
-        public void EditClient_Success()
+        public async Task EditClient_Success()
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             Client testClient = GetValidClient();
             #endregion
 
@@ -722,7 +723,7 @@ namespace MapTests
             testClient.AcceptedEmailDomainList = new string[] { "editexample.com" };
             #endregion 
 
-            var view = controller.EditClient(testClient);
+            var view = await controller.EditClient(testClient);
             #endregion
 
             #region Assert
@@ -750,14 +751,14 @@ namespace MapTests
         /// 
         /// </summary>
         [Fact]
-        public void DeleteClient_ErrorWhenClientNotFound()
+        public async Task DeleteClient_ErrorWhenClientNotFound()
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             #endregion
 
             #region Act
-            var view = controller.DeleteClient(424242, "password");
+            var view = await controller.DeleteClient(424242, "password");
             #endregion
 
             #region Assert
@@ -772,14 +773,14 @@ namespace MapTests
         [InlineData(1, null)]// Password check fails
         [InlineData(2, "password")]// User is not authorized as Admin of the client
         [InlineData(4, "password")]// User is not authorized as Admin of the client's profit center
-        public void DeleteClient_ErrorWhenUnauthorized(long clientIdArg, string passwordArg)
+        public async Task DeleteClient_ErrorWhenUnauthorized(long clientIdArg, string passwordArg)
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             #endregion
 
             #region Act
-            var view = controller.DeleteClient(clientIdArg, passwordArg);
+            var view = await controller.DeleteClient(clientIdArg, passwordArg);
             #endregion
 
             #region Assert
@@ -791,14 +792,14 @@ namespace MapTests
         /// 
         /// </summary>
         [Fact]
-        public void DeleteClient_ErrorWhenClientHasChildren()
+        public async Task DeleteClient_ErrorWhenClientHasChildren()
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             #endregion
 
             #region Act
-            var view = controller.DeleteClient(1, "password");
+            var view = await controller.DeleteClient(1, "password");
             #endregion
 
             #region Assert
@@ -813,16 +814,16 @@ namespace MapTests
         /// Verify that a deleted client is removed from persistence
         /// </summary>
         [Fact]
-        public void DeleteClient_Success()
+        public async Task DeleteClient_Success()
         {
             #region Arrange
-            ClientAdminController controller = GetControllerForUser("ClientAdmin1");
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
 
             int preCount = Enumerable.Count(TestResources.DbContextObject.Client);
             #endregion
 
             #region Act
-            var view = controller.DeleteClient(6, "password");
+            var view = await controller.DeleteClient(6, "password");
             #endregion
 
             #region Assert

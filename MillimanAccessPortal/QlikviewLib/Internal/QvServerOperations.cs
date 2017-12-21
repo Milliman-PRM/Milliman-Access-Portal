@@ -5,6 +5,7 @@
 */
 
 using System;
+using System.Threading.Tasks;
 using System.Net;
 using System.Net.Http;
 using System.Xml.Linq;
@@ -14,7 +15,7 @@ namespace QlikviewLib.Internal
 {
     internal class QvServerOperations
     {
-        internal static string GetQvWebTicket(string UserId, QlikviewConfig QvConfig)
+        internal static async Task<string> GetQvWebTicket(string UserId, QlikviewConfig QvConfig)
         {
             UriBuilder QvServerUri = new UriBuilder
             {
@@ -37,14 +38,14 @@ namespace QlikviewLib.Internal
             HttpResponseMessage ResponseMsg = null;
             try
             {
-                ResponseMsg = client.PostAsync(QvServerUri.Uri, RequestContent).Result;
+                ResponseMsg = await client.PostAsync(QvServerUri.Uri, RequestContent);
             }
             catch (Exception e)
             {
                 throw new MapException(string.Format("Exception from PostAsync() while calling GetWebTicket.aspx from {0}\r\nMessage: {1}", QvServerUri.Uri.AbsoluteUri, e.Message));
             }
 
-            string ResponseBody = ResponseMsg.Content.ReadAsStringAsync().Result;
+            string ResponseBody = await ResponseMsg.Content.ReadAsStringAsync();
 
             if (!ResponseMsg.IsSuccessStatusCode)
             {

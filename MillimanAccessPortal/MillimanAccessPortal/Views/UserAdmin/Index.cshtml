@@ -4,7 +4,7 @@
     /*
      * CODE OWNERS: Ben Wyatt
      * OBJECTIVE: List application users and provide navigation to management functions
-     * DEVELOPER NOTES: 
+     * DEVELOPER NOTES:
      */
 
     ViewData["Title"] = "User Administration";
@@ -30,20 +30,61 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.UserName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Email)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Disable" asp-route-id="@item.Id">Disable</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.UserName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Email)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-action="Disable" asp-route-id="@item.Id">Disable</a>
+                </td>
+            </tr>
+        }
+
+
     </tbody>
 </table>
+
+@section Scripts {
+
+    <script>
+        $(document).ready(function () {
+
+            //var form = $('form');
+            //var email = $('#Email').val();
+            //var userName = $('#UserName').val();
+            //var firstName = $('#FirstName').val();
+            //var lastName = $('#LastName').val();
+            //var phoneNumber = $('#PhoneNumber').val();
+            //var employer = $('#Employer').val();
+            //var urlAction = 'UserAdmin/GetContentForClient/';
+            //var successResponse, failResponse;
+
+            $.ajax({
+                type: 'GET',
+                url: 'UserAdmin/GetContentForClient/',
+                data: {
+                    RequestedClientId: 2
+                },
+                dataType: "json"
+            }).done(function (response) {
+                var d = response;
+                console.log(response);
+                console.log(response.getResponseHeader("Warning"));
+                //toastr['success'](response.getResponseHeader("Warning"));
+            }).fail(function (response) {
+                var f = response
+                //toastr["warning"](failResponse);
+            });
+
+
+        });
+
+    </script>
+}

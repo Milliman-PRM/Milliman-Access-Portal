@@ -37,14 +37,14 @@ namespace MapTests
                                                                       TestResources.LoggerFactory,
                                                                       TestResources.DbContextObject,
                                                                       TestResources.QueriesObj,
-                                                                      TestResources.AuthorizationService);
+                                                                      TestResources.AuthorizationService,
+                                                                      TestResources.AuditLoggerObject);
 
-            // For illustration only, the same result comes from any of the following 3 techniques:
+            // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
             sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
-            // Following 2 throw if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
+            // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
             sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName=="test1").First().UserName);
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.UserManagerObject.FindByNameAsync("test1").Result.UserName);
             #endregion
 
             #region Act
@@ -62,6 +62,7 @@ namespace MapTests
             Assert.Single(ModelReturned);
 
             Assert.Equal(TestResources.DbContextObject.RootContentItem.FirstOrDefault().ContentName, ModelReturned[0].ContentName);
+
             #endregion
         }
 
@@ -70,7 +71,7 @@ namespace MapTests
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public void WebHostedContent_ErrorWhenNotAuthorized()
+        public async Task WebHostedContent_ErrorWhenNotAuthorized()
         {
             // Attempt to load the content view for unauthorized content
             #region Arrange
@@ -86,21 +87,22 @@ namespace MapTests
                                                                       TestResources.LoggerFactory,
                                                                       TestResources.DbContextObject,
                                                                       TestResources.QueriesObj,
-                                                                      TestResources.AuthorizationService);
+                                                                      TestResources.AuthorizationService,
+                                                                      TestResources.AuditLoggerObject);
 
-            // For illustration only, the same result comes from any of the following 3 techniques:
+            // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
             sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
-            // Following 2 throw if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
+            // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
             sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.UserManagerObject.FindByNameAsync("test1").Result.UserName);
+
             sut.ControllerContext.ActionDescriptor = new Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor { ActionName = "WebHostedContent" };
             sut.HttpContext.Session = new MockSession();
             #endregion
 
 
             #region Act
-            var view = sut.WebHostedContent(3); // User "test1" is not authorized to RootContentItem for ContentItemUserGroup w/ ID 3
+            var view = await sut.WebHostedContent(3); // User "test1" is not authorized to RootContentItem for ContentItemUserGroup w/ ID 3
             #endregion
 
             #region Assert
@@ -114,7 +116,7 @@ namespace MapTests
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public void WebHostedContent_DisplaysWhenAuthorized()
+        public async Task WebHostedContent_DisplaysWhenAuthorized()
         {
             #region Arrange
             // initialize dependencies
@@ -129,19 +131,19 @@ namespace MapTests
                                                                       TestResources.LoggerFactory,
                                                                       TestResources.DbContextObject,
                                                                       TestResources.QueriesObj,
-                                                                      TestResources.AuthorizationService);
+                                                                      TestResources.AuthorizationService,
+                                                                      TestResources.AuditLoggerObject);
 
-            // For illustration only, the same result comes from any of the following 3 techniques:
+            // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
             sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
-            // Following 2 throw if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
+            // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
             sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
-            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.UserManagerObject.FindByNameAsync("test1").Result.UserName);
             #endregion
 
             #region Act
             // Attempt to load the content view for authorized content
-            var view = sut.WebHostedContent(1); // User "test1" is authorized to RootContentItem w/ ID 1
+            var view = await sut.WebHostedContent(1); // User "test1" is authorized to RootContentItem w/ ID 1
             #endregion
 
             #region Assert

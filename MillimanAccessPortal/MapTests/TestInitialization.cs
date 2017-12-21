@@ -49,17 +49,18 @@ namespace MapTests
         public Mock<RoleManager<ApplicationRole>> MockRoleManager { get; set;  }
         public RoleManager<ApplicationRole> RoleManagerObject { get => MockRoleManager.Object; }
 
+        public Mock<AuditLogger> MockAuditLogger { get; set; }
+        public AuditLogger AuditLoggerObject { get => MockAuditLogger.Object; }
+
         public IOptions<QlikviewConfig> QvConfig { get; set; }
 
         public DefaultAuthorizationService AuthorizationService { get; set; }
 
         public ILoggerFactory LoggerFactory { get; set; }
 
-        public AuditLogger AuditLogger { get; set; }
-
         public StandardQueries QueriesObj { get; set; }
         #endregion
-        
+
         /// <summary>
         /// Associates each DataSelection enum value with the function that implements it
         /// </summary>
@@ -71,13 +72,6 @@ namespace MapTests
         public TestInitialization()
         {
             GenerateDependencies();
-
-            #region Configure AuditLogger
-            AuditLoggerConfiguration auditLogConfig = new AuditLogLib.AuditLoggerConfiguration();
-            auditLogConfig.AuditLogConnectionString = "";
-            AuditLogLib.AuditLogger.Config = auditLogConfig;
-            AuditLogger = new AuditLogger();
-            #endregion
 
             DataGenFunctionDict = new Dictionary<DataSelection, Action>
             {
@@ -131,6 +125,7 @@ namespace MapTests
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject);
             QvConfig = BuildQvConfig();
+            MockAuditLogger = GenerateAuditLogger();
         }
 
         private IOptions<QlikviewConfig> BuildQvConfig()
@@ -207,9 +202,9 @@ namespace MapTests
         {
             Mock<IRoleStore<ApplicationRole>> NewRoleStore = MockRoleStore.NewStore(MockDbContextArg);
             Mock<RoleManager<ApplicationRole>> ReturnMockRoleManager = new Mock<RoleManager<ApplicationRole>>(NewRoleStore.Object, null, null, null, null);
-            
-            ReturnMockRoleManager.Setup(m => m.FindByIdAsync(It.IsAny<string>())).ReturnsAsync<string, RoleManager<ApplicationRole>, ApplicationRole>(roleId => NewRoleStore.Object.FindByIdAsync(roleId.ToString(), CancellationToken.None).Result);
-            ReturnMockRoleManager.Setup(m => m.FindByNameAsync(It.IsAny<string>())).ReturnsAsync<string, RoleManager<ApplicationRole>, ApplicationRole>(roleName => NewRoleStore.Object.FindByNameAsync(roleName, CancellationToken.None).Result);
+
+            ReturnMockRoleManager.Setup(m => m.FindByIdAsync(It.IsAny<string>())).Returns(async (string roleId) => await NewRoleStore.Object.FindByIdAsync(roleId, CancellationToken.None));
+            ReturnMockRoleManager.Setup(m => m.FindByNameAsync(It.IsAny<string>())).Returns(async (string name) => await NewRoleStore.Object.FindByNameAsync(name, CancellationToken.None));
 
             return ReturnMockRoleManager;
         }
@@ -233,6 +228,15 @@ namespace MapTests
                                                                             new OptionsWrapper<AuthorizationOptions>(AuthOptions));
 
             return ReturnService;
+        }
+
+        private Mock<AuditLogger> GenerateAuditLogger()
+        {
+            AuditLogLib.AuditLogger.Config = new AuditLogLib.AuditLoggerConfiguration { AuditLogConnectionString = "" };
+            Mock<AuditLogger> ReturnObject = new Mock<AuditLogger>();
+            ReturnObject.Setup(al => al.Log(It.IsAny<AuditEvent>())).Callback(() => { });
+
+            return ReturnObject;
         }
 
         private void GenerateBasicTestData()
@@ -272,6 +276,8 @@ namespace MapTests
                 new UserRoleInProfitCenter {Id=1, ProfitCenterId=1, UserId=3, RoleId=1}
             });
             MockDbSet<UserRoleInProfitCenter>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInProfitCenter, "RoleId", DbContextObject.ApplicationRole);
+            MockDbSet<UserRoleInProfitCenter>.AssignNavigationProperty<ProfitCenter>(DbContextObject.UserRoleInProfitCenter, "ProfitCenterId", DbContextObject.ProfitCenter);
+            MockDbSet<UserRoleInProfitCenter>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInProfitCenter, "UserId", DbContextObject.ApplicationUser);
             #endregion
 
             #region Initialize Clients

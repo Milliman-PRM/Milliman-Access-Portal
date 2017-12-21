@@ -65,7 +65,7 @@ namespace AuditLogLib
         /// Simplest logging method, does not conform to ILogger, requires a fully formed event object
         /// </summary>
         /// <param name="Event">Event data to be logged. Use AuditEvent.New method to enforce proper creation</param>
-        public void Log(AuditEvent Event)
+        public virtual void Log(AuditEvent Event)
         {
             LogEventQueue.Enqueue(Event);
         }

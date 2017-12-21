@@ -22,43 +22,33 @@ namespace MapTests
 
             // Re-create methods we're calling against the UserManager
             // User-related methods
-            ReturnMockUserManager.Setup(m => m.GetUserName(It.IsAny<ClaimsPrincipal>())).Returns<ClaimsPrincipal>(cp => UserStore.Object.FindByNameAsync(cp.Identity.Name, CancellationToken.None).Result.UserName);
-            ReturnMockUserManager.Setup(m => m.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync<ClaimsPrincipal, UserManager<ApplicationUser>, ApplicationUser>(cp => UserStore.Object.FindByNameAsync(cp.Identity.Name, CancellationToken.None).Result);
-            ReturnMockUserManager.Setup(m => m.FindByNameAsync(It.IsAny<string>())).ReturnsAsync<string, UserManager<ApplicationUser>, ApplicationUser>(name => UserStore.Object.FindByNameAsync(name, CancellationToken.None).Result);
-            ReturnMockUserManager.Setup(m => m.FindByIdAsync(It.IsAny<string>())).ReturnsAsync<string, UserManager<ApplicationUser>, ApplicationUser>(id => UserStore.Object.FindByIdAsync(id, CancellationToken.None).Result);
-            ReturnMockUserManager.Setup(m => m.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync<string, UserManager<ApplicationUser>, ApplicationUser>(email => UserStore.Object.FindByEmailAsync(email, CancellationToken.None).Result);
-            ReturnMockUserManager.Setup(m => m.FindByLoginAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync<string, string, UserManager<ApplicationUser>, ApplicationUser>((string provider, string key) => UserStore.Object.FindByLoginAsync(provider, key).Result);
+            ReturnMockUserManager.Setup(m => m.GetUserName(It.IsAny<ClaimsPrincipal>())).Returns<ClaimsPrincipal>(cp => cp.Identity.Name);
+
+            ReturnMockUserManager.Setup(m => m.GetUserAsync(It.IsAny<ClaimsPrincipal>())).Returns(async (ClaimsPrincipal cp) => await UserStore.Object.FindByNameAsync(cp.Identity.Name, CancellationToken.None));
+            ReturnMockUserManager.Setup(m => m.FindByNameAsync(It.IsAny<string>())).Returns(async (string name) => await UserStore.Object.FindByNameAsync(name, CancellationToken.None));
+            ReturnMockUserManager.Setup(m => m.FindByIdAsync(It.IsAny<string>())).Returns(async (string id) => await UserStore.Object.FindByIdAsync(id, CancellationToken.None));
+            ReturnMockUserManager.Setup(m => m.FindByEmailAsync(It.IsAny<string>())).Returns(async (string email) => await UserStore.Object.FindByEmailAsync(email, CancellationToken.None));
+            ReturnMockUserManager.Setup(m => m.FindByLoginAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(async (string provider, string key) => await UserStore.Object.FindByLoginAsync(provider, key));
             // TODO: Make this method actually try the password. Currently it will always return true.
             ReturnMockUserManager.Setup(m => m.CheckPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).ReturnsAsync<ApplicationUser, string, UserManager<ApplicationUser>, bool>((user, password) => true);
-            ReturnMockUserManager.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).ReturnsAsync<ApplicationUser, string, UserManager<ApplicationUser>, IdentityResult>((user, password) => UserStore.Object.CreateAsync(user, CancellationToken.None).Result);
+            ReturnMockUserManager.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).Returns(async (ApplicationUser user, string password) => await UserStore.Object.CreateAsync(user, CancellationToken.None));
 
             // Role-related methods
-            ReturnMockUserManager.Setup(m => m.IsInRoleAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).ReturnsAsync<ApplicationUser, string, UserManager<ApplicationUser>, bool>((user, role) => UserStore.Object.IsInRoleAsync(user, role, CancellationToken.None).Result);
-            ReturnMockUserManager.Setup(m => m.AddToRoleAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).Callback<ApplicationUser, string>((user, role) => UserStore.Object.AddToRoleAsync(user, role, CancellationToken.None));
-            ReturnMockUserManager.Setup(m => m.RemoveFromRoleAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).Callback<ApplicationUser, string>((user, role) => UserStore.Object.RemoveFromRoleAsync(user, role, CancellationToken.None));
+            ReturnMockUserManager.Setup(m => m.IsInRoleAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).Returns(async (ApplicationUser user, string role) => await UserStore.Object.IsInRoleAsync(user, role, CancellationToken.None));
+            ReturnMockUserManager.Setup(m => m.AddToRoleAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).Callback((ApplicationUser user, string role) => UserStore.Object.AddToRoleAsync(user, role, CancellationToken.None));
+            ReturnMockUserManager.Setup(m => m.RemoveFromRoleAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).Callback((ApplicationUser user, string role) => UserStore.Object.RemoveFromRoleAsync(user, role, CancellationToken.None));
 
             // Claims-related methods
-            ReturnMockUserManager.Setup(m => m.GetClaimsAsync(It.IsAny<ApplicationUser>())).ReturnsAsync<ApplicationUser, UserManager<ApplicationUser>, IList<Claim>>(user => UserStore.Object.GetClaimsAsync(user, CancellationToken.None).Result);
+            ReturnMockUserManager.Setup(m => m.GetClaimsAsync(It.IsAny<ApplicationUser>())).Returns(async (ApplicationUser user) => await UserStore.Object.GetClaimsAsync(user, CancellationToken.None));
+            ReturnMockUserManager.Setup(m => m.AddClaimAsync(It.IsAny<ApplicationUser>(), It.IsAny<Claim>())).Returns(async (ApplicationUser user, Claim claim) => await Task.FromResult(AddClaims(UserStore.Object, user, new List<Claim>() { claim })));
+            ReturnMockUserManager.Setup(m => m.AddClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>())).Returns(async (ApplicationUser user, IEnumerable<Claim> claims) => await Task.FromResult(AddClaims(UserStore.Object, user, claims)));
 
-            ReturnMockUserManager.Setup(m => m.AddClaimAsync(It.IsAny<ApplicationUser>(), It.IsAny<Claim>())).ReturnsAsync<ApplicationUser, Claim, UserManager<ApplicationUser>, IdentityResult>((user, claim) => {
-                return AddClaims(UserStore.Object, user, new List<Claim>() { claim });
-            });
-            ReturnMockUserManager.Setup(m => m.AddClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>())).ReturnsAsync<ApplicationUser, IEnumerable<Claim>, UserManager<ApplicationUser>, IdentityResult>((user, claims) => {
-                return AddClaims(UserStore.Object, user, claims);
-            });
-
-            ReturnMockUserManager.Setup(m => m.RemoveClaimAsync(It.IsAny<ApplicationUser>(), It.IsAny<Claim>())).ReturnsAsync<ApplicationUser, Claim, UserManager<ApplicationUser>, IdentityResult>((user, claim) =>
-            {
-                return RemoveClaims(UserStore.Object, user, new List<Claim> { claim });
-            });
-            ReturnMockUserManager.Setup(m => m.RemoveClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>())).ReturnsAsync<ApplicationUser, IEnumerable<Claim>, UserManager<ApplicationUser>, IdentityResult>((user, claims) =>
-            {
-                return RemoveClaims(UserStore.Object, user, claims);
-            });
-            ReturnMockUserManager.Setup(m => m.GetUsersForClaimAsync(It.IsAny<Claim>())).ReturnsAsync<Claim, UserManager<ApplicationUser>, IList<ApplicationUser>>(claim => UserStore.Object.GetUsersForClaimAsync(claim, CancellationToken.None).Result);
+            ReturnMockUserManager.Setup(m => m.RemoveClaimAsync(It.IsAny<ApplicationUser>(), It.IsAny<Claim>())).Returns(async (ApplicationUser user, Claim claim) => await Task.FromResult(RemoveClaims(UserStore.Object, user, new List<Claim> { claim })));
+            ReturnMockUserManager.Setup(m => m.RemoveClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>())).Returns(async (ApplicationUser user, IEnumerable<Claim> claims) => await Task.FromResult(RemoveClaims(UserStore.Object, user, claims)));
+            ReturnMockUserManager.Setup(m => m.GetUsersForClaimAsync(It.IsAny<Claim>())).Returns(async (Claim claim) => await UserStore.Object.GetUsersForClaimAsync(claim, CancellationToken.None));
 
             // Return true if the password is not null
-            ReturnMockUserManager.Setup(m => m.CheckPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).ReturnsAsync<ApplicationUser, string, UserManager<ApplicationUser>, bool>((usr, pwd) => !String.IsNullOrEmpty(pwd));
+            ReturnMockUserManager.Setup(m => m.CheckPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).Returns(async (ApplicationUser usr, string pwd) => await Task.FromResult(!String.IsNullOrEmpty(pwd)));
 
             return ReturnMockUserManager;
         }

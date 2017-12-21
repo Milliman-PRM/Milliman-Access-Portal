@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Threading.Tasks;
 using MapCommonLib.ContentTypeSpecific;
 using QlikviewLib.Internal;
 using MapDbContextLib.Context;
@@ -14,7 +15,7 @@ namespace QlikviewLib
 {
     public class QlikviewLibApi : ContentTypeSpecificApiBase
     {
-        public override UriBuilder GetContentUri(ContentItemUserGroup GroupEntity, HttpContext Context, object ConfigInfoArg)
+        public override async Task<UriBuilder> GetContentUri(ContentItemUserGroup GroupEntity, HttpContext Context, object ConfigInfoArg)
         {
             QlikviewConfig ConfigInfo = (QlikviewConfig)ConfigInfoArg;
 
@@ -22,7 +23,7 @@ namespace QlikviewLib
             string EndUserName = Context.User.Identity.Name;  // TODO Is this needed instead?:    string EndUserName = UserManager.GetUserName(HttpContext.User);
 
             // TODO Resolve the user naming convention for the QV server.  
-            string QlikviewWebTicket = QvServerOperations.GetQvWebTicket(/*@"Custom\" +*/ EndUserName, ConfigInfo as QlikviewConfig);
+            string QlikviewWebTicket = await QvServerOperations.GetQvWebTicket(/*@"Custom\" +*/ EndUserName, ConfigInfo as QlikviewConfig);
 
             string[] QueryStringItems = new string[]
             {
