@@ -387,27 +387,28 @@ function renderClientNode(client, level) {
 }
 
 function renderClientTree(clientId) {
-  $('#client-tree-list').empty();
-  clientTree.forEach(function forEach(rootClient) {
+  var $clientTreeList = $('#client-tree-list');
+  $clientTreeList.empty();
+  clientTree.forEach(function do_(rootClient) {
     renderClientNode(rootClient, 1);
-    $('#client-tree-list').append('<li class="hr width-100pct"></li>');
+    $clientTreeList.append('<li class="hr width-100pct"></li>');
   });
-  $('#client-tree-list div.card-container')
-    .click(function getClientDetailClickHandler() {
+  $clientTreeList.find('div.card-container')
+    .click(function onClick() {
       GetClientDetail($(this));
     });
   $('div.card-button-delete')
-    .click(function deleteClientClickHandler(event) {
+    .click(function onClick(event) {
       deleteClient($(this).parents('div[data-client-id]'));
       event.stopPropagation();
     });
   $('div.card-button-edit')
-    .click(function editClientDetailClickHandler(event) {
+    .click(function onClick(event) {
       EditClientDetail($(this).parents('div[data-client-id]'));
       event.stopPropagation();
     });
   $('div.card-button-new-child')
-    .click(function newClientFormSetupClickHandler(event) {
+    .click(function onClick(event) {
       newChildClientFormSetup($(this).parents('div[data-client-id]'));
       event.stopPropagation();
     });
@@ -415,7 +416,7 @@ function renderClientTree(clientId) {
     $('[data-client-id="' + clientId + '"]').click();
   }
   if ($('#add-client-icon').length) {
-    $('#client-tree-list').append(clientCard);
+    $clientTreeList.append(clientCard);
     $('#create-new-client-card').click(newClientFormSetup);
   }
 }
