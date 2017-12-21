@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
@@ -38,6 +39,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly ILogger Logger;
         private readonly StandardQueries Queries;
         private readonly IAuthorizationService AuthorizationService;
+        private readonly AuditLogger AuditLogger;
 
         /// <summary>
         /// Constructor.  Makes instance copies of injected resources from the application. 
@@ -52,7 +54,8 @@ namespace MillimanAccessPortal.Controllers
             ILoggerFactory LoggerFactoryArg,
             ApplicationDbContext DataContextArg,
             StandardQueries QueryArg,
-            IAuthorizationService AuthorizationServiceArg)
+            IAuthorizationService AuthorizationServiceArg,
+            AuditLogger AuditLoggerArg)
         {
             QlikviewConfig = QlikviewOptionsAccessorArg.Value;
             UserManager = UserManagerArg;
@@ -60,6 +63,7 @@ namespace MillimanAccessPortal.Controllers
             DataContext = DataContextArg;
             Queries = QueryArg;
             AuthorizationService = AuthorizationServiceArg;
+            AuditLogger = AuditLoggerArg;
         }
 
         /// <summary>
@@ -80,10 +84,8 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="Id">The primary key value of the ContentItemUserGroup authorizing this user to the requested content</param>
         /// <returns>A View (and model) that displays the requested content</returns>
         [Authorize]
-        public IActionResult WebHostedContent(long Id)
+        public async Task<IActionResult> WebHostedContent(long Id)
         {
-            AuditLogger AuditStore = new AuditLogger();
-
 #region Validation
             ContentItemUserGroup UserGroup = DataContext.ContentItemUserGroup
                                                         .Include(ug => ug.RootContentItem)
@@ -98,18 +100,19 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
                 // something that appropriately returns to a logical next view
             }
-#endregion
+            #endregion
 
-#region Authorization
-            if (!AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
+            #region Authorization
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
                 {
                     new UserInContentItemUserGroupRequirement(Id),
                     new RoleInRootContentItemRequirement(RoleEnum.ContentUser, UserGroup.RootContentItem.Id),
-                }).Result.Succeeded)
+                });
+            if (!Result1.Succeeded)
             {
                 AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Unauthorized request", AuditEventId.Unauthorized, null, UserManager.GetUserName(HttpContext.User), HttpContext.Session.Id);
                 LogObject.EventDetailObject = new { GroupIdRequested = Id };
-                AuditStore.Log(LogObject);
+                AuditLogger.Log(LogObject);
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
                 return Unauthorized();
@@ -137,7 +140,7 @@ namespace MillimanAccessPortal.Controllers
                         return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
                 }
 
-                UriBuilder ContentUri = ContentSpecificHandler.GetContentUri(UserGroup, HttpContext, QlikviewConfig);
+                UriBuilder ContentUri = await ContentSpecificHandler.GetContentUri(UserGroup, HttpContext, QlikviewConfig);
 
                 HostedContentViewModel ResponseModel = new HostedContentViewModel
                 {

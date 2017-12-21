@@ -10,6 +10,5 @@ namespace MapDbContextLib.Context
         /// Values for ClientMembership claims are Client Name
         /// </summary>
         ClientMembership,
-
     }
 }

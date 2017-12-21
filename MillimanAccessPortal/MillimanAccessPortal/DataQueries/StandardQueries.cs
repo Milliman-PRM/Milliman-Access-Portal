@@ -4,7 +4,7 @@
  * DEVELOPER NOTES: 
  */
 
-using System;
+using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
 using System.Security.Claims;
@@ -105,27 +105,37 @@ namespace MillimanAccessPortal.DataQueries
             return DataContext.Client.Where(c => c.ParentClientId == null).ToList();
         }
 
-        public ClientAndChildrenModel GetDescendentFamilyOfClient(Client ClientArg, ApplicationUser CurrentUser, bool RecurseDown = true)
+        public async Task<ClientAndChildrenModel> GetDescendentFamilyOfClient(Client ClientArg, ApplicationUser CurrentUser, RoleEnum ClientRoleRequiredToManage, bool RequireProfitCenterAuthority, bool RecurseDown = true)
         {
             Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientArg.Id.ToString());
-            List<ApplicationUser> UserMembersOfThisClient = UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim).Result.ToList();
+            List<ApplicationUser> UserMembersOfThisClient = (await UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim)).ToList();
 
             ClientAndChildrenModel ResultObject = new ClientAndChildrenModel { ClientEntity = ClientArg };  // Initialize.
             ResultObject.AssociatedContentCount = DataContext.RootContentItem.Where(r => r.ClientIdList.Contains(ClientArg.Id)).Count();
             ResultObject.AssociatedUserCount = UserMembersOfThisClient.Count;
+
             ResultObject.CanManage = DataContext.UserRoleInClient
-                                                .Include(URC => URC.Role)
-                                                .SingleOrDefault(URC => URC.UserId == CurrentUser.Id
-                                                                     && URC.Role.RoleEnum == RoleEnum.Admin
-                                                                     && URC.ClientId == ClientArg.Id)
-                                                != null;
+                                                .Include(urc => urc.Role)
+                                                .Include(urc => urc.Client)
+                                                .Any(urc => urc.UserId == CurrentUser.Id
+                                                         && urc.Role.RoleEnum == ClientRoleRequiredToManage
+                                                         && urc.ClientId == ClientArg.Id);
+
+            if (RequireProfitCenterAuthority)
+            {
+                ResultObject.CanManage &= DataContext.UserRoleInProfitCenter
+                                                     .Include(urp => urp.Role)
+                                                     .Any(urp => urp.UserId == CurrentUser.Id
+                                                              && urp.Role.RoleEnum == RoleEnum.Admin
+                                                              && urp.ProfitCenterId == ClientArg.ProfitCenterId);
+            }
 
             if (RecurseDown)
             {
                 List<Client> ChildrenOfThisClient = DataContext.Client.Where(c => c.ParentClientId == ClientArg.Id).ToList();
                 foreach (Client ChildOfThisClient in ChildrenOfThisClient)
                 {
-                    ResultObject.Children.Add(GetDescendentFamilyOfClient(ChildOfThisClient, CurrentUser, RecurseDown));
+                    ResultObject.Children.Add(await GetDescendentFamilyOfClient(ChildOfThisClient, CurrentUser, ClientRoleRequiredToManage, RecurseDown));
                 }
             }
 
@@ -157,6 +167,12 @@ namespace MillimanAccessPortal.DataQueries
 
             return ReturnVal;
         }
+
+        internal async Task<ApplicationUser> GetCurrentApplicationUser(ClaimsPrincipal User)
+        {
+            return await UserManager.GetUserAsync(User);
+        }
+
 
     }
 }
