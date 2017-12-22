@@ -33,9 +33,9 @@ namespace MillimanAccessPortal.Authorization
         /// <param name="Context"></param>
         /// <param name="Requirement"></param>
         /// <returns></returns>
-        protected override Task HandleRequirementAsync(AuthorizationHandlerContext Context, MapAuthorizationRequirementBase Requirement)
+        protected override async Task HandleRequirementAsync(AuthorizationHandlerContext Context, MapAuthorizationRequirementBase Requirement)
         {
-            ApplicationUser User = UserManager.GetUserAsync(Context.User).Result;
+            ApplicationUser User = await UserManager.GetUserAsync(Context.User);
 
             switch (Requirement.EvaluateRequirement(User, DataContext))
             {
@@ -53,8 +53,6 @@ namespace MillimanAccessPortal.Authorization
                 case MapAuthorizationRequirementResult.NotPass:
                     break;
             }
-
-            return Task.CompletedTask;
         }
     }
 }

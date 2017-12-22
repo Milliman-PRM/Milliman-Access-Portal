@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text;
 using MapDbContextLib.Context;
@@ -14,6 +15,6 @@ namespace MapCommonLib.ContentTypeSpecific
 {
     public abstract class ContentTypeSpecificApiBase
     {
-        public abstract UriBuilder GetContentUri(ContentItemUserGroup GroupEntity, HttpContext Context, object ConfigInfo);
+        public abstract Task<UriBuilder> GetContentUri(ContentItemUserGroup GroupEntity, HttpContext Context, object ConfigInfo);
     }
 }

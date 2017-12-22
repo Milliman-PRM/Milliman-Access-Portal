@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using EmailQueue;
 using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Services;
+using MillimanAccessPortal.DataQueries;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
@@ -23,13 +24,15 @@ namespace MillimanAccessPortal.Controllers
     {
         MessageQueueServices _mailSender { get; set; }
         private readonly UserManager<ApplicationUser> UserManager;
+        private readonly StandardQueries Queries;
         
         public MessageController(MessageQueueServices mailSenderArg,
-            UserManager<ApplicationUser> UserManagerArg)
+            UserManager<ApplicationUser> UserManagerArg,
+            StandardQueries QueriesArg)
         {
             _mailSender = mailSenderArg;
             UserManager = UserManagerArg;
-            
+            Queries = QueriesArg;
         }
 
         /// <summary>
@@ -93,7 +96,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SendEmailFromUser ([FromForm] IFormCollection collection)
+        public async Task<IActionResult> SendEmailFromUser ([FromForm] IFormCollection collection)
         {
             if (!collection.Keys.Contains("subject") ||
                 !collection.Keys.Contains("message") ||
@@ -108,7 +111,7 @@ namespace MillimanAccessPortal.Controllers
 
             Console.WriteLine("Sending mail to " + recipient);
             // Get the current user's name and email address
-            var user = UserManager.GetUserAsync(User).Result;
+            var user = await Queries.GetCurrentApplicationUser(User);
             string senderAddress = user.Email;
             string senderName = user.UserName;
 
