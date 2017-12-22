@@ -7,29 +7,51 @@ var userNodeTemplate = $('script[data-template="userNode"]').html();
 var clientTree = {};
 var SHOW_DURATION = 50;
 
+/**
+ * Remove all client insert elements.
+ * While this function removes all client inserts, there should never be more
+ * than one client insert present at a time.
+ *
+ * @returns {undefined}
+ */
 function removeClientInserts() {
   $('#client-tree li.client-insert').remove();
 }
 
+/**
+ * Clear 'selected' and 'editing' status from all card containers.
+ *
+ * @returns {undefined}
+ */
 function clearClientSelection() {
   $('.card-container').removeAttr('editing selected');
 }
 
-function closeClientDetails() {
+/**
+ * Hide the client info and client users panes
+ *
+ * @returns {undefined}
+ */
+function hideClientDetails() {
   $('#client-info').hide(SHOW_DURATION);
   $('#client-users').hide(SHOW_DURATION);
 }
 
-function closeClientUsers() {
+/**
+ * Hide the client users pane
+ *
+ * @returns {undefined}
+ */
+function hideClientUsers() {
   $('#client-users').hide(SHOW_DURATION);
 }
 
 /**
- * $.show() client form components and focus the first input element.
+ * Show client detail components and focus the first form element.
  *
  * @returns {undefined}
  */
-function openClientDetails() {
+function showClientDetails() {
   var $clientPanes = $('#client-info');
   if ($('#client-form #Id').val()) { // TODO: change this condition
     $clientPanes = $clientPanes.add($('#client-users'));
@@ -39,6 +61,11 @@ function openClientDetails() {
   });
 }
 
+/**
+ * Set the client form as read only
+ *
+ * @returns {undefined}
+ */
 function setClientFormReadOnly() {
   var $clientForm = $('#client-form');
   $('#edit-client-icon').show();
@@ -52,6 +79,11 @@ function setClientFormReadOnly() {
   });
 }
 
+/**
+ * Set the client form as writeable
+ *
+ * @returns {undefined}
+ */
 function setClientFormWriteable() {
   var $clientForm = $('#client-form');
   $('#edit-client-icon').hide();
@@ -129,12 +161,24 @@ function collapseAllUsers() {
   toggleExpandCollapse();
 }
 
+/**
+ * Reset client form validation and remove validation messages
+ *
+ * @returns {undefined}
+ */
 function resetValidation() {
   $('#client-form').validate().resetForm();
   $('.field-validation-error > span').remove();
 }
 
-function getModifiedInputs() {
+/**
+ * Find the set of client form input elements whose values have been modified
+ * If an input element did not have an original value, then it is considered
+ * to be modified only if the current value is not blank.
+ *
+ * @returns {jQuery} modifiedInputs
+ */
+function findModifiedInputs() {
   return $('#client-form')
     .find('input[name!="__RequestVerificationToken"][type!="hidden"],select')
     .not('div.selectize-input input')
@@ -143,6 +187,11 @@ function getModifiedInputs() {
     });
 }
 
+/**
+ * Clear all client form input elements, resulting in a blank form
+ *
+ * @returns {undefined}
+ */
 function clearFormData() {
   var $clientForm = $('#client-form');
   $clientForm.find('.selectized').each(function clear() {
@@ -155,14 +204,25 @@ function clearFormData() {
   resetValidation();
 }
 
+/**
+ * Reset all client form input elements to their pre-modified values
+ *
+ * @returns {undefined}
+ */
 function resetFormData() {
-  var $modifiedInputs = getModifiedInputs();
+  var $modifiedInputs = findModifiedInputs();
   $modifiedInputs.each(function resetValue() {
     $(this).val($(this).attr('data-original-value'));
   });
   resetValidation();
 }
 
+/**
+ * Create a dialog box to confirm a discard action
+ *
+ * @param {function} callback Executed iff the user selects YES
+ * @returns {undefined}
+ */
 function confirmDiscardDialog(callback) {
   vex.dialog.confirm({
     message: 'Do you want to discard unsaved changes?',
@@ -178,6 +238,12 @@ function confirmDiscardDialog(callback) {
   });
 }
 
+/**
+ * Create a dialog box to confirm a reset action
+ *
+ * @param {function} callback Executed iff the user selects YES
+ * @returns {undefined}
+ */
 function confirmResetDialog(callback) {
   vex.dialog.confirm({
     message: 'Do you want to reset the new client form?',
@@ -193,9 +259,18 @@ function confirmResetDialog(callback) {
   });
 }
 
+/**
+ * Create a dialog box if there are modified inputs
+ * If there are modified inputs and the user selects YES, or if there are no
+ * modified inputs, then the form is reset and onContinue is executed.
+ * Otherwise, nothing happens.
+ *
+ * @param {function} onContinue Executed if no inputs are modified or the user selects YES
+ * @returns {undefined}
+ */
 function confirmDiscardAndReset(onContinue) {
-  if (getModifiedInputs().length) {
-    confirmDiscardDialog(function confirm() {
+  if (findModifiedInputs().length) {
+    confirmDiscardDialog(function onConfirm() {
       resetFormData();
       if (typeof onContinue === 'function') onContinue();
     });
@@ -263,6 +338,12 @@ function renderUserList(client, userId) {
   }
 }
 
+/**
+ * Perform necessary steps for configuring the new child client form
+ *
+ * @param {Object} parentClientDiv the div of the parent client
+ * @returns {undefined}
+ */
 function setupChildClientForm(parentClientDiv) {
   var parentClientId = parentClientDiv.attr('data-client-id').valueOf();
   var template = childNodePlaceholder.replace(/{{class}}/g, parentClientDiv.hasClass('card-100') ? 'card-90' : 'card-80');
@@ -276,7 +357,7 @@ function setupChildClientForm(parentClientDiv) {
       confirmDiscardAndReset(function onContinue() {
         clearClientSelection();
         removeClientInserts();
-        closeClientDetails();
+        hideClientDetails();
       });
     });
 
@@ -284,6 +365,11 @@ function setupChildClientForm(parentClientDiv) {
   $('#client-form #form-buttons-new').show();
 }
 
+/**
+ * Perform necessary steps for configuring the new client form
+ *
+ * @returns {undefined}
+ */
 function setupClientForm() {
   var $clientForm = $('#client-form');
   clearFormData();
@@ -292,14 +378,15 @@ function setupClientForm() {
 }
 
 /**
- * Repopulate client form with details for the provided client.
+ * Repopulate client form with details for the provided client
+ *
+ * @param {Object} clientDiv the div for whom data will be retrieved
+ * @returns {undefined}
  */
 function getClientDetail(clientDiv) {
   var clientId = clientDiv.attr('data-client-id').valueOf();
 
   clearFormData();
-
-
   $.ajax({
     type: 'GET',
     url: 'ClientAdmin/ClientDetail/' + clientId,
@@ -309,20 +396,12 @@ function getClientDetail(clientDiv) {
   }).done(function onDone(response) {
     populateClientDetails(response.ClientEntity);
     renderUserList(response);
-    if (clientDiv.is('[disabled]')) { // should be elsewhere??
+    if (clientDiv.is('[disabled]')) { // FIXME: should be elsewhere??
       $('#client-info #edit-client-icon').hide();
     }
   }).fail(function onFail(response) {
     toastr.warning(response.getResponseHeader('Warning'));
   });
-}
-
-function EditClientDetail(clientDiv) {
-
-}
-
-function toggleEditExistingClient() {
-  EditClientDetail($('div[selected]'));
 }
 
 function renderClientNode(client, level) {
@@ -385,38 +464,43 @@ function renderClientNode(client, level) {
   }
 }
 
-// Handles click events for all client cards (and client inserts)
-function cardClickHandler(clickedCard) {
+/**
+ * Handle click events for all client cards and client inserts
+ *
+ * @param {jQuery} $clickedCard the card that was clicked
+ * @returns {undefined}
+ */
+function cardClickHandler($clickedCard) {
   var $clientTree = $('#client-tree');
-  var sameCard = (clickedCard[0] === $clientTree.find('[selected]')[0]);
+  var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
   if ($clientTree.has('[selected]').length) {
     confirmDiscardAndReset(function onContinue() {
       if (sameCard) {
         clearClientSelection();
-        closeClientDetails();
+        hideClientDetails();
       } else {
         if ($('.client-insert').length) {
           removeClientInserts();
         }
         clearClientSelection();
-        clickedCard.attr('selected', '');
+        $clickedCard.attr('selected', '');
         setClientFormReadOnly();
-        getClientDetail(clickedCard);
-        openClientDetails();
+        getClientDetail($clickedCard);
+        showClientDetails();
       }
     });
   } else {
     clearClientSelection();
-    clickedCard.attr('selected', '');
+    $clickedCard.attr('selected', '');
     setClientFormReadOnly();
-    getClientDetail(clickedCard);
-    openClientDetails();
+    getClientDetail($clickedCard);
+    showClientDetails();
   }
 }
 
-function cardDeleteClickHandler(clickedCard) {
-  var clientId = clickedCard.attr('data-client-id').valueOf();
-  var clientName = clickedCard.find('.card-body-primary-text').first().text();
+function cardDeleteClickHandler($clickedCard) {
+  var clientId = $clickedCard.attr('data-client-id').valueOf();
+  var clientName = $clickedCard.find('.card-body-primary-text').first().text();
 
   vex.dialog.confirm({
     unsafeMessage: 'Do you want to delete <strong>' + clientName + '</strong>?<br /><br /> This action <strong><u>cannot</u></strong> be undone.',
@@ -454,57 +538,69 @@ function cardDeleteClickHandler(clickedCard) {
   });
 }
 
-function cardEditClickHandler(clickedCard) {
+/**
+ * Handle click events for all client card edit buttons
+ *
+ * @param {jQuery} $clickedCard the card that was clicked
+ * @returns {undefined}
+ */
+function cardEditClickHandler($clickedCard) {
   var $clientTree = $('#client-tree');
-  var sameCard = (clickedCard[0] === $clientTree.find('[selected]')[0]);
+  var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
       confirmDiscardAndReset(function onContinue() {
         removeClientInserts();
         clearClientSelection();
-        clickedCard.attr({ selected: '', editing: '' });
-        getClientDetail(clickedCard);
-        openClientDetails();
+        $clickedCard.attr({ selected: '', editing: '' });
+        getClientDetail($clickedCard);
+        showClientDetails();
       });
     }
   } else {
     clearClientSelection();
-    clickedCard.attr({ selected: '', editing: '' });
-    getClientDetail(clickedCard);
+    $clickedCard.attr({ selected: '', editing: '' });
+    getClientDetail($clickedCard);
     setClientFormWriteable();
-    openClientDetails();
+    showClientDetails();
   }
 }
 
-function editIconClickHandler() {
-  setClientFormWriteable();
-}
-
-function cardCreateNewChildClickHandler(clickedCard) {
+/**
+ * Handle click events for all client card new child buttons
+ *
+ * @param {jQuery} $clickedCard the card that was clicked
+ * @returns {undefined}
+ */
+function cardCreateNewChildClickHandler($clickedCard) {
   var $clientTree = $('#client-tree');
-  var sameCard = (clickedCard[0] === $clientTree.find('[selected]').parent().prev().find('.card-container')[0]);
+  var sameCard = ($clickedCard[0] === $clientTree.find('[selected]').parent().prev().find('.card-container')[0]);
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
       confirmDiscardAndReset(function onContinue() {
         removeClientInserts();
         clearClientSelection();
-        setupChildClientForm(clickedCard);
-        clickedCard.parent().next('li').find('div.card-container')
+        setupChildClientForm($clickedCard);
+        $clickedCard.parent().next('li').find('div.card-container')
           .attr({ selected: '', editing: '' });
-        openClientDetails();
+        showClientDetails();
       });
     }
   } else {
     clearClientSelection();
-    setupChildClientForm(clickedCard);
-    clickedCard.parent().next('li').find('div.card-container')
+    setupChildClientForm($clickedCard);
+    $clickedCard.parent().next('li').find('div.card-container')
       .attr({ selected: '', editing: '' });
     setClientFormWriteable();
-    openClientDetails();
+    showClientDetails();
   }
 }
 
-// Handles click events for all client cards (and client inserts)
+/**
+ * Handle click events for the create new client card
+ *
+ * @returns {undefined}
+ */
 function createNewClientClickHandler() {
   var $clientTree = $('#client-tree');
   var sameCard = ($('#create-new-client-card')[0] === $clientTree.find('[selected]')[0]);
@@ -512,7 +608,7 @@ function createNewClientClickHandler() {
     confirmDiscardAndReset(function onContinue() {
       if (sameCard) {
         clearClientSelection();
-        closeClientDetails();
+        hideClientDetails();
       } else {
         if ($('.client-insert').length) {
           removeClientInserts();
@@ -521,8 +617,8 @@ function createNewClientClickHandler() {
         setupClientForm();
         $('#create-new-client-card').attr('selected', '');
         setClientFormWriteable();
-        closeClientUsers();
-        openClientDetails();
+        hideClientUsers();
+        showClientDetails();
       }
     });
   } else {
@@ -530,9 +626,35 @@ function createNewClientClickHandler() {
     setupClientForm();
     $('#create-new-client-card').attr('selected', '');
     setClientFormWriteable();
-    closeClientUsers();
-    openClientDetails();
+    hideClientUsers();
+    showClientDetails();
   }
+}
+
+/**
+* Handle click events for the client form edit icon
+*
+* @returns {undefined}
+*/
+function editIconClickHandler() {
+  setClientFormWriteable();
+}
+
+/**
+* Handle click events for the client form cancel icon
+*
+* @returns {undefined}
+*/
+function cancelIconClickHandler() {
+  confirmDiscardAndReset(function onContinue() {
+    if ($('#client-tree [selected]').attr('data-client-id')) {
+      $('#client-tree [editing]').removeAttr('editing');
+      setClientFormReadOnly();
+    } else {
+      clearClientSelection();
+      hideClientDetails();
+    }
+  });
 }
 
 function renderClientTree(clientId) {
@@ -650,34 +772,12 @@ function submitClientForm(event) {
   }
 }
 
-function resetNewClientForm() {
-  var $modifiedInputs = getModifiedInputs();
-  if ($modifiedInputs.length) {
-    confirmResetDialog(function confirm() {
-      resetFormData();
-    });
-  }
-}
-
-function undoChangesEditClientForm() {
-  confirmDiscardDialog(function confirm() {
-    var clientId = $('#client-form #Id').val();
-    EditClientDetail($('#client-tree div[data-client-id="' + clientId + '"]'));
-  });
-}
-
-function cancelIconClickHandler() {
-  confirmDiscardAndReset(function onContinue() {
-    if ($('#client-tree [selected]').attr('data-client-id')) {
-      $('#client-tree [editing]').removeAttr('editing');
-      setClientFormReadOnly();
-    } else {
-      clearClientSelection();
-      closeClientDetails();
-    }
-  });
-}
-
+/**
+* Filter the client tree by a string
+*
+* @param {String} searchString the string to filter by
+* @returns {undefined}
+*/
 function searchClientTree(searchString) {
   $('#client-tree-list').children('.hr').hide();
   $('#client-tree-list div[data-search-string]').each(function forEach(index, element) {
@@ -691,6 +791,12 @@ function searchClientTree(searchString) {
   });
 }
 
+/**
+* Filter the user list by a string
+*
+* @param {String} searchString the string to filter by
+* @returns {undefined}
+*/
 function searchUser(searchString) {
   $('#client-user-list div[data-search-string]').each(function forEach(index, element) {
     if ($(element).attr('data-search-string').indexOf(searchString.toUpperCase()) > -1) {
@@ -707,10 +813,8 @@ $(document).ready(function onReady() {
   $('#add-client-icon').click(createNewClientClickHandler);
   $('#edit-client-icon').click(editIconClickHandler);
   $('#cancel-edit-client-icon').click(cancelIconClickHandler);
-
   $('#expand-user-icon').click(expandAllUsers);
   $('#collapse-user-icon').click(collapseAllUsers);
-
   $('#create-new-button').click(submitClientForm);
   $('#save-changes-button').click(submitClientForm);
   $('#reset-form-button').click(confirmDiscardAndReset);
@@ -727,7 +831,7 @@ $(document).ready(function onReady() {
   // TODO: find a better place for this
   $('#client-form').find(':input,select')
     .change(function onChange() {
-      if (getModifiedInputs().length) {
+      if (findModifiedInputs().length) {
         $('#undo-changes-button').show();
       } else {
         $('#undo-changes-button').hide();
