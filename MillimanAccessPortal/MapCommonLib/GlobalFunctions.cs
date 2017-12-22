@@ -8,14 +8,14 @@ namespace MapCommonLib
 {
     public static class GlobalFunctions
     {
+        static Regex EmailAddressValidationRegex = new Regex (@"^(([^<>()[\]\\.,;:\s@']+(\.[^<>()[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$",
+                                                                RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
+
         public static bool IsValidEmail(string TestAddress)
         {
             try
             {
-                return Regex.IsMatch(TestAddress,
-                    @"^(([^<>()[\]\\.,;:\s@']+(\.[^<>()[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$"
-                    , RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
-
+                return EmailAddressValidationRegex.IsMatch(TestAddress);
             }
             catch 
             {
