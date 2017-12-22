@@ -385,26 +385,6 @@ function renderClientNode(client, level) {
   }
 }
 
-/*
-function displayButtonsReadOnly() {
-
-}
-
-function displayButtonsWriteable() {
-  $('#form-buttons-new').hide();
-  $('#form-buttons-edit').show();
-  $('#undo-changes-button').hide();
-  $('#client-form').find(':input,select')
-    .change(function onChange() {
-      if (getModifiedInputs().length) {
-        $('#undo-changes-button').show();
-      } else {
-        $('#undo-changes-button').hide();
-      }
-    });
-}
-*/
-
 // Handles click events for all client cards (and client inserts)
 function cardClickHandler(clickedCard) {
   var $clientTree = $('#client-tree');
@@ -480,10 +460,10 @@ function cardEditClickHandler(clickedCard) {
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
       confirmDiscardAndReset(function onContinue() {
+        removeClientInserts();
         clearClientSelection();
         clickedCard.attr({ selected: '', editing: '' });
         getClientDetail(clickedCard);
-        // displayButtonsWriteable();
         openClientDetails();
       });
     }
@@ -492,14 +472,12 @@ function cardEditClickHandler(clickedCard) {
     clickedCard.attr({ selected: '', editing: '' });
     getClientDetail(clickedCard);
     setClientFormWriteable();
-    // displayButtonsWriteable();
     openClientDetails();
   }
 }
 
 function editIconClickHandler() {
   setClientFormWriteable();
-  // displayButtonsWriteable();
 }
 
 function cardCreateNewChildClickHandler(clickedCard) {
@@ -693,7 +671,6 @@ function cancelIconClickHandler() {
     if ($('#client-tree [selected]').attr('data-client-id')) {
       $('#client-tree [editing]').removeAttr('editing');
       setClientFormReadOnly();
-      // displayButtonsReadOnly();
     } else {
       clearClientSelection();
       closeClientDetails();
