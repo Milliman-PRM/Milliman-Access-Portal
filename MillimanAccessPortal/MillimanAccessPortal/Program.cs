@@ -22,7 +22,7 @@ namespace MillimanAccessPortal
                 IServiceProvider serviceProvider = scope.ServiceProvider;
                 try
                 {
-                    ApplicationDbContext.InitializeAll(serviceProvider);
+                    ApplicationDbContext.InitializeAll(serviceProvider).Wait();
                 }
                 catch (Exception e)
                 {
