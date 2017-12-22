@@ -15,14 +15,23 @@ function clearClientSelection() {
   $('.card-container').removeAttr('editing selected');
 }
 
-function closeClientForm() {
-  $('#client-info').hide();
-  $('#client-users').hide();
+function closeClientDetails() {
+  $('#client-info').hide(SHOW_DURATION);
+  $('#client-users').hide(SHOW_DURATION);
 }
 
-function openClientForm() {
+function closeClientUsers() {
+  $('#client-users').hide(SHOW_DURATION);
+}
+
+/**
+ * $.show() client form components and focus the first input element.
+ *
+ * @returns {undefined}
+ */
+function openClientDetails() {
   var $clientPanes = $('#client-info');
-  if ($('#client-form #Id').val()) {
+  if ($('#client-form #Id').val()) { // TODO: change this condition
     $clientPanes = $clientPanes.add($('#client-users'));
   }
   $clientPanes.show(SHOW_DURATION, function onShown() {
@@ -49,6 +58,14 @@ function setClientFormWriteable() {
   $('#cancel-edit-client-icon').show();
   $clientForm.find(':input').removeAttr('readonly');
   $clientForm.find(':input,select').removeAttr('disabled');
+  if ($('#client-tree [selected]').attr('data-client-id')) {
+    $('#form-buttons-new').hide();
+    $('#form-buttons-edit').show();
+    $('#undo-changes-button').hide();
+  } else {
+    $('#form-buttons-new').show();
+    $('#form-buttons-edit').hide();
+  }
   $clientForm.find('.selectized').each(function enable() {
     this.selectize.enable();
   });
@@ -110,30 +127,6 @@ function expandAllUsers() {
 function collapseAllUsers() {
   $('#client-user-list div.card-expansion-container[maximized]').removeAttr('maximized');
   toggleExpandCollapse();
-}
-
-function makeFormReadOnly() {
-  $('#edit-client-icon').show();
-  $('#cancel-edit-client-icon').hide();
-  $('#client-form :input').attr('readonly', 'readonly');
-  $('#client-form :input, #client-form select').attr('disabled', 'disabled');
-  $('#client-form #form-buttons-new').hide();
-  $('#client-form #form-buttons-edit').hide();
-  $('#client-form #AcceptedEmailDomainList')[0].selectize.disable();
-  $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.disable();
-}
-
-function showClientForm() {
-  // deprecated
-}
-
-function makeFormWriteable() {
-  $('#edit-client-icon').hide();
-  $('#cancel-edit-client-icon').show();
-  $('#client-form :input').removeAttr('readonly');
-  $('#client-form :input, #client-form select').removeAttr('disabled');
-  $('#client-form #AcceptedEmailDomainList')[0].selectize.enable();
-  $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.enable();
 }
 
 function resetValidation() {
@@ -204,10 +197,11 @@ function confirmDiscardAndReset(onContinue) {
   if (getModifiedInputs().length) {
     confirmDiscardDialog(function confirm() {
       resetFormData();
-      onContinue();
+      if (typeof onContinue === 'function') onContinue();
     });
   } else {
-    onContinue();
+    resetFormData();
+    if (typeof onContinue === 'function') onContinue();
   }
 }
 
@@ -269,16 +263,6 @@ function renderUserList(client, userId) {
   }
 }
 
-function newClientFormSetup() {
-  removeClientInserts();
-  clearClientSelection();
-  makeFormWriteable();
-  $('#client-tree #create-new-client-card').attr('selected', '');
-  $('#client-form #form-buttons-edit').hide();
-  $('#client-form #form-buttons-new').show();
-  showClientForm();
-}
-
 function setupChildClientForm(parentClientDiv) {
   var parentClientId = parentClientDiv.attr('data-client-id').valueOf();
   var template = childNodePlaceholder.replace(/{{class}}/g, parentClientDiv.hasClass('card-100') ? 'card-90' : 'card-80');
@@ -292,7 +276,7 @@ function setupChildClientForm(parentClientDiv) {
       confirmDiscardAndReset(function onContinue() {
         clearClientSelection();
         removeClientInserts();
-        closeClientForm();
+        closeClientDetails();
       });
     });
 
@@ -300,9 +284,16 @@ function setupChildClientForm(parentClientDiv) {
   $('#client-form #form-buttons-new').show();
 }
 
+function setupClientForm() {
+  var $clientForm = $('#client-form');
+  clearFormData();
+  $clientForm.find('#form-buttons-edit').hide();
+  $clientForm.find('#form-buttons-new').show();
+}
+
 /**
-  * Repopulate client form with details for the provided client
-  */
+ * Repopulate client form with details for the provided client.
+ */
 function getClientDetail(clientDiv) {
   var clientId = clientDiv.attr('data-client-id').valueOf();
 
@@ -327,80 +318,11 @@ function getClientDetail(clientDiv) {
 }
 
 function EditClientDetail(clientDiv) {
-  var clientId;
 
-  removeClientInserts();
-  clientId = clientDiv.attr('data-client-id').valueOf();
-
-  $.ajax({
-    type: 'GET',
-    url: 'ClientAdmin/ClientDetail/' + clientId,
-    headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
-    }
-  }).done(function onDone(response) {
-    populateClientDetails(response.ClientEntity);
-    // Change the dom to reflect the selected client
-    clearClientSelection();
-    // Show the form in read/write mode
-    makeFormWriteable();
-    $('#client-form #form-buttons-new').hide();
-    $('#client-form #form-buttons-edit').show();
-    $('#undo-changes-button').hide();
-    showClientForm();
-    $('#client-form :input, #client-form select')
-      .on('change', function checkFormChanges() {
-        if ($(this).value !== $(this).attr('data-original-value')) {
-          $('#undo-changes-button').show();
-        }
-      });
-  }).fail(function onFail(response) {
-    toastr.warning(response.getResponseHeader('Warning'));
-  });
 }
 
 function toggleEditExistingClient() {
   EditClientDetail($('div[selected]'));
-}
-
-function deleteClient(clientDiv) {
-  var clientId = clientDiv.attr('data-client-id').valueOf();
-  var clientName = clientDiv.find('.card-body-primary-text').first().text();
-
-  vex.dialog.confirm({
-    unsafeMessage: 'Do you want to delete <strong>' + clientName + '</strong>?<br /><br /> This action <strong><u>cannot</u></strong> be undone.',
-    buttons: [
-      $.extend({}, vex.dialog.buttons.YES, { text: 'Delete', className: 'red-button' }),
-      $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
-    ],
-    callback: function onSelect(result) {
-      if (result) {
-        vex.dialog.prompt({
-          unsafeMessage: 'Please provide your password to delete <strong>' + clientName + '</strong>.',
-          input: [
-            '<input name="password" type="password" placeholder="Password" required />'
-          ].join(''),
-          buttons: [
-            $.extend({}, vex.dialog.buttons.YES, { text: 'Delete', className: 'red-button' }),
-            $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
-          ],
-          callback: function onSelectInner(resultInner) {
-            if (resultInner) {
-              removeClientNode(clientId, clientName, resultInner);
-            } else if (resultInner === '') {
-              toastr.warning('Please enter your password to proceed');
-              return false;
-            } else {
-              toastr.info('Deletion was canceled');
-            }
-            return true;
-          }
-        });
-      } else {
-        toastr.info('Deletion was canceled');
-      }
-    }
-  });
 }
 
 function renderClientNode(client, level) {
@@ -463,6 +385,26 @@ function renderClientNode(client, level) {
   }
 }
 
+/*
+function displayButtonsReadOnly() {
+
+}
+
+function displayButtonsWriteable() {
+  $('#form-buttons-new').hide();
+  $('#form-buttons-edit').show();
+  $('#undo-changes-button').hide();
+  $('#client-form').find(':input,select')
+    .change(function onChange() {
+      if (getModifiedInputs().length) {
+        $('#undo-changes-button').show();
+      } else {
+        $('#undo-changes-button').hide();
+      }
+    });
+}
+*/
+
 // Handles click events for all client cards (and client inserts)
 function cardClickHandler(clickedCard) {
   var $clientTree = $('#client-tree');
@@ -471,7 +413,7 @@ function cardClickHandler(clickedCard) {
     confirmDiscardAndReset(function onContinue() {
       if (sameCard) {
         clearClientSelection();
-        closeClientForm();
+        closeClientDetails();
       } else {
         if ($('.client-insert').length) {
           removeClientInserts();
@@ -480,6 +422,7 @@ function cardClickHandler(clickedCard) {
         clickedCard.attr('selected', '');
         setClientFormReadOnly();
         getClientDetail(clickedCard);
+        openClientDetails();
       }
     });
   } else {
@@ -487,12 +430,48 @@ function cardClickHandler(clickedCard) {
     clickedCard.attr('selected', '');
     setClientFormReadOnly();
     getClientDetail(clickedCard);
-    openClientForm();
+    openClientDetails();
   }
 }
 
 function cardDeleteClickHandler(clickedCard) {
-  // do nothing for now
+  var clientId = clickedCard.attr('data-client-id').valueOf();
+  var clientName = clickedCard.find('.card-body-primary-text').first().text();
+
+  vex.dialog.confirm({
+    unsafeMessage: 'Do you want to delete <strong>' + clientName + '</strong>?<br /><br /> This action <strong><u>cannot</u></strong> be undone.',
+    buttons: [
+      $.extend({}, vex.dialog.buttons.YES, { text: 'Delete', className: 'red-button' }),
+      $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
+    ],
+    callback: function onSelect(confirm) {
+      if (confirm) {
+        vex.dialog.prompt({
+          unsafeMessage: 'Please provide your password to delete <strong>' + clientName + '</strong>.',
+          input: [
+            '<input name="password" type="password" placeholder="Password" required />'
+          ].join(''),
+          buttons: [
+            $.extend({}, vex.dialog.buttons.YES, { text: 'Delete', className: 'red-button' }),
+            $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
+          ],
+          callback: function onSelectWithPassword(password) {
+            if (password) {
+              removeClientNode(clientId, clientName, password);
+            } else if (password === '') {
+              toastr.warning('Please enter your password to proceed');
+              return false;
+            } else {
+              toastr.info('Deletion was canceled');
+            }
+            return true;
+          }
+        });
+      } else {
+        toastr.info('Deletion was canceled');
+      }
+    }
+  });
 }
 
 function cardEditClickHandler(clickedCard) {
@@ -504,6 +483,8 @@ function cardEditClickHandler(clickedCard) {
         clearClientSelection();
         clickedCard.attr({ selected: '', editing: '' });
         getClientDetail(clickedCard);
+        // displayButtonsWriteable();
+        openClientDetails();
       });
     }
   } else {
@@ -511,21 +492,28 @@ function cardEditClickHandler(clickedCard) {
     clickedCard.attr({ selected: '', editing: '' });
     getClientDetail(clickedCard);
     setClientFormWriteable();
-    openClientForm(); // TODO: only when not previously open
+    // displayButtonsWriteable();
+    openClientDetails();
   }
 }
 
-function cardAddChildClickHandler(clickedCard) {
+function editIconClickHandler() {
+  setClientFormWriteable();
+  // displayButtonsWriteable();
+}
+
+function cardCreateNewChildClickHandler(clickedCard) {
   var $clientTree = $('#client-tree');
   var sameCard = (clickedCard[0] === $clientTree.find('[selected]').parent().prev().find('.card-container')[0]);
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
       confirmDiscardAndReset(function onContinue() {
-        clearClientSelection();
         removeClientInserts();
+        clearClientSelection();
         setupChildClientForm(clickedCard);
         clickedCard.parent().next('li').find('div.card-container')
           .attr({ selected: '', editing: '' });
+        openClientDetails();
       });
     }
   } else {
@@ -534,7 +522,38 @@ function cardAddChildClickHandler(clickedCard) {
     clickedCard.parent().next('li').find('div.card-container')
       .attr({ selected: '', editing: '' });
     setClientFormWriteable();
-    openClientForm(); // TODO: only when not previously open
+    openClientDetails();
+  }
+}
+
+// Handles click events for all client cards (and client inserts)
+function createNewClientClickHandler() {
+  var $clientTree = $('#client-tree');
+  var sameCard = ($('#create-new-client-card')[0] === $clientTree.find('[selected]')[0]);
+  if ($clientTree.has('[selected]').length) {
+    confirmDiscardAndReset(function onContinue() {
+      if (sameCard) {
+        clearClientSelection();
+        closeClientDetails();
+      } else {
+        if ($('.client-insert').length) {
+          removeClientInserts();
+        }
+        clearClientSelection();
+        setupClientForm();
+        $('#create-new-client-card').attr('selected', '');
+        setClientFormWriteable();
+        closeClientUsers();
+        openClientDetails();
+      }
+    });
+  } else {
+    clearClientSelection();
+    setupClientForm();
+    $('#create-new-client-card').attr('selected', '');
+    setClientFormWriteable();
+    closeClientUsers();
+    openClientDetails();
   }
 }
 
@@ -551,8 +570,8 @@ function renderClientTree(clientId) {
     });
   $('div.card-button-delete')
     .click(function onClick(event) {
-      deleteClient($(this).parents('div[data-client-id]'));
       event.stopPropagation();
+      cardDeleteClickHandler($(this).parents('div[data-client-id]'));
     });
   $('div.card-button-edit')
     .click(function onClick(event) {
@@ -562,14 +581,17 @@ function renderClientTree(clientId) {
   $('div.card-button-new-child')
     .click(function onClick(event) {
       event.stopPropagation();
-      cardAddChildClickHandler($(this).parents('div[data-client-id]'));
+      cardCreateNewChildClickHandler($(this).parents('div[data-client-id]'));
     });
   if (clientId) {
     $('[data-client-id="' + clientId + '"]').click();
   }
   if ($('#add-client-icon').length) {
     $clientTreeList.append(clientCard);
-    $('#create-new-client-card').click(newClientFormSetup);
+    $('#create-new-client-card')
+      .click(function onClick() {
+        createNewClientClickHandler($(this));
+      });
   }
 }
 
@@ -666,26 +688,17 @@ function undoChangesEditClientForm() {
   });
 }
 
-function cancelEditTasks(clientId) {
-  makeFormReadOnly();
-  // runs when canceling a new user form
-  if (!clientId) {
-    removeClientInserts();
-    resetFormData();
-    clearClientSelection();
-  }
-}
-
-function cancelEditClientForm() {
-  var clientId = $('#client-form #Id').val();
-  if (getModifiedInputs().length) {
-    confirmDiscardDialog(function confirm() {
-      resetFormData();
-      cancelEditTasks(clientId);
-    });
-  } else {
-    cancelEditTasks(clientId);
-  }
+function cancelIconClickHandler() {
+  confirmDiscardAndReset(function onContinue() {
+    if ($('#client-tree [selected]').attr('data-client-id')) {
+      $('#client-tree [editing]').removeAttr('editing');
+      setClientFormReadOnly();
+      // displayButtonsReadOnly();
+    } else {
+      clearClientSelection();
+      closeClientDetails();
+    }
+  });
 }
 
 function searchClientTree(searchString) {
@@ -714,23 +727,35 @@ function searchUser(searchString) {
 $(document).ready(function onReady() {
   getClientTree();
 
+  $('#add-client-icon').click(createNewClientClickHandler);
+  $('#edit-client-icon').click(editIconClickHandler);
+  $('#cancel-edit-client-icon').click(cancelIconClickHandler);
+
   $('#expand-user-icon').click(expandAllUsers);
   $('#collapse-user-icon').click(collapseAllUsers);
-  $('#add-client-icon').click(newClientFormSetup);
-  $('#edit-client-icon').click(toggleEditExistingClient);
+
   $('#create-new-button').click(submitClientForm);
   $('#save-changes-button').click(submitClientForm);
-  $('#reset-form-button').click(resetNewClientForm);
-  $('#undo-changes-button').click(undoChangesEditClientForm);
-  $('#cancel-edit-client-icon').click(cancelEditClientForm);
+  $('#reset-form-button').click(confirmDiscardAndReset);
+  $('#undo-changes-button').click(confirmDiscardAndReset);
 
-  $('#client-search-box').keyup(function clientSearchBoxKeyup() {
+  $('#client-search-box').keyup(function onKeyup() {
     searchClientTree($(this).val());
   });
 
-  $('#user-search-box').keyup(function userSearchBoxKeyup() {
+  $('#user-search-box').keyup(function onKeyup() {
     searchUser($(this).val());
   });
+
+  // TODO: find a better place for this
+  $('#client-form').find(':input,select')
+    .change(function onChange() {
+      if (getModifiedInputs().length) {
+        $('#undo-changes-button').show();
+      } else {
+        $('#undo-changes-button').hide();
+      }
+    });
 
   $('#client-form #AcceptedEmailDomainList').selectize({
     plugins: ['remove_button'],
