@@ -53,7 +53,7 @@ function hideClientUsers() {
  */
 function showClientDetails() {
   var $clientPanes = $('#client-info');
-  if ($('#client-tree').find('[selected]').attr('data-client-id')) {
+  if ($('#client-tree [selected]').attr('data-client-id')) {
     $clientPanes = $clientPanes.add($('#client-users'));
   }
   $clientPanes.show(SHOW_DURATION, function onShown() {
@@ -285,12 +285,13 @@ function confirmResetDialog(callback) {
  * modified inputs, then the form is reset and onContinue is executed.
  * Otherwise, nothing happens.
  *
+ * @param {function} confirmDialog Confirmation dialog function
  * @param {function} onContinue Executed if no inputs are modified or the user selects YES
  * @returns {undefined}
  */
-function confirmDiscardAndReset(onContinue) {
+function confirmAndReset(confirmDialog, onContinue) {
   if (findModifiedInputs().length) {
-    confirmDiscardDialog(function onConfirm() {
+    confirmDialog(function onConfirm() {
       resetFormData();
       if (typeof onContinue === 'function') onContinue();
     });
@@ -374,7 +375,7 @@ function setupChildClientForm(parentClientDiv) {
   parentClientDiv.parent().next().find('div.card-container')
     .click(function onClick() {
       // TODO: move this to a function
-      confirmDiscardAndReset(function onContinue() {
+      confirmAndReset(confirmDiscardDialog, function onContinue() {
         clearClientSelection();
         removeClientInserts();
         hideClientDetails();
@@ -495,7 +496,7 @@ function cardClickHandler($clickedCard) {
   var $clientTree = $('#client-tree');
   var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
   if ($clientTree.has('[selected]').length) {
-    confirmDiscardAndReset(function onContinue() {
+    confirmAndReset(confirmDiscardDialog, function onContinue() {
       if (sameCard) {
         clearClientSelection();
         hideClientDetails();
@@ -570,7 +571,7 @@ function cardEditClickHandler($clickedCard) {
   var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
-      confirmDiscardAndReset(function onContinue() {
+      confirmAndReset(confirmDiscardDialog, function onContinue() {
         removeClientInserts();
         clearClientSelection();
         $clickedCard.attr({ selected: '', editing: '' });
@@ -598,7 +599,7 @@ function cardCreateNewChildClickHandler($clickedCard) {
   var sameCard = ($clickedCard[0] === $clientTree.find('[selected]').parent().prev().find('.card-container')[0]);
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
-      confirmDiscardAndReset(function onContinue() {
+      confirmAndReset(confirmDiscardDialog, function onContinue() {
         removeClientInserts();
         clearClientSelection();
         setupChildClientForm($clickedCard);
@@ -626,7 +627,7 @@ function createNewClientClickHandler() {
   var $clientTree = $('#client-tree');
   var sameCard = ($('#create-new-client-card')[0] === $clientTree.find('[selected]')[0]);
   if ($clientTree.has('[selected]').length) {
-    confirmDiscardAndReset(function onContinue() {
+    confirmAndReset(confirmDiscardDialog, function onContinue() {
       if (sameCard) {
         clearClientSelection();
         hideClientDetails();
@@ -667,7 +668,7 @@ function editIconClickHandler() {
 * @returns {undefined}
 */
 function cancelIconClickHandler() {
-  confirmDiscardAndReset(function onContinue() {
+  confirmAndReset(confirmDiscardDialog, function onContinue() {
     if ($('#client-tree [selected]').attr('data-client-id')) {
       $('#client-tree [editing]').removeAttr('editing');
       setClientFormReadOnly();
@@ -838,8 +839,12 @@ $(document).ready(function onReady() {
   $('#collapse-user-icon').click(collapseAllUsers);
   $('#create-new-button').click(submitClientForm);
   $('#save-changes-button').click(submitClientForm);
-  $('#reset-form-button').click(confirmDiscardAndReset);
-  $('#undo-changes-button').click(confirmDiscardAndReset);
+  $('#reset-form-button').click(function confirmResetAndReset() {
+    confirmAndReset(confirmResetDialog);
+  });
+  $('#undo-changes-button').click(function confirmDiscardAndReset() {
+    confirmAndReset(confirmDiscardDialog);
+  });
 
   $('#client-search-box').keyup(function onKeyup() {
     searchClientTree($(this).val());
