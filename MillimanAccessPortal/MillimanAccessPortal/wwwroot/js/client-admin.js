@@ -11,7 +11,6 @@ var SHOW_DURATION = 50;
  * Remove all client insert elements.
  * While this function removes all client inserts, there should never be more
  * than one client insert present at a time.
- *
  * @returns {undefined}
  */
 function removeClientInserts() {
@@ -20,7 +19,6 @@ function removeClientInserts() {
 
 /**
  * Clear 'selected' and 'editing' status from all card containers.
- *
  * @returns {undefined}
  */
 function clearClientSelection() {
@@ -29,7 +27,6 @@ function clearClientSelection() {
 
 /**
  * Hide the client info and client users panes
- *
  * @returns {undefined}
  */
 function hideClientDetails() {
@@ -39,7 +36,6 @@ function hideClientDetails() {
 
 /**
  * Hide the client users pane
- *
  * @returns {undefined}
  */
 function hideClientUsers() {
@@ -48,7 +44,6 @@ function hideClientUsers() {
 
 /**
  * Show client detail components and focus the first form element.
- *
  * @returns {undefined}
  */
 function showClientDetails() {
@@ -63,7 +58,6 @@ function showClientDetails() {
 
 /**
  * Set the client form as read only
- *
  * @returns {undefined}
  */
 function setClientFormReadOnly() {
@@ -81,7 +75,6 @@ function setClientFormReadOnly() {
 
 /**
  * Set the client form as writeable
- *
  * @returns {undefined}
  */
 function setClientFormWriteable() {
@@ -132,7 +125,6 @@ function populateClientDetails(ClientEntity) {
 
 /**
  * Populate the Profit Center input
- *
  * @param {Array.<{Id: Number, Name: String, Code: String}>} profitCenterList
  * @returns {undefined}
  */
@@ -169,7 +161,6 @@ function collapseAllUsers() {
 
 /**
  * Reset client form validation and remove validation messages
- *
  * @returns {undefined}
  */
 function resetValidation() {
@@ -181,7 +172,6 @@ function resetValidation() {
  * Find the set of client form input elements whose values have been modified
  * If an input element did not have an original value, then it is considered
  * to be modified only if the current value is not blank.
- *
  * @returns {jQuery} modifiedInputs
  */
 function findModifiedInputs() {
@@ -195,7 +185,6 @@ function findModifiedInputs() {
 
 /**
  * Clear all client form input elements, resulting in a blank form
- *
  * @returns {undefined}
  */
 function clearFormData() {
@@ -212,7 +201,6 @@ function clearFormData() {
 
 /**
  * Clear all user cards from the client user list
- *
  * @returns {undefined}
  */
 function clearUserList() {
@@ -222,7 +210,6 @@ function clearUserList() {
 
 /**
  * Reset all client form input elements to their pre-modified values
- *
  * @returns {undefined}
  */
 function resetFormData() {
@@ -239,7 +226,6 @@ function resetFormData() {
 
 /**
  * Create a dialog box to confirm a discard action
- *
  * @param {function} callback Executed if the user selects YES
  * @returns {undefined}
  */
@@ -260,7 +246,6 @@ function confirmDiscardDialog(callback) {
 
 /**
  * Create a dialog box to confirm a reset action
- *
  * @param {function} callback Executed if the user selects YES
  * @returns {undefined}
  */
@@ -284,7 +269,6 @@ function confirmResetDialog(callback) {
  * If there are modified inputs and the user selects YES, or if there are no
  * modified inputs, then the form is reset and onContinue is executed.
  * Otherwise, nothing happens.
- *
  * @param {function} confirmDialog Confirmation dialog function
  * @param {function} onContinue Executed if no inputs are modified or the user selects YES
  * @returns {undefined}
@@ -361,7 +345,6 @@ function renderUserList(client, userId) {
 
 /**
  * Perform necessary steps for configuring the new child client form
- *
  * @param {Object} parentClientDiv the div of the parent client
  * @returns {undefined}
  */
@@ -388,7 +371,6 @@ function setupChildClientForm(parentClientDiv) {
 
 /**
  * Perform necessary steps for configuring the new client form
- *
  * @returns {undefined}
  */
 function setupClientForm() {
@@ -400,7 +382,6 @@ function setupClientForm() {
 
 /**
  * Repopulate client form with details for the provided client
- *
  * @param {Object} clientDiv the div for whom data will be retrieved
  * @returns {undefined}
  */
@@ -488,7 +469,6 @@ function renderClientNode(client, level) {
 
 /**
  * Display client card details
- *
  * @param  {jQuery} $clientCard The .card-container element to open
  * @return {undefined}
  */
@@ -503,7 +483,6 @@ function openClientCardReadOnly($clientCard) {
 
 /**
  * Allow editing of client card details
- *
  * @param  {jQuery} $clientCard The .card-container element to editing
  * @return {undefined}
  */
@@ -518,7 +497,6 @@ function openClientCardWriteable($clientCard) {
 
 /**
  * Display the new child client form
- *
  * @param  {jQuery} $parentCard The .card-container element that corresponds to the parent client
  *                              of the new child client
  * @return {undefined}
@@ -535,7 +513,6 @@ function openNewChildClientForm($parentCard) {
 
 /**
  * Handle click events for all client cards and client inserts
- *
  * @param {jQuery} $clickedCard the card that was clicked
  * @returns {undefined}
  */
@@ -598,7 +575,6 @@ function cardDeleteClickHandler($clickedCard) {
 
 /**
  * Handle click events for all client card edit buttons
- *
  * @param {jQuery} $clickedCard the card that was clicked
  * @returns {undefined}
  */
@@ -618,7 +594,6 @@ function cardEditClickHandler($clickedCard) {
 
 /**
  * Handle click events for all client card new child buttons
- *
  * @param {jQuery} $clickedCard the card that was clicked
  * @returns {undefined}
  */
@@ -638,7 +613,6 @@ function cardCreateNewChildClickHandler($clickedCard) {
 
 /**
  * Handle click events for the create new client card
- *
  * @returns {undefined}
  */
 function createNewClientClickHandler() {
@@ -672,19 +646,17 @@ function createNewClientClickHandler() {
 }
 
 /**
-* Handle click events for the client form edit icon
-*
-* @returns {undefined}
-*/
+ * Handle click events for the client form edit icon
+ * @returns {undefined}
+ */
 function editIconClickHandler() {
   setClientFormWriteable();
 }
 
 /**
-* Handle click events for the client form cancel icon
-*
-* @returns {undefined}
-*/
+ * Handle click events for the client form cancel icon
+ * @returns {undefined}
+ */
 function cancelIconClickHandler() {
   confirmAndReset(confirmDiscardDialog, function onContinue() {
     if ($('#client-tree [selected]').attr('data-client-id')) {
@@ -813,11 +785,10 @@ function submitClientForm(event) {
 }
 
 /**
-* Filter the client tree by a string
-*
-* @param {String} searchString the string to filter by
-* @returns {undefined}
-*/
+ * Filter the client tree by a string
+ * @param {String} searchString the string to filter by
+ * @returns {undefined}
+ */
 function searchClientTree(searchString) {
   $('#client-tree-list').children('.hr').hide();
   $('#client-tree-list div[data-search-string]').each(function forEach(index, element) {
@@ -832,11 +803,10 @@ function searchClientTree(searchString) {
 }
 
 /**
-* Filter the user list by a string
-*
-* @param {String} searchString the string to filter by
-* @returns {undefined}
-*/
+ * Filter the user list by a string
+ * @param {String} searchString the string to filter by
+ * @returns {undefined}
+ */
 function searchUser(searchString) {
   $('#client-user-list div[data-search-string]').each(function forEach(index, element) {
     if ($(element).attr('data-search-string').indexOf(searchString.toUpperCase()) > -1) {
