@@ -204,7 +204,7 @@ function clearFormData() {
     this.selectize.clear();
     this.selectize.clearOptions();
   });
-  $clientForm.find('input[name!="__RequestVerificationToken"][type!="hidden"],select')
+  $clientForm.find('input[name!="__RequestVerificationToken"],select')
     .not('div.selectize-input input')
     .attr('data-original-value', '').val('');
   resetValidation();
