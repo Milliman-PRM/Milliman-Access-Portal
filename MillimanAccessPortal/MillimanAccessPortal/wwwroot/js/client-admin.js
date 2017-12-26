@@ -297,27 +297,25 @@ function confirmAndReset(confirmDialog, onContinue) {
   }
 }
 
+/**
+ * Render user node by using string substitution on a userNodeTemplate
+ * @param  {Number} clientId ID of the client to which the user belongs
+ * @param  {Object} user     User object to render
+ * @return {undefined}
+ */
 function renderUserNode(clientId, user) {
-  var template = userNodeTemplate;
-  var $template;
+  var $template = $(userNodeTemplate
+    .replace(/{{clientId}}/g, clientId)
+    .replace(/{{id}}/g, user.Id)
+    .replace(/{{name}}/g, user.FirstName + ' ' + user.LastName)
+    .replace(/{{username}}/g, user.UserName)
+    .replace(/{{email}}/g, user.UserName !== user.Email ? user.Email : '{{email}}')
+    .toString());
 
-  template = template.replace(/{{clientId}}/g, clientId);
-  template = template.replace(/{{id}}/g, user.Id);
-  template = template.replace(/{{name}}/g, user.FirstName + ' ' + user.LastName);
-  template = template.replace(/{{username}}/g, user.UserName);
-  if (user.UserName !== user.Email) {
-    template = template.replace(/{{email}}/g, user.Email);
-  }
-
-  // convert template to DOM element for jQuery manipulation
-  $template = $(template.toString());
-
-  $('div.card-container[data-search-string]', $template).attr(
-    'data-search-string',
-    (user.FirstName + ' ' + user.LastName + '|' + user.UserName + '|' + user.Email).toUpperCase()
-  );
-
-  $('.card-body-secondary-text:contains("{{email}}")', $template).remove();
+  $template.find('div.card-container[data-search-string]')
+    .attr('data-search-string', (user.FirstName + ' ' + user.LastName + '|' + user.UserName + '|' + user.Email).toUpperCase());
+  $template.find('.card-body-secondary-text:contains("{{email}}")')
+    .remove();
 
   // if (!client.CanManage) {
   //     $('.icon-container', $template).remove();
@@ -327,27 +325,28 @@ function renderUserNode(clientId, user) {
   $('#client-user-list').append($template);
 }
 
+/**
+ * Render user list for a client
+ * @param  {object} client Client whose user list is to be rendered
+ * @param  {Number} userId ID of a user to be expanded
+ * @return {undefined}
+ */
 function renderUserList(client, userId) {
   $('#client-user-list').empty();
-  client.AssignedUsers.forEach(function forEach(user) {
+  client.AssignedUsers.forEach(function render(user) {
     renderUserNode(client.ClientEntity.Id, user);
   });
-
   $('div.card-button-remove-user').click(function onClick(event) {
-    // removeUserFromClient($(this).parents('div[data-client-id][data-user-id]'));
+    // TODO: Handle remove user click event
     event.stopPropagation();
   });
-  $('div[data-client-id][data-user-id]')
-    .click(function toggleCard(event) {
-      if ($(this).find('div.card-expansion-container').is('[maximized]')) {
-        $(this).find('div.card-expansion-container').removeAttr('maximized');
-      } else {
-        $(this).find('div.card-expansion-container').attr('maximized', '');
-      }
-      showRelevantUserActionIcons();
-      event.stopPropagation();
+  $('div[data-client-id][data-user-id]').click(function toggleCard(event) {
+    event.stopPropagation();
+    $(this).find('div.card-expansion-container').attr('maximized', function toggle(index, attr) {
+      return attr === '' ? null : '';
     });
-
+    showRelevantUserActionIcons();
+  });
   showRelevantUserActionIcons();
 
   if (userId) {
