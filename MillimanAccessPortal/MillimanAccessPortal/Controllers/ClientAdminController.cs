@@ -138,9 +138,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ClientDetailViewModel Model = new ClientDetailViewModel();
-
-            Model.ClientEntity = ThisClient;
+            ClientDetailViewModel Model = new ClientDetailViewModel { ClientEntity = ThisClient };
 
             Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ThisClient.Id.ToString());
 
@@ -287,7 +285,6 @@ namespace MillimanAccessPortal.Controllers
                                                claim.Value == ThisClientMembershipClaim.Value))
             {
                 Response.Headers.Add("Warning", "The requested user is already assigned to the requested client");
-                return await ClientDetail(RequestedClient.Id);
             }
             else
             {
@@ -304,9 +301,9 @@ namespace MillimanAccessPortal.Controllers
                                           AssignedClient = RequestedClient.Name,
                                           AssignedClientId = RequestedClient.Id};
                 AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User Assigned to Client", AuditEventId.UserAssignedToClient, LogDetails, User.Identity.Name, HttpContext.Session.Id) );
-
-                return await ClientDetail(RequestedClient.Id);
             }
+
+            return await ClientDetail(RequestedClient.Id);
         }
 
         [HttpPost]
