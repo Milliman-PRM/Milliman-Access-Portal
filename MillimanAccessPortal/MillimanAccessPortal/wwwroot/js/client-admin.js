@@ -212,7 +212,11 @@ function clearFormData() {
 function resetFormData() {
   var $modifiedInputs = findModifiedInputs();
   $modifiedInputs.each(function resetValue() {
-    $(this).val($(this).attr('data-original-value'));
+    if ($(this).is('.selectized')) {
+      this.selectize.setValue($(this).attr('data-original-value').split(','));
+    } else {
+      $(this).val($(this).attr('data-original-value'));
+    }
   });
   resetValidation();
 }
