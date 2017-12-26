@@ -20,6 +20,7 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapCommonLib;
 using AuditLogLib;
+using AuditLogLib.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -39,7 +40,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly ILogger Logger;
         private readonly StandardQueries Queries;
         private readonly IAuthorizationService AuthorizationService;
-        private readonly AuditLogger AuditLogger;
+        private readonly IAuditLogger AuditLogger;
 
         /// <summary>
         /// Constructor.  Makes instance copies of injected resources from the application. 
@@ -55,7 +56,7 @@ namespace MillimanAccessPortal.Controllers
             ApplicationDbContext DataContextArg,
             StandardQueries QueryArg,
             IAuthorizationService AuthorizationServiceArg,
-            AuditLogger AuditLoggerArg)
+            IAuditLogger AuditLoggerArg)
         {
             QlikviewConfig = QlikviewOptionsAccessorArg.Value;
             UserManager = UserManagerArg;
