@@ -135,28 +135,35 @@ function populateProfitCenterDropDown(profitCenterList) {
   });
 }
 
-function toggleExpandCollapse() {
-  if ($('div.card-expansion-container:not([maximized])').length > 0) {
-    $('#expand-user-icon').show();
-  } else {
-    $('#expand-user-icon').hide();
-  }
-
-  if ($('div.card-expansion-container[maximized]').length > 0) {
-    $('#collapse-user-icon').show();
-  } else {
-    $('#collapse-user-icon').hide();
-  }
+/**
+ * Show or hide collapse/expand icons based on how many user cards are maximized
+ * @return {undefined}
+ */
+function showRelevantUserActionIcons() {
+  $('#collapse-user-icon').hide().filter(function anyMaximized() {
+    return $('div.card-expansion-container[maximized]').length;
+  }).show();
+  $('#expand-user-icon').hide().filter(function anyMinimized() {
+    return $('div.card-expansion-container:not([maximized])').length;
+  }).show();
 }
 
+/**
+ * Expand all user cards and adjust user action icons accordingly
+ * @return {undefined}
+ */
 function expandAllUsers() {
-  $('#client-user-list div.card-expansion-container').attr('maximized', '');
-  toggleExpandCollapse();
+  $('#client-user-list').find('div.card-expansion-container').attr('maximized', '');
+  showRelevantUserActionIcons();
 }
 
+/**
+ * Collapse all user cards and adjust user action icons accordingly
+ * @return {undefined}
+ */
 function collapseAllUsers() {
-  $('#client-user-list div.card-expansion-container[maximized]').removeAttr('maximized');
-  toggleExpandCollapse();
+  $('#client-user-list').find('div.card-expansion-container[maximized]').removeAttr('maximized');
+  showRelevantUserActionIcons();
 }
 
 /**
@@ -332,11 +339,11 @@ function renderUserList(client, userId) {
       } else {
         $(this).find('div.card-expansion-container').attr('maximized', '');
       }
-      toggleExpandCollapse();
+      showRelevantUserActionIcons();
       event.stopPropagation();
     });
 
-  toggleExpandCollapse();
+  showRelevantUserActionIcons();
 
   if (userId) {
     $('[data-user-id="' + userId + '"]').click();
