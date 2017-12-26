@@ -24,9 +24,14 @@ namespace MillimanAccessPortal
 
                 #region Initialize global expressions
                 IConfiguration Configuration = serviceProvider.GetService<IConfiguration>();
-                // add checking to make sure they are each not null...
-                GlobalFunctions.domainValRegex = Configuration.GetValue<string>("Global:DomainValidationRegex");
-                GlobalFunctions.emailValRegex = Configuration.GetValue<string>("Global:EmailValidationRegex");
+                if (!string.IsNullOrWhiteSpace(Configuration.GetValue<string>("Global:DomainValidationRegex")))
+                {
+                    GlobalFunctions.domainValRegex = Configuration.GetValue<string>("Global:DomainValidationRegex");
+                }
+                if (!string.IsNullOrWhiteSpace(Configuration.GetValue<string>("Global:EmailValidationRegex")))
+                {
+                    GlobalFunctions.emailValRegex = Configuration.GetValue<string>("Global:EmailValidationRegex");
+                }
                 #endregion
 
                 try
