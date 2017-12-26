@@ -96,30 +96,35 @@ function setClientFormWriteable() {
   });
 }
 
-function populateClientDetails(ClientEntity) {
-  $('#client-form :input, #client-form select').removeAttr('data-original-value');
-  $('#client-form #ProfitCenterId option[temporary-profitcenter]').remove();
-  $.each(ClientEntity, function forEach(key, value) {
-    var i;
-    var ctrl = $('#' + key, '#client-info');
-    if (ctrl.is('select')) {
-      if ($('#client-form #' + key + ' option[value="' + value + '"]').length === 0) {
-        $('#' + key).append($('<option temporary-profitcenter />').val(ClientEntity.ProfitCenterId).text(ClientEntity.ProfitCenter.Name + ' (' + ClientEntity.ProfitCenter.ProfitCenterCode + ')'));
+/**
+ * Populate client form
+ * @param  {Object} clientEntity The client to be used to populate the client form
+ * @return {undefined}
+ */
+function populateClientForm(clientEntity) {
+  var $clientForm = $('#client-form');
+  $clientForm.find(':input,select').removeAttr('data-original-value');
+  $clientForm.find('#ProfitCenterId option[temporary-profitcenter]').remove();
+  $.each(clientEntity, function populate(key, value) {
+    var field = $clientForm.find('#' + key);
+    if (field.is('#ProfitCenterId')) {
+      if (!field.find('option[value="' + value + '"]').length) {
+        field.append($('<option temporary-profitcenter />')
+          .val(clientEntity.ProfitCenterId)
+          .text(clientEntity.ProfitCenter.Name + ' (' + clientEntity.ProfitCenter.ProfitCenterCode + ')'));
       }
-      ctrl.val(value).change();
-    } else if (ctrl.hasClass('selectize-custom-input')) {
-      ctrl[0].selectize.clear();
-      ctrl[0].selectize.clearOptions();
-      if (value) {
-        for (i = 0; i < value.length; i += 1) {
-          ctrl[0].selectize.addOption({ value: value[i], text: value[i] });
-          ctrl[0].selectize.addItem(value[i]);
-        }
-      }
+      field.val(value).change();
+    } else if (field.hasClass('selectize-custom-input')) {
+      field[0].selectize.clear();
+      field[0].selectize.clearOptions();
+      $.each(value, function addItem(index, item) {
+        field[0].selectize.addOption({ value: item, text: item });
+        field[0].selectize.addItem(item);
+      });
     } else {
-      ctrl.val(value);
+      field.val(value);
     }
-    ctrl.attr('data-original-value', value);
+    field.attr('data-original-value', value);
   });
 }
 
@@ -404,7 +409,7 @@ function getClientDetail(clientDiv) {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
   }).done(function onDone(response) {
-    populateClientDetails(response.ClientEntity);
+    populateClientForm(response.ClientEntity);
     renderUserList(response);
     if (clientDiv.is('[disabled]')) { // FIXME: should be elsewhere??
       $('#client-info #edit-client-icon').hide();
