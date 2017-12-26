@@ -53,7 +53,7 @@ function hideClientUsers() {
  */
 function showClientDetails() {
   var $clientPanes = $('#client-info');
-  if ($('#client-form #Id').val()) { // TODO: change this condition
+  if ($('#client-tree').find('[selected]').attr('data-client-id')) {
     $clientPanes = $clientPanes.add($('#client-users'));
   }
   $clientPanes.show(SHOW_DURATION, function onShown() {
@@ -130,9 +130,15 @@ function populateClientDetails(ClientEntity) {
   });
 }
 
-function populateProfitCenterDropDown(profitCenters) {
+/**
+ * Populate the Profit Center input
+ *
+ * @param {Array.<{Id: Number, Name: String, Code: String}>} profitCenterList
+ * @returns {undefined}
+ */
+function populateProfitCenterDropDown(profitCenterList) {
   $('#ProfitCenterId option:not(option[value = ""])').remove();
-  $.each(profitCenters, function populateProfitCenter() {
+  profitCenterList.forEach(function appendProfitCenter() {
     $('#ProfitCenterId').append($('<option />').val(this.Id).text(this.Name + ' (' + this.Code + ')'));
   });
 }
