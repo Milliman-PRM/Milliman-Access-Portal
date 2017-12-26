@@ -240,7 +240,7 @@ function resetFormData() {
 /**
  * Create a dialog box to confirm a discard action
  *
- * @param {function} callback Executed iff the user selects YES
+ * @param {function} callback Executed if the user selects YES
  * @returns {undefined}
  */
 function confirmDiscardDialog(callback) {
@@ -261,7 +261,7 @@ function confirmDiscardDialog(callback) {
 /**
  * Create a dialog box to confirm a reset action
  *
- * @param {function} callback Executed iff the user selects YES
+ * @param {function} callback Executed if the user selects YES
  * @returns {undefined}
  */
 function confirmResetDialog(callback) {
