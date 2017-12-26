@@ -138,7 +138,7 @@ function populateClientDetails(ClientEntity) {
  */
 function populateProfitCenterDropDown(profitCenterList) {
   $('#ProfitCenterId option:not(option[value = ""])').remove();
-  profitCenterList.forEach(function appendProfitCenter() {
+  $.each(profitCenterList, function appendProfitCenter() {
     $('#ProfitCenterId').append($('<option />').val(this.Id).text(this.Name + ' (' + this.Code + ')'));
   });
 }
