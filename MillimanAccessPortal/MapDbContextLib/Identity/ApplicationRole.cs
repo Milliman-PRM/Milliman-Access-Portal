@@ -72,7 +72,7 @@ namespace MapDbContextLib.Identity
         /// </summary>
         /// <param name="serviceProvider">Application Services provide connectivity to the identity database.</param>
         /// <returns></returns>
-        internal static async void SeedRoles(IServiceProvider serviceProvider)
+        internal static async Task SeedRoles(IServiceProvider serviceProvider)
         {
             RoleManager<ApplicationRole> roleManager = serviceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
             ApplicationDbContext dbContext = serviceProvider.GetService<ApplicationDbContext>();
