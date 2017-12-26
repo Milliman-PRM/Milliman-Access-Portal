@@ -211,6 +211,16 @@ function clearFormData() {
 }
 
 /**
+ * Clear all user cards from the client user list
+ *
+ * @returns {undefined}
+ */
+function clearUserList() {
+  $('#client-user-list > li').remove();
+  $('#expand-user-icon,#collapse-user-icon').hide();
+}
+
+/**
  * Reset all client form input elements to their pre-modified values
  *
  * @returns {undefined}
@@ -397,6 +407,7 @@ function getClientDetail(clientDiv) {
   var clientId = clientDiv.attr('data-client-id').valueOf();
 
   clearFormData();
+  clearUserList();
   $.ajax({
     type: 'GET',
     url: 'ClientAdmin/ClientDetail/' + clientId,
