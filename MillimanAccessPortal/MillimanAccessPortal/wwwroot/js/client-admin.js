@@ -487,6 +487,53 @@ function renderClientNode(client, level) {
 }
 
 /**
+ * Display client card details
+ *
+ * @param  {jQuery} $clientCard The .card-container element to open
+ * @return {undefined}
+ */
+function openClientCardReadOnly($clientCard) {
+  removeClientInserts();
+  clearClientSelection();
+  $clientCard.attr('selected', '');
+  setClientFormReadOnly();
+  getClientDetail($clientCard);
+  showClientDetails();
+}
+
+/**
+ * Allow editing of client card details
+ *
+ * @param  {jQuery} $clientCard The .card-container element to editing
+ * @return {undefined}
+ */
+function openClientCardWriteable($clientCard) {
+  removeClientInserts();
+  clearClientSelection();
+  $clientCard.attr({ selected: '', editing: '' });
+  getClientDetail($clientCard);
+  setClientFormWriteable();
+  showClientDetails();
+}
+
+/**
+ * Display the new child client form
+ *
+ * @param  {jQuery} $parentCard The .card-container element that corresponds to the parent client
+ *                              of the new child client
+ * @return {undefined}
+ */
+function openNewChildClientForm($parentCard) {
+  removeClientInserts();
+  clearClientSelection();
+  setupChildClientForm($parentCard);
+  $parentCard.parent().next('li').find('div.card-container')
+    .attr({ selected: '', editing: '' });
+  setClientFormWriteable();
+  showClientDetails();
+}
+
+/**
  * Handle click events for all client cards and client inserts
  *
  * @param {jQuery} $clickedCard the card that was clicked
@@ -501,22 +548,11 @@ function cardClickHandler($clickedCard) {
         clearClientSelection();
         hideClientDetails();
       } else {
-        if ($('.client-insert').length) {
-          removeClientInserts();
-        }
-        clearClientSelection();
-        $clickedCard.attr('selected', '');
-        setClientFormReadOnly();
-        getClientDetail($clickedCard);
-        showClientDetails();
+        openClientCardReadOnly($clickedCard);
       }
     });
   } else {
-    clearClientSelection();
-    $clickedCard.attr('selected', '');
-    setClientFormReadOnly();
-    getClientDetail($clickedCard);
-    showClientDetails();
+    openClientCardReadOnly($clickedCard);
   }
 }
 
@@ -572,19 +608,11 @@ function cardEditClickHandler($clickedCard) {
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
       confirmAndReset(confirmDiscardDialog, function onContinue() {
-        removeClientInserts();
-        clearClientSelection();
-        $clickedCard.attr({ selected: '', editing: '' });
-        getClientDetail($clickedCard);
-        showClientDetails();
+        openClientCardWriteable($clickedCard);
       });
     }
   } else {
-    clearClientSelection();
-    $clickedCard.attr({ selected: '', editing: '' });
-    getClientDetail($clickedCard);
-    setClientFormWriteable();
-    showClientDetails();
+    openClientCardWriteable($clickedCard);
   }
 }
 
@@ -600,21 +628,11 @@ function cardCreateNewChildClickHandler($clickedCard) {
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
       confirmAndReset(confirmDiscardDialog, function onContinue() {
-        removeClientInserts();
-        clearClientSelection();
-        setupChildClientForm($clickedCard);
-        $clickedCard.parent().next('li').find('div.card-container')
-          .attr({ selected: '', editing: '' });
-        showClientDetails();
+        openNewChildClientForm($clickedCard);
       });
     }
   } else {
-    clearClientSelection();
-    setupChildClientForm($clickedCard);
-    $clickedCard.parent().next('li').find('div.card-container')
-      .attr({ selected: '', editing: '' });
-    setClientFormWriteable();
-    showClientDetails();
+    openNewChildClientForm($clickedCard);
   }
 }
 
