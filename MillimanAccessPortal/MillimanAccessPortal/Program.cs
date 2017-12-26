@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using MapDbContextLib.Context;
 using System.Security.Cryptography.X509Certificates;
 using System.Linq;
+using MapCommonLib;
 
 namespace MillimanAccessPortal
 {
@@ -20,6 +21,14 @@ namespace MillimanAccessPortal
             using (var scope = host.Services.CreateScope())
             {
                 IServiceProvider serviceProvider = scope.ServiceProvider;
+
+                #region Initialize global expressions
+                IConfiguration Configuration = serviceProvider.GetService<IConfiguration>();
+                // add checking to make sure they are each not null...
+                GlobalFunctions.domainValRegex = Configuration.GetValue<string>("Global:DomainValidationRegex");
+                GlobalFunctions.emailValRegex = Configuration.GetValue<string>("Global:EmailValidationRegex");
+                #endregion
+
                 try
                 {
                     ApplicationDbContext.InitializeAll(serviceProvider).Wait();
