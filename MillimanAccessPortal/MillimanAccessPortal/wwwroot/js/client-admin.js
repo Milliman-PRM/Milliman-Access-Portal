@@ -795,7 +795,6 @@ function submitClientForm() {
       clientTree = response.ClientTree;
       renderClientTree(response.RelevantClientId);
       toastr.success(successResponse);
-      $('#client-tree div.card-container[data-client-id="' + clientId + '"]').click();
     }).fail(function onFail(response) {
       toastr.warning(response.getResponseHeader('Warning'));
     });
