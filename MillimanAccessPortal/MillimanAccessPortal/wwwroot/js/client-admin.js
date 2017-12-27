@@ -4,6 +4,7 @@ var clientNodeTemplate = $('script[data-template="clientNode"]').html();
 var childNodePlaceholder = $('script[data-template="childNodePlaceholder"]').html();
 var clientCard = $('script[data-template="createNewClientCard"]').html();
 var userNodeTemplate = $('script[data-template="userNode"]').html();
+var newUserCard = $('script[data-template="addUserCard"]').html();
 var SHOW_DURATION = 50;
 
 /**
