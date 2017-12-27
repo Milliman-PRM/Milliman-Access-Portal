@@ -27,9 +27,12 @@
     @Html.Raw(JavaScriptSnippet.FullScript)
 </head>
 <body>
-    
-    @RenderBody()
 
+    @RenderBody()
+        <script type="text/javascript">
+                var domainValRegex = /@Html.Raw(MapCommonLib.GlobalFunctions.domainValRegex)/;
+                var emailValRegex = /@Html.Raw(MapCommonLib.GlobalFunctions.emailValRegex)/;
+        </script>
     <environment names="Development,CI">
         <script src="~/lib/jquery/dist/jquery.js"></script>
         <script src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
