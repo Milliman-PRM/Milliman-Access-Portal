@@ -419,52 +419,6 @@ function getClientDetail(clientDiv) {
 }
 
 /**
- * Render user node by using string substitution on a clientNodeTemplate
- * @param  {Object} client Client object to render
- * @param  {Number} level  Client indentation level
- * @return {undefined}
- */
-function renderClientNode(client, level) {
-  var classes = { 1: 'card-100', 2: 'card-90' };
-  var $template = $(clientNodeTemplate
-    .replace(/{{class}}/g, classes[level] || 'card-80')
-    .replace(/{{header-level}}/g, (level + 1))
-    .replace(/{{id}}/g, client.ClientEntity.Id)
-    .replace(/{{name}}/g, client.ClientEntity.Name)
-    .replace(/{{clientCode}}/g, client.ClientEntity.ClientCode || '')
-    .replace(/{{users}}/g, client.AssociatedUserCount)
-    .replace(/{{content}}/g, client.AssociatedContentCount)
-    .toString());
-
-  $template.find('div.card-container[data-search-string]')
-    .attr('data-search-string', (client.ClientEntity.Name + '|' + client.ClientEntity.ClientCode).toUpperCase());
-
-  if (!client.CanManage) {
-    $template.find('.card-button-side-container').remove();
-    $template.find('.card-container').attr('disabled', '');
-  }
-
-  // Only include the delete button on client nodes without children
-  if (client.Children.length) {
-    $template.find('.card-button-delete').remove();
-  }
-
-  // Don't include the add child client button on lowest level
-  if (level === 3) {
-    $template.find('.card-button-new-child').remove();
-  }
-
-  $('#client-tree-list').append($template);
-
-  // Render child nodes
-  if (client.Children.length) {
-    client.Children.forEach(function forEach(childNode) {
-      renderClientNode(childNode, level + 1);
-    });
-  }
-}
-
-/**
  * Display client card details
  * @param  {jQuery} $clientCard The .card-container element to open
  * @return {undefined}
@@ -670,28 +624,79 @@ function cancelIconClickHandler() {
   });
 }
 
+/**
+ * Render user node by using string substitution on a clientNodeTemplate
+ * @param  {Object} client Client object to render
+ * @param  {Number} level  Client indentation level
+ * @return {undefined}
+ */
+function renderClientNode(client, level) {
+  var classes = ['card-100', 'card-90'];
+  var $template = $(clientNodeTemplate
+    .replace(/{{class}}/g, classes[level] || 'card-80')
+    .replace(/{{header-level}}/g, (level + 1))
+    .replace(/{{id}}/g, client.ClientEntity.Id)
+    .replace(/{{name}}/g, client.ClientEntity.Name)
+    .replace(/{{clientCode}}/g, client.ClientEntity.ClientCode || '')
+    .replace(/{{users}}/g, client.AssociatedUserCount)
+    .replace(/{{content}}/g, client.AssociatedContentCount)
+    .toString());
+
+  $template.find('div.card-container[data-search-string]')
+    .attr('data-search-string', (client.ClientEntity.Name + '|' + client.ClientEntity.ClientCode).toUpperCase());
+
+  if (!client.CanManage) {
+    $template.find('.card-button-side-container').remove();
+    $template.find('.card-container').attr('disabled', '');
+  }
+
+  // Only include the delete button on client nodes without children
+  if (client.Children.length) {
+    $template.find('.card-button-delete').remove();
+  }
+
+  // Don't include the add child client button on lowest level
+  if (level === 2) {
+    $template.find('.card-button-new-child').remove();
+  }
+
+  $('#client-tree-list').append($template);
+
+  // Render child nodes
+  if (client.Children.length) {
+    client.Children.forEach(function forEach(childNode) {
+      renderClientNode(childNode, level + 1);
+    });
+  }
+}
+
+/**
+ * Render client tree recursively and attach event handlers
+ * @param  {Number} clientId ID of the client card to click after render
+ * @return {undefined}
+ */
 function renderClientTree(clientId) {
   var $clientTreeList = $('#client-tree-list');
   $clientTreeList.empty();
-  clientTree.forEach(function do_(rootClient) {
-    renderClientNode(rootClient, 1);
+  clientTree.forEach(function render(rootClient) {
+    renderClientNode(rootClient, 0);
     $clientTreeList.append('<li class="hr width-100pct"></li>');
   });
   $clientTreeList.find('div.card-container')
     .click(function onClick() {
       cardClickHandler($(this));
     });
-  $('div.card-button-delete')
+  $clientTreeList.find('div.card-button-delete')
     .click(function onClick(event) {
       event.stopPropagation();
       cardDeleteClickHandler($(this).parents('div[data-client-id]'));
     });
-  $('div.card-button-edit')
+  $clientTreeList.find('div.card-button-edit')
     .click(function onClick(event) {
       event.stopPropagation();
       cardEditClickHandler($(this).parents('div[data-client-id]'));
     });
-  $('div.card-button-new-child')
+  $clientTreeList.find('div.card-button-new-child')
     .click(function onClick(event) {
       event.stopPropagation();
       cardCreateNewChildClickHandler($(this).parents('div[data-client-id]'));
