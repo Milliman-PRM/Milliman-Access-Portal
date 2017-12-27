@@ -418,54 +418,40 @@ function getClientDetail(clientDiv) {
   });
 }
 
+/**
+ * Render user node by using string substitution on a clientNodeTemplate
+ * @param  {Object} client Client object to render
+ * @param  {Number} level  Client indentation level
+ * @return {undefined}
+ */
 function renderClientNode(client, level) {
-  var template = clientNodeTemplate;
-  var $template;
+  var classes = { 1: 'card-100', 2: 'card-90' };
+  var $template = $(clientNodeTemplate
+    .replace(/{{class}}/g, classes[level] || 'card-80')
+    .replace(/{{header-level}}/g, (level + 1))
+    .replace(/{{id}}/g, client.ClientEntity.Id)
+    .replace(/{{name}}/g, client.ClientEntity.Name)
+    .replace(/{{clientCode}}/g, client.ClientEntity.ClientCode || '')
+    .replace(/{{users}}/g, client.AssociatedUserCount)
+    .replace(/{{content}}/g, client.AssociatedContentCount)
+    .toString());
 
-  switch (level) {
-    case 1:
-      template = template.replace(/{{class}}/g, 'card-100');
-      break;
-    case 2:
-      template = template.replace(/{{class}}/g, 'card-90');
-      break;
-    default:
-      template = template.replace(/{{class}}/g, 'card-80');
-      break;
-  }
-
-  template = template.replace(/{{header-level}}/g, (level + 1));
-  template = template.replace(/{{id}}/g, client.ClientEntity.Id);
-  template = template.replace(/{{name}}/g, client.ClientEntity.Name);
-  if (client.ClientEntity.ClientCode) {
-    template = template.replace(/{{clientCode}}/g, client.ClientEntity.ClientCode);
-  } else {
-    template = template.replace(/{{clientCode}}/g, '');
-  }
-  template = template.replace(/{{users}}/g, client.AssociatedUserCount);
-  template = template.replace(/{{content}}/g, client.AssociatedContentCount);
-
-  // convert template to DOM element for jQuery manipulation
-  $template = $(template.toString());
-
-  $('div.card-container[data-search-string]', $template).attr(
-    'data-search-string',
-    (client.ClientEntity.Name + '|' + client.ClientEntity.ClientCode).toUpperCase()
-  );
+  $template.find('div.card-container[data-search-string]')
+    .attr('data-search-string', (client.ClientEntity.Name + '|' + client.ClientEntity.ClientCode).toUpperCase());
 
   if (!client.CanManage) {
-    $('.card-button-side-container', $template).remove();
-    $('.card-container', $template).attr('disabled', '');
+    $template.find('.card-button-side-container').remove();
+    $template.find('.card-container').attr('disabled', '');
   }
 
   // Only include the delete button on client nodes without children
-  if (client.Children.length !== 0) {
-    $('.card-button-delete', $template).remove();
+  if (client.Children.length) {
+    $template.find('.card-button-delete').remove();
   }
 
   // Don't include the add child client button on lowest level
   if (level === 3) {
-    $('.card-button-new-child', $template).remove();
+    $template.find('.card-button-new-child').remove();
   }
 
   $('#client-tree-list').append($template);
@@ -544,10 +530,14 @@ function cardClickHandler($clickedCard) {
   }
 }
 
+/**
+ * Handle click events for all client card delete buttons
+ * @param  {jQuery} $clickedCard the card that was clickedCard
+ * @return {undefined}
+ */
 function cardDeleteClickHandler($clickedCard) {
   var clientId = $clickedCard.attr('data-client-id').valueOf();
   var clientName = $clickedCard.find('.card-body-primary-text').first().text();
-
   vex.dialog.confirm({
     unsafeMessage: 'Do you want to delete <strong>' + clientName + '</strong>?<br /><br /> This action <strong><u>cannot</u></strong> be undone.',
     buttons: [
