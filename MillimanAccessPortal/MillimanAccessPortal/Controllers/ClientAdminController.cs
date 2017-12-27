@@ -101,7 +101,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ClientAdminIndexViewModel ModelToReturn = await GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User));
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
 
             return Json(ModelToReturn);
         }
@@ -546,7 +546,7 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
 
-            ClientAdminIndexViewModel ModelToReturn = await GetClientAdminIndexModelForUser(CurrentApplicationUser);
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
             ModelToReturn.RelevantClientId = Model.Id;
 
             return Json(ModelToReturn);
@@ -698,15 +698,20 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
 
-            ClientAdminIndexViewModel ModelToReturn = await GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User));
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
             ModelToReturn.RelevantClientId = ExistingClientRecord.Id;
 
             return Json(ModelToReturn);
         }
 
-        // DELETE: ClientAdmin/Delete/5
-        //public async Task<IActionResult> DeleteClient(long Id)
+        /// <summary>
+        /// Deletes a Client record
+        /// </summary>
+        /// <param name="Id"></param>
+        /// <param name="Password"></param>
+        /// <returns></returns>
         [HttpDelete]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteClient(long? Id, string Password)
         {
             // Query for the existing record to be modified
@@ -765,62 +770,15 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
 
-            ClientAdminIndexViewModel ModelToReturn = await GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User));
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
 
             return Json(ModelToReturn);
         }
 
         /// <summary>
-        /// Create and return the 2 lists: 1-Clients and 2-ProfitCenters associated with the provided ApplicationUser
+        /// Returns an array of individual whitelist items without nulls, optionally tested for validity as either domain or full email address
         /// </summary>
-        /// <param name="CurrentUser">Must be populated with Id.  Best if returned from EF query</param>
-        /// <returns></returns>
-        [NonAction]
-        private async Task<ClientAdminIndexViewModel> GetClientAdminIndexModelForUser(ApplicationUser CurrentUser)
-        {
-            #region Validation
-            if (CurrentUser == null)
-            {
-                return null;
-            }
-            #endregion
-
-            // Instantiate working variables
-            ClientAdminIndexViewModel ModelToReturn = new ClientAdminIndexViewModel();
-
-            // Add all appropriate client trees
-            List<Client> AllRootClients = Queries.GetAllRootClients();  // list to memory so utilization is fast and no lingering transaction
-            foreach (Client RootClient in AllRootClients.OrderBy(c => c.Name))
-            {
-                //await Queries.GetDescendentFamilyOfClient(RootClient, CurrentUser, RoleEnum.Admin, true, true);
-                ClientAndChildrenModel ClientModel = new ClientAndChildrenModel(RootClient);
-                await ClientModel.GenerateSupportingProperties(DbContext, UserManager, CurrentUser, RoleEnum.Admin, true);
-                if (ClientModel.IsThisOrAnyChildManageable())
-                {
-                    ModelToReturn.ClientTreeList.Add(ClientModel);
-                }
-            }
-
-            // Add all authorized ProfitCenters
-            // Iterate over all ProfitCenterManager authorizations for the current user
-            foreach (var AuthorizedProfitCenter in DbContext.UserRoleInProfitCenter
-                                                            .Include(urpc => urpc.Role)
-                                                            .Include(urpc => urpc.ProfitCenter)
-                                                            .Where(urpc => urpc.Role.RoleEnum == RoleEnum.Admin
-                                                                        && urpc.UserId == CurrentUser.Id)
-                                                            .Distinct()
-                                                            .Select(urpc => urpc.ProfitCenter))
-            {
-                ModelToReturn.AuthorizedProfitCenterList.Add(new AuthorizedProfitCenterModel(AuthorizedProfitCenter));
-            }
-
-            return ModelToReturn;
-        }
-
-        /// <summary>
-        /// Returns a clean array without null elements, optionally tested for validity as either domain or full email address
-        /// </summary>
-        /// <param name="InArray"></param>
+        /// <param name="InArray">0 or more strings that may contain 0 or more email entries or a delimited list</param>
         /// <param name="CleanDomain">If true, strip characters up through '@' from each found element</param>
         /// <returns></returns>
         private string[] GetCleanClientEmailWhitelistArray(string[] InArray, bool CleanDomain)

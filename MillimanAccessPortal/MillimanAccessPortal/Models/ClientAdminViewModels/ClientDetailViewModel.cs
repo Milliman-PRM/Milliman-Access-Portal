@@ -35,7 +35,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
         }
     }
 
-    public class UserInfo
+    public class UserInfoModel
     {
         public long Id { get; set; }
         public string LastName { get; set; } = string.Empty;
@@ -44,9 +44,9 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
         public string UserName { get; set; } = string.Empty;
         public List<AssignedRoleInfo> UserRoles { get; set; } = new List<AssignedRoleInfo>();
 
-        public static explicit operator UserInfo(ApplicationUser U)
+        public static explicit operator UserInfoModel(ApplicationUser U)
         {
-            return new UserInfo
+            return new UserInfoModel
             {
                 Id = U.Id,
                 Email = U.Email,
@@ -60,9 +60,9 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
     /// <summary>
     /// This class is required for set subtraction using the IEnumerable.Except() method.  Does not compare role names
     /// </summary>
-    class UserInfoEqualityComparer : IEqualityComparer<UserInfo>
+    class UserInfoModelEqualityComparer : IEqualityComparer<UserInfoModel>
     {
-        public bool Equals(UserInfo Left, UserInfo Right)
+        public bool Equals(UserInfoModel Left, UserInfoModel Right)
         {
             if (Left == null && Right == null)
                 return true;
@@ -74,7 +74,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                 return false;
         }
 
-        public int GetHashCode(UserInfo Arg)
+        public int GetHashCode(UserInfoModel Arg)
         {
             string hCode = Arg.LastName + Arg.FirstName + Arg.Email + Arg.UserName + Arg.Id.ToString();
             return hCode.GetHashCode();
@@ -84,8 +84,8 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
     public class ClientDetailViewModel
     {
         public Client ClientEntity { get; set; }
-        public List<UserInfo> EligibleUsers { get; set; } = new List<UserInfo>();
-        public List<UserInfo> AssignedUsers { get; set; } = new List<UserInfo>();
+        public List<UserInfoModel> EligibleUsers { get; set; } = new List<UserInfoModel>();
+        public List<UserInfoModel> AssignedUsers { get; set; } = new List<UserInfoModel>();
         public List<RootContentItem> ContentItems { get; set; } = new List<RootContentItem>();
         public bool CanManage { get; set; }
 
@@ -107,14 +107,14 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
             { // isolate scope
                 IList<ApplicationUser> UsersForThisClaim = await UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim);
                 AssignedUsers = UsersForThisClaim
-                                        .Select(ApUser => (UserInfo)ApUser)  // use the UserInfo type conversion operator
+                                        .Select(ApUser => (UserInfoModel)ApUser)  // use the UserInfo type conversion operator
                                         .OrderBy(u => u.LastName)
                                         .ThenBy(u => u.FirstName)
                                         .ToList();
             }
 
             // Assign the remaining assigned user properties
-            foreach (UserInfo UserInfoItem in AssignedUsers)
+            foreach (UserInfoModel UserInfoItem in AssignedUsers)
             {
                 UserInfoItem.UserRoles = Queries.GetUserRolesForClient(UserInfoItem.Id, ClientEntity.Id);
 
@@ -148,12 +148,12 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                         continue;
                     }
                     EligibleUsers.AddRange(UsersAssignedToClientFamily.Where(u => u.NormalizedEmail.Contains($"@{AcceptableDomain.ToUpper()}"))
-                                                                            .Select(u => (UserInfo)u));
+                                                                            .Select(u => (UserInfoModel)u));
                 }
             }
 
             // Assign the remaining assigned user properties
-            foreach (UserInfo UserInfoItem in EligibleUsers)
+            foreach (UserInfoModel UserInfoItem in EligibleUsers)
             {
                 UserInfoItem.UserRoles = Queries.GetUserRolesForClient(UserInfoItem.Id, ClientEntity.Id);
 
@@ -169,7 +169,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
 
             // Subtract the assigned users from the overall list of eligible users
             EligibleUsers = EligibleUsers
-                                .Except(AssignedUsers, new UserInfoEqualityComparer())
+                                .Except(AssignedUsers, new UserInfoModelEqualityComparer())
                                 .OrderBy(u => u.LastName)
                                 .ThenBy(u => u.FirstName)
                                 .ToList();
