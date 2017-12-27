@@ -25,15 +25,15 @@ function clearValidationErrors() {
   $('#client-form span.field-validation-error > span').remove();
 }
 
-function populateClientDetails(ClientEntity) {
+function populateClientDetails(ClientModel) {
   $('#client-form :input, #client-form select').removeAttr('data-original-value');
   $('#client-form #ProfitCenterId option[temporary-profitcenter]').remove();
-  $.each(ClientEntity, function forEach(key, value) {
+  $.each(ClientModel, function forEach(key, value) {
     var i;
     var ctrl = $('#' + key, '#client-info');
     if (ctrl.is('select')) {
       if ($('#client-form #' + key + ' option[value="' + value + '"]').length === 0) {
-        $('#' + key).append($('<option temporary-profitcenter />').val(ClientEntity.ProfitCenterId).text(ClientEntity.ProfitCenter.Name + ' (' + ClientEntity.ProfitCenter.ProfitCenterCode + ')'));
+          $('#' + key).append($('<option temporary-profitcenter />').val(ClientModelModel.ClientEntity.ProfitCenterId).text(ClientModel.ClientEntity.ProfitCenter.Name + ' (' + ClientModel.ClientEntity.ProfitCenter.ProfitCenterCode + ')'));
       }
       ctrl.val(value).change();
     } else if (ctrl.hasClass('selectize-custom-input')) {
@@ -158,7 +158,7 @@ function renderUserNode(clientId, user) {
 function renderUserList(client, userId) {
   $('#client-user-list').empty();
   client.AssignedUsers.forEach(function forEach(user) {
-    renderUserNode(client.ClientEntity.Id, user);
+      renderUserNode(client.ClientModel.ClientEntity.Id, user);
   });
 
   $('div.card-button-remove-user').on('click', function onClick(event) {
@@ -241,7 +241,7 @@ function GetClientDetail(clientDiv) {
     }
   }).done(function onDone(response) {
     clearValidationErrors();
-    populateClientDetails(response.ClientEntity);
+    populateClientDetails(response.ClientModel);
     renderUserList(response);
     // Change the dom to reflect the selected client
     clearSelectedClient();
@@ -272,7 +272,7 @@ function EditClientDetail(clientDiv) {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
   }).done(function onDone(response) {
-    populateClientDetails(response.ClientEntity);
+    populateClientDetails(response.ClientModel);
     // Change the dom to reflect the selected client
     clearSelectedClient();
     clientDiv.attr('selected', '');
@@ -356,25 +356,25 @@ function renderClientNode(client, level) {
   }
 
   template = template.replace(/{{header-level}}/g, (level + 1));
-  template = template.replace(/{{id}}/g, client.ClientEntity.Id);
-  template = template.replace(/{{name}}/g, client.ClientEntity.Name);
-  if (client.ClientEntity.ClientCode) {
-    template = template.replace(/{{clientCode}}/g, client.ClientEntity.ClientCode);
+  template = template.replace(/{{id}}/g, client.ClientModel.ClientEntity.Id);
+  template = template.replace(/{{name}}/g, client.ClientModel.ClientEntity.Name);
+  if (client.ClientModel.ClientEntity.ClientCode) {
+      template = template.replace(/{{clientCode}}/g, client.ClientModel.ClientEntity.ClientCode);
   } else {
     template = template.replace(/{{clientCode}}/g, '');
   }
-  template = template.replace(/{{users}}/g, client.AssociatedUserCount);
-  template = template.replace(/{{content}}/g, client.AssociatedContentCount);
+  template = template.replace(/{{users}}/g, client.ClientModel.AssignedUsers.length);
+  template = template.replace(/{{content}}/g, client.ClientModel.ContentItems.length);
 
   // convert template to DOM element for jQuery manipulation
   $template = $(template.toString());
 
   $('div.card-container[data-search-string]', $template).attr(
     'data-search-string',
-    (client.ClientEntity.Name + '|' + client.ClientEntity.ClientCode).toUpperCase()
+    (client.ClientModel.ClientEntity.Name + '|' + client.ClientModel.ClientEntity.ClientCode).toUpperCase()
   );
 
-  if (!client.CanManage) {
+  if (!client.ClientModel.CanManage) {
     $('.card-button-side-container', $template).remove();
     $('.card-container', $template).attr('disabled', '');
   }
@@ -445,7 +445,7 @@ function removeClientNode(clientId, clientName, password) {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
   }).done(function onDone(response) {
-    clientTree = response.ClientTree;
+    clientTree = response.ClientTreeList;
     renderClientTree(response.RelevantClientId);
     clearFormData();
     hideClientForm();
@@ -460,7 +460,7 @@ function getClientTree() {
     type: 'GET',
     url: 'ClientAdmin/ClientFamilyList/'
   }).done(function onDone(response) {
-    clientTree = response.ClientTree;
+    clientTree = response.ClientTreeList;
     populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
     renderClientTree(response.RelevantClientId);
   }).fail(function onFail(response) {
@@ -504,7 +504,7 @@ function submitClientForm(event) {
     }).done(function onDone(response) {
       hideClientForm();
       clearFormData();
-      clientTree = response.ClientTree;
+      clientTree = response.ClientTreeList;
       renderClientTree(response.RelevantClientId);
       toastr.success(successResponse);
       $('#client-tree div.card-container[data-client-id="' + clientId + '"]').click();
