@@ -425,6 +425,7 @@ function getClientDetail(clientDiv) {
   });
 }
 
+// client argument maps from C# type ClientAndChildrenModel
 function renderClientNode(client, level) {
   var template = clientNodeTemplate;
   var $template;
@@ -442,25 +443,25 @@ function renderClientNode(client, level) {
   }
 
   template = template.replace(/{{header-level}}/g, (level + 1));
-  template = template.replace(/{{id}}/g, client.ClientEntity.Id);
-  template = template.replace(/{{name}}/g, client.ClientEntity.Name);
-  if (client.ClientEntity.ClientCode) {
-    template = template.replace(/{{clientCode}}/g, client.ClientEntity.ClientCode);
+  template = template.replace(/{{id}}/g, client.ClientModel.ClientEntity.Id);
+  template = template.replace(/{{name}}/g, client.ClientModel.ClientEntity.Name);
+  if (client.ClientModel.ClientEntity.ClientCode) {
+      template = template.replace(/{{clientCode}}/g, client.ClientModel.ClientEntity.ClientCode);
   } else {
     template = template.replace(/{{clientCode}}/g, '');
   }
-  template = template.replace(/{{users}}/g, client.AssociatedUserCount);
-  template = template.replace(/{{content}}/g, client.AssociatedContentCount);
+  template = template.replace(/{{users}}/g, client.ClientModel.AssignedUsers.length);
+  template = template.replace(/{{content}}/g, client.ClientModel.ContentItems.length);
 
   // convert template to DOM element for jQuery manipulation
   $template = $(template.toString());
 
   $('div.card-container[data-search-string]', $template).attr(
     'data-search-string',
-    (client.ClientEntity.Name + '|' + client.ClientEntity.ClientCode).toUpperCase()
+    (client.ClientModel.ClientEntity.Name + '|' + client.ClientModel.ClientEntity.ClientCode).toUpperCase()
   );
 
-  if (!client.CanManage) {
+  if (!client.ClientModel.CanManage) {
     $('.card-button-side-container', $template).remove();
     $('.card-container', $template).attr('disabled', '');
   }
@@ -728,7 +729,7 @@ function removeClientNode(clientId, clientName, password) {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
   }).done(function onDone(response) {
-    clientTree = response.ClientTree;
+    clientTree = response.ClientTreeList;
     renderClientTree(response.RelevantClientId);
     toastr.success(clientName + ' was successfully deleted.');
   }).fail(function onFail(response) {
@@ -741,7 +742,7 @@ function getClientTree() {
     type: 'GET',
     url: 'ClientAdmin/ClientFamilyList/'
   }).done(function onDone(response) {
-    clientTree = response.ClientTree;
+    clientTree = response.ClientTreeList;
     populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
     renderClientTree(response.RelevantClientId);
   }).fail(function onFail(response) {
