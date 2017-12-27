@@ -4,7 +4,6 @@ var clientNodeTemplate = $('script[data-template="clientNode"]').html();
 var childNodePlaceholder = $('script[data-template="childNodePlaceholder"]').html();
 var clientCard = $('script[data-template="createNewClientCard"]').html();
 var userNodeTemplate = $('script[data-template="userNode"]').html();
-var clientTree = {};
 var SHOW_DURATION = 50;
 
 /**
@@ -675,10 +674,10 @@ function renderClientNode(client, level) {
  * @param  {Number} clientId ID of the client card to click after render
  * @return {undefined}
  */
-function renderClientTree(clientId) {
+function renderClientTree(clientTreeList, clientId) {
   var $clientTreeList = $('#client-tree-list');
   $clientTreeList.empty();
-  clientTree.forEach(function render(rootClient) {
+  clientTreeList.forEach(function render(rootClient) {
     renderClientNode(rootClient, 0);
     $clientTreeList.append('<li class="hr width-100pct"></li>');
   });
@@ -732,8 +731,7 @@ function deleteClient(clientId, clientName, password) {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
   }).done(function onDone(response) {
-    clientTree = response.ClientTreeList;
-    renderClientTree(response.RelevantClientId);
+    renderClientTree(response.ClientTreeList, response.RelevantClientId);
     toastr.success(clientName + ' was successfully deleted.');
   }).fail(function onFail(response) {
     toastr.warning(response.getResponseHeader('Warning'));
@@ -749,9 +747,8 @@ function getClientTree() {
     type: 'GET',
     url: 'ClientAdmin/ClientFamilyList/'
   }).done(function onDone(response) {
-    clientTree = response.ClientTreeList;
     populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
-    renderClientTree(response.RelevantClientId);
+    renderClientTree(response.ClientTreeList, response.RelevantClientId);
   }).fail(function onFail(response) {
     if (response.getResponseHeader('Warning')) {
       toastr.warning(response.getResponseHeader('Warning'));
@@ -792,8 +789,7 @@ function submitClientForm() {
         RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
       }
     }).done(function onDone(response) {
-      clientTree = response.ClientTreeList;
-      renderClientTree(response.RelevantClientId);
+      renderClientTree(response.ClientTreeList, response.RelevantClientId);
       toastr.success(successResponse);
     }).fail(function onFail(response) {
       toastr.warning(response.getResponseHeader('Warning'));
