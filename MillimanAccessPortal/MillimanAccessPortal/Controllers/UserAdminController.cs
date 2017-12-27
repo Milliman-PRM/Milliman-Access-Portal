@@ -126,7 +126,9 @@ namespace MillimanAccessPortal.Controllers
             List<Client> AllRootClients = Queries.GetAllRootClients();  // list to memory so utilization is fast and no lingering transaction
             foreach (Client RootClient in AllRootClients.OrderBy(c => c.Name))
             {
-                ClientAndChildrenModel ClientModel = await Queries.GetDescendentFamilyOfClient(RootClient, CurrentUser, RoleEnum.UserAdmin, false, true);
+                ClientAndChildrenModel ClientModel = new ClientAndChildrenModel(RootClient);
+                await ClientModel.GenerateSupportingProperties(DbContext, _userManager, await Queries.GetCurrentApplicationUser(User), RoleEnum.Admin, false);
+                //ClientAndChildrenModel ClientModel = await Queries.GetDescendentFamilyOfClient(RootClient, CurrentUser, RoleEnum.UserAdmin, false, true);
                 if (ClientModel.IsThisOrAnyChildManageable())
                 {
                     ModelToReturn.ClientTree.Add(ClientModel);

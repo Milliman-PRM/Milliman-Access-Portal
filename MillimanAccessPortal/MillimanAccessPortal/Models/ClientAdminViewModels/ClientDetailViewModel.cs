@@ -4,9 +4,17 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using System;
+using System.Threading.Tasks;
+using System.Security.Claims;
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using MapCommonLib;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
+using MillimanAccessPortal.DataQueries;
 
 namespace MillimanAccessPortal.Models.ClientAdminViewModels
 {
@@ -75,8 +83,117 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
 
     public class ClientDetailViewModel
     {
+        public Client ClientEntity { get; set; }
         public List<UserInfo> EligibleUsers { get; set; } = new List<UserInfo>();
         public List<UserInfo> AssignedUsers { get; set; } = new List<UserInfo>();
-        public Client ClientEntity { get; set; }
+        public List<RootContentItem> ContentItems { get; set; } = new List<RootContentItem>();
+        public bool CanManage { get; set; }
+
+        internal async Task GenerateSupportingProperties(ApplicationDbContext DbContext, UserManager<ApplicationUser> UserManager, ApplicationUser CurrentUser, RoleEnum ClientRoleRequiredToManage, bool RequireProfitCenterAuthority)
+        {
+            #region Validation
+            if (ClientEntity == null)
+            {
+                throw new MapException("ClientDetailViewModel.GenerateSupportingProperties called with no ClientEntity set");
+            }
+            #endregion
+
+            StandardQueries Queries = new StandardQueries(DbContext, UserManager);
+            List<RoleEnum> RolesToManage = new List<RoleEnum> { RoleEnum.Admin, RoleEnum.ContentAdmin, RoleEnum.ContentUser, RoleEnum.UserAdmin };
+
+            Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientEntity.Id.ToString());
+
+            // Get and sort the list of users already members of this client
+            { // isolate scope
+                IList<ApplicationUser> UsersForThisClaim = await UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim);
+                AssignedUsers = UsersForThisClaim
+                                        .Select(ApUser => (UserInfo)ApUser)  // use the UserInfo type conversion operator
+                                        .OrderBy(u => u.LastName)
+                                        .ThenBy(u => u.FirstName)
+                                        .ToList();
+            }
+
+            // Assign the remaining assigned user properties
+            foreach (UserInfo UserInfoItem in AssignedUsers)
+            {
+                UserInfoItem.UserRoles = Queries.GetUserRolesForClient(UserInfoItem.Id, ClientEntity.Id);
+
+                // any roles that were not found need to be included with IsAssigned=false
+                UserInfoItem.UserRoles.AddRange(RolesToManage.Except(UserInfoItem.UserRoles.Select(ur => ur.RoleEnum)).Select(re =>
+                    new AssignedRoleInfo
+                    {
+                        RoleEnum = re,
+                        RoleDisplayValue = ApplicationRole.RoleDisplayNames[re],
+                        IsAssigned = false
+                    }));
+            }
+
+            // Get all users currently member of any related Client (any descendant of the root client)
+            List<Client> AllRelatedClients = Queries.GetAllRelatedClients(ClientEntity);
+            List<ApplicationUser> UsersAssignedToClientFamily = new List<ApplicationUser>();
+            foreach (Client OneClient in AllRelatedClients)
+            {
+                ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), OneClient.Id.ToString());
+                IList<ApplicationUser> UsersForThisClaim = await UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim);
+                UsersAssignedToClientFamily = UsersAssignedToClientFamily.Union(UsersForThisClaim).ToList();
+                // TODO Test whether the other overload of .Union() needs to be used with an IEqualityComparer argument.  For this use equality should probably be based on Id only.
+            }
+
+            if (ClientEntity.AcceptedEmailDomainList != null)
+            {
+                foreach (string AcceptableDomain in ClientEntity.AcceptedEmailDomainList)
+                {
+                    if (string.IsNullOrWhiteSpace(AcceptableDomain))
+                    {
+                        continue;
+                    }
+                    EligibleUsers.AddRange(UsersAssignedToClientFamily.Where(u => u.NormalizedEmail.Contains($"@{AcceptableDomain.ToUpper()}"))
+                                                                            .Select(u => (UserInfo)u));
+                }
+            }
+
+            // Assign the remaining assigned user properties
+            foreach (UserInfo UserInfoItem in EligibleUsers)
+            {
+                UserInfoItem.UserRoles = Queries.GetUserRolesForClient(UserInfoItem.Id, ClientEntity.Id);
+
+                // any roles that were not found need to be included with IsAssigned=false
+                UserInfoItem.UserRoles.AddRange(RolesToManage.Except(UserInfoItem.UserRoles.Select(ur => ur.RoleEnum)).Select(re =>
+                    new AssignedRoleInfo
+                    {
+                        RoleEnum = re,
+                        RoleDisplayValue = ApplicationRole.RoleDisplayNames[re],
+                        IsAssigned = false
+                    }));
+            }
+
+            // Subtract the assigned users from the overall list of eligible users
+            EligibleUsers = EligibleUsers
+                                .Except(AssignedUsers, new UserInfoEqualityComparer())
+                                .OrderBy(u => u.LastName)
+                                .ThenBy(u => u.FirstName)
+                                .ToList();
+
+            CanManage = DbContext.UserRoleInClient
+                                       .Include(urc => urc.Role)
+                                       .Include(urc => urc.Client)
+                                       .Any(urc => urc.UserId == CurrentUser.Id
+                                                && urc.Role.RoleEnum == ClientRoleRequiredToManage
+                                                && urc.ClientId == ClientEntity.Id);
+
+            if (RequireProfitCenterAuthority)
+            {
+                CanManage &= DbContext.UserRoleInProfitCenter
+                                      .Include(urp => urp.Role)
+                                      .Any(urp => urp.UserId == CurrentUser.Id
+                                               && urp.Role.RoleEnum == RoleEnum.Admin
+                                               && urp.ProfitCenterId == ClientEntity.ProfitCenterId);
+            }
+
+            ContentItems = DbContext.RootContentItem
+                                    .Where(rc => rc.ClientIdList.Contains(ClientEntity.Id))
+                                    .ToList();
+
+        }
     }
 }

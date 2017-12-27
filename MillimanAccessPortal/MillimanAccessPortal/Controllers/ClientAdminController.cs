@@ -118,7 +118,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Client ThisClient = DbContext.Client.Include(c => c.ProfitCenter).FirstOrDefault(c => c.Id == id);
 
-            #region Preliminary Validation
+            #region Validation
             if (ThisClient == null)
             {
                 Response.Headers.Add("Warning", $"The requested client was not found");
@@ -139,81 +139,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             ClientDetailViewModel Model = new ClientDetailViewModel { ClientEntity = ThisClient };
-
-            Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ThisClient.Id.ToString());
-
-            // Get the list of users already members of this client
-            { // isolate scope
-                IList<ApplicationUser> UsersForThisClaim = await UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim);
-                Model.AssignedUsers = UsersForThisClaim
-                                        .Select(ApUser => (UserInfo)ApUser)  // use the UserInfo type conversion operator
-                                        .OrderBy(u => u.LastName)
-                                        .ThenBy(u => u.FirstName)
-                                        .ToList();
-            }
-
-            // Assign the remaining assigned user properties
-            foreach (UserInfo UserInfoItem in Model.AssignedUsers)
-            {
-                UserInfoItem.UserRoles = Queries.GetUserRolesForClient(UserInfoItem.Id, ThisClient.Id);
-
-                // any roles that were not found need to be included with IsAssigned=false
-                UserInfoItem.UserRoles.AddRange(RolesToManage.Except(UserInfoItem.UserRoles.Select(ur => ur.RoleEnum)).Select(re =>
-                    new AssignedRoleInfo
-                    {
-                        RoleEnum = re,
-                        RoleDisplayValue = ApplicationRole.RoleDisplayNames[re],
-                        IsAssigned = false
-                    }));
-
-                //List<Client> AuthorizedClients = Queries.GetListOfClientsUserIsAuthorizedToManage(UserManager.GetUserName(HttpContext.User));
-            }
-
-            // Get all users currently member of any related Client (any descendant of the root client)
-            List<Client> AllRelatedClients = Queries.GetAllRelatedClients(ThisClient);
-            List<ApplicationUser> UsersAssignedToClientFamily = new List<ApplicationUser>();
-            foreach (Client OneClient in AllRelatedClients)
-            {
-                ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), OneClient.Id.ToString());
-                IList<ApplicationUser> UsersForThisClaim = await UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim);
-                UsersAssignedToClientFamily = UsersAssignedToClientFamily.Union(UsersForThisClaim).ToList();
-                // TODO Test whether the other overload of .Union() needs to be used with an IEqualityComparer argument.  For this use equality should probably be based on Id only.
-            }
-
-            if (ThisClient.AcceptedEmailDomainList != null)
-            {
-                foreach (string AcceptableDomain in ThisClient.AcceptedEmailDomainList)
-                {
-                    if (string.IsNullOrWhiteSpace(AcceptableDomain))
-                    {
-                        continue;
-                    }
-                    Model.EligibleUsers.AddRange(UsersAssignedToClientFamily.Where(u => u.NormalizedEmail.Contains($"@{AcceptableDomain.ToUpper()}"))
-                                                                            .Select(u => (UserInfo)u));
-                }
-            }
-
-            // Assign the remaining assigned user properties
-            foreach (UserInfo UserInfoItem in Model.EligibleUsers)
-            {
-                UserInfoItem.UserRoles = Queries.GetUserRolesForClient(UserInfoItem.Id, ThisClient.Id);
-
-                // any roles that were not found need to be included with IsAssigned=false
-                UserInfoItem.UserRoles.AddRange(RolesToManage.Except(UserInfoItem.UserRoles.Select(ur => ur.RoleEnum)).Select(re => 
-                    new AssignedRoleInfo
-                    {
-                        RoleEnum = re,
-                        RoleDisplayValue = ApplicationRole.RoleDisplayNames[re],
-                        IsAssigned = false
-                    }));
-            }
-
-            // Subtract the assigned users from the overall list of eligible users
-            Model.EligibleUsers = Model.EligibleUsers
-                                       .Except(Model.AssignedUsers, new UserInfoEqualityComparer())
-                                       .OrderBy(u => u.LastName)
-                                       .ThenBy(u => u.FirstName)
-                                       .ToList();
+            await Model.GenerateSupportingProperties(DbContext, UserManager, await Queries.GetCurrentApplicationUser(User), RoleEnum.Admin, false);
 
             return Json(Model);
         }
@@ -303,7 +229,10 @@ namespace MillimanAccessPortal.Controllers
                 AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User Assigned to Client", AuditEventId.UserAssignedToClient, LogDetails, User.Identity.Name, HttpContext.Session.Id) );
             }
 
-            return await ClientDetail(RequestedClient.Id);
+            ClientDetailViewModel ReturnModel = new ClientDetailViewModel { ClientEntity = RequestedClient };
+            ReturnModel.GenerateSupportingProperties(DbContext, UserManager, await Queries.GetCurrentApplicationUser(User), RoleEnum.Admin, false);
+
+            return Json(ReturnModel);
         }
 
         [HttpPost]
@@ -476,14 +405,16 @@ namespace MillimanAccessPortal.Controllers
                                             LogDetails, 
                                             User.Identity.Name, 
                                             HttpContext.Session.Id));
-
-                return await ClientDetail(RequestedClient.Id);
             }
             else
             {
                 Response.Headers.Add("Warning", $"User {RequestedUser.UserName} is not assigned to client {RequestedClient.Name}.  No action taken.");
-                return await ClientDetail(RequestedClient.Id);
             }
+
+            ClientDetailViewModel ReturnModel = new ClientDetailViewModel { ClientEntity = RequestedClient };
+            ReturnModel.GenerateSupportingProperties(DbContext, UserManager, await Queries.GetCurrentApplicationUser(User), RoleEnum.Admin, false);
+
+            return Json(ReturnModel);
         }
 
         // POST: ClientAdmin/SaveNewClient
@@ -861,10 +792,12 @@ namespace MillimanAccessPortal.Controllers
             List<Client> AllRootClients = Queries.GetAllRootClients();  // list to memory so utilization is fast and no lingering transaction
             foreach (Client RootClient in AllRootClients.OrderBy(c => c.Name))
             {
-                ClientAndChildrenModel ClientModel = await Queries.GetDescendentFamilyOfClient(RootClient, CurrentUser, RoleEnum.Admin, true, true);
+                //await Queries.GetDescendentFamilyOfClient(RootClient, CurrentUser, RoleEnum.Admin, true, true);
+                ClientAndChildrenModel ClientModel = new ClientAndChildrenModel(RootClient);
+                await ClientModel.GenerateSupportingProperties(DbContext, UserManager, CurrentUser, RoleEnum.Admin, true);
                 if (ClientModel.IsThisOrAnyChildManageable())
                 {
-                    ModelToReturn.ClientTree.Add(ClientModel);
+                    ModelToReturn.ClientTreeList.Add(ClientModel);
                 }
             }
 

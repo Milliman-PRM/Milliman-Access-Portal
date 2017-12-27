@@ -53,7 +53,7 @@ namespace MapDbContextLib.Context
 
         public static void InitializeAll(IServiceProvider serviceProvider)
         {
-            Identity.ApplicationRole.SeedRoles(serviceProvider);
+            Identity.ApplicationRole.SeedRoles(serviceProvider).Wait();
             Context.ContentType.InitializeContentTypes(serviceProvider);
         }
     }
