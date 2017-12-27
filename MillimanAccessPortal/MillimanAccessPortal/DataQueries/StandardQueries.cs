@@ -105,42 +105,42 @@ namespace MillimanAccessPortal.DataQueries
             return DataContext.Client.Where(c => c.ParentClientId == null).ToList();
         }
 
-        public async Task<ClientAndChildrenModel> GetDescendentFamilyOfClient(Client ClientArg, ApplicationUser CurrentUser, RoleEnum ClientRoleRequiredToManage, bool RequireProfitCenterAuthority, bool RecurseDown = true)
-        {
-            Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientArg.Id.ToString());
-            List<ApplicationUser> UserMembersOfThisClient = (await UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim)).ToList();
+        //public async Task<ClientAndChildrenModel> GetDescendentFamilyOfClient(Client ClientArg, ApplicationUser CurrentUser, RoleEnum ClientRoleRequiredToManage, bool RequireProfitCenterAuthority, bool RecurseDown = true)
+        //{
+        //    Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientArg.Id.ToString());
+        //    List<ApplicationUser> UserMembersOfThisClient = (await UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim)).ToList();
 
-            ClientAndChildrenModel ResultObject = new ClientAndChildrenModel { ClientEntity = ClientArg };  // Initialize.
-            ResultObject.AssociatedContentCount = DataContext.RootContentItem.Where(r => r.ClientIdList.Contains(ClientArg.Id)).Count();
-            ResultObject.AssociatedUserCount = UserMembersOfThisClient.Count;
+        //    ClientAndChildrenModel ResultObject = new ClientAndChildrenModel { ClientEntity = ClientArg };  // Initialize.
+        //    ResultObject.AssociatedContentCount = DataContext.RootContentItem.Where(r => r.ClientIdList.Contains(ClientArg.Id)).Count();
+        //    ResultObject.AssociatedUserCount = UserMembersOfThisClient.Count;
 
-            ResultObject.CanManage = DataContext.UserRoleInClient
-                                                .Include(urc => urc.Role)
-                                                .Include(urc => urc.Client)
-                                                .Any(urc => urc.UserId == CurrentUser.Id
-                                                         && urc.Role.RoleEnum == ClientRoleRequiredToManage
-                                                         && urc.ClientId == ClientArg.Id);
+        //    ResultObject.CanManage = DataContext.UserRoleInClient
+        //                                        .Include(urc => urc.Role)
+        //                                        .Include(urc => urc.Client)
+        //                                        .Any(urc => urc.UserId == CurrentUser.Id
+        //                                                 && urc.Role.RoleEnum == ClientRoleRequiredToManage
+        //                                                 && urc.ClientId == ClientArg.Id);
 
-            if (RequireProfitCenterAuthority)
-            {
-                ResultObject.CanManage &= DataContext.UserRoleInProfitCenter
-                                                     .Include(urp => urp.Role)
-                                                     .Any(urp => urp.UserId == CurrentUser.Id
-                                                              && urp.Role.RoleEnum == RoleEnum.Admin
-                                                              && urp.ProfitCenterId == ClientArg.ProfitCenterId);
-            }
+        //    if (RequireProfitCenterAuthority)
+        //    {
+        //        ResultObject.CanManage &= DataContext.UserRoleInProfitCenter
+        //                                             .Include(urp => urp.Role)
+        //                                             .Any(urp => urp.UserId == CurrentUser.Id
+        //                                                      && urp.Role.RoleEnum == RoleEnum.Admin
+        //                                                      && urp.ProfitCenterId == ClientArg.ProfitCenterId);
+        //    }
 
-            if (RecurseDown)
-            {
-                List<Client> ChildrenOfThisClient = DataContext.Client.Where(c => c.ParentClientId == ClientArg.Id).ToList();
-                foreach (Client ChildOfThisClient in ChildrenOfThisClient)
-                {
-                    ResultObject.Children.Add(await GetDescendentFamilyOfClient(ChildOfThisClient, CurrentUser, ClientRoleRequiredToManage, RecurseDown));
-                }
-            }
+        //    if (RecurseDown)
+        //    {
+        //        List<Client> ChildrenOfThisClient = DataContext.Client.Where(c => c.ParentClientId == ClientArg.Id).ToList();
+        //        foreach (Client ChildOfThisClient in ChildrenOfThisClient)
+        //        {
+        //            ResultObject.Children.Add(await GetDescendentFamilyOfClient(ChildOfThisClient, CurrentUser, ClientRoleRequiredToManage, RecurseDown));
+        //        }
+        //    }
 
-            return ResultObject;
-        }
+        //    return ResultObject;
+        //}
 
         /// <summary>
         /// Returns list of normalized role names authorized to provided Client for provided UserId
@@ -148,16 +148,22 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="UserId"></param>
         /// <param name="ClientId"></param>
         /// <returns></returns>
-        public List<string> GetUserRolesForClient(long UserId, long ClientId)
+        public List<AssignedRoleInfo> GetUserRolesForClient(long UserId, long ClientId)
         {
-            List<string> ReturnVal = DataContext
-                                    .UserRoleInClient
-                                    .Include(urc => urc.Role)
-                                    .Where(urc => urc.UserId == UserId
-                                               && urc.ClientId == ClientId)
-                                    .Select(urc => urc.Role.NormalizedName)
-                                    .Distinct()
-                                    .ToList();
+            IQueryable<AssignedRoleInfo> Query = DataContext.UserRoleInClient
+                                                            .Include(urc => urc.Role)
+                                                            .Where(urc => urc.UserId == UserId
+                                                                       && urc.ClientId == ClientId)
+                                                            .Distinct()
+                                                            .Select(urc => 
+                                                                new AssignedRoleInfo
+                                                                {
+                                                                    RoleEnum = urc.Role.RoleEnum,
+                                                                    RoleDisplayValue = ApplicationRole.RoleDisplayNames[urc.Role.RoleEnum],
+                                                                    IsAssigned = true,
+                                                                });
+
+            List<AssignedRoleInfo> ReturnVal = Query.ToList();
 
             return ReturnVal;
         }

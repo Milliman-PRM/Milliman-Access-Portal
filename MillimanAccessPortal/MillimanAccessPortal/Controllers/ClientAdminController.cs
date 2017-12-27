@@ -31,6 +31,8 @@ namespace MillimanAccessPortal.Controllers
 {
     public class ClientAdminController : Controller
     {
+        private readonly static List<RoleEnum> RolesToManage = new List<RoleEnum> { RoleEnum.Admin, RoleEnum.ContentAdmin, RoleEnum.ContentUser, RoleEnum.UserAdmin };
+
         private readonly ApplicationDbContext DbContext;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly StandardQueries Queries;
@@ -66,9 +68,10 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Index()
         {
             #region Authorization
-            // User must have ClientAdministrator role to at least 1 Client
+            // User must have Admin role to at least 1 Client OR to at least 1 ProfitCenter
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, null));
-            if (!Result1.Succeeded)
+            AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin, null));
+            if (!Result1.Succeeded && !Result2.Succeeded)
             {
                 Response.Headers.Add("Warning", $"You are not authorized to the Client Admin page.");
                 return Unauthorized();
@@ -98,7 +101,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ClientAdminIndexViewModel ModelToReturn = await GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User));
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
 
             return Json(ModelToReturn);
         }
@@ -115,7 +118,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Client ThisClient = DbContext.Client.Include(c => c.ProfitCenter).FirstOrDefault(c => c.Id == id);
 
-            #region Preliminary Validation
+            #region Validation
             if (ThisClient == null)
             {
                 Response.Headers.Add("Warning", $"The requested client was not found");
@@ -135,64 +138,8 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ClientDetailViewModel Model = new ClientDetailViewModel();
-
-            Model.ClientEntity = ThisClient;
-
-            Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ThisClient.Id.ToString());
-
-            // Get the list of users already members of this client
-            { // isolate scope
-                IList<ApplicationUser> UsersForThisClaim = await UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim);
-                Model.AssignedUsers = UsersForThisClaim
-                                        .Select(ApUser => (UserInfo)ApUser)  // use the UserInfo type conversion operator
-                                        .OrderBy(u => u.LastName)
-                                        .ThenBy(u => u.FirstName)
-                                        .ToList();
-            }
-
-            // Assign the remaining assigned user properties
-            foreach (UserInfo Item in Model.AssignedUsers)
-            {
-                List<Client> AuthorizedClients = Queries.GetListOfClientsUserIsAuthorizedToManage(UserManager.GetUserName(HttpContext.User));
-            }
-
-            // Get all users currently member of any related Client (any descendant of the root client)
-            List<Client> AllRelatedClients = Queries.GetAllRelatedClients(ThisClient);
-            List<ApplicationUser> UsersAssignedToClientFamily = new List<ApplicationUser>();
-            foreach (Client OneClient in AllRelatedClients)
-            {
-                ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), OneClient.Id.ToString());
-                IList<ApplicationUser> UsersForThisClaim = await UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim);
-                UsersAssignedToClientFamily = UsersAssignedToClientFamily.Union(UsersForThisClaim).ToList();
-                // TODO Test whether the other overload of .Union() needs to be used with an IEqualityComparer argument.  For this use equality should probably be based on Id only.
-            }
-
-            if (ThisClient.AcceptedEmailDomainList != null)
-            {
-                foreach (string AcceptableDomain in ThisClient.AcceptedEmailDomainList)
-                {
-                    if (string.IsNullOrWhiteSpace(AcceptableDomain))
-                    {
-                        continue;
-                    }
-                    Model.EligibleUsers.AddRange(UsersAssignedToClientFamily.Where(u => u.NormalizedEmail.Contains($"@{AcceptableDomain.ToUpper()}"))
-                                                                            .Select(u => (UserInfo)u));
-                }
-            }
-
-            // Assign the remaining assigned user properties
-            foreach (UserInfo Item in Model.EligibleUsers)
-            {
-                Item.UserRoles = Queries.GetUserRolesForClient(Item.Id, ThisClient.Id);
-            }
-
-            // Subtract the assigned users from the overall list of eligible users
-            Model.EligibleUsers = Model.EligibleUsers
-                                       .Except(Model.AssignedUsers, new UserInfoEqualityComparer())
-                                       .OrderBy(u => u.LastName)
-                                       .ThenBy(u => u.FirstName)
-                                       .ToList();
+            ClientDetailViewModel Model = new ClientDetailViewModel { ClientEntity = ThisClient };
+            await Model.GenerateSupportingProperties(DbContext, UserManager, await Queries.GetCurrentApplicationUser(User), RoleEnum.Admin, false);
 
             return Json(Model);
         }
@@ -264,7 +211,6 @@ namespace MillimanAccessPortal.Controllers
                                                claim.Value == ThisClientMembershipClaim.Value))
             {
                 Response.Headers.Add("Warning", "The requested user is already assigned to the requested client");
-                return await ClientDetail(RequestedClient.Id);
             }
             else
             {
@@ -281,9 +227,100 @@ namespace MillimanAccessPortal.Controllers
                                           AssignedClient = RequestedClient.Name,
                                           AssignedClientId = RequestedClient.Id};
                 AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User Assigned to Client", AuditEventId.UserAssignedToClient, LogDetails, User.Identity.Name, HttpContext.Session.Id) );
-
-                return await ClientDetail(RequestedClient.Id);
             }
+
+            ClientDetailViewModel ReturnModel = new ClientDetailViewModel { ClientEntity = RequestedClient };
+            await ReturnModel.GenerateSupportingProperties(DbContext, UserManager, await Queries.GetCurrentApplicationUser(User), RoleEnum.Admin, false);
+
+            return Json(ReturnModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetUserRoleInClient([Bind("ClientId,UserName")]ClientUserAssociationViewModel ClientUserModel, [Bind("RoleEnum,IsAssigned")]AssignedRoleInfo AssignedRoleInfoArg)
+        {
+            #region Authorization
+            if (!AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, ClientUserModel.ClientId)).Result.Succeeded)
+            {
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            // requested user must exist
+            ApplicationUser RequestedUser = await UserManager.FindByNameAsync(ClientUserModel.UserName);
+            if (RequestedUser == null)
+            {
+                Response.Headers.Add("Warning", $"The requested user was not found");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);
+            }
+
+            // requested client must exist
+            Client RequestedClient = DbContext.Client.Find(ClientUserModel.ClientId);
+            if (RequestedClient == null)
+            {
+                Response.Headers.Add("Warning", $"The requested client was not found");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);
+            }
+
+            // Requested user must be member of requested client
+            Claim ClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientUserModel.ClientId.ToString());
+            if (!UserManager.GetUsersForClaimAsync(ClientMembershipClaim).Result.Contains(RequestedUser))
+            {
+                Response.Headers.Add("Warning", $"The requested user is not associated with the requested client");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);
+            }
+
+            // requested role must exist
+            ApplicationRole RequestedRole = RoleManager.FindByIdAsync(((long)AssignedRoleInfoArg.RoleEnum).ToString()).Result;
+            if (RequestedRole == null)
+            {
+                Response.Headers.Add("Warning", $"The requested role was not found");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);
+            }
+            #endregion
+
+            IQueryable<UserRoleInClient> ExistingRecordsQuery = DbContext.UserRoleInClient
+                                                                         .Where(urc => urc.UserId == RequestedUser.Id
+                                                                                    && urc.ClientId == RequestedClient.Id
+                                                                                    && urc.RoleId == RequestedRole.Id);
+
+            #region perform the requested action
+            List<UserRoleInClient> ExistingRecords = ExistingRecordsQuery.ToList();
+
+            if (AssignedRoleInfoArg.IsAssigned)
+            {
+                // Create role assignment, only if it's not already there
+                if (ExistingRecords.Count == 0)
+                {
+                    DbContext.UserRoleInClient.Add(new UserRoleInClient { UserId = RequestedUser.Id, RoleId = RequestedRole.Id, ClientId = RequestedClient.Id });
+                    DbContext.SaveChanges();
+                }
+            }
+            else
+            {
+                // Remove role.  There should be only one, but act to remove any number
+                DbContext.UserRoleInClient.RemoveRange(ExistingRecords);
+                DbContext.SaveChanges();
+            }
+            #endregion
+
+            #region Build resulting model
+            ExistingRecords = ExistingRecordsQuery.ToList();
+
+            List<AssignedRoleInfo> ReturnModel = new List<AssignedRoleInfo>();
+            foreach (RoleEnum x in RolesToManage)
+            {
+                ReturnModel.Add(new AssignedRoleInfo
+                {
+                    RoleEnum = x,
+                    RoleDisplayValue = ApplicationRole.RoleDisplayNames[x],
+                    IsAssigned = ExistingRecords.Any(urc => urc.RoleId == (long)x),
+                });
+            }
+            #endregion
+
+            return Json(ReturnModel);
         }
 
         /// <summary>
@@ -368,14 +405,16 @@ namespace MillimanAccessPortal.Controllers
                                             LogDetails, 
                                             User.Identity.Name, 
                                             HttpContext.Session.Id));
-
-                return await ClientDetail(RequestedClient.Id);
             }
             else
             {
                 Response.Headers.Add("Warning", $"User {RequestedUser.UserName} is not assigned to client {RequestedClient.Name}.  No action taken.");
-                return await ClientDetail(RequestedClient.Id);
             }
+
+            ClientDetailViewModel ReturnModel = new ClientDetailViewModel { ClientEntity = RequestedClient };
+            await ReturnModel.GenerateSupportingProperties(DbContext, UserManager, await Queries.GetCurrentApplicationUser(User), RoleEnum.Admin, false);
+
+            return Json(ReturnModel);
         }
 
         // POST: ClientAdmin/SaveNewClient
@@ -507,7 +546,7 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
 
-            ClientAdminIndexViewModel ModelToReturn = await GetClientAdminIndexModelForUser(CurrentApplicationUser);
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
             ModelToReturn.RelevantClientId = Model.Id;
 
             return Json(ModelToReturn);
@@ -659,15 +698,20 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
 
-            ClientAdminIndexViewModel ModelToReturn = await GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User));
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
             ModelToReturn.RelevantClientId = ExistingClientRecord.Id;
 
             return Json(ModelToReturn);
         }
 
-        // DELETE: ClientAdmin/Delete/5
-        //public async Task<IActionResult> DeleteClient(long Id)
+        /// <summary>
+        /// Deletes a Client record
+        /// </summary>
+        /// <param name="Id"></param>
+        /// <param name="Password"></param>
+        /// <returns></returns>
         [HttpDelete]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteClient(long? Id, string Password)
         {
             // Query for the existing record to be modified
@@ -726,56 +770,15 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
 
-            ClientAdminIndexViewModel ModelToReturn = await GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User));
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
 
             return Json(ModelToReturn);
         }
 
         /// <summary>
-        /// Create and return the 2 lists: 1-Clients and 2-ProfitCenters associated with the provided ApplicationUser
+        /// Returns an array of individual whitelist items without nulls, optionally tested for validity as either domain or full email address
         /// </summary>
-        /// <param name="CurrentUser">Must be populated with Id.  Best if returned from EF query</param>
-        /// <returns></returns>
-        [NonAction]
-        private async Task<ClientAdminIndexViewModel> GetClientAdminIndexModelForUser(ApplicationUser CurrentUser)
-        {
-            #region Validation
-            if (CurrentUser == null)
-            {
-                return null;
-            }
-            #endregion
-
-            // Instantiate working variables
-            ClientAdminIndexViewModel ModelToReturn = new ClientAdminIndexViewModel();
-
-            // Add all appropriate client trees
-            List<Client> AllRootClients = Queries.GetAllRootClients();  // list to memory so utilization is fast and no lingering transaction
-            foreach (Client RootClient in AllRootClients.OrderBy(c => c.Name))
-            {
-                ClientAndChildrenModel ClientModel = await Queries.GetDescendentFamilyOfClient(RootClient, CurrentUser, RoleEnum.Admin, true, true);
-                if (ClientModel.IsThisOrAnyChildManageable())
-                {
-                    ModelToReturn.ClientTree.Add(ClientModel);
-                }
-            }
-
-            // Add all authorized ProfitCenters
-            IQueryable<AuthorizedProfitCenterModel> Query = DbContext.UserRoleInProfitCenter
-                                                                     .Where(URP => URP.UserId == CurrentUser.Id)
-                                                                     .Distinct()
-                                                                     .Include(URP => URP.ProfitCenter)
-                                                                     .Select(URP => new AuthorizedProfitCenterModel(URP.ProfitCenter));
-
-            ModelToReturn.AuthorizedProfitCenterList = Query.ToList();
-
-            return ModelToReturn;
-        }
-
-        /// <summary>
-        /// Returns a clean array without null elements, optionally tested for validity as either domain or full email address
-        /// </summary>
-        /// <param name="InArray"></param>
+        /// <param name="InArray">0 or more strings that may contain 0 or more email entries or a delimited list</param>
         /// <param name="CleanDomain">If true, strip characters up through '@' from each found element</param>
         /// <returns></returns>
         private string[] GetCleanClientEmailWhitelistArray(string[] InArray, bool CleanDomain)

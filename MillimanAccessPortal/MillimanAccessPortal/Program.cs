@@ -36,7 +36,7 @@ namespace MillimanAccessPortal
 
                 try
                 {
-                    ApplicationDbContext.InitializeAll(serviceProvider).Wait();
+                    ApplicationDbContext.InitializeAll(serviceProvider);
                 }
                 catch (Exception e)
                 {

@@ -51,9 +51,9 @@ namespace MapDbContextLib.Context
             return ProfitCenter.Any(pc => pc.Id == id);
         }
 
-        public static async Task InitializeAll(IServiceProvider serviceProvider)
+        public static void InitializeAll(IServiceProvider serviceProvider)
         {
-            await Identity.ApplicationRole.SeedRoles(serviceProvider);
+            Identity.ApplicationRole.SeedRoles(serviceProvider).Wait();
             Context.ContentType.InitializeContentTypes(serviceProvider);
         }
     }
