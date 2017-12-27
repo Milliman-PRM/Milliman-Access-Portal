@@ -511,7 +511,7 @@ function cardDeleteClickHandler($clickedCard) {
           ],
           callback: function onSelectWithPassword(password) {
             if (password) {
-              removeClientNode(clientId, clientName, password);
+              deleteClient(clientId, clientName, password);
             } else if (password === '') {
               toastr.warning('Please enter your password to proceed');
               return false;
@@ -713,7 +713,14 @@ function renderClientTree(clientId) {
   }
 }
 
-function removeClientNode(clientId, clientName, password) {
+/**
+ * Send an AJAX request to delete a client
+ * @param  {Number} clientId   ID of the client to delete
+ * @param  {String} clientName Name of the client to delete
+ * @param  {String} password   User's password
+ * @return {undefined}
+ */
+function deleteClient(clientId, clientName, password) {
   $.ajax({
     type: 'DELETE',
     url: 'ClientAdmin/DeleteClient',
@@ -733,6 +740,10 @@ function removeClientNode(clientId, clientName, password) {
   });
 }
 
+/**
+ * Send an AJAX request to delete a client
+ * @return {undefined}
+ */
 function getClientTree() {
   $.ajax({
     type: 'GET',
@@ -750,18 +761,19 @@ function getClientTree() {
   });
 }
 
-function submitClientForm(event) {
-  var form;
+/**
+ * Send an AJAX request to create or edit a client
+ * @return {undefined}
+ */
+function submitClientForm() {
+  var $clientForm = $('#client-form');
   var clientId;
   var clientName;
   var urlAction;
   var successResponse;
-  if ($('#client-form').valid()) {
-    event.preventDefault();
-
-    form = $('#client-form');
-    clientId = $('#client-form #Id').val();
-    clientName = $('#client-form #Name').val();
+  if ($clientForm.valid()) {
+    clientId = $clientForm.find('#Id').val();
+    clientName = $clientForm.find('#Name').val();
     urlAction = 'ClientAdmin/';
 
     if (clientId) {
@@ -775,7 +787,7 @@ function submitClientForm(event) {
     $.ajax({
       type: 'POST',
       url: urlAction,
-      data: form.serialize(),
+      data: $clientForm.serialize(),
       headers: {
         RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
       }
