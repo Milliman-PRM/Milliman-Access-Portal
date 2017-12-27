@@ -784,7 +784,7 @@ function submitClientForm(event) {
         RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
       }
     }).done(function onDone(response) {
-      clientTree = response.ClientTree;
+      clientTree = response.ClientTreeList;
       renderClientTree(response.RelevantClientId);
       toastr.success(successResponse);
       $('#client-tree div.card-container[data-client-id="' + clientId + '"]').click();
