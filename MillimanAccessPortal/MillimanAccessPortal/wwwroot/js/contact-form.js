@@ -1,9 +1,14 @@
 // Contact Form
 
+/**
+ * Submit the contact form
+ * @return {undefined}
+ */
 function submitForm() {
-  var formRecipient = $('#contact-form #recipient').val();
-  var formSubject = $('#contact-form #subject').val();
-  var formMessage = $('#contact-form #message').val();
+  var $contactForm = $('#contact-form');
+  var formRecipient = $contactForm.find('#recipient').val();
+  var formSubject = $contactForm.find('#subject').val();
+  var formMessage = $contactForm.find('#message').val();
 
   $.ajax({
     type: 'POST',
@@ -24,11 +29,19 @@ function submitForm() {
   });
 }
 
+/**
+ * Reset the contact form
+ * @return {undefined}
+ */
 function resetContactForm() {
   $('#subject').val('');
   $('#message').val('');
 }
 
+/**
+ * Initialize the contact form
+ * @return {undefined}
+ */
 function initializeContactForm() {
   vex.dialog.open({
     input: [
