@@ -298,6 +298,36 @@ function confirmAndReset(confirmDialog, onContinue) {
 }
 
 /**
+ * Determine whether the specified user role assignments are considered elevated
+ * @param  {Object} userRoles The user roles to check, taken from AJAX response object
+ * @return {Boolean}          Whether the user role assignments are elevated
+ */
+function elevatedRoles(userRoles) {
+  return !!$.grep(userRoles, function isElevatedRole(role) {
+    // FIXME: Definition of 'elevated role' should not live here
+    return [1, 3, 4].includes(role.RoleEnum);
+  }).filter(function isAssigned(role) {
+    return role.IsAssigned;
+  }).length;
+}
+
+/**
+ * Show the role indicator if the specified user role assignments are considered elevated
+ * Otherwise, hide the role indicator.
+ * @param  {Number} userId    Associated user ID of the role indicator to update.
+ * @param  {Array} userRoles  Array of user roles to check against
+ * @return {undefined}
+ */
+function updateUserRoleIndicator(userId, userRoles) {
+  $('#user-list')
+    .find('.card-container[data-user-id="' + userId + '"]')
+    .find('.card-user-role-indicator')
+    .hide()
+    .filter(function anyElevated() { return elevatedRoles(userRoles); })
+    .show();
+}
+
+/**
  * Render user node by using string substitution on a userNodeTemplate
  * @param  {Number} clientId ID of the client to which the user belongs
  * @param  {Object} user     User object to render
@@ -329,6 +359,7 @@ function renderUserNode(clientId, user) {
   // }
 
   $('#client-user-list').append($template);
+  updateUserRoleIndicator(user.Id, user.UserRoles);
 }
 
 /**
@@ -454,6 +485,7 @@ function setUserRole(userId, roleEnum, isAssigned) {
       $cardContainer.find('input[data-role-enum=' + roleAssignment.RoleEnum + ']')
         .prop('checked', roleAssignment.IsAssigned);
     });
+    updateUserRoleIndicator(postData.UserId, response);
     // Filter response to get the role that was set by the request
     modifiedRole = response.filter(function filter(responseRole) {
       return responseRole.RoleEnum.toString() === postData.RoleEnum;
