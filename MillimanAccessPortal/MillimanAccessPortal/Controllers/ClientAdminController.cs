@@ -242,6 +242,7 @@ namespace MillimanAccessPortal.Controllers
             #region Authorization
             if (!AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, ClientUserModel.ClientId)).Result.Succeeded)
             {
+                Response.Headers.Add("Warning", $"You are not authorized to manage this client");
                 return Unauthorized();
             }
             #endregion
@@ -282,11 +283,10 @@ namespace MillimanAccessPortal.Controllers
 
             IQueryable<UserRoleInClient> ExistingRecordsQuery = DbContext.UserRoleInClient
                                                                          .Where(urc => urc.UserId == RequestedUser.Id
-                                                                                    && urc.ClientId == RequestedClient.Id
-                                                                                    && urc.RoleId == RequestedRole.Id);
+                                                                                    && urc.ClientId == RequestedClient.Id);
 
             #region perform the requested action
-            List<UserRoleInClient> ExistingRecords = ExistingRecordsQuery.ToList();
+            List<UserRoleInClient> ExistingRecords = ExistingRecordsQuery.Where(urc => urc.RoleId == RequestedRole.Id).ToList();
 
             if (AssignedRoleInfoArg.IsAssigned)
             {
