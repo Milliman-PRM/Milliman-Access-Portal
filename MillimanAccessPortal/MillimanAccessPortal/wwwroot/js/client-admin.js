@@ -317,6 +317,11 @@ function renderUserNode(clientId, user) {
   $template.find('.card-body-secondary-text:contains("{{email}}")')
     .remove();
 
+  $.each(user.UserRoles, function displayRoles(index, role) {
+    $template.find('input[data-role-enum=' + role.RoleEnum + ']')
+      .prop('checked', role.IsAssigned);
+  });
+
   // if (!client.CanManage) {
   //     $('.icon-container', $template).remove();
   //     $('.card-container', $template).addClass('disabled');
