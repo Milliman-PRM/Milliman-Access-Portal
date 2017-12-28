@@ -411,7 +411,7 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception e)
             {
-                string ErrMsg = $"Failed to remove user {RequestedUser.UserName}: Claim={ClaimNames.ClientMembership.ToString()}.{RequestedClient.Id.ToString()}";
+                string ErrMsg = $"Failed to remove user {RequestedUser.UserName} from client {RequestedClient.Name}: error\r\n{e.Message}";
                 Logger.LogError(ErrMsg);
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
