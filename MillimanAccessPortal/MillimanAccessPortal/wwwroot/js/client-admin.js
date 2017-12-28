@@ -509,6 +509,19 @@ function openNewChildClientForm($parentCard) {
 }
 
 /**
+ * Display the new client form
+ * @return {undefined}
+ */
+function openNewClientForm() {
+  clearClientSelection();
+  setupClientForm();
+  $('#create-new-client-card').attr('selected', '');
+  setClientFormWriteable();
+  hideClientUsers();
+  showClientDetails();
+}
+
+/**
  * Handle click events for all client cards and client inserts
  * @param {jQuery} $clickedCard the card that was clicked
  * @returns {undefined}
@@ -628,21 +641,11 @@ function createNewClientClickHandler() {
         if ($('.client-insert').length) {
           removeClientInserts();
         }
-        clearClientSelection();
-        setupClientForm();
-        $('#create-new-client-card').attr('selected', '');
-        setClientFormWriteable();
-        hideClientUsers();
-        showClientDetails();
+        openNewClientForm();
       }
     });
   } else {
-    clearClientSelection();
-    setupClientForm();
-    $('#create-new-client-card').attr('selected', '');
-    setClientFormWriteable();
-    hideClientUsers();
-    showClientDetails();
+    openNewClientForm();
   }
 }
 
