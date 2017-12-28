@@ -386,7 +386,8 @@ namespace MapTests
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 5, UserName = "test2" };
 
-            int preActionCount = Enumerable.Count(TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()));
+            var UserId = TestResources.DbContextObject.ApplicationUser.Where(au => au.UserName == viewModel.UserName).Select(au => au.Id).First();
+            int preActionCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString() && c.UserId == UserId).Count();
             #endregion
 
             #region Act
