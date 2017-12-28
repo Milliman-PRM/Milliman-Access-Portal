@@ -317,9 +317,10 @@ function renderUserNode(clientId, user) {
   $template.find('.card-body-secondary-text:contains("{{email}}")')
     .remove();
 
-  $.each(user.UserRoles, function displayRoles(index, role) {
-    $template.find('input[data-role-enum=' + role.RoleEnum + ']')
-      .prop('checked', role.IsAssigned);
+  $.each(user.UserRoles, function displayRoles(index, roleAssignment) {
+    $template.find('input[data-role-enum=' + roleAssignment.RoleEnum + ']')
+      .prop('checked', roleAssignment.IsAssigned)
+      .change(userCardRoleToggleClickHandler);
   });
 
   // if (!client.CanManage) {
@@ -424,6 +425,46 @@ function getClientDetail(clientDiv) {
 }
 
 /**
+ * Send an AJAX request to set a user role
+ * @param {Number}  userId     UserID of the user whose roll is to be updated
+ * @param {Number}  roleEnum   The role to be updated
+ * @param {Boolean} isAssigned The value to be assigned to the specified role
+ * @return {undefined}
+ */
+function setUserRole(userId, roleEnum, isAssigned) {
+  var $cardContainer = $('#user-list .card-container[data-user-id="' + userId + '"]');
+  var postData = {
+    ClientId: $('#client-tree [selected]').attr('data-client-id'),
+    UserName: $cardContainer.find('.card-body-secondary-text').html(), // FIXME: this may not always contain the username. Better may be to send user ID (present in DOM attribute) instead of user name.
+    RoleEnum: roleEnum,
+    IsAssigned: isAssigned
+  };
+
+  $.ajax({
+    type: 'POST',
+    url: 'ClientAdmin/SetUserRoleInClient',
+    data: postData,
+    headers: {
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+    }
+  }).done(function onDone(response) {
+    var modifiedRole;
+    // Set checkbox states to match the response
+    $.each(response, function setToggle(index, roleAssignment) {
+      $cardContainer.find('input[data-role-enum=' + roleAssignment.RoleEnum + ']')
+        .prop('checked', roleAssignment.IsAssigned);
+    });
+    // Filter response to get the role that was set by the request
+    modifiedRole = response.filter(function filter(responseRole) {
+      return responseRole.RoleEnum.toString() === postData.RoleEnum;
+    })[0];
+    toastr.success(postData.UserName + ' was ' + (modifiedRole.IsAssigned ? 'set' : 'unset') + ' as ' + modifiedRole.RoleDisplayValue);
+  }).fail(function onFail(response) {
+    toastr.warning(response.getResponseHeader('Warning'));
+  });
+}
+
+/**
  * Display client card details
  * @param  {jQuery} $clientCard The .card-container element to open
  * @return {undefined}
@@ -472,7 +513,7 @@ function openNewChildClientForm($parentCard) {
  * @param {jQuery} $clickedCard the card that was clicked
  * @returns {undefined}
  */
-function cardClickHandler($clickedCard) {
+function clientCardClickHandler($clickedCard) {
   var $clientTree = $('#client-tree');
   var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
   if ($clientTree.has('[selected]').length) {
@@ -494,7 +535,7 @@ function cardClickHandler($clickedCard) {
  * @param  {jQuery} $clickedCard the card that was clickedCard
  * @return {undefined}
  */
-function cardDeleteClickHandler($clickedCard) {
+function clientCardDeleteClickHandler($clickedCard) {
   var clientId = $clickedCard.attr('data-client-id').valueOf();
   var clientName = $clickedCard.find('.card-body-primary-text').first().text();
   vex.dialog.confirm({
@@ -538,7 +579,7 @@ function cardDeleteClickHandler($clickedCard) {
  * @param {jQuery} $clickedCard the card that was clicked
  * @returns {undefined}
  */
-function cardEditClickHandler($clickedCard) {
+function clientCardEditClickHandler($clickedCard) {
   var $clientTree = $('#client-tree');
   var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
   if ($clientTree.has('[editing]').length) {
@@ -557,7 +598,7 @@ function cardEditClickHandler($clickedCard) {
  * @param {jQuery} $clickedCard the card that was clicked
  * @returns {undefined}
  */
-function cardCreateNewChildClickHandler($clickedCard) {
+function clientCardCreateNewChildClickHandler($clickedCard) {
   var $clientTree = $('#client-tree');
   var sameCard = ($clickedCard[0] === $clientTree.find('[selected]').parent().prev().find('.card-container')[0]);
   if ($clientTree.has('[editing]').length) {
@@ -603,6 +644,25 @@ function createNewClientClickHandler() {
     hideClientUsers();
     showClientDetails();
   }
+}
+
+/**
+ * Handle click events for user role toggles
+ * @param  {Event} event The event to handle
+ * @return {undefined}
+ */
+function userCardRoleToggleClickHandler(event) {
+  var $clickedInput = $(event.target);
+
+  setUserRole(
+    $clickedInput.closest('.card-container').attr('data-user-id'),
+    $clickedInput.attr('data-role-enum'),
+    $clickedInput.prop('checked')
+  );
+
+  // Don't show toggle animation until a response is received
+  // TODO: This approach is hacky, consider more intuitive alternatives
+  $clickedInput.prop('checked', function toggle(index, oldValue) { return !oldValue; });
 }
 
 /**
@@ -689,22 +749,22 @@ function renderClientTree(clientTreeList, clientId) {
   });
   $clientTreeList.find('div.card-container')
     .click(function onClick() {
-      cardClickHandler($(this));
+      clientCardClickHandler($(this));
     });
   $clientTreeList.find('div.card-button-delete')
     .click(function onClick(event) {
       event.stopPropagation();
-      cardDeleteClickHandler($(this).parents('div[data-client-id]'));
+      clientCardDeleteClickHandler($(this).parents('div[data-client-id]'));
     });
   $clientTreeList.find('div.card-button-edit')
     .click(function onClick(event) {
       event.stopPropagation();
-      cardEditClickHandler($(this).parents('div[data-client-id]'));
+      clientCardEditClickHandler($(this).parents('div[data-client-id]'));
     });
   $clientTreeList.find('div.card-button-new-child')
     .click(function onClick(event) {
       event.stopPropagation();
-      cardCreateNewChildClickHandler($(this).parents('div[data-client-id]'));
+      clientCardCreateNewChildClickHandler($(this).parents('div[data-client-id]'));
     });
   if (clientId) {
     $('[data-client-id="' + clientId + '"]').click();
