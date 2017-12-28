@@ -435,7 +435,7 @@ function setUserRole(userId, roleEnum, isAssigned) {
   var $cardContainer = $('#user-list .card-container[data-user-id="' + userId + '"]');
   var postData = {
     ClientId: $('#client-tree [selected]').attr('data-client-id'),
-    UserName: $cardContainer.find('.card-body-secondary-text').html(), // FIXME: this may not always contain the username. Better may be to send user ID (present in DOM attribute) instead of user name.
+    UserId: userId,
     RoleEnum: roleEnum,
     IsAssigned: isAssigned
   };
@@ -458,7 +458,7 @@ function setUserRole(userId, roleEnum, isAssigned) {
     modifiedRole = response.filter(function filter(responseRole) {
       return responseRole.RoleEnum.toString() === postData.RoleEnum;
     })[0];
-    toastr.success(postData.UserName + ' was ' + (modifiedRole.IsAssigned ? 'set' : 'unset') + ' as ' + modifiedRole.RoleDisplayValue);
+    toastr.success($cardContainer.find('.card-body-primary-text').html() + ' was ' + (modifiedRole.IsAssigned ? 'set' : 'unset') + ' as ' + modifiedRole.RoleDisplayValue);
   }).fail(function onFail(response) {
     toastr.warning(response.getResponseHeader('Warning'));
   });

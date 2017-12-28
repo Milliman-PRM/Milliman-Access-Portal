@@ -178,7 +178,7 @@ namespace MillimanAccessPortal.Controllers
             // 1. Requested user must exist
             ApplicationUser RequestedUser = DbContext
                                             .ApplicationUser
-                                            .Where(u => u.UserName == Model.UserName)
+                                            .Where(u => u.Id == Model.UserId)
                                             .SingleOrDefault();
             if (RequestedUser == null)
             {
@@ -237,7 +237,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SetUserRoleInClient([Bind("ClientId,UserName")]ClientUserAssociationViewModel ClientUserModel, [Bind("RoleEnum,IsAssigned")]AssignedRoleInfo AssignedRoleInfoArg)
+        public async Task<IActionResult> SetUserRoleInClient([Bind("ClientId,UserId")]ClientUserAssociationViewModel ClientUserModel, [Bind("RoleEnum,IsAssigned")]AssignedRoleInfo AssignedRoleInfoArg)
         {
             #region Authorization
             if (!AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, ClientUserModel.ClientId)).Result.Succeeded)
@@ -248,7 +248,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Validation
             // requested user must exist
-            ApplicationUser RequestedUser = await UserManager.FindByNameAsync(ClientUserModel.UserName);
+            ApplicationUser RequestedUser = await UserManager.FindByIdAsync(ClientUserModel.UserId.ToString());
             if (RequestedUser == null)
             {
                 Response.Headers.Add("Warning", $"The requested user was not found");
@@ -357,7 +357,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validate the request
             // 1. Requested user must exist
             ApplicationUser RequestedUser = DbContext.ApplicationUser
-                                                     .Where(u => u.UserName == Model.UserName)
+                                                     .Where(u => u.Id == Model.UserId)
                                                      .SingleOrDefault();
             if (RequestedUser == null)
             {
