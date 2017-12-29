@@ -305,7 +305,9 @@ function confirmAndReset(confirmDialog, onContinue) {
 function elevatedRoles(userRoles) {
   return !!$.grep(userRoles, function isElevatedRole(role) {
     // FIXME: Definition of 'elevated role' should not live here
-    return [1, 3, 4].includes(role.RoleEnum);
+    return [1, 3, 4].some(function matchesRole(elevatedRole) {
+      return role.RoleEnum === elevatedRole;
+    });
   }).filter(function isAssigned(role) {
     return role.IsAssigned;
   }).length;
