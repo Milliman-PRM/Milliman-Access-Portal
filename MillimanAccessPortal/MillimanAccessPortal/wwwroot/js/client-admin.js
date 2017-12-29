@@ -329,13 +329,13 @@ function updateUserRoleIndicator(userId, userRoles) {
 
 /**
  * Render user node by using string substitution on a userNodeTemplate
- * @param  {Number} clientId ID of the client to which the user belongs
- * @param  {Object} user     User object to render
+ * @param  {Number} client Client to which the user belongs
+ * @param  {Object} user   User object to render
  * @return {undefined}
  */
-function renderUserNode(clientId, user) {
+function renderUserNode(client, user) {
   var $template = $(userNodeTemplate
-    .replace(/{{clientId}}/g, clientId)
+    .replace(/{{clientId}}/g, client.ClientEntity.Id)
     .replace(/{{id}}/g, user.Id)
     .replace(/{{name}}/g, user.FirstName + ' ' + user.LastName)
     .replace(/{{username}}/g, user.UserName)
@@ -353,10 +353,10 @@ function renderUserNode(clientId, user) {
       .change(userCardRoleToggleClickHandler);
   });
 
-  // if (!client.CanManage) {
-  //     $('.icon-container', $template).remove();
-  //     $('.card-container', $template).addClass('disabled');
-  // }
+  if (!client.CanManage) {
+    $template.find('.icon-container,.card-button-remove-user').remove();
+    $template.find('.card-container,.toggle-switch-checkbox').attr('disabled', '');
+  }
 
   $('#client-user-list').append($template);
   updateUserRoleIndicator(user.Id, user.UserRoles);
@@ -371,7 +371,7 @@ function renderUserNode(clientId, user) {
 function renderUserList(client, userId) {
   $('#client-user-list').empty();
   client.AssignedUsers.forEach(function render(user) {
-    renderUserNode(client.ClientEntity.Id, user);
+    renderUserNode(client, user);
   });
   $('div.card-button-remove-user').click(function onClick(event) {
     event.stopPropagation();
