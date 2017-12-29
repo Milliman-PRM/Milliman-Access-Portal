@@ -374,8 +374,8 @@ function renderUserList(client, userId) {
     renderUserNode(client.ClientEntity.Id, user);
   });
   $('div.card-button-remove-user').click(function onClick(event) {
-    // TODO: Handle remove user click event
     event.stopPropagation();
+    userCardRemoveClickHandler($(this).closest('.card-container'));
   });
   $('div[data-client-id][data-user-id]').click(function toggleCard(event) {
     event.stopPropagation();
@@ -768,6 +768,43 @@ function initializeAddUserForm() {
  */
 function addUserClickHandler() {
   initializeAddUserForm();
+}
+
+/**
+ * Remove the specified user from the specified client
+ * @param  {Number} clientId Client ID
+ * @param  {Number} userId   User ID
+ * @return {undefined}
+ */
+function removeUserFromClient(clientId, userId) {
+  var userName = $('#user-list [data-user-id="' + userId + '"] .card-body-primary-text').html();
+  var clientName = $('#client-tree [data-client-id="' + clientId + '"] .card-body-primary-text').html();
+  $.ajax({
+    type: 'POST',
+    url: 'ClientAdmin/RemoveUserFromClient',
+    data: {
+      ClientId: clientId,
+      userId: userId
+    },
+    headers: {
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+    }
+  }).done(function onDone(response) {
+    renderUserList(response);
+    toastr.success('Successfully removed ' + userName + ' from ' + clientName);
+  }).fail(function onFail(response) {
+    toastr.warning(response.getResponseHeader('Warning'));
+  });
+}
+
+/**
+ * Handle click events for remove user buttons
+ * @return {undefined}
+ */
+function userCardRemoveClickHandler($clickedCard) {
+  var clientId = $('#client-tree [selected]').attr('data-client-id');
+  var userId = $clickedCard.attr('data-user-id');
+  removeUserFromClient(clientId, userId);
 }
 
 /**
