@@ -720,7 +720,9 @@ function saveNewUser(name, email) {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
   }).done(function onDone() {
-    renderUserList();
+    var clientId = $('#client-tree [selected]').attr('data-client-id');
+    getClientTree();
+    openClientCardReadOnly($('#client-tree [data-client-id="' + clientId + '"]'));
     toastr.success('Created user.');
   }).fail(function onFail(response) {
     toastr.warning(response.getResponseHeader('Warning'));
