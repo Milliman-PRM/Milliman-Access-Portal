@@ -389,6 +389,11 @@ function renderUserList(client, userId) {
   if (userId) {
     $('[data-user-id="' + userId + '"]').click();
   }
+  $('#client-user-list').append(newUserCard);
+  $('#add-user-card')
+    .click(function onClick() {
+      addUserClickHandler();
+    });
 }
 
 /**
@@ -698,6 +703,69 @@ function userCardRoleToggleClickHandler(event) {
   // Don't show toggle animation until a response is received
   // TODO: This approach is hacky, consider more intuitive alternatives
   $clickedInput.prop('checked', function toggle(index, oldValue) { return !oldValue; });
+}
+
+// FIXME: send more appropriate data
+function saveNewUser(name, email) {
+  $.ajax({
+    type: 'POST',
+    url: 'UserAdmin/SaveNewUser',
+    data: {
+      UserName: email,
+      Email: email,
+      FirstName: name.split(' ')[0],
+      LastName: name.split(' ')[1] || ''
+    },
+    headers: {
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+    }
+  }).done(function onDone() {
+    renderUserList();
+    toastr.success('Created user.');
+  }).fail(function onFail(response) {
+    toastr.warning(response.getResponseHeader('Warning'));
+  });
+}
+
+// FIXME: present a more appropriate form
+function initializeAddUserForm() {
+  vex.dialog.open({
+    input: [
+      '<h2 id="add-user-title">Add User</h2>',
+      '<form id="add-user-form" asp-controller="UserAdmin" asp-action="SaveNewUser" method="post">',
+      '<div>',
+      '<input id="add-user-name" name="name" placeholder="Name" required>',
+      '<input id="add-user-email" name="email" placeholder="Email" required>',
+      '</div>',
+      '</form>'
+    ].join(''),
+    buttons: [
+      $.extend({}, vex.dialog.buttons.NO, {
+        text: 'SUBMIT',
+        className: 'blue-button',
+        click: function onClick() {
+          if ($('#add-user-name').val() && $('#add-user-email').val()) {
+            saveNewUser($('#add-user-name').val(), $('#add-user-email').val());
+          } else {
+            toastr.warning('Please provide a name and email address');
+            return false;
+          }
+          return true;
+        }
+      })
+    ],
+    callback: function callback() {
+      return false;
+    }
+  });
+}
+
+/**
+ * Handle click events for add new user inputs
+ * @returns {undefined}
+ */
+function addUserClickHandler() {
+  initializeAddUserForm();
 }
 
 /**
