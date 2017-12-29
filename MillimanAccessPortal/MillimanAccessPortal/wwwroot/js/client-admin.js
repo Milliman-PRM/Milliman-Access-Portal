@@ -1003,6 +1003,7 @@ $(document).ready(function onReady() {
   getClientTree();
 
   $('#add-client-icon').click(createNewClientClickHandler);
+  $('#add-user-icon').click(addUserClickHandler);
   $('#edit-client-icon').click(editIconClickHandler);
   $('#cancel-edit-client-icon').click(cancelIconClickHandler);
   $('#expand-user-icon').click(expandAllUsers);
