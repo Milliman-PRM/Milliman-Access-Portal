@@ -1,6 +1,6 @@
 # **1. INTRODUCTION**
 
-This project will produce a software application referred to as Milliman Access Portal.  It is primarily an administration and enforcement engine for user authentication and authorization of user access to Milliman product content.  The system is envisioned to serve the immediate need of Milliman's PRM product team.  It is also intended to anticipate and serve the needs of other internal practices that can benefit from a product hosting infrastructure that they don't have to implement themselves. 
+This project will produce a software application referred to as Milliman Access Portal.  It is primarily an administration and enforcement engine for user authentication and authorization of user access to Milliman product content.  The system is envisioned to first meet the need of Milliman's PRM product team.  It is also intended to anticipate and serve the needs of other Milliman internal practices that can benefit from a product hosting infrastructure that they don't have to implement themselves. 
 
 ### 1.1 Purpose
 
@@ -8,7 +8,7 @@ This web application will allow content to be delivered to clients in a secure a
 
 #### 1.2 Background
 
-This project is being undertaken because the current reporting infrastructure is becoming incrementally more difficult to maintain as features are added.
+This project is being undertaken because the current report delivery infrastructure is becoming incrementally more difficult to maintain as features are added.
 
 ### 1.3 References
 
