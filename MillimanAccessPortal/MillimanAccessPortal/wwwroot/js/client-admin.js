@@ -941,6 +941,7 @@ function deleteClient(clientId, clientName, password) {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
   }).done(function onDone(response) {
+    clearFormData();
     renderClientTree(response.ClientTreeList, response.RelevantClientId);
     toastr.success(clientName + ' was successfully deleted.');
   }).fail(function onFail(response) {
