@@ -1,0 +1,55 @@
+<script type="text/template" data-template="clientNode">
+    <li>
+        <div class="{{class}} card-container" data-search-string data-client-id="{{id}}">
+            <div class="card-body-main-container">
+                <div class="card-body-primary-container">
+                    <h{{header-level}} class="card-body-primary-text">{{name}}</h{{header-level}}>
+                    <p class="card-body-secondary-text">{{clientCode}}</p>
+                </div>
+            </div>
+            <div class="card-stats-container">
+                <div class="card-stat-container">
+                    <i class="fa fa-fw fa-users fa-2x card-stat-icon"></i><h4 class="card-stat-value">{{users}}</h4>
+                </div>
+                <div class="card-stat-container">
+                    <i class="fa fa-fw fa-file fa-2x card-stat-icon"></i><h4 class="card-stat-value">{{content}}</h4>
+                </div>
+            </div>
+            <div class="card-button-side-container">
+                <div class="card-button-background card-button-delete">
+                    <i class="fa fa-fw fa-trash card-button-icon"></i>
+                </div>
+                <div class="card-button-background card-button-edit">
+                    <i class="fa fa-fw fa-pencil card-button-icon"></i>
+                </div>
+               <div class="card-button-background card-button-new-child">
+                    <i class="fa fa-fw fa-plus card-button-icon"></i>
+                </div>
+            </div>
+        </div>
+    </li>
+</script>
+
+<script type="text/template" data-template="childNodePlaceholder">
+    <li class="client-insert">
+        <div class="{{class}} card-container flex-container flex-row-no-wrap items-align-center">
+            <div class="card-body-main-container content-item-flex-1">
+                <h3 class="card-body-primary-text">New Child Client</h3>
+            </div>
+            <i class="fa fa-fw fa-2x fa-chevron-right"></i>
+        </div>
+    </li>
+</script>
+
+<script type="text/template" data-template="createNewClientCard">
+    <li>
+        <div id="create-new-client-card" class="card-container card-100 action-card">
+            <div class="card-body-main-container">
+                <h2 class="card-body-primary-text">
+                    <i class="fa fa-plus"></i>
+                    <span>Create New Client</span>
+                </h2>
+            </div>
+        </div>
+    </li>
+</script>

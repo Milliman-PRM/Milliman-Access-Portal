@@ -1,2 +1,3 @@
-# New-Hotness
-A repository for work related to the next version of our reporting application
+# Milliman-Access-Portal
+
+A repository for work related to the Milliman Access Portal web application

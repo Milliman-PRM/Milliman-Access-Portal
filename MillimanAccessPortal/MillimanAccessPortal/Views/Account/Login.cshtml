@@ -1,0 +1,40 @@
+﻿@using System.Collections.Generic
+@using Microsoft.AspNetCore.Http
+@using Microsoft.AspNetCore.Http.Authentication
+@using MapDbContextLib.Identity
+@model LoginViewModel
+@inject SignInManager<ApplicationUser> SignInManager
+
+@{
+    ViewData["Title"] = "Log in";
+    Layout = "_Layout_w_F";
+}
+
+<section id="login-container">
+    <div id="login-logo-container">
+        <img id="login-logo" src="~/images/logo.png" alt="Milliman Access Portal Logo" />
+    </div>
+    <div id="login-form-container">
+        <form id="login-form" asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="login-form-input-container">
+                <input asp-for="Email" id="email" placeholder="Email" autofocus>
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="login-form-input-container">
+                <input asp-for="Password" id="password" placeholder="Password">
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="login-form-button-container">
+                <a asp-action="ResetPassword" class="link-button">Forgot Password</a>
+                <button type="submit" class="blue-button">Login</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+
+@*@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}*@
+

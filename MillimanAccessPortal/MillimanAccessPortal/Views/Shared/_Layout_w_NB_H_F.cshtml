@@ -1,0 +1,30 @@
+﻿@{
+    Layout = "_Layout";
+}
+
+@section CSS {
+    @RenderSection("CSS", required: false)
+}
+
+
+@await Html.PartialAsync("_Navbar")
+
+<div id="content-wrapper" class="navbar-offset">
+    @Html.Partial("_Header")
+    <div id="content-container">
+        @RenderBody()
+    </div>    
+    @Html.Partial("_Footer")
+</div>
+
+
+
+@section Scripts {
+    <environment names="Development,CI">
+        <script src="~/js/contact-form.js"></script>
+    </environment>
+    <environment names="Staging,Production">
+        <script src="~/js/contact-form.min.js"></script>
+    </environment>
+    @RenderSection("Scripts", required: false)
+}

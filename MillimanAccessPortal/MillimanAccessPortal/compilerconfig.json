@@ -1,0 +1,10 @@
+﻿[
+  {
+    "outputFile": "wwwroot/lib/toastr/toastr.css",
+    "inputFile": "wwwroot/lib/toastr/toastr.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/map.css",
+    "inputFile": "wwwroot/css/map.scss"
+  }
+]
