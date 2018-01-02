@@ -277,6 +277,26 @@ function confirmResetDialog(callback) {
 }
 
 /**
+ * Create a dialog box to confirm user removal
+ * @param {function} callback Executed if the user selects YES
+ * @return {undefined}
+ */
+function confirmRemoveDialog(name, callback) {
+  vex.dialog.confirm({
+    unsafeMessage: 'Do you want to remove <strong>' + name + '</strong> from the selected client?',
+    buttons: [
+      $.extend({}, vex.dialog.buttons.YES, { text: 'Remove', className: 'red-button' }),
+      $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
+    ],
+    callback: function onSelect(result) {
+      if (result) {
+        callback();
+      }
+    }
+  });
+}
+
+/**
  * Create a dialog box if there are modified inputs
  * If there are modified inputs and the user selects YES, or if there are no
  * modified inputs, then the form is reset and onContinue is executed.
@@ -804,9 +824,12 @@ function removeUserFromClient(clientId, userId) {
  * @return {undefined}
  */
 function userCardRemoveClickHandler($clickedCard) {
-  var clientId = $('#client-tree [selected]').attr('data-client-id');
-  var userId = $clickedCard.attr('data-user-id');
-  removeUserFromClient(clientId, userId);
+  var userName = $clickedCard.find('.card-body-primary-text').html();
+  confirmRemoveDialog(userName, function removeUser() {
+    var clientId = $('#client-tree [selected]').attr('data-client-id');
+    var userId = $clickedCard.attr('data-user-id');
+    removeUserFromClient(clientId, userId);
+  });
 }
 
 /**
