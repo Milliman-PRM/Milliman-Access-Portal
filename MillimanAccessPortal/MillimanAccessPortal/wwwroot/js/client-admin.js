@@ -744,7 +744,7 @@ function saveNewUser(name, email) {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
   }).done(function onDone() {
-    getClientTree();
+    getClientTree(clientId);
     openClientCardReadOnly($('#client-tree [data-client-id="' + clientId + '"]'));
     toastr.success('Created user.');
   }).fail(function onFail(response) {
@@ -977,13 +977,13 @@ function deleteClient(clientId, clientName, password) {
  * Send an AJAX request to delete a client
  * @return {undefined}
  */
-function getClientTree() {
+function getClientTree(clientId) {
   $.ajax({
     type: 'GET',
     url: 'ClientAdmin/ClientFamilyList/'
   }).done(function onDone(response) {
     populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
-    renderClientTree(response.ClientTreeList, response.RelevantClientId);
+    renderClientTree(response.ClientTreeList, clientId || response.RelevantClientId);
   }).fail(function onFail(response) {
     if (response.getResponseHeader('Warning')) {
       toastr.warning(response.getResponseHeader('Warning'));
