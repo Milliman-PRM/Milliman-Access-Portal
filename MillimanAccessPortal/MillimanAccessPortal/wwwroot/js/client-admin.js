@@ -771,15 +771,14 @@ function initializeAddUserForm() {
         click: function onClick() {
           if ($('#add-user-name').val() && $('#add-user-email').val()) {
             saveNewUser($('#add-user-name').val(), $('#add-user-email').val());
+            vex.closeAll();
           } else {
             toastr.warning('Please provide a name and email address');
-            return false;
           }
-          return true;
         }
       })
     ],
-    callback: function callback() {
+    callback: function onClose() {
       return false;
     }
   });
