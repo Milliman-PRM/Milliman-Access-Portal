@@ -41,7 +41,6 @@ This project is being undertaken because the current report delivery infrastruct
 ### 1.7 Acronyms
 - MAP - Milliman Access Portal
 
-
 ### 1.8 Roles & Responsibilities
 Name|Role|Responsibilities|
 ----|----|----------------
@@ -58,6 +57,55 @@ Steve Gredell|Dev-Ops|System Setup, CI Integration, Testing Integration
 - A user who wants to access a Milliman product typically requires authorization to access the content.  This system is to provide a way to configure and manage such authorizations, evaluate authorizations in response to user requests to view content, and grant or deny the requested access based on the evaluated authorizations.
 
 ### 2.1 Functional Requirements
+A role indicated in parentheses is the authorization requirement for the page view or action.
+
+### 2.1.a System Administration (Admin role - global)
+- Create user without Client association (UserCreator - global)
+- View all users
+- Edit user attributes
+- Edit all user roles
+  - Client Roles
+  - ProfitCenter roles
+  - RootContent roles
+- Delete user accounts from the system
+- Create, Edit, and Delete any ProfitCenter, possibly using SQL
+
+
+- UI to Create, Edit, and Delete any ProfitCenter
+- Temporary role assignment
+- Tabular summary
+  - For selected clients
+    - User list
+    - Content list
+  - For selected user  
+    - Client List
+    - Authorized content List
+
+### 2.1.b Client Administration (Admin role - any Client or ProfitCenter)
+- CRUD clients
+- Create new clients
+- Edit client attributes
+- Create user with client association
+- Select a client as the context of role administration actions
+- Assign / remove user membership in client
+- Assign / remove user roles for client (requires membership)
+
+### 2.1.c Content Publication (ContentAdmin role - any Client or RootContentItem)
+- Create new content record (requires ContentAdmin role on client)
+- Publish content for existing content record (requires ContentAdmin role on RootContentItem)
+- Edit content attributes
+- Delete content (requires ContentAdmin role on client)
+
+### 2.1.d Content Authorization (ContentAdmin role - any RootContentItem)
+- Create user with client association with RootContent (and client) association (UserCreator role on client or global)
+- Assign eligible content users to a content item (ContentAdmin role - RootContentItem)
+- Adjust hierarchy selections for individual users (ContentAdmin role - RootContentItem)
+- Adjust hierarchy selections for multiple users at one time (ContentAdmin role - RootContentItem)
+- Remove a user from access to a content item (ContentAdmin role - RootContentItem)
+  - **Question:** Does this mean removing the user's ContentUser role for the content item or only eliminating the user's selections?
+  - **Question:** If this content item is the user's only authorized content in the related client, does this mean removing the user's ContentUser role for the client?
+
+**TODO** Resolve the below content into the above outline
 
 ### 2.1.1 General
   - MAP must eventually implement a feature set sufficient that it will serve as a functional replacement for the existing Millframe application over time.
