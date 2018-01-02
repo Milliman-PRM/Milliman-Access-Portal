@@ -729,6 +729,7 @@ function userCardRoleToggleClickHandler(event) {
 
 // FIXME: send more appropriate data
 function saveNewUser(name, email) {
+  var clientId = $('#client-tree [selected]').attr('data-client-id');
   $.ajax({
     type: 'POST',
     url: 'UserAdmin/SaveNewUser',
@@ -736,13 +737,13 @@ function saveNewUser(name, email) {
       UserName: email,
       Email: email,
       FirstName: name.split(' ')[0],
-      LastName: name.split(' ')[1] || ''
+      LastName: name.split(' ')[1] || '',
+      MemberOfClientIdArray: [clientId]
     },
     headers: {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
   }).done(function onDone() {
-    var clientId = $('#client-tree [selected]').attr('data-client-id');
     getClientTree();
     openClientCardReadOnly($('#client-tree [data-client-id="' + clientId + '"]'));
     toastr.success('Created user.');
