@@ -401,13 +401,16 @@ function renderUserList(client, userId) {
     event.stopPropagation();
     userCardRemoveClickHandler($(this).closest('.card-container'));
   });
-  $('#user-list .card-body-main-container').click(function toggleCard(event) {
-    event.stopPropagation();
-    $(this).siblings('div.card-expansion-container').attr('maximized', function toggle(index, attr) {
-      return attr === '' ? null : '';
+  $('#user-list .card-body-main-container,.card-button-expansion')
+    .click(function toggleCard(event) {
+      event.stopPropagation();
+      $(this).closest('.card-container')
+        .find('div.card-expansion-container')
+        .attr('maximized', function toggle(index, attr) {
+          return attr === '' ? null : '';
+        });
+      showRelevantUserActionIcons();
     });
-    showRelevantUserActionIcons();
-  });
   showRelevantUserActionIcons();
 
   if (userId) {
