@@ -858,6 +858,7 @@ function cancelIconClickHandler() {
       setClientFormReadOnly();
     } else {
       clearClientSelection();
+      removeClientInserts();
       hideClientDetails();
     }
   });
