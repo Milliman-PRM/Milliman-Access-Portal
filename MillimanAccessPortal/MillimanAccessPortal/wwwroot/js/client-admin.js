@@ -94,6 +94,7 @@ function setClientFormWriteable() {
   $clientForm.find('.selectized').each(function enable() {
     this.selectize.enable();
   });
+  $clientForm.find('#Name').focus();
 }
 
 /**
@@ -923,25 +924,32 @@ function renderClientTree(clientTreeList, clientId) {
     renderClientNode(rootClient, 0);
     $clientTreeList.append('<li class="hr width-100pct"></li>');
   });
-  $clientTreeList.find('div.card-container')
+  $clientTreeList.find('.card-container')
     .click(function onClick() {
       clientCardClickHandler($(this));
     });
-  $clientTreeList.find('div.card-button-delete')
+  $clientTreeList.find('.card-button-delete')
     .click(function onClick(event) {
       event.stopPropagation();
       clientCardDeleteClickHandler($(this).parents('div[data-client-id]'));
     });
-  $clientTreeList.find('div.card-button-edit')
+  $clientTreeList.find('.card-button-edit')
     .click(function onClick(event) {
       event.stopPropagation();
       clientCardEditClickHandler($(this).parents('div[data-client-id]'));
     });
-  $clientTreeList.find('div.card-button-new-child')
+  $clientTreeList.find('.card-button-new-child')
     .click(function onClick(event) {
       event.stopPropagation();
       clientCardCreateNewChildClickHandler($(this).parents('div[data-client-id]'));
     });
+
+  // TODO: Consider applying this to other cards and buttons as well
+  $clientTreeList.find('.card-container,.card-button-background')
+    .mousedown(function onMousedown(event) {
+      event.preventDefault();
+    });
+
   if (clientId) {
     $('[data-client-id="' + clientId + '"]').click();
   }
