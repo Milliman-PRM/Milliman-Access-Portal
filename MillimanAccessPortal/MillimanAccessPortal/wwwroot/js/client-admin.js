@@ -673,7 +673,13 @@ function clientCardEditClickHandler($clickedCard) {
  */
 function clientCardCreateNewChildClickHandler($clickedCard) {
   var $clientTree = $('#client-tree');
-  var sameCard = ($clickedCard[0] === $clientTree.find('[selected]').parent().prev().find('.card-container')[0]);
+  /**
+   * The clicked card is the same as the selected card if and only if the currently selected card
+   * is a client insert ("New Child Client" card) AND the currently selected card is immediately
+   * preceded by the clicked card in the client list.
+   */
+  var sameCard = ($clientTree.find('[selected]').closest('.client-insert').length &&
+    $clickedCard[0] === $clientTree.find('[selected]').parent().prev().find('.card-container')[0]);
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
       confirmAndReset(confirmDiscardDialog, function onContinue() {
