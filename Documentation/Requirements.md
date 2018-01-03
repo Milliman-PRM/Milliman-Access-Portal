@@ -46,7 +46,7 @@ Name|Role|Responsibilities|
 ----|----|----------------
 Shea Parkes|PRM Manager|Project Approval
 Michael Reisz|Project Manager|Project Management, UX Design, Front End Development
-Tom Pucket|Back End Developer|System Architecture Design, Information Model Design, Back End Development
+Tom Puckett|Back End Developer|System Architecture Design, Information Model Design, Back End Development
 Ben Wyatt|Back End Developer/DBA|System Architecture Design, Back End Development, Database management
 Joseph Sweeny|Software Developer|Front End Development,
 Kelsie Stevenson|UX Developer|UX Design, Front End Development
@@ -59,8 +59,41 @@ Steve Gredell|Dev-Ops|System Setup, CI Integration, Testing Integration
 ### 2.1 Functional Requirements
 A role indicated in parentheses is the authorization requirement for the page view or action.
 
+### 2.1.1 General
+- MAP must control visibility to the user of user authorizations managed by the system depending on administered privileges.
+- MAP must implement a set of web pages, each of which provides a set of related features.  These related feature sets are further described in later sections of this document and include:
+  - User authentication
+  - Content access
+  - System administration
+  - Client administration
+  - Content publication
+  - User authorization to content
+- MAP must provide a way to add new content to the system.
+- MAP must provide a way to add new content to the system.
+- MAP must provide a way to update existing content to a new version.
+- MAP must provide a way to remove content from the system.
+- MAP must provide a way to administer specific Selections within a content item that a set of end users will be authorized to access.
+
+  ###### Beyond V1
+- MAP must eventually implement a feature set sufficient to allow it to serve as a fully functional replacement for the existing Millframe application over time.
+- MAP must support the capability to define and manage filtered access to a subset of a hosted product, known as data reduction or loop and reduce.   
+
+### 2.1.2 User authentication
+- MAP must require authentication of a user before establishing a session in which any authorizable features are available.
+- MAP must provide a means for a non-authenticated user to initiate a password reset in order to gain access in the event of a forgotten or otherwise unusable password.
+
+### 2.1.2 Content Access
+- MAP must limit the user's visibility of and access to content only to items that are authorized for access by the user.
+- The application landing page must display a filtered view of the content items that the user is authorized to access.
+  - Each content item represented in the user's view of authorized content must provide a clearly identifiable clickable link providing the user with direct access to the content item.
+  - The link must function for content served from any host that may or may not be colocated with the MAP infrastructure.
+- Upon the user clicking an authorized content item link, MAP must display view that contains the selected content.
+
+  ###### Beyond V1
+-
+
 ### 2.1.a System Administration (Admin role - global)
-- Create user without Client association (UserCreator - global)
+- Create user without Client association
 - View all users
 - Edit user attributes
 - Edit all user roles
@@ -70,7 +103,7 @@ A role indicated in parentheses is the authorization requirement for the page vi
 - Delete user accounts from the system
 - Create, Edit, and Delete any ProfitCenter, possibly using SQL
 
-
+  ###### Beyond V1
 - UI to Create, Edit, and Delete any ProfitCenter
 - Temporary role assignment
 - Tabular summary
@@ -90,11 +123,17 @@ A role indicated in parentheses is the authorization requirement for the page vi
 - Assign / remove user membership in client
 - Assign / remove user roles for client (requires membership)
 
+  ###### Beyond V1
+-
+
 ### 2.1.c Content Publication (ContentAdmin role - any Client or RootContentItem)
 - Create new content record (requires ContentAdmin role on client)
 - Publish content for existing content record (requires ContentAdmin role on RootContentItem)
 - Edit content attributes
 - Delete content (requires ContentAdmin role on client)
+
+  ###### Beyond V1
+-
 
 ### 2.1.d Content Authorization (ContentAdmin role - any RootContentItem)
 - Create user with client association with RootContent (and client) association (UserCreator role on client or global)
@@ -105,20 +144,10 @@ A role indicated in parentheses is the authorization requirement for the page vi
   - **Question:** Does this mean removing the user's ContentUser role for the content item or only eliminating the user's selections?
   - **Question:** If this content item is the user's only authorized content in the related client, does this mean removing the user's ContentUser role for the client?
 
+  ###### Beyond V1
+-  
+
 **TODO** Resolve the below content into the above outline
-
-### 2.1.1 General
-  - MAP must eventually implement a feature set sufficient that it will serve as a functional replacement for the existing Millframe application over time.
-  - MAP must control visibility of user access parameters to the user depending on administered privileges.
-  - MAP must support the existing capability to define and manage filtered access to a subset of a hosted product, known as data reduction or loop and reduce.   
-  - MAP must provide a way to add new content to the system.
-  - MAP must provide a way to update existing content to a new version.
-  - MAP must provide a way to remove content from the system.
-  - MAP must provide a way to administer specific Selections within a content item that a set of end users will be authorized to access.
-
-### 2.1.2 Content Access
-  - MAP must provide a means for a user to view a filtered view of content that he/she is authorized to access.
-  - MAP must limit the user's access only to content that is authorized for the user.
 
 ### 2.1.3 User Authorization
   - MAP must provide a means for authorized users to administer privileges of certain other users, including administrative and non-administrative users.
