@@ -86,7 +86,7 @@ function setClientFormWriteable() {
   if ($('#client-tree [selected]').attr('data-client-id')) {
     $('#form-buttons-new').hide();
     $('#form-buttons-edit').show();
-    $('#undo-changes-button').hide();
+    $('#save-changes-button,#undo-changes-button').hide();
   } else {
     $('#form-buttons-new').show();
     $('#form-buttons-edit').hide();
@@ -234,6 +234,7 @@ function resetFormData() {
     }
   });
   resetValidation();
+  $('#save-changes-button,#undo-changes-button').hide();
 }
 
 /**
@@ -1094,9 +1095,9 @@ $(document).ready(function onReady() {
   $('#client-form').find(':input,select')
     .change(function onChange() {
       if (findModifiedInputs().length) {
-        $('#undo-changes-button').show();
+        $('#save-changes-button,#undo-changes-button').show();
       } else {
-        $('#undo-changes-button').hide();
+        $('#save-changes-button,#undo-changes-button').hide();
       }
     });
 
