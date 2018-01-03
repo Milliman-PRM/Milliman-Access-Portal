@@ -565,6 +565,7 @@ function openNewChildClientForm($parentCard) {
   $parentCard.parent().next('li').find('div.card-container')
     .attr({ selected: '', editing: '' });
   setClientFormWriteable();
+  hideClientUsers();
   showClientDetails();
 }
 
