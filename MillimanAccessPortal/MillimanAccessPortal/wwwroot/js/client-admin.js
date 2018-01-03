@@ -374,7 +374,7 @@ function renderUserNode(client, user) {
   $.each(user.UserRoles, function displayRoles(index, roleAssignment) {
     $template.find('input[data-role-enum=' + roleAssignment.RoleEnum + ']')
       .prop('checked', roleAssignment.IsAssigned)
-      .change(userCardRoleToggleClickHandler);
+      .click(userCardRoleToggleClickHandler);
   });
 
   if (!client.CanManage) {
@@ -401,9 +401,9 @@ function renderUserList(client, userId) {
     event.stopPropagation();
     userCardRemoveClickHandler($(this).closest('.card-container'));
   });
-  $('div[data-client-id][data-user-id]').click(function toggleCard(event) {
+  $('#user-list .card-body-main-container').click(function toggleCard(event) {
     event.stopPropagation();
-    $(this).find('div.card-expansion-container').attr('maximized', function toggle(index, attr) {
+    $(this).siblings('div.card-expansion-container').attr('maximized', function toggle(index, attr) {
       return attr === '' ? null : '';
     });
     showRelevantUserActionIcons();
@@ -491,7 +491,7 @@ function getClientDetail(clientDiv) {
  * @param {Boolean} isAssigned The value to be assigned to the specified role
  * @return {undefined}
  */
-function setUserRole(userId, roleEnum, isAssigned) {
+function setUserRole(userId, roleEnum, isAssigned, onResponse) {
   var $cardContainer = $('#user-list .card-container[data-user-id="' + userId + '"]');
   var postData = {
     ClientId: $('#client-tree [selected]').attr('data-client-id'),
@@ -520,8 +520,10 @@ function setUserRole(userId, roleEnum, isAssigned) {
       return responseRole.RoleEnum.toString() === postData.RoleEnum;
     })[0];
     toastr.success($cardContainer.find('.card-body-primary-text').html() + ' was ' + (modifiedRole.IsAssigned ? 'set' : 'unset') + ' as ' + modifiedRole.RoleDisplayValue);
+    onResponse();
   }).fail(function onFail(response) {
     toastr.warning(response.getResponseHeader('Warning'));
+    onResponse();
   });
 }
 
@@ -724,16 +726,17 @@ function createNewClientClickHandler() {
  */
 function userCardRoleToggleClickHandler(event) {
   var $clickedInput = $(event.target);
+  event.preventDefault();
 
   setUserRole(
     $clickedInput.closest('.card-container').attr('data-user-id'),
     $clickedInput.attr('data-role-enum'),
-    $clickedInput.prop('checked')
+    $clickedInput.prop('checked'),
+    function onDone() {
+      $('#user-list .toggle-switch-checkbox').removeAttr('disabled');
+    }
   );
-
-  // Don't show toggle animation until a response is received
-  // TODO: This approach is hacky, consider more intuitive alternatives
-  $clickedInput.prop('checked', function toggle(index, oldValue) { return !oldValue; });
+  $('#user-list .toggle-switch-checkbox').attr('disabled', '');
 }
 
 // FIXME: send more appropriate data
