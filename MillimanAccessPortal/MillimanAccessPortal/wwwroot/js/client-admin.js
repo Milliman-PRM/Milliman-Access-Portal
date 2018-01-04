@@ -217,7 +217,7 @@ function clearFormData() {
  */
 function clearUserList() {
   $('#client-user-list > li').remove();
-  $('#expand-user-icon,#collapse-user-icon').hide();
+  $('#expand-user-icon,#collapse-user-icon,#add-user-icon').hide();
 }
 
 /**
@@ -411,11 +411,15 @@ function renderUserList(client, userId) {
   if (userId) {
     $('[data-user-id="' + userId + '"]').click();
   }
-  $('#client-user-list').append(newUserCard);
-  $('#add-user-card')
-    .click(function onClick() {
-      addUserClickHandler();
-    });
+
+  if (client.CanManage) {
+    $('#add-user-icon').show();
+    $('#client-user-list').append(newUserCard);
+    $('#add-user-card')
+      .click(function onClick() {
+        addUserClickHandler();
+      });
+  }
 }
 
 /**
