@@ -867,7 +867,7 @@ function renderClientNode(client, level) {
   var classes = ['card-100', 'card-90'];
   var $template = $(clientNodeTemplate
     .replace(/{{class}}/g, classes[level] || 'card-80')
-    .replace(/{{header-level}}/g, (level + 1))
+    .replace(/{{header-level}}/g, (level + 2))
     .replace(/{{id}}/g, client.ClientModel.ClientEntity.Id)
     .replace(/{{name}}/g, client.ClientModel.ClientEntity.Name)
     .replace(/{{clientCode}}/g, client.ClientModel.ClientEntity.ClientCode || '')
