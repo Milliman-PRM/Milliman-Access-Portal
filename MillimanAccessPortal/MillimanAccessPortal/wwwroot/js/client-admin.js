@@ -728,7 +728,7 @@ function userCardRoleToggleClickHandler(event) {
 }
 
 // FIXME: send more appropriate data
-function saveNewUser(name, email) {
+function saveNewUser(email) {
   var clientId = $('#client-tree [selected]').attr('data-client-id');
   $.ajax({
     type: 'POST',
@@ -736,8 +736,6 @@ function saveNewUser(name, email) {
     data: {
       UserName: email,
       Email: email,
-      FirstName: name.split(' ')[0],
-      LastName: name.split(' ')[1] || '',
       MemberOfClientIdArray: [clientId]
     },
     headers: {
@@ -746,7 +744,7 @@ function saveNewUser(name, email) {
   }).done(function onDone() {
     getClientTree(clientId);
     openClientCardReadOnly($('#client-tree [data-client-id="' + clientId + '"]'));
-    toastr.success('Created user.');
+    toastr.success('User successfully added');
   }).fail(function onFail(response) {
     toastr.warning(response.getResponseHeader('Warning'));
   });
@@ -759,23 +757,26 @@ function initializeAddUserForm() {
       '<h2 id="add-user-title">Add User</h2>',
       '<form id="add-user-form" asp-controller="UserAdmin" asp-action="SaveNewUser" method="post">',
       '<div>',
-      '<input id="add-user-name" name="name" placeholder="Name" required>',
       '<input id="add-user-email" name="email" placeholder="Email" required>',
       '</div>',
       '</form>'
     ].join(''),
     buttons: [
       $.extend({}, vex.dialog.buttons.NO, {
-        text: 'SUBMIT',
+        text: 'ADD USER',
         className: 'blue-button',
         click: function onClick() {
-          if ($('#add-user-name').val() && $('#add-user-email').val()) {
-            saveNewUser($('#add-user-name').val(), $('#add-user-email').val());
+          if ($('#add-user-email').val()) {
+            saveNewUser($('#add-user-email').val());
             vex.closeAll();
           } else {
             toastr.warning('Please provide a name and email address');
           }
         }
+      }),
+      $.extend({}, vex.dialog.buttons.NO, {
+        text: 'Cancel',
+        className: 'link-button'
       })
     ],
     callback: function onClose() {
