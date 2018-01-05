@@ -13,8 +13,9 @@ namespace AuditLogLib
 
         // WARNING!!!  After production begins, never change the numeric ID of any AuditEventId
 
-        // Unspecified
-        public static readonly AuditEventId Unspecified = new AuditEventId(AuditEventBaseId, "Unspecified");
+        // Uncategorized 1 - 999
+        public static readonly AuditEventId Unspecified = new AuditEventId(1, "Unspecified");
+        public static readonly AuditEventId InvalidRequest = new AuditEventId(2, "Invalid request");
 
         // User activity category 1000 - 1999
         public static readonly AuditEventId LoginSuccess = new AuditEventId(1001, "Login success");

@@ -179,26 +179,25 @@ namespace MillimanAccessPortal.Controllers
                 // If client assignment is requested, user must be UserAdmin for the requested client
                 foreach (var AssignedClientId in Model.MemberOfClientIdArray)
                 {
-                    AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserAdmin, AssignedClientId));
+                    AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, AssignedClientId));
                     if (!Result2.Succeeded)
                     {
                         Client UnauthorizedClient = DbContext.Client.Find(AssignedClientId);
+                        object AssignedClientDetailObject = new { RequestedUser = Model.UserName, RequiredRole = RoleEnum.Admin.ToString(), RequestedClientIds = string.Join(",", Model.MemberOfClientIdArray) };
+
+                        AuditEvent LogEvent;
                         if (UnauthorizedClient != null)
                         {
-                            var AssignedClientDetailObject = new { RequestedUser = Model.UserName, RequiredRole = RoleEnum.UserCreator.ToString(), RequestedClientIds = string.Join(",", Model.MemberOfClientIdArray) };
-                            AuditEvent LogEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Request to create new user associated with unauthorized client(s)", AuditEventId.Unauthorized, AssignedClientDetailObject, User.Identity.Name, HttpContext.Session.Id);
-                            _auditLogger.Log(LogEvent);
-
+                            LogEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Request to create new user associated with unauthorized client(s)", AuditEventId.Unauthorized, AssignedClientDetailObject, User.Identity.Name, HttpContext.Session.Id);
                             Response.Headers.Add("Warning", $"You are not authorized to assign a user to the requested client ({UnauthorizedClient.Name})");
                         }
                         else
                         {
-                            var AssignedClientDetailObject = new { RequestedUser = Model.UserName, RequiredRole = RoleEnum.UserCreator.ToString(), RequestedClientIds = string.Join(",", Model.MemberOfClientIdArray) };
-                            AuditEvent LogEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Request to create new user associated with nonexistent client(s)", AuditEventId.Unauthorized, AssignedClientDetailObject, User.Identity.Name, HttpContext.Session.Id);
-                            _auditLogger.Log(LogEvent);
-
-                            Response.Headers.Add("Warning", "The requested client to be assigned does not exist in the system");
+                            LogEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Request to create new user associated with nonexistent client(s)", AuditEventId.InvalidRequest, AssignedClientDetailObject, User.Identity.Name, HttpContext.Session.Id);
+                            Response.Headers.Add("Warning", $"A requested client to be assigned does not exist in the system {AssignedClientId}");
                         }
+                        _auditLogger.Log(LogEvent);
+
                         return Unauthorized();
                     }
                 }
