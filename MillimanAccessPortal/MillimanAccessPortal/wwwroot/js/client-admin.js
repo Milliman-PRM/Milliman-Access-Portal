@@ -86,7 +86,7 @@ function setClientFormWriteable() {
   if ($('#client-tree [selected]').attr('data-client-id')) {
     $('#form-buttons-new').hide();
     $('#form-buttons-edit').show();
-    $('#undo-changes-button').hide();
+    $('#save-changes-button,#undo-changes-button').hide();
   } else {
     $('#form-buttons-new').show();
     $('#form-buttons-edit').hide();
@@ -94,6 +94,7 @@ function setClientFormWriteable() {
   $clientForm.find('.selectized').each(function enable() {
     this.selectize.enable();
   });
+  $clientForm.find('#Name').focus();
 }
 
 /**
@@ -234,6 +235,7 @@ function resetFormData() {
     }
   });
   resetValidation();
+  $('#save-changes-button,#undo-changes-button').hide();
 }
 
 /**
@@ -371,7 +373,7 @@ function renderUserNode(client, user) {
   $.each(user.UserRoles, function displayRoles(index, roleAssignment) {
     $template.find('input[data-role-enum=' + roleAssignment.RoleEnum + ']')
       .prop('checked', roleAssignment.IsAssigned)
-      .change(userCardRoleToggleClickHandler);
+      .click(userCardRoleToggleClickHandler);
   });
 
   if (!client.CanManage) {
@@ -398,13 +400,16 @@ function renderUserList(client, userId) {
     event.stopPropagation();
     userCardRemoveClickHandler($(this).closest('.card-container'));
   });
-  $('div[data-client-id][data-user-id]').click(function toggleCard(event) {
-    event.stopPropagation();
-    $(this).find('div.card-expansion-container').attr('maximized', function toggle(index, attr) {
-      return attr === '' ? null : '';
+  $('#user-list .card-body-main-container,.card-button-expansion')
+    .click(function toggleCard(event) {
+      event.stopPropagation();
+      $(this).closest('.card-container')
+        .find('div.card-expansion-container')
+        .attr('maximized', function toggle(index, attr) {
+          return attr === '' ? null : '';
+        });
+      showRelevantUserActionIcons();
     });
-    showRelevantUserActionIcons();
-  });
   showRelevantUserActionIcons();
 
   if (userId) {
@@ -492,7 +497,7 @@ function getClientDetail(clientDiv) {
  * @param {Boolean} isAssigned The value to be assigned to the specified role
  * @return {undefined}
  */
-function setUserRole(userId, roleEnum, isAssigned) {
+function setUserRole(userId, roleEnum, isAssigned, onResponse) {
   var $cardContainer = $('#user-list .card-container[data-user-id="' + userId + '"]');
   var postData = {
     ClientId: $('#client-tree [selected]').attr('data-client-id'),
@@ -521,8 +526,10 @@ function setUserRole(userId, roleEnum, isAssigned) {
       return responseRole.RoleEnum.toString() === postData.RoleEnum;
     })[0];
     toastr.success($cardContainer.find('.card-body-primary-text').html() + ' was ' + (modifiedRole.IsAssigned ? 'set' : 'unset') + ' as ' + modifiedRole.RoleDisplayValue);
+    onResponse();
   }).fail(function onFail(response) {
     toastr.warning(response.getResponseHeader('Warning'));
+    onResponse();
   });
 }
 
@@ -567,6 +574,7 @@ function openNewChildClientForm($parentCard) {
   $parentCard.parent().next('li').find('div.card-container')
     .attr({ selected: '', editing: '' });
   setClientFormWriteable();
+  hideClientUsers();
   showClientDetails();
 }
 
@@ -675,7 +683,13 @@ function clientCardEditClickHandler($clickedCard) {
  */
 function clientCardCreateNewChildClickHandler($clickedCard) {
   var $clientTree = $('#client-tree');
-  var sameCard = ($clickedCard[0] === $clientTree.find('[selected]').parent().prev().find('.card-container')[0]);
+  /**
+   * The clicked card is the same as the selected card if and only if the currently selected card
+   * is a client insert ("New Child Client" card) AND the currently selected card is immediately
+   * preceded by the clicked card in the client list.
+   */
+  var sameCard = ($clientTree.find('[selected]').closest('.client-insert').length &&
+    $clickedCard[0] === $clientTree.find('[selected]').parent().prev().find('.card-container')[0]);
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
       confirmAndReset(confirmDiscardDialog, function onContinue() {
@@ -718,16 +732,17 @@ function createNewClientClickHandler() {
  */
 function userCardRoleToggleClickHandler(event) {
   var $clickedInput = $(event.target);
+  event.preventDefault();
 
   setUserRole(
     $clickedInput.closest('.card-container').attr('data-user-id'),
     $clickedInput.attr('data-role-enum'),
-    $clickedInput.prop('checked')
+    $clickedInput.prop('checked'),
+    function onDone() {
+      $('#user-list .toggle-switch-checkbox').removeAttr('disabled');
+    }
   );
-
-  // Don't show toggle animation until a response is received
-  // TODO: This approach is hacky, consider more intuitive alternatives
-  $clickedInput.prop('checked', function toggle(index, oldValue) { return !oldValue; });
+  $('#user-list .toggle-switch-checkbox').attr('disabled', '');
 }
 
 // FIXME: send more appropriate data
@@ -855,6 +870,7 @@ function cancelIconClickHandler() {
       setClientFormReadOnly();
     } else {
       clearClientSelection();
+      removeClientInserts();
       hideClientDetails();
     }
   });
@@ -918,25 +934,32 @@ function renderClientTree(clientTreeList, clientId) {
     renderClientNode(rootClient, 0);
     $clientTreeList.append('<li class="hr width-100pct"></li>');
   });
-  $clientTreeList.find('div.card-container')
+  $clientTreeList.find('.card-container')
     .click(function onClick() {
       clientCardClickHandler($(this));
     });
-  $clientTreeList.find('div.card-button-delete')
+  $clientTreeList.find('.card-button-delete')
     .click(function onClick(event) {
       event.stopPropagation();
       clientCardDeleteClickHandler($(this).parents('div[data-client-id]'));
     });
-  $clientTreeList.find('div.card-button-edit')
+  $clientTreeList.find('.card-button-edit')
     .click(function onClick(event) {
       event.stopPropagation();
       clientCardEditClickHandler($(this).parents('div[data-client-id]'));
     });
-  $clientTreeList.find('div.card-button-new-child')
+  $clientTreeList.find('.card-button-new-child')
     .click(function onClick(event) {
       event.stopPropagation();
       clientCardCreateNewChildClickHandler($(this).parents('div[data-client-id]'));
     });
+
+  // TODO: Consider applying this to other cards and buttons as well
+  $clientTreeList.find('.card-container,.card-button-background')
+    .mousedown(function onMousedown(event) {
+      event.preventDefault();
+    });
+
   if (clientId) {
     $('[data-client-id="' + clientId + '"]').click();
   }
@@ -1098,9 +1121,9 @@ $(document).ready(function onReady() {
   $('#client-form').find(':input,select')
     .change(function onChange() {
       if (findModifiedInputs().length) {
-        $('#undo-changes-button').show();
+        $('#save-changes-button,#undo-changes-button').show();
       } else {
-        $('#undo-changes-button').hide();
+        $('#save-changes-button,#undo-changes-button').hide();
       }
     });
 
