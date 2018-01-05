@@ -361,6 +361,12 @@ function renderUserNode(client, user) {
   var $template = $(userNodeTemplate
     .replace(/{{clientId}}/g, client.ClientEntity.Id)
     .replace(/{{id}}/g, user.Id)
+    .replace(
+      /{{name}}/g,
+      (user.FirstName && user.LastName) ?
+        user.FirstName + ' ' + user.LastName :
+        user.UserName
+    )
     .replace(/{{username}}/g, user.UserName)
     .replace(/{{email}}/g, user.UserName !== user.Email ? user.Email : '{{email}}')
     .toString());
