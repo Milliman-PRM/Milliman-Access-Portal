@@ -48,6 +48,10 @@
         align-content: stretch;
         display: flex;
 
+        &.full-width {
+            flex: 1 0 auto;
+        }
+
         .card-body-primary-container {
             display: inline-block;
             flex: 1;
@@ -197,6 +201,7 @@
         border-top: 1px solid $light-grey;
         margin: .25em .25em 0;
         max-height: 0;
+        width: 100%;
         border: none;
         padding: 0 .75em;
         transition: .25s all linear;
