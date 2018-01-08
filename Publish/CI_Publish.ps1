@@ -46,7 +46,7 @@ cd MillimanAccessPortal\MillimanAccessPortal
 
 log_statement "Test build before publishing"
 # If this build fails, we don't want to do the subsequent (destructive) steps
-dotnet restore
+MSBuild /restore
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Initial package restore failed"
@@ -63,7 +63,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-dotnet build /t:Clean
+MSBuild /target:Clean
 
 if ( $LASTEXITCODE -ne 0 ) {
     log_statement "ERROR: Initial test build failed"
@@ -207,7 +207,7 @@ else {
 
 log_statement "Performing application database migrations"
 
-dotnet ef database update
+dotnet ef database update --no-build
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Failed to update application database"
