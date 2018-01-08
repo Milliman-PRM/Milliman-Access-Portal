@@ -468,11 +468,15 @@ function renderUserList(client, userId) {
  */
 function setupChildClientForm(parentClientDiv) {
   var parentClientId = parentClientDiv.attr('data-client-id').valueOf();
-  var template = childNodePlaceholder.replace(/{{class}}/g, parentClientDiv.hasClass('card-100') ? 'card-90' : 'card-80');
+  var $template = $(childNodePlaceholder.toString());
+  $template
+    .addClass(parentClientDiv.hasClass('card-100') ? 'card-90' : 'card-80')
+    .find('.card-body-primary-text')
+    .addClass(parentClientDiv.hasClass('card-100') ? 'indent-level-1' : 'indent-level-2');
 
   clearFormData();
   $('#client-form #ParentClientId').val(parentClientId);
-  parentClientDiv.parent().after(template);
+  parentClientDiv.parent().after($template);
   parentClientDiv.parent().next().find('div.card-container')
     .click(function onClick() {
       // TODO: move this to a function
