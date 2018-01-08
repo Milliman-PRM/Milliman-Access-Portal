@@ -1,0 +1,87 @@
+<script type="text/template" data-template="node">
+  <li>
+    <div class="{{class}} card-container card-100" data-search-string data-client-id="{{clientId}}" data-user-id="{{id}}">>
+      <div class="card-body-main-container">
+        <div class="card-body-secondary-container">
+          <i class="fa fa-fw fa-user fa-4x card-user-icon"></i>
+          <i class="fa fa-fw fa-plus fa-2x card-user-role-indicator"></i>
+        </div>
+        <div class="card-body-primary-container">
+          <h{{header-level}} class="card-body-primary-text">{{name}}</h{{header-level}}>
+          <p class="card-body-secondary-text">{{clientCode}}</p>
+          <p class="card-body-secondary-text">{{email}} (email)</p>
+        </div>
+        <div class="card-stats-container">
+          <div class="card-stat-container">
+            <i class="fa fa-fw fa-users fa-2x card-stat-icon"></i><h4 class="card-stat-value">{{users}}</h4>
+          </div>
+          <div class="card-stat-container">
+            <i class="fa fa-fw fa-file fa-2x card-stat-icon"></i><h4 class="card-stat-value">{{content}}</h4>
+          </div>
+        </div>
+        <div class="card-button-side-container">
+          <div class="card-button-background card-button-delete">
+            <i class="fa fa-fw fa-trash card-button-icon"></i>
+          </div>
+          <div class="card-button-background card-button-edit">
+            <i class="fa fa-fw fa-pencil card-button-icon"></i>
+          </div>
+          <div class="card-button-background card-button-new-child">
+            <i class="fa fa-fw fa-plus card-button-icon"></i>
+          </div>
+          <div class="card-button-background card-button-remove-user">
+            <i class="fa fa-fw fa-times"></i>
+          </div>
+        </div>
+      </div>
+      <div class="card-expansion-container">
+        <h4 class="card-expansion-category-label">Client Roles</h4>
+        <div class="switch-container">
+          <div class="toggle-switch">
+            <input type="checkbox" name="clientAdmin{{id}}" class="toggle-switch-checkbox" id="clientAdmin{{id}}" data-role-enum="1">
+            <label class="toggle-switch-label" for="clientAdmin{{id}}">
+              <span class="toggle-switch-inner"></span>
+              <span class="toggle-switch-switch"></span>
+            </label>
+          </div>
+          <label for="clientAdmin{{id}}" class="switch-label">Client Administrator</label>
+        </div>
+        <div class="switch-container">
+          <div class="toggle-switch">
+            <input type="checkbox" name="userAdmin{{id}}" class="toggle-switch-checkbox" id="userAdmin{{id}}" data-role-enum="3">
+            <label class="toggle-switch-label" for="userAdmin{{id}}">
+              <span class="toggle-switch-inner"></span>
+              <span class="toggle-switch-switch"></span>
+            </label>
+          </div>
+          <label for="userAdmin{{id}}" class="switch-label">User Administrator</label>
+        </div>
+        <div class="switch-container">
+          <div class="toggle-switch">
+            <input type="checkbox" name="contentAdmin{{id}}" class="toggle-switch-checkbox" id="contentAdmin{{id}}" data-role-enum="4">
+            <label class="toggle-switch-label" for="contentAdmin{{id}}">
+              <span class="toggle-switch-inner"></span>
+              <span class="toggle-switch-switch"></span>
+            </label>
+          </div>
+          <label for="contentAdmin{{id}}" class="switch-label">Content Administrator</label>
+        </div>
+        <div class="switch-container">
+          <div class="toggle-switch">
+            <input type="checkbox" name="contentUser{{id}}" class="toggle-switch-checkbox" id="contentUser{{id}}" data-role-enum="5">
+            <label class="toggle-switch-label" for="contentUser{{id}}">
+              <span class="toggle-switch-inner"></span>
+              <span class="toggle-switch-switch"></span>
+            </label>
+          </div>
+          <label for="clientAdmin{{id}}" class="switch-label">Content Eligible</label>
+        </div>
+      </div>
+      <div class="card-button-bottom-container">
+        <div class="card-button-background card-button-expansion">
+          <i class="fa fa-fw fa-chevron-down"></i>
+        </div>
+      </div>
+    </div>
+  </li>
+</script>
