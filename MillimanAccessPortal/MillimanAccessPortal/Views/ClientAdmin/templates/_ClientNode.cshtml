@@ -1,35 +1,3 @@
-<script type="text/template" data-template="clientNode">
-    <li>
-        <div class="{{class}} card-container" data-search-string data-client-id="{{id}}">
-            <div class="card-body-main-container">
-                <div class="card-body-primary-container">
-                    <h{{header-level}} class="card-body-primary-text">{{name}}</h{{header-level}}>
-                    <p class="card-body-secondary-text">{{clientCode}}</p>
-                </div>
-            </div>
-            <div class="card-stats-container">
-                <div class="card-stat-container">
-                    <i class="fa fa-fw fa-users fa-2x card-stat-icon"></i><h4 class="card-stat-value">{{users}}</h4>
-                </div>
-                <div class="card-stat-container">
-                    <i class="fa fa-fw fa-file fa-2x card-stat-icon"></i><h4 class="card-stat-value">{{content}}</h4>
-                </div>
-            </div>
-            <div class="card-button-side-container">
-                <div class="card-button-background card-button-delete">
-                    <i class="fa fa-fw fa-trash card-button-icon"></i>
-                </div>
-                <div class="card-button-background card-button-edit">
-                    <i class="fa fa-fw fa-pencil card-button-icon"></i>
-                </div>
-               <div class="card-button-background card-button-new-child">
-                    <i class="fa fa-fw fa-plus card-button-icon"></i>
-                </div>
-            </div>
-        </div>
-    </li>
-</script>
-
 <script type="text/template" data-template="childNodePlaceholder">
     <li class="client-insert">
         <div class="card-container flex-container flex-row-no-wrap items-align-center">
