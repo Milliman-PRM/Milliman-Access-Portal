@@ -88,13 +88,14 @@
     }
 
     .card-stats-container {
+        margin: -0.25em;
 
         .card-stat-container {
             display: flex;
             flex-flow: row nowrap;
             align-items: center;
             margin: 0;
-            padding: 0;
+            padding: 0.25em 0;
             height: 50%;
             min-width: 6.5em;
             background-color: $charcoal;
@@ -106,7 +107,9 @@
 
             .card-stat-value {
                 flex: 1;
-                margin-left: .5em
+                margin-left: .5em;
+                margin-top: 0;
+                margin-bottom: 0;
             }
         }
     }
