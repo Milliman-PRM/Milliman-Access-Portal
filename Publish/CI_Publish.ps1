@@ -14,7 +14,7 @@ function log_statement {
     write-output $datestring"|"$statement
 }
 
-$branchName = $env:git_branch.ToLower()
+$branchName = $env:git_branch.ToLower().Replace("-", "_")
 $ci_username = $env:pool_username
 $ci_password = $env:pool_password
 
