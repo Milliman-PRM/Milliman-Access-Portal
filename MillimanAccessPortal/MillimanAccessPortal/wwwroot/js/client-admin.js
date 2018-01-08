@@ -1,9 +1,9 @@
 /* global domainValRegex, emailValRegex */
 
-var clientNodeTemplate = $('script[data-template="clientNode"]').html();
+var clientNodeTemplate = $('script[data-template="node"]').html();
 var childNodePlaceholder = $('script[data-template="childNodePlaceholder"]').html();
 var clientCard = $('script[data-template="createNewClientCard"]').html();
-var userNodeTemplate = $('script[data-template="userNode"]').html();
+var userNodeTemplate = $('script[data-template="node"]').html();
 var newUserCard = $('script[data-template="addUserCard"]').html();
 var SHOW_DURATION = 50;
 
@@ -358,23 +358,52 @@ function updateUserRoleIndicator(userId, userRoles) {
  * @return {undefined}
  */
 function renderUserNode(client, user) {
-  var $template = $(userNodeTemplate
-    .replace(/{{clientId}}/g, client.ClientEntity.Id)
-    .replace(/{{id}}/g, user.Id)
-    .replace(
-      /{{name}}/g,
-      (user.FirstName && user.LastName) ?
-        user.FirstName + ' ' + user.LastName :
-        user.UserName
-    )
-    .replace(/{{username}}/g, user.UserName)
-    .replace(/{{email}}/g, user.UserName !== user.Email ? user.Email : '{{email}}')
-    .toString());
+  var $template = $(userNodeTemplate.toString());
 
-  $template.find('div.card-container[data-search-string]')
-    .attr('data-search-string', (user.FirstName + ' ' + user.LastName + '|' + user.UserName + '|' + user.Email).toUpperCase());
-  $template.find('.card-body-secondary-text:contains("{{email}}")')
+  $template.find('.card-container')
+    .attr('data-search-string', (user.FirstName + ' ' + user.LastName + '|' + user.UserName + '|' + user.Email).toUpperCase())
+    .attr('data-client-id', client.ClientEntity.Id)
+    .attr('data-user-id', user.Id);
+  $template.find('.card-body-primary-container .card-body-primary-text')
+    .html((user.FirstName && user.LastName) ?
+      user.FirstName + ' ' + user.LastName :
+      user.UserName);
+  $template.find('.card-body-primary-container .card-body-secondary-text').first()
+    .html(user.UserName || '');
+  $template.find('.card-body-primary-container .card-body-secondary-text').last()
+    .html(user.Email + ' (email)').filter(function sameAsUsername() {
+      return user.UserName === user.Email;
+    })
     .remove();
+  $template.find('.card-stats-container')
+    .remove();
+  $template.find('.card-button-delete')
+    .remove();
+  $template.find('.card-button-edit')
+    .remove();
+  $template.find('.card-button-new-child')
+    .remove();
+
+  $template.find('.switch-container')
+    .map(function applyName(i, element) {
+      var $element = $(element);
+      var name = (
+        'user-role-' +
+        $element.closest('.card-container')
+          .attr('data-user-id') +
+        '-' +
+        $element.find('.toggle-switch-checkbox')
+          .attr('data-role-enum')
+      );
+      $element.find('.toggle-switch-checkbox')
+        .attr({
+          name: name,
+          id: name
+        });
+      $element.find('label')
+        .attr('for', name);
+      return $element;
+    });
 
   $.each(user.UserRoles, function displayRoles(index, roleAssignment) {
     $template.find('input[data-role-enum=' + roleAssignment.RoleEnum + ']')
@@ -889,17 +918,31 @@ function cancelIconClickHandler() {
  * @return {undefined}
  */
 function renderClientNode(client, level) {
-  var classes = ['card-100', 'card-90'];
-  var $template = $(clientNodeTemplate
-    .replace(/{{class}}/g, classes[level] || 'card-80')
-    .replace(/{{header-level}}/g, (level + 2))
-    .replace(/{{id}}/g, client.ClientModel.ClientEntity.Id)
-    .replace(/{{name}}/g, client.ClientModel.ClientEntity.Name)
-    .replace(/{{clientCode}}/g, client.ClientModel.ClientEntity.ClientCode || '')
-    .replace(/{{users}}/g, client.ClientModel.AssignedUsers.length)
-    .replace(/{{content}}/g, client.ClientModel.ContentItems.length)
-    .toString());
+  var classes = ['card-100', 'card-90', 'card-80'];
+  var $template = $(clientNodeTemplate.toString());
 
+  $template.find('.card-container')
+    .addClass(classes[level])
+    .attr('data-client-id', client.ClientModel.ClientEntity.Id)
+    .removeAttr('data-user-id');
+  $template.find('.card-body-secondary-container')
+    .remove();
+  $template.find('.card-body-primary-container .card-body-primary-text')
+    .html(client.ClientModel.ClientEntity.Name);
+  $template.find('.card-body-primary-container .card-body-secondary-text').first()
+    .html(client.ClientModel.ClientEntity.ClientCode || '');
+  $template.find('.card-body-primary-container .card-body-secondary-text').last()
+    .remove();
+  $template.find('.card-stat-user-count')
+    .html(client.ClientModel.AssignedUsers.length);
+  $template.find('.card-stat-content-count')
+    .html(client.ClientModel.ContentItems.length);
+  $template.find('.card-button-remove-user')
+    .remove();
+  $template.find('.card-expansion-container')
+    .remove();
+  $template.find('.card-button-bottom-container')
+    .remove();
   $template.find('div.card-container[data-search-string]')
     .attr('data-search-string', (client.ClientModel.ClientEntity.Name + '|' + client.ClientModel.ClientEntity.ClientCode).toUpperCase());
 
