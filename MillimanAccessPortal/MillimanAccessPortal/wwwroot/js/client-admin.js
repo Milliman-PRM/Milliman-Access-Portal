@@ -375,15 +375,10 @@ function renderUserNode(client, user) {
       return user.UserName === user.Email;
     })
     .remove();
-  $template.find('.card-stats-container')
-    .remove();
-  $template.find('.card-button-delete')
-    .remove();
-  $template.find('.card-button-edit')
-    .remove();
-  $template.find('.card-button-new-child')
+  $template.find('.card-stats-container .card-button-delete .card-button-edit .card-button-new-child')
     .remove();
 
+  // generate id's for toggles
   $template.find('.switch-container')
     .map(function applyName(i, element) {
       var $element = $(element);
@@ -934,19 +929,14 @@ function renderClientNode(client, level) {
   $template.find('.card-body-primary-container .card-body-primary-text')
     .addClass('indent-level-' + level)
     .html(client.ClientModel.ClientEntity.Name);
-  $template.find('.card-body-primary-container .card-body-secondary-text').first()
-    .html(client.ClientModel.ClientEntity.ClientCode || '');
-  $template.find('.card-body-primary-container .card-body-secondary-text').last()
-    .remove();
+  $template.find('.card-body-primary-container .card-body-secondary-text')
+    .html(client.ClientModel.ClientEntity.ClientCode || '')
+    .first().remove();
   $template.find('.card-stat-user-count')
     .html(client.ClientModel.AssignedUsers.length);
   $template.find('.card-stat-content-count')
     .html(client.ClientModel.ContentItems.length);
-  $template.find('.card-button-remove-user')
-    .remove();
-  $template.find('.card-expansion-container')
-    .remove();
-  $template.find('.card-button-bottom-container')
+  $template.find('.card-button-remove-user .card-expansion-container .card-button-bottom-container')
     .remove();
   $template.find('div.card-container[data-search-string]')
     .attr('data-search-string', (client.ClientModel.ClientEntity.Name + '|' + client.ClientModel.ClientEntity.ClientCode).toUpperCase());
