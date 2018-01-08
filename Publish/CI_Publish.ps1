@@ -46,7 +46,7 @@ cd MillimanAccessPortal\MillimanAccessPortal
 
 log_statement "Test build before publishing"
 # If this build fails, we don't want to do the subsequent (destructive) steps
-MSBuild /restore
+C:\'Program Files (x86)'\'Microsoft Visual Studio'\2017\Professional\MSBuild\15.0\Bin\MSBuild /restore
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Initial package restore failed"
@@ -63,7 +63,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-MSBuild /target:Clean
+C:\'Program Files (x86)'\'Microsoft Visual Studio'\2017\Professional\MSBuild\15.0\Bin\MSBuild /target:Clean
 
 if ( $LASTEXITCODE -ne 0 ) {
     log_statement "ERROR: Initial test build failed"
