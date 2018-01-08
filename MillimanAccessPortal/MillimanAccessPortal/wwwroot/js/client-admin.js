@@ -928,6 +928,7 @@ function renderClientNode(client, level) {
   $template.find('.card-body-secondary-container')
     .remove();
   $template.find('.card-body-primary-container .card-body-primary-text')
+    .addClass('indent-level-' + level)
     .html(client.ClientModel.ClientEntity.Name);
   $template.find('.card-body-primary-container .card-body-secondary-text').first()
     .html(client.ClientModel.ClientEntity.ClientCode || '');

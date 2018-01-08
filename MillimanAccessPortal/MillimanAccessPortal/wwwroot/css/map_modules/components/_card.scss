@@ -57,6 +57,18 @@
 
             .card-body-primary-text {
                 margin: 0;
+
+                &.indent-level-0 {
+                  font-size: 2rem;
+                }
+
+                &.indent-level-1 {
+                  font-size: 1.5rem;
+                }
+
+                &.indent-level-2 {
+                  font-size: 1.17rem;
+                }
             }
 
             .card-body-secondary-text {
