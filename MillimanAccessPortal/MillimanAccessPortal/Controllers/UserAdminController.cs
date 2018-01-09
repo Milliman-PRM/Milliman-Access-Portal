@@ -165,11 +165,12 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser RequestedUser = DbContext.ApplicationUser
                                                         .FirstOrDefault(u => u.UserName == Model.UserName 
                                                                         || u.Email == Model.Email);
+            bool RequestedUserIsNew = (RequestedUser == null);
             #endregion
 
             #region Authorization
             // If creating a new user, current user must either have global UserCreator role or UserCreator role for each requested client
-            if (RequestedUser == null)
+            if (RequestedUserIsNew)
             {
                 if (Model.MemberOfClientIdArray.Length == 0)
                 {
@@ -229,7 +230,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // 2. Make sure the UserName does not exist in the database already as a UserName or Email
-            if (RequestedUser == null &&
+            if (RequestedUserIsNew &&
                 (DbContext.ApplicationUser.Any(u => u.UserName == Model.UserName) || 
                     DbContext.ApplicationUser.Any(u => u.Email == Model.UserName)))
             {
@@ -246,7 +247,7 @@ namespace MillimanAccessPortal.Controllers
                 try
                 {
                     // Create requested user if not already existing
-                    if (RequestedUser == null)
+                    if (RequestedUserIsNew)
                     {
                         RequestedUser = new ApplicationUser
                         {
@@ -292,9 +293,12 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // UserCreated Audit log
-            var CreatedUserDetailObject = new { NewUserName = Model.UserName, Email = Model.Email, };
-            AuditEvent UserCreatedEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New user created", AuditEventId.UserAccountCreated, CreatedUserDetailObject, User.Identity.Name, HttpContext.Session.Id);
-            _auditLogger.Log(UserCreatedEvent);
+            if (RequestedUserIsNew)
+            {
+                var CreatedUserDetailObject = new { NewUserName = Model.UserName, Email = Model.Email, };
+                AuditEvent UserCreatedEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New user created", AuditEventId.UserAccountCreated, CreatedUserDetailObject, User.Identity.Name, HttpContext.Session.Id);
+                _auditLogger.Log(UserCreatedEvent);
+            }
 
             // Client membership assignment Audit log
             foreach (var ClientId in Model.MemberOfClientIdArray)
