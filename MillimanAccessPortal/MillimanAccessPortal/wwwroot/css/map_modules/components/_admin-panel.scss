@@ -81,6 +81,7 @@
                 flex-flow: row nowrap;
                 align-items: center;
                 text-align: center;
+                height: 5em;
 
                 &:hover {
                     color: lighten($charcoal, 20%);

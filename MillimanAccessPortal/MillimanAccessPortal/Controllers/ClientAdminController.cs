@@ -365,7 +365,6 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // 2. RequestedUser must not be assigned to any ContentItemUserGroup of RequestedClient
-            //    Deassign groups automatically instead of this?
             IQueryable<ContentItemUserGroup> AllAuthorizedGroupsQuery =
                 DbContext.UserInContentItemUserGroup
                          .Include(urc => urc.ContentItemUserGroup)
@@ -376,21 +375,25 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The requested user must first be unauthorized to content of the requested client");
                 return StatusCode(StatusCodes.Status412PreconditionFailed);
             }
+
+            // 3. RequestedUser must not be assigned a role for any RootContentItem of RequestedClient
+            IQueryable<RootContentItem> AllAuthorizedContentQuery =
+                DbContext.UserRoleInRootContentItem
+                         .Include(urc => urc.RootContentItem)
+                         .Where(urc => urc.UserId == RequestedUser.Id)
+                         .Select(urc => urc.RootContentItem);
+            if (AllAuthorizedContentQuery.Any(rc => rc.ClientIdList.Contains(RequestedClient.Id)))
+            {
+                Response.Headers.Add("Warning", "The requested user must first have no role for content item(s) of the requested client");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);
+            }
             #endregion
 
-            Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), RequestedClient.Id.ToString());
-
-            IList<Claim> ClaimsOfRequestedUser = await UserManager.GetClaimsAsync(RequestedUser);
-            if (ClaimsOfRequestedUser.Any(claim => claim.Type == ThisClientMembershipClaim.Type &&
-                                                   claim.Value == ThisClientMembershipClaim.Value))
+            try
             {
-                IdentityResult ResultOfRemoveClaim = await UserManager.RemoveClaimAsync(RequestedUser, ThisClientMembershipClaim);
-                if (ResultOfRemoveClaim != IdentityResult.Success)
-                {
-                    string ErrMsg = $"Failed to remove user {RequestedUser.UserName}: Claim={ThisClientMembershipClaim.Type}.{ThisClientMembershipClaim.Value}";
-                    Logger.LogError(ErrMsg);
-                    return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
-                }
+                DbContext.UserRoleInClient.RemoveRange(DbContext.UserRoleInClient.Where(urc => urc.UserId == RequestedUser.Id && urc.ClientId == RequestedClient.Id).ToList());
+                DbContext.UserClaims.RemoveRange(DbContext.UserClaims.Where(uc => uc.ClaimType == ClaimNames.ClientMembership.ToString() && uc.ClaimValue == RequestedClient.Id.ToString()).ToList());
+                DbContext.SaveChanges();  // (transactional)
 
                 object LogDetails = new
                 {
@@ -400,15 +403,17 @@ namespace MillimanAccessPortal.Controllers
                     AssignedClientId = RequestedClient.Id
                 };
                 AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                                            "User removed from Client", 
-                                            AuditEventId.UserRemovedFromClient, 
-                                            LogDetails, 
-                                            User.Identity.Name, 
+                                            "User removed from Client",
+                                            AuditEventId.UserRemovedFromClient,
+                                            LogDetails,
+                                            User.Identity.Name,
                                             HttpContext.Session.Id));
             }
-            else
+            catch (Exception e)
             {
-                Response.Headers.Add("Warning", $"User {RequestedUser.UserName} is not assigned to client {RequestedClient.Name}.  No action taken.");
+                string ErrMsg = $"Failed to remove user {RequestedUser.UserName} from client {RequestedClient.Name}: error\r\n{e.Message}";
+                Logger.LogError(ErrMsg);
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
             }
 
             ClientDetailViewModel ReturnModel = new ClientDetailViewModel { ClientEntity = RequestedClient };
