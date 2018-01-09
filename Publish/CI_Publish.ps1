@@ -228,7 +228,7 @@ if ($LASTEXITCODE -ne 0) {
 cd ../MillimanAccessPortal
 
 log_statement "Build and publish application files"
-C:\'Program Files (x86)'\'Microsoft Visual Studio'\2017\Professional\MSBuild\15.0\Bin\MSBuild /t:publish
+C:\'Program Files (x86)'\'Microsoft Visual Studio'\2017\Professional\MSBuild\15.0\Bin\MSBuild /t:publish /p:OutDir=$branchFolder\
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "Build failed"
