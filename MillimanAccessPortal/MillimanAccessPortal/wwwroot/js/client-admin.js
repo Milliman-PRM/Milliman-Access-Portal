@@ -766,7 +766,6 @@ function saveNewUser(email) {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
   }).done(function onDone() {
-    getClientTree(clientId);
     openClientCardReadOnly($('#client-tree [data-client-id="' + clientId + '"]'));
     toastr.success('User successfully added');
   }).fail(function onFail(response) {
