@@ -779,11 +779,9 @@ function initializeAddUserForm() {
   vex.dialog.open({
     input: [
       '<h2 id="add-user-title">Add User</h2>',
-      '<form id="add-user-form" asp-controller="UserAdmin" asp-action="SaveNewUser" method="post">',
       '<div>',
       '<input id="add-user-email" name="email" placeholder="Email" required>',
-      '</div>',
-      '</form>'
+      '</div>'
     ].join(''),
     buttons: [
       $.extend({}, vex.dialog.buttons.NO, {
