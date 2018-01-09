@@ -41,5 +41,46 @@ VMs in the MAP environment are segmented by function and user access. Throughout
 |QlikView Server|Surface QlikView reports|Available to end users over the web|
 |QlikView Publisher|Reduce QlikView reports and host the Milliman Reduction Service|Not available directly to end users. Application Servers will interface with Publishers via the Publisher API|
 |Database server|Host PostgreSQL databases|Not available directly to end users. The application will interface with Databases via NPGSQL|
-|File server/File share|Store QlikView reports and other content|Not available directly to end users. The application will serve content from file shares to authorized users.|
+|File share(s)|Store QlikView reports and other content|Not available directly to end users. The application will serve content from file shares to authorized users.|
 |Domain Controller|Active Directory|Provide common credentials and security policy for all MAP servers. May take advantage of existing infrastructure in the data center, pending Availability & discussion with MedInsight staff. If we supply our own domain controllers, only one will exist in each data center, rather than one per host.|
+
+## Load balancing within primary data center
+
+Load balancers will handle incoming user requests both to Application and QlikView Servers. When all nodes are available within the primary data center, all will be utilized simultaneously, to spread out the computational load. Since one of each type of VM will run on each host, this will also distribute load among the physical hosts.
+
+User requests will be distributed on a per-session basis, meaning that an individual user will be routed to the same Application or QlikView Server for the duration of their session.
+
+### Application availability
+
+Using load balancers enables us to use multiple application servers at the same time. If one becomes unavailable, the load balancer will stop serving requests to that server and route all requests through the remaining server.
+
+Individual users may experience a brief disruption at the time of a server failure (particularly those who were previously being routed to the now-offline server), but the application will remain available as long as any one application server is online.
+
+### QlikView clustering
+
+QlikView Server and QlikView Publisher both have support for clustering, with multiple available nodes simultaneously using one license.
+
+We will leverage this functionality and the load balancers to create a redundant, resilient QlikView environment. The above section regarding failover methods for the application also applies to QlikView's services.
+
+QlikView Server will serve reports out of a single file share, avoiding duplication of data and any possibility of mis-matched report directories.
+
+### Database mirroring
+
+We will utilize PostgreSQL's built-in support for log-shipping mirroring to maintain up-to-date copies of the database on all database servers.
+
+In this model, there is only one "active" database server at a time. The others maintain copies of the databases on the primary node and remain in a "standby" state, ready to take over if the primary node goes offline.
+
+The database servers in the primary data center will be in synchronous mode, which enables zero-data-loss failover between them. The secondary data center's database server will be in asynchronous mode, to avoid performance penalties caused by network latency between the two data centers.
+
+The load balancers should be configured to route requests to a virtual IP that will then be directed to the currently active PostgreSQL server. Details for how this should be implemented will be determined at a later date, but typically the high-level approach is to have the load balancer issue small status queries against all the nodes and route requests to the one that responds with a result.
+
+## File share mirroring
+
+The file share hosting content out of the primary data center should be replicated to the secondary data center, for use in case of emergency.
+
+## Operating out of secondary data center
+
+In the case that the primary data center becomes unavailable, we will need to operate out of the secondary data center. Switching to this data center may require some manual steps:
+
+* Update public DNS records to point at IP addresses served by secondary data centers
+* Bring PostgreSQL server online (make it the primary node)
