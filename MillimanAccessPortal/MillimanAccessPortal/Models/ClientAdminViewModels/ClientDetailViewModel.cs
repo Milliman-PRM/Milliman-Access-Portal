@@ -110,6 +110,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                                         .Select(ApUser => (UserInfoModel)ApUser)  // use the UserInfo type conversion operator
                                         .OrderBy(u => u.LastName)
                                         .ThenBy(u => u.FirstName)
+                                        .ThenBy(u => u.UserName)
                                         .ToList();
             }
 
