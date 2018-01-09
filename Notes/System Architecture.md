@@ -106,11 +106,17 @@ In addition to the services outlined in the table, Microsoft Remote Desktop shou
 |QlikView Publisher|---|HTTPS|
 |Database servers|---|PostgreSQL (port 5433)|
 
-### Patch Management
+### Operating System Patch Management
 
 Operating system updates from Microsoft will be installed on a monthly basis. The infrastructure team will install updates 2 weeks after they are released, to make sure only stable updates are applied.
 
 In the case of a patch for a high security risk vulnerability, the PRM security manager will develop and implement a specific response plan as appropriate.
+
+### PostgreSQL Patch Management
+
+We will strive to keep the database servers up to date with the latest compatible versions of PostgreSQL. This ensures we maintain the most secure database environment possible, with all available performance and stability improvements.
+
+Before deploying an update to PostgreSQL, it must be tested in the CI environment with a copy of the currently deployed version of MAP.
 
 ### Antivirus Software
 
