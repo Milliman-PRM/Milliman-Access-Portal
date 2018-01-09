@@ -46,7 +46,7 @@ cd MillimanAccessPortal\MillimanAccessPortal
 
 log_statement "Test build before publishing"
 # If this build fails, we don't want to do the subsequent (destructive) steps
-C:\'Program Files (x86)'\'Microsoft Visual Studio'\2017\Professional\MSBuild\15.0\Bin\MSBuild /t:Restore  /v q
+C:\'Program Files (x86)'\'Microsoft Visual Studio'\2017\Professional\MSBuild\15.0\Bin\MSBuild /t:Restore  /v m
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Initial package restore failed"
@@ -63,7 +63,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-C:\'Program Files (x86)'\'Microsoft Visual Studio'\2017\Professional\MSBuild\15.0\Bin\MSBuild /v q
+C:\'Program Files (x86)'\'Microsoft Visual Studio'\2017\Professional\MSBuild\15.0\Bin\MSBuild /v m
 
 if ( $LASTEXITCODE -ne 0 ) {
     log_statement "ERROR: Initial test build failed"
@@ -228,7 +228,7 @@ if ($LASTEXITCODE -ne 0) {
 cd ../MillimanAccessPortal
 
 log_statement "Build and publish application files"
-C:\'Program Files (x86)'\'Microsoft Visual Studio'\2017\Professional\MSBuild\15.0\Bin\MSBuild /t:publish /p:PublishDir=$branchFolder  /v q
+C:\'Program Files (x86)'\'Microsoft Visual Studio'\2017\Professional\MSBuild\15.0\Bin\MSBuild /t:publish /p:PublishDir=$branchFolder  /v m
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "Build failed"
