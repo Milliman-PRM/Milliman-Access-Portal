@@ -85,6 +85,29 @@ In the case that the primary data center becomes unavailable, we will need to op
 * Update public DNS records to point at IP addresses served by secondary data centers
 * Bring PostgreSQL server online (make it the primary node)
 
+### Data center failover drills
+
+While failover within the primary data center will be tested regularly as part of system update procedures (see below), failover to the secondary data center should also be tested on a regular schedule. Such failover drills are useful for many reasons:
+
+* Testing the failover process provides additional assurance that replication processes are working as intended.
+* Planned failovers provide an opportunity for staff to gain experience with the failover process without the stress of an unplanned failover.
+* Planned failovers provide an opportunity to validate failover process documentation, to ensure that it is up to date and useful in the case of an unplanned failover.
+
+Data center failover tests must be scheduled in advance in coordination with any staff that will be required to get the secondary data center back online or to switch back to the primary data center.
+
+Tests should be conducted during off-peak usage hours to avoid disrupting a significant number of users.
+
+Steps to a successful failover test:
+
+1. Trigger the application to stop running in the primary data center
+2. Bring the application online in the secondary data centers
+3. Perform any manual steps required for the application to operate and become available to the public
+4. Verify that the application is functioning correctly. This includes authentication, loading reports, and making changes in the database.
+5. Manually fail back to the primary data center
+6. Undo any manual steps that were performed to run out of the secondary data center
+7. Verify that the application is running correctly out of the primary data center.
+8. Verify that the changes made while running in the secondary data center are reflected while running in the primary data center.
+
 ## Security Policies
 
 ### Configuration Encryption
