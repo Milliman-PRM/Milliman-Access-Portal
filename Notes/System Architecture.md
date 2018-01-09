@@ -84,3 +84,48 @@ In the case that the primary data center becomes unavailable, we will need to op
 
 * Update public DNS records to point at IP addresses served by secondary data centers
 * Bring PostgreSQL server online (make it the primary node)
+
+## Security Policies
+
+### Configuration Encryption
+
+Sensitive configuration options will be stored in Azure Key Vault.
+
+### Firewall Configuration
+
+Inbound requests from the public internet must pass through a hardware firewall. Additionally, the operating system firewall must be enabled and properly configured on each VM.
+
+In the table below, all public rules also apply to internal requests. Internal traffic may be open for additional protocols/services.
+
+In addition to the services outlined in the table, Microsoft Remote Desktop should be allowed to all servers from internal (Milliman) IP addresses. Zabbix monitoring will be allowed internally for all servers as well (TCP & UDP ports 10050-10051).
+
+|Server Type|Public (external) allowed protocols|Additional internal services|
+|-----|-----|-----|
+|Application servers|HTTPS & HTTP (Only for redirect to HTTPS)|---|
+|QlikView Server|HTTPS|---|
+|QlikView Publisher|---|HTTPS|
+|Database servers|---|PostgreSQL (port 5433)|
+
+### Patch Management
+
+Operating system updates from Microsoft will be installed on a monthly basis. The infrastructure team will install updates 2 weeks after they are released, to make sure only stable updates are applied.
+
+In the case of a patch for a high security risk vulnerability, the PRM security manager will develop and implement a specific response plan as appropriate.
+
+### Antivirus Software
+
+All servers will run antivirus software, utilizing real-time scanning.
+
+Additionally, files uploaded by users should be scanned before the system takes any action on them or serves them up to end-users. Specific implementation details should be coordinated between the security manager and back-end developers.
+
+## Monitoring
+
+### Internal monitors - Zabbix
+
+Zabbix will monitor for system performance, availability, and stability issues. Application-specific monitors will be used as appropriate, similar to the system that is already in place for monitoring QlikView and PostgreSQL.
+
+Additionally, we will configure an automated monitor in Zabbix which will actually authenticate to the application and load a demo report. This ensures the application stack is functioning together as intended.
+
+### External monitors
+
+We will utilize an external monitoring & notification service to check that the application is available to the public and alert the PRM infrastructure team if it becomes unavailable.
