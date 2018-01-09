@@ -63,7 +63,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-C:\'Program Files (x86)'\'Microsoft Visual Studio'\2017\Professional\MSBuild\15.0\Bin\MSBuild /clp:Summary /t:Build /t:Clean
+C:\'Program Files (x86)'\'Microsoft Visual Studio'\2017\Professional\MSBuild\15.0\Bin\MSBuild /clp:Summary /t:Clean /t:Build
 
 if ( $LASTEXITCODE -ne 0 ) {
     log_statement "ERROR: Initial test build failed"
