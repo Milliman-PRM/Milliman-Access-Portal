@@ -106,18 +106,6 @@ In addition to the services outlined in the table, Microsoft Remote Desktop shou
 |QlikView Publisher|---|HTTPS|
 |Database servers|---|PostgreSQL (port 5433)|
 
-### Operating System Patch Management
-
-Operating system updates from Microsoft will be installed on a monthly basis. The infrastructure team will install updates 2 weeks after they are released, to make sure only stable updates are applied.
-
-In the case of a patch for a high security risk vulnerability, the PRM security manager will develop and implement a specific response plan as appropriate.
-
-### PostgreSQL Patch Management
-
-We will strive to keep the database servers up to date with the latest compatible versions of PostgreSQL. This ensures we maintain the most secure database environment possible, with all available performance and stability improvements.
-
-Before deploying an update to PostgreSQL, it must be tested in the CI environment with a copy of the currently deployed version of MAP.
-
 ### Antivirus Software
 
 All servers will run antivirus software, utilizing real-time scanning.
@@ -135,6 +123,18 @@ To maintain a robust environment, precautions must be taken during system update
 * Update one server (of each type) at a time, and make sure it is fully online before moving on to the next one.
     * Zabbix monitors should be useful for determining if a server is fully online. A fully operational server should not have any active alerts.
 * If an update does cause a problem, work to solve it as quickly as possible. When any node is offline, we are operating in a less resilient configuration.
+
+### Operating System Patch Management
+
+Operating system updates from Microsoft will be installed on a monthly basis. The infrastructure team will install updates 2 weeks after they are released, to make sure only stable updates are applied.
+
+In the case of a patch for a high security risk vulnerability, the PRM security manager will develop and implement a specific response plan as appropriate.
+
+### PostgreSQL Patch Management
+
+We will strive to keep the database servers up to date with the latest compatible versions of PostgreSQL. This ensures we maintain the most secure database environment possible, with all available performance and stability improvements.
+
+Before deploying an update to PostgreSQL, it must be tested in the CI environment with a copy of the currently deployed version of MAP.
 
 ## Monitoring
 
