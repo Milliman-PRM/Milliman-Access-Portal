@@ -124,6 +124,18 @@ All servers will run antivirus software, utilizing real-time scanning.
 
 Additionally, files uploaded by users should be scanned before the system takes any action on them or serves them up to end-users. Specific implementation details should be coordinated between the security manager and back-end developers.
 
+## System update workflow
+
+To maintain a robust environment, precautions must be taken during system updates.
+
+* If at all possible, avoid installing updates during peak usage hours, as defined by the MAP support team.
+* Take a virtual machine snapshot before installing updates
+    * Delete the snapshot once you're sure the machine is working as intended
+* Update the servers in the secondary data center first. If an update is going to cause a short-term issue, we'd rather have it happen there.
+* Update one server (of each type) at a time, and make sure it is fully online before moving on to the next one.
+    * Zabbix monitors should be useful for determining if a server is fully online. A fully operational server should not have any active alerts.
+* If an update does cause a problem, work to solve it as quickly as possible. When any node is offline, we are operating in a less resilient configuration.
+
 ## Monitoring
 
 ### Internal monitors - Zabbix
