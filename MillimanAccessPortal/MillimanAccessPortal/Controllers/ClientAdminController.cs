@@ -392,7 +392,7 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 DbContext.UserRoleInClient.RemoveRange(DbContext.UserRoleInClient.Where(urc => urc.UserId == RequestedUser.Id && urc.ClientId == RequestedClient.Id).ToList());
-                DbContext.UserClaims.RemoveRange(DbContext.UserClaims.Where(uc => uc.ClaimType == ClaimNames.ClientMembership.ToString() && uc.ClaimValue == RequestedClient.Id.ToString()).ToList());
+                DbContext.UserClaims.RemoveRange(DbContext.UserClaims.Where(uc => uc.UserId == RequestedUser.Id && uc.ClaimType == ClaimNames.ClientMembership.ToString() && uc.ClaimValue == RequestedClient.Id.ToString()).ToList());
                 DbContext.SaveChanges();  // (transactional)
 
                 object LogDetails = new
