@@ -775,33 +775,23 @@ function saveNewUser(email) {
 
 // FIXME: present a more appropriate form
 function initializeAddUserForm() {
-  vex.dialog.open({
+  vex.dialog.prompt({
+    message: 'Add User',
     input: [
-      '<h2 id="add-user-title">Add User</h2>',
-      '<div>',
-      '<input id="add-user-email" name="email" placeholder="Email" required>',
-      '</div>'
+      '<input name="email" placeholder="Email" required />'
     ].join(''),
     buttons: [
-      $.extend({}, vex.dialog.buttons.NO, {
-        text: 'ADD USER',
-        className: 'blue-button',
-        click: function onClick() {
-          if ($('#add-user-email').val()) {
-            saveNewUser($('#add-user-email').val());
-            vex.closeAll();
-          } else {
-            toastr.warning('Please provide a name and email address');
-          }
-        }
-      }),
-      $.extend({}, vex.dialog.buttons.NO, {
-        text: 'Cancel',
-        className: 'link-button'
-      })
+      $.extend({}, vex.dialog.buttons.YES, { text: 'Add User', className: 'blue-button' }),
+      $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
     ],
-    callback: function onClose() {
-      return false;
+    callback: function onSubmit(email) {
+      if (email) {
+        saveNewUser(email);
+      } else {
+        toastr.warning('Please provide an email address');
+        return false;
+      }
+      return true;
     }
   });
 }
