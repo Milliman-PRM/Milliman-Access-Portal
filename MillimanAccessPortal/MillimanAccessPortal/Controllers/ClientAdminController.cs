@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http;
@@ -514,42 +515,47 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion Validation
 
-            try
+            using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
             {
-                // Add the new Client to local context
-                DbContext.Client.Add(Model);
+                try
+                {
+                    // Add the new Client to local context
+                    DbContext.Client.Add(Model);
+                    DbContext.SaveChanges();
 
-                // Add current user's role as ClientAdministrator of new Client to local context
-                DbContext.UserRoleInClient.Add(new UserRoleInClient
+                    DbContext.UserClaims.Add(new IdentityUserClaim<long> { UserId = CurrentApplicationUser.Id, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = Model.Id.ToString() });
+                    DbContext.SaveChanges();
+
+                    // Add current user's role as ClientAdministrator of new Client to local context
+                    DbContext.UserRoleInClient.Add(new UserRoleInClient
                     {
-                        Client = Model,
-                        Role = await RoleManager.FindByNameAsync(RoleEnum.Admin.ToString()),
+                        ClientId = Model.Id,
+                        RoleId = (await RoleManager.FindByNameAsync(RoleEnum.Admin.ToString())).Id,
                         UserId = CurrentApplicationUser.Id
                     });
+                    DbContext.SaveChanges();
 
-                // Store to database
-                DbContext.SaveChanges();
-
-                await UserManager.AddClaimAsync(CurrentApplicationUser, new Claim(ClaimNames.ClientMembership.ToString(), Model.Id.ToString()));
-
-                // Log new client store and ClientAdministrator role authorization events
-                object LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, };
-                AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New Client Saved", AuditEventId.NewClientSaved, LogDetails, User.Identity.Name, HttpContext.Session.Id));
-
-                LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, User = User.Identity.Name, Role = RoleEnum.Admin.ToString() };
-                AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Client Administrator role assigned", AuditEventId.ClientRoleAssigned, LogDetails, User.Identity.Name, HttpContext.Session.Id));
-            }
-            catch (Exception e)
-            {
-                string ErrMsg = $"Failed to store new client \"{Model.Name}\" to database, or assign client administrator role";
-                while (e != null)
-                {
-                    ErrMsg += $"\r\n{e.Message}";
-                    e = e.InnerException;
+                    DbTransaction.Commit();
                 }
-                Logger.LogError(ErrMsg);
-                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+                catch (Exception e)
+                {
+                    string ErrMsg = $"Failed to store new client \"{Model.Name}\" to database, or assign client administrator role";
+                    while (e != null)
+                    {
+                        ErrMsg += $"\r\n{e.Message}";
+                        e = e.InnerException;
+                    }
+                    Logger.LogError(ErrMsg);
+                    return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+                }
             }
+
+            // Log new client store and ClientAdministrator role authorization events
+            object LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, };
+            AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New Client Saved", AuditEventId.NewClientSaved, LogDetails, User.Identity.Name, HttpContext.Session.Id));
+
+            LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, User = User.Identity.Name, Role = RoleEnum.Admin.ToString() };
+            AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Client Administrator role assigned", AuditEventId.ClientRoleAssigned, LogDetails, User.Identity.Name, HttpContext.Session.Id));
 
             ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
             ModelToReturn.RelevantClientId = Model.Id;
