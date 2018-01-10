@@ -1,10 +1,8 @@
 /* global domainValRegex, emailValRegex */
 
 var nodeTemplate = $('script[data-template="node"]').html();
-var clientNodeTemplate = $('script[data-template="node"]').html();
 var childNodePlaceholder = $('script[data-template="childNodePlaceholder"]').html();
 var clientCard = $('script[data-template="createNewClientCard"]').html();
-var userNodeTemplate = $('script[data-template="node"]').html();
 var $addUserCard;
 var SHOW_DURATION = 50;
 
@@ -359,7 +357,7 @@ function updateUserRoleIndicator(userId, userRoles) {
  * @return {undefined}
  */
 function renderUserNode(client, user) {
-  var $template = $(userNodeTemplate.toString());
+  var $template = $(nodeTemplate.toString());
 
   $template.find('.card-container')
     .attr('data-search-string', (user.FirstName + ' ' + user.LastName + '|' + user.UserName + '|' + user.Email).toUpperCase())
@@ -906,7 +904,7 @@ function cancelIconClickHandler() {
  */
 function renderClientNode(client, level) {
   var classes = ['card-100', 'card-90', 'card-80'];
-  var $template = $(clientNodeTemplate.toString());
+  var $template = $(nodeTemplate.toString());
 
   $template.find('.card-container')
     .addClass(classes[level])
