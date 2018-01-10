@@ -23,7 +23,8 @@
         background-color: darken($light-grey, 5%) !important;
 
         &[selected] {
-            border: 5px solid $blue;
+            border-color: $blue;
+            box-shadow: 0 0 0 3px $blue;
         }
     }
 
@@ -96,19 +97,19 @@
             flex-flow: row nowrap;
             align-items: center;
             margin: 0;
-            padding: 0;
+            padding: .25em 0;
             height: 50%;
             min-width: 6.5em;
             background-color: $charcoal;
             color: $white;
 
             .card-stat-icon {
-                margin-left: .1em
+                margin-left: .1em;
             }
 
             .card-stat-value {
                 flex: 1;
-                margin-left: .5em
+                margin-left: .5em;
             }
         }
     }
