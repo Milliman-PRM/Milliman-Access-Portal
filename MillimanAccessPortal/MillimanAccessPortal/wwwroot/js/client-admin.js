@@ -785,10 +785,10 @@ function initializeAddUserForm() {
       $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
     ],
     callback: function onSubmit(email) {
-      if (email) {
+      if (emailValRegex.test(email)) {
         saveNewUser(email);
-      } else {
-        toastr.warning('Please provide an email address');
+      } else if (email) {
+        toastr.warning('Please provide a valid email address');
         return false;
       }
       return true;
