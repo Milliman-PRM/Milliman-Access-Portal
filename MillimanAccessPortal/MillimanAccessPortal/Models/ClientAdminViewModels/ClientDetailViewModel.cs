@@ -98,6 +98,8 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
             }
             #endregion
 
+            ClientEntity.ParentClient = null;
+
             StandardQueries Queries = new StandardQueries(DbContext, UserManager);
             List<RoleEnum> RolesToManage = new List<RoleEnum> { RoleEnum.Admin, RoleEnum.ContentAdmin, RoleEnum.ContentUser, RoleEnum.UserAdmin };
 
