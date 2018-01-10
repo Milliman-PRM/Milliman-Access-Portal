@@ -374,7 +374,7 @@ function renderUserNode(client, user) {
       return user.UserName === user.Email;
     })
     .remove();
-  $template.find('.card-stats-container,.card-button-delete,.card-button-edit, .card-button-new-child')
+  $template.find('.card-stats-container,.card-button-delete,.card-button-edit,.card-button-new-child')
     .remove();
 
   // generate id's for toggles
