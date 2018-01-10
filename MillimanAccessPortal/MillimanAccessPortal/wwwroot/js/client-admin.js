@@ -395,7 +395,7 @@ function renderUserNode(client, user) {
           name: name,
           id: name
         });
-      $element.find('label')
+      $element.find('label.toggle-switch-label')
         .attr('for', name);
       return $element;
     });
