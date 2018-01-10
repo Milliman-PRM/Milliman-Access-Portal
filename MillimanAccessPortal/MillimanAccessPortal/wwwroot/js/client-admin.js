@@ -1,8 +1,8 @@
 /* global domainValRegex, emailValRegex */
 
 var nodeTemplate = $('script[data-template="node"]').html();
-var childNodePlaceholder = $('script[data-template="childNodePlaceholder"]').html();
-var clientCard = $('script[data-template="createNewClientCard"]').html();
+var $createNewClientCard;
+var $createNewChildClientCard;
 var $addUserCard;
 var SHOW_DURATION = 50;
 
@@ -462,7 +462,7 @@ function renderUserList(client, userId) {
  */
 function setupChildClientForm(parentClientDiv) {
   var parentClientId = parentClientDiv.attr('data-client-id').valueOf();
-  var $template = $(childNodePlaceholder.toString());
+  var $template = $createNewChildClientCard.clone();
   $template
     .addClass(parentClientDiv.hasClass('card-100') ? 'card-90' : 'card-80')
     .find('.card-body-primary-text')
@@ -993,7 +993,7 @@ function renderClientTree(clientTreeList, clientId) {
     $('[data-client-id="' + clientId + '"]').click();
   }
   if ($('#add-client-icon').length) {
-    $clientTreeList.append(clientCard);
+    $clientTreeList.append($createNewClientCard);
     $('#create-new-client-card')
       .click(function onClick() {
         createNewClientClickHandler($(this));
@@ -1147,6 +1147,30 @@ $(document).ready(function onReady() {
   });
 
   // Construct static cards
+  $createNewClientCard = $(nodeTemplate);
+  $createNewClientCard.find('.card-container')
+    .addClass('card-100 action-card')
+    .attr('id', 'create-new-client-card');
+  $createNewClientCard.find('.card-body-primary-text')
+    .append('<i class="fa fa-plus"></i>')
+    .append('<span>Create New Client</span>');
+  $createNewClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
+    .remove();
+
+  $createNewChildClientCard = $(nodeTemplate);
+  $createNewChildClientCard
+    .addClass('client-insert');
+  $createNewChildClientCard.find('.card-container')
+    .addClass('flex-container flex-row-no-wrap items-align-center');
+  $createNewChildClientCard.find('.card-body-main-container')
+    .addClass('content-item-flex-1');
+  $createNewChildClientCard.find('.card-body-primary-text')
+    .html('Create New Child Client');
+  $createNewChildClientCard.find('.card-container')
+    .append('<i class="fa fa-fw fa-2x fa-chevron-right"></i>');
+  $createNewChildClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
+    .remove();
+
   $addUserCard = $(nodeTemplate);
   $addUserCard.find('.card-container')
     .addClass('card-100 action-card')
