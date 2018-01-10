@@ -1,10 +1,11 @@
 /* global domainValRegex, emailValRegex */
 
+var nodeTemplate = $('script[data-template="node"]').html();
 var clientNodeTemplate = $('script[data-template="node"]').html();
 var childNodePlaceholder = $('script[data-template="childNodePlaceholder"]').html();
 var clientCard = $('script[data-template="createNewClientCard"]').html();
 var userNodeTemplate = $('script[data-template="node"]').html();
-var newUserCard = $('script[data-template="addUserCard"]').html();
+var $addUserCard;
 var SHOW_DURATION = 50;
 
 /**
@@ -448,7 +449,7 @@ function renderUserList(client, userId) {
 
   if (client.CanManage) {
     $('#add-user-icon').show();
-    $('#client-user-list').append(newUserCard);
+    $('#client-user-list').append($addUserCard);
     $('#add-user-card')
       .click(function onClick() {
         addUserClickHandler();
@@ -1146,6 +1147,17 @@ $(document).ready(function onReady() {
   $('#user-search-box').keyup(function onKeyup() {
     searchUser($(this).val());
   });
+
+  // Construct static cards
+  $addUserCard = $(nodeTemplate);
+  $addUserCard.find('.card-container')
+    .addClass('card-100 action-card')
+    .attr('id', 'add-user-card');
+  $addUserCard.find('.card-body-primary-text')
+    .append('<i class="fa fa-plus"></i>')
+    .append('<span>Add User</span>');
+  $addUserCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
+    .remove();
 
   // TODO: find a better place for this
   $('#client-form').find(':input,select')
