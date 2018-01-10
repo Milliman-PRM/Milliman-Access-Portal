@@ -115,7 +115,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
 
             if (Recursive)
             {
-                List<Client> ChildrenOfThisClient = DbContext.Client.Where(c => c.ParentClientId == ClientModel.ClientEntity.Id).ToList();
+                List<Client> ChildrenOfThisClient = DbContext.Client.Where(c => c.ParentClientId == ClientModel.ClientEntity.Id).OrderBy(c => c.Name).ToList();
                 foreach (Client ChildOfThisClient in ChildrenOfThisClient)
                 {
                     ClientAndChildrenModel NextChild = new ClientAndChildrenModel(ChildOfThisClient);

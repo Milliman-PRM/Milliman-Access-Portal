@@ -794,7 +794,6 @@ function saveNewUser(email) {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
   }).done(function onDone() {
-    getClientTree(clientId);
     openClientCardReadOnly($('#client-tree [data-client-id="' + clientId + '"]'));
     toastr.success('User successfully added');
   }).fail(function onFail(response) {
@@ -804,35 +803,23 @@ function saveNewUser(email) {
 
 // FIXME: present a more appropriate form
 function initializeAddUserForm() {
-  vex.dialog.open({
+  vex.dialog.prompt({
+    message: 'Add User',
     input: [
-      '<h2 id="add-user-title">Add User</h2>',
-      '<form id="add-user-form" asp-controller="UserAdmin" asp-action="SaveNewUser" method="post">',
-      '<div>',
-      '<input id="add-user-email" name="email" placeholder="Email" required>',
-      '</div>',
-      '</form>'
+      '<input name="email" placeholder="Email" required />'
     ].join(''),
     buttons: [
-      $.extend({}, vex.dialog.buttons.NO, {
-        text: 'ADD USER',
-        className: 'blue-button',
-        click: function onClick() {
-          if ($('#add-user-email').val()) {
-            saveNewUser($('#add-user-email').val());
-            vex.closeAll();
-          } else {
-            toastr.warning('Please provide a name and email address');
-          }
-        }
-      }),
-      $.extend({}, vex.dialog.buttons.NO, {
-        text: 'Cancel',
-        className: 'link-button'
-      })
+      $.extend({}, vex.dialog.buttons.YES, { text: 'Add User', className: 'blue-button' }),
+      $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
     ],
-    callback: function onClose() {
-      return false;
+    callback: function onSubmit(email) {
+      if (emailValRegex.test(email)) {
+        saveNewUser(email);
+      } else if (email) {
+        toastr.warning('Please provide a valid email address');
+        return false;
+      }
+      return true;
     }
   });
 }

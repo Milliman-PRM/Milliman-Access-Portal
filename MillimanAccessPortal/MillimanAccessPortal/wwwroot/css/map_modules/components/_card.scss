@@ -12,7 +12,6 @@
     border-radius: .25em;
     margin-top: 0;
     margin-bottom: 1.75em;
-    min-height: 5em;
     cursor: pointer;
 
     &:hover {
@@ -24,7 +23,8 @@
         background-color: darken($light-grey, 5%) !important;
 
         &[selected] {
-            border: 5px solid $blue;
+            border-color: $blue;
+            box-shadow: 0 0 0 3px $blue;
         }
     }
 
@@ -48,10 +48,13 @@
         align-content: stretch;
         display: flex;
 
+        &.full-width {
+            flex: 1 0 auto;
+        }
+
         .card-body-primary-container {
             display: inline-block;
             flex: 1;
-            flex-basis: auto;
             padding: 0 .5em;
             margin: auto;
 
@@ -110,21 +113,19 @@
             flex-flow: row nowrap;
             align-items: center;
             margin: 0;
-            padding: 0.25em 0;
+            padding: .25em 0;
             height: 50%;
             min-width: 6.5em;
             background-color: $charcoal;
             color: $white;
 
             .card-stat-icon {
-                margin-left: .1em
+                margin-left: .1em;
             }
 
             .card-stat-value {
                 flex: 1;
                 margin-left: .5em;
-                margin-top: 0;
-                margin-bottom: 0;
             }
         }
     }
@@ -216,6 +217,7 @@
         border-top: 1px solid $light-grey;
         margin: .25em .25em 0;
         max-height: 0;
+        width: 100%;
         border: none;
         padding: 0 .75em;
         transition: .25s all linear;

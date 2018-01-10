@@ -98,6 +98,8 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
             }
             #endregion
 
+            ClientEntity.ParentClient = null;
+
             StandardQueries Queries = new StandardQueries(DbContext, UserManager);
             List<RoleEnum> RolesToManage = new List<RoleEnum> { RoleEnum.Admin, RoleEnum.ContentAdmin, RoleEnum.ContentUser, RoleEnum.UserAdmin };
 
@@ -110,6 +112,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                                         .Select(ApUser => (UserInfoModel)ApUser)  // use the UserInfo type conversion operator
                                         .OrderBy(u => u.LastName)
                                         .ThenBy(u => u.FirstName)
+                                        .ThenBy(u => u.UserName)
                                         .ToList();
             }
 
