@@ -909,6 +909,7 @@ function renderClientNode(client, level) {
 
   $template.find('.card-container')
     .addClass(classes[level])
+    .attr('data-search-string', (client.ClientModel.ClientEntity.Name + '|' + client.ClientModel.ClientEntity.ClientCode).toUpperCase())
     .attr('data-client-id', client.ClientModel.ClientEntity.Id)
     .removeAttr('data-user-id');
   $template.find('.card-body-secondary-container')
@@ -925,8 +926,6 @@ function renderClientNode(client, level) {
     .html(client.ClientModel.ContentItems.length);
   $template.find('.card-button-remove-user,.card-expansion-container,.card-button-bottom-container')
     .remove();
-  $template.find('div.card-container[data-search-string]')
-    .attr('data-search-string', (client.ClientModel.ClientEntity.Name + '|' + client.ClientModel.ClientEntity.ClientCode).toUpperCase());
 
   if (!client.ClientModel.CanManage) {
     $template.find('.card-button-side-container').remove();
