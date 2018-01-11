@@ -2,7 +2,7 @@
 
 The purpose of this document is to provide a detailed overview of the primary components of the MAP production infrastructure.
 
-This will also serve as the build documentation used while building the production environment. As such, it will evolve as the infrastructure design process continues. 
+This will also serve as the build documentation used while building the production environment. As such, it will evolve as the infrastructure design process continues.
 
 ## Design Objectives
 
