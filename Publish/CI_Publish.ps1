@@ -95,7 +95,7 @@ cp AzureKeyVault.CI.json bin\Debug\netcoreapp2.0\
 
 log_statement "Performing unit tests"
 
-dotnet test --no-build -t -v m
+dotnet test --no-build -v m
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: One or more tests failed"
