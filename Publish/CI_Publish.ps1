@@ -71,6 +71,16 @@ if ( $LASTEXITCODE -ne 0 ) {
     exit $LASTEXITCODE
 }
 
+log_statement "Performing unit tests"
+
+dotnet test --no-build
+
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: One or more tests failed"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
 log_statement "Stop running application pool"
 $requestURL = "http://localhost:8044/iis_pool_action?pool_name=$appPool&action=stop"
 $requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
