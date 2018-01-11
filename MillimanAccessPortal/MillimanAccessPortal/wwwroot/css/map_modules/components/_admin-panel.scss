@@ -97,7 +97,10 @@
                 h2.card-body-primary-text {
                     width: 100%;
                     margin: 0;
-                    /*padding: 0;*/
+
+                    i.fa {
+                        margin: .25em;
+                    }
                 }
             }
         }
