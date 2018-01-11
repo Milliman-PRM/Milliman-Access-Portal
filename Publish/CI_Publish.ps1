@@ -93,7 +93,7 @@ if ( $LASTEXITCODE -ne 0 ) {
 
 log_statement "Performing unit tests"
 
-dotnet test --no-build
+dotnet test --no-build -v diag
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: One or more tests failed"
