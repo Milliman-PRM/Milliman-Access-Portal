@@ -73,6 +73,16 @@ if ( $LASTEXITCODE -ne 0 ) {
 
 cd ../MapTests
 
+log_statement "Building unit tests"
+
+MSBuild /verbosity:minimal
+
+if ( $LASTEXITCODE -ne 0 ) {
+    log_statement "ERROR: Unit test build failed"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
 log_statement "Performing unit tests"
 
 dotnet test --no-build
