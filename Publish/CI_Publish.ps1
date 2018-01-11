@@ -14,7 +14,7 @@ function log_statement {
     write-output $datestring"|"$statement
 }
 
-$branchName = $env:git_branch.ToLower()
+$branchName = $env:git_branch.ToLower().Replace("-", "_")
 $ci_username = $env:pool_username
 $ci_password = $env:pool_password
 
@@ -46,7 +46,7 @@ cd MillimanAccessPortal\MillimanAccessPortal
 
 log_statement "Test build before publishing"
 # If this build fails, we don't want to do the subsequent (destructive) steps
-dotnet restore
+MSBuild /t:Restore /verbosity:minimal
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Initial package restore failed"
@@ -63,7 +63,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-dotnet build /t:Clean
+MSBuild /verbosity:minimal
 
 if ( $LASTEXITCODE -ne 0 ) {
     log_statement "ERROR: Initial test build failed"
@@ -207,7 +207,7 @@ else {
 
 log_statement "Performing application database migrations"
 
-dotnet ef database update
+dotnet ef database update --no-build
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Failed to update application database"
@@ -228,7 +228,7 @@ if ($LASTEXITCODE -ne 0) {
 cd ../MillimanAccessPortal
 
 log_statement "Build and publish application files"
-dotnet publish -o $branchFolder
+MSBuild /t:Restore /t:publish /p:PublishDir=$branchFolder /verbosity:minimal
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "Build failed"
