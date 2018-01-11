@@ -75,6 +75,14 @@ cd ../MapTests
 
 log_statement "Building unit tests"
 
+MSBuild /t:Restore /verbosity:minimal
+
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: Unit test restore failed"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
 MSBuild /verbosity:minimal
 
 if ( $LASTEXITCODE -ne 0 ) {
