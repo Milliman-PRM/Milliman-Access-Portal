@@ -83,6 +83,7 @@
                 align-items: center;
                 text-align: center;
                 height: 5em;
+                text-transform: uppercase;
 
                 &:hover {
                     color: lighten($charcoal, 20%);
