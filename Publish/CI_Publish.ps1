@@ -91,7 +91,7 @@ if ( $LASTEXITCODE -ne 0 ) {
     exit $LASTEXITCODE
 }
 
-cp AzuraKeyVault.CI.json bin\Debug\netcoreapp2.0\
+cp AzureKeyVault.CI.json bin\Debug\netcoreapp2.0\
 
 log_statement "Performing unit tests"
 
