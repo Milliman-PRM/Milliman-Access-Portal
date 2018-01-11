@@ -137,7 +137,15 @@ All servers will run antivirus software, utilizing real-time scanning.
 
 Additionally, files uploaded by users should be scanned before the system takes any action on them or serves them up to end-users. Specific implementation details should be coordinated between the security manager and back-end developers.
 
-## System update workflow
+## Change Management
+
+In any high-availability environment, it is critical to have a change management plan in place. This plan outlines proper procedures for deploying, updating, or replacing components, whether hardware or software.
+
+### Configuration Testing
+
+From time to time, system configuration changes may become necessary. When at all feasible, these changes should be tested on non-production systems before being made in production.
+
+### Software update workflow
 
 To maintain a robust environment, precautions must be taken during system updates.
 
@@ -149,13 +157,20 @@ To maintain a robust environment, precautions must be taken during system update
     * Zabbix monitors should be useful for determining if a server is fully online. A fully operational server should not have any active alerts.
 * If an update does cause a problem, work to solve it as quickly as possible. When any node is offline, we are operating in a less resilient configuration.
 
-### Operating System Patch Management
+
+#### MAP Deployment and Update management
+
+MAP will be deployed with semi-automated build tools, similar to how CI deployments currently happen. This ensures consistent deployment & configuration across all application servers.
+
+The MAP development team will coordinate update releases with the infrastructure team. Updates should only be deployed after completing the formal release process and QRM documentation is complete.
+
+#### Operating System Patch Management
 
 Operating system updates from Microsoft will be installed on a monthly basis. The infrastructure team will install updates 2 weeks after they are released, to make sure only stable updates are applied.
 
 In the case of a patch for a high security risk vulnerability, the PRM security manager will develop and implement a specific response plan as appropriate.
 
-### PostgreSQL Patch Management
+#### PostgreSQL Patch Management
 
 We will strive to keep the database servers up to date with the latest compatible versions of PostgreSQL. This ensures we maintain the most secure database environment possible, with all available performance and stability improvements.
 
