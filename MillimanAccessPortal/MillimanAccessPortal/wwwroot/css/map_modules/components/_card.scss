@@ -70,6 +70,21 @@
             }
         }
 
+        .card-body-primary-text {
+
+            &.indent-level-0 {
+                font-size: 2rem;
+            }
+
+            &.indent-level-1 {
+                font-size: 1.5rem;
+            }
+
+            &.indent-level-2 {
+                font-size: 1.17rem;
+            }
+        }
+
         .card-body-secondary-container {
             position: relative;
             text-align: center;
@@ -91,6 +106,7 @@
     }
 
     .card-stats-container {
+        margin: -0.25em;
 
         .card-stat-container {
             display: flex;
@@ -199,7 +215,7 @@
         overflow: hidden;
         padding: .25em .75em;
         border-top: 1px solid $light-grey;
-        margin: .25em .25em 0;
+        margin: 0 .25em;
         max-height: 0;
         width: 100%;
         border: none;
