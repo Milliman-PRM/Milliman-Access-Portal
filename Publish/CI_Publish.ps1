@@ -71,6 +71,8 @@ if ( $LASTEXITCODE -ne 0 ) {
     exit $LASTEXITCODE
 }
 
+cd ../MapTests
+
 log_statement "Performing unit tests"
 
 dotnet test --no-build
@@ -80,6 +82,8 @@ if ($LASTEXITCODE -ne 0) {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
+
+cd ../MillimanAccessPortal
 
 log_statement "Stop running application pool"
 $requestURL = "http://localhost:8044/iis_pool_action?pool_name=$appPool&action=stop"
