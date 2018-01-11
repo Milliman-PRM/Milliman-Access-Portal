@@ -1202,7 +1202,7 @@ $(document).ready(function onReady() {
         };
       }
       vex.dialog.alert({
-        unsafeMessage: '<h3 class="vex-custom-title blue">Invalid Input</h3><span class="vex-custom-message">The Approved Email Domain List only accepts the email domain (e.g. <i>username@@</i><strong><u>domain.com</u></strong>)</span>',
+        unsafeMessage: '<h3 class="vex-custom-title blue">Invalid Input</h3><span class="vex-custom-message">The Approved Email Domain List only accepts the email domain (e.g. <i>username@</i><strong><u>domain.com</u></strong>)</span>',
         buttons: [
           $.extend({}, vex.dialog.buttons.YES, { text: 'OK', className: 'blue-button' }),
         ],
