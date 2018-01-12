@@ -36,14 +36,7 @@ namespace QlikviewLib.Internal
             HttpClient client = new HttpClient(Handler);
             StringContent RequestContent = new StringContent(RequestBodyString);
             HttpResponseMessage ResponseMsg = null;
-            try
-            {
-                ResponseMsg = await client.PostAsync(QvServerUri.Uri, RequestContent);
-            }
-            catch (Exception e)
-            {
-                throw new MapException(string.Format("Exception from PostAsync() while calling GetWebTicket.aspx from {0}\r\nMessage: {1}", QvServerUri.Uri.AbsoluteUri, e.Message));
-            }
+            ResponseMsg = await client.PostAsync(QvServerUri.Uri, RequestContent);
 
             string ResponseBody = await ResponseMsg.Content.ReadAsStringAsync();
 
