@@ -4,6 +4,7 @@ var nodeTemplate = $('script[data-template="node"]').html();
 var $createNewClientCard;
 var $createNewChildClientCard;
 var $addUserCard;
+var eligibleUsers;
 var SHOW_DURATION = 50;
 
 /**
@@ -425,6 +426,9 @@ function renderUserList(client, userId) {
   client.AssignedUsers.forEach(function render(user) {
     renderUserNode(client, user);
   });
+  eligibleUsers = $(client.EligibleUsers).map(function getEmail(i, element) {
+    return element.Email;
+  });
   $('div.card-button-remove-user').click(function onClick(event) {
     event.stopPropagation();
     userCardRemoveClickHandler($(this).closest('.card-container'));
@@ -800,12 +804,26 @@ function saveNewUser(email) {
   });
 }
 
-// FIXME: present a more appropriate form
+function substringMatcher(strings) {
+  return function findMatches(query, callback) {
+    var matches = [];
+    var substringRegex = new RegExp(query, 'i');
+
+    $.each(strings, function check(i, string) {
+      if (substringRegex.test(string)) {
+        matches.push(string);
+      }
+    });
+
+    callback(matches);
+  };
+}
+
 function initializeAddUserForm() {
   vex.dialog.prompt({
     unsafeMessage: '<h3 class="vex-custom-title blue">Add User</h3><span class="vex-custom-message">Please provide a valid email address</span>',
     input: [
-      '<input name="email" placeholder="Email" required />'
+      '<input class="typeahead" name="email" placeholder="Email" required />'
     ].join(''),
     buttons: [
       $.extend({}, vex.dialog.buttons.YES, { text: 'Add User', className: 'blue-button' }),
@@ -821,6 +839,17 @@ function initializeAddUserForm() {
       return true;
     }
   });
+  $('.vex-dialog-input .typeahead').typeahead(
+    {
+      hint: true,
+      highlight: true,
+      minLength: 1
+    },
+    {
+      name: 'eligibleUsers',
+      source: substringMatcher(eligibleUsers)
+    }
+  );
 }
 
 /**
