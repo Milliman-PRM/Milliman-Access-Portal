@@ -91,8 +91,6 @@ if ( $LASTEXITCODE -ne 0 ) {
     exit $LASTEXITCODE
 }
 
-cp AzureKeyVault.CI.json bin\Debug\netcoreapp2.0\
-
 log_statement "Performing unit tests"
 
 dotnet test --no-build -v q
