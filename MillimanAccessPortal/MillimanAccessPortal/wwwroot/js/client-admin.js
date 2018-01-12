@@ -506,6 +506,14 @@ function getClientDetail(clientDiv) {
 
   clearFormData();
   clearUserList();
+
+  if (clientDiv.is('[disabled]')) {
+    $('#client-info #edit-client-icon').css('visibility', 'hidden');
+  }
+  else {
+    $('#client-info #edit-client-icon').css('visibility', 'visible');
+  }
+
   $.ajax({
     type: 'GET',
     url: 'ClientAdmin/ClientDetail/' + clientId,
@@ -515,9 +523,6 @@ function getClientDetail(clientDiv) {
   }).done(function onDone(response) {
     populateClientForm(response.ClientEntity);
     renderUserList(response);
-    if (clientDiv.is('[disabled]')) { // FIXME: should be elsewhere??
-      $('#client-info #edit-client-icon').hide();
-    }
   }).fail(function onFail(response) {
     toastr.warning(response.getResponseHeader('Warning'));
   });
