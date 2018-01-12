@@ -10,8 +10,9 @@ div.selectize-input {
 
     input {
         font-size: 1em !important;
+        line-height: 18px !important;
+        height: 1.5em !important;
         margin: .25em !important;
-        padding-top: .25em;
     }
 
     &:focus {
