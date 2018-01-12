@@ -8,6 +8,12 @@ div.selectize-input {
     box-shadow: none;
     -webkit-box-shadow: none;
 
+    input {
+        font-size: 1em !important;
+        margin: .25em !important;
+        padding-top: .25em;
+    }
+
     &:focus {
         border: solid 1px $blue;
     }
