@@ -302,12 +302,16 @@ namespace MillimanAccessPortal.Controllers
                             ApplicationRole UserCreatorRole = await RoleManager.FindByNameAsync(RoleEnum.UserCreator.ToString());
                             DbContext.UserRoleInClient.Add(new UserRoleInClient { UserId = RequestedUser.Id, RoleId = UserCreatorRole.Id, ClientId = RequestedClient.Id });
                         }
-                    }finish this
+                    }
                 }
             }
             else
             {
                 // Remove role.  There should be only one, but act to remove any number
+                if (RequestedRole.RoleEnum == RoleEnum.Admin)
+                {
+                    ExistingRecords = ExistingRecordsQuery.Where(urc => (urc.RoleId == RequestedRole.Id) || (urc.Role.RoleEnum == RoleEnum.UserCreator)).ToList();
+                }
                 DbContext.UserRoleInClient.RemoveRange(ExistingRecords);
             }
             DbContext.SaveChanges();
@@ -538,6 +542,12 @@ namespace MillimanAccessPortal.Controllers
                     {
                         ClientId = Model.Id,
                         RoleId = (await RoleManager.FindByNameAsync(RoleEnum.Admin.ToString())).Id,
+                        UserId = CurrentApplicationUser.Id
+                    });
+                    DbContext.UserRoleInClient.Add(new UserRoleInClient
+                    {
+                        ClientId = Model.Id,
+                        RoleId = (await RoleManager.FindByNameAsync(RoleEnum.UserCreator.ToString())).Id,
                         UserId = CurrentApplicationUser.Id
                     });
                     DbContext.SaveChanges();
