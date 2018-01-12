@@ -1,7 +1,7 @@
 div.selectize-input {
     color: $charcoal;
     border-radius: .25em;
-    border: solid 1px transparent;
+    min-height: 2.6em;
     transition: border 0.2s;
     padding: .25em !important;
     font-size: 1rem;
