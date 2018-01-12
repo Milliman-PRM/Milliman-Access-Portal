@@ -213,13 +213,13 @@ namespace MapTests
         /// Multiple authorization checks are made, so multiple users should be tested w/ various rights
         /// </summary>
         [Theory]
-        [InlineData("ClientAdmin1", 3, "test1")] // User isn't admin on the requested client but is admin on the requested client's profit center
-        [InlineData("ClientAdmin1", 4, "test1")] // User is admin on the requested client but isn't admin on the requested client's profit center
-        public async Task AssignUserToClient_ErrorWhenUnauthorized(string userArg, long clientIdArg, string userAssignArg)
+        [InlineData("ClientAdmin1", 3, 1)] // User isn't admin on the requested client but is admin on the requested client's profit center
+        [InlineData("ClientAdmin1", 4, 1)] // User is admin on the requested client but isn't admin on the requested client's profit center
+        public async Task AssignUserToClient_ErrorWhenUnauthorized(string userArg, long clientIdArg, long userIdArg)
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser(userArg);
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = clientIdArg, UserName = userAssignArg };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = clientIdArg, UserId = userIdArg };
             #endregion
 
             #region Act
@@ -235,13 +235,13 @@ namespace MapTests
         /// Verify a BadRequestObjectResult is returned when the user or client is not found
         /// </summary>
         [Theory]
-        [InlineData("ClientAdmin1", -1, "test1")] // User exists, but client does not
-        [InlineData("ClientAdmin1", 1, "__fake1")] // Client exists, but user does not (User is authorized to specified client & its profit center)
-        public async Task AssignUserToClient_ErrorWhenNotFound(string userArg, long clientIdArg, string userAssignArg)
+        [InlineData("ClientAdmin1", -1, 1)] // User exists, but client does not
+        [InlineData("ClientAdmin1", 1, -1)] // Client exists, but user does not (User is authorized to specified client & its profit center)
+        public async Task AssignUserToClient_ErrorWhenNotFound(string userArg, long clientIdArg, long userIdArg)
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser(userArg);
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = clientIdArg, UserName = userAssignArg };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = clientIdArg, UserId = userIdArg };
             #endregion
 
             #region Act
@@ -261,7 +261,7 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 1, UserName = "test1" };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 1, UserId = 1 };
 
             // Count users assigned to the client before attempting change
             int preActionCount = Enumerable.Count(TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()));
@@ -288,7 +288,7 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 5, UserName = "test1" };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 5, UserId = 1 };
             #endregion
 
             #region Act
@@ -310,7 +310,7 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 5, UserName = "test3" };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 5, UserId = 4 };
 
             // Before acting on the input data, we need to gather initial data to compare the result to
             int beforeCount = Enumerable.Count(TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()));
@@ -334,13 +334,13 @@ namespace MapTests
         /// Multiple authorizations are checked, so multiple scenarios should be tested
         /// </summary>
         [Theory]
-        [InlineData("ClientAdmin1", 3, "test1")] // User isn't admin on the requested client but is admin on the requested client's profit center
-        [InlineData("ClientAdmin1", 4, "test1")] // User is admin on the requested client but isn't admin on the requested client's profit center
-        public async Task RemoveUserFromClient_ErrorWhenUnauthorized(string userArg, long clientIdArg, string userAssignArg)
+        [InlineData("ClientAdmin1", 3, 1)] // User isn't admin on the requested client but is admin on the requested client's profit center
+        [InlineData("ClientAdmin1", 4, 1)] // User is admin on the requested client but isn't admin on the requested client's profit center
+        public async Task RemoveUserFromClient_ErrorWhenUnauthorized(string userArg, long clientIdArg, long userIdArg)
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser(userArg);
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = clientIdArg, UserName = userAssignArg };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = clientIdArg, UserId = userIdArg };
             #endregion
 
             #region Act
@@ -356,13 +356,13 @@ namespace MapTests
         /// Validate that a BadRequestResult is returned if the client, user, or both do not exist
         /// </summary>
         [Theory]
-        [InlineData("ClientAdmin1", -1, "test1")] // User exists, but client does not
-        [InlineData("ClientAdmin1", 1, "__fake1")] // Client exists, but user does not (User is authorized to specified client & its profit center)
-        public async Task RemoveUserFromClient_ErrorWhenNotFound(string userArg, long clientIdArg, string userAssignArg)
+        [InlineData("ClientAdmin1", -1, 1)] // User exists, but client does not
+        [InlineData("ClientAdmin1", 1, -1)] // Client exists, but user does not (User is authorized to specified client & its profit center)
+        public async Task RemoveUserFromClient_ErrorWhenNotFound(string userArg, long clientIdArg, long userIdArg)
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser(userArg);
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = clientIdArg, UserName = userAssignArg };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = clientIdArg, UserId = userIdArg };
             #endregion
 
             #region Act
@@ -384,10 +384,9 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 5, UserName = "test2" };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 5, UserId = 2 };
 
-            var UserId = TestResources.DbContextObject.ApplicationUser.Where(au => au.UserName == viewModel.UserName).Select(au => au.Id).First();
-            int preActionCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString() && c.UserId == UserId).Count();
+            int preActionCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString() && c.UserId == viewModel.UserId).Count();
             #endregion
 
             #region Act
@@ -405,7 +404,7 @@ namespace MapTests
             int userRoleCountInClient = 
                     Enumerable.Count(TestResources.DbContextObject.UserRoleInClient.Where(ur => 
                         ur.ClientId == viewModel.ClientId && 
-                        ur.UserId == TestResources.UserManagerObject.FindByNameAsync(viewModel.UserName).Id));
+                        ur.UserId == viewModel.UserId));
             Assert.Equal(0, userRoleCountInClient);
             #endregion
         }

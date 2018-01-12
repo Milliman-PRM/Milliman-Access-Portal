@@ -13,8 +13,9 @@ namespace AuditLogLib
 
         // WARNING!!!  After production begins, never change the numeric ID of any AuditEventId
 
-        // Unspecified
-        public static readonly AuditEventId Unspecified = new AuditEventId(AuditEventBaseId, "Unspecified");
+        // Uncategorized 1 - 999
+        public static readonly AuditEventId Unspecified = new AuditEventId(1, "Unspecified");
+        public static readonly AuditEventId InvalidRequest = new AuditEventId(2, "Invalid request");
 
         // User activity category 1000 - 1999
         public static readonly AuditEventId LoginSuccess = new AuditEventId(1001, "Login success");
@@ -25,8 +26,8 @@ namespace AuditLogLib
         public static readonly AuditEventId UserPasswordChanged = new AuditEventId(1006, "User password changed");
 
         // Client Admin category 2000 - 2999
-        public static readonly AuditEventId UserAssignedToClient = new AuditEventId(2001, "User assigned To Client");
-        public static readonly AuditEventId UserRemovedFromClient = new AuditEventId(2002, "User removed From Client");
+        public static readonly AuditEventId UserAssignedToClient = new AuditEventId(2001, "User assigned to client");
+        public static readonly AuditEventId UserRemovedFromClient = new AuditEventId(2002, "User removed from client");
         public static readonly AuditEventId NewClientSaved = new AuditEventId(2003, "New client saved");
         public static readonly AuditEventId ClientEdited = new AuditEventId(2004, "Client edited");
         public static readonly AuditEventId ClientDeleted = new AuditEventId(2005, "Client deleted");

@@ -1,16 +1,16 @@
 /* global domainValRegex, emailValRegex */
 
-var clientNodeTemplate = $('script[data-template="clientNode"]').html();
-var childNodePlaceholder = $('script[data-template="childNodePlaceholder"]').html();
-var clientCard = $('script[data-template="createNewClientCard"]').html();
-var userNodeTemplate = $('script[data-template="userNode"]').html();
+var nodeTemplate = $('script[data-template="node"]').html();
+var $createNewClientCard;
+var $createNewChildClientCard;
+var $addUserCard;
 var SHOW_DURATION = 50;
 
 /**
  * Remove all client insert elements.
  * While this function removes all client inserts, there should never be more
  * than one client insert present at a time.
- * @returns {undefined}
+ * @return {undefined}
  */
 function removeClientInserts() {
   $('#client-tree li.client-insert').remove();
@@ -18,7 +18,7 @@ function removeClientInserts() {
 
 /**
  * Clear 'selected' and 'editing' status from all card containers.
- * @returns {undefined}
+ * @return {undefined}
  */
 function clearClientSelection() {
   $('.card-container').removeAttr('editing selected');
@@ -26,7 +26,7 @@ function clearClientSelection() {
 
 /**
  * Hide the client info and client users panes
- * @returns {undefined}
+ * @return {undefined}
  */
 function hideClientDetails() {
   $('#client-info').hide(SHOW_DURATION);
@@ -35,7 +35,7 @@ function hideClientDetails() {
 
 /**
  * Hide the client users pane
- * @returns {undefined}
+ * @return {undefined}
  */
 function hideClientUsers() {
   $('#client-users').hide(SHOW_DURATION);
@@ -43,7 +43,7 @@ function hideClientUsers() {
 
 /**
  * Show client detail components and focus the first form element.
- * @returns {undefined}
+ * @return {undefined}
  */
 function showClientDetails() {
   var $clientPanes = $('#client-info');
@@ -57,7 +57,7 @@ function showClientDetails() {
 
 /**
  * Set the client form as read only
- * @returns {undefined}
+ * @return {undefined}
  */
 function setClientFormReadOnly() {
   var $clientForm = $('#client-form');
@@ -74,7 +74,7 @@ function setClientFormReadOnly() {
 
 /**
  * Set the client form as writeable
- * @returns {undefined}
+ * @return {undefined}
  */
 function setClientFormWriteable() {
   var $clientForm = $('#client-form');
@@ -85,7 +85,7 @@ function setClientFormWriteable() {
   if ($('#client-tree [selected]').attr('data-client-id')) {
     $('#form-buttons-new').hide();
     $('#form-buttons-edit').show();
-    $('#undo-changes-button').hide();
+    $('#save-changes-button,#undo-changes-button').hide();
   } else {
     $('#form-buttons-new').show();
     $('#form-buttons-edit').hide();
@@ -93,6 +93,7 @@ function setClientFormWriteable() {
   $clientForm.find('.selectized').each(function enable() {
     this.selectize.enable();
   });
+  $clientForm.find('#Name').focus();
 }
 
 /**
@@ -130,7 +131,7 @@ function populateClientForm(clientEntity) {
 /**
  * Populate the Profit Center input
  * @param {Array.<{Id: Number, Name: String, Code: String}>} profitCenterList
- * @returns {undefined}
+ * @return {undefined}
  */
 function populateProfitCenterDropDown(profitCenterList) {
   $('#ProfitCenterId option:not(option[value = ""])').remove();
@@ -172,7 +173,7 @@ function collapseAllUsers() {
 
 /**
  * Reset client form validation and remove validation messages
- * @returns {undefined}
+ * @return {undefined}
  */
 function resetValidation() {
   $('#client-form').validate().resetForm();
@@ -183,7 +184,7 @@ function resetValidation() {
  * Find the set of client form input elements whose values have been modified
  * If an input element did not have an original value, then it is considered
  * to be modified only if the current value is not blank.
- * @returns {jQuery} modifiedInputs
+ * @return {jQuery} modifiedInputs
  */
 function findModifiedInputs() {
   return $('#client-form')
@@ -196,7 +197,7 @@ function findModifiedInputs() {
 
 /**
  * Clear all client form input elements, resulting in a blank form
- * @returns {undefined}
+ * @return {undefined}
  */
 function clearFormData() {
   var $clientForm = $('#client-form');
@@ -212,16 +213,16 @@ function clearFormData() {
 
 /**
  * Clear all user cards from the client user list
- * @returns {undefined}
+ * @return {undefined}
  */
 function clearUserList() {
   $('#client-user-list > li').remove();
-  $('#expand-user-icon,#collapse-user-icon').hide();
+  $('#expand-user-icon,#collapse-user-icon,#add-user-icon').hide();
 }
 
 /**
  * Reset all client form input elements to their pre-modified values
- * @returns {undefined}
+ * @return {undefined}
  */
 function resetFormData() {
   var $modifiedInputs = findModifiedInputs();
@@ -233,18 +234,19 @@ function resetFormData() {
     }
   });
   resetValidation();
+  $('#save-changes-button,#undo-changes-button').hide();
 }
 
 /**
  * Create a dialog box to confirm a discard action
  * @param {function} callback Executed if the user selects YES
- * @returns {undefined}
+ * @return {undefined}
  */
 function confirmDiscardDialog(callback) {
   vex.dialog.confirm({
-    message: 'Do you want to discard unsaved changes?',
+    unsafeMessage: '<h3 class="vex-custom-title blue">Discard Changes</h3><span class="vex-custom-message">Would you like to discard unsaved changes?</span>',
     buttons: [
-      $.extend({}, vex.dialog.buttons.YES, { text: 'Discard', className: 'green-button' }),
+      $.extend({}, vex.dialog.buttons.YES, { text: 'Discard', className: 'blue-button' }),
       $.extend({}, vex.dialog.buttons.NO, { text: 'Continue Editing', className: 'link-button' })
     ],
     callback: function onSelect(result) {
@@ -258,14 +260,34 @@ function confirmDiscardDialog(callback) {
 /**
  * Create a dialog box to confirm a reset action
  * @param {function} callback Executed if the user selects YES
- * @returns {undefined}
+ * @return {undefined}
  */
 function confirmResetDialog(callback) {
   vex.dialog.confirm({
-    message: 'Do you want to reset the new client form?',
+    unsafeMessage: '<h3 class="vex-custom-title blue">Reset Form</h3><span class="vex-custom-message">Would you like to discard unsaved changes?</span>',
     buttons: [
-      $.extend({}, vex.dialog.buttons.YES, { text: 'Reset', className: 'green-button' }),
+      $.extend({}, vex.dialog.buttons.YES, { text: 'Reset', className: 'blue-button' }),
       $.extend({}, vex.dialog.buttons.NO, { text: 'Continue Editing', className: 'link-button' })
+    ],
+    callback: function onSelect(result) {
+      if (result) {
+        callback();
+      }
+    }
+  });
+}
+
+/**
+ * Create a dialog box to confirm user removal
+ * @param {function} callback Executed if the user selects YES
+ * @return {undefined}
+ */
+function confirmRemoveDialog(name, callback) {
+  vex.dialog.confirm({
+    unsafeMessage: '<h3 class="vex-custom-title red">Reset Form</h3><span class="vex-custom-message">Remove <strong>' + name + '</strong> from the selected client?</span>',
+    buttons: [
+      $.extend({}, vex.dialog.buttons.YES, { text: 'Remove', className: 'red-button' }),
+      $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
     ],
     callback: function onSelect(result) {
       if (result) {
@@ -282,7 +304,7 @@ function confirmResetDialog(callback) {
  * Otherwise, nothing happens.
  * @param {function} confirmDialog Confirmation dialog function
  * @param {function} onContinue Executed if no inputs are modified or the user selects YES
- * @returns {undefined}
+ * @return {undefined}
  */
 function confirmAndReset(confirmDialog, onContinue) {
   if (findModifiedInputs().length) {
@@ -297,31 +319,99 @@ function confirmAndReset(confirmDialog, onContinue) {
 }
 
 /**
- * Render user node by using string substitution on a userNodeTemplate
- * @param  {Number} clientId ID of the client to which the user belongs
- * @param  {Object} user     User object to render
+ * Determine whether the specified user role assignments are considered elevated
+ * @param  {Object} userRoles The user roles to check, taken from AJAX response object
+ * @return {Boolean}          Whether the user role assignments are elevated
+ */
+function elevatedRoles(userRoles) {
+  return !!$.grep(userRoles, function isElevatedRole(role) {
+    // FIXME: Definition of 'elevated role' should not live here
+    return [1, 3, 4].some(function matchesRole(elevatedRole) {
+      return role.RoleEnum === elevatedRole;
+    });
+  }).filter(function isAssigned(role) {
+    return role.IsAssigned;
+  }).length;
+}
+
+/**
+ * Show the role indicator if the specified user role assignments are considered elevated
+ * Otherwise, hide the role indicator.
+ * @param  {Number} userId    Associated user ID of the role indicator to update.
+ * @param  {Array} userRoles  Array of user roles to check against
  * @return {undefined}
  */
-function renderUserNode(clientId, user) {
-  var $template = $(userNodeTemplate
-    .replace(/{{clientId}}/g, clientId)
-    .replace(/{{id}}/g, user.Id)
-    .replace(/{{name}}/g, user.FirstName + ' ' + user.LastName)
-    .replace(/{{username}}/g, user.UserName)
-    .replace(/{{email}}/g, user.UserName !== user.Email ? user.Email : '{{email}}')
-    .toString());
+function updateUserRoleIndicator(userId, userRoles) {
+  $('#user-list')
+    .find('.card-container[data-user-id="' + userId + '"]')
+    .find('.card-user-role-indicator')
+    .hide()
+    .filter(function anyElevated() { return elevatedRoles(userRoles); })
+    .show();
+}
 
-  $template.find('div.card-container[data-search-string]')
-    .attr('data-search-string', (user.FirstName + ' ' + user.LastName + '|' + user.UserName + '|' + user.Email).toUpperCase());
-  $template.find('.card-body-secondary-text:contains("{{email}}")')
+/**
+ * Render user node by using string substitution on a userNodeTemplate
+ * @param  {Number} client Client to which the user belongs
+ * @param  {Object} user   User object to render
+ * @return {undefined}
+ */
+function renderUserNode(client, user) {
+  var $template = $(nodeTemplate.toString());
+
+  $template.find('.card-container')
+    .attr('data-search-string', (user.FirstName + ' ' + user.LastName + '|' + user.UserName + '|' + user.Email).toUpperCase())
+    .attr('data-client-id', client.ClientEntity.Id)
+    .attr('data-user-id', user.Id);
+  $template.find('.card-body-primary-container .card-body-primary-text')
+    .html((user.FirstName && user.LastName) ?
+      user.FirstName + ' ' + user.LastName :
+      user.UserName);
+  $template.find('.card-body-primary-container .card-body-secondary-text').first()
+    .html(user.UserName || '');
+  $template.find('.card-body-primary-container .card-body-secondary-text').last()
+    .html(user.Email + ' (email)').filter(function sameAsUsername() {
+      return user.UserName === user.Email;
+    })
+    .remove();
+  $template.find('.card-stats-container,.card-button-delete,.card-button-edit,.card-button-new-child')
     .remove();
 
-  // if (!client.CanManage) {
-  //     $('.icon-container', $template).remove();
-  //     $('.card-container', $template).addClass('disabled');
-  // }
+  // generate id's for toggles
+  $template.find('.switch-container')
+    .map(function applyName(i, element) {
+      var $element = $(element);
+      var name = (
+        'user-role-' +
+        $element.closest('.card-container')
+          .attr('data-user-id') +
+        '-' +
+        $element.find('.toggle-switch-checkbox')
+          .attr('data-role-enum')
+      );
+      $element.find('.toggle-switch-checkbox')
+        .attr({
+          name: name,
+          id: name
+        });
+      $element.find('label.toggle-switch-label')
+        .attr('for', name);
+      return $element;
+    });
+
+  $.each(user.UserRoles, function displayRoles(index, roleAssignment) {
+    $template.find('input[data-role-enum=' + roleAssignment.RoleEnum + ']')
+      .prop('checked', roleAssignment.IsAssigned)
+      .click(userCardRoleToggleClickHandler);
+  });
+
+  if (!client.CanManage) {
+    $template.find('.icon-container,.card-button-remove-user').remove();
+    $template.find('.card-container,.toggle-switch-checkbox').attr('disabled', '');
+  }
 
   $('#client-user-list').append($template);
+  updateUserRoleIndicator(user.Id, user.UserRoles);
 }
 
 /**
@@ -333,38 +423,54 @@ function renderUserNode(clientId, user) {
 function renderUserList(client, userId) {
   $('#client-user-list').empty();
   client.AssignedUsers.forEach(function render(user) {
-    renderUserNode(client.ClientEntity.Id, user);
+    renderUserNode(client, user);
   });
   $('div.card-button-remove-user').click(function onClick(event) {
-    // TODO: Handle remove user click event
     event.stopPropagation();
+    userCardRemoveClickHandler($(this).closest('.card-container'));
   });
-  $('div[data-client-id][data-user-id]').click(function toggleCard(event) {
-    event.stopPropagation();
-    $(this).find('div.card-expansion-container').attr('maximized', function toggle(index, attr) {
-      return attr === '' ? null : '';
+  $('#user-list .card-body-main-container,.card-button-expansion')
+    .click(function toggleCard(event) {
+      event.stopPropagation();
+      $(this).closest('.card-container')
+        .find('div.card-expansion-container')
+        .attr('maximized', function toggle(index, attr) {
+          return attr === '' ? null : '';
+        });
+      showRelevantUserActionIcons();
     });
-    showRelevantUserActionIcons();
-  });
   showRelevantUserActionIcons();
 
   if (userId) {
     $('[data-user-id="' + userId + '"]').click();
+  }
+
+  if (client.CanManage) {
+    $('#add-user-icon').show();
+    $('#client-user-list').append($addUserCard);
+    $('#add-user-card')
+      .click(function onClick() {
+        addUserClickHandler();
+      });
   }
 }
 
 /**
  * Perform necessary steps for configuring the new child client form
  * @param {Object} parentClientDiv the div of the parent client
- * @returns {undefined}
+ * @return {undefined}
  */
 function setupChildClientForm(parentClientDiv) {
   var parentClientId = parentClientDiv.attr('data-client-id').valueOf();
-  var template = childNodePlaceholder.replace(/{{class}}/g, parentClientDiv.hasClass('card-100') ? 'card-90' : 'card-80');
+  var $template = $createNewChildClientCard.clone();
+  $template
+    .addClass(parentClientDiv.hasClass('card-100') ? 'card-90' : 'card-80')
+    .find('.card-body-primary-text')
+    .addClass(parentClientDiv.hasClass('card-100') ? 'indent-level-1' : 'indent-level-2');
 
   clearFormData();
   $('#client-form #ParentClientId').val(parentClientId);
-  parentClientDiv.parent().after(template);
+  parentClientDiv.parent().after($template);
   parentClientDiv.parent().next().find('div.card-container')
     .click(function onClick() {
       // TODO: move this to a function
@@ -381,7 +487,7 @@ function setupChildClientForm(parentClientDiv) {
 
 /**
  * Perform necessary steps for configuring the new client form
- * @returns {undefined}
+ * @return {undefined}
  */
 function setupClientForm() {
   var $clientForm = $('#client-form');
@@ -393,7 +499,7 @@ function setupClientForm() {
 /**
  * Repopulate client form with details for the provided client
  * @param {Object} clientDiv the div for whom data will be retrieved
- * @returns {undefined}
+ * @return {undefined}
  */
 function getClientDetail(clientDiv) {
   var clientId = clientDiv.attr('data-client-id').valueOf();
@@ -414,6 +520,49 @@ function getClientDetail(clientDiv) {
     }
   }).fail(function onFail(response) {
     toastr.warning(response.getResponseHeader('Warning'));
+  });
+}
+
+/**
+ * Send an AJAX request to set a user role
+ * @param {Number}  userId     UserID of the user whose roll is to be updated
+ * @param {Number}  roleEnum   The role to be updated
+ * @param {Boolean} isAssigned The value to be assigned to the specified role
+ * @return {undefined}
+ */
+function setUserRole(userId, roleEnum, isAssigned, onResponse) {
+  var $cardContainer = $('#user-list .card-container[data-user-id="' + userId + '"]');
+  var postData = {
+    ClientId: $('#client-tree [selected]').attr('data-client-id'),
+    UserId: userId,
+    RoleEnum: roleEnum,
+    IsAssigned: isAssigned
+  };
+
+  $.ajax({
+    type: 'POST',
+    url: 'ClientAdmin/SetUserRoleInClient',
+    data: postData,
+    headers: {
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+    }
+  }).done(function onDone(response) {
+    var modifiedRole;
+    // Set checkbox states to match the response
+    $.each(response, function setToggle(index, roleAssignment) {
+      $cardContainer.find('input[data-role-enum=' + roleAssignment.RoleEnum + ']')
+        .prop('checked', roleAssignment.IsAssigned);
+    });
+    updateUserRoleIndicator(postData.UserId, response);
+    // Filter response to get the role that was set by the request
+    modifiedRole = response.filter(function filter(responseRole) {
+      return responseRole.RoleEnum.toString() === postData.RoleEnum;
+    })[0];
+    toastr.success($cardContainer.find('.card-body-primary-text').html() + ' was ' + (modifiedRole.IsAssigned ? 'set' : 'unset') + ' as ' + modifiedRole.RoleDisplayValue);
+    onResponse();
+  }).fail(function onFail(response) {
+    toastr.warning(response.getResponseHeader('Warning'));
+    onResponse();
   });
 }
 
@@ -458,15 +607,29 @@ function openNewChildClientForm($parentCard) {
   $parentCard.parent().next('li').find('div.card-container')
     .attr({ selected: '', editing: '' });
   setClientFormWriteable();
+  hideClientUsers();
+  showClientDetails();
+}
+
+/**
+ * Display the new client form
+ * @return {undefined}
+ */
+function openNewClientForm() {
+  clearClientSelection();
+  setupClientForm();
+  $('#create-new-client-card').attr('selected', '');
+  setClientFormWriteable();
+  hideClientUsers();
   showClientDetails();
 }
 
 /**
  * Handle click events for all client cards and client inserts
  * @param {jQuery} $clickedCard the card that was clicked
- * @returns {undefined}
+ * @return {undefined}
  */
-function cardClickHandler($clickedCard) {
+function clientCardClickHandler($clickedCard) {
   var $clientTree = $('#client-tree');
   var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
   if ($clientTree.has('[selected]').length) {
@@ -488,11 +651,11 @@ function cardClickHandler($clickedCard) {
  * @param  {jQuery} $clickedCard the card that was clickedCard
  * @return {undefined}
  */
-function cardDeleteClickHandler($clickedCard) {
+function clientCardDeleteClickHandler($clickedCard) {
   var clientId = $clickedCard.attr('data-client-id').valueOf();
   var clientName = $clickedCard.find('.card-body-primary-text').first().text();
   vex.dialog.confirm({
-    unsafeMessage: 'Do you want to delete <strong>' + clientName + '</strong>?<br /><br /> This action <strong><u>cannot</u></strong> be undone.',
+    unsafeMessage: '<h3 class="vex-custom-title red">Delete Client</h3><span class="vex-custom-message">Delete <strong>' + clientName + '</strong>?<br /><br /> This action <strong><u>cannot</u></strong> be undone.</span>',
     buttons: [
       $.extend({}, vex.dialog.buttons.YES, { text: 'Delete', className: 'red-button' }),
       $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
@@ -500,7 +663,7 @@ function cardDeleteClickHandler($clickedCard) {
     callback: function onSelect(confirm) {
       if (confirm) {
         vex.dialog.prompt({
-          unsafeMessage: 'Please provide your password to delete <strong>' + clientName + '</strong>.',
+          unsafeMessage: '<h3 class="vex-custom-title red">Delete Client</h3><span class="vex-custom-message">Please provide your password to delete <strong>' + clientName + '</strong>.</span>',
           input: [
             '<input name="password" type="password" placeholder="Password" required />'
           ].join(''),
@@ -530,9 +693,9 @@ function cardDeleteClickHandler($clickedCard) {
 /**
  * Handle click events for all client card edit buttons
  * @param {jQuery} $clickedCard the card that was clicked
- * @returns {undefined}
+ * @return {undefined}
  */
-function cardEditClickHandler($clickedCard) {
+function clientCardEditClickHandler($clickedCard) {
   var $clientTree = $('#client-tree');
   var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
   if ($clientTree.has('[editing]').length) {
@@ -549,11 +712,17 @@ function cardEditClickHandler($clickedCard) {
 /**
  * Handle click events for all client card new child buttons
  * @param {jQuery} $clickedCard the card that was clicked
- * @returns {undefined}
+ * @return {undefined}
  */
-function cardCreateNewChildClickHandler($clickedCard) {
+function clientCardCreateNewChildClickHandler($clickedCard) {
   var $clientTree = $('#client-tree');
-  var sameCard = ($clickedCard[0] === $clientTree.find('[selected]').parent().prev().find('.card-container')[0]);
+  /**
+   * The clicked card is the same as the selected card if and only if the currently selected card
+   * is a client insert ("New Child Client" card) AND the currently selected card is immediately
+   * preceded by the clicked card in the client list.
+   */
+  var sameCard = ($clientTree.find('[selected]').closest('.client-insert').length &&
+    $clickedCard[0] === $clientTree.find('[selected]').parent().prev().find('.card-container')[0]);
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
       confirmAndReset(confirmDiscardDialog, function onContinue() {
@@ -567,7 +736,7 @@ function cardCreateNewChildClickHandler($clickedCard) {
 
 /**
  * Handle click events for the create new client card
- * @returns {undefined}
+ * @return {undefined}
  */
 function createNewClientClickHandler() {
   var $clientTree = $('#client-tree');
@@ -581,27 +750,130 @@ function createNewClientClickHandler() {
         if ($('.client-insert').length) {
           removeClientInserts();
         }
-        clearClientSelection();
-        setupClientForm();
-        $('#create-new-client-card').attr('selected', '');
-        setClientFormWriteable();
-        hideClientUsers();
-        showClientDetails();
+        openNewClientForm();
       }
     });
   } else {
-    clearClientSelection();
-    setupClientForm();
-    $('#create-new-client-card').attr('selected', '');
-    setClientFormWriteable();
-    hideClientUsers();
-    showClientDetails();
+    openNewClientForm();
   }
 }
 
 /**
+ * Handle click events for user role toggles
+ * @param  {Event} event The event to handle
+ * @return {undefined}
+ */
+function userCardRoleToggleClickHandler(event) {
+  var $clickedInput = $(event.target);
+  event.preventDefault();
+
+  setUserRole(
+    $clickedInput.closest('.card-container').attr('data-user-id'),
+    $clickedInput.attr('data-role-enum'),
+    $clickedInput.prop('checked'),
+    function onDone() {
+      $('#user-list .toggle-switch-checkbox').removeAttr('disabled');
+    }
+  );
+  $('#user-list .toggle-switch-checkbox').attr('disabled', '');
+}
+
+// FIXME: send more appropriate data
+function saveNewUser(email) {
+  var clientId = $('#client-tree [selected]').attr('data-client-id');
+  $.ajax({
+    type: 'POST',
+    url: 'UserAdmin/SaveNewUser',
+    data: {
+      UserName: email,
+      Email: email,
+      MemberOfClientIdArray: [clientId]
+    },
+    headers: {
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+    }
+  }).done(function onDone() {
+    openClientCardReadOnly($('#client-tree [data-client-id="' + clientId + '"]'));
+    toastr.success('User successfully added');
+  }).fail(function onFail(response) {
+    toastr.warning(response.getResponseHeader('Warning'));
+  });
+}
+
+// FIXME: present a more appropriate form
+function initializeAddUserForm() {
+  vex.dialog.prompt({
+    unsafeMessage: '<h3 class="vex-custom-title blue">Add User</h3><span class="vex-custom-message">Please provide a valid email address</span>',
+    input: [
+      '<input name="email" placeholder="Email" required />'
+    ].join(''),
+    buttons: [
+      $.extend({}, vex.dialog.buttons.YES, { text: 'Add User', className: 'blue-button' }),
+      $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel', className: 'link-button' })
+    ],
+    callback: function onSubmit(email) {
+      if (emailValRegex.test(email)) {
+        saveNewUser(email);
+      } else if (email) {
+        toastr.warning('Please provide a valid email address');
+        return false;
+      }
+      return true;
+    }
+  });
+}
+
+/**
+ * Handle click events for add new user inputs
+ * @return {undefined}
+ */
+function addUserClickHandler() {
+  initializeAddUserForm();
+}
+
+/**
+ * Remove the specified user from the specified client
+ * @param  {Number} clientId Client ID
+ * @param  {Number} userId   User ID
+ * @return {undefined}
+ */
+function removeUserFromClient(clientId, userId) {
+  var userName = $('#user-list [data-user-id="' + userId + '"] .card-body-primary-text').html();
+  var clientName = $('#client-tree [data-client-id="' + clientId + '"] .card-body-primary-text').html();
+  $.ajax({
+    type: 'POST',
+    url: 'ClientAdmin/RemoveUserFromClient',
+    data: {
+      ClientId: clientId,
+      userId: userId
+    },
+    headers: {
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+    }
+  }).done(function onDone(response) {
+    renderUserList(response);
+    toastr.success('Successfully removed ' + userName + ' from ' + clientName);
+  }).fail(function onFail(response) {
+    toastr.warning(response.getResponseHeader('Warning'));
+  });
+}
+
+/**
+ * Handle click events for remove user buttons
+ * @return {undefined}
+ */
+function userCardRemoveClickHandler($clickedCard) {
+  var userName = $clickedCard.find('.card-body-primary-text').html();
+  confirmRemoveDialog(userName, function removeUser() {
+    var clientId = $('#client-tree [selected]').attr('data-client-id');
+    var userId = $clickedCard.attr('data-user-id');
+    removeUserFromClient(clientId, userId);
+  });
+}
+
+/**
  * Handle click events for the client form edit icon
- * @returns {undefined}
+ * @return {undefined}
  */
 function editIconClickHandler() {
   setClientFormWriteable();
@@ -609,7 +881,7 @@ function editIconClickHandler() {
 
 /**
  * Handle click events for the client form cancel icon
- * @returns {undefined}
+ * @return {undefined}
  */
 function cancelIconClickHandler() {
   confirmAndReset(confirmDiscardDialog, function onContinue() {
@@ -618,6 +890,7 @@ function cancelIconClickHandler() {
       setClientFormReadOnly();
     } else {
       clearClientSelection();
+      removeClientInserts();
       hideClientDetails();
     }
   });
@@ -630,19 +903,28 @@ function cancelIconClickHandler() {
  * @return {undefined}
  */
 function renderClientNode(client, level) {
-  var classes = ['card-100', 'card-90'];
-  var $template = $(clientNodeTemplate
-    .replace(/{{class}}/g, classes[level] || 'card-80')
-    .replace(/{{header-level}}/g, (level + 1))
-    .replace(/{{id}}/g, client.ClientModel.ClientEntity.Id)
-    .replace(/{{name}}/g, client.ClientModel.ClientEntity.Name)
-    .replace(/{{clientCode}}/g, client.ClientModel.ClientEntity.ClientCode || '')
-    .replace(/{{users}}/g, client.ClientModel.AssignedUsers.length)
-    .replace(/{{content}}/g, client.ClientModel.ContentItems.length)
-    .toString());
+  var classes = ['card-100', 'card-90', 'card-80'];
+  var $template = $(nodeTemplate.toString());
 
-  $template.find('div.card-container[data-search-string]')
-    .attr('data-search-string', (client.ClientModel.ClientEntity.Name + '|' + client.ClientModel.ClientEntity.ClientCode).toUpperCase());
+  $template.find('.card-container')
+    .addClass(classes[level])
+    .attr('data-search-string', (client.ClientModel.ClientEntity.Name + '|' + client.ClientModel.ClientEntity.ClientCode).toUpperCase())
+    .attr('data-client-id', client.ClientModel.ClientEntity.Id)
+    .removeAttr('data-user-id');
+  $template.find('.card-body-secondary-container')
+    .remove();
+  $template.find('.card-body-primary-container .card-body-primary-text')
+    .addClass('indent-level-' + level)
+    .html(client.ClientModel.ClientEntity.Name);
+  $template.find('.card-body-primary-container .card-body-secondary-text')
+    .html(client.ClientModel.ClientEntity.ClientCode || '')
+    .first().remove();
+  $template.find('.card-stat-user-count')
+    .html(client.ClientModel.AssignedUsers.length);
+  $template.find('.card-stat-content-count')
+    .html(client.ClientModel.ContentItems.length);
+  $template.find('.card-button-remove-user,.card-expansion-container,.card-button-bottom-container')
+    .remove();
 
   if (!client.ClientModel.CanManage) {
     $template.find('.card-button-side-container').remove();
@@ -681,30 +963,37 @@ function renderClientTree(clientTreeList, clientId) {
     renderClientNode(rootClient, 0);
     $clientTreeList.append('<li class="hr width-100pct"></li>');
   });
-  $clientTreeList.find('div.card-container')
+  $clientTreeList.find('.card-container')
     .click(function onClick() {
-      cardClickHandler($(this));
+      clientCardClickHandler($(this));
     });
-  $clientTreeList.find('div.card-button-delete')
+  $clientTreeList.find('.card-button-delete')
     .click(function onClick(event) {
       event.stopPropagation();
-      cardDeleteClickHandler($(this).parents('div[data-client-id]'));
+      clientCardDeleteClickHandler($(this).parents('div[data-client-id]'));
     });
-  $clientTreeList.find('div.card-button-edit')
+  $clientTreeList.find('.card-button-edit')
     .click(function onClick(event) {
       event.stopPropagation();
-      cardEditClickHandler($(this).parents('div[data-client-id]'));
+      clientCardEditClickHandler($(this).parents('div[data-client-id]'));
     });
-  $clientTreeList.find('div.card-button-new-child')
+  $clientTreeList.find('.card-button-new-child')
     .click(function onClick(event) {
       event.stopPropagation();
-      cardCreateNewChildClickHandler($(this).parents('div[data-client-id]'));
+      clientCardCreateNewChildClickHandler($(this).parents('div[data-client-id]'));
     });
+
+  // TODO: Consider applying this to other cards and buttons as well
+  $clientTreeList.find('.card-container,.card-button-background')
+    .mousedown(function onMousedown(event) {
+      event.preventDefault();
+    });
+
   if (clientId) {
     $('[data-client-id="' + clientId + '"]').click();
   }
   if ($('#add-client-icon').length) {
-    $clientTreeList.append(clientCard);
+    $clientTreeList.append($createNewClientCard);
     $('#create-new-client-card')
       .click(function onClick() {
         createNewClientClickHandler($(this));
@@ -731,6 +1020,7 @@ function deleteClient(clientId, clientName, password) {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
   }).done(function onDone(response) {
+    clearFormData();
     renderClientTree(response.ClientTreeList, response.RelevantClientId);
     toastr.success(clientName + ' was successfully deleted.');
   }).fail(function onFail(response) {
@@ -742,13 +1032,13 @@ function deleteClient(clientId, clientName, password) {
  * Send an AJAX request to delete a client
  * @return {undefined}
  */
-function getClientTree() {
+function getClientTree(clientId) {
   $.ajax({
     type: 'GET',
     url: 'ClientAdmin/ClientFamilyList/'
   }).done(function onDone(response) {
     populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
-    renderClientTree(response.ClientTreeList, response.RelevantClientId);
+    renderClientTree(response.ClientTreeList, clientId || response.RelevantClientId);
   }).fail(function onFail(response) {
     if (response.getResponseHeader('Warning')) {
       toastr.warning(response.getResponseHeader('Warning'));
@@ -800,7 +1090,7 @@ function submitClientForm() {
 /**
  * Filter the client tree by a string
  * @param {String} searchString the string to filter by
- * @returns {undefined}
+ * @return {undefined}
  */
 function searchClientTree(searchString) {
   $('#client-tree-list').children('.hr').hide();
@@ -818,7 +1108,7 @@ function searchClientTree(searchString) {
 /**
  * Filter the user list by a string
  * @param {String} searchString the string to filter by
- * @returns {undefined}
+ * @return {undefined}
  */
 function searchUser(searchString) {
   $('#client-user-list div[data-search-string]').each(function forEach(index, element) {
@@ -834,6 +1124,7 @@ $(document).ready(function onReady() {
   getClientTree();
 
   $('#add-client-icon').click(createNewClientClickHandler);
+  $('#add-user-icon').click(addUserClickHandler);
   $('#edit-client-icon').click(editIconClickHandler);
   $('#cancel-edit-client-icon').click(cancelIconClickHandler);
   $('#expand-user-icon').click(expandAllUsers);
@@ -855,13 +1146,48 @@ $(document).ready(function onReady() {
     searchUser($(this).val());
   });
 
+  // Construct static cards
+  $createNewClientCard = $(nodeTemplate);
+  $createNewClientCard.find('.card-container')
+    .addClass('card-100 action-card')
+    .attr('id', 'create-new-client-card');
+  $createNewClientCard.find('.card-body-primary-text')
+    .append('<i class="fa fa-plus"></i>')
+    .append('<span>Create New Client</span>');
+  $createNewClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
+    .remove();
+
+  $createNewChildClientCard = $(nodeTemplate);
+  $createNewChildClientCard
+    .addClass('client-insert');
+  $createNewChildClientCard.find('.card-container')
+    .addClass('flex-container flex-row-no-wrap items-align-center');
+  $createNewChildClientCard.find('.card-body-main-container')
+    .addClass('content-item-flex-1');
+  $createNewChildClientCard.find('.card-body-primary-text')
+    .html('Create New Child Client');
+  $createNewChildClientCard.find('.card-container')
+    .append('<i class="fa fa-fw fa-2x fa-chevron-right"></i>');
+  $createNewChildClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
+    .remove();
+
+  $addUserCard = $(nodeTemplate);
+  $addUserCard.find('.card-container')
+    .addClass('card-100 action-card')
+    .attr('id', 'add-user-card');
+  $addUserCard.find('.card-body-primary-text')
+    .append('<i class="fa fa-plus"></i>')
+    .append('<span>Add User</span>');
+  $addUserCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
+    .remove();
+
   // TODO: find a better place for this
   $('#client-form').find(':input,select')
     .change(function onChange() {
       if (findModifiedInputs().length) {
-        $('#undo-changes-button').show();
+        $('#save-changes-button,#undo-changes-button').show();
       } else {
-        $('#undo-changes-button').hide();
+        $('#save-changes-button,#undo-changes-button').hide();
       }
     });
 
@@ -876,7 +1202,10 @@ $(document).ready(function onReady() {
         };
       }
       vex.dialog.alert({
-        unsafeMessage: 'The Approved Email Domain List only accepts the email domain (e.g. <i>username@@</i><strong><u>domain.com</u></strong>)',
+        unsafeMessage: '<h3 class="vex-custom-title blue">Invalid Input</h3><span class="vex-custom-message">The Approved Email Domain List only accepts the email domain (e.g. <i>username@</i><strong><u>domain.com</u></strong>)</span>',
+        buttons: [
+          $.extend({}, vex.dialog.buttons.YES, { text: 'OK', className: 'blue-button' }),
+        ],
         callback: function onAlert() {
           $('#AcceptedEmailDomainList-selectized').val(input);
           $('#client-form #AcceptedEmailDomainList')[0].selectize.unlock();
@@ -899,7 +1228,10 @@ $(document).ready(function onReady() {
         };
       }
       vex.dialog.alert({
-        unsafeMessage: 'The Approved Email Address Exception List only accepts valid email addresses (e.g. <strong><u>username@domain.com</u></strong>)',
+        unsafeMessage: '<h3 class="vex-custom-title blue">Invalid Input</h3><span class="vex-custom-message">The Approved Email Address Exception List only accepts valid email addresses (e.g. <strong><u>username@domain.com</u></strong>)</span>',
+        buttons: [
+          $.extend({}, vex.dialog.buttons.YES, { text: 'OK', className: 'blue-button' }),
+        ],
         callback: function onAlert() {
           $('#AcceptedEmailAddressExceptionList-selectized').val(input);
           $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.unlock();
