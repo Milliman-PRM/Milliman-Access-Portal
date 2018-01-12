@@ -120,60 +120,51 @@ namespace MillimanAccessPortal.Controllers
             }
 #endregion
 
-            try
-            {
-                // Instantiate the right content handler class
-                ContentTypeSpecificApiBase ContentSpecificHandler = null;
-                switch (UserGroup.RootContentItem.ContentType.Name)
-                {   // Never break out of this switch without a valid ContentSpecificHandler object
-                    case "Qlikview":
-                        ContentSpecificHandler = new QlikviewLibApi();
-                        break;
+            // Instantiate the right content handler class
+            ContentTypeSpecificApiBase ContentSpecificHandler = null;
+            switch (UserGroup.RootContentItem.ContentType.Name)
+            {   // Never break out of this switch without a valid ContentSpecificHandler object
+                case "Qlikview":
+                    ContentSpecificHandler = new QlikviewLibApi();
+                    break;
 
-                    //case "Another web hosted type":
-                    //    ContentSpecificHandler = new AnotherTypeSpecificLib();
-                    //    break;
+                //case "Another web hosted type":
+                //    ContentSpecificHandler = new AnotherTypeSpecificLib();
+                //    break;
 
-                    default:
-                        TempData["Message"] = $"Display of an unsupported ContentType was requested: {UserGroup.RootContentItem.ContentType.Name}";
-                        TempData["ReturnToController"] = "HostedContent";
-                        TempData["ReturnToAction"] = "Index";
-                        return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
-                }
-
-                UriBuilder ContentUri = await ContentSpecificHandler.GetContentUri(UserGroup, HttpContext, QlikviewConfig);
-
-                HostedContentViewModel ResponseModel = new HostedContentViewModel
-                {
-                    Url = ContentUri.Uri.AbsoluteUri,  // must be absolute because it is used in iframe element
-                    UserGroupId = UserGroup.Id,
-                    ContentName = UserGroup.RootContentItem.ContentName,
-                };
-
-                // Now return the appropriate view for the requested content
-                switch (UserGroup.RootContentItem.ContentType.Name)
-                {
-                    case "Qlikview":
-                        return View(ResponseModel);
-
-                    //case "Another web hosted type":
-                        //return TheRightThing;
-
-                    default:
-                        // Perhaps this can't happen since this case is handled above
-                        TempData["Message"] = $"An unsupported ContentType was requested: {UserGroup.RootContentItem.ContentType.Name}";
-                        TempData["ReturnToController"] = "HostedContent";
-                        TempData["ReturnToAction"] = "Index";
-                        return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
-                }
+                default:
+                    TempData["Message"] = $"Display of an unsupported ContentType was requested: {UserGroup.RootContentItem.ContentType.Name}";
+                    TempData["ReturnToController"] = "HostedContent";
+                    TempData["ReturnToAction"] = "Index";
+                    return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
             }
-            catch (MapException ex)
+
+            UriBuilder ContentUri = await ContentSpecificHandler.GetContentUri(UserGroup, HttpContext, QlikviewConfig);
+
+            HostedContentViewModel ResponseModel = new HostedContentViewModel
             {
-                TempData["Message"] = $"{ex.Message}<br>{ex.StackTrace}";
-                TempData["ReturnToController"] = "HostedContent";
-                TempData["ReturnToAction"] = "Index";
-                return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
+                Url = ContentUri.Uri.AbsoluteUri,  // must be absolute because it is used in iframe element
+                UserGroupId = UserGroup.Id,
+                ContentName = UserGroup.RootContentItem.ContentName,
+            };
+
+            // Now return the appropriate view for the requested content
+            switch (UserGroup.RootContentItem.ContentType.Name)
+            {
+                case "Qlikview":
+                    return View(ResponseModel);
+
+                //case "Another web hosted type":
+                    //return TheRightThing;
+
+                default:
+                    // Perhaps this can't happen since this case is handled above
+                    TempData["Message"] = $"An unsupported ContentType was requested: {UserGroup.RootContentItem.ContentType.Name}";
+                    TempData["ReturnToController"] = "HostedContent";
+                    TempData["ReturnToAction"] = "Index";
+                    return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
             }
+        }
 
         }
 
