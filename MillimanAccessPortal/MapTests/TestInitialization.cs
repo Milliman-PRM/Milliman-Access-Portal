@@ -133,8 +133,6 @@ namespace MapTests
             var configurationBuilder = new ConfigurationBuilder();
             string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-            Console.WriteLine("environmentName=" + environmentName);
-
             // Determine location to fetch the configuration
             switch (environmentName)
             {
