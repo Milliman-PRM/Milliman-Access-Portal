@@ -1204,7 +1204,7 @@ $(document).ready(function onReady() {
       vex.dialog.alert({
         unsafeMessage: '<h3 class="vex-custom-title blue">Invalid Input</h3><span class="vex-custom-message">The Approved Email Domain List only accepts the email domain (e.g. <i>username@</i><strong><u>domain.com</u></strong>)</span>',
         buttons: [
-          $.extend({}, vex.dialog.buttons.YES, { text: 'OK', className: 'blue-button' }),
+          $.extend({}, vex.dialog.buttons.YES, { text: 'OK', className: 'blue-button' })
         ],
         callback: function onAlert() {
           $('#AcceptedEmailDomainList-selectized').val(input);
@@ -1230,7 +1230,7 @@ $(document).ready(function onReady() {
       vex.dialog.alert({
         unsafeMessage: '<h3 class="vex-custom-title blue">Invalid Input</h3><span class="vex-custom-message">The Approved Email Address Exception List only accepts valid email addresses (e.g. <strong><u>username@domain.com</u></strong>)</span>',
         buttons: [
-          $.extend({}, vex.dialog.buttons.YES, { text: 'OK', className: 'blue-button' }),
+          $.extend({}, vex.dialog.buttons.YES, { text: 'OK', className: 'blue-button' })
         ],
         callback: function onAlert() {
           $('#AcceptedEmailAddressExceptionList-selectized').val(input);
