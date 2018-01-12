@@ -167,9 +167,9 @@ namespace MillimanAccessPortal.Controllers
                         return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
                 }
             }
-            catch (MapException e)
+            catch (MapException ex)
             {
-                TempData["Message"] = $"{e.Message}<br>{e.StackTrace}";
+                TempData["Message"] = $"{ex.Message}<br>{ex.StackTrace}";
                 TempData["ReturnToController"] = "HostedContent";
                 TempData["ReturnToAction"] = "Index";
                 return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
