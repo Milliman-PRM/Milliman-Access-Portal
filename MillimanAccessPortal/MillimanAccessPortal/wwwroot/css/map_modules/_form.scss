@@ -79,7 +79,7 @@ textarea,
 select {
     display: block;
     width: 100%;
-    padding: .5em;
+    padding: .25em .5em;
     border: solid 1px transparent;
     border-radius: .25em;
     transition: border 0.2s;
@@ -132,8 +132,7 @@ input:-webkit-autofill {
         margin-left: -.5em;
 
         & > [class*="form-input"] {
-            padding-right: .5em;
-            padding-left: .5em;
+            padding: .25em .5em;
         }
     }
 
