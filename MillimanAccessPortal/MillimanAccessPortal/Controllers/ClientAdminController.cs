@@ -295,15 +295,22 @@ namespace MillimanAccessPortal.Controllers
                 if (ExistingRecords.Count == 0)
                 {
                     DbContext.UserRoleInClient.Add(new UserRoleInClient { UserId = RequestedUser.Id, RoleId = RequestedRole.Id, ClientId = RequestedClient.Id });
-                    DbContext.SaveChanges();
+                    if (RequestedRole.RoleEnum == RoleEnum.Admin)
+                    {
+                        if (ExistingRecordsQuery.Include(urc => urc.Role).Where(urc => urc.Role.RoleEnum == RoleEnum.UserCreator).Count() == 0)
+                        {
+                            ApplicationRole UserCreatorRole = await RoleManager.FindByNameAsync(RoleEnum.UserCreator.ToString());
+                            DbContext.UserRoleInClient.Add(new UserRoleInClient { UserId = RequestedUser.Id, RoleId = UserCreatorRole.Id, ClientId = RequestedClient.Id });
+                        }
+                    }finish this
                 }
             }
             else
             {
                 // Remove role.  There should be only one, but act to remove any number
                 DbContext.UserRoleInClient.RemoveRange(ExistingRecords);
-                DbContext.SaveChanges();
             }
+            DbContext.SaveChanges();
             #endregion
 
             #region Build resulting model
