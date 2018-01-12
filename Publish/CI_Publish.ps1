@@ -28,7 +28,7 @@ $ASPNETCORE_ENVIRONMENT = "CI"
 $PublishURL = "http://indy-qvtest01/$appPool"
 
 # Set environment variable (utilized by dotnet commands)
-# $env:ASPNETCORE_ENVIRONMENT=$ASPNETCORE_ENVIRONMENT
+$env:ASPNETCORE_ENVIRONMENT=$ASPNETCORE_ENVIRONMENT
 
 log_statement "Adding the branch name to database names in AuditLogLib connection strings"
 
