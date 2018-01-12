@@ -426,9 +426,7 @@ function renderUserList(client, userId) {
   client.AssignedUsers.forEach(function render(user) {
     renderUserNode(client, user);
   });
-  eligibleUsers = $(client.EligibleUsers).map(function getEmail(i, element) {
-    return element.Email;
-  });
+  eligibleUsers = client.EligibleUsers;
   $('div.card-button-remove-user').click(function onClick(event) {
     event.stopPropagation();
     userCardRemoveClickHandler($(this).closest('.card-container'));
@@ -804,14 +802,17 @@ function saveNewUser(email) {
   });
 }
 
-function substringMatcher(strings) {
+function substringMatcher(users) {
   return function findMatches(query, callback) {
     var matches = [];
-    var substringRegex = new RegExp(query, 'i');
+    var regex = new RegExp(query, 'i');
 
-    $.each(strings, function check(i, string) {
-      if (substringRegex.test(string)) {
-        matches.push(string);
+    $.each(users, function check(i, user) {
+      if (regex.test(user.Email) ||
+          regex.test(user.UserName) ||
+          regex.test(user.FirstName) ||
+          regex.test(user.LastName)) {
+        matches.push(user);
       }
     });
 
@@ -847,7 +848,25 @@ function initializeAddUserForm() {
     },
     {
       name: 'eligibleUsers',
-      source: substringMatcher(eligibleUsers)
+      source: substringMatcher(eligibleUsers),
+      display: function display(data) {
+        return data.Email;
+      },
+      templates: {
+        suggestion: function suggestion(data) {
+          return [
+            '<div>',
+            data.Email + '',
+            (data.UserName !== data.Email) ?
+              ' - ' + data.UserName :
+              '',
+            (data.FirstName && data.LastName) ?
+              ' (' + data.FirstName + ' ' + data.LastName + ')' :
+              '',
+            '</div>'
+          ].join('');
+        }
+      }
     }
   );
 }
