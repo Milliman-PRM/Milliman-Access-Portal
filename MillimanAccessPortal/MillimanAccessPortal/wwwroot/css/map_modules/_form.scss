@@ -67,21 +67,21 @@ button,
 }
 
 label {
+    font-weight: bold;
+    font-size: .75em;
     padding-top: .25rem;
-    font-weight: 700;
+    padding-left: .25em;
+    margin-bottom: .25rem;
 }
 
 input,
 textarea,
 select {
     display: block;
-    font-size: 1rem;
-    height: 2em;
     width: 100%;
-    padding: .1em .5em;
+    padding: .5em;
     border: solid 1px transparent;
     border-radius: .25em;
-    margin: 0 .25em .25em;
     transition: border 0.2s;
 
     &:focus {
