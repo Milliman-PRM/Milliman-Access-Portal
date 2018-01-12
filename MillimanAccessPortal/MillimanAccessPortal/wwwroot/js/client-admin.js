@@ -1170,7 +1170,7 @@ $(document).ready(function onReady() {
   $createNewChildClientCard.find('.card-body-main-container')
     .addClass('content-item-flex-1');
   $createNewChildClientCard.find('.card-body-primary-text')
-    .html('Create New Child Client');
+    .html('New Client Child');
   $createNewChildClientCard.find('.card-container')
     .append('<i class="fa fa-fw fa-2x fa-chevron-right"></i>');
   $createNewChildClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
