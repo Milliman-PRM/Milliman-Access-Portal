@@ -1,14 +1,19 @@
 div.selectize-input {
     color: $charcoal;
-    min-height: 40px;
     border-radius: .25em;
-    border: solid 1px transparent;
+    min-height: 2.6em;
     transition: border 0.2s;
-    padding: .25em .5em;
+    padding: .25em !important;
     font-size: 1rem;
-    margin: 0 .25em .5em;
     box-shadow: none;
     -webkit-box-shadow: none;
+
+    input {
+        font-size: 1em !important;
+        line-height: 18px !important;
+        height: 1.5em !important;
+        margin: .25em !important;
+    }
 
     &:focus {
         border: solid 1px $blue;
@@ -36,5 +41,9 @@ div.selectize-input {
                 display: none;
             }
         }
+    }
+
+    div.item {
+        margin: .25em !important;
     }
 }

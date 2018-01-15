@@ -31,10 +31,12 @@
         #login-form {
 
             .login-form-input-container {
-                margin-bottom: 1em;
+                text-align: left;
+                margin-bottom: .5em;
             }
 
             .login-form-button-container {
+                padding-top: .25em;
                 text-align: right;
             }
         }

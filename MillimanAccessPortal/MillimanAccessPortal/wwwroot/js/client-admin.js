@@ -506,6 +506,14 @@ function getClientDetail(clientDiv) {
 
   clearFormData();
   clearUserList();
+
+  if (clientDiv.is('[disabled]')) {
+    $('#client-info #edit-client-icon').css('visibility', 'hidden');
+  }
+  else {
+    $('#client-info #edit-client-icon').css('visibility', 'visible');
+  }
+
   $.ajax({
     type: 'GET',
     url: 'ClientAdmin/ClientDetail/' + clientId,
@@ -515,9 +523,6 @@ function getClientDetail(clientDiv) {
   }).done(function onDone(response) {
     populateClientForm(response.ClientEntity);
     renderUserList(response);
-    if (clientDiv.is('[disabled]')) { // FIXME: should be elsewhere??
-      $('#client-info #edit-client-icon').hide();
-    }
   }).fail(function onFail(response) {
     toastr.warning(response.getResponseHeader('Warning'));
   });
@@ -1153,7 +1158,7 @@ $(document).ready(function onReady() {
     .attr('id', 'create-new-client-card');
   $createNewClientCard.find('.card-body-primary-text')
     .append('<i class="fa fa-plus"></i>')
-    .append('<span>Create New Client</span>');
+    .append('<span>New Client</span>');
   $createNewClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
     .remove();
 
@@ -1165,7 +1170,7 @@ $(document).ready(function onReady() {
   $createNewChildClientCard.find('.card-body-main-container')
     .addClass('content-item-flex-1');
   $createNewChildClientCard.find('.card-body-primary-text')
-    .html('Create New Child Client');
+    .html('New Sub-Client');
   $createNewChildClientCard.find('.card-container')
     .append('<i class="fa fa-fw fa-2x fa-chevron-right"></i>');
   $createNewChildClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
