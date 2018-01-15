@@ -47,7 +47,7 @@
     padding: 0;
     line-height: 20px;
     font-size: 14px;
-    color: white;
+    color: $white;
     font-weight: bold;
     box-sizing: border-box;
 }
@@ -55,15 +55,15 @@
 .toggle-switch-inner:before {
     content: "ON";
     padding-left: 10px;
-    background-color: #0091FF;
-    color: #FFFFFF;
+    background-color: $blue;
+    color: $white;
 }
 
 .toggle-switch-inner:after {
     content: "OFF";
     padding-right: 10px;
-    background-color: #DEDEE3;
-    color: #555555;
+    background-color: $light-grey;
+    color: $dark-grey;
     text-align: right;
 }
 
@@ -71,12 +71,12 @@
     display: block;
     width: 20px;
     margin: 3px;
-    background: #FFFFFF;
+    background: $white;
     position: absolute;
     top: 0;
     bottom: 0;
     right: 39px;
-    border: 2px solid #555555;
+    border: 2px solid $dark-grey;
     border-radius: 50px;
     transition: all 0.3s ease-in 0s;
 }
@@ -93,4 +93,5 @@
     margin-left: 10px;
     flex: 2;
     cursor: pointer;
+    font-size: 1em;
 }
