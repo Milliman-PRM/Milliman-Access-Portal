@@ -1158,7 +1158,7 @@ $(document).ready(function onReady() {
     .attr('id', 'create-new-client-card');
   $createNewClientCard.find('.card-body-primary-text')
     .append('<i class="fa fa-plus"></i>')
-    .append('<span>Create New Client</span>');
+    .append('<span>New Client</span>');
   $createNewClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
     .remove();
 
@@ -1170,7 +1170,7 @@ $(document).ready(function onReady() {
   $createNewChildClientCard.find('.card-body-main-container')
     .addClass('content-item-flex-1');
   $createNewChildClientCard.find('.card-body-primary-text')
-    .html('New Client Child');
+    .html('New Sub-Client');
   $createNewChildClientCard.find('.card-container')
     .append('<i class="fa fa-fw fa-2x fa-chevron-right"></i>');
   $createNewChildClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
