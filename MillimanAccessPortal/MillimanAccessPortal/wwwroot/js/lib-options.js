@@ -12,6 +12,14 @@ vex.defaultOptions = $.extend(
   }
 );
 
+vex.dialog.buttons.yes = function yes(text, color) {
+  return $.extend({}, vex.dialog.buttons.YES, { text: text, className: color + '-button' });
+};
+
+vex.dialog.buttons.no = function no(text) {
+  return $.extend({}, vex.dialog.buttons.NO, { text: text, className: 'link-button' });
+};
+
 // Configure toastr options
 toastr.options = {
   closeButton: false,
