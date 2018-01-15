@@ -5,32 +5,38 @@
 
 .vex-content {
     padding-top: 0 !important;
-    overflow: hidden !important;
     border: 2px solid $black;
 
     .vex-dialog-message {
         margin-bottom: 1rem !important;
     }
 
-    .vex-custom-title {
-        border-bottom: 1px solid $black;
-        line-height: 2em;
-        margin: 0 -1em 1.5rem;
+    .vex-title-wrapper {
+        overflow: hidden;
+        border-radius: 3px;
+        margin: 0 -1em;
         padding: 0 1em;
 
-        &.blue {
-            color: $white !important;
-            background-color: $blue !important;
-        }
+        .vex-custom-title {
+            border-bottom: 1px solid $black;
+            line-height: 2em;
+            margin: 0 -1em 1.5rem;
+            padding: 0 1em;
 
-        &.green {
-            color: $white !important;
-            background-color: $green !important;
-        }
+            &.blue {
+                color: $white !important;
+                background-color: $blue !important;
+            }
 
-        &.red {
-            color: $white !important;
-            background-color: $red !important;
+            &.green {
+                color: $white !important;
+                background-color: $green !important;
+            }
+
+            &.red {
+                color: $white !important;
+                background-color: $red !important;
+            }
         }
     }
 

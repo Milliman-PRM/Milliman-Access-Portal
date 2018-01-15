@@ -238,18 +238,36 @@ function resetFormData() {
   $('#save-changes-button,#undo-changes-button').hide();
 }
 
+function buildVexDialog(options) {
+  if (typeof options !== 'object' || typeof options.callback !== 'function') {
+    throw new Error('buildVexDialog(options) requires options.callback.');
+  }
+  vex.dialog.open({
+    unsafeMessage: '<span class="vex-custom-message">' + options.message + '</span>',
+    buttons: $.map(options.buttons, function buildButton(element) {
+      return element.type(element.text, options.color);
+    }),
+    input: options.input || '',
+    callback: options.callback
+  });
+  $('.vex-content')
+    .prepend('<div class="vex-title-wrapper"><h3 class="vex-custom-title ' + options.color + '">' + options.title + '</h3></div>');
+}
+
 /**
  * Create a dialog box to confirm a discard action
  * @param {function} callback Executed if the user selects YES
  * @return {undefined}
  */
 function confirmDiscardDialog(callback) {
-  vex.dialog.open({
-    unsafeMessage: '<h3 class="vex-custom-title blue">Discard Changes</h3><span class="vex-custom-message">Would you like to discard unsaved changes?</span>',
+  buildVexDialog({
+    title: 'Discard Changes',
+    message: 'Would you like to discard unsaved changes?',
     buttons: [
-      vex.dialog.buttons.yes('Discard', 'blue'),
-      vex.dialog.buttons.no('Continue Editing')
+      { type: vex.dialog.buttons.yes, text: 'Discard' },
+      { type: vex.dialog.buttons.no, text: 'Continue Editing' }
     ],
+    color: 'blue',
     callback: function onSelect(result) {
       if (result) {
         callback();
@@ -264,12 +282,14 @@ function confirmDiscardDialog(callback) {
  * @return {undefined}
  */
 function confirmResetDialog(callback) {
-  vex.dialog.open({
-    unsafeMessage: '<h3 class="vex-custom-title blue">Reset Form</h3><span class="vex-custom-message">Would you like to discard unsaved changes?</span>',
+  buildVexDialog({
+    title: 'Reset Form',
+    message: 'Would you like to discard unsaved changes?',
     buttons: [
-      vex.dialog.buttons.yes('Reset', 'blue'),
-      vex.dialog.buttons.no('Continue Editing')
+      { type: vex.dialog.buttons.yes, text: 'Discard' },
+      { type: vex.dialog.buttons.no, text: 'Continue Editing' }
     ],
+    color: 'blue',
     callback: function onSelect(result) {
       if (result) {
         callback();
@@ -284,12 +304,14 @@ function confirmResetDialog(callback) {
  * @return {undefined}
  */
 function confirmRemoveDialog(name, callback) {
-  vex.dialog.open({
-    unsafeMessage: '<h3 class="vex-custom-title red">Reset Form</h3><span class="vex-custom-message">Remove <strong>' + name + '</strong> from the selected client?</span>',
+  buildVexDialog({
+    title: 'Reset Form',
+    message: 'Remove <strong>' + name + '</strong> from the selected client?',
     buttons: [
-      vex.dialog.buttons.yes('Remove', 'red'),
-      vex.dialog.buttons.no('Cancel')
+      { type: vex.dialog.buttons.yes, text: 'Remove' },
+      { type: vex.dialog.buttons.no, text: 'Cancel' }
     ],
+    color: 'red',
     callback: function onSelect(result) {
       if (result) {
         callback();
@@ -656,23 +678,27 @@ function clientCardClickHandler($clickedCard) {
 function clientCardDeleteClickHandler($clickedCard) {
   var clientId = $clickedCard.attr('data-client-id').valueOf();
   var clientName = $clickedCard.find('.card-body-primary-text').first().text();
-  vex.dialog.open({
-    unsafeMessage: '<h3 class="vex-custom-title red">Delete Client</h3><span class="vex-custom-message">Delete <strong>' + clientName + '</strong>?<br /><br /> This action <strong><u>cannot</u></strong> be undone.</span>',
+  buildVexDialog({
+    title: 'Delete Client',
+    message: 'Delete <strong>' + clientName + '</strong>?<br /><br /> This action <strong><u>cannot</u></strong> be undone.',
     buttons: [
-      vex.dialog.buttons.yes('Delete', 'red'),
-      vex.dialog.buttons.no('Cancel')
+      { type: vex.dialog.buttons.yes, text: 'Delete' },
+      { type: vex.dialog.buttons.no, text: 'Cancel' }
     ],
+    color: 'red',
     callback: function onSelect(confirm) {
       if (confirm) {
-        vex.dialog.open({
-          unsafeMessage: '<h3 class="vex-custom-title red">Delete Client</h3><span class="vex-custom-message">Please provide your password to delete <strong>' + clientName + '</strong>.</span>',
+        buildVexDialog({
+          title: 'Delete Client',
+          message: 'Please provide your password to delete <strong>' + clientName + '</strong>.',
+          buttons: [
+            { type: vex.dialog.buttons.yes, text: 'Delete' },
+            { type: vex.dialog.buttons.no, text: 'Cancel' }
+          ],
+          color: 'red',
           input: [
             '<input name="password" type="password" placeholder="Password" required />'
           ].join(''),
-          buttons: [
-            vex.dialog.buttons.yes('Delete', 'red'),
-            vex.dialog.buttons.no('Cancel')
-          ],
           callback: function onSelectWithPassword(password) {
             if (password) {
               deleteClient(clientId, clientName, password);
@@ -821,19 +847,21 @@ function substringMatcher(users) {
 }
 
 function initializeAddUserForm() {
-  vex.dialog.open({
-    unsafeMessage: '<h3 class="vex-custom-title blue">Add User</h3><span class="vex-custom-message">Please provide a valid email address</span>',
+  buildVexDialog({
+    title: 'Add User',
+    message: 'Please provide a valid email address',
+    buttons: [
+      { type: vex.dialog.buttons.yes, text: 'Add User' },
+      { type: vex.dialog.buttons.no, text: 'Cancel' }
+    ],
+    color: 'blue',
     input: [
       '<input class="typeahead" name="email" placeholder="Email" required />'
     ].join(''),
-    buttons: [
-      vex.dialog.buttons.yes('Add User', 'blue'),
-      vex.dialog.buttons.no('Cancel')
-    ],
-    callback: function onSubmit(email) {
-      if (emailValRegex.test(email)) {
-        saveNewUser(email);
-      } else if (email) {
+    callback: function onSubmit(user) {
+      if (emailValRegex.test(user.email)) {
+        saveNewUser(user.email);
+      } else if (user.email) {
         toastr.warning('Please provide a valid email address');
         return false;
       }
@@ -1249,18 +1277,22 @@ $(document).ready(function onReady() {
           text: input
         };
       }
-      vex.dialog.open({
-        unsafeMessage: '<h3 class="vex-custom-title blue">Invalid Input</h3><span class="vex-custom-message">The Approved Email Domain List only accepts the email domain (e.g. <i>username@</i><strong><u>domain.com</u></strong>)</span>',
+      buildVexDialog({
+        title: 'Invalid Input',
+        message: 'The Approved Email Domain List only accepts the email domain (e.g. <i>username@</i><strong><u>domain.com</u></strong>)',
         buttons: [
-          vex.dialog.buttons.yes('OK', 'blue')
+          {
+            type: vex.dialog.buttons.yes,
+            text: 'OK'
+          }
         ],
+        color: 'blue',
         callback: function onAlert() {
           $('#AcceptedEmailDomainList-selectized').val(input);
           $('#client-form #AcceptedEmailDomainList')[0].selectize.unlock();
           $('#client-form #AcceptedEmailDomainList')[0].selectize.focus();
         }
       });
-      return {};
     }
   });
 
@@ -1275,11 +1307,13 @@ $(document).ready(function onReady() {
           text: input
         };
       }
-      vex.dialog.open({
-        unsafeMessage: '<h3 class="vex-custom-title blue">Invalid Input</h3><span class="vex-custom-message">The Approved Email Address Exception List only accepts valid email addresses (e.g. <strong><u>username@domain.com</u></strong>)</span>',
+      buildVexDialog({
+        title: 'Invalid Input',
+        message: 'The Approved Email Address Exception List only accepts valid email addresses (e.g. <strong><u>username@domain.com</u></strong>)',
         buttons: [
-          vex.dialog.buttons.yes('OK', 'blue')
+          { type: vex.dialog.buttons.yes, text: 'OK' }
         ],
+        color: 'blue',
         callback: function onAlert() {
           $('#AcceptedEmailAddressExceptionList-selectized').val(input);
           $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.unlock();
