@@ -8,6 +8,7 @@ This will also serve as the build documentation used while building the producti
 
 This architecture is intended to conform to the following objectives, roughly prioritized in this order.
 
+* Determination of hardware choices should be based on known resource demands, as illustrated in Zabbix's data for Indy-PRM-1.
 * The system must be resilient and able to withstand the failure of one or more servers.
 * The system must be available in a secondary data center, in case of the failure of the primary data center.
 * Failover within the primary data center should never result in data loss.
@@ -145,7 +146,7 @@ In any high-availability environment, it is critical to have a change management
 
 From time to time, system configuration changes may become necessary. When at all feasible, these changes should be tested on non-production systems before being made in production.
 
-### Software update workflow
+### General software update workflow
 
 To maintain a robust environment, precautions must be taken during system updates.
 
@@ -157,8 +158,23 @@ To maintain a robust environment, precautions must be taken during system update
     * Zabbix monitors should be useful for determining if a server is fully online. A fully operational server should not have any active alerts.
 * If an update does cause a problem, work to solve it as quickly as possible. When any node is offline, we are operating in a less resilient configuration.
 
+### Special scenarios for MAP updates
 
-#### MAP Deployment and Update management
+From time to time, MAP updates may require additional planning, and in rare cases can actually require limited application down time.
+
+Additional special scenarios should be added to this section as they are identified.
+
+* If the update involves a database schema change, application servers will need to be updated concurrently.
+    * Take all application servers offline (by stopping the IIS service or stopping traffic through the load balancer)
+    * Update one application server in the primary data center
+    * Perform database migrations
+    * Confirm that the database migrations were applied successfully
+    * Test new/updated functionality on the one server that was updated
+    * Update remaining application server in the primary data center
+    * Resume traffic flow to the application (restart IIS or resume traffic through the load balancer)
+    * Update application server in the secondary data center
+
+#### MAP Deployment and Update Scheduling
 
 MAP will be deployed with semi-automated build tools, similar to how CI deployments currently happen. This ensures consistent deployment & configuration across all application servers.
 
