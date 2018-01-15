@@ -244,7 +244,7 @@ function resetFormData() {
  * @return {undefined}
  */
 function confirmDiscardDialog(callback) {
-  vex.dialog.confirm({
+  vex.dialog.open({
     unsafeMessage: '<h3 class="vex-custom-title blue">Discard Changes</h3><span class="vex-custom-message">Would you like to discard unsaved changes?</span>',
     buttons: [
       vex.dialog.buttons.yes('Discard', 'blue'),
@@ -264,7 +264,7 @@ function confirmDiscardDialog(callback) {
  * @return {undefined}
  */
 function confirmResetDialog(callback) {
-  vex.dialog.confirm({
+  vex.dialog.open({
     unsafeMessage: '<h3 class="vex-custom-title blue">Reset Form</h3><span class="vex-custom-message">Would you like to discard unsaved changes?</span>',
     buttons: [
       vex.dialog.buttons.yes('Reset', 'blue'),
@@ -284,7 +284,7 @@ function confirmResetDialog(callback) {
  * @return {undefined}
  */
 function confirmRemoveDialog(name, callback) {
-  vex.dialog.confirm({
+  vex.dialog.open({
     unsafeMessage: '<h3 class="vex-custom-title red">Reset Form</h3><span class="vex-custom-message">Remove <strong>' + name + '</strong> from the selected client?</span>',
     buttons: [
       vex.dialog.buttons.yes('Remove', 'red'),
@@ -656,7 +656,7 @@ function clientCardClickHandler($clickedCard) {
 function clientCardDeleteClickHandler($clickedCard) {
   var clientId = $clickedCard.attr('data-client-id').valueOf();
   var clientName = $clickedCard.find('.card-body-primary-text').first().text();
-  vex.dialog.confirm({
+  vex.dialog.open({
     unsafeMessage: '<h3 class="vex-custom-title red">Delete Client</h3><span class="vex-custom-message">Delete <strong>' + clientName + '</strong>?<br /><br /> This action <strong><u>cannot</u></strong> be undone.</span>',
     buttons: [
       vex.dialog.buttons.yes('Delete', 'red'),
@@ -664,7 +664,7 @@ function clientCardDeleteClickHandler($clickedCard) {
     ],
     callback: function onSelect(confirm) {
       if (confirm) {
-        vex.dialog.prompt({
+        vex.dialog.open({
           unsafeMessage: '<h3 class="vex-custom-title red">Delete Client</h3><span class="vex-custom-message">Please provide your password to delete <strong>' + clientName + '</strong>.</span>',
           input: [
             '<input name="password" type="password" placeholder="Password" required />'
@@ -821,7 +821,7 @@ function substringMatcher(users) {
 }
 
 function initializeAddUserForm() {
-  vex.dialog.prompt({
+  vex.dialog.open({
     unsafeMessage: '<h3 class="vex-custom-title blue">Add User</h3><span class="vex-custom-message">Please provide a valid email address</span>',
     input: [
       '<input class="typeahead" name="email" placeholder="Email" required />'
@@ -1249,7 +1249,7 @@ $(document).ready(function onReady() {
           text: input
         };
       }
-      vex.dialog.alert({
+      vex.dialog.open({
         unsafeMessage: '<h3 class="vex-custom-title blue">Invalid Input</h3><span class="vex-custom-message">The Approved Email Domain List only accepts the email domain (e.g. <i>username@</i><strong><u>domain.com</u></strong>)</span>',
         buttons: [
           vex.dialog.buttons.yes('OK', 'blue')
@@ -1275,7 +1275,7 @@ $(document).ready(function onReady() {
           text: input
         };
       }
-      vex.dialog.alert({
+      vex.dialog.open({
         unsafeMessage: '<h3 class="vex-custom-title blue">Invalid Input</h3><span class="vex-custom-message">The Approved Email Address Exception List only accepts valid email addresses (e.g. <strong><u>username@domain.com</u></strong>)</span>',
         buttons: [
           vex.dialog.buttons.yes('OK', 'blue')
