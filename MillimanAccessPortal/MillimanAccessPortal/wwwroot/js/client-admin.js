@@ -836,8 +836,7 @@ function substringMatcher(users) {
     $.each(users, function check(i, user) {
       if (regex.test(user.Email) ||
           regex.test(user.UserName) ||
-          regex.test(user.FirstName) ||
-          regex.test(user.LastName)) {
+          regex.test(user.FirstName + ' ' + user.LastName)) {
         matches.push(user);
       }
     });
