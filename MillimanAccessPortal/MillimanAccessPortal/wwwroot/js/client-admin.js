@@ -238,6 +238,17 @@ function resetFormData() {
   $('#save-changes-button,#undo-changes-button').hide();
 }
 
+/**
+ * Open a vex dialog with the specified attributes
+ * @param  {Object} options Dialog attributes
+ * @param  {String} options.title Dialog title
+ * @param  {String} options.message Dialog message
+ * @param  {Array.<{type: function, text: String}>} options.buttons Dialog buttons
+ * @param  {String} options.color Dialog color
+ * @param  {String} [options.input] Input element
+ * @param  {function} options.callback Called when an action on the dialog occurs
+ * @return {undefined}
+ */
 function buildVexDialog(options) {
   if (typeof options !== 'object' || typeof options.callback !== 'function') {
     throw new Error('buildVexDialog(options) requires options.callback.');
@@ -533,8 +544,7 @@ function getClientDetail(clientDiv) {
 
   if (clientDiv.is('[disabled]')) {
     $('#client-info #edit-client-icon').css('visibility', 'hidden');
-  }
-  else {
+  } else {
     $('#client-info #edit-client-icon').css('visibility', 'visible');
   }
 
@@ -811,7 +821,11 @@ function userCardRoleToggleClickHandler(event) {
   $('#user-list .toggle-switch-checkbox').attr('disabled', '');
 }
 
-// FIXME: send more appropriate data
+/**
+ * Send an AJAX request to save a new user
+ * @param  {String} email Email address of the user
+ * @return {undefined}
+ */
 function saveNewUser(email) {
   var clientId = $('#client-tree [selected]').attr('data-client-id');
   $.ajax({
@@ -833,6 +847,12 @@ function saveNewUser(email) {
   });
 }
 
+/**
+ * Match query to a user object.
+ * Used with typeahead inputs.
+ * @param  {Object} users User object returned from an AJAX request
+ * @return {undefined}
+ */
 function substringMatcher(users) {
   return function findMatches(query, callback) {
     var matches = [];
@@ -850,6 +870,10 @@ function substringMatcher(users) {
   };
 }
 
+/**
+ * Create vex dialog for add user
+ * @return {undefined}
+ */
 function initializeAddUserForm() {
   buildVexDialog({
     title: 'Add User',
