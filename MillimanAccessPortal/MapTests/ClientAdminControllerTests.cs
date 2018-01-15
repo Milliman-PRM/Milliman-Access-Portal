@@ -386,7 +386,7 @@ namespace MapTests
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 5, UserId = 2 };
 
-            int preActionCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString() && c.UserId == viewModel.UserId).Count();
+            int preActionCount = Enumerable.Count(TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString() && c.UserId == viewModel.UserId));
             #endregion
 
             #region Act
@@ -397,7 +397,7 @@ namespace MapTests
             Assert.IsType<JsonResult>(view);
 
             // Capture the number of users assigned to the client after the call to RemoveUserFromClient
-            int afterActionCount = Enumerable.Count(TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()));
+            int afterActionCount = Enumerable.Count(TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString() && c.UserId == viewModel.UserId));
             Assert.Equal(preActionCount - 1, afterActionCount);
 
             // Ensure that the user no longer has roles on the client they were removed from
