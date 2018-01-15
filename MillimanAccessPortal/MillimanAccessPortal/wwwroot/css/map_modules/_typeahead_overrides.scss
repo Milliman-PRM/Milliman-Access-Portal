@@ -28,6 +28,7 @@
 .tt-suggestion {
     padding: .1em .5em;
     font-size: 1rem;
+    border-bottom: 1px solid $grey;
 
     &.tt-cursor {
         color: $white;

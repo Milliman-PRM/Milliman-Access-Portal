@@ -884,12 +884,12 @@ function initializeAddUserForm() {
     ],
     color: 'blue',
     input: [
-      '<input class="typeahead" name="email" placeholder="Email" required />'
+      '<input class="typeahead" name="username" placeholder="Email" required />'
     ].join(''),
     callback: function onSubmit(user) {
-      if (emailValRegex.test(user.email)) {
-        saveNewUser(user.email);
-      } else if (user.email) {
+      if (emailValRegex.test(user.username)) {
+        saveNewUser(user.username);
+      } else if (user.username) {
         toastr.warning('Please provide a valid email address');
         return false;
       }
@@ -906,18 +906,18 @@ function initializeAddUserForm() {
       name: 'eligibleUsers',
       source: substringMatcher(eligibleUsers),
       display: function display(data) {
-        return data.Email;
+        return data.UserName;
       },
       templates: {
         suggestion: function suggestion(data) {
           return [
             '<div>',
-            data.Email + '',
+            data.UserName + '',
             (data.UserName !== data.Email) ?
-              ' - ' + data.UserName :
+              '<br /> ' + data.Email:
               '',
             (data.FirstName && data.LastName) ?
-              ' (' + data.FirstName + ' ' + data.LastName + ')' :
+              '<br /> ' + data.FirstName + ' ' + data.LastName :
               '',
             '</div>'
           ].join('');
