@@ -316,7 +316,7 @@ function confirmResetDialog(callback) {
  */
 function confirmRemoveDialog(name, callback) {
   buildVexDialog({
-    title: 'Reset Form',
+    title: 'Remove User',
     message: 'Remove <strong>' + name + '</strong> from the selected client?',
     buttons: [
       { type: vex.dialog.buttons.yes, text: 'Remove' },
