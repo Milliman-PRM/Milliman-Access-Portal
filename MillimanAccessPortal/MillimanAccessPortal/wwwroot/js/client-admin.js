@@ -900,7 +900,7 @@ function initializeAddUserForm() {
         }
       }
     }
-  );
+  ).focus();
 }
 
 /**
