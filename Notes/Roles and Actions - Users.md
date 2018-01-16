@@ -15,13 +15,13 @@ This file is for describing end user roles and actions.
 
 View | Action | System Administrator | Client Administrator | Content Access Administrator | Content Publisher | Client User |Notes
 :--- | :----- | :--------------: | :--------------: | :------------: | :-----------------: | :--------------: | :-----
-ACCOUNT INFORMATION|View Account Information|X|X|X|X|X|
+USER PROFILE|View Account Information|X|X|X|X|X|
 |Modify personal information|X|X|X|X|X|
 |Reset personal password|X|X|X|X|X|
 |Modify personal security question/answer|X|X|X|X|X|
 |||||||
 |||||||
-HOSTED CONTENT VIEW|View Hosted Content View|||||X|
+AUTHORIZED CONTENT|View Authorized Content|||||X|
 |View authorized content items|||||X|
 |Delete existing content item||X||X||
 |Edit report information (navigates to a separate view)||||X||
@@ -46,14 +46,14 @@ CLIENT ADMIN|View Client Admin||X||||
 |Remove **Content Publisher** role||X||||
 |||||||
 |||||||
-CONTENT MANAGEMENT|View Content Management||||X||
+CONTENT PUBLISHER|View Content Publisher||||X||
 |Publish new content||||X||
 |Update existing content||||X||
 |Edit existing content item information||||X||
 |Delete content||||X||
 |||||||
 |||||||
-USER MANAGEMENT|View User Management|||X|||
+CONTENT ACCESS ADMINISTRATOR|View Content Access Admin|||X|||
 |Add existing user to client|||X|||**Content Access Admin** does not have ability to modify acceptable domain or email exceptions list.
 |Add new **Client User** to client (will create a new user)|||X|||**Content Access Admin** does not have ability to modify acceptable domain or email exceptions list.
 |View assigned **Client User** information|||X|||
@@ -63,7 +63,7 @@ USER MANAGEMENT|View User Management|||X|||
 |Manage **Client Users** selections for reducible content|||X|||
 |||||||
 |||||||
-SYSTEM ADMINISTRATION|View System Administration Panel|X|||||
+SYSTEM ADMINISTRATION|View System Administration|X|||||
 |Temporarily assign a role to **Client User**|X|||||
 |Remove **Client User** from System|X|||||
 |Remove Client from System|X|||||
