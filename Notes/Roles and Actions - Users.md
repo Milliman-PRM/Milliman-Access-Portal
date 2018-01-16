@@ -15,17 +15,17 @@ This file is for describing end user roles and actions.
 
 View | Action | System Administrator | Client Administrator | Content Access Administrator | Content Publisher | Client User |Notes
 :--- | :----- | :--------------: | :--------------: | :------------: | :-----------------: | :--------------: | :-----
-USER PROFILE|View Account Information|X|X|X|X|X|
-|Modify personal information|X|X|X|X|X|
-|Reset personal password|X|X|X|X|X|
-|Modify personal security question/answer|X|X|X|X|X|
-|||||||
-|||||||
 AUTHORIZED CONTENT|View Authorized Content|||||X|
 |View authorized content items|||||X|
 |Delete existing content item||X||X||
 |Edit report information (navigates to a separate view)||||X||
-|View **Client User** (navigates to a separate view)|||X|||
+|View **Client Users** (navigates to a separate view)|||X|||
+|||||||
+|||||||
+USER PROFILE|View Account Information|X|X|X|X|X|
+|Modify personal information|X|X|X|X|X|
+|Reset personal password|X|X|X|X|X|
+|Modify personal security question/answer|X|X|X|X|X|
 |||||||
 |||||||
 CLIENT ADMIN|View Client Admin||X||||
@@ -46,13 +46,6 @@ CLIENT ADMIN|View Client Admin||X||||
 |Remove **Content Publisher** role||X||||
 |||||||
 |||||||
-CONTENT PUBLISHER|View Content Publisher||||X||
-|Publish new content||||X||
-|Update existing content||||X||
-|Edit existing content item information||||X||
-|Delete content||||X||
-|||||||
-|||||||
 CONTENT ACCESS ADMINISTRATOR|View Content Access Admin|||X|||
 |Add existing user to client|||X|||**Content Access Admin** does not have ability to modify acceptable domain or email exceptions list.
 |Add new **Client User** to client (will create a new user)|||X|||**Content Access Admin** does not have ability to modify acceptable domain or email exceptions list.
@@ -61,6 +54,13 @@ CONTENT ACCESS ADMINISTRATOR|View Content Access Admin|||X|||
 |Create user selection groups for reducible content|||X|||
 |Manage **Client Users** in selection groups for reducible content|||X|||
 |Manage **Client Users** selections for reducible content|||X|||
+|||||||
+|||||||
+CONTENT PUBLISHER|View Content Publisher||||X||
+|Publish new content||||X||
+|Update existing content||||X||
+|Edit existing content item information||||X||
+|Delete content||||X||
 |||||||
 |||||||
 SYSTEM ADMINISTRATION|View System Administration|X|||||
