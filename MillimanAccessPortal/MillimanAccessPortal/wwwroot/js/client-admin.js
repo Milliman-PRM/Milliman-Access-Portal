@@ -917,7 +917,7 @@ function initializeAddUserForm() {
               '<br /> ' + data.Email:
               '',
             (data.FirstName && data.LastName) ?
-              '<br /> ' + data.FirstName + ' ' + data.LastName :
+              '<br /><span class="secondary-text">' + data.FirstName + ' ' + data.LastName + '</span>':
               '',
             '</div>'
           ].join('');

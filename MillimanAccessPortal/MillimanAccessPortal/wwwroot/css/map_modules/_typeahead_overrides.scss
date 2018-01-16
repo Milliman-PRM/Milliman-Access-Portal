@@ -30,6 +30,19 @@
     font-size: 1rem;
     border-bottom: 1px solid $grey;
 
+    .secondary-text {
+        font-size: .8em;
+        font-style: italic;
+    }
+
+    &:first-child {
+        border-top: none !important;
+    }
+
+    &:last-child {
+        border-bottom: none !important;
+    }
+
     &.tt-cursor {
         color: $white;
         background-color: $blue !important;
