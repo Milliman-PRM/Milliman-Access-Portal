@@ -4,18 +4,20 @@ $.validator.methods.email = function validateEmail(value, element) {
 };
 
 // Configure default vex options
-vex.defaultOptions = {
-  content: '',
-  unsafeContent: '',
-  showCloseButton: true,
-  escapeButtonCloses: true,
-  overlayClosesOnClick: true,
-  appendLocation: 'body',
-  className: 'vex-theme-default screen-center',
-  overlayClassName: '',
-  contentClassName: '',
-  closeClassName: '',
-  closeAllOnPopState: false
+vex.defaultOptions = $.extend(
+  {}, vex.defaultOptions,
+  {
+    className: 'vex-theme-default screen-center',
+    closeAllOnPopState: false
+  }
+);
+
+vex.dialog.buttons.yes = function yes(text, color) {
+  return $.extend({}, vex.dialog.buttons.YES, { text: text, className: color + '-button' });
+};
+
+vex.dialog.buttons.no = function no(text) {
+  return $.extend({}, vex.dialog.buttons.NO, { text: text, className: 'link-button' });
 };
 
 // Configure toastr options
