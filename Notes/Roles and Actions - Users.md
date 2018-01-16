@@ -25,7 +25,7 @@ HOSTED CONTENT VIEW|View Hosted Content View|||||X|
 |View authorized content items|||||X|
 |Delete existing content item||X||X||
 |Edit report information (navigates to a separate view)||||X||
-|View users with access to content item (navigates to a separate view)|||X|||
+|View **Client User** (navigates to a separate view)|||X|||
 |||||||
 |||||||
 CLIENT ADMIN|View Client Admin||X||||
@@ -35,15 +35,15 @@ CLIENT ADMIN|View Client Admin||X||||
 |Edit Client information||X||||
 |Edit the domain whitelist||X||||
 |Add exception to the domain whitelist||X||||
-|Add existing user to client|||X|||
-|Add new user to client (Creates a new user in system)|||X|||
-|Assign user Client Admin role (must be a Client Admin for that client)||X||||
-|Assign user User Manager role||X||||
-|Assign user Content Publisher role||X||||
-|Remove user from client||X||||
-|Remove Client Administrator||X||||
-|Remove user manager||X||||
-|Remove content publisher||X||||
+|Add existing **Client User** to client|||X|||
+|Add new **Client User** to client (Creates a new user in system)|||X|||
+|Assign user **Client Admin** role (must be a **Client Admin** for that client)||X||||
+|Assign user **Content Access Admin** role||X||||
+|Assign user **Content Publisher** role||X||||
+|Remove **Client User** from client||X||||
+|Remove **Client Administrator** role||X||||
+|Remove **Content Access Admin** role||X||||
+|Remove **Content Publisher** role||X||||
 |||||||
 |||||||
 CONTENT MANAGEMENT|View Content Management||||X||
@@ -54,20 +54,20 @@ CONTENT MANAGEMENT|View Content Management||||X||
 |||||||
 |||||||
 USER MANAGEMENT|View User Management|||X|||
-|Add existing user to client|||X|||User Admin does not have ability to modify acceptible domain or email exceptions list.
-|Add new user to client (will create a new user)|||X|||User Admin does not have ability to modify acceptible domain or email exceptions list.
-|View assigned user information|||X|||
-|Assign users to content|||X|||User Admin can only assign content user role
-|Create user selection groups for reduceable content|||X|||
-|Manage users in selection groups for reduceable content|||X|||
-|Manage user selections for reduceable content|||X|||
+|Add existing user to client|||X|||**Content Access Admin** does not have ability to modify acceptable domain or email exceptions list.
+|Add new **Client User** to client (will create a new user)|||X|||**Content Access Admin** does not have ability to modify acceptable domain or email exceptions list.
+|View assigned **Client User** information|||X|||
+|Assign **Client Users** to content|||X|||**Content Access Admin** can only assign **Client User** role
+|Create user selection groups for reducible content|||X|||
+|Manage **Client Users** in selection groups for reducible content|||X|||
+|Manage **Client Users** selections for reducible content|||X|||
 |||||||
 |||||||
 SYSTEM ADMINISTRATION|View System Administration Panel|X|||||
-|Temporarily assign a role to user|X|||||
-|Remove User from System|X|||||
+|Temporarily assign a role to **Client User**|X|||||
+|Remove **Client User** from System|X|||||
 |Remove Client from System|X|||||
 |Remove Content from System|X|||||
 |Create profit center entry|X|||||
-|Add profit center claim to user (Root Client Creator and Client Admin only)|X|||||
+|Add profit center claim to user (**Client Admin** only)|X|||||
 |Send a password reset email|X|||||
