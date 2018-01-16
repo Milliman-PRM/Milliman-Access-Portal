@@ -914,10 +914,10 @@ function initializeAddUserForm() {
             '<div>',
             data.UserName + '',
             (data.UserName !== data.Email) ?
-              '<br /> ' + data.Email:
+              '<br /> ' + data.Email :
               '',
             (data.FirstName && data.LastName) ?
-              '<br /><span class="secondary-text">' + data.FirstName + ' ' + data.LastName + '</span>':
+              '<br /><span class="secondary-text">' + data.FirstName + ' ' + data.LastName + '</span>' :
               '',
             '</div>'
           ].join('');
