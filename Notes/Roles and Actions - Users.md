@@ -1,12 +1,14 @@
+This file is for describing end user roles and actions.
+
 ## User Type Descriptions
 
 |Role|User Type|Description|
 | ---| ------- | --------- |
 |System Administrator|Milliman (PRM Support)|System level access|
 |Client Administrator|Internal Milliman Consultants|Create, edit, and/or view client information for one or more clients including the client tree, client information, and client users|
-|Content Access Publisher|Consultant|Publishes content items|
+|Content Publisher|Consultant|Publishes content items|
 |Content Access Administrator|Consultant|Create users, give users access to reports, and chooses selections for each user/group|
-|Content User|Client Employees|Reads authorized content|
+|Client User|Client Employees|Reads authorized content|
 
 
 ## Possible Actions by Role
