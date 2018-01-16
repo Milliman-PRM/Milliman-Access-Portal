@@ -3,11 +3,9 @@
 |Role|User Type|Description|
 | ---| ------- | --------- |
 |System Administrator|Milliman (PRM Support)|System level access|
-|Root Client Creator|Internal Milliman Consultants|Create root client nodes|
-|User Creator|PRM Support, Internal Milliman Consultant, or Client Employees|Create new users|
-|Client Administrator|Internal Milliman Consultants|Manage one or more relationships with clients|
-|User Administrator|Consultant or Client Employees|Manage user access for client|
-|Content Manager|Consultant|Publishes content items|
+|Client Administrator|Internal Milliman Consultants|Create, edit, and/or view client information for one or more clients including the client tree, client information, and client users|
+|Content Access Publisher|Consultant|Publishes content items|
+|Content Access Administrator|Consultant|Gives users access to reports and chooses selections for each user/group|
 |Content User|Client Employees|Reads authorized content|
 
 
