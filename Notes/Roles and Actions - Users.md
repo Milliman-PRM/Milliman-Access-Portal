@@ -29,9 +29,9 @@ USER PROFILE|View Account Information|X|X|X|X|X|
 |||||||
 |||||||
 CLIENT ADMIN|View Client Admin||X||||
-|Create Root Client||X|||||Needs Profit Center to be created by System Admin|
+|Create Root Client||X|||Needs Profit Center to be created by System Admin|
 |Create Child Client||X||||
-|Delete Client||X|||||Only if no further children in client|
+|Delete Client||X|||Only if no further children in client|
 |View Client information||X||||
 |Edit Client information||X||||
 |Edit the domain whitelist||X||||
@@ -46,10 +46,10 @@ CLIENT ADMIN|View Client Admin||X||||
 |||||||
 |||||||
 CONTENT ACCESS ADMINISTRATOR|View Content Access Admin|||X|||
-|Add existing **Client User** to client|||X||||**Content Access Admin** does not have ability to modify acceptable domain or email exceptions list.
-|Add new **Client User** to client (will create a new user in the system)|||X||||**Content Access Admin** does not have ability to modify acceptable domain or email exceptions list.
+|Add existing **Client User** to client|||X|||**Content Access Admin** does not have ability to modify acceptable domain or email exceptions list.
+|Add new **Client User** to client (will create a new user in the system)|||X|||**Content Access Admin** does not have ability to modify acceptable domain or email exceptions list.
 |View assigned **Client User** information|||X|||
-|Assign **Client Users** to content|||X||||**Content Access Admin** can only assign **Client User** role
+|Assign **Client Users** to content|||X|||**Content Access Admin** can only assign **Client User** role
 |Create user selection groups for reducible content|||X|||
 |Manage **Client Users** in selection groups for reducible content|||X|||
 |Manage **Client Users** selections for reducible content|||X|||
