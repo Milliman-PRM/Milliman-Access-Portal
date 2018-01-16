@@ -64,8 +64,8 @@ CONTENT ACCESS ADMINISTRATOR|View Content Access Admin|||X|||
 |||||||
 |||||||
 SYSTEM ADMINISTRATION|View System Administration|X|||||
-|Temporarily assign a role to **Client User**|X|||||
-|Remove **Client User** from System|X|||||
+|Temporarily assign a role to user|X|||||
+|Remove user from System|X|||||
 |Remove Client from System|X|||||
 |Remove Content from System|X|||||
 |Create profit center entry|X|||||
