@@ -42,7 +42,7 @@
             .action-icon {
                 color: $charcoal;
                 cursor: pointer;
-                padding-left: .5em;
+                padding: 0 .25em;
 
                 &:hover {
                     color: lighten($charcoal, 20%);
