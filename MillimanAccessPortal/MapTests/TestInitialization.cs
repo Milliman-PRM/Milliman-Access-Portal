@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Moq;
@@ -22,6 +23,7 @@ using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography.X509Certificates;
 using AuditLogLib;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace MapTests
 {
@@ -189,6 +191,13 @@ namespace MapTests
             ReturnMockContext.Object.UserClaims = MockDbSet<IdentityUserClaim<long>>.New(new List<IdentityUserClaim<long>>()).Object;
             ReturnMockContext.Object.Users = ReturnMockContext.Object.ApplicationUser;
             ReturnMockContext.Object.Roles = ReturnMockContext.Object.ApplicationRole;
+
+            Mock<IDbContextTransaction> DbTransaction = new Mock<IDbContextTransaction>();
+            DbTransaction.Setup(x => x.Commit());
+
+            Mock<DatabaseFacade> MockDatabaseFacade = new Mock<DatabaseFacade>(ReturnMockContext.Object);
+            MockDatabaseFacade.Setup(x => x.BeginTransaction()).Returns(DbTransaction.Object);
+            ReturnMockContext.SetupGet(x => x.Database).Returns(MockDatabaseFacade.Object);
 
             return ReturnMockContext;
         }
