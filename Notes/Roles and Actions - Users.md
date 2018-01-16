@@ -1,79 +1,71 @@
 ## User Type Descriptions
 
-|User Type|Description|
-|:------- |:--------- |
-|Milliman (PRM Support)|System level access|
-|Internal Milliman Consultants|Create root client nodes|
-|Internal Milliman Consultants|Manage one or more relationships with clients|
-|Internal Milliman Consultants|Create root client nodes|
-|Consultant or Client Employees|Manage user access for client|
-|Consultant|Publishes content items|
-|Client Employees|Reads authorized content|
+|Role|User Type|Description|
+| ---| ------- | --------- |
+|System Administrator|Milliman (PRM Support)|System level access|
+|Client Administrator|Internal Milliman Consultants|Create, edit, and/or view client information for one or more clients including the client tree, client information, and client users|
+|Content Access Publisher|Consultant|Publishes content items|
+|Content Access Administrator|Consultant|Create users, give users access to reports, and chooses selections for each user/group|
+|Content User|Client Employees|Reads authorized content|
 
 
-## Possible User Actions
-Note: The View column is intended to identify each one-page View with whatever availble (ajax) actions.
+## Possible Actions by Role
 
-Action is any single user initiated action, not necessarily one controller call.
-
-User Type is the organizational role of a person using the system. 
-
-The below is copied over from the previous table.  Needs revised.  
-
-| View | Action | User Type(s) |
-| :--- | :----- | :---------- |
-|ACCOUNT INFORMATION|View Account Information|X|X|X|X|X|X||
-||Modify personal information|X|X|X|X|X|X||
-||Reset personal password|X|X|X|X|X|X||
-||Modify personal security question/answer|X|X|X|X|X|X||
-||||||||||
-|CONTENT VIEW|View content||||||X||
-||View authorized content index||||||X||
-||Delete existing content item|||X||X|||
-||Edit report information (navigates to a separate view)|||||X|||
-||View users with access to content item (navigates to a separate view)||||X||||
-||||||||||
-||||||||||
-|CLIENT ADMIN|View Client Admin||X|X|||||
-||Create Root Client||X||||||
-||Create Child Client|||X|||||
-||View Client information|||X|||||
-||Edit Client information|||X|||||
-||Edit the domain whitelist|||X|||||
-||Add exception to the domain whitelist|||X|||||
-||Add existing user to client|||X|||||
-||Add new user to client (Creates a new user in system)|||X|||||
-||Assign user Client Admin role (must be a Client Admin for that client)|||X|||||
-||Assign user User Manager role|||X|||||
-||Assign user Content Publisher role|||X|||||
-||Remove user from client|||X|||||
-||Remove Client Administrator|||X|||||
-||Remove user manager|||X|||||
-||Remove content publisher|||X|||||
-||||||||||
-||||||||||
-|CONTENT MANAGEMENT|View Content Management|||||X|||
-||Publish new content|||||X|||
-||Update existing content|||||X|||
-||Edit existing content item information|||||X|||
-||Delete content|||||X|||
-||||||||||
-||||||||||
-|USER MANAGEMENT|View User Management||||X||||
-||Add existing user to client||||X||||
-||Add new user to client (will create a new user)||||X||||
-||View assigned user information||||X||||
-||Assign users to content||||X||||
-||Create user selection groups for reduceable content||||X||||
-||Manage users in selection groups for reduceable content||||X||||
-||Manage user selections for reduceable content||||X||||
-||||||||||
-||||||||||
-|SYSTEM ADMINISTRATION|View System Administration Panel|X|||||||
-||Temporarily assign a role to user|X|||||||
-||Remove User from System|X|||||||
-||Remove Client from System|X|||||||
-||Remove Content from System|X|||||||
-||Create profit center entry|X|||||||
-||Add profit center claim to user (Root Client Creator and Client Admin only)|X|||||||
-||Send a password reset email|X|||||||
+View | Action | System Admin | Root Client Creator |User Creator| Client Admin | User Manager | Content Manager | Content User |Notes
+:--- | :----- | :--------------: | :---------------------: | :------------: | :--------------: | :--------------: | :-----------------: | :--------------: | :-----
+ACCOUNT INFORMATION|View Account Information|X|X||X|X|X|X|
+|Modify personal information|X|X||X|X|X|X|
+|Reset personal password|X|X||X|X|X|X|
+|Modify personal security question/answer|X|X||X|X|X|X|
+|||||||||
+|||||||||
+HOSTED CONTENT VIEW|View Hosted Content View|||||||X|
+|View authorized content items|||||||X|
+|Delete existing content item||||X||X||
+|Edit report information (navigates to a separate view)||||||X||
+|View users with access to content item (navigates to a separate view)|||||X|||
+|||||||||
+|||||||||
+CLIENT ADMIN|View Client Admin||X||X||||
+|Create Root Client||X||||||
+|Create Child Client||||X||||
+|View Client information||||X||||
+|Edit Client information||||X||||
+|Edit the domain whitelist||||X||||
+|Add exception to the domain whitelist||||X||||
+|Add existing user to client|||X|||||
+|Add new user to client (Creates a new user in system)|||X|||||
+|Assign user Client Admin role (must be a Client Admin for that client)||||X||||
+|Assign user User Manager role||||X||||
+|Assign user Content Publisher role||||X||||
+|Remove user from client||||X||||
+|Remove Client Administrator||||X||||
+|Remove user manager||||X||||
+|Remove content publisher||||X||||
+|||||||||
+|||||||||
+CONTENT MANAGEMENT|View Content Management||||||X||
+|Publish new content||||||X||
+|Update existing content||||||X||
+|Edit existing content item information||||||X||
+|Delete content||||||X||
+|||||||||
+|||||||||
+USER MANAGEMENT|View User Management|||||X|||
+|Add existing user to client|||X|||||User Admin does not have ability to modify acceptible domain or email exceptions list.
+|Add new user to client (will create a new user)|||X|||||User Admin does not have ability to modify acceptible domain or email exceptions list.
+|View assigned user information|||||X|||
+|Assign users to content|||||X|||User Admin can only assign content user role
+|Create user selection groups for reduceable content|||||X|||
+|Manage users in selection groups for reduceable content|||||X|||
+|Manage user selections for reduceable content|||||X|||
+|||||||||
+|||||||||
+SYSTEM ADMINISTRATION|View System Administration Panel|X|||||||
+|Temporarily assign a role to user|X|||||||
+|Remove User from System|X|||||||
+|Remove Client from System|X|||||||
+|Remove Content from System|X|||||||
+|Create profit center entry|X|||||||
+|Add profit center claim to user (Root Client Creator and Client Admin only)|X|||||||
+|Send a password reset email|X|||||||
