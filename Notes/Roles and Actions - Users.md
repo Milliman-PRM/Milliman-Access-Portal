@@ -29,8 +29,9 @@ USER PROFILE|View Account Information|X|X|X|X|X|
 |||||||
 |||||||
 CLIENT ADMIN|View Client Admin||X||||
-|Create Root Client||X||||
+|Create Root Client||X|||Needs Profit Center to be created by System Admin|
 |Create Child Client||X||||
+|Delete Client||X|||Only if no further children in client|
 |View Client information||X||||
 |Edit Client information||X||||
 |Edit the domain whitelist||X||||
@@ -67,5 +68,4 @@ SYSTEM ADMINISTRATION|View System Administration|X|||||
 |Remove Client from System|X|||||
 |Remove Content from System|X|||||
 |Create profit center entry|X|||||
-|Add profit center claim to user (**Client Admin** only)|X|||||
 |Send a password reset email|X|||||
