@@ -455,10 +455,12 @@ function renderUserNode(client, user) {
  * @return {undefined}
  */
 function renderUserList(client, userId) {
-  $('#client-user-list').empty();
+  var $clientUserList = $('#client-user-list');
+  $clientUserList.empty();
   client.AssignedUsers.forEach(function render(user) {
     renderUserNode(client, user);
   });
+  $clientUserList.find('.tooltip').tooltipster();
   eligibleUsers = client.EligibleUsers;
   $('div.card-button-remove-user').click(function onClick(event) {
     event.stopPropagation();
@@ -1067,6 +1069,7 @@ function renderClientTree(clientTreeList, clientId) {
     renderClientNode(rootClient, 0);
     $clientTreeList.append('<li class="hr width-100pct"></li>');
   });
+  $clientTreeList.find('.tooltip').tooltipster();
   $clientTreeList.find('.card-container')
     .click(function onClick() {
       clientCardClickHandler($(this));
@@ -1284,6 +1287,9 @@ $(document).ready(function onReady() {
     .append('<span>Add User</span>');
   $addUserCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
     .remove();
+
+
+  $('.tooltip').tooltipster();
 
   // TODO: find a better place for this
   $('#client-form').find(':input,select')
