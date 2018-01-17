@@ -16,10 +16,7 @@ This file is for describing end user roles and actions.
 View | Action | System Administrator | Client Administrator | Content Access Administrator | Content Publisher | Client User |Notes
 :--- | :----- | :--------------: | :--------------: | :------------: | :-----------------: | :--------------: | :-----
 AUTHORIZED CONTENT|View Authorized Content|||||X|
-|View authorized content items|||||X|
-|Delete existing content item||X||X||
-|Edit report information (navigates to a separate view)||||X||
-|View **Client Users** (navigates to a separate view)|||X|||
+|View authorized content item details|||||X|
 |||||||
 |||||||
 USER PROFILE|View Account Information|X|X|X|X|X|
