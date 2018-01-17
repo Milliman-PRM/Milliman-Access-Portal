@@ -547,13 +547,10 @@ function getClientDetail(clientDiv) {
   var clientId = clientDiv.attr('data-client-id').valueOf();
 
   clearFormData();
-  clearUserList();
+  $('#client-info .spinner-container').show();
 
-  if (clientDiv.is('[disabled]')) {
-    hideClientDetails();
-  } else {
-    showClientDetails();
-  }
+  clearUserList();
+  $('#client-users .spinner-container').show();
 
   $.ajax({
     type: 'GET',
@@ -563,8 +560,12 @@ function getClientDetail(clientDiv) {
     }
   }).done(function onDone(response) {
     populateClientForm(response.ClientEntity);
+    $('#client-info .spinner-container').hide();
     renderUserList(response);
+    $('#client-users .spinner-container').hide();
   }).fail(function onFail(response) {
+    $('#client-info .spinner-container').hide();
+    $('#client-users .spinner-container').hide();
     toastr.warning(response.getResponseHeader('Warning'));
   });
 }
@@ -1141,17 +1142,20 @@ function deleteClient(clientId, clientName, password) {
 }
 
 /**
- * Send an AJAX request to delete a client
+ * Send an AJAX request to get the client tree
  * @return {undefined}
  */
 function getClientTree(clientId) {
+  $('#client-tree .spinner-container').show();
   $.ajax({
     type: 'GET',
     url: 'ClientAdmin/ClientFamilyList/'
   }).done(function onDone(response) {
     populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
     renderClientTree(response.ClientTreeList, clientId || response.RelevantClientId);
+    $('#client-tree .spinner-container').hide();
   }).fail(function onFail(response) {
+    $('#client-tree .spinner-container').hide();
     if (response.getResponseHeader('Warning')) {
       toastr.warning(response.getResponseHeader('Warning'));
     } else {
