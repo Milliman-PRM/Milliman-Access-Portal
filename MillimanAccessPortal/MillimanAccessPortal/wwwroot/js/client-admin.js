@@ -550,9 +550,9 @@ function getClientDetail(clientDiv) {
   clearUserList();
 
   if (clientDiv.is('[disabled]')) {
-    $('#client-info #edit-client-icon').css('visibility', 'hidden');
+    hideClientDetails();
   } else {
-    $('#client-info #edit-client-icon').css('visibility', 'visible');
+    showClientDetails();
   }
 
   $.ajax({
