@@ -472,7 +472,12 @@ function renderUserList(client, userId) {
       $(this).closest('.card-container')
         .find('div.card-expansion-container')
         .attr('maximized', function toggle(index, attr) {
-          return attr === '' ? null : '';
+          if (attr === '') {
+            $(this).find('.tooltip').tooltipster('content', 'Expand user card');
+            return null;
+          }
+          $(this).find('.tooltip').tooltipster('content', 'Collapse user card');
+          return '';
         });
       showRelevantUserActionIcons();
     });
