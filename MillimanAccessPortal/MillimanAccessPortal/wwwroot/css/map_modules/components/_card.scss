@@ -227,13 +227,13 @@
             max-height: 15.5em;
             transition: .25s all linear;
 
-            & + div.card-button-bottom-container > .card-button-expansion {
+            .card-button-expansion {
                 -webkit-transform: rotateX(180deg);
                 -moz-transform: rotateX(180deg);
                 -o-transform: rotateX(180deg);
                 -ms-transform: rotateX(180deg);
                 transform: rotateX(180deg);
-                transition: .2s all linear;
+                transition: .25s all linear;
             }
         }
 
