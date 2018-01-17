@@ -31,6 +31,7 @@
             <ul id="client-tree-list" class="admin-panel-content">
             </ul>
         </div>
+        @Html.Partial("~/Views/ClientAdmin/templates/_Spinner.cshtml")
     </div>
 </div>
 <div id="client-info" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-6-12" style="display: none;">
@@ -154,6 +155,7 @@
                 </div>
             </form>
         </div>
+        @Html.Partial("~/Views/ClientAdmin/templates/_Spinner.cshtml")
     </div>
 </div>
 <div id="client-users" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12" style="display: none;">
@@ -171,13 +173,13 @@
             <ul id="client-user-list" class="admin-panel-content">
             </ul>
         </div>
+        @Html.Partial("~/Views/ClientAdmin/templates/_Spinner.cshtml")
     </div>
 </div>
 
 @section Scripts {
 
     @Html.Partial("~/Views/ClientAdmin/templates/_Node.cshtml")
-    @Html.Partial("~/Views/ClientAdmin/templates/_Spinner.cshtml")
 
 
     <environment names="Development,CI">
