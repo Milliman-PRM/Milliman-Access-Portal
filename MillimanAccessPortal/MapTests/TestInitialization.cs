@@ -203,7 +203,6 @@ namespace MapTests
 
             // Mock DbContext.Database.CommitTransaction() as no ops.
             Mock<IDbContextTransaction> DbTransaction = new Mock<IDbContextTransaction>();
-            DbTransaction.Setup(x => x.Commit());
 
             Mock<DatabaseFacade> MockDatabaseFacade = new Mock<DatabaseFacade>(ReturnMockContext.Object);
             MockDatabaseFacade.Setup(x => x.BeginTransaction()).Returns(DbTransaction.Object);
