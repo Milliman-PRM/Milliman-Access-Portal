@@ -6,7 +6,6 @@
 |Admin|Client|Administers client|SystemAdmin, ClientAdmin|
 |Admin|ProfitCenter|Manage ProfitCenter. In combination with Admin role on a related entity, authorizes elevated administrative actions on that entity|SystemAdmin, ClientAdmin with this ProfitCenter|
 |----|-----------|-----------|-----------|
-|UserCreator|Global|Creates/Deletes user accounts not targeted to a client|ClientAdmin w/ ProfitCenter
 |UserCreator|Client|Creates user accounts targeted to a client|ClientAdmin|
 |----|-----------|-----------|-----------|
 |UserAdmin|Client|Assign user accounts to client and manage content access selections for assigned user|ClientAdmin|
