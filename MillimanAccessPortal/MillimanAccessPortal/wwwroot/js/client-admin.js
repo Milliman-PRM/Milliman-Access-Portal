@@ -258,19 +258,28 @@ function resetFormData() {
  * @param  {String} options.color Dialog color
  * @param  {String} [options.input] Input element
  * @param  {function} options.callback Called when an action on the dialog occurs
+ * @param  {boolean} options.deferClose Set if the callback is to close the dialog itself
  * @return {undefined}
  */
 function buildVexDialog(options) {
-  if (typeof options !== 'object' || typeof options.callback !== 'function') {
-    throw new Error('buildVexDialog(options) requires options.callback.');
-  }
-  vex.dialog.open({
+  var $dialog = vex.dialog.open({
     unsafeMessage: '<span class="vex-custom-message">' + options.message + '</span>',
     buttons: $.map(options.buttons, function buildButton(element) {
       return element.type(element.text, options.color);
     }),
     input: options.input || '',
-    callback: options.callback
+    callback: options.deferClose ? $.noop : options.callback,
+    onSubmit: function onDialogSubmit(event) {
+      event.preventDefault();
+      if ($dialog.options.input) {
+        $dialog.value = $('.vex-dialog-input input').last().val();
+      }
+      return options.deferClose ?
+        options.callback($dialog.value, function close() {
+          $dialog.close();
+        }) :
+        $dialog.close();
+    }
   });
   $('.vex-content')
     .prepend('<div class="vex-title-wrapper"><h3 class="vex-custom-title ' + options.color + '">' + options.title + '</h3></div>');
@@ -733,9 +742,10 @@ function clientCardDeleteClickHandler($clickedCard) {
           input: [
             '<input name="password" type="password" placeholder="Password" required />'
           ].join(''),
-          callback: function onSelectWithPassword(password) {
+          callback: function onSelectWithPassword(password, callback) {
             if (password) {
-              deleteClient(clientId, clientName, password);
+              setButtonSubmitting($('.vex-first'), 'Deleting');
+              deleteClient(clientId, clientName, password, callback);
             } else if (password === '') {
               toastr.warning('Please enter your password to proceed');
               return false;
@@ -743,7 +753,8 @@ function clientCardDeleteClickHandler($clickedCard) {
               toastr.info('Deletion was canceled');
             }
             return true;
-          }
+          },
+          deferClose: true
         });
       } else {
         toastr.info('Deletion was canceled');
@@ -845,7 +856,7 @@ function userCardRoleToggleClickHandler(event) {
  * @param  {String} email Email address of the user
  * @return {undefined}
  */
-function saveNewUser(email) {
+function saveNewUser(email, callback) {
   var clientId = $('#client-tree [selected]').attr('data-client-id');
   $.ajax({
     type: 'POST',
@@ -860,8 +871,10 @@ function saveNewUser(email) {
     }
   }).done(function onDone() {
     openClientCardReadOnly($('#client-tree [data-client-id="' + clientId + '"]'));
+    callback();
     toastr.success('User successfully added');
   }).fail(function onFail(response) {
+    callback();
     toastr.warning(response.getResponseHeader('Warning'));
   });
 }
@@ -905,16 +918,18 @@ function initializeAddUserForm() {
     input: [
       '<input class="typeahead" name="username" placeholder="Email" required />'
     ].join(''),
-    callback: function onSubmit(user) {
+    callback: function onSubmit(user, callback) {
       var email = typeof user === 'object' ? user.email : user;
       if (emailValRegex.test(email)) {
-        saveNewUser(email);
+        setButtonSubmitting($('.vex-first'), 'Adding');
+        saveNewUser(email, callback);
       } else if (email) {
         toastr.warning('Please provide a valid email address');
         return false;
       }
       return true;
-    }
+    },
+    deferClose: true
   });
   $('.vex-dialog-input .typeahead').typeahead(
     {
@@ -1133,7 +1148,7 @@ function renderClientTree(clientTreeList, clientId) {
  * @param  {String} password   User's password
  * @return {undefined}
  */
-function deleteClient(clientId, clientName, password) {
+function deleteClient(clientId, clientName, password, callback) {
   $.ajax({
     type: 'DELETE',
     url: 'ClientAdmin/DeleteClient',
@@ -1147,8 +1162,10 @@ function deleteClient(clientId, clientName, password) {
   }).done(function onDone(response) {
     clearFormData();
     renderClientTree(response.ClientTreeList, response.RelevantClientId);
+    callback();
     toastr.success(clientName + ' was successfully deleted.');
   }).fail(function onFail(response) {
+    callback();
     toastr.warning(response.getResponseHeader('Warning'));
   });
 }
