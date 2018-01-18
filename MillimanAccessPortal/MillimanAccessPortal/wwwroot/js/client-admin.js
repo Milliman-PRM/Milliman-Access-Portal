@@ -906,9 +906,10 @@ function initializeAddUserForm() {
       '<input class="typeahead" name="username" placeholder="Email" required />'
     ].join(''),
     callback: function onSubmit(user) {
-      if (emailValRegex.test(user.username)) {
-        saveNewUser(user.username);
-      } else if (user.username) {
+      var email = typeof user === 'object' ? user.email : user;
+      if (emailValRegex.test(email)) {
+        saveNewUser(email);
+      } else if (email) {
         toastr.warning('Please provide a valid email address');
         return false;
       }
