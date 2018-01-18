@@ -1,5 +1,8 @@
 /* global domainValRegex, emailValRegex */
 
+var ajaxStatus = {
+  getClientDetail: -1
+};
 var nodeTemplate = $('script[data-template="node"]').html();
 var smallSpinner = '<div class="spinner-small""></div>';
 var $createNewClientCard;
@@ -576,6 +579,7 @@ function getClientDetail(clientDiv) {
   clearUserList();
   $('#client-users .spinner-container').show();
 
+  ajaxStatus.getClientDetail = clientId;
   $.ajax({
     type: 'GET',
     url: 'ClientAdmin/ClientDetail/' + clientId,
@@ -583,11 +587,13 @@ function getClientDetail(clientDiv) {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
   }).done(function onDone(response) {
+    if (ajaxStatus.getClientDetail !== clientId) return;
     populateClientForm(response.ClientEntity);
     $('#client-info .spinner-container').hide();
     renderUserList(response);
     $('#client-users .spinner-container').hide();
   }).fail(function onFail(response) {
+    if (ajaxStatus.getClientDetail !== clientId) return;
     $('#client-info .spinner-container').hide();
     $('#client-users .spinner-container').hide();
     toastr.warning(response.getResponseHeader('Warning'));
