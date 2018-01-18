@@ -745,6 +745,7 @@ function clientCardDeleteClickHandler($clickedCard) {
           callback: function onSelectWithPassword(password, callback) {
             if (password) {
               setButtonSubmitting($('.vex-first'), 'Deleting');
+              $('.vex-dialog-button').attr('disabled', '');
               deleteClient(clientId, clientName, password, callback);
             } else if (password === '') {
               toastr.warning('Please enter your password to proceed');
@@ -922,6 +923,7 @@ function initializeAddUserForm() {
       var email = typeof user === 'object' ? user.email : user;
       if (emailValRegex.test(email)) {
         setButtonSubmitting($('.vex-first'), 'Adding');
+        $('.vex-dialog-button').attr('disabled', '');
         saveNewUser(email, callback);
       } else if (email) {
         toastr.warning('Please provide a valid email address');
