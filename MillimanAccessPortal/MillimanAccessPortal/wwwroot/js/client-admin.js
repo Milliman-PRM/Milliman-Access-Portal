@@ -1,6 +1,7 @@
 /* global domainValRegex, emailValRegex */
 
 var nodeTemplate = $('script[data-template="node"]').html();
+var smallSpinner = '<div class="spinner-small""></div>';
 var $createNewClientCard;
 var $createNewChildClientCard;
 var $addUserCard;
@@ -95,6 +96,16 @@ function setClientFormWriteable() {
     this.selectize.enable();
   });
   $clientForm.find('#Name').focus();
+}
+
+function setButtonSubmitting($button, text) {
+  $button.attr('data-original-text', $button.html());
+  $button.html(text || 'Submitting');
+  $button.append(smallSpinner);
+}
+
+function unsetButtonSubmitting($button) {
+  $button.html($button.attr('data-original-text'));
 }
 
 /**
@@ -1170,6 +1181,7 @@ function getClientTree(clientId) {
  */
 function submitClientForm() {
   var $clientForm = $('#client-form');
+  var $button;
   var clientId;
   var clientName;
   var urlAction;
@@ -1182,11 +1194,14 @@ function submitClientForm() {
     if (clientId) {
       urlAction += 'EditClient';
       successResponse = clientName + ' was successfully updated';
+      $button = $('#save-changes-button');
     } else {
       urlAction += 'SaveNewClient';
       successResponse = clientName + ' was successfully created';
+      $button = $('#create-new-button');
     }
 
+    setButtonSubmitting($button);
     $.ajax({
       type: 'POST',
       url: urlAction,
@@ -1195,9 +1210,11 @@ function submitClientForm() {
         RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
       }
     }).done(function onDone(response) {
+      unsetButtonSubmitting($button);
       renderClientTree(response.ClientTreeList, response.RelevantClientId);
       toastr.success(successResponse);
     }).fail(function onFail(response) {
+      unsetButtonSubmitting($button);
       toastr.warning(response.getResponseHeader('Warning'));
     });
   }
