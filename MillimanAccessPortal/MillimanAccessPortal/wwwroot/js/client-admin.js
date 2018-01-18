@@ -257,32 +257,36 @@ function resetFormData() {
  * @param  {Array.<{type: function, text: String}>} options.buttons Dialog buttons
  * @param  {String} options.color Dialog color
  * @param  {String} [options.input] Input element
- * @param  {function} options.callback Called when an action on the dialog occurs
- * @param  {boolean} options.deferClose Set if the callback is to close the dialog itself
+ * @param  {function} options.callback Called when the dialog closes
+ * @param  {function} options.submitHandler Called within onSubmit instead of vex.close()
  * @return {undefined}
  */
-function buildVexDialog(options) {
-  var $dialog = vex.dialog.open({
-    unsafeMessage: '<span class="vex-custom-message">' + options.message + '</span>',
-    buttons: $.map(options.buttons, function buildButton(element) {
-      return element.type(element.text, options.color);
+function buildVexDialog(opts) {
+  var $dialog;
+  var options = {
+    unsafeMessage: '<span class="vex-custom-message">' + opts.message + '</span>',
+    buttons: $.map(opts.buttons, function buildButton(element) {
+      return element.type(element.text, opts.color);
     }),
-    input: options.input || '',
-    callback: options.deferClose ? $.noop : options.callback,
-    onSubmit: function onDialogSubmit(event) {
-      event.preventDefault();
-      if ($dialog.options.input) {
-        $dialog.value = $('.vex-dialog-input input').last().val();
-      }
-      return options.deferClose ?
-        options.callback($dialog.value, function close() {
+    input: opts.input || '',
+    callback: opts.callback ? opts.callback : $.noop
+  };
+  if (opts.submitHandler) {
+    options = $.extend(options, {
+      onSubmit: function onDialogSubmit(event) {
+        event.preventDefault();
+        if ($dialog.options.input) {
+          $dialog.value = $('.vex-dialog-input input').last().val();
+        }
+        return opts.submitHandler($dialog.value, function close() {
           $dialog.close();
-        }) :
-        $dialog.close();
-    }
-  });
+        });
+      }
+    });
+  }
+  $dialog = vex.dialog.open(options);
   $('.vex-content')
-    .prepend('<div class="vex-title-wrapper"><h3 class="vex-custom-title ' + options.color + '">' + options.title + '</h3></div>');
+    .prepend('<div class="vex-title-wrapper"><h3 class="vex-custom-title ' + opts.color + '">' + opts.title + '</h3></div>');
 }
 
 /**
@@ -742,7 +746,7 @@ function clientCardDeleteClickHandler($clickedCard) {
           input: [
             '<input name="password" type="password" placeholder="Password" required />'
           ].join(''),
-          callback: function onSelectWithPassword(password, callback) {
+          submitHandler: function onSelectWithPassword(password, callback) {
             if (password) {
               setButtonSubmitting($('.vex-first'), 'Deleting');
               $('.vex-dialog-button').attr('disabled', '');
@@ -754,8 +758,7 @@ function clientCardDeleteClickHandler($clickedCard) {
               toastr.info('Deletion was canceled');
             }
             return true;
-          },
-          deferClose: true
+          }
         });
       } else {
         toastr.info('Deletion was canceled');
@@ -872,10 +875,10 @@ function saveNewUser(email, callback) {
     }
   }).done(function onDone() {
     openClientCardReadOnly($('#client-tree [data-client-id="' + clientId + '"]'));
-    callback();
+    if (typeof callback === 'function') callback();
     toastr.success('User successfully added');
   }).fail(function onFail(response) {
-    callback();
+    if (typeof callback === 'function') callback();
     toastr.warning(response.getResponseHeader('Warning'));
   });
 }
@@ -919,7 +922,7 @@ function initializeAddUserForm() {
     input: [
       '<input class="typeahead" name="username" placeholder="Email" required />'
     ].join(''),
-    callback: function onSubmit(user, callback) {
+    submitHandler: function onSubmit(user, callback) {
       var email = typeof user === 'object' ? user.email : user;
       if (emailValRegex.test(email)) {
         setButtonSubmitting($('.vex-first'), 'Adding');
@@ -930,8 +933,7 @@ function initializeAddUserForm() {
         return false;
       }
       return true;
-    },
-    deferClose: true
+    }
   });
   $('.vex-dialog-input .typeahead').typeahead(
     {
@@ -1373,6 +1375,7 @@ $(document).ready(function onReady() {
           $('#client-form #AcceptedEmailDomainList')[0].selectize.focus();
         }
       });
+      return {};
     }
   });
 
