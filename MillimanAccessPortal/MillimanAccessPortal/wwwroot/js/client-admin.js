@@ -837,7 +837,7 @@ function saveNewUser(email) {
   var clientId = $('#client-tree [selected]').attr('data-client-id');
   $.ajax({
     type: 'POST',
-    url: 'ContentAccessAdmin/SaveNewUser',
+    url: 'ClientAdmin/SaveNewUser',
     data: {
       UserName: email,
       Email: email,
