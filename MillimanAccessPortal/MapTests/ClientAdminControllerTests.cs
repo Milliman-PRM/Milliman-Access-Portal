@@ -264,14 +264,14 @@ namespace MapTests
             ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 1, UserId = 1 };
 
             // Count users assigned to the client before attempting change
-            int preActionCount = Enumerable.Count(TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()));
+            int preActionCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()).Count();
             #endregion
 
             #region Act
             var view = await controller.AssignUserToClient(viewModel);
 
             // Capture the number of users assigned to the client after the call to AssignUserToClient
-            int afterActionCount = Enumerable.Count(TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()));
+            int afterActionCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()).Count();
             #endregion
 
             #region Assert
@@ -313,14 +313,14 @@ namespace MapTests
             ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 5, UserId = 4 };
 
             // Before acting on the input data, we need to gather initial data to compare the result to
-            int beforeCount = Enumerable.Count(TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()));
+            int beforeCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()).Count();
             #endregion
 
             #region Act
             var view = await controller.AssignUserToClient(viewModel);
 
             // Capture the number of users assigned to the client after the call to AssignUserToClient
-            int afterActionCount = Enumerable.Count(TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()));
+            int afterActionCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()).Count();
             #endregion
 
             #region Assert
@@ -386,7 +386,7 @@ namespace MapTests
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 5, UserId = 2 };
 
-            int preActionCount = Enumerable.Count(TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString() && c.UserId == viewModel.UserId));
+            int preActionCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString() && c.UserId == viewModel.UserId).Count();
             #endregion
 
             #region Act
@@ -397,14 +397,14 @@ namespace MapTests
             Assert.IsType<JsonResult>(view);
 
             // Capture the number of users assigned to the client after the call to RemoveUserFromClient
-            int afterActionCount = Enumerable.Count(TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString() && c.UserId == viewModel.UserId));
+            int afterActionCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString() && c.UserId == viewModel.UserId).Count();
             Assert.Equal(preActionCount - 1, afterActionCount);
 
             // Ensure that the user no longer has roles on the client they were removed from
             int userRoleCountInClient = 
-                    Enumerable.Count(TestResources.DbContextObject.UserRoleInClient.Where(ur => 
+                    TestResources.DbContextObject.UserRoleInClient.Where(ur => 
                         ur.ClientId == viewModel.ClientId && 
-                        ur.UserId == viewModel.UserId));
+                        ur.UserId == viewModel.UserId).Count();
             Assert.Equal(0, userRoleCountInClient);
             #endregion
         }
@@ -524,7 +524,7 @@ namespace MapTests
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             Client testClient = GetValidClient();
 
-            int beforeCount = Enumerable.Count(TestResources.DbContextObject.Client);
+            int beforeCount = TestResources.DbContextObject.Client.Count();
             int expectedAfterCount = beforeCount + 1;
             #endregion
 
@@ -537,7 +537,7 @@ namespace MapTests
             #region Assert
             Assert.IsType<JsonResult>(view);
 
-            int afterCount = Enumerable.Count(TestResources.DbContextObject.Client);
+            int afterCount = TestResources.DbContextObject.Client.Count();
             Assert.Equal<int>(expectedAfterCount, afterCount);
             #endregion
         }
@@ -819,7 +819,7 @@ namespace MapTests
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
 
-            int preCount = Enumerable.Count(TestResources.DbContextObject.Client);
+            int preCount = TestResources.DbContextObject.Client.Count();
             #endregion
 
             #region Act
@@ -829,7 +829,7 @@ namespace MapTests
             #region Assert
             Assert.IsType<JsonResult>(view);
 
-            int postCount = Enumerable.Count(TestResources.DbContextObject.Client);
+            int postCount = TestResources.DbContextObject.Client.Count();
             Assert.Equal<int>((preCount - 1), postCount);
             #endregion
         }
