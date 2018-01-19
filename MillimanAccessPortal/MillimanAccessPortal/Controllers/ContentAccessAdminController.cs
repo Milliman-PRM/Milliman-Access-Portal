@@ -32,11 +32,11 @@ namespace MillimanAccessPortal.Controllers
     public class ContentAccessAdminController : Controller
     {
         private readonly ApplicationDbContext DbContext;
-        private readonly IAuditLogger _auditLogger;
+        private readonly IAuditLogger AuditLogger;
         private readonly IAuthorizationService AuthorizationService;
-        private readonly ILogger _logger;
+        private readonly ILogger Logger;
         private readonly StandardQueries Queries;
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly UserManager<ApplicationUser> UserManager;
 
         public ContentAccessAdminController(
             ApplicationDbContext DbContextArg,
@@ -44,15 +44,15 @@ namespace MillimanAccessPortal.Controllers
             IAuthorizationService AuthorizationServiceArg,
             ILoggerFactory LoggerFactoryArg,
             StandardQueries QueriesArg,
-            UserManager<ApplicationUser> userManager
+            UserManager<ApplicationUser> UserManagerArg
             )
         {
             DbContext = DbContextArg;
-            _auditLogger = AuditLoggerArg;
+            AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
-            _logger = LoggerFactoryArg.CreateLogger<ContentAccessAdminController>();
+            Logger = LoggerFactoryArg.CreateLogger<ContentAccessAdminController>();
             Queries = QueriesArg;
-            _userManager = userManager;
+            UserManager = UserManagerArg;
         }
     }
 }
