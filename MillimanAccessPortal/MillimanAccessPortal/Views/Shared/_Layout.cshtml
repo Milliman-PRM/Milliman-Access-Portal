@@ -13,6 +13,7 @@
         <link rel="stylesheet" href="~/lib/toastr/toastr.css" />
         <link rel="stylesheet" href="~/lib/vex/dist/css/vex.css" />
         <link rel="stylesheet" href="~/lib/vex/dist/css/vex-theme-default.css" />
+        <link rel="stylesheet" href="~/lib/tooltipster/dist/css/tooltipster.bundle.css" />
         <link rel="stylesheet" href="~/css/map.css" />
     </environment>
     <environment names="Staging,Production">
@@ -22,6 +23,7 @@
               asp-fallback-test-class="toast-title" asp-fallback-test-property="font-weight" asp-fallback-test-value="bold" />
         <link rel="stylesheet" href="~/lib/vex/dist/css/vex.min.css" />
         <link rel="stylesheet" href="~/lib/vex/dist/css/vex-theme-default.min.css" />
+        <link rel="stylesheet" href="~/lib/tooltipster/dist/css/tooltipster.bundle.min.css" />
         <link rel="stylesheet" href="~/css/map.min.css" />
     </environment>
     @Html.Raw(JavaScriptSnippet.FullScript)
@@ -39,6 +41,8 @@
         <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
         <script src="~/lib/vex/dist/js/vex.combined.js"></script>
         <script src="~/lib/toastr/toastr.js"></script>
+        <script src="~/lib/tooltipster/src/js/tooltipster.js"></script>
+        <script src="~/lib/tooltipster/src/js/plugins/tooltipster/sideTip/tooltipster-sideTip.js"></script> 
         <script src="~/js/lib-options.js"></script>
     </environment>
     <environment names="Staging,Production">
@@ -52,6 +56,7 @@
         <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
         <script src="~/lib/vex/dist/js/vex.combined.min.js"></script>
         <script src="~/lib/toastr/toastr.min.js"></script>
+        <script src="~/lib/tooltipster/dist/js/tooltipster.bundle.min.js"></script>
         <script src="~/js/lib-options.min.js"></script>
     </environment>
 
