@@ -88,7 +88,7 @@ namespace MapTests
         public static IdentityResult RemoveClaims(UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long> userStoreArg, ApplicationUser userArg, IEnumerable<Claim> claimsArg)
         {
             int beforeCount = Queryable.Count(userStoreArg.Context.UserClaims);
-            int removingCount = Enumerable.Count(claimsArg);
+            int removingCount = claimsArg.Count();
             int expectedFinalCount = beforeCount - removingCount;
 
             userStoreArg.RemoveClaimsAsync(userArg, claimsArg, CancellationToken.None);

@@ -40,15 +40,15 @@ namespace MapTests
             );
             NewStore.Setup(d => d.RemoveClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>(), It.IsAny<CancellationToken>())).Returns<ApplicationUser, IEnumerable<Claim>, CancellationToken>((usr, claims, ct) =>
                 {
-                    int initialCount = Enumerable.Count(Context.Object.UserClaims);
-                    int removeCount = Enumerable.Count(claims);
+                    int initialCount = Context.Object.UserClaims.Count();
+                    int removeCount = claims.Count();
                     int expectedFinalCount = initialCount - removeCount;
 
                     List<IdentityUserClaim<long>> claimsList = BuildClaimList(usr, claims, Context.Object);
 
                     Context.Object.UserClaims.RemoveRange(claimsList);
 
-                    int finalCount = Enumerable.Count(Context.Object.UserClaims);
+                    int finalCount = Context.Object.UserClaims.Count();
                     
                     if (finalCount == expectedFinalCount)
                         return Task.CompletedTask;
