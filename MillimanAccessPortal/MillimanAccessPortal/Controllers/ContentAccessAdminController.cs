@@ -22,14 +22,14 @@ using MapCommonLib;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.Services;
 using MillimanAccessPortal.DataQueries;
-using MillimanAccessPortal.Models.UserAdminViewModels;
+using MillimanAccessPortal.Models.ContentAccessAdminViewModels;
 using MillimanAccessPortal.Models.ClientAdminViewModels;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
 
 namespace MillimanAccessPortal.Controllers
 {
-    public class UserAdminController : Controller
+    public class ContentAccessAdminController : Controller
     {
         private readonly ApplicationDbContext DbContext;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -39,7 +39,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly ILogger _logger;
         private readonly StandardQueries Queries;
 
-        public UserAdminController(
+        public ContentAccessAdminController(
             UserManager<ApplicationUser> userManager,
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
@@ -53,12 +53,12 @@ namespace MillimanAccessPortal.Controllers
             _auditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
             MessageQueueService = MessageQueueServiceArg;
-            _logger = LoggerFactoryArg.CreateLogger<UserAdminController>();
+            _logger = LoggerFactoryArg.CreateLogger<ContentAccessAdminController>();
             DbContext = DbContextArg;
             Queries = QueriesArg;
         }
 
-        // GET: UserAdmin
+        // GET: ContentAccessAdmin
         public async Task<ActionResult> Index()
         {
             Task<AuthorizationResult> Task1 = AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserAdmin, null));
@@ -81,9 +81,9 @@ namespace MillimanAccessPortal.Controllers
             return View(Model);
         }
 
-        // GET: UserAdmin/ClientFamilyList
+        // GET: ContentAccessAdmin/ClientFamilyList
         /// <summary>
-        /// Returns the list of Client families that the current user has visibility to (defined by GetUserAdminClientListModel(...)
+        /// Returns the list of Client families that the current user has visibility to (defined by GetContentAccessAdminClientListModel(...)
         /// </summary>
         /// <returns>JsonResult or UnauthorizedResult</returns>
         [HttpGet]
@@ -99,18 +99,18 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            UserAdminClientFamilyListViewModel Model = await GetUserAdminClientListModel(await Queries.GetCurrentApplicationUser(User));
+            ContentAccessAdminClientFamilyListViewModel Model = await GetContentAccessAdminClientListModel(await Queries.GetCurrentApplicationUser(User));
 
             return Json(Model);
         }
 
         /// <summary>
-        /// A utility method to provide a model for the client list in the application's UserAdmin page
+        /// A utility method to provide a model for the client list in the application's ContentAccessAdmin page
         /// </summary>
         /// <param name="CurrentUser"></param>
         /// <returns></returns>
         [NonAction]  // maybe move this elsewhere, (e.g. the model class itself?)
-        private async Task<UserAdminClientFamilyListViewModel> GetUserAdminClientListModel(ApplicationUser CurrentUser)
+        private async Task<ContentAccessAdminClientFamilyListViewModel> GetContentAccessAdminClientListModel(ApplicationUser CurrentUser)
         {
             #region Validation
             if (CurrentUser == null)
@@ -120,7 +120,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion            
             
             // Instantiate working variables
-            UserAdminClientFamilyListViewModel ModelToReturn = new UserAdminClientFamilyListViewModel();
+            ContentAccessAdminClientFamilyListViewModel ModelToReturn = new ContentAccessAdminClientFamilyListViewModel();
 
             // Add all appropriate client trees
             List<Client> AllRootClients = Queries.GetAllRootClients();  // list to memory so utilization is fast and no lingering transaction
@@ -140,7 +140,7 @@ namespace MillimanAccessPortal.Controllers
 
 
         
-        // GET: UserAdmin/Details/5
+        // GET: ContentAccessAdmin/Details/5
         public async Task<ActionResult> Details(string id)
         {
             ApplicationUser RequestedUser = await _userManager.FindByIdAsync(id);
@@ -149,14 +149,14 @@ namespace MillimanAccessPortal.Controllers
             return View(RequestedUser);
         }
 
-        // GET: UserAdmin/Create
+        // GET: ContentAccessAdmin/Create
         public ActionResult Create()
         {
             // NEXT TODO return a ViewModel with the list of clients the current user is authorized to admin
             return View();
         }
 
-        // POST: UserAdmin/SaveNewUser
+        // POST: ContentAccessAdmin/SaveNewUser
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task <ActionResult> SaveNewUser([Bind("UserName,Email,FirstName,LastName,PhoneNumber,Employer,MemberOfClientIdArray")]ApplicationUserViewModel Model)
@@ -335,7 +335,7 @@ namespace MillimanAccessPortal.Controllers
             // I would validate existence of the client record, but the authorization test would have already failed above
             #endregion
 
-            UserAdminClientDetailViewModel ReturnModel = UserAdminClientDetailViewModel.GetModel(RequestedClientId, DbContext);
+            ContentAccessAdminClientDetailViewModel ReturnModel = ContentAccessAdminClientDetailViewModel.GetModel(RequestedClientId, DbContext);
 
             return Json(ReturnModel);
         }
@@ -365,7 +365,7 @@ namespace MillimanAccessPortal.Controllers
             return (Result.Succeeded) ? NewUser : null;
         }
 
-        // POST: UserAdmin/Edit/5
+        // POST: ContentAccessAdmin/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(ApplicationUserViewModel Model)

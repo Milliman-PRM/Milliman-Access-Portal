@@ -1,4 +1,4 @@
-@model IEnumerable<MillimanAccessPortal.Models.UserAdminViewModels.ApplicationUserViewModel>
+@model IEnumerable<MillimanAccessPortal.Models.ContentAccessAdminViewModels.ApplicationUserViewModel>
 
 @{
     /*
@@ -28,12 +28,12 @@
             //var lastName = $('#LastName').val();
             //var phoneNumber = $('#PhoneNumber').val();
             //var employer = $('#Employer').val();
-            //var urlAction = 'UserAdmin/GetContentForClient/';
+            //var urlAction = 'ContentAccessAdmin/GetContentForClient/';
             //var successResponse, failResponse;
 
             $.ajax({
                 type: 'GET',
-                url: 'UserAdmin/GetContentForClient/',
+                url: 'ContentAccessAdmin/GetContentForClient/',
                 data: {
                     RequestedClientId: 2
                 },

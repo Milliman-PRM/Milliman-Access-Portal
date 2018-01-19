@@ -3,15 +3,15 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Context;
 
-namespace MillimanAccessPortal.Models.UserAdminViewModels
+namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
-    public class UserAdminClientDetailViewModel
+    public class ContentAccessAdminClientDetailViewModel
     {
         public List<RootContentDetailViewModel> ContentList= new List<RootContentDetailViewModel>();
 
-        internal static UserAdminClientDetailViewModel GetModel(long ClientId, ApplicationDbContext DbContext)
+        internal static ContentAccessAdminClientDetailViewModel GetModel(long ClientId, ApplicationDbContext DbContext)
         {
-            UserAdminClientDetailViewModel Model = new UserAdminClientDetailViewModel();
+            ContentAccessAdminClientDetailViewModel Model = new ContentAccessAdminClientDetailViewModel();
 
             foreach (var RootContent in DbContext.RootContentItem
                                                  .Include(rc => rc.ContentType)

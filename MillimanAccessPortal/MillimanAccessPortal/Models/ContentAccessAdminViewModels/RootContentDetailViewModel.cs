@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: A ViewModel representing details of a RootContentItem for use in UserAdmin
+ * OBJECTIVE: A ViewModel representing details of a RootContentItem for use in ContentAccessAdmin
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
@@ -9,7 +9,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Context;
 
-namespace MillimanAccessPortal.Models.UserAdminViewModels
+namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
     public class RootContentDetailViewModel
     {
