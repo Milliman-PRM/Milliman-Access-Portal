@@ -341,7 +341,7 @@ function confirmResetDialog(callback) {
  * @param {function} callback Executed if the user selects YES
  * @return {undefined}
  */
-function confirmRemoveDialog(name, callback) {
+function confirmRemoveDialog(name, submitHandler) {
   buildVexDialog({
     title: 'Remove User',
     message: 'Remove <strong>' + name + '</strong> from the selected client?',
@@ -350,11 +350,7 @@ function confirmRemoveDialog(name, callback) {
       { type: vex.dialog.buttons.no, text: 'Cancel' }
     ],
     color: 'red',
-    callback: function onSelect(result) {
-      if (result) {
-        callback();
-      }
-    }
+    submitHandler: submitHandler
   });
 }
 
@@ -986,9 +982,10 @@ function addUserClickHandler() {
  * @param  {Number} userId   User ID
  * @return {undefined}
  */
-function removeUserFromClient(clientId, userId) {
+function removeUserFromClient(clientId, userId, callback) {
   var userName = $('#user-list [data-user-id="' + userId + '"] .card-body-primary-text').html();
   var clientName = $('#client-tree [data-client-id="' + clientId + '"] .card-body-primary-text').html();
+  setButtonSubmitting($('.vex-first'), 'Removing');
   $.ajax({
     type: 'POST',
     url: 'ClientAdmin/RemoveUserFromClient',
@@ -1001,8 +998,10 @@ function removeUserFromClient(clientId, userId) {
     }
   }).done(function onDone(response) {
     renderUserList(response);
+    callback();
     toastr.success('Successfully removed ' + userName + ' from ' + clientName);
   }).fail(function onFail(response) {
+    callback();
     toastr.warning(response.getResponseHeader('Warning'));
   });
 }
@@ -1013,10 +1012,10 @@ function removeUserFromClient(clientId, userId) {
  */
 function userCardRemoveClickHandler($clickedCard) {
   var userName = $clickedCard.find('.card-body-primary-text').html();
-  confirmRemoveDialog(userName, function removeUser() {
+  confirmRemoveDialog(userName, function removeUser(value, callback) {
     var clientId = $('#client-tree [selected]').attr('data-client-id');
     var userId = $clickedCard.attr('data-user-id');
-    removeUserFromClient(clientId, userId);
+    removeUserFromClient(clientId, userId, callback);
   });
 }
 
