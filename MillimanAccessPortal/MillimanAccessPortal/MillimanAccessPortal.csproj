@@ -60,17 +60,10 @@
   <ItemGroup>
     <Folder Include="Properties\PublishProfiles\" />
     <Folder Include="Views\ClientAdmin\templates\" />
-    <Folder Include="wwwroot\lib\" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="qlikview.json">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\lib\toastr\toastr.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\lib\toastr\toastr.scss">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
