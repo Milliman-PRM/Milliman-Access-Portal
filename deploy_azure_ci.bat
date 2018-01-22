@@ -74,12 +74,12 @@ echo Restoring nuget packages
 call :ExecuteCmd dotnet restore "%DEPLOYMENT_SOURCE%\MillimanAccessPortal\MillimanAccessPortal.sln"
 IF !ERRORLEVEL! NEQ 0 goto error
 
-
-
 :: 2. Install bower Packages
+set base_directory=%cd%
 echo Installing bower packages
 cd "%DEPLOYMENT_SOURCE%\MillimanAccessPortal\MillimanAccessPortal\"
 bower install
+cd %base_directory%
 
 :: 3. Build and publish
 echo Publishing site to temp folder with MSBuild
