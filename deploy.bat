@@ -76,7 +76,8 @@ IF !ERRORLEVEL! NEQ 0 goto error
 :: 2. Build and publish
 echo Publishing site to temp folder with MSBuild
 rem call :ExecuteCmd dotnet publish "%DEPLOYMENT_SOURCE%\MillimanAccessPortal\MillimanAccessPortal\MillimanAccessPortal.csproj" --output "%DEPLOYMENT_TEMP%" --configuration Release
-call :ExecuteCmd MSBuild "%DEPLOYMENT_SOURCE%\MillimanAccessPortal\MillimanAccessPortal\MillimanAccessPortal.csproj" /t:Restore /t:publish /p:PublishDir=%DEPLOYMENT_TEMP% /verbosity:minimal
+set MSBUILD_15_PATH=D:\Program Files (x86)\MSBuild-15.3.409.57025\MSBuild\15.0\Bin
+call :ExecuteCmd %MSBUILD_15_PATH% "%DEPLOYMENT_SOURCE%\MillimanAccessPortal\MillimanAccessPortal\MillimanAccessPortal.csproj" /t:Restore /t:publish /p:PublishDir=%DEPLOYMENT_TEMP% /verbosity:minimal
 IF !ERRORLEVEL! NEQ 0 goto error
 
 :: 3. KuduSync
