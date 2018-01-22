@@ -24,9 +24,9 @@
 #region Script setup
 # Configure general Azure properties
 
-$ResourceGroupName = "MAP-CI"
+$ResourceGroupName = "map-ci"
 $Location = "northcentralus"
-$SubscriptionId = "f79a71e4-267e-4b96-bab3-0f733ebc7c3d"
+$SubscriptionId = "da69e4f4-f338-427a-a7af-985473534d85"
 
 # Configure environment properties
 
@@ -34,15 +34,15 @@ $WebAppName = "prm-map-ci"
 $AppServicePlanName = "map-ci"
 $StorageName = "mapcistore"
 
-$DatabaseServerName = "prm-map-ci-db"
+$DatabaseServerName = "map-ci-db"
 $AppDatabaseName = "appdbdevelop"
 $LoggingDatabaseName = "logdbdevelop"
 $DatabaseUserName = "prmdb"
-$DatabaseUserPassword = "P@ssw0rd"
+$DatabaseUserPassword = "P@ssw0rd" # Password should be reset manually in the Azure Portal after the script finishes
 
 $HotwarePath = "l:\hotware\postgresql\v9.6.2"
 
-$VmName = "map-ci-qv1"
+$VmName = "map-ci-qv"
 $VirtualNetworkName = "map-ci-vn"
 $SubnetName = "map-ci-subnet"
 $SecurityGroupName = "map-ci-vm-group"
@@ -186,7 +186,7 @@ if ($ExistingVM -ne $null)
       -Protocol Tcp `
       -Direction Inbound `
       -Priority 1000 `
-      -SourceAddressPrefix * `
+      -SourceAddressPrefix '74.116.173.3' `
       -SourcePortRange * `
       -DestinationAddressPrefix * `
       -DestinationPortRange 3389 `
@@ -212,7 +212,7 @@ if ($ExistingVM -ne $null)
     $vm = New-AzureRmVMConfig -VMName $VmName -VMSize Standard_B2s
     $vm = Set-AzureRmVMOperatingSystem -VM $vm -Windows -ComputerName $VmName -Credential $cred -ProvisionVMAgent -EnableAutoUpdate
     $vm = set-azurermvmsourceimage -VM $vm -PublisherName MicrosoftWindowsServer -Offer WindowsServer -Skus 2016-Datacenter -Version latest
-    $vm = Set-AzureRmVMOSDisk -VM $vm -Name myOsDisk -DiskSizeInGB 128 -CreateOption FromImage -Caching ReadWrite
+    $vm = Set-AzureRmVMOSDisk -VM $vm -Name ciQvOsDisk -DiskSizeInGB 128 -CreateOption FromImage -Caching ReadWrite
 
     $vm = Add-AzureRmVMNetworkInterface -VM $vm -Id $nic.Id
 
