@@ -1,2 +1,2 @@
 [config]
-command = deploy.bat
+command = deploy_azure_ci.bat

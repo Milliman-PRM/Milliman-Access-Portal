@@ -70,12 +70,14 @@ SET MSBUILD_PATH=%ProgramFiles(x86)%\MSBuild\14.0\Bin\MSBuild.exe
 echo Handling ASP.NET Core Web Application deployment.
 
 :: 1. Restore nuget packages
+echo Restoring nuget packages
 call :ExecuteCmd dotnet restore "%DEPLOYMENT_SOURCE%\MillimanAccessPortal\MillimanAccessPortal.sln"
 IF !ERRORLEVEL! NEQ 0 goto error
 
 
 
 :: 2. Install bower Packages
+echo Installing bower packages
 cd "%DEPLOYMENT_SOURCE%\MillimanAccessPortal\MillimanAccessPortal\"
 bower install
 
