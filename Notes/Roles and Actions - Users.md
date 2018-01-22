@@ -34,46 +34,55 @@ This file is for describing end user roles and actions.
 #### Client Admin
 
 - View Client Admin page
-- Create Child Client
-- Delete Client _(Only if no further children in client)_
 - View Client information
 - Edit Client information
 - Edit the domain whitelist
 - Add exception to the domain whitelist
+- Create user
+- Assign eligibility for **Content User** (not actually choose if they see content)
 - Assign user **Client Admin** role _(must be a **Client Admin** for that client)_
 - Assign user **Content Access Admin** role
 - Assign user **Content Publisher** role
-- Remove **Client User** from client
+- Remove **Content User** from client
 - Remove **Client Administrator** role
 - Remove **Content Access Admin** role
 - Remove **Content Publisher** role
 
-#### Client Admin Enhanced _(in addition to Client Admin)_
+#### Client Admin with Business Authority _(in addition to Client Admin)_
 
 - Create Root Client _(Needs Profit Center to be created by System Admin)_
+- Create Child Client
+- Delete Client _(Only if no further children in client and no content)_
 
 ### Content Access Administrator Page
 
 #### Content Access Admin
 
 - View Content Access Admin
-- Add existing **Client User** to client _(**Content Access Admin** does not have ability to modify acceptable domain or email exceptions list.)_
-- Add new **Client User** to client (will create a new user in the system) _(**Content Access Admin** does not have ability to modify acceptable domain or email exceptions list.)_
-- View assigned **Client User** information
-- Assign **Client Users** to content _(**Content Access Admin** can only assign **Client User** role)_
+- View Client level reports, groups, and selections
+- Assign client **Content Users** to content _(Can only assign a user to a single Selection Group per root content item)_
 - Create user selection groups for reducible content
-- Manage **Client Users** in selection groups for reducible content
-- Manage **Client Users** selections for reducible content
+- Manage **Content Users** in selection groups for reducible content (who goes in selection group)
+- Manage **Content Users** selections for reducible content (what selections does group receive)
+
+#### Content Access Admin with User Creation - _post v1.0.0_
+
+- Add existing **Content User** to client _(**Content Access Admin** does not have ability to modify acceptable domain or email exceptions list.)_
+- Add new **Content User** to client (will create a new user in the system) _(**Content Access Admin** does not have ability to modify acceptable domain or email exceptions list.)_
 
 ### Content Publisher Page
 
-#### Content Publisher
+#### Content Publisher with Content Creation
 
 - View Content Publisher page
 - Publish new content
 - Update existing content (republish report)
 - Edit existing content item information (edit report name, description, image, etc)
 - Delete content
+
+#### Content Publisher _post v1.0.0_?
+
+- Cannot publish new content
 
 ### System Administrator Page
 
