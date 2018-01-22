@@ -120,6 +120,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="ReportGroupName">The name of the new report group.</param>
         /// <returns>JsonResult</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateReportGroup(long? ClientId, long? RootContentItemId, String ReportGroupName)
         {
             #region Authorization
@@ -136,6 +137,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="Users">The users to be applied to the report group.</param>
         /// <returns>JsonResult</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateReportGroup(long? ReportGroupId, object Users)
         {
             #region Authorization
@@ -151,6 +153,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="ReportGroupId">The report group to be deleted.</param>
         /// <returns>JsonResult</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteReportGroup(long? ReportGroupId)
         {
             #region Authorization
@@ -182,6 +185,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="Selections">The selections to be applied to the report group.</param>
         /// <returns>JsonResult</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateSelections(long? ReportGroupId, object Selections)
         {
             #region Authorization
