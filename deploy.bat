@@ -77,7 +77,7 @@ IF !ERRORLEVEL! NEQ 0 goto error
 echo Publishing site to temp folder with MSBuild
 rem call :ExecuteCmd dotnet publish "%DEPLOYMENT_SOURCE%\MillimanAccessPortal\MillimanAccessPortal\MillimanAccessPortal.csproj" --output "%DEPLOYMENT_TEMP%" --configuration Release
 set MSBUILD_15_PATH=D:\Program Files (x86)\MSBuild-15.3.409.57025\MSBuild\15.0\Bin\msbuild.exe
-call :ExecuteCmd "%MSBUILD_15_PATH%" "%DEPLOYMENT_SOURCE%\MillimanAccessPortal\MillimanAccessPortal\MillimanAccessPortal.csproj" /t:Restore /t:publish /p:PublishDir=%DEPLOYMENT_TEMP% /verbosity:minimal
+call :ExecuteCmd "%MSBUILD_15_PATH%" "%DEPLOYMENT_SOURCE%\MillimanAccessPortal\MillimanAccessPortal\MillimanAccessPortal.csproj" /t:Restore /t:publish /p:PublishDir=%DEPLOYMENT_TEMP% /verbosity:diag
 IF !ERRORLEVEL! NEQ 0 goto error
 
 :: 3. KuduSync
