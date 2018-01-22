@@ -136,7 +136,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="ReportGroupId">The report group to be updated.</param>
         /// <param name="Users">The users to be applied to the report group.</param>
         /// <returns>JsonResult</returns>
-        [HttpPost]
+        [HttpPut]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateReportGroup(long? ReportGroupId, object Users)
         {
@@ -152,7 +152,7 @@ namespace MillimanAccessPortal.Controllers
         /// <summary>Deletes a report group.</summary>
         /// <param name="ReportGroupId">The report group to be deleted.</param>
         /// <returns>JsonResult</returns>
-        [HttpPost]
+        [HttpDelete]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteReportGroup(long? ReportGroupId)
         {
@@ -184,7 +184,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="ReportGroupId">The report group whose selections are to be updated.</param>
         /// <param name="Selections">The selections to be applied to the report group.</param>
         /// <returns>JsonResult</returns>
-        [HttpPost]
+        [HttpPut]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateSelections(long? ReportGroupId, object Selections)
         {
