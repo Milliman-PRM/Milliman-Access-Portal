@@ -94,11 +94,13 @@ This file is for describing end user roles and actions.
 - Send a password reset email
 - ? User last access date
 - ? User creation date
-- ? Summary of clients/content by user
+- ? Client Summary
+  - ? Role Summary
+  - ? Content Summary
 
 ###### Roles
 - Temporarily assign a role to user
-- Assign role of Elevated Client Admin
+- Assign role of Client Admin w BA
 - ? Ability to assign roles to any user (for any client)
 
 ##### Client
