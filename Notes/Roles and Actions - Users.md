@@ -88,12 +88,20 @@ This file is for describing end user roles and actions.
 
 #### System Admin
 
-- View System Administration page
-- Temporarily assign a role to user
+##### Users
 - Create user
-- Assign role of Elevated Client Admin
 - Remove user from System
+- Send a password reset email
+- ? User last access date
+- ? User creation date
+- ? Summary of clients/content by user
+
+###### Roles
+- Temporarily assign a role to user
+- Assign role of Elevated Client Admin
+- ? Ability to assign roles to any user (for any client)
+
+##### Client
 - Remove Client from System
 - Remove Content from System
 - Create profit center entry
-- Send a password reset email
