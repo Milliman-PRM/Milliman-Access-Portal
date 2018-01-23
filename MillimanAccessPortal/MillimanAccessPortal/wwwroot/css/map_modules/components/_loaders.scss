@@ -37,12 +37,12 @@ $loading-width:     ($bar-count * ($bar-width + $bar-margin-h) - $bar-margin-h);
             width: $bar-width;
             height: $bar-height-min;
             float: right;
-            margin-right: $bar-margin-h;
+            margin: $bar-margin-v $bar-margin-h $bar-margin-v 0;
         }
 
         @for $i from 1 through $bar-count {
             li:nth-child(#{$i}) {
-                -webkit-animation: loadbars $period ease-in-out infinite (-1 * $i * $delay-ratio * $period);
+                -webkit-animation: loadbars $period ease-in-out infinite #{($bar-count - $i) * $delay-ratio * $period};
             }
         }
 
