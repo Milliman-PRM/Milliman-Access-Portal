@@ -570,10 +570,10 @@ function getClientDetail(clientDiv) {
   var clientId = clientDiv.attr('data-client-id').valueOf();
 
   clearFormData();
-  $('#client-info .spinner-wrapper').show();
+  $('#client-info .loading-wrapper').show();
 
   clearUserList();
-  $('#client-users .spinner-wrapper').show();
+  $('#client-users .loading-wrapper').show();
 
   ajaxStatus.getClientDetail = clientId;
   $.ajax({
@@ -585,13 +585,13 @@ function getClientDetail(clientDiv) {
   }).done(function onDone(response) {
     if (ajaxStatus.getClientDetail !== clientId) return;
     populateClientForm(response.ClientEntity);
-    $('#client-info .spinner-wrapper').hide();
+    $('#client-info .loading-wrapper').hide();
     renderUserList(response);
-    $('#client-users .spinner-wrapper').hide();
+    $('#client-users .loading-wrapper').hide();
   }).fail(function onFail(response) {
     if (ajaxStatus.getClientDetail !== clientId) return;
-    $('#client-info .spinner-wrapper').hide();
-    $('#client-users .spinner-wrapper').hide();
+    $('#client-info .loading-wrapper').hide();
+    $('#client-users .loading-wrapper').hide();
     toastr.warning(response.getResponseHeader('Warning'));
   });
 }
@@ -1184,16 +1184,16 @@ function deleteClient(clientId, clientName, password, callback) {
  * @return {undefined}
  */
 function getClientTree(clientId) {
-  $('#client-tree .spinner-wrapper').show();
+  $('#client-tree .loading-wrapper').show();
   $.ajax({
     type: 'GET',
     url: 'ClientAdmin/ClientFamilyList/'
   }).done(function onDone(response) {
     populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
     renderClientTree(response.ClientTreeList, clientId || response.RelevantClientId);
-    $('#client-tree .spinner-wrapper').hide();
+    $('#client-tree .loading-wrapper').hide();
   }).fail(function onFail(response) {
-    $('#client-tree .spinner-wrapper').hide();
+    $('#client-tree .loading-wrapper').hide();
     if (response.getResponseHeader('Warning')) {
       toastr.warning(response.getResponseHeader('Warning'));
     } else {
