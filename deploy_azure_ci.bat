@@ -91,6 +91,7 @@ call :ExecuteCmd "%MSBUILD_15_PATH%" "%DEPLOYMENT_SOURCE%\MillimanAccessPortal\M
 IF !ERRORLEVEL! NEQ 0 goto error
 
 :: 4. KuduSync
+echo Copying build output to final location
 call :ExecuteCmd "%KUDU_SYNC_CMD%" -v 50 -f "%DEPLOYMENT_TEMP%" -t "%DEPLOYMENT_TARGET%" -n "%NEXT_MANIFEST_PATH%" -p "%PREVIOUS_MANIFEST_PATH%" -i ".git;.hg;.deployment;deploy.cmd"
 IF !ERRORLEVEL! NEQ 0 goto error
 
