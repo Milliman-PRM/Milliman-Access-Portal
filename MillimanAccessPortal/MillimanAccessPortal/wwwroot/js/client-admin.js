@@ -1,6 +1,10 @@
 /* global domainValRegex, emailValRegex */
 
+var ajaxStatus = {
+  getClientDetail: -1
+};
 var nodeTemplate = $('script[data-template="node"]').html();
+var smallSpinner = '<div class="spinner-small""></div>';
 var $createNewClientCard;
 var $createNewChildClientCard;
 var $addUserCard;
@@ -95,6 +99,16 @@ function setClientFormWriteable() {
     this.selectize.enable();
   });
   $clientForm.find('#Name').focus();
+}
+
+function setButtonSubmitting($button, text) {
+  $button.attr('data-original-text', $button.html());
+  $button.html(text || 'Submitting');
+  $button.append(smallSpinner);
+}
+
+function unsetButtonSubmitting($button) {
+  $button.html($button.attr('data-original-text'));
 }
 
 /**
@@ -246,23 +260,36 @@ function resetFormData() {
  * @param  {Array.<{type: function, text: String}>} options.buttons Dialog buttons
  * @param  {String} options.color Dialog color
  * @param  {String} [options.input] Input element
- * @param  {function} options.callback Called when an action on the dialog occurs
+ * @param  {function} options.callback Called when the dialog closes
+ * @param  {function} options.submitHandler Called within onSubmit instead of vex.close()
  * @return {undefined}
  */
-function buildVexDialog(options) {
-  if (typeof options !== 'object' || typeof options.callback !== 'function') {
-    throw new Error('buildVexDialog(options) requires options.callback.');
-  }
-  vex.dialog.open({
-    unsafeMessage: '<span class="vex-custom-message">' + options.message + '</span>',
-    buttons: $.map(options.buttons, function buildButton(element) {
-      return element.type(element.text, options.color);
+function buildVexDialog(opts) {
+  var $dialog;
+  var options = {
+    unsafeMessage: '<span class="vex-custom-message">' + opts.message + '</span>',
+    buttons: $.map(opts.buttons, function buildButton(element) {
+      return element.type(element.text, opts.color);
     }),
-    input: options.input || '',
-    callback: options.callback
-  });
+    input: opts.input || '',
+    callback: opts.callback ? opts.callback : $.noop
+  };
+  if (opts.submitHandler) {
+    options = $.extend(options, {
+      onSubmit: function onDialogSubmit(event) {
+        event.preventDefault();
+        if ($dialog.options.input) {
+          $dialog.value = $('.vex-dialog-input input').last().val();
+        }
+        return opts.submitHandler($dialog.value, function close() {
+          $dialog.close();
+        });
+      }
+    });
+  }
+  $dialog = vex.dialog.open(options);
   $('.vex-content')
-    .prepend('<div class="vex-title-wrapper"><h3 class="vex-custom-title ' + options.color + '">' + options.title + '</h3></div>');
+    .prepend('<div class="vex-title-wrapper"><h3 class="vex-custom-title ' + opts.color + '">' + opts.title + '</h3></div>');
 }
 
 /**
@@ -314,7 +341,7 @@ function confirmResetDialog(callback) {
  * @param {function} callback Executed if the user selects YES
  * @return {undefined}
  */
-function confirmRemoveDialog(name, callback) {
+function confirmRemoveDialog(name, submitHandler) {
   buildVexDialog({
     title: 'Remove User',
     message: 'Remove <strong>' + name + '</strong> from the selected client?',
@@ -323,11 +350,7 @@ function confirmRemoveDialog(name, callback) {
       { type: vex.dialog.buttons.no, text: 'Cancel' }
     ],
     color: 'red',
-    callback: function onSelect(result) {
-      if (result) {
-        callback();
-      }
-    }
+    submitHandler: submitHandler
   });
 }
 
@@ -547,14 +570,12 @@ function getClientDetail(clientDiv) {
   var clientId = clientDiv.attr('data-client-id').valueOf();
 
   clearFormData();
+  $('#client-info .loading-wrapper').show();
+
   clearUserList();
+  $('#client-users .loading-wrapper').show();
 
-  if (clientDiv.is('[disabled]')) {
-    $('#client-info #edit-client-icon').css('visibility', 'hidden');
-  } else {
-    $('#client-info #edit-client-icon').css('visibility', 'visible');
-  }
-
+  ajaxStatus.getClientDetail = clientId;
   $.ajax({
     type: 'GET',
     url: 'ClientAdmin/ClientDetail/' + clientId,
@@ -562,9 +583,15 @@ function getClientDetail(clientDiv) {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
   }).done(function onDone(response) {
+    if (ajaxStatus.getClientDetail !== clientId) return;
     populateClientForm(response.ClientEntity);
+    $('#client-info .loading-wrapper').hide();
     renderUserList(response);
+    $('#client-users .loading-wrapper').hide();
   }).fail(function onFail(response) {
+    if (ajaxStatus.getClientDetail !== clientId) return;
+    $('#client-info .loading-wrapper').hide();
+    $('#client-users .loading-wrapper').hide();
     toastr.warning(response.getResponseHeader('Warning'));
   });
 }
@@ -721,9 +748,11 @@ function clientCardDeleteClickHandler($clickedCard) {
           input: [
             '<input name="password" type="password" placeholder="Password" required />'
           ].join(''),
-          callback: function onSelectWithPassword(password) {
+          submitHandler: function onSelectWithPassword(password, callback) {
             if (password) {
-              deleteClient(clientId, clientName, password);
+              setButtonSubmitting($('.vex-first'), 'Deleting');
+              $('.vex-dialog-button').attr('disabled', '');
+              deleteClient(clientId, clientName, password, callback);
             } else if (password === '') {
               toastr.warning('Please enter your password to proceed');
               return false;
@@ -833,7 +862,7 @@ function userCardRoleToggleClickHandler(event) {
  * @param  {String} email Email address of the user
  * @return {undefined}
  */
-function saveNewUser(email) {
+function saveNewUser(email, callback) {
   var clientId = $('#client-tree [selected]').attr('data-client-id');
   $.ajax({
     type: 'POST',
@@ -848,8 +877,10 @@ function saveNewUser(email) {
     }
   }).done(function onDone() {
     openClientCardReadOnly($('#client-tree [data-client-id="' + clientId + '"]'));
+    if (typeof callback === 'function') callback();
     toastr.success('User successfully added');
   }).fail(function onFail(response) {
+    if (typeof callback === 'function') callback();
     toastr.warning(response.getResponseHeader('Warning'));
   });
 }
@@ -893,10 +924,13 @@ function initializeAddUserForm() {
     input: [
       '<input class="typeahead" name="username" placeholder="Email" required />'
     ].join(''),
-    callback: function onSubmit(user) {
-      if (emailValRegex.test(user.username)) {
-        saveNewUser(user.username);
-      } else if (user.username) {
+    submitHandler: function onSubmit(user, callback) {
+      var email = typeof user === 'object' ? user.email : user;
+      if (emailValRegex.test(email)) {
+        setButtonSubmitting($('.vex-first'), 'Adding');
+        $('.vex-dialog-button').attr('disabled', '');
+        saveNewUser(email, callback);
+      } else if (email) {
         toastr.warning('Please provide a valid email address');
         return false;
       }
@@ -948,9 +982,10 @@ function addUserClickHandler() {
  * @param  {Number} userId   User ID
  * @return {undefined}
  */
-function removeUserFromClient(clientId, userId) {
+function removeUserFromClient(clientId, userId, callback) {
   var userName = $('#user-list [data-user-id="' + userId + '"] .card-body-primary-text').html();
   var clientName = $('#client-tree [data-client-id="' + clientId + '"] .card-body-primary-text').html();
+  setButtonSubmitting($('.vex-first'), 'Removing');
   $.ajax({
     type: 'POST',
     url: 'ClientAdmin/RemoveUserFromClient',
@@ -963,8 +998,10 @@ function removeUserFromClient(clientId, userId) {
     }
   }).done(function onDone(response) {
     renderUserList(response);
+    callback();
     toastr.success('Successfully removed ' + userName + ' from ' + clientName);
   }).fail(function onFail(response) {
+    callback();
     toastr.warning(response.getResponseHeader('Warning'));
   });
 }
@@ -975,10 +1012,10 @@ function removeUserFromClient(clientId, userId) {
  */
 function userCardRemoveClickHandler($clickedCard) {
   var userName = $clickedCard.find('.card-body-primary-text').html();
-  confirmRemoveDialog(userName, function removeUser() {
+  confirmRemoveDialog(userName, function removeUser(value, callback) {
     var clientId = $('#client-tree [selected]').attr('data-client-id');
     var userId = $clickedCard.attr('data-user-id');
-    removeUserFromClient(clientId, userId);
+    removeUserFromClient(clientId, userId, callback);
   });
 }
 
@@ -1120,7 +1157,7 @@ function renderClientTree(clientTreeList, clientId) {
  * @param  {String} password   User's password
  * @return {undefined}
  */
-function deleteClient(clientId, clientName, password) {
+function deleteClient(clientId, clientName, password, callback) {
   $.ajax({
     type: 'DELETE',
     url: 'ClientAdmin/DeleteClient',
@@ -1134,24 +1171,29 @@ function deleteClient(clientId, clientName, password) {
   }).done(function onDone(response) {
     clearFormData();
     renderClientTree(response.ClientTreeList, response.RelevantClientId);
+    callback();
     toastr.success(clientName + ' was successfully deleted.');
   }).fail(function onFail(response) {
+    callback();
     toastr.warning(response.getResponseHeader('Warning'));
   });
 }
 
 /**
- * Send an AJAX request to delete a client
+ * Send an AJAX request to get the client tree
  * @return {undefined}
  */
 function getClientTree(clientId) {
+  $('#client-tree .loading-wrapper').show();
   $.ajax({
     type: 'GET',
     url: 'ClientAdmin/ClientFamilyList/'
   }).done(function onDone(response) {
     populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
     renderClientTree(response.ClientTreeList, clientId || response.RelevantClientId);
+    $('#client-tree .loading-wrapper').hide();
   }).fail(function onFail(response) {
+    $('#client-tree .loading-wrapper').hide();
     if (response.getResponseHeader('Warning')) {
       toastr.warning(response.getResponseHeader('Warning'));
     } else {
@@ -1166,6 +1208,7 @@ function getClientTree(clientId) {
  */
 function submitClientForm() {
   var $clientForm = $('#client-form');
+  var $button;
   var clientId;
   var clientName;
   var urlAction;
@@ -1178,11 +1221,14 @@ function submitClientForm() {
     if (clientId) {
       urlAction += 'EditClient';
       successResponse = clientName + ' was successfully updated';
+      $button = $('#save-changes-button');
     } else {
       urlAction += 'SaveNewClient';
       successResponse = clientName + ' was successfully created';
+      $button = $('#create-new-button');
     }
 
+    setButtonSubmitting($button);
     $.ajax({
       type: 'POST',
       url: urlAction,
@@ -1191,9 +1237,11 @@ function submitClientForm() {
         RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
       }
     }).done(function onDone(response) {
+      unsetButtonSubmitting($button);
       renderClientTree(response.ClientTreeList, response.RelevantClientId);
       toastr.success(successResponse);
     }).fail(function onFail(response) {
+      unsetButtonSubmitting($button);
       toastr.warning(response.getResponseHeader('Warning'));
     });
   }
@@ -1332,6 +1380,7 @@ $(document).ready(function onReady() {
           $('#client-form #AcceptedEmailDomainList')[0].selectize.focus();
         }
       });
+      return {};
     }
   });
 
