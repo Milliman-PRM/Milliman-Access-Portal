@@ -1,0 +1,55 @@
+@model IEnumerable<MillimanAccessPortal.Models.ContentAccessAdminViewModels.ApplicationUserViewModel>
+
+@{
+    /*
+     * CODE OWNERS: Ben Wyatt
+     * OBJECTIVE: List application users and provide navigation to management functions
+     * DEVELOPER NOTES:
+     */
+
+    ViewData["Title"] = "Content Access Administration";
+    Layout = "_Layout_w_NB_H_F";
+    ViewData["NavIcon"] = "ContentAccessAdmin";
+}
+
+
+
+
+
+@section Scripts {
+
+    <script>
+        $(document).ready(function () {
+
+            //var form = $('form');
+            //var email = $('#Email').val();
+            //var userName = $('#UserName').val();
+            //var firstName = $('#FirstName').val();
+            //var lastName = $('#LastName').val();
+            //var phoneNumber = $('#PhoneNumber').val();
+            //var employer = $('#Employer').val();
+            //var urlAction = 'ContentAccessAdmin/GetContentForClient/';
+            //var successResponse, failResponse;
+
+            $.ajax({
+                type: 'GET',
+                url: 'ContentAccessAdmin/GetContentForClient/',
+                data: {
+                    RequestedClientId: 2
+                },
+                dataType: "json"
+            }).done(function (response) {
+                var d = response;
+                console.log(response);
+                console.log(response.getResponseHeader("Warning"));
+                //toastr['success'](response.getResponseHeader("Warning"));
+            }).fail(function (response) {
+                var f = response
+                //toastr["warning"](failResponse);
+            });
+
+
+        });
+
+    </script>
+}
