@@ -85,6 +85,9 @@ cd
 echo Installing bower packages
 call bower install
 IF !ERRORLEVEL! NEQ 0 goto error
+cd %base_directory%
+echo Changed directory to
+cd
 
 :: 3. Build and publish site
 echo Publishing site to temp folder with MSBuild
