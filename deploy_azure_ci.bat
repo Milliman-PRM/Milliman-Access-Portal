@@ -67,8 +67,8 @@ SET MSBUILD_PATH=%ProgramFiles(x86)%\MSBuild\14.0\Bin\MSBuild.exe
 :: Deployment
 :: ----------
 
-echo Dump environment variables for debug
-set
+REM echo Dump environment variables for debug
+REM set
 
 echo Handling ASP.NET Core Web Application deployment.
 
