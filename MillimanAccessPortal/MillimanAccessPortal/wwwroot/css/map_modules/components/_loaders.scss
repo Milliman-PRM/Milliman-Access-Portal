@@ -1,11 +1,16 @@
 /* Loading Indicators */
 
-$period:      1.0s;
-$duty-cycle:  100%;
-$delay:       0.2s;
-$height-max:  50px;
-$height-min:  10px;
-$margin-bar:  ($height-max - $height-min) / 2;
+$period:            1.0s;
+$duty-cycle:        100%;
+$bar-count:         5;
+$delay:             0.2s;
+$bar-height-max:    50px;
+$bar-height-min:    10px;
+$bar-margin-v:      ($bar-height-max - $bar-height-min) / 2;
+$bar-width:         $bar-height-min;
+$bar-margin-h:      5px;
+$loading-height:    $bar-height-max;
+$loading-width:     ($bar-count * ($bar-width + $bar-margin-h) - $bar-margin-h);
 
 .loading-wrapper {
     position: absolute;
@@ -20,18 +25,18 @@ $margin-bar:  ($height-max - $height-min) / 2;
         left: 50%;
         transform: translate(-50%, -50%);
         list-style: none;
-        height: $height-max;
+        height: $loading-height;
 
         li {
             background-color: $blue;
             border: 1px solid $charcoal;
-            width: 15px;
-            height: $height-min;
+            width: $bar-width;
+            height: $bar-height-min;
             float: right;
-            margin-right: 5px;
+            margin-right: $bar-margin-h;
         }
 
-        @for $i from 1 through 5 {
+        @for $i from 1 through $bar-count {
             li:nth-child(#{$i}) {
                 -webkit-animation: loadbars $period ease-in-out infinite (-1 * $i * $delay);
             }
@@ -39,45 +44,45 @@ $margin-bar:  ($height-max - $height-min) / 2;
 
         @keyframes loadbars {
             0% {
-                height: $height-min;
-                margin-top: $margin-bar;
+                height: $bar-height-min;
+                margin-top: $bar-margin-v;
             }
 
             #{100% - $duty-cycle} {
-                height: $height-min;
-                margin-top: $margin-bar;
+              height: $bar-height-min;
+              margin-top: $bar-margin-v;
             }
 
             #{100% - ($duty-cycle / 2)} {
-                height: $height-max;
+                height: $bar-height-max;
                 margin-top: 0;
             }
 
             100% {
-                height: $height-min;
-                margin-top: $margin-bar;
+              height: $bar-height-min;
+              margin-top: $bar-margin-v;
             }
         }
 
         @-webkit-keyframes loadbars {
           0% {
-              height: $height-min;
-              margin-top: $margin-bar;
+              height: $bar-height-min;
+              margin-top: $bar-margin-v;
           }
 
           #{100% - $duty-cycle} {
-              height: $height-min;
-              margin-top: $margin-bar;
+            height: $bar-height-min;
+            margin-top: $bar-margin-v;
           }
 
           #{100% - ($duty-cycle / 2)} {
-              height: $height-max;
+              height: $bar-height-max;
               margin-top: 0;
           }
 
           100% {
-              height: $height-min;
-              margin-top: $margin-bar;
+            height: $bar-height-min;
+            margin-top: $bar-margin-v;
           }
         }
     }
