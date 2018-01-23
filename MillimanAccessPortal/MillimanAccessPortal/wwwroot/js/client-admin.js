@@ -721,10 +721,10 @@ function clientCardDeleteClickHandler($clickedCard) {
           input: [
             '<input name="password" type="password" placeholder="Password" required />'
           ].join(''),
-          callback: function onSelectWithPassword(password) {
-            if (password) {
-              deleteClient(clientId, clientName, password);
-            } else if (password === '') {
+          callback: function onSelectWithPassword(form) {
+            if (form.password) {
+              deleteClient(clientId, clientName, form.password);
+            } else if (form.password === '') {
               toastr.warning('Please enter your password to proceed');
               return false;
             } else {
