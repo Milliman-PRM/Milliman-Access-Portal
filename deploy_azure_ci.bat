@@ -84,7 +84,7 @@ cd "%DEPLOYMENT_SOURCE%\MillimanAccessPortal\MillimanAccessPortal\"
 bower install
 cd %base_directory%
 
-:: 3. Build and publish
+:: 3. Build and publish site
 echo Publishing site to temp folder with MSBuild
 rem call :ExecuteCmd dotnet publish "%DEPLOYMENT_SOURCE%\MillimanAccessPortal\MillimanAccessPortal\MillimanAccessPortal.csproj" --output "%DEPLOYMENT_TEMP%" --configuration Release
 set MSBUILD_15_PATH=D:\Program Files (x86)\MSBuild-15.3.409.57025\MSBuild\15.0\Bin\msbuild.exe
