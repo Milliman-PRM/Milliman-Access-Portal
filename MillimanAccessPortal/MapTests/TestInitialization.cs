@@ -24,6 +24,7 @@ using System.Security.Cryptography.X509Certificates;
 using AuditLogLib;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using MillimanAccessPortal.Services;
 
 namespace MapTests
 {
@@ -53,6 +54,9 @@ namespace MapTests
 
         public Mock<AuditLogger> MockAuditLogger { get; set; }
         public AuditLogger AuditLoggerObject { get => MockAuditLogger.Object; }
+
+        public Mock<MessageQueueServices> MockMessageQueueService { get; set; }
+        public MessageQueueServices MessageQueueServicesObject { get => MockMessageQueueService.Object; }
 
         public IOptions<QlikviewConfig> QvConfig { get; set; }
 
@@ -123,6 +127,7 @@ namespace MapTests
             MockDbContext = GenerateDbContext();
             MockUserManager = MapTests.MockUserManager.New(MockDbContext);
             MockRoleManager = GenerateRoleManager(MockDbContext);
+            MockMessageQueueService = GenerateMessageQueueService();
             LoggerFactory = new LoggerFactory();
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject);
@@ -246,6 +251,13 @@ namespace MapTests
                                                                             new OptionsWrapper<AuthorizationOptions>(AuthOptions));
 
             return ReturnService;
+        }
+
+        private Mock<MessageQueueServices> GenerateMessageQueueService()
+        {
+            Mock<MessageQueueServices> ReturnObject = new Mock<MessageQueueServices>();
+
+            return ReturnObject;
         }
 
         private Mock<AuditLogger> GenerateAuditLogger()
