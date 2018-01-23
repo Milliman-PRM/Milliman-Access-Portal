@@ -1,79 +1,99 @@
+This file is for describing end user roles and actions.
+
 ## User Type Descriptions
 
-|User Type|Description|
-|:------- |:--------- |
-|Milliman (PRM Support)|System level access|
-|Internal Milliman Consultants|Create root client nodes|
-|Internal Milliman Consultants|Manage one or more relationships with clients|
-|Internal Milliman Consultants|Create root client nodes|
-|Consultant or Client Employees|Manage user access for client|
-|Consultant|Publishes content items|
-|Client Employees|Reads authorized content|
+|Role|User Type|Description|
+| ---| ------- | --------- |
+|System Administrator|Milliman (PRM Support)|System level access|
+|Client Administrator|Internal Milliman Consultants|Create, edit, and/or view client information for one or more clients including the client tree, client information, and client users|
+|Content Publisher|Consultant|Publishes content items|
+|Content Access Administrator|Consultant|Create users, give users access to reports, and chooses selections for each user/group|
+|Client User|Client Employees|Reads authorized content|
 
 
-## Possible User Actions
-Note: The View column is intended to identify each one-page View with whatever availble (ajax) actions.
+## Possible Actions by Role/View
 
-Action is any single user initiated action, not necessarily one controller call.
+### Authorized Content Page
 
-User Type is the organizational role of a person using the system. 
+#### Content User Role
 
-The below is copied over from the previous table.  Needs revised.  
+- View Authorized Content page
+- View authorized content item details
 
-| View | Action | User Type(s) |
-| :--- | :----- | :---------- |
-|ACCOUNT INFORMATION|View Account Information|X|X|X|X|X|X||
-||Modify personal information|X|X|X|X|X|X||
-||Reset personal password|X|X|X|X|X|X||
-||Modify personal security question/answer|X|X|X|X|X|X||
-||||||||||
-|CONTENT VIEW|View content||||||X||
-||View authorized content index||||||X||
-||Delete existing content item|||X||X|||
-||Edit report information (navigates to a separate view)|||||X|||
-||View users with access to content item (navigates to a separate view)||||X||||
-||||||||||
-||||||||||
-|CLIENT ADMIN|View Client Admin||X|X|||||
-||Create Root Client||X||||||
-||Create Child Client|||X|||||
-||View Client information|||X|||||
-||Edit Client information|||X|||||
-||Edit the domain whitelist|||X|||||
-||Add exception to the domain whitelist|||X|||||
-||Add existing user to client|||X|||||
-||Add new user to client (Creates a new user in system)|||X|||||
-||Assign user Client Admin role (must be a Client Admin for that client)|||X|||||
-||Assign user User Manager role|||X|||||
-||Assign user Content Publisher role|||X|||||
-||Remove user from client|||X|||||
-||Remove Client Administrator|||X|||||
-||Remove user manager|||X|||||
-||Remove content publisher|||X|||||
-||||||||||
-||||||||||
-|CONTENT MANAGEMENT|View Content Management|||||X|||
-||Publish new content|||||X|||
-||Update existing content|||||X|||
-||Edit existing content item information|||||X|||
-||Delete content|||||X|||
-||||||||||
-||||||||||
-|USER MANAGEMENT|View User Management||||X||||
-||Add existing user to client||||X||||
-||Add new user to client (will create a new user)||||X||||
-||View assigned user information||||X||||
-||Assign users to content||||X||||
-||Create user selection groups for reduceable content||||X||||
-||Manage users in selection groups for reduceable content||||X||||
-||Manage user selections for reduceable content||||X||||
-||||||||||
-||||||||||
-|SYSTEM ADMINISTRATION|View System Administration Panel|X|||||||
-||Temporarily assign a role to user|X|||||||
-||Remove User from System|X|||||||
-||Remove Client from System|X|||||||
-||Remove Content from System|X|||||||
-||Create profit center entry|X|||||||
-||Add profit center claim to user (Root Client Creator and Client Admin only)|X|||||||
-||Send a password reset email|X|||||||
+### User Profile Page
+
+#### All Roles
+
+- View Account Information
+- Modify personal information
+- Reset personal password
+- Modify personal security question/answer
+
+### Client Administration Page
+
+#### Client Admin
+
+- View Client Admin page
+- View Client information
+- Edit Client information
+- Edit the domain whitelist
+- Add exception to the domain whitelist
+- Create user
+- Assign eligibility for **Content User** (not actually choose if they see content)
+- Assign user **Client Admin** role _(must be a **Client Admin** for that client)_
+- Assign user **Content Access Admin** role
+- Assign user **Content Publisher** role
+- Remove **Content User** from client
+- Remove **Client Administrator** role
+- Remove **Content Access Admin** role
+- Remove **Content Publisher** role
+
+#### Client Admin with Business Authority _(in addition to Client Admin)_
+
+- Create Root Client _(Needs Profit Center to be created by System Admin)_
+- Create Child Client
+- Delete Client _(Only if no further children in client and no content)_
+
+### Content Access Administrator Page
+
+#### Content Access Admin
+
+- View Content Access Admin
+- View Client level reports, groups, and selections
+- Assign client **Content Users** to content _(Can only assign a user to a single Selection Group per root content item)_
+- Create user selection groups for reducible content
+- Manage **Content Users** in selection groups for reducible content (who goes in selection group)
+- Manage **Content Users** selections for reducible content (what selections does group receive)
+
+#### Content Access Admin with User Creation - _post v1.0.0_
+
+- Add existing **Content User** to client _(**Content Access Admin** does not have ability to modify acceptable domain or email exceptions list.)_
+- Add new **Content User** to client (will create a new user in the system) _(**Content Access Admin** does not have ability to modify acceptable domain or email exceptions list.)_
+
+### Content Publisher Page
+
+#### Content Publisher with Content Creation
+
+- View Content Publisher page
+- Publish new content
+- Update existing content (republish report)
+- Edit existing content item information (edit report name, description, image, etc)
+- Delete content
+
+#### Content Publisher _post v1.0.0_?
+
+- Cannot publish new content
+
+### System Administrator Page
+
+#### System Admin
+
+- View System Administration page
+- Temporarily assign a role to user
+- Create user
+- Assign role of Elevated Client Admin
+- Remove user from System
+- Remove Client from System
+- Remove Content from System
+- Create profit center entry
+- Send a password reset email
