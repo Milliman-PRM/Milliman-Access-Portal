@@ -5,6 +5,10 @@
     Creates all needed resources for MAP CI if they do not already exist
 
     Must be run interactively by a user with rights to perform all the actions in the script
+
+    Some actions will need to be done manually in the portal after running the script:
+        * Change PostgreSQL database user password
+        * Add key vault certificate's .pfx file to the web application
 .NOTES
     File Name      : Azure_Provision_CI.ps1
     Code Owner     : Ben Wyatt, Steve Gredell
@@ -48,8 +52,7 @@ $SubnetName = "map-ci-subnet"
 $SecurityGroupName = "map-ci-vm-group"
 $PublicIpAddressName = "ciqv1address"
 
-$KeyVaultName = ""
-$VaultCertPassword = "" 
+$KeyVaultName = "mapcikeyvault"
 
 # Authenticate to Azure
 
@@ -75,6 +78,18 @@ $StorageAccount = Get-AzureRmStorageAccount -Name $StorageName -ResourceGroupNam
 if ($StorageAccount -eq $null)
 {
     New-AzureRmStorageAccount -Name $StorageName -Location $Location -ResourceGroupName $ResourceGroupName -SkuName "Standard_LRS" -Kind Storage -EnableEncryptionService File
+}
+
+#endregion
+
+#region Create and configure Azure Key Vault
+
+$kv = get-azurermkeyvault -VaultName $KeyVaultName -ResourceGroupName $ResourceGroupName
+
+if ($kv -eq $null)
+{
+    write-output "Creating Azure Key Vault"
+    New-AzureRmKeyVault -VaultName $KeyVaultName -ResourceGroupName $ResourceGroupName -Location $Location -Sku Premium
 }
 
 #endregion
