@@ -1,9 +1,9 @@
 /* Loading Indicators */
 
-$period:            1.0s;
-$duty-cycle:        100%;
+$period:            1.5s;
+$duty-cycle:        40%;
 $bar-count:         5;
-$delay-ratio:       0.2;
+$delay-ratio:       0.1;
 $bar-height-max:    50px;
 $bar-height-min:    10px;
 $bar-margin-v:      ($bar-height-max - $bar-height-min) / 2;
