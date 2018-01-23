@@ -85,6 +85,7 @@ cd
 echo Installing bower packages
 call bower install
 IF !ERRORLEVEL! NEQ 0 goto error
+call D:\local\Temp\WebCompiler1.11.375\prepare.cmd
 cd %base_directory%
 echo Changed directory to
 cd
