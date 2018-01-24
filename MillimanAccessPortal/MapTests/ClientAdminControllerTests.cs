@@ -812,6 +812,28 @@ namespace MapTests
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        [Fact]
+        public async Task DeleteClient_ErrorWhenClientHasRootContentItems()
+        {
+            #region Arrange
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+            #endregion
+
+            #region Act
+            var view = await controller.DeleteClient(8, "password");
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(view);
+
+            StatusCodeResult viewResult = (StatusCodeResult)view;
+            Assert.Equal<int>(412, viewResult.StatusCode);
+            #endregion
+        }
+
+        /// <summary>
         /// Verify that a deleted client is removed from persistence
         /// </summary>
         [Fact]
