@@ -351,6 +351,8 @@ namespace MapTests
                     new Client { Id=4, Name="Name4", ClientCode="ClientCode4", ProfitCenterId=2, ParentClientId=null, AcceptedEmailDomainList=new string[] { "example2.com" } },
                     new Client { Id=5, Name="Name5", ClientCode="ClientCode5", ProfitCenterId=1, ParentClientId=null, AcceptedEmailDomainList=new string[] { "example2.com" } },
                     new Client { Id=6, Name="Name6", ClientCode="ClientCode6", ProfitCenterId=1, ParentClientId=1,    AcceptedEmailDomainList=new string[] { "example2.com" } },
+                    new Client { Id=7, Name="Name7", ClientCode="ClientCode7", ProfitCenterId=1, ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" } },
+                    new Client { Id=8, Name="Name8", ClientCode="ClientCode8", ProfitCenterId=1, ParentClientId=7,    AcceptedEmailDomainList=new string[] { "example.com" } },
                 });
             MockDbSet<Client>.AssignNavigationProperty<ProfitCenter>(DbContextObject.Client, "ProfitCenterId", DbContextObject.ProfitCenter);
             #endregion
@@ -372,6 +374,8 @@ namespace MapTests
                         new UserRoleInClient { Id=4, ClientId=5, RoleId=1, UserId=3 },
                         new UserRoleInClient { Id=5, ClientId=6, RoleId=1, UserId=3 },
                         new UserRoleInClient { Id=6, ClientId=5, RoleId=5, UserId=2 },
+                        new UserRoleInClient { Id=7, ClientId=7, RoleId=1, UserId=3 },
+                        new UserRoleInClient { Id=8, ClientId=8, RoleId=1, UserId=3 },
                     });
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
@@ -384,9 +388,11 @@ namespace MapTests
                     new IdentityUserClaim<long>{ Id=1, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="1", UserId=3 },
                     new IdentityUserClaim<long>{ Id=2, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="4", UserId=3 },
                     new IdentityUserClaim<long>{ Id=3, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="5", UserId=3 },
-                    new IdentityUserClaim<long>{ Id=6, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="6", UserId=3 },
                     new IdentityUserClaim<long>{ Id=4, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="1", UserId=1 },
                     new IdentityUserClaim<long>{ Id=5, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="5", UserId=2 },
+                    new IdentityUserClaim<long>{ Id=6, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="6", UserId=3 },
+                    new IdentityUserClaim<long>{ Id=7, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="7", UserId=3 },
+                    new IdentityUserClaim<long>{ Id=8, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="8", UserId=3 },
                 });
                 #endregion
             #endregion 
@@ -396,6 +402,7 @@ namespace MapTests
                 { 
                     new RootContentItem{ Id=1, ClientIdList=new long[]{ 1 }, ContentName="RootContent 1", ContentTypeId=1 },
                     new RootContentItem{ Id=2, ClientIdList=new long[]{ 2 }, ContentName="RootContent 2", ContentTypeId=1 },
+                    new RootContentItem{ Id=3, ClientIdList=new long[]{ 8 }, ContentName="RootContent 3", ContentTypeId=1 },
                 });
             MockDbSet<RootContentItem>.AssignNavigationProperty<ContentType>(DbContextObject.RootContentItem, "ContentTypeId", DbContextObject.ContentType);
             #endregion
