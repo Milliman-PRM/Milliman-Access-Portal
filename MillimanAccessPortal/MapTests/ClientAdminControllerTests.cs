@@ -842,7 +842,8 @@ namespace MapTests
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
 
-            int preCount = TestResources.DbContextObject.Client.Count();
+            int clientPreCount = TestResources.DbContextObject.Client.Count();
+            int claimsPreCount = TestResources.DbContextObject.UserClaims.Count();
             #endregion
 
             #region Act
@@ -852,8 +853,10 @@ namespace MapTests
             #region Assert
             Assert.IsType<JsonResult>(view);
 
-            int postCount = TestResources.DbContextObject.Client.Count();
-            Assert.Equal<int>((preCount - 1), postCount);
+            int clientPostCount = TestResources.DbContextObject.Client.Count();
+            int claimsPostCount = TestResources.DbContextObject.UserClaims.Count();
+            Assert.Equal<int>((clientPreCount - 1), clientPostCount);
+            Assert.Equal<int>((claimsPreCount - 1), claimsPostCount);
             #endregion
         }
     }
