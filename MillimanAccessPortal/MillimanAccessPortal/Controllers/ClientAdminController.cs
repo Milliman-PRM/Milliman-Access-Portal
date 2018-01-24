@@ -956,21 +956,34 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion Validation
 
-            try
+            using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
             {
-                // Only the primary key is needed for delete
-                DbContext.Client.Remove(ExistingClient);
-                DbContext.SaveChanges();
+                try
+                {
+                    // Remove all claims associated with the client
+                    var MembershipClaims = DbContext.UserClaims
+                        .Where(uc => uc.ClaimType == ClaimNames.ClientMembership.ToString())
+                        .Where(uc => uc.ClaimValue == Id.ToString())
+                        .ToList();
+                    DbContext.UserClaims.RemoveRange(MembershipClaims);
 
-                object LogDetails = new { ClientId = Id.Value };
-                AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Client Deleted", AuditEventId.ClientDeleted, LogDetails, User.Identity.Name, HttpContext.Session.Id));
+                    // Remove the client
+                    DbContext.Client.Remove(ExistingClient);
+
+                    DbContext.SaveChanges();
+                    DbTransaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    string ErrMsg = $"Failed to delete client from database";
+                    Logger.LogError(ErrMsg + $":\r\n{ex.Message}\r\n{ex.StackTrace}");
+                    return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+                }
             }
-            catch (Exception ex)
-            {
-                string ErrMsg = $"Failed to delete client from database";
-                Logger.LogError(ErrMsg + $":\r\n{ ex.Message}\r\n{ ex.StackTrace}");
-                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
-            }
+
+            object LogDetails = new { ClientId = Id.Value };
+            AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Client Deleted", AuditEventId.ClientDeleted, LogDetails, User.Identity.Name, HttpContext.Session.Id));
+
 
             ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
 
