@@ -4,7 +4,10 @@
  * DEVELOPER NOTES: 
  */
 
+using MapDbContextLib.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MillimanAccessPortal.Authorization;
 using System;
 using System.Threading.Tasks;
 
@@ -12,10 +15,13 @@ namespace MillimanAccessPortal.Controllers
 {
     public class ContentAccessAdminController : Controller
     {
+        private readonly IAuthorizationService AuthorizationService;
 
         public ContentAccessAdminController(
+            IAuthorizationService AuthorizationServiceArg
             )
         {
+            AuthorizationService = AuthorizationServiceArg;
         }
 
         /// <summary>Action for content access administration index.</summary>
@@ -24,6 +30,12 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Index()
         {
             #region Authorization
+            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, null));
+            if (!ContentAdminResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access.");
+                return Unauthorized();
+            }
             #endregion
 
             #region Validation

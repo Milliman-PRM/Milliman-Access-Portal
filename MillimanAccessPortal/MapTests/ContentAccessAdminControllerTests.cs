@@ -33,6 +33,7 @@ namespace MapTests
         public async Task<ContentAccessAdminController> GetControllerForUser(string UserName)
         {
             ContentAccessAdminController testController = new ContentAccessAdminController(
+                TestResources.AuthorizationService
                 );
 
             // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
