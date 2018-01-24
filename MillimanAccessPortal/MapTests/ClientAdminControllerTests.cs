@@ -771,8 +771,8 @@ namespace MapTests
         /// 
         /// </summary>
         [Theory]
-        [InlineData(1, null)]// Password check fails
-        [InlineData(2, "password")]// User is not authorized as Admin of the client
+        [InlineData(6, null)]// Password check fails
+        [InlineData(3, "password")]// User is not authorized as Admin of the client
         [InlineData(4, "password")]// User is not authorized as Admin of the client's profit center
         public async Task DeleteClient_ErrorWhenUnauthorized(long clientIdArg, string passwordArg)
         {
@@ -800,7 +800,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(1, "password");
+            var view = await controller.DeleteClient(7, "password");
             #endregion
 
             #region Assert
