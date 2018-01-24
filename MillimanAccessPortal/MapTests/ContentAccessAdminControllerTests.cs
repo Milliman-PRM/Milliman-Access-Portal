@@ -53,7 +53,7 @@ namespace MapTests
         public async Task Index_ReturnsView()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("ClientAdmin1");
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
             #endregion
 
             #region Act
