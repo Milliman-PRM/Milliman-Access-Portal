@@ -1,6 +1,7 @@
 ﻿/* Admin Panel */
 
 .admin-panel-container {
+    position: relative;
     display: flex;
     flex-flow: column nowrap;
     overflow: hidden;
