@@ -314,6 +314,16 @@ namespace MapTests
                         NormalizedEmail = "test3@example2.com".ToUpper(),
                         PhoneNumber = "3171234567",
                     },
+                    new ApplicationUser {
+                        Id = 5,
+                        UserName = "user5",
+                        Email = "user5@example.com",
+                        Employer = "example",
+                        FirstName = "FN5",
+                        LastName = "LN5",
+                        NormalizedEmail = "user5@example.com".ToUpper(),
+                        PhoneNumber = "1234567890",
+                    },
             });
             #endregion
 
@@ -376,6 +386,7 @@ namespace MapTests
                         new UserRoleInClient { Id=6, ClientId=5, RoleId=5, UserId=2 },
                         new UserRoleInClient { Id=7, ClientId=7, RoleId=1, UserId=3 },
                         new UserRoleInClient { Id=8, ClientId=8, RoleId=1, UserId=3 },
+                        new UserRoleInClient { Id=9, ClientId=8, RoleId=4, UserId=5 },
                     });
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
@@ -393,6 +404,7 @@ namespace MapTests
                     new IdentityUserClaim<long>{ Id=6, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="6", UserId=3 },
                     new IdentityUserClaim<long>{ Id=7, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="7", UserId=3 },
                     new IdentityUserClaim<long>{ Id=8, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="8", UserId=3 },
+                    new IdentityUserClaim<long>{ Id=9, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="8", UserId=5 },
                 });
                 #endregion
             #endregion 
