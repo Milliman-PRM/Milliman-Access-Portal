@@ -944,6 +944,16 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", $"Can't delete Client {ExistingClient.Name}. The client has child client(s): {string.Join(", ", Children)}");
                 return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
             }
+
+            // Client must not have any root content items
+            var ItemCount = DbContext.RootContentItem
+                .Where(i => i.ClientIdList.Contains<long>(Id.Value))
+                .Count();
+            if (ItemCount > 0)
+            {
+                Response.Headers.Add("Warning", $"Can't delete client {ExistingClient.Name} because it has root content items.");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);
+            }
             #endregion Validation
 
             try
