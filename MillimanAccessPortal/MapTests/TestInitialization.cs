@@ -106,8 +106,8 @@ namespace MapTests
         {
             return new ControllerContext
             {
-                HttpContext = new DefaultHttpContext() { User = UserAsClaimsPrincipal },
-                ActionDescriptor = new ControllerActionDescriptor { ActionName = "Unit Test" }
+                HttpContext = new DefaultHttpContext() { User=UserAsClaimsPrincipal },
+                ActionDescriptor = new ControllerActionDescriptor { ActionName="Unit Test" }
             };
         }
 
@@ -274,36 +274,68 @@ namespace MapTests
             #region Initialize Users
             DbContextObject.ApplicationUser.AddRange(new List<ApplicationUser>
                 {
-                    new ApplicationUser {Id=1, UserName="test1", Email="test1@example.com", Employer ="example", FirstName="FN1",
-                                         LastName="LN1", NormalizedEmail="test@example.com".ToUpper(), PhoneNumber="3171234567"},
-                    new ApplicationUser {Id=2, UserName="test2", Email="test2@example.com", Employer ="example", FirstName="FN2",
-                                         LastName="LN2", NormalizedEmail ="test2@example.com".ToUpper(), PhoneNumber="3171234567"},
-                    new ApplicationUser {Id=3, UserName="ClientAdmin1", Email="clientadmin1@example2.com", Employer="example", FirstName="Client",
-                                         LastName="Admin1", NormalizedEmail="clientadmin1@example2.com".ToUpper(), PhoneNumber="3171234567"},
-                    new ApplicationUser {Id=4, UserName="test3", Email="test3@example2.com", Employer ="example", FirstName="FN3",
-                                         LastName="LN3", NormalizedEmail ="test3@example2.com".ToUpper(), PhoneNumber="3171234567"}
+                    new ApplicationUser {
+                        Id = 1,
+                        UserName = "test1",
+                        Email = "test1@example.com",
+                        Employer = "example",
+                        FirstName = "FN1",
+                        LastName = "LN1",
+                        NormalizedEmail = "test@example.com".ToUpper(),
+                        PhoneNumber = "3171234567"
+                    },
+                    new ApplicationUser {
+                        Id = 2,
+                        UserName = "test2",
+                        Email = "test2@example.com",
+                        Employer = "example",
+                        FirstName = "FN2",
+                        LastName = "LN2",
+                        NormalizedEmail = "test2@example.com".ToUpper(),
+                        PhoneNumber = "3171234567",
+                    },
+                    new ApplicationUser {
+                        Id = 3,
+                        UserName = "ClientAdmin1",
+                        Email = "clientadmin1@example2.com",
+                        Employer = "example",
+                        FirstName = "Client",
+                        LastName = "Admin1",
+                        NormalizedEmail = "clientadmin1@example2.com".ToUpper(),
+                        PhoneNumber = "3171234567",
+                    },
+                    new ApplicationUser {
+                        Id = 4,
+                        UserName = "test3",
+                        Email = "test3@example2.com",
+                        Employer = "example",
+                        FirstName = "FN3",
+                        LastName = "LN3",
+                        NormalizedEmail = "test3@example2.com".ToUpper(),
+                        PhoneNumber = "3171234567",
+                    },
             });
             #endregion
 
             #region Initialize ContentType
             DbContextObject.ContentType.AddRange(new List<ContentType>
-                {
-                    new ContentType{Id=1, Name="Qlikview", CanReduce=true},
+                { 
+                    new ContentType{ Id=1, Name="Qlikview", CanReduce=true },
                 });
             #endregion
 
             #region Initialize ProfitCenters
             DbContextObject.ProfitCenter.AddRange(new List<ProfitCenter>
-                {
-                    new ProfitCenter {Id=1, Name="Profit Center 1", ProfitCenterCode="pc1" },
-                    new ProfitCenter {Id=2, Name="Profit Center 2", ProfitCenterCode="pc2" },
+                { 
+                    new ProfitCenter { Id=1, Name="Profit Center 1", ProfitCenterCode="pc1" },
+                    new ProfitCenter { Id=2, Name="Profit Center 2", ProfitCenterCode="pc2" },
                 });
             #endregion
 
             #region Initialize UserRoleInProfitCenter
             DbContextObject.UserRoleInProfitCenter.AddRange(new List<UserRoleInProfitCenter>
-            {
-                new UserRoleInProfitCenter {Id=1, ProfitCenterId=1, UserId=3, RoleId=1}
+            { 
+                new UserRoleInProfitCenter { Id=1, ProfitCenterId=1, UserId=3, RoleId=1 }
             });
             MockDbSet<UserRoleInProfitCenter>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInProfitCenter, "RoleId", DbContextObject.ApplicationRole);
             MockDbSet<UserRoleInProfitCenter>.AssignNavigationProperty<ProfitCenter>(DbContextObject.UserRoleInProfitCenter, "ProfitCenterId", DbContextObject.ProfitCenter);
@@ -312,13 +344,13 @@ namespace MapTests
 
             #region Initialize Clients
             DbContextObject.Client.AddRange(new List<Client>
-                {
-                    new Client {Id=1, Name="Name1", ClientCode="ClientCode1", ProfitCenterId=1, ParentClientId=null, AcceptedEmailDomainList = new string[] { "example.com" } },
-                    new Client {Id=2, Name="Name2", ClientCode="ClientCode2", ProfitCenterId=1, ParentClientId=1, AcceptedEmailDomainList = new string[] { "example.com" }  },
-                    new Client {Id=3, Name="Name3", ClientCode="ClientCode3", ProfitCenterId=1, ParentClientId=null, AcceptedEmailDomainList = new string[] { "example2.com" } },
-                    new Client {Id=4, Name="Name4", ClientCode="ClientCode4", ProfitCenterId=2, ParentClientId=null, AcceptedEmailDomainList = new string[] { "example2.com" } },
-                    new Client {Id=5, Name="Name5", ClientCode="ClientCode5", ProfitCenterId=1, ParentClientId=null, AcceptedEmailDomainList = new string[] { "example2.com" } },
-                    new Client {Id=6, Name="Name6", ClientCode="ClientCode6", ProfitCenterId=1, ParentClientId=1, AcceptedEmailDomainList = new string[] { "example2.com" } }
+                { 
+                    new Client { Id=1, Name="Name1", ClientCode="ClientCode1", ProfitCenterId=1, ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
+                    new Client { Id=2, Name="Name2", ClientCode="ClientCode2", ProfitCenterId=1, ParentClientId=1,    AcceptedEmailDomainList=new string[] { "example.com" }  },
+                    new Client { Id=3, Name="Name3", ClientCode="ClientCode3", ProfitCenterId=1, ParentClientId=null, AcceptedEmailDomainList=new string[] { "example2.com" } },
+                    new Client { Id=4, Name="Name4", ClientCode="ClientCode4", ProfitCenterId=2, ParentClientId=null, AcceptedEmailDomainList=new string[] { "example2.com" } },
+                    new Client { Id=5, Name="Name5", ClientCode="ClientCode5", ProfitCenterId=1, ParentClientId=null, AcceptedEmailDomainList=new string[] { "example2.com" } },
+                    new Client { Id=6, Name="Name6", ClientCode="ClientCode6", ProfitCenterId=1, ParentClientId=1,    AcceptedEmailDomainList=new string[] { "example2.com" } },
                 });
             MockDbSet<Client>.AssignNavigationProperty<ProfitCenter>(DbContextObject.Client, "ProfitCenterId", DbContextObject.ProfitCenter);
             #endregion
@@ -331,15 +363,15 @@ namespace MapTests
                  *      since a user can have multiple roles with a client
                  */
             
-                #region Initialize UserRoleForClient
+                #region Initialize UserRoleInClient
                 DbContextObject.UserRoleInClient.AddRange(new List<UserRoleInClient>
-                    {
-                        new UserRoleInClient {Id = 1, ClientId=1, RoleId=2, UserId=1},
-                        new UserRoleInClient {Id = 2, ClientId=1, RoleId=1, UserId=3},
-                        new UserRoleInClient {Id=3, ClientId=4, RoleId=1, UserId=3},
-                        new UserRoleInClient {Id=4, ClientId=5, RoleId=1, UserId=3},
-                        new UserRoleInClient {Id=5, ClientId=6, RoleId=1, UserId=3},
-                        new UserRoleInClient {Id = 6, ClientId=5, RoleId=5, UserId=2}
+                    { 
+                        new UserRoleInClient { Id=1, ClientId=1, RoleId=2, UserId=1 },
+                        new UserRoleInClient { Id=2, ClientId=1, RoleId=1, UserId=3 },
+                        new UserRoleInClient { Id=3, ClientId=4, RoleId=1, UserId=3 },
+                        new UserRoleInClient { Id=4, ClientId=5, RoleId=1, UserId=3 },
+                        new UserRoleInClient { Id=5, ClientId=6, RoleId=1, UserId=3 },
+                        new UserRoleInClient { Id=6, ClientId=5, RoleId=5, UserId=2 },
                     });
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
@@ -348,48 +380,48 @@ namespace MapTests
 
                 #region Initialize UserClaims
                 DbContextObject.UserClaims.AddRange(new List<IdentityUserClaim<long>>
-                {
-                    new IdentityUserClaim<long>{ Id =1, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "1", UserId = 3 },
-                    new IdentityUserClaim<long>{ Id =2, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "4", UserId = 3 },
-                    new IdentityUserClaim<long>{ Id =3, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "5", UserId = 3 },
-                    new IdentityUserClaim<long>{ Id =6, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "6", UserId = 3 },
-                    new IdentityUserClaim<long>{ Id = 4, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "1", UserId = 1},
-                    new IdentityUserClaim<long>{ Id = 5, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = "5", UserId = 2}
+                { 
+                    new IdentityUserClaim<long>{ Id=1, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="1", UserId=3 },
+                    new IdentityUserClaim<long>{ Id=2, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="4", UserId=3 },
+                    new IdentityUserClaim<long>{ Id=3, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="5", UserId=3 },
+                    new IdentityUserClaim<long>{ Id=6, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="6", UserId=3 },
+                    new IdentityUserClaim<long>{ Id=4, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="1", UserId=1 },
+                    new IdentityUserClaim<long>{ Id=5, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="5", UserId=2 },
                 });
                 #endregion
             #endregion 
 
             #region Initialize RootContentItem
             DbContextObject.RootContentItem.AddRange(new List<RootContentItem>
-                {
-                    new RootContentItem{Id = 1, ClientIdList=new long[]{1}, ContentName="RootContent 1", ContentTypeId = 1},
-                    new RootContentItem{Id = 2, ClientIdList=new long[]{2}, ContentName="RootContent 2", ContentTypeId = 1},
+                { 
+                    new RootContentItem{ Id=1, ClientIdList=new long[]{ 1 }, ContentName="RootContent 1", ContentTypeId=1 },
+                    new RootContentItem{ Id=2, ClientIdList=new long[]{ 2 }, ContentName="RootContent 2", ContentTypeId=1 },
                 });
             MockDbSet<RootContentItem>.AssignNavigationProperty<ContentType>(DbContextObject.RootContentItem, "ContentTypeId", DbContextObject.ContentType);
             #endregion
 
             #region Initialize HierarchyFieldValue
             DbContextObject.HierarchyFieldValue.AddRange(new List<HierarchyFieldValue>
-                {
-                    new HierarchyFieldValue {Id = 1, HierarchyLevel=1, ParentHierarchyFieldValueId=null, RootContentItemId=1},
+                { 
+                    new HierarchyFieldValue { Id=1, HierarchyLevel=1, ParentHierarchyFieldValueId=null, RootContentItemId=1 },
                 });
             MockDbSet<HierarchyFieldValue>.AssignNavigationProperty<RootContentItem>(DbContextObject.HierarchyFieldValue, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
 
             #region Initialize HierarchyField
             DbContextObject.HierarchyField.AddRange(new List<HierarchyField>
-                {
-                    new HierarchyField {Id = 1, RootContentItemId=1, HierarchyLevel=0},
+                { 
+                    new HierarchyField { Id=1, RootContentItemId=1, HierarchyLevel=0 },
                 });
             MockDbSet<HierarchyField>.AssignNavigationProperty<RootContentItem>(DbContextObject.HierarchyField, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
 
             #region Initialize ContentItemUserGroups
             DbContextObject.ContentItemUserGroup.AddRange(new List<ContentItemUserGroup>
-                {
-                    new ContentItemUserGroup {Id = 1, ClientId=1, ContentInstanceUrl="Folder1/File1", RootContentItemId=1, GroupName="Group1 For Content1"},
-                    new ContentItemUserGroup {Id = 2, ClientId=1, ContentInstanceUrl="Folder1/File2", RootContentItemId=1, GroupName="Group2 For Content1"},
-                    new ContentItemUserGroup {Id = 3, ClientId=2, ContentInstanceUrl="Folder2/File1", RootContentItemId=2, GroupName="Group1 For Content2"},
+                { 
+                    new ContentItemUserGroup { Id=1, ClientId=1, ContentInstanceUrl="Folder1/File1", RootContentItemId=1, GroupName="Group1 For Content1" },
+                    new ContentItemUserGroup { Id=2, ClientId=1, ContentInstanceUrl="Folder1/File2", RootContentItemId=1, GroupName="Group2 For Content1" },
+                    new ContentItemUserGroup { Id=3, ClientId=2, ContentInstanceUrl="Folder2/File1", RootContentItemId=2, GroupName="Group1 For Content2" },
                 });
             MockDbSet<ContentItemUserGroup>.AssignNavigationProperty<RootContentItem>(DbContextObject.ContentItemUserGroup, "RootContentItemId", DbContextObject.RootContentItem);
             MockDbSet<ContentItemUserGroup>.AssignNavigationProperty<Client>(DbContextObject.ContentItemUserGroup, "ClientId", DbContextObject.Client);
@@ -397,8 +429,8 @@ namespace MapTests
 
             #region Initialize UserInContentItemUserGroups
             DbContextObject.UserInContentItemUserGroup.AddRange(new List<UserInContentItemUserGroup>
-                {
-                    new UserInContentItemUserGroup {Id = 1, ContentItemUserGroupId=1, UserId=1},
+                { 
+                    new UserInContentItemUserGroup { Id=1, ContentItemUserGroupId=1, UserId=1 },
                 });
             MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ContentItemUserGroup>(DbContextObject.UserInContentItemUserGroup, "ContentItemUserGroupId", DbContextObject.ContentItemUserGroup);
             MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserInContentItemUserGroup, "UserId", DbContextObject.ApplicationUser);
@@ -406,15 +438,15 @@ namespace MapTests
 
             #region Initialize UserRoles
             DbContextObject.UserRoles.AddRange(new List<IdentityUserRole<long>>
-                {
-                    new IdentityUserRole<long> { RoleId = (long)RoleEnum.Admin, UserId = 1},
+                { 
+                    new IdentityUserRole<long> { RoleId=((long) RoleEnum.Admin), UserId=1 },
                 });
             #endregion
 
             #region Initialize UserRoleInRootContentItem
             DbContextObject.UserRoleInRootContentItem.AddRange(new List<UserRoleInRootContentItem>
-            {
-                new UserRoleInRootContentItem {Id = 1, RoleId = 5, UserId = 1, RootContentItemId = 1}
+            { 
+                new UserRoleInRootContentItem { Id=1, RoleId=5, UserId=1, RootContentItemId=1 },
             });
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInRootContentItem, "RoleId", DbContextObject.ApplicationRole);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInRootContentItem, "UserId", DbContextObject.ApplicationUser);
