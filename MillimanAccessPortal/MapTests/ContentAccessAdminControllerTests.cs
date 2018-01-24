@@ -50,6 +50,22 @@ namespace MapTests
         }
 
         [Fact]
+        public async Task Index_ErrorWhenUnauthorized()
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("test1");
+            #endregion
+
+            #region Act
+            var view = await controller.Index();
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            #endregion
+        }
+
+        [Fact]
         public async Task Index_ReturnsView()
         {
             #region Arrange
