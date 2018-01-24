@@ -18,26 +18,32 @@ namespace MapTests
     {
         internal TestInitialization TestResources { get; set; }
 
-        /// <summary>
-        /// Constructor is called for each test execution
-        /// </summary>
+        /// <summary>Initializes test resources.</summary>
+        /// <remarks>This constructor is called before each test.</remarks>
         public ContentAccessAdminControllerTests()
         {
             TestResources = new TestInitialization();
             TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
         }
 
-        /// <summary>Common controller constructor to be used by all tests</summary>
-        /// <param name="UserName"></param>
+        /// <summary>Constructs a controller with the specified active user.</summary>
+        /// <param name="Username"></param>
         /// <returns>ContentAccessAdminController</returns>
-        public async Task<ContentAccessAdminController> GetControllerForUser(string UserName)
+        public async Task<ContentAccessAdminController> GetControllerForUser(string Username)
         {
             ContentAccessAdminController testController = new ContentAccessAdminController(
                 TestResources.AuthorizationService
                 );
 
-            // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
-            testController.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: (await TestResources.UserManagerObject.FindByNameAsync(UserName)).UserName);
+            try
+            {
+                Username = (await TestResources.UserManagerObject.FindByNameAsync(Username)).UserName;
+            }
+            catch (System.NullReferenceException)
+            {
+                throw new ArgumentException($"Username '{Username}' is not present in the test database.");
+            }
+            testController.ControllerContext = TestInitialization.GenerateControllerContext(Username);
             testController.HttpContext.Session = new MockSession();
 
             return testController;
