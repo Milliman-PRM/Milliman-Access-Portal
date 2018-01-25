@@ -19,10 +19,16 @@
                 <i class="fa fa-fw fa-3x fa-user nav-icon" aria-hidden="true"></i>
             </a>
         </li>
-        <li class="nav-item @GetSelectedClassString("ContentAccessAdmin")">
+        <li class="nav-item @GetSelectedClassString(" ContentAccessAdmin")">
             <a asp-controller="ContentAccessAdmin" asp-action="Index" class="nav-button">
                 <h3 class="nav-label">Content Access Admin</h3>
                 <i class="fa fa-fw fa-3x fa-users nav-icon" aria-hidden="true"></i>
+            </a>
+        </li>
+        <li class="nav-item @GetSelectedClassString("ContentPublisher")">
+            <a asp-controller="ContentPublishing" asp-action="Index" class="nav-button">
+                <h3 class="nav-label">Publish Content</h3>
+                <i class="fa fa-fw fa-3x fa-upload nav-icon" aria-hidden="true"></i>
             </a>
         </li>
         <li class="nav-item @GetSelectedClassString("ClientAdmin")">
