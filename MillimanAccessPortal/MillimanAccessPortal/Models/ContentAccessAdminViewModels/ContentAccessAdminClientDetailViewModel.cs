@@ -1,26 +1,41 @@
-﻿using System.Collections.Generic;
+﻿/*
+ * CODE OWNERS: Joseph Sweeney
+ * OBJECTIVE:
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using MapCommonLib;
+using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
     public class ContentAccessAdminClientDetailViewModel
     {
-        public List<RootContentDetailViewModel> ContentList= new List<RootContentDetailViewModel>();
+        public Client ClientEntity { get; set; }
+        public bool CanManage { get; set; }
 
-        internal static ContentAccessAdminClientDetailViewModel GetModel(long ClientId, ApplicationDbContext DbContext)
+        internal void GenerateSupportingProperties(ApplicationDbContext DbContext, ApplicationUser CurrentUser)
         {
-            ContentAccessAdminClientDetailViewModel Model = new ContentAccessAdminClientDetailViewModel();
-
-            foreach (var RootContent in DbContext.RootContentItem
-                                                 .Include(rc => rc.ContentType)
-                                                 .Where(rc => rc.ClientIdList.Contains(ClientId)))
+            #region Validation
+            if (ClientEntity == null)
             {
-                Model.ContentList.Add(RootContentDetailViewModel.GetModel(RootContent, DbContext));
+                throw new MapException("ContentAccessAdminClientDetailViewModel.GenerateSupportingProperties called with no ClientEntity set");
             }
+            #endregion
 
-            return Model;
+            ClientEntity.ParentClient = null;
+
+            CanManage = DbContext.UserRoleInClient
+                .Include(urc => urc.Role)
+                .Include(urc => urc.Client)
+                .Where(urc => urc.UserId == CurrentUser.Id)
+                .Where(urc => urc.Role.RoleEnum == RoleEnum.ContentAdmin)
+                .Where(urc => urc.ClientId == ClientEntity.Id)
+                .Any();
         }
     }
 }
