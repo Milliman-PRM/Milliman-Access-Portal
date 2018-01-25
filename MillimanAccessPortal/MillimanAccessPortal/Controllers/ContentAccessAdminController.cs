@@ -4,10 +4,13 @@
  * DEVELOPER NOTES: 
  */
 
+using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Authorization;
+using MillimanAccessPortal.DataQueries;
+using MillimanAccessPortal.Models.ContentAccessAdminViewModels;
 using System;
 using System.Threading.Tasks;
 
@@ -16,12 +19,18 @@ namespace MillimanAccessPortal.Controllers
     public class ContentAccessAdminController : Controller
     {
         private readonly IAuthorizationService AuthorizationService;
+        private readonly ApplicationDbContext DbContext;
+        private readonly StandardQueries Queries;
 
         public ContentAccessAdminController(
-            IAuthorizationService AuthorizationServiceArg
+            IAuthorizationService AuthorizationServiceArg,
+            ApplicationDbContext DbContextArg,
+            StandardQueries QueriesArg
             )
         {
             AuthorizationService = AuthorizationServiceArg;
+            DbContext = DbContextArg;
+            Queries = QueriesArg;
         }
 
         /// <summary>Action for content access administration index.</summary>
@@ -61,7 +70,9 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            return Json(new { });
+            IndexViewModel Model = IndexViewModel.Build(await Queries.GetCurrentApplicationUser(User), DbContext);
+
+            return Json(Model);
         }
 
         /// <summary>Returns the root content items available to a client.</summary>
