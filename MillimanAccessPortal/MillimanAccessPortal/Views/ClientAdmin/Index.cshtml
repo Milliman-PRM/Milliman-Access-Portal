@@ -19,6 +19,9 @@
 }
 
 <div id="client-tree" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12">
+    <div class="loading-wrapper">
+        @Html.Partial("~/Views/ClientAdmin/templates/_Loader.cshtml")
+    </div>
     <h3 class="admin-panel-header">Client Tree</h3>
     <div class="admin-panel-toolbar">
         <input id="client-search-box" class="admin-panel-searchbar" type="search" placeholder="Filter Clients" />
@@ -32,6 +35,9 @@
     </div>
 </div>
 <div id="client-info" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-6-12" style="display: none;">
+    <div class="loading-wrapper">
+        @Html.Partial("~/Views/ClientAdmin/templates/_Loader.cshtml")
+    </div>
     <h3 class="admin-panel-header">Client Information</h3>
     <div class="admin-panel-toolbar">
         <div class="admin-panel-action-icons-container">
@@ -153,6 +159,9 @@
     </div>
 </div>
 <div id="client-users" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12" style="display: none;">
+    <div class="loading-wrapper">
+        @Html.Partial("~/Views/ClientAdmin/templates/_Loader.cshtml")
+    </div>
     <h3 class="admin-panel-header">Client Users</h3>
     <div class="admin-panel-toolbar">
         <input id="user-search-box" class="admin-panel-searchbar" type="search" placeholder="Filter Users" />
@@ -163,8 +172,7 @@
         </div>
     </div>
     <div id="user-list" class="admin-panel-content-container">
-        <ul id="client-user-list" class="admin-panel-content">
-        </ul>
+        <ul id="client-user-list" class="admin-panel-content"></ul>
     </div>
 </div>
 
