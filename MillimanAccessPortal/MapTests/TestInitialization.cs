@@ -55,8 +55,9 @@ namespace MapTests
         public Mock<AuditLogger> MockAuditLogger { get; set; }
         public AuditLogger AuditLoggerObject { get => MockAuditLogger.Object; }
 
-        public Mock<MessageQueueServices> MockMessageQueueService { get; set; }
-        public MessageQueueServices MessageQueueServicesObject { get => MockMessageQueueService.Object; }
+
+        public Mock<IMessageQueue> MockMessageQueueService { get; set; }
+        public IMessageQueue MessageQueueServicesObject { get => MockMessageQueueService.Object; }
 
         public IOptions<QlikviewConfig> QvConfig { get; set; }
 
@@ -253,9 +254,9 @@ namespace MapTests
             return ReturnService;
         }
 
-        private Mock<MessageQueueServices> GenerateMessageQueueService()
+        private Mock<IMessageQueue> GenerateMessageQueueService()
         {
-            Mock<MessageQueueServices> ReturnObject = new Mock<MessageQueueServices>();
+            Mock<IMessageQueue> ReturnObject = new Mock<IMessageQueue>();
 
             return ReturnObject;
         }

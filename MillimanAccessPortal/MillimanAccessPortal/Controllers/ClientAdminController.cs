@@ -40,7 +40,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuditLogger AuditLogger;
         private readonly IAuthorizationService AuthorizationService;
         private readonly ILogger Logger;
-        private readonly MessageQueueServices MessageQueueService;
+        private readonly IMessageQueue MessageQueueService;
         private readonly RoleManager<ApplicationRole> RoleManager;
         private readonly StandardQueries Queries;
         private readonly UserManager<ApplicationUser> UserManager;
@@ -50,7 +50,7 @@ namespace MillimanAccessPortal.Controllers
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
             ILoggerFactory LoggerFactoryArg,
-            MessageQueueServices MessageQueueServiceArg,
+            IMessageQueue MessageQueueServiceArg,
             RoleManager<ApplicationRole> RoleManagerArg,
             StandardQueries QueryArg,
             UserManager<ApplicationUser> UserManagerArg
