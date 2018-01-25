@@ -22,11 +22,12 @@ namespace MillimanAccessPortal.Controllers
 {
     public class MessageController : Controller
     {
-        MessageQueueServices _mailSender { get; set; }
+        IMessageQueue _mailSender { get; set; }
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly StandardQueries Queries;
         
-        public MessageController(MessageQueueServices mailSenderArg,
+        public MessageController(
+            IMessageQueue mailSenderArg,
             UserManager<ApplicationUser> UserManagerArg,
             StandardQueries QueriesArg)
         {
