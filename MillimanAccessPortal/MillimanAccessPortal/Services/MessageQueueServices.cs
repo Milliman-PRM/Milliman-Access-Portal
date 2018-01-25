@@ -23,11 +23,6 @@ namespace MillimanAccessPortal.Services
         private MailSender _sender { get; set; }
 
         /// <summary>
-        /// Constructor. Used for mocking only.
-        /// </summary>
-        public MessageQueueServices() { }
-
-        /// <summary>
         /// Constructor. Consumes ILoggerFactory from application.
         /// </summary>
         /// <param name="loggerFactory"></param>

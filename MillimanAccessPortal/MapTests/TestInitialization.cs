@@ -55,7 +55,6 @@ namespace MapTests
         public Mock<AuditLogger> MockAuditLogger { get; set; }
         public AuditLogger AuditLoggerObject { get => MockAuditLogger.Object; }
 
-
         public Mock<IMessageQueue> MockMessageQueueService { get; set; }
         public IMessageQueue MessageQueueServicesObject { get => MockMessageQueueService.Object; }
 
