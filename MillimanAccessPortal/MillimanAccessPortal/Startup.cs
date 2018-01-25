@@ -115,7 +115,7 @@ namespace MillimanAccessPortal
             services.AddScoped<IAuditLogger, AuditLogger>();
 
             // Add application services.
-            services.AddTransient<MessageQueueServices>();
+            services.AddTransient<IMessageQueue, MessageQueueServices>();
             services.AddScoped<StandardQueries>();
         }
 
