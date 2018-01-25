@@ -944,23 +944,46 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", $"Can't delete Client {ExistingClient.Name}. The client has child client(s): {string.Join(", ", Children)}");
                 return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
             }
+
+            // Client must not have any root content items
+            var ItemCount = DbContext.RootContentItem
+                .Where(i => i.ClientIdList.Contains<long>(Id.Value))
+                .Count();
+            if (ItemCount > 0)
+            {
+                Response.Headers.Add("Warning", $"Can't delete client {ExistingClient.Name} because it has root content items.");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);
+            }
             #endregion Validation
 
-            try
+            using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
             {
-                // Only the primary key is needed for delete
-                DbContext.Client.Remove(ExistingClient);
-                DbContext.SaveChanges();
+                try
+                {
+                    // Remove all claims associated with the client
+                    var MembershipClaims = DbContext.UserClaims
+                        .Where(uc => uc.ClaimType == ClaimNames.ClientMembership.ToString())
+                        .Where(uc => uc.ClaimValue == Id.ToString())
+                        .ToList();
+                    DbContext.UserClaims.RemoveRange(MembershipClaims);
 
-                object LogDetails = new { ClientId = Id.Value };
-                AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Client Deleted", AuditEventId.ClientDeleted, LogDetails, User.Identity.Name, HttpContext.Session.Id));
+                    // Remove the client
+                    DbContext.Client.Remove(ExistingClient);
+
+                    DbContext.SaveChanges();
+                    DbTransaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    string ErrMsg = $"Failed to delete client from database";
+                    Logger.LogError(ErrMsg + $":\r\n{ex.Message}\r\n{ex.StackTrace}");
+                    return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+                }
             }
-            catch (Exception ex)
-            {
-                string ErrMsg = $"Failed to delete client from database";
-                Logger.LogError(ErrMsg + $":\r\n{ ex.Message}\r\n{ ex.StackTrace}");
-                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
-            }
+
+            object LogDetails = new { ClientId = Id.Value };
+            AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Client Deleted", AuditEventId.ClientDeleted, LogDetails, User.Identity.Name, HttpContext.Session.Id));
+
 
             ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
 
