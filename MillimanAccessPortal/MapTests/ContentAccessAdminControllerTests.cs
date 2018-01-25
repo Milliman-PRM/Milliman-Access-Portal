@@ -84,10 +84,26 @@ namespace MapTests
         }
 
         [Fact]
+        public async Task ClientFamilyList_ErrorWhenUnauthorized()
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("test1");
+            #endregion
+
+            #region Act
+            var view = await controller.ClientFamilyList();
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            #endregion
+        }
+
+        [Fact]
         public async Task ClientFamilyList_ReturnsJson()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("ClientAdmin1");
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
             #endregion
 
             #region Act
