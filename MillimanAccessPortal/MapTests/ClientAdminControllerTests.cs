@@ -32,15 +32,16 @@ namespace MapTests
         public async Task<ClientAdminController> GetControllerForUser(string UserName)
         {
             ClientAdminController testController = new ClientAdminController(TestResources.DbContextObject,
-                TestResources.UserManagerObject,
-                TestResources.QueriesObj,
+                TestResources.AuditLoggerObject,
                 TestResources.AuthorizationService,
                 TestResources.LoggerFactory,
-                TestResources.AuditLoggerObject,
-                TestResources.RoleManagerObject);
+                TestResources.MessageQueueServicesObject,
+                TestResources.RoleManagerObject,
+                TestResources.QueriesObj,
+                TestResources.UserManagerObject);
 
-            // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
-            testController.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: (await TestResources.UserManagerObject.FindByNameAsync(UserName)).UserName);
+        // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
+        testController.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: (await TestResources.UserManagerObject.FindByNameAsync(UserName)).UserName);
             testController.HttpContext.Session = new MockSession();
 
             return testController;
