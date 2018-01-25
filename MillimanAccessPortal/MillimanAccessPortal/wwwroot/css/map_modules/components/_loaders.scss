@@ -7,7 +7,7 @@ $delay-ratio:       0.1;
 $bar-height-max:    50px;
 $bar-height-min:    10px;
 $bar-margin-v:      ($bar-height-max - $bar-height-min) / 2;
-$bar-width:         $bar-height-min;
+$bar-width:         10px;
 $bar-margin-h:      5px;
 $loading-height:    $bar-height-max;
 $loading-width:     ($bar-count * ($bar-width + $bar-margin-h) - $bar-margin-h);
@@ -18,7 +18,7 @@ $loading-width:     ($bar-count * ($bar-width + $bar-margin-h) - $bar-margin-h);
     right: 0;
     left: 0;
     bottom: 0;
-    z-index: 100;
+    z-index: 8;
     background: radial-gradient(circle, rgba($light-grey, .75) 25%, rgba($light-grey, 0.5), rgba($light-grey, 0));
 
     .loading-indicator {

@@ -477,6 +477,14 @@ namespace MillimanAccessPortal.Controllers
             return View();
         }
 
+        //
+        // GEET /Account/Profile
+        [HttpGet]
+        public IActionResult Profile()
+        {
+            return View();
+        }
+
         #region Helpers
 
         private void AddErrors(IdentityResult result)

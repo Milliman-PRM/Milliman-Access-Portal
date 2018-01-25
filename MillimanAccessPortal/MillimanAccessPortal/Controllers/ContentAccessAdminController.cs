@@ -58,10 +58,8 @@ namespace MillimanAccessPortal.Controllers
         // GET: ContentAccessAdmin
         public async Task<ActionResult> Index()
         {
-            Task<AuthorizationResult> Task1 = AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserAdmin, null));
-            Task<AuthorizationResult> Task2 = AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.UserAdmin, null));
-            AuthorizationResult Result1 = await Task1;
-            AuthorizationResult Result2 = await Task2;
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserAdmin, null));
+            AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.UserAdmin, null));
             if (!Result1.Succeeded && !Result2.Succeeded)
             {
                 Response.Headers.Add("Warning", $"You are not authorized as a user admin.");
