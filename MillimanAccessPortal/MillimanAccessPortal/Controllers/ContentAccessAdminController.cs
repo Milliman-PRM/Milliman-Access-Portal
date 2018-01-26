@@ -120,7 +120,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="RootContentItemId">The root content item whose report groups are to be returned.</param>
         /// <returns>JsonResult</returns>
         [HttpGet]
-        public async Task<IActionResult> ReportGroups(long? ClientId, long? RootContentItemId)
+        public async Task<IActionResult> ReportGroups(long ClientId, long RootContentItemId)
         {
             #region Authorization
             #endregion
@@ -138,7 +138,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>JsonResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateReportGroup(long? ClientId, long? RootContentItemId, String ReportGroupName)
+        public async Task<IActionResult> CreateReportGroup(long ClientId, long RootContentItemId, String ReportGroupName)
         {
             #region Authorization
             #endregion
@@ -155,7 +155,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>JsonResult</returns>
         [HttpPut]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateReportGroup(long? ReportGroupId, object Users)
+        public async Task<IActionResult> UpdateReportGroup(long ReportGroupId, object Users)
         {
             #region Authorization
             #endregion
@@ -171,7 +171,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>JsonResult</returns>
         [HttpDelete]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteReportGroup(long? ReportGroupId)
+        public async Task<IActionResult> DeleteReportGroup(long ReportGroupId)
         {
             #region Authorization
             #endregion
@@ -186,7 +186,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="ReportGroupId">The report group whose selections are to be returned.</param>
         /// <returns>JsonResult</returns>
         [HttpGet]
-        public async Task<IActionResult> Selections(long? ReportGroupId)
+        public async Task<IActionResult> Selections(long ReportGroupId)
         {
             #region Authorization
             #endregion
@@ -203,7 +203,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>JsonResult</returns>
         [HttpPut]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateSelections(long? ReportGroupId, object Selections)
+        public async Task<IActionResult> UpdateSelections(long ReportGroupId, object Selections)
         {
             #region Authorization
             #endregion
