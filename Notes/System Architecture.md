@@ -102,11 +102,16 @@ All virtual machines will be backed up to geo-redundant storage. This enables fa
 
 In the case that the data center becomes unavailable permanently or for a significant period, we will need to transfer our application and services to a new Azure data center.
 
-* Update public DNS records to point at IP addresses served by the new data center
-* Stand up all services in the new location, utilizing the configuration scripts used to stand up the original data center
-* Configure QlikView Servers and Publishers the same as they were in the original data center
-    * Utilize the geo-redundant copy of report data
+* If available, transfer resources to the South Central US region
+* If public IP addresses have changed, update public DNS records to point at IP addresses served by the new data center
+* Stand up services in the new location, utilizing the configuration scripts used to stand up the original data center
+  * Azure Database for PostgreSQL
+  * Azure Key Vault
+  * Service Bus
+  * Load balancer
+* Restore the QlikView Server and Publisher backups
 * Restore most recent available PostgreSQL database backups
+* Deploy MAP to the new location
 * Verify that all applications and services are functioning normally
 
 ## Security Policies
