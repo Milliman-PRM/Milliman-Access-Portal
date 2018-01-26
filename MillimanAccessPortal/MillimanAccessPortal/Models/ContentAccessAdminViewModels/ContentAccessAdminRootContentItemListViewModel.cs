@@ -18,5 +18,23 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
     {
         public List<ContentAccessAdminRootContentItemDetailViewModel> RootContentItemList;
         public long RelevantRootContentItemId { get; set; } = -1;
+
+        internal static void Build(ApplicationDbContext DbContext, Client Client)
+        {
+            ContentAccessAdminRootContentItemListViewModel Model = new ContentAccessAdminRootContentItemListViewModel();
+
+            List<RootContentItem> RootContentItems = DbContext.RootContentItem
+                .Where(rci => rci.ClientIdList.Contains(Client.Id))
+                .ToList();
+
+            foreach (var RootContentItem in RootContentItems)
+            {
+                Model.RootContentItemList.Add(
+                    ContentAccessAdminRootContentItemDetailViewModel.Build(DbContext, RootContentItem)
+                    );
+            }
+
+            return Model;
+        }
     }
 }

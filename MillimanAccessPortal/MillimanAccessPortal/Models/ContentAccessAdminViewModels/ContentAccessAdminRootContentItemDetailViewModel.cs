@@ -11,7 +11,7 @@ using MapDbContextLib.Context;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
-    public class RootContentDetailViewModel
+    public class ContentAccessAdminRootContentItemDetailViewModel
     {
         public string ContentName { get; set; }
         public string ContentType { get; set; }
@@ -19,55 +19,49 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
         public int NumberOfGroups { get; set; }
         public int NumberOfAssignedUsers { get; set; }
 
-        /// <summary>
-        /// Converts a RootContentItem to an instance of this ViewModel type
-        /// </summary>
-        /// <param name="Arg">A valid instance of RootContentItem from the database</param>
-        /// <param name="DbContext">This must ba a valid ApplicationDbContext</param>
-        /// <returns></returns>
-        internal static RootContentDetailViewModel GetModel(RootContentItem Arg, ApplicationDbContext DbContext=null)
+        internal static ContentAccessAdminRootContentItemDetailViewModel Build(ApplicationDbContext DbContext, RootContentItem Item)
         {
-            if (Arg.ContentType == null)
-            {
-                if (DbContext != null)
-                {
-                    Arg.ContentType = DbContext.ContentType.Find(Arg.ContentTypeId);
-                }
-                else
-                {
-                    throw new MapCommonLib.MapException("ContentType not provided while building RootContentDetailViewModel");
-                }
-            }
+            // Retrieve related users and groups to populate user and group counts
+            List<UserInContentItemUserGroup> RelatedUsersGroups = DbContext.UserInContentItemUserGroup
+                .Include(ug => ug.ContentItemUserGroup)
+                .Where(u => u.ContentItemUserGroup.RootContentItemId == Item.Id)
+                .ToList();
 
-            // Read supporting data from the database
-            List<UserInContentItemUserGroup> ReferencingUsersAndGroups = DbContext.UserInContentItemUserGroup
-                                                                                  .Include(ug => ug.ContentItemUserGroup)
-                                                                                  .Where(u => u.ContentItemUserGroup.RootContentItemId == Arg.Id)
-                                                                                  .ToList();
+            // See how many members are in each group
+            var GroupMemberCounts = DbContext.UserInContentItemUserGroup
+                .GroupBy(ug => ug.ContentItemUserGroupId)
+                .Select(ug => new { ContentItemUserGroupId = ug.Key, Count = ug.Count() });
 
-            // Instantiate/initialize the model to be returend
-            RootContentDetailViewModel ReturnModel = new RootContentDetailViewModel { ContentName = Arg.ContentName,
-                                                                                      ContentType = Arg.ContentType.Name,
-                                                                                      CanReduce = Arg.ContentType.CanReduce,
-                                                                                      NumberOfGroups = ReferencingUsersAndGroups.Select(u => u.ContentItemUserGroupId).Distinct().Count(),
-                                                                                      NumberOfAssignedUsers = ReferencingUsersAndGroups.Select(u => u.UserId).Distinct().Count() };
+            // Only include a group in NumberOfGroups if it has more than one member
+            // Single-member groups are not treated as groups by the front end
+            ContentAccessAdminRootContentItemDetailViewModel Model = new ContentAccessAdminRootContentItemDetailViewModel {
+                ContentName = Item.ContentName,
+                ContentType = Item.ContentType.Name,
+                CanReduce = Item.ContentType.CanReduce,
+                NumberOfGroups = RelatedUsersGroups
+                    .Where(ug => GroupMemberCounts
+                        .Single(gmc => gmc.ContentItemUserGroupId == ug.ContentItemUserGroupId)
+                        .Count > 1
+                        )
+                    .Select(ug => ug.ContentItemUserGroupId)
+                    .Distinct()
+                    .Count(),
+                NumberOfAssignedUsers = RelatedUsersGroups
+                    .Select(ug => ug.UserId)
+                    .Distinct()
+                    .Count()
+                };
 
-            return ReturnModel;
+            return Model;
         }
 
-        /// <summary>
-        /// Returns an instance of this ViewModel type representing the RootContentItem identified by RootContentId
-        /// </summary>
-        /// <param name="RootContentId">The primary key value of a RootContentItem record in the database</param>
-        /// <param name="DbContext">This must ba a valid ApplicationDbContext</param>
-        /// <returns></returns>
-        internal static RootContentDetailViewModel GetModel(long RootContentId, ApplicationDbContext DbContext)
+        internal static ContentAccessAdminRootContentItemDetailViewModel Build(long RootContentId, ApplicationDbContext DbContext)
         {
             RootContentItem Content = DbContext.RootContentItem
-                                               .Include(rc => rc.ContentType)
-                                               .Single(rc => rc.Id == RootContentId);
+                .Include(rci => rci.ContentType)
+                .Single(rci => rci.Id == RootContentId);
 
-            return GetModel(Content, DbContext);
+            return Build(Content, DbContext);
         }
     }
 }
