@@ -38,7 +38,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Action for content access administration index.</summary>
-        /// <remarks>This actions is only authorized to users with ContentAdmin role in at least one client.</remarks>
+        /// <remarks>This action is only authorized to users with ContentAdmin role in at least one client.</remarks>
         /// <returns>ViewResult</returns>
         [HttpGet]
         public async Task<IActionResult> Index()
@@ -59,7 +59,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Returns the list of client families visible to the user.</summary>
-        /// <remarks>This actions is only authorized to users with ContentAdmin role in at least one client.</remarks>
+        /// <remarks>This action is only authorized to users with ContentAdmin role in at least one client.</remarks>
         /// <returns>JsonResult</returns>
         [HttpGet]
         public async Task<IActionResult> ClientFamilyList()
@@ -82,7 +82,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Returns the root content items available to a client.</summary>
-        /// <remarks>This actions is only authorized to users with ContentAdmin role in the specified client.</remarks>
+        /// <remarks>This action is only authorized to users with ContentAdmin role in the specified client.</remarks>
         /// <param name="ClientId">The client whose root content items are to be returned.</param>
         /// <returns>JsonResult</returns>
         [HttpGet]
