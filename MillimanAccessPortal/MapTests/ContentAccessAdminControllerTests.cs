@@ -309,19 +309,78 @@ namespace MapTests
             #endregion
         }
 
+        [Theory]
+        [InlineData(999)]
+        public async Task DeleteReportGroup_ErrorInvalid(long RootContentItemId)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            #endregion
+
+            #region Act
+            int preCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            var view = await controller.DeleteReportGroup(RootContentItemId);
+            int postCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<BadRequestObjectResult>(view);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData("user5", 1)]
+        [InlineData("test1", 3)]
+        public async Task DeleteReportGroup_ErrorUnauthorized(String UserName, long RootContentItemId)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser(UserName);
+            #endregion
+
+            #region Act
+            int preCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            var view = await controller.DeleteReportGroup(RootContentItemId);
+            int postCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
         [Fact]
         public async Task DeleteReportGroup_ReturnsJson()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("ClientAdmin1");
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
             #endregion
 
             #region Act
-            var view = await controller.DeleteReportGroup(0);
+            var view = await controller.DeleteReportGroup(3);
             #endregion
 
             #region Assert
             Assert.IsType<JsonResult>(view);
+            #endregion
+        }
+
+        [Fact]
+        public async Task DeleteReportGroup_Success()
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            #endregion
+
+            #region Act
+            int preCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            var view = await controller.DeleteReportGroup(3);
+            int postCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            #endregion
+
+            #region Assert
+            Assert.Equal(preCount, postCount + 1);
             #endregion
         }
 
