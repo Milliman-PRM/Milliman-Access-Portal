@@ -53,7 +53,7 @@ namespace MapTests
         }
 
         [Fact]
-        public async Task Index_ErrorWhenUnauthorized()
+        public async Task Index_ErrorUnauthorized()
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("test1");
@@ -85,7 +85,7 @@ namespace MapTests
         }
 
         [Fact]
-        public async Task ClientFamilyList_ErrorWhenUnauthorized()
+        public async Task ClientFamilyList_ErrorUnauthorized()
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("test1");
@@ -117,7 +117,7 @@ namespace MapTests
         }
 
         [Fact]
-        public async Task RootContentItems_ErrorWhenInvalidClient()
+        public async Task RootContentItems_ErrorInvalid()
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("user5");
@@ -133,7 +133,7 @@ namespace MapTests
         }
 
         [Fact]
-        public async Task RootContentItems_ErrorWhenUnauthorized()
+        public async Task RootContentItems_ErrorUnauthorized()
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("user5");
