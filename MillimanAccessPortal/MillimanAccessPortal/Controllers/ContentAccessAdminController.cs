@@ -85,7 +85,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> RootContentItems(long ClientId)
         {
-            Client Client = await DbContext.Client.FindAsync(ClientId);
+            Client Client = DbContext.Client.Find(ClientId);
 
             #region Preliminary validation
             if (Client == null)

@@ -117,14 +117,46 @@ namespace MapTests
         }
 
         [Fact]
-        public async Task RootContentItems_ReturnsJson()
+        public async Task RootContentItems_ErrorWhenInvalidClient()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("ClientAdmin1");
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
             #endregion
 
             #region Act
-            var view = await controller.RootContentItems(0);
+            var view = await controller.RootContentItems(999);
+            #endregion
+
+            #region Assert
+            Assert.IsType<BadRequestObjectResult>(view);
+            #endregion
+        }
+
+        [Fact]
+        public async Task RootContentItems_ErrorWhenUnauthorized()
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            #endregion
+
+            #region Act
+            var view = await controller.RootContentItems(1);
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            #endregion
+        }
+
+        [Fact]
+        public async Task RootContentItems_ReturnsJson()
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            #endregion
+
+            #region Act
+            var view = await controller.RootContentItems(8);
             #endregion
 
             #region Assert
