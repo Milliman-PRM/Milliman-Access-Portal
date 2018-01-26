@@ -21,6 +21,11 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 
         internal static ContentAccessAdminRootContentItemDetailViewModel Build(ApplicationDbContext DbContext, RootContentItem Item)
         {
+            if (Item.ContentType == null)
+            {
+                Item.ContentType = DbContext.ContentType.Find(Item.ContentTypeId);
+            }
+
             // Retrieve related users and groups to populate user and group counts
             List<UserInContentItemUserGroup> RelatedUsersGroups = DbContext.UserInContentItemUserGroup
                 .Include(ug => ug.ContentItemUserGroup)
@@ -61,7 +66,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
                 .Include(rci => rci.ContentType)
                 .Single(rci => rci.Id == RootContentId);
 
-            return Build(Content, DbContext);
+            return Build(DbContext, Content);
         }
     }
 }

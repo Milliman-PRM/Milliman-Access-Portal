@@ -83,17 +83,19 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="ClientId">The client whose root content items are to be returned.</param>
         /// <returns>JsonResult</returns>
         [HttpGet]
-        public async Task<IActionResult> RootContentItems(long? ClientId)
+        public async Task<IActionResult> RootContentItems(long ClientId)
         {
+            Client Client = await DbContext.Client.FindAsync(ClientId);
+
             #region Preliminary validation
-            if (DbContext.Client.Find(ClientId.Value) == null)
+            if (Client == null)
             {
                 return BadRequest("The requested client does not exist");
             }
             #endregion
 
             #region Authorization
-            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, ClientId.Value));
+            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, ClientId));
             if (!ContentAdminResult.Succeeded)
             {
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
@@ -104,7 +106,9 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            return Json(new { });
+            ContentAccessAdminRootContentItemListViewModel Model = ContentAccessAdminRootContentItemListViewModel.Build(DbContext, Client);
+
+            return Json(Model);
         }
 
         /// <summary>Returns the report groups associated with a root content item.</summary>

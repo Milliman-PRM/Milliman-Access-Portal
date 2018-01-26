@@ -16,10 +16,10 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
     public class ContentAccessAdminRootContentItemListViewModel
     {
-        public List<ContentAccessAdminRootContentItemDetailViewModel> RootContentItemList;
+        public List<ContentAccessAdminRootContentItemDetailViewModel> RootContentItemList = new List<ContentAccessAdminRootContentItemDetailViewModel>();
         public long RelevantRootContentItemId { get; set; } = -1;
 
-        internal static void Build(ApplicationDbContext DbContext, Client Client)
+        internal static ContentAccessAdminRootContentItemListViewModel Build(ApplicationDbContext DbContext, Client Client)
         {
             ContentAccessAdminRootContentItemListViewModel Model = new ContentAccessAdminRootContentItemListViewModel();
 
@@ -35,6 +35,14 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
             }
 
             return Model;
+        }
+
+        internal static ContentAccessAdminRootContentItemListViewModel Build(ApplicationDbContext DbContext, long ClientId)
+        {
+            Client Client = DbContext.Client
+                .Single(c => c.Id == ClientId);
+
+            return Build(DbContext, Client);
         }
     }
 }
