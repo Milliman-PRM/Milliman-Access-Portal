@@ -164,15 +164,51 @@ namespace MapTests
             #endregion
         }
 
+        [Theory]
+        [InlineData(999, 3)]
+        [InlineData(8, 999)]
+        public async Task ReportGroups_ErrorInvalid(long ClientId, long RootContentItemId)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            #endregion
+
+            #region Act
+            var view = await controller.ReportGroups(ClientId, RootContentItemId);
+            #endregion
+
+            #region Assert
+            Assert.IsType<BadRequestObjectResult>(view);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData("user5", 1, 1)]
+        [InlineData("test1", 8, 3)]
+        public async Task ReportGroups_ErrorUnauthorized(String UserName, long ClientId, long RootContentItemId)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser(UserName);
+            #endregion
+
+            #region Act
+            var view = await controller.ReportGroups(ClientId, RootContentItemId);
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            #endregion
+        }
+
         [Fact]
         public async Task ReportGroups_ReturnsJson()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("ClientAdmin1");
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
             #endregion
 
             #region Act
-            var view = await controller.ReportGroups(0, 0);
+            var view = await controller.ReportGroups(8, 3);
             #endregion
 
             #region Assert
