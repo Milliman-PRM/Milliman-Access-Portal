@@ -116,17 +116,40 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Returns the report groups associated with a root content item.</summary>
+        /// <remarks>This action is only authorized to users with ContentAdmin role in the specified client.</remarks>
         /// <param name="ClientId">The client associated with the root content item.</param>
         /// <param name="RootContentItemId">The root content item whose report groups are to be returned.</param>
         /// <returns>JsonResult</returns>
         [HttpGet]
         public async Task<IActionResult> ReportGroups(long ClientId, long RootContentItemId)
         {
+            Client Client = DbContext.Client.Find(ClientId);
+
+            #region Preliminary validation
+            if (Client == null)
+            {
+                return BadRequest("The requested client does not exist");
+            }
+            #endregion
+
             #region Authorization
+            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, ClientId));
+            if (!ContentAdminResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
+                return Unauthorized();
+            }
             #endregion
 
             #region Validation
+            RootContentItem RootContentItem = DbContext.RootContentItem.Find(RootContentItemId);
+            if (RootContentItem == null)
+            {
+                return BadRequest("The requested root content item does not exist");
+            }
             #endregion
+
+            ContentAccessAdminReportGroupListViewModel Model = ContentAccessAdminReportGroupListViewModel.Build(DbContext, Client, RootContentItem);
 
             return Json(new { });
         }
