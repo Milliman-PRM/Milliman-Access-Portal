@@ -14,12 +14,12 @@ using Microsoft.AspNetCore.Identity;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
-    public class IndexViewModel
+    public class ContentAccessAdminClientListViewModel
     {
         public List<ClientAndChildrenModel> ClientTreeList { get; set; } = new List<ClientAndChildrenModel>();
         public long RelevantClientId { get; set; } = -1;
 
-        async public static Task<IndexViewModel> Build(ApplicationUser CurrentUser, UserManager<ApplicationUser> UserManager, ApplicationDbContext DbContext)
+        async public static Task<ContentAccessAdminClientListViewModel> Build(ApplicationUser CurrentUser, UserManager<ApplicationUser> UserManager, ApplicationDbContext DbContext)
         {
             #region Validation
             if (CurrentUser == null)
@@ -28,7 +28,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
             }
             #endregion
 
-            IndexViewModel Model = new IndexViewModel();
+            ContentAccessAdminClientListViewModel Model = new ContentAccessAdminClientListViewModel();
 
             // load into memory to improve speed and prevent lingering transactions
             List<Client> RootClients = DbContext.Client

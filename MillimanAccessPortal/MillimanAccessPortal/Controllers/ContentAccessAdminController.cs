@@ -74,7 +74,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            IndexViewModel Model = await IndexViewModel.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
+            ContentAccessAdminClientListViewModel Model = await ContentAccessAdminClientListViewModel.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
 
             return Json(Model);
         }
