@@ -86,6 +86,12 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> RootContentItems(long? ClientId)
         {
             #region Authorization
+            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, ClientId.Value));
+            if (!ContentAdminResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
+                return Unauthorized();
+            }
             #endregion
 
             #region Validation
