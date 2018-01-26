@@ -85,6 +85,13 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> RootContentItems(long? ClientId)
         {
+            #region Preliminary validation
+            if (DbContext.Client.Find(ClientId.Value) == null)
+            {
+                return BadRequest("The requested client does not exist");
+            }
+            #endregion
+
             #region Authorization
             AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, ClientId.Value));
             if (!ContentAdminResult.Succeeded)
