@@ -24,14 +24,14 @@ namespace MillimanAccessPortal.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly MessageQueueServices _messageSender;
+        private readonly IMessageQueue _messageSender;
         private readonly ILogger _logger;
         private readonly IAuditLogger _auditLogger;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            MessageQueueServices messageSender,
+            IMessageQueue messageSender,
             ILoggerFactory loggerFactory,
             IAuditLogger AuditLoggerArg)
         {
