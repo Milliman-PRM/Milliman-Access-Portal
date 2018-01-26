@@ -34,7 +34,8 @@ namespace MapTests
             ContentAccessAdminController testController = new ContentAccessAdminController(
                 TestResources.AuthorizationService,
                 TestResources.DbContextObject,
-                TestResources.QueriesObj
+                TestResources.QueriesObj,
+                TestResources.UserManagerObject
                 );
 
             try

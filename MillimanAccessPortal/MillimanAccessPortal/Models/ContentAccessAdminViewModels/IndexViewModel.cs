@@ -1,14 +1,16 @@
 ﻿/*
  * CODE OWNERS: Joseph Sweeney
  * OBJECTIVE:
- * DEVELOPER NOTES: <What future developers need to know.>
+ * DEVELOPER NOTES:
  */
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using Microsoft.AspNetCore.Identity;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
@@ -17,7 +19,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
         public List<ClientAndChildrenModel> ClientTreeList { get; set; } = new List<ClientAndChildrenModel>();
         public long RelevantClientId { get; set; } = -1;
 
-        public static IndexViewModel Build(ApplicationUser CurrentUser, ApplicationDbContext DbContext)
+        async public static Task<IndexViewModel> Build(ApplicationUser CurrentUser, UserManager<ApplicationUser> UserManager, ApplicationDbContext DbContext)
         {
             #region Validation
             if (CurrentUser == null)
@@ -36,7 +38,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
             foreach (Client RootClient in RootClients)
             {
                 ClientAndChildrenModel ClientModel = new ClientAndChildrenModel(RootClient);
-                ClientModel.GenerateSupportingProperties(DbContext, CurrentUser);
+                await ClientModel.GenerateSupportingProperties(DbContext, UserManager, CurrentUser);
                 if (ClientModel.IsThisOrAnyChildManageable())
                 {
                     Model.ClientTreeList.Add(ClientModel);
@@ -62,20 +64,20 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
             ClientDetailModel = new ContentAccessAdminClientDetailViewModel { ClientEntity = ClientArg };
         }
 
-        public void GenerateSupportingProperties(ApplicationDbContext DbContext, ApplicationUser CurrentUser)
+        async public Task GenerateSupportingProperties(ApplicationDbContext DbContext, UserManager<ApplicationUser> UserManager, ApplicationUser CurrentUser)
         {
             if (ClientDetailModel == null)
             {
                 throw new MapException("ClientModel is uninitialized.");
             }
 
-            ClientDetailModel.GenerateSupportingProperties(DbContext, CurrentUser);
+            await ClientDetailModel.GenerateSupportingProperties(DbContext, UserManager, CurrentUser);
 
             List<Client> ChildClients = DbContext.Client.Where(c => c.ParentClientId == ClientDetailModel.ClientEntity.Id).OrderBy(c => c.Name).ToList();
             foreach (Client ChildClient in ChildClients)
             {
                 ClientAndChildrenModel ChildModel = new ClientAndChildrenModel(ChildClient);
-                ChildModel.GenerateSupportingProperties(DbContext, CurrentUser);
+                await ChildModel.GenerateSupportingProperties(DbContext, UserManager, CurrentUser);
                 ChildClientModels.Add(ChildModel);
             }
         }

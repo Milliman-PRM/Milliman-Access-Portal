@@ -7,6 +7,7 @@
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
@@ -21,16 +22,19 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuthorizationService AuthorizationService;
         private readonly ApplicationDbContext DbContext;
         private readonly StandardQueries Queries;
+        private readonly UserManager<ApplicationUser> UserManager;
 
         public ContentAccessAdminController(
             IAuthorizationService AuthorizationServiceArg,
             ApplicationDbContext DbContextArg,
-            StandardQueries QueriesArg
+            StandardQueries QueriesArg,
+            UserManager<ApplicationUser> UserManagerArg
             )
         {
             AuthorizationService = AuthorizationServiceArg;
             DbContext = DbContextArg;
             Queries = QueriesArg;
+            UserManager = UserManagerArg;
         }
 
         /// <summary>Action for content access administration index.</summary>
@@ -70,7 +74,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            IndexViewModel Model = IndexViewModel.Build(await Queries.GetCurrentApplicationUser(User), DbContext);
+            IndexViewModel Model = await IndexViewModel.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
 
             return Json(Model);
         }
