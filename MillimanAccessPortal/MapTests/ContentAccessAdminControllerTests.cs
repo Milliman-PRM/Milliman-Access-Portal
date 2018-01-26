@@ -217,19 +217,79 @@ namespace MapTests
             #endregion
         }
 
+        [Theory]
+        [InlineData(999, 3)]
+        [InlineData(8, 999)]
+        public async Task CreateReportGroup_ErrorInvalid(long ClientId, long RootContentItemId)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            #endregion
+
+            #region Act
+            int preCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            var view = await controller.CreateReportGroup(ClientId, RootContentItemId, "GroupName");
+            int postCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<BadRequestObjectResult>(view);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData("user5", 1, 1)]
+        [InlineData("test1", 8, 3)]
+        public async Task CreateReportGroup_ErrorUnauthorized(String UserName, long ClientId, long RootContentItemId)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser(UserName);
+            #endregion
+
+            #region Act
+            int preCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            var view = await controller.CreateReportGroup(ClientId, RootContentItemId, "GroupName");
+            int postCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
         [Fact]
         public async Task CreateReportGroup_ReturnsJson()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("ClientAdmin1");
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
             #endregion
 
             #region Act
-            var view = await controller.CreateReportGroup(0, 0, "");
+            var view = await controller.CreateReportGroup(8, 3, "GroupName");
             #endregion
 
             #region Assert
             Assert.IsType<JsonResult>(view);
+            #endregion
+        }
+
+        [Fact]
+        public async Task CreateReportGroup_Success()
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            #endregion
+
+            #region Act
+            int preCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            var view = await controller.CreateReportGroup(8, 3, "GroupName");
+            int postCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            #endregion
+
+            #region Assert
+            Assert.Equal(preCount + 1, postCount);
             #endregion
         }
 
