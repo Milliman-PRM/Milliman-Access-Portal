@@ -92,9 +92,13 @@ In the case that we have to stand up a new PostgreSQL instance, the connection s
 
 ## File storage redundancy
 
-The file storage instance hosting content should be geo-redundant, which means Azure will maintain a second copy in a separate data center, which we can stand up in an emergency.
+The file storage instance hosting content will be [geo-redundant](https://docs.microsoft.com/en-us/azure/storage/common/storage-redundancy?toc=%2fazure%2fstorage%2fblobs%2ftoc.json#geo-redundant-storage), which means Azure will maintain a second copy in a separate data center (South Central US), which we can stand up in an emergency.
 
-## Operating out of secondary data center
+## Virtual machine backups
+
+All virtual machines will be backed up to geo-redundant storage. This enables fast recovery in the case of a data center outage. It also provides the ability to recover a single VM in the case of data corruption.
+
+## Recovery to secondary data center
 
 In the case that the data center becomes unavailable permanently or for a significant period, we will need to transfer our application and services to a new Azure data center.
 
@@ -106,6 +110,10 @@ In the case that the data center becomes unavailable permanently or for a signif
 * Verify that all applications and services are functioning normally
 
 ## Security Policies
+
+### Filesystem Encryption
+
+Virtual machines' file systems must be encrypted at all times.
 
 ### Configuration Encryption
 
