@@ -36,13 +36,5 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 
             return Model;
         }
-
-        internal static ContentAccessAdminRootContentItemListViewModel Build(ApplicationDbContext DbContext, long ClientId)
-        {
-            Client Client = DbContext.Client
-                .Single(c => c.Id == ClientId);
-
-            return Build(DbContext, Client);
-        }
     }
 }
