@@ -38,8 +38,17 @@
         &.selected {
             background-color: $blue;
 
+            svg.navbar-icon {
+                fill: white;
+            }
+
+
             a:hover {
                 color: $charcoal;
+
+                svg.navbar-icon {
+                    fill: $charcoal;
+                }
             }
         }
 
@@ -55,6 +64,10 @@
 
             &:hover {
                 color: $blue;
+
+                svg {
+                    fill: $blue;
+                }
             }
 
             button {
@@ -74,6 +87,7 @@
         margin: auto 0 auto 1rem;
     }
 
+    svg,
     .nav-icon {
         display: inline-block;
         float: right;
@@ -83,4 +97,8 @@
         padding: 0;
         margin: auto;
     }
+}
+
+.navbar-icon {
+    fill: $white;
 }

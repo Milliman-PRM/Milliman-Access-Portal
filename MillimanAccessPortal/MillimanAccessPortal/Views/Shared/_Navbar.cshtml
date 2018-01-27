@@ -10,7 +10,9 @@
         <li class="nav-item @GetSelectedClassString("HostedContent")">
             <a asp-controller="HostedContent" asp-action="Index" class="nav-button">
                 <h3 class="nav-label">Authorized Content</h3>
-                <i class="fa fa-fw fa-3x fa-th-large nav-icon" aria-hidden="true"></i>
+                <svg class="navbar-icon">
+                    <use xlink:href="#navbar-content-view"></use>
+                </svg>
             </a>
         </li>
         <li class="nav-item @GetSelectedClassString("UserProfile")">
