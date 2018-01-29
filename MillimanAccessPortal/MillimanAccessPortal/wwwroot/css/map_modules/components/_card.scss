@@ -93,15 +93,19 @@
             margin: auto;
 
             .card-user-icon {
-                vertical-align: middle;
-                margin: auto;
+                height: 4rem;
+                width: 4rem;
             }
 
             .card-user-role-indicator {
                 position: absolute;
-                top: 5%;
-                left: 60%;
+                top: 15%;
+                left: 70%;
+                height: 1.25rem;
+                width: 1.25rem;
                 color: $green;
+                stroke: context-fill $green;
+                stroke-width: 3px;
             }
         }
     }
