@@ -4,7 +4,14 @@
  * DEVELOPER NOTES: 
  */
 
+using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using MillimanAccessPortal.Authorization;
+using MillimanAccessPortal.DataQueries;
+using MillimanAccessPortal.Models.ContentAccessAdminViewModels;
 using System;
 using System.Threading.Tasks;
 
@@ -12,18 +19,37 @@ namespace MillimanAccessPortal.Controllers
 {
     public class ContentAccessAdminController : Controller
     {
+        private readonly IAuthorizationService AuthorizationService;
+        private readonly ApplicationDbContext DbContext;
+        private readonly StandardQueries Queries;
+        private readonly UserManager<ApplicationUser> UserManager;
 
         public ContentAccessAdminController(
+            IAuthorizationService AuthorizationServiceArg,
+            ApplicationDbContext DbContextArg,
+            StandardQueries QueriesArg,
+            UserManager<ApplicationUser> UserManagerArg
             )
         {
+            AuthorizationService = AuthorizationServiceArg;
+            DbContext = DbContextArg;
+            Queries = QueriesArg;
+            UserManager = UserManagerArg;
         }
 
         /// <summary>Action for content access administration index.</summary>
+        /// <remarks>This action is only authorized to users with ContentAdmin role in at least one client.</remarks>
         /// <returns>ViewResult</returns>
         [HttpGet]
         public async Task<IActionResult> Index()
         {
             #region Authorization
+            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, null));
+            if (!ContentAdminResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access.");
+                return Unauthorized();
+            }
             #endregion
 
             #region Validation
@@ -33,32 +59,60 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Returns the list of client families visible to the user.</summary>
+        /// <remarks>This action is only authorized to users with ContentAdmin role in at least one client.</remarks>
         /// <returns>JsonResult</returns>
         [HttpGet]
         public async Task<IActionResult> ClientFamilyList()
         {
             #region Authorization
+            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, null));
+            if (!ContentAdminResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access.");
+                return Unauthorized();
+            }
             #endregion
 
             #region Validation
             #endregion
 
-            return Json(new { });
+            ContentAccessAdminClientListViewModel Model = await ContentAccessAdminClientListViewModel.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
+
+            return Json(Model);
         }
 
         /// <summary>Returns the root content items available to a client.</summary>
+        /// <remarks>This action is only authorized to users with ContentAdmin role in the specified client.</remarks>
         /// <param name="ClientId">The client whose root content items are to be returned.</param>
         /// <returns>JsonResult</returns>
         [HttpGet]
-        public async Task<IActionResult> RootContentItems(long? ClientId)
+        public async Task<IActionResult> RootContentItems(long ClientId)
         {
+            Client Client = DbContext.Client.Find(ClientId);
+
+            #region Preliminary validation
+            if (Client == null)
+            {
+                Response.Headers.Add("Warning", "The requested client does not exist");
+                return BadRequest();
+            }
+            #endregion
+
             #region Authorization
+            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, ClientId));
+            if (!ContentAdminResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
+                return Unauthorized();
+            }
             #endregion
 
             #region Validation
             #endregion
 
-            return Json(new { });
+            ContentAccessAdminRootContentItemListViewModel Model = ContentAccessAdminRootContentItemListViewModel.Build(DbContext, Client);
+
+            return Json(Model);
         }
 
         /// <summary>Returns the report groups associated with a root content item.</summary>
