@@ -93,7 +93,8 @@ namespace MillimanAccessPortal.Controllers
             #region Preliminary validation
             if (Client == null)
             {
-                return BadRequest("The requested client does not exist");
+                Response.Headers.Add("Warning", "The requested client does not exist");
+                return BadRequest();
             }
             #endregion
 
