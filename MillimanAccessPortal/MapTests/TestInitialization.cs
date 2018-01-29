@@ -441,6 +441,7 @@ namespace MapTests
                     new ContentItemUserGroup { Id=1, ClientId=1, ContentInstanceUrl="Folder1/File1", RootContentItemId=1, GroupName="Group1 For Content1" },
                     new ContentItemUserGroup { Id=2, ClientId=1, ContentInstanceUrl="Folder1/File2", RootContentItemId=1, GroupName="Group2 For Content1" },
                     new ContentItemUserGroup { Id=3, ClientId=2, ContentInstanceUrl="Folder2/File1", RootContentItemId=2, GroupName="Group1 For Content2" },
+                    new ContentItemUserGroup { Id=4, ClientId=8, ContentInstanceUrl="Folder3/File1", RootContentItemId=3, GroupName="Group1 For Content3" },
                 });
             MockDbSet<ContentItemUserGroup>.AssignNavigationProperty<RootContentItem>(DbContextObject.ContentItemUserGroup, "RootContentItemId", DbContextObject.RootContentItem);
             MockDbSet<ContentItemUserGroup>.AssignNavigationProperty<Client>(DbContextObject.ContentItemUserGroup, "ClientId", DbContextObject.Client);
@@ -450,6 +451,7 @@ namespace MapTests
             DbContextObject.UserInContentItemUserGroup.AddRange(new List<UserInContentItemUserGroup>
                 { 
                     new UserInContentItemUserGroup { Id=1, ContentItemUserGroupId=1, UserId=1 },
+                    new UserInContentItemUserGroup { Id=2, ContentItemUserGroupId=4, UserId=3 },
                 });
             MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ContentItemUserGroup>(DbContextObject.UserInContentItemUserGroup, "ContentItemUserGroupId", DbContextObject.ContentItemUserGroup);
             MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserInContentItemUserGroup, "UserId", DbContextObject.ApplicationUser);
