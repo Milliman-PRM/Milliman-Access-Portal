@@ -468,6 +468,8 @@ namespace MapTests
             DbContextObject.UserRoleInRootContentItem.AddRange(new List<UserRoleInRootContentItem>
             { 
                 new UserRoleInRootContentItem { Id=1, RoleId=5, UserId=1, RootContentItemId=1 },
+                new UserRoleInRootContentItem { Id=2, RoleId=5, UserId=3, RootContentItemId=3 },
+                new UserRoleInRootContentItem { Id=3, RoleId=5, UserId=5, RootContentItemId=3 },
             });
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInRootContentItem, "RoleId", DbContextObject.ApplicationRole);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInRootContentItem, "UserId", DbContextObject.ApplicationUser);

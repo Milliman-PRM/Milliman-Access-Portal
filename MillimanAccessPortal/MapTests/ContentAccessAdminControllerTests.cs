@@ -295,7 +295,7 @@ namespace MapTests
         [Theory]
         [InlineData(999, 3, true)]
         [InlineData(4, 999, true)]
-        [InlineData(4, 4, true)]  // user ID does not belong to related client
+        [InlineData(4, 4, true)]  // user ID does not have appropriate role in root content item
         public async Task UpdateReportGroup_ErrorInvalid(long ReportGroupId, long UserId, bool MembershipStatus)
         {
             #region Arrange
