@@ -23,6 +23,18 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
         {
             ContentAccessAdminReportGroupListViewModel Model = new ContentAccessAdminReportGroupListViewModel();
 
+            List<ContentItemUserGroup> ReportGroups = DbContext.ContentItemUserGroup
+                .Where(rci => rci.ClientId == Client.Id)
+                .Where(rci => rci.RootContentItemId == RootContentItem.Id)
+                .ToList();
+
+            foreach (var ReportGroup in ReportGroups)
+            {
+                Model.ReportGroupList.Add(
+                    ContentAccessAdminReportGroupDetailViewModel.Build(DbContext, ReportGroup)
+                    );
+            }
+
             return Model;
         }
     }

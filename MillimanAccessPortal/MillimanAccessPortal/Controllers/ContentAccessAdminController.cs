@@ -152,7 +152,7 @@ namespace MillimanAccessPortal.Controllers
 
             ContentAccessAdminReportGroupListViewModel Model = ContentAccessAdminReportGroupListViewModel.Build(DbContext, Client, RootContentItem);
 
-            return Json(new { });
+            return Json(Model);
         }
 
         /// <summary>Creates a report group.</summary>
