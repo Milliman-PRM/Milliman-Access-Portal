@@ -401,20 +401,25 @@ namespace MapTests
             #endregion
 
             #region Act
-            int preCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            int groupsPreCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            int userPreCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+
             var view = await controller.DeleteReportGroup(RootContentItemId);
-            int postCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+
+            int groupsPostCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            int userPostCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
             #endregion
 
             #region Assert
             Assert.IsType<BadRequestResult>(view);
-            Assert.Equal(preCount, postCount);
+            Assert.Equal(groupsPreCount, groupsPostCount);
+            Assert.Equal(userPreCount, userPostCount);
             #endregion
         }
 
         [Theory]
         [InlineData("user5", 1)]
-        [InlineData("test1", 3)]
+        [InlineData("test1", 4)]
         public async Task DeleteReportGroup_ErrorUnauthorized(String UserName, long RootContentItemId)
         {
             #region Arrange
@@ -422,14 +427,19 @@ namespace MapTests
             #endregion
 
             #region Act
-            int preCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            int groupsPreCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            int userPreCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+
             var view = await controller.DeleteReportGroup(RootContentItemId);
-            int postCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+
+            int groupsPostCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            int userPostCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
             #endregion
 
             #region Assert
             Assert.IsType<UnauthorizedResult>(view);
-            Assert.Equal(preCount, postCount);
+            Assert.Equal(groupsPreCount, groupsPostCount);
+            Assert.Equal(userPreCount, userPostCount);
             #endregion
         }
 
@@ -441,7 +451,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.DeleteReportGroup(3);
+            var view = await controller.DeleteReportGroup(4);
             #endregion
 
             #region Assert
@@ -457,13 +467,18 @@ namespace MapTests
             #endregion
 
             #region Act
-            int preCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
-            var view = await controller.DeleteReportGroup(3);
-            int postCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            int groupsPreCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            int userPreCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+
+            var view = await controller.DeleteReportGroup(4);
+
+            int groupsPostCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            int userPostCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
             #endregion
 
             #region Assert
-            Assert.Equal(preCount, postCount + 1);
+            Assert.Equal(groupsPreCount, groupsPostCount + 1);
+            Assert.Equal(userPreCount, userPostCount + 1);
             #endregion
         }
 
