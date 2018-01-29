@@ -9,6 +9,7 @@ using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Storage;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentAccessAdminViewModels;
@@ -244,16 +245,50 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteReportGroup(long ReportGroupId)
         {
+            ContentItemUserGroup ReportGroup = DbContext.ContentItemUserGroup.Find(ReportGroupId);
+
             #region Preliminary Validation
+            if (ReportGroup == null)
+            {
+                Response.Headers.Add("Warning", "The requested report group does not exist.");
+                return BadRequest();
+            }
             #endregion
 
             #region Authorization
+            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, ReportGroup.ClientId));
+            if (!ContentAdminResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
+                return Unauthorized();
+            }
             #endregion
 
             #region Validation
             #endregion
 
-            return Json(new { });
+            using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
+            {
+                DbContext.UserInContentItemUserGroup.RemoveRange(
+                    DbContext.UserInContentItemUserGroup
+                        .Where(u => u.ContentItemUserGroupId == ReportGroup.Id)
+                        .ToList()
+                    );
+                DbContext.SaveChanges();
+
+                DbContext.ContentItemUserGroup.Remove(
+                    DbContext.ContentItemUserGroup
+                        .Where(g => g.Id == ReportGroup.Id)
+                        .Single()
+                    );
+                DbContext.SaveChanges();
+
+                DbTransaction.Commit();
+            }
+
+            ContentAccessAdminReportGroupListViewModel Model = ContentAccessAdminReportGroupListViewModel.Build(DbContext, ReportGroup.Client, ReportGroup.RootContentItem);
+
+            return Json(Model);
         }
 
         /// <summary>Returns the selections associated with a report group.</summary>
