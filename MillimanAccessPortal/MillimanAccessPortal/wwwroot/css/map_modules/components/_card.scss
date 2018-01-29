@@ -257,3 +257,17 @@
     margin: 0 0 3em;
     padding: 0;
 }
+
+.action-card {
+    .card-body-primary-text {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        
+        .action-card-icon {
+            height: 2em;
+            width: 2em;
+            margin-right: .25em;
+        }
+    }
+}

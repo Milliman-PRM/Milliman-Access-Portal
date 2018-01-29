@@ -1312,7 +1312,7 @@ $(document).ready(function onReady() {
     .addClass('card-100 action-card')
     .attr('id', 'create-new-client-card');
   $createNewClientCard.find('.card-body-primary-text')
-    .append('<i class="fa fa-plus"></i>')
+    .append('<svg class="action-card-icon"><use xlink:href="#action-icon-add"></use></svg>')
     .append('<span>New Client</span>');
   $createNewClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
     .remove();
@@ -1336,7 +1336,7 @@ $(document).ready(function onReady() {
     .addClass('card-100 action-card')
     .attr('id', 'add-user-card');
   $addUserCard.find('.card-body-primary-text')
-    .append('<i class="fa fa-plus"></i>')
+    .append('<svg class="action-card-icon"><use xlink:href="#action-icon-add"></use></svg>')
     .append('<span>Add User</span>');
   $addUserCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
     .remove();
