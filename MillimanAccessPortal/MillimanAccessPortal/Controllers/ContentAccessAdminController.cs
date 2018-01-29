@@ -95,7 +95,7 @@ namespace MillimanAccessPortal.Controllers
             #region Preliminary validation
             if (Client == null)
             {
-                Response.Headers.Add("Warning", "The requested client does not exist");
+                Response.Headers.Add("Warning", "The requested client does not exist.");
                 return BadRequest();
             }
             #endregion
@@ -130,7 +130,8 @@ namespace MillimanAccessPortal.Controllers
             #region Preliminary validation
             if (Client == null)
             {
-                return BadRequest("The requested client does not exist");
+                Response.Headers.Add("Warning", "The requested client does not exist.");
+                return BadRequest();
             }
             #endregion
 
@@ -147,7 +148,8 @@ namespace MillimanAccessPortal.Controllers
             RootContentItem RootContentItem = DbContext.RootContentItem.Find(RootContentItemId);
             if (RootContentItem == null)
             {
-                return BadRequest("The requested root content item does not exist");
+                Response.Headers.Add("Warning", "The requested root content item does not exist.");
+                return BadRequest();
             }
             #endregion
 
@@ -171,7 +173,8 @@ namespace MillimanAccessPortal.Controllers
             #region Preliminary validation
             if (Client == null)
             {
-                return BadRequest("The requested client does not exist");
+                Response.Headers.Add("Warning", "The requested client does not exist.");
+                return BadRequest();
             }
             #endregion
 
@@ -188,7 +191,8 @@ namespace MillimanAccessPortal.Controllers
             RootContentItem RootContentItem = DbContext.RootContentItem.Find(RootContentItemId);
             if (RootContentItem == null)
             {
-                return BadRequest("The requested root content item does not exist");
+                Response.Headers.Add("Warning", "The requested root content item does not exist.");
+                return BadRequest();
             }
             #endregion
 

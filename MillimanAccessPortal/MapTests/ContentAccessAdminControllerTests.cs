@@ -178,7 +178,7 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<BadRequestObjectResult>(view);
+            Assert.IsType<BadRequestResult>(view);
             #endregion
         }
 
@@ -232,7 +232,7 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<BadRequestObjectResult>(view);
+            Assert.IsType<BadRequestResult>(view);
             Assert.Equal(preCount, postCount);
             #endregion
         }
@@ -314,7 +314,7 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<BadRequestObjectResult>(view);
+            Assert.IsType<BadRequestResult>(view);
             Assert.Equal(preCount, postCount);
             #endregion
         }
@@ -406,7 +406,7 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<BadRequestObjectResult>(view);
+            Assert.IsType<BadRequestResult>(view);
             Assert.Equal(preCount, postCount);
             #endregion
         }
