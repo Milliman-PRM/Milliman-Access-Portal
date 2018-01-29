@@ -14,6 +14,7 @@ using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentAccessAdminViewModels;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Controllers
@@ -156,6 +157,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Creates a report group.</summary>
+        /// <remarks>This action is only authorized to users with ContentAdmin role in the specified client.</remarks>
         /// <param name="ClientId">The client to be assigned to the new report group.</param>
         /// <param name="RootContentItemId">The root content item to be assigned to the new report group.</param>
         /// <param name="ReportGroupName">The name of the new report group.</param>
@@ -164,16 +166,44 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateReportGroup(long ClientId, long RootContentItemId, String ReportGroupName)
         {
-            #region Preliminary Validation
+            Client Client = DbContext.Client.Find(ClientId);
+
+            #region Preliminary validation
+            if (Client == null)
+            {
+                return BadRequest("The requested client does not exist");
+            }
             #endregion
 
             #region Authorization
+            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, ClientId));
+            if (!ContentAdminResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
+                return Unauthorized();
+            }
             #endregion
 
             #region Validation
+            RootContentItem RootContentItem = DbContext.RootContentItem.Find(RootContentItemId);
+            if (RootContentItem == null)
+            {
+                return BadRequest("The requested root content item does not exist");
+            }
             #endregion
 
-            return Json(new { });
+
+
+            #region Build response object
+            ContentItemUserGroup ReportGroup = DbContext.ContentItemUserGroup
+                .Where(ug => ug.ClientId == Client.Id)
+                .Where(ug => ug.RootContentItemId == RootContentItem.Id)
+                .Single();
+
+            ContentAccessAdminReportGroupDetailViewModel Model = ContentAccessAdminReportGroupDetailViewModel.Build(DbContext, null);
+            #endregion
+
+            return Json(Model);
         }
 
         /// <summary>Updates the users assigned to a report group.</summary>
