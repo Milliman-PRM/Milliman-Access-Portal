@@ -9,7 +9,6 @@ using MillimanAccessPortal.Controllers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -293,19 +292,102 @@ namespace MapTests
             #endregion
         }
 
+        [Theory]
+        [InlineData(999, 3, true)]
+        [InlineData(4, 999, true)]
+        [InlineData(4, 4, true)]  // user ID does not belong to related client
+        public async Task UpdateReportGroup_ErrorInvalid(long ReportGroupId, long UserId, bool MembershipStatus)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            Dictionary<long, bool> MembershipSet = new Dictionary<long, bool>
+            {
+                { UserId, MembershipStatus },
+                { 5, true }
+            };
+            #endregion
+
+            #region Act
+            int preCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+            var view = await controller.UpdateReportGroup(ReportGroupId, MembershipSet);
+            int postCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<BadRequestObjectResult>(view);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData("test1", 4)]
+        [InlineData("user5", 3)]
+        public async Task UpdateReportGroup_ErrorUnauthorized(String UserName, long ReportGroupId)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser(UserName);
+            Dictionary<long, bool> MembershipSet = new Dictionary<long, bool>
+            {
+                { 3, true },
+                { 5, true }
+            };
+            #endregion
+
+            #region Act
+            int preCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+            var view = await controller.UpdateReportGroup(ReportGroupId, MembershipSet);
+            int postCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
         [Fact]
         public async Task UpdateReportGroup_ReturnsJson()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("ClientAdmin1");
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            Dictionary<long, bool> MembershipSet = new Dictionary<long, bool>
+            {
+                { 3, true },
+                { 5, false }
+            };
             #endregion
 
             #region Act
-            var view = await controller.UpdateReportGroup(0, null);
+            var view = await controller.UpdateReportGroup(4, MembershipSet);
             #endregion
 
             #region Assert
             Assert.IsType<JsonResult>(view);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task UpdateReportGroup_Success(bool MembershipStatus)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            Dictionary<long, bool> MembershipSet = new Dictionary<long, bool>
+            {
+                { 3, MembershipStatus },
+                { 5, MembershipStatus },
+            };
+            #endregion
+
+            #region Act
+            int preCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+            var view = await controller.UpdateReportGroup(4, MembershipSet);
+            int postCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+            #endregion
+
+            #region Assert
+            Assert.Equal(preCount + (MembershipStatus ? 1 : -1), postCount);
             #endregion
         }
 
