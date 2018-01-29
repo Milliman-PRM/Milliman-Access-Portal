@@ -192,7 +192,8 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-
+            DbContext.ContentItemUserGroup.Add(new ContentItemUserGroup { ClientId = Client.Id, RootContentItemId = RootContentItem.Id, GroupName = ReportGroupName });
+            DbContext.SaveChanges();
 
             #region Build response object
             ContentItemUserGroup ReportGroup = DbContext.ContentItemUserGroup
@@ -200,7 +201,7 @@ namespace MillimanAccessPortal.Controllers
                 .Where(ug => ug.RootContentItemId == RootContentItem.Id)
                 .Single();
 
-            ContentAccessAdminReportGroupDetailViewModel Model = ContentAccessAdminReportGroupDetailViewModel.Build(DbContext, null);
+            ContentAccessAdminReportGroupDetailViewModel Model = ContentAccessAdminReportGroupDetailViewModel.Build(DbContext, ReportGroup);
             #endregion
 
             return Json(Model);
