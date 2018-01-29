@@ -13,6 +13,7 @@ using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentAccessAdminViewModels;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Controllers
@@ -174,11 +175,11 @@ namespace MillimanAccessPortal.Controllers
 
         /// <summary>Updates the users assigned to a report group.</summary>
         /// <param name="ReportGroupId">The report group to be updated.</param>
-        /// <param name="Users">The users to be applied to the report group.</param>
+        /// <param name="MembershipSet">A dictionary indicating a set of users' group membership status.</param>
         /// <returns>JsonResult</returns>
         [HttpPut]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateReportGroup(long ReportGroupId, object Users)
+        public async Task<IActionResult> UpdateReportGroup(long ReportGroupId, Dictionary<long, Boolean> MembershipSet)
         {
             #region Authorization
             #endregion
