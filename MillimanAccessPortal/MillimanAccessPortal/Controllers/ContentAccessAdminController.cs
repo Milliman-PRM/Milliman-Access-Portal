@@ -164,6 +164,9 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateReportGroup(long ClientId, long RootContentItemId, String ReportGroupName)
         {
+            #region Preliminary Validation
+            #endregion
+
             #region Authorization
             #endregion
 
@@ -181,6 +184,9 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateReportGroup(long ReportGroupId, Dictionary<long, Boolean> MembershipSet)
         {
+            #region Preliminary Validation
+            #endregion
+
             #region Authorization
             #endregion
 
@@ -197,6 +203,9 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteReportGroup(long ReportGroupId)
         {
+            #region Preliminary Validation
+            #endregion
+
             #region Authorization
             #endregion
 
