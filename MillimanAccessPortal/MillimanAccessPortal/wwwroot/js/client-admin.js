@@ -1325,9 +1325,8 @@ $(document).ready(function onReady() {
   $createNewChildClientCard.find('.card-body-main-container')
     .addClass('content-item-flex-1');
   $createNewChildClientCard.find('.card-body-primary-text')
-    .html('New Sub-Client');
-  $createNewChildClientCard.find('.card-container')
-    .append('<i class="fa fa-fw fa-2x fa-chevron-right"></i>');
+    .append('<span>New Sub-Client</span>')
+    .append('<svg class="new-child-icon"><use xlink:href="#action-icon-expand-card"></use></svg>');
   $createNewChildClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
     .remove();
 

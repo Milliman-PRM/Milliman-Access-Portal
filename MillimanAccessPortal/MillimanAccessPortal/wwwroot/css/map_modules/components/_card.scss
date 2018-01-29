@@ -258,16 +258,22 @@
     padding: 0;
 }
 
-.action-card {
+.action-card,
+.client-insert {
     .card-body-primary-text {
         display: flex;
         align-items: center;
         justify-content: center;
-        
-        .action-card-icon {
+
+        .action-card-icon,
+        .new-child-icon {
             height: 2em;
             width: 2em;
-            margin-right: .25em;
+            margin: 0 .25em;
+        }
+
+        .new-child-icon {
+            transform: rotate(-90deg);
         }
     }
 }
