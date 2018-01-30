@@ -12,7 +12,9 @@
 
 <section id="login-container">
     <div id="login-logo-container">
-        <img id="login-logo" src="~/images/logo.png" alt="Milliman Access Portal Logo" />
+        <svg id="login-logo" alt="Milliman Access Portal">
+            <use xlink:href="#map-logo"></use>
+        </svg>
     </div>
     <div id="login-form-container">
         <form id="login-form" asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">

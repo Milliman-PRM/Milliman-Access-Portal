@@ -26,7 +26,9 @@
     <div class="admin-panel-toolbar">
         <input id="client-search-box" class="admin-panel-searchbar" type="search" placeholder="Filter Clients" />
         <div class="admin-panel-action-icons-container">
-            <i id="add-client-icon" class="fa fa-2x fa-plus action-icon tooltip" title="New Client"></i>
+            <svg id="add-client-icon" class="action-icon tooltip" title="New Client">
+                <use xlink:href="#action-icon-add"></use>
+            </svg>
         </div>
     </div>
     <div id="client-tree" class="admin-panel-content-container">
@@ -41,8 +43,12 @@
     <h3 class="admin-panel-header">Client Information</h3>
     <div class="admin-panel-toolbar">
         <div class="admin-panel-action-icons-container">
-            <i id="edit-client-icon" class="fa fa-2x fa-pencil action-icon tooltip" title="Edit client details"></i>
-            <i id="cancel-edit-client-icon" class="fa fa-2x fa-close action-icon tooltip" title="Cancel edit"></i>
+            <svg id="edit-client-icon" class="action-icon tooltip" title="Edit client details">
+                <use xlink:href="#action-icon-edit"></use>
+            </svg>
+            <svg id="cancel-edit-client-icon" class="action-icon tooltip" title="Cancel edit">
+                <use xlink:href="#action-icon-cancel"></use>
+            </svg>
         </div>
     </div>
     <div class="admin-panel-content-container">
@@ -166,9 +172,15 @@
     <div class="admin-panel-toolbar">
         <input id="user-search-box" class="admin-panel-searchbar" type="search" placeholder="Filter Users" />
         <div class="admin-panel-action-icons-container">
-            <i id="collapse-user-icon" class="fa fa-2x fa-toggle-up action-icon tooltip" title="Collapse all user cards"></i>
-            <i id="expand-user-icon" class="fa fa-2x fa-toggle-down action-icon tooltip" title="Expand all user cards"></i>
-            <i id="add-user-icon" class="fa fa-2x fa-user-plus action-icon tooltip" title="Add user"></i>
+            <svg id="collapse-user-icon" class="action-icon tooltip" title="Collapse all user cards">
+                <use xlink:href="#action-icon-collapse"></use>
+            </svg>
+            <svg id="expand-user-icon" class="action-icon tooltip" title="Expand all user cards">
+                <use xlink:href="#action-icon-expand"></use>
+            </svg>
+            <svg id="add-user-icon" class="action-icon tooltip" title="Add user">
+                <use xlink:href="#action-icon-add-user"></use>
+            </svg>
         </div>
     </div>
     <div id="user-list" class="admin-panel-content-container">

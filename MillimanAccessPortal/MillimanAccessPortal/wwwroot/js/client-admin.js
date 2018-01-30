@@ -1312,7 +1312,7 @@ $(document).ready(function onReady() {
     .addClass('card-100 action-card')
     .attr('id', 'create-new-client-card');
   $createNewClientCard.find('.card-body-primary-text')
-    .append('<i class="fa fa-plus"></i>')
+    .append('<svg class="action-card-icon"><use xlink:href="#action-icon-add"></use></svg>')
     .append('<span>New Client</span>');
   $createNewClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
     .remove();
@@ -1325,9 +1325,8 @@ $(document).ready(function onReady() {
   $createNewChildClientCard.find('.card-body-main-container')
     .addClass('content-item-flex-1');
   $createNewChildClientCard.find('.card-body-primary-text')
-    .html('New Sub-Client');
-  $createNewChildClientCard.find('.card-container')
-    .append('<i class="fa fa-fw fa-2x fa-chevron-right"></i>');
+    .append('<span>New Sub-Client</span>')
+    .append('<svg class="new-child-icon"><use xlink:href="#action-icon-expand-card"></use></svg>');
   $createNewChildClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
     .remove();
 
@@ -1336,7 +1335,7 @@ $(document).ready(function onReady() {
     .addClass('card-100 action-card')
     .attr('id', 'add-user-card');
   $addUserCard.find('.card-body-primary-text')
-    .append('<i class="fa fa-plus"></i>')
+    .append('<svg class="action-card-icon"><use xlink:href="#action-icon-add"></use></svg>')
     .append('<span>Add User</span>');
   $addUserCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
     .remove();

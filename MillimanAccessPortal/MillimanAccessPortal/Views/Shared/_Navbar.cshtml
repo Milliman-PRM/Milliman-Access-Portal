@@ -10,56 +10,74 @@
         <li class="nav-item @GetSelectedClassString("HostedContent")">
             <a asp-controller="HostedContent" asp-action="Index" class="nav-button">
                 <h3 class="nav-label">Authorized Content</h3>
-                <i class="fa fa-fw fa-3x fa-th-large nav-icon" aria-hidden="true"></i>
+                <svg class="nav-icon">
+                    <use xlink:href="#navbar-content-view"></use>
+                </svg>
             </a>
         </li>
         <li class="nav-item @GetSelectedClassString("UserProfile")">
             <a asp-controller="Account" asp-action="Profile" class="nav-button">
                 <h3 class="nav-label">User Profile</h3>
-                <i class="fa fa-fw fa-3x fa-user nav-icon" aria-hidden="true"></i>
+                <svg class="nav-icon">
+                    <use xlink:href="#navbar-account-settings"></use>
+                </svg>
             </a>
         </li>
-        <li class="nav-item @GetSelectedClassString(" ContentAccessAdmin")">
+        <li class="nav-item @GetSelectedClassString("ContentAccessAdmin")">
             <a asp-controller="ContentAccessAdmin" asp-action="Index" class="nav-button">
                 <h3 class="nav-label">Content Access Admin</h3>
-                <i class="fa fa-fw fa-3x fa-users nav-icon" aria-hidden="true"></i>
+                <svg class="nav-icon">
+                    <use xlink:href="#navbar-content-access"></use>
+                </svg>
             </a>
         </li>
         <li class="nav-item @GetSelectedClassString("ContentPublisher")">
             <a asp-controller="ContentPublishing" asp-action="Index" class="nav-button">
                 <h3 class="nav-label">Publish Content</h3>
-                <i class="fa fa-fw fa-3x fa-upload nav-icon" aria-hidden="true"></i>
+                <svg class="nav-icon">
+                    <use xlink:href="#navbar-content-publishing"></use>
+                </svg>
             </a>
         </li>
         <li class="nav-item @GetSelectedClassString("ClientAdmin")">
             <a asp-controller="ClientAdmin" asp-action="Index" class="nav-button">
                 <h3 class="nav-label">Client Admin</h3>
-                <i class="fa fa-fw fa-3x fa-institution nav-icon" aria-hidden="true"></i>
+                <svg class="nav-icon">
+                    <use xlink:href="#navbar-client-admin"></use>
+                </svg>
             </a>
         </li>
         <li class="nav-item @GetSelectedClassString("SystemAdmin")">
             <a asp-controller="SystemAdmin" asp-action="Index" class="nav-button">
                 <h3 class="nav-label">System Admin</h3>
-                <i class="fa fa-fw fa-3x fa-server nav-icon" aria-hidden="true"></i>
+                <svg class="nav-icon">
+                    <use xlink:href="#navbar-system-admin"></use>
+                </svg>
             </a>
         </li>
         <li class="nav-item @GetSelectedClassString("UserGuide")">
             <a href="#" class="nav-button">
                 <h3 class="nav-label">User Guide</h3>
-                <i class="fa fa-fw fa-3x fa-book nav-icon" aria-hidden="true"></i>
+                <svg class="nav-icon">
+                    <use xlink:href="#navbar-user-guide"></use>
+                </svg>
             </a>
         </li>
         <li class="nav-item">
             <a href="#" class="nav-button" id="contact-button">
                 <h3 class="nav-label">Contact Support</h3>
-                <i class="fa fa-fw fa-3x fa-envelope nav-icon" aria-hidden="true"></i>
+                <svg class="nav-icon">
+                    <use xlink:href="#navbar-contact-support"></use>
+                </svg>
             </a>
         </li>
         <li class="nav-item">
             <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" id="logoutForm" class="nav-button">
                 <button type="submit" class="nav-button">
                     <h3 class="nav-label">Logout</h3>
-                    <i class="fa fa-fw fa-3x fa-sign-out nav-icon" aria-hidden="true"></i>
+                    <svg class="nav-icon">
+                        <use xlink:href="#navbar-log-out"></use>
+                    </svg>
                 </button>
             </form>
         </li>
