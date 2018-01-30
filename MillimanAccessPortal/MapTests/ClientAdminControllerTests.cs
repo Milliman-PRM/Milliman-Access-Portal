@@ -32,15 +32,16 @@ namespace MapTests
         public async Task<ClientAdminController> GetControllerForUser(string UserName)
         {
             ClientAdminController testController = new ClientAdminController(TestResources.DbContextObject,
-                TestResources.UserManagerObject,
-                TestResources.QueriesObj,
+                TestResources.AuditLoggerObject,
                 TestResources.AuthorizationService,
                 TestResources.LoggerFactory,
-                TestResources.AuditLoggerObject,
-                TestResources.RoleManagerObject);
+                TestResources.MessageQueueServicesObject,
+                TestResources.RoleManagerObject,
+                TestResources.QueriesObj,
+                TestResources.UserManagerObject);
 
-            // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
-            testController.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: (await TestResources.UserManagerObject.FindByNameAsync(UserName)).UserName);
+        // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
+        testController.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: (await TestResources.UserManagerObject.FindByNameAsync(UserName)).UserName);
             testController.HttpContext.Session = new MockSession();
 
             return testController;
@@ -770,8 +771,8 @@ namespace MapTests
         /// 
         /// </summary>
         [Theory]
-        [InlineData(1, null)]// Password check fails
-        [InlineData(2, "password")]// User is not authorized as Admin of the client
+        [InlineData(6, null)]// Password check fails
+        [InlineData(3, "password")]// User is not authorized as Admin of the client
         [InlineData(4, "password")]// User is not authorized as Admin of the client's profit center
         public async Task DeleteClient_ErrorWhenUnauthorized(long clientIdArg, string passwordArg)
         {
@@ -799,7 +800,29 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(1, "password");
+            var view = await controller.DeleteClient(7, "password");
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(view);
+
+            StatusCodeResult viewResult = (StatusCodeResult)view;
+            Assert.Equal<int>(412, viewResult.StatusCode);
+            #endregion
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Fact]
+        public async Task DeleteClient_ErrorWhenClientHasRootContentItems()
+        {
+            #region Arrange
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+            #endregion
+
+            #region Act
+            var view = await controller.DeleteClient(8, "password");
             #endregion
 
             #region Assert
@@ -819,7 +842,8 @@ namespace MapTests
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
 
-            int preCount = TestResources.DbContextObject.Client.Count();
+            int clientPreCount = TestResources.DbContextObject.Client.Count();
+            int claimsPreCount = TestResources.DbContextObject.UserClaims.Count();
             #endregion
 
             #region Act
@@ -829,8 +853,10 @@ namespace MapTests
             #region Assert
             Assert.IsType<JsonResult>(view);
 
-            int postCount = TestResources.DbContextObject.Client.Count();
-            Assert.Equal<int>((preCount - 1), postCount);
+            int clientPostCount = TestResources.DbContextObject.Client.Count();
+            int claimsPostCount = TestResources.DbContextObject.UserClaims.Count();
+            Assert.Equal<int>((clientPreCount - 1), clientPostCount);
+            Assert.Equal<int>((claimsPreCount - 1), claimsPostCount);
             #endregion
         }
     }
