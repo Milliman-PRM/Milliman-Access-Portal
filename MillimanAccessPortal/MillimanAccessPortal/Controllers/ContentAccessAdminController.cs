@@ -222,7 +222,7 @@ namespace MillimanAccessPortal.Controllers
         /// <summary>Updates the users assigned to a report group.</summary>
         /// <remarks>This action is only authorized to users with ContentAdmin role in the specified client.</remarks>
         /// <param name="ReportGroupId">The report group to be updated.</param>
-        /// <param name="MembershipSet">A dictionary indicating a set of users' group membership status.</param>
+        /// <param name="MembershipSet">A dictionary that maps client IDs to a boolean value indicating whether to add or remove the client.</param>
         /// <returns>JsonResult</returns>
         [HttpPut]
         [ValidateAntiForgeryToken]
