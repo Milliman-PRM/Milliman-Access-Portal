@@ -31,15 +31,15 @@
 
     .nav-item {
         width: 100%;
-        height: 3.75rem;
         padding: 0;
-        margin: .25rem 0;
 
         &.selected {
             background-color: $blue;
+            fill: $white;
 
             a:hover {
                 color: $charcoal;
+                fill: $charcoal;
             }
         }
 
@@ -48,13 +48,16 @@
         }
 
         .nav-button {
+            display: flex;
             color: $white;
             padding: 0 !important;
             text-transform: none !important;
             text-align: left;
+            text-decoration: none;
 
             &:hover {
                 color: $blue;
+                fill: $blue;
             }
 
             button {
@@ -67,20 +70,19 @@
     }
 
     .nav-label {
+        flex: 1;
         display: inline-block;
-        width: 12.5rem;
-        height: 3.5rem;
-        line-height: 3.5rem;
+        width: 13.5rem;
         margin: auto 0 auto 1rem;
     }
 
     .nav-icon {
+        flex: none;
+        align-self: center;
         display: inline-block;
-        float: right;
-        width: 4.5rem;
-        height: 3.5rem;
-        line-height: 3.5rem;
-        padding: 0;
+        width: 4rem;
+        height: 4rem;
+        padding: .5rem;
         margin: auto;
     }
 }
