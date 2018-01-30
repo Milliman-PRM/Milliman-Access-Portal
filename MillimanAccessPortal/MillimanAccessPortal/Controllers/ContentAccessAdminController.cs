@@ -9,6 +9,7 @@ using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
@@ -219,6 +220,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Updates the users assigned to a report group.</summary>
+        /// <remarks>This action is only authorized to users with ContentAdmin role in the specified client.</remarks>
         /// <param name="ReportGroupId">The report group to be updated.</param>
         /// <param name="MembershipSet">A dictionary indicating a set of users' group membership status.</param>
         /// <returns>JsonResult</returns>
@@ -226,16 +228,111 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateReportGroup(long ReportGroupId, Dictionary<long, Boolean> MembershipSet)
         {
+            ContentItemUserGroup ReportGroup = DbContext.ContentItemUserGroup
+                .Include(rg => rg.Client)
+                .Include(rg => rg.RootContentItem)
+                .SingleOrDefault(rg => rg.Id == ReportGroupId);
+
             #region Preliminary Validation
+            if (ReportGroup == null)
+            {
+                Response.Headers.Add("Warning", "The requested report group does not exist.");
+                return BadRequest();
+            }
             #endregion
 
             #region Authorization
+            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, ReportGroup.ClientId));
+            if (!ContentAdminResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
+                return Unauthorized();
+            }
             #endregion
 
             #region Validation
+            var Nonexistant = MembershipSet
+                .Select(kvp => DbContext.ApplicationUser.Find(kvp.Key))
+                .Where(m => m == null);
+            if (Nonexistant.Any())
+            {
+                Response.Headers.Add("Warning", "One or more requested users do not exist.");
+                return BadRequest();
+            }
+
+            var Nonpermissioned = MembershipSet
+                .Where(kvp => DbContext.UserRoleInRootContentItem
+                    .Include(ur => ur.Role)
+                    .Where(ur => ur.RootContentItemId == ReportGroup.RootContentItemId)
+                    .Where(ur => ur.UserId == kvp.Key)
+                    .Where(ur => ur.Role.RoleEnum == RoleEnum.ContentUser)
+                    .SingleOrDefault() == null
+                    );
+            if (Nonpermissioned.Any())
+            {
+                Response.Headers.Add("Warning", "One or more requested users do not have permission to use this content.");
+                return BadRequest();
+            }
+
+            var AlreadyInGroup = MembershipSet
+                .Where(kvp => kvp.Value)
+                .Where(kvp => DbContext.UserInContentItemUserGroup
+                    .Where(uug => uug.UserId == kvp.Key)
+                    .Where(uug => uug.ContentItemUserGroupId != ReportGroup.Id)
+                    .Where(uug => DbContext.ContentItemUserGroup
+                        .Where(ug => ug.Id == uug.ContentItemUserGroupId)
+                        .Single().RootContentItemId == ReportGroup.RootContentItemId
+                        )
+                    .ToList()
+                    .Any()
+                    );
+            if (AlreadyInGroup.Any())
+            {
+                Response.Headers.Add("Warning", "One or more requested users to add are already in a different report group.");
+                return BadRequest();
+            }
             #endregion
 
-            return Json(new { });
+            using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
+            {
+                DbContext.UserInContentItemUserGroup.RemoveRange(
+                    MembershipSet
+                        .Where(kvp => !kvp.Value)
+                        .Select(kvp => DbContext.UserInContentItemUserGroup
+                            .Where(uug => uug.ContentItemUserGroupId == ReportGroup.Id)
+                            .Where(uug => uug.UserId == kvp.Key)
+                            .SingleOrDefault()
+                            )
+                        .Where(uug => uug != null)
+                        .ToList()
+                    );
+                DbContext.SaveChanges();
+
+                DbContext.UserInContentItemUserGroup.AddRange(
+                    MembershipSet
+                        .Where(kvp => kvp.Value)
+                        .Where(kvp => DbContext.UserInContentItemUserGroup.ToList()
+                            .Where(uug => uug.ContentItemUserGroupId == ReportGroup.Id)
+                            .Where(uug => uug.UserId == kvp.Key)
+                            .SingleOrDefault() == null
+                            )
+                        .Select(kvp =>
+                            new UserInContentItemUserGroup
+                            {
+                                ContentItemUserGroupId = ReportGroup.Id,
+                                UserId = kvp.Key,
+                            }
+                        )
+                        .ToList()
+                    );
+                DbContext.SaveChanges();
+
+                DbTransaction.Commit();
+            }
+
+            ContentAccessAdminReportGroupListViewModel Model = ContentAccessAdminReportGroupListViewModel.Build(DbContext, ReportGroup.Client, ReportGroup.RootContentItem);
+
+            return Json(Model);
         }
 
         /// <summary>Deletes a report group.</summary>
