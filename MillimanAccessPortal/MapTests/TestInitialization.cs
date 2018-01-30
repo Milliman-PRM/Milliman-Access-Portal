@@ -189,7 +189,6 @@ namespace MapTests
             ReturnMockContext.Object.HierarchyFieldValue = MockDbSet<HierarchyFieldValue>.New(new List<HierarchyFieldValue>()).Object;
             ReturnMockContext.Object.HierarchyField = MockDbSet<HierarchyField>.New(new List<HierarchyField>()).Object;
             ReturnMockContext.Object.ContentItemUserGroup = MockDbSet<ContentItemUserGroup>.New(new List<ContentItemUserGroup>()).Object;
-            ReturnMockContext.Object.UserInContentItemUserGroup = MockDbSet<UserInContentItemUserGroup>.New(new List<UserInContentItemUserGroup>()).Object;
             ReturnMockContext.Object.UserRoles = MockDbSet<IdentityUserRole<long>>.New(new List<IdentityUserRole<long>>()).Object;
             ReturnMockContext.Object.UserRoleInRootContentItem = MockDbSet<UserRoleInRootContentItem>.New(new List<UserRoleInRootContentItem>()).Object;
             ReturnMockContext.Object.UserClaims = MockDbSet<IdentityUserClaim<long>>.New(new List<IdentityUserClaim<long>>()).Object;
@@ -197,14 +196,27 @@ namespace MapTests
             ReturnMockContext.Object.Roles = ReturnMockContext.Object.ApplicationRole;
 
             // Give UserRoleInClient an additional Add() callback since it accesses properties of objects from Include()
-            Mock<DbSet<UserRoleInClient>> MockUserRoleInClient = MockDbSet<UserRoleInClient>.New(new List<UserRoleInClient>());
+            List<UserRoleInClient> UserRoleInClientData = new List<UserRoleInClient>();
+            Mock<DbSet<UserRoleInClient>> MockUserRoleInClient = MockDbSet<UserRoleInClient>.New(UserRoleInClientData);
             MockUserRoleInClient.Setup(d => d.Add(It.IsAny<UserRoleInClient>())).Callback<UserRoleInClient>(s =>
             {
+                UserRoleInClientData.Add(s);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(MockUserRoleInClient.Object, "ClientId", ReturnMockContext.Object.Client);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(MockUserRoleInClient.Object, "UserId", ReturnMockContext.Object.ApplicationUser);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationRole>(MockUserRoleInClient.Object, "RoleId", ReturnMockContext.Object.ApplicationRole);
             });
             ReturnMockContext.Object.UserRoleInClient = MockUserRoleInClient.Object;
+
+            List<UserInContentItemUserGroup> UserInContentItemUserGroupData = new List<UserInContentItemUserGroup>();
+            Mock<DbSet<UserInContentItemUserGroup>> MockUserInContentItemUserGroup = MockDbSet<UserInContentItemUserGroup>.New(UserInContentItemUserGroupData);
+            MockUserInContentItemUserGroup.Setup(d => d.AddRange(It.IsAny<IEnumerable<UserInContentItemUserGroup>>())).Callback<IEnumerable<UserInContentItemUserGroup>>(s =>
+            {
+                UserInContentItemUserGroupData.AddRange(s);
+                MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ContentItemUserGroup>(MockUserInContentItemUserGroup.Object, "ContentItemUserGroupId", ReturnMockContext.Object.ContentItemUserGroup);
+                MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ApplicationUser>(MockUserInContentItemUserGroup.Object, "UserId", ReturnMockContext.Object.ApplicationUser);
+            });
+            ReturnMockContext.Object.UserInContentItemUserGroup = MockUserInContentItemUserGroup.Object;
+
 
             // Mock DbContext.Database.CommitTransaction() as no ops.
             Mock<IDbContextTransaction> DbTransaction = new Mock<IDbContextTransaction>();
