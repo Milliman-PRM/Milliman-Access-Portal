@@ -25,8 +25,8 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 
             // Retrieve users that are members of the specified report group
             List<ApplicationUser> MemberClients = DbContext.UserInContentItemUserGroup
-                .Where(u => u.ContentItemUserGroupId == ReportGroup.Id)
-                .Select(u => u.User)
+                .Where(uug => uug.ContentItemUserGroupId == ReportGroup.Id)
+                .Select(uug => uug.User)
                 .ToList();
 
             foreach (var MemberClient in MemberClients)

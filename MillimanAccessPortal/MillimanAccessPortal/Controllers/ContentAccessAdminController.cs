@@ -368,7 +368,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 DbContext.UserInContentItemUserGroup.RemoveRange(
                     DbContext.UserInContentItemUserGroup
-                        .Where(u => u.ContentItemUserGroupId == ReportGroup.Id)
+                        .Where(uug => uug.ContentItemUserGroupId == ReportGroup.Id)
                         .ToList()
                     );
                 DbContext.SaveChanges();
