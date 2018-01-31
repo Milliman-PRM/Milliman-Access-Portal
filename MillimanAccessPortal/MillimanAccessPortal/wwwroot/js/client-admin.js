@@ -1142,7 +1142,7 @@ function renderClientTree(clientTreeList, clientId) {
     $('[data-client-id="' + clientId + '"]').click();
   }
   if ($('#add-client-icon').length) {
-    $clientTreeList.append($createNewClientCard);
+    $clientTreeList.append($createNewClientCard.clone());
     $('#create-new-client-card')
       .click(function onClick() {
         createNewClientClickHandler($(this));
