@@ -38,7 +38,7 @@ function getClientTree(clientId) {
     url: 'ContentAccessAdmin/ClientFamilyList/'
   }).done(function onDone(response) {
     console.log(response);
-    //renderClientTree(response.ClientTreeList, clientId || response.RelevantClientId);
+    renderClientTree(response.ClientTreeList, clientId || response.RelevantClientId);
     $('#client-tree .loading-wrapper').hide();
   }).fail(function onFail(response) {
     $('#client-tree .loading-wrapper').hide();
@@ -100,6 +100,51 @@ function renderClientTree(clientTreeList, clientId) {
       });
   }
 }
+
+/**
+ * Render user node by using string substitution on a clientNodeTemplate
+ * @param  {Object} client Client object to render
+ * @param  {Number} level  Client indentation level
+ * @return {undefined}
+ */
+function renderClientNode(client, level) {
+  var classes = ['card-100', 'card-90', 'card-80'];
+  var $template = $(nodeTemplate.toString());
+
+  $template.find('.card-container')
+    .addClass(classes[level])
+    .attr('data-search-string', (client.ClientDetailModel.ClientEntity.Name + '|' + client.ClientDetailModel.ClientEntity.ClientCode).toUpperCase())
+    .attr('data-client-id', client.ClientDetailModel.ClientEntity.Id)
+    .removeAttr('data-user-id');
+  $template.find('.card-body-secondary-container')
+    .remove();
+  $template.find('.card-body-primary-container .card-body-primary-text')
+    .addClass('indent-level-' + level)
+    .html(client.ClientDetailModel.ClientEntity.Name);
+  $template.find('.card-body-primary-container .card-body-secondary-text')
+    .html(client.ClientDetailModel.ClientEntity.ClientCode || '')
+    .first().remove();
+  $template.find('.card-stat-user-count')
+    .html((client.ClientDetailModel.AssignedUsers) ? client.ClientDetailModel.AssignedUsers.length : 0);
+  $template.find('.card-stat-content-count')
+    .html(client.ClientDetailModel.RootContentItemCount);
+  $template.find('.card-button-remove-user,.card-expansion-container,.card-button-bottom-container,.card-button-side-container')
+    .remove();
+
+  if (!client.ClientDetailModel.CanManage) {
+    $template.find('.card-container').attr('disabled', '');
+  }
+
+  $('#client-tree-list').append($template);
+
+  // Render child nodes
+  if (client.ChildClientModels.length) {
+    client.ChildClientModels.forEach(function forEach(childNode) {
+      renderClientNode(childNode, level + 1);
+    });
+  }
+}
+
 
 
 
