@@ -1340,6 +1340,9 @@ $(document).ready(function onReady() {
   $addUserCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
     .remove();
 
+  // Hide loading bars on page load
+  $('#client-info .loading-wrapper').hide();
+  $('#client-users .loading-wrapper').hide();
 
   $('.tooltip').tooltipster();
 
