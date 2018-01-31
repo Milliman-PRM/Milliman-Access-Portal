@@ -38,7 +38,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Action for content access administration index.</summary>
-        /// <remarks>This action is only authorized to users with ContentPublishergg role in at least one client.</remarks>
+        /// <remarks>This action is only authorized to users with ContentPublisher role in at least one client.</remarks>
         /// <returns>ViewResult</returns>
         [HttpGet]
         public async Task<IActionResult> Index()
