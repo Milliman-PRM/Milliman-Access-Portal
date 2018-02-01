@@ -34,6 +34,7 @@ namespace AuditLogLib
         public static readonly AuditEventId ClientRoleAssigned = new AuditEventId(2006, "Client role assigned");
         public static readonly AuditEventId ClientRoleRemoved = new AuditEventId(2007, "Client role removed");
 
+        // FIXME: The User Admin role no longer exists. Are these events still useful?
         // User Admin category 3000 - 3999
         public static readonly AuditEventId UserAccountCreated = new AuditEventId(3001, "User account created");
         public static readonly AuditEventId UserAccountModified = new AuditEventId(3002, "User account modified");
