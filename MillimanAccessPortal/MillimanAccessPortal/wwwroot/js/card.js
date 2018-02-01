@@ -22,7 +22,7 @@ var Card = {
         '</div>'
       ].join('')
     },
-    cardIcons: {
+    icons: {
       selector: '.card-body-secondary-container',
       html: [
         '<div class="card-body-secondary-container">',
@@ -30,7 +30,7 @@ var Card = {
         '</div>'
       ].join('')
     },
-    cardIcon: {
+    icon: {
       selector: '.card-user-icon',
       html: [
         '<svg class="card-user-icon">',
@@ -58,6 +58,89 @@ var Card = {
       selector: '.card-body-secondary-text',
       html: [
         '<p class="card-body-secondary-text"></p>',
+        '<stub />'
+      ].join('')
+    },
+    stats: {
+      selector: '.card-stats-container',
+      html: [
+        '<div class="card-stats-container">',
+          '<stub />',
+        '</div>'
+      ].join('')
+    },
+    stat: {
+      selector: '.card-stat-container',
+      html: [
+        '<div class="card-stat-container tooltip" title="">',
+            '<svg class="card-stat-icon">',
+                '<use xlink:href=""></use>',
+            '</svg>',
+            '<h4 class="card-stat-value"></h4>',
+        '</div>',
+        '<stub />'
+      ].join('')
+    },
+    side: {
+      selector: '.card-button-side-container',
+      html: [
+        '<div class="card-button-side-container">',
+          '<stub />',
+        '</div>'
+      ].join('')
+    },
+    button: {
+      selector: '.card-button-background',
+      html: [
+        '<div class="card-button-background tooltip" title="">',
+            '<svg class="card-button-icon">',
+                '<use xlink:href=""></use>',
+            '</svg>',
+        '</div>',
+        '<stub />'
+      ].join('')
+    },
+    expansion: {
+      selector: '.card-expansion-container',
+      html: [
+        '<div class="card-expansion-container">',
+          '<stub />',
+        '</div>'
+      ].join('')
+    },
+    expansionLabel: {
+      selector: '.card-expansion-category-label',
+      html: [
+        '<h4 class="card-expansion-category-label">Client Roles</h4>',
+        '<stub />'
+      ].join('')
+    },
+    toggle: {
+      selector: '.switch-container',
+      html: [
+        '<div class="switch-container">',
+          '<div class="toggle-switch">',
+            '<input type="checkbox" class="toggle-switch-checkbox">',
+            '<label class="toggle-switch-label">',
+              '<span class="toggle-switch-inner"></span>',
+              '<span class="toggle-switch-switch"></span>',
+            '</label>',
+          '</div>',
+          '<label class="switch-label"></label>',
+        '</div>',
+        '<stub />'
+      ].join('')
+    },
+    bottom: {
+      selector: '.card-button-bottom-container',
+      html: [
+        '<div class="card-button-bottom-container">',
+          '<div class="card-button-background tooltip" title="">',
+            '<svg class="card-button-icon">',
+              '<use xlink:href=""></use>',
+            '</svg>',
+          '</div>',
+        '</div>',
         '<stub />'
       ].join('')
     }
