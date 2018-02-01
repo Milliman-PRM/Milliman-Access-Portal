@@ -90,8 +90,9 @@ This file is for describing end user roles and actions.
 
 ##### Users
 - Create user
-- Remove user from System
-- Send a password reset email
+- Remove user from System (delete?)
+- Enable/Disable a user from accessing the system
+- Send a password reset email (last resort)
 - ? User last access date
 - ? User creation date
 - ? Client Summary
