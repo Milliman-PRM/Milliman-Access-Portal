@@ -30,11 +30,11 @@
 
 $ResourceGroupName = "map-ci"
 $Location = "northcentralus"
-$SubscriptionId = "da69e4f4-f338-427a-a7af-985473534d85"
+$SubscriptionId = "8f047950-269e-43c7-94e0-ff90d22bf013"
 
 # Configure environment properties
 
-$WebAppName = "prm-map-ci"
+$WebAppName = "map-ci-app"
 $AppServicePlanName = "map-ci"
 $StorageName = "mapcistore"
 
