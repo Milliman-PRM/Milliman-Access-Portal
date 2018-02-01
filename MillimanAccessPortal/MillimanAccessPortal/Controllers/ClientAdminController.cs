@@ -34,7 +34,7 @@ namespace MillimanAccessPortal.Controllers
 {
     public class ClientAdminController : Controller
     {
-        private readonly static List<RoleEnum> RolesToManage = new List<RoleEnum> { RoleEnum.Admin, RoleEnum.ContentAdmin, RoleEnum.ContentUser, RoleEnum.UserAdmin };
+        private readonly static List<RoleEnum> RolesToManage = new List<RoleEnum> { RoleEnum.Admin, RoleEnum.ContentPublisher, RoleEnum.ContentUser, RoleEnum.ContentAccessAdmin };
 
         private readonly ApplicationDbContext DbContext;
         private readonly IAuditLogger AuditLogger;
@@ -215,22 +215,25 @@ namespace MillimanAccessPortal.Controllers
             #endregion Authorization
 
             #region Validation
-            // 1. Email must be a valid address
-            if (!GlobalFunctions.IsValidEmail(Model.Email))
+            if (RequestedUserIsNew)
             {
-                Response.Headers.Add("MapReason", "101");
-                Response.Headers.Add("Warning", $"The provided email address ({Model.Email}) is not valid");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);
-            }
+                // 1. Email must be a valid address
+                if (!GlobalFunctions.IsValidEmail(Model.Email))
+                {
+                    Response.Headers.Add("MapReason", "101");
+                    Response.Headers.Add("Warning", $"The provided email address ({Model.Email}) is not valid");
+                    return StatusCode(StatusCodes.Status412PreconditionFailed);
+                }
 
-            // 2. Make sure the UserName does not exist in the database already as a UserName or Email
-            if (RequestedUserIsNew &&
-                (DbContext.ApplicationUser.Any(u => u.UserName == Model.UserName) ||
-                    DbContext.ApplicationUser.Any(u => u.Email == Model.UserName)))
-            {
-                Response.Headers.Add("MapReason", "103");
-                Response.Headers.Add("Warning", $"The provided user name ({Model.UserName}) already exists in the system");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);
+                // 2. Make sure the UserName does not exist in the database already as a UserName or Email
+                if (RequestedUserIsNew &&
+                    (DbContext.ApplicationUser.Any(u => u.UserName == Model.UserName) ||
+                        DbContext.ApplicationUser.Any(u => u.Email == Model.UserName)))
+                {
+                    Response.Headers.Add("MapReason", "103");
+                    Response.Headers.Add("Warning", $"The provided user name ({Model.UserName}) already exists in the system");
+                    return StatusCode(StatusCodes.Status412PreconditionFailed);
+                }
             }
             #endregion Validation
 
