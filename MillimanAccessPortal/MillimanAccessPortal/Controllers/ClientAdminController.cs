@@ -34,7 +34,7 @@ namespace MillimanAccessPortal.Controllers
 {
     public class ClientAdminController : Controller
     {
-        private readonly static List<RoleEnum> RolesToManage = new List<RoleEnum> { RoleEnum.Admin, RoleEnum.ContentAdmin, RoleEnum.ContentUser, RoleEnum.UserAdmin };
+        private readonly static List<RoleEnum> RolesToManage = new List<RoleEnum> { RoleEnum.Admin, RoleEnum.ContentPublisher, RoleEnum.ContentUser, RoleEnum.ContentAccessAdmin };
 
         private readonly ApplicationDbContext DbContext;
         private readonly IAuditLogger AuditLogger;

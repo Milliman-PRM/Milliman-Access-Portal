@@ -60,7 +60,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
                 .Include(urc => urc.Role)
                 .Include(urc => urc.Client)
                 .Where(urc => urc.UserId == CurrentUser.Id)
-                .Where(urc => urc.Role.RoleEnum == RoleEnum.ContentAdmin)
+                .Where(urc => urc.Role.RoleEnum == RoleEnum.ContentAccessAdmin)
                 .Where(urc => urc.ClientId == ClientEntity.Id)
                 .Any();
 
