@@ -1,4 +1,5 @@
 ﻿{
-  "AzureVaultName": "https://mapcikeyvault.vault.azure.net",
-  "AzureClientID": ""
+  "AzureVaultName": "https://mapcikeyvault.vault.azure.net/",
+  "AzureClientID": "8c4d35be-59cb-4a15-8919-55530e197ee3",
+  "AzureCertificateThumbprint": "3434D3D397D1ECD83E09A0D15E74C376C031536C"
 }
