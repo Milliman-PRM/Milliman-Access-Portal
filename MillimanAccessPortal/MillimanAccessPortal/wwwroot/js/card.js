@@ -94,10 +94,17 @@ var Card = {
     return prevSelector + ' > ' + this.templates[newElement].selector;
   },
 
+  set: function set(component, info) {
+    var $component = this.vars.$card.find(this.templates[component].selector);
+    if (info.html) {
+      $component.html(info.html);
+    }
+  },
+
   newCard: function newCard(primaryText) {
     this.vars.$card = $(this.templates.container.html);
     this.add(['main', 'text', 'primary']);
-    this.vars.$card.find(this.templates.primary.selector).html(primaryText);
+    this.set('primary', { html: primaryText });
   },
 
   build: function build() {
