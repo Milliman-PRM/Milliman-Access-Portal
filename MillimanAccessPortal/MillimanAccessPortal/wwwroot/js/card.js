@@ -19,7 +19,8 @@ var Card = {
       html: [
         '<div class="card-body-main-container">',
           '<stub />',
-        '</div>'
+        '</div>',
+        '<stub />'
       ].join('')
     },
     icons: {
@@ -27,14 +28,15 @@ var Card = {
       html: [
         '<div class="card-body-secondary-container">',
           '<stub />',
-        '</div>'
+        '</div>',
+        '<stub />'
       ].join('')
     },
     icon: {
       selector: '.card-user-icon',
       html: [
         '<svg class="card-user-icon">',
-          '<use xlink:href=""></use>',
+          '<use href=""></use>',
         '</svg>',
         '<stub />'
       ].join('')
@@ -44,7 +46,8 @@ var Card = {
       html: [
         '<div class="card-body-primary-container">',
           '<stub />',
-        '</div>'
+        '</div>',
+        '<stub />'
       ].join('')
     },
     primary: {
@@ -66,7 +69,8 @@ var Card = {
       html: [
         '<div class="card-stats-container">',
           '<stub />',
-        '</div>'
+        '</div>',
+        '<stub />'
       ].join('')
     },
     stat: {
@@ -74,7 +78,7 @@ var Card = {
       html: [
         '<div class="card-stat-container tooltip" title="">',
             '<svg class="card-stat-icon">',
-                '<use xlink:href=""></use>',
+                '<use href=""></use>',
             '</svg>',
             '<h4 class="card-stat-value"></h4>',
         '</div>',
@@ -86,7 +90,8 @@ var Card = {
       html: [
         '<div class="card-button-side-container">',
           '<stub />',
-        '</div>'
+        '</div>',
+        '<stub />'
       ].join('')
     },
     button: {
@@ -94,7 +99,7 @@ var Card = {
       html: [
         '<div class="card-button-background tooltip" title="">',
             '<svg class="card-button-icon">',
-                '<use xlink:href=""></use>',
+                '<use href=""></use>',
             '</svg>',
         '</div>',
         '<stub />'
@@ -137,7 +142,7 @@ var Card = {
         '<div class="card-button-bottom-container">',
           '<div class="card-button-background tooltip" title="">',
             '<svg class="card-button-icon">',
-              '<use xlink:href=""></use>',
+              '<use href=""></use>',
             '</svg>',
           '</div>',
         '</div>',
@@ -178,9 +183,18 @@ var Card = {
   },
 
   set: function set(component, info) {
-    var $component = this.vars.$card.find(this.templates[component].selector);
+    var $component = this.vars.$card
+      .find(this.templates[component].selector)
+      .last();
     if (info.html) {
       $component.html(info.html);
+    }
+    if (info.attr) {
+      $.each(info.attr, function assign(key, value) {
+        var $subcomponent = $component.find('[' + key + ']');
+        $subcomponent = $subcomponent.length ? $subcomponent : $component;
+        $subcomponent.attr(key, value);
+      });
     }
   },
 
@@ -188,6 +202,19 @@ var Card = {
     this.vars.$card = $(this.templates.container.html);
     this.add(['main', 'text', 'primary']);
     this.set('primary', { html: primaryText });
+    return this;
+  },
+
+  secondaryInfo: function secondaryInfo(secondaryText) {
+    this.add(['main', 'text', 'secondary']);
+    this.set('secondary', { html: secondaryText });
+    return this;
+  },
+
+  cardStat: function cardStat(icon, value) {
+    this.add(['main', 'stats', 'stat']);
+    this.set('stat', { attr: { href: icon, title: value } });
+    return this;
   },
 
   build: function build() {
