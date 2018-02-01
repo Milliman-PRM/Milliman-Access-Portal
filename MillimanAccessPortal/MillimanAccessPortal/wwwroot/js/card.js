@@ -67,7 +67,6 @@ var Card = {
   },
 
   init: function init() {
-    this.vars.$card = $(this.templates.container.html);
   },
 
   verify: function verify(path) {
@@ -96,12 +95,14 @@ var Card = {
   },
 
   newCard: function newCard(primaryText) {
+    this.vars.$card = $(this.templates.container.html);
     this.add(['main', 'text', 'primary']);
     this.vars.$card.find(this.templates.primary.selector).html(primaryText);
   },
 
   build: function build() {
     this.vars.$card.find('stub').remove();
+    return this.vars.$card;
   }
 
 };
