@@ -34,13 +34,13 @@ namespace MillimanAccessPortal.Controllers
 {
     public class ClientAdminController : Controller
     {
-        private readonly static List<RoleEnum> RolesToManage = new List<RoleEnum> { RoleEnum.Admin, RoleEnum.ContentAdmin, RoleEnum.ContentUser, RoleEnum.UserAdmin };
+        private readonly static List<RoleEnum> RolesToManage = new List<RoleEnum> { RoleEnum.Admin, RoleEnum.ContentPublisher, RoleEnum.ContentUser, RoleEnum.ContentAccessAdmin };
 
         private readonly ApplicationDbContext DbContext;
         private readonly IAuditLogger AuditLogger;
         private readonly IAuthorizationService AuthorizationService;
         private readonly ILogger Logger;
-        private readonly MessageQueueServices MessageQueueService;
+        private readonly IMessageQueue MessageQueueService;
         private readonly RoleManager<ApplicationRole> RoleManager;
         private readonly StandardQueries Queries;
         private readonly UserManager<ApplicationUser> UserManager;
@@ -50,7 +50,7 @@ namespace MillimanAccessPortal.Controllers
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
             ILoggerFactory LoggerFactoryArg,
-            MessageQueueServices MessageQueueServiceArg,
+            IMessageQueue MessageQueueServiceArg,
             RoleManager<ApplicationRole> RoleManagerArg,
             StandardQueries QueryArg,
             UserManager<ApplicationUser> UserManagerArg
@@ -215,22 +215,25 @@ namespace MillimanAccessPortal.Controllers
             #endregion Authorization
 
             #region Validation
-            // 1. Email must be a valid address
-            if (!GlobalFunctions.IsValidEmail(Model.Email))
+            if (RequestedUserIsNew)
             {
-                Response.Headers.Add("MapReason", "101");
-                Response.Headers.Add("Warning", $"The provided email address ({Model.Email}) is not valid");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);
-            }
+                // 1. Email must be a valid address
+                if (!GlobalFunctions.IsValidEmail(Model.Email))
+                {
+                    Response.Headers.Add("MapReason", "101");
+                    Response.Headers.Add("Warning", $"The provided email address ({Model.Email}) is not valid");
+                    return StatusCode(StatusCodes.Status412PreconditionFailed);
+                }
 
-            // 2. Make sure the UserName does not exist in the database already as a UserName or Email
-            if (RequestedUserIsNew &&
-                (DbContext.ApplicationUser.Any(u => u.UserName == Model.UserName) ||
-                    DbContext.ApplicationUser.Any(u => u.Email == Model.UserName)))
-            {
-                Response.Headers.Add("MapReason", "103");
-                Response.Headers.Add("Warning", $"The provided user name ({Model.UserName}) already exists in the system");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);
+                // 2. Make sure the UserName does not exist in the database already as a UserName or Email
+                if (RequestedUserIsNew &&
+                    (DbContext.ApplicationUser.Any(u => u.UserName == Model.UserName) ||
+                        DbContext.ApplicationUser.Any(u => u.Email == Model.UserName)))
+                {
+                    Response.Headers.Add("MapReason", "103");
+                    Response.Headers.Add("Warning", $"The provided user name ({Model.UserName}) already exists in the system");
+                    return StatusCode(StatusCodes.Status412PreconditionFailed);
+                }
             }
             #endregion Validation
 
@@ -944,23 +947,46 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", $"Can't delete Client {ExistingClient.Name}. The client has child client(s): {string.Join(", ", Children)}");
                 return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
             }
+
+            // Client must not have any root content items
+            var ItemCount = DbContext.RootContentItem
+                .Where(i => i.ClientIdList.Contains<long>(Id.Value))
+                .Count();
+            if (ItemCount > 0)
+            {
+                Response.Headers.Add("Warning", $"Can't delete client {ExistingClient.Name} because it has root content items.");
+                return StatusCode(StatusCodes.Status412PreconditionFailed);
+            }
             #endregion Validation
 
-            try
+            using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
             {
-                // Only the primary key is needed for delete
-                DbContext.Client.Remove(ExistingClient);
-                DbContext.SaveChanges();
+                try
+                {
+                    // Remove all claims associated with the client
+                    var MembershipClaims = DbContext.UserClaims
+                        .Where(uc => uc.ClaimType == ClaimNames.ClientMembership.ToString())
+                        .Where(uc => uc.ClaimValue == Id.ToString())
+                        .ToList();
+                    DbContext.UserClaims.RemoveRange(MembershipClaims);
 
-                object LogDetails = new { ClientId = Id.Value };
-                AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Client Deleted", AuditEventId.ClientDeleted, LogDetails, User.Identity.Name, HttpContext.Session.Id));
+                    // Remove the client
+                    DbContext.Client.Remove(ExistingClient);
+
+                    DbContext.SaveChanges();
+                    DbTransaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    string ErrMsg = $"Failed to delete client from database";
+                    Logger.LogError(ErrMsg + $":\r\n{ex.Message}\r\n{ex.StackTrace}");
+                    return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+                }
             }
-            catch (Exception ex)
-            {
-                string ErrMsg = $"Failed to delete client from database";
-                Logger.LogError(ErrMsg + $":\r\n{ ex.Message}\r\n{ ex.StackTrace}");
-                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
-            }
+
+            object LogDetails = new { ClientId = Id.Value };
+            AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Client Deleted", AuditEventId.ClientDeleted, LogDetails, User.Identity.Name, HttpContext.Session.Id));
+
 
             ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
 

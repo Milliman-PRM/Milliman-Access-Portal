@@ -1,6 +1,7 @@
 ﻿/* Admin Panel */
 
 .admin-panel-container {
+    position: relative;
     display: flex;
     flex-flow: column nowrap;
     overflow: hidden;
@@ -36,13 +37,17 @@
         }
 
         .admin-panel-action-icons-container {
+            display: flex;
+            justify-content: right;
+            align-content: center;
             flex: 1;
-            text-align: right;
 
             .action-icon {
                 color: $charcoal;
                 cursor: pointer;
                 padding: 0 .25em;
+                height: 2.5em;
+                width: 2.5em;
 
                 &:hover {
                     color: lighten($charcoal, 20%);
@@ -98,10 +103,6 @@
                 h2.card-body-primary-text {
                     width: 100%;
                     margin: 0;
-
-                    i.fa {
-                        margin: .25em;
-                    }
                 }
             }
         }

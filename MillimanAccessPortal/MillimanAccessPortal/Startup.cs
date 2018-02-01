@@ -130,10 +130,8 @@ namespace MillimanAccessPortal
             services.AddScoped<IAuditLogger, AuditLogger>();
 
             // Add application services.
-            services.AddTransient<MessageQueueServices>();
+            services.AddTransient<IMessageQueue, MessageQueueServices>();
             services.AddScoped<StandardQueries>();
-            //services.AddTransient<IEmailSender, AuthMessageSender>();
-            //services.AddTransient<ISmsSender, AuthMessageSender>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

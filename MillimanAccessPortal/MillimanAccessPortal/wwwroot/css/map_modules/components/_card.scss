@@ -8,7 +8,7 @@
     position: relative;
     padding: 0;
     background-color: $white;
-    border: 2px solid black;
+    border: 2px solid $charcoal;
     border-radius: .25em;
     margin-top: 0;
     margin-bottom: 1.75em;
@@ -93,15 +93,19 @@
             margin: auto;
 
             .card-user-icon {
-                vertical-align: middle;
-                margin: auto;
+                height: 4rem;
+                width: 4rem;
             }
 
             .card-user-role-indicator {
                 position: absolute;
-                top: 5%;
-                left: 60%;
+                top: 15%;
+                left: 70%;
+                height: 1.25rem;
+                width: 1.25rem;
                 color: $green;
+                stroke: context-fill $green;
+                stroke-width: 3px;
             }
         }
     }
@@ -121,12 +125,14 @@
             color: $white;
 
             .card-stat-icon {
-                margin-left: .1em;
+                margin-left: .5em;
+                height: 2em;
+                width: 2em;
             }
 
             .card-stat-value {
                 flex: 1;
-                margin-left: .5em;
+                margin-left: .75em;
             }
         }
     }
@@ -160,15 +166,18 @@
 
     .card-button-background {
         border-radius: 50%;
-        display: block;
-        text-align: center;
-        vertical-align: middle;
-        padding: .1em;
+        display: flex;
+        padding: .25em;
         margin-top: .25em;
         margin-bottom: .25em;
         transform-origin: center center;
         color: $white;
         transition: .2s all linear;
+
+        .card-button-icon {
+            height: 1.25em;
+            width: 1.25em;
+        }
 
         &.card-button-delete,
         &.card-button-remove-user,
@@ -251,4 +260,24 @@
     border: 1px solid $charcoal;
     margin: 0 0 3em;
     padding: 0;
+}
+
+.action-card,
+.client-insert {
+    .card-body-primary-text {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .action-card-icon,
+        .new-child-icon {
+            height: 2em;
+            width: 2em;
+            margin: 0 .25em;
+        }
+
+        .new-child-icon {
+            transform: rotate(-90deg);
+        }
+    }
 }
