@@ -69,27 +69,16 @@ namespace MillimanAccessPortal
                         config.AddJsonFile($"AzureKeyVault.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true);
 
                         var builtConfig = config.Build();
+                        
+                        var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+                        store.Open(OpenFlags.ReadOnly);
+                        var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
 
-                        if (hostContext.HostingEnvironment.EnvironmentName == "AzureCI")
-                        {
-                            config.AddAzureKeyVault(
-                                builtConfig["AzureVaultName"],
-                                builtConfig["AzureClientID"],
-                                Environment.GetEnvironmentVariable("ClientSecret")
-                                );
-                        }
-                        else
-                        {
-                            var store = new X509Store(StoreLocation.LocalMachine);
-                            store.Open(OpenFlags.ReadOnly);
-                            var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
-
-                            config.AddAzureKeyVault(
-                                builtConfig["AzureVaultName"],
-                                builtConfig["AzureClientID"],
-                                cert.OfType<X509Certificate2>().Single()
-                                );                            
-                        }
+                        config.AddAzureKeyVault(
+                            builtConfig["AzureVaultName"],
+                            builtConfig["AzureClientID"],
+                            cert.OfType<X509Certificate2>().Single()
+                            );
                         
                     }
                     #endregion
