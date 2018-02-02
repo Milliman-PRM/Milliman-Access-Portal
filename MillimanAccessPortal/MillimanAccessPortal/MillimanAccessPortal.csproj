@@ -11,7 +11,6 @@
 
   <PropertyGroup>
     <UserSecretsId>aspnet-MillimanAccessPortal-965822be-7d5a-4042-843a-d230c25706a3</UserSecretsId>
-    <Copyright>© 2018 Milliman, Inc. All Rights Reserved</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
@@ -41,11 +40,7 @@
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="wwwroot\css\site.css" />
-    <None Include="wwwroot\css\site.min.css" />
-    <None Include="wwwroot\css\site.scss" />
     <None Include="wwwroot\favicon.ico" />
-    <None Include="wwwroot\images\logo.png" />
     <None Include="wwwroot\js\contact-form.js" />
     <None Include="wwwroot\js\contact-form.min.js" />
   </ItemGroup>
@@ -65,6 +60,22 @@
     <Content Update="qlikview.json">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="BuildTimeProperties.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>BuildTimeProperties.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="BuildTimeProperties.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>BuildTimeProperties.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

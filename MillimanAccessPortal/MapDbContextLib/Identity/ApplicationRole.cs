@@ -24,8 +24,8 @@ namespace MapDbContextLib.Identity
         // Important: Existing numeric values must never be reassigned to a new meaning.  Always add a new role as a new, explicit, higher value. 
         Admin = 1,
         UserCreator = 2,
-        UserAdmin = 3,
-        ContentAdmin = 4,
+        ContentAccessAdmin = 3,
+        ContentPublisher = 4,
         ContentUser = 5,
     };
 
@@ -35,8 +35,8 @@ namespace MapDbContextLib.Identity
         {
             { RoleEnum.Admin, "Admin"},
             { RoleEnum.UserCreator, "User Creator"},
-            { RoleEnum.UserAdmin, "User Admin"},
-            { RoleEnum.ContentAdmin, "Content Admin"},
+            { RoleEnum.ContentAccessAdmin, "Content Access Admin"},
+            { RoleEnum.ContentPublisher, "Content Publisher"},
             { RoleEnum.ContentUser, "Content User"},
         };
 

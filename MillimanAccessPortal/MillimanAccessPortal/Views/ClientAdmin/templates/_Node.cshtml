@@ -2,38 +2,54 @@
   <li>
     <div class="card-container">
       <div class="card-body-main-container">
-        <div class="card-body-secondary-container">
-          <i class="fa fa-fw fa-user fa-4x card-user-icon"></i>
-          <i class="fa fa-fw fa-plus fa-2x card-user-role-indicator"></i>
-        </div>
+          <div class="card-body-secondary-container">
+              <svg class="card-user-icon">
+                  <use xlink:href="#action-icon-user"></use>
+              </svg>
+              <svg class="card-user-role-indicator">
+                  <use xlink:href="#action-icon-add"></use>
+              </svg>
+          </div>
         <div class="card-body-primary-container">
           <h2 class="card-body-primary-text"></h2>
           <p class="card-body-secondary-text"></p>
           <p class="card-body-secondary-text"></p>
         </div>
         <div class="card-stats-container">
-          <div class="card-stat-container tooltip" title="Assigned users">
-            <i class="fa fa-fw fa-users fa-2x card-stat-icon"></i>
-            <h4 class="card-stat-value card-stat-user-count"></h4>
-          </div>
-          <div class="card-stat-container tooltip" title="Reports">
-            <i class="fa fa-fw fa-file fa-2x card-stat-icon"></i>
-            <h4 class="card-stat-value card-stat-content-count"></h4>
-          </div>
+            <div class="card-stat-container tooltip" title="Assigned users">
+                <svg class="card-stat-icon">
+                    <use xlink:href="#action-icon-users"></use>
+                </svg>
+                <h4 class="card-stat-value card-stat-user-count"></h4>
+            </div>
+            <div class="card-stat-container tooltip" title="Reports">
+                <svg class="card-stat-icon">
+                    <use xlink:href="#action-icon-reports"></use>
+                </svg>
+                <h4 class="card-stat-value card-stat-content-count"></h4>
+            </div>
         </div>
         <div class="card-button-side-container">
-          <div class="card-button-background card-button-delete tooltip" title="Delete client">
-            <i class="fa fa-fw fa-trash card-button-icon"></i>
-          </div>
-          <div class="card-button-background card-button-edit tooltip" title="Edit client details">
-            <i class="fa fa-fw fa-pencil card-button-icon"></i>
-          </div>
-          <div class="card-button-background card-button-new-child tooltip" title="New sub-client">
-            <i class="fa fa-fw fa-plus card-button-icon"></i>
-          </div>
-          <div class="card-button-background card-button-remove-user tooltip" title="Remove user">
-            <i class="fa fa-fw fa-times"></i>
-          </div>
+            <div class="card-button-background card-button-delete tooltip" title="Delete client">
+                <svg class="card-button-icon">
+                    <use xlink:href="#action-icon-delete"></use>
+                </svg>
+            </div>
+            <div class="card-button-background card-button-edit tooltip" title="Edit client details">
+                <svg class="card-button-icon">
+                    <use xlink:href="#action-icon-edit"></use>
+                </svg>
+            </div>
+            <div class="card-button-background card-button-new-child tooltip" title="New sub-client">
+                <svg class="card-button-icon">
+                    <use xlink:href="#action-icon-add"></use>
+                </svg>
+            </div>
+            <div class="card-button-background card-button-remove-user tooltip" title="Remove user">
+                <svg class="card-button-icon">
+                    <use xlink:href="#action-icon-remove"></use>
+                </svg>
+            </div>
         </div>
       </div>
       <div class="card-expansion-container">
@@ -56,7 +72,7 @@
               <span class="toggle-switch-switch"></span>
             </label>
           </div>
-          <label class="switch-label">User Administrator</label>
+          <label class="switch-label">Content Access Administrator</label>
         </div>
         <div class="switch-container">
           <div class="toggle-switch">
@@ -66,7 +82,7 @@
               <span class="toggle-switch-switch"></span>
             </label>
           </div>
-          <label class="switch-label">Content Administrator</label>
+          <label class="switch-label">Content Publisher</label>
         </div>
         <div class="switch-container">
           <div class="toggle-switch">
@@ -79,9 +95,11 @@
           <label class="switch-label">Content Eligible</label>
         </div>
         <div class="card-button-bottom-container">
-          <div class="card-button-background card-button-expansion tooltip" title="Expand user card">
-            <i class="fa fa-fw fa-chevron-down"></i>
-          </div>
+            <div class="card-button-background card-button-expansion tooltip" title="Expand user card">
+                <svg class="card-button-icon">
+                    <use xlink:href="#action-icon-expand-card"></use>
+                </svg>
+            </div>
         </div>
       </div>
     </div>

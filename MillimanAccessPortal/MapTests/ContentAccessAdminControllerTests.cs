@@ -500,7 +500,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.Selections(0);
+            var view = controller.Selections(0);
             #endregion
 
             #region Assert
@@ -516,7 +516,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.UpdateSelections(0, null);
+            var view = controller.UpdateSelections(0, null);
             #endregion
 
             #region Assert

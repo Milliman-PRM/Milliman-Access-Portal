@@ -1,6 +1,6 @@
 /*
  * CODE OWNERS: Joseph Sweeney,
- * OBJECTIVE: Provide all application logic for user administration
+ * OBJECTIVE:
  * DEVELOPER NOTES: 
  */
 
@@ -43,14 +43,14 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Action for content access administration index.</summary>
-        /// <remarks>This action is only authorized to users with ContentAdmin role in at least one client.</remarks>
+        /// <remarks>This action is only authorized to users with ContentPublisher role in at least one client.</remarks>
         /// <returns>ViewResult</returns>
         [HttpGet]
         public async Task<IActionResult> Index()
         {
             #region Authorization
-            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, null));
-            if (!ContentAdminResult.Succeeded)
+            AuthorizationResult ContentPublisherResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, null));
+            if (!ContentPublisherResult.Succeeded)
             {
                 Response.Headers.Add("Warning", "You are not authorized to administer content access.");
                 return Unauthorized();
@@ -64,14 +64,14 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Returns the list of client families visible to the user.</summary>
-        /// <remarks>This action is only authorized to users with ContentAdmin role in at least one client.</remarks>
+        /// <remarks>This action is only authorized to users with ContentPublisher role in at least one client.</remarks>
         /// <returns>JsonResult</returns>
         [HttpGet]
         public async Task<IActionResult> ClientFamilyList()
         {
             #region Authorization
-            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, null));
-            if (!ContentAdminResult.Succeeded)
+            AuthorizationResult ContentPublisherResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, null));
+            if (!ContentPublisherResult.Succeeded)
             {
                 Response.Headers.Add("Warning", "You are not authorized to administer content access.");
                 return Unauthorized();
@@ -87,7 +87,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Returns the root content items available to a client.</summary>
-        /// <remarks>This action is only authorized to users with ContentAdmin role in the specified client.</remarks>
+        /// <remarks>This action is only authorized to users with ContentPublisher role in the specified client.</remarks>
         /// <param name="ClientId">The client whose root content items are to be returned.</param>
         /// <returns>JsonResult</returns>
         [HttpGet]
@@ -104,8 +104,8 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, ClientId));
-            if (!ContentAdminResult.Succeeded)
+            AuthorizationResult ContentPublisherResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, ClientId));
+            if (!ContentPublisherResult.Succeeded)
             {
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
                 return Unauthorized();
@@ -121,7 +121,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Returns the selection groups associated with a root content item.</summary>
-        /// <remarks>This action is only authorized to users with ContentAdmin role in the specified client.</remarks>
+        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the specified client.</remarks>
         /// <param name="ClientId">The client associated with the root content item.</param>
         /// <param name="RootContentItemId">The root content item whose selection groups are to be returned.</param>
         /// <returns>JsonResult</returns>
@@ -139,8 +139,8 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, ClientId));
-            if (!ContentAdminResult.Succeeded)
+            AuthorizationResult ContentAccessAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, ClientId));
+            if (!ContentAccessAdminResult.Succeeded)
             {
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
                 return Unauthorized();
@@ -162,7 +162,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Creates a selection group.</summary>
-        /// <remarks>This action is only authorized to users with ContentAdmin role in the specified client.</remarks>
+        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the specified client.</remarks>
         /// <param name="ClientId">The client to be assigned to the new selection group.</param>
         /// <param name="RootContentItemId">The root content item to be assigned to the new selection group.</param>
         /// <param name="SelectionGroupName">The name of the new selection group.</param>
@@ -182,8 +182,8 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, ClientId));
-            if (!ContentAdminResult.Succeeded)
+            AuthorizationResult ContentAccessAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, ClientId));
+            if (!ContentAccessAdminResult.Succeeded)
             {
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
                 return Unauthorized();
@@ -217,7 +217,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Updates the users assigned to a selection group.</summary>
-        /// <remarks>This action is only authorized to users with ContentAdmin role in the specified client.</remarks>
+        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the specified client.</remarks>
         /// <param name="SelectionGroupId">The selection group to be updated.</param>
         /// <param name="UserAssignments">A dictionary that maps client IDs to a boolean value indicating whether to add or remove the client.</param>
         /// <returns>JsonResult</returns>
@@ -239,8 +239,8 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, SelectionGroup.ClientId));
-            if (!ContentAdminResult.Succeeded)
+            AuthorizationResult ContentAccessAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.ClientId));
+            if (!ContentAccessAdminResult.Succeeded)
             {
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
                 return Unauthorized();
@@ -347,8 +347,8 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, SelectionGroup.ClientId));
-            if (!ContentAdminResult.Succeeded)
+            AuthorizationResult ContentAccessAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.ClientId));
+            if (!ContentAccessAdminResult.Succeeded)
             {
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
                 return Unauthorized();
@@ -386,7 +386,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="SelectionGroupId">The selection group whose selections are to be returned.</param>
         /// <returns>JsonResult</returns>
         [HttpGet]
-        public async Task<IActionResult> Selections(long SelectionGroupId)
+        public IActionResult Selections(long SelectionGroupId)
         {
             #region Authorization
             #endregion
@@ -403,7 +403,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>JsonResult</returns>
         [HttpPut]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateSelections(long SelectionGroupId, object Selections)
+        public IActionResult UpdateSelections(long SelectionGroupId, object Selections)
         {
             #region Authorization
             #endregion

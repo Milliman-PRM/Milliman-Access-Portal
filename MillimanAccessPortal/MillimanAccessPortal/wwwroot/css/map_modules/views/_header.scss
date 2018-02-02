@@ -19,6 +19,9 @@
 
     #header-logo {
         order: 2;
+        padding-right: 1em;
+        height: 5.5rem;
+        width: 25rem;
     }
     
     @include for-phone-only {
@@ -26,4 +29,12 @@
             order: 1;
         }
     }
+}
+
+#map-logo-brand {
+    fill: $charcoal;
+}
+
+#map-logo-product {
+    fill: $blue;
 }

@@ -862,13 +862,13 @@ function userCardRoleToggleClickHandler(event) {
  * @param  {String} email Email address of the user
  * @return {undefined}
  */
-function saveNewUser(email, callback) {
+function saveNewUser(username, email, callback) {
   var clientId = $('#client-tree [selected]').attr('data-client-id');
   $.ajax({
     type: 'POST',
     url: 'ClientAdmin/SaveNewUser',
     data: {
-      UserName: email,
+      UserName: username || email,
       Email: email,
       MemberOfClientIdArray: [clientId]
     },
@@ -925,12 +925,20 @@ function initializeAddUserForm() {
       '<input class="typeahead" name="username" placeholder="Email" required />'
     ].join(''),
     submitHandler: function onSubmit(user, callback) {
-      var email = typeof user === 'object' ? user.email : user;
-      if (emailValRegex.test(email)) {
+      // var email = typeof user === 'object' ? user.email : user;
+      var singleMatch = 0;
+      substringMatcher(eligibleUsers)(user, function setMatches(matches) {
+        singleMatch = matches.length;
+      });
+      if (singleMatch) {
         setButtonSubmitting($('.vex-first'), 'Adding');
         $('.vex-dialog-button').attr('disabled', '');
-        saveNewUser(email, callback);
-      } else if (email) {
+        saveNewUser(user, null, callback);
+      } else if (emailValRegex.test(user)) {
+        setButtonSubmitting($('.vex-first'), 'Adding');
+        $('.vex-dialog-button').attr('disabled', '');
+        saveNewUser(null, user, callback);
+      } else if (user) {
         toastr.warning('Please provide a valid email address');
         return false;
       }
@@ -1142,7 +1150,7 @@ function renderClientTree(clientTreeList, clientId) {
     $('[data-client-id="' + clientId + '"]').click();
   }
   if ($('#add-client-icon').length) {
-    $clientTreeList.append($createNewClientCard);
+    $clientTreeList.append($createNewClientCard.clone());
     $('#create-new-client-card')
       .click(function onClick() {
         createNewClientClickHandler($(this));
@@ -1312,7 +1320,7 @@ $(document).ready(function onReady() {
     .addClass('card-100 action-card')
     .attr('id', 'create-new-client-card');
   $createNewClientCard.find('.card-body-primary-text')
-    .append('<i class="fa fa-plus"></i>')
+    .append('<svg class="action-card-icon"><use xlink:href="#action-icon-add"></use></svg>')
     .append('<span>New Client</span>');
   $createNewClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
     .remove();
@@ -1325,9 +1333,8 @@ $(document).ready(function onReady() {
   $createNewChildClientCard.find('.card-body-main-container')
     .addClass('content-item-flex-1');
   $createNewChildClientCard.find('.card-body-primary-text')
-    .html('New Sub-Client');
-  $createNewChildClientCard.find('.card-container')
-    .append('<i class="fa fa-fw fa-2x fa-chevron-right"></i>');
+    .append('<span>New Sub-Client</span>')
+    .append('<svg class="new-child-icon"><use xlink:href="#action-icon-expand-card"></use></svg>');
   $createNewChildClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
     .remove();
 
@@ -1336,7 +1343,7 @@ $(document).ready(function onReady() {
     .addClass('card-100 action-card')
     .attr('id', 'add-user-card');
   $addUserCard.find('.card-body-primary-text')
-    .append('<i class="fa fa-plus"></i>')
+    .append('<svg class="action-card-icon"><use xlink:href="#action-icon-add"></use></svg>')
     .append('<span>Add User</span>');
   $addUserCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
     .remove();
