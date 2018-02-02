@@ -86,13 +86,15 @@ echo Installing bower packages
 call bower install
 IF !ERRORLEVEL! NEQ 0 goto error
 
-echo Prepare web compiler
-cd D:\local\Temp\WebCompiler*\
-call prepare.cmd
-
-cd %base_directory%
-echo Changed directory to
-cd
+if exist  D:\local\Temp\WebCompiler*\prepare.cmd (
+  echo Prepare web compiler
+  cd D:\local\Temp\WebCompiler*\
+  call prepare.cmd
+  IF !ERRORLEVEL! NEQ 0 goto error
+)
+else (
+  echo Not preparing web compiler - prepare.cmd not found
+)
 
 :: 3. Build and publish site
 echo Publishing site to temp folder with MSBuild version 15
