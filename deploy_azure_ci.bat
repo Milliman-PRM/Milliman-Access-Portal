@@ -78,10 +78,7 @@ call :ExecuteCmd dotnet restore "%DEPLOYMENT_SOURCE%\MillimanAccessPortal\Millim
 IF !ERRORLEVEL! NEQ 0 goto error
 
 :: 2. Install bower Packages
-set base_directory=%cd%
 cd "%DEPLOYMENT_SOURCE%\MillimanAccessPortal\MillimanAccessPortal\"
-echo Changed directory to
-cd
 echo Installing bower packages
 call bower install
 IF !ERRORLEVEL! NEQ 0 goto error
