@@ -183,41 +183,38 @@ var Card = {
   },
 
 
-  html: function html(component, value, selector) {
+  findComponent: function findComponent(component, selector) {
     var $component = this.vars.$card
       .find(this.templates[component].selector)
       .last();
     var $subcomponent = $component.find(selector);
-    $subcomponent = $subcomponent.length ? $subcomponent : $component;
-    $subcomponent.html(value);
+    return $subcomponent.length ? $subcomponent : $component;
+  },
+
+  html: function html(component, value, selector) {
+    var $component = this.findComponent(component, selector);
+    $component.html(value);
   },
 
   attr: function attr(component, value, selector) {
-    var $component = this.vars.$card
-      .find(this.templates[component].selector)
-      .last();
-    var $subcomponent = $component.find(selector);
-    $subcomponent = $subcomponent.length ? $subcomponent : $component;
-    $subcomponent.attr(value);
+    var $component = this.findComponent(component, selector);
+    $component.attr(value);
   },
 
   addClass: function addClass(component, value, selector) {
-    var $component = this.vars.$card
-      .find(this.templates[component].selector)
-      .last();
-    var $subcomponent = $component.find(selector);
-    $subcomponent = $subcomponent.length ? $subcomponent : $component;
-    $subcomponent.addClass(value);
+    var $component = this.findComponent(component, selector);
+    $component.addClass(value);
   },
 
   tooltip: function tooltip(component, value, selector) {
-    var $component = this.vars.$card
-      .find(this.templates[component].selector)
-      .last();
-    var $subcomponent = $component.find(selector);
-    $subcomponent = $subcomponent.length ? $subcomponent : $component;
-    $subcomponent.addClass('tooltip');
-    $subcomponent.attr('title', value);
+    var $component = this.findComponent(component, selector);
+    $component.addClass('tooltip');
+    $component.attr('title', value);
+  },
+
+  click: function click(component, onClick, selector) {
+    var $component = this.findComponent(component, selector);
+    $component.click(onClick);
   },
 
 
