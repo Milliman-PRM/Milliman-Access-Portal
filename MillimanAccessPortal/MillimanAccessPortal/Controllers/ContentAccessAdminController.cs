@@ -218,11 +218,11 @@ namespace MillimanAccessPortal.Controllers
         /// <summary>Updates the users assigned to a selection group.</summary>
         /// <remarks>This action is only authorized to users with ContentAdmin role in the specified client.</remarks>
         /// <param name="SelectionGroupId">The selection group to be updated.</param>
-        /// <param name="MembershipSet">A dictionary that maps client IDs to a boolean value indicating whether to add or remove the client.</param>
+        /// <param name="UserAssignments">A dictionary that maps client IDs to a boolean value indicating whether to add or remove the client.</param>
         /// <returns>JsonResult</returns>
         [HttpPut]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateSelectionGroup(long SelectionGroupId, Dictionary<long, Boolean> MembershipSet)
+        public async Task<IActionResult> UpdateSelectionGroupUserAssignments(long SelectionGroupId, Dictionary<long, Boolean> UserAssignments)
         {
             ContentItemUserGroup SelectionGroup = DbContext.ContentItemUserGroup
                 .Include(rg => rg.Client)
@@ -247,7 +247,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var Nonexistant = MembershipSet
+            var Nonexistant = UserAssignments
                 .Select(kvp => DbContext.ApplicationUser.Find(kvp.Key))
                 .Where(m => m == null);
             if (Nonexistant.Any())
@@ -256,11 +256,12 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest();
             }
 
-            var Nonpermissioned = MembershipSet
+            var Nonpermissioned = UserAssignments
+                .Where(kvp => kvp.Value)
                 .Where(kvp => DbContext.UserRoleInRootContentItem
                     .Include(ur => ur.Role)
-                    .Where(ur => ur.RootContentItemId == SelectionGroup.RootContentItemId)
                     .Where(ur => ur.UserId == kvp.Key)
+                    .Where(ur => ur.RootContentItemId == SelectionGroup.RootContentItemId)
                     .Where(ur => ur.Role.RoleEnum == RoleEnum.ContentUser)
                     .SingleOrDefault() == null
                     );
@@ -270,7 +271,7 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest();
             }
 
-            var AlreadyInGroup = MembershipSet
+            var AlreadyInGroup = UserAssignments
                 .Where(kvp => kvp.Value)
                 .Where(kvp => DbContext.UserInContentItemUserGroup
                     .Where(uug => uug.UserId == kvp.Key)
@@ -292,7 +293,7 @@ namespace MillimanAccessPortal.Controllers
             using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
             {
                 DbContext.UserInContentItemUserGroup.RemoveRange(
-                    MembershipSet
+                    UserAssignments
                         .Where(kvp => !kvp.Value)
                         .Select(kvp => DbContext.UserInContentItemUserGroup
                             .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
@@ -305,7 +306,7 @@ namespace MillimanAccessPortal.Controllers
                 DbContext.SaveChanges();
 
                 DbContext.UserInContentItemUserGroup.AddRange(
-                    MembershipSet
+                    UserAssignments
                         .Where(kvp => kvp.Value)
                         .Where(kvp => DbContext.UserInContentItemUserGroup.ToList()
                             .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)

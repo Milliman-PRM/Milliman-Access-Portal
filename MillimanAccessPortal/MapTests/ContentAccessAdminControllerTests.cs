@@ -310,7 +310,7 @@ namespace MapTests
 
             #region Act
             int preCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
-            var view = await controller.UpdateSelectionGroup(SelectionGroupId, MembershipSet);
+            var view = await controller.UpdateSelectionGroupUserAssignments(SelectionGroupId, MembershipSet);
             int postCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
             #endregion
 
@@ -336,7 +336,7 @@ namespace MapTests
 
             #region Act
             int preCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
-            var view = await controller.UpdateSelectionGroup(SelectionGroupId, MembershipSet);
+            var view = await controller.UpdateSelectionGroupUserAssignments(SelectionGroupId, MembershipSet);
             int postCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
             #endregion
 
@@ -359,7 +359,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.UpdateSelectionGroup(4, MembershipSet);
+            var view = await controller.UpdateSelectionGroupUserAssignments(4, MembershipSet);
             #endregion
 
             #region Assert
@@ -383,7 +383,7 @@ namespace MapTests
 
             #region Act
             int preCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
-            var view = await controller.UpdateSelectionGroup(4, MembershipSet);
+            var view = await controller.UpdateSelectionGroupUserAssignments(4, MembershipSet);
             int postCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
             #endregion
 
