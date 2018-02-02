@@ -11,7 +11,6 @@
 
   <PropertyGroup>
     <UserSecretsId>aspnet-MillimanAccessPortal-965822be-7d5a-4042-843a-d230c25706a3</UserSecretsId>
-    <Copyright>© 2018 Milliman, Inc. All Rights Reserved</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
