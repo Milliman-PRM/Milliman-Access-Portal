@@ -87,7 +87,7 @@ call bower install
 IF !ERRORLEVEL! NEQ 0 goto error
 
 echo Prepare web compiler
-cd D:\local\Temp\WebCompiler1.11.375\
+cd D:\local\Temp\WebCompiler*
 call prepare.cmd
 
 cd %base_directory%
@@ -96,7 +96,7 @@ cd
 
 :: 3. Build and publish site
 echo Publishing site to temp folder with MSBuild
-set MSBUILD_15_PATH=D:\Program Files (x86)\MSBuild-15.3.409.57025\MSBuild\15.0\Bin\msbuild.exe
+set MSBUILD_15_PATH=D:\Program Files (x86)\MSBuild-15*\MSBuild\15.0\Bin\msbuild.exe
 call :ExecuteCmd "%MSBUILD_15_PATH%" "%DEPLOYMENT_SOURCE%\MillimanAccessPortal\MillimanAccessPortal\MillimanAccessPortal.csproj" /t:publish /p:PublishDir=%DEPLOYMENT_TEMP% /verbosity:minimal
 IF !ERRORLEVEL! NEQ 0 goto error
 
