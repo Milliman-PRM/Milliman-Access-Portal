@@ -274,13 +274,11 @@ namespace MillimanAccessPortal.Controllers
             var AlreadyInGroup = UserAssignments
                 .Where(kvp => kvp.Value)
                 .Where(kvp => DbContext.UserInContentItemUserGroup
+                    .Include(uug => uug.ContentItemUserGroup)
                     .Where(uug => uug.UserId == kvp.Key)
                     .Where(uug => uug.ContentItemUserGroupId != SelectionGroup.Id)
-                    .Where(uug => DbContext.ContentItemUserGroup
-                        .Where(ug => ug.Id == uug.ContentItemUserGroupId)
-                        .Single().RootContentItemId == SelectionGroup.RootContentItemId
+                    .Where(uug => uug.ContentItemUserGroup.RootContentItemId == SelectionGroup.RootContentItemId
                         )
-                    .ToList()
                     .Any()
                     );
             if (AlreadyInGroup.Any())
@@ -301,14 +299,13 @@ namespace MillimanAccessPortal.Controllers
                             .SingleOrDefault()
                             )
                         .Where(uug => uug != null)
-                        .ToList()
                     );
                 DbContext.SaveChanges();
 
                 DbContext.UserInContentItemUserGroup.AddRange(
                     UserAssignments
                         .Where(kvp => kvp.Value)
-                        .Where(kvp => DbContext.UserInContentItemUserGroup.ToList()
+                        .Where(kvp => DbContext.UserInContentItemUserGroup
                             .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
                             .Where(uug => uug.UserId == kvp.Key)
                             .SingleOrDefault() == null
@@ -320,7 +317,6 @@ namespace MillimanAccessPortal.Controllers
                                 UserId = kvp.Key,
                             }
                         )
-                        .ToList()
                     );
                 DbContext.SaveChanges();
 
