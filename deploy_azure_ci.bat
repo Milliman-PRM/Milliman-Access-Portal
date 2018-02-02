@@ -91,8 +91,7 @@ if exist  D:\local\Temp\WebCompiler*\prepare.cmd (
   cd D:\local\Temp\WebCompiler*\
   call prepare.cmd
   IF !ERRORLEVEL! NEQ 0 goto error
-)
-else (
+) else (
   echo Not preparing web compiler - prepare.cmd not found
 )
 
