@@ -98,7 +98,7 @@ if exist  D:\local\Temp\WebCompiler*\prepare.cmd (
 :: 3. Build and publish site
 echo Publishing site to temp folder with MSBuild version 15
 cd D:\Program Files (x86)\MSBuild-15*\MSBuild\15.0\Bin\
-call :ExecuteCmd msbuild.exe "%DEPLOYMENT_SOURCE%\MillimanAccessPortal\MillimanAccessPortal\MillimanAccessPortal.csproj" /t:publish /p:PublishDir=%DEPLOYMENT_TEMP% /verbosity:minimal
+call :ExecuteCmd msbuild.exe "%DEPLOYMENT_SOURCE%\MillimanAccessPortal\MillimanAccessPortal\MillimanAccessPortal.csproj" /t:publish /p:PublishDir=%DEPLOYMENT_TEMP% /verbosity:minimal /nowarn:MSB3884
 IF !ERRORLEVEL! NEQ 0 goto error
 
 :: 4. KuduSync
