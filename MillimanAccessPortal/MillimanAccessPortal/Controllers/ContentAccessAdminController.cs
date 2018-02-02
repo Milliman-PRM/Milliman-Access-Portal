@@ -198,23 +198,19 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            DbContext.ContentItemUserGroup.Add(new ContentItemUserGroup {
+            ContentItemUserGroup SelectionGroup = new ContentItemUserGroup
+            {
                 ClientId = Client.Id,
                 RootContentItemId = RootContentItem.Id,
                 GroupName = SelectionGroupName,
                 SelectedHierarchyFieldValueList = new long[] { },
                 ContentInstanceUrl = ""
-            });
+            };
+
+            DbContext.ContentItemUserGroup.Add(SelectionGroup);
             DbContext.SaveChanges();
 
-            #region Build response object
-            ContentItemUserGroup SelectionGroup = DbContext.ContentItemUserGroup
-                .Where(ug => ug.ClientId == Client.Id)
-                .Where(ug => ug.RootContentItemId == RootContentItem.Id)
-                .Last();
-
             ContentAccessAdminSelectionGroupDetailViewModel Model = ContentAccessAdminSelectionGroupDetailViewModel.Build(DbContext, SelectionGroup);
-            #endregion
 
             return Json(Model);
         }
