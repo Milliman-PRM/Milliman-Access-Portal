@@ -233,8 +233,18 @@ var Card = {
 
   cardStat: function cardStat(icon, value, tooltip) {
     this.add(['main', 'stats', 'stat']);
+    this.attr('stat', { href: icon }, '[href]');
     this.html('stat', value, '.card-stat-value');
     if (tooltip) this.tooltip('stat', tooltip);
+    return this;
+  },
+
+  sideButton: function sideButton(icon, class_, onClick, tooltip) {
+    this.add(['main', 'side', 'button']);
+    this.attr('button', { href: icon }, '[href]');
+    this.addClass('button', 'card-button-delete');
+    this.click('button', onClick);
+    if (tooltip) this.tooltip('button', tooltip);
     return this;
   },
 
