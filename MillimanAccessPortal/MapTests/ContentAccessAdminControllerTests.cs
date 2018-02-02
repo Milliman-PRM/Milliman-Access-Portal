@@ -128,7 +128,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<BadRequestResult>(view);
+            Assert.IsType<StatusCodeResult>(view);
+            StatusCodeResult viewResult = (StatusCodeResult)view;
+            Assert.Equal("422", viewResult.StatusCode.ToString());
             #endregion
         }
 
@@ -178,7 +180,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<BadRequestResult>(view);
+            Assert.IsType<StatusCodeResult>(view);
+            StatusCodeResult viewResult = (StatusCodeResult)view;
+            Assert.Equal("422", viewResult.StatusCode.ToString());
             #endregion
         }
 
@@ -232,7 +236,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<BadRequestResult>(view);
+            Assert.IsType<StatusCodeResult>(view);
+            StatusCodeResult viewResult = (StatusCodeResult)view;
+            Assert.Equal("422", viewResult.StatusCode.ToString());
             Assert.Equal(preCount, postCount);
             #endregion
         }
@@ -315,7 +321,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<BadRequestResult>(view);
+            Assert.IsType<StatusCodeResult>(view);
+            StatusCodeResult viewResult = (StatusCodeResult)view;
+            Assert.Equal("422", viewResult.StatusCode.ToString());
             Assert.Equal(preCount, postCount);
             #endregion
         }
@@ -411,7 +419,9 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<BadRequestResult>(view);
+            Assert.IsType<StatusCodeResult>(view);
+            StatusCodeResult viewResult = (StatusCodeResult)view;
+            Assert.Equal("422", viewResult.StatusCode.ToString());
             Assert.Equal(groupsPreCount, groupsPostCount);
             Assert.Equal(userPreCount, userPostCount);
             #endregion

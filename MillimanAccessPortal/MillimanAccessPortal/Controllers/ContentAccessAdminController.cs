@@ -7,6 +7,7 @@
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -98,7 +99,7 @@ namespace MillimanAccessPortal.Controllers
             if (Client == null)
             {
                 Response.Headers.Add("Warning", "The requested client does not exist.");
-                return BadRequest();
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
@@ -133,7 +134,7 @@ namespace MillimanAccessPortal.Controllers
             if (Client == null)
             {
                 Response.Headers.Add("Warning", "The requested client does not exist.");
-                return BadRequest();
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
@@ -151,7 +152,7 @@ namespace MillimanAccessPortal.Controllers
             if (RootContentItem == null)
             {
                 Response.Headers.Add("Warning", "The requested root content item does not exist.");
-                return BadRequest();
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
@@ -176,7 +177,7 @@ namespace MillimanAccessPortal.Controllers
             if (Client == null)
             {
                 Response.Headers.Add("Warning", "The requested client does not exist.");
-                return BadRequest();
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
@@ -194,7 +195,7 @@ namespace MillimanAccessPortal.Controllers
             if (RootContentItem == null)
             {
                 Response.Headers.Add("Warning", "The requested root content item does not exist.");
-                return BadRequest();
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
@@ -233,7 +234,7 @@ namespace MillimanAccessPortal.Controllers
             if (SelectionGroup == null)
             {
                 Response.Headers.Add("Warning", "The requested selection group does not exist.");
-                return BadRequest();
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
@@ -253,7 +254,7 @@ namespace MillimanAccessPortal.Controllers
             if (Nonexistant.Any())
             {
                 Response.Headers.Add("Warning", "One or more requested users do not exist.");
-                return BadRequest();
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             var Nonpermissioned = UserAssignments
@@ -268,7 +269,7 @@ namespace MillimanAccessPortal.Controllers
             if (Nonpermissioned.Any())
             {
                 Response.Headers.Add("Warning", "One or more requested users do not have permission to use this content.");
-                return BadRequest();
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             var AlreadyInGroup = UserAssignments
@@ -284,7 +285,7 @@ namespace MillimanAccessPortal.Controllers
             if (AlreadyInGroup.Any())
             {
                 Response.Headers.Add("Warning", "One or more requested users to add are already in a different selection group.");
-                return BadRequest();
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
@@ -341,7 +342,7 @@ namespace MillimanAccessPortal.Controllers
             if (SelectionGroup == null)
             {
                 Response.Headers.Add("Warning", "The requested selection group does not exist.");
-                return BadRequest();
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
