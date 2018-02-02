@@ -119,13 +119,13 @@ namespace MillimanAccessPortal.Controllers
             return Json(Model);
         }
 
-        /// <summary>Returns the report groups associated with a root content item.</summary>
+        /// <summary>Returns the selection groups associated with a root content item.</summary>
         /// <remarks>This action is only authorized to users with ContentAdmin role in the specified client.</remarks>
         /// <param name="ClientId">The client associated with the root content item.</param>
-        /// <param name="RootContentItemId">The root content item whose report groups are to be returned.</param>
+        /// <param name="RootContentItemId">The root content item whose selection groups are to be returned.</param>
         /// <returns>JsonResult</returns>
         [HttpGet]
-        public async Task<IActionResult> ReportGroups(long ClientId, long RootContentItemId)
+        public async Task<IActionResult> SelectionGroups(long ClientId, long RootContentItemId)
         {
             Client Client = DbContext.Client.Find(ClientId);
 
@@ -155,20 +155,20 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ContentAccessAdminReportGroupListViewModel Model = ContentAccessAdminReportGroupListViewModel.Build(DbContext, Client, RootContentItem);
+            ContentAccessAdminSelectionGroupListViewModel Model = ContentAccessAdminSelectionGroupListViewModel.Build(DbContext, Client, RootContentItem);
 
             return Json(Model);
         }
 
-        /// <summary>Creates a report group.</summary>
+        /// <summary>Creates a selection group.</summary>
         /// <remarks>This action is only authorized to users with ContentAdmin role in the specified client.</remarks>
-        /// <param name="ClientId">The client to be assigned to the new report group.</param>
-        /// <param name="RootContentItemId">The root content item to be assigned to the new report group.</param>
-        /// <param name="ReportGroupName">The name of the new report group.</param>
+        /// <param name="ClientId">The client to be assigned to the new selection group.</param>
+        /// <param name="RootContentItemId">The root content item to be assigned to the new selection group.</param>
+        /// <param name="SelectionGroupName">The name of the new selection group.</param>
         /// <returns>JsonResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateReportGroup(long ClientId, long RootContentItemId, String ReportGroupName)
+        public async Task<IActionResult> CreateSelectionGroup(long ClientId, long RootContentItemId, String SelectionGroupName)
         {
             Client Client = DbContext.Client.Find(ClientId);
 
@@ -201,48 +201,48 @@ namespace MillimanAccessPortal.Controllers
             DbContext.ContentItemUserGroup.Add(new ContentItemUserGroup {
                 ClientId = Client.Id,
                 RootContentItemId = RootContentItem.Id,
-                GroupName = ReportGroupName,
+                GroupName = SelectionGroupName,
                 SelectedHierarchyFieldValueList = new long[] { },
                 ContentInstanceUrl = ""
             });
             DbContext.SaveChanges();
 
             #region Build response object
-            ContentItemUserGroup ReportGroup = DbContext.ContentItemUserGroup
+            ContentItemUserGroup SelectionGroup = DbContext.ContentItemUserGroup
                 .Where(ug => ug.ClientId == Client.Id)
                 .Where(ug => ug.RootContentItemId == RootContentItem.Id)
                 .Last();
 
-            ContentAccessAdminReportGroupDetailViewModel Model = ContentAccessAdminReportGroupDetailViewModel.Build(DbContext, ReportGroup);
+            ContentAccessAdminSelectionGroupDetailViewModel Model = ContentAccessAdminSelectionGroupDetailViewModel.Build(DbContext, SelectionGroup);
             #endregion
 
             return Json(Model);
         }
 
-        /// <summary>Updates the users assigned to a report group.</summary>
+        /// <summary>Updates the users assigned to a selection group.</summary>
         /// <remarks>This action is only authorized to users with ContentAdmin role in the specified client.</remarks>
-        /// <param name="ReportGroupId">The report group to be updated.</param>
+        /// <param name="SelectionGroupId">The selection group to be updated.</param>
         /// <param name="MembershipSet">A dictionary that maps client IDs to a boolean value indicating whether to add or remove the client.</param>
         /// <returns>JsonResult</returns>
         [HttpPut]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateReportGroup(long ReportGroupId, Dictionary<long, Boolean> MembershipSet)
+        public async Task<IActionResult> UpdateSelectionGroup(long SelectionGroupId, Dictionary<long, Boolean> MembershipSet)
         {
-            ContentItemUserGroup ReportGroup = DbContext.ContentItemUserGroup
+            ContentItemUserGroup SelectionGroup = DbContext.ContentItemUserGroup
                 .Include(rg => rg.Client)
                 .Include(rg => rg.RootContentItem)
-                .SingleOrDefault(rg => rg.Id == ReportGroupId);
+                .SingleOrDefault(rg => rg.Id == SelectionGroupId);
 
             #region Preliminary Validation
-            if (ReportGroup == null)
+            if (SelectionGroup == null)
             {
-                Response.Headers.Add("Warning", "The requested report group does not exist.");
+                Response.Headers.Add("Warning", "The requested selection group does not exist.");
                 return BadRequest();
             }
             #endregion
 
             #region Authorization
-            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, ReportGroup.ClientId));
+            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, SelectionGroup.ClientId));
             if (!ContentAdminResult.Succeeded)
             {
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
@@ -263,7 +263,7 @@ namespace MillimanAccessPortal.Controllers
             var Nonpermissioned = MembershipSet
                 .Where(kvp => DbContext.UserRoleInRootContentItem
                     .Include(ur => ur.Role)
-                    .Where(ur => ur.RootContentItemId == ReportGroup.RootContentItemId)
+                    .Where(ur => ur.RootContentItemId == SelectionGroup.RootContentItemId)
                     .Where(ur => ur.UserId == kvp.Key)
                     .Where(ur => ur.Role.RoleEnum == RoleEnum.ContentUser)
                     .SingleOrDefault() == null
@@ -278,17 +278,17 @@ namespace MillimanAccessPortal.Controllers
                 .Where(kvp => kvp.Value)
                 .Where(kvp => DbContext.UserInContentItemUserGroup
                     .Where(uug => uug.UserId == kvp.Key)
-                    .Where(uug => uug.ContentItemUserGroupId != ReportGroup.Id)
+                    .Where(uug => uug.ContentItemUserGroupId != SelectionGroup.Id)
                     .Where(uug => DbContext.ContentItemUserGroup
                         .Where(ug => ug.Id == uug.ContentItemUserGroupId)
-                        .Single().RootContentItemId == ReportGroup.RootContentItemId
+                        .Single().RootContentItemId == SelectionGroup.RootContentItemId
                         )
                     .ToList()
                     .Any()
                     );
             if (AlreadyInGroup.Any())
             {
-                Response.Headers.Add("Warning", "One or more requested users to add are already in a different report group.");
+                Response.Headers.Add("Warning", "One or more requested users to add are already in a different selection group.");
                 return BadRequest();
             }
             #endregion
@@ -299,7 +299,7 @@ namespace MillimanAccessPortal.Controllers
                     MembershipSet
                         .Where(kvp => !kvp.Value)
                         .Select(kvp => DbContext.UserInContentItemUserGroup
-                            .Where(uug => uug.ContentItemUserGroupId == ReportGroup.Id)
+                            .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
                             .Where(uug => uug.UserId == kvp.Key)
                             .SingleOrDefault()
                             )
@@ -312,14 +312,14 @@ namespace MillimanAccessPortal.Controllers
                     MembershipSet
                         .Where(kvp => kvp.Value)
                         .Where(kvp => DbContext.UserInContentItemUserGroup.ToList()
-                            .Where(uug => uug.ContentItemUserGroupId == ReportGroup.Id)
+                            .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
                             .Where(uug => uug.UserId == kvp.Key)
                             .SingleOrDefault() == null
                             )
                         .Select(kvp =>
                             new UserInContentItemUserGroup
                             {
-                                ContentItemUserGroupId = ReportGroup.Id,
+                                ContentItemUserGroupId = SelectionGroup.Id,
                                 UserId = kvp.Key,
                             }
                         )
@@ -330,30 +330,30 @@ namespace MillimanAccessPortal.Controllers
                 DbTransaction.Commit();
             }
 
-            ContentAccessAdminReportGroupListViewModel Model = ContentAccessAdminReportGroupListViewModel.Build(DbContext, ReportGroup.Client, ReportGroup.RootContentItem);
+            ContentAccessAdminSelectionGroupListViewModel Model = ContentAccessAdminSelectionGroupListViewModel.Build(DbContext, SelectionGroup.Client, SelectionGroup.RootContentItem);
 
             return Json(Model);
         }
 
-        /// <summary>Deletes a report group.</summary>
-        /// <param name="ReportGroupId">The report group to be deleted.</param>
+        /// <summary>Deletes a selection group.</summary>
+        /// <param name="SelectionGroupId">The selection group to be deleted.</param>
         /// <returns>JsonResult</returns>
         [HttpDelete]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteReportGroup(long ReportGroupId)
+        public async Task<IActionResult> DeleteSelectionGroup(long SelectionGroupId)
         {
-            ContentItemUserGroup ReportGroup = DbContext.ContentItemUserGroup.Find(ReportGroupId);
+            ContentItemUserGroup SelectionGroup = DbContext.ContentItemUserGroup.Find(SelectionGroupId);
 
             #region Preliminary Validation
-            if (ReportGroup == null)
+            if (SelectionGroup == null)
             {
-                Response.Headers.Add("Warning", "The requested report group does not exist.");
+                Response.Headers.Add("Warning", "The requested selection group does not exist.");
                 return BadRequest();
             }
             #endregion
 
             #region Authorization
-            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, ReportGroup.ClientId));
+            AuthorizationResult ContentAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAdmin, SelectionGroup.ClientId));
             if (!ContentAdminResult.Succeeded)
             {
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
@@ -368,14 +368,14 @@ namespace MillimanAccessPortal.Controllers
             {
                 DbContext.UserInContentItemUserGroup.RemoveRange(
                     DbContext.UserInContentItemUserGroup
-                        .Where(uug => uug.ContentItemUserGroupId == ReportGroup.Id)
+                        .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
                         .ToList()
                     );
                 DbContext.SaveChanges();
 
                 DbContext.ContentItemUserGroup.Remove(
                     DbContext.ContentItemUserGroup
-                        .Where(g => g.Id == ReportGroup.Id)
+                        .Where(g => g.Id == SelectionGroup.Id)
                         .Single()
                     );
                 DbContext.SaveChanges();
@@ -383,16 +383,16 @@ namespace MillimanAccessPortal.Controllers
                 DbTransaction.Commit();
             }
 
-            ContentAccessAdminReportGroupListViewModel Model = ContentAccessAdminReportGroupListViewModel.Build(DbContext, ReportGroup.Client, ReportGroup.RootContentItem);
+            ContentAccessAdminSelectionGroupListViewModel Model = ContentAccessAdminSelectionGroupListViewModel.Build(DbContext, SelectionGroup.Client, SelectionGroup.RootContentItem);
 
             return Json(Model);
         }
 
-        /// <summary>Returns the selections associated with a report group.</summary>
-        /// <param name="ReportGroupId">The report group whose selections are to be returned.</param>
+        /// <summary>Returns the selections associated with a selection group.</summary>
+        /// <param name="SelectionGroupId">The selection group whose selections are to be returned.</param>
         /// <returns>JsonResult</returns>
         [HttpGet]
-        public async Task<IActionResult> Selections(long ReportGroupId)
+        public async Task<IActionResult> Selections(long SelectionGroupId)
         {
             #region Authorization
             #endregion
@@ -403,13 +403,13 @@ namespace MillimanAccessPortal.Controllers
             return Json(new { });
         }
 
-        /// <summary>Updates a report group with new selections.</summary>
-        /// <param name="ReportGroupId">The report group whose selections are to be updated.</param>
-        /// <param name="Selections">The selections to be applied to the report group.</param>
+        /// <summary>Updates a selection group with new selections.</summary>
+        /// <param name="SelectionGroupId">The selection group whose selections are to be updated.</param>
+        /// <param name="Selections">The selections to be applied to the selection group.</param>
         /// <returns>JsonResult</returns>
         [HttpPut]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateSelections(long ReportGroupId, object Selections)
+        public async Task<IActionResult> UpdateSelections(long SelectionGroupId, object Selections)
         {
             #region Authorization
             #endregion

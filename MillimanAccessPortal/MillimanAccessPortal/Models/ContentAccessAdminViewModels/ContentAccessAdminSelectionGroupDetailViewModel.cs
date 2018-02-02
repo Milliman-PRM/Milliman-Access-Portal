@@ -12,20 +12,20 @@ using MapDbContextLib.Identity;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
-    public class ContentAccessAdminReportGroupDetailViewModel
+    public class ContentAccessAdminSelectionGroupDetailViewModel
     {
         public List<ContentAccessAdminUserInfoViewModel> MemberList { get; set; } = new List<ContentAccessAdminUserInfoViewModel>();
         public string Name { get; set; }
 
-        internal static ContentAccessAdminReportGroupDetailViewModel Build(ApplicationDbContext DbContext, ContentItemUserGroup ReportGroup)
+        internal static ContentAccessAdminSelectionGroupDetailViewModel Build(ApplicationDbContext DbContext, ContentItemUserGroup SelectionGroup)
         {
-            ContentAccessAdminReportGroupDetailViewModel Model = new ContentAccessAdminReportGroupDetailViewModel();
+            ContentAccessAdminSelectionGroupDetailViewModel Model = new ContentAccessAdminSelectionGroupDetailViewModel();
 
-            Model.Name = ReportGroup.GroupName;
+            Model.Name = SelectionGroup.GroupName;
 
-            // Retrieve users that are members of the specified report group
+            // Retrieve users that are members of the specified selection group
             List<ApplicationUser> MemberClients = DbContext.UserInContentItemUserGroup
-                .Where(uug => uug.ContentItemUserGroupId == ReportGroup.Id)
+                .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
                 .Select(uug => uug.User)
                 .ToList();
 
@@ -38,12 +38,12 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
             return Model;
         }
 
-        internal static ContentAccessAdminReportGroupDetailViewModel Build(long ReportGroupId, ApplicationDbContext DbContext)
+        internal static ContentAccessAdminSelectionGroupDetailViewModel Build(long SelectionGroupId, ApplicationDbContext DbContext)
         {
-            ContentItemUserGroup ReportGroup = DbContext.ContentItemUserGroup
-                .Single(rci => rci.Id == ReportGroupId);
+            ContentItemUserGroup SelectionGroup = DbContext.ContentItemUserGroup
+                .Single(rci => rci.Id == SelectionGroupId);
 
-            return Build(DbContext, ReportGroup);
+            return Build(DbContext, SelectionGroup);
         }
     }
 }
