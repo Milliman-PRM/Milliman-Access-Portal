@@ -182,38 +182,62 @@ var Card = {
     return prevSelector + ' > ' + this.templates[newElement].selector;
   },
 
-  set: function set(component, info) {
+
+  html: function html(component, value, selector) {
     var $component = this.vars.$card
       .find(this.templates[component].selector)
       .last();
-    if (info.html) {
-      $component.html(info.html);
-    }
-    if (info.attr) {
-      $.each(info.attr, function assign(key, value) {
-        var $subcomponent = $component.find('[' + key + ']');
-        $subcomponent = $subcomponent.length ? $subcomponent : $component;
-        $subcomponent.attr(key, value);
-      });
-    }
+    var $subcomponent = $component.find(selector);
+    $subcomponent = $subcomponent.length ? $subcomponent : $component;
+    $subcomponent.html(value);
   },
+
+  attr: function attr(component, value, selector) {
+    var $component = this.vars.$card
+      .find(this.templates[component].selector)
+      .last();
+    var $subcomponent = $component.find(selector);
+    $subcomponent = $subcomponent.length ? $subcomponent : $component;
+    $subcomponent.attr(value);
+  },
+
+  addClass: function addClass(component, value, selector) {
+    var $component = this.vars.$card
+      .find(this.templates[component].selector)
+      .last();
+    var $subcomponent = $component.find(selector);
+    $subcomponent = $subcomponent.length ? $subcomponent : $component;
+    $subcomponent.addClass(value);
+  },
+
+  tooltip: function tooltip(component, value, selector) {
+    var $component = this.vars.$card
+      .find(this.templates[component].selector)
+      .last();
+    var $subcomponent = $component.find(selector);
+    $subcomponent = $subcomponent.length ? $subcomponent : $component;
+    $subcomponent.addClass('tooltip');
+    $subcomponent.attr('title', value);
+  },
+
 
   newCard: function newCard(primaryText) {
     this.vars.$card = $(this.templates.container.html);
     this.add(['main', 'text', 'primary']);
-    this.set('primary', { html: primaryText });
+    this.html('primary', primaryText);
     return this;
   },
 
   secondaryInfo: function secondaryInfo(secondaryText) {
     this.add(['main', 'text', 'secondary']);
-    this.set('secondary', { html: secondaryText });
+    this.html('secondary', secondaryText);
     return this;
   },
 
-  cardStat: function cardStat(icon, value) {
+  cardStat: function cardStat(icon, value, tooltip) {
     this.add(['main', 'stats', 'stat']);
-    this.set('stat', { attr: { href: icon, title: value } });
+    this.html('stat', value, '.card-stat-value');
+    if (tooltip) this.tooltip('stat', tooltip);
     return this;
   },
 
