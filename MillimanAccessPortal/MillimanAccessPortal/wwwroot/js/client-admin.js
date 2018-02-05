@@ -1,4 +1,4 @@
-/* global domainValRegex, emailValRegex */
+/* global domainValRegex, emailValRegex, Card */
 
 var ajaxStatus = {
   getClientDetail: -1
@@ -408,58 +408,102 @@ function updateUserRoleIndicator(userId, userRoles) {
 }
 
 /**
+ * Send an AJAX request to set a user role
+ * @param {Number}  userId     UserID of the user whose roll is to be updated
+ * @param {Number}  roleEnum   The role to be updated
+ * @param {Boolean} isAssigned The value to be assigned to the specified role
+ * @return {undefined}
+ */
+function setUserRole(userId, roleEnum, isAssigned, onResponse) {
+  var $cardContainer = $('#user-list .card-container[data-user-id="' + userId + '"]');
+  var postData = {
+    ClientId: $('#client-tree [selected]').attr('data-client-id'),
+    UserId: userId,
+    RoleEnum: roleEnum,
+    IsAssigned: isAssigned
+  };
+
+  $.ajax({
+    type: 'POST',
+    url: 'ClientAdmin/SetUserRoleInClient',
+    data: postData,
+    headers: {
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+    }
+  }).done(function onDone(response) {
+    var modifiedRole;
+    // Set checkbox states to match the response
+    $.each(response, function setToggle(index, roleAssignment) {
+      $cardContainer.find('input[data-role-enum=' + roleAssignment.RoleEnum + ']')
+        .prop('checked', roleAssignment.IsAssigned);
+    });
+    updateUserRoleIndicator(postData.UserId, response);
+    // Filter response to get the role that was set by the request
+    modifiedRole = response.filter(function filter(responseRole) {
+      return responseRole.RoleEnum.toString() === postData.RoleEnum;
+    })[0];
+    toastr.success($cardContainer.find('.card-body-primary-text').html() + ' was ' + (modifiedRole.IsAssigned ? 'set' : 'unset') + ' as ' + modifiedRole.RoleDisplayValue);
+    onResponse();
+  }).fail(function onFail(response) {
+    toastr.warning(response.getResponseHeader('Warning'));
+    onResponse();
+  });
+}
+
+/**
+ * Handle click events for user role toggles
+ * @param  {Event} event The event to handle
+ * @return {undefined}
+ */
+function userCardRoleToggleClickHandler(event) {
+  var $clickedInput = $(event.target);
+  event.preventDefault();
+
+  setUserRole(
+    $clickedInput.closest('.card-container').attr('data-user-id'),
+    $clickedInput.attr('data-role-enum'),
+    $clickedInput.prop('checked'),
+    function onDone() {
+      $('#user-list .toggle-switch-checkbox').removeAttr('disabled');
+    }
+  );
+  $('#user-list .toggle-switch-checkbox').attr('disabled', '');
+}
+
+/**
  * Render user node by using string substitution on a userNodeTemplate
  * @param  {Number} client Client to which the user belongs
  * @param  {Object} user   User object to render
  * @return {undefined}
  */
 function renderUserNode(client, user) {
-  var $template = $(nodeTemplate.toString());
-
-  $template.find('.card-container')
-    .attr('data-search-string', (user.FirstName + ' ' + user.LastName + '|' + user.UserName + '|' + user.Email).toUpperCase())
-    .attr('data-client-id', client.ClientEntity.Id)
-    .attr('data-user-id', user.Id);
-  $template.find('.card-body-primary-container .card-body-primary-text')
-    .html((user.FirstName && user.LastName) ?
+  var $template = Card
+    .newCard(
+      'card-100????',
+      [
+        user.FirstName + ' ' + user.LastName,
+        user.UserName,
+        user.Email
+      ],
+      client.ClientEntity.Id,
+      user.Id
+    )
+    .primaryInfo((user.FirstName && user.LastName) ?
       user.FirstName + ' ' + user.LastName :
-      user.UserName);
-  $template.find('.card-body-primary-container .card-body-secondary-text').first()
-    .html(user.UserName || '');
-  $template.find('.card-body-primary-container .card-body-secondary-text').last()
-    .html(user.Email + ' (email)').filter(function sameAsUsername() {
-      return user.UserName === user.Email;
-    })
-    .remove();
-  $template.find('.card-stats-container,.card-button-delete,.card-button-edit,.card-button-new-child')
-    .remove();
-
-  // generate id's for toggles
-  $template.find('.switch-container')
-    .map(function applyName(i, element) {
-      var $element = $(element);
-      var name = (
-        'user-role-' +
-        $element.closest('.card-container')
-          .attr('data-user-id') +
-        '-' +
-        $element.find('.toggle-switch-checkbox')
-          .attr('data-role-enum')
-      );
-      $element.find('.toggle-switch-checkbox')
-        .attr({
-          name: name,
-          id: name
-        });
-      $element.find('label.toggle-switch-label')
-        .attr('for', name);
-      return $element;
-    });
+      user.UserName)
+    .secondaryInfo(user.UserName || '')
+    .secondaryInfo(user.Email + ' (email)')
+    .sideButton('#action-icon-remove', 'card-button-remove-user', undefined, 'Remove USer')
+    .expansion('User roles')
+    .roleToggle(1, 'Client Administrator', userCardRoleToggleClickHandler)
+    .roleToggle(3, 'Content Access Administrator', userCardRoleToggleClickHandler)
+    .roleToggle(4, 'Content Publisher', userCardRoleToggleClickHandler)
+    .roleToggle(5, 'Content Eligible', userCardRoleToggleClickHandler)
+    .build();
 
   $.each(user.UserRoles, function displayRoles(index, roleAssignment) {
     $template.find('input[data-role-enum=' + roleAssignment.RoleEnum + ']')
-      .prop('checked', roleAssignment.IsAssigned)
-      .click(userCardRoleToggleClickHandler);
+      .prop('checked', roleAssignment.IsAssigned);
   });
 
   if (!client.CanManage) {
@@ -593,49 +637,6 @@ function getClientDetail(clientDiv) {
     $('#client-info .loading-wrapper').hide();
     $('#client-users .loading-wrapper').hide();
     toastr.warning(response.getResponseHeader('Warning'));
-  });
-}
-
-/**
- * Send an AJAX request to set a user role
- * @param {Number}  userId     UserID of the user whose roll is to be updated
- * @param {Number}  roleEnum   The role to be updated
- * @param {Boolean} isAssigned The value to be assigned to the specified role
- * @return {undefined}
- */
-function setUserRole(userId, roleEnum, isAssigned, onResponse) {
-  var $cardContainer = $('#user-list .card-container[data-user-id="' + userId + '"]');
-  var postData = {
-    ClientId: $('#client-tree [selected]').attr('data-client-id'),
-    UserId: userId,
-    RoleEnum: roleEnum,
-    IsAssigned: isAssigned
-  };
-
-  $.ajax({
-    type: 'POST',
-    url: 'ClientAdmin/SetUserRoleInClient',
-    data: postData,
-    headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
-    }
-  }).done(function onDone(response) {
-    var modifiedRole;
-    // Set checkbox states to match the response
-    $.each(response, function setToggle(index, roleAssignment) {
-      $cardContainer.find('input[data-role-enum=' + roleAssignment.RoleEnum + ']')
-        .prop('checked', roleAssignment.IsAssigned);
-    });
-    updateUserRoleIndicator(postData.UserId, response);
-    // Filter response to get the role that was set by the request
-    modifiedRole = response.filter(function filter(responseRole) {
-      return responseRole.RoleEnum.toString() === postData.RoleEnum;
-    })[0];
-    toastr.success($cardContainer.find('.card-body-primary-text').html() + ' was ' + (modifiedRole.IsAssigned ? 'set' : 'unset') + ' as ' + modifiedRole.RoleDisplayValue);
-    onResponse();
-  }).fail(function onFail(response) {
-    toastr.warning(response.getResponseHeader('Warning'));
-    onResponse();
   });
 }
 
@@ -835,26 +836,6 @@ function createNewClientClickHandler() {
   } else {
     openNewClientForm();
   }
-}
-
-/**
- * Handle click events for user role toggles
- * @param  {Event} event The event to handle
- * @return {undefined}
- */
-function userCardRoleToggleClickHandler(event) {
-  var $clickedInput = $(event.target);
-  event.preventDefault();
-
-  setUserRole(
-    $clickedInput.closest('.card-container').attr('data-user-id'),
-    $clickedInput.attr('data-role-enum'),
-    $clickedInput.prop('checked'),
-    function onDone() {
-      $('#user-list .toggle-switch-checkbox').removeAttr('disabled');
-    }
-  );
-  $('#user-list .toggle-switch-checkbox').attr('disabled', '');
 }
 
 /**

@@ -3,6 +3,7 @@ var Card = {
   settings: {
   },
 
+  /* eslint-disable indent */
   templates: {
     container: {
       selector: '.card-container',
@@ -150,6 +151,7 @@ var Card = {
       ].join('')
     }
   },
+  /* eslint-enable indent */
 
   vars: {
   },
