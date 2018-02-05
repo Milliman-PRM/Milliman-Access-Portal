@@ -256,6 +256,7 @@ var Card = {
     while (textList.length) {
       this.secondaryInfo(textList.pop());
     }
+    return this;
   },
 
   icon: function icon(iconName, classes) {
