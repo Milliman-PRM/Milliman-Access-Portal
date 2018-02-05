@@ -489,11 +489,13 @@ function renderUserNode(client, user) {
       user.Id,
       client.CanManage
     )
-    .primaryInfo((user.FirstName && user.LastName) ?
-      user.FirstName + ' ' + user.LastName :
-      user.UserName)
-    .secondaryInfo(user.UserName || '')
-    .secondaryInfo(user.Email + ' (email)')
+    .info($.map([
+      (user.FirstName || '') + ' ' + (user.LastName || ''),
+      user.UserName,
+      user.Email === user.UserName ? '' : user.Email
+    ], function removeBlanks(item) {
+      return item.trim() || null;
+    }))
     .sideButton('#action-icon-remove', 'card-button-remove-user', function onClick(event) {
       event.stopPropagation();
       userCardRemoveClickHandler($(this).closest('.card-container'));
