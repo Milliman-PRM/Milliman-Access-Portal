@@ -38,3 +38,23 @@
         <ul id="client-tree-list" class="admin-panel-content"></ul>
     </div>
 </div>
+
+
+
+@section Scripts {
+
+    @Html.Partial("~/Views/ClientAdmin/templates/_Node.cshtml")
+
+
+    <environment names="Development,CI">
+        <script src="~/lib/selectize/dist/js/standalone/selectize.js"></script>
+        <script src="~/lib/typeahead.js/dist/typeahead.jquery.js"></script>
+        <script src="~/js/client-admin.js"></script>
+    </environment>
+    <environment names="Staging,Production">
+        <script src="~/lib/selectize/dist/js/standalone/selectize.min.js"></script>
+        <script src="~/lib/typeahead.js/dist/typeahead.jquery.min.js"></script>
+        <script src="~/js/client-admin.min.js"></script>
+    </environment>
+
+}
