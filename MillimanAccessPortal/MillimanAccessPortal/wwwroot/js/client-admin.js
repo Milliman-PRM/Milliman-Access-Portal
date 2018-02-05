@@ -486,30 +486,34 @@ function renderUserNode(client, user) {
         user.Email
       ],
       client.ClientEntity.Id,
-      user.Id
+      user.Id,
+      client.CanManage
     )
     .primaryInfo((user.FirstName && user.LastName) ?
       user.FirstName + ' ' + user.LastName :
       user.UserName)
     .secondaryInfo(user.UserName || '')
     .secondaryInfo(user.Email + ' (email)')
-    .sideButton('#action-icon-remove', 'card-button-remove-user', undefined, 'Remove USer')
-    .expansion('User roles')
-    .roleToggle(1, 'Client Administrator', userCardRoleToggleClickHandler)
-    .roleToggle(3, 'Content Access Administrator', userCardRoleToggleClickHandler)
-    .roleToggle(4, 'Content Publisher', userCardRoleToggleClickHandler)
-    .roleToggle(5, 'Content Eligible', userCardRoleToggleClickHandler)
+    .sideButton('#action-icon-remove', 'card-button-remove-user', function onClick(event) {
+      event.stopPropagation();
+      userCardRemoveClickHandler($(this).closest('.card-container'));
+    }, 'Remove user')
+    .expansion('User roles', function toggleCard(event) {
+      event.stopPropagation();
+      $(this).closest('.card-container')
+        .find('div.card-expansion-container')
+        .attr('maximized', function toggle(index, attr) {
+          if (attr === '') {
+            $(this).find('.tooltip').tooltipster('content', 'Expand user card');
+            return null;
+          }
+          $(this).find('.tooltip').tooltipster('content', 'Collapse user card');
+          return '';
+        });
+      showRelevantUserActionIcons();
+    })
+    .roleToggles(user.UserRoles, userCardRoleToggleClickHandler)
     .build();
-
-  $.each(user.UserRoles, function displayRoles(index, roleAssignment) {
-    $template.find('input[data-role-enum=' + roleAssignment.RoleEnum + ']')
-      .prop('checked', roleAssignment.IsAssigned);
-  });
-
-  if (!client.CanManage) {
-    $template.find('.icon-container,.card-button-remove-user').remove();
-    $template.find('.card-container,.toggle-switch-checkbox').attr('disabled', '');
-  }
 
   $('#client-user-list').append($template);
   updateUserRoleIndicator(user.Id, user.UserRoles);
@@ -529,25 +533,6 @@ function renderUserList(client, userId) {
   });
   $clientUserList.find('.tooltip').tooltipster();
   eligibleUsers = client.EligibleUsers;
-  $('div.card-button-remove-user').click(function onClick(event) {
-    event.stopPropagation();
-    userCardRemoveClickHandler($(this).closest('.card-container'));
-  });
-  $('#user-list .card-body-main-container,.card-button-expansion')
-    .click(function toggleCard(event) {
-      event.stopPropagation();
-      $(this).closest('.card-container')
-        .find('div.card-expansion-container')
-        .attr('maximized', function toggle(index, attr) {
-          if (attr === '') {
-            $(this).find('.tooltip').tooltipster('content', 'Expand user card');
-            return null;
-          }
-          $(this).find('.tooltip').tooltipster('content', 'Collapse user card');
-          return '';
-        });
-      showRelevantUserActionIcons();
-    });
   showRelevantUserActionIcons();
 
   if (userId) {

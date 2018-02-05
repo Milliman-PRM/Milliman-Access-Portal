@@ -198,6 +198,11 @@ var Card = {
     $component.html(value);
   },
 
+  prop: function prop(component, value, selector) {
+    var $component = this.findComponent(component, selector);
+    return $component.prop(value);
+  },
+
   attr: function attr(component, value, selector) {
     var $component = this.findComponent(component, selector);
     return $component.attr(value);
@@ -220,14 +225,16 @@ var Card = {
   },
 
 
-  newCard: function newCard(classes, searchTerms, clientId, userId) {
+  newCard: function newCard(classes, searchTerms, clientId, userId, canManage) {
     this.vars.$card = $(this.templates.container.html);
+    this.vars.canManage = canManage;
     this.addClass('container', classes);
     this.attr('container', {
       'data-search-string': searchTerms.join('|'),
       'data-client-id': clientId,
       'data-user-id': userId
     });
+    if (!this.vars.canManage) this.attr('container', { disabled: '' });
     return this;
   },
 
@@ -241,6 +248,14 @@ var Card = {
     this.add(['main', 'text', 'secondary']);
     this.html('secondary', text);
     return this;
+  },
+
+  info: function info(textList) {
+    textList.reverse();
+    this.primaryInfo(textList.pop());
+    while (textList.length) {
+      this.secondaryInfo(textList.pop());
+    }
   },
 
   icon: function icon(iconName, classes) {
@@ -259,6 +274,7 @@ var Card = {
   },
 
   sideButton: function sideButton(iconName, classes, onClick, tooltip) {
+    if (!this.vars.canManage) return this;
     this.add(['main', 'side', 'button']);
     this.attr('button', { href: iconName }, '[href]');
     this.addClass('button', classes);
@@ -277,7 +293,7 @@ var Card = {
     return this;
   },
 
-  roleToggle: function roleToggle(roleEnum, roleName, onClick) {
+  roleToggle: function roleToggle(roleEnum, roleName, roleAssigned, onClick) {
     var userId = this.attr('container', 'data-user-id');
     var id = 'user-role-' + userId + '-' + roleEnum;
     this.add(['expansion', 'toggle']);
@@ -286,9 +302,24 @@ var Card = {
       name: id,
       id: id
     }, '.toggle-switch-checkbox');
+    if (!this.vars.canManage) this.attr('toggle', { disabled: '' }, '.toggle-switch-checkbox');
     this.attr('toggle', { for: id }, '.toggle-switch-label');
     this.html('toggle', roleName, '.switch-label');
+    this.prop('toggle', { checked: roleAssigned }, '.toggle-switch-checkbox');
     this.click('toggle', onClick, '.toggle-switch-checkbox');
+    return this;
+  },
+
+  roleToggles: function roleToggles(roles, onClick) {
+    var self = this;
+    $.each(roles, function createAndAssign(index, assignment) {
+      self.roleToggle(
+        assignment.RoleEnum,
+        assignment.RoleDisplayValue,
+        assignment.IsAssigned,
+        onClick
+      );
+    });
     return this;
   },
 
