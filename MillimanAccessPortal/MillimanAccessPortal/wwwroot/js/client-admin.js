@@ -1030,27 +1030,57 @@ function cancelIconClickHandler() {
  */
 function renderClientNode(client, level) {
   var classes = ['card-100', 'card-90', 'card-80'];
-  var $template = $(nodeTemplate.toString());
-
-  $template.find('.card-container')
-    .addClass(classes[level])
-    .attr('data-search-string', (client.ClientModel.ClientEntity.Name + '|' + client.ClientModel.ClientEntity.ClientCode).toUpperCase())
-    .attr('data-client-id', client.ClientModel.ClientEntity.Id)
-    .removeAttr('data-user-id');
-  $template.find('.card-body-secondary-container')
-    .remove();
-  $template.find('.card-body-primary-container .card-body-primary-text')
-    .addClass('indent-level-' + level)
-    .html(client.ClientModel.ClientEntity.Name);
-  $template.find('.card-body-primary-container .card-body-secondary-text')
-    .html(client.ClientModel.ClientEntity.ClientCode || '')
-    .first().remove();
-  $template.find('.card-stat-user-count')
-    .html(client.ClientModel.AssignedUsers.length);
-  $template.find('.card-stat-content-count')
-    .html(client.ClientModel.ContentItems.length);
-  $template.find('.card-button-remove-user,.card-expansion-container,.card-button-bottom-container')
-    .remove();
+  var $template = Card
+    .newCard(
+      classes[level],
+      [
+        client.ClientModel.ClientEntity.Name,
+        client.ClientModel.ClientEntity.ClientCode
+      ],
+      client.ClientModel.ClientEntity.Id,
+      null,
+      client.ClientModel.CanManage
+    )
+    .primaryInfo(client.ClientModel.ClientEntity.Name)
+    .secondaryInfo(client.ClientModel.ClientEntity.ClientCode || '')
+    .cardStat(
+      '#action-icon-users',
+      client.ClientModel.AssignedUsers.length,
+      'Assigned users'
+    )
+    .cardStat(
+      '#action-icon-reports',
+      client.ClientModel.ContentItems.length,
+      'Reports'
+    )
+    .sideButton(
+      '#action-icon-delete',
+      'card-button-delete',
+      function onClick(event) {
+        event.stopPropagation();
+        clientCardDeleteClickHandler($(this).parents('div[data-client-id]'));
+      },
+      'Delete client'
+    )
+    .sideButton(
+      '#action-icon-edit',
+      'card-button-edit',
+      function onClick(event) {
+        event.stopPropagation();
+        clientCardEditClickHandler($(this).parents('div[data-client-id]'));
+      },
+      'Edit client details'
+    )
+    .sideButton(
+      '#action-icon-add',
+      'card-button-new-child',
+      function onClick(event) {
+        event.stopPropagation();
+        clientCardCreateNewChildClickHandler($(this).parents('div[data-client-id]'));
+      },
+      'New sub-client'
+    )
+    .build();
 
   if (!client.ClientModel.CanManage) {
     $template.find('.card-button-side-container').remove();
@@ -1093,21 +1123,6 @@ function renderClientTree(clientTreeList, clientId) {
   $clientTreeList.find('.card-container')
     .click(function onClick() {
       clientCardClickHandler($(this));
-    });
-  $clientTreeList.find('.card-button-delete')
-    .click(function onClick(event) {
-      event.stopPropagation();
-      clientCardDeleteClickHandler($(this).parents('div[data-client-id]'));
-    });
-  $clientTreeList.find('.card-button-edit')
-    .click(function onClick(event) {
-      event.stopPropagation();
-      clientCardEditClickHandler($(this).parents('div[data-client-id]'));
-    });
-  $clientTreeList.find('.card-button-new-child')
-    .click(function onClick(event) {
-      event.stopPropagation();
-      clientCardCreateNewChildClickHandler($(this).parents('div[data-client-id]'));
     });
 
   // TODO: Consider applying this to other cards and buttons as well
