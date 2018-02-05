@@ -477,9 +477,9 @@ function userCardRoleToggleClickHandler(event) {
  * @return {undefined}
  */
 function renderUserNode(client, user) {
+  /* eslint-disable indent */
   var $template = Card
     .newCard(
-      'card-100????',
       [
         user.FirstName + ' ' + user.LastName,
         user.UserName,
@@ -489,8 +489,10 @@ function renderUserNode(client, user) {
       user.Id,
       client.CanManage
     )
-    .icon('#action-icon-user', 'card-user-icon')
-    .icon('#action-icon-add', 'card-user-role-indicator')
+    .icon('#action-icon-user')
+      .class('card-user-icon')
+    .icon('#action-icon-add')
+      .class('card-user-role-indicator')
     .info($.map([
       (user.FirstName || '') + ' ' + (user.LastName || ''),
       user.UserName,
@@ -498,26 +500,17 @@ function renderUserNode(client, user) {
     ], function removeBlanks(item) {
       return item.trim() || null;
     }))
-    .sideButton('#action-icon-remove', 'card-button-remove-user', function onClick(event) {
-      event.stopPropagation();
-      userCardRemoveClickHandler($(this).closest('.card-container'));
-    }, 'Remove user')
-    .expansion('User roles', function toggleCard(event) {
-      event.stopPropagation();
-      $(this).closest('.card-container')
-        .find('div.card-expansion-container')
-        .attr('maximized', function toggle(index, attr) {
-          if (attr === '') {
-            $(this).find('.tooltip').tooltipster('content', 'Expand user card');
-            return null;
-          }
-          $(this).find('.tooltip').tooltipster('content', 'Collapse user card');
-          return '';
-        });
-      showRelevantUserActionIcons();
-    })
-    .roleToggles(user.UserRoles, userCardRoleToggleClickHandler)
+    .sideButton('#action-icon-remove')
+      .class('card-button-remove-user')
+      .click(function onClick(event) {
+        event.stopPropagation();
+        userCardRemoveClickHandler($(this).closest('.card-container'));
+      })
+      .tooltip('Remove user')
+    .roleExpansion()
+    .roleToggles(user.UserRoles)
     .build();
+  /* eslint-enable indent */
 
   $('#client-user-list').append($template);
   updateUserRoleIndicator(user.Id, user.UserRoles);
@@ -1030,9 +1023,9 @@ function cancelIconClickHandler() {
  */
 function renderClientNode(client, level) {
   var classes = ['card-100', 'card-90', 'card-80'];
+  /* eslint-disable indent */
   var $template = Card
     .newCard(
-      classes[level],
       [
         client.ClientModel.ClientEntity.Name,
         client.ClientModel.ClientEntity.ClientCode
@@ -1041,46 +1034,36 @@ function renderClientNode(client, level) {
       null,
       client.ClientModel.CanManage
     )
+      .class(classes[level])
     .primaryInfo(client.ClientModel.ClientEntity.Name)
     .secondaryInfo(client.ClientModel.ClientEntity.ClientCode || '')
-    .cardStat(
-      '#action-icon-users',
-      client.ClientModel.AssignedUsers.length,
-      'Assigned users'
-    )
-    .cardStat(
-      '#action-icon-reports',
-      client.ClientModel.ContentItems.length,
-      'Reports'
-    )
-    .sideButton(
-      '#action-icon-delete',
-      'card-button-delete',
-      function onClick(event) {
+    .cardStat('#action-icon-users', client.ClientModel.AssignedUsers.length)
+      .tooltip('Assigned users')
+    .cardStat('#action-icon-reports', client.ClientModel.ContentItems.length)
+      .tooltip('Reports')
+    .sideButton('#action-icon-delete')
+      .class('card-button-delete')
+      .tooltip('Delete client')
+      .click(function onClick(event) {
         event.stopPropagation();
         clientCardDeleteClickHandler($(this).parents('div[data-client-id]'));
-      },
-      'Delete client'
-    )
-    .sideButton(
-      '#action-icon-edit',
-      'card-button-edit',
-      function onClick(event) {
+      })
+    .sideButton('#action-icon-edit')
+      .class('card-button-edit')
+      .tooltip('Edit client details')
+      .click(function onClick(event) {
         event.stopPropagation();
         clientCardEditClickHandler($(this).parents('div[data-client-id]'));
-      },
-      'Edit client details'
-    )
-    .sideButton(
-      '#action-icon-add',
-      'card-button-new-child',
-      function onClick(event) {
+      })
+    .sideButton('#action-icon-add')
+      .class('card-button-new-child')
+      .tooltip('New sub-client')
+      .click(function onClick(event) {
         event.stopPropagation();
         clientCardCreateNewChildClickHandler($(this).parents('div[data-client-id]'));
-      },
-      'New sub-client'
-    )
+      })
     .build();
+  /* eslint-enable indent */
 
   if (!client.ClientModel.CanManage) {
     $template.find('.card-button-side-container').remove();
