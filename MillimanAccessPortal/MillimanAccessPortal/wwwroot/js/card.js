@@ -125,8 +125,8 @@ var Card = {
       html: [
         '<div class="switch-container">',
           '<div class="toggle-switch">',
-            '<input type="checkbox" class="toggle-switch-checkbox">',
-            '<label class="toggle-switch-label">',
+            '<input type="checkbox" class="toggle-switch-checkbox" data-role-enum="" name="" id="">',
+            '<label class="toggle-switch-label" for="">',
               '<span class="toggle-switch-inner"></span>',
               '<span class="toggle-switch-switch"></span>',
             '</label>',
@@ -218,8 +218,18 @@ var Card = {
   },
 
 
-  newCard: function newCard(primaryText) {
+  newCard: function newCard(size, searchString, clientId, userId) {
     this.vars.$card = $(this.templates.container.html);
+    this.addClass('container', size);
+    this.attr('container', {
+      'data-search-string': searchString,
+      'data-client-id': clientId,
+      'data-user-id': userId
+    });
+    return this;
+  },
+
+  primaryInfo: function primaryInfo(primaryText) {
     this.add(['main', 'text', 'primary']);
     this.html('primary', primaryText);
     return this;
