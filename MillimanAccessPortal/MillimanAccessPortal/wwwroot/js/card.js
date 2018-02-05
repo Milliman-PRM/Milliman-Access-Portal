@@ -35,7 +35,7 @@ var Card = {
     icon: {
       selector: '.card-user-icon',
       html: [
-        '<svg class="card-user-icon">',
+        '<svg class="">',
           '<use href=""></use>',
         '</svg>',
         '<stub />'
@@ -139,14 +139,14 @@ var Card = {
     bottom: {
       selector: '.card-button-bottom-container',
       html: [
+        '<stub />',
         '<div class="card-button-bottom-container">',
-          '<div class="card-button-background tooltip" title="">',
+          '<div class="card-button-background card-button-expansion">',
             '<svg class="card-button-icon">',
-              '<use href=""></use>',
+              '<use href="#action-icon-expand-card"></use>',
             '</svg>',
           '</div>',
-        '</div>',
-        '<stub />'
+        '</div>'
       ].join('')
     }
   },
@@ -198,7 +198,7 @@ var Card = {
 
   attr: function attr(component, value, selector) {
     var $component = this.findComponent(component, selector);
-    $component.attr(value);
+    return $component.attr(value);
   },
 
   addClass: function addClass(component, value, selector) {
@@ -241,6 +241,13 @@ var Card = {
     return this;
   },
 
+  icon: function icon(icon_, class_) {
+    this.add(['main', 'icons', 'icon']);
+    this.attr('icon', { href: icon_ }, '[href]');
+    this.addClass('icon', class_);
+    return this;
+  },
+
   cardStat: function cardStat(icon, value, tooltip) {
     this.add(['main', 'stats', 'stat']);
     this.attr('stat', { href: icon }, '[href]');
@@ -255,6 +262,31 @@ var Card = {
     this.addClass('button', 'card-button-delete');
     this.click('button', onClick);
     if (tooltip) this.tooltip('button', tooltip);
+    return this;
+  },
+
+  expansion: function expansion(title, onClick) {
+    this.verify(['expansion', 'expansionLabel']);
+    this.verify(['expansion', 'bottom']);
+    this.html('expansionLabel', title);
+    this.attr('bottom', { href: '#action-icon-expand-card' }, '[href]');
+    this.tooltip('bottom', 'Expand user card', '.card-button-background');
+    this.click('bottom', onClick, '.card-button-background');
+    return this;
+  },
+
+  roleToggle: function roleToggle(roleEnum, roleName, onClick) {
+    var userId = this.attr('container', 'data-user-id');
+    var id = 'user-role-' + userId + '-' + roleEnum;
+    this.add(['expansion', 'toggle']);
+    this.attr('toggle', {
+      'data-role-enum': roleEnum,
+      name: id,
+      id: id
+    }, '.toggle-switch-checkbox');
+    this.attr('toggle', { for: id }, '.toggle-switch-label');
+    this.html('toggle', roleName, '.switch-label');
+    this.click('toggle', onClick, '.toggle-switch-checkbox');
     return this;
   },
 
