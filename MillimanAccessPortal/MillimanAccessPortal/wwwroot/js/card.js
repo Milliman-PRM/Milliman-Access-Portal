@@ -218,57 +218,57 @@ var Card = {
   },
 
 
-  newCard: function newCard(size, searchString, clientId, userId) {
+  newCard: function newCard(classes, searchTerms, clientId, userId) {
     this.vars.$card = $(this.templates.container.html);
-    this.addClass('container', size);
+    this.addClass('container', classes);
     this.attr('container', {
-      'data-search-string': searchString,
+      'data-search-string': searchTerms.join('|'),
       'data-client-id': clientId,
       'data-user-id': userId
     });
     return this;
   },
 
-  primaryInfo: function primaryInfo(primaryText) {
+  primaryInfo: function primaryInfo(text) {
     this.add(['main', 'text', 'primary']);
-    this.html('primary', primaryText);
+    this.html('primary', text);
     return this;
   },
 
-  secondaryInfo: function secondaryInfo(secondaryText) {
+  secondaryInfo: function secondaryInfo(text) {
     this.add(['main', 'text', 'secondary']);
-    this.html('secondary', secondaryText);
+    this.html('secondary', text);
     return this;
   },
 
-  icon: function icon(icon_, class_) {
+  icon: function icon(iconName, classes) {
     this.add(['main', 'icons', 'icon']);
-    this.attr('icon', { href: icon_ }, '[href]');
-    this.addClass('icon', class_);
+    this.attr('icon', { href: iconName }, '[href]');
+    this.addClass('icon', classes);
     return this;
   },
 
-  cardStat: function cardStat(icon, value, tooltip) {
+  cardStat: function cardStat(iconName, value, tooltip) {
     this.add(['main', 'stats', 'stat']);
-    this.attr('stat', { href: icon }, '[href]');
+    this.attr('stat', { href: iconName }, '[href]');
     this.html('stat', value, '.card-stat-value');
     if (tooltip) this.tooltip('stat', tooltip);
     return this;
   },
 
-  sideButton: function sideButton(icon, class_, onClick, tooltip) {
+  sideButton: function sideButton(iconName, classes, onClick, tooltip) {
     this.add(['main', 'side', 'button']);
-    this.attr('button', { href: icon }, '[href]');
-    this.addClass('button', 'card-button-delete');
+    this.attr('button', { href: iconName }, '[href]');
+    this.addClass('button', classes);
     this.click('button', onClick);
     if (tooltip) this.tooltip('button', tooltip);
     return this;
   },
 
-  expansion: function expansion(title, onClick) {
+  expansion: function expansion(label, onClick) {
     this.verify(['expansion', 'expansionLabel']);
     this.verify(['expansion', 'bottom']);
-    this.html('expansionLabel', title);
+    this.html('expansionLabel', label);
     this.attr('bottom', { href: '#action-icon-expand-card' }, '[href]');
     this.tooltip('bottom', 'Expand user card', '.card-button-background');
     this.click('bottom', onClick, '.card-button-background');
