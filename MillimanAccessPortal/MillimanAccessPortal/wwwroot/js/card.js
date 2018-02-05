@@ -290,6 +290,7 @@ var Card = {
     this.attr('bottom', { href: '#action-icon-expand-card' }, '[href]');
     this.tooltip('bottom', 'Expand user card', '.card-button-background');
     this.click('bottom', onClick, '.card-button-background');
+    this.click('container', onClick);
     return this;
   },
 
