@@ -34,7 +34,7 @@ var Card = {
       ].join('')
     },
     icon: {
-      selector: '.card-user-icon',
+      selector: '.card-body-secondary-container > svg',
       html: [
         '<svg class="">',
           '<use href=""></use>',
