@@ -3,6 +3,9 @@ var Card;
 (function private() {
   var verify;
   var add;
+  var findComponent;
+  var html;
+
   Card = {
 
     settings: {
@@ -164,74 +167,73 @@ var Card;
     init: function init() {
     },
 
-    findComponent: function findComponent(component, selector) {
-      var $component = this.vars.$card
-        .find(this.templates[component].selector)
-        .last();
-      var $subcomponent = $component.find(selector);
-      return $subcomponent.length ? $subcomponent : $component;
+    attr: function attr(value, selector) {
+      var $component = findComponent(this.vars.lastComponent, selector);
+      $component.attr(value);
+      return this;
     },
 
-    html: function html(component, value, selector) {
-      var $component = this.findComponent(component, selector);
-      $component.html(value);
+    prop: function prop(value, selector) {
+      var $component = findComponent(this.vars.lastComponent, selector);
+      $component.prop(value);
+      return this;
     },
 
-    prop: function prop(component, value, selector) {
-      var $component = this.findComponent(component, selector);
-      return $component.prop(value);
-    },
-
-    attr: function attr(component, value, selector) {
-      var $component = this.findComponent(component, selector);
-      return $component.attr(value);
-    },
-
-    addClass: function addClass(component, value, selector) {
-      var $component = this.findComponent(component, selector);
+    class: function class_(value, selector) {
+      var $component = findComponent(this.vars.lastComponent, selector);
       $component.addClass(value);
+      return this;
     },
 
-    tooltip: function tooltip(component, value, selector) {
-      var $component = this.findComponent(component, selector);
+    tooltip: function tooltip(value, selector) {
+      var $component = findComponent(this.vars.lastComponent, selector);
       $component.addClass('tooltip');
       $component.attr('title', value);
+      return this;
     },
 
-    click: function click(component, onClick, selector) {
-      var $component = this.findComponent(component, selector);
+    click: function click(onClick, selector) {
+      var $component = findComponent(this.vars.lastComponent, selector);
       $component.click(onClick);
+      return this;
     },
 
 
-    newCard: function newCard(classes, searchTerms, clientId, userId, canManage) {
+    newCard: function newCard(searchTerms, clientId, userId, canManage) {
       this.vars.$card = $(this.templates.container.html);
       this.vars.canManage = canManage;
-      this.addClass('container', classes);
-      this.attr('container', {
+      this.vars.lastComponent = 'container';
+      this.attr({
         'data-search-string': $.map(searchTerms, function upper(term) {
           return (term || '').toUpperCase();
         }).join('|'),
         'data-client-id': clientId,
         'data-user-id': userId
       });
-      if (!this.vars.canManage) this.attr('container', { disabled: '' });
+      if (!this.vars.canManage) this.attr({ disabled: '' });
+      return this;
+    },
+
+    main: function main() {
+      this.vars.lastComponent = 'main';
+      verify(['main']);
       return this;
     },
 
     primaryInfo: function primaryInfo(text) {
+      this.vars.lastComponent = 'primary';
       add(['main', 'text', 'primary']);
-      this.html('primary', text);
-      return this;
+      return html(text);
     },
 
     secondaryInfo: function secondaryInfo(text) {
+      this.vars.lastComponent = 'secondary';
       add(['main', 'text', 'secondary']);
-      this.html('secondary', text);
-      return this;
+      return html(text);
     },
 
     info: function info(textList) {
+      this.vars.lastComponent = '';
       textList.reverse();
       this.primaryInfo(textList.pop());
       while (textList.length) {
@@ -240,68 +242,98 @@ var Card;
       return this;
     },
 
-    icon: function icon(iconName, classes) {
+    icon: function icon(iconName) {
+      this.vars.lastComponent = 'icon';
       add(['main', 'icons', 'icon']);
-      this.attr('icon', { href: iconName }, '[href]');
-      this.addClass('icon', classes);
-      return this;
+      return this.attr({ href: iconName }, '[href]');
     },
 
-    cardStat: function cardStat(iconName, value, tooltip) {
+    cardStat: function cardStat(iconName, value) {
+      this.vars.lastComponent = 'stat';
       add(['main', 'stats', 'stat']);
-      this.attr('stat', { href: iconName }, '[href]');
-      this.html('stat', value, '.card-stat-value');
-      if (tooltip) this.tooltip('stat', tooltip);
-      return this;
+      this.attr({ href: iconName }, '[href]');
+      return html(value, '.card-stat-value');
     },
 
-    sideButton: function sideButton(iconName, classes, onClick, tooltip) {
-      if (!this.vars.canManage) return this;
+    sideButton: function sideButton(iconName) {
+      if (!this.vars.canManage) {
+        this.vars.lastComponent = 'button';
+        return this;
+      }
+      this.vars.lastComponent = 'button';
       add(['main', 'side', 'button']);
-      this.attr('button', { href: iconName }, '[href]');
-      this.addClass('button', classes);
-      this.click('button', onClick);
-      if (tooltip) this.tooltip('button', tooltip);
-      return this;
+      return this.attr({ href: iconName }, '[href]');
     },
 
-    expansion: function expansion(label, onClick) {
+    expansionLabel: function expansionLabel(label) {
+      this.vars.lastComponent = 'expansionLabel';
       verify(['expansion', 'expansionLabel']);
+      return html(label);
+    },
+
+    expansionButton: function expansionButton(iconName) {
+      this.vars.lastComponent = 'bottom';
       verify(['expansion', 'bottom']);
-      this.html('expansionLabel', label);
-      this.attr('bottom', { href: '#action-icon-expand-card' }, '[href]');
-      this.tooltip('bottom', 'Expand user card', '.card-button-background');
-      this.click('bottom', onClick, '.card-button-background');
-      this.click('main', onClick);
-      return this;
+      return this.attr({ href: iconName }, '[href]');
     },
 
-    roleToggle: function roleToggle(roleEnum, roleName, roleAssigned, onClick) {
-      var userId = this.attr('container', 'data-user-id');
+    roleExpansion: function roleExpansion() {
+      var onClick = function toggleCard(event) {
+        event.stopPropagation();
+        $(this).closest('.card-container')
+          .find('div.card-expansion-container')
+          .attr('maximized', function toggle(index, attr) {
+            if (attr === '') {
+              $(this).find('.tooltip').tooltipster('content', 'Expand user card');
+              return null;
+            }
+            $(this).find('.tooltip').tooltipster('content', 'Collapse user card');
+            return '';
+          });
+        showRelevantUserActionIcons();
+      };
+      this.vars.lastComponent = '';
+      /* eslint-disable indent */
+      return this
+        .expansionLabel('User roles')
+        .expansionButton('#action-icon-expand-card')
+          .tooltip('Expand user card', '.card-button-background')
+          .click(onClick, '.card-button-background')
+        .main()
+          .click(onClick);
+      /* eslint-enable indent */
+    },
+
+    roleToggle: function roleToggle(roleEnum, roleName, roleAssigned) {
+      var userId = this.vars.$card
+        .find(this.templates.container.selector)
+        .attr('data-user-id');
       var id = 'user-role-' + userId + '-' + roleEnum;
+      this.vars.lastComponent = 'toggle';
       add(['expansion', 'toggle']);
-      this.attr('toggle', {
-        'data-role-enum': roleEnum,
-        name: id,
-        id: id
-      }, '.toggle-switch-checkbox');
-      if (!this.vars.canManage) this.attr('toggle', { disabled: '' }, '.toggle-switch-checkbox');
-      this.attr('toggle', { for: id }, '.toggle-switch-label');
-      this.html('toggle', roleName, '.switch-label');
-      this.prop('toggle', { checked: roleAssigned }, '.toggle-switch-checkbox');
-      this.click('toggle', onClick, '.toggle-switch-checkbox');
-      return this;
+      if (!this.vars.canManage) this.attr({ disabled: '' }, '.toggle-switch-checkbox');
+      return html(roleName, '.switch-label')
+        .attr({
+          'data-role-enum': roleEnum,
+          name: id,
+          id: id
+        }, '.toggle-switch-checkbox')
+        .attr({ for: id }, '.toggle-switch-label')
+        .prop({ checked: roleAssigned }, '.toggle-switch-checkbox');
     },
 
-    roleToggles: function roleToggles(roles, onClick) {
+    roleToggles: function roleToggles(roles) {
       var self = this;
+      var onClick = function onClick(event) {
+        userCardRoleToggleClickHandler(event);
+      };
+      this.vars.lastComponent = '';
       $.each(roles, function createAndAssign(index, assignment) {
         self.roleToggle(
           assignment.RoleEnum,
           assignment.RoleDisplayValue,
-          assignment.IsAssigned,
-          onClick
-        );
+          assignment.IsAssigned
+        ).click(onClick, '.toggle-switch-checkbox');
       });
       return this;
     },
@@ -333,5 +365,19 @@ var Card;
       .find(prevSelector + ' > stub')
       .replaceWith(Card.templates[newElement].html);
     return prevSelector + ' > ' + Card.templates[newElement].selector;
+  };
+  findComponent = function _findComponent(component, selector) {
+    var $component = Card.templates[component]
+      ? Card.vars.$card
+        .find(Card.templates[component].selector)
+        .last()
+      : $();
+    var $subcomponent = $component.find(selector);
+    return $subcomponent.length ? $subcomponent : $component;
+  };
+  html = function _html(value, selector) {
+    var $component = findComponent(Card.vars.lastComponent, selector);
+    $component.html(value);
+    return Card;
   };
 }());
