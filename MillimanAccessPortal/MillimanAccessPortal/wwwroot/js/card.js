@@ -230,7 +230,9 @@ var Card = {
     this.vars.canManage = canManage;
     this.addClass('container', classes);
     this.attr('container', {
-      'data-search-string': searchTerms.join('|'),
+      'data-search-string': $.map(searchTerms, function upper(term) {
+        return (term || '').toUpperCase();
+      }).join('|'),
       'data-client-id': clientId,
       'data-user-id': userId
     });
