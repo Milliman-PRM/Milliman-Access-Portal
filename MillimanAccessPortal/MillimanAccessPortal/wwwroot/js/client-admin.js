@@ -489,6 +489,8 @@ function renderUserNode(client, user) {
       user.Id,
       client.CanManage
     )
+    .icon('#action-icon-user', 'card-user-icon')
+    .icon('#action-icon-add', 'card-user-role-indicator')
     .info($.map([
       (user.FirstName || '') + ' ' + (user.LastName || ''),
       user.UserName,
