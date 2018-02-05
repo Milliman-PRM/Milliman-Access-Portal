@@ -1,0 +1,41 @@
+﻿/*
+ * CODE OWNERS: Joseph Sweeney
+ * OBJECTIVE:
+ * DEVELOPER NOTES:
+ */
+
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using MapCommonLib;
+using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
+using Microsoft.AspNetCore.Identity;
+
+namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
+{
+    public class ContentAccessAdminSelectionGroupListViewModel
+    {
+        public List<ContentAccessAdminSelectionGroupDetailViewModel> SelectionGroupList = new List<ContentAccessAdminSelectionGroupDetailViewModel>();
+        public long RelevantRootContentItemId { get; set; } = -1;
+
+        internal static ContentAccessAdminSelectionGroupListViewModel Build(ApplicationDbContext DbContext, Client Client, RootContentItem RootContentItem)
+        {
+            ContentAccessAdminSelectionGroupListViewModel Model = new ContentAccessAdminSelectionGroupListViewModel();
+
+            List<ContentItemUserGroup> SelectionGroups = DbContext.ContentItemUserGroup
+                .Where(rci => rci.ClientId == Client.Id)
+                .Where(rci => rci.RootContentItemId == RootContentItem.Id)
+                .ToList();
+
+            foreach (var SelectionGroup in SelectionGroups)
+            {
+                Model.SelectionGroupList.Add(
+                    ContentAccessAdminSelectionGroupDetailViewModel.Build(DbContext, SelectionGroup)
+                    );
+            }
+
+            return Model;
+        }
+    }
+}

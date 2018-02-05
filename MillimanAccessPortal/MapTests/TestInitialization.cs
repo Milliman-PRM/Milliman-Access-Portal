@@ -189,7 +189,6 @@ namespace MapTests
             ReturnMockContext.Object.HierarchyFieldValue = MockDbSet<HierarchyFieldValue>.New(new List<HierarchyFieldValue>()).Object;
             ReturnMockContext.Object.HierarchyField = MockDbSet<HierarchyField>.New(new List<HierarchyField>()).Object;
             ReturnMockContext.Object.ContentItemUserGroup = MockDbSet<ContentItemUserGroup>.New(new List<ContentItemUserGroup>()).Object;
-            ReturnMockContext.Object.UserInContentItemUserGroup = MockDbSet<UserInContentItemUserGroup>.New(new List<UserInContentItemUserGroup>()).Object;
             ReturnMockContext.Object.UserRoles = MockDbSet<IdentityUserRole<long>>.New(new List<IdentityUserRole<long>>()).Object;
             ReturnMockContext.Object.UserRoleInRootContentItem = MockDbSet<UserRoleInRootContentItem>.New(new List<UserRoleInRootContentItem>()).Object;
             ReturnMockContext.Object.UserClaims = MockDbSet<IdentityUserClaim<long>>.New(new List<IdentityUserClaim<long>>()).Object;
@@ -197,14 +196,27 @@ namespace MapTests
             ReturnMockContext.Object.Roles = ReturnMockContext.Object.ApplicationRole;
 
             // Give UserRoleInClient an additional Add() callback since it accesses properties of objects from Include()
-            Mock<DbSet<UserRoleInClient>> MockUserRoleInClient = MockDbSet<UserRoleInClient>.New(new List<UserRoleInClient>());
+            List<UserRoleInClient> UserRoleInClientData = new List<UserRoleInClient>();
+            Mock<DbSet<UserRoleInClient>> MockUserRoleInClient = MockDbSet<UserRoleInClient>.New(UserRoleInClientData);
             MockUserRoleInClient.Setup(d => d.Add(It.IsAny<UserRoleInClient>())).Callback<UserRoleInClient>(s =>
             {
+                UserRoleInClientData.Add(s);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(MockUserRoleInClient.Object, "ClientId", ReturnMockContext.Object.Client);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(MockUserRoleInClient.Object, "UserId", ReturnMockContext.Object.ApplicationUser);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationRole>(MockUserRoleInClient.Object, "RoleId", ReturnMockContext.Object.ApplicationRole);
             });
             ReturnMockContext.Object.UserRoleInClient = MockUserRoleInClient.Object;
+
+            List<UserInContentItemUserGroup> UserInContentItemUserGroupData = new List<UserInContentItemUserGroup>();
+            Mock<DbSet<UserInContentItemUserGroup>> MockUserInContentItemUserGroup = MockDbSet<UserInContentItemUserGroup>.New(UserInContentItemUserGroupData);
+            MockUserInContentItemUserGroup.Setup(d => d.AddRange(It.IsAny<IEnumerable<UserInContentItemUserGroup>>())).Callback<IEnumerable<UserInContentItemUserGroup>>(s =>
+            {
+                UserInContentItemUserGroupData.AddRange(s);
+                MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ContentItemUserGroup>(MockUserInContentItemUserGroup.Object, "ContentItemUserGroupId", ReturnMockContext.Object.ContentItemUserGroup);
+                MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ApplicationUser>(MockUserInContentItemUserGroup.Object, "UserId", ReturnMockContext.Object.ApplicationUser);
+            });
+            ReturnMockContext.Object.UserInContentItemUserGroup = MockUserInContentItemUserGroup.Object;
+
 
             // Mock DbContext.Database.CommitTransaction() as no ops.
             Mock<IDbContextTransaction> DbTransaction = new Mock<IDbContextTransaction>();
@@ -386,7 +398,7 @@ namespace MapTests
                         new UserRoleInClient { Id=6, ClientId=5, RoleId=5, UserId=2 },
                         new UserRoleInClient { Id=7, ClientId=7, RoleId=1, UserId=3 },
                         new UserRoleInClient { Id=8, ClientId=8, RoleId=1, UserId=3 },
-                        new UserRoleInClient { Id=9, ClientId=8, RoleId=4, UserId=5 },
+                        new UserRoleInClient { Id=9, ClientId=8, RoleId=3, UserId=5 },
                     });
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
@@ -441,6 +453,8 @@ namespace MapTests
                     new ContentItemUserGroup { Id=1, ClientId=1, ContentInstanceUrl="Folder1/File1", RootContentItemId=1, GroupName="Group1 For Content1" },
                     new ContentItemUserGroup { Id=2, ClientId=1, ContentInstanceUrl="Folder1/File2", RootContentItemId=1, GroupName="Group2 For Content1" },
                     new ContentItemUserGroup { Id=3, ClientId=2, ContentInstanceUrl="Folder2/File1", RootContentItemId=2, GroupName="Group1 For Content2" },
+                    new ContentItemUserGroup { Id=4, ClientId=8, ContentInstanceUrl="Folder3/File1", RootContentItemId=3, GroupName="Group1 For Content3" },
+                    new ContentItemUserGroup { Id=5, ClientId=8, ContentInstanceUrl="Folder3/File2", RootContentItemId=3, GroupName="Group2 For Content3" },
                 });
             MockDbSet<ContentItemUserGroup>.AssignNavigationProperty<RootContentItem>(DbContextObject.ContentItemUserGroup, "RootContentItemId", DbContextObject.RootContentItem);
             MockDbSet<ContentItemUserGroup>.AssignNavigationProperty<Client>(DbContextObject.ContentItemUserGroup, "ClientId", DbContextObject.Client);
@@ -450,6 +464,7 @@ namespace MapTests
             DbContextObject.UserInContentItemUserGroup.AddRange(new List<UserInContentItemUserGroup>
                 { 
                     new UserInContentItemUserGroup { Id=1, ContentItemUserGroupId=1, UserId=1 },
+                    new UserInContentItemUserGroup { Id=2, ContentItemUserGroupId=4, UserId=3 },
                 });
             MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ContentItemUserGroup>(DbContextObject.UserInContentItemUserGroup, "ContentItemUserGroupId", DbContextObject.ContentItemUserGroup);
             MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserInContentItemUserGroup, "UserId", DbContextObject.ApplicationUser);
@@ -466,6 +481,8 @@ namespace MapTests
             DbContextObject.UserRoleInRootContentItem.AddRange(new List<UserRoleInRootContentItem>
             { 
                 new UserRoleInRootContentItem { Id=1, RoleId=5, UserId=1, RootContentItemId=1 },
+                new UserRoleInRootContentItem { Id=2, RoleId=5, UserId=3, RootContentItemId=3 },
+                new UserRoleInRootContentItem { Id=3, RoleId=5, UserId=5, RootContentItemId=3 },
             });
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInRootContentItem, "RoleId", DbContextObject.ApplicationRole);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInRootContentItem, "UserId", DbContextObject.ApplicationUser);
