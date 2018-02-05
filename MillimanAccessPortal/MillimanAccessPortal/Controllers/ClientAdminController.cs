@@ -34,7 +34,7 @@ namespace MillimanAccessPortal.Controllers
 {
     public class ClientAdminController : Controller
     {
-        private readonly static List<RoleEnum> RolesToManage = new List<RoleEnum> { RoleEnum.Admin, RoleEnum.ContentAdmin, RoleEnum.ContentUser, RoleEnum.UserAdmin };
+        private readonly static List<RoleEnum> RolesToManage = new List<RoleEnum> { RoleEnum.Admin, RoleEnum.ContentPublisher, RoleEnum.ContentUser, RoleEnum.ContentAccessAdmin };
 
         private readonly ApplicationDbContext DbContext;
         private readonly IAuditLogger AuditLogger;
@@ -215,22 +215,25 @@ namespace MillimanAccessPortal.Controllers
             #endregion Authorization
 
             #region Validation
-            // 1. Email must be a valid address
-            if (!GlobalFunctions.IsValidEmail(Model.Email))
+            if (RequestedUserIsNew)
             {
-                Response.Headers.Add("MapReason", "101");
-                Response.Headers.Add("Warning", $"The provided email address ({Model.Email}) is not valid");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);
-            }
+                // 1. Email must be a valid address
+                if (!GlobalFunctions.IsValidEmail(Model.Email))
+                {
+                    Response.Headers.Add("MapReason", "101");
+                    Response.Headers.Add("Warning", $"The provided email address ({Model.Email}) is not valid");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
 
-            // 2. Make sure the UserName does not exist in the database already as a UserName or Email
-            if (RequestedUserIsNew &&
-                (DbContext.ApplicationUser.Any(u => u.UserName == Model.UserName) ||
-                    DbContext.ApplicationUser.Any(u => u.Email == Model.UserName)))
-            {
-                Response.Headers.Add("MapReason", "103");
-                Response.Headers.Add("Warning", $"The provided user name ({Model.UserName}) already exists in the system");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);
+                // 2. Make sure the UserName does not exist in the database already as a UserName or Email
+                if (RequestedUserIsNew &&
+                    (DbContext.ApplicationUser.Any(u => u.UserName == Model.UserName) ||
+                        DbContext.ApplicationUser.Any(u => u.Email == Model.UserName)))
+                {
+                    Response.Headers.Add("MapReason", "103");
+                    Response.Headers.Add("Warning", $"The provided user name ({Model.UserName}) already exists in the system");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
             }
             #endregion Validation
 
@@ -355,7 +358,7 @@ namespace MillimanAccessPortal.Controllers
             if (!GlobalFunctions.IsValidEmail(RequestedUserEmail))
             {
                 Response.Headers.Add("Warning", $"The requested user's email is invalid: ({RequestedUserEmail})");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);  // 412 is Precondition Failed
             }
             string RequestedUserEmailDomain = RequestedUserEmail.Substring(RequestedUserEmail.IndexOf('@') + 1);
             bool DomainMatch = RequestedClient.AcceptedEmailDomainList != null && 
@@ -365,7 +368,7 @@ namespace MillimanAccessPortal.Controllers
             if (!EmailMatch && !DomainMatch)
             {
                 Response.Headers.Add("Warning", "The requested user's email is not accepted for this client");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
@@ -418,7 +421,7 @@ namespace MillimanAccessPortal.Controllers
             if (RequestedUser == null)
             {
                 Response.Headers.Add("Warning", $"The requested user was not found");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             // requested client must exist
@@ -426,7 +429,7 @@ namespace MillimanAccessPortal.Controllers
             if (RequestedClient == null)
             {
                 Response.Headers.Add("Warning", $"The requested client was not found");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             // Requested user must be member of requested client
@@ -434,7 +437,7 @@ namespace MillimanAccessPortal.Controllers
             if (!UserManager.GetUsersForClaimAsync(ClientMembershipClaim).Result.Contains(RequestedUser))
             {
                 Response.Headers.Add("Warning", $"The requested user is not associated with the requested client");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             // requested role must exist
@@ -442,7 +445,7 @@ namespace MillimanAccessPortal.Controllers
             if (RequestedRole == null)
             {
                 Response.Headers.Add("Warning", $"The requested role was not found");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
@@ -549,7 +552,7 @@ namespace MillimanAccessPortal.Controllers
             if (AllAuthorizedGroupsQuery.Any(group => group.ClientId == RequestedClient.Id))
             {
                 Response.Headers.Add("Warning", "The requested user must first be unauthorized to content of the requested client");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             // 3. RequestedUser must not be assigned a role for any RootContentItem of RequestedClient
@@ -561,7 +564,7 @@ namespace MillimanAccessPortal.Controllers
             if (AllAuthorizedContentQuery.Any(rc => rc.ClientIdList.Contains(RequestedClient.Id)))
             {
                 Response.Headers.Add("Warning", "The requested user must first have no role for content item(s) of the requested client");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
@@ -661,7 +664,7 @@ namespace MillimanAccessPortal.Controllers
                 if (!GlobalFunctions.IsValidEmail("test@" + WhiteListedDomain))
                 {
                     Response.Headers.Add("Warning", $"An email domain is invalid: ({WhiteListedDomain})");
-                    return StatusCode(StatusCodes.Status412PreconditionFailed);
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
             }
 
@@ -671,7 +674,7 @@ namespace MillimanAccessPortal.Controllers
                 if (!GlobalFunctions.IsValidEmail(WhiteListedAddress))
                 {
                     Response.Headers.Add("Warning", $"An email address is invalid: ({WhiteListedAddress})");
-                    return StatusCode(StatusCodes.Status412PreconditionFailed);
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
             }
 
@@ -679,14 +682,14 @@ namespace MillimanAccessPortal.Controllers
             if (Model.ParentClientId != null && !DbContext.ClientExists(Model.ParentClientId.Value))
             {
                 Response.Headers.Add("Warning", $"The specified parent Client is invalid: ({Model.ParentClientId.Value})");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             // Name must be unique
             if (DbContext.Client.Any(c=>c.Name == Model.Name))
             {
                 Response.Headers.Add("Warning", $"The client name already exists for another client: ({Model.Name})");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion Validation
 
@@ -822,7 +825,7 @@ namespace MillimanAccessPortal.Controllers
                 if (!GlobalFunctions.IsValidEmail("test@" + WhiteListedDomain))
                 {
                     Response.Headers.Add("Warning", $"The domain is invalid: ({WhiteListedDomain})");
-                    return StatusCode(StatusCodes.Status412PreconditionFailed);
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
             }
 
@@ -832,7 +835,7 @@ namespace MillimanAccessPortal.Controllers
                 if (!GlobalFunctions.IsValidEmail(WhiteListedAddress))
                 {
                     Response.Headers.Add("Warning", $"The exception address is invalid: ({WhiteListedAddress})");
-                    return StatusCode(StatusCodes.Status412PreconditionFailed);
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
             }
 
@@ -840,14 +843,14 @@ namespace MillimanAccessPortal.Controllers
             if (Model.ParentClientId != null && !DbContext.ClientExists(Model.ParentClientId.Value))
             {
                 Response.Headers.Add("Warning", "The specified parent of the client is invalid.");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             // ProfitCenter must exist
             if (!DbContext.ProfitCenter.Any(pc => pc.Id == Model.ProfitCenterId))
             {
                 Response.Headers.Add("Warning", "The specified ProfitCenter is invalid.");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             // Name must be unique
@@ -855,7 +858,7 @@ namespace MillimanAccessPortal.Controllers
                                           c.Id != Model.Id))
             {
                 Response.Headers.Add("Warning", $"The client name ({Model.Name}) already exists for another client.");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion Validation
 
@@ -942,7 +945,7 @@ namespace MillimanAccessPortal.Controllers
             if (Children.Count > 0)
             {
                 Response.Headers.Add("Warning", $"Can't delete Client {ExistingClient.Name}. The client has child client(s): {string.Join(", ", Children)}");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);  // 412 is Precondition Failed
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);  // 412 is Precondition Failed
             }
 
             // Client must not have any root content items
@@ -952,7 +955,7 @@ namespace MillimanAccessPortal.Controllers
             if (ItemCount > 0)
             {
                 Response.Headers.Add("Warning", $"Can't delete client {ExistingClient.Name} because it has root content items.");
-                return StatusCode(StatusCodes.Status412PreconditionFailed);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion Validation
 
