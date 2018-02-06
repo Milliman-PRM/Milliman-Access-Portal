@@ -189,6 +189,7 @@ namespace MapTests
         [Theory]
         [InlineData("user5", 1, 1)]
         [InlineData("test1", 8, 3)]
+        [InlineData("user6", 8, 3)]
         public async Task SelectionGroups_ErrorUnauthorized(String UserName, long ClientId, long RootContentItemId)
         {
             #region Arrange
@@ -246,6 +247,7 @@ namespace MapTests
         [Theory]
         [InlineData("user5", 1, 1)]
         [InlineData("test1", 8, 3)]
+        [InlineData("user6", 8, 3)]
         public async Task CreateSelectionGroup_ErrorUnauthorized(String UserName, long ClientId, long RootContentItemId)
         {
             #region Arrange
@@ -331,6 +333,7 @@ namespace MapTests
         [Theory]
         [InlineData("test1", 4)]
         [InlineData("user5", 3)]
+        [InlineData("user6", 3)]
         public async Task UpdateSelectionGroup_ErrorUnauthorized(String UserName, long SelectionGroupId)
         {
             #region Arrange
@@ -429,6 +432,7 @@ namespace MapTests
 
         [Theory]
         [InlineData("user5", 1)]
+        [InlineData("user6", 3)]
         [InlineData("test1", 4)]
         public async Task DeleteSelectionGroup_ErrorUnauthorized(String UserName, long RootContentItemId)
         {
