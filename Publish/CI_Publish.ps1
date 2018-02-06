@@ -143,8 +143,22 @@ cd $rootPath
 
 #endregion
 
+#Install PowerShell modules
+Install-Module Azure -Scope CurrentUser -SkipPublisherCheck
+if ($? -eq $false)
+{
+    log_statement "Failed to install Azure module"
+    exit -1000
+}
+
 #Load required PowerShell modules
 import-module AzureRM.Profile, AzureRM.Resources, AzureRM.Websites, Microsoft.PowerShell.Security
+
+if ($? -eq $false)
+{
+    log_statement "Failed to load modules"
+    exit -1000
+}
 
 #region Authenticate to Azure with a service principal
 
