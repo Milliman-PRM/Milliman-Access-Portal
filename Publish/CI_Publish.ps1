@@ -143,22 +143,6 @@ cd $rootPath
 
 #endregion
 
-#Import package management modules
-Import-Module PackageManagement, PowerShellGet, PSReadLine
-if ($? -eq $false)
-{
-    log_statement "Failed to import package management modules"
-    exit -1000
-}
-
-#Install PowerShell modules
-Install-Module Azure -Scope CurrentUser -SkipPublisherCheck
-if ($? -eq $false)
-{
-    log_statement "Failed to install Azure module"
-    exit -1000
-}
-
 #Load required PowerShell modules
 import-module AzureRM.Profile, AzureRM.Resources, AzureRM.Websites, Microsoft.PowerShell.Security
 
