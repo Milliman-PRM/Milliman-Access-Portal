@@ -199,7 +199,6 @@ function clientCardClickHandler($clickedCard) {
         confirmAndReset(confirmDiscardDialog, function onContinue() {
             if (sameCard) {
                 clearClientSelection();
-                hideClientDetails();
             } else {
                 openClientCardReadOnly($clickedCard);
             }
