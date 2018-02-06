@@ -493,13 +493,14 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
+            List<long> RemovedUsers = new List<long>();
+
             using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
             {
-                DbContext.UserInContentItemUserGroup.RemoveRange(
-                    DbContext.UserInContentItemUserGroup
-                        .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
-                        .ToList()
-                    );
+                List<UserInContentItemUserGroup> UsersToRemove = DbContext.UserInContentItemUserGroup
+                    .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
+                    .ToList();
+                DbContext.UserInContentItemUserGroup.RemoveRange(UsersToRemove);
                 DbContext.SaveChanges();
 
                 DbContext.ContentItemUserGroup.Remove(
@@ -510,9 +511,26 @@ namespace MillimanAccessPortal.Controllers
                 DbContext.SaveChanges();
 
                 DbTransaction.Commit();
+
+                RemovedUsers = UsersToRemove
+                    .Select(uug => uug.UserId)
+                    .ToList();
             }
 
-            #region Log audit event
+            #region Log audit event(s)
+            foreach (var UserId in RemovedUsers)
+            {
+                AuditEvent SelectionGroupUpdatedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    "User removed from selection group",
+                    AuditEventId.SelectionGroupUserRemoved,
+                    new { SelectionGroup.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, UserId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(SelectionGroupUpdatedEvent);
+            }
+
             AuditEvent SelectionGroupDeletedEvent = AuditEvent.New(
                 $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                 "Selection group deleted",
