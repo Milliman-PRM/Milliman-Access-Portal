@@ -102,8 +102,6 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-cd $rootPath\MillimanAccessPortal\MapTests
-
 $command = '"C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Web\External\bower.cmd" install'
 invoke-expression "&$command"
 
@@ -112,6 +110,8 @@ if ($LASTEXITCODE -ne 0) {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
+
+cd $rootPath\MillimanAccessPortal\MapTests
 
 MSBuild /verbosity:minimal
 
