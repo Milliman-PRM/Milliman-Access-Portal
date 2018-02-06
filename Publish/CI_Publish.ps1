@@ -163,6 +163,8 @@ if ($? -eq $false)
     exit -1000
 }
 
+Set-AzureRmContext -Subscription $SubscriptionId
+
 #endregion
 
 #region Create and configure deployment slot
