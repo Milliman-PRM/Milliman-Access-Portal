@@ -23,7 +23,7 @@
 
 <div id="client-tree" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12">
     <div class="loading-wrapper" style="display: none;">
-        @Html.Partial("~/Views/ClientAdmin/templates/_Loader.cshtml")
+        @Html.Partial("~/Views/ContentPublishing/templates/_Loader.cshtml")
     </div>
     <h3 class="admin-panel-header">Client Tree</h3>
     <div class="admin-panel-toolbar">
@@ -35,7 +35,6 @@
 </div>
 
 
-
 @section Scripts {
 
     @Html.Partial("~/Views/ContentPublishing/templates/_Node.cshtml")
@@ -44,12 +43,12 @@
     <environment names="Development,CI">
         <script src="~/lib/selectize/dist/js/standalone/selectize.js"></script>
         <script src="~/lib/typeahead.js/dist/typeahead.jquery.js"></script>
-        <script src="~/js/client-admin.js"></script>
+        <script src="~/js/content-publisher.js"></script>
     </environment>
     <environment names="Staging,Production">
         <script src="~/lib/selectize/dist/js/standalone/selectize.min.js"></script>
         <script src="~/lib/typeahead.js/dist/typeahead.jquery.min.js"></script>
-        <script src="~/js/client-admin.min.js"></script>
+        <script src="~/js/content-publisher.min.js"></script>
     </environment>
 
 }
