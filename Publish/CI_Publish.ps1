@@ -90,7 +90,7 @@ $dbCreationRetries = 5 # The number of times the script will attempt to create a
 
 $rootPath = (get-location).Path
 
-cd MillimanAccessPortal\MillimanAccessPortal\MapTests
+cd MillimanAccessPortal\MapTests
 
 log_statement "Building unit tests"
 
