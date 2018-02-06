@@ -97,7 +97,7 @@ log_statement "Building unit tests"
 MSBuild /t:Restore /verbosity:minimal
 
 if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: Initial package restore failed"
+    log_statement "ERROR: Initial MAP package restore failed"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
@@ -112,6 +112,14 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 cd $rootPath\MillimanAccessPortal\MapTests
+
+MSBuild /t:Restore /verbosity:minimal
+
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: Initial unit test package restore failed"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
 
 MSBuild /verbosity:minimal
 
