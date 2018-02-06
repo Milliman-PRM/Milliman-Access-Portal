@@ -90,7 +90,7 @@ $dbCreationRetries = 5 # The number of times the script will attempt to create a
 
 $rootPath = (get-location).Path
 
-cd MillimanAccessPortal\MapTests
+cd MillimanAccessPortal\MillimanAccessPortal
 
 log_statement "Building unit tests"
 
@@ -101,6 +101,8 @@ if ($LASTEXITCODE -ne 0) {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
+
+cd $rootPath\MillimanAccessPortal\MapTests
 
 $command = '"C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Web\External\bower.cmd" install'
 invoke-expression "&$command"
