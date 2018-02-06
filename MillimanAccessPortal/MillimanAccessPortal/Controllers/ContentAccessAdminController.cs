@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentAccessAdminViewModels;
@@ -29,6 +30,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuditLogger AuditLogger;
         private readonly IAuthorizationService AuthorizationService;
         private readonly ApplicationDbContext DbContext;
+        private readonly ILogger Logger;
         private readonly StandardQueries Queries;
         private readonly UserManager<ApplicationUser> UserManager;
 
@@ -36,6 +38,7 @@ namespace MillimanAccessPortal.Controllers
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
             ApplicationDbContext DbContextArg,
+            ILoggerFactory LoggerFactoryArg,
             StandardQueries QueriesArg,
             UserManager<ApplicationUser> UserManagerArg
             )
@@ -43,6 +46,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
             DbContext = DbContextArg;
+            Logger = LoggerFactoryArg.CreateLogger<ContentAccessAdminController>();
             Queries = QueriesArg;
             UserManager = UserManagerArg;
         }
@@ -377,39 +381,55 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
+            try
             {
-                DbContext.UserInContentItemUserGroup.RemoveRange(
-                    UserAssignments
-                        .Where(kvp => !kvp.Value)
-                        .Select(kvp => DbContext.UserInContentItemUserGroup
-                            .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
-                            .Where(uug => uug.UserId == kvp.Key)
-                            .SingleOrDefault()
-                            )
-                        .Where(uug => uug != null)
-                    );
-                DbContext.SaveChanges();
+                using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
+                {
+                    DbContext.UserInContentItemUserGroup.RemoveRange(
+                        UserAssignments
+                            .Where(kvp => !kvp.Value)
+                            .Select(kvp => DbContext.UserInContentItemUserGroup
+                                .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
+                                .Where(uug => uug.UserId == kvp.Key)
+                                .SingleOrDefault()
+                                )
+                            .Where(uug => uug != null)
+                        );
+                    DbContext.SaveChanges();
 
-                DbContext.UserInContentItemUserGroup.AddRange(
-                    UserAssignments
-                        .Where(kvp => kvp.Value)
-                        .Where(kvp => DbContext.UserInContentItemUserGroup
-                            .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
-                            .Where(uug => uug.UserId == kvp.Key)
-                            .SingleOrDefault() == null
+                    DbContext.UserInContentItemUserGroup.AddRange(
+                        UserAssignments
+                            .Where(kvp => kvp.Value)
+                            .Where(kvp => DbContext.UserInContentItemUserGroup
+                                .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
+                                .Where(uug => uug.UserId == kvp.Key)
+                                .SingleOrDefault() == null
+                                )
+                            .Select(kvp =>
+                                new UserInContentItemUserGroup
+                                {
+                                    ContentItemUserGroupId = SelectionGroup.Id,
+                                    UserId = kvp.Key,
+                                }
                             )
-                        .Select(kvp =>
-                            new UserInContentItemUserGroup
-                            {
-                                ContentItemUserGroupId = SelectionGroup.Id,
-                                UserId = kvp.Key,
-                            }
-                        )
-                    );
-                DbContext.SaveChanges();
+                        );
+                    DbContext.SaveChanges();
 
-                DbTransaction.Commit();
+                    DbTransaction.Commit();
+                }
+            }
+            catch (Exception ex)
+            {
+                string ErrMsg = $"Exception while updating selection group \"{SelectionGroupId}\" user assignments";
+                while (ex != null)
+                {
+                    ErrMsg += $"\r\n{ex.Message}";
+                    ex = ex.InnerException;
+                }
+                Logger.LogError(ErrMsg);
+
+                Response.Headers.Add("Warning", $"Failed to complete transaction.");
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
             #region Log audit event(s)
@@ -495,26 +515,42 @@ namespace MillimanAccessPortal.Controllers
 
             List<long> RemovedUsers = new List<long>();
 
-            using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
+            try
             {
-                List<UserInContentItemUserGroup> UsersToRemove = DbContext.UserInContentItemUserGroup
-                    .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
-                    .ToList();
-                DbContext.UserInContentItemUserGroup.RemoveRange(UsersToRemove);
-                DbContext.SaveChanges();
+                using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
+                {
+                    List<UserInContentItemUserGroup> UsersToRemove = DbContext.UserInContentItemUserGroup
+                        .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
+                        .ToList();
+                    DbContext.UserInContentItemUserGroup.RemoveRange(UsersToRemove);
+                    DbContext.SaveChanges();
 
-                DbContext.ContentItemUserGroup.Remove(
-                    DbContext.ContentItemUserGroup
-                        .Where(g => g.Id == SelectionGroup.Id)
-                        .Single()
-                    );
-                DbContext.SaveChanges();
+                    DbContext.ContentItemUserGroup.Remove(
+                        DbContext.ContentItemUserGroup
+                            .Where(g => g.Id == SelectionGroup.Id)
+                            .Single()
+                        );
+                    DbContext.SaveChanges();
 
-                DbTransaction.Commit();
+                    DbTransaction.Commit();
 
-                RemovedUsers = UsersToRemove
-                    .Select(uug => uug.UserId)
-                    .ToList();
+                    RemovedUsers = UsersToRemove
+                        .Select(uug => uug.UserId)
+                        .ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                string ErrMsg = $"Exception while deleting selection group \"{SelectionGroupId}\" or removing members: [{string.Join(",", RemovedUsers)}]";
+                while (ex != null)
+                {
+                    ErrMsg += $"\r\n{ex.Message}";
+                    ex = ex.InnerException;
+                }
+                Logger.LogError(ErrMsg);
+
+                Response.Headers.Add("Warning", $"Failed to complete transaction.");
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
             #region Log audit event(s)
