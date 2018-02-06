@@ -143,6 +143,9 @@ cd $rootPath
 
 #endregion
 
+#Load required PowerShell modules
+import-module AzureRM.Profile, AzureRM.Resources, AzureRM.Websites, Microsoft.PowerShell.Security
+
 #region Authenticate to Azure with a service principal
 
 $DeployCredential = new-object -typename System.Management.Automation.PSCredential -argumentlist $deployUser,($deployPassword | ConvertTo-SecureString -AsPlainText -Force)
