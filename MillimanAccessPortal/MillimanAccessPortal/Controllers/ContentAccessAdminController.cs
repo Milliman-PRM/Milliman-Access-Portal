@@ -4,6 +4,8 @@
  * DEVELOPER NOTES: 
  */
 
+using AuditLogLib;
+using AuditLogLib.Services;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Authorization;
@@ -24,18 +26,21 @@ namespace MillimanAccessPortal.Controllers
 {
     public class ContentAccessAdminController : Controller
     {
+        private readonly IAuditLogger AuditLogger;
         private readonly IAuthorizationService AuthorizationService;
         private readonly ApplicationDbContext DbContext;
         private readonly StandardQueries Queries;
         private readonly UserManager<ApplicationUser> UserManager;
 
         public ContentAccessAdminController(
+            IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
             ApplicationDbContext DbContextArg,
             StandardQueries QueriesArg,
             UserManager<ApplicationUser> UserManagerArg
             )
         {
+            AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
             DbContext = DbContextArg;
             Queries = QueriesArg;
@@ -200,6 +205,18 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, ClientId));
             if (!RoleInClientResult.Succeeded)
             {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    "Request to create selection group without role in client",
+                    AuditEventId.Unauthorized,
+                    new { ClientId, RootContentItemId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
                 return Unauthorized();
             }
@@ -207,6 +224,18 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, RootContentItemId));
             if (!RoleInRootContentItemResult.Succeeded)
             {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    "Request to create selection group without role in root content item",
+                    AuditEventId.Unauthorized,
+                    new { ClientId, RootContentItemId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
                 return Unauthorized();
             }
@@ -226,6 +255,18 @@ namespace MillimanAccessPortal.Controllers
 
             DbContext.ContentItemUserGroup.Add(SelectionGroup);
             DbContext.SaveChanges();
+
+            #region Log audit event
+            AuditEvent SelectionGroupCreatedEvent = AuditEvent.New(
+                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                "Selection group created",
+                AuditEventId.SelectionGroupCreated,
+                new { ClientId, RootContentItemId, SelectionGroupId = SelectionGroup.Id },
+                User.Identity.Name,
+                HttpContext.Session.Id
+                );
+            AuditLogger.Log(SelectionGroupCreatedEvent);
+            #endregion
 
             ContentAccessAdminSelectionGroupDetailViewModel Model = ContentAccessAdminSelectionGroupDetailViewModel.Build(DbContext, SelectionGroup);
 
@@ -258,6 +299,18 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.ClientId));
             if (!RoleInClientResult.Succeeded)
             {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    "Request to update selection group without role in client",
+                    AuditEventId.Unauthorized,
+                    new { SelectionGroup.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
                 return Unauthorized();
             }
@@ -265,6 +318,18 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.RootContentItemId));
             if (!RoleInRootContentItemResult.Succeeded)
             {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    "Request to update selection group without role in root content item",
+                    AuditEventId.Unauthorized,
+                    new { SelectionGroup.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
                 return Unauthorized();
             }
@@ -347,6 +412,21 @@ namespace MillimanAccessPortal.Controllers
                 DbTransaction.Commit();
             }
 
+            #region Log audit event(s)
+            foreach (var UserAssignment in UserAssignments)
+            {
+                AuditEvent SelectionGroupUpdatedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    $"User {(UserAssignment.Value ? "assigned to" : "removed from")} selection group",
+                    (UserAssignment.Value ? AuditEventId.SelectionGroupUserAssigned : AuditEventId.SelectionGroupUserRemoved),
+                    new { SelectionGroup.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, UserId = UserAssignment.Key },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(SelectionGroupUpdatedEvent);
+            }
+            #endregion
+
             ContentAccessAdminSelectionGroupListViewModel Model = ContentAccessAdminSelectionGroupListViewModel.Build(DbContext, SelectionGroup.Client, SelectionGroup.RootContentItem);
 
             return Json(Model);
@@ -374,6 +454,18 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.ClientId));
             if (!RoleInClientResult.Succeeded)
             {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    "Request to delete selection group without role in client",
+                    AuditEventId.Unauthorized,
+                    new { SelectionGroup.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
                 return Unauthorized();
             }
@@ -381,6 +473,18 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.RootContentItemId));
             if (!RoleInRootContentItemResult.Succeeded)
             {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    "Request to delete selection group without role in root content item",
+                    AuditEventId.Unauthorized,
+                    new { SelectionGroup.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
                 return Unauthorized();
             }
@@ -407,6 +511,18 @@ namespace MillimanAccessPortal.Controllers
 
                 DbTransaction.Commit();
             }
+
+            #region Log audit event
+            AuditEvent SelectionGroupDeletedEvent = AuditEvent.New(
+                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                "Selection group deleted",
+                AuditEventId.SelectionGroupDeleted,
+                new { SelectionGroup.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId },
+                User.Identity.Name,
+                HttpContext.Session.Id
+                );
+            AuditLogger.Log(SelectionGroupDeletedEvent);
+            #endregion
 
             ContentAccessAdminSelectionGroupListViewModel Model = ContentAccessAdminSelectionGroupListViewModel.Build(DbContext, SelectionGroup.Client, SelectionGroup.RootContentItem);
 

@@ -32,6 +32,7 @@ namespace MapTests
         public async Task<ContentAccessAdminController> GetControllerForUser(string Username)
         {
             ContentAccessAdminController testController = new ContentAccessAdminController(
+                TestResources.AuditLoggerObject,
                 TestResources.AuthorizationService,
                 TestResources.DbContextObject,
                 TestResources.QueriesObj,
