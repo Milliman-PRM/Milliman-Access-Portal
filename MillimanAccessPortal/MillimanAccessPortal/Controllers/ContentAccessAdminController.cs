@@ -49,8 +49,8 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Index()
         {
             #region Authorization
-            AuthorizationResult ContentAccessAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
-            if (!ContentAccessAdminResult.Succeeded)
+            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
+            if (!RoleInClientResult.Succeeded)
             {
                 Response.Headers.Add("Warning", "You are not authorized to administer content access.");
                 return Unauthorized();
@@ -70,8 +70,8 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> ClientFamilyList()
         {
             #region Authorization
-            AuthorizationResult ContentAccessAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
-            if (!ContentAccessAdminResult.Succeeded)
+            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
+            if (!RoleInClientResult.Succeeded)
             {
                 Response.Headers.Add("Warning", "You are not authorized to administer content access.");
                 return Unauthorized();
@@ -104,8 +104,8 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult ContentAccessAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, ClientId));
-            if (!ContentAccessAdminResult.Succeeded)
+            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, ClientId));
+            if (!RoleInClientResult.Succeeded)
             {
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
                 return Unauthorized();
@@ -121,7 +121,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Returns the selection groups associated with a root content item.</summary>
-        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the specified client.</remarks>
+        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the specified client and root content item.</remarks>
         /// <param name="ClientId">The client associated with the root content item.</param>
         /// <param name="RootContentItemId">The root content item whose selection groups are to be returned.</param>
         /// <returns>JsonResult</returns>
@@ -129,6 +129,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> SelectionGroups(long ClientId, long RootContentItemId)
         {
             Client Client = DbContext.Client.Find(ClientId);
+            RootContentItem RootContentItem = DbContext.RootContentItem.Find(RootContentItemId);
 
             #region Preliminary validation
             if (Client == null)
@@ -136,24 +137,31 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The requested client does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            #endregion
 
-            #region Authorization
-            AuthorizationResult ContentAccessAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, ClientId));
-            if (!ContentAccessAdminResult.Succeeded)
-            {
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
-                return Unauthorized();
-            }
-            #endregion
-
-            #region Validation
-            RootContentItem RootContentItem = DbContext.RootContentItem.Find(RootContentItemId);
             if (RootContentItem == null)
             {
                 Response.Headers.Add("Warning", "The requested root content item does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, ClientId));
+            if (!RoleInClientResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
+                return Unauthorized();
+            }
+
+            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, RootContentItemId));
+            if (!RoleInRootContentItemResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
             #endregion
 
             ContentAccessAdminSelectionGroupListViewModel Model = ContentAccessAdminSelectionGroupListViewModel.Build(DbContext, Client, RootContentItem);
@@ -162,7 +170,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Creates a selection group.</summary>
-        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the specified client.</remarks>
+        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the specified client and root content item.</remarks>
         /// <param name="ClientId">The client to be assigned to the new selection group.</param>
         /// <param name="RootContentItemId">The root content item to be assigned to the new selection group.</param>
         /// <param name="SelectionGroupName">The name of the new selection group.</param>
@@ -172,6 +180,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> CreateSelectionGroup(long ClientId, long RootContentItemId, String SelectionGroupName)
         {
             Client Client = DbContext.Client.Find(ClientId);
+            RootContentItem RootContentItem = DbContext.RootContentItem.Find(RootContentItemId);
 
             #region Preliminary validation
             if (Client == null)
@@ -179,24 +188,31 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The requested client does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            #endregion
 
-            #region Authorization
-            AuthorizationResult ContentAccessAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, ClientId));
-            if (!ContentAccessAdminResult.Succeeded)
-            {
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
-                return Unauthorized();
-            }
-            #endregion
-
-            #region Validation
-            RootContentItem RootContentItem = DbContext.RootContentItem.Find(RootContentItemId);
             if (RootContentItem == null)
             {
                 Response.Headers.Add("Warning", "The requested root content item does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, ClientId));
+            if (!RoleInClientResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
+                return Unauthorized();
+            }
+
+            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, RootContentItemId));
+            if (!RoleInRootContentItemResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
             #endregion
 
             ContentItemUserGroup SelectionGroup = new ContentItemUserGroup
@@ -217,7 +233,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Updates the users assigned to a selection group.</summary>
-        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the specified client.</remarks>
+        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the specified client and root content item.</remarks>
         /// <param name="SelectionGroupId">The selection group to be updated.</param>
         /// <param name="UserAssignments">A dictionary that maps client IDs to a boolean value indicating whether to add or remove the client.</param>
         /// <returns>JsonResult</returns>
@@ -239,10 +255,17 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult ContentAccessAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.ClientId));
-            if (!ContentAccessAdminResult.Succeeded)
+            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.ClientId));
+            if (!RoleInClientResult.Succeeded)
             {
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
+                return Unauthorized();
+            }
+
+            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.RootContentItemId));
+            if (!RoleInRootContentItemResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
                 return Unauthorized();
             }
             #endregion
@@ -330,6 +353,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Deletes a selection group.</summary>
+        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the specified client and root content item.</remarks>
         /// <param name="SelectionGroupId">The selection group to be deleted.</param>
         /// <returns>JsonResult</returns>
         [HttpDelete]
@@ -347,10 +371,17 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult ContentAccessAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.ClientId));
-            if (!ContentAccessAdminResult.Succeeded)
+            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.ClientId));
+            if (!RoleInClientResult.Succeeded)
             {
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
+                return Unauthorized();
+            }
+
+            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.RootContentItemId));
+            if (!RoleInRootContentItemResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
                 return Unauthorized();
             }
             #endregion
