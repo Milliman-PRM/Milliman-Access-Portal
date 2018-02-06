@@ -34,9 +34,13 @@
     </div>
 </div>
 
-
-<button>Tom Testing Button</button>
-
+<button value="Tom Test" onclick="test1(value);">Tom Testing</button>
+<script type="text/javascript">
+    function test1(Value) {
+      alert("test1 Clicked");
+    }
+</script>
+ 
 @section Scripts {
 
     @Html.Partial("~/Views/ContentPublishing/templates/_Node.cshtml")
