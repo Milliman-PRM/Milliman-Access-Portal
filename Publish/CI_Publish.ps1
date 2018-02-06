@@ -97,7 +97,16 @@ log_statement "Building unit tests"
 MSBuild /t:Restore /verbosity:minimal
 
 if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: Unit test restore failed"
+    log_statement "ERROR: Initial package restore failed"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
+$command = '"C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Web\External\bower.cmd" install'
+invoke-expression "&$command"
+
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: Bower package restore failed"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
