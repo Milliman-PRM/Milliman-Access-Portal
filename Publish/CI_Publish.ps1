@@ -167,8 +167,8 @@ if ($? -eq $false)
 
 #region Create and configure deployment slot
 
-$existingSlot = Get-AzureRmWebAppSlot -ResourceGroupName $ResourceGroupName -Name $WebAppName -Slot $Branchname
-if ($existingSlot -eq $null)
+Get-AzureRmWebAppSlot -ResourceGroupName $ResourceGroupName -Name $WebAppName -Slot $Branchname
+if ($? -eq $false)
 {
     New-AzureRmWebAppSlot -ResourceGroupName $ResourceGroupName -AppServicePlan $AppServicePlanName -Name $WebAppName -Slot $BranchName
 
