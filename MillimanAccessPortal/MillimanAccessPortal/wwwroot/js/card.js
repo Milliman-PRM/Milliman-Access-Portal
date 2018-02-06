@@ -42,7 +42,7 @@ var Card;
         ].join('')
       },
       icon: {
-        selector: '.card-body-secondary-container > svg',
+        selector: 'svg',
         html: [
           '<svg class="">',
             '<use href=""></use>',
@@ -71,6 +71,21 @@ var Card;
         html: [
           '<p class="card-body-secondary-text"></p>',
           '<stub />'
+        ].join('')
+      },
+      action: {
+        selector: '.card-body-primary-text',
+        html: [
+          '<h2 class="card-body-primary-text">',
+          '<stub />',
+          '</h2>'
+        ].join('')
+      },
+      actionText: {
+        selector: 'span',
+        html: [
+          '<span></span>',
+          '<stub/>'
         ].join('')
       },
       stats: {
@@ -199,18 +214,25 @@ var Card;
     },
 
 
-    newCard: function newCard(searchTerms, clientId, userId, canManage) {
+    newCard: function newCard() {
       this.vars.$card = $(this.templates.container.html);
+      this.vars.lastComponent = '';
+      return this;
+    },
+
+    container: function container(searchTerms, clientId, userId, canManage) {
+      var searchString;
       this.vars.canManage = canManage;
       this.vars.lastComponent = 'container';
-      this.attr({
-        'data-search-string': $.map(searchTerms, function upper(term) {
+      if (searchTerms) {
+        searchString = $.map(searchTerms, function upper(term) {
           return (term || '').toUpperCase();
-        }).join('|'),
-        'data-client-id': clientId,
-        'data-user-id': userId
-      });
-      if (!this.vars.canManage) this.attr({ disabled: '' });
+        }).join('|');
+        this.attr({ 'data-search-string': searchString });
+      }
+      if (clientId) this.attr({ 'data-client-id': clientId });
+      if (userId) this.attr({ 'data-user-id': userId });
+      if (typeof canManage === 'boolean' && !this.vars.canManage) this.attr({ disabled: '' });
       return this;
     },
 
@@ -242,9 +264,27 @@ var Card;
       return this;
     },
 
+    action: function action() {
+      this.vars.lastComponent = 'action';
+      verify(['main', 'text', 'action']);
+      return this;
+    },
+
+    actionText: function actionText(text) {
+      this.vars.lastComponent = 'actionText';
+      add(['main', 'text', 'action', 'actionText']);
+      return html(text);
+    },
+
     icon: function icon(iconName) {
       this.vars.lastComponent = 'icon';
       add(['main', 'icons', 'icon']);
+      return this.attr({ href: iconName }, '[href]');
+    },
+
+    actionIcon: function actionIcon(iconName) {
+      this.vars.lastComponent = 'icon';
+      add(['main', 'text', 'action', 'icon']);
       return this.attr({ href: iconName }, '[href]');
     },
 
@@ -341,6 +381,52 @@ var Card;
     build: function build() {
       this.vars.$card.find('stub').remove();
       return this.vars.$card;
+    },
+
+    buildNewClient: function buildNewClient() {
+      /* eslint-disable indent */
+      return this
+        .newCard()
+        .container()
+          .attr({ id: 'create-new-client-card' }, '.card-container')
+          .class('card-100 action-card', '.card-container')
+        .actionIcon('#action-icon-add')
+          .class('action-card-icon')
+        .actionText('New Client')
+        .build();
+      /* eslint-enable indent */
+    },
+
+    buildNewChildClient: function buildNewChildClient(level) {
+      /* eslint-disable indent */
+      return this
+        .newCard()
+          .class('client-insert')
+          .class('card-' + (100 - (10 * level)))
+        .container()
+          .class('card-container flex-container flex-row-no-wrap items-align-center')
+        .actionText('New Sub-Client')
+        .actionIcon('#action-icon-expand-card')
+          .class('new-child-icon')
+        .main()
+          .class('content-item-flex-1')
+          .class('indent-level-' + level, '.card-body-primary-text')
+        .build();
+      /* eslint-enable indent */
+    },
+
+    buildAddUser: function buildAddUser() {
+      /* eslint-disable indent */
+      return this
+        .newCard()
+        .container()
+          .attr({ id: 'add-user-card' })
+          .class('card-100 action-card')
+        .actionIcon('#action-icon-add')
+          .class('action-card-icon')
+        .actionText('Add User')
+        .build();
+      /* eslint-enable indent */
     }
 
   };
@@ -371,7 +457,7 @@ var Card;
       ? Card.vars.$card
         .find(Card.templates[component].selector)
         .last()
-      : $();
+      : Card.vars.$card;
     var $subcomponent = $component.find(selector);
     return $subcomponent.length ? $subcomponent : $component;
   };
