@@ -155,15 +155,13 @@ if ($? -eq $false)
 #region Authenticate to Azure with a service principal
 
 $DeployCredential = new-object -typename System.Management.Automation.PSCredential -argumentlist $deployUser,($deployPassword | ConvertTo-SecureString -AsPlainText -Force)
-Add-AzureRmAccount -ServicePrincipal -Credential $DeployCredential -TenantId $TenantId 
+Add-AzureRmAccount -ServicePrincipal -Credential $DeployCredential -TenantId $TenantId  -Subscription $SubscriptionId
 
 if ($? -eq $false)
 {
     log_statement "Failed to authenticate to Azure. Unable to deploy."
     exit -1000
 }
-
-Set-AzureRmContext -Subscription $SubscriptionId
 
 #endregion
 
