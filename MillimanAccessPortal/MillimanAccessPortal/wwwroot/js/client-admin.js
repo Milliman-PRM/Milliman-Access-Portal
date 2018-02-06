@@ -5,9 +5,6 @@ var ajaxStatus = {
 };
 var nodeTemplate = $('script[data-template="node"]').html();
 var smallSpinner = '<div class="spinner-small""></div>';
-var $createNewClientCard;
-var $createNewChildClientCard;
-var $addUserCard;
 var eligibleUsers;
 var SHOW_DURATION = 50;
 
@@ -479,7 +476,8 @@ function userCardRoleToggleClickHandler(event) {
 function renderUserNode(client, user) {
   /* eslint-disable indent */
   var $template = Card
-    .newCard(
+    .newCard()
+    .container(
       [
         user.FirstName + ' ' + user.LastName,
         user.UserName,
@@ -538,7 +536,7 @@ function renderUserList(client, userId) {
 
   if (client.CanManage) {
     $('#add-user-icon').show();
-    $('#client-user-list').append($addUserCard);
+    $('#client-user-list').append(Card.buildAddUser());
     $('#add-user-card')
       .click(function onClick() {
         addUserClickHandler();
@@ -553,11 +551,7 @@ function renderUserList(client, userId) {
  */
 function setupChildClientForm(parentClientDiv) {
   var parentClientId = parentClientDiv.attr('data-client-id').valueOf();
-  var $template = $createNewChildClientCard.clone();
-  $template
-    .addClass(parentClientDiv.hasClass('card-100') ? 'card-90' : 'card-80')
-    .find('.card-body-primary-text')
-    .addClass(parentClientDiv.hasClass('card-100') ? 'indent-level-1' : 'indent-level-2');
+  var $template = Card.buildNewChildClient(parentClientDiv.hasClass('card-100') ? 1 : 2);
 
   clearFormData();
   $('#client-form #ParentClientId').val(parentClientId);
@@ -1025,7 +1019,8 @@ function renderClientNode(client, level) {
   var classes = ['card-100', 'card-90', 'card-80'];
   /* eslint-disable indent */
   var $template = Card
-    .newCard(
+    .newCard()
+    .container(
       [
         client.ClientModel.ClientEntity.Name,
         client.ClientModel.ClientEntity.ClientCode
@@ -1118,7 +1113,7 @@ function renderClientTree(clientTreeList, clientId) {
     $('[data-client-id="' + clientId + '"]').click();
   }
   if ($('#add-client-icon').length) {
-    $clientTreeList.append($createNewClientCard.clone());
+    $clientTreeList.append(Card.buildNewClient());
     $('#create-new-client-card')
       .click(function onClick() {
         createNewClientClickHandler($(this));
@@ -1281,40 +1276,6 @@ $(document).ready(function onReady() {
   $('#user-search-box').keyup(function onKeyup() {
     searchUser($(this).val());
   });
-
-  // Construct static cards
-  $createNewClientCard = $(nodeTemplate);
-  $createNewClientCard.find('.card-container')
-    .addClass('card-100 action-card')
-    .attr('id', 'create-new-client-card');
-  $createNewClientCard.find('.card-body-primary-text')
-    .append('<svg class="action-card-icon"><use xlink:href="#action-icon-add"></use></svg>')
-    .append('<span>New Client</span>');
-  $createNewClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
-    .remove();
-
-  $createNewChildClientCard = $(nodeTemplate);
-  $createNewChildClientCard
-    .addClass('client-insert');
-  $createNewChildClientCard.find('.card-container')
-    .addClass('flex-container flex-row-no-wrap items-align-center');
-  $createNewChildClientCard.find('.card-body-main-container')
-    .addClass('content-item-flex-1');
-  $createNewChildClientCard.find('.card-body-primary-text')
-    .append('<span>New Sub-Client</span>')
-    .append('<svg class="new-child-icon"><use xlink:href="#action-icon-expand-card"></use></svg>');
-  $createNewChildClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
-    .remove();
-
-  $addUserCard = $(nodeTemplate);
-  $addUserCard.find('.card-container')
-    .addClass('card-100 action-card')
-    .attr('id', 'add-user-card');
-  $addUserCard.find('.card-body-primary-text')
-    .append('<svg class="action-card-icon"><use xlink:href="#action-icon-add"></use></svg>')
-    .append('<span>Add User</span>');
-  $addUserCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
-    .remove();
 
 
   $('.tooltip').tooltipster();
