@@ -1,3 +1,4 @@
+/// <reference path="client-admin.js" />
 /* global domainValRegex, emailValRegex */
 
 var ajaxStatus = {
@@ -152,17 +153,27 @@ function confirmRemoveDialog(name, submitHandler) {
  * @return {undefined}
  */
 function confirmAndReset(confirmDialog, onContinue) {
-    if (findModifiedInputs().length) {
-        confirmDialog(function onConfirm() {
-            resetFormData();
-            if (typeof onContinue === 'function') onContinue();
-        });
-    } else {
-        resetFormData();
-        if (typeof onContinue === 'function') onContinue();
-    }
+    if (typeof onContinue === 'function') onContinue();
 }
 
+
+/**
+ * Repopulate client form with details for the provided client
+ * @param {Object} clientDiv the div for whom data will be retrieved
+ * @return {undefined}
+ */
+function getClientDetail(clientDiv) {
+    var clientId = clientDiv.attr('data-client-id').valueOf();
+
+    ajaxStatus.getClientDetail = clientId;
+    $.ajax({
+        type: 'GET',
+        url: 'ClientAdmin/ClientDetail/' + clientId,
+        headers: {
+            RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+        }
+    })
+}
 
 /**
  * Display client card details
@@ -173,9 +184,7 @@ function openClientCardReadOnly($clientCard) {
     removeClientInserts();
     clearClientSelection();
     $clientCard.attr('selected', '');
-    setClientFormReadOnly();
     getClientDetail($clientCard);
-    showClientDetails();
 }
 
 /**
