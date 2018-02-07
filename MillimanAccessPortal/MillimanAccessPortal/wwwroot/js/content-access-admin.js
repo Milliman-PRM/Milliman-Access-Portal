@@ -3,11 +3,10 @@
 var ajaxStatus = {
   getRootContentItemList: -1
 };
-var smallSpinner = '<div class="spinner-small""></div>';
-var eligibleUsers;
 var SHOW_DURATION = 50;
 
 var clientCardClickHandler;
+
 
 // Helper functions (TODO: consider moving to separate file)
 
@@ -34,12 +33,9 @@ function openClientCard($clientCard) {
   showClientDetails();
 }
 
-/**
- * Render user node by using string substitution on a clientNodeTemplate
- * @param  {Object} client Client object to render
- * @param  {Number} level  Client indentation level
- * @return {undefined}
- */
+
+// Render functions
+
 function renderClientNode(client, level) {
   var classes = ['card-100', 'card-90', 'card-80'];
   /* eslint-disable indent */
@@ -101,11 +97,6 @@ function renderRootContentItem(rootContentItem) {
   $('#root-content-list').append($card);
 }
 
-/**
- * Render client tree recursively and attach event handlers
- * @param  {Number} clientId ID of the client card to click after render
- * @return {undefined}
- */
 function renderClientTree(clientTreeList, clientId) {
   var $clientTreeList = $('#client-tree-list');
   $clientTreeList.empty();
@@ -134,10 +125,9 @@ function renderRootContentItemList(rootContentItemList, rootContentItemId) {
   }
 }
 
-/**
- * Send an AJAX request to get the client tree
- * @return {undefined}
- */
+
+// AJAX functions
+
 function getClientTree() {
   $('#client-tree .loading-wrapper').show();
   $.ajax({
@@ -179,13 +169,9 @@ function getRootContentItemList($clientCard) {
   });
 }
 
+
 // Event handlers
 
-/**
- * Handle click events for all client cards and client inserts
- * @param {jQuery} $clickedCard the card that was clicked
- * @return {undefined}
- */
 clientCardClickHandler = function clientCardClickHandler_($clickedCard) {
   var $clientTree = $('#client-tree');
   var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
