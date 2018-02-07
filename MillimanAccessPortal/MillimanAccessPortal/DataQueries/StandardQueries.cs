@@ -4,11 +4,13 @@
  * DEVELOPER NOTES: 
  */
 
+using System;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
+using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -173,6 +175,43 @@ namespace MillimanAccessPortal.DataQueries
             return await UserManager.GetUserAsync(User);
         }
 
+        public ContentReductionHierarchy GetHierarchyForRootContent(long ContentId)
+        {
+            RootContentItem ContentItem = DataContext.RootContentItem.Find(ContentId);
+            if (ContentItem == null)
+            {
+                return null;
+            }
 
+            try
+            {
+                ContentReductionHierarchy ReturnObject = new ContentReductionHierarchy { RootContentItemId = ContentId };
+
+                /* Note: This code supports only a single root node (represents full document access) and 
+                 * a single set of values in one child field.  A proper tree structure is not supported! 
+                 */
+                HierarchyField RootDocumentField = DataContext.HierarchyField.Single(f => f.HierarchyLevel == 0 && f.RootContentItemId == ContentId);
+                HierarchyFieldValue RootDocumentFieldValue = DataContext.HierarchyFieldValue.Single(f => f.HierarchyFieldId == RootDocumentField.Id);
+
+                // If we start supporting a tree, we need to store parent/child relationships to convey value containment
+                ReturnObject.RootNode = new ReductionFieldNodeBase { FieldName = RootDocumentField.FieldName,
+                                                                     FieldValues = new string[]{ RootDocumentFieldValue.Value } };
+
+                TODO Continue here
+                    Modify diagram to switch field name to string, not string[]
+
+                return ReturnObject;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+
+        }
+
+        private ReductionFieldNodeBase GetHierarchyNodeForFieldIdRecursive(long FieldId)
+        {
+
+        }
     }
 }

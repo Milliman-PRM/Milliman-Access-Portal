@@ -16,7 +16,7 @@ namespace MapDbContextLib.Context
         public long Id { get; set; }
 
         [Required]
-        public string[] FieldNameList { get; set; }
+        public string FieldName { get; set; }
 
         [Required]
         public int HierarchyLevel { get; set; }
