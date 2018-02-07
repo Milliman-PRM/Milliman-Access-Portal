@@ -225,7 +225,7 @@ $gitPassword = $xml.SelectNodes("//publishProfile[@publishMethod=`"MSDeploy`"]/@
 $remoteUrl = $deployProperties.Properties.repoUrl
 
 # Retrieve public URL of deployment slot to output later
-$slot = Get-AzureRmResource -ResourceGroupName map-ci -ResourceType Microsoft.Web/sites/slots -ResourceName "$WebAppName/test-slot" -ApiVersion 2016-08-01
+$slot = Get-AzureRmResource -ResourceGroupName map-ci -ResourceType Microsoft.Web/sites/slots -ResourceName "$WebAppName/$BranchName" -ApiVersion 2016-08-01
 if ($? -eq $false)
 {
     log_statement "Failed to retrieve deployment slot properties"
