@@ -17,7 +17,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
     public class ContentAccessAdminClientListViewModel
     {
         public List<ClientAndChildrenModel> ClientTreeList { get; set; } = new List<ClientAndChildrenModel>();
-        public long RelevantClientId { get; set; } = -1;
+        public long RelevantClientId { get; set; } = 0;
 
         async public static Task<ContentAccessAdminClientListViewModel> Build(ApplicationUser CurrentUser, UserManager<ApplicationUser> UserManager, ApplicationDbContext DbContext)
         {
