@@ -506,9 +506,7 @@ function renderUserNode(client, user) {
       })
       .tooltip('Remove user')
     .roleExpansion()
-    .roleToggles(user.UserRoles.sort(function (a, b) {
-      return (a.RoleEnum < b.RoleEnum) ? -1 : 1;
-    }))
+    .roleToggles(user.UserRoles)
     .build();
   /* eslint-enable indent */
 
