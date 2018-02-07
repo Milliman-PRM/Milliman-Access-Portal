@@ -207,6 +207,16 @@ var Card;
       return this;
     },
 
+    searchString: function searchString(searchTerms, selector) {
+      var $component = findComponent(this.vars.lastComponent, selector);
+      $component.attr({
+        'data-search-string': $.map(searchTerms, function upper(term) {
+          return (term || '').toUpperCase();
+        }).join('|')
+      });
+      return this;
+    },
+
     click: function click(onClick, selector) {
       var $component = findComponent(this.vars.lastComponent, selector);
       $component.click(onClick);

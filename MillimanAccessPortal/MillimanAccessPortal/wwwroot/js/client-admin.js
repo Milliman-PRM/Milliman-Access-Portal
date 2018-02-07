@@ -474,20 +474,15 @@ function userCardRoleToggleClickHandler(event) {
  * @return {undefined}
  */
 function renderUserNode(client, user) {
-  var searchTerms = [
-    user.FirstName + ' ' + user.LastName,
-    user.UserName,
-    user.Email
-  ];
   /* eslint-disable indent */
   var $template = Card
     .newCard()
     .container(client.CanManage)
-      .attr({
-        'data-search-string': $.map(searchTerms, function upper(term) {
-          return (term || '').toUpperCase();
-        }).join('|')
-       })
+      .searchString([
+        user.FirstName + ' ' + user.LastName,
+        user.UserName,
+        user.Email
+      ])
       .attr({ 'data-client-id': client.ClientEntity.Id })
       .attr({ 'data-user-id': user.Id })
     .icon('#action-icon-user')
@@ -1020,19 +1015,14 @@ function cancelIconClickHandler() {
  */
 function renderClientNode(client, level) {
   var classes = ['card-100', 'card-90', 'card-80'];
-  var searchTerms = [
-    client.ClientModel.ClientEntity.Name,
-    client.ClientModel.ClientEntity.ClientCode
-  ];
   /* eslint-disable indent */
   var $template = Card
     .newCard()
     .container(client.ClientModel.CanManage)
-      .attr({
-        'data-search-string': $.map(searchTerms, function upper(term) {
-          return (term || '').toUpperCase();
-        }).join('|')
-       })
+      .searchString([
+        client.ClientModel.ClientEntity.Name,
+        client.ClientModel.ClientEntity.ClientCode
+      ])
       .attr({ 'data-client-id': client.ClientModel.ClientEntity.Id })
       .class(classes[level])
     .primaryInfo(client.ClientModel.ClientEntity.Name)

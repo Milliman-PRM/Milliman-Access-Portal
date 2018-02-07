@@ -25,19 +25,14 @@ function clearClientSelection() {
  */
 function renderClientNode(client, level) {
   var classes = ['card-100', 'card-90', 'card-80'];
-  var searchTerms = [
-    client.ClientDetailModel.ClientEntity.Name,
-    client.ClientDetailModel.ClientEntity.ClientCode
-  ];
   /* eslint-disable indent */
   var $card = Card
     .newCard()
     .container(client.ClientDetailModel.CanManage)
-      .attr({
-        'data-search-string': $.map(searchTerms, function upper(term) {
-          return (term || '').toUpperCase();
-        }).join('|')
-       })
+      .searchString([
+        client.ClientDetailModel.ClientEntity.Name,
+        client.ClientDetailModel.ClientEntity.ClientCode
+      ])
       .attr({ 'data-client-id': client.ClientDetailModel.ClientEntity.Id })
       .class(classes[level])
       .click(function onClick() {
@@ -63,19 +58,14 @@ function renderClientNode(client, level) {
 }
 
 function renderRootContentItem(rootContentItem) {
-  var searchTerms = [
-    rootContentItem.RootContentItemEntity.ContentName,
-    rootContentItem.RootContentItemEntity.ContentType.Name
-  ];
   /* eslint-disable indent */
   var $card = Card
     .newCard()
     .container()
-      .attr({
-        'data-search-string': $.map(searchTerms, function upper(term) {
-          return (term || '').toUpperCase();
-        }).join('|')
-       })
+      .searchString([
+        rootContentItem.RootContentItemEntity.ContentName,
+        rootContentItem.RootContentItemEntity.ContentType.Name
+      ])
       .click(function onClick() {
         console.log('Root content item ' + rootContentItem.RootContentItemEntity.ContentName + ' clicked.');
       })
