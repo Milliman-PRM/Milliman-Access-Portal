@@ -52,9 +52,11 @@ function renderClientNode(client, level) {
       ])
       .attr({ 'data-client-id': client.ClientDetailModel.ClientEntity.Id })
       .class(classes[level])
-      .click(function onClick() {
-        clientCardClickHandler($(this));
-      })
+      .click(client.ClientDetailModel.CanManage
+        ? function onClick() {
+          clientCardClickHandler($(this));
+        }
+        : undefined)
     .primaryInfo(client.ClientDetailModel.ClientEntity.Name)
     .secondaryInfo(client.ClientDetailModel.ClientEntity.ClientCode || '')
     .cardStat('#action-icon-users', client.ClientDetailModel.EligibleUserCount)
