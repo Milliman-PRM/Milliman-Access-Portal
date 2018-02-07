@@ -299,6 +299,13 @@ if ($LASTEXITCODE -ne 0)
     log_statement "Failed to configure git credential manager."
     exit -800
 }
+$command = "$gitexepath config --global credential.interactive never"
+Invoke-Expression "$command"
+if ($LASTEXITCODE -ne 0)
+{
+    log_statement "Failed to configure git credential propts."
+    exit -800
+}
 #endregion
 
 #region Push to git remote
