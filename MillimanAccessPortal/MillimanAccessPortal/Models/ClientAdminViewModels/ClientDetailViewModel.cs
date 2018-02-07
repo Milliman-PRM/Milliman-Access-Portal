@@ -131,6 +131,8 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                         RoleDisplayValue = ApplicationRole.RoleDisplayNames[re],
                         IsAssigned = false
                     }));
+
+                UserInfoItem.UserRoles = UserInfoItem.UserRoles.OrderBy(ur => ur.RoleEnum).ToList();
             }
 
             // Get all users currently member of any related Client (any descendant of the root client)
@@ -170,6 +172,8 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                         RoleDisplayValue = ApplicationRole.RoleDisplayNames[re],
                         IsAssigned = false
                     }));
+
+                UserInfoItem.UserRoles = UserInfoItem.UserRoles.OrderBy(ur => ur.RoleEnum).ToList();
             }
 
             // Subtract the assigned users from the overall list of eligible users
