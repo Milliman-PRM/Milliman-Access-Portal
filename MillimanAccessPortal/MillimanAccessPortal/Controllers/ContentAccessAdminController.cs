@@ -286,6 +286,9 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateSelectionGroupUserAssignments(long SelectionGroupId, Dictionary<long, Boolean> UserAssignments)
         {
+            IEnumerable<long> UserAdditions;
+            IEnumerable<long> UserRemovals;
+
             ContentItemUserGroup SelectionGroup = DbContext.ContentItemUserGroup
                 .Include(rg => rg.Client)
                 .Include(rg => rg.RootContentItem)
@@ -340,40 +343,42 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var Nonexistant = UserAssignments
-                .Select(kvp => DbContext.ApplicationUser.Find(kvp.Key))
-                .Where(m => m == null);
-            if (Nonexistant.Any())
+            var CurrentAssignments = DbContext.UserInContentItemUserGroup
+                .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
+                .Select(uug => uug.UserId)
+                .ToList();
+            UserAdditions = UserAssignments
+                .Where(kvp => kvp.Value)
+                .Select(kvp => kvp.Key)
+                .Except(CurrentAssignments);
+            UserRemovals = UserAssignments
+                .Where(kvp => !kvp.Value)
+                .Select(kvp => kvp.Key)
+                .Intersect(CurrentAssignments);
+
+            var Existant = DbContext.ApplicationUser
+                .Where(u => UserAssignments.Keys.Contains(u.Id));
+            if (Existant.Count() < UserAssignments.Count())
             {
                 Response.Headers.Add("Warning", "One or more requested users do not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            var Nonpermissioned = UserAssignments
-                .Where(kvp => kvp.Value)
-                .Where(kvp => DbContext.UserRoleInRootContentItem
-                    .Include(ur => ur.Role)
-                    .Where(ur => ur.UserId == kvp.Key)
-                    .Where(ur => ur.RootContentItemId == SelectionGroup.RootContentItemId)
-                    .Where(ur => ur.Role.RoleEnum == RoleEnum.ContentUser)
-                    .SingleOrDefault() == null
-                    );
-            if (Nonpermissioned.Any())
+            var Permissioned = DbContext.UserRoleInRootContentItem
+                .Where(ur => UserAdditions.Contains(ur.UserId))
+                .Where(ur => ur.RootContentItemId == SelectionGroup.RootContentItemId)
+                .Where(ur => ur.RoleId == ((long) RoleEnum.ContentUser));
+            if (Permissioned.Count() < UserAdditions.Count())
             {
                 Response.Headers.Add("Warning", "One or more requested users do not have permission to use this content.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            var AlreadyInGroup = UserAssignments
-                .Where(kvp => kvp.Value)
-                .Where(kvp => DbContext.UserInContentItemUserGroup
-                    .Include(uug => uug.ContentItemUserGroup)
-                    .Where(uug => uug.UserId == kvp.Key)
-                    .Where(uug => uug.ContentItemUserGroupId != SelectionGroup.Id)
-                    .Where(uug => uug.ContentItemUserGroup.RootContentItemId == SelectionGroup.RootContentItemId
-                        )
-                    .Any()
-                    );
+            var AlreadyInGroup = DbContext.UserInContentItemUserGroup
+                .Where(uug => UserAdditions.Contains(uug.UserId))
+                .Where(uug => uug.ContentItemUserGroupId != SelectionGroup.Id)
+                .Where(uug => uug.ContentItemUserGroup.ClientId == SelectionGroup.ClientId)  // Remove if support for multiple clients per root content item is dropped.
+                .Where(uug => uug.ContentItemUserGroup.RootContentItemId == SelectionGroup.RootContentItemId);
             if (AlreadyInGroup.Any())
             {
                 Response.Headers.Add("Warning", "One or more requested users to add are already in a different selection group.");
@@ -386,30 +391,19 @@ namespace MillimanAccessPortal.Controllers
                 using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
                 {
                     DbContext.UserInContentItemUserGroup.RemoveRange(
-                        UserAssignments
-                            .Where(kvp => !kvp.Value)
-                            .Select(kvp => DbContext.UserInContentItemUserGroup
-                                .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
-                                .Where(uug => uug.UserId == kvp.Key)
-                                .SingleOrDefault()
-                                )
-                            .Where(uug => uug != null)
+                        DbContext.UserInContentItemUserGroup
+                            .Where(uug => UserRemovals.Contains(uug.UserId))
+                            .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
                         );
                     DbContext.SaveChanges();
 
                     DbContext.UserInContentItemUserGroup.AddRange(
-                        UserAssignments
-                            .Where(kvp => kvp.Value)
-                            .Where(kvp => DbContext.UserInContentItemUserGroup
-                                .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
-                                .Where(uug => uug.UserId == kvp.Key)
-                                .SingleOrDefault() == null
-                                )
-                            .Select(kvp =>
+                        UserAdditions
+                            .Select(uid =>
                                 new UserInContentItemUserGroup
                                 {
                                     ContentItemUserGroupId = SelectionGroup.Id,
-                                    UserId = kvp.Key,
+                                    UserId = uid,
                                 }
                             )
                         );
@@ -433,17 +427,29 @@ namespace MillimanAccessPortal.Controllers
             }
 
             #region Log audit event(s)
-            foreach (var UserAssignment in UserAssignments)
+            foreach (var UserAddition in UserAdditions)
             {
-                AuditEvent SelectionGroupUpdatedEvent = AuditEvent.New(
+                AuditEvent SelectionGroupUserAssignmentsUpdatedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                    $"User {(UserAssignment.Value ? "assigned to" : "removed from")} selection group",
-                    (UserAssignment.Value ? AuditEventId.SelectionGroupUserAssigned : AuditEventId.SelectionGroupUserRemoved),
-                    new { SelectionGroup.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, UserId = UserAssignment.Key },
+                    "User assigned to selection group",
+                    AuditEventId.SelectionGroupUserAssigned,
+                    new { SelectionGroup.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, UserId = UserAddition },
                     User.Identity.Name,
                     HttpContext.Session.Id
                     );
-                AuditLogger.Log(SelectionGroupUpdatedEvent);
+                AuditLogger.Log(SelectionGroupUserAssignmentsUpdatedEvent);
+            }
+            foreach (var UserRemoval in UserRemovals)
+            {
+                AuditEvent SelectionGroupUserAssignmentsUpdatedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    "User removed from selection group",
+                    AuditEventId.SelectionGroupUserRemoved,
+                    new { SelectionGroup.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, UserId = UserRemoval },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(SelectionGroupUserAssignmentsUpdatedEvent);
             }
             #endregion
 
