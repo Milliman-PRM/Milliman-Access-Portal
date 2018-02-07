@@ -94,7 +94,7 @@ function renderRootContentItem(rootContentItem) {
     .cardStat('#action-icon-users', rootContentItem.GroupCount)
       .tooltip('Selection groups')
     .cardStat('#action-icon-reports', rootContentItem.EligibleUserCount)
-      .tooltip('Assigned users')
+      .tooltip('Eligible users')
     .build();
   /* eslint-enable indent */
 
