@@ -69,7 +69,7 @@ $deployPassword = $env:app_deploy_password
 $gitExePath = "git"
 $credManagerPath = "L:\Hotware\Powershell_Plugins\CredMan.ps1"
 $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
-$azCliPath = "C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin\az.cmd"
+$azCliPath = "az"
 
 $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
@@ -82,7 +82,7 @@ $logDbTemplateName = "logdb_ci_template"
 $logDbOwner = "logdb_admin"
 $dbCreationRetries = 5 # The number of times the script will attempt to create a new database before throwing an error
 
-
+$env:PATH = $env:PATH+";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin\"
 
 #endregion
 
@@ -149,6 +149,7 @@ if ($LASTEXITCODE -ne 0) {
 cd $rootPath
 
 #endregion
+
 
 $env:PSModulePath = $env:PSModulePath+';C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager'
 
