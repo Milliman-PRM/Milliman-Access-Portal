@@ -220,18 +220,9 @@ var Card;
       return this;
     },
 
-    container: function container(searchTerms, clientId, userId, canManage) {
-      var searchString;
+    container: function container(canManage) {
       this.vars.canManage = canManage;
       this.vars.lastComponent = 'container';
-      if (searchTerms) {
-        searchString = $.map(searchTerms, function upper(term) {
-          return (term || '').toUpperCase();
-        }).join('|');
-        this.attr({ 'data-search-string': searchString });
-      }
-      if (clientId) this.attr({ 'data-client-id': clientId });
-      if (userId) this.attr({ 'data-user-id': userId });
       if (typeof canManage === 'boolean' && !this.vars.canManage) this.attr({ disabled: '' });
       return this;
     },
