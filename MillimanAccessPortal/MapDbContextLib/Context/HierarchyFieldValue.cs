@@ -15,18 +15,11 @@ namespace MapDbContextLib.Context
         public long Id { get; set; }
 
         [Required]
-        public int HierarchyLevel { get; set; }
-
-        [Required]
         public string Value { get; set; }
 
-        [ForeignKey("ParentValue")]
-        public long? ParentHierarchyFieldValueId { get; set; }
-        public HierarchyFieldValue ParentValue { get; set; }
-
-        [ForeignKey("RootContentItem")]
-        public long RootContentItemId { get; set; }
-        public RootContentItem RootContentItem { get; set; }
+        [ForeignKey("HierarchyField")]
+        public long HierarchyFieldId { get; set; }
+        public HierarchyField HierarchyField { get; set; }
 
     }
 }

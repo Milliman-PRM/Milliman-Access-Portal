@@ -282,7 +282,7 @@ namespace MapTests
         }
 
         /// <summary>
-        /// Verify that Status Code 412 is returned when the requested user's email address is not valid for the selected client
+        /// Verify that Status Code 422 is returned when the requested user's email address is not valid for the selected client
         /// </summary>
         [Fact]
         public async Task AssignUserToClient_ErrorForInvalidEmail()
@@ -299,7 +299,7 @@ namespace MapTests
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
             StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal("412", viewResult.StatusCode.ToString());
+            Assert.Equal("422", viewResult.StatusCode.ToString());
             #endregion
         }
 
@@ -479,7 +479,7 @@ namespace MapTests
         }
 
         /// <summary>
-        /// Validate that status code 412 is returned when invalid email domains or addresses are provided
+        /// Validate that status code 422 is returned when invalid email domains or addresses are provided
         /// </summary>
         [Theory]
         [InlineData(new string[] {"test"}, null)] // invalid domain (no @)
@@ -510,7 +510,7 @@ namespace MapTests
             Assert.IsType<StatusCodeResult>(view);
 
             StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal<int>(412, viewResult.StatusCode);
+            Assert.Equal<int>(422, viewResult.StatusCode);
 
             #endregion
         }
@@ -632,8 +632,8 @@ namespace MapTests
         }
 
         /// <summary>
-        /// Validate that invalid data causes return code 412
-        /// Multiple scenarios should cause code 412 and must be tested
+        /// Validate that invalid data causes return code 422
+        /// Multiple scenarios should cause code 422 and must be tested
         /// 
         /// Providing a null value for an argument will retain the current value for the corresponding property
         /// </summary>
@@ -684,7 +684,7 @@ namespace MapTests
             Assert.IsType<StatusCodeResult>(view);
 
             StatusCodeResult statusCodeResult = (StatusCodeResult)view;
-            Assert.Equal<int>(412, statusCodeResult.StatusCode);
+            Assert.Equal<int>(422, statusCodeResult.StatusCode);
             #endregion
         }
 
@@ -807,7 +807,7 @@ namespace MapTests
             Assert.IsType<StatusCodeResult>(view);
 
             StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal<int>(412, viewResult.StatusCode);
+            Assert.Equal<int>(422, viewResult.StatusCode);
             #endregion
         }
 
@@ -829,7 +829,7 @@ namespace MapTests
             Assert.IsType<StatusCodeResult>(view);
 
             StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal<int>(412, viewResult.StatusCode);
+            Assert.Equal<int>(422, viewResult.StatusCode);
             #endregion
         }
 

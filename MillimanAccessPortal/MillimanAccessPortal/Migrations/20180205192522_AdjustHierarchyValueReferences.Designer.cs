@@ -11,9 +11,10 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180205192522_AdjustHierarchyValueReferences")]
+    partial class AdjustHierarchyValueReferences
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -87,23 +88,6 @@ namespace MillimanAccessPortal.Migrations
                     b.HasIndex("RootContentItemId");
 
                     b.ToTable("ContentItemUserGroup");
-                });
-
-            modelBuilder.Entity("MapDbContextLib.Context.ContentReductionTask", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<DateTime>("CreateDateTime")
-                        .ValueGeneratedOnAdd()
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<string>("Status")
-                        .IsRequired();
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ContentReductionTask");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.ContentType", b =>
