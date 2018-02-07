@@ -9,12 +9,29 @@ var SHOW_DURATION = 50;
 
 var clientCardClickHandler;
 
-/**
- * Clear 'selected' and 'editing' status from all card containers.
- * @return {undefined}
- */
+// Helper functions (TODO: consider moving to separate file)
+
 function clearClientSelection() {
   $('.card-container').removeAttr('editing selected');
+}
+
+function showClientDetails() {
+  // TODO: consider using nested divs for better hiding
+  $('#root-content').show(SHOW_DURATION);
+}
+
+function hideClientDetails() {
+  // TODO: consider using nested divs for better hiding
+  $('#root-content').hide(SHOW_DURATION);
+  $('#selection-groups').hide(SHOW_DURATION);
+  $('#selections').hide(SHOW_DURATION);
+}
+
+function openClientCard($clientCard) {
+  clearClientSelection();
+  $clientCard.attr('selected', '');
+  getRootContentItemList($clientCard);
+  showClientDetails();
 }
 
 /**
@@ -66,6 +83,7 @@ function renderRootContentItem(rootContentItem) {
         rootContentItem.RootContentItemEntity.ContentName,
         rootContentItem.RootContentItemEntity.ContentType.Name
       ])
+      .attr({ 'data-root-content-item-id': rootContentItem.RootContentItemEntity.Id })
       .click(function onClick() {
         console.log('Root content item ' + rootContentItem.RootContentItemEntity.ContentName + ' clicked.');
       })
@@ -118,13 +136,13 @@ function renderRootContentItemList(rootContentItemList, rootContentItemId) {
  * Send an AJAX request to get the client tree
  * @return {undefined}
  */
-function getClientTree(clientId) {
+function getClientTree() {
   $('#client-tree .loading-wrapper').show();
   $.ajax({
     type: 'GET',
     url: 'ContentAccessAdmin/ClientFamilyList'
   }).done(function onDone(response) {
-    renderClientTree(response.ClientTreeList, clientId || response.RelevantClientId);
+    renderClientTree(response.ClientTreeList);
     $('#client-tree .loading-wrapper').hide();
   }).fail(function onFail(response) {
     $('#client-tree .loading-wrapper').hide();
@@ -136,8 +154,10 @@ function getClientTree(clientId) {
   });
 }
 
-function getRootContentItemList(clientId) {
+function getRootContentItemList($clientCard) {
+  var clientId = $clientCard.attr('data-client-id');
   $('#root-content .loading-wrapper').show();
+  ajaxStatus.getRootContentItemList = clientId;
   $.ajax({
     type: 'GET',
     url: 'ContentAccessAdmin/RootContentItems',
@@ -145,7 +165,7 @@ function getRootContentItemList(clientId) {
       ClientId: clientId
     }
   }).done(function onDone(response) {
-    renderRootContentItemList(response.RootContentItemList, response.RelevantRootContentItemId);
+    renderRootContentItemList(response.RootContentItemList);
     $('#root-content .loading-wrapper').hide();
   }).fail(function onFail(response) {
     $('#root-content .loading-wrapper').hide();
@@ -171,14 +191,12 @@ clientCardClickHandler = function clientCardClickHandler_($clickedCard) {
     // TODO: wrap if-else with confirmAndReset
     if (sameCard) {
       clearClientSelection();
-      // TODO: hideClientDetails()
+      hideClientDetails();
     } else {
-      // TODO: openRootContentItemList($clickedCard)
-      getRootContentItemList($clickedCard.attr('data-client-id').valueOf());
+      openClientCard($clickedCard);
     }
   } else {
-    // TODO: openRootContentItemList($clickedCard)
-    getRootContentItemList($clickedCard.attr('data-client-id').valueOf());
+    openClientCard($clickedCard);
   }
 };
 
