@@ -116,6 +116,15 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 cd $rootPath\MillimanAccessPortal\MapTests
+
+MSBuild /t:Restore /verbosity:quiet
+
+if ( $LASTEXITCODE -ne 0 ) {
+    log_statement "ERROR: Unit test dependency restore failed"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
 MSBuild /verbosity:quiet
 
 if ( $LASTEXITCODE -ne 0 ) {
