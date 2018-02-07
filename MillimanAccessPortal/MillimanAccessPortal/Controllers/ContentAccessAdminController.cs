@@ -257,8 +257,24 @@ namespace MillimanAccessPortal.Controllers
                 ContentInstanceUrl = ""
             };
 
-            DbContext.ContentItemUserGroup.Add(SelectionGroup);
-            DbContext.SaveChanges();
+            try
+            {
+                DbContext.ContentItemUserGroup.Add(SelectionGroup);
+                DbContext.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                string ErrMsg = $"Exception while creating selection group \"{SelectionGroup.Id}\"";
+                while (ex != null)
+                {
+                    ErrMsg += $"\r\n{ex.Message}";
+                    ex = ex.InnerException;
+                }
+                Logger.LogError(ErrMsg);
+
+                Response.Headers.Add("Warning", $"Failed to complete transaction.");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
 
             #region Log audit event
             AuditEvent SelectionGroupCreatedEvent = AuditEvent.New(
