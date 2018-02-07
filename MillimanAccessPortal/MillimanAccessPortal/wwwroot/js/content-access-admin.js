@@ -7,33 +7,14 @@ var smallSpinner = '<div class="spinner-small""></div>';
 var eligibleUsers;
 var SHOW_DURATION = 50;
 
+var clientCardClickHandler;
+
 /**
  * Clear 'selected' and 'editing' status from all card containers.
  * @return {undefined}
  */
 function clearClientSelection() {
   $('.card-container').removeAttr('editing selected');
-}
-
-/**
- * Handle click events for all client cards and client inserts
- * @param {jQuery} $clickedCard the card that was clicked
- * @return {undefined}
- */
-function clientCardClickHandler($clickedCard) {
-  var $clientTree = $('#client-tree');
-  var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
-  if ($clientTree.has('[selected]').length) {
-    // TODO: wrap if-else with confirmAndReset
-    if (sameCard) {
-      clearClientSelection();
-      // TODO: hideClientDetails()
-    } else {
-      // TODO: openRootContentItemList($clickedCard)
-    }
-  } else {
-    // TODO: openRootContentItemList($clickedCard)
-  }
 }
 
 /**
@@ -45,7 +26,7 @@ function clientCardClickHandler($clickedCard) {
 function renderClientNode(client, level) {
   var classes = ['card-100', 'card-90', 'card-80'];
   /* eslint-disable indent */
-  var $template = Card
+  var $card = Card
     .newCard()
     .container(
       [
@@ -69,7 +50,7 @@ function renderClientNode(client, level) {
     .build();
   /* eslint-enable indent */
 
-  $('#client-tree-list').append($template);
+  $('#client-tree-list').append($card);
 
   // Render child nodes
   if (client.ChildClientModels.length) {
@@ -77,6 +58,34 @@ function renderClientNode(client, level) {
       renderClientNode(childNode, level + 1);
     });
   }
+}
+
+function renderRootContentItem(rootContentItem) {
+  /* eslint-disable indent */
+  var $card = Card
+    .newCard()
+    .container(
+      [
+        rootContentItem.ContentName,
+        rootContentItem.ContentType
+      ],
+      null,
+      null,
+      null
+    )
+      .click(function onClick() {
+        console.log('Root content item ' + rootContentItem.ContentName + ' clicked.');
+      })
+    .primaryInfo(rootContentItem.ContentName)
+    .secondaryInfo(rootContentItem.ContentType)
+    .cardStat('#action-icon-users', rootContentItem.NumberOfGroups)
+      .tooltip('Selection groups')
+    .cardStat('#action-icon-reports', rootContentItem.NumberOfAssignedUsers)
+      .tooltip('Assigned users')
+    .build();
+  /* eslint-enable indent */
+
+  $('#root-content-list').append($card);
 }
 
 /**
@@ -96,6 +105,19 @@ function renderClientTree(clientTreeList, clientId) {
 
   if (clientId) {
     $('[data-client-id="' + clientId + '"]').click();
+  }
+}
+
+function renderRootContentItemList(rootContentItemList, rootContentItemId) {
+  var $rootContentItemList = $('#root-content-list');
+  $rootContentItemList.empty();
+  rootContentItemList.forEach(function render(rootContentItem) {
+    renderRootContentItem(rootContentItem);
+  });
+  $rootContentItemList.find('.tooltip').tooltipster();
+
+  if (rootContentItemId) {
+    $('[data-root-content-item-id="' + rootContentItemId + '"]').click();
   }
 }
 
@@ -120,6 +142,53 @@ function getClientTree(clientId) {
     }
   });
 }
+
+function getRootContentItemList(clientId) {
+  $('#root-content .loading-wrapper').show();
+  $.ajax({
+    type: 'GET',
+    url: 'ContentAccessAdmin/RootContentItems',
+    data: {
+      ClientId: clientId
+    }
+  }).done(function onDone(response) {
+    renderRootContentItemList(response.RootContentItemList, response.RelevantRootContentItemId);
+    $('#root-content .loading-wrapper').hide();
+  }).fail(function onFail(response) {
+    $('#root-content .loading-wrapper').hide();
+    if (response.getResponseHeader('Warning')) {
+      toastr.warning(response.getResponseHeader('Warning'));
+    } else {
+      toastr.error('An error has occurred');
+    }
+  });
+}
+
+// Event handlers
+
+/**
+ * Handle click events for all client cards and client inserts
+ * @param {jQuery} $clickedCard the card that was clicked
+ * @return {undefined}
+ */
+clientCardClickHandler = function clientCardClickHandler_($clickedCard) {
+  var $clientTree = $('#client-tree');
+  var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
+  if ($clientTree.has('[selected]').length) {
+    // TODO: wrap if-else with confirmAndReset
+    if (sameCard) {
+      clearClientSelection();
+      // TODO: hideClientDetails()
+    } else {
+      // TODO: openRootContentItemList($clickedCard)
+      getRootContentItemList($clickedCard.attr('data-client-id').valueOf());
+    }
+  } else {
+    // TODO: openRootContentItemList($clickedCard)
+    getRootContentItemList($clickedCard.attr('data-client-id').valueOf());
+  }
+};
+
 
 $(document).ready(function onReady() {
   getClientTree();
