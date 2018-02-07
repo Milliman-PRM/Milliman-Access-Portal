@@ -331,7 +331,6 @@ else
 if ($LASTEXITCODE -ne 0)
 {
     log_statement "Failed to add git credential."
-    #exit -100
 }
 
 $command = "$gitexepath config --global credential.helper wincred"
