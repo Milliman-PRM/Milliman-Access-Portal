@@ -292,6 +292,13 @@ if ($LASTEXITCODE -ne 0)
     #exit -100
 }
 
+$command = "$gitexepath config --global credential.helper manager"
+Invoke-Expression "$command"
+if ($LASTEXITCODE -ne 0)
+{
+    log_statement "Failed to configure git credential manager."
+    exit -800
+}
 #endregion
 
 #region Push to git remote
