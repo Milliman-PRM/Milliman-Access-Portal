@@ -285,10 +285,12 @@ remove-item env:PGPASSWORD
 
 #region Configure database firewall rules
 
-$test = az login --service-principal -u $deployUser -p $deployPassword --tenant $tenantId
+$command = "az login --service-principal -u $deployUser -p $deployPassword --tenant $tenantId"
+Invoke-Expression $command
 if ($? -eq $false)
 {
     log_statement "Failed to authenticate for creation of firewall rules"
+    exit -9000
 }
 
 log_statement "Defining database firewall rules"
@@ -297,7 +299,14 @@ $properties = Get-AzureRmResource -ResourceGroupName map-ci -ResourceType Micros
 $outboundList = $properties.Properties.possibleOutboundIpAddresses.Split(',')
 $outboundList
 
-$firewallRules = az postgres server firewall-rule list --server-name $dbServerName --resource-group $ResourceGroupName | ConvertFrom-Json
+# Retrieve the current list of firewall rules
+# Will be compared against the app's IP addresses to see which rules need to be created
+$command = "az postgres server firewall-rule list --server-name $dbServerName --resource-group $ResourceGroupName | ConvertFrom-Json"
+$firewallRules = invoke-command $command
+if ($? -eq $false)
+{
+    log_statement "Failed retrieving list of existing firewall rules"
+}
 $firewallFailures = 0
 
 foreach ( $ip in $outboundList) 
@@ -305,7 +314,8 @@ foreach ( $ip in $outboundList)
     if ($ip -notin $firewallRules.startIpAddress -and $ip -notin $firewallRules.endIpAddress)
     {
         $ruleName = "Allow_"+$BranchName+"_"+$ip.replace(".","")
-        az postgres server firewall-rule create --resource-group $ResourceGroupName --server $DbServerName --name "$ruleName" --start-ip-address $ip --end-ip-address $ip
+        $command = "az postgres server firewall-rule create --resource-group $ResourceGroupName --server $DbServerName --name `"$ruleName`" --start-ip-address $ip --end-ip-address $ip"
+        invoke-expression $command
         if ($? -eq $false)
         {
             log_statement "Failed to create firewall rule named $ruleName"
