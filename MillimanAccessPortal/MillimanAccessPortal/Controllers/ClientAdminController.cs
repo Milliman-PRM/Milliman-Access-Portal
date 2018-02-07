@@ -490,6 +490,8 @@ namespace MillimanAccessPortal.Controllers
             List<AssignedRoleInfo> ReturnModel = new List<AssignedRoleInfo>();
             foreach (RoleEnum x in RolesToManage)
             {
+                // UserCreator is currently hidden from the front end
+                if (x == RoleEnum.UserCreator) continue;
                 ReturnModel.Add(new AssignedRoleInfo
                 {
                     RoleEnum = x,

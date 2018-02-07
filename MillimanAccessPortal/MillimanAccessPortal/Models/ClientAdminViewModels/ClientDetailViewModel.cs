@@ -119,7 +119,9 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
             // Assign the remaining assigned user properties
             foreach (UserInfoModel UserInfoItem in AssignedUsers)
             {
-                UserInfoItem.UserRoles = Queries.GetUserRolesForClient(UserInfoItem.Id, ClientEntity.Id);
+                UserInfoItem.UserRoles = Queries.GetUserRolesForClient(UserInfoItem.Id, ClientEntity.Id)
+                    .Where(ur => RolesToManage.Contains(ur.RoleEnum))
+                    .ToList();
 
                 // any roles that were not found need to be included with IsAssigned=false
                 UserInfoItem.UserRoles.AddRange(RolesToManage.Except(UserInfoItem.UserRoles.Select(ur => ur.RoleEnum)).Select(re =>
@@ -129,6 +131,8 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                         RoleDisplayValue = ApplicationRole.RoleDisplayNames[re],
                         IsAssigned = false
                     }));
+
+                UserInfoItem.UserRoles = UserInfoItem.UserRoles.OrderBy(ur => ur.RoleEnum).ToList();
             }
 
             // Get all users currently member of any related Client (any descendant of the root client)
@@ -168,6 +172,8 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                         RoleDisplayValue = ApplicationRole.RoleDisplayNames[re],
                         IsAssigned = false
                     }));
+
+                UserInfoItem.UserRoles = UserInfoItem.UserRoles.OrderBy(ur => ur.RoleEnum).ToList();
             }
 
             // Subtract the assigned users from the overall list of eligible users

@@ -1,13 +1,10 @@
-/* global domainValRegex, emailValRegex */
+/* global domainValRegex, emailValRegex, Card */
 
 var ajaxStatus = {
   getClientDetail: -1
 };
 var nodeTemplate = $('script[data-template="node"]').html();
 var smallSpinner = '<div class="spinner-small""></div>';
-var $createNewClientCard;
-var $createNewChildClientCard;
-var $addUserCard;
 var eligibleUsers;
 var SHOW_DURATION = 50;
 
@@ -408,64 +405,110 @@ function updateUserRoleIndicator(userId, userRoles) {
 }
 
 /**
+ * Send an AJAX request to set a user role
+ * @param {Number}  userId     UserID of the user whose roll is to be updated
+ * @param {Number}  roleEnum   The role to be updated
+ * @param {Boolean} isAssigned The value to be assigned to the specified role
+ * @return {undefined}
+ */
+function setUserRole(userId, roleEnum, isAssigned, onResponse) {
+  var $cardContainer = $('#user-list .card-container[data-user-id="' + userId + '"]');
+  var postData = {
+    ClientId: $('#client-tree [selected]').attr('data-client-id'),
+    UserId: userId,
+    RoleEnum: roleEnum,
+    IsAssigned: isAssigned
+  };
+
+  $.ajax({
+    type: 'POST',
+    url: 'ClientAdmin/SetUserRoleInClient',
+    data: postData,
+    headers: {
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+    }
+  }).done(function onDone(response) {
+    var modifiedRole;
+    // Set checkbox states to match the response
+    $.each(response, function setToggle(index, roleAssignment) {
+      $cardContainer.find('input[data-role-enum=' + roleAssignment.RoleEnum + ']')
+        .prop('checked', roleAssignment.IsAssigned);
+    });
+    updateUserRoleIndicator(postData.UserId, response);
+    // Filter response to get the role that was set by the request
+    modifiedRole = response.filter(function filter(responseRole) {
+      return responseRole.RoleEnum.toString() === postData.RoleEnum;
+    })[0];
+    toastr.success($cardContainer.find('.card-body-primary-text').html() + ' was ' + (modifiedRole.IsAssigned ? 'set' : 'unset') + ' as ' + modifiedRole.RoleDisplayValue);
+    onResponse();
+  }).fail(function onFail(response) {
+    toastr.warning(response.getResponseHeader('Warning'));
+    onResponse();
+  });
+}
+
+/**
+ * Handle click events for user role toggles
+ * @param  {Event} event The event to handle
+ * @return {undefined}
+ */
+function userCardRoleToggleClickHandler(event) {
+  var $clickedInput = $(event.target);
+  event.preventDefault();
+
+  setUserRole(
+    $clickedInput.closest('.card-container').attr('data-user-id'),
+    $clickedInput.attr('data-role-enum'),
+    $clickedInput.prop('checked'),
+    function onDone() {
+      $('#user-list .toggle-switch-checkbox').removeAttr('disabled');
+    }
+  );
+  $('#user-list .toggle-switch-checkbox').attr('disabled', '');
+}
+
+/**
  * Render user node by using string substitution on a userNodeTemplate
  * @param  {Number} client Client to which the user belongs
  * @param  {Object} user   User object to render
  * @return {undefined}
  */
 function renderUserNode(client, user) {
-  var $template = $(nodeTemplate.toString());
-
-  $template.find('.card-container')
-    .attr('data-search-string', (user.FirstName + ' ' + user.LastName + '|' + user.UserName + '|' + user.Email).toUpperCase())
-    .attr('data-client-id', client.ClientEntity.Id)
-    .attr('data-user-id', user.Id);
-  $template.find('.card-body-primary-container .card-body-primary-text')
-    .html((user.FirstName && user.LastName) ?
-      user.FirstName + ' ' + user.LastName :
-      user.UserName);
-  $template.find('.card-body-primary-container .card-body-secondary-text').first()
-    .html(user.UserName || '');
-  $template.find('.card-body-primary-container .card-body-secondary-text').last()
-    .html(user.Email + ' (email)').filter(function sameAsUsername() {
-      return user.UserName === user.Email;
-    })
-    .remove();
-  $template.find('.card-stats-container,.card-button-delete,.card-button-edit,.card-button-new-child')
-    .remove();
-
-  // generate id's for toggles
-  $template.find('.switch-container')
-    .map(function applyName(i, element) {
-      var $element = $(element);
-      var name = (
-        'user-role-' +
-        $element.closest('.card-container')
-          .attr('data-user-id') +
-        '-' +
-        $element.find('.toggle-switch-checkbox')
-          .attr('data-role-enum')
-      );
-      $element.find('.toggle-switch-checkbox')
-        .attr({
-          name: name,
-          id: name
-        });
-      $element.find('label.toggle-switch-label')
-        .attr('for', name);
-      return $element;
-    });
-
-  $.each(user.UserRoles, function displayRoles(index, roleAssignment) {
-    $template.find('input[data-role-enum=' + roleAssignment.RoleEnum + ']')
-      .prop('checked', roleAssignment.IsAssigned)
-      .click(userCardRoleToggleClickHandler);
-  });
-
-  if (!client.CanManage) {
-    $template.find('.icon-container,.card-button-remove-user').remove();
-    $template.find('.card-container,.toggle-switch-checkbox').attr('disabled', '');
-  }
+  /* eslint-disable indent */
+  var $template = Card
+    .newCard()
+    .container(
+      [
+        user.FirstName + ' ' + user.LastName,
+        user.UserName,
+        user.Email
+      ],
+      client.ClientEntity.Id,
+      user.Id,
+      client.CanManage
+    )
+    .icon('#action-icon-user')
+      .class('card-user-icon')
+    .icon('#action-icon-add')
+      .class('card-user-role-indicator')
+    .info($.map([
+      (user.FirstName || '') + ' ' + (user.LastName || ''),
+      user.UserName,
+      user.Email === user.UserName ? '' : user.Email
+    ], function removeBlanks(item) {
+      return item.trim() || null;
+    }))
+    .sideButton('#action-icon-remove')
+      .class('card-button-remove-user')
+      .click(function onClick(event) {
+        event.stopPropagation();
+        userCardRemoveClickHandler($(this).closest('.card-container'));
+      })
+      .tooltip('Remove user')
+    .roleExpansion()
+    .roleToggles(user.UserRoles)
+    .build();
+  /* eslint-enable indent */
 
   $('#client-user-list').append($template);
   updateUserRoleIndicator(user.Id, user.UserRoles);
@@ -485,25 +528,6 @@ function renderUserList(client, userId) {
   });
   $clientUserList.find('.tooltip').tooltipster();
   eligibleUsers = client.EligibleUsers;
-  $('div.card-button-remove-user').click(function onClick(event) {
-    event.stopPropagation();
-    userCardRemoveClickHandler($(this).closest('.card-container'));
-  });
-  $('#user-list .card-body-main-container,.card-button-expansion')
-    .click(function toggleCard(event) {
-      event.stopPropagation();
-      $(this).closest('.card-container')
-        .find('div.card-expansion-container')
-        .attr('maximized', function toggle(index, attr) {
-          if (attr === '') {
-            $(this).find('.tooltip').tooltipster('content', 'Expand user card');
-            return null;
-          }
-          $(this).find('.tooltip').tooltipster('content', 'Collapse user card');
-          return '';
-        });
-      showRelevantUserActionIcons();
-    });
   showRelevantUserActionIcons();
 
   if (userId) {
@@ -512,7 +536,7 @@ function renderUserList(client, userId) {
 
   if (client.CanManage) {
     $('#add-user-icon').show();
-    $('#client-user-list').append($addUserCard);
+    $('#client-user-list').append(Card.buildAddUser());
     $('#add-user-card')
       .click(function onClick() {
         addUserClickHandler();
@@ -527,11 +551,7 @@ function renderUserList(client, userId) {
  */
 function setupChildClientForm(parentClientDiv) {
   var parentClientId = parentClientDiv.attr('data-client-id').valueOf();
-  var $template = $createNewChildClientCard.clone();
-  $template
-    .addClass(parentClientDiv.hasClass('card-100') ? 'card-90' : 'card-80')
-    .find('.card-body-primary-text')
-    .addClass(parentClientDiv.hasClass('card-100') ? 'indent-level-1' : 'indent-level-2');
+  var $template = Card.buildNewChildClient(parentClientDiv.hasClass('card-100') ? 1 : 2);
 
   clearFormData();
   $('#client-form #ParentClientId').val(parentClientId);
@@ -593,49 +613,6 @@ function getClientDetail(clientDiv) {
     $('#client-info .loading-wrapper').hide();
     $('#client-users .loading-wrapper').hide();
     toastr.warning(response.getResponseHeader('Warning'));
-  });
-}
-
-/**
- * Send an AJAX request to set a user role
- * @param {Number}  userId     UserID of the user whose roll is to be updated
- * @param {Number}  roleEnum   The role to be updated
- * @param {Boolean} isAssigned The value to be assigned to the specified role
- * @return {undefined}
- */
-function setUserRole(userId, roleEnum, isAssigned, onResponse) {
-  var $cardContainer = $('#user-list .card-container[data-user-id="' + userId + '"]');
-  var postData = {
-    ClientId: $('#client-tree [selected]').attr('data-client-id'),
-    UserId: userId,
-    RoleEnum: roleEnum,
-    IsAssigned: isAssigned
-  };
-
-  $.ajax({
-    type: 'POST',
-    url: 'ClientAdmin/SetUserRoleInClient',
-    data: postData,
-    headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
-    }
-  }).done(function onDone(response) {
-    var modifiedRole;
-    // Set checkbox states to match the response
-    $.each(response, function setToggle(index, roleAssignment) {
-      $cardContainer.find('input[data-role-enum=' + roleAssignment.RoleEnum + ']')
-        .prop('checked', roleAssignment.IsAssigned);
-    });
-    updateUserRoleIndicator(postData.UserId, response);
-    // Filter response to get the role that was set by the request
-    modifiedRole = response.filter(function filter(responseRole) {
-      return responseRole.RoleEnum.toString() === postData.RoleEnum;
-    })[0];
-    toastr.success($cardContainer.find('.card-body-primary-text').html() + ' was ' + (modifiedRole.IsAssigned ? 'set' : 'unset') + ' as ' + modifiedRole.RoleDisplayValue);
-    onResponse();
-  }).fail(function onFail(response) {
-    toastr.warning(response.getResponseHeader('Warning'));
-    onResponse();
   });
 }
 
@@ -835,26 +812,6 @@ function createNewClientClickHandler() {
   } else {
     openNewClientForm();
   }
-}
-
-/**
- * Handle click events for user role toggles
- * @param  {Event} event The event to handle
- * @return {undefined}
- */
-function userCardRoleToggleClickHandler(event) {
-  var $clickedInput = $(event.target);
-  event.preventDefault();
-
-  setUserRole(
-    $clickedInput.closest('.card-container').attr('data-user-id'),
-    $clickedInput.attr('data-role-enum'),
-    $clickedInput.prop('checked'),
-    function onDone() {
-      $('#user-list .toggle-switch-checkbox').removeAttr('disabled');
-    }
-  );
-  $('#user-list .toggle-switch-checkbox').attr('disabled', '');
 }
 
 /**
@@ -1060,27 +1017,48 @@ function cancelIconClickHandler() {
  */
 function renderClientNode(client, level) {
   var classes = ['card-100', 'card-90', 'card-80'];
-  var $template = $(nodeTemplate.toString());
-
-  $template.find('.card-container')
-    .addClass(classes[level])
-    .attr('data-search-string', (client.ClientModel.ClientEntity.Name + '|' + client.ClientModel.ClientEntity.ClientCode).toUpperCase())
-    .attr('data-client-id', client.ClientModel.ClientEntity.Id)
-    .removeAttr('data-user-id');
-  $template.find('.card-body-secondary-container')
-    .remove();
-  $template.find('.card-body-primary-container .card-body-primary-text')
-    .addClass('indent-level-' + level)
-    .html(client.ClientModel.ClientEntity.Name);
-  $template.find('.card-body-primary-container .card-body-secondary-text')
-    .html(client.ClientModel.ClientEntity.ClientCode || '')
-    .first().remove();
-  $template.find('.card-stat-user-count')
-    .html(client.ClientModel.AssignedUsers.length);
-  $template.find('.card-stat-content-count')
-    .html(client.ClientModel.ContentItems.length);
-  $template.find('.card-button-remove-user,.card-expansion-container,.card-button-bottom-container')
-    .remove();
+  /* eslint-disable indent */
+  var $template = Card
+    .newCard()
+    .container(
+      [
+        client.ClientModel.ClientEntity.Name,
+        client.ClientModel.ClientEntity.ClientCode
+      ],
+      client.ClientModel.ClientEntity.Id,
+      null,
+      client.ClientModel.CanManage
+    )
+      .class(classes[level])
+    .primaryInfo(client.ClientModel.ClientEntity.Name)
+    .secondaryInfo(client.ClientModel.ClientEntity.ClientCode || '')
+    .cardStat('#action-icon-users', client.ClientModel.AssignedUsers.length)
+      .tooltip('Assigned users')
+    .cardStat('#action-icon-reports', client.ClientModel.ContentItems.length)
+      .tooltip('Reports')
+    .sideButton('#action-icon-delete')
+      .class('card-button-delete')
+      .tooltip('Delete client')
+      .click(function onClick(event) {
+        event.stopPropagation();
+        clientCardDeleteClickHandler($(this).parents('div[data-client-id]'));
+      })
+    .sideButton('#action-icon-edit')
+      .class('card-button-edit')
+      .tooltip('Edit client details')
+      .click(function onClick(event) {
+        event.stopPropagation();
+        clientCardEditClickHandler($(this).parents('div[data-client-id]'));
+      })
+    .sideButton('#action-icon-add')
+      .class('card-button-new-child')
+      .tooltip('New sub-client')
+      .click(function onClick(event) {
+        event.stopPropagation();
+        clientCardCreateNewChildClickHandler($(this).parents('div[data-client-id]'));
+      })
+    .build();
+  /* eslint-enable indent */
 
   if (!client.ClientModel.CanManage) {
     $template.find('.card-button-side-container').remove();
@@ -1124,21 +1102,6 @@ function renderClientTree(clientTreeList, clientId) {
     .click(function onClick() {
       clientCardClickHandler($(this));
     });
-  $clientTreeList.find('.card-button-delete')
-    .click(function onClick(event) {
-      event.stopPropagation();
-      clientCardDeleteClickHandler($(this).parents('div[data-client-id]'));
-    });
-  $clientTreeList.find('.card-button-edit')
-    .click(function onClick(event) {
-      event.stopPropagation();
-      clientCardEditClickHandler($(this).parents('div[data-client-id]'));
-    });
-  $clientTreeList.find('.card-button-new-child')
-    .click(function onClick(event) {
-      event.stopPropagation();
-      clientCardCreateNewChildClickHandler($(this).parents('div[data-client-id]'));
-    });
 
   // TODO: Consider applying this to other cards and buttons as well
   $clientTreeList.find('.card-container,.card-button-background')
@@ -1150,7 +1113,7 @@ function renderClientTree(clientTreeList, clientId) {
     $('[data-client-id="' + clientId + '"]').click();
   }
   if ($('#add-client-icon').length) {
-    $clientTreeList.append($createNewClientCard.clone());
+    $clientTreeList.append(Card.buildNewClient());
     $('#create-new-client-card')
       .click(function onClick() {
         createNewClientClickHandler($(this));
@@ -1313,40 +1276,6 @@ $(document).ready(function onReady() {
   $('#user-search-box').keyup(function onKeyup() {
     searchUser($(this).val());
   });
-
-  // Construct static cards
-  $createNewClientCard = $(nodeTemplate);
-  $createNewClientCard.find('.card-container')
-    .addClass('card-100 action-card')
-    .attr('id', 'create-new-client-card');
-  $createNewClientCard.find('.card-body-primary-text')
-    .append('<svg class="action-card-icon"><use xlink:href="#action-icon-add"></use></svg>')
-    .append('<span>New Client</span>');
-  $createNewClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
-    .remove();
-
-  $createNewChildClientCard = $(nodeTemplate);
-  $createNewChildClientCard
-    .addClass('client-insert');
-  $createNewChildClientCard.find('.card-container')
-    .addClass('flex-container flex-row-no-wrap items-align-center');
-  $createNewChildClientCard.find('.card-body-main-container')
-    .addClass('content-item-flex-1');
-  $createNewChildClientCard.find('.card-body-primary-text')
-    .append('<span>New Sub-Client</span>')
-    .append('<svg class="new-child-icon"><use xlink:href="#action-icon-expand-card"></use></svg>');
-  $createNewChildClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
-    .remove();
-
-  $addUserCard = $(nodeTemplate);
-  $addUserCard.find('.card-container')
-    .addClass('card-100 action-card')
-    .attr('id', 'add-user-card');
-  $addUserCard.find('.card-body-primary-text')
-    .append('<svg class="action-card-icon"><use xlink:href="#action-icon-add"></use></svg>')
-    .append('<span>Add User</span>');
-  $addUserCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
-    .remove();
 
 
   $('.tooltip').tooltipster();
