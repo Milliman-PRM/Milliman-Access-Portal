@@ -86,7 +86,7 @@ IF !ERRORLEVEL! NEQ 0 goto error
 :: 3. Prepare web compiler package
 if exist  D:\local\Temp\WebCompiler*\prepare.cmd (
   echo Prepare web compiler
-  cd D:\local\Temp\WebCompiler*\
+  cd D:\local\Temp\WebCompiler*
   call prepare.cmd
   IF !ERRORLEVEL! NEQ 0 goto error
 ) else (

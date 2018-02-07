@@ -61,15 +61,12 @@ $SubscriptionId = "8f047950-269e-43c7-94e0-ff90d22bf013"
 $TenantId = "15dfebdf-8eb6-49ea-b9c7-f4b275f6b4b4"
 $WebAppName = "map-ci-app"
 $AppServicePlanName = "map-ci"
-$BranchName = $env:git_branch.Replace("_","").Replace("-","").ToLower() # Will be used as the name of the deployment slot & appended to database names
+$BranchName = "CreateAzureCI".Replace("_","").Replace("-","").ToLower() # Will be used as the name of the deployment slot & appended to database names
 
 $deployUser = $env:app_deploy_user
 $deployPassword = $env:app_deploy_password
 
-$gitUser = $env:git_deploy_user
-$gitPassword = $env:git_deploy_password
-
-$gitExePath = "L:\Hotware\git\PortableGit_2.5.3.windows.1.github.0\cmd\git.exe"
+$gitExePath = "git"
 $credManagerPath = "L:\Hotware\Powershell_Plugins\CredMan.ps1"
 $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
 
@@ -88,13 +85,20 @@ $dbCreationRetries = 5 # The number of times the script will attempt to create a
 
 #region Run unit tests and exit if any fail
 
+$command = "activate prod2016_11"
+Invoke-Expression $command
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: Failed to initialize environment"
+    exit $LASTEXITCODE
+}
+
 $rootPath = (get-location).Path
 
 cd MillimanAccessPortal\MillimanAccessPortal
 
 log_statement "Building unit tests"
 
-MSBuild /t:Restore /verbosity:minimal
+MSBuild /t:Restore /verbosity:quiet
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Initial MAP package restore failed"
@@ -112,16 +116,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 cd $rootPath\MillimanAccessPortal\MapTests
-
-MSBuild /t:Restore /verbosity:minimal
-
-if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: Initial unit test package restore failed"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
-}
-
-MSBuild /verbosity:minimal
+MSBuild /verbosity:quiet
 
 if ( $LASTEXITCODE -ne 0 ) {
     log_statement "ERROR: Unit test build failed"
@@ -144,7 +139,7 @@ cd $rootPath
 #endregion
 
 #Load required PowerShell modules
-import-module AzureRM.Profile, AzureRM.Resources, AzureRM.Websites, Microsoft.PowerShell.Security
+$silent = import-module AzureRM.Profile, AzureRM.Resources, AzureRM.Websites, Microsoft.PowerShell.Security
 
 if ($? -eq $false)
 {
@@ -155,7 +150,7 @@ if ($? -eq $false)
 #region Authenticate to Azure with a service principal
 
 $DeployCredential = new-object -typename System.Management.Automation.PSCredential -argumentlist $deployUser,($deployPassword | ConvertTo-SecureString -AsPlainText -Force)
-Add-AzureRmAccount -ServicePrincipal -Credential $DeployCredential -TenantId $TenantId  -Subscription $SubscriptionId
+$silent = Add-AzureRmAccount -ServicePrincipal -Credential $DeployCredential -TenantId $TenantId  -Subscription $SubscriptionId
 
 if ($? -eq $false)
 {
@@ -167,7 +162,9 @@ if ($? -eq $false)
 
 #region Create and configure deployment slot
 
-Get-AzureRmWebAppSlot -ResourceGroupName $ResourceGroupName -Name $WebAppName -Slot $Branchname
+log_statement "Preparing deployment slot"
+
+$silent = Get-AzureRmWebAppSlot -ResourceGroupName $ResourceGroupName -Name $WebAppName -Slot $Branchname
 if ($? -eq $false)
 {
     New-AzureRmWebAppSlot -ResourceGroupName $ResourceGroupName -AppServicePlan $AppServicePlanName -Name $WebAppName -Slot $BranchName
@@ -181,14 +178,13 @@ if ($? -eq $false)
 else
 {
     log_statement "Deployment slot $BranchName already exists"
-    get-azurermcontext # Make sure we're still logged in
 }
 
 # Configure local Git deployment
 $PropertiesObject = @{
     scmType = "LocalGit";
 }
-Set-AzureRmResource -PropertyObject $PropertiesObject -ResourceGroupName $ResourceGroupName -ResourceType Microsoft.Web/sites/slots/config -ResourceName "$WebAppName/$BranchName/web" -ApiVersion 2016-08-01 -Force -debug
+$silent = Set-AzureRmResource -PropertyObject $PropertiesObject -ResourceGroupName $ResourceGroupName -ResourceType Microsoft.Web/sites/slots/config -ResourceName "$WebAppName/$BranchName/web" -ApiVersion 2016-08-01 -Force
 
 if ($? -eq $false)
 {
@@ -199,7 +195,7 @@ if ($? -eq $false)
 # Update branch name
 $resource = Invoke-AzureRmResourceAction -ResourceGroupName $ResourceGroupName -ResourceType Microsoft.Web/sites/slots/config -ResourceName "$WebAppName/$BranchName/appsettings" -Action list -ApiVersion 2016-08-01 -Force
 $resource.Properties.BranchName = $BranchName
-New-AzureRmResource -PropertyObject $resource.properties -ResourceGroupName $ResourceGroupName -ResourceType Microsoft.Web/sites/slots/config -ResourceName "$WebAppName/$BranchName/appsettings" -ApiVersion 2016-08-01 -Force
+$silent = New-AzureRmResource -PropertyObject $resource.properties -ResourceGroupName $ResourceGroupName -ResourceType Microsoft.Web/sites/slots/config -ResourceName "$WebAppName/$BranchName/appsettings" -ApiVersion 2016-08-01 -Force
 
 if ($? -eq $false)
 {
@@ -209,6 +205,12 @@ if ($? -eq $false)
 
 # Retrieve git remote URL
 $deployProperties = Get-AzureRmResource -ResourceGroupName $ResourceGroupName -ResourceType Microsoft.Web/sites/slots/sourcecontrols -ResourceName "$WebAppName/$BranchName/web" -ApiVersion 2016-08-01
+
+# Get app-level deployment credentials
+$xml = [xml](Get-AzureRmWebAppSlotPublishingProfile -Name $webappname -Slot $BranchName -ResourceGroupName $ResourceGroupName -OutputFile null)
+$gitUser = $xml.SelectNodes("//publishProfile[@publishMethod=`"MSDeploy`"]/@userName").value
+$gitPassword = $xml.SelectNodes("//publishProfile[@publishMethod=`"MSDeploy`"]/@userPWD").value
+
 $remoteUrl = $deployProperties.Properties.repoUrl
 
 # Retrieve public URL of deployment slot to output later
@@ -224,6 +226,8 @@ $publicURL = "https://$($slot.Properties.defaultHostName)"
 #endregion
 
 #region Clone databases
+
+log_statement "Preparing branch databases"
 
 $env:PGPASSWORD = $dbPassword
 
@@ -274,15 +278,18 @@ remove-item env:PGPASSWORD
 if ($LASTEXITCODE -ne 0)
 {
     log_statement "Failed to add git credential."
-    exit -100
+    #exit -100
 }
 
 #endregion
 
 #region Push to git remote
 
+$command = "$gitExePath remote remove ci_push"
+$silent = Invoke-Expression "&$command" # We don't really care if this succeeds or not, so silence the output
+
 $command = "$gitExePath remote add ci_push $RemoteUrl"
-Invoke-Expression "&$command"
+Invoke-Expression "$command"
 if ($LASTEXITCODE -ne 0)
 {
     log_statement "Failed to add git remote."
@@ -291,7 +298,7 @@ if ($LASTEXITCODE -ne 0)
 
 log_statement "Local script complete. Pushing to Azure to finalize deployment."
 
-$command = "$gitExePath push ci_push `"HEAD:master`""
+$command = "$gitExePath push ci_push `"HEAD:refs/heads/master`" --force"
 Invoke-Expression "&$command"
 if ($LASTEXITCODE -ne 0)
 {
