@@ -21,6 +21,7 @@ namespace MapDbContextLib.Context
         public DbSet<HierarchyFieldValue> HierarchyFieldValue { get; set; }
         public DbSet<ContentType> ContentType { get; set; }
         public DbSet<ProfitCenter> ProfitCenter { get; set; }
+        public DbSet<ContentReductionTask> ContentReductionTask { get; set; }
 
         // Alteration of Identity entities
         public DbSet<ApplicationUser> ApplicationUser { get; set; }
@@ -39,6 +40,10 @@ namespace MapDbContextLib.Context
             // Customize the ASP.NET Identity model and override the defaults if needed.
             // For example, you can rename the ASP.NET Identity table names and more.
             // Add your customizations after calling base.OnModelCreating(builder);
+
+            builder.Entity<ContentReductionTask>()
+                .Property(b => b.CreateDateTime)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
         }
 
         public bool ClientExists(long id)
