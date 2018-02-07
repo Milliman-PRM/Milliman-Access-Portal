@@ -436,7 +436,7 @@ namespace MapTests
                 { 
                     new HierarchyFieldValue { Id=1, HierarchyFieldId=1,  Value="Value 1" },
                 });
-            MockDbSet<HierarchyFieldValue>.AssignNavigationProperty<RootContentItem>(DbContextObject.HierarchyFieldValue, "RootContentItemId", DbContextObject.RootContentItem);
+            MockDbSet<HierarchyFieldValue>.AssignNavigationProperty<HierarchyField>(DbContextObject.HierarchyFieldValue, "HierarchyFieldId", DbContextObject.HierarchyField);
             #endregion
 
             #region Initialize HierarchyField
