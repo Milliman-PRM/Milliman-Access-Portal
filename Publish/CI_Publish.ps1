@@ -283,6 +283,48 @@ remove-item env:PGPASSWORD
 
 #endregion
 
+#region Configure database firewall rules
+
+$test = az login --service-principal -u $deployUser -p $deployPassword --tenant $tenantId
+if ($? -eq $false)
+{
+    log_statement "Failed to authenticate for creation of firewall rules"
+}
+
+log_statement "Defining database firewall rules"
+
+$properties = Get-AzureRmResource -ResourceGroupName map-ci -ResourceType Microsoft.Web/sites/slots -ResourceName "map-ci-app/createazureci" -ApiVersion 2016-08-01
+$outboundList = $properties.Properties.possibleOutboundIpAddresses.Split(',')
+$outboundList
+
+$firewallRules = az postgres server firewall-rule list --server-name $dbServerName --resource-group $ResourceGroupName | ConvertFrom-Json
+$firewallFailures = 0
+
+foreach ( $ip in $outboundList) 
+{    
+    if ($ip -notin $firewallRules.startIpAddress -and $ip -notin $firewallRules.endIpAddress)
+    {
+        $ruleName = "Allow_"+$BranchName+"_"+$ip.replace(".","")
+        az postgres server firewall-rule create --resource-group $ResourceGroupName --server $DbServerName --name "$ruleName" --start-ip-address $ip --end-ip-address $ip
+        if ($? -eq $false)
+        {
+            log_statement "Failed to create firewall rule named $ruleName"
+            $firewallFailures = $firewallFailures + 1
+        }
+    }
+} 
+
+if ($firewallFailures -gt 0)
+{
+    log_statement "Failed creating one or more firewall rules. Deployment canceled."
+    exit -9000
+}
+else 
+{
+    log_statement "Finished creating database firewall rules"
+}
+#endregion
+
 #region Create Windows credential store object for deployment
 
 .$credManagerPath -AddCred -Target "git:$RemoteUrl" -User $gitUser -pass $gitPassword
