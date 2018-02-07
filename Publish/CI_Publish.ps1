@@ -147,6 +147,8 @@ cd $rootPath
 
 #endregion
 
+$env:PSModulePath = $env:PSModulePath+';C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager'
+
 #Load required PowerShell modules
 $silent = get-childitem 'C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager' | import-module
 
