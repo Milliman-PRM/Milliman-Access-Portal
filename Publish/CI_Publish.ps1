@@ -148,7 +148,7 @@ cd $rootPath
 #endregion
 
 #Load required PowerShell modules
-$silent = import-module AzureRM.Profile, AzureRM.Resources, AzureRM.Websites, Microsoft.PowerShell.Security
+$silent = get-childitem 'C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager' | import-module
 
 if ($? -eq $false)
 {
