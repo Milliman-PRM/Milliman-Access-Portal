@@ -1,4 +1,6 @@
-﻿var ajaxStatus = {
+/* global Card */
+
+var ajaxStatus = {
   getClientDetail: -1
 };
 var nodeTemplate = $('script[data-template="node"]').html();
@@ -62,42 +64,11 @@ function renderClientTree(clientTreeList, clientId) {
     renderClientNode(rootClient, 0);
     $clientTreeList.append('<li class="hr width-100pct"></li>');
   });
+  $clientTreeList.find('.hr').last().remove();
   $clientTreeList.find('.tooltip').tooltipster();
-  $clientTreeList.find('.card-container')
-    .click(function onClick() {
-      clientCardClickHandler($(this));
-    });
-  $clientTreeList.find('.card-button-delete')
-    .click(function onClick(event) {
-      event.stopPropagation();
-      clientCardDeleteClickHandler($(this).parents('div[data-client-id]'));
-    });
-  $clientTreeList.find('.card-button-edit')
-    .click(function onClick(event) {
-      event.stopPropagation();
-      clientCardEditClickHandler($(this).parents('div[data-client-id]'));
-    });
-  $clientTreeList.find('.card-button-new-child')
-    .click(function onClick(event) {
-      event.stopPropagation();
-      clientCardCreateNewChildClickHandler($(this).parents('div[data-client-id]'));
-    });
-
-  // TODO: Consider applying this to other cards and buttons as well
-  $clientTreeList.find('.card-container,.card-button-background')
-    .mousedown(function onMousedown(event) {
-      event.preventDefault();
-    });
 
   if (clientId) {
     $('[data-client-id="' + clientId + '"]').click();
-  }
-  if ($('#add-client-icon').length) {
-    $clientTreeList.append($createNewClientCard);
-    $('#create-new-client-card')
-      .click(function onClick() {
-        createNewClientClickHandler($(this));
-      });
   }
 }
 
@@ -109,31 +80,30 @@ function renderClientTree(clientTreeList, clientId) {
  */
 function renderClientNode(client, level) {
   var classes = ['card-100', 'card-90', 'card-80'];
-  var $template = $(nodeTemplate.toString());
-
-  $template.find('.card-container')
-    .addClass(classes[level])
-    .attr('data-search-string', (client.ClientDetailModel.ClientEntity.Name + '|' + client.ClientDetailModel.ClientEntity.ClientCode).toUpperCase())
-    .attr('data-client-id', client.ClientDetailModel.ClientEntity.Id)
-    .removeAttr('data-user-id');
-  $template.find('.card-body-secondary-container')
-    .remove();
-  $template.find('.card-body-primary-container .card-body-primary-text')
-    .addClass('indent-level-' + level)
-    .html(client.ClientDetailModel.ClientEntity.Name);
-  $template.find('.card-body-primary-container .card-body-secondary-text')
-    .html(client.ClientDetailModel.ClientEntity.ClientCode || '')
-    .first().remove();
-  $template.find('.card-stat-user-count')
-    .html((client.ClientDetailModel.AssignedUsers) ? client.ClientDetailModel.AssignedUsers.length : 0);
-  $template.find('.card-stat-content-count')
-    .html(client.ClientDetailModel.RootContentItemCount);
-  $template.find('.card-button-remove-user,.card-expansion-container,.card-button-bottom-container,.card-button-side-container')
-    .remove();
-
-  if (!client.ClientDetailModel.CanManage) {
-    $template.find('.card-container').attr('disabled', '');
-  }
+  /* eslint-disable indent */
+  var $template = Card
+    .newCard()
+    .container(
+      [
+        client.ClientDetailModel.ClientEntity.Name,
+        client.ClientDetailModel.ClientEntity.ClientCode
+      ],
+      client.ClientDetailModel.ClientEntity.Id,
+      null,
+      client.ClientDetailModel.CanManage
+    )
+      .class(classes[level])
+      .click(function onClick() {
+        clientCardClickHandler($(this));
+      })
+    .primaryInfo(client.ClientDetailModel.ClientEntity.Name)
+    .secondaryInfo(client.ClientDetailModel.ClientEntity.ClientCode || '')
+    .cardStat('#action-icon-users', client.ClientDetailModel.EligibleUserCount)
+      .tooltip('Content-eligible users')
+    .cardStat('#action-icon-reports', client.ClientDetailModel.RootContentItemCount)
+      .tooltip('Reports')
+    .build();
+  /* eslint-enable indent */
 
   $('#client-tree-list').append($template);
 
@@ -145,58 +115,8 @@ function renderClientNode(client, level) {
   }
 }
 
-
-
-
 $(document).ready(function onReady() {
   getClientTree();
 
-  //$('#expand-user-icon').click(expandAllUsers);
-  //$('#collapse-user-icon').click(collapseAllUsers);
-
-  //$('#client-search-box').keyup(function onKeyup() {
-  //  searchClientTree($(this).val());
-  //});
-
-  //$('#user-search-box').keyup(function onKeyup() {
-  //  searchUser($(this).val());
-  //});
-
-  //// Construct static cards
-  //$createNewClientCard = $(nodeTemplate);
-  //$createNewClientCard.find('.card-container')
-  //  .addClass('card-100 action-card')
-  //  .attr('id', 'create-new-client-card');
-  //$createNewClientCard.find('.card-body-primary-text')
-  //  .append('<svg class="action-card-icon"><use xlink:href="#action-icon-add"></use></svg>')
-  //  .append('<span>New Client</span>');
-  //$createNewClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
-  //  .remove();
-
-  //$createNewChildClientCard = $(nodeTemplate);
-  //$createNewChildClientCard
-  //  .addClass('client-insert');
-  //$createNewChildClientCard.find('.card-container')
-  //  .addClass('flex-container flex-row-no-wrap items-align-center');
-  //$createNewChildClientCard.find('.card-body-main-container')
-  //  .addClass('content-item-flex-1');
-  //$createNewChildClientCard.find('.card-body-primary-text')
-  //  .append('<span>New Sub-Client</span>')
-  //  .append('<svg class="new-child-icon"><use xlink:href="#action-icon-expand-card"></use></svg>');
-  //$createNewChildClientCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
-  //  .remove();
-
-  //$addUserCard = $(nodeTemplate);
-  //$addUserCard.find('.card-container')
-  //  .addClass('card-100 action-card')
-  //  .attr('id', 'add-user-card');
-  //$addUserCard.find('.card-body-primary-text')
-  //  .append('<svg class="action-card-icon"><use xlink:href="#action-icon-add"></use></svg>')
-  //  .append('<span>Add User</span>');
-  //$addUserCard.find('.card-expansion-container,.card-body-secondary-container,.card-stats-container,.card-button-side-container,.card-body-secondary-text')
-  //  .remove();
-
-
   $('.tooltip').tooltipster();
-
 });
