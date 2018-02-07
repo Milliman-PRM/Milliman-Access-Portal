@@ -66,21 +66,21 @@ function renderRootContentItem(rootContentItem) {
     .newCard()
     .container(
       [
-        rootContentItem.ContentName,
-        rootContentItem.ContentType
+        rootContentItem.RootContentItemEntity.ContentName,
+        rootContentItem.RootContentItemEntity.ContentType.Name
       ],
       null,
       null,
       null
     )
       .click(function onClick() {
-        console.log('Root content item ' + rootContentItem.ContentName + ' clicked.');
+        console.log('Root content item ' + rootContentItem.RootContentItemEntity.ContentName + ' clicked.');
       })
-    .primaryInfo(rootContentItem.ContentName)
-    .secondaryInfo(rootContentItem.ContentType)
-    .cardStat('#action-icon-users', rootContentItem.NumberOfGroups)
+    .primaryInfo(rootContentItem.RootContentItemEntity.ContentName)
+    .secondaryInfo(rootContentItem.RootContentItemEntity.ContentType.Name)
+    .cardStat('#action-icon-users', rootContentItem.GroupCount)
       .tooltip('Selection groups')
-    .cardStat('#action-icon-reports', rootContentItem.NumberOfAssignedUsers)
+    .cardStat('#action-icon-reports', rootContentItem.EligibleUserCount)
       .tooltip('Assigned users')
     .build();
   /* eslint-enable indent */
