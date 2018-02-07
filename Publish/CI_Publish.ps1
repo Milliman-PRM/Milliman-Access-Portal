@@ -292,19 +292,13 @@ if ($LASTEXITCODE -ne 0)
     #exit -100
 }
 
-$command = "$gitexepath config --global credential.helper manager"
+$command = "$gitexepath config --global credential.helper wincred"
 Invoke-Expression "$command"
 if ($LASTEXITCODE -ne 0)
 {
     log_statement "Failed to configure git credential manager."
     exit -800
 }
-$command = "$gitexepath config --global credential.interactive never"
-Invoke-Expression "$command"
-$command = "$gitexepath config --global credential.modalPrompt never"
-Invoke-Expression "$command"
-$command = "$gitexepath config --global credential.authority AAD"
-Invoke-Expression "$command"
 #endregion
 
 #region Push to git remote
