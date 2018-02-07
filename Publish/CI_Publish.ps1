@@ -69,6 +69,7 @@ $deployPassword = $env:app_deploy_password
 $gitExePath = "git"
 $credManagerPath = "L:\Hotware\Powershell_Plugins\CredMan.ps1"
 $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
+$azCliPath = "C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin\az.cmd"
 
 $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
@@ -81,7 +82,7 @@ $logDbTemplateName = "logdb_ci_template"
 $logDbOwner = "logdb_admin"
 $dbCreationRetries = 5 # The number of times the script will attempt to create a new database before throwing an error
 
-$env:PATH = $env:PATH+";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin\"
+
 
 #endregion
 
@@ -287,8 +288,8 @@ remove-item env:PGPASSWORD
 
 #region Configure database firewall rules
 
-$command = "az login --service-principal -u $deployUser -p $deployPassword --tenant $tenantId"
-Invoke-Expression $command
+$command = "$azCliPath login --service-principal -u $deployUser -p $deployPassword --tenant $tenantId"
+Invoke-Expression "&$command"
 if ($? -eq $false)
 {
     log_statement "Failed to authenticate for creation of firewall rules"
@@ -297,14 +298,14 @@ if ($? -eq $false)
 
 log_statement "Defining database firewall rules"
 
+# Retrieve list of IP addresses the web app may use
 $properties = Get-AzureRmResource -ResourceGroupName map-ci -ResourceType Microsoft.Web/sites/slots -ResourceName "map-ci-app/createazureci" -ApiVersion 2016-08-01
 $outboundList = $properties.Properties.possibleOutboundIpAddresses.Split(',')
-$outboundList
 
 # Retrieve the current list of firewall rules
 # Will be compared against the app's IP addresses to see which rules need to be created
-$command = "az postgres server firewall-rule list --server-name $dbServerName --resource-group $ResourceGroupName | ConvertFrom-Json"
-$firewallRules = invoke-command $command
+$command = "$azCliPath postgres server firewall-rule list --server-name $dbServerName --resource-group $ResourceGroupName" 
+$firewallRules = invoke-expression "&$command" | ConvertFrom-Json
 if ($? -eq $false)
 {
     log_statement "Failed retrieving list of existing firewall rules"
@@ -316,8 +317,8 @@ foreach ( $ip in $outboundList)
     if ($ip -notin $firewallRules.startIpAddress -and $ip -notin $firewallRules.endIpAddress)
     {
         $ruleName = "Allow_"+$BranchName+"_"+$ip.replace(".","")
-        $command = "az postgres server firewall-rule create --resource-group $ResourceGroupName --server $DbServerName --name `"$ruleName`" --start-ip-address $ip --end-ip-address $ip"
-        invoke-expression $command
+        $command = "$azCliPath postgres server firewall-rule create --resource-group $ResourceGroupName --server $DbServerName --name `"$ruleName`" --start-ip-address $ip --end-ip-address $ip"
+        invoke-expression "&$command"
         if ($? -eq $false)
         {
             log_statement "Failed to create firewall rule named $ruleName"
