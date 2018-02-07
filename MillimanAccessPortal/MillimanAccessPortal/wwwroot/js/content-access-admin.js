@@ -12,7 +12,7 @@ var clientCardClickHandler;
 // Helper functions (TODO: consider moving to separate file)
 
 function clearClientSelection() {
-  $('.card-container').removeAttr('editing selected');
+  $('#root-content .card-container').removeAttr('editing selected');
 }
 
 function showClientDetails() {
