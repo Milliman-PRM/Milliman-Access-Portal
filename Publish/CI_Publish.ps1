@@ -150,7 +150,7 @@ cd $rootPath
 $env:PSModulePath = $env:PSModulePath+';C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager'
 
 #Load required PowerShell modules
-$silent = get-childitem 'C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager' | import-module
+$silent = import-module AzureRM.Profile, AzureRM.Resources, AzureRM.Websites, Microsoft.PowerShell.Security 
 
 if ($? -eq $false)
 {
