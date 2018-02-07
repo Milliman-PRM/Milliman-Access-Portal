@@ -155,7 +155,7 @@ if ($? -eq $false)
 #region Authenticate to Azure with a service principal
 
 $DeployCredential = new-object -typename System.Management.Automation.PSCredential -argumentlist $deployUser,($deployPassword | ConvertTo-SecureString -AsPlainText -Force)
-Login-AzureRmAccount -ServicePrincipal -Credential $DeployCredential -TenantId $TenantId  -Subscription $SubscriptionId
+Add-AzureRmAccount -ServicePrincipal -Credential $DeployCredential -TenantId $TenantId  -Subscription $SubscriptionId
 
 if ($? -eq $false)
 {
@@ -181,13 +181,14 @@ if ($? -eq $false)
 else
 {
     log_statement "Deployment slot $BranchName already exists"
+    get-azurermcontext # Make sure we're still logged in
 }
 
 # Configure local Git deployment
 $PropertiesObject = @{
     scmType = "LocalGit";
 }
-Set-AzureRmResource -PropertyObject $PropertiesObject -ResourceGroupName $ResourceGroupName -ResourceType Microsoft.Web/sites/slots/config -ResourceName "$WebAppName/$BranchName/web" -ApiVersion 2016-08-01 -Force
+Set-AzureRmResource -PropertyObject $PropertiesObject -ResourceGroupName $ResourceGroupName -ResourceType Microsoft.Web/sites/slots/config -ResourceName "$WebAppName/$BranchName/web" -ApiVersion 2016-08-01 -Force -debug
 
 if ($? -eq $false)
 {
