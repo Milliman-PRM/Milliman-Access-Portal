@@ -161,6 +161,15 @@ var Card;
           '<stub />'
         ].join('')
       },
+      user: {
+        selector: '.user-container',
+        html: [
+          '<div class="user-container">',
+            '<h4></h4>',
+          '</div>',
+          '<stub />'
+        ].join('')
+      },
       bottom: {
         selector: '.card-button-bottom-container',
         html: [
@@ -361,6 +370,21 @@ var Card;
           assignment.RoleDisplayValue,
           assignment.IsAssigned
         ).click(onClick, '.toggle-switch-checkbox');
+      });
+      return this;
+    },
+
+    user: function user(name) {
+      this.vars.lastComponent = 'user';
+      add(['expansion', 'user']);
+      return html(name, 'h4');
+    },
+
+    users: function users(userList) {
+      var self = this;
+      this.vars.lastComponent = '';
+      $.each(userList, function create(i, user) {
+        self.user(user.UserName);
       });
       return this;
     },

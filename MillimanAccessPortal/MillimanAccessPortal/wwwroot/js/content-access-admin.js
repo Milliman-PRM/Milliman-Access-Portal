@@ -137,6 +137,7 @@ function renderSelectionGroup(selectionGroup) {
       .class('card-button-red')
       .tooltip('Remove selection group')
     .expansion()
+    .users(selectionGroup.MemberList)
     .build();
   /* eslint-enable indent */
 
