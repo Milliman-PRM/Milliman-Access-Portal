@@ -11,13 +11,17 @@ namespace MapCommonLib
         public ContentReductionHierarchy()
         {}
 
-        public void Test(string JsonString)
+        public static void Test(string JsonString = "")
         {
+            if (JsonString == string.Empty)
+            {
+                JsonString = File.ReadAllText(@"C:\Users\Tom.Puckett\Desktop\testHierarchy.json");
+            }
             var JsonObj = Deserialize(JsonString);
             var str = SerializeJson(JsonObj);
         }
 
-        public ReductionFieldNodeBase RootNode { get; set; }
+        public ReductionFieldBase[] Fields { get; set; }
         public long RootContentItemId { get; set; }
 
         public static ContentReductionHierarchy Deserialize(string JsonString)

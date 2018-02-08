@@ -19,7 +19,12 @@ namespace MapDbContextLib.Context
         public string FieldName { get; set; }
 
         [Required]
-        public int HierarchyLevel { get; set; }
+        public string FieldDisplayName { get; set; }
+
+        [Required]
+        public FieldStructureType InferredStructureType { get; set; }
+
+        public string FieldDelimiter { get; set; }
 
         [ForeignKey("RootContentItem")]
         public long RootContentItemId { get; set; }
