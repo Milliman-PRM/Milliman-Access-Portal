@@ -16,31 +16,11 @@ using System.Security.Claims;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
-    public class UserInfoModel
-    {
-        public long Id { get; set; }
-        public string LastName { get; set; } = string.Empty;
-        public string FirstName { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string UserName { get; set; } = string.Empty;
-
-        public static explicit operator UserInfoModel(ApplicationUser U)
-        {
-            return new UserInfoModel
-            {
-                Id = U.Id,
-                Email = U.Email,
-                FirstName = U.FirstName,
-                LastName = U.LastName,
-                UserName = U.UserName,
-            };
-        }
-    }
 
     public class ContentAccessAdminClientDetailViewModel
     {
         public Client ClientEntity { get; set; }
-        public List<UserInfoModel> AssignedUsers { get; set; }
+        public List<ContentAccessAdminUserInfoViewModel> AssignedUsers { get; set; }
         public long EligibleUserCount { get; set; }
         public long RootContentItemCount { get; set; }
         public bool CanManage { get; set; }
@@ -70,7 +50,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
             Claim MembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientEntity.Id.ToString());
             IList<ApplicationUser> UsersForClaim = await UserManager.GetUsersForClaimAsync(MembershipClaim);
             AssignedUsers = UsersForClaim
-                .Select(u => (UserInfoModel) u)
+                .Select(u => (ContentAccessAdminUserInfoViewModel) u)
                 .OrderBy(u => u.LastName)
                 .ThenBy(u => u.FirstName)
                 .ThenBy(u => u.UserName)
