@@ -369,16 +369,22 @@ if ($LASTEXITCODE -ne 0)
     exit -200
 }
 
-log_statement "Local script complete. Pushing to Azure to finalize deployment."
+log_statement "Local script complete. Pushing to Azure to finalize deployment. Console output will be delayed until deployment script is finished."
 
 $command = "$gitExePath push ci_push `"HEAD:refs/heads/master`" --force"
-Invoke-Expression "&$command"
-if ($LASTEXITCODE -ne 0)
+$pushOutput = Invoke-Expression "&$command" | out-string
+
+log_statement "Push Output:"
+write-output $pushOutput
+
+if ($pushOutput -notlike "*remote: Finished successfully.*")
 {
     log_statement "Deployment failed"
     exit -300
 }
-
-log_statement "Deployment succeeded to $publicURL"
+else
+{
+    log_statement "Deployment succeeded to $publicURL"
+}
 
 #endregion
