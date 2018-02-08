@@ -69,7 +69,6 @@ $deployPassword = $env:app_deploy_password
 $gitExePath = "git"
 $credManagerPath = "L:\Hotware\Powershell_Plugins\CredMan.ps1"
 $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
-$azCliPath = "az"
 
 $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
@@ -289,7 +288,7 @@ remove-item env:PGPASSWORD
 
 #region Configure database firewall rules
 
-$command = "$azCliPath login --service-principal -u $deployUser -p $deployPassword --tenant $tenantId"
+$command = "az login --service-principal -u $deployUser -p $deployPassword --tenant $tenantId"
 Invoke-Expression "&$command"
 if ($? -eq $false)
 {
@@ -305,9 +304,9 @@ $outboundList = $properties.Properties.possibleOutboundIpAddresses.Split(',')
 
 # Retrieve the current list of firewall rules
 # Will be compared against the app's IP addresses to see which rules need to be created
-$command = "$azCliPath postgres server firewall-rule list --server-name $dbServerName --resource-group $ResourceGroupName" 
+$command = "az postgres server firewall-rule list --server-name0 `"$dbServerName`" --resource-group `"$ResourceGroupName`"" 
 $firewallRules = invoke-expression "&$command" | ConvertFrom-Json
-if ($? -eq $false)
+if ($LASTEXITCODE -ne 0)
 {
     log_statement "Failed retrieving list of existing firewall rules"
 }
@@ -318,9 +317,9 @@ foreach ( $ip in $outboundList)
     if ($ip -notin $firewallRules.startIpAddress -and $ip -notin $firewallRules.endIpAddress)
     {
         $ruleName = "Allow_"+$BranchName+"_"+$ip.replace(".","")
-        $command = "$azCliPath postgres server firewall-rule create --resource-group $ResourceGroupName --server $DbServerName --name `"$ruleName`" --start-ip-address $ip --end-ip-address $ip"
+        $command = "az postgres server firewall-rule create --resource-group `"$ResourceGroupName`" --server `"$DbServerName`" --name `"$ruleName`" --start-ip-address $ip --end-ip-address $ip"
         invoke-expression "&$command"
-        if ($? -eq $false)
+        if ($LASTEXITCODE -ne 0)
         {
             log_statement "Failed to create firewall rule named $ruleName"
             $firewallFailures = $firewallFailures + 1
