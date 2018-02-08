@@ -70,6 +70,7 @@ $gitExePath = "git"
 $credManagerPath = "L:\Hotware\Powershell_Plugins\CredMan.ps1"
 $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
 
+$dbServerHostname = "map-ci-db"
 $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
 $dbPassword = $env:db_deploy_password
@@ -304,7 +305,7 @@ $outboundList = $properties.Properties.possibleOutboundIpAddresses.Split(',')
 
 # Retrieve the current list of firewall rules
 # Will be compared against the app's IP addresses to see which rules need to be created
-$command = "az postgres server firewall-rule list --server-name0 `"$dbServerName`" --resource-group `"$ResourceGroupName`"" 
+$command = "az postgres server firewall-rule list --server-name0 `"$dbServerHostname`" --resource-group `"$ResourceGroupName`"" 
 $firewallRules = invoke-expression "&$command" | ConvertFrom-Json
 if ($LASTEXITCODE -ne 0)
 {
@@ -317,7 +318,7 @@ foreach ( $ip in $outboundList)
     if ($ip -notin $firewallRules.startIpAddress -and $ip -notin $firewallRules.endIpAddress)
     {
         $ruleName = "Allow_"+$BranchName+"_"+$ip.replace(".","")
-        $command = "az postgres server firewall-rule create --resource-group `"$ResourceGroupName`" --server `"$DbServerName`" --name `"$ruleName`" --start-ip-address $ip --end-ip-address $ip"
+        $command = "az postgres server firewall-rule create --resource-group `"$ResourceGroupName`" --server `"$DbServerHostname`" --name `"$ruleName`" --start-ip-address $ip --end-ip-address $ip"
         invoke-expression "&$command"
         if ($LASTEXITCODE -ne 0)
         {
