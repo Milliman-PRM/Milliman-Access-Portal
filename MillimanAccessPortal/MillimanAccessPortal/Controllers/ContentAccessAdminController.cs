@@ -171,6 +171,11 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
+            if (!RootContentItem.ClientIdList.Contains(Client.Id))
+            {
+                Response.Headers.Add("Warning", "The requested root content item does not belong to the requested client.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             ContentAccessAdminSelectionGroupListViewModel Model = ContentAccessAdminSelectionGroupListViewModel.Build(DbContext, Client, RootContentItem);
@@ -246,6 +251,11 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
+            if (!RootContentItem.ClientIdList.Contains(Client.Id))
+            {
+                Response.Headers.Add("Warning", "The requested root content item does not belong to the requested client.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             ContentItemUserGroup SelectionGroup = new ContentItemUserGroup
@@ -302,9 +312,6 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateSelectionGroupUserAssignments(long SelectionGroupId, Dictionary<long, Boolean> UserAssignments)
         {
-            IEnumerable<long> UserAdditions;
-            IEnumerable<long> UserRemovals;
-
             ContentItemUserGroup SelectionGroup = DbContext.ContentItemUserGroup
                 .Include(rg => rg.Client)
                 .Include(rg => rg.RootContentItem)
@@ -358,20 +365,22 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            #region Validation
+            #region Argument processing
             var CurrentAssignments = DbContext.UserInContentItemUserGroup
                 .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
                 .Select(uug => uug.UserId)
                 .ToList();
-            UserAdditions = UserAssignments
+            var UserAdditions = UserAssignments
                 .Where(kvp => kvp.Value)
                 .Select(kvp => kvp.Key)
                 .Except(CurrentAssignments);
-            UserRemovals = UserAssignments
+            var UserRemovals = UserAssignments
                 .Where(kvp => !kvp.Value)
                 .Select(kvp => kvp.Key)
                 .Intersect(CurrentAssignments);
+            #endregion
 
+            #region Validation
             var Existant = DbContext.ApplicationUser
                 .Where(u => UserAssignments.Keys.Contains(u.Id));
             if (Existant.Count() < UserAssignments.Count())
