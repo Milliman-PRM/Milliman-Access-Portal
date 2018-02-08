@@ -358,7 +358,7 @@ if ($LASTEXITCODE -ne 0)
 
 #region Push to git remote
 
-$command = "$gitExePath remote remove ci_push"
+$command = "$gitExePath remote remove ci_push 2>&1"
 $silent = Invoke-Expression "&$command" | out-string
 if ($LASTEXITCODE -ne 0)
 {
