@@ -359,7 +359,16 @@ if ($LASTEXITCODE -ne 0)
 #region Push to git remote
 
 $command = "$gitExePath remote remove ci_push"
-$silent = Invoke-Expression "&$command" # We don't really care if this succeeds or not, so silence the output
+$silent = Invoke-Expression "&$command" | out-string
+if ($LASTEXITCODE -ne 0)
+{
+    if ($silent -notlike "*fatal: No such remote:*")
+    {
+        log_statement "Remote cleanup failed with error:"
+        log_statement $silent
+        exit -250
+    }
+}
 
 $command = "$gitExePath remote add ci_push $RemoteUrl"
 Invoke-Expression "$command"
