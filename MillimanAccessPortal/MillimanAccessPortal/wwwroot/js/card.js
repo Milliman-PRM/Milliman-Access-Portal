@@ -383,9 +383,13 @@ var Card;
     users: function users(userList) {
       var self = this;
       this.vars.lastComponent = '';
-      $.each(userList, function create(i, user) {
-        self.user(user.UserName);
-      });
+      if (userList.length === 0) {
+        this.vars.$card.find(this.templates.expansion.selector).remove();
+      } else {
+        $.each(userList, function create(i, user) {
+          self.user(user.UserName);
+        });
+      }
       return this;
     },
 
