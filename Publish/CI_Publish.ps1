@@ -311,11 +311,6 @@ if ($LASTEXITCODE -ne 0)
 {
     log_statement "Failed retrieving list of existing firewall rules"
 }
-
-write-output "Existing firewall rules:"
-$firewallRules
-write-output ""
-
 $firewallFailures = 0
 
 foreach ( $ip in $outboundList) 
