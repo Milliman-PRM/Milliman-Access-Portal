@@ -130,6 +130,13 @@ function renderSelectionGroup(selectionGroup) {
     .primaryInfo(selectionGroup.SelectionGroupEntity.GroupName)
     .cardStat('#action-icon-users', selectionGroup.MemberList.length)
       .tooltip('Members')
+    .sideButton('#action-icon-user')
+      .class('card-button-blue')
+      .tooltip('Add and remove members')
+    .sideButton('#action-icon-delete')
+      .class('card-button-red')
+      .tooltip('Remove selection group')
+    .expansion()
     .build();
   /* eslint-enable indent */
 

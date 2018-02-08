@@ -5,6 +5,7 @@ var Card;
   var add;
   var findComponent;
   var html;
+  var toggleCard;
 
   Card = {
 
@@ -231,9 +232,9 @@ var Card;
     },
 
     container: function container(canManage) {
-      this.vars.canManage = canManage;
+      this.vars.canManage = (typeof canManage !== 'boolean' || canManage);
       this.vars.lastComponent = 'container';
-      if (typeof canManage === 'boolean' && !this.vars.canManage) this.attr({ disabled: '' });
+      if (!this.vars.canManage) this.attr({ disabled: '' });
       return this;
     },
 
@@ -318,30 +319,15 @@ var Card;
       return this.attr({ href: iconName }, '[href]');
     },
 
-    roleExpansion: function roleExpansion() {
-      var onClick = function toggleCard(event) {
-        event.stopPropagation();
-        $(this).closest('.card-container')
-          .find('div.card-expansion-container')
-          .attr('maximized', function toggle(index, attr) {
-            if (attr === '') {
-              $(this).find('.tooltip').tooltipster('content', 'Expand user card');
-              return null;
-            }
-            $(this).find('.tooltip').tooltipster('content', 'Collapse user card');
-            return '';
-          });
-        showRelevantUserActionIcons();
-      };
+    expansion: function expansion() {
       this.vars.lastComponent = '';
       /* eslint-disable indent */
       return this
-        .expansionLabel('User roles')
         .expansionButton('#action-icon-expand-card')
-          .tooltip('Expand user card', '.card-button-background')
-          .click(onClick, '.card-button-background')
+          .tooltip('Expand card', '.card-button-background')
+          .click(toggleCard, '.card-button-background')
         .main()
-          .click(onClick);
+          .click(toggleCard);
       /* eslint-enable indent */
     },
 
@@ -466,5 +452,19 @@ var Card;
     var $component = findComponent(Card.vars.lastComponent, selector);
     $component.html(value);
     return Card;
+  };
+  toggleCard = function _toggleCard(event) {
+    event.stopPropagation();
+    $(this).closest('.card-container')
+      .find('div.card-expansion-container')
+      .attr('maximized', function toggle(index, attr) {
+        if (attr === '') {
+          $(this).find('.tooltip').tooltipster('content', 'Expand card');
+          return null;
+        }
+        $(this).find('.tooltip').tooltipster('content', 'Collapse card');
+        return '';
+      });
+    showRelevantUserActionIcons();
   };
 }());

@@ -503,7 +503,8 @@ function renderUserNode(client, user) {
         userCardRemoveClickHandler($(this).closest('.card-container'));
       })
       .tooltip('Remove user')
-    .roleExpansion()
+    .expansion()
+    .expansionLabel('User roles')
     .roleToggles(user.UserRoles)
     .build();
   /* eslint-enable indent */

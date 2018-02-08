@@ -179,6 +179,7 @@
             width: 1.25em;
         }
 
+        &.card-button-red,
         &.card-button-delete,
         &.card-button-remove-user,
         &.card-button-close {
@@ -189,6 +190,7 @@
             }
         }
 
+        &.card-button-blue,
         &.card-button-edit,
         &.card-button-options,
         &.card-button-expansion {
@@ -199,6 +201,7 @@
             }
         }
 
+        &.card-button-green,
         &.card-button-new-child {
             background-color: $green;
 
