@@ -328,15 +328,15 @@ var Card;
       return this.attr({ href: iconName }, '[href]');
     },
 
-    expansion: function expansion() {
+    expansion: function expansion(panel) {
       this.vars.lastComponent = '';
       /* eslint-disable indent */
       return this
         .expansionButton('#action-icon-expand-card')
           .tooltip('Expand card', '.card-button-background')
-          .click(toggleCard, '.card-button-background')
+          .click(toggleCard(panel), '.card-button-background')
         .main()
-          .click(toggleCard);
+          .click(toggleCard(panel));
       /* eslint-enable indent */
     },
 
@@ -481,18 +481,20 @@ var Card;
     $component.html(value);
     return Card;
   };
-  toggleCard = function _toggleCard(event) {
-    event.stopPropagation();
-    $(this).closest('.card-container')
-      .find('div.card-expansion-container')
-      .attr('maximized', function toggle(index, attr) {
-        if (attr === '') {
-          $(this).find('.tooltip').tooltipster('content', 'Expand card');
-          return null;
-        }
-        $(this).find('.tooltip').tooltipster('content', 'Collapse card');
-        return '';
-      });
-    showRelevantUserActionIcons();
+  toggleCard = function _toggleCard(panel) {
+    return function (event) {
+      event.stopPropagation();
+      $(this).closest('.card-container')
+        .find('div.card-expansion-container')
+        .attr('maximized', function toggle(index, attr) {
+          if (attr === '') {
+            $(this).find('.tooltip').tooltipster('content', 'Expand card');
+            return null;
+          }
+          $(this).find('.tooltip').tooltipster('content', 'Collapse card');
+          return '';
+        });
+      showRelevantActionIcons(panel);
+    };
   };
 }());

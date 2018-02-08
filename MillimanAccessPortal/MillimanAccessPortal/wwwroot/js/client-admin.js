@@ -156,11 +156,11 @@ function populateProfitCenterDropDown(profitCenterList) {
  * Show or hide collapse/expand icons based on how many user cards are maximized
  * @return {undefined}
  */
-function showRelevantUserActionIcons() {
-  $('#collapse-user-icon').hide().filter(function anyMaximized() {
+function showRelevantActionIcons(panel) {
+  $('#collapse-' + panel + '-icon').hide().filter(function anyMaximized() {
     return $('div.card-expansion-container[maximized]').length;
   }).show();
-  $('#expand-user-icon').hide().filter(function anyMinimized() {
+  $('#expand-' + panel + '-icon').hide().filter(function anyMinimized() {
     return $('div.card-expansion-container:not([maximized])').length;
   }).show();
 }
@@ -171,7 +171,7 @@ function showRelevantUserActionIcons() {
  */
 function expandAllUsers() {
   $('#client-user-list').find('div.card-expansion-container').attr('maximized', '');
-  showRelevantUserActionIcons();
+  showRelevantActionIcons('user');
 }
 
 /**
@@ -180,7 +180,7 @@ function expandAllUsers() {
  */
 function collapseAllUsers() {
   $('#client-user-list').find('div.card-expansion-container[maximized]').removeAttr('maximized');
-  showRelevantUserActionIcons();
+  showRelevantActionIcons('user');
 }
 
 /**
@@ -503,7 +503,7 @@ function renderUserNode(client, user) {
         userCardRemoveClickHandler($(this).closest('.card-container'));
       })
       .tooltip('Remove user')
-    .expansion()
+    .expansion('user')
     .expansionLabel('User roles')
     .roleToggles(user.UserRoles)
     .build();
@@ -527,7 +527,7 @@ function renderUserList(client, userId) {
   });
   $clientUserList.find('.tooltip').tooltipster();
   eligibleUsers = client.EligibleUsers;
-  showRelevantUserActionIcons();
+  showRelevantActionIcons('user');
 
   if (userId) {
     $('[data-user-id="' + userId + '"]').click();

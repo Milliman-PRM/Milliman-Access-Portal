@@ -49,6 +49,22 @@ function openRootContentItemCard($rootContentItemCard) {
   showRootContentItemDetails();
 }
 
+function showRelevantActionIcons(panel) {
+  $('#collapse-' + panel + '-icon').hide().filter(function anyMaximized() {
+    return $('div.card-expansion-container[maximized]').length;
+  }).show();
+  $('#expand-' + panel + '-icon').hide().filter(function anyMinimized() {
+    return $('div.card-expansion-container:not([maximized])').length;
+  }).show();
+}
+function expandAll(panel) {
+  $('#' + panel).find('div.card-expansion-container').attr('maximized', '');
+  showRelevantActionIcons(panel);
+}
+function collapseAll(panel) {
+  $('#' + panel).find('div.card-expansion-container[maximized]').removeAttr('maximized');
+  showRelevantActionIcons(panel);
+}
 
 // Render functions
 
@@ -136,7 +152,7 @@ function renderSelectionGroup(selectionGroup) {
     .sideButton('#action-icon-delete')
       .class('card-button-red')
       .tooltip('Remove selection group')
-    .expansion()
+    .expansion('selection-groups')
     .users(selectionGroup.MemberList)
     .build();
   /* eslint-enable indent */
@@ -287,6 +303,9 @@ rootContentItemCardClickHandler = function rootContentItemCardClickHandler_($cli
 
 $(document).ready(function onReady() {
   getClientTree();
+
+  $('#expand-selection-groups-icon').click(function () { expandAll('selection-groups'); });
+  $('#collapse-selection-groups-icon').click(function () { collapseAll('selection-groups'); });
 
   $('.tooltip').tooltipster();
 });
