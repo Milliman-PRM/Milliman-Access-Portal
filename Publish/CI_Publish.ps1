@@ -128,7 +128,7 @@ if ( $LASTEXITCODE -ne 0 ) {
     exit $LASTEXITCODE
 }
 
-MSBuild /verbosity:quiet
+MSBuild /verbosity:quiet /nowarn:CS1998
 
 if ( $LASTEXITCODE -ne 0 ) {
     log_statement "ERROR: Unit test build failed"
