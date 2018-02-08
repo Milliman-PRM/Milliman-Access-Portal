@@ -306,11 +306,16 @@ $outboundList = $properties.Properties.possibleOutboundIpAddresses.Split(',')
 # Retrieve the current list of firewall rules
 # Will be compared against the app's IP addresses to see which rules need to be created
 $command = "az postgres server firewall-rule list --server-name `"$dbServerHostname`" --resource-group `"$ResourceGroupName`"" 
-$firewallRules = invoke-expression "&$command" | ConvertFrom-Json
+$firewallRules = invoke-expression "&$command" | out-string | ConvertFrom-Json
 if ($LASTEXITCODE -ne 0)
 {
     log_statement "Failed retrieving list of existing firewall rules"
 }
+
+write-output "Existing firewall rules:"
+$firewallRules
+write-output ""
+
 $firewallFailures = 0
 
 foreach ( $ip in $outboundList) 
