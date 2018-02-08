@@ -371,7 +371,7 @@ if ($LASTEXITCODE -ne 0)
 
 log_statement "Local script complete. Pushing to Azure to finalize deployment. Console output will be delayed until deployment script is finished."
 
-$command = "$gitExePath push ci_push `"HEAD:refs/heads/master`" --force"
+$command = "$gitExePath push ci_push `"HEAD:refs/heads/master`" --force 2>&1"
 $pushOutput = Invoke-Expression "&$command" | out-string
 
 log_statement "Push Output:"
