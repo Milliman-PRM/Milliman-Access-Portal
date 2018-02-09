@@ -46,7 +46,8 @@ $loopWaitSeconds = 10
 $DeploymentSource = $basePath
 $DeploymentTarget = $Artifacts+"\wwwroot"
 
-$DeploymentTemp = "$env:temp\__deployTemp"+(get-random).ToString()
+$DeploymentTempFolder = "__deployTemp"+(get-random).ToString()
+$DeploymentTemp = "$env:temp\$deploymentTempFolder"
 
 #region MSBuild 15
 $VersionFolder = get-childitem -Path "d:\Program Files (x86)" -Name "MSBuild-15*" | select -first 1
@@ -80,7 +81,7 @@ if ((get-location).Path -ne $SolutionPath) {
 }
 
 log_statement "Restoring nuget packages"
-Invoke-Expression "dotnet restore"
+start-process "dotnet" -ArgumentList "restore" -wait
 if ($LASTEXITCODE -ne 0) {
         fail_statement "Failed to restore nuget packages"
 }
@@ -91,7 +92,7 @@ if ((get-location).Path -ne $projectPath) {
 }
 
 log_statement "Restoring bower packages"
-Invoke-Expression "bower install -V -f"
+start-process "bower" -argumentsList "install","-V","-f" -wait
 if ($LASTEXITCODE -ne 0) {
     fail_statement "Failed to restore bower packages"
 }
@@ -127,8 +128,7 @@ if (test-path "$env:temp\webcompiler*")
         start-sleep -seconds $loopWaitSeconds
     }
     
-    $command = "cd $WebCompilerPath"
-    Invoke-Expression $command
+    cd $WebCompilerPath
     if ((get-location).Path -ne $WebCompilerPath) {
         fail_statement "Failed to change to WebCompiler directory"
     }
@@ -140,8 +140,7 @@ if (test-path "$env:temp\webcompiler*")
     elseif (test-path "$WebCompilerPath\prepare.cmd")
     {
         log_statement "Executing prepare.cmd"
-        $command = "prepare.cmd"
-        invoke-expression $command
+        start-process "prepare.cmd" -wait
         if ($LASTEXITCODE -ne 0) {
             fail_statement "Web Compiler's prepare.cmd returned an error"
         }
@@ -162,13 +161,12 @@ else
 
 log_statement "Build and publish application files to temporary folder"
 
-invoke-expression "mkdir $DeploymentTemp"
-if ($LASTEXITCODE -ne 0) {
+new-item -Path $env:temp -Name $DeploymentTempFolder -ItemType "directory"
+if ($? -eq $false) {
     fail_statement "Failed to create deployment target directory"
 }
 
-$command = "`"$MsBuild15Path`" `"$ProjectPath\MillimanAccessPortal.csproj`" /t:Restore /t:publish /p:PublishDir=$branchFolder /verbosity:minimal /nowarn:MSB3884"
-invoke-expression "%$command"
+start-process "$MSbuild15Path" -ArgumentList "`"$ProjectPath\MillimanAccessPortal.csproj`"","/t:restore","/t:publish","/p:PublishDir=$branchFolder","/verbosity:minimal","/nowarn:MSB3884" -wait
 if ($LASTEXITCODE -ne 0) {
     fail_statement "Failed to build application"
 }
@@ -178,8 +176,7 @@ if ($LASTEXITCODE -ne 0) {
 
 log_statement "Finalizing deployment with KuduSync"
 
-$command = "$kuduSyncPath -v 50 -f `"$DeploymentTemp`" -t `"$DeploymentTarget`" -n `"$nextManifestPath`" -p `"$previousManifestPath`"  -i `".git;.hg;.deployment;deploy.cmd`""
-Invoke-Expression "%$command"
+start-process "$kuduSyncPath" -ArgumentList "-v 50","-f `"$DeploymentTemp`"","-t `"$DeploymentTarget`"","-n `"$nextManifestPath`"","-p `"$previousManifestPath`"","-i `".git;.hg;.deployment;deploy.cmd`""
 if ($LASTEXITCODE -ne 0){
     fail_statement "KuduSync returned an error."
 }
