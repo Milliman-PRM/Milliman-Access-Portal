@@ -176,23 +176,11 @@ var ActionCard;
     /* eslint-enable indent */
   };
 
-  Card.prototype.attr = function (value, selector) {
-    var $component = findComponent(this.vars.lastComponent, selector);
-    $component.attr(value);
-    return this;
-  };
-
-  Card.prototype.prop = function (value, selector) {
-    var $component = findComponent(this.vars.lastComponent, selector);
-    $component.prop(value);
-    return this;
-  };
-
-  Card.prototype.class = function (value, selector) {
-    var $component = findComponent(this.vars.lastComponent, selector);
-    $component.addClass(value);
-    return this;
-  };
+  ['attr', 'prop', 'addClass', 'click'].foreach(function (func) {
+    Card.prototype[func] = function (value, selector) {
+      findComponent(this.lastComponent, selector)[func](value);
+    };
+  });
 
   Card.prototype.tooltip = function (value, selector) {
     var $component = findComponent(this.vars.lastComponent, selector);
@@ -200,13 +188,6 @@ var ActionCard;
     $component.attr('title', value);
     return this;
   };
-
-  Card.prototype.click = function (onClick, selector) {
-    var $component = findComponent(this.vars.lastComponent, selector);
-    $component.click(onClick);
-    return this;
-  };
-
 
   Card.prototype.newCard = function () {
     this.vars.$card = $(this.templates.container.html);
