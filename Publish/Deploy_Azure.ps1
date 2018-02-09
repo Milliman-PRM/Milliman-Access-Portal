@@ -30,6 +30,7 @@ function log_output {
 function fail_statement {
     Param([string]$statement)
     log_statement "DEPLOYMENT FAILED"
+    log_statement "Working directory was $pwd"
     log_statement $statement
     write-output ""
     write-output "===="
