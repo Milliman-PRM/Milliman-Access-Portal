@@ -97,7 +97,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # Do a build intended to fail, to cause the WebCompiler folder to be created
-start-process $MSbuild15Path -ArgumentList"/verbosity:minimal" -wait
+start-process $MSbuild15Path -ArgumentList "/verbosity:minimal" -wait
 
 #region Web Compiler setup
 log_statement "Looking for Web Compiler"
