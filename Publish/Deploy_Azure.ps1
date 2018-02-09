@@ -82,7 +82,7 @@ if ((get-location).Path -ne $SolutionPath) {
 
 log_statement "Restoring nuget packages"
 start-process "dotnet" -ArgumentList "restore" -wait
-if ($LASTEXITCODE -ne 0) {
+if ($? -eq $false) {
         fail_statement "Failed to restore nuget packages"
 }
 
@@ -93,7 +93,7 @@ if ((get-location).Path -ne $projectPath) {
 
 log_statement "Restoring bower packages"
 start-process "bower" -argumentsList "install","-V","-f" -wait
-if ($LASTEXITCODE -ne 0) {
+if ($? -eq $false) {
     fail_statement "Failed to restore bower packages"
 }
 
@@ -141,7 +141,7 @@ if (test-path "$env:temp\webcompiler*")
     {
         log_statement "Executing prepare.cmd"
         start-process "prepare.cmd" -wait
-        if ($LASTEXITCODE -ne 0) {
+        if ($? -eq $false) {
             fail_statement "Web Compiler's prepare.cmd returned an error"
         }
     }
@@ -167,7 +167,7 @@ if ($? -eq $false) {
 }
 
 start-process "$MSbuild15Path" -ArgumentList "`"$ProjectPath\MillimanAccessPortal.csproj`"","/t:restore","/t:publish","/p:PublishDir=$branchFolder","/verbosity:minimal","/nowarn:MSB3884" -wait
-if ($LASTEXITCODE -ne 0) {
+if ($? -eq $false) {
     fail_statement "Failed to build application"
 }
 #endregion
@@ -177,7 +177,7 @@ if ($LASTEXITCODE -ne 0) {
 log_statement "Finalizing deployment with KuduSync"
 
 start-process "$kuduSyncPath" -ArgumentList "-v 50","-f `"$DeploymentTemp`"","-t `"$DeploymentTarget`"","-n `"$nextManifestPath`"","-p `"$previousManifestPath`"","-i `".git;.hg;.deployment;deploy.cmd`""
-if ($LASTEXITCODE -ne 0){
+if ($? -eq $false){
     fail_statement "KuduSync returned an error."
 }
 #endregion
