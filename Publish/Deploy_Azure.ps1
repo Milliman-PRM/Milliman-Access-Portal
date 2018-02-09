@@ -100,6 +100,12 @@ catch {
     fail_statement "Failed to restore bower packages"
 }
 
+$command = "`"$msbuild15path`" /verbosity:minimal"
+invoke-expression "&$command"
+if ($LASTEXITCODE -ne 0 -or $? -eq $false) {
+    fail_statement "Failed initial test build"
+}
+
 #region Web Compiler setup
 log_statement "Looking for Web Compiler"
 $tries = 0
