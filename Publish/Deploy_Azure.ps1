@@ -81,7 +81,7 @@ if ((get-location).Path -ne $SolutionPath) {
 }
 
 log_statement "Restoring nuget packages"
-dotnet restore
+Invoke-Expression "dotnet restore"
 if ($LASTEXITCODE -ne 0) {
     fail_statement "Failed to restore nuget packages"
 }
@@ -91,8 +91,7 @@ if ((get-location).Path -ne $projectPath) {
     fail_statement "Failed to open project directory"
 }
 log_statement "Restoring bower packages"
-$command = "bower install"
-Invoke-Expression "&$command"
+Invoke-Expression "bower install"
 if ($LASTEXITCODE -ne 0) {
     fail_statement "Failed to restore bower packages"
 }
@@ -160,8 +159,7 @@ else
 
 log_statement "Build and publish application files to temporary folder"
 
-$command = "mkdir $DeploymentTemp"
-invoke-expression "%$command"
+invoke-expression "mkdir $DeploymentTemp"
 if ($LASTEXITCODE -ne 0) {
     fail_statement "Failed to create deployment target directory"
 }
