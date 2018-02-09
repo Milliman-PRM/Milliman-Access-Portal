@@ -79,11 +79,9 @@ if ((get-location).Path -ne $SolutionPath) {
     fail_statement "Failed to open project directory"
 }
 
-try {
-    log_statement "Restoring nuget packages"
-    Invoke-Expression "dotnet restore"
-} 
-catch {
+log_statement "Restoring nuget packages"
+Invoke-Expression "dotnet restore"
+if ($LASTEXITCODE -ne 0) {
         fail_statement "Failed to restore nuget packages"
 }
 
