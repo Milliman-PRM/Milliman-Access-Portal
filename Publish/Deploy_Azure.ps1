@@ -198,6 +198,7 @@ start-process "$MSbuild15Path" -ArgumentList "`"$ProjectPath\MillimanAccessPorta
 if ($? -eq $false) {
     fail_statement "Failed to build application"
 }
+log_output
 #endregion
 
 #region Use KuduSync to complete the publication process
