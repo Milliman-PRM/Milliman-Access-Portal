@@ -161,7 +161,7 @@ if (test-path "$env:temp\webcompiler*")
     elseif (test-path "$WebCompilerPath\prepare.cmd")
     {
         log_statement "Executing prepare.cmd"
-        start-process "prepare.cmd" -wait -RedirectStandardOutput "$env:temp\output.txt" -redirectstandarderror "$env:temp\error.txt"
+        start-process "$pwd\prepare.cmd" -wait -RedirectStandardOutput "$env:temp\output.txt" -redirectstandarderror "$env:temp\error.txt"
         if ($? -eq $false) {
             fail_statement "Web Compiler's prepare.cmd returned an error"
         }
