@@ -122,8 +122,9 @@ if ($? -eq $false) {
 # If the WebCompiler folder isn't present, do a build that will fail, which triggers it to be created
 if ((test-path "$env:temp\webcomp*") -eq $false)
 {
-    log_statement "Running false build to generate the WebCompiler folder."
-    start-process $MSbuild15Path -ArgumentList "/verbosity:minimal" -wait -RedirectStandardOutput "$env:temp\output.txt" -redirectstandarderror "$env:temp\error.txt"
+    "Running false build to generate the WebCompiler folder."
+    $command = "`"$msbuild15path`" /verbosity:minimal"
+    Invoke-Expression $command
 }
 
 log_statement "Looking for Web Compiler"

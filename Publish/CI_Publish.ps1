@@ -200,7 +200,7 @@ $PropertiesObject = @{
     scmType = "LocalGit"
     SCM_COMMAND_IDLE_TIMEOUT = 360
 }
-$silent = Set-AzureRmResource -PropertyObject $PropertiesObject -ResourceGroupName $ResourceGroupName -ResourceType Microsoft.Web/sites/slots/config -ResourceName "$WebAppName/$BranchName/web" -ApiVersion 2016-08-01 -Force
+Set-AzureRmResource -PropertyObject $PropertiesObject -ResourceGroupName $ResourceGroupName -ResourceType Microsoft.Web/sites/slots/config -ResourceName "$WebAppName/$BranchName/web" -ApiVersion 2016-08-01 -Force
 
 if ($? -eq $false)
 {
