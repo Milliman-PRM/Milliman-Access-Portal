@@ -124,16 +124,17 @@ log_output
 #region Web Compiler setup
 log_statement "Looking for Web Compiler"
 $tries = 0
-while ((test-path "$env:temp\webcompiler*") -eq $false -and $tries -lt $loopRetries)
+while ((test-path "$env:temp\webcompiler*" -PathType Container) -eq $false -and $tries -lt $loopRetries)
 {
     $tries = $tries + 1
-    log_statement "Web Compiler directory not found. Waiting for $loopWaitSeconds before trying again."
+    log_statement "Web Compiler directory not found. Waiting for $loopWaitSeconds seconds before trying again."
     log_statement "Attempt $tries of $loopRetries"
     start-sleep -seconds $loopWaitSeconds
 }
 
-if (test-path "$env:temp\webcompiler*")
+if (test-path "$env:temp\webcompiler*" -PathType Container)
 {
+    log_statement "Web Compiler directory located"
     log_statement "Looking for Web Compiler packages or prepare.cmd"
 
     $WebCompilerPath = get-childitem -Path $env:temp | where {$_.name -match 'WebComp'} | sort-object LastWriteTime | select -first 1
@@ -144,7 +145,7 @@ if (test-path "$env:temp\webcompiler*")
     while ((test-path "$WebCompilerPath\node_modules") -eq $false -and (test-path "$WebCompilerPath\prepare.cmd") -eq $false -and $tries -lt $loopRetries) 
     {
         $tries = $tries + 1
-        log_statement "Web Compiler components not found. Waiting for $loopWaitSeconds before trying again."
+        log_statement "Web Compiler components not found. Waiting for $loopWaitSeconds seconds before trying again."
         log_statement "Attempt $tries of $loopRetries"
         start-sleep -seconds $loopWaitSeconds
     }
