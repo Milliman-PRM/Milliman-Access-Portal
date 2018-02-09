@@ -424,9 +424,9 @@ namespace MapTests
             #region Initialize RootContentItem
             DbContextObject.RootContentItem.AddRange(new List<RootContentItem>
                 { 
-                    new RootContentItem{ Id=1, ClientIdList=new long[]{ 1 }, ContentName="RootContent 1", ContentTypeId=1 },
-                    new RootContentItem{ Id=2, ClientIdList=new long[]{ 2 }, ContentName="RootContent 2", ContentTypeId=1 },
-                    new RootContentItem{ Id=3, ClientIdList=new long[]{ 8 }, ContentName="RootContent 3", ContentTypeId=1 },
+                    new RootContentItem{ Id=1, ClientId=1, ContentName="RootContent 1", ContentTypeId=1 },
+                    new RootContentItem{ Id=2, ClientId=2, ContentName="RootContent 2", ContentTypeId=1 },
+                    new RootContentItem{ Id=3, ClientId=8, ContentName="RootContent 3", ContentTypeId=1 },
                 });
             MockDbSet<RootContentItem>.AssignNavigationProperty<ContentType>(DbContextObject.RootContentItem, "ContentTypeId", DbContextObject.ContentType);
             #endregion
