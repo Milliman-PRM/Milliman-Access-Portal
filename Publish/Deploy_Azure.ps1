@@ -92,7 +92,7 @@ if ((get-location).Path -ne $projectPath) {
 }
 
 log_statement "Restoring bower packages"
-start-process "bower" -argumentsList "install","-V","-f" -wait
+start-process "bower" -argumentList "install","-V","-f" -wait
 if ($? -eq $false) {
     fail_statement "Failed to restore bower packages"
 }
