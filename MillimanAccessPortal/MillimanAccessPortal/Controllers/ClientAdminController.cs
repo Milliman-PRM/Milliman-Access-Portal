@@ -563,7 +563,7 @@ namespace MillimanAccessPortal.Controllers
                          .Include(urc => urc.RootContentItem)
                          .Where(urc => urc.UserId == RequestedUser.Id)
                          .Select(urc => urc.RootContentItem);
-            if (AllAuthorizedContentQuery.Any(rc => rc.ClientIdList.Contains(RequestedClient.Id)))
+            if (AllAuthorizedContentQuery.Any(rc => rc.ClientId == RequestedClient.Id))
             {
                 Response.Headers.Add("Warning", "The requested user must first have no role for content item(s) of the requested client");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
@@ -952,7 +952,7 @@ namespace MillimanAccessPortal.Controllers
 
             // Client must not have any root content items
             var ItemCount = DbContext.RootContentItem
-                .Where(i => i.ClientIdList.Contains<long>(Id.Value))
+                .Where(i => i.ClientId == Id.Value)
                 .Count();
             if (ItemCount > 0)
             {
