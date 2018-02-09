@@ -81,8 +81,7 @@ if ((get-location).Path -ne $projectPath) {
 }
 
 log_statement "Restoring nuget packages"
-$command = "`"$MSbuild15Path`" /t:Restore /verbosity:minimal"
-Invoke-Expression "&$command"
+dotnet restore
 if ($LASTEXITCODE -ne 0) {
     fail_statement "Failed to restore nuget packages"
 }
