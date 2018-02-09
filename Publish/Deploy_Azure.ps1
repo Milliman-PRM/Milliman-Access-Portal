@@ -65,7 +65,7 @@ $loopRetries = 10
 $loopWaitSeconds = 10
 
 $DeploymentSource = $basePath
-$DeploymentTarget = "$Artifacts\wwwroot"
+$DeploymentTarget = "D:\home\site\wwwroot"
 
 $DeploymentTempFolder = "__deployTemp"+(get-random).ToString()
 $DeploymentTemp = "$env:temp\$deploymentTempFolder"
