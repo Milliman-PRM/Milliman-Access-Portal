@@ -1,2 +1,2 @@
 [config]
-command = Publish\Azure_Provision_CI.ps1
+command = powershell.exe -file .Publish\Azure_Provision_CI.ps1
