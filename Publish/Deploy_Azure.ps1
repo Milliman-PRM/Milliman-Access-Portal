@@ -33,6 +33,8 @@ log_statement "Validating & configuring environment"
 #region Prepare environment
 $basePath = (get-location).Path
 $baseParent = $basePath.Substring(0, $basePath.LastIndexOf('\'))
+$projectPath = $basePath+"\MillimanAccessPortal\MillimanAccessPortal"
+$solutionPath = $basePath+"\MillimanAccessPortal"
 
 $Artifacts = $baseParent+"\artifacts"
 
@@ -41,6 +43,8 @@ $loopWaitSeconds = 10
 
 $DeploymentSource = $basePath
 $DeploymentTarget = $Artifacts+"\wwwroot"
+
+$DeploymentTemp = "$env:temp\__deployTemp"+(get-random).ToString()
 
 #region Prepare Kudu Sync
 $command = "npm install kudusync -g --silent"
@@ -73,44 +77,84 @@ if ($LASTEXITCODE -ne 0) {
     fail_statement "Failed to restore bower packages"
 }
 
-log_statement "Preparing web compiler"
+log_statement "Looking for Web Compiler"
 $tries = 0
-while ((test-path "$env:temp\webcompiler*") -eq $false)
+while ((test-path "$env:temp\webcompiler*") -eq $false -and $tries -lt $loopRetries)
 {
     $tries = $tries + 1
     log_statement "Web Compiler directory not found. Waiting for $loopWaitSeconds before trying again."
     log_statement "Attempt $tries of $loopRetries"
+    start-sleep -seconds $loopWaitSeconds
 }
 
 if (test-path "$env:temp\webcompiler*")
 {
+    log_statement "Looking for Web Compiler packages or prepare.cmd"
+
     $WebCompilerPath = get-childitem -Path $env:temp | where {$_.name -match 'WebComp'} | sort-object LastWriteTime | select -first 1
     $WebCompilerPath = $WebCompilerPath.FullName
 
-    cd $WebCompilerPath
-    if ($LASTEXITCODE -ne 0) {
+    # Wait for Web compiler contents to exist
+    $tries = 0
+    while ((test-path "$WebCompilerPath\node_modules") -eq $false -and (test-path "$WebCompilerPath\prepare.cmd") -eq $false -and $tries -lt $loopRetries) 
+    {
+        $tries = $tries + 1
+        log_statement "Web Compiler components not found. Waiting for $loopWaitSeconds before trying again."
+        log_statement "Attempt $tries of $loopRetries"
+        start-sleep -seconds $loopWaitSeconds
+    }
+    
+    $command = "cd $WebCompilerPath"
+    Invoke-Expression $command
+    if ((get-location).Path -ne $WebCompilerPath) {
         fail_statement "Failed to change to WebCompiler directory"
     }
 
-    $command = "prepare.cmd"
-    invoke-expression $command
-    if ($LASTEXITCODE -ne 0) {
-        fail_statement "Web Compiler's prepare.cmd returned an error"
+    if (test-path "$WebCompilerPath\node_modules")
+    {
+        log_statement "Web Compiler packages were found"
+    }
+    elseif (test-path "$WebCompilerPath\prepare.cmd")
+    {
+        log_statement "Executing prepare.cmd"
+        $command = "prepare.cmd"
+        invoke-expression $command
+        if ($LASTEXITCODE -ne 0) {
+            fail_statement "Web Compiler's prepare.cmd returned an error"
+        }
+    }
+    elseif ($tries -ge $loopRetries)
+    {
+        fail_statement "Web Compiler components were not found after $loopRetries attempts."
     }
 }
 else 
 {
     fail_statement "Web compiler directory was not found"
 }
-
 #endregion
 
 #region Build and publish to temporary folder
 
+log_statement "Build and publish application files to temporary folder"
+
+cd D:\Program Files (x86)\MSBuild-15*\MSBuild\15.0\Bin\ 
+MSBuild "$ProjectPath+\MillimanAccessPortal.csproj" /t:Restore /t:publish /p:PublishDir=$branchFolder /verbosity:minimal /nowarn:MSB3884
+
+if ($LASTEXITCODE -ne 0) {
+    fail_statement "Failed to build application"
+}
 #endregion
 
 #region Use KuduSync to complete the publication process
 
+log_statement "Finalizing deployment with KuduSync"
+
+$command = "$kuduSyncPath -v 50 -f `"$DeploymentTemp`" -t `"$DeploymentTarget`" -n `"$nextManifestPath`" -p `"$previousManifestPath`"  -i `".git;.hg;.deployment;deploy.cmd`""
+Invoke-Expression "%$command"
+if ($LASTEXITCODE -ne 0){
+    fail_statement "KuduSync returned an error."
+}
 #endregion
 
 # Write success method expected by CI script
