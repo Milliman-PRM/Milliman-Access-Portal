@@ -92,11 +92,9 @@ if ((get-location).Path -ne $projectPath) {
     fail_statement "Failed to open project directory"
 }
 
-try {
-    log_statement "Restoring bower packages"
-    Invoke-Expression "bower install"
-}
-catch {
+log_statement "Restoring bower packages"
+Invoke-Expression "bower install -V -f"
+if ($LASTEXITCODE -ne 0 -or $? -eq $false) {
     fail_statement "Failed to restore bower packages"
 }
 
