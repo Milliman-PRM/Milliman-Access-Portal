@@ -23,7 +23,6 @@ namespace MapDbContextLib.Context
         public long ContentTypeId { get; set; }
         public ContentType ContentType { get; set; }
 
-        [Required]
         public long[] ClientIdList { get; set; }
 
         [Column(TypeName ="jsonb")]
