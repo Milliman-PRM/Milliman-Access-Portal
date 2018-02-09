@@ -63,7 +63,7 @@ if ((test-path $MSbuild15Path) -eq $false)
 
 #region Prepare Kudu Sync
 invoke-expression "npm install kudusync -g --silent"
-if ($LASTEXITCODE -ne 0 -or $? -eq $false) {
+if ($LASTEXITCODE -ne 0) {
     fail_statement "Failed to install KuduSync"
 }
 
@@ -94,13 +94,13 @@ if ((get-location).Path -ne $projectPath) {
 
 log_statement "Restoring bower packages"
 Invoke-Expression "bower install -V -f"
-if ($LASTEXITCODE -ne 0 -or $? -eq $false) {
+if ($LASTEXITCODE -ne 0) {
     fail_statement "Failed to restore bower packages"
 }
 
 $command = "`"$msbuild15path`" /verbosity:minimal"
 invoke-expression "&$command"
-if ($LASTEXITCODE -ne 0 -or $? -eq $false) {
+if ($LASTEXITCODE -ne 0) {
     fail_statement "Failed initial test build"
 }
 
