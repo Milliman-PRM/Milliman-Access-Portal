@@ -545,12 +545,12 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest("The requested user does not exist");
             }
 
-            // 2. RequestedUser must not be assigned to any ContentItemUserGroup of RequestedClient
-            IQueryable<ContentItemUserGroup> AllAuthorizedGroupsQuery =
-                DbContext.UserInContentItemUserGroup
-                         .Include(urc => urc.ContentItemUserGroup)
+            // 2. RequestedUser must not be assigned to any SelectionGroup of RequestedClient
+            IQueryable<SelectionGroup> AllAuthorizedGroupsQuery =
+                DbContext.UserInSelectionGroup
+                         .Include(urc => urc.SelectionGroup)
                          .Where(urc => urc.UserId == RequestedUser.Id)
-                         .Select(urc => urc.ContentItemUserGroup);
+                         .Select(urc => urc.SelectionGroup);
             if (AllAuthorizedGroupsQuery.Any(group => group.ClientId == RequestedClient.Id))
             {
                 Response.Headers.Add("Warning", "The requested user must first be unauthorized to content of the requested client");
