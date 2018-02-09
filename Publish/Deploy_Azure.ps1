@@ -14,20 +14,37 @@ function log_statement {
 
     write-output $datestring"|"$statement
 }
-
-
+function log_output {
+    log_statement "Dumping captured command output"
+    write-output ""
+    write-output "===="
+    log_statement "content of output.txt"
+    write-output ""
+    write-output (get-content "$env:temp\output.txt")
+    write-output ""
+    write-output "===="
+    log_statement "content of error.txt"
+    write-output ""
+    write-output (get-content "$env:temp\error.txt")
+}
 function fail_statement {
     Param([string]$statement)
     log_statement "DEPLOYMENT FAILED"
     log_statement $statement
+    write-output ""
+    write-output "===="
     log_statement "Dump of local variables for troubleshooting"
+    write-output ""
     variable
+    
+    log_output
 
     if ($host.name -notmatch "ISE") # Don't exit if we're running in PowerShell ISE
     {
         exit 42
     }
 }
+
 #endregion
 
 log_statement "Validating & configuring environment"
@@ -63,7 +80,7 @@ if ((test-path $MSbuild15Path) -eq $false)
 #endregion
 
 #region Prepare Kudu Sync
-start-process "npm" -ArgumentList "install","kudusync","-g","--silent" -wait
+start-process "npm" -ArgumentList "install","kudusync","-g","--silent" -wait -RedirectStandardOutput "$env:temp\output.txt" -redirectstandarderror "$env:temp\error.txt"
 if ($? -eq $false) {
     fail_statement "Failed to install KuduSync"
 }
@@ -92,13 +109,16 @@ if ((get-location).Path -ne $projectPath) {
 }
 
 log_statement "Restoring bower packages"
-start-process "bower" -argumentList "install","-V","-f" -wait
+start-process "bower" -argumentList "install","-V","-f" -wait -RedirectStandardOutput "$env:temp\output.txt" -redirectstandarderror "$env:temp\error.txt"
 if ($? -eq $false) {
     fail_statement "Failed to restore bower packages"
 }
 
 # Do a build intended to fail, to cause the WebCompiler folder to be created
-start-process $MSbuild15Path -ArgumentList "/verbosity:minimal" -wait
+log_statement "Running false build - will throw an error if this is a new branch."
+log_statement "An error at this stage is not unexpected, and should not be considered a deployment failure."
+start-process $MSbuild15Path -ArgumentList "/verbosity:minimal" -wait -RedirectStandardOutput "$env:temp\output.txt" -redirectstandarderror "$env:temp\error.txt"
+log_output
 
 #region Web Compiler setup
 log_statement "Looking for Web Compiler"
@@ -140,7 +160,7 @@ if (test-path "$env:temp\webcompiler*")
     elseif (test-path "$WebCompilerPath\prepare.cmd")
     {
         log_statement "Executing prepare.cmd"
-        start-process "prepare.cmd" -wait
+        start-process "prepare.cmd" -wait -RedirectStandardOutput "$env:temp\output.txt" -redirectstandarderror "$env:temp\error.txt"
         if ($? -eq $false) {
             fail_statement "Web Compiler's prepare.cmd returned an error"
         }
@@ -166,7 +186,7 @@ if ($? -eq $false) {
     fail_statement "Failed to create deployment target directory"
 }
 
-start-process "$MSbuild15Path" -ArgumentList "`"$ProjectPath\MillimanAccessPortal.csproj`"","/t:restore","/t:publish","/p:PublishDir=$branchFolder","/verbosity:minimal","/nowarn:MSB3884" -wait
+start-process "$MSbuild15Path" -ArgumentList "`"$ProjectPath\MillimanAccessPortal.csproj`"","/t:restore","/t:publish","/p:PublishDir=$branchFolder","/verbosity:minimal","/nowarn:MSB3884" -wait -RedirectStandardOutput "$env:temp\output.txt" -redirectstandarderror "$env:temp\error.txt"
 if ($? -eq $false) {
     fail_statement "Failed to build application"
 }
@@ -176,10 +196,11 @@ if ($? -eq $false) {
 
 log_statement "Finalizing deployment with KuduSync"
 
-start-process "$kuduSyncPath" -ArgumentList "-v 50","-f `"$DeploymentTemp`"","-t `"$DeploymentTarget`"","-n `"$nextManifestPath`"","-p `"$previousManifestPath`"","-i `".git;.hg;.deployment;deploy.cmd`""
+start-process "$kuduSyncPath" -ArgumentList "-v 50","-f `"$DeploymentTemp`"","-t `"$DeploymentTarget`"","-n `"$nextManifestPath`"","-p `"$previousManifestPath`"","-i `".git;.hg;.deployment;deploy.cmd`"" -RedirectStandardOutput "$env:temp\output.txt" -redirectstandarderror "$env:temp\error.txt"
 if ($? -eq $false){
     fail_statement "KuduSync returned an error."
 }
+log_output
 #endregion
 
 # Write success method expected by CI script
