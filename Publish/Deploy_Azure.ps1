@@ -79,19 +79,24 @@ if ((get-location).Path -ne $SolutionPath) {
     fail_statement "Failed to open project directory"
 }
 
-log_statement "Restoring nuget packages"
-Invoke-Expression "dotnet restore"
-if ($LASTEXITCODE -ne 0 -or $? -eq $false) {
-    fail_statement "Failed to restore nuget packages"
+try {
+    log_statement "Restoring nuget packages"
+    Invoke-Expression "dotnet restore"
+} 
+catch {
+        fail_statement "Failed to restore nuget packages"
 }
 
 cd $ProjectPath
 if ((get-location).Path -ne $projectPath) {
     fail_statement "Failed to open project directory"
 }
-log_statement "Restoring bower packages"
-Invoke-Expression "bower install"
-if ($LASTEXITCODE -ne 0 -or $? -eq $false) {
+
+try {
+    log_statement "Restoring bower packages"
+    Invoke-Expression "bower install"
+}
+catch {
     fail_statement "Failed to restore bower packages"
 }
 
