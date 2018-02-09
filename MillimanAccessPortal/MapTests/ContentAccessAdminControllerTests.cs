@@ -169,16 +169,15 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData(999, 3)]
-        [InlineData(8, 999)]
-        public async Task SelectionGroups_ErrorInvalid(long ClientId, long RootContentItemId)
+        [InlineData(999)]
+        public async Task SelectionGroups_ErrorInvalid(long RootContentItemId)
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("user5");
             #endregion
 
             #region Act
-            var view = await controller.SelectionGroups(ClientId, RootContentItemId);
+            var view = await controller.SelectionGroups(RootContentItemId);
             #endregion
 
             #region Assert
@@ -189,17 +188,17 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData("user5", 1, 1)]
-        [InlineData("test1", 8, 3)]
-        [InlineData("user6", 8, 3)]
-        public async Task SelectionGroups_ErrorUnauthorized(String UserName, long ClientId, long RootContentItemId)
+        [InlineData("user5", 1)]
+        [InlineData("test1", 3)]
+        [InlineData("user6", 3)]
+        public async Task SelectionGroups_ErrorUnauthorized(String UserName, long RootContentItemId)
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser(UserName);
             #endregion
 
             #region Act
-            var view = await controller.SelectionGroups(ClientId, RootContentItemId);
+            var view = await controller.SelectionGroups(RootContentItemId);
             #endregion
 
             #region Assert
@@ -215,7 +214,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.SelectionGroups(8, 3);
+            var view = await controller.SelectionGroups(3);
             #endregion
 
             #region Assert
@@ -224,9 +223,8 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData(999, 3)]
-        [InlineData(8, 999)]
-        public async Task CreateSelectionGroup_ErrorInvalid(long ClientId, long RootContentItemId)
+        [InlineData(999)]
+        public async Task CreateSelectionGroup_ErrorInvalid(long RootContentItemId)
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("user5");
@@ -234,7 +232,7 @@ namespace MapTests
 
             #region Act
             int preCount = TestResources.DbContextObject.SelectionGroup.Count();
-            var view = await controller.CreateSelectionGroup(ClientId, RootContentItemId, "GroupName");
+            var view = await controller.CreateSelectionGroup(RootContentItemId, "GroupName");
             int postCount = TestResources.DbContextObject.SelectionGroup.Count();
             #endregion
 
@@ -247,10 +245,10 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData("user5", 1, 1)]
-        [InlineData("test1", 8, 3)]
-        [InlineData("user6", 8, 3)]
-        public async Task CreateSelectionGroup_ErrorUnauthorized(String UserName, long ClientId, long RootContentItemId)
+        [InlineData("user5", 1)]
+        [InlineData("test1", 3)]
+        [InlineData("user6", 3)]
+        public async Task CreateSelectionGroup_ErrorUnauthorized(String UserName, long RootContentItemId)
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser(UserName);
@@ -258,7 +256,7 @@ namespace MapTests
 
             #region Act
             int preCount = TestResources.DbContextObject.SelectionGroup.Count();
-            var view = await controller.CreateSelectionGroup(ClientId, RootContentItemId, "GroupName");
+            var view = await controller.CreateSelectionGroup(RootContentItemId, "GroupName");
             int postCount = TestResources.DbContextObject.SelectionGroup.Count();
             #endregion
 
@@ -276,7 +274,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.CreateSelectionGroup(8, 3, "GroupName");
+            var view = await controller.CreateSelectionGroup(3, "GroupName");
             #endregion
 
             #region Assert
@@ -293,7 +291,7 @@ namespace MapTests
 
             #region Act
             int preCount = TestResources.DbContextObject.SelectionGroup.Count();
-            var view = await controller.CreateSelectionGroup(8, 3, "GroupName");
+            var view = await controller.CreateSelectionGroup(3, "GroupName");
             int postCount = TestResources.DbContextObject.SelectionGroup.Count();
             #endregion
 

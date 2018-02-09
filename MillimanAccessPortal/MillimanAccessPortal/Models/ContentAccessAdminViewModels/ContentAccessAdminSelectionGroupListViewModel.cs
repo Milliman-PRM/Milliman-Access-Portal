@@ -19,12 +19,11 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
         public List<ContentAccessAdminSelectionGroupDetailViewModel> SelectionGroupList = new List<ContentAccessAdminSelectionGroupDetailViewModel>();
         public long RelevantRootContentItemId { get; set; } = -1;
 
-        internal static ContentAccessAdminSelectionGroupListViewModel Build(ApplicationDbContext DbContext, Client Client, RootContentItem RootContentItem)
+        internal static ContentAccessAdminSelectionGroupListViewModel Build(ApplicationDbContext DbContext, RootContentItem RootContentItem)
         {
             ContentAccessAdminSelectionGroupListViewModel Model = new ContentAccessAdminSelectionGroupListViewModel();
 
             List<SelectionGroup> SelectionGroups = DbContext.SelectionGroup
-                .Where(rci => rci.ClientId == Client.Id)
                 .Where(rci => rci.RootContentItemId == RootContentItem.Id)
                 .ToList();
 
