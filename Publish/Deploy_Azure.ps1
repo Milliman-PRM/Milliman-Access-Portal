@@ -53,16 +53,19 @@ log_statement "Validating & configuring environment"
 #region Prepare environment
 $basePath = (get-location).Path
 $baseParent = $basePath.Substring(0, $basePath.LastIndexOf('\'))
-$projectPath = $basePath+"\MillimanAccessPortal\MillimanAccessPortal"
-$solutionPath = $basePath+"\MillimanAccessPortal"
+$projectPath = "$basePath\MillimanAccessPortal\MillimanAccessPortal"
+$solutionPath = "$basePath\MillimanAccessPortal"
 
-$Artifacts = $baseParent+"\artifacts"
+$Artifacts = "$baseParent\artifacts"
+
+$nextManifestPath = "$Artifacts\manifest"
+$previousManifestPath = $nextManifestPath
 
 $loopRetries = 10
 $loopWaitSeconds = 10
 
 $DeploymentSource = $basePath
-$DeploymentTarget = $Artifacts+"\wwwroot"
+$DeploymentTarget = "$Artifacts\wwwroot"
 
 $DeploymentTempFolder = "__deployTemp"+(get-random).ToString()
 $DeploymentTemp = "$env:temp\$deploymentTempFolder"
