@@ -1,4 +1,5 @@
 var Card;
+var ActionCard;
 
 (function () {
   var verify;
@@ -8,6 +9,8 @@ var Card;
 
   Card = function () {
     /* eslint-disable indent */
+    this.layout = {};
+
     this.templates = {
       container: {
         selector: '.card-container',
@@ -418,6 +421,14 @@ var Card;
         .actionText('Add User')
         .build();
       /* eslint-enable indent */
+  };
+
+  ActionCard = function (icon, text, callback) {
+    Card.call(this);
+
+    this.actionIcon = icon;
+    this.primaryText = text;
+    this.click.main = callback;
   };
 
   verify = function (path) {
