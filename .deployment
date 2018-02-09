@@ -1,2 +1,2 @@
 [config]
-command = deploy_azure_ci.bat
+command = Publish\Azure_Provision_CI.ps1
