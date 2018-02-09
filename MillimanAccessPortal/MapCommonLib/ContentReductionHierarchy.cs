@@ -17,16 +17,23 @@ namespace MapCommonLib
             {
                 JsonString = File.ReadAllText(@"C:\Users\Tom.Puckett\Desktop\testHierarchy.json");
             }
-            var JsonObj = Deserialize(JsonString);
-            var str = SerializeJson(JsonObj);
+            ContentReductionHierarchy ObjFromJson = Deserialize(JsonString);
+            string str = SerializeJson(ObjFromJson);
         }
 
-        public ReductionFieldBase[] Fields { get; set; }
+        public ReductionFieldBase[] Fields { get; set; } = new ReductionFieldBase[0];
         public long RootContentItemId { get; set; }
 
         public static ContentReductionHierarchy Deserialize(string JsonString)
         {
-            return JsonConvert.DeserializeObject<ContentReductionHierarchy>(JsonString);
+            try  // Can fail e.g. if structureType field value does not match an enumeration value name
+            {
+                return JsonConvert.DeserializeObject<ContentReductionHierarchy>(JsonString);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public static string SerializeJson(ContentReductionHierarchy Arg)

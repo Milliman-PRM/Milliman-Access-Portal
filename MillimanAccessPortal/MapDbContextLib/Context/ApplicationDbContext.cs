@@ -44,6 +44,10 @@ namespace MapDbContextLib.Context
             builder.Entity<ContentReductionTask>()
                 .Property(b => b.CreateDateTime)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            builder.Entity<HierarchyField>()
+                .Property(b => b.StructureType)
+                .HasDefaultValue(FieldStructureType.Unknown);
         }
 
         public bool ClientExists(long id)

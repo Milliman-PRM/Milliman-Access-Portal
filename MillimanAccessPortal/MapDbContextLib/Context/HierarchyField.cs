@@ -22,9 +22,10 @@ namespace MapDbContextLib.Context
         public string FieldDisplayName { get; set; }
 
         [Required]
-        public FieldStructureType InferredStructureType { get; set; }
+        // Default value is enforced in ApplicationDbContext.OnModelCreating()
+        public FieldStructureType StructureType { get; set; } = FieldStructureType.Unknown;
 
-        public string FieldDelimiter { get; set; }
+        public string FieldDelimiter { get; set; } = null;
 
         [ForeignKey("RootContentItem")]
         public long RootContentItemId { get; set; }

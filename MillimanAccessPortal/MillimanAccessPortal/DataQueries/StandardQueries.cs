@@ -186,36 +186,30 @@ namespace MillimanAccessPortal.DataQueries
             try
             {
                 ContentReductionHierarchy ReturnObject = new ContentReductionHierarchy { RootContentItemId = ContentId };
-                /*
 
-                var FieldQuery = DataContext.HierarchyField.Where(hf => hf.RootContentItemId == ContentId);
-                foreach (HierarchyField Field in FieldQuery)
+                foreach (HierarchyField Field in DataContext.HierarchyField
+                                                            .Where(hf => hf.RootContentItemId == ContentId)
+                                                            .ToList())
                 {
-
+                    ReturnObject.Fields.Append(new ReductionFieldBase
+                    {
+                        FieldName = Field.FieldName,
+                        FieldDisplayName = Field.FieldDisplayName,
+                        FieldDelimiter = Field.FieldDelimiter,
+                        StructureType = Field.StructureType,
+                        FieldValues = DataContext.HierarchyFieldValue
+                                                 .Where(fv => fv.HierarchyFieldId == Field.Id)
+                                                 .Select(fv => fv.Value)
+                                                 .ToArray(),
+                    });
                 }
-                HierarchyField RootDocumentField = DataContext.HierarchyField.Single(f => f.HierarchyLevel == 0 && f.RootContentItemId == ContentId);
-                HierarchyFieldValue RootDocumentFieldValue = DataContext.HierarchyFieldValue.Single(f => f.HierarchyFieldId == RootDocumentField.Id);
-
-                // If we start supporting a tree, we need to store parent/child relationships to convey value containment
-                ReturnObject.RootNode = new ReductionFieldBase { FieldName = RootDocumentField.FieldName,
-                                                                     FieldValues = new string[]{ RootDocumentFieldValue.Value } };
-                TODO Continue here
-                    Modify diagram to switch field name to string, not string[]
                 return ReturnObject;
-                    */
             }
             catch (Exception)
             {
                 return null;
             }
-            return null;
-
         }
 
-        /*
-        private ReductionFieldBase GetHierarchyNodeForFieldIdRecursive(long FieldId)
-        {
-
-        }*/
     }
 }
