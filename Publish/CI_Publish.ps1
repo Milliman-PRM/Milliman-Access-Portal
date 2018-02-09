@@ -6,6 +6,7 @@
 ### DEVELOPER NOTES:
 #
 
+#region Define Functions
 function log_statement {
     Param([string]$statement)
 
@@ -13,7 +14,19 @@ function log_statement {
 
     write-output $datestring"|"$statement
 }
-
+function log_output {
+    log_statement "Dumping captured command output"
+    write-output ""
+    write-output "===="
+    log_statement "content of output.txt"
+    write-output ""
+    write-output (get-content "$env:temp\output.txt")
+    write-output ""
+    write-output "===="
+    log_statement "content of error.txt"
+    write-output ""
+    write-output (get-content "$env:temp\error.txt")
+}
 function create_db { # Attempt to create a database by copying another one; retry up to $maxRetries before returning
     Param([string]$server,
             [string]$user,
@@ -53,7 +66,7 @@ function create_db { # Attempt to create a database by copying another one; retr
         exit -42
     }
 }
-
+#endregion
 
 #region Configure environment properties
 $ResourceGroupName = "map-ci"
