@@ -61,7 +61,7 @@ log_statement "Deploying application"
 
 #region Prepare packages
 log_statement "Restoring nuget packages"
-cd $SolutionPath
+cd $ProjectPath
 MSBuild /t:Restore /verbosity:minimal
 if ($LASTEXITCODE -ne 0) {
     fail_statement "Failed to restore nuget packages"
