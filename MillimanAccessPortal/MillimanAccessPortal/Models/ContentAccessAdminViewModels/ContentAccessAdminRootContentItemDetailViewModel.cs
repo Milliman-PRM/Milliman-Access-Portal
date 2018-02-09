@@ -27,15 +27,15 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
             }
 
             // Retrieve related users and groups to populate user and group counts
-            List<UserInContentItemUserGroup> RelatedUsersGroups = DbContext.UserInContentItemUserGroup
-                .Include(ug => ug.ContentItemUserGroup)
-                .Where(u => u.ContentItemUserGroup.RootContentItemId == Item.Id)
+            List<UserInSelectionGroup> RelatedUsersGroups = DbContext.UserInSelectionGroup
+                .Include(ug => ug.SelectionGroup)
+                .Where(u => u.SelectionGroup.RootContentItemId == Item.Id)
                 .ToList();
 
             // See how many members are in each group
-            var GroupMemberCounts = DbContext.UserInContentItemUserGroup
-                .GroupBy(ug => ug.ContentItemUserGroupId)
-                .Select(ug => new { ContentItemUserGroupId = ug.Key, Count = ug.Count() });
+            var GroupMemberCounts = DbContext.UserInSelectionGroup
+                .GroupBy(ug => ug.SelectionGroupId)
+                .Select(ug => new { SelectionGroupId = ug.Key, Count = ug.Count() });
 
             // Only include a group in NumberOfGroups if it has more than one member
             // Single-member groups are not treated as groups by the front end
@@ -45,10 +45,10 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
                 CanReduce = Item.ContentType.CanReduce,
                 NumberOfGroups = RelatedUsersGroups
                     .Where(ug => GroupMemberCounts
-                        .Single(gmc => gmc.ContentItemUserGroupId == ug.ContentItemUserGroupId)
+                        .Single(gmc => gmc.SelectionGroupId == ug.SelectionGroupId)
                         .Count > 1
                         )
-                    .Select(ug => ug.ContentItemUserGroupId)
+                    .Select(ug => ug.SelectionGroupId)
                     .Distinct()
                     .Count(),
                 NumberOfAssignedUsers = RelatedUsersGroups
