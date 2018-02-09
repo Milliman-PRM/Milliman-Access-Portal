@@ -120,6 +120,7 @@ if ($? -eq $false) {
     fail_statement "Failed to restore bower packages"
 }
 
+#region Web Compiler setup
 # If the WebCompiler folder isn't present, do a build that will fail, which triggers it to be created
 if ((test-path "$env:temp\webcomp*") -eq $false)
 {
@@ -127,7 +128,6 @@ if ((test-path "$env:temp\webcomp*") -eq $false)
     start-process $MSbuild15Path -ArgumentList "/verbosity:minimal" -wait -RedirectStandardOutput "$env:temp\output.txt" -redirectstandarderror "$env:temp\error.txt"
 }
 
-#region Web Compiler setup
 log_statement "Looking for Web Compiler"
 $tries = 0
 while ((test-path "$env:temp\webcompiler*" -PathType Container) -eq $false -and $tries -lt $loopRetries)
