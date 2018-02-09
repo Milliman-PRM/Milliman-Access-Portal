@@ -75,8 +75,8 @@ $KuduSyncPath = $env:APPDATA+"\npm\kuduSync.cmd"
 log_statement "Deploying application"
 
 #region Prepare packages
-cd $ProjectPath
-if ((get-location).Path -ne $projectPath) {
+cd $SolutionPath
+if ((get-location).Path -ne $SolutionPath) {
     fail_statement "Failed to open project directory"
 }
 
@@ -86,6 +86,10 @@ if ($LASTEXITCODE -ne 0) {
     fail_statement "Failed to restore nuget packages"
 }
 
+cd $ProjectPath
+if ((get-location).Path -ne $projectPath) {
+    fail_statement "Failed to open project directory"
+}
 log_statement "Restoring bower packages"
 $command = "bower install"
 if ($LASTEXITCODE -ne 0) {
