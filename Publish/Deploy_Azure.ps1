@@ -70,8 +70,6 @@ $DeploymentTarget = "D:\home\site\wwwroot"
 $DeploymentTempFolder = "__deployTemp"+(get-random).ToString()
 $DeploymentTemp = "$env:temp\$deploymentTempFolder"
 
-$env:scm_command_idle_timeout = 360 # Extend timeout period so the script won't stop due to lack of console output
-
 #region MSBuild 15
 $VersionFolder = get-childitem -Path "d:\Program Files (x86)" -Name "MSBuild-15*" | select -first 1
 $MSbuild15Path = "D:\Program Files (x86)\$VersionFolder\MSBuild\15.0\bin\msbuild.exe"
