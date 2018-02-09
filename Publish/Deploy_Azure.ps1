@@ -62,9 +62,8 @@ if ((test-path $MSbuild15Path) -eq $false)
 #endregion
 
 #region Prepare Kudu Sync
-$command = "npm install kudusync -g --silent"
-invoke-expression "&$command"
-if ($LASTEXITCODE -ne 0) {
+invoke-expression "npm install kudusync -g --silent"
+if ($LASTEXITCODE -ne 0 -or $? -eq $false) {
     fail_statement "Failed to install KuduSync"
 }
 
@@ -82,7 +81,7 @@ if ((get-location).Path -ne $SolutionPath) {
 
 log_statement "Restoring nuget packages"
 Invoke-Expression "dotnet restore"
-if ($LASTEXITCODE -ne 0) {
+if ($LASTEXITCODE -ne 0 -or $? -eq $false) {
     fail_statement "Failed to restore nuget packages"
 }
 
@@ -92,7 +91,7 @@ if ((get-location).Path -ne $projectPath) {
 }
 log_statement "Restoring bower packages"
 Invoke-Expression "bower install"
-if ($LASTEXITCODE -ne 0) {
+if ($LASTEXITCODE -ne 0 -or $? -eq $false) {
     fail_statement "Failed to restore bower packages"
 }
 
