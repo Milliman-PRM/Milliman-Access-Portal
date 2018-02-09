@@ -160,6 +160,12 @@ else
 
 log_statement "Build and publish application files to temporary folder"
 
+$command = "mkdir $DeploymentTemp"
+invoke-expression "%$command"
+if ($LASTEXITCODE -ne 0) {
+    fail_statement "Failed to create deployment target directory"
+}
+
 $command = "`"$MsBuild15Path`" `"$ProjectPath\MillimanAccessPortal.csproj`" /t:Restore /t:publish /p:PublishDir=$branchFolder /verbosity:minimal /nowarn:MSB3884"
 invoke-expression "%$command"
 if ($LASTEXITCODE -ne 0) {
