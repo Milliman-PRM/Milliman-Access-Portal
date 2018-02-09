@@ -18,7 +18,7 @@ namespace MillimanAccessPortal.DataQueries
     public partial class StandardQueries
     {
         /// <summary>
-        /// Returns a collection of HostedContentViewModel representing ContentItemUserGroup instances assigned to the specified user
+        /// Returns a collection of HostedContentViewModel representing SelectionGroup instances assigned to the specified user
         /// </summary>
         /// <param name="UserName"></param>
         /// <returns></returns>
@@ -28,27 +28,27 @@ namespace MillimanAccessPortal.DataQueries
             Dictionary<long, HostedContentViewModel> ResultBuilder = new Dictionary<long, HostedContentViewModel>();
 
             // Get a list of all content item groups authorized for user, converted to type HostedContentViewModel plus content related properties
-            List<HostedContentViewModel> query = DataContext.UserInContentItemUserGroup
+            List<HostedContentViewModel> query = DataContext.UserInSelectionGroup
                 .Include(ug => ug.User)
-                .Include(ug => ug.ContentItemUserGroup)
+                .Include(ug => ug.SelectionGroup)
                     .ThenInclude(ug => ug.RootContentItem)
-                .Include(ug => ug.ContentItemUserGroup)
+                .Include(ug => ug.SelectionGroup)
                     .ThenInclude(ug => ug.Client)
                 .Where(ug => ug.User.UserName == UserName)
                 .Distinct()
                 .Select(ug =>
                     new HostedContentViewModel
                     {
-                        UserGroupId = ug.ContentItemUserGroup.Id,
-                        ContentName = ug.ContentItemUserGroup.RootContentItem.ContentName,
-                        Url = ug.ContentItemUserGroup.ContentInstanceUrl,
+                        UserGroupId = ug.SelectionGroup.Id,
+                        ContentName = ug.SelectionGroup.RootContentItem.ContentName,
+                        Url = ug.SelectionGroup.ContentInstanceUrl,
                         ClientList = new List<HostedContentViewModel.ParentClientTree>
                         {
                             new HostedContentViewModel.ParentClientTree
                             {
-                                Id = ug.ContentItemUserGroup.ClientId,
-                                Name = ug.ContentItemUserGroup.Client.Name,
-                                ParentId = ug.ContentItemUserGroup.Client.ParentClientId,
+                                Id = ug.SelectionGroup.ClientId,
+                                Name = ug.SelectionGroup.Client.Name,
+                                ParentId = ug.SelectionGroup.Client.ParentClientId,
                             }
                         },
                     })
