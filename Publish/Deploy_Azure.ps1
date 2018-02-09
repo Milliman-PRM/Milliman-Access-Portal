@@ -62,8 +62,8 @@ if ((test-path $MSbuild15Path) -eq $false)
 #endregion
 
 #region Prepare Kudu Sync
-invoke-expression "npm install kudusync -g --silent"
-if ($LASTEXITCODE -ne 0) {
+start-process "npm" -ArgumentList "install","kudusync","-g","--silent" -wait
+if ($? -eq $false) {
     fail_statement "Failed to install KuduSync"
 }
 
