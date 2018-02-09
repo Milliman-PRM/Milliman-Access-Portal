@@ -46,6 +46,19 @@ $DeploymentTarget = $Artifacts+"\wwwroot"
 
 $DeploymentTemp = "$env:temp\__deployTemp"+(get-random).ToString()
 
+#region MSBuild 15
+$VersionFolder = get-childitem -Path "d:\Program Files (x86)" -Name "MSBuild-15*" | select -first 1
+$MSbuild15Path = "D:\Program Files (x86)\$VersionFolder\MSBuild\15.0\bin\msbuild.exe"
+
+if ((test-path $MSbuild15Path) -eq $false)
+{
+    log_statement "Failed to locate MSBuild Version 15"
+    log_statement "These other locations may be matches:"
+    get-childitem -Path "d:\Program Files (x86)" -Name "MSBuild*"
+    fail_statement ""
+}
+#endregion
+
 #region Prepare Kudu Sync
 $command = "npm install kudusync -g --silent"
 invoke-expression "&$command"
@@ -60,18 +73,19 @@ $KuduSyncPath = $env:APPDATA+"\npm\kuduSync.cmd"
 log_statement "Deploying application"
 
 #region Prepare packages
-log_statement "Restoring nuget packages"
 cd $ProjectPath
-MSBuild /t:Restore /verbosity:minimal
+if ((get-location).Path -ne $projectPath) {
+    fail_statement "Failed to open project directory"
+}
+
+log_statement "Restoring nuget packages"
+$command = "`"$MSbuild15Path`" /t:Restore /verbosity:minimal"
+Invoke-Expression "&$command"
 if ($LASTEXITCODE -ne 0) {
     fail_statement "Failed to restore nuget packages"
 }
 
 log_statement "Restoring bower packages"
-cd $ProjectPath
-if ((get-location).Path -ne $projectPath) {
-    fail_statement "Failed to open directory for bower packages"
-}
 $command = "bower install"
 if ($LASTEXITCODE -ne 0) {
     fail_statement "Failed to restore bower packages"
@@ -140,9 +154,8 @@ else
 
 log_statement "Build and publish application files to temporary folder"
 
-cd D:\Program Files (x86)\MSBuild-15*\MSBuild\15.0\Bin\ 
-MSBuild "$ProjectPath\MillimanAccessPortal.csproj" /t:Restore /t:publish /p:PublishDir=$branchFolder /verbosity:minimal /nowarn:MSB3884
-
+$command = "`"$MsBuild15Path`" `"$ProjectPath\MillimanAccessPortal.csproj`" /t:Restore /t:publish /p:PublishDir=$branchFolder /verbosity:minimal /nowarn:MSB3884"
+invoke-expression "%$command"
 if ($LASTEXITCODE -ne 0) {
     fail_statement "Failed to build application"
 }
