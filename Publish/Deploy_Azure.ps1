@@ -20,6 +20,8 @@ function fail_statement {
     Param([string]$statement)
     log_statement "DEPLOYMENT FAILED"
     log_statement $statement
+    log_statement "Dump of local variables for troubleshooting"
+    variable
 
     if ($host.name -notmatch "ISE") # Don't exit if we're running in PowerShell ISE
     {
