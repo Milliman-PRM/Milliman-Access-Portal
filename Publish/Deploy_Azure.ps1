@@ -118,11 +118,12 @@ if ($? -eq $false) {
     fail_statement "Failed to restore bower packages"
 }
 
-# Do a build intended to fail, to cause the WebCompiler folder to be created
-log_statement "Running false build - will throw an error if this is a new branch."
-log_statement "An error at this stage is not unexpected, and should not be considered a deployment failure."
-start-process $MSbuild15Path -ArgumentList "/verbosity:minimal" -wait -RedirectStandardOutput "$env:temp\output.txt" -redirectstandarderror "$env:temp\error.txt"
-log_output
+# If the WebCompiler folder isn't present, do a build that will fail, which triggers it to be created
+if ((test-path "$env:temp\webcomp*") -eq $false)
+{
+    log_statement "Running false build to generate the WebCompiler folder."
+    start-process $MSbuild15Path -ArgumentList "/verbosity:minimal" -wait -RedirectStandardOutput "$env:temp\output.txt" -redirectstandarderror "$env:temp\error.txt"
+}
 
 #region Web Compiler setup
 log_statement "Looking for Web Compiler"
