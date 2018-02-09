@@ -61,15 +61,14 @@ log_statement "Deploying application"
 
 #region Prepare packages
 log_statement "Restoring nuget packages"
-$command = "dotnet restore "+$DeploymentSource+"MillimanAccessPortal\MillimanAccessPortal.sln"
-invoke-expression "&$command"
+MSBuild "$SolutionPath\MillimanAccessPortal.sln" /t:Restore /verbosity:minimal
 if ($LASTEXITCODE -ne 0) {
     fail_statement "Failed to restore nuget packages"
 }
 
 log_statement "Restoring bower packages"
-cd $DeploymentSource\MillimanAccessPortal\MillimanAccessPortal\
-if ($LASTEXITCODE -ne 0) {
+cd $ProjectPath
+if ((get-location).Path -ne $projectPath) {
     fail_statement "Failed to open directory for bower packages"
 }
 $command = "bower install"
@@ -77,6 +76,7 @@ if ($LASTEXITCODE -ne 0) {
     fail_statement "Failed to restore bower packages"
 }
 
+#region Web Compiler setup
 log_statement "Looking for Web Compiler"
 $tries = 0
 while ((test-path "$env:temp\webcompiler*") -eq $false -and $tries -lt $loopRetries)
@@ -133,13 +133,14 @@ else
     fail_statement "Web compiler directory was not found"
 }
 #endregion
+#endregion
 
 #region Build and publish to temporary folder
 
 log_statement "Build and publish application files to temporary folder"
 
 cd D:\Program Files (x86)\MSBuild-15*\MSBuild\15.0\Bin\ 
-MSBuild "$ProjectPath+\MillimanAccessPortal.csproj" /t:Restore /t:publish /p:PublishDir=$branchFolder /verbosity:minimal /nowarn:MSB3884
+MSBuild "$ProjectPath\MillimanAccessPortal.csproj" /t:Restore /t:publish /p:PublishDir=$branchFolder /verbosity:minimal /nowarn:MSB3884
 
 if ($LASTEXITCODE -ne 0) {
     fail_statement "Failed to build application"
