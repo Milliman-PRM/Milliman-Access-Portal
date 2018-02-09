@@ -96,6 +96,10 @@ if ($LASTEXITCODE -ne 0) {
     fail_statement "Failed to restore bower packages"
 }
 
+# Do a build intended to fail, to cause the WebCompiler folder to be created
+$silentBuild = invoke-expression "MSBuild /verbosity:minimal" | out-string
+
+
 #region Web Compiler setup
 log_statement "Looking for Web Compiler"
 $tries = 0
