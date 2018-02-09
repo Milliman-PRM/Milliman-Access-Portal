@@ -210,7 +210,6 @@ if ($? -eq $false)
 # Update branch name
 $resource = Invoke-AzureRmResourceAction -ResourceGroupName $ResourceGroupName -ResourceType Microsoft.Web/sites/slots/config -ResourceName "$WebAppName/$BranchName/appsettings" -Action list -ApiVersion 2016-08-01 -Force
 $resource.Properties.BranchName = $BranchName
-$resource.Properties.SCM_COMMAND_IDLE_TIMEOUT = 360
 $silent = New-AzureRmResource -PropertyObject $resource.properties -ResourceGroupName $ResourceGroupName -ResourceType Microsoft.Web/sites/slots/config -ResourceName "$WebAppName/$BranchName/appsettings" -ApiVersion 2016-08-01 -Force
 
 if ($? -eq $false)
