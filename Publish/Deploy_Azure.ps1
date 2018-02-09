@@ -92,6 +92,7 @@ if ((get-location).Path -ne $projectPath) {
 }
 log_statement "Restoring bower packages"
 $command = "bower install"
+Invoke-Expression "&$command"
 if ($LASTEXITCODE -ne 0) {
     fail_statement "Failed to restore bower packages"
 }
