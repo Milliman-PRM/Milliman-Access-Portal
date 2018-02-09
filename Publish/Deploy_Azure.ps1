@@ -194,7 +194,7 @@ if ($? -eq $false) {
     fail_statement "Failed to create deployment target directory"
 }
 
-start-process "$MSbuild15Path" -ArgumentList "`"$ProjectPath\MillimanAccessPortal.csproj`"","/t:restore","/t:publish","/p:PublishDir=$branchFolder","/verbosity:minimal","/nowarn:MSB3884" -wait -RedirectStandardOutput "$env:temp\output.txt" -redirectstandarderror "$env:temp\error.txt"
+start-process "$MSbuild15Path" -ArgumentList "`"$ProjectPath\MillimanAccessPortal.csproj`"","/t:restore","/t:publish","/p:PublishDir=$DeploymentTemp","/verbosity:minimal","/nowarn:MSB3884" -wait -RedirectStandardOutput "$env:temp\output.txt" -redirectstandarderror "$env:temp\error.txt"
 if ($? -eq $false) {
     fail_statement "Failed to build application"
 }
