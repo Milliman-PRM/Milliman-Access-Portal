@@ -11,9 +11,10 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180206204004_AddContentReductionTaskEntity")]
+    partial class AddContentReductionTaskEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -60,6 +61,33 @@ namespace MillimanAccessPortal.Migrations
                     b.HasIndex("ProfitCenterId");
 
                     b.ToTable("Client");
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.ContentItemUserGroup", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<long>("ClientId");
+
+                    b.Property<string>("ContentInstanceUrl")
+                        .IsRequired();
+
+                    b.Property<string>("GroupName")
+                        .IsRequired();
+
+                    b.Property<long>("RootContentItemId");
+
+                    b.Property<long[]>("SelectedHierarchyFieldValueList")
+                        .IsRequired();
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("RootContentItemId");
+
+                    b.ToTable("ContentItemUserGroup");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.ContentReductionTask", b =>
@@ -160,7 +188,8 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<long>("ClientId");
+                    b.Property<long[]>("ClientIdList")
+                        .IsRequired();
 
                     b.Property<string>("ContentName")
                         .IsRequired();
@@ -172,56 +201,27 @@ namespace MillimanAccessPortal.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ClientId");
-
                     b.HasIndex("ContentTypeId");
 
                     b.ToTable("RootContentItem");
                 });
 
-            modelBuilder.Entity("MapDbContextLib.Context.SelectionGroup", b =>
+            modelBuilder.Entity("MapDbContextLib.Context.UserInContentItemUserGroup", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<long>("ClientId");
-
-                    b.Property<string>("ContentInstanceUrl")
-                        .IsRequired();
-
-                    b.Property<string>("GroupName")
-                        .IsRequired();
-
-                    b.Property<long>("RootContentItemId");
-
-                    b.Property<long[]>("SelectedHierarchyFieldValueList")
-                        .IsRequired();
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClientId");
-
-                    b.HasIndex("RootContentItemId");
-
-                    b.ToTable("SelectionGroup");
-                });
-
-            modelBuilder.Entity("MapDbContextLib.Context.UserInSelectionGroup", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<long>("SelectionGroupId");
+                    b.Property<long>("ContentItemUserGroupId");
 
                     b.Property<long>("UserId");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SelectionGroupId");
+                    b.HasIndex("ContentItemUserGroupId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserInSelectionGroup");
+                    b.ToTable("UserInContentItemUserGroup");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.UserRoleInClient", b =>
@@ -464,6 +464,19 @@ namespace MillimanAccessPortal.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
+            modelBuilder.Entity("MapDbContextLib.Context.ContentItemUserGroup", b =>
+                {
+                    b.HasOne("MapDbContextLib.Context.Client", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("MapDbContextLib.Context.RootContentItem", "RootContentItem")
+                        .WithMany()
+                        .HasForeignKey("RootContentItemId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
             modelBuilder.Entity("MapDbContextLib.Context.HierarchyField", b =>
                 {
                     b.HasOne("MapDbContextLib.Context.RootContentItem", "RootContentItem")
@@ -482,35 +495,17 @@ namespace MillimanAccessPortal.Migrations
 
             modelBuilder.Entity("MapDbContextLib.Context.RootContentItem", b =>
                 {
-                    b.HasOne("MapDbContextLib.Context.Client", "Client")
-                        .WithMany()
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.HasOne("MapDbContextLib.Context.ContentType", "ContentType")
                         .WithMany()
                         .HasForeignKey("ContentTypeId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("MapDbContextLib.Context.SelectionGroup", b =>
+            modelBuilder.Entity("MapDbContextLib.Context.UserInContentItemUserGroup", b =>
                 {
-                    b.HasOne("MapDbContextLib.Context.Client", "Client")
+                    b.HasOne("MapDbContextLib.Context.ContentItemUserGroup", "ContentItemUserGroup")
                         .WithMany()
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("MapDbContextLib.Context.RootContentItem", "RootContentItem")
-                        .WithMany()
-                        .HasForeignKey("RootContentItemId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("MapDbContextLib.Context.UserInSelectionGroup", b =>
-                {
-                    b.HasOne("MapDbContextLib.Context.SelectionGroup", "SelectionGroup")
-                        .WithMany()
-                        .HasForeignKey("SelectionGroupId")
+                        .HasForeignKey("ContentItemUserGroupId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("MapDbContextLib.Identity.ApplicationUser", "User")

@@ -171,7 +171,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            if (!RootContentItem.ClientIdList.Contains(Client.Id))
+            if (RootContentItem.ClientId != Client.Id)
             {
                 Response.Headers.Add("Warning", "The requested root content item does not belong to the requested client.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
@@ -251,14 +251,14 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            if (!RootContentItem.ClientIdList.Contains(Client.Id))
+            if (RootContentItem.ClientId != Client.Id)
             {
                 Response.Headers.Add("Warning", "The requested root content item does not belong to the requested client.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
-            ContentItemUserGroup SelectionGroup = new ContentItemUserGroup
+            SelectionGroup SelectionGroup = new SelectionGroup
             {
                 ClientId = Client.Id,
                 RootContentItemId = RootContentItem.Id,
@@ -269,7 +269,7 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                DbContext.ContentItemUserGroup.Add(SelectionGroup);
+                DbContext.SelectionGroup.Add(SelectionGroup);
                 DbContext.SaveChanges();
             }
             catch (Exception ex)
@@ -312,7 +312,7 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateSelectionGroupUserAssignments(long SelectionGroupId, Dictionary<long, Boolean> UserAssignments)
         {
-            ContentItemUserGroup SelectionGroup = DbContext.ContentItemUserGroup
+            SelectionGroup SelectionGroup = DbContext.SelectionGroup
                 .Include(rg => rg.Client)
                 .Include(rg => rg.RootContentItem)
                 .SingleOrDefault(rg => rg.Id == SelectionGroupId);
@@ -366,8 +366,8 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Argument processing
-            var CurrentAssignments = DbContext.UserInContentItemUserGroup
-                .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
+            var CurrentAssignments = DbContext.UserInSelectionGroup
+                .Where(uug => uug.SelectionGroupId == SelectionGroup.Id)
                 .Select(uug => uug.UserId)
                 .ToList();
             var UserAdditions = UserAssignments
@@ -399,11 +399,11 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            var AlreadyInGroup = DbContext.UserInContentItemUserGroup
+            var AlreadyInGroup = DbContext.UserInSelectionGroup
                 .Where(uug => UserAdditions.Contains(uug.UserId))
-                .Where(uug => uug.ContentItemUserGroupId != SelectionGroup.Id)
-                .Where(uug => uug.ContentItemUserGroup.ClientId == SelectionGroup.ClientId)  // Remove if support for multiple clients per root content item is dropped.
-                .Where(uug => uug.ContentItemUserGroup.RootContentItemId == SelectionGroup.RootContentItemId);
+                .Where(uug => uug.SelectionGroupId != SelectionGroup.Id)
+                .Where(uug => uug.SelectionGroup.ClientId == SelectionGroup.ClientId)  // Remove if support for multiple clients per root content item is dropped.
+                .Where(uug => uug.SelectionGroup.RootContentItemId == SelectionGroup.RootContentItemId);
             if (AlreadyInGroup.Any())
             {
                 Response.Headers.Add("Warning", "One or more requested users to add are already in a different selection group.");
@@ -415,19 +415,19 @@ namespace MillimanAccessPortal.Controllers
             {
                 using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
                 {
-                    DbContext.UserInContentItemUserGroup.RemoveRange(
-                        DbContext.UserInContentItemUserGroup
+                    DbContext.UserInSelectionGroup.RemoveRange(
+                        DbContext.UserInSelectionGroup
                             .Where(uug => UserRemovals.Contains(uug.UserId))
-                            .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
+                            .Where(uug => uug.SelectionGroupId == SelectionGroup.Id)
                         );
                     DbContext.SaveChanges();
 
-                    DbContext.UserInContentItemUserGroup.AddRange(
+                    DbContext.UserInSelectionGroup.AddRange(
                         UserAdditions
                             .Select(uid =>
-                                new UserInContentItemUserGroup
+                                new UserInSelectionGroup
                                 {
-                                    ContentItemUserGroupId = SelectionGroup.Id,
+                                    SelectionGroupId = SelectionGroup.Id,
                                     UserId = uid,
                                 }
                             )
@@ -491,7 +491,7 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteSelectionGroup(long SelectionGroupId)
         {
-            ContentItemUserGroup SelectionGroup = DbContext.ContentItemUserGroup.Find(SelectionGroupId);
+            SelectionGroup SelectionGroup = DbContext.SelectionGroup.Find(SelectionGroupId);
 
             #region Preliminary Validation
             if (SelectionGroup == null)
@@ -550,14 +550,14 @@ namespace MillimanAccessPortal.Controllers
             {
                 using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
                 {
-                    List<UserInContentItemUserGroup> UsersToRemove = DbContext.UserInContentItemUserGroup
-                        .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
+                    List<UserInSelectionGroup> UsersToRemove = DbContext.UserInSelectionGroup
+                        .Where(uug => uug.SelectionGroupId == SelectionGroup.Id)
                         .ToList();
-                    DbContext.UserInContentItemUserGroup.RemoveRange(UsersToRemove);
+                    DbContext.UserInSelectionGroup.RemoveRange(UsersToRemove);
                     DbContext.SaveChanges();
 
-                    DbContext.ContentItemUserGroup.Remove(
-                        DbContext.ContentItemUserGroup
+                    DbContext.SelectionGroup.Remove(
+                        DbContext.SelectionGroup
                             .Where(g => g.Id == SelectionGroup.Id)
                             .Single()
                         );

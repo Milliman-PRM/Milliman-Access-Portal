@@ -10,14 +10,14 @@ using MapDbContextLib.Identity;
 
 namespace MapDbContextLib.Context
 {
-    public class UserInContentItemUserGroup
+    public class UserInSelectionGroup
     {
         [Key]
         public long Id { get; set; }
 
-        [ForeignKey("ContentItemUserGroup")]
-        public long ContentItemUserGroupId { get; set; }
-        public ContentItemUserGroup ContentItemUserGroup { get; set; }
+        [ForeignKey("SelectionGroup")]
+        public long SelectionGroupId { get; set; }
+        public SelectionGroup SelectionGroup { get; set; }
 
         [ForeignKey("User")]
         public long UserId { get; set; }

@@ -14,13 +14,14 @@ namespace MapDbContextLib.Context
         public DbSet<UserRoleInClient> UserRoleInClient { get; set; }
         public DbSet<UserRoleInProfitCenter> UserRoleInProfitCenter { get; set; }
         public DbSet<UserRoleInRootContentItem> UserRoleInRootContentItem { get; set; }
-        public DbSet<UserInContentItemUserGroup> UserInContentItemUserGroup { get; set; }
-        public DbSet<ContentItemUserGroup> ContentItemUserGroup { get; set; }
+        public DbSet<UserInSelectionGroup> UserInSelectionGroup { get; set; }
+        public DbSet<SelectionGroup> SelectionGroup { get; set; }
         public DbSet<RootContentItem> RootContentItem { get; set; }
         public DbSet<HierarchyField> HierarchyField { get; set; }
         public DbSet<HierarchyFieldValue> HierarchyFieldValue { get; set; }
         public DbSet<ContentType> ContentType { get; set; }
         public DbSet<ProfitCenter> ProfitCenter { get; set; }
+        public DbSet<ContentReductionTask> ContentReductionTask { get; set; }
 
         // Alteration of Identity entities
         public DbSet<ApplicationUser> ApplicationUser { get; set; }
@@ -39,6 +40,10 @@ namespace MapDbContextLib.Context
             // Customize the ASP.NET Identity model and override the defaults if needed.
             // For example, you can rename the ASP.NET Identity table names and more.
             // Add your customizations after calling base.OnModelCreating(builder);
+
+            builder.Entity<ContentReductionTask>()
+                .Property(b => b.CreateDateTime)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
         }
 
         public bool ClientExists(long id)
