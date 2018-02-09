@@ -23,7 +23,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
         {
             ContentAccessAdminSelectionGroupListViewModel Model = new ContentAccessAdminSelectionGroupListViewModel();
 
-            List<ContentItemUserGroup> SelectionGroups = DbContext.ContentItemUserGroup
+            List<SelectionGroup> SelectionGroups = DbContext.SelectionGroup
                 .Where(rci => rci.ClientId == Client.Id)
                 .Where(rci => rci.RootContentItemId == RootContentItem.Id)
                 .ToList();

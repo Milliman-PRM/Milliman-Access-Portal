@@ -82,13 +82,13 @@ namespace MillimanAccessPortal.Controllers
         /// <summary>
         /// Handles a request to display content that is hosted by a web server. 
         /// </summary>
-        /// <param name="Id">The primary key value of the ContentItemUserGroup authorizing this user to the requested content</param>
+        /// <param name="Id">The primary key value of the SelectionGroup authorizing this user to the requested content</param>
         /// <returns>A View (and model) that displays the requested content</returns>
         [Authorize]
         public async Task<IActionResult> WebHostedContent(long Id)
         {
 #region Validation
-            ContentItemUserGroup UserGroup = DataContext.ContentItemUserGroup
+            SelectionGroup UserGroup = DataContext.SelectionGroup
                                                         .Include(ug => ug.RootContentItem)
                                                             .ThenInclude(rc => rc.ContentType)
                                                         .Where(ug => ug.Id == Id)
@@ -106,7 +106,7 @@ namespace MillimanAccessPortal.Controllers
             #region Authorization
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
                 {
-                    new UserInContentItemUserGroupRequirement(Id),
+                    new UserInSelectionGroupRequirement(Id),
                     new RoleInRootContentItemRequirement(RoleEnum.ContentUser, UserGroup.RootContentItem.Id),
                 });
             if (!Result1.Succeeded)

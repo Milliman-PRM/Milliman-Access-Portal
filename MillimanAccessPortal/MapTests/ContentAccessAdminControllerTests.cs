@@ -230,9 +230,9 @@ namespace MapTests
             #endregion
 
             #region Act
-            int preCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            int preCount = TestResources.DbContextObject.SelectionGroup.Count();
             var view = await controller.CreateSelectionGroup(ClientId, RootContentItemId, "GroupName");
-            int postCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            int postCount = TestResources.DbContextObject.SelectionGroup.Count();
             #endregion
 
             #region Assert
@@ -253,9 +253,9 @@ namespace MapTests
             #endregion
 
             #region Act
-            int preCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            int preCount = TestResources.DbContextObject.SelectionGroup.Count();
             var view = await controller.CreateSelectionGroup(ClientId, RootContentItemId, "GroupName");
-            int postCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            int postCount = TestResources.DbContextObject.SelectionGroup.Count();
             #endregion
 
             #region Assert
@@ -288,9 +288,9 @@ namespace MapTests
             #endregion
 
             #region Act
-            int preCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            int preCount = TestResources.DbContextObject.SelectionGroup.Count();
             var view = await controller.CreateSelectionGroup(8, 3, "GroupName");
-            int postCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
+            int postCount = TestResources.DbContextObject.SelectionGroup.Count();
             #endregion
 
             #region Assert
@@ -315,9 +315,9 @@ namespace MapTests
             #endregion
 
             #region Act
-            int preCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+            int preCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
             var view = await controller.UpdateSelectionGroupUserAssignments(SelectionGroupId, MembershipSet);
-            int postCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+            int postCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
             #endregion
 
             #region Assert
@@ -343,9 +343,9 @@ namespace MapTests
             #endregion
 
             #region Act
-            int preCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+            int preCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
             var view = await controller.UpdateSelectionGroupUserAssignments(SelectionGroupId, MembershipSet);
-            int postCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+            int postCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
             #endregion
 
             #region Assert
@@ -390,9 +390,9 @@ namespace MapTests
             #endregion
 
             #region Act
-            int preCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+            int preCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
             var view = await controller.UpdateSelectionGroupUserAssignments(4, MembershipSet);
-            int postCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+            int postCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
             #endregion
 
             #region Assert
@@ -409,13 +409,13 @@ namespace MapTests
             #endregion
 
             #region Act
-            int groupsPreCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
-            int userPreCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+            int groupsPreCount = TestResources.DbContextObject.SelectionGroup.Count();
+            int userPreCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
 
             var view = await controller.DeleteSelectionGroup(RootContentItemId);
 
-            int groupsPostCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
-            int userPostCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+            int groupsPostCount = TestResources.DbContextObject.SelectionGroup.Count();
+            int userPostCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
             #endregion
 
             #region Assert
@@ -437,13 +437,13 @@ namespace MapTests
             #endregion
 
             #region Act
-            int groupsPreCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
-            int userPreCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+            int groupsPreCount = TestResources.DbContextObject.SelectionGroup.Count();
+            int userPreCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
 
             var view = await controller.DeleteSelectionGroup(RootContentItemId);
 
-            int groupsPostCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
-            int userPostCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+            int groupsPostCount = TestResources.DbContextObject.SelectionGroup.Count();
+            int userPostCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
             #endregion
 
             #region Assert
@@ -477,13 +477,13 @@ namespace MapTests
             #endregion
 
             #region Act
-            int groupsPreCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
-            int userPreCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+            int groupsPreCount = TestResources.DbContextObject.SelectionGroup.Count();
+            int userPreCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
 
             var view = await controller.DeleteSelectionGroup(4);
 
-            int groupsPostCount = TestResources.DbContextObject.ContentItemUserGroup.Count();
-            int userPostCount = TestResources.DbContextObject.UserInContentItemUserGroup.Count();
+            int groupsPostCount = TestResources.DbContextObject.SelectionGroup.Count();
+            int userPostCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
             #endregion
 
             #region Assert

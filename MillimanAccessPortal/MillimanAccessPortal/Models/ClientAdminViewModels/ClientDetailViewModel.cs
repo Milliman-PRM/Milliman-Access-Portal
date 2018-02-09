@@ -200,7 +200,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
             }
 
             ContentItems = DbContext.RootContentItem
-                                    .Where(rc => rc.ClientIdList.Contains(ClientEntity.Id))
+                                    .Where(rc => rc.ClientId == ClientEntity.Id)
                                     .ToList();
 
         }

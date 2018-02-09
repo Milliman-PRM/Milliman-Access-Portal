@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace MapDbContextLib.Context
 {
-    public class ContentItemUserGroup
+    public class SelectionGroup
     {
         [Key]
         public long Id { get; set; }

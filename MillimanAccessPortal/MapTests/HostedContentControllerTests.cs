@@ -102,7 +102,7 @@ namespace MapTests
 
 
             #region Act
-            var view = await sut.WebHostedContent(3); // User "test1" is not authorized to RootContentItem for ContentItemUserGroup w/ ID 3
+            var view = await sut.WebHostedContent(3); // User "test1" is not authorized to RootContentItem for SelectionGroup w/ ID 3
             #endregion
 
             #region Assert

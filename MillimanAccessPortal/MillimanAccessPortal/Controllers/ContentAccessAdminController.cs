@@ -199,7 +199,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ContentItemUserGroup SelectionGroup = new ContentItemUserGroup
+            SelectionGroup SelectionGroup = new SelectionGroup
             {
                 ClientId = Client.Id,
                 RootContentItemId = RootContentItem.Id,
@@ -208,7 +208,7 @@ namespace MillimanAccessPortal.Controllers
                 ContentInstanceUrl = ""
             };
 
-            DbContext.ContentItemUserGroup.Add(SelectionGroup);
+            DbContext.SelectionGroup.Add(SelectionGroup);
             DbContext.SaveChanges();
 
             ContentAccessAdminSelectionGroupDetailViewModel Model = ContentAccessAdminSelectionGroupDetailViewModel.Build(DbContext, SelectionGroup);
@@ -225,7 +225,7 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateSelectionGroupUserAssignments(long SelectionGroupId, Dictionary<long, Boolean> UserAssignments)
         {
-            ContentItemUserGroup SelectionGroup = DbContext.ContentItemUserGroup
+            SelectionGroup SelectionGroup = DbContext.SelectionGroup
                 .Include(rg => rg.Client)
                 .Include(rg => rg.RootContentItem)
                 .SingleOrDefault(rg => rg.Id == SelectionGroupId);
@@ -274,11 +274,11 @@ namespace MillimanAccessPortal.Controllers
 
             var AlreadyInGroup = UserAssignments
                 .Where(kvp => kvp.Value)
-                .Where(kvp => DbContext.UserInContentItemUserGroup
-                    .Include(uug => uug.ContentItemUserGroup)
+                .Where(kvp => DbContext.UserInSelectionGroup
+                    .Include(uug => uug.SelectionGroup)
                     .Where(uug => uug.UserId == kvp.Key)
-                    .Where(uug => uug.ContentItemUserGroupId != SelectionGroup.Id)
-                    .Where(uug => uug.ContentItemUserGroup.RootContentItemId == SelectionGroup.RootContentItemId
+                    .Where(uug => uug.SelectionGroupId != SelectionGroup.Id)
+                    .Where(uug => uug.SelectionGroup.RootContentItemId == SelectionGroup.RootContentItemId
                         )
                     .Any()
                     );
@@ -291,11 +291,11 @@ namespace MillimanAccessPortal.Controllers
 
             using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
             {
-                DbContext.UserInContentItemUserGroup.RemoveRange(
+                DbContext.UserInSelectionGroup.RemoveRange(
                     UserAssignments
                         .Where(kvp => !kvp.Value)
-                        .Select(kvp => DbContext.UserInContentItemUserGroup
-                            .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
+                        .Select(kvp => DbContext.UserInSelectionGroup
+                            .Where(uug => uug.SelectionGroupId == SelectionGroup.Id)
                             .Where(uug => uug.UserId == kvp.Key)
                             .SingleOrDefault()
                             )
@@ -303,18 +303,18 @@ namespace MillimanAccessPortal.Controllers
                     );
                 DbContext.SaveChanges();
 
-                DbContext.UserInContentItemUserGroup.AddRange(
+                DbContext.UserInSelectionGroup.AddRange(
                     UserAssignments
                         .Where(kvp => kvp.Value)
-                        .Where(kvp => DbContext.UserInContentItemUserGroup
-                            .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
+                        .Where(kvp => DbContext.UserInSelectionGroup
+                            .Where(uug => uug.SelectionGroupId == SelectionGroup.Id)
                             .Where(uug => uug.UserId == kvp.Key)
                             .SingleOrDefault() == null
                             )
                         .Select(kvp =>
-                            new UserInContentItemUserGroup
+                            new UserInSelectionGroup
                             {
-                                ContentItemUserGroupId = SelectionGroup.Id,
+                                SelectionGroupId = SelectionGroup.Id,
                                 UserId = kvp.Key,
                             }
                         )
@@ -336,7 +336,7 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteSelectionGroup(long SelectionGroupId)
         {
-            ContentItemUserGroup SelectionGroup = DbContext.ContentItemUserGroup.Find(SelectionGroupId);
+            SelectionGroup SelectionGroup = DbContext.SelectionGroup.Find(SelectionGroupId);
 
             #region Preliminary Validation
             if (SelectionGroup == null)
@@ -360,15 +360,15 @@ namespace MillimanAccessPortal.Controllers
 
             using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
             {
-                DbContext.UserInContentItemUserGroup.RemoveRange(
-                    DbContext.UserInContentItemUserGroup
-                        .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
+                DbContext.UserInSelectionGroup.RemoveRange(
+                    DbContext.UserInSelectionGroup
+                        .Where(uug => uug.SelectionGroupId == SelectionGroup.Id)
                         .ToList()
                     );
                 DbContext.SaveChanges();
 
-                DbContext.ContentItemUserGroup.Remove(
-                    DbContext.ContentItemUserGroup
+                DbContext.SelectionGroup.Remove(
+                    DbContext.SelectionGroup
                         .Where(g => g.Id == SelectionGroup.Id)
                         .Single()
                     );

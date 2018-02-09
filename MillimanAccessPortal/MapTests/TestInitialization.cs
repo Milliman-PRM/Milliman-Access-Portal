@@ -188,7 +188,7 @@ namespace MapTests
             ReturnMockContext.Object.RootContentItem = MockDbSet<RootContentItem>.New(new List<RootContentItem>()).Object;
             ReturnMockContext.Object.HierarchyFieldValue = MockDbSet<HierarchyFieldValue>.New(new List<HierarchyFieldValue>()).Object;
             ReturnMockContext.Object.HierarchyField = MockDbSet<HierarchyField>.New(new List<HierarchyField>()).Object;
-            ReturnMockContext.Object.ContentItemUserGroup = MockDbSet<ContentItemUserGroup>.New(new List<ContentItemUserGroup>()).Object;
+            ReturnMockContext.Object.SelectionGroup = MockDbSet<SelectionGroup>.New(new List<SelectionGroup>()).Object;
             ReturnMockContext.Object.UserRoles = MockDbSet<IdentityUserRole<long>>.New(new List<IdentityUserRole<long>>()).Object;
             ReturnMockContext.Object.UserRoleInRootContentItem = MockDbSet<UserRoleInRootContentItem>.New(new List<UserRoleInRootContentItem>()).Object;
             ReturnMockContext.Object.UserClaims = MockDbSet<IdentityUserClaim<long>>.New(new List<IdentityUserClaim<long>>()).Object;
@@ -207,15 +207,15 @@ namespace MapTests
             });
             ReturnMockContext.Object.UserRoleInClient = MockUserRoleInClient.Object;
 
-            List<UserInContentItemUserGroup> UserInContentItemUserGroupData = new List<UserInContentItemUserGroup>();
-            Mock<DbSet<UserInContentItemUserGroup>> MockUserInContentItemUserGroup = MockDbSet<UserInContentItemUserGroup>.New(UserInContentItemUserGroupData);
-            MockUserInContentItemUserGroup.Setup(d => d.AddRange(It.IsAny<IEnumerable<UserInContentItemUserGroup>>())).Callback<IEnumerable<UserInContentItemUserGroup>>(s =>
+            List<UserInSelectionGroup> UserInSelectionGroupData = new List<UserInSelectionGroup>();
+            Mock<DbSet<UserInSelectionGroup>> MockUserInSelectionGroup = MockDbSet<UserInSelectionGroup>.New(UserInSelectionGroupData);
+            MockUserInSelectionGroup.Setup(d => d.AddRange(It.IsAny<IEnumerable<UserInSelectionGroup>>())).Callback<IEnumerable<UserInSelectionGroup>>(s =>
             {
-                UserInContentItemUserGroupData.AddRange(s);
-                MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ContentItemUserGroup>(MockUserInContentItemUserGroup.Object, "ContentItemUserGroupId", ReturnMockContext.Object.ContentItemUserGroup);
-                MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ApplicationUser>(MockUserInContentItemUserGroup.Object, "UserId", ReturnMockContext.Object.ApplicationUser);
+                UserInSelectionGroupData.AddRange(s);
+                MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<SelectionGroup>(MockUserInSelectionGroup.Object, "SelectionGroupId", ReturnMockContext.Object.SelectionGroup);
+                MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<ApplicationUser>(MockUserInSelectionGroup.Object, "UserId", ReturnMockContext.Object.ApplicationUser);
             });
-            ReturnMockContext.Object.UserInContentItemUserGroup = MockUserInContentItemUserGroup.Object;
+            ReturnMockContext.Object.UserInSelectionGroup = MockUserInSelectionGroup.Object;
 
 
             // Mock DbContext.Database.CommitTransaction() as no ops.
@@ -424,9 +424,9 @@ namespace MapTests
             #region Initialize RootContentItem
             DbContextObject.RootContentItem.AddRange(new List<RootContentItem>
                 { 
-                    new RootContentItem{ Id=1, ClientIdList=new long[]{ 1 }, ContentName="RootContent 1", ContentTypeId=1 },
-                    new RootContentItem{ Id=2, ClientIdList=new long[]{ 2 }, ContentName="RootContent 2", ContentTypeId=1 },
-                    new RootContentItem{ Id=3, ClientIdList=new long[]{ 8 }, ContentName="RootContent 3", ContentTypeId=1 },
+                    new RootContentItem{ Id=1, ClientId=1, ContentName="RootContent 1", ContentTypeId=1 },
+                    new RootContentItem{ Id=2, ClientId=2, ContentName="RootContent 2", ContentTypeId=1 },
+                    new RootContentItem{ Id=3, ClientId=8, ContentName="RootContent 3", ContentTypeId=1 },
                 });
             MockDbSet<RootContentItem>.AssignNavigationProperty<ContentType>(DbContextObject.RootContentItem, "ContentTypeId", DbContextObject.ContentType);
             #endregion
@@ -447,27 +447,27 @@ namespace MapTests
             MockDbSet<HierarchyField>.AssignNavigationProperty<RootContentItem>(DbContextObject.HierarchyField, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
 
-            #region Initialize ContentItemUserGroups
-            DbContextObject.ContentItemUserGroup.AddRange(new List<ContentItemUserGroup>
+            #region Initialize SelectionGroups
+            DbContextObject.SelectionGroup.AddRange(new List<SelectionGroup>
                 { 
-                    new ContentItemUserGroup { Id=1, ClientId=1, ContentInstanceUrl="Folder1/File1", RootContentItemId=1, GroupName="Group1 For Content1" },
-                    new ContentItemUserGroup { Id=2, ClientId=1, ContentInstanceUrl="Folder1/File2", RootContentItemId=1, GroupName="Group2 For Content1" },
-                    new ContentItemUserGroup { Id=3, ClientId=2, ContentInstanceUrl="Folder2/File1", RootContentItemId=2, GroupName="Group1 For Content2" },
-                    new ContentItemUserGroup { Id=4, ClientId=8, ContentInstanceUrl="Folder3/File1", RootContentItemId=3, GroupName="Group1 For Content3" },
-                    new ContentItemUserGroup { Id=5, ClientId=8, ContentInstanceUrl="Folder3/File2", RootContentItemId=3, GroupName="Group2 For Content3" },
+                    new SelectionGroup { Id=1, ClientId=1, ContentInstanceUrl="Folder1/File1", RootContentItemId=1, GroupName="Group1 For Content1" },
+                    new SelectionGroup { Id=2, ClientId=1, ContentInstanceUrl="Folder1/File2", RootContentItemId=1, GroupName="Group2 For Content1" },
+                    new SelectionGroup { Id=3, ClientId=2, ContentInstanceUrl="Folder2/File1", RootContentItemId=2, GroupName="Group1 For Content2" },
+                    new SelectionGroup { Id=4, ClientId=8, ContentInstanceUrl="Folder3/File1", RootContentItemId=3, GroupName="Group1 For Content3" },
+                    new SelectionGroup { Id=5, ClientId=8, ContentInstanceUrl="Folder3/File2", RootContentItemId=3, GroupName="Group2 For Content3" },
                 });
-            MockDbSet<ContentItemUserGroup>.AssignNavigationProperty<RootContentItem>(DbContextObject.ContentItemUserGroup, "RootContentItemId", DbContextObject.RootContentItem);
-            MockDbSet<ContentItemUserGroup>.AssignNavigationProperty<Client>(DbContextObject.ContentItemUserGroup, "ClientId", DbContextObject.Client);
+            MockDbSet<SelectionGroup>.AssignNavigationProperty<RootContentItem>(DbContextObject.SelectionGroup, "RootContentItemId", DbContextObject.RootContentItem);
+            MockDbSet<SelectionGroup>.AssignNavigationProperty<Client>(DbContextObject.SelectionGroup, "ClientId", DbContextObject.Client);
             #endregion
 
-            #region Initialize UserInContentItemUserGroups
-            DbContextObject.UserInContentItemUserGroup.AddRange(new List<UserInContentItemUserGroup>
+            #region Initialize UserInSelectionGroups
+            DbContextObject.UserInSelectionGroup.AddRange(new List<UserInSelectionGroup>
                 { 
-                    new UserInContentItemUserGroup { Id=1, ContentItemUserGroupId=1, UserId=1 },
-                    new UserInContentItemUserGroup { Id=2, ContentItemUserGroupId=4, UserId=3 },
+                    new UserInSelectionGroup { Id=1, SelectionGroupId=1, UserId=1 },
+                    new UserInSelectionGroup { Id=2, SelectionGroupId=4, UserId=3 },
                 });
-            MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ContentItemUserGroup>(DbContextObject.UserInContentItemUserGroup, "ContentItemUserGroupId", DbContextObject.ContentItemUserGroup);
-            MockDbSet<UserInContentItemUserGroup>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserInContentItemUserGroup, "UserId", DbContextObject.ApplicationUser);
+            MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<SelectionGroup>(DbContextObject.UserInSelectionGroup, "SelectionGroupId", DbContextObject.SelectionGroup);
+            MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserInSelectionGroup, "UserId", DbContextObject.ApplicationUser);
             #endregion
 
             #region Initialize UserRoles
