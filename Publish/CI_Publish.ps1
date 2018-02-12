@@ -401,8 +401,8 @@ $CredentialFound = $False
 
 while ($attempts -lt $NumberRetries -and $credentialFound -eq $false)
 {
-    .$credManagerPath -GetCred -Target "git:$RemoteUrl" *> $env:temp\output.txt
-    $output = get-content $env:temp\output.txt
+    $command = "powershell -command `"$credManagerPath -GetCred -Target `"git:$RemoteUrl`" *>&1`""
+    $output = invoke-expression "&$command" | out-string
     if ($output -match "Found credentials as:")
     {
         $credentialFound = $true
