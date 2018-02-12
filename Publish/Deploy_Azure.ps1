@@ -123,7 +123,7 @@ if ($? -eq $false) {
 if ((test-path "$env:temp\webcomp*") -eq $false)
 {
     "Running false build to generate the WebCompiler folder."
-    $command = "`"$msbuild15path`" /verbosity:minimal /nowarn:MSB3884
+    $command = "`"$msbuild15path`" /verbosity:minimal /nowarn:MSB3884"
     Invoke-Expression "&$command"
 
 }
