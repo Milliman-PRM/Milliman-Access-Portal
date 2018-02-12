@@ -25,7 +25,7 @@ namespace MillimanAccessPortal.Models.HostedContentViewModels
         public string ContentName { get; set; }
 
         /// <summary>
-        /// First element should be the root level Client, list order traces down to the Client directly referenced by the ContentItemUserGroup
+        /// First element should be the root level Client, list order traces down to the Client directly referenced by the SelectionGroup
         /// </summary>
         public List<ParentClientTree> ClientList { get; set; }
     }

@@ -11,9 +11,10 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180209155217_RenameContentItemUserGroup")]
+    partial class RenameContentItemUserGroup
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -160,7 +161,8 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<long>("ClientId");
+                    b.Property<long[]>("ClientIdList")
+                        .IsRequired();
 
                     b.Property<string>("ContentName")
                         .IsRequired();
@@ -172,8 +174,6 @@ namespace MillimanAccessPortal.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ClientId");
-
                     b.HasIndex("ContentTypeId");
 
                     b.ToTable("RootContentItem");
@@ -183,6 +183,8 @@ namespace MillimanAccessPortal.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
+
+                    b.Property<long>("ClientId");
 
                     b.Property<string>("ContentInstanceUrl")
                         .IsRequired();
@@ -196,6 +198,8 @@ namespace MillimanAccessPortal.Migrations
                         .IsRequired();
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
 
                     b.HasIndex("RootContentItemId");
 
@@ -478,11 +482,6 @@ namespace MillimanAccessPortal.Migrations
 
             modelBuilder.Entity("MapDbContextLib.Context.RootContentItem", b =>
                 {
-                    b.HasOne("MapDbContextLib.Context.Client", "Client")
-                        .WithMany()
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.HasOne("MapDbContextLib.Context.ContentType", "ContentType")
                         .WithMany()
                         .HasForeignKey("ContentTypeId")
@@ -491,6 +490,11 @@ namespace MillimanAccessPortal.Migrations
 
             modelBuilder.Entity("MapDbContextLib.Context.SelectionGroup", b =>
                 {
+                    b.HasOne("MapDbContextLib.Context.Client", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("MapDbContextLib.Context.RootContentItem", "RootContentItem")
                         .WithMany()
                         .HasForeignKey("RootContentItemId")

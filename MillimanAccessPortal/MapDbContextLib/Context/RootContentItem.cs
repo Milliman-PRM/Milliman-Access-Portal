@@ -19,12 +19,12 @@ namespace MapDbContextLib.Context
         public string ContentName { get; set; }
 
         [ForeignKey("ContentType")]
-        [Required]
         public long ContentTypeId { get; set; }
         public ContentType ContentType { get; set; }
 
-        [Required]
-        public long[] ClientIdList { get; set; }
+        [ForeignKey("Client")]
+        public long ClientId { get; set; }
+        public Client Client { get; set; }
 
         [Column(TypeName ="jsonb")]
         // [Required] This causes a problem with migration database update

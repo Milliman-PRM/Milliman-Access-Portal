@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace MapDbContextLib.Context
 {
-    public class ContentItemUserGroup
+    public class SelectionGroup
     {
         [Key]
         public long Id { get; set; }
@@ -20,10 +20,6 @@ namespace MapDbContextLib.Context
 
         [Required]
         public string ContentInstanceUrl { get; set; }
-
-        [ForeignKey("Client")]
-        public long ClientId { get; set; }
-        public Client Client { get; set; }
 
         [ForeignKey("RootContentItem")]
         public long RootContentItemId { get; set; }
