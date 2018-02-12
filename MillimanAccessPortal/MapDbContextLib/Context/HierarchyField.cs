@@ -16,10 +16,16 @@ namespace MapDbContextLib.Context
         public long Id { get; set; }
 
         [Required]
-        public string[] FieldNameList { get; set; }
+        public string FieldName { get; set; }
 
         [Required]
-        public int HierarchyLevel { get; set; }
+        public string FieldDisplayName { get; set; }
+
+        [Required]
+        // Default value is enforced in ApplicationDbContext.OnModelCreating()
+        public FieldStructureType StructureType { get; set; } = FieldStructureType.Unknown;
+
+        public string FieldDelimiter { get; set; } = null;
 
         [ForeignKey("RootContentItem")]
         public long RootContentItemId { get; set; }

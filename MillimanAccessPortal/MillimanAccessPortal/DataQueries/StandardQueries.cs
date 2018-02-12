@@ -1,14 +1,16 @@
 ﻿/*
- * CODE OWNERS: Tom Puckett
+ * CODE OWNERS: Tom Puckett, 
  * OBJECTIVE: Wrapper for database queries.  Reusable methods appear in this file, methods for single caller appear in files named for the caller
  * DEVELOPER NOTES: 
  */
 
+using System;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
+using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -105,43 +107,6 @@ namespace MillimanAccessPortal.DataQueries
             return DataContext.Client.Where(c => c.ParentClientId == null).ToList();
         }
 
-        //public async Task<ClientAndChildrenModel> GetDescendentFamilyOfClient(Client ClientArg, ApplicationUser CurrentUser, RoleEnum ClientRoleRequiredToManage, bool RequireProfitCenterAuthority, bool RecurseDown = true)
-        //{
-        //    Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientArg.Id.ToString());
-        //    List<ApplicationUser> UserMembersOfThisClient = (await UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim)).ToList();
-
-        //    ClientAndChildrenModel ResultObject = new ClientAndChildrenModel { ClientEntity = ClientArg };  // Initialize.
-        //    ResultObject.AssociatedContentCount = DataContext.RootContentItem.Where(r => r.ClientId == ClientArg.Id).Count();
-        //    ResultObject.AssociatedUserCount = UserMembersOfThisClient.Count;
-
-        //    ResultObject.CanManage = DataContext.UserRoleInClient
-        //                                        .Include(urc => urc.Role)
-        //                                        .Include(urc => urc.Client)
-        //                                        .Any(urc => urc.UserId == CurrentUser.Id
-        //                                                 && urc.Role.RoleEnum == ClientRoleRequiredToManage
-        //                                                 && urc.ClientId == ClientArg.Id);
-
-        //    if (RequireProfitCenterAuthority)
-        //    {
-        //        ResultObject.CanManage &= DataContext.UserRoleInProfitCenter
-        //                                             .Include(urp => urp.Role)
-        //                                             .Any(urp => urp.UserId == CurrentUser.Id
-        //                                                      && urp.Role.RoleEnum == RoleEnum.Admin
-        //                                                      && urp.ProfitCenterId == ClientArg.ProfitCenterId);
-        //    }
-
-        //    if (RecurseDown)
-        //    {
-        //        List<Client> ChildrenOfThisClient = DataContext.Client.Where(c => c.ParentClientId == ClientArg.Id).ToList();
-        //        foreach (Client ChildOfThisClient in ChildrenOfThisClient)
-        //        {
-        //            ResultObject.Children.Add(await GetDescendentFamilyOfClient(ChildOfThisClient, CurrentUser, ClientRoleRequiredToManage, RecurseDown));
-        //        }
-        //    }
-
-        //    return ResultObject;
-        //}
-
         /// <summary>
         /// Returns list of normalized role names authorized to provided Client for provided UserId
         /// </summary>
@@ -173,6 +138,54 @@ namespace MillimanAccessPortal.DataQueries
             return await UserManager.GetUserAsync(User);
         }
 
+        public ContentReductionHierarchy GetHierarchyForRootContent(long ContentId)
+        {
+            RootContentItem ContentItem = DataContext.RootContentItem
+                                                     .Include(rc => rc.ContentType)
+                                                     .SingleOrDefault(rc => rc.Id == ContentId);
+            if (ContentItem == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                ContentReductionHierarchy ReturnObject = new ContentReductionHierarchy { RootContentItemId = ContentId };
+
+                foreach (HierarchyField Field in DataContext.HierarchyField
+                                                            .Where(hf => hf.RootContentItemId == ContentId)
+                                                            .ToList())
+                {
+                    // There may be different handling required for some future content type. If so, move 
+                    // the characteristics specific to Qlikview into a class derived from ReductionFieldBase
+                    switch (ContentItem.ContentType.TypeEnum)
+                    {
+                        case ContentTypeEnum.Qlikview:
+                            ReturnObject.Fields.Append(new ReductionFieldBase
+                            {
+                                FieldName = Field.FieldName,
+                                FieldDisplayName = Field.FieldDisplayName,
+                                FieldDelimiter = Field.FieldDelimiter,
+                                StructureType = Field.StructureType,
+                                FieldValues = DataContext.HierarchyFieldValue
+                                                         .Where(fv => fv.HierarchyFieldId == Field.Id)
+                                                         .Select(fv => fv.Value)
+                                                         .ToArray(),
+                            });
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+
+                return ReturnObject;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
 
     }
 }

@@ -88,12 +88,12 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> WebHostedContent(long Id)
         {
 #region Validation
-            SelectionGroup UserGroup = DataContext.SelectionGroup
+            SelectionGroup SelGroup = DataContext.SelectionGroup
                                                         .Include(sg => sg.RootContentItem)
                                                             .ThenInclude(rc => rc.ContentType)
                                                         .Where(sg => sg.Id == Id)
                                                         .FirstOrDefault();
-            if (UserGroup == null || UserGroup.RootContentItem == null || UserGroup.RootContentItem.ContentType == null)
+            if (SelGroup == null || SelGroup.RootContentItem == null || SelGroup.RootContentItem.ContentType == null)
             {
                 string ErrMsg = $"Failed to obtain the requested user group, root content item, or content type";
                 Logger.LogError(ErrMsg);
@@ -107,7 +107,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
                 {
                     new UserInSelectionGroupRequirement(Id),
-                    new RoleInRootContentItemRequirement(RoleEnum.ContentUser, UserGroup.RootContentItem.Id),
+                    new RoleInRootContentItemRequirement(RoleEnum.ContentUser, SelGroup.RootContentItem.Id),
                 });
             if (!Result1.Succeeded)
             {
@@ -124,34 +124,34 @@ namespace MillimanAccessPortal.Controllers
             {
                 // Instantiate the right content handler class
                 ContentTypeSpecificApiBase ContentSpecificHandler = null;
-                switch (UserGroup.RootContentItem.ContentType.Name)
+                switch (SelGroup.RootContentItem.ContentType.TypeEnum)
                 {   // Never break out of this switch without a valid ContentSpecificHandler object
-                    case "Qlikview":
+                    case ContentTypeEnum.Qlikview:
                         ContentSpecificHandler = new QlikviewLibApi();
                         break;
 
-                    //case "Another web hosted type":
+                    //case ContentTypeEnum.SomeOther":
                     //    ContentSpecificHandler = new AnotherTypeSpecificLib();
                     //    break;
 
                     default:
-                        TempData["Message"] = $"Display of an unsupported ContentType was requested: {UserGroup.RootContentItem.ContentType.Name}";
+                        TempData["Message"] = $"Display of an unsupported ContentType was requested: {SelGroup.RootContentItem.ContentType.Name}";
                         TempData["ReturnToController"] = "HostedContent";
                         TempData["ReturnToAction"] = "Index";
                         return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
                 }
 
-                UriBuilder ContentUri = await ContentSpecificHandler.GetContentUri(UserGroup, HttpContext, QlikviewConfig);
+                UriBuilder ContentUri = await ContentSpecificHandler.GetContentUri(SelGroup, HttpContext, QlikviewConfig);
 
                 HostedContentViewModel ResponseModel = new HostedContentViewModel
                 {
                     Url = ContentUri.Uri.AbsoluteUri,  // must be absolute because it is used in iframe element
-                    UserGroupId = UserGroup.Id,
-                    ContentName = UserGroup.RootContentItem.ContentName,
+                    UserGroupId = SelGroup.Id,
+                    ContentName = SelGroup.RootContentItem.ContentName,
                 };
 
                 // Now return the appropriate view for the requested content
-                switch (UserGroup.RootContentItem.ContentType.Name)
+                switch (SelGroup.RootContentItem.ContentType.Name)
                 {
                     case "Qlikview":
                         return View(ResponseModel);
@@ -161,7 +161,7 @@ namespace MillimanAccessPortal.Controllers
 
                     default:
                         // Perhaps this can't happen since this case is handled above
-                        TempData["Message"] = $"An unsupported ContentType was requested: {UserGroup.RootContentItem.ContentType.Name}";
+                        TempData["Message"] = $"An unsupported ContentType was requested: {SelGroup.RootContentItem.ContentType.Name}";
                         TempData["ReturnToController"] = "HostedContent";
                         TempData["ReturnToAction"] = "Index";
                         return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));

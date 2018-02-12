@@ -12,7 +12,8 @@ namespace MapDbContextLib.Context
         public Guid Id { get; set; }
 
         [Required]
-        // default value defined in ApplicationDbContext.OnModelCreating()
+        [Column(TypeName = "timestamp with time zone")]
+        // Default value is enforced in ApplicationDbContext.OnModelCreating()
         public DateTime CreateDateTime { get; set; }
 
         [Required]
