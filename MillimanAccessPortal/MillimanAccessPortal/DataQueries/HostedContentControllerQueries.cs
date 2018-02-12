@@ -31,9 +31,8 @@ namespace MillimanAccessPortal.DataQueries
             List<HostedContentViewModel> query = DataContext.UserInSelectionGroup
                 .Include(usg => usg.User)
                 .Include(usg => usg.SelectionGroup)
-                    .ThenInclude(usg => usg.RootContentItem)
-                .Include(usg => usg.SelectionGroup)
-                    .ThenInclude(usg => usg.Client)
+                    .ThenInclude(sg => sg.RootContentItem)
+                        .ThenInclude(rci => rci.Client)
                 .Where(usg => usg.User.UserName == UserName)
                 .Distinct()
                 .Select(usg =>
@@ -46,9 +45,9 @@ namespace MillimanAccessPortal.DataQueries
                         {
                             new HostedContentViewModel.ParentClientTree
                             {
-                                Id = usg.SelectionGroup.ClientId,
-                                Name = usg.SelectionGroup.Client.Name,
-                                ParentId = usg.SelectionGroup.Client.ParentClientId,
+                                Id = usg.SelectionGroup.RootContentItem.ClientId,
+                                Name = usg.SelectionGroup.RootContentItem.Client.Name,
+                                ParentId = usg.SelectionGroup.RootContentItem.Client.ParentClientId,
                             }
                         },
                     })

@@ -551,7 +551,7 @@ namespace MillimanAccessPortal.Controllers
                          .Include(usg => usg.SelectionGroup)
                          .Where(usg => usg.UserId == RequestedUser.Id)
                          .Select(usg => usg.SelectionGroup);
-            if (AllAuthorizedGroupsQuery.Any(group => group.ClientId == RequestedClient.Id))
+            if (AllAuthorizedGroupsQuery.Any(group => group.RootContentItem.ClientId == RequestedClient.Id))
             {
                 Response.Headers.Add("Warning", "The requested user must first be unauthorized to content of the requested client");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);

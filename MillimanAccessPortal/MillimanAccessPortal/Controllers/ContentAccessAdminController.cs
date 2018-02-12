@@ -208,7 +208,6 @@ namespace MillimanAccessPortal.Controllers
 
             SelectionGroup SelectionGroup = new SelectionGroup
             {
-                ClientId = RootContentItem.ClientId,
                 RootContentItemId = RootContentItem.Id,
                 GroupName = SelectionGroupName,
                 SelectedHierarchyFieldValueList = new long[] { },
@@ -261,8 +260,8 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> UpdateSelectionGroupUserAssignments(long SelectionGroupId, Dictionary<long, Boolean> UserAssignments)
         {
             SelectionGroup SelectionGroup = DbContext.SelectionGroup
-                .Include(sg => sg.Client)
                 .Include(sg => sg.RootContentItem)
+                    .ThenInclude(rci => rci.Client)
                 .SingleOrDefault(sg => sg.Id == SelectionGroupId);
 
             #region Preliminary Validation
@@ -282,7 +281,7 @@ namespace MillimanAccessPortal.Controllers
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     "Request to update selection group without role in root content item",
                     AuditEventId.Unauthorized,
-                    new { SelectionGroup.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId },
+                    new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId },
                     User.Identity.Name,
                     HttpContext.Session.Id
                     );
@@ -386,7 +385,7 @@ namespace MillimanAccessPortal.Controllers
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     "User assigned to selection group",
                     AuditEventId.SelectionGroupUserAssigned,
-                    new { SelectionGroup.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, UserId = UserAddition },
+                    new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, UserId = UserAddition },
                     User.Identity.Name,
                     HttpContext.Session.Id
                     );
@@ -398,7 +397,7 @@ namespace MillimanAccessPortal.Controllers
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     "User removed from selection group",
                     AuditEventId.SelectionGroupUserRemoved,
-                    new { SelectionGroup.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, UserId = UserRemoval },
+                    new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, UserId = UserRemoval },
                     User.Identity.Name,
                     HttpContext.Session.Id
                     );
@@ -438,7 +437,7 @@ namespace MillimanAccessPortal.Controllers
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     "Request to delete selection group without role in root content item",
                     AuditEventId.Unauthorized,
-                    new { SelectionGroup.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId },
+                    new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId },
                     User.Identity.Name,
                     HttpContext.Session.Id
                     );
@@ -500,7 +499,7 @@ namespace MillimanAccessPortal.Controllers
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     "User removed from selection group",
                     AuditEventId.SelectionGroupUserRemoved,
-                    new { SelectionGroup.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, UserId },
+                    new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, UserId },
                     User.Identity.Name,
                     HttpContext.Session.Id
                     );
@@ -511,7 +510,7 @@ namespace MillimanAccessPortal.Controllers
                 $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                 "Selection group deleted",
                 AuditEventId.SelectionGroupDeleted,
-                new { SelectionGroup.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId },
+                new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId },
                 User.Identity.Name,
                 HttpContext.Session.Id
                 );

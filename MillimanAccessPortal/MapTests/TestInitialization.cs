@@ -462,11 +462,11 @@ namespace MapTests
             #region Initialize SelectionGroups
             DbContextObject.SelectionGroup.AddRange(new List<SelectionGroup>
                 { 
-                    new SelectionGroup { Id=1, ClientId=1, ContentInstanceUrl="Folder1/File1", RootContentItemId=1, GroupName="Group1 For Content1" },
-                    new SelectionGroup { Id=2, ClientId=1, ContentInstanceUrl="Folder1/File2", RootContentItemId=1, GroupName="Group2 For Content1" },
-                    new SelectionGroup { Id=3, ClientId=2, ContentInstanceUrl="Folder2/File1", RootContentItemId=2, GroupName="Group1 For Content2" },
-                    new SelectionGroup { Id=4, ClientId=8, ContentInstanceUrl="Folder3/File1", RootContentItemId=3, GroupName="Group1 For Content3" },
-                    new SelectionGroup { Id=5, ClientId=8, ContentInstanceUrl="Folder3/File2", RootContentItemId=3, GroupName="Group2 For Content3" },
+                    new SelectionGroup { Id=1, ContentInstanceUrl="Folder1/File1", RootContentItemId=1, GroupName="Group1 For Content1" },
+                    new SelectionGroup { Id=2, ContentInstanceUrl="Folder1/File2", RootContentItemId=1, GroupName="Group2 For Content1" },
+                    new SelectionGroup { Id=3, ContentInstanceUrl="Folder2/File1", RootContentItemId=2, GroupName="Group1 For Content2" },
+                    new SelectionGroup { Id=4, ContentInstanceUrl="Folder3/File1", RootContentItemId=3, GroupName="Group1 For Content3" },
+                    new SelectionGroup { Id=5, ContentInstanceUrl="Folder3/File2", RootContentItemId=3, GroupName="Group2 For Content3" },
                 });
             MockDbSet<SelectionGroup>.AssignNavigationProperty<RootContentItem>(DbContextObject.SelectionGroup, "RootContentItemId", DbContextObject.RootContentItem);
             MockDbSet<SelectionGroup>.AssignNavigationProperty<Client>(DbContextObject.SelectionGroup, "ClientId", DbContextObject.Client);
