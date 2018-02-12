@@ -365,14 +365,6 @@ if ($LASTEXITCODE -ne 0)
     log_statement "Failed to add git credential"
     exit 42
 }
-
-$command = "$gitexepath config --global credential.helper wincred"
-Invoke-Expression "$command"
-if ($LASTEXITCODE -ne 0)
-{
-    log_statement "Failed to configure git credential manager."
-    exit -800
-}
 #endregion
 
 #region Push to git remote
@@ -425,6 +417,24 @@ while ($attempts -lt $NumberRetries -and $credentialFound -eq $false)
 
 if ($CredentialFound)
 {
+    
+    # "Unset" the git credential helper, so that its cache will be cleared
+    $command = "$gitexepath config --global --unset credential.helper wincred"
+    Invoke-Expression "$command"
+    if ($LASTEXITCODE -ne 0)
+    {
+        log_statement "Failed to unset git credential manager."
+        exit -800
+    }    
+
+    $command = "$gitexepath config --global credential.helper wincred"
+    Invoke-Expression "$command"
+    if ($LASTEXITCODE -ne 0)
+    {
+        log_statement "Failed to set git credential manager."
+        exit -800
+    }
+
     $command = "$gitExePath push ci_push `"HEAD:refs/heads/master`" --force 2>&1"
     $pushOutput = Invoke-Expression "&$command" | out-string
 
