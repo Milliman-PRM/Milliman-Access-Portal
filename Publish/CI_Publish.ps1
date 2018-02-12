@@ -353,6 +353,12 @@ else
 #endregion
 
 #region Create Windows credential store object for deployment
+
+$command = "$credManagerPath -DelCred -Target `"git:$RemoteUrl`""
+start-process "powershell.exe" -ArgumentList "-Command `"$command`"" -wait -RedirectStandardOutput "$env:temp\output.txt" -redirectstandarderror "$env:temp\error.txt"
+log_statement "Attempted to delete an existing credential, if one exists. Return code was $LASTEXITCODE."
+log_output
+
 .$credManagerPath -AddCred -Target "git:$RemoteUrl" -User "$gitUser" -pass "$gitPassword"
 if ($LASTEXITCODE -ne 0)
 {
