@@ -29,26 +29,25 @@ namespace MillimanAccessPortal.DataQueries
 
             // Get a list of all content item groups authorized for user, converted to type HostedContentViewModel plus content related properties
             List<HostedContentViewModel> query = DataContext.UserInSelectionGroup
-                .Include(ug => ug.User)
-                .Include(ug => ug.SelectionGroup)
-                    .ThenInclude(ug => ug.RootContentItem)
-                .Include(ug => ug.SelectionGroup)
-                    .ThenInclude(ug => ug.Client)
-                .Where(ug => ug.User.UserName == UserName)
+                .Include(usg => usg.User)
+                .Include(usg => usg.SelectionGroup)
+                    .ThenInclude(sg => sg.RootContentItem)
+                        .ThenInclude(rci => rci.Client)
+                .Where(usg => usg.User.UserName == UserName)
                 .Distinct()
-                .Select(ug =>
+                .Select(usg =>
                     new HostedContentViewModel
                     {
-                        UserGroupId = ug.SelectionGroup.Id,
-                        ContentName = ug.SelectionGroup.RootContentItem.ContentName,
-                        Url = ug.SelectionGroup.ContentInstanceUrl,
+                        UserGroupId = usg.SelectionGroup.Id,
+                        ContentName = usg.SelectionGroup.RootContentItem.ContentName,
+                        Url = usg.SelectionGroup.ContentInstanceUrl,
                         ClientList = new List<HostedContentViewModel.ParentClientTree>
                         {
                             new HostedContentViewModel.ParentClientTree
                             {
-                                Id = ug.SelectionGroup.ClientId,
-                                Name = ug.SelectionGroup.Client.Name,
-                                ParentId = ug.SelectionGroup.Client.ParentClientId,
+                                Id = usg.SelectionGroup.RootContentItem.ClientId,
+                                Name = usg.SelectionGroup.RootContentItem.Client.Name,
+                                ParentId = usg.SelectionGroup.RootContentItem.Client.ParentClientId,
                             }
                         },
                     })

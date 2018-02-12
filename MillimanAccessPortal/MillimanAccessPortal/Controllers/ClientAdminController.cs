@@ -548,10 +548,10 @@ namespace MillimanAccessPortal.Controllers
             // 2. RequestedUser must not be assigned to any SelectionGroup of RequestedClient
             IQueryable<SelectionGroup> AllAuthorizedGroupsQuery =
                 DbContext.UserInSelectionGroup
-                         .Include(urc => urc.SelectionGroup)
-                         .Where(urc => urc.UserId == RequestedUser.Id)
-                         .Select(urc => urc.SelectionGroup);
-            if (AllAuthorizedGroupsQuery.Any(group => group.ClientId == RequestedClient.Id))
+                         .Include(usg => usg.SelectionGroup)
+                         .Where(usg => usg.UserId == RequestedUser.Id)
+                         .Select(usg => usg.SelectionGroup);
+            if (AllAuthorizedGroupsQuery.Any(group => group.RootContentItem.ClientId == RequestedClient.Id))
             {
                 Response.Headers.Add("Warning", "The requested user must first be unauthorized to content of the requested client");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);

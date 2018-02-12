@@ -30,8 +30,8 @@ namespace MillimanAccessPortal.Authorization
         {
             IQueryable<UserInSelectionGroup> Query =
                 DataContext.UserInSelectionGroup
-                           .Where(ug => ug.UserId == User.Id
-                                     && ug.SelectionGroupId == SelectionGroupId);
+                           .Where(usg => usg.UserId == User.Id
+                                     && usg.SelectionGroupId == SelectionGroupId);
 
             if (Query.Any())  // Query executes here
             {

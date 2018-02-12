@@ -21,10 +21,6 @@ namespace MapDbContextLib.Context
         [Required]
         public string ContentInstanceUrl { get; set; }
 
-        [ForeignKey("Client")]
-        public long ClientId { get; set; }
-        public Client Client { get; set; }
-
         [ForeignKey("RootContentItem")]
         public long RootContentItemId { get; set; }
         public RootContentItem RootContentItem { get; set; }

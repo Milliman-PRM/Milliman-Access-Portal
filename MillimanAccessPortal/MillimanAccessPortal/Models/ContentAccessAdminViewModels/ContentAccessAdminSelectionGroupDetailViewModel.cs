@@ -25,8 +25,8 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 
             // Retrieve users that are members of the specified selection group
             List<ApplicationUser> MemberClients = DbContext.UserInSelectionGroup
-                .Where(uug => uug.SelectionGroupId == SelectionGroup.Id)
-                .Select(uug => uug.User)
+                .Where(usg => usg.SelectionGroupId == SelectionGroup.Id)
+                .Select(usg => usg.User)
                 .ToList();
 
             foreach (var MemberClient in MemberClients)
