@@ -469,7 +469,6 @@ namespace MapTests
                     new SelectionGroup { Id=5, ContentInstanceUrl="Folder3/File2", RootContentItemId=3, GroupName="Group2 For Content3" },
                 });
             MockDbSet<SelectionGroup>.AssignNavigationProperty<RootContentItem>(DbContextObject.SelectionGroup, "RootContentItemId", DbContextObject.RootContentItem);
-            MockDbSet<SelectionGroup>.AssignNavigationProperty<Client>(DbContextObject.SelectionGroup, "ClientId", DbContextObject.Client);
             #endregion
 
             #region Initialize UserInSelectionGroups
