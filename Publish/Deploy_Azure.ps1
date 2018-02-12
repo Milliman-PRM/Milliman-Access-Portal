@@ -37,7 +37,7 @@ function fail_statement {
     log_statement "Dump of local variables for troubleshooting"
     write-output ""
     variable
-    
+
     log_output
 
     if ($host.name -notmatch "ISE") # Don't exit if we're running in PowerShell ISE
@@ -123,7 +123,7 @@ if ($? -eq $false) {
 if ((test-path "$env:temp\webcomp*") -eq $false)
 {
     "Running false build to generate the WebCompiler folder."
-    $command = "`"$msbuild15path`" /verbosity:minimal"
+    $command = "`"$msbuild15path`" /verbosity:minimal /nowarn:MSB3884
     Invoke-Expression "&$command"
 
 }
@@ -148,14 +148,14 @@ if (test-path "$env:temp\webcompiler*" -PathType Container)
 
     # Wait for Web compiler contents to exist
     $tries = 0
-    while ((test-path "$WebCompilerPath\node_modules") -eq $false -and (test-path "$WebCompilerPath\prepare.cmd") -eq $false -and $tries -lt $loopRetries) 
+    while ((test-path "$WebCompilerPath\node_modules") -eq $false -and (test-path "$WebCompilerPath\prepare.cmd") -eq $false -and $tries -lt $loopRetries)
     {
         $tries = $tries + 1
         log_statement "Web Compiler components not found. Waiting for $loopWaitSeconds seconds before trying again."
         log_statement "Attempt $tries of $loopRetries"
         start-sleep -seconds $loopWaitSeconds
     }
-    
+
     cd $WebCompilerPath
     if ((get-location).Path -ne $WebCompilerPath) {
         fail_statement "Failed to change to WebCompiler directory"
@@ -178,7 +178,7 @@ if (test-path "$env:temp\webcompiler*" -PathType Container)
         fail_statement "Web Compiler components were not found after $loopRetries attempts."
     }
 }
-else 
+else
 {
     fail_statement "Web compiler directory was not found"
 }
