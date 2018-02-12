@@ -74,7 +74,7 @@ $SubscriptionId = "8f047950-269e-43c7-94e0-ff90d22bf013"
 $TenantId = "15dfebdf-8eb6-49ea-b9c7-f4b275f6b4b4"
 $WebAppName = "map-ci-app"
 $AppServicePlanName = "map-ci"
-$BranchName = "CreateAzureCI".Replace("_","").Replace("-","").ToLower() # Will be used as the name of the deployment slot & appended to database names
+$BranchName = $env:git_branch.Replace("_","").Replace("-","").ToLower() # Will be used as the name of the deployment slot & appended to database names
 
 $deployUser = $env:app_deploy_user
 $deployPassword = $env:app_deploy_password
