@@ -396,13 +396,12 @@ if ($LASTEXITCODE -ne 0)
 log_statement "Checking if git credential exists"
 $Attempts = 1
 $NumberRetries = 5
-$WaitSeconds
+$WaitSeconds = 10
 $CredentialFound = $False
 
 while ($attempts -lt $NumberRetries -and $credentialFound -eq $false)
 {
-    $Command = .$credManagerPath -GetCred -Target "git:$RemoteUrl"
-    $return = Invoke-Expression "&$command"
+    $return = .$credManagerPath -GetCred -Target "git:$RemoteUrl"
     if ($return)
     {
         $credentialFound = $true
