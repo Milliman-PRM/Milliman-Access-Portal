@@ -441,6 +441,7 @@ namespace MapTests
                     new RootContentItem{ Id=3, ClientId=8, ContentName="RootContent 3", ContentTypeId=1 },
                 });
             MockDbSet<RootContentItem>.AssignNavigationProperty<ContentType>(DbContextObject.RootContentItem, "ContentTypeId", DbContextObject.ContentType);
+            MockDbSet<RootContentItem>.AssignNavigationProperty<Client>(DbContextObject.RootContentItem, "ClientId", DbContextObject.Client);
             #endregion
 
             #region Initialize HierarchyFieldValue
@@ -469,7 +470,6 @@ namespace MapTests
                     new SelectionGroup { Id=5, ContentInstanceUrl="Folder3/File2", RootContentItemId=3, GroupName="Group2 For Content3" },
                 });
             MockDbSet<SelectionGroup>.AssignNavigationProperty<RootContentItem>(DbContextObject.SelectionGroup, "RootContentItemId", DbContextObject.RootContentItem);
-            MockDbSet<SelectionGroup>.AssignNavigationProperty<Client>(DbContextObject.SelectionGroup, "ClientId", DbContextObject.Client);
             #endregion
 
             #region Initialize UserInSelectionGroups
