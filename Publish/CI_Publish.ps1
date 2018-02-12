@@ -236,8 +236,8 @@ $deployProperties = Get-AzureRmResource -ResourceGroupName $ResourceGroupName -R
 
 # Get app-level deployment credentials
 $xml = [xml](Get-AzureRmWebAppSlotPublishingProfile -Name $webappname -Slot $BranchName -ResourceGroupName $ResourceGroupName -OutputFile null)
-$gitUser = $xml.SelectNodes("//publishProfile[@publishMethod=`"MSDeploy`"]/@userName").value
-$gitPassword = $xml.SelectNodes("//publishProfile[@publishMethod=`"MSDeploy`"]/@userPWD").value
+$gitUser = $xml.SelectNodes("//publishProfile[@publishMethod=`"MSDeploy`"]/@userName").value.replace('`$','```$')
+$gitPassword = $xml.SelectNodes("//publishProfile[@publishMethod=`"MSDeploy`"]/@userPWD").value.replace('`$', '```$')
 
 $remoteUrl = $deployProperties.Properties.repoUrl
 
