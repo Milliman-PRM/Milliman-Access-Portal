@@ -89,9 +89,9 @@ namespace MillimanAccessPortal.Controllers
         {
 #region Validation
             SelectionGroup UserGroup = DataContext.SelectionGroup
-                                                        .Include(ug => ug.RootContentItem)
+                                                        .Include(sg => sg.RootContentItem)
                                                             .ThenInclude(rc => rc.ContentType)
-                                                        .Where(ug => ug.Id == Id)
+                                                        .Where(sg => sg.Id == Id)
                                                         .FirstOrDefault();
             if (UserGroup == null || UserGroup.RootContentItem == null || UserGroup.RootContentItem.ContentType == null)
             {

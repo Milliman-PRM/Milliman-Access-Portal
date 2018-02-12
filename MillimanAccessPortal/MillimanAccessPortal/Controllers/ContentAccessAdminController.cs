@@ -261,9 +261,9 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> UpdateSelectionGroupUserAssignments(long SelectionGroupId, Dictionary<long, Boolean> UserAssignments)
         {
             SelectionGroup SelectionGroup = DbContext.SelectionGroup
-                .Include(rg => rg.Client)
-                .Include(rg => rg.RootContentItem)
-                .SingleOrDefault(rg => rg.Id == SelectionGroupId);
+                .Include(sg => sg.Client)
+                .Include(sg => sg.RootContentItem)
+                .SingleOrDefault(sg => sg.Id == SelectionGroupId);
 
             #region Preliminary Validation
             if (SelectionGroup == null)
@@ -296,8 +296,8 @@ namespace MillimanAccessPortal.Controllers
 
             #region Argument processing
             var CurrentAssignments = DbContext.UserInSelectionGroup
-                .Where(uug => uug.SelectionGroupId == SelectionGroup.Id)
-                .Select(uug => uug.UserId)
+                .Where(usg => usg.SelectionGroupId == SelectionGroup.Id)
+                .Select(usg => usg.UserId)
                 .ToList();
             var UserAdditions = UserAssignments
                 .Where(kvp => kvp.Value)
@@ -329,9 +329,9 @@ namespace MillimanAccessPortal.Controllers
             }
 
             var AlreadyInGroup = DbContext.UserInSelectionGroup
-                .Where(uug => UserAdditions.Contains(uug.UserId))
-                .Where(uug => uug.SelectionGroupId != SelectionGroup.Id)
-                .Where(uug => uug.SelectionGroup.RootContentItemId == SelectionGroup.RootContentItemId);
+                .Where(usg => UserAdditions.Contains(usg.UserId))
+                .Where(usg => usg.SelectionGroupId != SelectionGroup.Id)
+                .Where(usg => usg.SelectionGroup.RootContentItemId == SelectionGroup.RootContentItemId);
             if (AlreadyInGroup.Any())
             {
                 Response.Headers.Add("Warning", "One or more requested users to add are already in a different selection group.");
@@ -345,8 +345,8 @@ namespace MillimanAccessPortal.Controllers
                 {
                     DbContext.UserInSelectionGroup.RemoveRange(
                         DbContext.UserInSelectionGroup
-                            .Where(uug => UserRemovals.Contains(uug.UserId))
-                            .Where(uug => uug.SelectionGroupId == SelectionGroup.Id)
+                            .Where(usg => UserRemovals.Contains(usg.UserId))
+                            .Where(usg => usg.SelectionGroupId == SelectionGroup.Id)
                         );
                     DbContext.SaveChanges();
 
@@ -460,14 +460,14 @@ namespace MillimanAccessPortal.Controllers
                 using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
                 {
                     List<UserInSelectionGroup> UsersToRemove = DbContext.UserInSelectionGroup
-                        .Where(uug => uug.SelectionGroupId == SelectionGroup.Id)
+                        .Where(usg => usg.SelectionGroupId == SelectionGroup.Id)
                         .ToList();
                     DbContext.UserInSelectionGroup.RemoveRange(UsersToRemove);
                     DbContext.SaveChanges();
 
                     DbContext.SelectionGroup.Remove(
                         DbContext.SelectionGroup
-                            .Where(g => g.Id == SelectionGroup.Id)
+                            .Where(sg => sg.Id == SelectionGroup.Id)
                             .Single()
                         );
                     DbContext.SaveChanges();

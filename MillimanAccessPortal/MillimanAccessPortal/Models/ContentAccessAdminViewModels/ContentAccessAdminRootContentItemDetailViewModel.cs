@@ -28,14 +28,14 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 
             // Retrieve related users and groups to populate user and group counts
             List<UserInSelectionGroup> RelatedUsersGroups = DbContext.UserInSelectionGroup
-                .Include(ug => ug.SelectionGroup)
-                .Where(u => u.SelectionGroup.RootContentItemId == Item.Id)
+                .Include(usg => usg.SelectionGroup)
+                .Where(usg => usg.SelectionGroup.RootContentItemId == Item.Id)
                 .ToList();
 
             // See how many members are in each group
             var GroupMemberCounts = DbContext.UserInSelectionGroup
-                .GroupBy(ug => ug.SelectionGroupId)
-                .Select(ug => new { SelectionGroupId = ug.Key, Count = ug.Count() });
+                .GroupBy(usg => usg.SelectionGroupId)
+                .Select(usg => new { SelectionGroupId = usg.Key, Count = usg.Count() });
 
             // Only include a group in NumberOfGroups if it has more than one member
             // Single-member groups are not treated as groups by the front end

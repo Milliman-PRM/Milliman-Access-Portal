@@ -24,7 +24,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
             ContentAccessAdminSelectionGroupListViewModel Model = new ContentAccessAdminSelectionGroupListViewModel();
 
             List<SelectionGroup> SelectionGroups = DbContext.SelectionGroup
-                .Where(rci => rci.RootContentItemId == RootContentItem.Id)
+                .Where(sg => sg.RootContentItemId == RootContentItem.Id)
                 .ToList();
 
             foreach (var SelectionGroup in SelectionGroups)
