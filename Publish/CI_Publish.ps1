@@ -236,8 +236,8 @@ $deployProperties = Get-AzureRmResource -ResourceGroupName $ResourceGroupName -R
 
 # Get app-level deployment credentials
 $xml = [xml](Get-AzureRmWebAppSlotPublishingProfile -Name $webappname -Slot $BranchName -ResourceGroupName $ResourceGroupName -OutputFile null)
-$gitUser = $xml.SelectNodes("//publishProfile[@publishMethod=`"MSDeploy`"]/@userName").value.replace('`$','```$')
-$gitPassword = $xml.SelectNodes("//publishProfile[@publishMethod=`"MSDeploy`"]/@userPWD").value.replace('`$', '```$')
+$gitUser = $xml.SelectNodes("//publishProfile[@publishMethod=`"MSDeploy`"]/@userName").value
+$gitPassword = $xml.SelectNodes("//publishProfile[@publishMethod=`"MSDeploy`"]/@userPWD").value
 
 $remoteUrl = $deployProperties.Properties.repoUrl
 
@@ -353,19 +353,11 @@ else
 #endregion
 
 #region Create Windows credential store object for deployment
-
-$command = "$credManagerPath -DelCred -Target `"git:$RemoteUrl`""
-start-process "powershell.exe" -ArgumentList "-Command `"$command`"" -wait -RedirectStandardOutput "$env:temp\output.txt" -redirectstandarderror "$env:temp\error.txt"
-log_statement "Attempted to delete an existing credential, if one exists. Return code was $LASTEXITCODE."
-log_output
-
-$command = "$credManagerPath -AddCred -Target `"git:$RemoteUrl`" -User `"$gitUser`" -pass `"$gitPassword`""
-start-process "powershell.exe" -ArgumentList "-Command `"$command`"" -wait -RedirectStandardOutput "$env:temp\output.txt" -redirectstandarderror "$env:temp\error.txt"
-if ($? -eq $false)
+.$credManagerPath -AddCred -Target 'git:$RemoteUrl' -User '$gitUser' -pass '$gitPassword'
+if ($LASTEXITCODE -ne 0)
 {
-    log_statement "Failed to add git credential."
+    log_failure "Failed to add git credential"
 }
-log_output
 
 $command = "$gitexepath config --global credential.helper wincred"
 Invoke-Expression "$command"
