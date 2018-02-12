@@ -353,7 +353,7 @@ else
 #endregion
 
 #region Create Windows credential store object for deployment
-.$credManagerPath -AddCred -Target 'git:$RemoteUrl' -User '$gitUser' -pass '$gitPassword'
+.$credManagerPath -AddCred -Target "git:$RemoteUrl" -User "$gitUser" -pass "$gitPassword"
 if ($LASTEXITCODE -ne 0)
 {
     log_failure "Failed to add git credential"
