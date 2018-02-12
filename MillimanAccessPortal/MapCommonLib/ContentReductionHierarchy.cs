@@ -1,4 +1,10 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: A model representing full hierarchy information used to perform content reduction. 
+ * DEVELOPER NOTES: 
+ */
+
+using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Text;

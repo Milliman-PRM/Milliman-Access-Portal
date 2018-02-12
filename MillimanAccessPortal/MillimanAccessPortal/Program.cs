@@ -16,8 +16,6 @@ namespace MillimanAccessPortal
 
         public static void Main(string[] args)
         {
-            ContentReductionHierarchy.Test();
-
             var host = BuildWebHost(args);
 
             using (var scope = host.Services.CreateScope())
