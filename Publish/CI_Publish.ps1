@@ -101,12 +101,7 @@ $env:PATH = $env:PATH+";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin\"
 
 #region Run unit tests and exit if any fail
 
-$command = "activate prod2016_11"
-Invoke-Expression $command
-if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: Failed to initialize environment"
-    exit $LASTEXITCODE
-}
+
 
 $rootPath = (get-location).Path
 
@@ -417,7 +412,12 @@ while ($attempts -lt $NumberRetries -and $credentialFound -eq $false)
 
 if ($CredentialFound)
 {
-    
+    start-process "activate" -argumentlist "prod2016_11" -Wait
+    if ($LASTEXITCODE -ne 0) {
+        log_statement "ERROR: Failed to initialize environment"
+        exit $LASTEXITCODE
+    }
+
     # "Unset" the git credential helper, so that its cache will be cleared
     $command = "$gitexepath config --global --unset credential.helper wincred"
     Invoke-Expression "$command"
