@@ -401,8 +401,9 @@ $CredentialFound = $False
 
 while ($attempts -lt $NumberRetries -and $credentialFound -eq $false)
 {
-    $return = .$credManagerPath -GetCred -Target "git:$RemoteUrl"
-    if ($return)
+    .$credManagerPath -GetCred -Target "git:$RemoteUrl" *> $env:temp\output.txt
+    $output = get-content $env:temp\output.txt
+    if ($output -match "Found credentials as:")
     {
         $credentialFound = $true
         log_statement "Credential was found; ready to push to Azure to finalize deployment"
