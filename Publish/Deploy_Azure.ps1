@@ -126,11 +126,6 @@ if ((test-path "$env:temp\webcomp*") -eq $false)
     $command = "`"$msbuild15path`" /verbosity:minimal"
     Invoke-Expression "&$command"
 
-    if ($LASTEXITCODE -ne 0)
-    {
-        fail_statement "False build to generate WebCompiler folder failed."
-    }
-
 }
 
 log_statement "Looking for Web Compiler"
