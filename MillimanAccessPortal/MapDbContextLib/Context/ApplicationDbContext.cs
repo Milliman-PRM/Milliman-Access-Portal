@@ -14,8 +14,8 @@ namespace MapDbContextLib.Context
         public DbSet<UserRoleInClient> UserRoleInClient { get; set; }
         public DbSet<UserRoleInProfitCenter> UserRoleInProfitCenter { get; set; }
         public DbSet<UserRoleInRootContentItem> UserRoleInRootContentItem { get; set; }
-        public DbSet<UserInContentItemUserGroup> UserInContentItemUserGroup { get; set; }
-        public DbSet<ContentItemUserGroup> ContentItemUserGroup { get; set; }
+        public DbSet<UserInSelectionGroup> UserInSelectionGroup { get; set; }
+        public DbSet<SelectionGroup> SelectionGroup { get; set; }
         public DbSet<RootContentItem> RootContentItem { get; set; }
         public DbSet<HierarchyField> HierarchyField { get; set; }
         public DbSet<HierarchyFieldValue> HierarchyFieldValue { get; set; }

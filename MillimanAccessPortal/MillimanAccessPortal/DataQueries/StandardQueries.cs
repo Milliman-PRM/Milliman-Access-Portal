@@ -113,7 +113,7 @@ namespace MillimanAccessPortal.DataQueries
         //    List<ApplicationUser> UserMembersOfThisClient = (await UserManager.GetUsersForClaimAsync(ThisClientMembershipClaim)).ToList();
 
         //    ClientAndChildrenModel ResultObject = new ClientAndChildrenModel { ClientEntity = ClientArg };  // Initialize.
-        //    ResultObject.AssociatedContentCount = DataContext.RootContentItem.Where(r => r.ClientIdList.Contains(ClientArg.Id)).Count();
+        //    ResultObject.AssociatedContentCount = DataContext.RootContentItem.Where(r => r.ClientId == ClientArg.Id).Count();
         //    ResultObject.AssociatedUserCount = UserMembersOfThisClient.Count;
 
         //    ResultObject.CanManage = DataContext.UserRoleInClient
