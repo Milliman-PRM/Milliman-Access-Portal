@@ -1,29 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xs:schema xmlns:ser="http://schemas.microsoft.com/2003/10/Serialization/" xmlns:tns="http://schemas.datacontract.org/2004/07/System" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/System" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <xs:import schemaLocation="http://qvtest:4799/QMS/Service?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
-  <xs:complexType name="Exception">
-    <xs:sequence>
-      <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##local" processContents="skip" />
-    </xs:sequence>
-    <xs:attribute ref="ser:FactoryType" />
-  </xs:complexType>
-  <xs:element name="Exception" nillable="true" type="tns:Exception" />
-  <xs:complexType name="ArrayOfDayOfWeek">
-    <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="DayOfWeek" type="tns:DayOfWeek" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="ArrayOfDayOfWeek" nillable="true" type="tns:ArrayOfDayOfWeek" />
-  <xs:simpleType name="DayOfWeek">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Sunday" />
-      <xs:enumeration value="Monday" />
-      <xs:enumeration value="Tuesday" />
-      <xs:enumeration value="Wednesday" />
-      <xs:enumeration value="Thursday" />
-      <xs:enumeration value="Friday" />
-      <xs:enumeration value="Saturday" />
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:element name="DayOfWeek" nillable="true" type="tns:DayOfWeek" />
+<xs:schema xmlns:tns="http://ws.qliktech.com/ANY/12/2/" elementFormDefault="qualified" targetNamespace="http://ws.qliktech.com/ANY/12/2/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import schemaLocation="http://indy-qvtest01:4720/QDS/Service?xsd=xsd7" namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects" />
+  <xs:import schemaLocation="http://indy-qvtest01:4720/QDS/Service?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/PIX" />
+  <xs:element name="Ping">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="PingResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q1="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects" minOccurs="0" name="PingResult" type="q1:eStatusFlag" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="GetKey">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="GetKeyResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="GetKeyResult" nillable="true" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="GetTimeLimitedRequestKey">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="GetTimeLimitedRequestKeyResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="GetTimeLimitedRequestKeyResult" nillable="true" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="GetSystemInformation">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="GetSystemInformationResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q2="http://schemas.datacontract.org/2004/07/PIX" minOccurs="0" name="GetSystemInformationResult" nillable="true" type="q2:ComponentInfo" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="QMSPing">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="QMSPingResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q3="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects" minOccurs="0" name="QMSPingResult" type="q3:eStatusFlag" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
 </xs:schema>

@@ -1,52 +1,171 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xs:schema xmlns:tns="http://ws.qliktech.com/ANY/11/" elementFormDefault="qualified" targetNamespace="http://ws.qliktech.com/ANY/11/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <xs:import schemaLocation="http://qvtest:4799/QMS/Service?xsd=xsd10" namespace="http://schemas.datacontract.org/2004/07/PIX" />
-  <xs:element name="Ping">
-    <xs:complexType>
-      <xs:sequence />
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="PingResponse">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element xmlns:q1="http://schemas.datacontract.org/2004/07/PIX" minOccurs="0" name="PingResult" type="q1:ServiceStatus.eStatusFlag" />
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="GetKey">
-    <xs:complexType>
-      <xs:sequence />
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="GetKeyResponse">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element minOccurs="0" name="GetKeyResult" nillable="true" type="xs:string" />
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="GetTimeLimitedRequestKey">
-    <xs:complexType>
-      <xs:sequence />
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="GetTimeLimitedRequestKeyResponse">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element minOccurs="0" name="GetTimeLimitedRequestKeyResult" nillable="true" type="xs:string" />
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="GetSystemInformation">
-    <xs:complexType>
-      <xs:sequence />
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="GetSystemInformationResponse">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element xmlns:q2="http://schemas.datacontract.org/2004/07/PIX" minOccurs="0" name="GetSystemInformationResult" nillable="true" type="q2:ComponentInfo" />
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
+<xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/PIX" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/PIX" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import schemaLocation="http://indy-qvtest01:4720/QDS/Service?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+  <xs:complexType name="ArrayOfFileSystemItem">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="FileSystemItem" nillable="true" type="tns:FileSystemItem" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfFileSystemItem" nillable="true" type="tns:ArrayOfFileSystemItem" />
+  <xs:complexType name="FileSystemItem">
+    <xs:sequence>
+      <xs:element ref="xs:schema" />
+      <xs:any />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="FileSystemItem" nillable="true" type="tns:FileSystemItem" />
+  <xs:complexType name="ArrayOfReport">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Report" nillable="true" type="tns:Report" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfReport" nillable="true" type="tns:ArrayOfReport" />
+  <xs:complexType name="Report">
+    <xs:sequence>
+      <xs:element ref="xs:schema" />
+      <xs:any />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Report" nillable="true" type="tns:Report" />
+  <xs:complexType name="EDXStatus">
+    <xs:sequence>
+      <xs:element ref="xs:schema" />
+      <xs:any />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="EDXStatus" nillable="true" type="tns:EDXStatus" />
+  <xs:complexType name="ArrayOfTaskStatus">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="TaskStatus" nillable="true" type="tns:TaskStatus" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfTaskStatus" nillable="true" type="tns:ArrayOfTaskStatus" />
+  <xs:complexType name="TaskStatus">
+    <xs:sequence>
+      <xs:element ref="xs:schema" />
+      <xs:any />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="TaskStatus" nillable="true" type="tns:TaskStatus" />
+  <xs:complexType name="ArrayOfTaskExecutionHistoryItem">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="TaskExecutionHistoryItem" nillable="true" type="tns:TaskExecutionHistoryItem" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfTaskExecutionHistoryItem" nillable="true" type="tns:ArrayOfTaskExecutionHistoryItem" />
+  <xs:complexType name="TaskExecutionHistoryItem">
+    <xs:sequence>
+      <xs:element ref="xs:schema" />
+      <xs:any />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="TaskExecutionHistoryItem" nillable="true" type="tns:TaskExecutionHistoryItem" />
+  <xs:complexType name="QDSInfo">
+    <xs:sequence>
+      <xs:element ref="xs:schema" />
+      <xs:any />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="QDSInfo" nillable="true" type="tns:QDSInfo" />
+  <xs:complexType name="ArrayOfTaskSummaryItem">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="TaskSummaryItem" nillable="true" type="tns:TaskSummaryItem" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfTaskSummaryItem" nillable="true" type="tns:ArrayOfTaskSummaryItem" />
+  <xs:complexType name="TaskSummaryItem">
+    <xs:sequence>
+      <xs:element ref="xs:schema" />
+      <xs:any />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="TaskSummaryItem" nillable="true" type="tns:TaskSummaryItem" />
+  <xs:simpleType name="eAuthenticationMethod">
+    <xs:list>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Anonymous">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">0</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="UserNameAndPassword" />
+          <xs:enumeration value="UseQDSAccount" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:list>
+  </xs:simpleType>
+  <xs:element name="eAuthenticationMethod" nillable="true" type="tns:eAuthenticationMethod" />
+  <xs:simpleType name="eMailFormat">
+    <xs:list>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Plain" />
+          <xs:enumeration value="Html" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:list>
+  </xs:simpleType>
+  <xs:element name="eMailFormat" nillable="true" type="tns:eMailFormat" />
+  <xs:complexType name="ArrayOfTaskLogHistoryEntry">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="TaskLogHistoryEntry" nillable="true" type="tns:TaskLogHistoryEntry" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfTaskLogHistoryEntry" nillable="true" type="tns:ArrayOfTaskLogHistoryEntry" />
+  <xs:complexType name="TaskLogHistoryEntry">
+    <xs:sequence>
+      <xs:element ref="xs:schema" />
+      <xs:any />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="TaskLogHistoryEntry" nillable="true" type="tns:TaskLogHistoryEntry" />
+  <xs:complexType name="ArrayOfFSFolder">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="FSFolder" nillable="true" type="tns:FSFolder" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfFSFolder" nillable="true" type="tns:ArrayOfFSFolder" />
+  <xs:complexType name="FSFolder">
+    <xs:sequence>
+      <xs:element ref="xs:schema" />
+      <xs:any />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="FSFolder" nillable="true" type="tns:FSFolder" />
+  <xs:complexType name="ArrayOfFSComputer">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="FSComputer" nillable="true" type="tns:FSComputer" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfFSComputer" nillable="true" type="tns:ArrayOfFSComputer" />
+  <xs:complexType name="FSComputer">
+    <xs:sequence>
+      <xs:element ref="xs:schema" />
+      <xs:any />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="FSComputer" nillable="true" type="tns:FSComputer" />
+  <xs:complexType name="ArrayOfFsFile">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="FsFile" nillable="true" type="tns:FsFile" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfFsFile" nillable="true" type="tns:ArrayOfFsFile" />
+  <xs:complexType name="FsFile">
+    <xs:sequence>
+      <xs:element ref="xs:schema" />
+      <xs:any />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="FsFile" nillable="true" type="tns:FsFile" />
+  <xs:complexType name="ComponentInfo">
+    <xs:sequence>
+      <xs:element ref="xs:schema" />
+      <xs:any />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ComponentInfo" nillable="true" type="tns:ComponentInfo" />
 </xs:schema>

@@ -1,35 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Document" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Document" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <xs:import schemaLocation="http://qvtest:4799/QMS/Service?xsd=xsd6" namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums" />
-  <xs:complexType name="ArrayOfFieldContent">
+<xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/PIX.Document" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/PIX.Document" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:complexType name="QDSSession">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="FieldContent" nillable="true" type="tns:FieldContent" />
+      <xs:element ref="xs:schema" />
+      <xs:any />
     </xs:sequence>
   </xs:complexType>
-  <xs:element name="ArrayOfFieldContent" nillable="true" type="tns:ArrayOfFieldContent" />
-  <xs:complexType name="FieldContent">
-    <xs:sequence>
-      <xs:element minOccurs="0" name="Name" nillable="true" type="xs:string" />
-      <xs:element minOccurs="0" name="Values" nillable="true" type="tns:ArrayOfFieldValue" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="FieldContent" nillable="true" type="tns:FieldContent" />
-  <xs:complexType name="ArrayOfFieldValue">
-    <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="FieldValue" nillable="true" type="tns:FieldValue" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="ArrayOfFieldValue" nillable="true" type="tns:ArrayOfFieldValue" />
-  <xs:complexType name="FieldValue">
-    <xs:sequence>
-      <xs:element minOccurs="0" name="IsNumeric" type="xs:boolean" />
-      <xs:element minOccurs="0" name="Number" type="xs:double" />
-      <xs:element minOccurs="0" name="SortOrder" type="xs:int" />
-      <xs:element xmlns:q1="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums" minOccurs="0" name="State" type="q1:FieldValueState" />
-      <xs:element minOccurs="0" name="Text" nillable="true" type="xs:string" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="FieldValue" nillable="true" type="tns:FieldValue" />
+  <xs:element name="QDSSession" nillable="true" type="tns:QDSSession" />
   <xs:complexType name="ArrayOfField">
     <xs:sequence>
       <xs:element minOccurs="0" maxOccurs="unbounded" name="Field" nillable="true" type="tns:Field" />
@@ -38,21 +15,49 @@
   <xs:element name="ArrayOfField" nillable="true" type="tns:ArrayOfField" />
   <xs:complexType name="Field">
     <xs:sequence>
-      <xs:element minOccurs="0" name="Name" nillable="true" type="xs:string" />
+      <xs:element ref="xs:schema" />
+      <xs:any />
     </xs:sequence>
   </xs:complexType>
   <xs:element name="Field" nillable="true" type="tns:Field" />
-  <xs:complexType name="ArrayOfReport">
+  <xs:simpleType name="eFieldContentType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="All" />
+      <xs:enumeration value="CurrentSelections" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="eFieldContentType" nillable="true" type="tns:eFieldContentType" />
+  <xs:complexType name="ArrayOfFieldContent">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="Report" nillable="true" type="tns:Report" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="FieldContent" nillable="true" type="tns:FieldContent" />
     </xs:sequence>
   </xs:complexType>
-  <xs:element name="ArrayOfReport" nillable="true" type="tns:ArrayOfReport" />
-  <xs:complexType name="Report">
+  <xs:element name="ArrayOfFieldContent" nillable="true" type="tns:ArrayOfFieldContent" />
+  <xs:complexType name="FieldContent">
     <xs:sequence>
-      <xs:element minOccurs="0" name="ID" nillable="true" type="xs:string" />
-      <xs:element minOccurs="0" name="Name" nillable="true" type="xs:string" />
+      <xs:element ref="xs:schema" />
+      <xs:any />
     </xs:sequence>
   </xs:complexType>
-  <xs:element name="Report" nillable="true" type="tns:Report" />
+  <xs:element name="FieldContent" nillable="true" type="tns:FieldContent" />
+  <xs:simpleType name="eClearOptions">
+    <xs:list>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="UnlockAll" />
+          <xs:enumeration value="ClearSelectionsWithUnlockBefore" />
+          <xs:enumeration value="ClearSelections" />
+          <xs:enumeration value="ClearAllOneAndAlwaysOne" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:list>
+  </xs:simpleType>
+  <xs:element name="eClearOptions" nillable="true" type="tns:eClearOptions" />
+  <xs:complexType name="DocumentInfo">
+    <xs:sequence>
+      <xs:element ref="xs:schema" />
+      <xs:any />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="DocumentInfo" nillable="true" type="tns:DocumentInfo" />
 </xs:schema>

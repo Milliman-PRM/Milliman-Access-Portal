@@ -7,9 +7,9 @@
     <ProjectGuid>{45A38B9B-341F-4845-852B-8A3C0C20A86E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Milliman.Reduction.ReductionEngine</RootNamespace>
+    <RootNamespace>Milliman.ReductionEngine</RootNamespace>
     <AssemblyName>Milliman.Reduction.ReductionEngine</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>
@@ -72,115 +72,163 @@
     </None>
     <None Include="Properties\DataSources\System.Data.DataSet.datasource" />
     <None Include="Properties\DataSources\System.Uri.datasource" />
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.CALConfiguration.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.AbortDocumentResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.Category.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.AddSelectionsResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.DirectoryServiceObject.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.ClearSelectionsResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.DocumentFolder.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.CloseAllSessionsResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.DocumentMetaData.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.CloseSessionResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.DocumentNode.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.CreateSessionResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.DocumentTask.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.eStatusFlag.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.DSProvider.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetApplicationDataFolderResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.DSResource.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetAvgExecutionTimeForSuccessfullExecutionsResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.EDXStatus.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetDirectoryListingResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.ExtensionUploadHandle.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetDocumentBookmarkNamesResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.Field.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetDocumentInfoResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.FieldContent.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetEDXStatusResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.GetKeyResponse.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetFieldContentListResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.GetSystemInformationResponse.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetFieldListResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.GetTimeLimitedRequestKeyResponse.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetFilesResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.License.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetFileSystemItemsResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.QDSDocumentSession.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetInvalidSourceDocumentsResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.QDSNeedRestartResponse.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetKeyResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.QDSSettings.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetKeyResponse1.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.QVSMessage.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetKeyResponse2.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.QVSNeedRestartResponse.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetLatestTaskLogResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.QVSSettings.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetMyComputerResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.QVWSAuthentication.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetMyNetworkPlacesResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.Report.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetQDSInfoResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.SectionAccessTable.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetReportsResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.ServerObject.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetSharesResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.ServerObjectMetaData.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetSourceDocumentsResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.ServiceInfo.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetStandardEditionScheduleListXMLResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.ServiceStatus.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetSystemInformationResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.ServiceStatuseStatusFlag.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetSystemInformationResponse1.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.TaskInfo.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetSystemInformationResponse2.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.TaskStatus.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetTaskExecutionHistoryResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.TaskStatusNode.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetTaskLogHistoryResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.TriggerEDXTaskResult.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetTaskLogResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\Milliman.Reduction.ReductionEngine.QMSAPI.UserCALs.datasource">
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetTaskStatusesByIdResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\QMSAPI\QMSBackendService.wsdl" />
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetTaskStatusesModifiedSinceResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetTaskStatusesResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetTaskStatusForDocumentResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetTaskStatusResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetTimeLimitedRequestKeyResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetTimeLimitedRequestKeyResponse1.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.GetTimeLimitedRequestKeyResponse2.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.HelloWorldResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.ReloadDocumentResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.RemoveQdsByMachineNameResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.SaveConfigurationResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.SaveTaskResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.SaveTasksResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.SendTestMailResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.SetNewWorkorderResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\QMSAPI\Milliman.ReductionEngine.QMSAPI.StartEDXResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\QMSAPI\QDSServiceImpl.wsdl" />
     <None Include="Service References\QMSAPI\Service.wsdl" />
     <None Include="Service References\QMSAPI\Service.xsd">
       <SubType>Designer</SubType>
@@ -192,9 +240,11 @@
     <None Include="Service References\QMSAPI\Service10.xsd">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Service References\QMSAPI\Service2.wsdl" />
     <None Include="Service References\QMSAPI\Service2.xsd">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Service References\QMSAPI\Service3.wsdl" />
     <None Include="Service References\QMSAPI\Service3.xsd">
       <SubType>Designer</SubType>
     </None>
@@ -218,6 +268,16 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Milliman.Common\Milliman.Common.csproj">
+      <Project>{e8c5d9c8-78d0-4bdf-91b5-e5df4d9da3f3}</Project>
+      <Name>Milliman.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Milliman.Security\Milliman.Security.csproj">
+      <Project>{bfc898b4-3139-4f49-b16c-aacd83bc71a4}</Project>
+      <Name>Milliman.Security</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
     <WCFMetadataStorage Include="Service References\QMSAPI\" />
   </ItemGroup>
   <ItemGroup>
@@ -231,16 +291,6 @@
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Milliman.Common\Milliman.Common.csproj">
-      <Project>{e8c5d9c8-78d0-4bdf-91b5-e5df4d9da3f3}</Project>
-      <Name>Milliman.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Milliman.Security\Milliman.Security.csproj">
-      <Project>{bfc898b4-3139-4f49-b16c-aacd83bc71a4}</Project>
-      <Name>Milliman.Security</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
