@@ -12,26 +12,26 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MillimanAccessPortal.Authorization
 {
-    public class UserInContentItemUserGroupRequirement : MapAuthorizationRequirementBase
+    public class UserInSelectionGroupRequirement : MapAuthorizationRequirementBase
     {
-        private long ContentItemUserGroupId { get; set; }
+        private long SelectionGroupId { get; set; }
 
         /// <summary>
         /// Constructor; the only way to instantiate this type
         /// </summary>
         /// <param name="RoleEnumArg"></param>
         /// <param name="ClientIdArg">null or &lt;= 0 to evaluate for ANY Client</param>
-        public UserInContentItemUserGroupRequirement(long ContentItemUserGroupIdArg)
+        public UserInSelectionGroupRequirement(long SelectionGroupIdArg)
         {
-            ContentItemUserGroupId = ContentItemUserGroupIdArg;
+            SelectionGroupId = SelectionGroupIdArg;
         }
 
         internal override MapAuthorizationRequirementResult EvaluateRequirement(ApplicationUser User, ApplicationDbContext DataContext)
         {
-            IQueryable<UserInContentItemUserGroup> Query =
-                DataContext.UserInContentItemUserGroup
-                           .Where(ug => ug.UserId == User.Id
-                                     && ug.ContentItemUserGroupId == ContentItemUserGroupId);
+            IQueryable<UserInSelectionGroup> Query =
+                DataContext.UserInSelectionGroup
+                           .Where(usg => usg.UserId == User.Id
+                                     && usg.SelectionGroupId == SelectionGroupId);
 
             if (Query.Any())  // Query executes here
             {

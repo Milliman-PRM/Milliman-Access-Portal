@@ -12,9 +12,10 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180212194520_NewFieldsInHierarchyField")]
+    partial class NewFieldsInHierarchyField
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -106,8 +107,9 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("FieldDisplayName")
                         .IsRequired();
 
-                    b.Property<string>("FieldName")
-                        .IsRequired();
+                    b.Property<string>("FieldName");
+
+                    b.Property<string[]>("FieldNameList");
 
                     b.Property<long>("RootContentItemId");
 
