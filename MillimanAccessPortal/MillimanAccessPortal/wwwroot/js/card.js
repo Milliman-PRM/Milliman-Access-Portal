@@ -1,11 +1,12 @@
+// Class declarations
 var Card;
 var ActionCard;
 var ClientCard;
 var UserCard;
 
 (function () {
-  var verify;
-  var add;
+  // Helper function declarations
+  var toAttr;
   var findComponent;
 
   var cardLayout = {
@@ -29,7 +30,8 @@ var UserCard;
         detailText: {},
         toggle: {},
         listItem: {}
-      }
+      },
+      action: {}
     }
   };
 
@@ -38,28 +40,149 @@ var UserCard;
     {
       action: {
         count: '?',
-        selector: '',
+        selector: '.card-body-primary-text',
+        html: [
+          '<h2 class="card-body-primary-text">',
+          '  <svg class="">',
+          '    <use href=""></use>',
+          '  </svg>',
+          '  <span></span>',
+          '</h2>'
+        ].join(''),
         render: function (properties) {
-          var id = properties.text.toLowerCase().split(' ').join('-') + '-card';
-          /* eslint-disable indent */
-          this
-            .container()
-              .attr({ id: id })
-              .class('card-100 action-card')
-            .actionIcon(properties.icon)
-              .class('action-card-icon')
-            .actionText(properties.text);
-          /* eslint-enable indent */
+          this.verify();
+          this.addClass('action-card-icon', 'svg');
+          this.attr({ href: properties.icon }, '[href]');
+          this.html(properties.text, 'span');
         }
       },
-      primaryText: { count: '1' },
-      secondaryText: { count: '*' },
-      statistic: { count: '*' },
-      button: { count: '*' },
-      icon: { count: '*' },
-      detailText: { count: '?' },
-      toggle: { count: '*' },
-      listItem: { count: '*' }
+      primaryText: {
+        count: '1',
+        selector: '.card-body-primary-text',
+        html: [
+          '<h2 class="card-body-primary-text"></h2>',
+          '<stub />'
+        ].join(''),
+        render: function (properties) {
+          this.verify();
+          this.html(properties.text);
+        }
+      },
+      secondaryText: {
+        count: '*',
+        selector: '.card-body-secondary-text',
+        html: [
+          '<p class="card-body-secondary-text"></p>',
+          '<stub />'
+        ].join(''),
+        render: function (properties) {
+          this.add();
+          this.html(properties.text);
+        }
+      },
+      statistic: {
+        count: '*',
+        selector: '.card-stat-container',
+        html: [
+          '<div class="card-stat-container">',
+          '  <svg class="card-stat-icon">',
+          '    <use href=""></use>',
+          '  </svg>',
+          '  <h4 class="card-stat-value"></h4>',
+          '</div>',
+          '<stub />'
+        ].join(''),
+        render: function (properties) {
+          this.add();
+          this.attr({ href: properties.icon }, '[href]');
+          this.html(properties.value, '.card-stat-value');
+          this.tooltip(properties.tooltip);
+        }
+      },
+      button: {
+        count: '*',
+        selector: '.card-button-background',
+        html: [
+          '<div class="card-button-background tooltip" title="">',
+          '  <svg class="card-button-icon">',
+          '    <use href=""></use>',
+          '  </svg>',
+          '</div>',
+          '<stub />'
+        ].join(''),
+        render: function (properties) {
+          this.add();
+          this.attr({ href: properties.icon }, '[href]');
+          this.addClass('card-button-' + properties.color);
+          this.tooltip(properties.tooltip);
+          this.click(properties.callback);
+        }
+      },
+      icon: {
+        count: '*',
+        selector: 'svg',
+        html: [
+          '<svg class="">',
+          '  <use href=""></use>',
+          '</svg>',
+          '<stub />'
+        ].join(''),
+        render: function (properties) {
+          this.add();
+          this.attr({ href: properties.icon }, '[href]');
+          this.addClass(properties.class);
+        }
+      },
+      detailText: {
+        count: '?',
+        selector: '.card-expansion-category-label',
+        html: [
+          '<h4 class="card-expansion-category-label"></h4>',
+          '<stub />'
+        ].join(''),
+        render: function (properties) {
+          this.verify();
+          this.html(properties.text);
+        }
+      },
+      toggle: {
+        count: '*',
+        selector: '.switch-container',
+        html: [
+          '<div class="switch-container">',
+          '  <div class="toggle-switch">',
+          '    <input type="checkbox" class="toggle-switch-checkbox" name="" id="">',
+          '    <label class="toggle-switch-label" for="">',
+          '      <span class="toggle-switch-inner"></span>',
+          '      <span class="toggle-switch-switch"></span>',
+          '    </label>',
+          '  </div>',
+          '  <label class="switch-label"></label>',
+          '</div>',
+          '<stub />'
+        ].join(''),
+        render: function (properties) {
+          this.add();
+          this.attr(
+            Object.assign(
+              {
+                name: properties.id,
+                id: properties.id
+              },
+              toAttr(properties.data)
+            ),
+            '.toggle-switch-checkbox'
+          );
+          this.prop({ checked: properties.checked }, '.toggle-switch-checkbox');
+          this.click(properties.callback, '.toggle-switch-checkbox');
+          this.attr({ for: properties.id }, '.toggle-switch-label');
+          this.html(properties.text, '.switch-label');
+          // if (!this.vars.canManage) this.attr({ disabled: '' }, '.toggle-switch-checkbox');
+        }
+      },
+      listItem: {
+        count: '*'
+      }
     },
     {
       card: {
@@ -73,201 +196,98 @@ var UserCard;
           '</li>'
         ].join(''),
         render: function (properties) {
-          this.container();
-          this.attr({ id: properties.id });
-          this.class('card-100 action-card');
+          this.verify();
+          // this.attr({ id: properties.id });
+          // this.addClass('card-100 action-card');
         }
       },
-      main: {},
-      icons: {},
-      text: {},
-      statistics: {},
-      side: {},
-      detail: {}
+      main: {
+        count: '1',
+        selector: '.card-body-main-container',
+        html: [
+          '<div class="card-body-main-container">',
+          '  <stub />',
+          '</div>',
+          '<stub />'
+        ].join(''),
+        render: function () {
+          this.verify();
+        }
+      },
+      icons: {
+        count: '1',
+        selector: '.card-body-secondary-container',
+        html: [
+          '<div class="card-body-secondary-container">',
+          '  <stub />',
+          '</div>',
+          '<stub />'
+        ].join(''),
+        render: function () {
+          this.verify();
+        }
+      },
+      text: {
+        count: '1',
+        selector: '.card-body-primary-container',
+        html: [
+          '<div class="card-body-primary-container">',
+          '  <stub />',
+          '</div>',
+          '<stub />'
+        ].join(''),
+        render: function () {
+          this.verify();
+        }
+      },
+      statistics: {
+        count: '1',
+        selector: '.card-stats-container',
+        html: [
+          '<div class="card-stats-container">',
+          '  <stub />',
+          '</div>',
+          '<stub />'
+        ].join(''),
+        render: function () {
+          this.verify();
+        }
+      },
+      side: {
+        count: '1',
+        selector: '.card-button-side-container',
+        html: [
+          '<div class="card-button-side-container">',
+          '  <stub />',
+          '</div>',
+          '<stub />'
+        ].join(''),
+        render: function () {
+          this.verify();
+        }
+      },
+      detail: {
+        count: '1',
+        selector: '.card-expansion-container',
+        html: [
+          '<div class="card-expansion-container">',
+          '  <stub />',
+          '  <div class="card-button-bottom-container">',
+          '    <div class="card-button-background card-button-expansion">',
+          '      <svg class="card-button-icon">',
+          '        <use href="#action-icon-expand-card"></use>',
+          '      </svg>',
+          '    </div>',
+          '  </div>',
+          '</div>'
+        ].join(''),
+        render: function (properties) {
+          this.verify();
+          this.click(properties.click, '.card-button-background');
+        }
+      }
     }
   );
-
-  /* eslint-disable indent */
-  var templates = {
-    card: {
-      selector: '.card-container',
-      path: [],
-      html: [
-        '<li>',
-          '<div class="card-container">',
-            '<stub />',
-          '</div>',
-        '</li>'
-      ].join('')
-    },
-    main: {
-      selector: '.card-body-main-container',
-      path: ['main'],
-      html: [
-        '<div class="card-body-main-container">',
-          '<stub />',
-        '</div>',
-        '<stub />'
-      ].join('')
-    },
-    icons: {
-      selector: '.card-body-secondary-container',
-      path: ['main', 'icons'],
-      html: [
-        '<div class="card-body-secondary-container">',
-          '<stub />',
-        '</div>',
-        '<stub />'
-      ].join('')
-    },
-    icon: {
-      selector: 'svg',
-      path: ['main', 'icons', 'icon'],
-      html: [
-        '<svg class="">',
-          '<use href=""></use>',
-        '</svg>',
-        '<stub />'
-      ].join('')
-    },
-    text: {
-      selector: '.card-body-primary-container',
-      path: ['main', 'text'],
-      html: [
-        '<div class="card-body-primary-container">',
-          '<stub />',
-        '</div>',
-        '<stub />'
-      ].join('')
-    },
-    primaryText: {
-      selector: '.card-body-primary-text',
-      path: ['main', 'text', 'primaryText'],
-      html: [
-        '<h2 class="card-body-primary-text"></h2>',
-        '<stub />'
-      ].join('')
-    },
-    secondaryText: {
-      selector: '.card-body-secondary-text',
-      path: ['main', 'text', 'secondaryText'],
-      html: [
-        '<p class="card-body-secondary-text"></p>',
-        '<stub />'
-      ].join('')
-    },
-    action: {
-      selector: '.card-body-primary-text',
-      path: ['main', 'action'],
-      html: [
-        '<h2 class="card-body-primary-text">',
-        '<stub />',
-        '</h2>'
-      ].join('')
-    },
-    actionText: {
-      selector: 'span',
-      path: ['main', 'action', 'actionText'],
-      html: [
-        '<span></span>',
-        '<stub/>'
-      ].join('')
-    },
-    stats: {
-      selector: '.card-stats-container',
-      path: ['main', 'stats'],
-      html: [
-        '<div class="card-stats-container">',
-          '<stub />',
-        '</div>',
-        '<stub />'
-      ].join('')
-    },
-    stat: {
-      selector: '.card-stat-container',
-      path: ['main', 'stats', 'stat'],
-      html: [
-        '<div class="card-stat-container tooltip" title="">',
-            '<svg class="card-stat-icon">',
-                '<use href=""></use>',
-            '</svg>',
-            '<h4 class="card-stat-value"></h4>',
-        '</div>',
-        '<stub />'
-      ].join('')
-    },
-    side: {
-      selector: '.card-button-side-container',
-      path: ['main', 'side'],
-      html: [
-        '<div class="card-button-side-container">',
-          '<stub />',
-        '</div>',
-        '<stub />'
-      ].join('')
-    },
-    button: {
-      selector: '.card-button-background',
-      path: ['main', 'side', 'button'],
-      html: [
-        '<div class="card-button-background tooltip" title="">',
-            '<svg class="card-button-icon">',
-                '<use href=""></use>',
-            '</svg>',
-        '</div>',
-        '<stub />'
-      ].join('')
-    },
-    expansion: {
-      selector: '.card-expansion-container',
-      path: ['expansion'],
-      html: [
-        '<div class="card-expansion-container">',
-          '<stub />',
-        '</div>'
-      ].join('')
-    },
-    expansionLabel: {
-      selector: '.card-expansion-category-label',
-      path: ['expansion', 'expansionLabel'],
-      html: [
-        '<h4 class="card-expansion-category-label">Client Roles</h4>',
-        '<stub />'
-      ].join('')
-    },
-    toggle: {
-      selector: '.switch-container',
-      path: ['expansion', 'toggle'],
-      html: [
-        '<div class="switch-container">',
-          '<div class="toggle-switch">',
-            '<input type="checkbox" class="toggle-switch-checkbox" data-role-enum="" name="" id="">',
-            '<label class="toggle-switch-label" for="">',
-              '<span class="toggle-switch-inner"></span>',
-              '<span class="toggle-switch-switch"></span>',
-            '</label>',
-          '</div>',
-          '<label class="switch-label"></label>',
-        '</div>',
-        '<stub />'
-      ].join('')
-    },
-    bottom: {
-      selector: '.card-button-bottom-container',
-      path: ['expansion', 'bottom'],
-      html: [
-        '<stub />',
-        '<div class="card-button-bottom-container">',
-          '<div class="card-button-background card-button-expansion">',
-            '<svg class="card-button-icon">',
-              '<use href="#action-icon-expand-card"></use>',
-            '</svg>',
-          '</div>',
-        '</div>'
-      ].join('')
-    }
-  };
-  /* eslint-enable indent */
 
   (function () {
     var setParents = function (layout, parent) {
@@ -283,9 +303,23 @@ var UserCard;
     setParents(cardLayout, '');
   }());
 
+
+  // Helper function definitions
+  toAttr = function (data) {
+    var attrs = {};
+    Object.keys(data).forEach(function (key) {
+      if (Object.hasOwnProperty.call(data, key)) {
+        attrs['data-' + key] = data[key];
+      }
+    });
+    return attrs;
+  };
+
+
+  // Class definitions
   Card = function (representation) {
     this.components = [];
-    this.$representation = $(representation || '');
+    this.$representation = $(representation || components.card.html);
   };
 
   Card.prototype.exists = function (name) {
@@ -302,7 +336,19 @@ var UserCard;
       // invalid component
       return;
     }
-    this.components.push({ name: properties });
+    if (!this.components[name]) {
+      this.components[name] = [];
+    }
+    this.components[name].push(properties);
+  };
+
+  Card.prototype.setData = function (data) {
+    this.lastComponent = 'card';
+    this.attr(toAttr(data));
+  };
+
+  Card.prototype.setCallback = function (callback) {
+    this.callback = callback;
   };
 
   Card.prototype.renderComponent = function (name, properties) {
@@ -313,15 +359,23 @@ var UserCard;
     }
     parent = components[name].parent;
     if (Object.hasOwnProperty.call(properties, parent) || !this.exists(parent)) {
-      this.renderComponent(parent, properties && properties.parent);
+      this.renderComponent(parent, (properties && properties.parent) || properties);
     }
-    components[name].render(properties);
+    this.lastComponent = name;
+    components[name].render.call(this, properties);
   };
 
   Card.prototype.build = function () {
-    this.components.foreach(function (name, properties) {
-      this.renderComponent(name, properties);
+    var self = this;
+    this.$representation = $('<stub />'); // own function
+    Object.keys(this.components).forEach(function (key) {
+      if (Object.hasOwnProperty.call(self.components, key)) {
+        self.components[key].forEach(function (properties) {
+          self.renderComponent(key, properties);
+        });
+      }
     });
+    this.$representation.find('.card-container').click(this.callback);
     return this.$representation;
   };
 
@@ -338,6 +392,8 @@ var UserCard;
     });
     this.setCallback(callback);
   };
+  ActionCard.prototype = Object.create(Card.prototype);
+  ActionCard.prototype.constructor = ActionCard;
 
   ClientCard = function (
     clientName, clientCode, userCount, reportCount,
@@ -352,133 +408,96 @@ var UserCard;
     this.addComponent('button', { icon: '', color: 'red', callback: deleteCallback });
     this.addComponent('button', { icon: '', color: 'blue', callback: editCallback });
     this.addComponent('button', { icon: '', color: 'green', callback: newChildCallback });
+
+    this.setData({
+      'search-string': [clientName, clientCode].join('|').toUpperCase(),
+      'client-id': 1
+    });
+
     this.setCallback(callback);
   };
+  ClientCard.prototype = Object.create(Card.prototype);
+  ClientCard.prototype.constructor = ClientCard;
 
-  ['html', 'attr', 'prop', 'addClass', 'click'].foreach(function (func) {
+  UserCard = function (firstName, lastName, userName, email, userId, clientId) {
+    Card.call(this);
+
+    /*
+    var userId = this.$representation
+      .find(components.card.selector)
+      .attr('data-user-id');
+    var id = 'user-role-' + userId + '-' + roleEnum;
+    this.lastComponent = 'toggle';
+     */
+  };
+  UserCard.prototype = Object.create(Card.prototype);
+  UserCard.prototype.constructor = UserCard;
+
+
+  ['html', 'attr', 'prop', 'addClass', 'click'].forEach(function (func) {
     Card.prototype[func] = function (value, selector) {
-      findComponent(this.lastTemplate, selector)[func](value);
+      this.findComponent(this.lastComponent, selector)[func](value);
     };
   });
 
   Card.prototype.tooltip = function (value, selector) {
-    var $component = findComponent(this.vars.lastTemplate, selector);
+    var $component = findComponent(this.lastComponent, selector);
     $component.addClass('tooltip');
     $component.attr('title', value);
     return this;
   };
 
-  Card.prototype.newCard = function () {
-    this.vars.$card = $(this.templates.container.html);
-    this.vars.lastTemplate = '';
-    return this;
-  };
-
-  Card.prototype.add = function (name) {
-    if (!Object.hasOwnProperty.call(templates, name)) {
-      // invalid template
+  Card.prototype.componentPath = function (name) {
+    var parent = components[name].parent;
+    if (Object.hasOwnProperty.call(components, parent)) {
+      return this.componentPath(parent).concat([name]);
     }
-    this.vars.lastTemplate = name;
-    add(templates[name].path);
+    return [name];
+  };
+
+  Card.prototype.verify = function (partialPath) {
+    var self = this;
+    var path = partialPath || this.componentPath(this.lastComponent);
+    var prevSelector = '';
+    $.each(path, function () {
+      var nextSelector = prevSelector + components[this].selector;
+      var element = self.$representation.find(nextSelector);
+      if (!element.length) {
+        if (prevSelector) {
+          self.$representation
+            .find(prevSelector + 'stub')
+            .replaceWith(components[this].html);
+        } else {
+          self.$representation = $(components[this].html);
+        }
+      }
+      prevSelector = nextSelector + ' > ';
+    });
+    return prevSelector;
+  };
+
+  Card.prototype.add = function (partialPath) {
+    var path = partialPath || this.componentPath(this.lastComponent);
+    var newElement = path.pop();
+    var prevSelector = this.verify(path);
+    this.$representation
+      .find(prevSelector + ' > stub')
+      .replaceWith(components[newElement].html);
+    return prevSelector + ' ' + components[newElement].selector;
+  };
+
+  Card.prototype.findComponent = function (component, selector) {
+    var $component = components[component]
+      ? this.$representation
+        .find(components[component].selector)
+        .last()
+      : this.$representation;
+    var $subcomponent = $component.find(selector);
+    return $subcomponent.length ? $subcomponent : $component;
   };
 
 
-  Card.prototype.container = function (searchTerms, clientId, userId, canManage) {
-    var searchString;
-    this.vars.canManage = canManage;
-    this.vars.lastTemplate = 'container';
-    if (searchTerms) {
-      searchString = $.map(searchTerms, function (term) {
-        return (term || '').toUpperCase();
-      }).join('|');
-      this.attr({ 'data-search-string': searchString });
-    }
-    if (clientId) this.attr({ 'data-client-id': clientId });
-    if (userId) this.attr({ 'data-user-id': userId });
-    if (typeof canManage === 'boolean' && !this.vars.canManage) this.attr({ disabled: '' });
-    return this;
-  };
-
-  Card.prototype.main = function () {
-    this.vars.lastTemplate = 'main';
-    verify(['main']);
-    return this;
-  };
-
-  Card.prototype.primaryInfo = function (text) {
-    this.vars.lastTemplate = 'primary';
-    add(['main', 'text', 'primary']);
-    return html(text);
-  };
-
-  Card.prototype.secondaryInfo = function (text) {
-    this.vars.lastTemplate = 'secondary';
-    add(['main', 'text', 'secondary']);
-    return html(text);
-  };
-
-  Card.prototype.info = function (textList) {
-    this.vars.lastTemplate = '';
-    textList.reverse();
-    this.primaryInfo(textList.pop());
-    while (textList.length) {
-      this.secondaryInfo(textList.pop());
-    }
-    return this;
-  };
-
-  Card.prototype.action = function () {
-    this.vars.lastTemplate = 'action';
-    verify(['main', 'text', 'action']);
-    return this;
-  };
-
-  Card.prototype.actionText = function (text) {
-    this.vars.lastTemplate = 'actionText';
-    add(['main', 'text', 'action', 'actionText']);
-    return html(text);
-  };
-
-  Card.prototype.icon = function (iconName) {
-    this.vars.lastTemplate = 'icon';
-    add(['main', 'icons', 'icon']);
-    return this.attr({ href: iconName }, '[href]');
-  };
-
-  Card.prototype.actionIcon = function (iconName) {
-    this.vars.lastTemplate = 'icon';
-    add(['main', 'text', 'action', 'icon']);
-    return this.attr({ href: iconName }, '[href]');
-  };
-
-  Card.prototype.cardStat = function (iconName, value) {
-    this.vars.lastTemplate = 'stat';
-    add(['main', 'stats', 'stat']);
-    this.attr({ href: iconName }, '[href]');
-    return html(value, '.card-stat-value');
-  };
-
-  Card.prototype.sideButton = function (iconName) {
-    if (!this.vars.canManage) {
-      this.vars.lastTemplate = 'button';
-      return this;
-    }
-    this.vars.lastTemplate = 'button';
-    add(['main', 'side', 'button']);
-    return this.attr({ href: iconName }, '[href]');
-  };
-
-  Card.prototype.expansionLabel = function (label) {
-    this.vars.lastTemplate = 'expansionLabel';
-    verify(['expansion', 'expansionLabel']);
-    return html(label);
-  };
-
-  Card.prototype.expansionButton = function (iconName) {
-    this.vars.lastTemplate = 'bottom';
-    verify(['expansion', 'bottom']);
-    return this.attr({ href: iconName }, '[href]');
-  };
+  // outdated, soon to be moved
 
   Card.prototype.roleExpansion = function () {
     var onClick = function (event) {
@@ -495,7 +514,7 @@ var UserCard;
         });
       showRelevantUserActionIcons();
     };
-    this.vars.lastTemplate = '';
+    this.lastComponent = '';
     /* eslint-disable indent */
       return this
         .expansionLabel('User roles')
@@ -507,30 +526,12 @@ var UserCard;
       /* eslint-enable indent */
   };
 
-  Card.prototype.roleToggle = function (roleEnum, roleName, roleAssigned) {
-    var userId = this.vars.$card
-      .find(this.templates.container.selector)
-      .attr('data-user-id');
-    var id = 'user-role-' + userId + '-' + roleEnum;
-    this.vars.lastTemplate = 'toggle';
-    add(['expansion', 'toggle']);
-    if (!this.vars.canManage) this.attr({ disabled: '' }, '.toggle-switch-checkbox');
-    return html(roleName, '.switch-label')
-      .attr({
-        'data-role-enum': roleEnum,
-        name: id,
-        id: id
-      }, '.toggle-switch-checkbox')
-      .attr({ for: id }, '.toggle-switch-label')
-      .prop({ checked: roleAssigned }, '.toggle-switch-checkbox');
-  };
-
   Card.prototype.roleToggles = function (roles) {
     var self = this;
     var onClick = function (event) {
       userCardRoleToggleClickHandler(event);
     };
-    this.vars.lastTemplate = '';
+    this.lastComponent = '';
     $.each(roles, function (index, assignment) {
       self.roleToggle(
         assignment.RoleEnum,
@@ -539,25 +540,6 @@ var UserCard;
       ).click(onClick, '.toggle-switch-checkbox');
     });
     return this;
-  };
-
-  Card.prototype.build = function () {
-    this.vars.$card.find('stub').remove();
-    return this.vars.$card;
-  };
-
-  Card.prototype.buildNewClient = function () {
-    /* eslint-disable indent */
-      return this
-        .newCard()
-        .container()
-          .attr({ id: 'create-new-client-card' }, '.card-container')
-          .class('card-100 action-card', '.card-container')
-        .actionIcon('#action-icon-add')
-          .class('action-card-icon')
-        .actionText('New Client')
-        .build();
-      /* eslint-enable indent */
   };
 
   Card.prototype.buildNewChildClient = function (level) {
@@ -576,54 +558,5 @@ var UserCard;
           .class('indent-level-' + level, '.card-body-primary-text')
         .build();
       /* eslint-enable indent */
-  };
-
-  Card.prototype.buildAddUser = function () {
-    /* eslint-disable indent */
-      return this
-        .newCard()
-        .container()
-          .attr({ id: 'add-user-card' })
-          .class('card-100 action-card')
-        .actionIcon('#action-icon-add')
-          .class('action-card-icon')
-        .actionText('Add User')
-        .build();
-      /* eslint-enable indent */
-  };
-
-
-  verify = function (path) {
-    var prevSelector = Card.templates.container.selector;
-    $.each(path, function () {
-      var nextSelector = prevSelector + ' > ' + Card.templates[this].selector;
-      var element = Card.vars.$card.find(nextSelector);
-      if (!element.length) {
-        Card.vars.$card
-          .find(prevSelector + ' > stub')
-          .replaceWith(Card.templates[this].html);
-      }
-      prevSelector = nextSelector;
-    });
-    return prevSelector;
-  };
-
-  add = function (path) {
-    var newElement = path.pop();
-    var prevSelector = verify(path);
-    Card.vars.$card
-      .find(prevSelector + ' > stub')
-      .replaceWith(Card.templates[newElement].html);
-    return prevSelector + ' > ' + Card.templates[newElement].selector;
-  };
-
-  findComponent = function (component, selector) {
-    var $component = Card.templates[component]
-      ? Card.vars.$card
-        .find(Card.templates[component].selector)
-        .last()
-      : Card.vars.$card;
-    var $subcomponent = $component.find(selector);
-    return $subcomponent.length ? $subcomponent : $component;
   };
 }());
