@@ -52,10 +52,12 @@ var UserCard;
           '  <span></span>',
           '</h2>'
         ].join(''),
-        render: function (properties) {
-          this.verify();
-          this.attr({ href: properties.icon }, '[href]');
-          this.html(properties.text, 'span');
+        render: function (component) {
+          return function (properties) {
+            this.verify(component);
+            this.attr(component, { href: properties.icon }, '[href]');
+            this.html(component, properties.text, 'span');
+          };
         }
       },
       insert: {
@@ -69,10 +71,12 @@ var UserCard;
           '  </svg>',
           '</h2>'
         ].join(''),
-        render: function (properties) {
-          this.verify();
-          this.attr({ href: properties.icon }, '[href]');
-          this.html(properties.text, 'span');
+        render: function (component) {
+          return function (properties) {
+            this.verify(component);
+            this.attr(component, { href: properties.icon }, '[href]');
+            this.html(component, properties.text, 'span');
+          };
         }
       },
       primaryText: {
@@ -82,9 +86,11 @@ var UserCard;
           '<h2 class="card-body-primary-text"></h2>',
           '<stub />'
         ].join(''),
-        render: function (properties) {
-          this.verify();
-          this.html(properties.text);
+        render: function (component) {
+          return function (properties) {
+            this.verify(component);
+            this.html(component, properties.text);
+          };
         }
       },
       secondaryText: {
@@ -94,9 +100,11 @@ var UserCard;
           '<p class="card-body-secondary-text"></p>',
           '<stub />'
         ].join(''),
-        render: function (properties) {
-          this.add();
-          this.html(properties.text);
+        render: function (component) {
+          return function (properties) {
+            this.add(component);
+            this.html(component, properties.text);
+          };
         }
       },
       statistic: {
@@ -111,11 +119,13 @@ var UserCard;
           '</div>',
           '<stub />'
         ].join(''),
-        render: function (properties) {
-          this.add();
-          this.attr({ href: properties.icon }, '[href]');
-          this.html(properties.value, '.card-stat-value');
-          this.tooltip(properties.tooltip);
+        render: function (component) {
+          return function (properties) {
+            this.add(component);
+            this.attr(component, { href: properties.icon }, '[href]');
+            this.html(component, properties.value, '.card-stat-value');
+            this.tooltip(component, properties.tooltip);
+          };
         }
       },
       button: {
@@ -129,12 +139,14 @@ var UserCard;
           '</div>',
           '<stub />'
         ].join(''),
-        render: function (properties) {
-          this.add();
-          this.attr({ href: properties.icon }, '[href]');
-          this.addClass('card-button-' + properties.color);
-          this.tooltip(properties.tooltip);
-          this.click(properties.callback);
+        render: function (component) {
+          return function (properties) {
+            this.add(component);
+            this.attr(component, { href: properties.icon }, '[href]');
+            this.addClass(component, 'card-button-' + properties.color);
+            this.tooltip(component, properties.tooltip);
+            this.click(component, properties.callback);
+          };
         }
       },
       icon: {
@@ -146,10 +158,12 @@ var UserCard;
           '</svg>',
           '<stub />'
         ].join(''),
-        render: function (properties) {
-          this.add();
-          this.attr({ href: '#action-icon-' + properties.icon }, '[href]');
-          this.addClass(properties.class);
+        render: function (component) {
+          return function (properties) {
+            this.add(component);
+            this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
+            this.addClass(component, properties.class);
+          };
         }
       },
       detailText: {
@@ -159,9 +173,11 @@ var UserCard;
           '<h4 class="card-expansion-category-label"></h4>',
           '<stub />'
         ].join(''),
-        render: function (properties) {
-          this.verify();
-          this.html(properties.text);
+        render: function (component) {
+          return function (properties) {
+            this.verify(component);
+            this.html(component, properties.text);
+          };
         }
       },
       toggle: {
@@ -180,23 +196,25 @@ var UserCard;
           '</div>',
           '<stub />'
         ].join(''),
-        render: function (properties) {
-          this.add();
-          this.attr(
-            Object.assign(
-              {
-                name: properties.id,
-                id: properties.id
-              },
-              toAttr(properties.data)
-            ),
-            '.toggle-switch-checkbox'
-          );
-          this.prop({ checked: properties.checked }, '.toggle-switch-checkbox');
-          this.click(properties.callback, '.toggle-switch-checkbox');
-          this.attr({ for: properties.id }, '.toggle-switch-label');
-          this.html(properties.text, '.switch-label');
-          // if (!this.vars.canManage) this.attr({ disabled: '' }, '.toggle-switch-checkbox');
+        render: function (component) {
+          return function (properties) {
+            this.add(component);
+            this.attr(
+              component,
+              Object.assign(
+                {
+                  name: properties.id,
+                  id: properties.id
+                },
+                toAttr(properties.data)
+              ),
+              '.toggle-switch-checkbox'
+            );
+            this.prop(component, { checked: properties.checked }, '.toggle-switch-checkbox');
+            this.click(component, properties.callback, '.toggle-switch-checkbox');
+            this.attr(component, { for: properties.id }, '.toggle-switch-label');
+            this.html(component, properties.text, '.switch-label');
+          };
         }
       },
       listItem: {
@@ -214,12 +232,14 @@ var UserCard;
           '  </div>',
           '</li>'
         ].join(''),
-        render: function (properties) {
-          this.verify();
-          if (Object.hasOwnProperty.call(properties, 'id')) {
-            this.attr({ id: properties.id });
-            this.addClass('card-100 action-card');
-          }
+        render: function (component) {
+          return function (properties) {
+            this.verify(component);
+            if (Object.hasOwnProperty.call(properties, 'id')) {
+              this.attr(component, { id: properties.id });
+              this.addClass(component, 'card-100 action-card');
+            }
+          };
         }
       },
       main: {
@@ -231,8 +251,10 @@ var UserCard;
           '</div>',
           '<stub />'
         ].join(''),
-        render: function () {
-          this.verify();
+        render: function (component) {
+          return function () {
+            this.verify(component);
+          };
         }
       },
       icons: {
@@ -244,8 +266,10 @@ var UserCard;
           '</div>',
           '<stub />'
         ].join(''),
-        render: function () {
-          this.verify();
+        render: function (component) {
+          return function () {
+            this.verify(component);
+          };
         }
       },
       text: {
@@ -257,8 +281,10 @@ var UserCard;
           '</div>',
           '<stub />'
         ].join(''),
-        render: function () {
-          this.verify();
+        render: function (component) {
+          return function () {
+            this.verify(component);
+          };
         }
       },
       statistics: {
@@ -270,8 +296,10 @@ var UserCard;
           '</div>',
           '<stub />'
         ].join(''),
-        render: function () {
-          this.verify();
+        render: function (component) {
+          return function () {
+            this.verify(component);
+          };
         }
       },
       side: {
@@ -283,8 +311,10 @@ var UserCard;
           '</div>',
           '<stub />'
         ].join(''),
-        render: function () {
-          this.verify();
+        render: function (component) {
+          return function () {
+            this.verify(component);
+          };
         }
       },
       detail: {
@@ -302,16 +332,19 @@ var UserCard;
           '  </div>',
           '</div>'
         ].join(''),
-        render: function () {
-          this.verify();
-          this.click(expandCollapse, '.card-button-background');
-          this.tooltip('Expand card', '.card-button-background');
-          this.click(expandCollapse, '.card-button-background');
+        render: function (component) {
+          return function () {
+            this.verify(component);
+            this.click(component, expandCollapse, '.card-button-background');
+            this.tooltip(component, 'Expand card', '.card-button-background');
+            this.click(component, expandCollapse, '.card-button-background');
+          };
         }
       }
     }
   );
 
+  // Compute select properties
   (function () {
     var setParents = function (layout, parent) {
       var keys = Object.keys(layout);
@@ -324,6 +357,9 @@ var UserCard;
       }
     };
     setParents(cardLayout, '');
+    Object.keys(components).forEach(function (key) {
+      components[key].render = components[key].render(key);
+    });
   }());
 
 
@@ -390,18 +426,17 @@ var UserCard;
     this.callback = callback;
   };
 
-  Card.prototype.renderComponent = function (name, properties) {
+  Card.prototype.renderComponent = function (component, properties) {
     var parent;
-    if (!Object.hasOwnProperty.call(components, name)) {
+    if (!Object.hasOwnProperty.call(components, component)) {
       // invalid component
       return;
     }
-    parent = components[name].parent;
+    parent = components[component].parent;
     if (Object.hasOwnProperty.call(properties, parent) || !this.exists(parent)) {
       this.renderComponent(parent, (properties && properties.parent) || properties);
     }
-    this.lastComponent = name;
-    components[name].render.call(this, properties);
+    components[component].render.call(this, properties);
   };
 
   Card.prototype.build = function () {
@@ -414,8 +449,7 @@ var UserCard;
         });
       }
     });
-    this.lastComponent = 'card';
-    this.attr(toAttr(this.data));
+    this.attr('card', toAttr(this.data));
     this.$representation.find('.card-container').click(this.callback);
     return this.$representation;
   };
@@ -530,29 +564,29 @@ var UserCard;
 
 
   ['html', 'attr', 'prop', 'addClass', 'click'].forEach(function (func) {
-    Card.prototype[func] = function (value, selector) {
-      this.findComponent(this.lastComponent, selector)[func](value);
+    Card.prototype[func] = function (component, value, selector) {
+      this.findComponent(component, selector)[func](value);
     };
   });
 
-  Card.prototype.tooltip = function (value, selector) {
-    var $component = this.findComponent(this.lastComponent, selector);
-    $component.addClass('tooltip');
-    $component.attr('title', value);
+  Card.prototype.tooltip = function (component, value, selector) {
+    var $component = this.findComponent(component, selector);
+    $component.addClass(component, 'tooltip');
+    $component.attr(component, 'title', value);
   };
 
 
-  Card.prototype.componentPath = function (name) {
-    var parent = components[name].parent;
+  Card.prototype.componentPath = function (component) {
+    var parent = components[component].parent;
     if (Object.hasOwnProperty.call(components, parent)) {
-      return this.componentPath(parent).concat([name]);
+      return this.componentPath(parent).concat([component]);
     }
-    return [name];
+    return [component];
   };
 
-  Card.prototype.verify = function (partialPath) {
+  Card.prototype.verify = function (component, partialPath) {
     var self = this;
-    var path = partialPath || this.componentPath(this.lastComponent);
+    var path = partialPath || this.componentPath(component);
     var prevSelector = '';
     $.each(path, function () {
       var nextSelector = prevSelector + components[this].selector;
@@ -571,10 +605,10 @@ var UserCard;
     return prevSelector;
   };
 
-  Card.prototype.add = function (partialPath) {
-    var path = partialPath || this.componentPath(this.lastComponent);
+  Card.prototype.add = function (component, partialPath) {
+    var path = partialPath || this.componentPath(component);
     var newElement = path.pop();
-    var prevSelector = this.verify(path);
+    var prevSelector = this.verify(component, path);
     this.$representation
       .find(prevSelector + ' > stub')
       .replaceWith(components[newElement].html);
