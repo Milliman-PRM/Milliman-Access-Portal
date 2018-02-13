@@ -1,28 +1,25 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2024
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Milliman.Common", "Milliman.Common\Milliman.Common.csproj", "{E8C5D9C8-78D0-4BDF-91B5-E5DF4D9DA3F3}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{B572CDB8-B4FB-47C3-80EC-6D701B8E54AF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{4FE72080-2FDD-4857-8B49-02976DE7498B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Applications", "Applications", "{34B4814E-A430-4B07-8731-1B2C56C60DBE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Milliman.Reduction.ReductionEngine", "Milliman.Reduction.ReductionServiceEngine\Milliman.Reduction.ReductionEngine.csproj", "{45A38B9B-341F-4845-852B-8A3C0C20A86E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Milliman.Security", "Milliman.Security\Milliman.Security.csproj", "{BFC898B4-3139-4F49-B16C-AACD83BC71A4}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QvReportReductionService", "QvReportReductionService\QvReportReductionService.csproj", "{0F9B8555-58D7-4DAB-B3A9-60678F6B89FA}"
-	ProjectSection(ProjectDependencies) = postProject
-		{367505B5-0893-4AB7-A959-E010F894B060} = {367505B5-0893-4AB7-A959-E010F894B060}
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QvReportReductionLib", "QvReportReductionLib\QvReportReductionLib.csproj", "{367505B5-0893-4AB7-A959-E010F894B060}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QvReportReductionGui", "QvReportReductionGui\QvReportReductionGui.csproj", "{A91F95B8-EDB8-44B8-AB7B-775DD9746D13}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Milliman.ReductionEngine", "Milliman.ReductionEngine\Milliman.ReductionEngine.csproj", "{45A38B9B-341F-4845-852B-8A3C0C20A86E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QvReportReductionService", "QvReportReductionService\QvReportReductionService.csproj", "{0F9B8555-58D7-4DAB-B3A9-60678F6B89FA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Milliman.Security", "Milliman.Security\Milliman.Security.csproj", "{BFC898B4-3139-4F49-B16C-AACD83BC71A4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Milliman.Common", "Milliman.Common\Milliman.Common.csproj", "{E8C5D9C8-78D0-4BDF-91B5-E5DF4D9DA3F3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,22 +27,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E8C5D9C8-78D0-4BDF-91B5-E5DF4D9DA3F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E8C5D9C8-78D0-4BDF-91B5-E5DF4D9DA3F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E8C5D9C8-78D0-4BDF-91B5-E5DF4D9DA3F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E8C5D9C8-78D0-4BDF-91B5-E5DF4D9DA3F3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{45A38B9B-341F-4845-852B-8A3C0C20A86E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{45A38B9B-341F-4845-852B-8A3C0C20A86E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{45A38B9B-341F-4845-852B-8A3C0C20A86E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{45A38B9B-341F-4845-852B-8A3C0C20A86E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BFC898B4-3139-4F49-B16C-AACD83BC71A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BFC898B4-3139-4F49-B16C-AACD83BC71A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BFC898B4-3139-4F49-B16C-AACD83BC71A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BFC898B4-3139-4F49-B16C-AACD83BC71A4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0F9B8555-58D7-4DAB-B3A9-60678F6B89FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0F9B8555-58D7-4DAB-B3A9-60678F6B89FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0F9B8555-58D7-4DAB-B3A9-60678F6B89FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0F9B8555-58D7-4DAB-B3A9-60678F6B89FA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{367505B5-0893-4AB7-A959-E010F894B060}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{367505B5-0893-4AB7-A959-E010F894B060}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{367505B5-0893-4AB7-A959-E010F894B060}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -54,16 +35,35 @@ Global
 		{A91F95B8-EDB8-44B8-AB7B-775DD9746D13}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A91F95B8-EDB8-44B8-AB7B-775DD9746D13}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A91F95B8-EDB8-44B8-AB7B-775DD9746D13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45A38B9B-341F-4845-852B-8A3C0C20A86E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45A38B9B-341F-4845-852B-8A3C0C20A86E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45A38B9B-341F-4845-852B-8A3C0C20A86E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45A38B9B-341F-4845-852B-8A3C0C20A86E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F9B8555-58D7-4DAB-B3A9-60678F6B89FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F9B8555-58D7-4DAB-B3A9-60678F6B89FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F9B8555-58D7-4DAB-B3A9-60678F6B89FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F9B8555-58D7-4DAB-B3A9-60678F6B89FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BFC898B4-3139-4F49-B16C-AACD83BC71A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFC898B4-3139-4F49-B16C-AACD83BC71A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFC898B4-3139-4F49-B16C-AACD83BC71A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFC898B4-3139-4F49-B16C-AACD83BC71A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8C5D9C8-78D0-4BDF-91B5-E5DF4D9DA3F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8C5D9C8-78D0-4BDF-91B5-E5DF4D9DA3F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8C5D9C8-78D0-4BDF-91B5-E5DF4D9DA3F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8C5D9C8-78D0-4BDF-91B5-E5DF4D9DA3F3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{E8C5D9C8-78D0-4BDF-91B5-E5DF4D9DA3F3} = {4FE72080-2FDD-4857-8B49-02976DE7498B}
-		{45A38B9B-341F-4845-852B-8A3C0C20A86E} = {4FE72080-2FDD-4857-8B49-02976DE7498B}
-		{BFC898B4-3139-4F49-B16C-AACD83BC71A4} = {4FE72080-2FDD-4857-8B49-02976DE7498B}
-		{0F9B8555-58D7-4DAB-B3A9-60678F6B89FA} = {B572CDB8-B4FB-47C3-80EC-6D701B8E54AF}
 		{367505B5-0893-4AB7-A959-E010F894B060} = {4FE72080-2FDD-4857-8B49-02976DE7498B}
 		{A91F95B8-EDB8-44B8-AB7B-775DD9746D13} = {34B4814E-A430-4B07-8731-1B2C56C60DBE}
+		{45A38B9B-341F-4845-852B-8A3C0C20A86E} = {4FE72080-2FDD-4857-8B49-02976DE7498B}
+		{0F9B8555-58D7-4DAB-B3A9-60678F6B89FA} = {B572CDB8-B4FB-47C3-80EC-6D701B8E54AF}
+		{BFC898B4-3139-4F49-B16C-AACD83BC71A4} = {4FE72080-2FDD-4857-8B49-02976DE7498B}
+		{E8C5D9C8-78D0-4BDF-91B5-E5DF4D9DA3F3} = {4FE72080-2FDD-4857-8B49-02976DE7498B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1035EE4B-49AC-4059-B136-CA35FD52A8AE}
 	EndGlobalSection
 EndGlobal

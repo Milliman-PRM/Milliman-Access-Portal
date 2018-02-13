@@ -50,9 +50,9 @@
       <Project>{e8c5d9c8-78d0-4bdf-91b5-e5df4d9da3f3}</Project>
       <Name>Milliman.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Milliman.Reduction.ReductionServiceEngine\Milliman.Reduction.ReductionEngine.csproj">
+    <ProjectReference Include="..\Milliman.ReductionEngine\Milliman.ReductionEngine.csproj">
       <Project>{45a38b9b-341f-4845-852b-8a3c0c20a86e}</Project>
-      <Name>Milliman.Reduction.ReductionEngine</Name>
+      <Name>Milliman.ReductionEngine</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
