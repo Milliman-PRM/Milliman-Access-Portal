@@ -27,7 +27,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 
             ContentAccessAdminRootContentItemDetailViewModel Model = new ContentAccessAdminRootContentItemDetailViewModel {
                 RootContentItemEntity = RootContentItem,
-                GroupCount = DbContext.ContentItemUserGroup
+                GroupCount = DbContext.SelectionGroup
                     .Where(sg => sg.RootContentItemId == RootContentItem.Id)
                     .Count(),
                 EligibleUserCount = DbContext.UserRoleInRootContentItem

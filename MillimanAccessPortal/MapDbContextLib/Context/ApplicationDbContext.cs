@@ -14,8 +14,8 @@ namespace MapDbContextLib.Context
         public DbSet<UserRoleInClient> UserRoleInClient { get; set; }
         public DbSet<UserRoleInProfitCenter> UserRoleInProfitCenter { get; set; }
         public DbSet<UserRoleInRootContentItem> UserRoleInRootContentItem { get; set; }
-        public DbSet<UserInContentItemUserGroup> UserInContentItemUserGroup { get; set; }
-        public DbSet<ContentItemUserGroup> ContentItemUserGroup { get; set; }
+        public DbSet<UserInSelectionGroup> UserInSelectionGroup { get; set; }
+        public DbSet<SelectionGroup> SelectionGroup { get; set; }
         public DbSet<RootContentItem> RootContentItem { get; set; }
         public DbSet<HierarchyField> HierarchyField { get; set; }
         public DbSet<HierarchyFieldValue> HierarchyFieldValue { get; set; }
@@ -44,6 +44,10 @@ namespace MapDbContextLib.Context
             builder.Entity<ContentReductionTask>()
                 .Property(b => b.CreateDateTime)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            builder.Entity<HierarchyField>()
+                .Property(b => b.StructureType)
+                .HasDefaultValue(FieldStructureType.Unknown);
         }
 
         public bool ClientExists(long id)

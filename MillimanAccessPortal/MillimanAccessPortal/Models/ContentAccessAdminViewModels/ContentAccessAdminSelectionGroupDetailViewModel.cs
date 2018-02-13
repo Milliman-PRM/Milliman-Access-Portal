@@ -14,10 +14,10 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
     public class ContentAccessAdminSelectionGroupDetailViewModel
     {
-        public ContentItemUserGroup SelectionGroupEntity { get; set; }
+        public SelectionGroup SelectionGroupEntity { get; set; }
         public List<ContentAccessAdminUserInfoViewModel> MemberList { get; set; } = new List<ContentAccessAdminUserInfoViewModel>();
 
-        internal static ContentAccessAdminSelectionGroupDetailViewModel Build(ApplicationDbContext DbContext, ContentItemUserGroup SelectionGroup)
+        internal static ContentAccessAdminSelectionGroupDetailViewModel Build(ApplicationDbContext DbContext, SelectionGroup SelectionGroup)
         {
             ContentAccessAdminSelectionGroupDetailViewModel Model = new ContentAccessAdminSelectionGroupDetailViewModel
             {
@@ -25,9 +25,9 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
             };
 
             // Retrieve users that are members of the specified selection group
-            List<ApplicationUser> MemberClients = DbContext.UserInContentItemUserGroup
-                .Where(uug => uug.ContentItemUserGroupId == SelectionGroup.Id)
-                .Select(uug => uug.User)
+            List<ApplicationUser> MemberClients = DbContext.UserInSelectionGroup
+                .Where(usg => usg.SelectionGroupId == SelectionGroup.Id)
+                .Select(usg => usg.User)
                 .ToList();
 
             foreach (var MemberClient in MemberClients)
@@ -41,7 +41,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 
         internal static ContentAccessAdminSelectionGroupDetailViewModel Build(long SelectionGroupId, ApplicationDbContext DbContext)
         {
-            ContentItemUserGroup SelectionGroup = DbContext.ContentItemUserGroup
+            SelectionGroup SelectionGroup = DbContext.SelectionGroup
                 .Single(rci => rci.Id == SelectionGroupId);
 
             return Build(DbContext, SelectionGroup);

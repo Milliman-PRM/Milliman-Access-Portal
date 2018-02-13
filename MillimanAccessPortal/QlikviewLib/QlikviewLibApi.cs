@@ -15,7 +15,7 @@ namespace QlikviewLib
 {
     public class QlikviewLibApi : ContentTypeSpecificApiBase
     {
-        public override async Task<UriBuilder> GetContentUri(ContentItemUserGroup GroupEntity, HttpContext Context, object ConfigInfoArg)
+        public override async Task<UriBuilder> GetContentUri(SelectionGroup GroupEntity, HttpContext Context, object ConfigInfoArg)
         {
             QlikviewConfig ConfigInfo = (QlikviewConfig)ConfigInfoArg;
 

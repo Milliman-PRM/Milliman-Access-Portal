@@ -64,7 +64,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
                 .Count();
 
             RootContentItemCount = DbContext.RootContentItem
-                .Where(rci => rci.ClientIdList.Contains(ClientEntity.Id))
+                .Where(rci => rci.ClientId == ClientEntity.Id)
                 .Count();
         }
     }

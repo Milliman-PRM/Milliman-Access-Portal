@@ -23,10 +23,8 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
         {
             ContentAccessAdminRootContentItemListViewModel Model = new ContentAccessAdminRootContentItemListViewModel();
 
-            List<RootContentItem> RootContentItems = DbContext.UserRoleInRootContentItem
-                .Where(ur => ur.UserId == CurrentUser.Id)
-                .Where(ur => ur.RoleId == ((long)RoleEnum.ContentAccessAdmin))
-                .Select(ur => ur.RootContentItem)
+            List<RootContentItem> RootContentItems = DbContext.RootContentItem
+                .Where(rci => rci.ClientId == Client.Id)
                 .ToList();
 
             foreach (var RootContentItem in RootContentItems)
