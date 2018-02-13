@@ -382,10 +382,8 @@ var UserCard;
     this.components[name].push(properties);
   };
 
-  // TODO: change this to occur on build()
   Card.prototype.setData = function (data) {
-    this.lastComponent = 'card';
-    this.attr(toAttr(data));
+    this.data = data;
   };
 
   Card.prototype.setCallback = function (callback) {
@@ -416,6 +414,8 @@ var UserCard;
         });
       }
     });
+    this.lastComponent = 'card';
+    this.attr(toAttr(this.data));
     this.$representation.find('.card-container').click(this.callback);
     return this.$representation;
   };
