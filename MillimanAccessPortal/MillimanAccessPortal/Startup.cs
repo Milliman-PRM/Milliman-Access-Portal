@@ -190,7 +190,7 @@ namespace MillimanAccessPortal
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "AzureCI")
             {
                 string branchName = Environment.GetEnvironmentVariable("BranchName");
-                string logDbName = $"logdb_{branchName}";
+                string logDbName = $"auditlogdb_{branchName}";
                 Npgsql.NpgsqlConnectionStringBuilder logConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString);
                 logConnBuilder.Database = logDbName;
                 auditLogConnectionString = logConnBuilder.ConnectionString;
