@@ -1,7 +1,10 @@
 // Class declarations
 var Card;
 var ActionCard;
+var AddClientActionCard;
+var AddUserActionCard;
 var InsertCard;
+var AddChildInsertCard;
 var ClientCard;
 var UserCard;
 
@@ -34,7 +37,8 @@ var UserCard;
         toggle: {},
         listItem: {}
       },
-      action: {}
+      action: {},
+      insert: {}
     }
   };
 
@@ -66,7 +70,7 @@ var UserCard;
         html: [
           '<h2 class="card-body-primary-text">',
           '  <span></span>',
-          '  <svg class="">',
+          '  <svg class="new-child-icon">',
           '    <use href=""></use>',
           '  </svg>',
           '</h2>'
@@ -240,6 +244,9 @@ var UserCard;
               this.attr(component, { id: properties.id });
               this.addClass(component, 'card-100 action-card');
             }
+            if (Object.hasOwnProperty.call(properties, 'class')) {
+              this.addClass(component, properties.class);
+            }
           };
         }
       },
@@ -338,7 +345,6 @@ var UserCard;
             this.verify(component);
             this.click(component, expandCollapse, '.card-button-background');
             this.tooltip(component, 'Expand card', '.card-button-background');
-            this.click(component, expandCollapse, '.card-button-background');
           };
         }
       }
@@ -383,10 +389,10 @@ var UserCard;
       .find('div.card-expansion-container')
       .attr('maximized', function (index, attr) {
         if (attr === '') {
-          $(this).find('.tooltip').tooltipster('content', 'Expand user card');
+          $(this).find('.tooltip').tooltipster('content', 'Expand card');
           return null;
         }
-        $(this).find('.tooltip').tooltipster('content', 'Collapse user card');
+        $(this).find('.tooltip').tooltipster('content', 'Collapse card');
         return '';
       });
     // showRelevantUserActionIcons();
@@ -411,6 +417,10 @@ var UserCard;
   Card.prototype.addComponent = function (name, properties) {
     if (!Object.hasOwnProperty.call(components, name)) {
       // invalid component
+      return;
+    }
+    if (Object.hasOwnProperty.call(properties, 'callback') && !properties.callback) {
+      // A required callback was not provided - do not render the component.
       return;
     }
     if (!this.components[name]) {
@@ -474,7 +484,19 @@ var UserCard;
   ActionCard.prototype = Object.create(Card.prototype);
   ActionCard.prototype.constructor = ActionCard;
 
-  InsertCard = function (text, level, callback) {
+  AddClientActionCard = function (callback) {
+    ActionCard.call(this, 'add', 'New Client', callback);
+  };
+  AddClientActionCard.prototype = Object.create(ActionCard.prototype);
+  AddClientActionCard.prototype.constructor = AddClientActionCard;
+
+  AddUserActionCard = function (callback) {
+    ActionCard.call(this, 'add', 'Add User', callback);
+  };
+  AddUserActionCard.prototype = Object.create(ActionCard.prototype);
+  AddUserActionCard.prototype.constructor = AddUserActionCard;
+
+  InsertCard = function (icon, text, level, callback) {
     Card.call(this);
 
     this.addComponent('card', {
@@ -488,7 +510,7 @@ var UserCard;
       ].join(' ')
     });
     this.addComponent('insert', {
-      icon: 'expand-card',
+      icon: icon,
       text: text
     });
     this.setCallback(callback);
@@ -496,13 +518,20 @@ var UserCard;
   InsertCard.prototype = Object.create(Card.prototype);
   InsertCard.prototype.constructor = InsertCard;
 
+  AddChildInsertCard = function (level, callback) {
+    InsertCard.call(this, 'expand-card', 'New Sub-Client', level, callback);
+  };
+  AddChildInsertCard.prototype = Object.create(InsertCard.prototype);
+  AddChildInsertCard.prototype.constructor = AddChildInsertCard;
+
 
   ClientCard = function (
-    clientName, clientCode, userCount, reportCount, level,
+    clientName, clientCode, userCount, reportCount, level, clientId,
     callback, deleteCallback, editCallback, newChildCallback
   ) {
     Card.call(this);
 
+    this.addComponent('card', { class: 'card-' + (100 - (10 * level)) });
     this.addComponent('primaryText', { text: clientName });
     this.addComponent('secondaryText', { text: clientCode });
     this.addComponent('statistic', {
@@ -536,7 +565,7 @@ var UserCard;
 
     this.setData({
       'search-string': [clientName, clientCode].join('|').toUpperCase(),
-      'client-id': 1
+      'client-id': clientId
     });
 
     this.setCallback(callback);
@@ -584,6 +613,7 @@ var UserCard;
         callback: roleCallback
       });
     }, this);
+    this.setData({ 'user-id': userId });
     this.setCallback(expandCollapse);
   };
   UserCard.prototype = Object.create(Card.prototype);

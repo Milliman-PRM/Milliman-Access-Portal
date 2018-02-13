@@ -15,7 +15,7 @@ var SHOW_DURATION = 50;
  * @return {undefined}
  */
 function removeClientInserts() {
-  $('#client-tree li.client-insert').remove();
+  $('#client-tree .client-insert').remove();
 }
 
 /**
@@ -542,16 +542,11 @@ function renderUserList(client, userId) {
   if (userId) {
     $('[data-user-id="' + userId + '"]').click();
   }
-/*
+
   if (client.CanManage) {
     $('#add-user-icon').show();
-    $('#client-user-list').append(Card.buildAddUser());
-    $('#add-user-card')
-      .click(function onClick() {
-        addUserClickHandler();
-      });
+    $('#client-user-list').append(new AddUserActionCard(addUserClickHandler).build());
   }
-  */
 }
 
 /**
@@ -561,7 +556,7 @@ function renderUserList(client, userId) {
  */
 function setupChildClientForm(parentClientDiv) {
   var parentClientId = parentClientDiv.attr('data-client-id').valueOf();
-  var $template = Card.buildNewChildClient(parentClientDiv.hasClass('card-100') ? 1 : 2);
+  var $template = new AddChildInsertCard(parentClientDiv.hasClass('card-100') ? 1 : 2).build();
 
   clearFormData();
   $('#client-form #ParentClientId').val(parentClientId);
@@ -678,7 +673,7 @@ function openNewChildClientForm($parentCard) {
 function openNewClientForm() {
   clearClientSelection();
   setupClientForm();
-  $('#create-new-client-card').attr('selected', '');
+  $('#new-client-card').attr('selected', '');
   setClientFormWriteable();
   hideClientUsers();
   showClientDetails();
@@ -787,7 +782,7 @@ function clientCardCreateNewChildClickHandler($clickedCard) {
    * is a client insert ("New Child Client" card) AND the currently selected card is immediately
    * preceded by the clicked card in the client list.
    */
-  var sameCard = ($clientTree.find('[selected]').closest('.client-insert').length &&
+  var sameCard = ($clientTree.find('[selected]').is('.client-insert') &&
     $clickedCard[0] === $clientTree.find('[selected]').parent().prev().find('.card-container')[0]);
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
@@ -804,9 +799,9 @@ function clientCardCreateNewChildClickHandler($clickedCard) {
  * Handle click events for the create new client card
  * @return {undefined}
  */
-function createNewClientClickHandler() {
+function newClientClickHandler() {
   var $clientTree = $('#client-tree');
-  var sameCard = ($('#create-new-client-card')[0] === $clientTree.find('[selected]')[0]);
+  var sameCard = ($('#new-client-card')[0] === $clientTree.find('[selected]')[0]);
   if ($clientTree.has('[selected]').length) {
     confirmAndReset(confirmDiscardDialog, function onContinue() {
       if (sameCard) {
@@ -1032,62 +1027,29 @@ function renderClientNode(client, level) {
     client.ClientModel.AssignedUsers.length,
     client.ClientModel.ContentItems.length,
     level,
+    client.ClientModel.ClientEntity.Id,
     function () { clientCardClickHandler($(this)); },
-    function (event) {
-      event.stopPropagation();
-      clientCardDeleteClickHandler($(this).closest('.card-container'));
-    },
+    client.Children.length
+      ? undefined
+      : function (event) {
+        event.stopPropagation();
+        clientCardDeleteClickHandler($(this).closest('.card-container'));
+      },
     function (event) {
       event.stopPropagation();
       clientCardEditClickHandler($(this).closest('.card-container'));
     },
-    function (event) {
-      event.stopPropagation();
-      clientCardCreateNewChildClickHandler($(this).closest('.card-container'));
-    }
+    level === 2
+      ? undefined
+      : function (event) {
+        event.stopPropagation();
+        clientCardCreateNewChildClickHandler($(this).closest('.card-container'));
+      }
   ).build();/*
-    .newCard()
-    .container(client.ClientModel.CanManage)
-      .searchString([
-        client.ClientModel.ClientEntity.Name,
-        client.ClientModel.ClientEntity.ClientCode
-      ])
-      .attr({ 'data-client-id': client.ClientModel.ClientEntity.Id })
-      .class(classes[level])
-    .primaryInfo(client.ClientModel.ClientEntity.Name)
-    .secondaryInfo(client.ClientModel.ClientEntity.ClientCode || '')
-    .cardStat('#action-icon-users', client.ClientModel.AssignedUsers.length)
-      .tooltip('Assigned users')
-    .cardStat('#action-icon-reports', client.ClientModel.ContentItems.length)
-      .tooltip('Reports')
-    .sideButton('#action-icon-delete')
-      .class('card-button-delete')
-      .tooltip('Delete client')
-      .click()
-    .sideButton('#action-icon-edit')
-      .class('card-button-edit')
-      .tooltip('Edit client details')
-      .click()
-    .sideButton('#action-icon-add')
-      .class('card-button-new-child')
-      .tooltip('New sub-client')
-      .click()
-    .build(); */
-  /* eslint-enable indent */
   /*
   if (!client.ClientModel.CanManage) {
     $template.find('.card-button-side-container').remove();
     $template.find('.card-container').attr('disabled', '');
-  }
-
-  // Only include the delete button on client nodes without children
-  if (client.Children.length) {
-    $template.find('.card-button-delete').remove();
-  }
-
-  // Don't include the add child client button on lowest level
-  if (level === 2) {
-    $template.find('.card-button-new-child').remove();
   }
 */
   $('#client-tree-list').append($card);
@@ -1121,12 +1083,10 @@ function renderClientTree(clientTreeList, clientId) {
   if (clientId) {
     $('[data-client-id="' + clientId + '"]').click();
   }
-  if (false /* $('#add-client-icon').length */) {
-    $clientTreeList.append(Card.buildNewClient());
-    $('#create-new-client-card')
-      .click(function onClick() {
-        createNewClientClickHandler($(this));
-      });
+  if ($('#add-client-icon').length) {
+    $clientTreeList.append(new AddClientActionCard(function () {
+      newClientClickHandler($(this));
+    }).build());
   }
 }
 
@@ -1263,7 +1223,7 @@ function searchUser(searchString) {
 $(document).ready(function onReady() {
   getClientTree();
 
-  $('#add-client-icon').click(createNewClientClickHandler);
+  $('#add-client-icon').click(newClientClickHandler);
   $('#add-user-icon').click(addUserClickHandler);
   $('#edit-client-icon').click(editIconClickHandler);
   $('#cancel-edit-client-icon').click(cancelIconClickHandler);
