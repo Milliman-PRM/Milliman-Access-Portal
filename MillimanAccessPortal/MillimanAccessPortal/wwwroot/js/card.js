@@ -1,13 +1,16 @@
 // Class declarations
 var Card;
 var ActionCard;
+var InsertCard;
 var ClientCard;
 var UserCard;
 
 (function () {
   // Helper function declarations
   var toAttr;
-  var findComponent;
+
+  // General click handler declarations
+  var expandCollapse;
 
   var cardLayout = {
     card: {
@@ -43,7 +46,7 @@ var UserCard;
         selector: '.card-body-primary-text',
         html: [
           '<h2 class="card-body-primary-text">',
-          '  <svg class="">',
+          '  <svg class="action-card-icon">',
           '    <use href=""></use>',
           '  </svg>',
           '  <span></span>',
@@ -51,7 +54,23 @@ var UserCard;
         ].join(''),
         render: function (properties) {
           this.verify();
-          this.addClass('action-card-icon', 'svg');
+          this.attr({ href: properties.icon }, '[href]');
+          this.html(properties.text, 'span');
+        }
+      },
+      insert: {
+        count: '?',
+        selector: '.card-body-primary-text',
+        html: [
+          '<h2 class="card-body-primary-text">',
+          '  <span></span>',
+          '  <svg class="">',
+          '    <use href=""></use>',
+          '  </svg>',
+          '</h2>'
+        ].join(''),
+        render: function (properties) {
+          this.verify();
           this.attr({ href: properties.icon }, '[href]');
           this.html(properties.text, 'span');
         }
@@ -129,7 +148,7 @@ var UserCard;
         ].join(''),
         render: function (properties) {
           this.add();
-          this.attr({ href: properties.icon }, '[href]');
+          this.attr({ href: '#action-icon-' + properties.icon }, '[href]');
           this.addClass(properties.class);
         }
       },
@@ -197,8 +216,10 @@ var UserCard;
         ].join(''),
         render: function (properties) {
           this.verify();
-          // this.attr({ id: properties.id });
-          // this.addClass('card-100 action-card');
+          if (Object.hasOwnProperty.call(properties, 'id')) {
+            this.attr({ id: properties.id });
+            this.addClass('card-100 action-card');
+          }
         }
       },
       main: {
@@ -281,9 +302,11 @@ var UserCard;
           '  </div>',
           '</div>'
         ].join(''),
-        render: function (properties) {
+        render: function () {
           this.verify();
-          this.click(properties.click, '.card-button-background');
+          this.click(expandCollapse, '.card-button-background');
+          this.tooltip('Expand card', '.card-button-background');
+          this.click(expandCollapse, '.card-button-background');
         }
       }
     }
@@ -316,6 +339,23 @@ var UserCard;
   };
 
 
+  // General click handler definitions
+  expandCollapse = function (event) {
+    event.stopPropagation();
+    $(this).closest('.card-container')
+      .find('div.card-expansion-container')
+      .attr('maximized', function (index, attr) {
+        if (attr === '') {
+          $(this).find('.tooltip').tooltipster('content', 'Expand user card');
+          return null;
+        }
+        $(this).find('.tooltip').tooltipster('content', 'Collapse user card');
+        return '';
+      });
+    // showRelevantUserActionIcons();
+  };
+
+
   // Class definitions
   Card = function (representation) {
     this.components = [];
@@ -342,6 +382,7 @@ var UserCard;
     this.components[name].push(properties);
   };
 
+  // TODO: change this to occur on build()
   Card.prototype.setData = function (data) {
     this.lastComponent = 'card';
     this.attr(toAttr(data));
@@ -383,17 +424,40 @@ var UserCard;
   ActionCard = function (icon, text, callback) {
     Card.call(this);
 
+    this.addComponent('card', {
+      id: text.toLowerCase().split(' ').join('-') + '-card'
+    });
     this.addComponent('action', {
       icon: icon,
-      text: text,
-      parent: {
-        id: text.toLowerCase().split(' ').join('-') + '-card'
-      }
+      text: text
     });
     this.setCallback(callback);
   };
   ActionCard.prototype = Object.create(Card.prototype);
   ActionCard.prototype.constructor = ActionCard;
+
+  InsertCard = function (text, level, callback) {
+    Card.call(this);
+
+    this.addComponent('card', {
+      class: [
+        'card-container',
+        'flex-container',
+        'flex-row-no-wrap',
+        'items-align-center',
+        'client-insert',
+        'card-' + (100 - (10 * level))
+      ].join(' ')
+    });
+    this.addComponent('insert', {
+      icon: 'expand-card',
+      text: text
+    });
+    this.setCallback(callback);
+  };
+  InsertCard.prototype = Object.create(Card.prototype);
+  InsertCard.prototype.constructor = InsertCard;
+
 
   ClientCard = function (
     clientName, clientCode, userCount, reportCount,
@@ -419,16 +483,47 @@ var UserCard;
   ClientCard.prototype = Object.create(Card.prototype);
   ClientCard.prototype.constructor = ClientCard;
 
-  UserCard = function (firstName, lastName, userName, email, userId, clientId) {
+  UserCard = function (
+    firstName, lastName, userName, email, userId, clientId,
+    roles, roleCallback, removeCallback
+  ) {
+    var names = [];
+
     Card.call(this);
 
-    /*
-    var userId = this.$representation
-      .find(components.card.selector)
-      .attr('data-user-id');
-    var id = 'user-role-' + userId + '-' + roleEnum;
-    this.lastComponent = 'toggle';
-     */
+    names.push(email);
+    if (userName !== email) {
+      names.push(userName);
+    }
+    if (firstName && lastName) {
+      names.push([firstName, lastName].join(' '));
+    }
+
+    this.addComponent('primaryText', { text: names.pop() });
+    names.forEach(function (name) {
+      this.addComponent('secondaryText', { text: name });
+    });
+    this.addComponent('icon', { icon: 'user', class: 'card-user-icon' });
+    this.addComponent('icon', { icon: 'add', class: 'card-user-role-indicator' });
+    this.addComponent('button', {
+      icon: 'remove',
+      color: 'red',
+      tooltip: 'Remove user',
+      callback: removeCallback
+    });
+    this.addComponent('detailText', { text: 'User roles' });
+    roles.forEach(function (role) {
+      this.addComponent('toggle', {
+        text: role.RoleDisplayValue,
+        id: 'user-role-' + userId + '-' + role.RoleEnum,
+        data: {
+          'role-enum': role.RoleEnum
+        },
+        checked: role.IsAssigned,
+        callback: roleCallback
+      });
+    });
+    this.setCallback(expandCollapse);
   };
   UserCard.prototype = Object.create(Card.prototype);
   UserCard.prototype.constructor = UserCard;
@@ -441,11 +536,11 @@ var UserCard;
   });
 
   Card.prototype.tooltip = function (value, selector) {
-    var $component = findComponent(this.lastComponent, selector);
+    var $component = this.findComponent(this.lastComponent, selector);
     $component.addClass('tooltip');
     $component.attr('title', value);
-    return this;
   };
+
 
   Card.prototype.componentPath = function (name) {
     var parent = components[name].parent;
@@ -494,69 +589,5 @@ var UserCard;
       : this.$representation;
     var $subcomponent = $component.find(selector);
     return $subcomponent.length ? $subcomponent : $component;
-  };
-
-
-  // outdated, soon to be moved
-
-  Card.prototype.roleExpansion = function () {
-    var onClick = function (event) {
-      event.stopPropagation();
-      $(this).closest('.card-container')
-        .find('div.card-expansion-container')
-        .attr('maximized', function (index, attr) {
-          if (attr === '') {
-            $(this).find('.tooltip').tooltipster('content', 'Expand user card');
-            return null;
-          }
-          $(this).find('.tooltip').tooltipster('content', 'Collapse user card');
-          return '';
-        });
-      showRelevantUserActionIcons();
-    };
-    this.lastComponent = '';
-    /* eslint-disable indent */
-      return this
-        .expansionLabel('User roles')
-        .expansionButton('#action-icon-expand-card')
-          .tooltip('Expand user card', '.card-button-background')
-          .click(onClick, '.card-button-background')
-        .main()
-          .click(onClick);
-      /* eslint-enable indent */
-  };
-
-  Card.prototype.roleToggles = function (roles) {
-    var self = this;
-    var onClick = function (event) {
-      userCardRoleToggleClickHandler(event);
-    };
-    this.lastComponent = '';
-    $.each(roles, function (index, assignment) {
-      self.roleToggle(
-        assignment.RoleEnum,
-        assignment.RoleDisplayValue,
-        assignment.IsAssigned
-      ).click(onClick, '.toggle-switch-checkbox');
-    });
-    return this;
-  };
-
-  Card.prototype.buildNewChildClient = function (level) {
-    /* eslint-disable indent */
-      return this
-        .newCard()
-          .class('client-insert')
-          .class('card-' + (100 - (10 * level)))
-        .container()
-          .class('card-container flex-container flex-row-no-wrap items-align-center')
-        .actionText('New Sub-Client')
-        .actionIcon('#action-icon-expand-card')
-          .class('new-child-icon')
-        .main()
-          .class('content-item-flex-1')
-          .class('indent-level-' + level, '.card-body-primary-text')
-        .build();
-      /* eslint-enable indent */
   };
 }());
