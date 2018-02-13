@@ -137,7 +137,10 @@ namespace MillimanAccessPortal
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, ApplicationDbContext db)
         {
-            db.Database.Migrate(); // Perform any unapplied migrations
+            if (env.EnvironmentName == "AzureCI" || env.EnvironmentName == "Production")
+            {
+                db.Database.Migrate(); // Perform any unapplied migrations
+            }
 
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
