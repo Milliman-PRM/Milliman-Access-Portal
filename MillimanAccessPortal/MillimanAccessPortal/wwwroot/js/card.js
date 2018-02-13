@@ -560,12 +560,12 @@ var UserCard;
       names.push([firstName, lastName].join(' '));
     }
 
-    this.addComponent('primaryText', { text: names.pop() });
-    names.forEach(function (name) {
-      this.addComponent('secondaryText', { text: name });
-    }, this);
     this.addComponent('icon', { icon: 'user', class: 'card-user-icon' });
     this.addComponent('icon', { icon: 'add', class: 'card-user-role-indicator' });
+    this.addComponent('primaryText', { text: names.pop() });
+    names.reverse().forEach(function (name) {
+      this.addComponent('secondaryText', { text: name });
+    }, this);
     this.addComponent('button', {
       icon: 'remove',
       color: 'red',
