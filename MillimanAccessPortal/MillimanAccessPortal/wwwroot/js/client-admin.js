@@ -1,4 +1,4 @@
-/* global domainValRegex, emailValRegex, Card */
+/* global domainValRegex, emailValRegex, ClientCard, UserCard */
 
 var ajaxStatus = {
   getClientDetail: -1
@@ -475,7 +475,20 @@ function userCardRoleToggleClickHandler(event) {
  */
 function renderUserNode(client, user) {
   /* eslint-disable indent */
-  var $template = Card
+  var $card = new UserCard(
+    user.FirstName,
+    user.LastName,
+    user.UserName,
+    user.Email,
+    user.Id,
+    client.ClientEntity.Id,
+    user.UserRoles,
+    userCardRoleToggleClickHandler,
+    function (event) {
+      event.stopPropagation();
+      userCardRemoveClickHandler($(this).closest('.card-container'));
+    }
+  ).build();/*
     .newCard()
     .container(client.CanManage)
       .searchString([
@@ -498,18 +511,15 @@ function renderUserNode(client, user) {
     }))
     .sideButton('#action-icon-remove')
       .class('card-button-remove-user')
-      .click(function onClick(event) {
-        event.stopPropagation();
-        userCardRemoveClickHandler($(this).closest('.card-container'));
-      })
+      .click()
       .tooltip('Remove user')
     .expansion('user')
     .expansionLabel('User roles')
     .roleToggles(user.UserRoles)
-    .build();
+    .build(); */
   /* eslint-enable indent */
 
-  $('#client-user-list').append($template);
+  $('#client-user-list').append($card);
   updateUserRoleIndicator(user.Id, user.UserRoles);
 }
 
@@ -532,7 +542,7 @@ function renderUserList(client, userId) {
   if (userId) {
     $('[data-user-id="' + userId + '"]').click();
   }
-
+/*
   if (client.CanManage) {
     $('#add-user-icon').show();
     $('#client-user-list').append(Card.buildAddUser());
@@ -541,6 +551,7 @@ function renderUserList(client, userId) {
         addUserClickHandler();
       });
   }
+  */
 }
 
 /**
@@ -1015,9 +1026,26 @@ function cancelIconClickHandler() {
  * @return {undefined}
  */
 function renderClientNode(client, level) {
-  var classes = ['card-100', 'card-90', 'card-80'];
-  /* eslint-disable indent */
-  var $template = Card
+  var $card = new ClientCard(
+    client.ClientModel.ClientEntity.Name,
+    client.ClientModel.ClientEntity.ClientCode,
+    client.ClientModel.AssignedUsers.length,
+    client.ClientModel.ContentItems.length,
+    level,
+    function () { clientCardClickHandler($(this)); },
+    function (event) {
+      event.stopPropagation();
+      clientCardDeleteClickHandler($(this).closest('.card-container'));
+    },
+    function (event) {
+      event.stopPropagation();
+      clientCardEditClickHandler($(this).closest('.card-container'));
+    },
+    function (event) {
+      event.stopPropagation();
+      clientCardCreateNewChildClickHandler($(this).closest('.card-container'));
+    }
+  ).build();/*
     .newCard()
     .container(client.ClientModel.CanManage)
       .searchString([
@@ -1035,27 +1063,18 @@ function renderClientNode(client, level) {
     .sideButton('#action-icon-delete')
       .class('card-button-delete')
       .tooltip('Delete client')
-      .click(function onClick(event) {
-        event.stopPropagation();
-        clientCardDeleteClickHandler($(this).parents('div[data-client-id]'));
-      })
+      .click()
     .sideButton('#action-icon-edit')
       .class('card-button-edit')
       .tooltip('Edit client details')
-      .click(function onClick(event) {
-        event.stopPropagation();
-        clientCardEditClickHandler($(this).parents('div[data-client-id]'));
-      })
+      .click()
     .sideButton('#action-icon-add')
       .class('card-button-new-child')
       .tooltip('New sub-client')
-      .click(function onClick(event) {
-        event.stopPropagation();
-        clientCardCreateNewChildClickHandler($(this).parents('div[data-client-id]'));
-      })
-    .build();
+      .click()
+    .build(); */
   /* eslint-enable indent */
-
+  /*
   if (!client.ClientModel.CanManage) {
     $template.find('.card-button-side-container').remove();
     $template.find('.card-container').attr('disabled', '');
@@ -1070,15 +1089,13 @@ function renderClientNode(client, level) {
   if (level === 2) {
     $template.find('.card-button-new-child').remove();
   }
-
-  $('#client-tree-list').append($template);
+*/
+  $('#client-tree-list').append($card);
 
   // Render child nodes
-  if (client.Children.length) {
-    client.Children.forEach(function forEach(childNode) {
-      renderClientNode(childNode, level + 1);
-    });
-  }
+  client.Children.forEach(function (child) {
+    renderClientNode(child, level + 1);
+  });
 }
 
 /**
@@ -1094,10 +1111,6 @@ function renderClientTree(clientTreeList, clientId) {
     $clientTreeList.append('<li class="hr width-100pct"></li>');
   });
   $clientTreeList.find('.tooltip').tooltipster();
-  $clientTreeList.find('.card-container')
-    .click(function onClick() {
-      clientCardClickHandler($(this));
-    });
 
   // TODO: Consider applying this to other cards and buttons as well
   $clientTreeList.find('.card-container,.card-button-background')
@@ -1108,7 +1121,7 @@ function renderClientTree(clientTreeList, clientId) {
   if (clientId) {
     $('[data-client-id="' + clientId + '"]').click();
   }
-  if ($('#add-client-icon').length) {
+  if (false /* $('#add-client-icon').length */) {
     $clientTreeList.append(Card.buildNewClient());
     $('#create-new-client-card')
       .click(function onClick() {

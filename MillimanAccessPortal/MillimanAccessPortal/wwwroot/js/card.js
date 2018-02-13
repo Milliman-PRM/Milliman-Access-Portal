@@ -55,7 +55,7 @@ var UserCard;
         render: function (component) {
           return function (properties) {
             this.verify(component);
-            this.attr(component, { href: properties.icon }, '[href]');
+            this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
             this.html(component, properties.text, 'span');
           };
         }
@@ -74,7 +74,7 @@ var UserCard;
         render: function (component) {
           return function (properties) {
             this.verify(component);
-            this.attr(component, { href: properties.icon }, '[href]');
+            this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
             this.html(component, properties.text, 'span');
           };
         }
@@ -122,7 +122,7 @@ var UserCard;
         render: function (component) {
           return function (properties) {
             this.add(component);
-            this.attr(component, { href: properties.icon }, '[href]');
+            this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
             this.html(component, properties.value, '.card-stat-value');
             this.tooltip(component, properties.tooltip);
           };
@@ -142,7 +142,7 @@ var UserCard;
         render: function (component) {
           return function (properties) {
             this.add(component);
-            this.attr(component, { href: properties.icon }, '[href]');
+            this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
             this.addClass(component, 'card-button-' + properties.color);
             this.tooltip(component, properties.tooltip);
             this.click(component, properties.callback);
@@ -218,7 +218,8 @@ var UserCard;
         }
       },
       listItem: {
-        count: '*'
+        count: '*',
+        render: function () { return undefined; }
       }
     },
     {
@@ -449,8 +450,11 @@ var UserCard;
         });
       }
     });
-    this.attr('card', toAttr(this.data));
+    if (this.data) {
+      this.attr('card', toAttr(this.data));
+    }
     this.$representation.find('.card-container').click(this.callback);
+    this.$representation.find('stub').remove();
     return this.$representation;
   };
 
@@ -494,18 +498,41 @@ var UserCard;
 
 
   ClientCard = function (
-    clientName, clientCode, userCount, reportCount,
+    clientName, clientCode, userCount, reportCount, level,
     callback, deleteCallback, editCallback, newChildCallback
   ) {
     Card.call(this);
 
     this.addComponent('primaryText', { text: clientName });
     this.addComponent('secondaryText', { text: clientCode });
-    this.addComponent('statistic', { icon: 'user', value: userCount });
-    this.addComponent('statistic', { icon: '', value: reportCount });
-    this.addComponent('button', { icon: '', color: 'red', callback: deleteCallback });
-    this.addComponent('button', { icon: '', color: 'blue', callback: editCallback });
-    this.addComponent('button', { icon: '', color: 'green', callback: newChildCallback });
+    this.addComponent('statistic', {
+      icon: 'users',
+      value: userCount,
+      tooltip: 'Assigned users'
+    });
+    this.addComponent('statistic', {
+      icon: 'reports',
+      value: reportCount,
+      tooltip: 'Reports'
+    });
+    this.addComponent('button', {
+      icon: 'delete',
+      color: 'red',
+      tooltip: 'Delete client',
+      callback: deleteCallback
+    });
+    this.addComponent('button', {
+      icon: 'edit',
+      color: 'blue',
+      tooltip: 'Edit client',
+      callback: editCallback
+    });
+    this.addComponent('button', {
+      icon: 'add',
+      color: 'green',
+      tooltip: 'Add sub-client',
+      callback: newChildCallback
+    });
 
     this.setData({
       'search-string': [clientName, clientCode].join('|').toUpperCase(),
@@ -536,7 +563,7 @@ var UserCard;
     this.addComponent('primaryText', { text: names.pop() });
     names.forEach(function (name) {
       this.addComponent('secondaryText', { text: name });
-    });
+    }, this);
     this.addComponent('icon', { icon: 'user', class: 'card-user-icon' });
     this.addComponent('icon', { icon: 'add', class: 'card-user-role-indicator' });
     this.addComponent('button', {
@@ -556,7 +583,7 @@ var UserCard;
         checked: role.IsAssigned,
         callback: roleCallback
       });
-    });
+    }, this);
     this.setCallback(expandCollapse);
   };
   UserCard.prototype = Object.create(Card.prototype);
@@ -571,8 +598,8 @@ var UserCard;
 
   Card.prototype.tooltip = function (component, value, selector) {
     var $component = this.findComponent(component, selector);
-    $component.addClass(component, 'tooltip');
-    $component.attr(component, 'title', value);
+    $component.addClass('tooltip');
+    $component.attr('title', value);
   };
 
 
@@ -610,9 +637,9 @@ var UserCard;
     var newElement = path.pop();
     var prevSelector = this.verify(component, path);
     this.$representation
-      .find(prevSelector + ' > stub')
+      .find(prevSelector + 'stub')
       .replaceWith(components[newElement].html);
-    return prevSelector + ' ' + components[newElement].selector;
+    return prevSelector + components[newElement].selector;
   };
 
   Card.prototype.findComponent = function (component, selector) {
