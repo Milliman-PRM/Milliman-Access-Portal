@@ -90,8 +90,8 @@ $dbPassword = $env:db_deploy_password
 $appDbName = "appdb_$BranchName"
 $appDbTemplateName = "appdb_ci_template"
 $appDbOwner = "appdb_admin"
-$logDbName = "logdb_$BranchName"
-$logDbTemplateName = "logdb_ci_template"
+$logDbName = "auditlogdb_$BranchName"
+$logDbTemplateName = "auditlogdb_ci_template"
 $logDbOwner = "logdb_admin"
 $dbCreationRetries = 5 # The number of times the script will attempt to create a new database before throwing an error
 
