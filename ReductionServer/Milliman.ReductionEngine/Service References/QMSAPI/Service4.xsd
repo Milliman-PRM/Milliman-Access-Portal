@@ -1,171 +1,361 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/PIX" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/PIX" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <xs:import schemaLocation="http://indy-qvtest01:4720/QDS/Service?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
-  <xs:complexType name="ArrayOfFileSystemItem">
-    <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="FileSystemItem" nillable="true" type="tns:FileSystemItem" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="ArrayOfFileSystemItem" nillable="true" type="tns:ArrayOfFileSystemItem" />
-  <xs:complexType name="FileSystemItem">
-    <xs:sequence>
-      <xs:element ref="xs:schema" />
-      <xs:any />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="FileSystemItem" nillable="true" type="tns:FileSystemItem" />
-  <xs:complexType name="ArrayOfReport">
-    <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="Report" nillable="true" type="tns:Report" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="ArrayOfReport" nillable="true" type="tns:ArrayOfReport" />
-  <xs:complexType name="Report">
-    <xs:sequence>
-      <xs:element ref="xs:schema" />
-      <xs:any />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="Report" nillable="true" type="tns:Report" />
-  <xs:complexType name="EDXStatus">
-    <xs:sequence>
-      <xs:element ref="xs:schema" />
-      <xs:any />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="EDXStatus" nillable="true" type="tns:EDXStatus" />
-  <xs:complexType name="ArrayOfTaskStatus">
-    <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="TaskStatus" nillable="true" type="tns:TaskStatus" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="ArrayOfTaskStatus" nillable="true" type="tns:ArrayOfTaskStatus" />
-  <xs:complexType name="TaskStatus">
-    <xs:sequence>
-      <xs:element ref="xs:schema" />
-      <xs:any />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="TaskStatus" nillable="true" type="tns:TaskStatus" />
-  <xs:complexType name="ArrayOfTaskExecutionHistoryItem">
-    <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="TaskExecutionHistoryItem" nillable="true" type="tns:TaskExecutionHistoryItem" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="ArrayOfTaskExecutionHistoryItem" nillable="true" type="tns:ArrayOfTaskExecutionHistoryItem" />
-  <xs:complexType name="TaskExecutionHistoryItem">
-    <xs:sequence>
-      <xs:element ref="xs:schema" />
-      <xs:any />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="TaskExecutionHistoryItem" nillable="true" type="tns:TaskExecutionHistoryItem" />
-  <xs:complexType name="QDSInfo">
-    <xs:sequence>
-      <xs:element ref="xs:schema" />
-      <xs:any />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="QDSInfo" nillable="true" type="tns:QDSInfo" />
-  <xs:complexType name="ArrayOfTaskSummaryItem">
-    <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="TaskSummaryItem" nillable="true" type="tns:TaskSummaryItem" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="ArrayOfTaskSummaryItem" nillable="true" type="tns:ArrayOfTaskSummaryItem" />
-  <xs:complexType name="TaskSummaryItem">
-    <xs:sequence>
-      <xs:element ref="xs:schema" />
-      <xs:any />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="TaskSummaryItem" nillable="true" type="tns:TaskSummaryItem" />
-  <xs:simpleType name="eAuthenticationMethod">
+<xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import schemaLocation="http://indy-qvtest01:4799/QMS/Service?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+  <xs:simpleType name="DocumentDownloadAccess">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="All" />
+      <xs:enumeration value="Restricted" />
+      <xs:enumeration value="None" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="DocumentDownloadAccess" nillable="true" type="tns:DocumentDownloadAccess" />
+  <xs:simpleType name="QueryTarget">
     <xs:list>
       <xs:simpleType>
         <xs:restriction base="xs:string">
-          <xs:enumeration value="Anonymous">
+          <xs:enumeration value="Resource">
             <xs:annotation>
               <xs:appinfo>
                 <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">0</EnumerationValue>
               </xs:appinfo>
             </xs:annotation>
           </xs:enumeration>
-          <xs:enumeration value="UserNameAndPassword" />
-          <xs:enumeration value="UseQDSAccount" />
+          <xs:enumeration value="ClusterMember">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">1</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
         </xs:restriction>
       </xs:simpleType>
     </xs:list>
   </xs:simpleType>
-  <xs:element name="eAuthenticationMethod" nillable="true" type="tns:eAuthenticationMethod" />
-  <xs:simpleType name="eMailFormat">
+  <xs:element name="QueryTarget" nillable="true" type="tns:QueryTarget" />
+  <xs:simpleType name="QVWSAuthenticationType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Ntlm" />
+      <xs:enumeration value="Header" />
+      <xs:enumeration value="CustomUser" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="QVWSAuthenticationType" nillable="true" type="tns:QVWSAuthenticationType" />
+  <xs:simpleType name="LicenseType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Publisher">
+        <xs:annotation>
+          <xs:appinfo>
+            <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">1</EnumerationValue>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="QlikViewServer">
+        <xs:annotation>
+          <xs:appinfo>
+            <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">2</EnumerationValue>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="LicenseType" nillable="true" type="tns:LicenseType" />
+  <xs:simpleType name="QDSSettingsScope">
     <xs:list>
       <xs:simpleType>
         <xs:restriction base="xs:string">
-          <xs:enumeration value="Plain" />
-          <xs:enumeration value="Html" />
+          <xs:enumeration value="None">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">0</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="General">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">1</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="Email">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">2</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="Login">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">4</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="Advanced">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">8</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="All">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">65535</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
         </xs:restriction>
       </xs:simpleType>
     </xs:list>
   </xs:simpleType>
-  <xs:element name="eMailFormat" nillable="true" type="tns:eMailFormat" />
-  <xs:complexType name="ArrayOfTaskLogHistoryEntry">
-    <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="TaskLogHistoryEntry" nillable="true" type="tns:TaskLogHistoryEntry" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="ArrayOfTaskLogHistoryEntry" nillable="true" type="tns:ArrayOfTaskLogHistoryEntry" />
-  <xs:complexType name="TaskLogHistoryEntry">
-    <xs:sequence>
-      <xs:element ref="xs:schema" />
-      <xs:any />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="TaskLogHistoryEntry" nillable="true" type="tns:TaskLogHistoryEntry" />
-  <xs:complexType name="ArrayOfFSFolder">
-    <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="FSFolder" nillable="true" type="tns:FSFolder" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="ArrayOfFSFolder" nillable="true" type="tns:ArrayOfFSFolder" />
-  <xs:complexType name="FSFolder">
-    <xs:sequence>
-      <xs:element ref="xs:schema" />
-      <xs:any />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="FSFolder" nillable="true" type="tns:FSFolder" />
-  <xs:complexType name="ArrayOfFSComputer">
-    <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="FSComputer" nillable="true" type="tns:FSComputer" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="ArrayOfFSComputer" nillable="true" type="tns:ArrayOfFSComputer" />
-  <xs:complexType name="FSComputer">
-    <xs:sequence>
-      <xs:element ref="xs:schema" />
-      <xs:any />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="FSComputer" nillable="true" type="tns:FSComputer" />
-  <xs:complexType name="ArrayOfFsFile">
-    <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="FsFile" nillable="true" type="tns:FsFile" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="ArrayOfFsFile" nillable="true" type="tns:ArrayOfFsFile" />
-  <xs:complexType name="FsFile">
-    <xs:sequence>
-      <xs:element ref="xs:schema" />
-      <xs:any />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="FsFile" nillable="true" type="tns:FsFile" />
-  <xs:complexType name="ComponentInfo">
-    <xs:sequence>
-      <xs:element ref="xs:schema" />
-      <xs:any />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:element name="ComponentInfo" nillable="true" type="tns:ComponentInfo" />
+  <xs:element name="QDSSettingsScope" nillable="true" type="tns:QDSSettingsScope" />
+  <xs:simpleType name="CPUPriority">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="High" />
+      <xs:enumeration value="Normal" />
+      <xs:enumeration value="Low" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="CPUPriority" nillable="true" type="tns:CPUPriority" />
+  <xs:simpleType name="LogLevel">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="None" />
+      <xs:enumeration value="Normal" />
+      <xs:enumeration value="Debug" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="LogLevel" nillable="true" type="tns:LogLevel" />
+  <xs:simpleType name="CategoriesScope">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="All" />
+      <xs:enumeration value="Used" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="CategoriesScope" nillable="true" type="tns:CategoriesScope" />
+  <xs:simpleType name="ServiceStatusFlag">
+    <xs:list>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="None">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">0</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="OK">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">1</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="OffDuty">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">2</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="CouldNotContact">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">4</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="RestartNeeded">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">8</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="Unlicensed">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">16</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="QVPRUnavailable">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">32</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="StartupFailed">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">64</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="LEFInvalid">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">128</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="Initializing">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">256</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="ManyQMS">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">512</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="GracefulStop">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">1024</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:list>
+  </xs:simpleType>
+  <xs:element name="ServiceStatusFlag" nillable="true" type="tns:ServiceStatusFlag" />
+  <xs:simpleType name="ServiceComposition">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Single">
+        <xs:annotation>
+          <xs:appinfo>
+            <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">1</EnumerationValue>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="Cluster">
+        <xs:annotation>
+          <xs:appinfo>
+            <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">2</EnumerationValue>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="ServiceComposition" nillable="true" type="tns:ServiceComposition" />
+  <xs:simpleType name="EnabledState">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Any" />
+      <xs:enumeration value="Enabled" />
+      <xs:enumeration value="Disabled" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="EnabledState" nillable="true" type="tns:EnabledState" />
+  <xs:simpleType name="SectionAccessScope">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="None" />
+      <xs:enumeration value="IncludeColumns" />
+      <xs:enumeration value="IncludeData" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="SectionAccessScope" nillable="true" type="tns:SectionAccessScope" />
+  <xs:simpleType name="DocumentState">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="NoAttemptToOpenHasBeenMade">
+        <xs:annotation>
+          <xs:appinfo>
+            <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">1</EnumerationValue>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="OpenedSuccessfully">
+        <xs:annotation>
+          <xs:appinfo>
+            <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">2</EnumerationValue>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CouldNotOpenDocument">
+        <xs:annotation>
+          <xs:appinfo>
+            <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">3</EnumerationValue>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CouldNotGetSlot">
+        <xs:annotation>
+          <xs:appinfo>
+            <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">4</EnumerationValue>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="Closed">
+        <xs:annotation>
+          <xs:appinfo>
+            <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">5</EnumerationValue>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="OtherError">
+        <xs:annotation>
+          <xs:appinfo>
+            <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">6</EnumerationValue>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="DocumentState" nillable="true" type="tns:DocumentState" />
+  <xs:simpleType name="FieldValueState">
+    <xs:list>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="InternalUnknown" />
+          <xs:enumeration value="Selected" />
+          <xs:enumeration value="Optional" />
+          <xs:enumeration value="Excluded" />
+          <xs:enumeration value="Locked" />
+          <xs:enumeration value="Alternative" />
+          <xs:enumeration value="Deselected" />
+          <xs:enumeration value="InternalSelectedExcluded">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">10</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="All">
+            <xs:annotation>
+              <xs:appinfo>
+                <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">127</EnumerationValue>
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:list>
+  </xs:simpleType>
+  <xs:element name="FieldValueState" nillable="true" type="tns:FieldValueState" />
+  <xs:simpleType name="FieldContentType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="All" />
+      <xs:enumeration value="CurrentSelections" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="FieldContentType" nillable="true" type="tns:FieldContentType" />
+  <xs:simpleType name="DocumentClearOptions">
+    <xs:list>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="UnlockAll" />
+          <xs:enumeration value="ClearSelectionsWithUnlockBefore" />
+          <xs:enumeration value="ClearSelections" />
+          <xs:enumeration value="ClearAllOneAndAlwaysOne" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:list>
+  </xs:simpleType>
+  <xs:element name="DocumentClearOptions" nillable="true" type="tns:DocumentClearOptions" />
 </xs:schema>

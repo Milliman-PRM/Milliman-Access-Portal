@@ -1,745 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
-<wsdl:definitions xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="http://ws.qliktech.com/QDS/12/" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://ws.qliktech.com/QDS/12/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+<wsdl:definitions xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="http://ws.qliktech.com/ANY/12/2/" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://ws.qliktech.com/ANY/12/2/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
   <wsdl:types>
-    <xsd:schema targetNamespace="http://ws.qliktech.com/QDS/12/Imports">
-      <xsd:import schemaLocation="http://indy-qvtest01:4720/QDS/Service?xsd=xsd0" namespace="http://ws.qliktech.com/QDS/12/" />
-      <xsd:import schemaLocation="http://indy-qvtest01:4720/QDS/Service?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/System" />
-      <xsd:import schemaLocation="http://indy-qvtest01:4720/QDS/Service?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
-      <xsd:import schemaLocation="http://indy-qvtest01:4720/QDS/Service?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/PIX" />
-      <xsd:import schemaLocation="http://indy-qvtest01:4720/QDS/Service?xsd=xsd4" namespace="http://schemas.datacontract.org/2004/07/PIX.Document" />
-      <xsd:import schemaLocation="http://indy-qvtest01:4720/QDS/Service?xsd=xsd5" namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
-      <xsd:import schemaLocation="http://indy-qvtest01:4720/QDS/Service?xsd=xsd6" namespace="http://schemas.datacontract.org/2004/07/SolutionGlobal.Logging" />
-      <xsd:import schemaLocation="http://indy-qvtest01:4720/QDS/Service?xsd=xsd7" namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects" />
+    <xsd:schema targetNamespace="http://ws.qliktech.com/ANY/12/2/Imports">
+      <xsd:import schemaLocation="http://indy-qvtest01:4799/QMS/Service?xsd=xsd14" namespace="http://ws.qliktech.com/ANY/12/2/" />
+      <xsd:import schemaLocation="http://indy-qvtest01:4799/QMS/Service?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/System" />
+      <xsd:import schemaLocation="http://indy-qvtest01:4799/QMS/Service?xsd=xsd0" namespace="http://ws.qliktech.com/QMS/11/" />
+      <xsd:import schemaLocation="http://indy-qvtest01:4799/QMS/Service?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+      <xsd:import schemaLocation="http://indy-qvtest01:4799/QMS/Service?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects" />
+      <xsd:import schemaLocation="http://indy-qvtest01:4799/QMS/Service?xsd=xsd4" namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+      <xsd:import schemaLocation="http://indy-qvtest01:4799/QMS/Service?xsd=xsd5" namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.CALs" />
+      <xsd:import schemaLocation="http://indy-qvtest01:4799/QMS/Service?xsd=xsd6" namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Enums" />
+      <xsd:import schemaLocation="http://indy-qvtest01:4799/QMS/Service?xsd=xsd7" namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Triggers" />
+      <xsd:import schemaLocation="http://indy-qvtest01:4799/QMS/Service?xsd=xsd8" namespace="http://schemas.datacontract.org/2004/07/PIX.QMSAPI.DataObjects.Document" />
+      <xsd:import schemaLocation="http://indy-qvtest01:4799/QMS/Service?xsd=xsd9" namespace="http://ws.qliktech.com/QMS/12/" />
+      <xsd:import schemaLocation="http://indy-qvtest01:4799/QMS/Service?xsd=xsd10" namespace="http://ws.qliktech.com/QMS/12/2/" />
+      <xsd:import schemaLocation="http://indy-qvtest01:4799/QMS/Service?xsd=xsd11" namespace="http://schemas.datacontract.org/2004/07/PIX" />
+      <xsd:import schemaLocation="http://indy-qvtest01:4799/QMS/Service?xsd=xsd12" namespace="http://ws.qliktech.com/ANY/11/" />
+      <xsd:import schemaLocation="http://indy-qvtest01:4799/QMS/Service?xsd=xsd13" namespace="http://ws.qliktech.com/ANY/12/" />
     </xsd:schema>
   </wsdl:types>
-  <wsdl:message name="IQDS_GetDirectoryListing_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetDirectoryListing" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetDirectoryListing_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetDirectoryListingResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetDirectoryListing_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q1="http://schemas.datacontract.org/2004/07/System" name="detail" element="q1:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetSourceDocuments_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetSourceDocuments" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetSourceDocuments_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetSourceDocumentsResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetSourceDocuments_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q2="http://schemas.datacontract.org/2004/07/System" name="detail" element="q2:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetInvalidSourceDocuments_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetInvalidSourceDocuments" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetInvalidSourceDocuments_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetInvalidSourceDocumentsResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetInvalidSourceDocuments_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q3="http://schemas.datacontract.org/2004/07/System" name="detail" element="q3:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetApplicationDataFolder_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetApplicationDataFolder" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetApplicationDataFolder_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetApplicationDataFolderResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetApplicationDataFolder_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q4="http://schemas.datacontract.org/2004/07/System" name="detail" element="q4:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetDocumentBookmarkNames_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetDocumentBookmarkNames" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetDocumentBookmarkNames_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetDocumentBookmarkNamesResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetDocumentBookmarkNames_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q5="http://schemas.datacontract.org/2004/07/System" name="detail" element="q5:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_CreateSession_InputMessage">
-    <wsdl:part name="parameters" element="tns:CreateSession" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_CreateSession_OutputMessage">
-    <wsdl:part name="parameters" element="tns:CreateSessionResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_CreateSession_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q6="http://schemas.datacontract.org/2004/07/System" name="detail" element="q6:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_CloseSession_InputMessage">
-    <wsdl:part name="parameters" element="tns:CloseSession" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_CloseSession_OutputMessage">
-    <wsdl:part name="parameters" element="tns:CloseSessionResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_CloseSession_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q7="http://schemas.datacontract.org/2004/07/System" name="detail" element="q7:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_CloseAllSessions_InputMessage">
-    <wsdl:part name="parameters" element="tns:CloseAllSessions" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_CloseAllSessions_OutputMessage">
-    <wsdl:part name="parameters" element="tns:CloseAllSessionsResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_CloseAllSessions_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q8="http://schemas.datacontract.org/2004/07/System" name="detail" element="q8:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetFieldList_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetFieldList" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetFieldList_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetFieldListResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetFieldList_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q9="http://schemas.datacontract.org/2004/07/System" name="detail" element="q9:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetFieldContentList_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetFieldContentList" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetFieldContentList_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetFieldContentListResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetFieldContentList_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q10="http://schemas.datacontract.org/2004/07/System" name="detail" element="q10:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_AddSelections_InputMessage">
-    <wsdl:part name="parameters" element="tns:AddSelections" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_AddSelections_OutputMessage">
-    <wsdl:part name="parameters" element="tns:AddSelectionsResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_AddSelections_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q11="http://schemas.datacontract.org/2004/07/System" name="detail" element="q11:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_ClearSelections_InputMessage">
-    <wsdl:part name="parameters" element="tns:ClearSelections" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_ClearSelections_OutputMessage">
-    <wsdl:part name="parameters" element="tns:ClearSelectionsResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_ClearSelections_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q12="http://schemas.datacontract.org/2004/07/System" name="detail" element="q12:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetReports_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetReports" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetReports_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetReportsResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetReports_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q13="http://schemas.datacontract.org/2004/07/System" name="detail" element="q13:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetDocumentInfo_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetDocumentInfo" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetDocumentInfo_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetDocumentInfoResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetDocumentInfo_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q14="http://schemas.datacontract.org/2004/07/System" name="detail" element="q14:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_RunTask_InputMessage">
-    <wsdl:part name="parameters" element="tns:RunTask" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_RunTask_OutputMessage">
-    <wsdl:part name="parameters" element="tns:RunTaskResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_RunTask_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q15="http://schemas.datacontract.org/2004/07/System" name="detail" element="q15:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetEDXStatus_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetEDXStatus" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetEDXStatus_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetEDXStatusResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetEDXStatus_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q16="http://schemas.datacontract.org/2004/07/System" name="detail" element="q16:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_StartEDX_InputMessage">
-    <wsdl:part name="parameters" element="tns:StartEDX" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_StartEDX_OutputMessage">
-    <wsdl:part name="parameters" element="tns:StartEDXResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_StartEDX_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q17="http://schemas.datacontract.org/2004/07/System" name="detail" element="q17:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_AbortTask_InputMessage">
-    <wsdl:part name="parameters" element="tns:AbortTask" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_AbortTask_OutputMessage">
-    <wsdl:part name="parameters" element="tns:AbortTaskResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_AbortTask_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q18="http://schemas.datacontract.org/2004/07/System" name="detail" element="q18:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskStatuses_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetTaskStatuses" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskStatuses_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetTaskStatusesResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskStatuses_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q19="http://schemas.datacontract.org/2004/07/System" name="detail" element="q19:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskStatusesById_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetTaskStatusesById" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskStatusesById_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetTaskStatusesByIdResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskStatusesById_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q20="http://schemas.datacontract.org/2004/07/System" name="detail" element="q20:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskStatusesModifiedSince_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetTaskStatusesModifiedSince" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskStatusesModifiedSince_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetTaskStatusesModifiedSinceResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskStatusesModifiedSince_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q21="http://schemas.datacontract.org/2004/07/System" name="detail" element="q21:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskStatus_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetTaskStatus" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskStatus_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetTaskStatusResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskStatus_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q22="http://schemas.datacontract.org/2004/07/System" name="detail" element="q22:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskExecutionHistory_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetTaskExecutionHistory" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskExecutionHistory_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetTaskExecutionHistoryResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskExecutionHistory_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q23="http://schemas.datacontract.org/2004/07/System" name="detail" element="q23:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetAvgExecutionTimeForSuccessfullExecutions_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetAvgExecutionTimeForSuccessfullExecutions" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetAvgExecutionTimeForSuccessfullExecutions_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetAvgExecutionTimeForSuccessfullExecutionsResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetAvgExecutionTimeForSuccessfullExecutions_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q24="http://schemas.datacontract.org/2004/07/System" name="detail" element="q24:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskStatusForDocument_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetTaskStatusForDocument" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskStatusForDocument_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetTaskStatusForDocumentResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskStatusForDocument_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q25="http://schemas.datacontract.org/2004/07/System" name="detail" element="q25:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_ReloadDocument_InputMessage">
-    <wsdl:part name="parameters" element="tns:ReloadDocument" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_ReloadDocument_OutputMessage">
-    <wsdl:part name="parameters" element="tns:ReloadDocumentResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_ReloadDocument_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q26="http://schemas.datacontract.org/2004/07/System" name="detail" element="q26:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_AbortDocument_InputMessage">
-    <wsdl:part name="parameters" element="tns:AbortDocument" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_AbortDocument_OutputMessage">
-    <wsdl:part name="parameters" element="tns:AbortDocumentResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_AbortDocument_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q27="http://schemas.datacontract.org/2004/07/System" name="detail" element="q27:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetQDSInfo_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetQDSInfo" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetQDSInfo_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetQDSInfoResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetQDSInfo_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q28="http://schemas.datacontract.org/2004/07/System" name="detail" element="q28:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_SaveTask_InputMessage">
-    <wsdl:part name="parameters" element="tns:SaveTask" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_SaveTask_OutputMessage">
-    <wsdl:part name="parameters" element="tns:SaveTaskResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_SaveTask_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q29="http://schemas.datacontract.org/2004/07/System" name="detail" element="q29:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_BeginSaveTasks_InputMessage">
-    <wsdl:part name="parameters" element="tns:BeginSaveTasks" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_BeginSaveTasks_OutputMessage">
-    <wsdl:part name="parameters" element="tns:BeginSaveTasksResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_BeginSaveTasks_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q30="http://schemas.datacontract.org/2004/07/System" name="detail" element="q30:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_SaveTasks_InputMessage">
-    <wsdl:part name="parameters" element="tns:SaveTasks" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_SaveTasks_OutputMessage">
-    <wsdl:part name="parameters" element="tns:SaveTasksResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_SaveTasks_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q31="http://schemas.datacontract.org/2004/07/System" name="detail" element="q31:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_EndSaveTasks_InputMessage">
-    <wsdl:part name="parameters" element="tns:EndSaveTasks" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_EndSaveTasks_OutputMessage">
-    <wsdl:part name="parameters" element="tns:EndSaveTasksResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_EndSaveTasks_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q32="http://schemas.datacontract.org/2004/07/System" name="detail" element="q32:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_DeleteTask_InputMessage">
-    <wsdl:part name="parameters" element="tns:DeleteTask" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_DeleteTask_OutputMessage">
-    <wsdl:part name="parameters" element="tns:DeleteTaskResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_DeleteTask_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q33="http://schemas.datacontract.org/2004/07/System" name="detail" element="q33:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_SaveConfiguration_InputMessage">
-    <wsdl:part name="parameters" element="tns:SaveConfiguration" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_SaveConfiguration_OutputMessage">
-    <wsdl:part name="parameters" element="tns:SaveConfigurationResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_SaveConfiguration_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q34="http://schemas.datacontract.org/2004/07/System" name="detail" element="q34:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_RemoveQdsByMachineName_InputMessage">
-    <wsdl:part name="parameters" element="tns:RemoveQdsByMachineName" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_RemoveQdsByMachineName_OutputMessage">
-    <wsdl:part name="parameters" element="tns:RemoveQdsByMachineNameResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_RemoveQdsByMachineName_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q35="http://schemas.datacontract.org/2004/07/System" name="detail" element="q35:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_HelloWorld_InputMessage">
-    <wsdl:part name="parameters" element="tns:HelloWorld" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_HelloWorld_OutputMessage">
-    <wsdl:part name="parameters" element="tns:HelloWorldResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_HelloWorld_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q36="http://schemas.datacontract.org/2004/07/System" name="detail" element="q36:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_SendTestMail_InputMessage">
-    <wsdl:part name="parameters" element="tns:SendTestMail" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_SendTestMail_OutputMessage">
-    <wsdl:part name="parameters" element="tns:SendTestMailResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_SendTestMail_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q37="http://schemas.datacontract.org/2004/07/System" name="detail" element="q37:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_DoesStandardEditionScheduleListXMLExist_InputMessage">
-    <wsdl:part name="parameters" element="tns:DoesStandardEditionScheduleListXMLExist" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_DoesStandardEditionScheduleListXMLExist_OutputMessage">
-    <wsdl:part name="parameters" element="tns:DoesStandardEditionScheduleListXMLExistResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_DoesStandardEditionScheduleListXMLExist_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q38="http://schemas.datacontract.org/2004/07/System" name="detail" element="q38:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetStandardEditionScheduleListXML_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetStandardEditionScheduleListXML" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetStandardEditionScheduleListXML_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetStandardEditionScheduleListXMLResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetStandardEditionScheduleListXML_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q39="http://schemas.datacontract.org/2004/07/System" name="detail" element="q39:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_DeleteStandardEditionScheduleListXML_InputMessage">
-    <wsdl:part name="parameters" element="tns:DeleteStandardEditionScheduleListXML" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_DeleteStandardEditionScheduleListXML_OutputMessage">
-    <wsdl:part name="parameters" element="tns:DeleteStandardEditionScheduleListXMLResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_DeleteStandardEditionScheduleListXML_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q40="http://schemas.datacontract.org/2004/07/System" name="detail" element="q40:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetLatestTaskLog_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetLatestTaskLog" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetLatestTaskLog_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetLatestTaskLogResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetLatestTaskLog_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q41="http://schemas.datacontract.org/2004/07/System" name="detail" element="q41:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskLog_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetTaskLog" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskLog_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetTaskLogResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskLog_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q42="http://schemas.datacontract.org/2004/07/System" name="detail" element="q42:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskLogHistory_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetTaskLogHistory" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskLogHistory_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetTaskLogHistoryResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetTaskLogHistory_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q43="http://schemas.datacontract.org/2004/07/System" name="detail" element="q43:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetMyComputer_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetMyComputer" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetMyComputer_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetMyComputerResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetMyComputer_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q44="http://schemas.datacontract.org/2004/07/System" name="detail" element="q44:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetMyNetworkPlaces_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetMyNetworkPlaces" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetMyNetworkPlaces_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetMyNetworkPlacesResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetMyNetworkPlaces_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q45="http://schemas.datacontract.org/2004/07/System" name="detail" element="q45:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetShares_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetShares" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetShares_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetSharesResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetShares_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q46="http://schemas.datacontract.org/2004/07/System" name="detail" element="q46:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetFileSystemItems_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetFileSystemItems" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetFileSystemItems_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetFileSystemItemsResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetFileSystemItems_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q47="http://schemas.datacontract.org/2004/07/System" name="detail" element="q47:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetFiles_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetFiles" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetFiles_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetFilesResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_GetFiles_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q48="http://schemas.datacontract.org/2004/07/System" name="detail" element="q48:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_Ping_InputMessage">
+  <wsdl:message name="IQTService2_Ping_InputMessage">
     <wsdl:part name="parameters" element="tns:Ping" />
   </wsdl:message>
-  <wsdl:message name="IQDS_Ping_OutputMessage">
+  <wsdl:message name="IQTService2_Ping_OutputMessage">
     <wsdl:part name="parameters" element="tns:PingResponse" />
   </wsdl:message>
-  <wsdl:message name="IQDS_Ping_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q49="http://schemas.datacontract.org/2004/07/System" name="detail" element="q49:Exception" />
+  <wsdl:message name="IQTService2_Ping_ExceptionFault_FaultMessage">
+    <wsdl:part xmlns:q1="http://schemas.datacontract.org/2004/07/System" name="detail" element="q1:Exception" />
   </wsdl:message>
-  <wsdl:message name="IQDS_QMSPing_InputMessage">
+  <wsdl:message name="IQTService2_GetKey_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetKey" />
+  </wsdl:message>
+  <wsdl:message name="IQTService2_GetKey_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetKeyResponse" />
+  </wsdl:message>
+  <wsdl:message name="IQTService2_GetKey_ExceptionFault_FaultMessage">
+    <wsdl:part xmlns:q2="http://schemas.datacontract.org/2004/07/System" name="detail" element="q2:Exception" />
+  </wsdl:message>
+  <wsdl:message name="IQTService2_GetTimeLimitedRequestKey_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetTimeLimitedRequestKey" />
+  </wsdl:message>
+  <wsdl:message name="IQTService2_GetTimeLimitedRequestKey_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetTimeLimitedRequestKeyResponse" />
+  </wsdl:message>
+  <wsdl:message name="IQTService2_GetTimeLimitedRequestKey_ExceptionFault_FaultMessage">
+    <wsdl:part xmlns:q3="http://schemas.datacontract.org/2004/07/System" name="detail" element="q3:Exception" />
+  </wsdl:message>
+  <wsdl:message name="IQTService2_GetSystemInformation_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetSystemInformation" />
+  </wsdl:message>
+  <wsdl:message name="IQTService2_GetSystemInformation_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetSystemInformationResponse" />
+  </wsdl:message>
+  <wsdl:message name="IQTService2_GetSystemInformation_ExceptionFault_FaultMessage">
+    <wsdl:part xmlns:q4="http://schemas.datacontract.org/2004/07/System" name="detail" element="q4:Exception" />
+  </wsdl:message>
+  <wsdl:message name="IQTService2_QMSPing_InputMessage">
     <wsdl:part name="parameters" element="tns:QMSPing" />
   </wsdl:message>
-  <wsdl:message name="IQDS_QMSPing_OutputMessage">
+  <wsdl:message name="IQTService2_QMSPing_OutputMessage">
     <wsdl:part name="parameters" element="tns:QMSPingResponse" />
   </wsdl:message>
-  <wsdl:message name="IQDS_QMSPing_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q50="http://schemas.datacontract.org/2004/07/System" name="detail" element="q50:Exception" />
+  <wsdl:message name="IQTService2_QMSPing_ExceptionFault_FaultMessage">
+    <wsdl:part xmlns:q5="http://schemas.datacontract.org/2004/07/System" name="detail" element="q5:Exception" />
   </wsdl:message>
-  <wsdl:message name="IQDS_StopService_InputMessage">
-    <wsdl:part name="parameters" element="tns:StopService" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_StopService_OutputMessage">
-    <wsdl:part name="parameters" element="tns:StopServiceResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_StopService_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q51="http://schemas.datacontract.org/2004/07/System" name="detail" element="q51:Exception" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_SetNewWorkorder_InputMessage">
-    <wsdl:part name="parameters" element="tns:SetNewWorkorder" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_SetNewWorkorder_OutputMessage">
-    <wsdl:part name="parameters" element="tns:SetNewWorkorderResponse" />
-  </wsdl:message>
-  <wsdl:message name="IQDS_SetNewWorkorder_ExceptionFault_FaultMessage">
-    <wsdl:part xmlns:q52="http://schemas.datacontract.org/2004/07/System" name="detail" element="q52:Exception" />
-  </wsdl:message>
-  <wsdl:portType name="IQDS">
-    <wsdl:operation name="GetDirectoryListing">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetDirectoryListing" message="tns:IQDS_GetDirectoryListing_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetDirectoryListingResponse" message="tns:IQDS_GetDirectoryListing_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetDirectoryListingExceptionFault" name="ExceptionFault" message="tns:IQDS_GetDirectoryListing_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetSourceDocuments">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetSourceDocuments" message="tns:IQDS_GetSourceDocuments_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetSourceDocumentsResponse" message="tns:IQDS_GetSourceDocuments_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetSourceDocumentsExceptionFault" name="ExceptionFault" message="tns:IQDS_GetSourceDocuments_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetInvalidSourceDocuments">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetInvalidSourceDocuments" message="tns:IQDS_GetInvalidSourceDocuments_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetInvalidSourceDocumentsResponse" message="tns:IQDS_GetInvalidSourceDocuments_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetInvalidSourceDocumentsExceptionFault" name="ExceptionFault" message="tns:IQDS_GetInvalidSourceDocuments_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetApplicationDataFolder">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetApplicationDataFolder" message="tns:IQDS_GetApplicationDataFolder_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetApplicationDataFolderResponse" message="tns:IQDS_GetApplicationDataFolder_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetApplicationDataFolderExceptionFault" name="ExceptionFault" message="tns:IQDS_GetApplicationDataFolder_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetDocumentBookmarkNames">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetDocumentBookmarkNames" message="tns:IQDS_GetDocumentBookmarkNames_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetDocumentBookmarkNamesResponse" message="tns:IQDS_GetDocumentBookmarkNames_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetDocumentBookmarkNamesExceptionFault" name="ExceptionFault" message="tns:IQDS_GetDocumentBookmarkNames_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="CreateSession">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/CreateSession" message="tns:IQDS_CreateSession_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/CreateSessionResponse" message="tns:IQDS_CreateSession_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/CreateSessionExceptionFault" name="ExceptionFault" message="tns:IQDS_CreateSession_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="CloseSession">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/CloseSession" message="tns:IQDS_CloseSession_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/CloseSessionResponse" message="tns:IQDS_CloseSession_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/CloseSessionExceptionFault" name="ExceptionFault" message="tns:IQDS_CloseSession_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="CloseAllSessions">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/CloseAllSessions" message="tns:IQDS_CloseAllSessions_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/CloseAllSessionsResponse" message="tns:IQDS_CloseAllSessions_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/CloseAllSessionsExceptionFault" name="ExceptionFault" message="tns:IQDS_CloseAllSessions_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetFieldList">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetFieldList" message="tns:IQDS_GetFieldList_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetFieldListResponse" message="tns:IQDS_GetFieldList_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetFieldListExceptionFault" name="ExceptionFault" message="tns:IQDS_GetFieldList_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetFieldContentList">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetFieldContentList" message="tns:IQDS_GetFieldContentList_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetFieldContentListResponse" message="tns:IQDS_GetFieldContentList_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetFieldContentListExceptionFault" name="ExceptionFault" message="tns:IQDS_GetFieldContentList_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="AddSelections">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/AddSelections" message="tns:IQDS_AddSelections_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/AddSelectionsResponse" message="tns:IQDS_AddSelections_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/AddSelectionsExceptionFault" name="ExceptionFault" message="tns:IQDS_AddSelections_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="ClearSelections">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/ClearSelections" message="tns:IQDS_ClearSelections_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/ClearSelectionsResponse" message="tns:IQDS_ClearSelections_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/ClearSelectionsExceptionFault" name="ExceptionFault" message="tns:IQDS_ClearSelections_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetReports">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetReports" message="tns:IQDS_GetReports_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetReportsResponse" message="tns:IQDS_GetReports_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetReportsExceptionFault" name="ExceptionFault" message="tns:IQDS_GetReports_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetDocumentInfo">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetDocumentInfo" message="tns:IQDS_GetDocumentInfo_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetDocumentInfoResponse" message="tns:IQDS_GetDocumentInfo_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetDocumentInfoExceptionFault" name="ExceptionFault" message="tns:IQDS_GetDocumentInfo_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="RunTask">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/RunTask" message="tns:IQDS_RunTask_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/RunTaskResponse" message="tns:IQDS_RunTask_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/RunTaskExceptionFault" name="ExceptionFault" message="tns:IQDS_RunTask_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetEDXStatus">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetEDXStatus" message="tns:IQDS_GetEDXStatus_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetEDXStatusResponse" message="tns:IQDS_GetEDXStatus_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetEDXStatusExceptionFault" name="ExceptionFault" message="tns:IQDS_GetEDXStatus_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="StartEDX">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/StartEDX" message="tns:IQDS_StartEDX_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/StartEDXResponse" message="tns:IQDS_StartEDX_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/StartEDXExceptionFault" name="ExceptionFault" message="tns:IQDS_StartEDX_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="AbortTask">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/AbortTask" message="tns:IQDS_AbortTask_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/AbortTaskResponse" message="tns:IQDS_AbortTask_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/AbortTaskExceptionFault" name="ExceptionFault" message="tns:IQDS_AbortTask_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetTaskStatuses">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskStatuses" message="tns:IQDS_GetTaskStatuses_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskStatusesResponse" message="tns:IQDS_GetTaskStatuses_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskStatusesExceptionFault" name="ExceptionFault" message="tns:IQDS_GetTaskStatuses_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetTaskStatusesById">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskStatusesById" message="tns:IQDS_GetTaskStatusesById_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskStatusesByIdResponse" message="tns:IQDS_GetTaskStatusesById_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskStatusesByIdExceptionFault" name="ExceptionFault" message="tns:IQDS_GetTaskStatusesById_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetTaskStatusesModifiedSince">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskStatusesModifiedSince" message="tns:IQDS_GetTaskStatusesModifiedSince_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskStatusesModifiedSinceResponse" message="tns:IQDS_GetTaskStatusesModifiedSince_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskStatusesModifiedSinceExceptionFault" name="ExceptionFault" message="tns:IQDS_GetTaskStatusesModifiedSince_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetTaskStatus">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskStatus" message="tns:IQDS_GetTaskStatus_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskStatusResponse" message="tns:IQDS_GetTaskStatus_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskStatusExceptionFault" name="ExceptionFault" message="tns:IQDS_GetTaskStatus_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetTaskExecutionHistory">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskExecutionHistory" message="tns:IQDS_GetTaskExecutionHistory_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskExecutionHistoryResponse" message="tns:IQDS_GetTaskExecutionHistory_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskExecutionHistoryExceptionFault" name="ExceptionFault" message="tns:IQDS_GetTaskExecutionHistory_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetAvgExecutionTimeForSuccessfullExecutions">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetAvgExecutionTimeForSuccessfullExecutions" message="tns:IQDS_GetAvgExecutionTimeForSuccessfullExecutions_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetAvgExecutionTimeForSuccessfullExecutionsResponse" message="tns:IQDS_GetAvgExecutionTimeForSuccessfullExecutions_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetAvgExecutionTimeForSuccessfullExecutionsExceptionFault" name="ExceptionFault" message="tns:IQDS_GetAvgExecutionTimeForSuccessfullExecutions_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetTaskStatusForDocument">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskStatusForDocument" message="tns:IQDS_GetTaskStatusForDocument_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskStatusForDocumentResponse" message="tns:IQDS_GetTaskStatusForDocument_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskStatusForDocumentExceptionFault" name="ExceptionFault" message="tns:IQDS_GetTaskStatusForDocument_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="ReloadDocument">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/ReloadDocument" message="tns:IQDS_ReloadDocument_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/ReloadDocumentResponse" message="tns:IQDS_ReloadDocument_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/ReloadDocumentExceptionFault" name="ExceptionFault" message="tns:IQDS_ReloadDocument_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="AbortDocument">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/AbortDocument" message="tns:IQDS_AbortDocument_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/AbortDocumentResponse" message="tns:IQDS_AbortDocument_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/AbortDocumentExceptionFault" name="ExceptionFault" message="tns:IQDS_AbortDocument_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetQDSInfo">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetQDSInfo" message="tns:IQDS_GetQDSInfo_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetQDSInfoResponse" message="tns:IQDS_GetQDSInfo_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetQDSInfoExceptionFault" name="ExceptionFault" message="tns:IQDS_GetQDSInfo_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="SaveTask">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/SaveTask" message="tns:IQDS_SaveTask_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/SaveTaskResponse" message="tns:IQDS_SaveTask_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/SaveTaskExceptionFault" name="ExceptionFault" message="tns:IQDS_SaveTask_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="BeginSaveTasks">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/BeginSaveTasks" message="tns:IQDS_BeginSaveTasks_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/BeginSaveTasksResponse" message="tns:IQDS_BeginSaveTasks_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/BeginSaveTasksExceptionFault" name="ExceptionFault" message="tns:IQDS_BeginSaveTasks_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="SaveTasks">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/SaveTasks" message="tns:IQDS_SaveTasks_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/SaveTasksResponse" message="tns:IQDS_SaveTasks_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/SaveTasksExceptionFault" name="ExceptionFault" message="tns:IQDS_SaveTasks_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="EndSaveTasks">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/EndSaveTasks" message="tns:IQDS_EndSaveTasks_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/EndSaveTasksResponse" message="tns:IQDS_EndSaveTasks_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/EndSaveTasksExceptionFault" name="ExceptionFault" message="tns:IQDS_EndSaveTasks_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="DeleteTask">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/DeleteTask" message="tns:IQDS_DeleteTask_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/DeleteTaskResponse" message="tns:IQDS_DeleteTask_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/DeleteTaskExceptionFault" name="ExceptionFault" message="tns:IQDS_DeleteTask_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="SaveConfiguration">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/SaveConfiguration" message="tns:IQDS_SaveConfiguration_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/SaveConfigurationResponse" message="tns:IQDS_SaveConfiguration_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/SaveConfigurationExceptionFault" name="ExceptionFault" message="tns:IQDS_SaveConfiguration_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="RemoveQdsByMachineName">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/RemoveQdsByMachineName" message="tns:IQDS_RemoveQdsByMachineName_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/RemoveQdsByMachineNameResponse" message="tns:IQDS_RemoveQdsByMachineName_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/RemoveQdsByMachineNameExceptionFault" name="ExceptionFault" message="tns:IQDS_RemoveQdsByMachineName_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="HelloWorld">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/HelloWorld" message="tns:IQDS_HelloWorld_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/HelloWorldResponse" message="tns:IQDS_HelloWorld_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/HelloWorldExceptionFault" name="ExceptionFault" message="tns:IQDS_HelloWorld_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="SendTestMail">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/SendTestMail" message="tns:IQDS_SendTestMail_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/SendTestMailResponse" message="tns:IQDS_SendTestMail_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/SendTestMailExceptionFault" name="ExceptionFault" message="tns:IQDS_SendTestMail_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="DoesStandardEditionScheduleListXMLExist">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/DoesStandardEditionScheduleListXMLExist" message="tns:IQDS_DoesStandardEditionScheduleListXMLExist_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/DoesStandardEditionScheduleListXMLExistResponse" message="tns:IQDS_DoesStandardEditionScheduleListXMLExist_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/DoesStandardEditionScheduleListXMLExistExceptionFault" name="ExceptionFault" message="tns:IQDS_DoesStandardEditionScheduleListXMLExist_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetStandardEditionScheduleListXML">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetStandardEditionScheduleListXML" message="tns:IQDS_GetStandardEditionScheduleListXML_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetStandardEditionScheduleListXMLResponse" message="tns:IQDS_GetStandardEditionScheduleListXML_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetStandardEditionScheduleListXMLExceptionFault" name="ExceptionFault" message="tns:IQDS_GetStandardEditionScheduleListXML_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="DeleteStandardEditionScheduleListXML">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/DeleteStandardEditionScheduleListXML" message="tns:IQDS_DeleteStandardEditionScheduleListXML_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/DeleteStandardEditionScheduleListXMLResponse" message="tns:IQDS_DeleteStandardEditionScheduleListXML_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/DeleteStandardEditionScheduleListXMLExceptionFault" name="ExceptionFault" message="tns:IQDS_DeleteStandardEditionScheduleListXML_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetLatestTaskLog">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetLatestTaskLog" message="tns:IQDS_GetLatestTaskLog_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetLatestTaskLogResponse" message="tns:IQDS_GetLatestTaskLog_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetLatestTaskLogExceptionFault" name="ExceptionFault" message="tns:IQDS_GetLatestTaskLog_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetTaskLog">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskLog" message="tns:IQDS_GetTaskLog_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskLogResponse" message="tns:IQDS_GetTaskLog_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskLogExceptionFault" name="ExceptionFault" message="tns:IQDS_GetTaskLog_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetTaskLogHistory">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskLogHistory" message="tns:IQDS_GetTaskLogHistory_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskLogHistoryResponse" message="tns:IQDS_GetTaskLogHistory_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetTaskLogHistoryExceptionFault" name="ExceptionFault" message="tns:IQDS_GetTaskLogHistory_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetMyComputer">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetMyComputer" message="tns:IQDS_GetMyComputer_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetMyComputerResponse" message="tns:IQDS_GetMyComputer_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetMyComputerExceptionFault" name="ExceptionFault" message="tns:IQDS_GetMyComputer_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetMyNetworkPlaces">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetMyNetworkPlaces" message="tns:IQDS_GetMyNetworkPlaces_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetMyNetworkPlacesResponse" message="tns:IQDS_GetMyNetworkPlaces_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetMyNetworkPlacesExceptionFault" name="ExceptionFault" message="tns:IQDS_GetMyNetworkPlaces_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetShares">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetShares" message="tns:IQDS_GetShares_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetSharesResponse" message="tns:IQDS_GetShares_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetSharesExceptionFault" name="ExceptionFault" message="tns:IQDS_GetShares_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetFileSystemItems">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetFileSystemItems" message="tns:IQDS_GetFileSystemItems_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetFileSystemItemsResponse" message="tns:IQDS_GetFileSystemItems_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetFileSystemItemsExceptionFault" name="ExceptionFault" message="tns:IQDS_GetFileSystemItems_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetFiles">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetFiles" message="tns:IQDS_GetFiles_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetFilesResponse" message="tns:IQDS_GetFiles_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/GetFilesExceptionFault" name="ExceptionFault" message="tns:IQDS_GetFiles_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
+  <wsdl:portType name="IQTService2">
     <wsdl:operation name="Ping">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/Ping" message="tns:IQDS_Ping_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/PingResponse" message="tns:IQDS_Ping_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/PingExceptionFault" name="ExceptionFault" message="tns:IQDS_Ping_ExceptionFault_FaultMessage" />
+      <wsdl:input wsaw:Action="http://ws.qliktech.com/ANY/12/2/IQTService2/Ping" message="tns:IQTService2_Ping_InputMessage" />
+      <wsdl:output wsaw:Action="http://ws.qliktech.com/ANY/12/2/IQTService2/PingResponse" message="tns:IQTService2_Ping_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://ws.qliktech.com/ANY/12/2/IQTService2/PingExceptionFault" name="ExceptionFault" message="tns:IQTService2_Ping_ExceptionFault_FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="GetKey">
+      <wsdl:input wsaw:Action="http://ws.qliktech.com/ANY/12/2/IQTService2/GetKey" message="tns:IQTService2_GetKey_InputMessage" />
+      <wsdl:output wsaw:Action="http://ws.qliktech.com/ANY/12/2/IQTService2/GetKeyResponse" message="tns:IQTService2_GetKey_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://ws.qliktech.com/ANY/12/2/IQTService2/GetKeyExceptionFault" name="ExceptionFault" message="tns:IQTService2_GetKey_ExceptionFault_FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="GetTimeLimitedRequestKey">
+      <wsdl:input wsaw:Action="http://ws.qliktech.com/ANY/12/2/IQTService2/GetTimeLimitedRequestKey" message="tns:IQTService2_GetTimeLimitedRequestKey_InputMessage" />
+      <wsdl:output wsaw:Action="http://ws.qliktech.com/ANY/12/2/IQTService2/GetTimeLimitedRequestKeyResponse" message="tns:IQTService2_GetTimeLimitedRequestKey_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://ws.qliktech.com/ANY/12/2/IQTService2/GetTimeLimitedRequestKeyExceptionFault" name="ExceptionFault" message="tns:IQTService2_GetTimeLimitedRequestKey_ExceptionFault_FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="GetSystemInformation">
+      <wsdl:input wsaw:Action="http://ws.qliktech.com/ANY/12/2/IQTService2/GetSystemInformation" message="tns:IQTService2_GetSystemInformation_InputMessage" />
+      <wsdl:output wsaw:Action="http://ws.qliktech.com/ANY/12/2/IQTService2/GetSystemInformationResponse" message="tns:IQTService2_GetSystemInformation_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://ws.qliktech.com/ANY/12/2/IQTService2/GetSystemInformationExceptionFault" name="ExceptionFault" message="tns:IQTService2_GetSystemInformation_ExceptionFault_FaultMessage" />
     </wsdl:operation>
     <wsdl:operation name="QMSPing">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/QMSPing" message="tns:IQDS_QMSPing_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/QMSPingResponse" message="tns:IQDS_QMSPing_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/QMSPingExceptionFault" name="ExceptionFault" message="tns:IQDS_QMSPing_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="StopService">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/StopService" message="tns:IQDS_StopService_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/StopServiceResponse" message="tns:IQDS_StopService_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/StopServiceExceptionFault" name="ExceptionFault" message="tns:IQDS_StopService_ExceptionFault_FaultMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="SetNewWorkorder">
-      <wsdl:input wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/SetNewWorkorder" message="tns:IQDS_SetNewWorkorder_InputMessage" />
-      <wsdl:output wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/SetNewWorkorderResponse" message="tns:IQDS_SetNewWorkorder_OutputMessage" />
-      <wsdl:fault wsaw:Action="http://ws.qliktech.com/QDS/12/IQDS/SetNewWorkorderExceptionFault" name="ExceptionFault" message="tns:IQDS_SetNewWorkorder_ExceptionFault_FaultMessage" />
+      <wsdl:input wsaw:Action="http://ws.qliktech.com/ANY/12/2/IQTService2/QMSPing" message="tns:IQTService2_QMSPing_InputMessage" />
+      <wsdl:output wsaw:Action="http://ws.qliktech.com/ANY/12/2/IQTService2/QMSPingResponse" message="tns:IQTService2_QMSPing_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://ws.qliktech.com/ANY/12/2/IQTService2/QMSPingExceptionFault" name="ExceptionFault" message="tns:IQTService2_QMSPing_ExceptionFault_FaultMessage" />
     </wsdl:operation>
   </wsdl:portType>
 </wsdl:definitions>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="69b15516-1a79-4761-bcf4-9d2331603853" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="812c4162-c3e3-4243-bac4-d1e0aa3db419" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
   <ClientOptions>
     <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
     <GenerateTaskBasedAsynchronousMethod>true</GenerateTaskBasedAsynchronousMethod>
@@ -19,25 +19,31 @@
     <ServiceContractMappings />
   </ClientOptions>
   <MetadataSources>
-    <MetadataSource Address="http://indy-qvtest01:4720/QDS/Service" Protocol="http" SourceId="1" />
+    <MetadataSource Address="http://indy-qvtest01:4799/QMS/Service" Protocol="http" SourceId="1" />
   </MetadataSources>
   <Metadata>
-    <MetadataFile FileName="Service.xsd" MetadataType="Schema" ID="a20b2490-2c62-4d8b-b1c1-b566ffbc951e" SourceId="1" SourceUrl="http://indy-qvtest01:4720/QDS/Service?xsd=xsd9" />
-    <MetadataFile FileName="QDSServiceImpl.wsdl" MetadataType="Wsdl" ID="1e51236e-a3ad-4d92-8ada-cf0a0a9e496d" SourceId="1" SourceUrl="http://indy-qvtest01:4720/QDS/Service" />
-    <MetadataFile FileName="Service1.xsd" MetadataType="Schema" ID="b848ed1a-36f8-4a46-85e0-544768df7b7b" SourceId="1" SourceUrl="http://indy-qvtest01:4720/QDS/Service?xsd=xsd1" />
-    <MetadataFile FileName="Service2.xsd" MetadataType="Schema" ID="95ecfd6c-b1dd-4696-a3d9-bb4f40ad5db6" SourceId="1" SourceUrl="http://indy-qvtest01:4720/QDS/Service?xsd=xsd5" />
-    <MetadataFile FileName="Service.wsdl" MetadataType="Wsdl" ID="add80a97-5cde-4e5f-a658-fa58470656f7" SourceId="1" SourceUrl="http://indy-qvtest01:4720/QDS/Service?wsdl=wsdl2" />
-    <MetadataFile FileName="Service1.wsdl" MetadataType="Wsdl" ID="df150178-58f8-4c39-93ab-e8d172d03d87" SourceId="1" SourceUrl="http://indy-qvtest01:4720/QDS/Service?wsdl=wsdl0" />
-    <MetadataFile FileName="Service3.xsd" MetadataType="Schema" ID="eb4e8648-6fa1-45b5-a582-397317b1a290" SourceId="1" SourceUrl="http://indy-qvtest01:4720/QDS/Service?xsd=xsd6" />
-    <MetadataFile FileName="Service4.xsd" MetadataType="Schema" ID="de376092-57c6-47cd-9ce1-1683a314d1a1" SourceId="1" SourceUrl="http://indy-qvtest01:4720/QDS/Service?xsd=xsd2" />
-    <MetadataFile FileName="Service2.wsdl" MetadataType="Wsdl" ID="69098b71-f567-47c7-9f4e-9ce20347340f" SourceId="1" SourceUrl="http://indy-qvtest01:4720/QDS/Service?wsdl=wsdl3" />
-    <MetadataFile FileName="Service5.xsd" MetadataType="Schema" ID="e7a9cf9c-330a-4baa-b783-043f9028f887" SourceId="1" SourceUrl="http://indy-qvtest01:4720/QDS/Service?xsd=xsd7" />
-    <MetadataFile FileName="Service6.xsd" MetadataType="Schema" ID="51a4a737-aec7-46e7-9356-be36dd0a6daa" SourceId="1" SourceUrl="http://indy-qvtest01:4720/QDS/Service?xsd=xsd3" />
-    <MetadataFile FileName="Service7.xsd" MetadataType="Schema" ID="c0973c69-e79b-44b7-9021-bbdc8444f064" SourceId="1" SourceUrl="http://indy-qvtest01:4720/QDS/Service?xsd=xsd8" />
-    <MetadataFile FileName="Service8.xsd" MetadataType="Schema" ID="bb76abfa-70bc-4dd2-b6bb-a96742e47220" SourceId="1" SourceUrl="http://indy-qvtest01:4720/QDS/Service?xsd=xsd4" />
-    <MetadataFile FileName="Service9.xsd" MetadataType="Schema" ID="e88af50a-7641-49a4-8fb7-73bad89d9447" SourceId="1" SourceUrl="http://indy-qvtest01:4720/QDS/Service?xsd=xsd0" />
-    <MetadataFile FileName="Service3.wsdl" MetadataType="Wsdl" ID="f4b8cd2c-8f33-4ff2-ac89-432a1fab95f7" SourceId="1" SourceUrl="http://indy-qvtest01:4720/QDS/Service?wsdl=wsdl1" />
-    <MetadataFile FileName="Service10.xsd" MetadataType="Schema" ID="409465c2-32c7-40e6-a7a6-81fe9c1b84fc" SourceId="1" SourceUrl="http://indy-qvtest01:4720/QDS/Service?xsd=xsd10" />
+    <MetadataFile FileName="Service.xsd" MetadataType="Schema" ID="50641d44-39cb-4d7d-85a4-fa1b8dc77fb3" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?xsd=xsd10" />
+    <MetadataFile FileName="Service.wsdl" MetadataType="Wsdl" ID="f5c423ce-3e16-4648-950f-5984f7808c57" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?wsdl=wsdl3" />
+    <MetadataFile FileName="Service1.wsdl" MetadataType="Wsdl" ID="db540724-72b3-4b90-9813-33f91bff6049" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?wsdl=wsdl5" />
+    <MetadataFile FileName="QMSBackendService.wsdl" MetadataType="Wsdl" ID="4d712623-2cdf-4878-a51c-6110fdbea003" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service" />
+    <MetadataFile FileName="Service1.xsd" MetadataType="Schema" ID="bfdd6c2e-6863-487c-a493-d9dd7ac3890e" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?xsd=xsd3" />
+    <MetadataFile FileName="Service2.xsd" MetadataType="Schema" ID="b77b188f-3da5-48e1-9420-c63ecb90f339" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?xsd=xsd12" />
+    <MetadataFile FileName="Service3.xsd" MetadataType="Schema" ID="6e376e79-5ab0-4076-8199-8e013d519269" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?xsd=xsd7" />
+    <MetadataFile FileName="Service4.xsd" MetadataType="Schema" ID="968fb356-377f-4738-aee4-37c4bce962c4" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?xsd=xsd6" />
+    <MetadataFile FileName="Service5.xsd" MetadataType="Schema" ID="d57e379a-994e-48be-8f0c-50d56bd5387b" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?xsd=xsd2" />
+    <MetadataFile FileName="Service2.wsdl" MetadataType="Wsdl" ID="cd8fe496-6cd9-40ca-b744-0619dc938aba" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?wsdl=wsdl4" />
+    <MetadataFile FileName="Service3.wsdl" MetadataType="Wsdl" ID="21a365a4-02fa-4e63-ab00-830de23d7a38" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?wsdl=wsdl0" />
+    <MetadataFile FileName="Service4.wsdl" MetadataType="Wsdl" ID="9e47f46b-03c7-4a5f-b2f6-2b7acd9518b2" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?wsdl=wsdl1" />
+    <MetadataFile FileName="Service5.wsdl" MetadataType="Wsdl" ID="5e49e4fb-602f-4956-b395-04737c34ff74" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?wsdl=wsdl2" />
+    <MetadataFile FileName="Service6.xsd" MetadataType="Schema" ID="0c5b4e01-c83e-41e9-b746-abc167d7903d" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?xsd=xsd9" />
+    <MetadataFile FileName="Service7.xsd" MetadataType="Schema" ID="31ba1c4e-7aba-461d-a278-8945be36079c" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?xsd=xsd5" />
+    <MetadataFile FileName="Service8.xsd" MetadataType="Schema" ID="9a709294-a441-4c70-a797-287fee32a79f" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?xsd=xsd1" />
+    <MetadataFile FileName="Service9.xsd" MetadataType="Schema" ID="d16a291d-8757-4af7-818d-256a8b87ebcb" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?xsd=xsd13" />
+    <MetadataFile FileName="Service10.xsd" MetadataType="Schema" ID="f9b4c554-eed7-4ba7-b589-4e22dd4ba2db" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?xsd=xsd11" />
+    <MetadataFile FileName="Service11.xsd" MetadataType="Schema" ID="7f582c79-1712-4809-a45e-b4a697b41e2e" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?xsd=xsd14" />
+    <MetadataFile FileName="Service12.xsd" MetadataType="Schema" ID="35619cea-cb89-42b3-84a3-0a49629ae522" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?xsd=xsd8" />
+    <MetadataFile FileName="Service13.xsd" MetadataType="Schema" ID="aee1a563-c42b-4ba7-a6f0-7e67ef490771" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?xsd=xsd4" />
+    <MetadataFile FileName="Service14.xsd" MetadataType="Schema" ID="e4577644-1992-4dd1-a426-fe31c875816b" SourceId="1" SourceUrl="http://indy-qvtest01:4799/QMS/Service?xsd=xsd0" />
   </Metadata>
   <Extensions>
     <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />
