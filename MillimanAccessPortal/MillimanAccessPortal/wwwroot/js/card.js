@@ -6,6 +6,8 @@ var AddUserActionCard;
 var InsertCard;
 var AddChildInsertCard;
 var ClientCard;
+var RootContentItemCard;
+var SelectionGroupCard;
 var UserCard;
 
 (function () {
@@ -36,7 +38,7 @@ var UserCard;
       detail: {
         detailText: {},
         toggle: {},
-        listItem: {}
+        detailItem: {}
       },
       action: {},
       insert: {}
@@ -222,9 +224,19 @@ var UserCard;
           };
         }
       },
-      listItem: {
+      detailItem: {
         count: '*',
-        render: function () { return undefined; }
+        selector: '.detail-item',
+        html: [
+          '<h4 class="detail-item"></h4>',
+          '<stub />'
+        ].join(''),
+        render: function (component) {
+          return function (properties) {
+            this.add(component);
+            this.html(component, properties.text);
+          };
+        }
       }
     },
     {
@@ -584,6 +596,82 @@ var UserCard;
   };
   ClientCard.prototype = Object.create(Card.prototype);
   ClientCard.prototype.constructor = ClientCard;
+
+  RootContentItemCard = function (
+    name, type, itemId, groupCount, userCount,
+    callback
+  ) {
+    Card.call(this);
+
+    this.addComponent('primaryText', { text: name });
+    this.addComponent('secondaryText', { text: type });
+    this.addComponent('statistic', {
+      icon: 'users',
+      value: groupCount,
+      tooltip: 'Selection groups'
+    });
+    this.addComponent('statistic', {
+      icon: 'user',
+      value: userCount,
+      tooltip: 'Eligible users'
+    });
+    this.setData({
+      'search-string': [name, type].join('|').toUpperCase(),
+      'root-content-item-id': itemId
+    });
+
+    this.setCallback(callback);
+  };
+  RootContentItemCard.prototype = Object.create(Card.prototype);
+  RootContentItemCard.prototype.constructor = RootContentItemCard;
+
+  SelectionGroupCard = function (
+    name, groupId, members,
+    deleteCallback, userCallback, callback
+  ) {
+    var memberInfo;
+    Card.call(this);
+
+    memberInfo = $.map(members, function toString(member) {
+      return [member.FirstName + ' ' + member.LastName, member.Email, member.UserName];
+    }).reduce(function concat(acc, cur) {
+      return acc.concat(cur);
+    }, []);
+
+    this.addComponent('primaryText', { text: name });
+    this.addComponent('statistic', {
+      icon: 'users',
+      value: members.length,
+      tooltip: 'Members'
+    });
+    this.addComponent('button', {
+      icon: 'delete',
+      color: 'red',
+      tooltip: 'Delete selection group',
+      callback: deleteCallback
+    });
+    this.addComponent('button', {
+      icon: 'edit',
+      color: 'blue',
+      tooltip: 'Add/remove users',
+      callback: userCallback
+    });
+    if (members.length) {
+      this.addComponent('detailText', { text: 'Members' });
+    }
+    members.forEach(function (member) {
+      this.addComponent('detailItem', { text: member.Email });
+    }, this);
+
+    this.setData({
+      'search-string': memberInfo.concat([name]).join('|').toUpperCase(),
+      'selection-group-id': groupId
+    });
+
+    this.setCallback(callback);
+  };
+  SelectionGroupCard.prototype = Object.create(Card.prototype);
+  SelectionGroupCard.prototype.constructor = SelectionGroupCard;
 
   UserCard = function (
     firstName, lastName, userName, email, userId, clientId,

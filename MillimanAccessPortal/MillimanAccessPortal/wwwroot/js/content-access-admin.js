@@ -69,32 +69,19 @@ function collapseAll(panel) {
 // Render functions
 
 function renderClientNode(client, level) {
-  var classes = ['card-100', 'card-90', 'card-80'];
-  /* eslint-disable indent */
-  var $card = Card
-    .newCard()
-    .container(client.ClientDetailModel.CanManage)
-      .searchString([
-        client.ClientDetailModel.ClientEntity.Name,
-        client.ClientDetailModel.ClientEntity.ClientCode
-      ])
-      .attr({ 'data-client-id': client.ClientDetailModel.ClientEntity.Id })
-      .class(classes[level])
-      .click(client.ClientDetailModel.CanManage
-        ? function onClick() {
-          clientCardClickHandler($(this));
-        }
-        : undefined)
-    .primaryInfo(client.ClientDetailModel.ClientEntity.Name)
-    .secondaryInfo(client.ClientDetailModel.ClientEntity.ClientCode || '')
-    .cardStat('#action-icon-users', client.ClientDetailModel.EligibleUserCount)
-      .tooltip('Content-eligible users')
-    .cardStat('#action-icon-reports', client.ClientDetailModel.RootContentItemCount)
-      .tooltip('Reports')
-    .build();
-  /* eslint-enable indent */
+  var $card = new ClientCard(
+    client.ClientDetailModel.ClientEntity.Name,
+    client.ClientDetailModel.ClientEntity.ClientCode,
+    client.ClientDetailModel.EligibleUserCount,
+    client.ClientDetailModel.RootContentItemCount,
+    level,
+    client.ClientDetailModel.ClientEntity.Id,
+    function onClick() {
+      clientCardClickHandler($(this));
+    }
+  );
 
-  $('#client-tree-list').append($card);
+  $('#client-tree-list').append($card.build());
 
   // Render child nodes
   if (client.ChildClientModels.length) {
@@ -105,59 +92,31 @@ function renderClientNode(client, level) {
 }
 
 function renderRootContentItem(rootContentItem) {
-  /* eslint-disable indent */
-  var $card = Card
-    .newCard()
-    .container()
-      .searchString([
-        rootContentItem.RootContentItemEntity.ContentName,
-        rootContentItem.RootContentItemEntity.ContentType.Name
-      ])
-      .attr({ 'data-root-content-item-id': rootContentItem.RootContentItemEntity.Id })
-      .click(function onClick() {
-        rootContentItemCardClickHandler($(this));
-      })
-    .primaryInfo(rootContentItem.RootContentItemEntity.ContentName)
-    .secondaryInfo(rootContentItem.RootContentItemEntity.ContentType.Name)
-    .cardStat('#action-icon-users', rootContentItem.GroupCount)
-      .tooltip('Selection groups')
-    .cardStat('#action-icon-reports', rootContentItem.EligibleUserCount)
-      .tooltip('Eligible users')
-    .build();
-  /* eslint-enable indent */
+  var $card = new RootContentItemCard(
+    rootContentItem.RootContentItemEntity.ContentName,
+    rootContentItem.RootContentItemEntity.ContentType.Name,
+    rootContentItem.RootContentItemEntity.Id,
+    rootContentItem.GroupCount,
+    rootContentItem.EligibleUserCount,
+    function onClick() {
+      rootContentItemCardClickHandler($(this));
+    }
+  );
 
-  $('#root-content-list').append($card);
+  $('#root-content-list').append($card.build());
 }
-function renderSelectionGroup(selectionGroup) {
-  var userInfo = $.map(selectionGroup.MemberList, function toString(member) {
-    return [member.FirstName + ' ' + member.LastName, member.Email, member.UserName];
-  }).reduce(function concat(acc, cur) {
-    return acc.concat(cur);
-  }, []);
-  /* eslint-disable indent */
-  var $card = Card
-    .newCard()
-    .container()
-      .searchString(userInfo.concat([selectionGroup.SelectionGroupEntity.GroupName]))
-      .attr({ 'data-selection-group-id': selectionGroup.SelectionGroupEntity.Id })
-      .click(function onClick() {
-        console.log('Selection group "' + selectionGroup.SelectionGroupEntity.GroupName + '" clicked.');
-      })
-    .primaryInfo(selectionGroup.SelectionGroupEntity.GroupName)
-    .cardStat('#action-icon-users', selectionGroup.MemberList.length)
-      .tooltip('Members')
-    .sideButton('#action-icon-user')
-      .class('card-button-blue')
-      .tooltip('Add and remove members')
-    .sideButton('#action-icon-delete')
-      .class('card-button-red')
-      .tooltip('Remove selection group')
-    .expansion('selection-groups')
-    .users(selectionGroup.MemberList)
-    .build();
-  /* eslint-enable indent */
 
-  $('#selection-groups-list').append($card);
+function renderSelectionGroup(selectionGroup) {
+  var $card = new SelectionGroupCard(
+    selectionGroup.SelectionGroupEntity.GroupName,
+    selectionGroup.SelectionGroupEntity.Id,
+    selectionGroup.MemberList,
+    function () { console.log('Selection group clicked.'); },
+    function () { console.log('Add/remove user button clicked.'); },
+    function () { console.log('Delete group button clicked.'); }
+  );
+
+  $('#selection-groups-list').append($card.build());
 }
 
 function renderClientTree(clientTreeList, clientId) {
