@@ -554,14 +554,14 @@ var UserCard;
 
 
   ClientCard = function (
-    clientName, clientCode, userCount, reportCount, level, clientId,
+    client, userCount, reportCount, level,
     callback, deleteCallback, editCallback, newChildCallback
   ) {
     Card.call(this);
 
     this.addComponent('card', { class: 'card-' + (100 - (10 * level)) });
-    this.addComponent('primaryText', { text: clientName });
-    this.addComponent('secondaryText', { text: clientCode });
+    this.addComponent('primaryText', { text: client.Name });
+    this.addComponent('secondaryText', { text: client.ClientCode });
     this.addComponent('statistic', {
       icon: 'users',
       value: userCount,
@@ -591,8 +591,8 @@ var UserCard;
       callback: newChildCallback
     });
     this.data = {
-      'search-string': [clientName, clientCode].join('|').toUpperCase(),
-      'client-id': clientId
+      'search-string': [client.Name, client.ClientCode].join('|').toUpperCase(),
+      'client-id': client.Id
     };
     this.callback = callback;
   };
@@ -600,13 +600,13 @@ var UserCard;
   ClientCard.prototype.constructor = ClientCard;
 
   RootContentItemCard = function (
-    name, type, itemId, groupCount, userCount,
+    rootContentItem, groupCount, userCount,
     callback
   ) {
     Card.call(this);
 
-    this.addComponent('primaryText', { text: name });
-    this.addComponent('secondaryText', { text: type });
+    this.addComponent('primaryText', { text: rootContentItem.ContentName });
+    this.addComponent('secondaryText', { text: rootContentItem.ContentType.Name });
     this.addComponent('statistic', {
       icon: 'users',
       value: groupCount,
@@ -618,8 +618,11 @@ var UserCard;
       tooltip: 'Eligible users'
     });
     this.data = {
-      'search-string': [name, type].join('|').toUpperCase(),
-      'root-content-item-id': itemId
+      'search-string': [
+        rootContentItem.ContentName,
+        rootContentItem.ContentType.Name
+      ].join('|').toUpperCase(),
+      'root-content-item-id': rootContentItem.Id
     };
 
     this.callback = callback;
@@ -628,7 +631,7 @@ var UserCard;
   RootContentItemCard.prototype.constructor = RootContentItemCard;
 
   SelectionGroupCard = function (
-    name, groupId, members,
+    selectionGroup, members,
     deleteCallback, userCallback, callback
   ) {
     var memberInfo;
@@ -640,7 +643,7 @@ var UserCard;
       return acc.concat(cur);
     }, []);
 
-    this.addComponent('primaryText', { text: name });
+    this.addComponent('primaryText', { text: selectionGroup.GroupName });
     this.addComponent('statistic', {
       icon: 'users',
       value: members.length,
@@ -666,8 +669,8 @@ var UserCard;
     }, this);
 
     this.data = {
-      'search-string': memberInfo.concat([name]).join('|').toUpperCase(),
-      'selection-group-id': groupId
+      'search-string': memberInfo.concat([selectionGroup.GroupName]).join('|').toUpperCase(),
+      'selection-group-id': selectionGroup.Id
     };
 
     this.callback = callback;
@@ -676,19 +679,19 @@ var UserCard;
   SelectionGroupCard.prototype.constructor = SelectionGroupCard;
 
   UserCard = function (
-    firstName, lastName, userName, email, userId, clientId,
-    roles, roleCallback, removeCallback
+    user, client,
+    roleCallback, removeCallback
   ) {
     var names = [];
 
     Card.call(this);
 
-    names.push(email);
-    if (userName !== email) {
-      names.push(userName);
+    names.push(user.Email);
+    if (user.UserName !== user.Email) {
+      names.push(user.UserName);
     }
-    if (firstName && lastName) {
-      names.push([firstName, lastName].join(' '));
+    if (user.FirstName && user.LastName) {
+      names.push([user.FirstName, user.LastName].join(' '));
     }
 
     this.addComponent('icon', { icon: 'user', class: 'card-user-icon' });
@@ -704,10 +707,10 @@ var UserCard;
       callback: removeCallback
     });
     this.addComponent('detailText', { text: 'User roles' });
-    roles.forEach(function (role) {
+    user.UserRoles.forEach(function (role) {
       this.addComponent('toggle', {
         text: role.RoleDisplayValue,
-        id: 'user-role-' + userId + '-' + role.RoleEnum,
+        id: 'user-role-' + user.Id + '-' + role.RoleEnum,
         data: {
           'role-enum': role.RoleEnum
         },
@@ -715,7 +718,10 @@ var UserCard;
         callback: roleCallback
       });
     }, this);
-    this.data = { 'user-id': userId };
+    this.data = {
+      'user-id': user.Id,
+      'client-id': client.Id
+    };
     this.callback = expandCollapse;
   };
   UserCard.prototype = Object.create(Card.prototype);

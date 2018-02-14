@@ -1,9 +1,11 @@
-/* global domainValRegex, emailValRegex, ClientCard, UserCard */
+/* global
+    domainValRegex, emailValRegex,
+    ClientCard, UserCard, AddClientActionCard, AddUserActionCard, AddChildInsertCard
+ */
 
 var ajaxStatus = {
   getClientDetail: -1
 };
-var nodeTemplate = $('script[data-template="node"]').html();
 var smallSpinner = '<div class="spinner-small""></div>';
 var eligibleUsers;
 var SHOW_DURATION = 50;
@@ -475,13 +477,8 @@ function userCardRoleToggleClickHandler(event) {
  */
 function renderUserNode(client, user) {
   var $card = new UserCard(
-    user.FirstName,
-    user.LastName,
-    user.UserName,
-    user.Email,
-    user.Id,
-    client.ClientEntity.Id,
-    user.UserRoles,
+    user,
+    client.ClientEntity,
     userCardRoleToggleClickHandler,
     function (event) {
       event.stopPropagation();
@@ -992,12 +989,10 @@ function cancelIconClickHandler() {
  */
 function renderClientNode(client, level) {
   var $card = new ClientCard(
-    client.ClientModel.ClientEntity.Name,
-    client.ClientModel.ClientEntity.ClientCode,
+    client.ClientModel.ClientEntity,
     client.ClientModel.AssignedUsers.length,
     client.ClientModel.ContentItems.length,
     level,
-    client.ClientModel.ClientEntity.Id,
     function () { clientCardClickHandler($(this)); },
     client.Children.length
       ? undefined

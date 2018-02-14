@@ -1,4 +1,4 @@
-/* global Card */
+/* global ClientCard, RootContentItemCard, SelectionGroupCard */
 
 var ajaxStatus = {
   getRootContentItemList: -1
@@ -70,12 +70,10 @@ function collapseAll(panel) {
 
 function renderClientNode(client, level) {
   var $card = new ClientCard(
-    client.ClientDetailModel.ClientEntity.Name,
-    client.ClientDetailModel.ClientEntity.ClientCode,
+    client.ClientDetailModel.ClientEntity,
     client.ClientDetailModel.EligibleUserCount,
     client.ClientDetailModel.RootContentItemCount,
     level,
-    client.ClientDetailModel.ClientEntity.Id,
     function onClick() {
       clientCardClickHandler($(this));
     }
@@ -93,9 +91,7 @@ function renderClientNode(client, level) {
 
 function renderRootContentItem(rootContentItem) {
   var $card = new RootContentItemCard(
-    rootContentItem.RootContentItemEntity.ContentName,
-    rootContentItem.RootContentItemEntity.ContentType.Name,
-    rootContentItem.RootContentItemEntity.Id,
+    rootContentItem.RootContentItemEntity,
     rootContentItem.GroupCount,
     rootContentItem.EligibleUserCount,
     function onClick() {
@@ -108,8 +104,7 @@ function renderRootContentItem(rootContentItem) {
 
 function renderSelectionGroup(selectionGroup) {
   var $card = new SelectionGroupCard(
-    selectionGroup.SelectionGroupEntity.GroupName,
-    selectionGroup.SelectionGroupEntity.Id,
+    selectionGroup.SelectionGroupEntity,
     selectionGroup.MemberList,
     function () { console.log('Selection group clicked.'); },
     function () { console.log('Add/remove user button clicked.'); },
