@@ -496,6 +496,75 @@ var UserCard;
     return this.$representation;
   };
 
+  ['html', 'attr', 'prop', 'addClass'].forEach(function (func) {
+    Card.prototype[func] = function (component, value, selector) {
+      this.findComponent(component, selector)[func](value);
+    };
+  });
+
+  Card.prototype.click = function (component, value, selector) {
+    this.findComponent(component, selector).click((this.readonly || this.disabled)
+      ? function (event) {
+        event.preventDefault();
+      }
+      : value);
+  };
+
+  Card.prototype.tooltip = function (component, value, selector) {
+    var $component = this.findComponent(component, selector);
+    $component.addClass('tooltip');
+    $component.attr('title', value);
+  };
+
+  Card.prototype.findComponent = function (component, selector) {
+    var $component = components[component]
+      ? this.$representation
+        .find(components[component].selector)
+        .last()
+      : this.$representation;
+    var $subcomponent = $component.find(selector);
+    return $subcomponent.length ? $subcomponent : $component;
+  };
+
+  Card.prototype.componentPath = function (component) {
+    var parent = components[component].parent;
+    if (Object.hasOwnProperty.call(components, parent)) {
+      return this.componentPath(parent).concat([component]);
+    }
+    return [component];
+  };
+
+  Card.prototype.verify = function (component, partialPath) {
+    var self = this;
+    var path = partialPath || this.componentPath(component);
+    var prevSelector = '';
+    $.each(path, function () {
+      var nextSelector = prevSelector + components[this].selector;
+      var element = self.$representation.find(nextSelector);
+      if (!element.length) {
+        if (prevSelector) {
+          self.$representation
+            .find(prevSelector + 'stub')
+            .replaceWith(components[this].html);
+        } else {
+          self.$representation = $(components[this].html);
+        }
+      }
+      prevSelector = nextSelector + ' > ';
+    });
+    return prevSelector;
+  };
+
+  Card.prototype.add = function (component, partialPath) {
+    var path = partialPath || this.componentPath(component);
+    var newElement = path.pop();
+    var prevSelector = this.verify(component, path);
+    this.$representation
+      .find(prevSelector + 'stub')
+      .replaceWith(components[newElement].html);
+    return prevSelector + components[newElement].selector;
+  };
+
 
   ActionCard = function (icon, text, callback) {
     Card.call(this);
@@ -726,75 +795,4 @@ var UserCard;
   };
   UserCard.prototype = Object.create(Card.prototype);
   UserCard.prototype.constructor = UserCard;
-
-
-  ['html', 'attr', 'prop', 'addClass'].forEach(function (func) {
-    Card.prototype[func] = function (component, value, selector) {
-      this.findComponent(component, selector)[func](value);
-    };
-  });
-
-  Card.prototype.click = function (component, value, selector) {
-    this.findComponent(component, selector).click((this.readonly || this.disabled)
-      ? function (event) {
-        event.preventDefault();
-      }
-      : value);
-  };
-
-  Card.prototype.tooltip = function (component, value, selector) {
-    var $component = this.findComponent(component, selector);
-    $component.addClass('tooltip');
-    $component.attr('title', value);
-  };
-
-
-  Card.prototype.componentPath = function (component) {
-    var parent = components[component].parent;
-    if (Object.hasOwnProperty.call(components, parent)) {
-      return this.componentPath(parent).concat([component]);
-    }
-    return [component];
-  };
-
-  Card.prototype.verify = function (component, partialPath) {
-    var self = this;
-    var path = partialPath || this.componentPath(component);
-    var prevSelector = '';
-    $.each(path, function () {
-      var nextSelector = prevSelector + components[this].selector;
-      var element = self.$representation.find(nextSelector);
-      if (!element.length) {
-        if (prevSelector) {
-          self.$representation
-            .find(prevSelector + 'stub')
-            .replaceWith(components[this].html);
-        } else {
-          self.$representation = $(components[this].html);
-        }
-      }
-      prevSelector = nextSelector + ' > ';
-    });
-    return prevSelector;
-  };
-
-  Card.prototype.add = function (component, partialPath) {
-    var path = partialPath || this.componentPath(component);
-    var newElement = path.pop();
-    var prevSelector = this.verify(component, path);
-    this.$representation
-      .find(prevSelector + 'stub')
-      .replaceWith(components[newElement].html);
-    return prevSelector + components[newElement].selector;
-  };
-
-  Card.prototype.findComponent = function (component, selector) {
-    var $component = components[component]
-      ? this.$representation
-        .find(components[component].selector)
-        .last()
-      : this.$representation;
-    var $subcomponent = $component.find(selector);
-    return $subcomponent.length ? $subcomponent : $component;
-  };
 }());
