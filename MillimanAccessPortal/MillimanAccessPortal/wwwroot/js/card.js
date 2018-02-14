@@ -148,7 +148,9 @@ var UserCard;
         ].join(''),
         render: function (component) {
           return function (properties) {
-            if (!this.manageable) return;
+            if (this.readonly || this.disabled) {
+              return;
+            }
             this.add(component);
             this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
             this.addClass(component, 'card-button-' + properties.color);
@@ -261,7 +263,7 @@ var UserCard;
             if (Object.hasOwnProperty.call(properties, 'class')) {
               this.addClass(component, properties.class);
             }
-            if (!this.manageable) {
+            if (this.readonly || this.disabled) {
               this.attr(component, { disabled: '' });
             }
           };
@@ -430,7 +432,10 @@ var UserCard;
   // Class definitions
   Card = function (representation) {
     this.components = [];
-    this.manageable = true;
+    this.data = {};
+    this.callback = function () {};
+    this.readonly = false;
+    this.disabled = false;
     this.$representation = $(representation || components.card.html);
   };
 
@@ -456,14 +461,6 @@ var UserCard;
       this.components[name] = [];
     }
     this.components[name].push(properties);
-  };
-
-  Card.prototype.setData = function (data) {
-    this.data = data;
-  };
-
-  Card.prototype.setCallback = function (callback) {
-    this.callback = callback;
   };
 
   Card.prototype.renderComponent = function (component, properties) {
@@ -492,7 +489,9 @@ var UserCard;
     if (this.data) {
       this.attr('card', toAttr(this.data));
     }
-    this.$representation.find('.card-container').click(this.callback);
+    if (!this.disabled) {
+      this.$representation.find('.card-container').click(this.callback);
+    }
     this.$representation.find('stub').remove();
     return this.$representation;
   };
@@ -508,7 +507,7 @@ var UserCard;
       icon: icon,
       text: text
     });
-    this.setCallback(callback);
+    this.callback = callback;
   };
   ActionCard.prototype = Object.create(Card.prototype);
   ActionCard.prototype.constructor = ActionCard;
@@ -542,7 +541,7 @@ var UserCard;
       icon: icon,
       text: text
     });
-    this.setCallback(callback);
+    this.callback = callback;
   };
   InsertCard.prototype = Object.create(Card.prototype);
   InsertCard.prototype.constructor = InsertCard;
@@ -555,7 +554,7 @@ var UserCard;
 
 
   ClientCard = function (
-    clientName, clientCode, userCount, reportCount, level, clientId, manageable,
+    clientName, clientCode, userCount, reportCount, level, clientId,
     callback, deleteCallback, editCallback, newChildCallback
   ) {
     Card.call(this);
@@ -591,12 +590,11 @@ var UserCard;
       tooltip: 'Add sub-client',
       callback: newChildCallback
     });
-    this.manageable = manageable;
-    this.setData({
+    this.data = {
       'search-string': [clientName, clientCode].join('|').toUpperCase(),
       'client-id': clientId
-    });
-    this.setCallback(callback);
+    };
+    this.callback = callback;
   };
   ClientCard.prototype = Object.create(Card.prototype);
   ClientCard.prototype.constructor = ClientCard;
@@ -619,12 +617,12 @@ var UserCard;
       value: userCount,
       tooltip: 'Eligible users'
     });
-    this.setData({
+    this.data = {
       'search-string': [name, type].join('|').toUpperCase(),
       'root-content-item-id': itemId
-    });
+    };
 
-    this.setCallback(callback);
+    this.callback = callback;
   };
   RootContentItemCard.prototype = Object.create(Card.prototype);
   RootContentItemCard.prototype.constructor = RootContentItemCard;
@@ -667,18 +665,18 @@ var UserCard;
       this.addComponent('detailItem', { text: member.Email });
     }, this);
 
-    this.setData({
+    this.data = {
       'search-string': memberInfo.concat([name]).join('|').toUpperCase(),
       'selection-group-id': groupId
-    });
+    };
 
-    this.setCallback(callback);
+    this.callback = callback;
   };
   SelectionGroupCard.prototype = Object.create(Card.prototype);
   SelectionGroupCard.prototype.constructor = SelectionGroupCard;
 
   UserCard = function (
-    firstName, lastName, userName, email, userId, clientId, manageable,
+    firstName, lastName, userName, email, userId, clientId,
     roles, roleCallback, removeCallback
   ) {
     var names = [];
@@ -717,9 +715,8 @@ var UserCard;
         callback: roleCallback
       });
     }, this);
-    this.manageable = manageable;
-    this.setData({ 'user-id': userId });
-    this.setCallback(expandCollapse);
+    this.data = { 'user-id': userId };
+    this.callback = expandCollapse;
   };
   UserCard.prototype = Object.create(Card.prototype);
   UserCard.prototype.constructor = UserCard;
@@ -732,11 +729,11 @@ var UserCard;
   });
 
   Card.prototype.click = function (component, value, selector) {
-    this.findComponent(component, selector).click(this.manageable
-      ? value
-      : function (event) {
+    this.findComponent(component, selector).click((this.readonly || this.disabled)
+      ? function (event) {
         event.preventDefault();
-      });
+      }
+      : value);
   };
 
   Card.prototype.tooltip = function (component, value, selector) {

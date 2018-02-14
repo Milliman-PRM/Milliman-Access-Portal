@@ -474,7 +474,6 @@ function userCardRoleToggleClickHandler(event) {
  * @return {undefined}
  */
 function renderUserNode(client, user) {
-  /* eslint-disable indent */
   var $card = new UserCard(
     user.FirstName,
     user.LastName,
@@ -482,45 +481,15 @@ function renderUserNode(client, user) {
     user.Email,
     user.Id,
     client.ClientEntity.Id,
-    client.CanManage,
     user.UserRoles,
     userCardRoleToggleClickHandler,
     function (event) {
       event.stopPropagation();
       userCardRemoveClickHandler($(this).closest('.card-container'));
     }
-  ).build();/*
-    .newCard()
-    .container(client.CanManage)
-      .searchString([
-        user.FirstName + ' ' + user.LastName,
-        user.UserName,
-        user.Email
-      ])
-      .attr({ 'data-client-id': client.ClientEntity.Id })
-      .attr({ 'data-user-id': user.Id })
-    .icon('#action-icon-user')
-      .class('card-user-icon')
-    .icon('#action-icon-add')
-      .class('card-user-role-indicator')
-    .info($.map([
-      (user.FirstName || '') + ' ' + (user.LastName || ''),
-      user.UserName,
-      user.Email === user.UserName ? '' : user.Email
-    ], function removeBlanks(item) {
-      return item.trim() || null;
-    }))
-    .sideButton('#action-icon-remove')
-      .class('card-button-remove-user')
-      .click()
-      .tooltip('Remove user')
-    .expansion('user')
-    .expansionLabel('User roles')
-    .roleToggles(user.UserRoles)
-    .build(); */
-  /* eslint-enable indent */
-
-  $('#client-user-list').append($card);
+  );
+  $card.readonly = !client.CanManage;
+  $('#client-user-list').append($card.build());
   updateUserRoleIndicator(user.Id, user.UserRoles);
 }
 
@@ -1029,7 +998,6 @@ function renderClientNode(client, level) {
     client.ClientModel.ContentItems.length,
     level,
     client.ClientModel.ClientEntity.Id,
-    client.ClientModel.CanManage,
     function () { clientCardClickHandler($(this)); },
     client.Children.length
       ? undefined
@@ -1047,14 +1015,9 @@ function renderClientNode(client, level) {
         event.stopPropagation();
         clientCardCreateNewChildClickHandler($(this).closest('.card-container'));
       }
-  ).build();/*
-  /*
-  if (!client.ClientModel.CanManage) {
-    $template.find('.card-button-side-container').remove();
-    $template.find('.card-container').attr('disabled', '');
-  }
-*/
-  $('#client-tree-list').append($card);
+  );
+  $card.readonly = !client.ClientModel.CanManage;
+  $('#client-tree-list').append($card.build());
 
   // Render child nodes
   client.Children.forEach(function (child) {
