@@ -156,11 +156,11 @@ function populateProfitCenterDropDown(profitCenterList) {
  * Show or hide collapse/expand icons based on how many user cards are maximized
  * @return {undefined}
  */
-function showRelevantActionIcons(panel) {
-  $('#collapse-' + panel + '-icon').hide().filter(function anyMaximized() {
+function showRelevantActionIcons() {
+  $('#client-users-collapse-icon').hide().filter(function anyMaximized() {
     return $('div.card-expansion-container[maximized]').length;
   }).show();
-  $('#expand-' + panel + '-icon').hide().filter(function anyMinimized() {
+  $('#client-users-expand-icon').hide().filter(function anyMinimized() {
     return $('div.card-expansion-container:not([maximized])').length;
   }).show();
 }
@@ -171,7 +171,7 @@ function showRelevantActionIcons(panel) {
  */
 function expandAllUsers() {
   $('#client-user-list').find('div.card-expansion-container').attr('maximized', '');
-  showRelevantActionIcons('user');
+  showRelevantActionIcons();
 }
 
 /**
@@ -180,7 +180,7 @@ function expandAllUsers() {
  */
 function collapseAllUsers() {
   $('#client-user-list').find('div.card-expansion-container[maximized]').removeAttr('maximized');
-  showRelevantActionIcons('user');
+  showRelevantActionIcons();
 }
 
 /**
@@ -1224,11 +1224,11 @@ $(document).ready(function onReady() {
   getClientTree();
 
   $('#add-client-icon').click(newClientClickHandler);
-  $('#add-user-icon').click(addUserClickHandler);
+  $('#client-users-add-icon').click(addUserClickHandler);
   $('#edit-client-icon').click(editIconClickHandler);
   $('#cancel-edit-client-icon').click(cancelIconClickHandler);
-  $('#expand-user-icon').click(expandAllUsers);
-  $('#collapse-user-icon').click(collapseAllUsers);
+  $('#client-users-expand-icon').click(expandAllUsers);
+  $('#client-users-collapse-icon').click(collapseAllUsers);
   $('#create-new-button').click(submitClientForm);
   $('#save-changes-button').click(submitClientForm);
   $('#reset-form-button').click(function confirmResetAndReset() {

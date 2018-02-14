@@ -13,6 +13,7 @@ var UserCard;
   var toAttr;
 
   // General click handler declarations
+  var updateToolbarIcons;
   var expandCollapse;
 
   var cardLayout = {
@@ -383,19 +384,30 @@ var UserCard;
 
 
   // General click handler definitions
+  updateToolbarIcons = function ($containedElement) {
+    var $top = $containedElement.closest('.admin-panel-container');
+    var panelId = $top.attr('id');
+    $('#' + panelId + '-collapse-icon').hide().filter(function anyMaximized() {
+      return $top.find('.card-expansion-container[maximized]').length;
+    }).show();
+    $('#' + panelId + '-expand-icon').hide().filter(function anyMinimized() {
+      return $top.find('.card-expansion-container:not([maximized])').length;
+    }).show();
+  };
+
   expandCollapse = function (event) {
+    var $this = $(this);
     event.stopPropagation();
-    $(this).closest('.card-container')
-      .find('div.card-expansion-container')
+    $this.closest('.card-container')
+      .find('.card-expansion-container')
       .attr('maximized', function (index, attr) {
-        if (attr === '') {
-          $(this).find('.tooltip').tooltipster('content', 'Expand card');
-          return null;
-        }
-        $(this).find('.tooltip').tooltipster('content', 'Collapse card');
-        return '';
+        var data = (attr === '')
+          ? { text: 'Expand card', rv: null }
+          : { text: 'Collapse card', rv: '' };
+        $(this).find('.tooltip').tooltipster('content', data.text);
+        return data.rv;
       });
-    // showRelevantUserActionIcons();
+    updateToolbarIcons($this);
   };
 
 
