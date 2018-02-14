@@ -482,6 +482,7 @@ function renderUserNode(client, user) {
     user.Email,
     user.Id,
     client.ClientEntity.Id,
+    client.CanManage,
     user.UserRoles,
     userCardRoleToggleClickHandler,
     function (event) {
@@ -1028,6 +1029,7 @@ function renderClientNode(client, level) {
     client.ClientModel.ContentItems.length,
     level,
     client.ClientModel.ClientEntity.Id,
+    client.ClientModel.CanManage,
     function () { clientCardClickHandler($(this)); },
     client.Children.length
       ? undefined

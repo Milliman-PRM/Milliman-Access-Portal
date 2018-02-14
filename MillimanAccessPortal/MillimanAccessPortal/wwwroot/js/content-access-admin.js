@@ -76,6 +76,7 @@ function renderClientNode(client, level) {
     client.ClientDetailModel.RootContentItemCount,
     level,
     client.ClientDetailModel.ClientEntity.Id,
+    client.ClientDetailModel.CanManage,
     function onClick() {
       clientCardClickHandler($(this));
     }
