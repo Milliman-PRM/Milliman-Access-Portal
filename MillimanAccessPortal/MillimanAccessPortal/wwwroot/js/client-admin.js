@@ -1,6 +1,6 @@
 /* global
     domainValRegex, emailValRegex,
-    ClientCard, UserCard, AddClientActionCard, AddUserActionCard, AddChildInsertCard
+    card, shared
  */
 
 var ajaxStatus = {
@@ -465,7 +465,7 @@ function userCardRoleToggleClickHandler(event) {
  * @return {undefined}
  */
 function renderUserNode(client, user) {
-  var $card = new UserCard(
+  var $card = new card.UserCard(
     user,
     client.ClientEntity,
     userCardRoleToggleClickHandler,
@@ -497,7 +497,7 @@ function renderUserList(client, userId) {
 
   if (client.CanManage) {
     $('#add-user-icon').show();
-    $('#client-users ul.admin-panel-content').append(new AddUserActionCard(addUserClickHandler).build());
+    $('#client-users ul.admin-panel-content').append(new card.AddUserActionCard(addUserClickHandler).build());
   }
 }
 
@@ -508,7 +508,7 @@ function renderUserList(client, userId) {
  */
 function setupChildClientForm(parentClientDiv) {
   var parentClientId = parentClientDiv.attr('data-client-id').valueOf();
-  var $template = new AddChildInsertCard(parentClientDiv.hasClass('card-100') ? 1 : 2).build();
+  var $template = new card.AddChildInsertCard(parentClientDiv.hasClass('card-100') ? 1 : 2).build();
 
   clearFormData();
   $('#client-info form.admin-panel-content #ParentClientId').val(parentClientId);
@@ -972,7 +972,7 @@ function cancelIconClickHandler() {
 }
 
 function renderClientNode(client, level) {
-  var $card = new ClientCard(
+  var $card = new card.ClientCard(
     client.ClientModel.ClientEntity,
     client.ClientModel.AssignedUsers.length,
     client.ClientModel.ContentItems.length,
@@ -1015,7 +1015,7 @@ function renderClientTree(clientTreeList, clientId) {
     $('[data-client-id="' + clientId + '"]').click();
   }
   if ($('#client-tree .action-icon-add').length) {
-    $clientTreeList.append(new AddClientActionCard(newClientClickHandler).build());
+    $clientTreeList.append(new card.AddClientActionCard(newClientClickHandler).build());
   }
 }
 
@@ -1116,26 +1116,6 @@ function submitClientForm() {
   }
 }
 
-
-// TODO: move to common file
-function filterTree() {
-  var $searchbar = $(this);
-  var $panel = $searchbar.closest('.admin-panel-container');
-  var $content = $panel.find('ul.admin-panel-content');
-  $content.children('.hr').hide();
-  $content.find('[data-filter-string]').each(function (index, element) {
-    var $element = $(element);
-    if ($element.data('filter-string').indexOf($searchbar.val().toUpperCase()) > -1) {
-      $element.show();
-      $element.closest('li').nextAll('li.hr').first()
-        .show();
-    } else {
-      $element.hide();
-    }
-  });
-}
-
-
 $(document).ready(function onReady() {
   getClientTree();
 
@@ -1154,7 +1134,7 @@ $(document).ready(function onReady() {
     confirmAndReset(confirmDiscardDialog);
   });
 
-  $('.admin-panel-searchbar').keyup(filterTree);
+  $('.admin-panel-searchbar').keyup(shared.filterTree);
 
   $('.tooltip').tooltipster();
 

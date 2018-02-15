@@ -1,18 +1,20 @@
-// Class declarations
-var Card;
-var ActionCard;
-var AddClientActionCard;
-var AddUserActionCard;
-var InsertCard;
-var AddChildInsertCard;
-var ClientCard;
-var RootContentItemCard;
-var SelectionGroupCard;
-var UserCard;
+var card = {};
 
 (function () {
   // Helper function declarations
   var toAttr;
+
+  // classes
+  var Card;
+  var ActionCard;
+  var AddClientActionCard;
+  var AddUserActionCard;
+  var InsertCard;
+  var AddChildInsertCard;
+  var ClientCard;
+  var RootContentItemCard;
+  var SelectionGroupCard;
+  var UserCard;
 
   // General click handler declarations
   var updateToolbarIcons;
@@ -797,4 +799,16 @@ var UserCard;
   };
   UserCard.prototype = Object.create(Card.prototype);
   UserCard.prototype.constructor = UserCard;
+
+  // Add cards to global card object
+  card.Card = Card;
+  card.ActionCard = ActionCard;
+  card.AddClientActionCard = AddClientActionCard;
+  card.AddUserActionCard = AddUserActionCard;
+  card.InsertCard = InsertCard;
+  card.AddChildInsertCard = AddChildInsertCard;
+  card.ClientCard = ClientCard;
+  card.RootContentItemCard = RootContentItemCard;
+  card.SelectionGroupCard = SelectionGroupCard;
+  card.UserCard = UserCard;
 }());

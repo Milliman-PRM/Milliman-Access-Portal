@@ -1,4 +1,4 @@
-/* global ClientCard, RootContentItemCard, SelectionGroupCard */
+/* global card, shared */
 
 var ajaxStatus = {
   getRootContentItemList: -1
@@ -30,7 +30,7 @@ function collapseAll() {
 // Render functions
 
 function renderClientNode(client, level) {
-  var $card = new ClientCard(
+  var $card = new card.ClientCard(
     client.ClientDetailModel.ClientEntity,
     client.ClientDetailModel.EligibleUserCount,
     client.ClientDetailModel.RootContentItemCount,
@@ -49,7 +49,7 @@ function renderClientNode(client, level) {
 }
 
 function renderRootContentItem(rootContentItem) {
-  var $card = new RootContentItemCard(
+  var $card = new card.RootContentItemCard(
     rootContentItem.RootContentItemEntity,
     rootContentItem.GroupCount,
     rootContentItem.EligibleUserCount,
@@ -60,7 +60,7 @@ function renderRootContentItem(rootContentItem) {
 }
 
 function renderSelectionGroup(selectionGroup) {
-  var $card = new SelectionGroupCard(
+  var $card = new card.SelectionGroupCard(
     selectionGroup.SelectionGroupEntity,
     selectionGroup.MemberList,
     function () { console.log('Selection group clicked.'); },
@@ -192,6 +192,7 @@ cardClickHandlerWrapper = function (payload) {
     };
     var openCard = function () {
       clearSelection();
+      hideDetails();
       $card.attr('selected', '');
       payload($card);
       showDetails();
@@ -211,32 +212,12 @@ cardClickHandlerWrapper = function (payload) {
   };
 };
 
-
-// TODO: move to common file
-function filterTree() {
-  var $searchbar = $(this);
-  var $panel = $searchbar.closest('.admin-panel-container');
-  var $content = $panel.find('ul.admin-panel-content');
-  $content.children('.hr').hide();
-  $content.find('[data-filter-string]').each(function (index, element) {
-    var $element = $(element);
-    if ($element.data('filter-string').indexOf($searchbar.val().toUpperCase()) > -1) {
-      $element.show();
-      $element.closest('li').nextAll('li.hr').first()
-        .show();
-    } else {
-      $element.hide();
-    }
-  });
-}
-
-
 $(document).ready(function () {
   getClientTree();
 
   $('.action-icon-expand').click(expandAll);
   $('.action-icon-collapse').click(collapseAll);
-  $('.admin-panel-searchbar').keyup(filterTree);
+  $('.admin-panel-searchbar').keyup(shared.filterTree);
 
   $('.tooltip').tooltipster();
 });
