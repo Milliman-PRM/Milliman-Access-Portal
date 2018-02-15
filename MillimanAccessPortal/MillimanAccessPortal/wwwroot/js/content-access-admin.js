@@ -252,11 +252,31 @@ rootContentItemCardClickHandler = function () {
 };
 
 
+// TODO: move to common file
+function filterTree() {
+  var $searchbar = $(this);
+  var $panel = $searchbar.closest('.admin-panel-container');
+  var $content = $panel.find('ul.admin-panel-content');
+  $content.children('.hr').hide();
+  $content.find('[data-filter-string]').each(function (index, element) {
+    var $element = $(element);
+    if ($element.data('filter-string').indexOf($searchbar.val().toUpperCase()) > -1) {
+      $element.show();
+      $element.closest('li').nextAll('li.hr').first()
+        .show();
+    } else {
+      $element.hide();
+    }
+  });
+}
+
+
 $(document).ready(function () {
   getClientTree();
 
   $('.action-icon-expand').click(expandAll);
   $('.action-icon-collapse').click(collapseAll);
+  $('.admin-panel-searchbar').keyup(filterTree);
 
   $('.tooltip').tooltipster();
 });
