@@ -1147,38 +1147,25 @@ function submitClientForm() {
   }
 }
 
-/**
- * Filter the client tree by a string
- * @param {String} searchString the string to filter by
- * @return {undefined}
- */
-function searchClientTree(searchString) {
-  $('#client-tree ul.admin-panel-content').children('.hr').hide();
-  $('#client-tree ul.admin-panel-content div[data-search-string]').each(function forEach(index, element) {
-    if ($(element).attr('data-search-string').indexOf(searchString.toUpperCase()) > -1) {
-      $(element).show();
-      $(element).closest('li').nextAll('li.hr').first()
+
+// TODO: move to common file
+function filterTree() {
+  var $this = $(this);
+  var $panel = $this.closest('.admin-panel-container');
+  var $content = $panel.find('ul.admin-panel-content');
+  $content.children('.hr').hide();
+  $content.find('[data-filter-string]').each(function (index, element) {
+    var $element = $(element);
+    if ($element.data('filter-string').indexOf($this.val().toUpperCase()) > -1) {
+      $element.show();
+      $element.closest('li').nextAll('li.hr').first()
         .show();
     } else {
-      $(element).hide();
+      $element.hide();
     }
   });
 }
 
-/**
- * Filter the user list by a string
- * @param {String} searchString the string to filter by
- * @return {undefined}
- */
-function searchUser(searchString) {
-  $('#client-users ul.admin-panel-content div[data-search-string]').each(function forEach(index, element) {
-    if ($(element).attr('data-search-string').indexOf(searchString.toUpperCase()) > -1) {
-      $(element).show();
-    } else {
-      $(element).hide();
-    }
-  });
-}
 
 $(document).ready(function onReady() {
   getClientTree();
@@ -1198,13 +1185,7 @@ $(document).ready(function onReady() {
     confirmAndReset(confirmDiscardDialog);
   });
 
-  $('#client-tree .admin-panel-searchbar').keyup(function onKeyup() {
-    searchClientTree($(this).val());
-  });
-
-  $('#client-users .admin-panel-searchbar').keyup(function onKeyup() {
-    searchUser($(this).val());
-  });
+  $('.admin-panel-searchbar').keyup(filterTree);
 
 
   $('.tooltip').tooltipster();

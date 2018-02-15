@@ -660,7 +660,7 @@ var UserCard;
       callback: newChildCallback
     });
     this.data = {
-      'search-string': [client.Name, client.ClientCode].join('|').toUpperCase(),
+      'filter-string': [client.Name, client.ClientCode].join('|').toUpperCase(),
       'client-id': client.Id
     };
     this.callback = callback;
@@ -687,7 +687,7 @@ var UserCard;
       tooltip: 'Eligible users'
     });
     this.data = {
-      'search-string': [
+      'filter-string': [
         rootContentItem.ContentName,
         rootContentItem.ContentType.Name
       ].join('|').toUpperCase(),
@@ -738,7 +738,7 @@ var UserCard;
     }, this);
 
     this.data = {
-      'search-string': memberInfo.concat([selectionGroup.GroupName]).join('|').toUpperCase(),
+      'filter-string': memberInfo.concat([selectionGroup.GroupName]).join('|').toUpperCase(),
       'selection-group-id': selectionGroup.Id
     };
 
@@ -788,7 +788,7 @@ var UserCard;
       });
     }, this);
     this.data = {
-      'search-string': names.join('|').toUpperCase(),
+      'filter-string': names.join('|').toUpperCase(),
       'user-id': user.Id,
       'client-id': client.Id
     };
