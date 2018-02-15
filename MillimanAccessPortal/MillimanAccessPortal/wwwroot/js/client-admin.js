@@ -6,7 +6,7 @@
 var ajaxStatus = {
   getClientDetail: -1
 };
-var smallSpinner = '<div class="spinner-small""></div>';
+var smallSpinner = '<div class="spinner-small"></div>';
 var eligibleUsers;
 var SHOW_DURATION = 50;
 
@@ -480,10 +480,7 @@ function renderUserNode(client, user) {
     user,
     client.ClientEntity,
     userCardRoleToggleClickHandler,
-    function (event) {
-      event.stopPropagation();
-      userCardRemoveClickHandler($(this).closest('.card-container'));
-    }
+    userCardRemoveClickHandler
   );
   $card.readonly = !client.CanManage;
   $('#client-users ul.admin-panel-content').append($card.build());
@@ -651,7 +648,8 @@ function openNewClientForm() {
  * @param {jQuery} $clickedCard the card that was clicked
  * @return {undefined}
  */
-function clientCardClickHandler($clickedCard) {
+function clientCardClickHandler() {
+  var $clickedCard = $(this);
   var $clientTree = $('#client-tree ul.admin-panel-content');
   var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
   if ($clientTree.has('[selected]').length) {
@@ -673,9 +671,11 @@ function clientCardClickHandler($clickedCard) {
  * @param  {jQuery} $clickedCard the card that was clickedCard
  * @return {undefined}
  */
-function clientCardDeleteClickHandler($clickedCard) {
+function clientCardDeleteClickHandler(event) {
+  var $clickedCard = $(this).closest('.card-container');
   var clientId = $clickedCard.attr('data-client-id').valueOf();
   var clientName = $clickedCard.find('.card-body-primary-text').first().text();
+  event.stopPropagation();
   buildVexDialog({
     title: 'Delete Client',
     message: 'Delete <strong>' + clientName + '</strong>?<br /><br /> This action <strong><u>cannot</u></strong> be undone.',
@@ -723,9 +723,11 @@ function clientCardDeleteClickHandler($clickedCard) {
  * @param {jQuery} $clickedCard the card that was clicked
  * @return {undefined}
  */
-function clientCardEditClickHandler($clickedCard) {
+function clientCardEditClickHandler(event) {
+  var $clickedCard = $(this).closest('.card-container');
   var $clientTree = $('#client-tree');
   var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
+  event.stopPropagation();
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
       confirmAndReset(confirmDiscardDialog, function onContinue() {
@@ -742,7 +744,8 @@ function clientCardEditClickHandler($clickedCard) {
  * @param {jQuery} $clickedCard the card that was clicked
  * @return {undefined}
  */
-function clientCardCreateNewChildClickHandler($clickedCard) {
+function clientCardCreateNewChildClickHandler(event) {
+  var $clickedCard = $(this).closest('.card-container');
   var $clientTree = $('#client-tree');
   /**
    * The clicked card is the same as the selected card if and only if the currently selected card
@@ -751,6 +754,7 @@ function clientCardCreateNewChildClickHandler($clickedCard) {
    */
   var sameCard = ($clientTree.find('[selected]').is('.client-insert') &&
     $clickedCard[0] === $clientTree.find('[selected]').parent().prev().find('.card-container')[0]);
+  event.stopPropagation();
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
       confirmAndReset(confirmDiscardDialog, function onContinue() {
@@ -760,6 +764,17 @@ function clientCardCreateNewChildClickHandler($clickedCard) {
   } else {
     openNewChildClientForm($clickedCard);
   }
+}
+
+function userCardRemoveClickHandler(event) {
+  var $clickedCard = $(this).closest('.card-container');
+  var userName = $clickedCard.find('.card-body-primary-text').html();
+  event.stopPropagation();
+  confirmRemoveDialog(userName, function removeUser(value, callback) {
+    var clientId = $('#client-tree [selected]').attr('data-client-id');
+    var userId = $clickedCard.attr('data-user-id');
+    removeUserFromClient(clientId, userId, callback);
+  });
 }
 
 /**
@@ -944,19 +959,6 @@ function removeUserFromClient(clientId, userId, callback) {
 }
 
 /**
- * Handle click events for remove user buttons
- * @return {undefined}
- */
-function userCardRemoveClickHandler($clickedCard) {
-  var userName = $clickedCard.find('.card-body-primary-text').html();
-  confirmRemoveDialog(userName, function removeUser(value, callback) {
-    var clientId = $('#client-tree [selected]').attr('data-client-id');
-    var userId = $clickedCard.attr('data-user-id');
-    removeUserFromClient(clientId, userId, callback);
-  });
-}
-
-/**
  * Handle click events for the client form edit icon
  * @return {undefined}
  */
@@ -981,35 +983,16 @@ function cancelIconClickHandler() {
   });
 }
 
-/**
- * Render user node by using string substitution on a clientNodeTemplate
- * @param  {Object} client Client object to render
- * @param  {Number} level  Client indentation level
- * @return {undefined}
- */
 function renderClientNode(client, level) {
   var $card = new ClientCard(
     client.ClientModel.ClientEntity,
     client.ClientModel.AssignedUsers.length,
     client.ClientModel.ContentItems.length,
     level,
-    function () { clientCardClickHandler($(this)); },
-    client.Children.length
-      ? undefined
-      : function (event) {
-        event.stopPropagation();
-        clientCardDeleteClickHandler($(this).closest('.card-container'));
-      },
-    function (event) {
-      event.stopPropagation();
-      clientCardEditClickHandler($(this).closest('.card-container'));
-    },
-    level === 2
-      ? undefined
-      : function (event) {
-        event.stopPropagation();
-        clientCardCreateNewChildClickHandler($(this).closest('.card-container'));
-      }
+    clientCardClickHandler,
+    !client.Children.length && clientCardDeleteClickHandler,
+    clientCardEditClickHandler,
+    level < 2 && clientCardCreateNewChildClickHandler
   );
   $card.readonly = !client.ClientModel.CanManage;
   $('#client-tree ul.admin-panel-content').append($card.build());
@@ -1044,9 +1027,7 @@ function renderClientTree(clientTreeList, clientId) {
     $('[data-client-id="' + clientId + '"]').click();
   }
   if ($('#client-tree .action-icon-add').length) {
-    $clientTreeList.append(new AddClientActionCard(function () {
-      newClientClickHandler($(this));
-    }).build());
+    $clientTreeList.append(new AddClientActionCard(newClientClickHandler).build());
   }
 }
 
@@ -1186,7 +1167,6 @@ $(document).ready(function onReady() {
   });
 
   $('.admin-panel-searchbar').keyup(filterTree);
-
 
   $('.tooltip').tooltipster();
 
