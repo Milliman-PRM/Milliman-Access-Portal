@@ -402,17 +402,18 @@ var UserCard;
 
 
   // General click handler definitions
-  updateToolbarIcons = function ($containedElement) {
-    var $top = $containedElement.closest('.admin-panel-container');
-    var panelId = $top.attr('id');
-    $('#' + panelId + '-collapse-icon').hide().filter(function anyMaximized() {
-      return $top.find('.card-expansion-container[maximized]').length;
+  // TODO: move to common file
+  updateToolbarIcons = function () {
+    var $adminPanel = $(this).closest('.admin-panel-container');
+    $adminPanel.find('.action-icon-collapse').hide().filter(function anyMaximized() {
+      return $adminPanel.find('.card-expansion-container[maximized]').length;
     }).show();
-    $('#' + panelId + '-expand-icon').hide().filter(function anyMinimized() {
-      return $top.find('.card-expansion-container:not([maximized])').length;
+    $adminPanel.find('.action-icon-expand').hide().filter(function anyMinimized() {
+      return $adminPanel.find('.card-expansion-container:not([maximized])').length;
     }).show();
   };
 
+  // TODO: move to common file
   expandCollapse = function (event) {
     var $this = $(this);
     event.stopPropagation();
@@ -425,7 +426,7 @@ var UserCard;
         $(this).find('.tooltip').tooltipster('content', data.text);
         return data.rv;
       });
-    updateToolbarIcons($this);
+    updateToolbarIcons.call(this);
   };
 
 

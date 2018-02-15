@@ -154,35 +154,24 @@ function populateProfitCenterDropDown(profitCenterList) {
   });
 }
 
-/**
- * Show or hide collapse/expand icons based on how many user cards are maximized
- * @return {undefined}
- */
-function showRelevantActionIcons() {
-  $('#client-users .action-icon-collapse').hide().filter(function anyMaximized() {
-    return $('div.card-expansion-container[maximized]').length;
+function updateToolbarIcons() {
+  var $adminPanel = $(this).closest('.admin-panel-container');
+  $adminPanel.find('.action-icon-collapse').hide().filter(function anyMaximized() {
+    return $adminPanel.find('.card-expansion-container[maximized]').length;
   }).show();
-  $('#client-users .action-icon-expand').hide().filter(function anyMinimized() {
-    return $('div.card-expansion-container:not([maximized])').length;
+  $adminPanel.find('.action-icon-expand').hide().filter(function anyMinimized() {
+    return $adminPanel.find('.card-expansion-container:not([maximized])').length;
   }).show();
 }
-
-/**
- * Expand all user cards and adjust user action icons accordingly
- * @return {undefined}
- */
-function expandAllUsers() {
-  $('#client-users ul.admin-panel-content').find('div.card-expansion-container').attr('maximized', '');
-  showRelevantActionIcons();
+function expandAll() {
+  $(this).closest('.admin-panel-container')
+    .find('.card-expansion-container').attr('maximized', '');
+  updateToolbarIcons.call(this);
 }
-
-/**
- * Collapse all user cards and adjust user action icons accordingly
- * @return {undefined}
- */
-function collapseAllUsers() {
-  $('#client-users ul.admin-panel-content').find('div.card-expansion-container[maximized]').removeAttr('maximized');
-  showRelevantActionIcons();
+function collapseAll() {
+  $(this).closest('.admin-panel-container')
+    .find('div.card-expansion-container[maximized]').removeAttr('maximized');
+  updateToolbarIcons.call(this);
 }
 
 /**
@@ -501,7 +490,6 @@ function renderUserList(client, userId) {
   });
   $clientUserList.find('.tooltip').tooltipster();
   eligibleUsers = client.EligibleUsers;
-  showRelevantActionIcons('user');
 
   if (userId) {
     $('[data-user-id="' + userId + '"]').click();
@@ -1154,8 +1142,8 @@ $(document).ready(function onReady() {
   $('#client-tree .action-icon-add').click(newClientClickHandler);
   $('#client-info .action-icon-edit').click(editIconClickHandler);
   $('#client-info .action-icon-cancel').click(cancelIconClickHandler);
-  $('#client-users .action-icon-expand').click(expandAllUsers);
-  $('#client-users .action-icon-collapse').click(collapseAllUsers);
+  $('.action-icon-expand').click(expandAll);
+  $('.action-icon-collapse').click(collapseAll);
   $('#client-users .action-icon-add').click(addUserClickHandler);
   $('#create-new-button').click(submitClientForm);
   $('#save-changes-button').click(submitClientForm);

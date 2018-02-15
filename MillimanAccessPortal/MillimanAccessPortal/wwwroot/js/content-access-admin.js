@@ -49,21 +49,24 @@ function openRootContentItemCard($rootContentItemCard) {
   showRootContentItemDetails();
 }
 
-function showRelevantActionIcons(panel) {
-  $(panel + ' .action-icon-collapse').hide().filter(function anyMaximized() {
-    return $('div.card-expansion-container[maximized]').length;
+function updateToolbarIcons() {
+  var $adminPanel = $(this).closest('.admin-panel-container');
+  $adminPanel.find('.action-icon-collapse').hide().filter(function anyMaximized() {
+    return $adminPanel.find('.card-expansion-container[maximized]').length;
   }).show();
-  $(panel + ' .action-icon-expand').hide().filter(function anyMinimized() {
-    return $('div.card-expansion-container:not([maximized])').length;
+  $adminPanel.find('.action-icon-expand').hide().filter(function anyMinimized() {
+    return $adminPanel.find('.card-expansion-container:not([maximized])').length;
   }).show();
 }
-function expandAll(panel) {
-  $('#' + panel).find('div.card-expansion-container').attr('maximized', '');
-  showRelevantActionIcons(panel);
+function expandAll() {
+  $(this).closest('.admin-panel-container')
+    .find('.card-expansion-container').attr('maximized', '');
+  updateToolbarIcons.call(this);
 }
-function collapseAll(panel) {
-  $('#' + panel).find('div.card-expansion-container[maximized]').removeAttr('maximized');
-  showRelevantActionIcons(panel);
+function collapseAll() {
+  $(this).closest('.admin-panel-container')
+    .find('div.card-expansion-container[maximized]').removeAttr('maximized');
+  updateToolbarIcons.call(this);
 }
 
 // Render functions
@@ -252,8 +255,8 @@ rootContentItemCardClickHandler = function () {
 $(document).ready(function () {
   getClientTree();
 
-  $('#expand-selection-groups-icon').click(function () { expandAll('selection-groups'); });
-  $('#collapse-selection-groups-icon').click(function () { collapseAll('selection-groups'); });
+  $('.action-icon-expand').click(expandAll);
+  $('.action-icon-collapse').click(collapseAll);
 
   $('.tooltip').tooltipster();
 });
