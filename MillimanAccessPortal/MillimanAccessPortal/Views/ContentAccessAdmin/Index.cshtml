@@ -30,26 +30,26 @@
     </div>
     <h3 class="admin-panel-header">Client Tree</h3>
     <div class="admin-panel-toolbar">
-        <input id="client-search-box" class="admin-panel-searchbar" type="search" placeholder="Filter Clients" />
+        <input class="admin-panel-searchbar" type="search" placeholder="Filter Clients" />
         <div class="admin-panel-action-icons-container">
         </div>
     </div>
-    <div id="client-tree-container" class="admin-panel-content-container">
-        <ul id="client-tree-list" class="admin-panel-content"></ul>
+    <div class="admin-panel-content-container">
+        <ul class="admin-panel-content"></ul>
     </div>
 </div>
-<div id="root-content" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12" style="display: none;">
+<div id="root-content-items" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12" style="display: none;">
     <div class="loading-wrapper">
         @Html.Partial("~/Views/ClientAdmin/templates/_Loader.cshtml")
     </div>
     <h3 class="admin-panel-header">Content Items</h3>
     <div class="admin-panel-toolbar">
-        <input id="content-search-box" class="admin-panel-searchbar" type="search" placeholder="Filter Content" />
+        <input class="admin-panel-searchbar" type="search" placeholder="Filter Content" />
         <div class="admin-panel-action-icons-container">
         </div>
     </div>
-    <div id="root-content-container" class="admin-panel-content-container">
-        <ul id="root-content-list" class="admin-panel-content"></ul>
+    <div class="admin-panel-content-container">
+        <ul class="admin-panel-content"></ul>
     </div>
 </div>
 <div id="selection-groups" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12" style="display: none;">
@@ -58,18 +58,18 @@
     </div>
     <h3 class="admin-panel-header">Selection Groups</h3>
     <div class="admin-panel-toolbar">
-        <input id="user-search-box" class="admin-panel-searchbar" type="search" placeholder="Filter Users" />
+        <input class="admin-panel-searchbar" type="search" placeholder="Filter Users" />
         <div class="admin-panel-action-icons-container">
-            <svg id="collapse-selection-groups-icon" class="action-icon tooltip" title="Collapse all user cards">
+            <svg class="action-icon-collapse action-icon tooltip" title="Collapse all user cards">
                 <use xlink:href="#action-icon-collapse"></use>
             </svg>
-            <svg id="expand-selection-groups-icon" class="action-icon tooltip" title="Expand all user cards">
+            <svg class="action-icon-expand action-icon tooltip" title="Expand all user cards">
                 <use xlink:href="#action-icon-expand"></use>
             </svg>
         </div>
     </div>
-    <div id="selection-groups-container" class="admin-panel-content-container">
-        <ul id="selection-groups-list" class="admin-panel-content"></ul>
+    <div class="admin-panel-content-container">
+        <ul class="admin-panel-content"></ul>
     </div>
 </div>
 <div id="selections" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12" style="display: none;">
@@ -78,12 +78,12 @@
     </div>
     <h3 class="admin-panel-header">Selections</h3>
     <div class="admin-panel-toolbar">
-        <input id="selections-search-box" class="admin-panel-searchbar" type="search" placeholder="Filter Users" />
+        <input class="admin-panel-searchbar" type="search" placeholder="Filter Users" />
         <div class="admin-panel-action-icons-container">
         </div>
     </div>
-    <div id="selections-container" class="admin-panel-content-container">
-        <ul id="selections-list" class="admin-panel-content"></ul>
+    <div class="admin-panel-content-container">
+        <ul class="admin-panel-content"></ul>
     </div>
 </div>
 

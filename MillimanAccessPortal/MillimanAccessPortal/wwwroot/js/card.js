@@ -701,7 +701,7 @@ var UserCard;
 
   SelectionGroupCard = function (
     selectionGroup, members,
-    deleteCallback, userCallback, callback
+    callback, deleteCallback, userCallback
   ) {
     var memberInfo;
     Card.call(this);

@@ -14,12 +14,12 @@ function clearClientSelection() {
   $('#client-tree .card-container').removeAttr('editing selected');
 }
 function clearRootContentItemSelection() {
-  $('#root-content .card-container').removeAttr('editing selected');
+  $('#root-content-items .card-container').removeAttr('editing selected');
 }
 
 function showClientDetails() {
   // TODO: consider using nested divs for better hiding
-  $('#root-content').show(SHOW_DURATION);
+  $('#root-content-items').show(SHOW_DURATION);
 }
 function showRootContentItemDetails() {
   $('#selection-groups').show(SHOW_DURATION);
@@ -27,7 +27,7 @@ function showRootContentItemDetails() {
 
 function hideClientDetails() {
   // TODO: consider using nested divs for better hiding
-  $('#root-content').hide(SHOW_DURATION);
+  $('#root-content-items').hide(SHOW_DURATION);
   $('#selection-groups').hide(SHOW_DURATION);
   $('#selections').hide(SHOW_DURATION);
 }
@@ -50,10 +50,10 @@ function openRootContentItemCard($rootContentItemCard) {
 }
 
 function showRelevantActionIcons(panel) {
-  $('#collapse-' + panel + '-icon').hide().filter(function anyMaximized() {
+  $(panel + ' .action-icon-collapse').hide().filter(function anyMaximized() {
     return $('div.card-expansion-container[maximized]').length;
   }).show();
-  $('#expand-' + panel + '-icon').hide().filter(function anyMinimized() {
+  $(panel + ' .action-icon-expand').hide().filter(function anyMinimized() {
     return $('div.card-expansion-container:not([maximized])').length;
   }).show();
 }
@@ -74,12 +74,10 @@ function renderClientNode(client, level) {
     client.ClientDetailModel.EligibleUserCount,
     client.ClientDetailModel.RootContentItemCount,
     level,
-    function onClick() {
-      clientCardClickHandler($(this));
-    }
+    clientCardClickHandler
   );
   $card.disabled = !client.ClientDetailModel.CanManage;
-  $('#client-tree-list').append($card.build());
+  $('#client-tree ul.admin-panel-content').append($card.build());
 
   // Render child nodes
   if (client.ChildClientModels.length) {
@@ -94,12 +92,10 @@ function renderRootContentItem(rootContentItem) {
     rootContentItem.RootContentItemEntity,
     rootContentItem.GroupCount,
     rootContentItem.EligibleUserCount,
-    function onClick() {
-      rootContentItemCardClickHandler($(this));
-    }
+    rootContentItemCardClickHandler
   );
 
-  $('#root-content-list').append($card.build());
+  $('#root-content-items ul.admin-panel-content').append($card.build());
 }
 
 function renderSelectionGroup(selectionGroup) {
@@ -107,15 +103,15 @@ function renderSelectionGroup(selectionGroup) {
     selectionGroup.SelectionGroupEntity,
     selectionGroup.MemberList,
     function () { console.log('Selection group clicked.'); },
-    function () { console.log('Add/remove user button clicked.'); },
-    function () { console.log('Delete group button clicked.'); }
+    function () { console.log('Delete group button clicked.'); },
+    function () { console.log('Add/remove user button clicked.'); }
   );
 
-  $('#selection-groups-list').append($card.build());
+  $('#selection-groups ul.admin-panel-content').append($card.build());
 }
 
 function renderClientTree(clientTreeList, clientId) {
-  var $clientTreeList = $('#client-tree-list');
+  var $clientTreeList = $('#client-tree ul.admin-panel-content');
   $clientTreeList.empty();
   clientTreeList.forEach(function render(rootClient) {
     renderClientNode(rootClient, 0);
@@ -129,11 +125,9 @@ function renderClientTree(clientTreeList, clientId) {
   }
 }
 function renderRootContentItemList(rootContentItemList, rootContentItemId) {
-  var $rootContentItemList = $('#root-content-list');
+  var $rootContentItemList = $('#root-content-items ul.admin-panel-content');
   $rootContentItemList.empty();
-  rootContentItemList.forEach(function render(rootContentItem) {
-    renderRootContentItem(rootContentItem);
-  });
+  rootContentItemList.forEach(renderRootContentItem);
   $rootContentItemList.find('.tooltip').tooltipster();
 
   if (rootContentItemId) {
@@ -141,11 +135,9 @@ function renderRootContentItemList(rootContentItemList, rootContentItemId) {
   }
 }
 function renderSelectionGroupList(selectionGroupList, selectionGroupId) {
-  var $selectionGroupList = $('#selection-groups-list');
+  var $selectionGroupList = $('#selection-groups ul.admin-panel-content');
   $selectionGroupList.empty();
-  selectionGroupList.forEach(function render(selectionGroup) {
-    renderSelectionGroup(selectionGroup);
-  });
+  selectionGroupList.forEach(renderSelectionGroup);
   $selectionGroupList.find('.tooltip').tooltipster();
 
   if (selectionGroupId) {
@@ -175,7 +167,7 @@ function getClientTree() {
 }
 function getRootContentItemList($clientCard) {
   var clientId = $clientCard.attr('data-client-id');
-  $('#root-content .loading-wrapper').show();
+  $('#root-content-items .loading-wrapper').show();
   ajaxStatus.getRootContentItemList = clientId;
   $.ajax({
     type: 'GET',
@@ -185,9 +177,9 @@ function getRootContentItemList($clientCard) {
     }
   }).done(function onDone(response) {
     renderRootContentItemList(response.RootContentItemList);
-    $('#root-content .loading-wrapper').hide();
+    $('#root-content-items .loading-wrapper').hide();
   }).fail(function onFail(response) {
-    $('#root-content .loading-wrapper').hide();
+    $('#root-content-items .loading-wrapper').hide();
     if (response.getResponseHeader('Warning')) {
       toastr.warning(response.getResponseHeader('Warning'));
     } else {
@@ -223,7 +215,8 @@ function getSelectionGroupList($rootContentItemCard) {
 
 // Event handlers
 
-clientCardClickHandler = function clientCardClickHandler_($clickedCard) {
+clientCardClickHandler = function () {
+  var $clickedCard = $(this);
   var $clientTree = $('#client-tree');
   var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
   if ($clientTree.has('[selected]').length) {
@@ -238,8 +231,9 @@ clientCardClickHandler = function clientCardClickHandler_($clickedCard) {
     openClientCard($clickedCard);
   }
 };
-rootContentItemCardClickHandler = function rootContentItemCardClickHandler_($clickedCard) {
-  var $rootContent = $('#root-content');
+rootContentItemCardClickHandler = function () {
+  var $clickedCard = $(this);
+  var $rootContent = $('#root-content-items');
   var sameCard = ($clickedCard[0] === $rootContent.find('[selected]')[0]);
   if ($rootContent.has('[selected]').length) {
     // TODO: wrap if-else with confirmAndReset
@@ -255,7 +249,7 @@ rootContentItemCardClickHandler = function rootContentItemCardClickHandler_($cli
 };
 
 
-$(document).ready(function onReady() {
+$(document).ready(function () {
   getClientTree();
 
   $('#expand-selection-groups-icon').click(function () { expandAll('selection-groups'); });
