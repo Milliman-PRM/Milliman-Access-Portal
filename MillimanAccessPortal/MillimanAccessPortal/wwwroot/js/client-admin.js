@@ -154,26 +154,6 @@ function populateProfitCenterDropDown(profitCenterList) {
   });
 }
 
-function updateToolbarIcons() {
-  var $adminPanel = $(this).closest('.admin-panel-container');
-  $adminPanel.find('.action-icon-collapse').hide().filter(function anyMaximized() {
-    return $adminPanel.find('.card-expansion-container[maximized]').length;
-  }).show();
-  $adminPanel.find('.action-icon-expand').hide().filter(function anyMinimized() {
-    return $adminPanel.find('.card-expansion-container:not([maximized])').length;
-  }).show();
-}
-function expandAll() {
-  $(this).closest('.admin-panel-container')
-    .find('.card-expansion-container').attr('maximized', '');
-  updateToolbarIcons.call(this);
-}
-function collapseAll() {
-  $(this).closest('.admin-panel-container')
-    .find('div.card-expansion-container[maximized]').removeAttr('maximized');
-  updateToolbarIcons.call(this);
-}
-
 /**
  * Reset client form validation and remove validation messages
  * @return {undefined}
@@ -220,7 +200,7 @@ function clearFormData() {
  */
 function clearUserList() {
   $('#client-users ul.admin-panel-content > li').remove();
-  $('#expand-user-icon,#collapse-user-icon,#add-user-icon').hide();
+  $('#client-users .action-icon').hide();
 }
 
 /**
@@ -1122,8 +1102,8 @@ $(document).ready(function onReady() {
   $('#client-tree .action-icon-add').click(newClientClickHandler);
   $('#client-info .action-icon-edit').click(editIconClickHandler);
   $('#client-info .action-icon-cancel').click(cancelIconClickHandler);
-  $('.action-icon-expand').click(expandAll);
-  $('.action-icon-collapse').click(collapseAll);
+  $('.action-icon-expand').click(shared.expandAll);
+  $('.action-icon-collapse').click(shared.collapseAll);
   $('#client-users .action-icon-add').click(addUserClickHandler);
   $('#create-new-button').click(submitClientForm);
   $('#save-changes-button').click(submitClientForm);

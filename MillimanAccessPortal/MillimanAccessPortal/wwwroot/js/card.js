@@ -1,3 +1,5 @@
+/* global shared */
+
 var card = {};
 
 (function () {
@@ -15,10 +17,6 @@ var card = {};
   var RootContentItemCard;
   var SelectionGroupCard;
   var UserCard;
-
-  // General click handler declarations
-  var updateToolbarIcons;
-  var expandCollapse;
 
   var cardLayout = {
     card: {
@@ -364,7 +362,7 @@ var card = {};
         render: function (component) {
           return function () {
             this.verify(component);
-            this.click(component, expandCollapse, '.card-button-background');
+            this.click(component, shared.toggleExpanded, '.card-button-background');
             this.tooltip(component, 'Expand card', '.card-button-background');
           };
         }
@@ -401,36 +399,6 @@ var card = {};
     });
     return attrs;
   };
-
-
-  // General click handler definitions
-  // TODO: move to common file
-  updateToolbarIcons = function () {
-    var $adminPanel = $(this).closest('.admin-panel-container');
-    $adminPanel.find('.action-icon-collapse').hide().filter(function anyMaximized() {
-      return $adminPanel.find('.card-expansion-container[maximized]').length;
-    }).show();
-    $adminPanel.find('.action-icon-expand').hide().filter(function anyMinimized() {
-      return $adminPanel.find('.card-expansion-container:not([maximized])').length;
-    }).show();
-  };
-
-  // TODO: move to common file
-  expandCollapse = function (event) {
-    var $this = $(this);
-    event.stopPropagation();
-    $this.closest('.card-container')
-      .find('.card-expansion-container')
-      .attr('maximized', function (index, attr) {
-        var data = (attr === '')
-          ? { text: 'Expand card', rv: null }
-          : { text: 'Collapse card', rv: '' };
-        $(this).find('.tooltip').tooltipster('content', data.text);
-        return data.rv;
-      });
-    updateToolbarIcons.call(this);
-  };
-
 
   // Class definitions
   Card = function (representation) {
@@ -795,7 +763,7 @@ var card = {};
       'user-id': user.Id,
       'client-id': client.Id
     };
-    this.callback = expandCollapse;
+    this.callback = shared.toggleExpanded;
   };
   UserCard.prototype = Object.create(Card.prototype);
   UserCard.prototype.constructor = UserCard;
