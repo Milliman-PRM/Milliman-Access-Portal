@@ -2,6 +2,7 @@ var shared = {};
 
 (function () {
   var SHOW_DURATION = 50;
+  var ajaxStatus = [];
 
   shared.filterTree = function () {
     var $filter = $(this);
@@ -90,6 +91,32 @@ var shared = {};
       } else {
         openCard();
       }
+    };
+  };
+
+  shared.get = function (url, callback) {
+    return function ($card) {
+      var $panel = $card
+        ? $card.closest('.admin-panel-container').next()
+        : $('.admin-panel-container').first();
+      var $loading = $panel.find('.loading-wrapper');
+      var data = $card && $card.data();
+
+      ajaxStatus[callback.name] = data; // or some hash of the data
+      $loading.show();
+
+      $.ajax({
+        type: 'GET',
+        url: url,
+        data: data
+      }).done(function (response) {
+        callback(response);
+        $loading.hide();
+      }).fail(function (response) {
+        var warning = response.getResponseHeader('Warning');
+        toastr.warning(warning || 'An unknown error has occurred.');
+        $loading.hide();
+      });
     };
   };
 }());

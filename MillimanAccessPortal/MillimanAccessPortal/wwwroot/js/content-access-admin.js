@@ -4,9 +4,6 @@ var ajaxStatus = {
   getRootContentItemList: -1
 };
 
-var getRootContentItemList;
-var getSelectionGroupList;
-
 // Render functions
 function renderClientNode(client, level) {
   var $card = new card.ClientCard(
@@ -14,7 +11,10 @@ function renderClientNode(client, level) {
     client.ClientDetailModel.EligibleUserCount,
     client.ClientDetailModel.RootContentItemCount,
     level,
-    shared.wrapCardCallback(getRootContentItemList)
+    shared.wrapCardCallback(shared.get(
+      'ContentAccessAdmin/RootContentItems',
+      renderRootContentItemList
+    ))
   );
   $card.disabled = !client.ClientDetailModel.CanManage;
   $('#client-tree ul.admin-panel-content').append($card.build());
@@ -32,7 +32,10 @@ function renderRootContentItem(rootContentItem) {
     rootContentItem.RootContentItemEntity,
     rootContentItem.GroupCount,
     rootContentItem.EligibleUserCount,
-    shared.wrapCardCallback(getSelectionGroupList)
+    shared.wrapCardCallback(shared.get(
+      'ContentAccessAdmin/SelectionGroups',
+      renderSelectionGroupList
+    ))
   );
 
   $('#root-content-items ul.admin-panel-content').append($card.build());
@@ -50,10 +53,10 @@ function renderSelectionGroup(selectionGroup) {
   $('#selection-groups ul.admin-panel-content').append($card.build());
 }
 
-function renderClientTree(clientTreeList, clientId) {
+function renderClientTree(response, clientId) {
   var $clientTreeList = $('#client-tree ul.admin-panel-content');
   $clientTreeList.empty();
-  clientTreeList.forEach(function render(rootClient) {
+  response.ClientTreeList.forEach(function render(rootClient) {
     renderClientNode(rootClient, 0);
     $clientTreeList.append('<li class="hr width-100pct"></li>');
   });
@@ -64,20 +67,20 @@ function renderClientTree(clientTreeList, clientId) {
     $('[data-client-id="' + clientId + '"]').click();
   }
 }
-function renderRootContentItemList(rootContentItemList, rootContentItemId) {
+function renderRootContentItemList(response, rootContentItemId) {
   var $rootContentItemList = $('#root-content-items ul.admin-panel-content');
   $rootContentItemList.empty();
-  rootContentItemList.forEach(renderRootContentItem);
+  response.RootContentItemList.forEach(renderRootContentItem);
   $rootContentItemList.find('.tooltip').tooltipster();
 
   if (rootContentItemId) {
     $('[data-root-content-item-id="' + rootContentItemId + '"]').click();
   }
 }
-function renderSelectionGroupList(selectionGroupList, selectionGroupId) {
+function renderSelectionGroupList(response, selectionGroupId) {
   var $selectionGroupList = $('#selection-groups ul.admin-panel-content');
   $selectionGroupList.empty();
-  selectionGroupList.forEach(renderSelectionGroup);
+  response.SelectionGroupList.forEach(renderSelectionGroup);
   $selectionGroupList.find('.tooltip').tooltipster();
 
   if (selectionGroupId) {
@@ -87,7 +90,6 @@ function renderSelectionGroupList(selectionGroupList, selectionGroupId) {
 
 
 // AJAX functions
-
 function getClientTree() {
   $('#client-tree .loading-wrapper').show();
   $.ajax({
@@ -105,55 +107,13 @@ function getClientTree() {
     }
   });
 }
-getRootContentItemList = function ($card) {
-  var clientId = $card.data('client-id');
-  $('#root-content-items .loading-wrapper').show();
-  ajaxStatus.getRootContentItemList = clientId;
-  $.ajax({
-    type: 'GET',
-    url: 'ContentAccessAdmin/RootContentItems',
-    data: {
-      ClientId: clientId
-    }
-  }).done(function onDone(response) {
-    renderRootContentItemList(response.RootContentItemList);
-    $('#root-content-items .loading-wrapper').hide();
-  }).fail(function onFail(response) {
-    $('#root-content-items .loading-wrapper').hide();
-    if (response.getResponseHeader('Warning')) {
-      toastr.warning(response.getResponseHeader('Warning'));
-    } else {
-      toastr.error('An error has occurred');
-    }
-  });
-};
-getSelectionGroupList = function ($card) {
-  var clientId = $('#client-tree [selected]').data('client-id');
-  var rootContentItemId = $card.data('root-content-item-id');
-  $('#selection-groups .loading-wrapper').show();
-  ajaxStatus.getRootContentItemList = [clientId, rootContentItemId];
-  $.ajax({
-    type: 'GET',
-    url: 'ContentAccessAdmin/SelectionGroups',
-    data: {
-      ClientId: clientId,
-      RootContentItemId: rootContentItemId
-    }
-  }).done(function onDone(response) {
-    renderSelectionGroupList(response.SelectionGroupList);
-    $('#selection-groups .loading-wrapper').hide();
-  }).fail(function onFail(response) {
-    $('#selection-groups .loading-wrapper').hide();
-    if (response.getResponseHeader('Warning')) {
-      toastr.warning(response.getResponseHeader('Warning'));
-    } else {
-      toastr.error('An error has occurred');
-    }
-  });
-};
 
 $(document).ready(function () {
-  getClientTree();
+  // getClientTree();
+  (shared.get(
+    'ContentAccessAdmin/ClientFamilyList',
+    renderClientTree
+  ))();
 
   $('.action-icon-expand').click(shared.expandAll);
   $('.action-icon-collapse').click(shared.collapseAll);
