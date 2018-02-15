@@ -5,49 +5,7 @@ var ajaxStatus = {
 };
 var SHOW_DURATION = 50;
 
-var clientCardClickHandler;
-var rootContentItemCardClickHandler;
-
-// Helper functions (TODO: consider moving to separate file)
-
-function clearClientSelection() {
-  $('#client-tree .card-container').removeAttr('editing selected');
-}
-function clearRootContentItemSelection() {
-  $('#root-content-items .card-container').removeAttr('editing selected');
-}
-
-function showClientDetails() {
-  // TODO: consider using nested divs for better hiding
-  $('#root-content-items').show(SHOW_DURATION);
-}
-function showRootContentItemDetails() {
-  $('#selection-groups').show(SHOW_DURATION);
-}
-
-function hideClientDetails() {
-  // TODO: consider using nested divs for better hiding
-  $('#root-content-items').hide(SHOW_DURATION);
-  $('#selection-groups').hide(SHOW_DURATION);
-  $('#selections').hide(SHOW_DURATION);
-}
-function hideRootContentItemDetails() {
-  $('#selection-groups').hide(SHOW_DURATION);
-  $('#selections').hide(SHOW_DURATION);
-}
-
-function openClientCard($clientCard) {
-  clearClientSelection();
-  $clientCard.attr('selected', '');
-  getRootContentItemList($clientCard);
-  showClientDetails();
-}
-function openRootContentItemCard($rootContentItemCard) {
-  clearRootContentItemSelection();
-  $rootContentItemCard.attr('selected', '');
-  getSelectionGroupList($rootContentItemCard);
-  showRootContentItemDetails();
-}
+var cardClickHandlerWrapper;
 
 function updateToolbarIcons() {
   var $adminPanel = $(this).closest('.admin-panel-container');
@@ -77,7 +35,7 @@ function renderClientNode(client, level) {
     client.ClientDetailModel.EligibleUserCount,
     client.ClientDetailModel.RootContentItemCount,
     level,
-    clientCardClickHandler
+    cardClickHandlerWrapper(getRootContentItemList)
   );
   $card.disabled = !client.ClientDetailModel.CanManage;
   $('#client-tree ul.admin-panel-content').append($card.build());
@@ -95,7 +53,7 @@ function renderRootContentItem(rootContentItem) {
     rootContentItem.RootContentItemEntity,
     rootContentItem.GroupCount,
     rootContentItem.EligibleUserCount,
-    rootContentItemCardClickHandler
+    cardClickHandlerWrapper(getSelectionGroupList)
   );
 
   $('#root-content-items ul.admin-panel-content').append($card.build());
@@ -168,8 +126,8 @@ function getClientTree() {
     }
   });
 }
-function getRootContentItemList($clientCard) {
-  var clientId = $clientCard.attr('data-client-id');
+function getRootContentItemList($card) {
+  var clientId = $card.data('client-id');
   $('#root-content-items .loading-wrapper').show();
   ajaxStatus.getRootContentItemList = clientId;
   $.ajax({
@@ -190,9 +148,9 @@ function getRootContentItemList($clientCard) {
     }
   });
 }
-function getSelectionGroupList($rootContentItemCard) {
-  var clientId = $('#client-tree [selected]').attr('data-client-id');
-  var rootContentItemId = $rootContentItemCard.attr('data-root-content-item-id');
+function getSelectionGroupList($card) {
+  var clientId = $('#client-tree [selected]').data('client-id');
+  var rootContentItemId = $card.data('root-content-item-id');
   $('#selection-groups .loading-wrapper').show();
   ajaxStatus.getRootContentItemList = [clientId, rootContentItemId];
   $.ajax({
@@ -216,39 +174,41 @@ function getSelectionGroupList($rootContentItemCard) {
 }
 
 
-// Event handlers
+// TODO: move to common file
+cardClickHandlerWrapper = function (payload) {
+  return function () {
+    var $card = $(this);
+    var $panel = $card.closest('.admin-panel-container');
+    var sameCard = ($card[0] === $panel.find('[selected]')[0]);
 
-clientCardClickHandler = function () {
-  var $clickedCard = $(this);
-  var $clientTree = $('#client-tree');
-  var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
-  if ($clientTree.has('[selected]').length) {
-    // TODO: wrap if-else with confirmAndReset
-    if (sameCard) {
-      clearClientSelection();
-      hideClientDetails();
+    var clearSelection = function () {
+      $panel.find('.card-container').removeAttr('editing selected');
+    };
+    var showDetails = function () {
+      $panel.next().show(SHOW_DURATION);
+    };
+    var hideDetails = function () {
+      $panel.nextAll().hide(SHOW_DURATION);
+    };
+    var openCard = function () {
+      clearSelection();
+      $card.attr('selected', '');
+      payload($card);
+      showDetails();
+    };
+
+    if ($panel.has('[selected]').length) {
+      // TODO: wrap if-else with confirmAndReset
+      if (sameCard) {
+        clearSelection();
+        hideDetails();
+      } else {
+        openCard();
+      }
     } else {
-      openClientCard($clickedCard);
+      openCard();
     }
-  } else {
-    openClientCard($clickedCard);
-  }
-};
-rootContentItemCardClickHandler = function () {
-  var $clickedCard = $(this);
-  var $rootContent = $('#root-content-items');
-  var sameCard = ($clickedCard[0] === $rootContent.find('[selected]')[0]);
-  if ($rootContent.has('[selected]').length) {
-    // TODO: wrap if-else with confirmAndReset
-    if (sameCard) {
-      clearRootContentItemSelection();
-      hideRootContentItemDetails();
-    } else {
-      openRootContentItemCard($clickedCard);
-    }
-  } else {
-    openRootContentItemCard($clickedCard);
-  }
+  };
 };
 
 
