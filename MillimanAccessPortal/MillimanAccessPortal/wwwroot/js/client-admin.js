@@ -1150,13 +1150,13 @@ function submitClientForm() {
 
 // TODO: move to common file
 function filterTree() {
-  var $this = $(this);
-  var $panel = $this.closest('.admin-panel-container');
+  var $searchbar = $(this);
+  var $panel = $searchbar.closest('.admin-panel-container');
   var $content = $panel.find('ul.admin-panel-content');
   $content.children('.hr').hide();
   $content.find('[data-filter-string]').each(function (index, element) {
     var $element = $(element);
-    if ($element.data('filter-string').indexOf($this.val().toUpperCase()) > -1) {
+    if ($element.data('filter-string').indexOf($searchbar.val().toUpperCase()) > -1) {
       $element.show();
       $element.closest('li').nextAll('li.hr').first()
         .show();
