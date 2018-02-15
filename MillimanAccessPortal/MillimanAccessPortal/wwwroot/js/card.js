@@ -755,18 +755,18 @@ var UserCard;
 
     Card.call(this);
 
-    names.push(user.Email);
-    if (user.UserName !== user.Email) {
-      names.push(user.UserName);
-    }
     if (user.FirstName && user.LastName) {
       names.push([user.FirstName, user.LastName].join(' '));
     }
+    if (user.UserName !== user.Email) {
+      names.push(user.UserName);
+    }
+    names.push(user.Email);
 
     this.addComponent('icon', { icon: 'user', class: 'card-user-icon' });
     this.addComponent('icon', { icon: 'add', class: 'card-user-role-indicator' });
-    this.addComponent('primaryText', { text: names.pop() });
-    names.reverse().forEach(function (name) {
+    this.addComponent('primaryText', { text: names[0] });
+    names.slice(1).forEach(function (name) {
       this.addComponent('secondaryText', { text: name });
     }, this);
     this.addComponent('button', {
@@ -788,6 +788,7 @@ var UserCard;
       });
     }, this);
     this.data = {
+      'search-string': names.join('|').toUpperCase(),
       'user-id': user.Id,
       'client-id': client.Id
     };
