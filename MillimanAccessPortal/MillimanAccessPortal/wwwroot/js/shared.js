@@ -1,6 +1,8 @@
 var shared = {};
 
 (function () {
+  var SHOW_DURATION = 50;
+
   shared.filterTree = function () {
     var $filter = $(this);
     var $panel = $filter.closest('.admin-panel-container');
@@ -52,5 +54,42 @@ var shared = {};
     event.stopPropagation();
     $panel.find('.card-expansion-container[maximized]').removeAttr('maximized');
     shared.updateToolbarIcons($panel);
+  };
+
+  shared.wrapCardCallback = function (callback) {
+    return function () {
+      var $card = $(this);
+      var $panel = $card.closest('.admin-panel-container');
+      var sameCard = ($card[0] === $panel.find('[selected]')[0]);
+
+      var clearSelection = function () {
+        $panel.find('.card-container').removeAttr('editing selected');
+      };
+      var showDetails = function () {
+        $panel.next().show(SHOW_DURATION);
+      };
+      var hideDetails = function () {
+        $panel.nextAll().hide(SHOW_DURATION);
+      };
+      var openCard = function () {
+        clearSelection();
+        hideDetails();
+        $card.attr('selected', '');
+        callback($card);
+        showDetails();
+      };
+
+      if ($panel.has('[selected]').length) {
+        // TODO: wrap if-else with confirmAndReset
+        if (sameCard) {
+          clearSelection();
+          hideDetails();
+        } else {
+          openCard();
+        }
+      } else {
+        openCard();
+      }
+    };
   };
 }());

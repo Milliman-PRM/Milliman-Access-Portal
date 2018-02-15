@@ -3,9 +3,9 @@
 var ajaxStatus = {
   getRootContentItemList: -1
 };
-var SHOW_DURATION = 50;
 
-var cardClickHandlerWrapper;
+var getRootContentItemList;
+var getSelectionGroupList;
 
 // Render functions
 function renderClientNode(client, level) {
@@ -14,7 +14,7 @@ function renderClientNode(client, level) {
     client.ClientDetailModel.EligibleUserCount,
     client.ClientDetailModel.RootContentItemCount,
     level,
-    cardClickHandlerWrapper(getRootContentItemList)
+    shared.wrapCardCallback(getRootContentItemList)
   );
   $card.disabled = !client.ClientDetailModel.CanManage;
   $('#client-tree ul.admin-panel-content').append($card.build());
@@ -32,7 +32,7 @@ function renderRootContentItem(rootContentItem) {
     rootContentItem.RootContentItemEntity,
     rootContentItem.GroupCount,
     rootContentItem.EligibleUserCount,
-    cardClickHandlerWrapper(getSelectionGroupList)
+    shared.wrapCardCallback(getSelectionGroupList)
   );
 
   $('#root-content-items ul.admin-panel-content').append($card.build());
@@ -105,7 +105,7 @@ function getClientTree() {
     }
   });
 }
-function getRootContentItemList($card) {
+getRootContentItemList = function ($card) {
   var clientId = $card.data('client-id');
   $('#root-content-items .loading-wrapper').show();
   ajaxStatus.getRootContentItemList = clientId;
@@ -126,8 +126,8 @@ function getRootContentItemList($card) {
       toastr.error('An error has occurred');
     }
   });
-}
-function getSelectionGroupList($card) {
+};
+getSelectionGroupList = function ($card) {
   var clientId = $('#client-tree [selected]').data('client-id');
   var rootContentItemId = $card.data('root-content-item-id');
   $('#selection-groups .loading-wrapper').show();
@@ -150,45 +150,6 @@ function getSelectionGroupList($card) {
       toastr.error('An error has occurred');
     }
   });
-}
-
-
-// TODO: move to common file
-cardClickHandlerWrapper = function (payload) {
-  return function () {
-    var $card = $(this);
-    var $panel = $card.closest('.admin-panel-container');
-    var sameCard = ($card[0] === $panel.find('[selected]')[0]);
-
-    var clearSelection = function () {
-      $panel.find('.card-container').removeAttr('editing selected');
-    };
-    var showDetails = function () {
-      $panel.next().show(SHOW_DURATION);
-    };
-    var hideDetails = function () {
-      $panel.nextAll().hide(SHOW_DURATION);
-    };
-    var openCard = function () {
-      clearSelection();
-      hideDetails();
-      $card.attr('selected', '');
-      payload($card);
-      showDetails();
-    };
-
-    if ($panel.has('[selected]').length) {
-      // TODO: wrap if-else with confirmAndReset
-      if (sameCard) {
-        clearSelection();
-        hideDetails();
-      } else {
-        openCard();
-      }
-    } else {
-      openCard();
-    }
-  };
 };
 
 $(document).ready(function () {
