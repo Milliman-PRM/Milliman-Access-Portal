@@ -74,7 +74,6 @@ var shared = {};
       };
       var openCard = function () {
         clearSelection();
-        hideDetails();
         $card.attr('selected', '');
         callback($card);
         showDetails();
@@ -94,15 +93,16 @@ var shared = {};
     };
   };
 
-  shared.get = function (url, callback) {
+  shared.get = function (url) {
+    var callbacks = Array.prototype.slice.call(arguments, 1);
     return function ($card) {
       var $panel = $card
-        ? $card.closest('.admin-panel-container').next()
+        ? $card.closest('.admin-panel-container').nextAll().slice(0, callbacks.length)
         : $('.admin-panel-container').first();
       var $loading = $panel.find('.loading-wrapper');
       var data = $card && $card.data();
 
-      ajaxStatus[callback.name] = data; // or some hash of the data
+      ajaxStatus[url] = data; // or some hash of the data
       $loading.show();
 
       $.ajax({
@@ -110,10 +110,14 @@ var shared = {};
         url: url,
         data: data
       }).done(function (response) {
-        callback(response);
-        $loading.hide();
+        if (ajaxStatus[url] !== data) return;
+        callbacks.forEach(function (callback, index) {
+          callback(response);
+          $loading.eq(index).hide();
+        });
       }).fail(function (response) {
         var warning = response.getResponseHeader('Warning');
+        if (ajaxStatus[url] !== data) return;
         toastr.warning(warning || 'An unknown error has occurred.');
         $loading.hide();
       });
