@@ -24,15 +24,15 @@
     </div>
     <h3 class="admin-panel-header">Client Tree</h3>
     <div class="admin-panel-toolbar">
-        <input id="client-search-box" class="admin-panel-searchbar" type="search" placeholder="Filter Clients" />
+        <input class="admin-panel-searchbar" type="search" placeholder="Filter Clients" />
         <div class="admin-panel-action-icons-container">
-            <svg id="add-client-icon" class="action-icon tooltip" title="New Client">
+            <svg class="action-icon-add action-icon tooltip" title="New Client">
                 <use xlink:href="#action-icon-add"></use>
             </svg>
         </div>
     </div>
-    <div id="client-tree" class="admin-panel-content-container">
-        <ul id="client-tree-list" class="admin-panel-content">
+    <div class="admin-panel-content-container">
+        <ul class="admin-panel-content">
         </ul>
     </div>
 </div>
@@ -43,16 +43,16 @@
     <h3 class="admin-panel-header">Client Information</h3>
     <div class="admin-panel-toolbar">
         <div class="admin-panel-action-icons-container">
-            <svg id="edit-client-icon" class="action-icon tooltip" title="Edit client details">
+            <svg class="action-icon-edit action-icon tooltip" title="Edit client details">
                 <use xlink:href="#action-icon-edit"></use>
             </svg>
-            <svg id="cancel-edit-client-icon" class="action-icon tooltip" title="Cancel edit">
+            <svg class="action-icon-cancel action-icon tooltip" title="Cancel edit">
                 <use xlink:href="#action-icon-cancel"></use>
             </svg>
         </div>
     </div>
     <div class="admin-panel-content-container">
-        <form id="client-form">
+        <form class="admin-panel-content">
             <div class="form-container">
                 <h4 class="form-section-header">Client Information</h4>
                 <div class="form-section-container">
@@ -152,6 +152,7 @@
                     </div>
                     @Html.AntiForgeryToken()
                 </div>
+                @* TODO: Consider moving id's to classes if more forms are added in the future *@
                 <div id="form-buttons-new" class="form-button-container" style="display: none;">
                     <button type="button" id="reset-form-button" class="link-button">Reset Form</button>
                     <button type="button" id="create-new-button" class="green-button">Create Client</button>
@@ -170,21 +171,21 @@
     </div>
     <h3 class="admin-panel-header">Client Users</h3>
     <div class="admin-panel-toolbar">
-        <input id="user-search-box" class="admin-panel-searchbar" type="search" placeholder="Filter Users" />
+        <input class="admin-panel-searchbar" type="search" placeholder="Filter Users" />
         <div class="admin-panel-action-icons-container">
-            <svg id="client-users-collapse-icon" class="action-icon tooltip" title="Collapse all user cards">
+            <svg class="action-icon-collapse action-icon tooltip" title="Collapse all user cards">
                 <use xlink:href="#action-icon-collapse"></use>
             </svg>
-            <svg id="client-users-expand-icon" class="action-icon tooltip" title="Expand all user cards">
+            <svg class="action-icon-expand action-icon tooltip" title="Expand all user cards">
                 <use xlink:href="#action-icon-expand"></use>
             </svg>
-            <svg id="client-users-add-icon" class="action-icon tooltip" title="Add user">
+            <svg class="action-icon-add action-icon tooltip" title="Add user">
                 <use xlink:href="#action-icon-add-user"></use>
             </svg>
         </div>
     </div>
-    <div id="user-list" class="admin-panel-content-container">
-        <ul id="client-user-list" class="admin-panel-content"></ul>
+    <div class="admin-panel-content-container">
+        <ul class="admin-panel-content"></ul>
     </div>
 </div>
 

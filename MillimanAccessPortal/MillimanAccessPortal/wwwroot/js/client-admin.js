@@ -55,7 +55,7 @@ function showClientDetails() {
     $clientPanes = $clientPanes.add($('#client-users'));
   }
   $clientPanes.show(SHOW_DURATION, function onShown() {
-    $('#client-form #Name').focus();
+    $('#client-info form.admin-panel-content #Name').focus();
   });
 }
 
@@ -64,9 +64,9 @@ function showClientDetails() {
  * @return {undefined}
  */
 function setClientFormReadOnly() {
-  var $clientForm = $('#client-form');
-  $('#edit-client-icon').show();
-  $('#cancel-edit-client-icon').hide();
+  var $clientForm = $('#client-info form.admin-panel-content');
+  $('#client-info .action-icon-edit').show();
+  $('#client-info .action-icon-cancel').hide();
   $clientForm.find(':input').attr('readonly', '');
   $clientForm.find(':input,select').attr('disabled', '');
   $clientForm.find('#form-buttons-new').hide();
@@ -81,9 +81,9 @@ function setClientFormReadOnly() {
  * @return {undefined}
  */
 function setClientFormWriteable() {
-  var $clientForm = $('#client-form');
-  $('#edit-client-icon').hide();
-  $('#cancel-edit-client-icon').show();
+  var $clientForm = $('#client-info form.admin-panel-content');
+  $('#client-info .action-icon-edit').hide();
+  $('#client-info .action-icon-cancel').show();
   $clientForm.find(':input').removeAttr('readonly');
   $clientForm.find(':input,select').removeAttr('disabled');
   if ($('#client-tree [selected]').attr('data-client-id')) {
@@ -116,7 +116,7 @@ function unsetButtonSubmitting($button) {
  * @return {undefined}
  */
 function populateClientForm(clientEntity) {
-  var $clientForm = $('#client-form');
+  var $clientForm = $('#client-info form.admin-panel-content');
   $clientForm.find(':input,select').removeAttr('data-original-value');
   $clientForm.find('#ProfitCenterId option[temporary-profitcenter]').remove();
   $.each(clientEntity, function populate(key, value) {
@@ -159,10 +159,10 @@ function populateProfitCenterDropDown(profitCenterList) {
  * @return {undefined}
  */
 function showRelevantActionIcons() {
-  $('#client-users-collapse-icon').hide().filter(function anyMaximized() {
+  $('#client-users .action-icon-collapse').hide().filter(function anyMaximized() {
     return $('div.card-expansion-container[maximized]').length;
   }).show();
-  $('#client-users-expand-icon').hide().filter(function anyMinimized() {
+  $('#client-users .action-icon-expand').hide().filter(function anyMinimized() {
     return $('div.card-expansion-container:not([maximized])').length;
   }).show();
 }
@@ -172,7 +172,7 @@ function showRelevantActionIcons() {
  * @return {undefined}
  */
 function expandAllUsers() {
-  $('#client-user-list').find('div.card-expansion-container').attr('maximized', '');
+  $('#client-users ul.admin-panel-content').find('div.card-expansion-container').attr('maximized', '');
   showRelevantActionIcons();
 }
 
@@ -181,7 +181,7 @@ function expandAllUsers() {
  * @return {undefined}
  */
 function collapseAllUsers() {
-  $('#client-user-list').find('div.card-expansion-container[maximized]').removeAttr('maximized');
+  $('#client-users ul.admin-panel-content').find('div.card-expansion-container[maximized]').removeAttr('maximized');
   showRelevantActionIcons();
 }
 
@@ -190,7 +190,7 @@ function collapseAllUsers() {
  * @return {undefined}
  */
 function resetValidation() {
-  $('#client-form').validate().resetForm();
+  $('#client-info form.admin-panel-content').validate().resetForm();
   $('.field-validation-error > span').remove();
 }
 
@@ -201,7 +201,7 @@ function resetValidation() {
  * @return {jQuery} modifiedInputs
  */
 function findModifiedInputs() {
-  return $('#client-form')
+  return $('#client-info form.admin-panel-content')
     .find('input[name!="__RequestVerificationToken"][type!="hidden"],select')
     .not('div.selectize-input input')
     .map(function compareValue() {
@@ -214,7 +214,7 @@ function findModifiedInputs() {
  * @return {undefined}
  */
 function clearFormData() {
-  var $clientForm = $('#client-form');
+  var $clientForm = $('#client-info form.admin-panel-content');
   $clientForm.find('.selectized').each(function clear() {
     this.selectize.clear();
     this.selectize.clearOptions();
@@ -230,7 +230,7 @@ function clearFormData() {
  * @return {undefined}
  */
 function clearUserList() {
-  $('#client-user-list > li').remove();
+  $('#client-users ul.admin-panel-content > li').remove();
   $('#expand-user-icon,#collapse-user-icon,#add-user-icon').hide();
 }
 
@@ -398,7 +398,7 @@ function elevatedRoles(userRoles) {
  * @return {undefined}
  */
 function updateUserRoleIndicator(userId, userRoles) {
-  $('#user-list')
+  $('#client-users ul.admin-panel-content')
     .find('.card-container[data-user-id="' + userId + '"]')
     .find('.card-user-role-indicator')
     .hide()
@@ -414,7 +414,7 @@ function updateUserRoleIndicator(userId, userRoles) {
  * @return {undefined}
  */
 function setUserRole(userId, roleEnum, isAssigned, onResponse) {
-  var $cardContainer = $('#user-list .card-container[data-user-id="' + userId + '"]');
+  var $cardContainer = $('#client-users ul.admin-panel-content .card-container[data-user-id="' + userId + '"]');
   var postData = {
     ClientId: $('#client-tree [selected]').attr('data-client-id'),
     UserId: userId,
@@ -463,10 +463,10 @@ function userCardRoleToggleClickHandler(event) {
     $clickedInput.attr('data-role-enum'),
     $clickedInput.prop('checked'),
     function onDone() {
-      $('#user-list .toggle-switch-checkbox').removeAttr('disabled');
+      $('#client-users ul.admin-panel-content .toggle-switch-checkbox').removeAttr('disabled');
     }
   );
-  $('#user-list .toggle-switch-checkbox').attr('disabled', '');
+  $('#client-users ul.admin-panel-content .toggle-switch-checkbox').attr('disabled', '');
 }
 
 /**
@@ -486,7 +486,7 @@ function renderUserNode(client, user) {
     }
   );
   $card.readonly = !client.CanManage;
-  $('#client-user-list').append($card.build());
+  $('#client-users ul.admin-panel-content').append($card.build());
   updateUserRoleIndicator(user.Id, user.UserRoles);
 }
 
@@ -497,7 +497,7 @@ function renderUserNode(client, user) {
  * @return {undefined}
  */
 function renderUserList(client, userId) {
-  var $clientUserList = $('#client-user-list');
+  var $clientUserList = $('#client-users ul.admin-panel-content');
   $clientUserList.empty();
   client.AssignedUsers.forEach(function render(user) {
     renderUserNode(client, user);
@@ -512,7 +512,7 @@ function renderUserList(client, userId) {
 
   if (client.CanManage) {
     $('#add-user-icon').show();
-    $('#client-user-list').append(new AddUserActionCard(addUserClickHandler).build());
+    $('#client-users ul.admin-panel-content').append(new AddUserActionCard(addUserClickHandler).build());
   }
 }
 
@@ -526,7 +526,7 @@ function setupChildClientForm(parentClientDiv) {
   var $template = new AddChildInsertCard(parentClientDiv.hasClass('card-100') ? 1 : 2).build();
 
   clearFormData();
-  $('#client-form #ParentClientId').val(parentClientId);
+  $('#client-info form.admin-panel-content #ParentClientId').val(parentClientId);
   parentClientDiv.parent().after($template);
   parentClientDiv.parent().next().find('div.card-container')
     .click(function onClick() {
@@ -538,8 +538,8 @@ function setupChildClientForm(parentClientDiv) {
       });
     });
 
-  $('#client-form #form-buttons-edit').hide();
-  $('#client-form #form-buttons-new').show();
+  $('#client-info form.admin-panel-content #form-buttons-edit').hide();
+  $('#client-info form.admin-panel-content #form-buttons-new').show();
 }
 
 /**
@@ -547,7 +547,7 @@ function setupChildClientForm(parentClientDiv) {
  * @return {undefined}
  */
 function setupClientForm() {
-  var $clientForm = $('#client-form');
+  var $clientForm = $('#client-info form.admin-panel-content');
   clearFormData();
   $clientForm.find('#form-buttons-edit').hide();
   $clientForm.find('#form-buttons-new').show();
@@ -652,7 +652,7 @@ function openNewClientForm() {
  * @return {undefined}
  */
 function clientCardClickHandler($clickedCard) {
-  var $clientTree = $('#client-tree');
+  var $clientTree = $('#client-tree ul.admin-panel-content');
   var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
   if ($clientTree.has('[selected]').length) {
     confirmAndReset(confirmDiscardDialog, function onContinue() {
@@ -920,7 +920,7 @@ function addUserClickHandler() {
  * @return {undefined}
  */
 function removeUserFromClient(clientId, userId, callback) {
-  var userName = $('#user-list [data-user-id="' + userId + '"] .card-body-primary-text').html();
+  var userName = $('#client-users ul.admin-panel-content [data-user-id="' + userId + '"] .card-body-primary-text').html();
   var clientName = $('#client-tree [data-client-id="' + clientId + '"] .card-body-primary-text').html();
   setButtonSubmitting($('.vex-first'), 'Removing');
   $.ajax({
@@ -1012,7 +1012,7 @@ function renderClientNode(client, level) {
       }
   );
   $card.readonly = !client.ClientModel.CanManage;
-  $('#client-tree-list').append($card.build());
+  $('#client-tree ul.admin-panel-content').append($card.build());
 
   // Render child nodes
   client.Children.forEach(function (child) {
@@ -1026,7 +1026,7 @@ function renderClientNode(client, level) {
  * @return {undefined}
  */
 function renderClientTree(clientTreeList, clientId) {
-  var $clientTreeList = $('#client-tree-list');
+  var $clientTreeList = $('#client-tree ul.admin-panel-content');
   $clientTreeList.empty();
   clientTreeList.forEach(function render(rootClient) {
     renderClientNode(rootClient, 0);
@@ -1043,7 +1043,7 @@ function renderClientTree(clientTreeList, clientId) {
   if (clientId) {
     $('[data-client-id="' + clientId + '"]').click();
   }
-  if ($('#add-client-icon').length) {
+  if ($('#client-tree .action-icon-add').length) {
     $clientTreeList.append(new AddClientActionCard(function () {
       newClientClickHandler($(this));
     }).build());
@@ -1107,7 +1107,7 @@ function getClientTree(clientId) {
  * @return {undefined}
  */
 function submitClientForm() {
-  var $clientForm = $('#client-form');
+  var $clientForm = $('#client-info form.admin-panel-content');
   var $button;
   var clientId;
   var clientName;
@@ -1153,8 +1153,8 @@ function submitClientForm() {
  * @return {undefined}
  */
 function searchClientTree(searchString) {
-  $('#client-tree-list').children('.hr').hide();
-  $('#client-tree-list div[data-search-string]').each(function forEach(index, element) {
+  $('#client-tree ul.admin-panel-content').children('.hr').hide();
+  $('#client-tree ul.admin-panel-content div[data-search-string]').each(function forEach(index, element) {
     if ($(element).attr('data-search-string').indexOf(searchString.toUpperCase()) > -1) {
       $(element).show();
       $(element).closest('li').nextAll('li.hr').first()
@@ -1171,7 +1171,7 @@ function searchClientTree(searchString) {
  * @return {undefined}
  */
 function searchUser(searchString) {
-  $('#client-user-list div[data-search-string]').each(function forEach(index, element) {
+  $('#client-users ul.admin-panel-content div[data-search-string]').each(function forEach(index, element) {
     if ($(element).attr('data-search-string').indexOf(searchString.toUpperCase()) > -1) {
       $(element).show();
     } else {
@@ -1183,12 +1183,12 @@ function searchUser(searchString) {
 $(document).ready(function onReady() {
   getClientTree();
 
-  $('#add-client-icon').click(newClientClickHandler);
-  $('#client-users-add-icon').click(addUserClickHandler);
-  $('#edit-client-icon').click(editIconClickHandler);
-  $('#cancel-edit-client-icon').click(cancelIconClickHandler);
-  $('#client-users-expand-icon').click(expandAllUsers);
-  $('#client-users-collapse-icon').click(collapseAllUsers);
+  $('#client-tree .action-icon-add').click(newClientClickHandler);
+  $('#client-info .action-icon-edit').click(editIconClickHandler);
+  $('#client-info .action-icon-cancel').click(cancelIconClickHandler);
+  $('#client-users .action-icon-expand').click(expandAllUsers);
+  $('#client-users .action-icon-collapse').click(collapseAllUsers);
+  $('#client-users .action-icon-add').click(addUserClickHandler);
   $('#create-new-button').click(submitClientForm);
   $('#save-changes-button').click(submitClientForm);
   $('#reset-form-button').click(function confirmResetAndReset() {
@@ -1198,11 +1198,11 @@ $(document).ready(function onReady() {
     confirmAndReset(confirmDiscardDialog);
   });
 
-  $('#client-search-box').keyup(function onKeyup() {
+  $('#client-tree .admin-panel-searchbar').keyup(function onKeyup() {
     searchClientTree($(this).val());
   });
 
-  $('#user-search-box').keyup(function onKeyup() {
+  $('#client-users .admin-panel-searchbar').keyup(function onKeyup() {
     searchUser($(this).val());
   });
 
@@ -1210,7 +1210,7 @@ $(document).ready(function onReady() {
   $('.tooltip').tooltipster();
 
   // TODO: find a better place for this
-  $('#client-form').find(':input,select')
+  $('#client-info form.admin-panel-content').find(':input,select')
     .change(function onChange() {
       if (findModifiedInputs().length) {
         $('#save-changes-button,#undo-changes-button').show();
@@ -1219,7 +1219,7 @@ $(document).ready(function onReady() {
       }
     });
 
-  $('#client-form #AcceptedEmailDomainList').selectize({
+  $('#client-info form.admin-panel-content #AcceptedEmailDomainList').selectize({
     plugins: ['remove_button'],
     persist: false,
     create: function onCreate(input) {
@@ -1241,15 +1241,15 @@ $(document).ready(function onReady() {
         color: 'blue',
         callback: function onAlert() {
           $('#AcceptedEmailDomainList-selectized').val(input);
-          $('#client-form #AcceptedEmailDomainList')[0].selectize.unlock();
-          $('#client-form #AcceptedEmailDomainList')[0].selectize.focus();
+          $('#client-info form.admin-panel-content #AcceptedEmailDomainList')[0].selectize.unlock();
+          $('#client-info form.admin-panel-content #AcceptedEmailDomainList')[0].selectize.focus();
         }
       });
       return {};
     }
   });
 
-  $('#client-form #AcceptedEmailAddressExceptionList').selectize({
+  $('#client-info form.admin-panel-content #AcceptedEmailAddressExceptionList').selectize({
     plugins: ['remove_button'],
     delimiter: ',',
     persist: false,
@@ -1269,8 +1269,8 @@ $(document).ready(function onReady() {
         color: 'blue',
         callback: function onAlert() {
           $('#AcceptedEmailAddressExceptionList-selectized').val(input);
-          $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.unlock();
-          $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.focus();
+          $('#client-info form.admin-panel-content #AcceptedEmailAddressExceptionList')[0].selectize.unlock();
+          $('#client-info form.admin-panel-content #AcceptedEmailAddressExceptionList')[0].selectize.focus();
         }
       });
       return {};

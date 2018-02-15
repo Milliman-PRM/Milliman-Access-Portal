@@ -490,7 +490,7 @@ var UserCard;
       this.attr('card', toAttr(this.data));
     }
     if (!this.disabled) {
-      this.$representation.find('.card-container').click(this.callback);
+      this.click('card', this.callback);
     }
     this.$representation.find('stub').remove();
     return this.$representation;
