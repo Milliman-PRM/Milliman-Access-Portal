@@ -3,9 +3,7 @@
     card, dialog, shared
  */
 
-var ajaxStatus = {
-  getClientDetail: -1
-};
+var ajaxStatus = {};
 var smallSpinner = '<div class="spinner-small"></div>';
 var eligibleUsers;
 var SHOW_DURATION = 50;
@@ -158,35 +156,6 @@ function clearUserList() {
 }
 
 /**
- * Create a dialog box if there are modified inputs
- * If there are modified inputs and the user selects YES, or if there are no
- * modified inputs, then the form is reset and onContinue is executed.
- * Otherwise, nothing happens.
- * @param {function} confirmDialog Confirmation dialog function
- * @param {function} onContinue Executed if no inputs are modified or the user selects YES
- * @return {undefined}
- */
-function confirmAndReset(Dialog, onContinue) {
-  if (shared.modifiedInputs($('#client-info')).length) {
-    new Dialog(function onConfirm() {
-      shared.resetForm($('#client-info'));
-      if (typeof onContinue === 'function') onContinue();
-    }).open();
-  } else {
-    shared.resetForm($('#client-info'));
-    if (typeof onContinue === 'function') onContinue();
-  }
-}
-
-/*
-shared.confirmAndContinue = function ($panel, onContinue) {
-  if (shared.modifiedInputs($panel).length) {
-    new dialog.ResetConfirmationDialog(onContinue).open();
-  }
-};
-*/
-
-/**
  * Determine whether the specified user role assignments are considered elevated
  * @param  {Object} userRoles The user roles to check, taken from AJAX response object
  * @return {Boolean}          Whether the user role assignments are elevated
@@ -336,7 +305,7 @@ function setupChildClientForm(parentClientDiv) {
   parentClientDiv.parent().next().find('div.card-container')
     .click(function onClick() {
       // TODO: move this to a function
-      confirmAndReset(dialog.DiscardConfirmationDialog, function () {
+      shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
         clearClientSelection();
         removeClientInserts();
         hideClientDetails();
@@ -462,7 +431,7 @@ function clientCardClickHandler() {
   var $clientTree = $('#client-tree ul.admin-panel-content');
   var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
   if ($clientTree.has('[selected]').length) {
-    confirmAndReset(dialog.DiscardConfirmationDialog, function () {
+    shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
       if (sameCard) {
         clearClientSelection();
         hideClientDetails();
@@ -516,7 +485,7 @@ function clientCardEditClickHandler(event) {
   event.stopPropagation();
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
-      confirmAndReset(dialog.DiscardConfirmationDialog, function () {
+      shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
         openClientCardWriteable($clickedCard);
       });
     }
@@ -543,7 +512,7 @@ function clientCardCreateNewChildClickHandler(event) {
   event.stopPropagation();
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
-      confirmAndReset(dialog.DiscardConfirmationDialog, function () {
+      shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
         openNewChildClientForm($clickedCard);
       });
     }
@@ -571,7 +540,7 @@ function newClientClickHandler() {
   var $clientTree = $('#client-tree');
   var sameCard = ($('#new-client-card')[0] === $clientTree.find('[selected]')[0]);
   if ($clientTree.has('[selected]').length) {
-    confirmAndReset(dialog.DiscardConfirmationDialog, function () {
+    shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
       if (sameCard) {
         clearClientSelection();
         hideClientDetails();
@@ -687,7 +656,7 @@ function editIconClickHandler() {
  * @return {undefined}
  */
 function cancelIconClickHandler() {
-  confirmAndReset(dialog.DiscardConfirmationDialog, function () {
+  shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
     if ($('#client-tree [selected]').attr('data-client-id')) {
       $('#client-tree [editing]').removeAttr('editing');
       setClientFormReadOnly();
@@ -855,10 +824,10 @@ $(document).ready(function onReady() {
   $('#client-users .action-icon-add').click(addUserClickHandler);
   $('.submit-button').click(submitClientForm);
   $('.new-form-button-container .reset-button').click(function () {
-    confirmAndReset(dialog.ResetConfirmationDialog);
+    shared.confirmAndContinue($('#client-info'), dialog.ResetConfirmationDialog);
   });
   $('.edit-form-button-container .reset-button').click(function () {
-    confirmAndReset(dialog.DiscardConfirmationDialog);
+    shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog);
   });
 
   $('.admin-panel-searchbar').keyup(shared.filterTree);

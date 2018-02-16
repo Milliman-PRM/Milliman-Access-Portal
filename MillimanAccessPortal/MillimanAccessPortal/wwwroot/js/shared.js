@@ -1,3 +1,5 @@
+/* global dialog */
+
 var shared = {};
 
 (function () {
@@ -62,6 +64,7 @@ var shared = {};
       var $card = $(this);
       var $panel = $card.closest('.admin-panel-container');
       var $nextPanels = $panel.nextAll().slice(0, panels || 1);
+      var $formPanels = $nextPanels.filter('form');
       var sameCard = ($card[0] === $panel.find('[selected]')[0]);
 
       var removeInserts = function () {
@@ -85,13 +88,14 @@ var shared = {};
       };
 
       if ($panel.has('[selected]').length) {
-        // TODO: wrap if-else with confirmAndReset
-        if (sameCard) {
-          clearSelection();
-          hideDetails();
-        } else {
-          openCard();
-        }
+        shared.confirmAndContinue($formPanels, dialog.DiscardConfirmationDialog, function () {
+          if (sameCard) {
+            clearSelection();
+            hideDetails();
+          } else {
+            openCard();
+          }
+        });
       } else {
         openCard();
       }
@@ -152,7 +156,7 @@ var shared = {};
       }
     });
     shared.resetValidation($panel);
-    $panel.find('.form-button-container button').hide(); // FIXME
+    $panel.find('.form-button-container button').hide();
   };
   shared.clearForm = function ($panel) {
     $panel.find('.selectized').each(function () {
@@ -180,5 +184,18 @@ var shared = {};
 
       callback(matches);
     };
+  };
+
+  shared.confirmAndContinue = function ($panel, Dialog, onContinue) {
+    if ($panel.length && shared.modifiedInputs($panel).length) {
+      new Dialog(function () {
+        shared.resetForm($panel);
+        if (onContinue) {
+          onContinue();
+        }
+      }).open();
+    } else if (onContinue) {
+      onContinue();
+    }
   };
 }());
