@@ -15,58 +15,6 @@ function log_statement {
 
     write-output $datestring"|"$statement
 }
-function log_output {
-    log_statement "Dumping captured command output"
-    write-output ""
-    write-output "===="
-    log_statement "content of output.txt"
-    write-output ""
-    write-output (get-content "$env:temp\output.txt")
-    write-output ""
-    write-output "===="
-    log_statement "content of error.txt"
-    write-output ""
-    write-output (get-content "$env:temp\error.txt")
-}
-function create_db { # Attempt to create a database by copying another one; retry up to $maxRetries before returning
-    Param([string]$server,
-            [string]$user,
-            [string]$newDbName,
-            [string]$templateDbName,
-            [string]$maxRetries,
-            [string]$exePath,
-            [string]$dbOwner)
-
-    $attempts = 0
-    $waitSeconds = 60
-    $success = $false
-    $commandText = "create database $newDbName with template $templateDbName owner $dbOwner;"
-
-    $command = "$exePath -h $server -d postgres -U $user -c `"$commandText`" -w"
-    
-    log_statement "Attempting to create database $newDbName with the command `"$command`""
-
-    while ($attempts -lt $maxRetries -and $success -eq $false) {
-        $attempts = $attempts + 1
-        invoke-expression "&$command"
-        if ($LASTEXITCODE -eq 0) {
-            $success = $true
-            log_statement "$newDbName was created successfully"
-        }
-        else {
-            log_statement "Creation of $newDbName failed with exit code $LASTEXITCODE; Attempt #$attempts of $maxRetries"
-            if ($attempts -lt ($maxRetries + 1)) {
-                log_statement "Waiting $waitSeconds before re-trying..."
-                start-sleep $waitSeconds
-            }
-        }
-    }
-
-    if ($success -eq $false)
-    {
-        exit -42
-    }
-}
 #endregion
 
 #region Configure environment properties
