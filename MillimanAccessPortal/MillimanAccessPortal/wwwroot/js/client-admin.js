@@ -684,12 +684,6 @@ function renderClientTree(clientTreeList, clientId) {
   });
   $clientTreeList.find('.tooltip').tooltipster();
 
-  // TODO: Consider applying this to other cards and buttons as well
-  $clientTreeList.find('.card-container,.card-button-background')
-    .mousedown(function onMousedown(event) {
-      event.preventDefault();
-    });
-
   if (clientId) {
     $('[data-client-id="' + clientId + '"]').click();
   }
