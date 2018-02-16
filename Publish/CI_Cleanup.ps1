@@ -42,7 +42,6 @@ $dbCreationRetries = 5 # The number of times the script will attempt to create a
 
 $env:PATH = $env:PATH+";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin\"
 
-
 #region Authenticate to Azure with a service principal
 
 $DeployCredential = new-object -typename System.Management.Automation.PSCredential -argumentlist $deployUser,($deployPassword | ConvertTo-SecureString -AsPlainText -Force)
