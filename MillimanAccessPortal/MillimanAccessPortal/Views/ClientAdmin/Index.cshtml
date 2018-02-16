@@ -152,14 +152,13 @@
                     </div>
                     @Html.AntiForgeryToken()
                 </div>
-                @* TODO: Consider moving id's to classes if more forms are added in the future *@
-                <div id="form-buttons-new" class="form-button-container" style="display: none;">
-                    <button type="button" id="reset-form-button" class="link-button">Reset Form</button>
-                    <button type="button" id="create-new-button" class="green-button">Create Client</button>
+                <div class="new-form-button-container form-button-container" style="display: none;">
+                    <button type="button" class="reset-button link-button">Reset Form</button>
+                    <button type="button" class="submit-button green-button">Create Client</button>
                 </div>
-                <div id="form-buttons-edit" class="form-button-container" style="display: none;">
-                    <button type="button" id="undo-changes-button" class="link-button">Discard Changes</button>
-                    <button type="button" id="save-changes-button" class="blue-button">Save Changes</button>
+                <div class="edit-form-button-container form-button-container" style="display: none;">
+                    <button type="button" class="reset-button link-button">Discard Changes</button>
+                    <button type="button" class="submit-button blue-button">Save Changes</button>
                 </div>
             </div>
         </form>

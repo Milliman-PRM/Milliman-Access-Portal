@@ -69,8 +69,7 @@ function setClientFormReadOnly() {
   $('#client-info .action-icon-cancel').hide();
   $clientForm.find(':input').attr('readonly', '');
   $clientForm.find(':input,select').attr('disabled', '');
-  $clientForm.find('#form-buttons-new').hide();
-  $clientForm.find('#form-buttons-edit').hide();
+  $clientForm.find('.form-button-container').add('button').hide();
   $clientForm.find('.selectized').each(function disable() {
     this.selectize.disable();
   });
@@ -86,14 +85,8 @@ function setClientFormWriteable() {
   $('#client-info .action-icon-cancel').show();
   $clientForm.find(':input').removeAttr('readonly');
   $clientForm.find(':input,select').removeAttr('disabled');
-  if ($('#client-tree [selected]').attr('data-client-id')) {
-    $('#form-buttons-new').hide();
-    $('#form-buttons-edit').show();
-    $('#save-changes-button,#undo-changes-button').hide();
-  } else {
-    $('#form-buttons-new').show();
-    $('#form-buttons-edit').hide();
-  }
+  $clientForm.find('.form-button-container').add('button').hide();
+  $clientForm.find('.edit-form-button-container').show();
   $clientForm.find('.selectized').each(function enable() {
     this.selectize.enable();
   });
@@ -156,54 +149,12 @@ function populateProfitCenterDropDown(profitCenterList) {
 }
 
 /**
- * Reset client form validation and remove validation messages
- * @return {undefined}
- */
-function resetValidation() {
-  $('#client-info form.admin-panel-content').validate().resetForm();
-  $('.field-validation-error > span').remove();
-}
-
-/**
- * Clear all client form input elements, resulting in a blank form
- * @return {undefined}
- */
-function clearFormData() {
-  var $clientForm = $('#client-info form.admin-panel-content');
-  $clientForm.find('.selectized').each(function clear() {
-    this.selectize.clear();
-    this.selectize.clearOptions();
-  });
-  $clientForm.find('input[name!="__RequestVerificationToken"],select')
-    .not('div.selectize-input input')
-    .attr('data-original-value', '').val('');
-  resetValidation();
-}
-
-/**
  * Clear all user cards from the client user list
  * @return {undefined}
  */
 function clearUserList() {
   $('#client-users ul.admin-panel-content > li').remove();
   $('#client-users .action-icon').hide();
-}
-
-/**
- * Reset all client form input elements to their pre-modified values
- * @return {undefined}
- */
-function resetFormData() {
-  var $modifiedInputs = shared.modifiedInputs($('#client-info'));
-  $modifiedInputs.each(function resetValue() {
-    if ($(this).is('.selectized')) {
-      this.selectize.setValue($(this).attr('data-original-value').split(','));
-    } else {
-      $(this).val($(this).attr('data-original-value'));
-    }
-  });
-  resetValidation();
-  $('#save-changes-button,#undo-changes-button').hide();
 }
 
 /**
@@ -320,11 +271,11 @@ function confirmRemoveDialog(name, submitHandler) {
 function confirmAndReset(confirmDialog, onContinue) {
   if (shared.modifiedInputs($('#client-info')).length) {
     confirmDialog(function onConfirm() {
-      resetFormData();
+      shared.resetForm($('#client-info'));
       if (typeof onContinue === 'function') onContinue();
     });
   } else {
-    resetFormData();
+    shared.resetForm($('#client-info'));
     if (typeof onContinue === 'function') onContinue();
   }
 }
@@ -473,7 +424,7 @@ function setupChildClientForm(parentClientDiv) {
   var parentClientId = parentClientDiv.attr('data-client-id').valueOf();
   var $template = new card.AddChildInsertCard(parentClientDiv.hasClass('card-100') ? 1 : 2).build();
 
-  clearFormData();
+  shared.clearForm($('#client-info'));
   $('#client-info form.admin-panel-content #ParentClientId').val(parentClientId);
   parentClientDiv.parent().after($template);
   parentClientDiv.parent().next().find('div.card-container')
@@ -486,8 +437,8 @@ function setupChildClientForm(parentClientDiv) {
       });
     });
 
-  $('#client-info form.admin-panel-content #form-buttons-edit').hide();
-  $('#client-info form.admin-panel-content #form-buttons-new').show();
+  $('#client-info .form-button-container').add('button').hide();
+  $('#client-info .new-form-button-container').show();
 }
 
 /**
@@ -496,9 +447,9 @@ function setupChildClientForm(parentClientDiv) {
  */
 function setupClientForm() {
   var $clientForm = $('#client-info form.admin-panel-content');
-  clearFormData();
-  $clientForm.find('#form-buttons-edit').hide();
-  $clientForm.find('#form-buttons-new').show();
+  shared.clearForm($('#client-info'));
+  $clientForm.find('.form-button-container').add('button').hide();
+  $clientForm.find('.new-form-button-container').show();
 }
 
 /**
@@ -509,7 +460,7 @@ function setupClientForm() {
 function getClientDetail(clientDiv) {
   var clientId = clientDiv.attr('data-client-id').valueOf();
 
-  clearFormData();
+  shared.clearForm($('#client-info'));
   $('#client-info .loading-wrapper').show();
 
   clearUserList();
@@ -518,7 +469,8 @@ function getClientDetail(clientDiv) {
   ajaxStatus.getClientDetail = clientId;
   $.ajax({
     type: 'GET',
-    url: 'ClientAdmin/ClientDetail/' + clientId,
+    url: 'ClientAdmin/ClientDetail',
+    data: clientDiv.data(),
     headers: {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
@@ -573,10 +525,10 @@ function openClientCardWriteable($clientCard) {
 function openNewChildClientForm($parentCard) {
   removeClientInserts();
   clearClientSelection();
+  setClientFormWriteable();
   setupChildClientForm($parentCard);
   $parentCard.parent().next('li').find('div.card-container')
     .attr({ selected: '', editing: '' });
-  setClientFormWriteable();
   hideClientUsers();
   showClientDetails();
 }
@@ -587,9 +539,9 @@ function openNewChildClientForm($parentCard) {
  */
 function openNewClientForm() {
   clearClientSelection();
+  setClientFormWriteable();
   setupClientForm();
   $('#new-client-card').attr('selected', '');
-  setClientFormWriteable();
   hideClientUsers();
   showClientDetails();
 }
@@ -940,11 +892,7 @@ function renderClientNode(client, level) {
     client.ClientModel.AssignedUsers.length,
     client.ClientModel.ContentItems.length,
     level,
-    shared.wrapCardCallback(shared.get(
-      'ClientAdmin/ClientDetail',
-      populateClientForm,
-      renderUserList
-    ), 2),
+    clientCardClickHandler,
     !client.Children.length && clientCardDeleteClickHandler,
     clientCardEditClickHandler,
     level < 2 && clientCardCreateNewChildClickHandler
@@ -1005,7 +953,7 @@ function deleteClient(clientId, clientName, password, callback) {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
   }).done(function onDone(response) {
-    clearFormData();
+    shared.clearForm($('#client-info'));
     renderClientTree(response.ClientTreeList, response.RelevantClientId);
     callback();
     toastr.success(clientName + ' was successfully deleted.');
@@ -1057,11 +1005,11 @@ function submitClientForm() {
     if (clientId) {
       urlAction += 'EditClient';
       successResponse = clientName + ' was successfully updated';
-      $button = $('#save-changes-button');
+      $button = $('.edit-form-button-container .submit-button');
     } else {
       urlAction += 'SaveNewClient';
       successResponse = clientName + ' was successfully created';
-      $button = $('#create-new-button');
+      $button = $('.new-form-button-container .submit-button');
     }
 
     setButtonSubmitting($button);
@@ -1092,26 +1040,24 @@ $(document).ready(function onReady() {
   $('.action-icon-expand').click(shared.expandAll);
   $('.action-icon-collapse').click(shared.collapseAll);
   $('#client-users .action-icon-add').click(addUserClickHandler);
-  $('#create-new-button').click(submitClientForm);
-  $('#save-changes-button').click(submitClientForm);
-  $('#reset-form-button').click(function confirmResetAndReset() {
+  $('.submit-button').click(submitClientForm);
+  $('.new-form-button-container .reset-button').click(function () {
     confirmAndReset(confirmResetDialog);
   });
-  $('#undo-changes-button').click(function confirmDiscardAndReset() {
+  $('.edit-form-button-container .reset-button').click(function () {
     confirmAndReset(confirmDiscardDialog);
   });
 
   $('.admin-panel-searchbar').keyup(shared.filterTree);
-
   $('.tooltip').tooltipster();
 
   // TODO: find a better place for this
   $('#client-info form.admin-panel-content').find(':input,select')
     .change(function onChange() {
       if (shared.modifiedInputs($('#client-info')).length) {
-        $('#save-changes-button,#undo-changes-button').show();
+        $('.form-button-container button').show();
       } else {
-        $('#save-changes-button,#undo-changes-button').hide();
+        $('.form-button-container button').hide();
       }
     });
 

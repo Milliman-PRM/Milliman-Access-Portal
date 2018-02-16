@@ -138,4 +138,30 @@ var shared = {};
         return ($element.val() !== ($element.attr('data-original-value') || ''));
       });
   };
+  shared.resetValidation = function ($panel) {
+    $panel.find('form.admin-panel-content').validate().resetForm();
+    $panel.find('.field-validation-error > span').remove();
+  };
+  shared.resetForm = function ($panel) {
+    shared.modifiedInputs($panel).each(function () {
+      var $input = $(this);
+      if ($input.is('.selectized')) {
+        this.selectize.setValue($input.attr('data-original-value').split(','));
+      } else {
+        $input.val($input.attr('data-original-value'));
+      }
+    });
+    shared.resetValidation($panel);
+    $panel.find('.form-button-container button').hide(); // FIXME
+  };
+  shared.clearForm = function ($panel) {
+    $panel.find('.selectized').each(function () {
+      this.selectize.clear();
+      this.selectize.clearOptions();
+    });
+    $panel.find('input[name!="__RequestVerificationToken"],select')
+      .not('.selectize-input input')
+      .attr('data-original-value', '').val('');
+    shared.resetValidation($panel);
+  };
 }());
