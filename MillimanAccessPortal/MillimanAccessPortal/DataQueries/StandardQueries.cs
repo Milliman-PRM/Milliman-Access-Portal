@@ -10,7 +10,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
-using MapCommonLib;
+using MapDbContextLib.Models;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -138,7 +138,7 @@ namespace MillimanAccessPortal.DataQueries
             return await UserManager.GetUserAsync(User);
         }
 
-        public ContentReductionHierarchy GetHierarchyForRootContent(long ContentId)
+        public ContentReductionHierarchy GetReductionFieldsForRootContent(long ContentId)
         {
             RootContentItem ContentItem = DataContext.RootContentItem
                                                      .Include(rc => rc.ContentType)
@@ -161,15 +161,65 @@ namespace MillimanAccessPortal.DataQueries
                     switch (ContentItem.ContentType.TypeEnum)
                     {
                         case ContentTypeEnum.Qlikview:
-                            ReturnObject.Fields.Append(new ReductionFieldBase
+                            ReturnObject.Fields.Add(new ReductionField
                             {
                                 FieldName = Field.FieldName,
-                                FieldDisplayName = Field.FieldDisplayName,
-                                FieldDelimiter = Field.FieldDelimiter,
+                                DisplayName = Field.FieldDisplayName,
+                                ValueDelimiter = Field.FieldDelimiter,
                                 StructureType = Field.StructureType,
-                                FieldValues = DataContext.HierarchyFieldValue
+                                Values = DataContext.HierarchyFieldValue
                                                          .Where(fv => fv.HierarchyFieldId == Field.Id)
-                                                         .Select(fv => fv.Value)
+                                                         .Select(fv => new ReductionFieldValue { Value = fv.Value })
+                                                         .ToArray(),
+                            });
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+
+                return ReturnObject;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public ContentReductionHierarchy GetFieldSelectionsForSelectionGroup(long SelectionGroupId)
+        {
+            SelectionGroup SelGrp = DataContext.SelectionGroup
+                                               .Include(sg => sg.RootContentItem)
+                                                   .ThenInclude(rc => rc.ContentType)
+                                               .SingleOrDefault(sg => sg.Id == SelectionGroupId);
+            if (SelGrp == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                ContentReductionHierarchy ReturnObject = new ContentReductionHierarchy { RootContentItemId = SelGrp.RootContentItemId };
+
+                foreach (HierarchyField Field in DataContext.HierarchyField
+                                                            .Where(hf => hf.RootContentItemId == SelGrp.RootContentItemId)
+                                                            .ToList())
+                {
+                    // There may be different handling required for some future content type. If so, move 
+                    // the characteristics specific to Qlikview into a class derived from ReductionFieldBase
+                    switch (SelGrp.RootContentItem.ContentType.TypeEnum)
+                    {
+                        case ContentTypeEnum.Qlikview:
+                            ReturnObject.Fields.Add(new ReductionField
+                            {
+                                FieldName = Field.FieldName,
+                                DisplayName = Field.FieldDisplayName,
+                                ValueDelimiter = Field.FieldDelimiter,
+                                StructureType = Field.StructureType,
+                                Values = DataContext.HierarchyFieldValue
+                                                         .Where(fv => fv.HierarchyFieldId == Field.Id)
+                                                         .Select(fv => new ReductionFieldValueSelection { Value = fv.Value, SelectionStatus = SelGrp.SelectedHierarchyFieldValueList.Contains(fv.Id) })
                                                          .ToArray(),
                             });
                             break;
