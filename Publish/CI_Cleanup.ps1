@@ -114,8 +114,9 @@ foreach ( $rule in $firewallRules)
 
 if ($firewallFailures -gt 0)
 {
-    log_statement "Failed creating one or more firewall rules. Manual cleanup may be required."
-    exit -9000
+    # Output that firewall cleanup failed for one or more rules
+    # Because this isn't a serious issue, it's not worth failing the cleanup job
+    log_statement "Failed removing one or more firewall rules. Manual cleanup may be required."
 }
 else 
 {
