@@ -74,7 +74,7 @@ $SubscriptionId = "8f047950-269e-43c7-94e0-ff90d22bf013"
 $TenantId = "15dfebdf-8eb6-49ea-b9c7-f4b275f6b4b4"
 $WebAppName = "map-ci-app"
 $AppServicePlanName = "map-ci"
-$BranchName = "CreateAzureCI".Replace("_","").Replace("-","").ToLower() # Will be used as the name of the deployment slot & appended to database names
+$BranchName = $env:git_branch.Replace("_","").Replace("-","").ToLower() # Will be used as the name of the deployment slot & appended to database names
 
 $deployUser = $env:app_deploy_user
 $deployPassword = $env:app_deploy_password
@@ -90,8 +90,8 @@ $dbPassword = $env:db_deploy_password
 $appDbName = "appdb_$BranchName"
 $appDbTemplateName = "appdb_ci_template"
 $appDbOwner = "appdb_admin"
-$logDbName = "logdb_$BranchName"
-$logDbTemplateName = "logdb_ci_template"
+$logDbName = "auditlogdb_$BranchName"
+$logDbTemplateName = "auditlogdb_ci_template"
 $logDbOwner = "logdb_admin"
 $dbCreationRetries = 5 # The number of times the script will attempt to create a new database before throwing an error
 

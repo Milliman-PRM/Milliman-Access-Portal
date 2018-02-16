@@ -137,7 +137,10 @@ namespace MillimanAccessPortal
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, ApplicationDbContext db)
         {
-            db.Database.Migrate(); // Perform any unapplied migrations
+            if (env.EnvironmentName == "AzureCI" || env.EnvironmentName == "Production")
+            {
+                db.Database.Migrate(); // Perform any unapplied migrations
+            }
 
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
@@ -187,7 +190,7 @@ namespace MillimanAccessPortal
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "AzureCI")
             {
                 string branchName = Environment.GetEnvironmentVariable("BranchName");
-                string logDbName = $"logdb_{branchName}";
+                string logDbName = $"auditlogdb_{branchName}";
                 Npgsql.NpgsqlConnectionStringBuilder logConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString);
                 logConnBuilder.Database = logDbName;
                 auditLogConnectionString = logConnBuilder.ConnectionString;

@@ -145,7 +145,7 @@ $DatabaseServerFQDN = $servers[0].fullyQualifiedDomainName
 $firewallRules = az postgres server firewall-rule list --server-name $DatabaseServerName --resource-group $ResourceGroupName | ConvertFrom-Json
 $firewallRules = $firewallRules | select name
 
-if ($ruleNames.name -contains "AllowMilliman")
+if ($firewallRules.name -contains "AllowMilliman")
 {
     write-output "AllowMilliman firewall rule already set."
     $AllowMillimanRuleFound = $true
