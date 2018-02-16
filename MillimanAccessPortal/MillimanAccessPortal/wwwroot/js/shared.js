@@ -6,6 +6,8 @@ var shared = {};
   var SHOW_DURATION = 50;
   var ajaxStatus = [];
 
+  var set;
+
   shared.filterTree = function () {
     var $filter = $(this);
     var $panel = $filter.closest('.admin-panel-container');
@@ -132,6 +134,41 @@ var shared = {};
       });
     };
   };
+
+  // TODO: write a wrapper for this similar to wrapCardCallback but for buttons
+  set = function (method, url, successMessage) {
+    var callbacks = Array.prototype.slice.call(arguments, 1);
+    return function (data, onResponse) {
+      if (ajaxStatus[url]) {
+        return; // TODO: do something when a request has already been sent
+      }
+      ajaxStatus[url] = true;
+      $.ajax({
+        type: method,
+        url: url,
+        data: data,
+        headers: {
+          RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+        }
+      }).done(function (response) {
+        ajaxStatus[url] = false;
+        onResponse();
+        callbacks.forEach(function (callback) {
+          callback(response);
+        });
+        toastr.success(successMessage);
+      }).fail(function (response) {
+        var warning = response.getResponseHeader('Warning');
+        ajaxStatus[url] = false;
+        onResponse();
+        toastr.warning(warning || 'An unknown error has occurred.');
+      });
+    };
+  };
+
+  shared.put = function (url, successMessage) { set('PUT', url, successMessage); };
+  shared.post = function (url, successMessage) { set('POST', url, successMessage); };
+  shared.delete = function (url, successMessage) { set('DELETE', url, successMessage); };
 
   shared.modifiedInputs = function ($panel) {
     return $panel.find('form.admin-panel-content')
