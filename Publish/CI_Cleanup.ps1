@@ -165,7 +165,7 @@ foreach ($db in $output) {
 if ($appDbFound)
 {
     log_statement "Deleting application database"
-    $command = "'c:\program` files\postgresql\9.6\bin\psql.exe' -d postgres -user $dbUser -h $dbServer -e -q --command=`"drop database $appDbName`""
+    $command = "'c:\program` files\postgresql\9.6\bin\psql.exe' -d postgres -U $dbUser -h $dbServer -e -q --command=`"drop database $appDbName`""
     invoke-expression "&$command"
 
     if ($LASTEXITCODE -ne 0) {
@@ -183,7 +183,7 @@ else
 if ($logDbFound)
 {
     log_statement "Deleting logging database"
-    $command = "'c:\program` files\postgresql\9.6\bin\psql.exe' -d postgres -user $dbUser -h $dbServer -e -q --command=`"drop database $logDbName`""
+    $command = "'c:\program` files\postgresql\9.6\bin\psql.exe' -d postgres -U $dbUser -h $dbServer -e -q --command=`"drop database $logDbName`""
     invoke-expression "&$command"
 
     if ($LASTEXITCODE -ne 0) {
