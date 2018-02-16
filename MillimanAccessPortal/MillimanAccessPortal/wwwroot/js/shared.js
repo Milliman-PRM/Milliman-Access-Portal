@@ -164,4 +164,21 @@ var shared = {};
       .attr('data-original-value', '').val('');
     shared.resetValidation($panel);
   };
+
+  shared.userSubstringMatcher = function (users) {
+    return function findMatches(query, callback) {
+      var matches = [];
+      var regex = new RegExp(query, 'i');
+
+      $.each(users, function check(i, user) {
+        if (regex.test(user.Email) ||
+            regex.test(user.UserName) ||
+            regex.test(user.FirstName + ' ' + user.LastName)) {
+          matches.push(user);
+        }
+      });
+
+      callback(matches);
+    };
+  };
 }());

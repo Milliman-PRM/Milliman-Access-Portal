@@ -1,6 +1,6 @@
 /* global
     domainValRegex, emailValRegex,
-    card, shared
+    card, dialog, shared
  */
 
 var ajaxStatus = {
@@ -158,108 +158,6 @@ function clearUserList() {
 }
 
 /**
- * Open a vex dialog with the specified attributes
- * @param  {Object} options Dialog attributes
- * @param  {String} options.title Dialog title
- * @param  {String} options.message Dialog message
- * @param  {Array.<{type: function, text: String}>} options.buttons Dialog buttons
- * @param  {String} options.color Dialog color
- * @param  {String} [options.input] Input element
- * @param  {function} options.callback Called when the dialog closes
- * @param  {function} options.submitHandler Called within onSubmit instead of vex.close()
- * @return {undefined}
- */
-function buildVexDialog(opts) {
-  var $dialog;
-  var options = {
-    unsafeMessage: '<span class="vex-custom-message">' + opts.message + '</span>',
-    buttons: $.map(opts.buttons, function buildButton(element) {
-      return element.type(element.text, opts.color);
-    }),
-    input: opts.input || '',
-    callback: opts.callback ? opts.callback : $.noop
-  };
-  if (opts.submitHandler) {
-    options = $.extend(options, {
-      onSubmit: function onDialogSubmit(event) {
-        event.preventDefault();
-        if ($dialog.options.input) {
-          $dialog.value = $('.vex-dialog-input input').last().val();
-        }
-        return opts.submitHandler($dialog.value, function close() {
-          $dialog.close();
-        });
-      }
-    });
-  }
-  $dialog = vex.dialog.open(options);
-  $('.vex-content')
-    .prepend('<div class="vex-title-wrapper"><h3 class="vex-custom-title ' + opts.color + '">' + opts.title + '</h3></div>');
-}
-
-/**
- * Create a dialog box to confirm a discard action
- * @param {function} callback Executed if the user selects YES
- * @return {undefined}
- */
-function confirmDiscardDialog(callback) {
-  buildVexDialog({
-    title: 'Discard Changes',
-    message: 'Would you like to discard unsaved changes?',
-    buttons: [
-      { type: vex.dialog.buttons.yes, text: 'Discard' },
-      { type: vex.dialog.buttons.no, text: 'Continue Editing' }
-    ],
-    color: 'blue',
-    callback: function onSelect(result) {
-      if (result) {
-        callback();
-      }
-    }
-  });
-}
-
-/**
- * Create a dialog box to confirm a reset action
- * @param {function} callback Executed if the user selects YES
- * @return {undefined}
- */
-function confirmResetDialog(callback) {
-  buildVexDialog({
-    title: 'Reset Form',
-    message: 'Would you like to discard unsaved changes?',
-    buttons: [
-      { type: vex.dialog.buttons.yes, text: 'Discard' },
-      { type: vex.dialog.buttons.no, text: 'Continue Editing' }
-    ],
-    color: 'blue',
-    callback: function onSelect(result) {
-      if (result) {
-        callback();
-      }
-    }
-  });
-}
-
-/**
- * Create a dialog box to confirm user removal
- * @param {function} callback Executed if the user selects YES
- * @return {undefined}
- */
-function confirmRemoveDialog(name, submitHandler) {
-  buildVexDialog({
-    title: 'Remove User',
-    message: 'Remove <strong>' + name + '</strong> from the selected client?',
-    buttons: [
-      { type: vex.dialog.buttons.yes, text: 'Remove' },
-      { type: vex.dialog.buttons.no, text: 'Cancel' }
-    ],
-    color: 'red',
-    submitHandler: submitHandler
-  });
-}
-
-/**
  * Create a dialog box if there are modified inputs
  * If there are modified inputs and the user selects YES, or if there are no
  * modified inputs, then the form is reset and onContinue is executed.
@@ -268,17 +166,25 @@ function confirmRemoveDialog(name, submitHandler) {
  * @param {function} onContinue Executed if no inputs are modified or the user selects YES
  * @return {undefined}
  */
-function confirmAndReset(confirmDialog, onContinue) {
+function confirmAndReset(Dialog, onContinue) {
   if (shared.modifiedInputs($('#client-info')).length) {
-    confirmDialog(function onConfirm() {
+    new Dialog(function onConfirm() {
       shared.resetForm($('#client-info'));
       if (typeof onContinue === 'function') onContinue();
-    });
+    }).open();
   } else {
     shared.resetForm($('#client-info'));
     if (typeof onContinue === 'function') onContinue();
   }
 }
+
+/*
+shared.confirmAndContinue = function ($panel, onContinue) {
+  if (shared.modifiedInputs($panel).length) {
+    new dialog.ResetConfirmationDialog(onContinue).open();
+  }
+};
+*/
 
 /**
  * Determine whether the specified user role assignments are considered elevated
@@ -430,7 +336,7 @@ function setupChildClientForm(parentClientDiv) {
   parentClientDiv.parent().next().find('div.card-container')
     .click(function onClick() {
       // TODO: move this to a function
-      confirmAndReset(confirmDiscardDialog, function onContinue() {
+      confirmAndReset(dialog.DiscardConfirmationDialog, function () {
         clearClientSelection();
         removeClientInserts();
         hideClientDetails();
@@ -458,7 +364,7 @@ function setupClientForm() {
  * @return {undefined}
  */
 function getClientDetail(clientDiv) {
-  var clientId = clientDiv.attr('data-client-id').valueOf();
+  var clientId = clientDiv.data('client-id');
 
   shared.clearForm($('#client-info'));
   $('#client-info .loading-wrapper').show();
@@ -556,7 +462,7 @@ function clientCardClickHandler() {
   var $clientTree = $('#client-tree ul.admin-panel-content');
   var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
   if ($clientTree.has('[selected]').length) {
-    confirmAndReset(confirmDiscardDialog, function onContinue() {
+    confirmAndReset(dialog.DiscardConfirmationDialog, function () {
       if (sameCard) {
         clearClientSelection();
         hideClientDetails();
@@ -576,49 +482,26 @@ function clientCardClickHandler() {
  */
 function clientCardDeleteClickHandler(event) {
   var $clickedCard = $(this).closest('.card-container');
-  var clientId = $clickedCard.attr('data-client-id').valueOf();
+  var clientId = $clickedCard.attr('data-client-id');
   var clientName = $clickedCard.find('.card-body-primary-text').first().text();
   event.stopPropagation();
-  buildVexDialog({
-    title: 'Delete Client',
-    message: 'Delete <strong>' + clientName + '</strong>?<br /><br /> This action <strong><u>cannot</u></strong> be undone.',
-    buttons: [
-      { type: vex.dialog.buttons.yes, text: 'Delete' },
-      { type: vex.dialog.buttons.no, text: 'Cancel' }
-    ],
-    color: 'red',
-    callback: function onSelect(confirm) {
-      if (confirm) {
-        buildVexDialog({
-          title: 'Delete Client',
-          message: 'Please provide your password to delete <strong>' + clientName + '</strong>.',
-          buttons: [
-            { type: vex.dialog.buttons.yes, text: 'Delete' },
-            { type: vex.dialog.buttons.no, text: 'Cancel' }
-          ],
-          color: 'red',
-          input: [
-            '<input name="password" type="password" placeholder="Password" required />'
-          ].join(''),
-          submitHandler: function onSelectWithPassword(password, callback) {
-            if (password) {
-              setButtonSubmitting($('.vex-first'), 'Deleting');
-              $('.vex-dialog-button').attr('disabled', '');
-              deleteClient(clientId, clientName, password, callback);
-            } else if (password === '') {
-              toastr.warning('Please enter your password to proceed');
-              return false;
-            } else {
-              toastr.info('Deletion was canceled');
-            }
-            return true;
-          }
-        });
+  new dialog.DeleteClientDialog(
+    clientName,
+    clientId,
+    function (password, callback) {
+      if (password) {
+        setButtonSubmitting($('.vex-first'), 'Deleting');
+        $('.vex-dialog-button').attr('disabled', '');
+        deleteClient(clientId, clientName, password, callback);
+      } else if (password === '') {
+        toastr.warning('Please enter your password to proceed');
+        return false;
       } else {
         toastr.info('Deletion was canceled');
       }
+      return true;
     }
-  });
+  ).open();
 }
 
 /**
@@ -633,7 +516,7 @@ function clientCardEditClickHandler(event) {
   event.stopPropagation();
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
-      confirmAndReset(confirmDiscardDialog, function onContinue() {
+      confirmAndReset(dialog.DiscardConfirmationDialog, function () {
         openClientCardWriteable($clickedCard);
       });
     }
@@ -660,7 +543,7 @@ function clientCardCreateNewChildClickHandler(event) {
   event.stopPropagation();
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
-      confirmAndReset(confirmDiscardDialog, function onContinue() {
+      confirmAndReset(dialog.DiscardConfirmationDialog, function () {
         openNewChildClientForm($clickedCard);
       });
     }
@@ -673,11 +556,11 @@ function userCardRemoveClickHandler(event) {
   var $clickedCard = $(this).closest('.card-container');
   var userName = $clickedCard.find('.card-body-primary-text').html();
   event.stopPropagation();
-  confirmRemoveDialog(userName, function removeUser(value, callback) {
+  new dialog.RemoveUserDialog(userName, function removeUser(value, callback) {
     var clientId = $('#client-tree [selected]').attr('data-client-id');
     var userId = $clickedCard.attr('data-user-id');
     removeUserFromClient(clientId, userId, callback);
-  });
+  }).open();
 }
 
 /**
@@ -688,7 +571,7 @@ function newClientClickHandler() {
   var $clientTree = $('#client-tree');
   var sameCard = ($('#new-client-card')[0] === $clientTree.find('[selected]')[0]);
   if ($clientTree.has('[selected]').length) {
-    confirmAndReset(confirmDiscardDialog, function onContinue() {
+    confirmAndReset(dialog.DiscardConfirmationDialog, function () {
       if (sameCard) {
         clearClientSelection();
         hideClientDetails();
@@ -733,48 +616,15 @@ function saveNewUser(username, email, callback) {
 }
 
 /**
- * Match query to a user object.
- * Used with typeahead inputs.
- * @param  {Object} users User object returned from an AJAX request
+ * Handle click events for add new user inputs
  * @return {undefined}
  */
-function substringMatcher(users) {
-  return function findMatches(query, callback) {
-    var matches = [];
-    var regex = new RegExp(query, 'i');
-
-    $.each(users, function check(i, user) {
-      if (regex.test(user.Email) ||
-          regex.test(user.UserName) ||
-          regex.test(user.FirstName + ' ' + user.LastName)) {
-        matches.push(user);
-      }
-    });
-
-    callback(matches);
-  };
-}
-
-/**
- * Create vex dialog for add user
- * @return {undefined}
- */
-function initializeAddUserForm() {
-  buildVexDialog({
-    title: 'Add User',
-    message: 'Please provide a valid email address',
-    buttons: [
-      { type: vex.dialog.buttons.yes, text: 'Add User' },
-      { type: vex.dialog.buttons.no, text: 'Cancel' }
-    ],
-    color: 'blue',
-    input: [
-      '<input class="typeahead" name="username" placeholder="Email" required />'
-    ].join(''),
-    submitHandler: function onSubmit(user, callback) {
-      // var email = typeof user === 'object' ? user.email : user;
+function addUserClickHandler() {
+  new dialog.AddUserDialog(
+    eligibleUsers,
+    function (user, callback) {
       var singleMatch = 0;
-      substringMatcher(eligibleUsers)(user, function setMatches(matches) {
+      shared.userSubstringMatcher(eligibleUsers)(user, function (matches) {
         singleMatch = matches.length;
       });
       if (singleMatch) {
@@ -791,44 +641,7 @@ function initializeAddUserForm() {
       }
       return true;
     }
-  });
-  $('.vex-dialog-input .typeahead').typeahead(
-    {
-      hint: true,
-      highlight: true,
-      minLength: 1
-    },
-    {
-      name: 'eligibleUsers',
-      source: substringMatcher(eligibleUsers),
-      display: function display(data) {
-        return data.UserName;
-      },
-      templates: {
-        suggestion: function suggestion(data) {
-          return [
-            '<div>',
-            data.UserName + '',
-            (data.UserName !== data.Email) ?
-              '<br /> ' + data.Email :
-              '',
-            (data.FirstName && data.LastName) ?
-              '<br /><span class="secondary-text">' + data.FirstName + ' ' + data.LastName + '</span>' :
-              '',
-            '</div>'
-          ].join('');
-        }
-      }
-    }
-  ).focus();
-}
-
-/**
- * Handle click events for add new user inputs
- * @return {undefined}
- */
-function addUserClickHandler() {
-  initializeAddUserForm();
+  ).open();
 }
 
 /**
@@ -874,7 +687,7 @@ function editIconClickHandler() {
  * @return {undefined}
  */
 function cancelIconClickHandler() {
-  confirmAndReset(confirmDiscardDialog, function onContinue() {
+  confirmAndReset(dialog.DiscardConfirmationDialog, function () {
     if ($('#client-tree [selected]').attr('data-client-id')) {
       $('#client-tree [editing]').removeAttr('editing');
       setClientFormReadOnly();
@@ -1042,10 +855,10 @@ $(document).ready(function onReady() {
   $('#client-users .action-icon-add').click(addUserClickHandler);
   $('.submit-button').click(submitClientForm);
   $('.new-form-button-container .reset-button').click(function () {
-    confirmAndReset(confirmResetDialog);
+    confirmAndReset(dialog.ResetConfirmationDialog);
   });
   $('.edit-form-button-container .reset-button').click(function () {
-    confirmAndReset(confirmDiscardDialog);
+    confirmAndReset(dialog.DiscardConfirmationDialog);
   });
 
   $('.admin-panel-searchbar').keyup(shared.filterTree);
@@ -1071,22 +884,13 @@ $(document).ready(function onReady() {
           text: input
         };
       }
-      buildVexDialog({
-        title: 'Invalid Input',
-        message: 'The Approved Email Domain List only accepts the email domain (e.g. <i>username@</i><strong><u>domain.com</u></strong>)',
-        buttons: [
-          {
-            type: vex.dialog.buttons.yes,
-            text: 'OK'
-          }
-        ],
-        color: 'blue',
-        callback: function onAlert() {
-          $('#AcceptedEmailDomainList-selectized').val(input);
-          $('#client-info form.admin-panel-content #AcceptedEmailDomainList')[0].selectize.unlock();
-          $('#client-info form.admin-panel-content #AcceptedEmailDomainList')[0].selectize.focus();
-        }
-      });
+
+      toastr.warning('Please enter a valid domain name (e.g. domain.com)');
+
+      $('#AcceptedEmailDomainList-selectized').val(input);
+      $('#client-info form.admin-panel-content #AcceptedEmailDomainList')[0].selectize.unlock();
+      $('#client-info form.admin-panel-content #AcceptedEmailDomainList')[0].selectize.focus();
+
       return {};
     }
   });
@@ -1102,19 +906,7 @@ $(document).ready(function onReady() {
           text: input
         };
       }
-      buildVexDialog({
-        title: 'Invalid Input',
-        message: 'The Approved Email Address Exception List only accepts valid email addresses (e.g. <strong><u>username@domain.com</u></strong>)',
-        buttons: [
-          { type: vex.dialog.buttons.yes, text: 'OK' }
-        ],
-        color: 'blue',
-        callback: function onAlert() {
-          $('#AcceptedEmailAddressExceptionList-selectized').val(input);
-          $('#client-info form.admin-panel-content #AcceptedEmailAddressExceptionList')[0].selectize.unlock();
-          $('#client-info form.admin-panel-content #AcceptedEmailAddressExceptionList')[0].selectize.focus();
-        }
-      });
+      toastr.warning('Please enter a valid email address (e.g. username@domain.com)');
       return {};
     }
   });
