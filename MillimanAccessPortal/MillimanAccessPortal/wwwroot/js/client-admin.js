@@ -422,29 +422,6 @@ function openNewClientForm() {
 }
 
 /**
- * Handle click events for all client cards and client inserts
- * @param {jQuery} $clickedCard the card that was clicked
- * @return {undefined}
- */
-function clientCardClickHandler() {
-  var $clickedCard = $(this);
-  var $clientTree = $('#client-tree ul.admin-panel-content');
-  var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
-  if ($clientTree.has('[selected]').length) {
-    shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
-      if (sameCard) {
-        clearClientSelection();
-        hideClientDetails();
-      } else {
-        openClientCardReadOnly($clickedCard);
-      }
-    });
-  } else {
-    openClientCardReadOnly($clickedCard);
-  }
-}
-
-/**
  * Handle click events for all client card delete buttons
  * @param  {jQuery} $clickedCard the card that was clickedCard
  * @return {undefined}
@@ -674,7 +651,12 @@ function renderClientNode(client, level) {
     client.ClientModel.AssignedUsers.length,
     client.ClientModel.ContentItems.length,
     level,
-    clientCardClickHandler,
+    shared.wrapCardCallback(shared.get(
+      'ClientAdmin/ClientDetail',
+      setClientFormReadOnly,
+      populateClientForm,
+      renderUserList
+    ), 2),
     !client.Children.length && clientCardDeleteClickHandler,
     clientCardEditClickHandler,
     level < 2 && clientCardCreateNewChildClickHandler
