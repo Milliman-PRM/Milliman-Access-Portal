@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 
 namespace MapDbContextLib.Context
 {
@@ -44,6 +45,10 @@ namespace MapDbContextLib.Context
             builder.Entity<ContentReductionTask>()
                 .Property(b => b.CreateDateTime)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            builder.Entity<ContentReductionTask>()
+                .Property(b => b.Id)
+                .HasDefaultValueSql("uuid_generate_v4()");
 
             builder.Entity<HierarchyField>()
                 .Property(b => b.StructureType)

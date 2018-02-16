@@ -4,7 +4,7 @@
  * DEVELOPER NOTES: Defined in lowest of project dependencies since it is used in multiple projects
  */
 
-namespace MapDbContextLib
+namespace MapDbContextLib.Models
 {
     public enum FieldStructureType
     {

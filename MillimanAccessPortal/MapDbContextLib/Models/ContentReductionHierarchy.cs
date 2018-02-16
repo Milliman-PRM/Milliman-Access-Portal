@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace MapCommonLib
+namespace MapDbContextLib.Models
 {
     public class ContentReductionHierarchy
     {
@@ -23,14 +23,15 @@ namespace MapCommonLib
             {
                 JsonString = File.ReadAllText(@"C:\Users\Tom.Puckett\Desktop\testHierarchy.json");
             }
-            ContentReductionHierarchy ObjFromJson = Deserialize(JsonString);
+            ContentReductionHierarchy ObjFromJson = DeserializeJson(JsonString);
             string str = SerializeJson(ObjFromJson);
         }
 
-        public ReductionFieldBase[] Fields { get; set; } = new ReductionFieldBase[0];
+        public List<ReductionField> Fields { get; set; } = new List<ReductionField>();
+
         public long RootContentItemId { get; set; }
 
-        public static ContentReductionHierarchy Deserialize(string JsonString)
+        public static ContentReductionHierarchy DeserializeJson(string JsonString)
         {
             try  // Can fail e.g. if structureType field value does not match an enumeration value name
             {
