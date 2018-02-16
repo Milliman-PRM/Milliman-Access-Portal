@@ -41,6 +41,16 @@ $logDbName = "logdb_$BranchName"
 $dbCreationRetries = 5 # The number of times the script will attempt to create a new database before throwing an error
 
 $env:PATH = $env:PATH+";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin\"
+$env:PSModulePath = $env:PSModulePath+';C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager'
+
+#Load required PowerShell modules
+$silent = import-module AzureRM.Profile, AzureRM.Resources, AzureRM.Websites, Microsoft.PowerShell.Security 
+
+if ($? -eq $false)
+{
+    log_statement "Failed to load modules"
+    exit -1000
+}
 
 #region Authenticate to Azure with a service principal
 
