@@ -57,22 +57,27 @@ var shared = {};
     shared.updateToolbarIcons($panel);
   };
 
-  shared.wrapCardCallback = function (callback) {
+  shared.wrapCardCallback = function (callback, panels) {
     return function () {
       var $card = $(this);
       var $panel = $card.closest('.admin-panel-container');
+      var $nextPanels = $panel.nextAll().slice(0, panels || 1);
       var sameCard = ($card[0] === $panel.find('[selected]')[0]);
 
+      var removeInserts = function () {
+        $panel.find('.insert').remove();
+      };
       var clearSelection = function () {
         $panel.find('.card-container').removeAttr('editing selected');
       };
       var showDetails = function () {
-        $panel.next().show(SHOW_DURATION);
+        $nextPanels.show(SHOW_DURATION);
       };
       var hideDetails = function () {
         $panel.nextAll().hide(SHOW_DURATION);
       };
       var openCard = function () {
+        removeInserts();
         clearSelection();
         $card.attr('selected', '');
         callback($card);
@@ -122,5 +127,15 @@ var shared = {};
         $loading.hide();
       });
     };
+  };
+
+  shared.modifiedInputs = function ($panel) {
+    return $panel.find('form.admin-panel-content')
+      .find('input[name!="__RequestVerificationToken"][type!="hidden"],select')
+      .not('.selectize-input input')
+      .filter(function () {
+        var $element = $(this);
+        return ($element.val() !== ($element.attr('data-original-value') || ''));
+      });
   };
 }());

@@ -17,7 +17,7 @@ var SHOW_DURATION = 50;
  * @return {undefined}
  */
 function removeClientInserts() {
-  $('#client-tree .client-insert').remove();
+  $('#client-tree .insert').remove();
 }
 
 /**
@@ -115,7 +115,8 @@ function unsetButtonSubmitting($button) {
  * @param  {Object} clientEntity The client to be used to populate the client form
  * @return {undefined}
  */
-function populateClientForm(clientEntity) {
+function populateClientForm(response) {
+  var clientEntity = response.ClientEntity;
   var $clientForm = $('#client-info form.admin-panel-content');
   $clientForm.find(':input,select').removeAttr('data-original-value');
   $clientForm.find('#ProfitCenterId option[temporary-profitcenter]').remove();
@@ -164,21 +165,6 @@ function resetValidation() {
 }
 
 /**
- * Find the set of client form input elements whose values have been modified
- * If an input element did not have an original value, then it is considered
- * to be modified only if the current value is not blank.
- * @return {jQuery} modifiedInputs
- */
-function findModifiedInputs() {
-  return $('#client-info form.admin-panel-content')
-    .find('input[name!="__RequestVerificationToken"][type!="hidden"],select')
-    .not('div.selectize-input input')
-    .map(function compareValue() {
-      return ($(this).val() === ($(this).attr('data-original-value') || '') ? null : this);
-    });
-}
-
-/**
  * Clear all client form input elements, resulting in a blank form
  * @return {undefined}
  */
@@ -208,7 +194,7 @@ function clearUserList() {
  * @return {undefined}
  */
 function resetFormData() {
-  var $modifiedInputs = findModifiedInputs();
+  var $modifiedInputs = shared.modifiedInputs($('#client-info'));
   $modifiedInputs.each(function resetValue() {
     if ($(this).is('.selectized')) {
       this.selectize.setValue($(this).attr('data-original-value').split(','));
@@ -332,7 +318,7 @@ function confirmRemoveDialog(name, submitHandler) {
  * @return {undefined}
  */
 function confirmAndReset(confirmDialog, onContinue) {
-  if (findModifiedInputs().length) {
+  if (shared.modifiedInputs($('#client-info')).length) {
     confirmDialog(function onConfirm() {
       resetFormData();
       if (typeof onContinue === 'function') onContinue();
@@ -462,7 +448,8 @@ function renderUserNode(client, user) {
  * @param  {Number} userId ID of a user to be expanded
  * @return {undefined}
  */
-function renderUserList(client, userId) {
+function renderUserList(response) {
+  var client = response;
   var $clientUserList = $('#client-users ul.admin-panel-content');
   $clientUserList.empty();
   client.AssignedUsers.forEach(function render(user) {
@@ -470,10 +457,6 @@ function renderUserList(client, userId) {
   });
   $clientUserList.find('.tooltip').tooltipster();
   eligibleUsers = client.EligibleUsers;
-
-  if (userId) {
-    $('[data-user-id="' + userId + '"]').click();
-  }
 
   if (client.CanManage) {
     $('#add-user-icon').show();
@@ -541,7 +524,7 @@ function getClientDetail(clientDiv) {
     }
   }).done(function onDone(response) {
     if (ajaxStatus.getClientDetail !== clientId) return;
-    populateClientForm(response.ClientEntity);
+    populateClientForm(response);
     $('#client-info .loading-wrapper').hide();
     renderUserList(response);
     $('#client-users .loading-wrapper').hide();
@@ -720,7 +703,7 @@ function clientCardCreateNewChildClickHandler(event) {
    * is a client insert ("New Child Client" card) AND the currently selected card is immediately
    * preceded by the clicked card in the client list.
    */
-  var sameCard = ($clientTree.find('[selected]').is('.client-insert') &&
+  var sameCard = ($clientTree.find('[selected]').is('.insert') &&
     $clickedCard[0] === $clientTree.find('[selected]').parent().prev().find('.card-container')[0]);
   event.stopPropagation();
   if ($clientTree.has('[editing]').length) {
@@ -758,7 +741,7 @@ function newClientClickHandler() {
         clearClientSelection();
         hideClientDetails();
       } else {
-        if ($('.client-insert').length) {
+        if ($('.insert').length) {
           removeClientInserts();
         }
         openNewClientForm();
@@ -957,7 +940,11 @@ function renderClientNode(client, level) {
     client.ClientModel.AssignedUsers.length,
     client.ClientModel.ContentItems.length,
     level,
-    clientCardClickHandler,
+    shared.wrapCardCallback(shared.get(
+      'ClientAdmin/ClientDetail',
+      populateClientForm,
+      renderUserList
+    ), 2),
     !client.Children.length && clientCardDeleteClickHandler,
     clientCardEditClickHandler,
     level < 2 && clientCardCreateNewChildClickHandler
@@ -1121,7 +1108,7 @@ $(document).ready(function onReady() {
   // TODO: find a better place for this
   $('#client-info form.admin-panel-content').find(':input,select')
     .change(function onChange() {
-      if (findModifiedInputs().length) {
+      if (shared.modifiedInputs($('#client-info')).length) {
         $('#save-changes-button,#undo-changes-button').show();
       } else {
         $('#save-changes-button,#undo-changes-button').hide();

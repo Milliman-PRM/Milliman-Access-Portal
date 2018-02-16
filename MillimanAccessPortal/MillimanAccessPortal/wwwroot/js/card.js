@@ -573,7 +573,7 @@ var card = {};
         'flex-container',
         'flex-row-no-wrap',
         'items-align-center',
-        'client-insert',
+        'insert',
         'card-' + (100 - (10 * level))
       ].join(' ')
     });
