@@ -12,10 +12,32 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace MapDbContextLib.Context
 {
+    public enum ContentTypeEnum
+    {
+        Unknown = 0,
+        Qlikview,
+    }
+
     public class ContentType
     {
         [Key]
         public long Id { get; set; }
+
+        /// <summary>
+        /// Convenience property to automatically translate between persisted string and enumeration
+        /// </summary>
+        [NotMapped]
+        public ContentTypeEnum TypeEnum
+        {
+            set
+            {
+                Name = value.ToString();
+            }
+            get
+            {
+                return Enum.Parse<ContentTypeEnum>(Name, true);
+            }
+        }
 
         /// <summary>
         /// Name should match the enumeration value label
@@ -25,8 +47,6 @@ namespace MapDbContextLib.Context
 
         [Required]
         public bool CanReduce { get; set; }
-
-        // IMPORTANT: If any fields are added or changed, change AreSameContentType() to match
 
         #region Database Initialization
         /// <summary>
@@ -38,8 +58,8 @@ namespace MapDbContextLib.Context
         {
             List<ContentType> AllProposedContentTypes = new List<ContentType>
             {
-                new ContentType { Id = 1, Name = "Qlikview", CanReduce = true },
-                //new ContentType { Id = 2, Name = "AnotherType", CanReduce = true },
+                new ContentType { Id = 1, TypeEnum=ContentTypeEnum.Qlikview, CanReduce = true },
+                //new ContentType { Id = 2, TypeEnum = ContentTypeEnum.AnotherType, CanReduce = trueorfalse },
             };
 
             ApplicationDbContext Db = serviceProvider.GetService<Context.ApplicationDbContext>();
