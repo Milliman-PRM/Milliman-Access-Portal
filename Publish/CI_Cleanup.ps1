@@ -37,7 +37,7 @@ $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
 $dbPassword = $env:db_deploy_password
 $appDbName = "appdb_$BranchName"
-$logDbName = "logdb_$BranchName"
+$logDbName = "auditlogdb_$BranchName"
 $dbCreationRetries = 5 # The number of times the script will attempt to create a new database before throwing an error
 
 $env:PATH = $env:PATH+";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin\"
