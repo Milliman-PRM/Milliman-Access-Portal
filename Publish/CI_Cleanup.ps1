@@ -77,7 +77,7 @@ if ($? -eq $false)
 }
 else
 {
-    Remove-AzureRmWebAppSlot -ResourceGroupName $ResourceGroupName -name $WebAppName -Slot $BranchName
+    Remove-AzureRmWebAppSlot -ResourceGroupName $ResourceGroupName -name $WebAppName -Slot $BranchName -Force
     if ($? -eq $false)
     {
         log_statement "Deployment slot $BranchName could not be removed"
