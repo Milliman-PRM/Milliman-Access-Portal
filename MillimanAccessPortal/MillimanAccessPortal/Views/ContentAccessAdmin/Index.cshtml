@@ -26,7 +26,7 @@
 
 <div id="client-tree" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12">
     <div class="loading-wrapper">
-        @Html.Partial("~/Views/ClientAdmin/templates/_Loader.cshtml")
+        @Html.Partial("~/Views/Shared/_Loader.cshtml")
     </div>
     <h3 class="admin-panel-header">Client Tree</h3>
     <div class="admin-panel-toolbar">
@@ -40,7 +40,7 @@
 </div>
 <div id="root-content-items" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12" style="display: none;">
     <div class="loading-wrapper">
-        @Html.Partial("~/Views/ClientAdmin/templates/_Loader.cshtml")
+        @Html.Partial("~/Views/Shared/_Loader.cshtml")
     </div>
     <h3 class="admin-panel-header">Content Items</h3>
     <div class="admin-panel-toolbar">
@@ -54,7 +54,7 @@
 </div>
 <div id="selection-groups" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12" style="display: none;">
     <div class="loading-wrapper">
-        @Html.Partial("~/Views/ClientAdmin/templates/_Loader.cshtml")
+        @Html.Partial("~/Views/Shared/_Loader.cshtml")
     </div>
     <h3 class="admin-panel-header">Selection Groups</h3>
     <div class="admin-panel-toolbar">
@@ -74,7 +74,7 @@
 </div>
 <div id="selections" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12" style="display: none;">
     <div class="loading-wrapper">
-        @Html.Partial("~/Views/ClientAdmin/templates/_Loader.cshtml")
+        @Html.Partial("~/Views/Shared/_Loader.cshtml")
     </div>
     <h3 class="admin-panel-header">Selections</h3>
     <div class="admin-panel-toolbar">
@@ -89,9 +89,6 @@
 
 
 @section Scripts {
-
-    @Html.Partial("~/Views/ContentAccessAdmin/templates/_Node.cshtml")
-
 
     <environment names="Development,CI">
         <script src="~/js/content-access-admin.js"></script>

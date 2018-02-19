@@ -20,7 +20,7 @@
 
 <div id="client-tree" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12">
     <div class="loading-wrapper" style="display: none;">
-        @Html.Partial("~/Views/ClientAdmin/templates/_Loader.cshtml")
+        @Html.Partial("~/Views/Shared/_Loader.cshtml")
     </div>
     <h3 class="admin-panel-header">Client Tree</h3>
     <div class="admin-panel-toolbar">
@@ -38,7 +38,7 @@
 </div>
 <div id="client-info" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-6-12" style="display: none;">
     <div class="loading-wrapper" style="display: none;">
-        @Html.Partial("~/Views/ClientAdmin/templates/_Loader.cshtml")
+        @Html.Partial("~/Views/Shared/_Loader.cshtml")
     </div>
     <h3 class="admin-panel-header">Client Information</h3>
     <div class="admin-panel-toolbar">
@@ -166,7 +166,7 @@
 </div>
 <div id="client-users" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12" style="display: none;">
     <div class="loading-wrapper" style="display: none;">
-        @Html.Partial("~/Views/ClientAdmin/templates/_Loader.cshtml")
+        @Html.Partial("~/Views/Shared/_Loader.cshtml")
     </div>
     <h3 class="admin-panel-header">Client Users</h3>
     <div class="admin-panel-toolbar">
@@ -189,9 +189,6 @@
 </div>
 
 @section Scripts {
-
-    @Html.Partial("~/Views/ClientAdmin/templates/_Node.cshtml")
-
 
     <environment names="Development,CI">
         <script src="~/lib/selectize/dist/js/standalone/selectize.js"></script>
