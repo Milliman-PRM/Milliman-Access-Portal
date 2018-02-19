@@ -1,500 +1,790 @@
-var Card;
+/* global shared */
 
-(function private() {
-  var verify;
-  var add;
-  var findComponent;
-  var html;
-  var toggleCard;
+var card = {};
 
-  Card = {
+(function () {
+  // Helper function declarations
+  var toAttr;
 
-    settings: {
-    },
+  // classes
+  var Card;
+  var ActionCard;
+  var AddClientActionCard;
+  var AddUserActionCard;
+  var InsertCard;
+  var AddChildInsertCard;
+  var ClientCard;
+  var RootContentItemCard;
+  var SelectionGroupCard;
+  var UserCard;
 
-    /* eslint-disable indent */
-    templates: {
-      container: {
-        selector: '.card-container',
-        html: [
-          '<li>',
-            '<div class="card-container">',
-              '<stub />',
-            '</div>',
-          '</li>'
-        ].join('')
-      },
+  var cardLayout = {
+    card: {
       main: {
-        selector: '.card-body-main-container',
-        html: [
-          '<div class="card-body-main-container">',
-            '<stub />',
-          '</div>',
-          '<stub />'
-        ].join('')
+        icons: {
+          icon: {}
+        },
+        text: {
+          primaryText: {},
+          secondaryText: {}
+        },
+        statistics: {
+          statistic: {}
+        },
+        side: {
+          button: {}
+        }
       },
-      icons: {
-        selector: '.card-body-secondary-container',
-        html: [
-          '<div class="card-body-secondary-container">',
-            '<stub />',
-          '</div>',
-          '<stub />'
-        ].join('')
+      detail: {
+        detailText: {},
+        toggle: {},
+        detailItem: {}
       },
-      icon: {
-        selector: 'svg',
+      action: {},
+      insert: {}
+    }
+  };
+
+  var components = Object.assign(
+    {},
+    {
+      action: {
+        count: '?',
+        selector: '.card-body-primary-text',
         html: [
-          '<svg class="">',
-            '<use href=""></use>',
-          '</svg>',
-          '<stub />'
-        ].join('')
+          '<h2 class="card-body-primary-text">',
+          '  <svg class="action-card-icon">',
+          '    <use href=""></use>',
+          '  </svg>',
+          '  <span></span>',
+          '</h2>'
+        ].join(''),
+        render: function (component) {
+          return function (properties) {
+            this.verify(component);
+            this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
+            this.html(component, properties.text, 'span');
+          };
+        }
       },
-      text: {
-        selector: '.card-body-primary-container',
+      insert: {
+        count: '?',
+        selector: '.card-body-primary-text',
         html: [
-          '<div class="card-body-primary-container">',
-            '<stub />',
-          '</div>',
-          '<stub />'
-        ].join('')
+          '<div class="card-body-main-container content-item-flex-1">',
+          '  <div class="card-body-primary-container">',
+          '    <h2 class="card-body-primary-text indent-level-1">',
+          '      <span></span>',
+          '      <svg class="new-child-icon">',
+          '        <use href=""></use>',
+          '      </svg>',
+          '    </h2>',
+          '  </div>',
+          '</div>'
+        ].join(''),
+        render: function (component) {
+          return function (properties) {
+            this.verify(component);
+            this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
+            this.html(component, properties.text, 'span');
+          };
+        }
       },
-      primary: {
+      primaryText: {
+        count: '1',
         selector: '.card-body-primary-text',
         html: [
           '<h2 class="card-body-primary-text"></h2>',
           '<stub />'
-        ].join('')
+        ].join(''),
+        render: function (component) {
+          return function (properties) {
+            this.verify(component);
+            this.html(component, properties.text);
+          };
+        }
       },
-      secondary: {
+      secondaryText: {
+        count: '*',
         selector: '.card-body-secondary-text',
         html: [
           '<p class="card-body-secondary-text"></p>',
           '<stub />'
-        ].join('')
+        ].join(''),
+        render: function (component) {
+          return function (properties) {
+            this.add(component);
+            this.html(component, properties.text);
+          };
+        }
       },
-      action: {
-        selector: '.card-body-primary-text',
-        html: [
-          '<h2 class="card-body-primary-text">',
-          '<stub />',
-          '</h2>'
-        ].join('')
-      },
-      actionText: {
-        selector: 'span',
-        html: [
-          '<span></span>',
-          '<stub/>'
-        ].join('')
-      },
-      stats: {
-        selector: '.card-stats-container',
-        html: [
-          '<div class="card-stats-container">',
-            '<stub />',
-          '</div>',
-          '<stub />'
-        ].join('')
-      },
-      stat: {
+      statistic: {
+        count: '*',
         selector: '.card-stat-container',
         html: [
-          '<div class="card-stat-container tooltip" title="">',
-              '<svg class="card-stat-icon">',
-                  '<use href=""></use>',
-              '</svg>',
-              '<h4 class="card-stat-value"></h4>',
+          '<div class="card-stat-container">',
+          '  <svg class="card-stat-icon">',
+          '    <use href=""></use>',
+          '  </svg>',
+          '  <h4 class="card-stat-value"></h4>',
           '</div>',
           '<stub />'
-        ].join('')
-      },
-      side: {
-        selector: '.card-button-side-container',
-        html: [
-          '<div class="card-button-side-container">',
-            '<stub />',
-          '</div>',
-          '<stub />'
-        ].join('')
+        ].join(''),
+        render: function (component) {
+          return function (properties) {
+            this.add(component);
+            this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
+            this.html(component, properties.value, '.card-stat-value');
+            this.tooltip(component, properties.tooltip);
+          };
+        }
       },
       button: {
+        count: '*',
         selector: '.card-button-background',
         html: [
           '<div class="card-button-background tooltip" title="">',
-              '<svg class="card-button-icon">',
-                  '<use href=""></use>',
-              '</svg>',
+          '  <svg class="card-button-icon">',
+          '    <use href=""></use>',
+          '  </svg>',
           '</div>',
           '<stub />'
-        ].join('')
+        ].join(''),
+        render: function (component) {
+          return function (properties) {
+            if (this.readonly || this.disabled) {
+              return;
+            }
+            this.add(component);
+            this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
+            this.addClass(component, 'card-button-' + properties.color);
+            this.tooltip(component, properties.tooltip);
+            this.click(component, properties.callback);
+          };
+        }
       },
-      expansion: {
-        selector: '.card-expansion-container',
+      icon: {
+        count: '*',
+        selector: 'svg',
         html: [
-          '<div class="card-expansion-container">',
-            '<stub />',
-          '</div>'
-        ].join('')
+          '<svg class="">',
+          '  <use href=""></use>',
+          '</svg>',
+          '<stub />'
+        ].join(''),
+        render: function (component) {
+          return function (properties) {
+            this.add(component);
+            this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
+            this.addClass(component, properties.class);
+          };
+        }
       },
-      expansionLabel: {
+      detailText: {
+        count: '?',
         selector: '.card-expansion-category-label',
         html: [
-          '<h4 class="card-expansion-category-label">Client Roles</h4>',
+          '<h4 class="card-expansion-category-label"></h4>',
           '<stub />'
-        ].join('')
+        ].join(''),
+        render: function (component) {
+          return function (properties) {
+            this.verify(component);
+            this.html(component, properties.text);
+          };
+        }
       },
       toggle: {
+        count: '*',
         selector: '.switch-container',
         html: [
           '<div class="switch-container">',
-            '<div class="toggle-switch">',
-              '<input type="checkbox" class="toggle-switch-checkbox" data-role-enum="" name="" id="">',
-              '<label class="toggle-switch-label" for="">',
-                '<span class="toggle-switch-inner"></span>',
-                '<span class="toggle-switch-switch"></span>',
-              '</label>',
-            '</div>',
-            '<label class="switch-label"></label>',
+          '  <div class="toggle-switch">',
+          '    <input type="checkbox" class="toggle-switch-checkbox" name="" id="">',
+          '    <label class="toggle-switch-label" for="">',
+          '      <span class="toggle-switch-inner"></span>',
+          '      <span class="toggle-switch-switch"></span>',
+          '    </label>',
+          '  </div>',
+          '  <label class="switch-label"></label>',
           '</div>',
           '<stub />'
-        ].join('')
+        ].join(''),
+        render: function (component) {
+          return function (properties) {
+            this.add(component);
+            this.attr(
+              component,
+              Object.assign(
+                {
+                  name: properties.id,
+                  id: properties.id
+                },
+                toAttr(properties.data)
+              ),
+              '.toggle-switch-checkbox'
+            );
+            this.prop(component, { checked: properties.checked }, '.toggle-switch-checkbox');
+            this.click(component, properties.callback, '.toggle-switch-checkbox');
+            this.attr(component, { for: properties.id }, '.toggle-switch-label');
+            this.html(component, properties.text, '.switch-label');
+          };
+        }
       },
-      user: {
-        selector: '.user-container',
+      detailItem: {
+        count: '*',
+        selector: '.detail-item',
         html: [
-          '<div class="user-container">',
-            '<h4></h4>',
+          '<h4 class="detail-item"></h4>',
+          '<stub />'
+        ].join(''),
+        render: function (component) {
+          return function (properties) {
+            this.add(component);
+            this.html(component, properties.text);
+          };
+        }
+      }
+    },
+    {
+      card: {
+        count: '1',
+        selector: '.card-container',
+        html: [
+          '<li>',
+          '  <div class="card-container">',
+          '    <stub />',
+          '  </div>',
+          '</li>'
+        ].join(''),
+        render: function (component) {
+          return function (properties) {
+            this.verify(component);
+            if (Object.hasOwnProperty.call(properties, 'id')) {
+              this.attr(component, { id: properties.id });
+              this.addClass(component, 'card-100 action-card');
+            }
+            if (Object.hasOwnProperty.call(properties, 'class')) {
+              this.addClass(component, properties.class);
+            }
+            if (this.readonly || this.disabled) {
+              this.attr(component, { disabled: '' });
+            }
+          };
+        }
+      },
+      main: {
+        count: '1',
+        selector: '.card-body-main-container',
+        html: [
+          '<div class="card-body-main-container">',
+          '  <stub />',
           '</div>',
           '<stub />'
-        ].join('')
+        ].join(''),
+        render: function (component) {
+          return function () {
+            this.verify(component);
+          };
+        }
       },
-      bottom: {
-        selector: '.card-button-bottom-container',
+      icons: {
+        count: '1',
+        selector: '.card-body-secondary-container',
         html: [
-          '<stub />',
-          '<div class="card-button-bottom-container">',
-            '<div class="card-button-background card-button-expansion">',
-              '<svg class="card-button-icon">',
-                '<use href="#action-icon-expand-card"></use>',
-              '</svg>',
-            '</div>',
+          '<div class="card-body-secondary-container">',
+          '  <stub />',
+          '</div>',
+          '<stub />'
+        ].join(''),
+        render: function (component) {
+          return function () {
+            this.verify(component);
+          };
+        }
+      },
+      text: {
+        count: '1',
+        selector: '.card-body-primary-container',
+        html: [
+          '<div class="card-body-primary-container">',
+          '  <stub />',
+          '</div>',
+          '<stub />'
+        ].join(''),
+        render: function (component) {
+          return function () {
+            this.verify(component);
+          };
+        }
+      },
+      statistics: {
+        count: '1',
+        selector: '.card-stats-container',
+        html: [
+          '<div class="card-stats-container">',
+          '  <stub />',
+          '</div>',
+          '<stub />'
+        ].join(''),
+        render: function (component) {
+          return function () {
+            this.verify(component);
+          };
+        }
+      },
+      side: {
+        count: '1',
+        selector: '.card-button-side-container',
+        html: [
+          '<div class="card-button-side-container">',
+          '  <stub />',
+          '</div>',
+          '<stub />'
+        ].join(''),
+        render: function (component) {
+          return function () {
+            this.verify(component);
+          };
+        }
+      },
+      detail: {
+        count: '1',
+        selector: '.card-expansion-container',
+        html: [
+          '<div class="card-expansion-container">',
+          '  <stub />',
+          '  <div class="card-button-bottom-container">',
+          '    <div class="card-button-background card-button-expansion">',
+          '      <svg class="card-button-icon">',
+          '        <use href="#action-icon-expand-card"></use>',
+          '      </svg>',
+          '    </div>',
+          '  </div>',
           '</div>'
-        ].join('')
+        ].join(''),
+        render: function (component) {
+          return function () {
+            this.verify(component);
+            this.click(component, shared.toggleExpanded.listener, '.card-button-background');
+            this.tooltip(component, 'Expand card', '.card-button-background');
+          };
+        }
       }
-    },
-    /* eslint-enable indent */
+    }
+  );
 
-    vars: {
-    },
-
-    init: function init() {
-    },
-
-    attr: function attr(value, selector) {
-      var $component = findComponent(this.vars.lastComponent, selector);
-      $component.attr(value);
-      return this;
-    },
-
-    prop: function prop(value, selector) {
-      var $component = findComponent(this.vars.lastComponent, selector);
-      $component.prop(value);
-      return this;
-    },
-
-    class: function class_(value, selector) {
-      var $component = findComponent(this.vars.lastComponent, selector);
-      $component.addClass(value);
-      return this;
-    },
-
-    tooltip: function tooltip(value, selector) {
-      var $component = findComponent(this.vars.lastComponent, selector);
-      $component.addClass('tooltip');
-      $component.attr('title', value);
-      return this;
-    },
-
-    searchString: function searchString(searchTerms, selector) {
-      var $component = findComponent(this.vars.lastComponent, selector);
-      $component.attr({
-        'data-search-string': $.map(searchTerms, function upper(term) {
-          return (term || '').toUpperCase();
-        }).join('|')
-      });
-      return this;
-    },
-
-    click: function click(onClick, selector) {
-      var $component = findComponent(this.vars.lastComponent, selector);
-      $component.click(onClick);
-      return this;
-    },
-
-
-    newCard: function newCard() {
-      this.vars.$card = $(this.templates.container.html);
-      this.vars.lastComponent = '';
-      return this;
-    },
-
-    container: function container(canManage) {
-      this.vars.canManage = (typeof canManage !== 'boolean' || canManage);
-      this.vars.lastComponent = 'container';
-      if (!this.vars.canManage) this.attr({ disabled: '' });
-      return this;
-    },
-
-    main: function main() {
-      this.vars.lastComponent = 'main';
-      verify(['main']);
-      return this;
-    },
-
-    primaryInfo: function primaryInfo(text) {
-      this.vars.lastComponent = 'primary';
-      add(['main', 'text', 'primary']);
-      return html(text);
-    },
-
-    secondaryInfo: function secondaryInfo(text) {
-      this.vars.lastComponent = 'secondary';
-      add(['main', 'text', 'secondary']);
-      return html(text);
-    },
-
-    info: function info(textList) {
-      this.vars.lastComponent = '';
-      textList.reverse();
-      this.primaryInfo(textList.pop());
-      while (textList.length) {
-        this.secondaryInfo(textList.pop());
+  // Compute select properties
+  (function () {
+    var setParents = function (layout, parent) {
+      var keys = Object.keys(layout);
+      var i;
+      for (i = 0; i < keys.length; i += 1) {
+        if (Object.hasOwnProperty.call(layout, keys[i])) {
+          components[keys[i]].parent = parent;
+          setParents(layout[keys[i]], keys[i]);
+        }
       }
-      return this;
-    },
+    };
+    setParents(cardLayout, '');
+    Object.keys(components).forEach(function (key) {
+      components[key].render = components[key].render(key);
+    });
+  }());
 
-    action: function action() {
-      this.vars.lastComponent = 'action';
-      verify(['main', 'text', 'action']);
-      return this;
-    },
 
-    actionText: function actionText(text) {
-      this.vars.lastComponent = 'actionText';
-      add(['main', 'text', 'action', 'actionText']);
-      return html(text);
-    },
-
-    icon: function icon(iconName) {
-      this.vars.lastComponent = 'icon';
-      add(['main', 'icons', 'icon']);
-      return this.attr({ href: iconName }, '[href]');
-    },
-
-    actionIcon: function actionIcon(iconName) {
-      this.vars.lastComponent = 'icon';
-      add(['main', 'text', 'action', 'icon']);
-      return this.attr({ href: iconName }, '[href]');
-    },
-
-    cardStat: function cardStat(iconName, value) {
-      this.vars.lastComponent = 'stat';
-      add(['main', 'stats', 'stat']);
-      this.attr({ href: iconName }, '[href]');
-      return html(value, '.card-stat-value');
-    },
-
-    sideButton: function sideButton(iconName) {
-      if (!this.vars.canManage) {
-        this.vars.lastComponent = 'button';
-        return this;
+  // Helper function definitions
+  toAttr = function (data) {
+    var attrs = {};
+    Object.keys(data).forEach(function (key) {
+      if (Object.hasOwnProperty.call(data, key)) {
+        attrs['data-' + key] = data[key];
       }
-      this.vars.lastComponent = 'button';
-      add(['main', 'side', 'button']);
-      return this.attr({ href: iconName }, '[href]');
-    },
+    });
+    return attrs;
+  };
 
-    expansionLabel: function expansionLabel(label) {
-      this.vars.lastComponent = 'expansionLabel';
-      verify(['expansion', 'expansionLabel']);
-      return html(label);
-    },
+  // Class definitions
+  Card = function (representation) {
+    this.components = [];
+    this.data = {};
+    this.callback = function () {};
+    this.readonly = false;
+    this.disabled = false;
+    this.$representation = $(representation || components.card.html);
+  };
 
-    expansionButton: function expansionButton(iconName) {
-      this.vars.lastComponent = 'bottom';
-      verify(['expansion', 'bottom']);
-      return this.attr({ href: iconName }, '[href]');
-    },
+  Card.prototype.exists = function (name) {
+    if (name === '') return true; // base case
+    if (!Object.hasOwnProperty.call(components, name)) {
+      // invalid component
+      return false;
+    }
+    return this.$representation.find(components[name].selector).length > 0;
+  };
 
-    expansion: function expansion(panel) {
-      this.vars.lastComponent = '';
-      /* eslint-disable indent */
-      return this
-        .expansionButton('#action-icon-expand-card')
-          .tooltip('Expand card', '.card-button-background')
-          .click(toggleCard(panel), '.card-button-background')
-        .main()
-          .click(toggleCard(panel));
-      /* eslint-enable indent */
-    },
+  Card.prototype.addComponent = function (name, properties) {
+    if (!Object.hasOwnProperty.call(components, name)) {
+      // invalid component
+      return;
+    }
+    if (Object.hasOwnProperty.call(properties, 'callback') && !properties.callback) {
+      // A required callback was not provided - do not render the component.
+      return;
+    }
+    if (!this.components[name]) {
+      this.components[name] = [];
+    }
+    this.components[name].push(properties);
+  };
 
-    roleToggle: function roleToggle(roleEnum, roleName, roleAssigned) {
-      var userId = this.vars.$card
-        .find(this.templates.container.selector)
-        .attr('data-user-id');
-      var id = 'user-role-' + userId + '-' + roleEnum;
-      this.vars.lastComponent = 'toggle';
-      add(['expansion', 'toggle']);
-      if (!this.vars.canManage) this.attr({ disabled: '' }, '.toggle-switch-checkbox');
-      return html(roleName, '.switch-label')
-        .attr({
-          'data-role-enum': roleEnum,
-          name: id,
-          id: id
-        }, '.toggle-switch-checkbox')
-        .attr({ for: id }, '.toggle-switch-label')
-        .prop({ checked: roleAssigned }, '.toggle-switch-checkbox');
-    },
+  Card.prototype.renderComponent = function (component, properties) {
+    var parent;
+    if (!Object.hasOwnProperty.call(components, component)) {
+      // invalid component
+      return;
+    }
+    parent = components[component].parent;
+    if (Object.hasOwnProperty.call(properties, parent) || !this.exists(parent)) {
+      this.renderComponent(parent, (properties && properties.parent) || properties);
+    }
+    components[component].render.call(this, properties);
+  };
 
-    roleToggles: function roleToggles(roles) {
-      var self = this;
-      var onClick = function onClick(event) {
-        userCardRoleToggleClickHandler(event);
-      };
-      this.vars.lastComponent = '';
-      $.each(roles, function createAndAssign(index, assignment) {
-        self.roleToggle(
-          assignment.RoleEnum,
-          assignment.RoleDisplayValue,
-          assignment.IsAssigned
-        ).click(onClick, '.toggle-switch-checkbox');
-      });
-      return this;
-    },
-
-    user: function user(name) {
-      this.vars.lastComponent = 'user';
-      add(['expansion', 'user']);
-      return html(name, 'h4');
-    },
-
-    users: function users(userList) {
-      var self = this;
-      this.vars.lastComponent = '';
-      if (userList.length === 0) {
-        this.vars.$card.find(this.templates.expansion.selector).remove();
-      } else {
-        $.each(userList, function create(i, user) {
-          self.user(user.UserName);
+  Card.prototype.build = function () {
+    var self = this;
+    this.$representation = $('<stub />'); // own function
+    Object.keys(this.components).forEach(function (key) {
+      if (Object.hasOwnProperty.call(self.components, key)) {
+        self.components[key].forEach(function (properties) {
+          self.renderComponent(key, properties);
         });
       }
-      return this;
-    },
-
-    build: function build() {
-      this.vars.$card.find('stub').remove();
-      return this.vars.$card;
-    },
-
-    buildNewClient: function buildNewClient() {
-      /* eslint-disable indent */
-      return this
-        .newCard()
-        .container()
-          .attr({ id: 'create-new-client-card' }, '.card-container')
-          .class('card-100 action-card', '.card-container')
-        .actionIcon('#action-icon-add')
-          .class('action-card-icon')
-        .actionText('New Client')
-        .build();
-      /* eslint-enable indent */
-    },
-
-    buildNewChildClient: function buildNewChildClient(level) {
-      /* eslint-disable indent */
-      return this
-        .newCard()
-          .class('client-insert')
-          .class('card-' + (100 - (10 * level)))
-        .container()
-          .class('card-container flex-container flex-row-no-wrap items-align-center')
-        .actionText('New Sub-Client')
-        .actionIcon('#action-icon-expand-card')
-          .class('new-child-icon')
-        .main()
-          .class('content-item-flex-1')
-          .class('indent-level-' + level, '.card-body-primary-text')
-        .build();
-      /* eslint-enable indent */
-    },
-
-    buildAddUser: function buildAddUser() {
-      /* eslint-disable indent */
-      return this
-        .newCard()
-        .container()
-          .attr({ id: 'add-user-card' })
-          .class('card-100 action-card')
-        .actionIcon('#action-icon-add')
-          .class('action-card-icon')
-        .actionText('Add User')
-        .build();
-      /* eslint-enable indent */
-    }
-
-  };
-  verify = function _verify(path) {
-    var prevSelector = Card.templates.container.selector;
-    $.each(path, function create() {
-      var nextSelector = prevSelector + ' > ' + Card.templates[this].selector;
-      var element = Card.vars.$card.find(nextSelector);
-      if (!element.length) {
-        Card.vars.$card
-          .find(prevSelector + ' > stub')
-          .replaceWith(Card.templates[this].html);
-      }
-      prevSelector = nextSelector;
     });
-    return prevSelector;
+    if (this.data) {
+      this.attr('card', toAttr(this.data));
+    }
+    if (!this.disabled) {
+      this.click('card', this.callback);
+    }
+    this.$representation.find('stub').remove();
+    return this.$representation;
   };
-  add = function _add(path) {
-    var newElement = path.pop();
-    var prevSelector = verify(path);
-    Card.vars.$card
-      .find(prevSelector + ' > stub')
-      .replaceWith(Card.templates[newElement].html);
-    return prevSelector + ' > ' + Card.templates[newElement].selector;
+
+  ['html', 'attr', 'prop', 'addClass'].forEach(function (func) {
+    Card.prototype[func] = function (component, value, selector) {
+      this.findComponent(component, selector)[func](value);
+    };
+  });
+
+  Card.prototype.click = function (component, value, selector) {
+    var $component = this.findComponent(component, selector);
+    $component.click(component !== 'card' && (this.readonly || this.disabled)
+      ? function (event) {
+        event.preventDefault();
+      }
+      : value);
+    $component.mousedown(function (event) {
+      event.preventDefault();
+    });
   };
-  findComponent = function _findComponent(component, selector) {
-    var $component = Card.templates[component]
-      ? Card.vars.$card
-        .find(Card.templates[component].selector)
+
+  Card.prototype.tooltip = function (component, value, selector) {
+    var $component = this.findComponent(component, selector);
+    $component.addClass('tooltip');
+    $component.attr('title', value);
+  };
+
+  Card.prototype.findComponent = function (component, selector) {
+    var $component = components[component]
+      ? this.$representation
+        .find(components[component].selector)
         .last()
-      : Card.vars.$card;
+      : this.$representation;
     var $subcomponent = $component.find(selector);
     return $subcomponent.length ? $subcomponent : $component;
   };
-  html = function _html(value, selector) {
-    var $component = findComponent(Card.vars.lastComponent, selector);
-    $component.html(value);
-    return Card;
+
+  Card.prototype.componentPath = function (component) {
+    var parent = components[component].parent;
+    if (Object.hasOwnProperty.call(components, parent)) {
+      return this.componentPath(parent).concat([component]);
+    }
+    return [component];
   };
-  toggleCard = function _toggleCard(panel) {
-    return function (event) {
-      event.stopPropagation();
-      $(this).closest('.card-container')
-        .find('div.card-expansion-container')
-        .attr('maximized', function toggle(index, attr) {
-          if (attr === '') {
-            $(this).find('.tooltip').tooltipster('content', 'Expand card');
-            return null;
-          }
-          $(this).find('.tooltip').tooltipster('content', 'Collapse card');
-          return '';
-        });
-      showRelevantActionIcons(panel);
+
+  Card.prototype.verify = function (component, partialPath) {
+    var self = this;
+    var path = partialPath || this.componentPath(component);
+    var prevSelector = '';
+    $.each(path, function () {
+      var nextSelector = prevSelector + components[this].selector;
+      var element = self.$representation.find(nextSelector);
+      if (!element.length) {
+        if (prevSelector) {
+          self.$representation
+            .find(prevSelector + 'stub')
+            .replaceWith(components[this].html);
+        } else {
+          self.$representation = $(components[this].html);
+        }
+      }
+      prevSelector = nextSelector + ' > ';
+    });
+    return prevSelector;
+  };
+
+  Card.prototype.add = function (component, partialPath) {
+    var path = partialPath || this.componentPath(component);
+    var newElement = path.pop();
+    var prevSelector = this.verify(component, path);
+    this.$representation
+      .find(prevSelector + 'stub')
+      .replaceWith(components[newElement].html);
+    return prevSelector + components[newElement].selector;
+  };
+
+
+  ActionCard = function (icon, text, callback) {
+    Card.call(this);
+
+    this.addComponent('card', {
+      id: text.toLowerCase().split(' ').join('-') + '-card'
+    });
+    this.addComponent('action', {
+      icon: icon,
+      text: text
+    });
+    this.callback = callback;
+  };
+  ActionCard.prototype = Object.create(Card.prototype);
+  ActionCard.prototype.constructor = ActionCard;
+
+  AddClientActionCard = function (callback) {
+    ActionCard.call(this, 'add', 'New Client', callback);
+  };
+  AddClientActionCard.prototype = Object.create(ActionCard.prototype);
+  AddClientActionCard.prototype.constructor = AddClientActionCard;
+
+  AddUserActionCard = function (callback) {
+    ActionCard.call(this, 'add', 'Add User', callback);
+  };
+  AddUserActionCard.prototype = Object.create(ActionCard.prototype);
+  AddUserActionCard.prototype.constructor = AddUserActionCard;
+
+  InsertCard = function (icon, text, level, callback) {
+    Card.call(this);
+
+    this.addComponent('card', {
+      class: [
+        'card-container',
+        'flex-container',
+        'flex-row-no-wrap',
+        'items-align-center',
+        'insert-card',
+        'card-' + (100 - (10 * level))
+      ].join(' ')
+    });
+    this.addComponent('insert', {
+      icon: icon,
+      text: text
+    });
+    this.callback = callback;
+  };
+  InsertCard.prototype = Object.create(Card.prototype);
+  InsertCard.prototype.constructor = InsertCard;
+
+  AddChildInsertCard = function (level, callback) {
+    InsertCard.call(this, 'expand-card', 'New Sub-Client', level, callback);
+  };
+  AddChildInsertCard.prototype = Object.create(InsertCard.prototype);
+  AddChildInsertCard.prototype.constructor = AddChildInsertCard;
+
+
+  ClientCard = function (
+    client, userCount, reportCount, level,
+    callback, deleteCallback, editCallback, newChildCallback
+  ) {
+    Card.call(this);
+
+    this.addComponent('card', { class: 'card-' + (100 - (10 * level)) });
+    this.addComponent('primaryText', { text: client.Name });
+    this.addComponent('secondaryText', { text: client.ClientCode });
+    this.addComponent('statistic', {
+      icon: 'users',
+      value: userCount,
+      tooltip: 'Assigned users'
+    });
+    this.addComponent('statistic', {
+      icon: 'reports',
+      value: reportCount,
+      tooltip: 'Reports'
+    });
+    this.addComponent('button', {
+      icon: 'delete',
+      color: 'red',
+      tooltip: 'Delete client',
+      callback: deleteCallback
+    });
+    this.addComponent('button', {
+      icon: 'edit',
+      color: 'blue',
+      tooltip: 'Edit client',
+      callback: editCallback
+    });
+    this.addComponent('button', {
+      icon: 'add',
+      color: 'green',
+      tooltip: 'Add sub-client',
+      callback: newChildCallback
+    });
+    this.data = {
+      'filter-string': [client.Name, client.ClientCode].join('|').toUpperCase(),
+      'client-id': client.Id
     };
+    this.callback = callback;
   };
+  ClientCard.prototype = Object.create(Card.prototype);
+  ClientCard.prototype.constructor = ClientCard;
+
+  RootContentItemCard = function (
+    rootContentItem, groupCount, userCount,
+    callback
+  ) {
+    Card.call(this);
+
+    this.addComponent('primaryText', { text: rootContentItem.ContentName });
+    this.addComponent('secondaryText', { text: rootContentItem.ContentType.Name });
+    this.addComponent('statistic', {
+      icon: 'users',
+      value: groupCount,
+      tooltip: 'Selection groups'
+    });
+    this.addComponent('statistic', {
+      icon: 'user',
+      value: userCount,
+      tooltip: 'Eligible users'
+    });
+    this.data = {
+      'filter-string': [
+        rootContentItem.ContentName,
+        rootContentItem.ContentType.Name
+      ].join('|').toUpperCase(),
+      'root-content-item-id': rootContentItem.Id
+    };
+
+    this.callback = callback;
+  };
+  RootContentItemCard.prototype = Object.create(Card.prototype);
+  RootContentItemCard.prototype.constructor = RootContentItemCard;
+
+  SelectionGroupCard = function (
+    selectionGroup, members,
+    callback, deleteCallback, userCallback
+  ) {
+    var memberInfo;
+    Card.call(this);
+
+    memberInfo = $.map(members, function toString(member) {
+      return [member.FirstName + ' ' + member.LastName, member.Email, member.UserName];
+    }).reduce(function concat(acc, cur) {
+      return acc.concat(cur);
+    }, []);
+
+    this.addComponent('primaryText', { text: selectionGroup.GroupName });
+    this.addComponent('statistic', {
+      icon: 'users',
+      value: members.length,
+      tooltip: 'Members'
+    });
+    this.addComponent('button', {
+      icon: 'delete',
+      color: 'red',
+      tooltip: 'Delete selection group',
+      callback: deleteCallback
+    });
+    this.addComponent('button', {
+      icon: 'edit',
+      color: 'blue',
+      tooltip: 'Add/remove users',
+      callback: userCallback
+    });
+    if (members.length) {
+      this.addComponent('detailText', { text: 'Members' });
+    }
+    members.forEach(function (member) {
+      this.addComponent('detailItem', { text: member.Email });
+    }, this);
+
+    this.data = {
+      'filter-string': memberInfo.concat([selectionGroup.GroupName]).join('|').toUpperCase(),
+      'selection-group-id': selectionGroup.Id
+    };
+
+    this.callback = callback;
+  };
+  SelectionGroupCard.prototype = Object.create(Card.prototype);
+  SelectionGroupCard.prototype.constructor = SelectionGroupCard;
+
+  UserCard = function (
+    user, client,
+    roleCallback, removeCallback
+  ) {
+    var names = [];
+
+    Card.call(this);
+
+    if (user.FirstName && user.LastName) {
+      names.push([user.FirstName, user.LastName].join(' '));
+    }
+    if (user.UserName !== user.Email) {
+      names.push(user.UserName);
+    }
+    names.push(user.Email);
+
+    this.addComponent('icon', { icon: 'user', class: 'card-user-icon' });
+    this.addComponent('icon', { icon: 'add', class: 'card-user-role-indicator' });
+    this.addComponent('primaryText', { text: names[0] });
+    names.slice(1).forEach(function (name) {
+      this.addComponent('secondaryText', { text: name });
+    }, this);
+    this.addComponent('button', {
+      icon: 'remove',
+      color: 'red',
+      tooltip: 'Remove user',
+      callback: removeCallback
+    });
+    this.addComponent('detailText', { text: 'User roles' });
+    user.UserRoles.forEach(function (role) {
+      this.addComponent('toggle', {
+        text: role.RoleDisplayValue,
+        id: 'user-role-' + user.Id + '-' + role.RoleEnum,
+        data: {
+          'role-enum': role.RoleEnum
+        },
+        checked: role.IsAssigned,
+        callback: roleCallback
+      });
+    }, this);
+    this.data = {
+      'filter-string': names.join('|').toUpperCase(),
+      'user-id': user.Id,
+      'client-id': client.Id
+    };
+    this.callback = shared.toggleExpanded.listener;
+  };
+  UserCard.prototype = Object.create(Card.prototype);
+  UserCard.prototype.constructor = UserCard;
+
+  // Add cards to global card object
+  card.Card = Card;
+  card.ActionCard = ActionCard;
+  card.AddClientActionCard = AddClientActionCard;
+  card.AddUserActionCard = AddUserActionCard;
+  card.InsertCard = InsertCard;
+  card.AddChildInsertCard = AddChildInsertCard;
+  card.ClientCard = ClientCard;
+  card.RootContentItemCard = RootContentItemCard;
+  card.SelectionGroupCard = SelectionGroupCard;
+  card.UserCard = UserCard;
 }());

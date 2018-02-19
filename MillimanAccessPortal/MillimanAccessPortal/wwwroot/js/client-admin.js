@@ -1,120 +1,86 @@
-/* global domainValRegex, emailValRegex, Card */
+/* global shared, dialog, card */
 
-var ajaxStatus = {
-  getClientDetail: -1
-};
-var nodeTemplate = $('script[data-template="node"]').html();
-var smallSpinner = '<div class="spinner-small""></div>';
+var ajaxStatus = {};
+var smallSpinner = '<div class="spinner-small"></div>';
 var eligibleUsers;
 var SHOW_DURATION = 50;
 
-/**
- * Remove all client insert elements.
- * While this function removes all client inserts, there should never be more
- * than one client insert present at a time.
- * @return {undefined}
- */
+// TODO: move to shared
 function removeClientInserts() {
-  $('#client-tree li.client-insert').remove();
+  $('#client-tree .insert-card').remove();
 }
 
-/**
- * Clear 'selected' and 'editing' status from all card containers.
- * @return {undefined}
- */
+// TODO: move to shared
 function clearClientSelection() {
   $('.card-container').removeAttr('editing selected');
 }
 
-/**
- * Hide the client info and client users panes
- * @return {undefined}
- */
+// TODO: move to shared
 function hideClientDetails() {
   $('#client-info').hide(SHOW_DURATION);
   $('#client-users').hide(SHOW_DURATION);
 }
 
-/**
- * Hide the client users pane
- * @return {undefined}
- */
+// TODO: move to shared
 function hideClientUsers() {
   $('#client-users').hide(SHOW_DURATION);
 }
 
-/**
- * Show client detail components and focus the first form element.
- * @return {undefined}
- */
+// TODO: move to shared
 function showClientDetails() {
   var $clientPanes = $('#client-info');
   if ($('#client-tree [selected]').attr('data-client-id')) {
     $clientPanes = $clientPanes.add($('#client-users'));
   }
   $clientPanes.show(SHOW_DURATION, function onShown() {
-    $('#client-form #Name').focus();
+    $('#client-info form.admin-panel-content #Name').focus();
   });
 }
 
-/**
- * Set the client form as read only
- * @return {undefined}
- */
+// TODO: move to shared
 function setClientFormReadOnly() {
-  var $clientForm = $('#client-form');
-  $('#edit-client-icon').show();
-  $('#cancel-edit-client-icon').hide();
+  var $clientForm = $('#client-info form.admin-panel-content');
+  $('#client-info .action-icon-edit').show();
+  $('#client-info .action-icon-cancel').hide();
   $clientForm.find(':input').attr('readonly', '');
   $clientForm.find(':input,select').attr('disabled', '');
-  $clientForm.find('#form-buttons-new').hide();
-  $clientForm.find('#form-buttons-edit').hide();
+  $clientForm.find('.form-button-container').add('button').hide();
   $clientForm.find('.selectized').each(function disable() {
     this.selectize.disable();
   });
 }
 
-/**
- * Set the client form as writeable
- * @return {undefined}
- */
+// TODO: move to shared
 function setClientFormWriteable() {
-  var $clientForm = $('#client-form');
-  $('#edit-client-icon').hide();
-  $('#cancel-edit-client-icon').show();
+  var $clientForm = $('#client-info form.admin-panel-content');
+  $('#client-info .action-icon-edit').hide();
+  $('#client-info .action-icon-cancel').show();
   $clientForm.find(':input').removeAttr('readonly');
   $clientForm.find(':input,select').removeAttr('disabled');
-  if ($('#client-tree [selected]').attr('data-client-id')) {
-    $('#form-buttons-new').hide();
-    $('#form-buttons-edit').show();
-    $('#save-changes-button,#undo-changes-button').hide();
-  } else {
-    $('#form-buttons-new').show();
-    $('#form-buttons-edit').hide();
-  }
+  $clientForm.find('.form-button-container').add('button').hide();
+  $clientForm.find('.edit-form-button-container').show();
   $clientForm.find('.selectized').each(function enable() {
     this.selectize.enable();
   });
   $clientForm.find('#Name').focus();
 }
 
+// TODO: move to shared
 function setButtonSubmitting($button, text) {
   $button.attr('data-original-text', $button.html());
   $button.html(text || 'Submitting');
   $button.append(smallSpinner);
 }
 
+// TODO: move to shared
 function unsetButtonSubmitting($button) {
   $button.html($button.attr('data-original-text'));
 }
 
-/**
- * Populate client form
- * @param  {Object} clientEntity The client to be used to populate the client form
- * @return {undefined}
- */
-function populateClientForm(clientEntity) {
-  var $clientForm = $('#client-form');
+
+function populateClientForm(response) {
+  var clientEntity = response.ClientEntity;
+  var $clientForm = $('#client-info form.admin-panel-content');
   $clientForm.find(':input,select').removeAttr('data-original-value');
   $clientForm.find('#ProfitCenterId option[temporary-profitcenter]').remove();
   $.each(clientEntity, function populate(key, value) {
@@ -139,12 +105,6 @@ function populateClientForm(clientEntity) {
     field.attr('data-original-value', value);
   });
 }
-
-/**
- * Populate the Profit Center input
- * @param {Array.<{Id: Number, Name: String, Code: String}>} profitCenterList
- * @return {undefined}
- */
 function populateProfitCenterDropDown(profitCenterList) {
   $('#ProfitCenterId option:not(option[value = ""])').remove();
   $.each(profitCenterList, function appendProfitCenter() {
@@ -152,231 +112,7 @@ function populateProfitCenterDropDown(profitCenterList) {
   });
 }
 
-/**
- * Show or hide collapse/expand icons based on how many user cards are maximized
- * @return {undefined}
- */
-function showRelevantActionIcons(panel) {
-  $('#collapse-' + panel + '-icon').hide().filter(function anyMaximized() {
-    return $('div.card-expansion-container[maximized]').length;
-  }).show();
-  $('#expand-' + panel + '-icon').hide().filter(function anyMinimized() {
-    return $('div.card-expansion-container:not([maximized])').length;
-  }).show();
-}
 
-/**
- * Expand all user cards and adjust user action icons accordingly
- * @return {undefined}
- */
-function expandAllUsers() {
-  $('#client-user-list').find('div.card-expansion-container').attr('maximized', '');
-  showRelevantActionIcons('user');
-}
-
-/**
- * Collapse all user cards and adjust user action icons accordingly
- * @return {undefined}
- */
-function collapseAllUsers() {
-  $('#client-user-list').find('div.card-expansion-container[maximized]').removeAttr('maximized');
-  showRelevantActionIcons('user');
-}
-
-/**
- * Reset client form validation and remove validation messages
- * @return {undefined}
- */
-function resetValidation() {
-  $('#client-form').validate().resetForm();
-  $('.field-validation-error > span').remove();
-}
-
-/**
- * Find the set of client form input elements whose values have been modified
- * If an input element did not have an original value, then it is considered
- * to be modified only if the current value is not blank.
- * @return {jQuery} modifiedInputs
- */
-function findModifiedInputs() {
-  return $('#client-form')
-    .find('input[name!="__RequestVerificationToken"][type!="hidden"],select')
-    .not('div.selectize-input input')
-    .map(function compareValue() {
-      return ($(this).val() === ($(this).attr('data-original-value') || '') ? null : this);
-    });
-}
-
-/**
- * Clear all client form input elements, resulting in a blank form
- * @return {undefined}
- */
-function clearFormData() {
-  var $clientForm = $('#client-form');
-  $clientForm.find('.selectized').each(function clear() {
-    this.selectize.clear();
-    this.selectize.clearOptions();
-  });
-  $clientForm.find('input[name!="__RequestVerificationToken"],select')
-    .not('div.selectize-input input')
-    .attr('data-original-value', '').val('');
-  resetValidation();
-}
-
-/**
- * Clear all user cards from the client user list
- * @return {undefined}
- */
-function clearUserList() {
-  $('#client-user-list > li').remove();
-  $('#expand-user-icon,#collapse-user-icon,#add-user-icon').hide();
-}
-
-/**
- * Reset all client form input elements to their pre-modified values
- * @return {undefined}
- */
-function resetFormData() {
-  var $modifiedInputs = findModifiedInputs();
-  $modifiedInputs.each(function resetValue() {
-    if ($(this).is('.selectized')) {
-      this.selectize.setValue($(this).attr('data-original-value').split(','));
-    } else {
-      $(this).val($(this).attr('data-original-value'));
-    }
-  });
-  resetValidation();
-  $('#save-changes-button,#undo-changes-button').hide();
-}
-
-/**
- * Open a vex dialog with the specified attributes
- * @param  {Object} options Dialog attributes
- * @param  {String} options.title Dialog title
- * @param  {String} options.message Dialog message
- * @param  {Array.<{type: function, text: String}>} options.buttons Dialog buttons
- * @param  {String} options.color Dialog color
- * @param  {String} [options.input] Input element
- * @param  {function} options.callback Called when the dialog closes
- * @param  {function} options.submitHandler Called within onSubmit instead of vex.close()
- * @return {undefined}
- */
-function buildVexDialog(opts) {
-  var $dialog;
-  var options = {
-    unsafeMessage: '<span class="vex-custom-message">' + opts.message + '</span>',
-    buttons: $.map(opts.buttons, function buildButton(element) {
-      return element.type(element.text, opts.color);
-    }),
-    input: opts.input || '',
-    callback: opts.callback ? opts.callback : $.noop
-  };
-  if (opts.submitHandler) {
-    options = $.extend(options, {
-      onSubmit: function onDialogSubmit(event) {
-        event.preventDefault();
-        if ($dialog.options.input) {
-          $dialog.value = $('.vex-dialog-input input').last().val();
-        }
-        return opts.submitHandler($dialog.value, function close() {
-          $dialog.close();
-        });
-      }
-    });
-  }
-  $dialog = vex.dialog.open(options);
-  $('.vex-content')
-    .prepend('<div class="vex-title-wrapper"><h3 class="vex-custom-title ' + opts.color + '">' + opts.title + '</h3></div>');
-}
-
-/**
- * Create a dialog box to confirm a discard action
- * @param {function} callback Executed if the user selects YES
- * @return {undefined}
- */
-function confirmDiscardDialog(callback) {
-  buildVexDialog({
-    title: 'Discard Changes',
-    message: 'Would you like to discard unsaved changes?',
-    buttons: [
-      { type: vex.dialog.buttons.yes, text: 'Discard' },
-      { type: vex.dialog.buttons.no, text: 'Continue Editing' }
-    ],
-    color: 'blue',
-    callback: function onSelect(result) {
-      if (result) {
-        callback();
-      }
-    }
-  });
-}
-
-/**
- * Create a dialog box to confirm a reset action
- * @param {function} callback Executed if the user selects YES
- * @return {undefined}
- */
-function confirmResetDialog(callback) {
-  buildVexDialog({
-    title: 'Reset Form',
-    message: 'Would you like to discard unsaved changes?',
-    buttons: [
-      { type: vex.dialog.buttons.yes, text: 'Discard' },
-      { type: vex.dialog.buttons.no, text: 'Continue Editing' }
-    ],
-    color: 'blue',
-    callback: function onSelect(result) {
-      if (result) {
-        callback();
-      }
-    }
-  });
-}
-
-/**
- * Create a dialog box to confirm user removal
- * @param {function} callback Executed if the user selects YES
- * @return {undefined}
- */
-function confirmRemoveDialog(name, submitHandler) {
-  buildVexDialog({
-    title: 'Remove User',
-    message: 'Remove <strong>' + name + '</strong> from the selected client?',
-    buttons: [
-      { type: vex.dialog.buttons.yes, text: 'Remove' },
-      { type: vex.dialog.buttons.no, text: 'Cancel' }
-    ],
-    color: 'red',
-    submitHandler: submitHandler
-  });
-}
-
-/**
- * Create a dialog box if there are modified inputs
- * If there are modified inputs and the user selects YES, or if there are no
- * modified inputs, then the form is reset and onContinue is executed.
- * Otherwise, nothing happens.
- * @param {function} confirmDialog Confirmation dialog function
- * @param {function} onContinue Executed if no inputs are modified or the user selects YES
- * @return {undefined}
- */
-function confirmAndReset(confirmDialog, onContinue) {
-  if (findModifiedInputs().length) {
-    confirmDialog(function onConfirm() {
-      resetFormData();
-      if (typeof onContinue === 'function') onContinue();
-    });
-  } else {
-    resetFormData();
-    if (typeof onContinue === 'function') onContinue();
-  }
-}
-
-/**
- * Determine whether the specified user role assignments are considered elevated
- * @param  {Object} userRoles The user roles to check, taken from AJAX response object
- * @return {Boolean}          Whether the user role assignments are elevated
- */
 function elevatedRoles(userRoles) {
   return !!$.grep(userRoles, function isElevatedRole(role) {
     // FIXME: Definition of 'elevated role' should not live here
@@ -387,16 +123,8 @@ function elevatedRoles(userRoles) {
     return role.IsAssigned;
   }).length;
 }
-
-/**
- * Show the role indicator if the specified user role assignments are considered elevated
- * Otherwise, hide the role indicator.
- * @param  {Number} userId    Associated user ID of the role indicator to update.
- * @param  {Array} userRoles  Array of user roles to check against
- * @return {undefined}
- */
 function updateUserRoleIndicator(userId, userRoles) {
-  $('#user-list')
+  $('#client-users ul.admin-panel-content')
     .find('.card-container[data-user-id="' + userId + '"]')
     .find('.card-user-role-indicator')
     .hide()
@@ -404,15 +132,9 @@ function updateUserRoleIndicator(userId, userRoles) {
     .show();
 }
 
-/**
- * Send an AJAX request to set a user role
- * @param {Number}  userId     UserID of the user whose roll is to be updated
- * @param {Number}  roleEnum   The role to be updated
- * @param {Boolean} isAssigned The value to be assigned to the specified role
- * @return {undefined}
- */
+// TODO: move to shared
 function setUserRole(userId, roleEnum, isAssigned, onResponse) {
-  var $cardContainer = $('#user-list .card-container[data-user-id="' + userId + '"]');
+  var $cardContainer = $('#client-users ul.admin-panel-content .card-container[data-user-id="' + userId + '"]');
   var postData = {
     ClientId: $('#client-tree [selected]').attr('data-client-id'),
     UserId: userId,
@@ -447,11 +169,7 @@ function setUserRole(userId, roleEnum, isAssigned, onResponse) {
   });
 }
 
-/**
- * Handle click events for user role toggles
- * @param  {Event} event The event to handle
- * @return {undefined}
- */
+// TODO: move to shared
 function userCardRoleToggleClickHandler(event) {
   var $clickedInput = $(event.target);
   event.preventDefault();
@@ -461,134 +179,82 @@ function userCardRoleToggleClickHandler(event) {
     $clickedInput.attr('data-role-enum'),
     $clickedInput.prop('checked'),
     function onDone() {
-      $('#user-list .toggle-switch-checkbox').removeAttr('disabled');
+      $('#client-users ul.admin-panel-content .toggle-switch-checkbox').removeAttr('disabled');
     }
   );
-  $('#user-list .toggle-switch-checkbox').attr('disabled', '');
+  $('#client-users ul.admin-panel-content .toggle-switch-checkbox').attr('disabled', '');
 }
 
-/**
- * Render user node by using string substitution on a userNodeTemplate
- * @param  {Number} client Client to which the user belongs
- * @param  {Object} user   User object to render
- * @return {undefined}
- */
-function renderUserNode(client, user) {
-  /* eslint-disable indent */
-  var $template = Card
-    .newCard()
-    .container(client.CanManage)
-      .searchString([
-        user.FirstName + ' ' + user.LastName,
-        user.UserName,
-        user.Email
-      ])
-      .attr({ 'data-client-id': client.ClientEntity.Id })
-      .attr({ 'data-user-id': user.Id })
-    .icon('#action-icon-user')
-      .class('card-user-icon')
-    .icon('#action-icon-add')
-      .class('card-user-role-indicator')
-    .info($.map([
-      (user.FirstName || '') + ' ' + (user.LastName || ''),
-      user.UserName,
-      user.Email === user.UserName ? '' : user.Email
-    ], function removeBlanks(item) {
-      return item.trim() || null;
-    }))
-    .sideButton('#action-icon-remove')
-      .class('card-button-remove-user')
-      .click(function onClick(event) {
-        event.stopPropagation();
-        userCardRemoveClickHandler($(this).closest('.card-container'));
-      })
-      .tooltip('Remove user')
-    .expansion('user')
-    .expansionLabel('User roles')
-    .roleToggles(user.UserRoles)
-    .build();
-  /* eslint-enable indent */
 
-  $('#client-user-list').append($template);
+function renderUserNode(client, user) {
+  var $card = new card.UserCard(
+    user,
+    client.ClientEntity,
+    userCardRoleToggleClickHandler,
+    userCardRemoveClickHandler
+  );
+  $card.readonly = !client.CanManage;
+  $('#client-users ul.admin-panel-content').append($card.build());
   updateUserRoleIndicator(user.Id, user.UserRoles);
 }
 
-/**
- * Render user list for a client
- * @param  {object} client Client whose user list is to be rendered
- * @param  {Number} userId ID of a user to be expanded
- * @return {undefined}
- */
-function renderUserList(client, userId) {
-  var $clientUserList = $('#client-user-list');
+
+function renderUserList(response) {
+  var client = response;
+  var $clientUserList = $('#client-users ul.admin-panel-content');
   $clientUserList.empty();
   client.AssignedUsers.forEach(function render(user) {
     renderUserNode(client, user);
   });
   $clientUserList.find('.tooltip').tooltipster();
   eligibleUsers = client.EligibleUsers;
-  showRelevantActionIcons('user');
-
-  if (userId) {
-    $('[data-user-id="' + userId + '"]').click();
-  }
 
   if (client.CanManage) {
     $('#add-user-icon').show();
-    $('#client-user-list').append(Card.buildAddUser());
-    $('#add-user-card')
-      .click(function onClick() {
-        addUserClickHandler();
-      });
+    $('#client-users ul.admin-panel-content').append(new card.AddUserActionCard(addUserClickHandler).build());
   }
 }
 
-/**
- * Perform necessary steps for configuring the new child client form
- * @param {Object} parentClientDiv the div of the parent client
- * @return {undefined}
- */
+
 function setupChildClientForm(parentClientDiv) {
   var parentClientId = parentClientDiv.attr('data-client-id').valueOf();
-  var $template = Card.buildNewChildClient(parentClientDiv.hasClass('card-100') ? 1 : 2);
+  var $template = new card.AddChildInsertCard(parentClientDiv.hasClass('card-100') ? 1 : 2).build();
 
-  clearFormData();
-  $('#client-form #ParentClientId').val(parentClientId);
+  shared.clearForm($('#client-info'));
+  $('#client-info form.admin-panel-content #ParentClientId').val(parentClientId);
   parentClientDiv.parent().after($template);
   parentClientDiv.parent().next().find('div.card-container')
     .click(function onClick() {
       // TODO: move this to a function
-      confirmAndReset(confirmDiscardDialog, function onContinue() {
+      shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
         clearClientSelection();
         removeClientInserts();
         hideClientDetails();
       });
     });
 
-  $('#client-form #form-buttons-edit').hide();
-  $('#client-form #form-buttons-new').show();
+  $('#client-info .form-button-container').add('button').hide();
+  $('#client-info .new-form-button-container').show();
 }
 
-/**
- * Perform necessary steps for configuring the new client form
- * @return {undefined}
- */
+
 function setupClientForm() {
-  var $clientForm = $('#client-form');
-  clearFormData();
-  $clientForm.find('#form-buttons-edit').hide();
-  $clientForm.find('#form-buttons-new').show();
+  var $clientForm = $('#client-info form.admin-panel-content');
+  shared.clearForm($('#client-info'));
+  $clientForm.find('.form-button-container').add('button').hide();
+  $clientForm.find('.new-form-button-container').show();
 }
 
-/**
- * Repopulate client form with details for the provided client
- * @param {Object} clientDiv the div for whom data will be retrieved
- * @return {undefined}
- */
+// TODO: move to shared
+function clearUserList() {
+  $('#client-users ul.admin-panel-content > li').remove();
+  $('#client-users .action-icon').hide();
+}
+// TODO: move to shared
 function getClientDetail(clientDiv) {
-  var clientId = clientDiv.attr('data-client-id').valueOf();
+  var clientId = clientDiv.data('client-id');
 
-  clearFormData();
+  shared.clearForm($('#client-info'));
   $('#client-info .loading-wrapper').show();
 
   clearUserList();
@@ -597,13 +263,14 @@ function getClientDetail(clientDiv) {
   ajaxStatus.getClientDetail = clientId;
   $.ajax({
     type: 'GET',
-    url: 'ClientAdmin/ClientDetail/' + clientId,
+    url: 'ClientAdmin/ClientDetail',
+    data: clientDiv.data(),
     headers: {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
   }).done(function onDone(response) {
     if (ajaxStatus.getClientDetail !== clientId) return;
-    populateClientForm(response.ClientEntity);
+    populateClientForm(response);
     $('#client-info .loading-wrapper').hide();
     renderUserList(response);
     $('#client-users .loading-wrapper').hide();
@@ -615,11 +282,7 @@ function getClientDetail(clientDiv) {
   });
 }
 
-/**
- * Display client card details
- * @param  {jQuery} $clientCard The .card-container element to open
- * @return {undefined}
- */
+// TODO: move to shared
 function openClientCardReadOnly($clientCard) {
   removeClientInserts();
   clearClientSelection();
@@ -629,11 +292,7 @@ function openClientCardReadOnly($clientCard) {
   showClientDetails();
 }
 
-/**
- * Allow editing of client card details
- * @param  {jQuery} $clientCard The .card-container element to editing
- * @return {undefined}
- */
+// TODO: move to shared
 function openClientCardWriteable($clientCard) {
   removeClientInserts();
   clearClientSelection();
@@ -643,119 +302,62 @@ function openClientCardWriteable($clientCard) {
   showClientDetails();
 }
 
-/**
- * Display the new child client form
- * @param  {jQuery} $parentCard The .card-container element that corresponds to the parent client
- *                              of the new child client
- * @return {undefined}
- */
+// TODO: move to shared
 function openNewChildClientForm($parentCard) {
   removeClientInserts();
   clearClientSelection();
+  setClientFormWriteable();
   setupChildClientForm($parentCard);
   $parentCard.parent().next('li').find('div.card-container')
     .attr({ selected: '', editing: '' });
-  setClientFormWriteable();
   hideClientUsers();
   showClientDetails();
 }
 
-/**
- * Display the new client form
- * @return {undefined}
- */
+// TODO: move to shared
 function openNewClientForm() {
   clearClientSelection();
-  setupClientForm();
-  $('#create-new-client-card').attr('selected', '');
   setClientFormWriteable();
+  setupClientForm();
+  $('#new-client-card').attr('selected', '');
   hideClientUsers();
   showClientDetails();
 }
 
-/**
- * Handle click events for all client cards and client inserts
- * @param {jQuery} $clickedCard the card that was clicked
- * @return {undefined}
- */
-function clientCardClickHandler($clickedCard) {
-  var $clientTree = $('#client-tree');
-  var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
-  if ($clientTree.has('[selected]').length) {
-    confirmAndReset(confirmDiscardDialog, function onContinue() {
-      if (sameCard) {
-        clearClientSelection();
-        hideClientDetails();
-      } else {
-        openClientCardReadOnly($clickedCard);
-      }
-    });
-  } else {
-    openClientCardReadOnly($clickedCard);
-  }
-}
-
-/**
- * Handle click events for all client card delete buttons
- * @param  {jQuery} $clickedCard the card that was clickedCard
- * @return {undefined}
- */
-function clientCardDeleteClickHandler($clickedCard) {
-  var clientId = $clickedCard.attr('data-client-id').valueOf();
+// TODO: move to shared
+function clientCardDeleteClickHandler(event) {
+  var $clickedCard = $(this).closest('.card-container');
+  var clientId = $clickedCard.attr('data-client-id');
   var clientName = $clickedCard.find('.card-body-primary-text').first().text();
-  buildVexDialog({
-    title: 'Delete Client',
-    message: 'Delete <strong>' + clientName + '</strong>?<br /><br /> This action <strong><u>cannot</u></strong> be undone.',
-    buttons: [
-      { type: vex.dialog.buttons.yes, text: 'Delete' },
-      { type: vex.dialog.buttons.no, text: 'Cancel' }
-    ],
-    color: 'red',
-    callback: function onSelect(confirm) {
-      if (confirm) {
-        buildVexDialog({
-          title: 'Delete Client',
-          message: 'Please provide your password to delete <strong>' + clientName + '</strong>.',
-          buttons: [
-            { type: vex.dialog.buttons.yes, text: 'Delete' },
-            { type: vex.dialog.buttons.no, text: 'Cancel' }
-          ],
-          color: 'red',
-          input: [
-            '<input name="password" type="password" placeholder="Password" required />'
-          ].join(''),
-          submitHandler: function onSelectWithPassword(password, callback) {
-            if (password) {
-              setButtonSubmitting($('.vex-first'), 'Deleting');
-              $('.vex-dialog-button').attr('disabled', '');
-              deleteClient(clientId, clientName, password, callback);
-            } else if (password === '') {
-              toastr.warning('Please enter your password to proceed');
-              return false;
-            } else {
-              toastr.info('Deletion was canceled');
-            }
-            return true;
-          }
-        });
+  event.stopPropagation();
+  new dialog.DeleteClientDialog(
+    clientName,
+    clientId,
+    function (password, callback) {
+      if (password) {
+        setButtonSubmitting($('.vex-first'), 'Deleting');
+        $('.vex-dialog-button').attr('disabled', '');
+        deleteClient(clientId, clientName, password, callback);
+      } else if (password === '') {
+        toastr.warning('Please enter your password to proceed');
+        return false;
       } else {
         toastr.info('Deletion was canceled');
       }
+      return true;
     }
-  });
+  ).open();
 }
 
-/**
- * Handle click events for all client card edit buttons
- * @param {jQuery} $clickedCard the card that was clicked
- * @return {undefined}
- */
-function clientCardEditClickHandler($clickedCard) {
+// TODO: move to shared
+function clientCardEditClickHandler(event) {
+  var $clickedCard = $(this).closest('.card-container');
   var $clientTree = $('#client-tree');
   var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
+  event.stopPropagation();
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
-      confirmAndReset(confirmDiscardDialog, function onContinue() {
+      shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
         openClientCardWriteable($clickedCard);
       });
     }
@@ -764,23 +366,17 @@ function clientCardEditClickHandler($clickedCard) {
   }
 }
 
-/**
- * Handle click events for all client card new child buttons
- * @param {jQuery} $clickedCard the card that was clicked
- * @return {undefined}
- */
-function clientCardCreateNewChildClickHandler($clickedCard) {
+// TODO: move to shared
+function clientCardCreateNewChildClickHandler(event) {
+  var $clickedCard = $(this).closest('.card-container');
   var $clientTree = $('#client-tree');
-  /**
-   * The clicked card is the same as the selected card if and only if the currently selected card
-   * is a client insert ("New Child Client" card) AND the currently selected card is immediately
-   * preceded by the clicked card in the client list.
-   */
-  var sameCard = ($clientTree.find('[selected]').closest('.client-insert').length &&
+
+  var sameCard = ($clientTree.find('[selected]').is('.insert-card') &&
     $clickedCard[0] === $clientTree.find('[selected]').parent().prev().find('.card-container')[0]);
+  event.stopPropagation();
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
-      confirmAndReset(confirmDiscardDialog, function onContinue() {
+      shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
         openNewChildClientForm($clickedCard);
       });
     }
@@ -789,20 +385,29 @@ function clientCardCreateNewChildClickHandler($clickedCard) {
   }
 }
 
-/**
- * Handle click events for the create new client card
- * @return {undefined}
- */
-function createNewClientClickHandler() {
+// TODO: move to shared
+function userCardRemoveClickHandler(event) {
+  var $clickedCard = $(this).closest('.card-container');
+  var userName = $clickedCard.find('.card-body-primary-text').html();
+  event.stopPropagation();
+  new dialog.RemoveUserDialog(userName, function removeUser(value, callback) {
+    var clientId = $('#client-tree [selected]').attr('data-client-id');
+    var userId = $clickedCard.attr('data-user-id');
+    removeUserFromClient(clientId, userId, callback);
+  }).open();
+}
+
+// TODO: move to shared
+function newClientClickHandler() {
   var $clientTree = $('#client-tree');
-  var sameCard = ($('#create-new-client-card')[0] === $clientTree.find('[selected]')[0]);
+  var sameCard = ($('#new-client-card')[0] === $clientTree.find('[selected]')[0]);
   if ($clientTree.has('[selected]').length) {
-    confirmAndReset(confirmDiscardDialog, function onContinue() {
+    shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
       if (sameCard) {
         clearClientSelection();
         hideClientDetails();
       } else {
-        if ($('.client-insert').length) {
+        if ($('.insert-card').length) {
           removeClientInserts();
         }
         openNewClientForm();
@@ -813,11 +418,7 @@ function createNewClientClickHandler() {
   }
 }
 
-/**
- * Send an AJAX request to save a new user
- * @param  {String} email Email address of the user
- * @return {undefined}
- */
+// TODO: move to shared
 function saveNewUser(username, email, callback) {
   var clientId = $('#client-tree [selected]').attr('data-client-id');
   $.ajax({
@@ -841,49 +442,13 @@ function saveNewUser(username, email, callback) {
   });
 }
 
-/**
- * Match query to a user object.
- * Used with typeahead inputs.
- * @param  {Object} users User object returned from an AJAX request
- * @return {undefined}
- */
-function substringMatcher(users) {
-  return function findMatches(query, callback) {
-    var matches = [];
-    var regex = new RegExp(query, 'i');
-
-    $.each(users, function check(i, user) {
-      if (regex.test(user.Email) ||
-          regex.test(user.UserName) ||
-          regex.test(user.FirstName + ' ' + user.LastName)) {
-        matches.push(user);
-      }
-    });
-
-    callback(matches);
-  };
-}
-
-/**
- * Create vex dialog for add user
- * @return {undefined}
- */
-function initializeAddUserForm() {
-  buildVexDialog({
-    title: 'Add User',
-    message: 'Please provide a valid email address',
-    buttons: [
-      { type: vex.dialog.buttons.yes, text: 'Add User' },
-      { type: vex.dialog.buttons.no, text: 'Cancel' }
-    ],
-    color: 'blue',
-    input: [
-      '<input class="typeahead" name="username" placeholder="Email" required />'
-    ].join(''),
-    submitHandler: function onSubmit(user, callback) {
-      // var email = typeof user === 'object' ? user.email : user;
+// TODO: move to shared
+function addUserClickHandler() {
+  new dialog.AddUserDialog(
+    eligibleUsers,
+    function (user, callback) {
       var singleMatch = 0;
-      substringMatcher(eligibleUsers)(user, function setMatches(matches) {
+      shared.userSubstringMatcher(eligibleUsers)(user, function (matches) {
         singleMatch = matches.length;
       });
       if (singleMatch) {
@@ -900,54 +465,12 @@ function initializeAddUserForm() {
       }
       return true;
     }
-  });
-  $('.vex-dialog-input .typeahead').typeahead(
-    {
-      hint: true,
-      highlight: true,
-      minLength: 1
-    },
-    {
-      name: 'eligibleUsers',
-      source: substringMatcher(eligibleUsers),
-      display: function display(data) {
-        return data.UserName;
-      },
-      templates: {
-        suggestion: function suggestion(data) {
-          return [
-            '<div>',
-            data.UserName + '',
-            (data.UserName !== data.Email) ?
-              '<br /> ' + data.Email :
-              '',
-            (data.FirstName && data.LastName) ?
-              '<br /><span class="secondary-text">' + data.FirstName + ' ' + data.LastName + '</span>' :
-              '',
-            '</div>'
-          ].join('');
-        }
-      }
-    }
-  ).focus();
+  ).open();
 }
 
-/**
- * Handle click events for add new user inputs
- * @return {undefined}
- */
-function addUserClickHandler() {
-  initializeAddUserForm();
-}
-
-/**
- * Remove the specified user from the specified client
- * @param  {Number} clientId Client ID
- * @param  {Number} userId   User ID
- * @return {undefined}
- */
+// TODO: move to shared
 function removeUserFromClient(clientId, userId, callback) {
-  var userName = $('#user-list [data-user-id="' + userId + '"] .card-body-primary-text').html();
+  var userName = $('#client-users ul.admin-panel-content [data-user-id="' + userId + '"] .card-body-primary-text').html();
   var clientName = $('#client-tree [data-client-id="' + clientId + '"] .card-body-primary-text').html();
   setButtonSubmitting($('.vex-first'), 'Removing');
   $.ajax({
@@ -970,33 +493,9 @@ function removeUserFromClient(clientId, userId, callback) {
   });
 }
 
-/**
- * Handle click events for remove user buttons
- * @return {undefined}
- */
-function userCardRemoveClickHandler($clickedCard) {
-  var userName = $clickedCard.find('.card-body-primary-text').html();
-  confirmRemoveDialog(userName, function removeUser(value, callback) {
-    var clientId = $('#client-tree [selected]').attr('data-client-id');
-    var userId = $clickedCard.attr('data-user-id');
-    removeUserFromClient(clientId, userId, callback);
-  });
-}
-
-/**
- * Handle click events for the client form edit icon
- * @return {undefined}
- */
-function editIconClickHandler() {
-  setClientFormWriteable();
-}
-
-/**
- * Handle click events for the client form cancel icon
- * @return {undefined}
- */
+// TODO: move to shared
 function cancelIconClickHandler() {
-  confirmAndReset(confirmDiscardDialog, function onContinue() {
+  shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
     if ($('#client-tree [selected]').attr('data-client-id')) {
       $('#client-tree [editing]').removeAttr('editing');
       setClientFormReadOnly();
@@ -1008,122 +507,51 @@ function cancelIconClickHandler() {
   });
 }
 
-/**
- * Render user node by using string substitution on a clientNodeTemplate
- * @param  {Object} client Client object to render
- * @param  {Number} level  Client indentation level
- * @return {undefined}
- */
 function renderClientNode(client, level) {
-  var classes = ['card-100', 'card-90', 'card-80'];
-  /* eslint-disable indent */
-  var $template = Card
-    .newCard()
-    .container(client.ClientModel.CanManage)
-      .searchString([
-        client.ClientModel.ClientEntity.Name,
-        client.ClientModel.ClientEntity.ClientCode
-      ])
-      .attr({ 'data-client-id': client.ClientModel.ClientEntity.Id })
-      .class(classes[level])
-    .primaryInfo(client.ClientModel.ClientEntity.Name)
-    .secondaryInfo(client.ClientModel.ClientEntity.ClientCode || '')
-    .cardStat('#action-icon-users', client.ClientModel.AssignedUsers.length)
-      .tooltip('Assigned users')
-    .cardStat('#action-icon-reports', client.ClientModel.ContentItems.length)
-      .tooltip('Reports')
-    .sideButton('#action-icon-delete')
-      .class('card-button-delete')
-      .tooltip('Delete client')
-      .click(function onClick(event) {
-        event.stopPropagation();
-        clientCardDeleteClickHandler($(this).parents('div[data-client-id]'));
-      })
-    .sideButton('#action-icon-edit')
-      .class('card-button-edit')
-      .tooltip('Edit client details')
-      .click(function onClick(event) {
-        event.stopPropagation();
-        clientCardEditClickHandler($(this).parents('div[data-client-id]'));
-      })
-    .sideButton('#action-icon-add')
-      .class('card-button-new-child')
-      .tooltip('New sub-client')
-      .click(function onClick(event) {
-        event.stopPropagation();
-        clientCardCreateNewChildClickHandler($(this).parents('div[data-client-id]'));
-      })
-    .build();
-  /* eslint-enable indent */
-
-  if (!client.ClientModel.CanManage) {
-    $template.find('.card-button-side-container').remove();
-    $template.find('.card-container').attr('disabled', '');
-  }
-
-  // Only include the delete button on client nodes without children
-  if (client.Children.length) {
-    $template.find('.card-button-delete').remove();
-  }
-
-  // Don't include the add child client button on lowest level
-  if (level === 2) {
-    $template.find('.card-button-new-child').remove();
-  }
-
-  $('#client-tree-list').append($template);
+  var $card = new card.ClientCard(
+    client.ClientModel.ClientEntity,
+    client.ClientModel.AssignedUsers.length,
+    client.ClientModel.ContentItems.length,
+    level,
+    shared.wrapCardCallback(shared.get(
+      'ClientAdmin/ClientDetail',
+      setClientFormReadOnly,
+      populateClientForm,
+      function () { $('#client-info .action-icon-edit').hide(); },
+      renderUserList
+    ), 2),
+    !client.Children.length && clientCardDeleteClickHandler,
+    clientCardEditClickHandler,
+    level < 2 && clientCardCreateNewChildClickHandler
+  );
+  $card.readonly = !client.ClientModel.CanManage;
+  $('#client-tree ul.admin-panel-content').append($card.build());
 
   // Render child nodes
-  if (client.Children.length) {
-    client.Children.forEach(function forEach(childNode) {
-      renderClientNode(childNode, level + 1);
-    });
-  }
+  client.Children.forEach(function (child) {
+    renderClientNode(child, level + 1);
+  });
 }
 
-/**
- * Render client tree recursively and attach event handlers
- * @param  {Number} clientId ID of the client card to click after render
- * @return {undefined}
- */
+
 function renderClientTree(clientTreeList, clientId) {
-  var $clientTreeList = $('#client-tree-list');
+  var $clientTreeList = $('#client-tree ul.admin-panel-content');
   $clientTreeList.empty();
   clientTreeList.forEach(function render(rootClient) {
     renderClientNode(rootClient, 0);
     $clientTreeList.append('<li class="hr width-100pct"></li>');
   });
   $clientTreeList.find('.tooltip').tooltipster();
-  $clientTreeList.find('.card-container')
-    .click(function onClick() {
-      clientCardClickHandler($(this));
-    });
-
-  // TODO: Consider applying this to other cards and buttons as well
-  $clientTreeList.find('.card-container,.card-button-background')
-    .mousedown(function onMousedown(event) {
-      event.preventDefault();
-    });
 
   if (clientId) {
     $('[data-client-id="' + clientId + '"]').click();
   }
-  if ($('#add-client-icon').length) {
-    $clientTreeList.append(Card.buildNewClient());
-    $('#create-new-client-card')
-      .click(function onClick() {
-        createNewClientClickHandler($(this));
-      });
+  if ($('#client-tree .action-icon-add').length) {
+    $clientTreeList.append(new card.AddClientActionCard(newClientClickHandler).build());
   }
 }
 
-/**
- * Send an AJAX request to delete a client
- * @param  {Number} clientId   ID of the client to delete
- * @param  {String} clientName Name of the client to delete
- * @param  {String} password   User's password
- * @return {undefined}
- */
+// TODO: move to shared
 function deleteClient(clientId, clientName, password, callback) {
   $.ajax({
     type: 'DELETE',
@@ -1136,7 +564,7 @@ function deleteClient(clientId, clientName, password, callback) {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
   }).done(function onDone(response) {
-    clearFormData();
+    shared.clearForm($('#client-info'));
     renderClientTree(response.ClientTreeList, response.RelevantClientId);
     callback();
     toastr.success(clientName + ' was successfully deleted.');
@@ -1146,10 +574,7 @@ function deleteClient(clientId, clientName, password, callback) {
   });
 }
 
-/**
- * Send an AJAX request to get the client tree
- * @return {undefined}
- */
+// TODO: move to shared
 function getClientTree(clientId) {
   $('#client-tree .loading-wrapper').show();
   $.ajax({
@@ -1169,12 +594,9 @@ function getClientTree(clientId) {
   });
 }
 
-/**
- * Send an AJAX request to create or edit a client
- * @return {undefined}
- */
+// TODO: move to shared
 function submitClientForm() {
-  var $clientForm = $('#client-form');
+  var $clientForm = $('#client-info form.admin-panel-content');
   var $button;
   var clientId;
   var clientName;
@@ -1188,11 +610,11 @@ function submitClientForm() {
     if (clientId) {
       urlAction += 'EditClient';
       successResponse = clientName + ' was successfully updated';
-      $button = $('#save-changes-button');
+      $button = $('.edit-form-button-container .submit-button');
     } else {
       urlAction += 'SaveNewClient';
       successResponse = clientName + ' was successfully created';
-      $button = $('#create-new-button');
+      $button = $('.new-form-button-container .submit-button');
     }
 
     setButtonSubmitting($button);
@@ -1214,79 +636,37 @@ function submitClientForm() {
   }
 }
 
-/**
- * Filter the client tree by a string
- * @param {String} searchString the string to filter by
- * @return {undefined}
- */
-function searchClientTree(searchString) {
-  $('#client-tree-list').children('.hr').hide();
-  $('#client-tree-list div[data-search-string]').each(function forEach(index, element) {
-    if ($(element).attr('data-search-string').indexOf(searchString.toUpperCase()) > -1) {
-      $(element).show();
-      $(element).closest('li').nextAll('li.hr').first()
-        .show();
-    } else {
-      $(element).hide();
-    }
-  });
-}
-
-/**
- * Filter the user list by a string
- * @param {String} searchString the string to filter by
- * @return {undefined}
- */
-function searchUser(searchString) {
-  $('#client-user-list div[data-search-string]').each(function forEach(index, element) {
-    if ($(element).attr('data-search-string').indexOf(searchString.toUpperCase()) > -1) {
-      $(element).show();
-    } else {
-      $(element).hide();
-    }
-  });
-}
-
 $(document).ready(function onReady() {
   getClientTree();
 
-  $('#add-client-icon').click(createNewClientClickHandler);
-  $('#add-user-icon').click(addUserClickHandler);
-  $('#edit-client-icon').click(editIconClickHandler);
-  $('#cancel-edit-client-icon').click(cancelIconClickHandler);
-  $('#expand-user-icon').click(expandAllUsers);
-  $('#collapse-user-icon').click(collapseAllUsers);
-  $('#create-new-button').click(submitClientForm);
-  $('#save-changes-button').click(submitClientForm);
-  $('#reset-form-button').click(function confirmResetAndReset() {
-    confirmAndReset(confirmResetDialog);
+  $('#client-tree .action-icon-add').click(newClientClickHandler);
+  $('#client-info .action-icon-edit').click(setClientFormWriteable);
+  $('#client-info .action-icon-cancel').click(cancelIconClickHandler);
+  $('.action-icon-expand').click(shared.expandAll.listener);
+  $('.action-icon-collapse').click(shared.collapseAll.listener);
+  $('#client-users .action-icon-add').click(addUserClickHandler);
+  $('.submit-button').click(submitClientForm);
+  $('.new-form-button-container .reset-button').click(function () {
+    shared.confirmAndContinue($('#client-info'), dialog.ResetConfirmationDialog);
   });
-  $('#undo-changes-button').click(function confirmDiscardAndReset() {
-    confirmAndReset(confirmDiscardDialog);
-  });
-
-  $('#client-search-box').keyup(function onKeyup() {
-    searchClientTree($(this).val());
+  $('.edit-form-button-container .reset-button').click(function () {
+    shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog);
   });
 
-  $('#user-search-box').keyup(function onKeyup() {
-    searchUser($(this).val());
-  });
-
-
+  $('.admin-panel-searchbar').keyup(shared.filterTree.listener);
   $('.tooltip').tooltipster();
 
   // TODO: find a better place for this
-  $('#client-form').find(':input,select')
+  $('#client-info form.admin-panel-content').find(':input,select')
     .change(function onChange() {
-      if (findModifiedInputs().length) {
-        $('#save-changes-button,#undo-changes-button').show();
+      if (shared.modifiedInputs($('#client-info')).length) {
+        $('.form-button-container button').show();
       } else {
-        $('#save-changes-button,#undo-changes-button').hide();
+        $('.form-button-container button').hide();
       }
     });
 
-  $('#client-form #AcceptedEmailDomainList').selectize({
+  $('#client-info form.admin-panel-content #AcceptedEmailDomainList').selectize({
     plugins: ['remove_button'],
     persist: false,
     create: function onCreate(input) {
@@ -1296,27 +676,18 @@ $(document).ready(function onReady() {
           text: input
         };
       }
-      buildVexDialog({
-        title: 'Invalid Input',
-        message: 'The Approved Email Domain List only accepts the email domain (e.g. <i>username@</i><strong><u>domain.com</u></strong>)',
-        buttons: [
-          {
-            type: vex.dialog.buttons.yes,
-            text: 'OK'
-          }
-        ],
-        color: 'blue',
-        callback: function onAlert() {
-          $('#AcceptedEmailDomainList-selectized').val(input);
-          $('#client-form #AcceptedEmailDomainList')[0].selectize.unlock();
-          $('#client-form #AcceptedEmailDomainList')[0].selectize.focus();
-        }
-      });
+
+      toastr.warning('Please enter a valid domain name (e.g. domain.com)');
+
+      $('#AcceptedEmailDomainList-selectized').val(input);
+      $('#client-info form.admin-panel-content #AcceptedEmailDomainList')[0].selectize.unlock();
+      $('#client-info form.admin-panel-content #AcceptedEmailDomainList')[0].selectize.focus();
+
       return {};
     }
   });
 
-  $('#client-form #AcceptedEmailAddressExceptionList').selectize({
+  $('#client-info form.admin-panel-content #AcceptedEmailAddressExceptionList').selectize({
     plugins: ['remove_button'],
     delimiter: ',',
     persist: false,
@@ -1327,19 +698,7 @@ $(document).ready(function onReady() {
           text: input
         };
       }
-      buildVexDialog({
-        title: 'Invalid Input',
-        message: 'The Approved Email Address Exception List only accepts valid email addresses (e.g. <strong><u>username@domain.com</u></strong>)',
-        buttons: [
-          { type: vex.dialog.buttons.yes, text: 'OK' }
-        ],
-        color: 'blue',
-        callback: function onAlert() {
-          $('#AcceptedEmailAddressExceptionList-selectized').val(input);
-          $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.unlock();
-          $('#client-form #AcceptedEmailAddressExceptionList')[0].selectize.focus();
-        }
-      });
+      toastr.warning('Please enter a valid email address (e.g. username@domain.com)');
       return {};
     }
   });

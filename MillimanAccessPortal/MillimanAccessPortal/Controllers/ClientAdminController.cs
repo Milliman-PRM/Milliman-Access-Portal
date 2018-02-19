@@ -117,12 +117,12 @@ namespace MillimanAccessPortal.Controllers
         /// <summary>
         /// Returns the requested Client and lists of eligible and already assigned users associated with a Client. Requires GET. 
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="clientId"></param>
         /// <returns>JsonResult or UnauthorizedResult</returns>
         [HttpGet]
-        public async Task<IActionResult> ClientDetail(long? id)
+        public async Task<IActionResult> ClientDetail(long? clientId)
         {
-            Client ThisClient = DbContext.Client.Include(c => c.ProfitCenter).FirstOrDefault(c => c.Id == id);
+            Client ThisClient = DbContext.Client.Include(c => c.ProfitCenter).FirstOrDefault(c => c.Id == clientId);
 
             #region Validation
             if (ThisClient == null)
