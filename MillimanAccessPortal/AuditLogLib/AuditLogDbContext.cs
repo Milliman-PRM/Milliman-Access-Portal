@@ -82,40 +82,38 @@ namespace AuditLogLib
         {
             var configurationBuilder = new ConfigurationBuilder();
             string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            string auditLogConnectionString;
 
-            // Determine location to fetch the connection string
-            switch (environmentName)
+            if (environmentName.StartsWith("Azure"))
             {
-                case "Production": // Get connection string from Azure Key Vault for Production
-                    configurationBuilder.AddJsonFile(path: "AzureKeyVault.Production.json", optional: false);
+                configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
+                var built = configurationBuilder.Build();
+                var store = new X509Store(StoreLocation.LocalMachine);
+                store.Open(OpenFlags.ReadOnly);
+                var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
 
-                    var built = configurationBuilder.Build();
+                configurationBuilder.AddAzureKeyVault(
+                    built["AzureVaultName"],
+                    built["AzureClientID"],
+                    cert.OfType<X509Certificate2>().Single());
 
-                    var store = new X509Store(StoreLocation.LocalMachine);
-                    store.Open(OpenFlags.ReadOnly);
-                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
+                built = configurationBuilder.Build();
 
-                    configurationBuilder.AddAzureKeyVault(
-                        built["AzureVaultName"],
-                        built["AzureClientID"],
-                        cert.OfType<X509Certificate2>().Single());
-                    break;
-
-                case "CI":// Get connection string from local JSON in CI
-                    configurationBuilder.AddJsonFile(path: "ConnectionStrings.CI.json", optional: false);
-                    break;
-
-                case "Development": // Get connection string from user secrets in Development
-                    configurationBuilder.AddUserSecrets<AuditLogDbContext>();
-                    break;
-
-                default: // Unsupported environment name
-                    throw new InvalidOperationException($"Current environment name ({environmentName}) is not configured for AuditLogLib migrations");
+                string branchName = Environment.GetEnvironmentVariable("BranchName");
+                string logDbName = $"auditlogdb_{branchName}";
+                Npgsql.NpgsqlConnectionStringBuilder logConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(built.GetConnectionString(ConnectionStringName));
+                logConnBuilder.Database = logDbName;
+                auditLogConnectionString = logConnBuilder.ConnectionString;
             }
+            else
+            {
+                configurationBuilder.AddUserSecrets<AuditLogDbContext>();
+                var built = configurationBuilder.Build();
 
-            var configuration = configurationBuilder.Build();
-            
-            return configuration.GetConnectionString(ConnectionStringName);
+                auditLogConnectionString = built.GetConnectionString(ConnectionStringName);
+            }
+                        
+            return auditLogConnectionString;
         }
 
     }
