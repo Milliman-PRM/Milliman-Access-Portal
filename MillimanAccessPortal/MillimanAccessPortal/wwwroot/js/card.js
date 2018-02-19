@@ -11,6 +11,7 @@ var card = {};
   var ActionCard;
   var AddClientActionCard;
   var AddUserActionCard;
+  var AddSelectionGroupActionCard;
   var InsertCard;
   var AddChildInsertCard;
   var ClientCard;
@@ -572,6 +573,12 @@ var card = {};
   AddUserActionCard.prototype = Object.create(ActionCard.prototype);
   AddUserActionCard.prototype.constructor = AddUserActionCard;
 
+  AddSelectionGroupActionCard = function (callback) {
+    ActionCard.call(this, 'add', 'Add Selection Group', callback);
+  };
+  AddSelectionGroupActionCard.prototype = Object.create(ActionCard.prototype);
+  AddSelectionGroupActionCard.prototype.constructor = AddSelectionGroupActionCard;
+
   InsertCard = function (icon, text, level, callback) {
     Card.call(this);
 
@@ -781,6 +788,7 @@ var card = {};
   card.ActionCard = ActionCard;
   card.AddClientActionCard = AddClientActionCard;
   card.AddUserActionCard = AddUserActionCard;
+  card.AddSelectionGroupActionCard = AddSelectionGroupActionCard;
   card.InsertCard = InsertCard;
   card.AddChildInsertCard = AddChildInsertCard;
   card.ClientCard = ClientCard;

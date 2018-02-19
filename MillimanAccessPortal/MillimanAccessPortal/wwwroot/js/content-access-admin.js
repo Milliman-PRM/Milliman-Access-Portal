@@ -14,6 +14,7 @@ function renderSelectionGroupList(response, selectionGroupId) {
   var $selectionGroupList = $('#selection-groups ul.admin-panel-content');
   $selectionGroupList.empty();
   response.SelectionGroupList.forEach(renderSelectionGroup);
+  $selectionGroupList.append(new card.AddSelectionGroupActionCard().build());
   $selectionGroupList.find('.tooltip').tooltipster();
 
   if (selectionGroupId) {
