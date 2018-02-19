@@ -479,7 +479,7 @@ var card = {};
 
   Card.prototype.click = function (component, value, selector) {
     var $component = this.findComponent(component, selector);
-    $component.click((this.readonly || this.disabled)
+    $component.click(component !== 'card' && (this.readonly || this.disabled)
       ? function (event) {
         event.preventDefault();
       }
