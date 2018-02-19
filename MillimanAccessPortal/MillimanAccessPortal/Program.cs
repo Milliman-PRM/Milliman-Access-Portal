@@ -62,9 +62,7 @@ namespace MillimanAccessPortal
                     ;
 
                     #region Configure Azure Key Vault for CI & Production
-                    if (hostContext.HostingEnvironment.EnvironmentName == "CI" || 
-                        hostContext.HostingEnvironment.EnvironmentName == "Production" || 
-                        hostContext.HostingEnvironment.EnvironmentName == "AzureCI")
+                    if (hostContext.HostingEnvironment.EnvironmentName.StartsWith("Azure"))
                     {
                         config.AddJsonFile($"AzureKeyVault.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true);
 

@@ -54,7 +54,7 @@ namespace MillimanAccessPortal
 
             string appConnectionString = Configuration.GetConnectionString("DefaultConnection");
 
-            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "AzureCI")
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").StartsWith("Azure"))
             {
                 // Modify connection strings in Azure CI to point to the correct database name
                 string branchName = Environment.GetEnvironmentVariable("BranchName");
@@ -187,7 +187,7 @@ namespace MillimanAccessPortal
             #region Configure Audit Logger connection string (environment-dependent)
             string auditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString");
 
-            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "AzureCI")
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").StartsWith("Azure"))
             {
                 string branchName = Environment.GetEnvironmentVariable("BranchName");
                 string logDbName = $"auditlogdb_{branchName}";
