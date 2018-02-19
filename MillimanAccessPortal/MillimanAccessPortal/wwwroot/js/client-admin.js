@@ -517,6 +517,7 @@ function renderClientNode(client, level) {
       'ClientAdmin/ClientDetail',
       setClientFormReadOnly,
       populateClientForm,
+      function () { $('#client-info .action-icon-edit').hide(); },
       renderUserList
     ), 2),
     !client.Children.length && clientCardDeleteClickHandler,
