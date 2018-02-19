@@ -7,7 +7,7 @@ var SHOW_DURATION = 50;
 
 // TODO: move to shared
 function removeClientInserts() {
-  $('#client-tree .insert').remove();
+  $('#client-tree .insert-card').remove();
 }
 
 // TODO: move to shared
@@ -371,7 +371,7 @@ function clientCardCreateNewChildClickHandler(event) {
   var $clickedCard = $(this).closest('.card-container');
   var $clientTree = $('#client-tree');
 
-  var sameCard = ($clientTree.find('[selected]').is('.insert') &&
+  var sameCard = ($clientTree.find('[selected]').is('.insert-card') &&
     $clickedCard[0] === $clientTree.find('[selected]').parent().prev().find('.card-container')[0]);
   event.stopPropagation();
   if ($clientTree.has('[editing]').length) {
@@ -407,7 +407,7 @@ function newClientClickHandler() {
         clearClientSelection();
         hideClientDetails();
       } else {
-        if ($('.insert').length) {
+        if ($('.insert-card').length) {
           removeClientInserts();
         }
         openNewClientForm();

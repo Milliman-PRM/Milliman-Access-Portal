@@ -116,7 +116,7 @@ var shared = {};
       var sameCard = ($card[0] === $panel.find('[selected]')[0]);
 
       var removeInserts = function () {
-        $panel.find('.insert').remove();
+        $panel.find('.insert-card').remove();
       };
       var clearSelection = function () {
         $panel.find('.card-container').removeAttr('editing selected');

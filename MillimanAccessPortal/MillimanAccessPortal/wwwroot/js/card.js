@@ -71,12 +71,16 @@ var card = {};
         count: '?',
         selector: '.card-body-primary-text',
         html: [
-          '<h2 class="card-body-primary-text">',
-          '  <span></span>',
-          '  <svg class="new-child-icon">',
-          '    <use href=""></use>',
-          '  </svg>',
-          '</h2>'
+          '<div class="card-body-main-container content-item-flex-1">',
+          '  <div class="card-body-primary-container">',
+          '    <h2 class="card-body-primary-text indent-level-1">',
+          '      <span></span>',
+          '      <svg class="new-child-icon">',
+          '        <use href=""></use>',
+          '      </svg>',
+          '    </h2>',
+          '  </div>',
+          '</div>'
         ].join(''),
         render: function (component) {
           return function (properties) {
@@ -577,7 +581,7 @@ var card = {};
         'flex-container',
         'flex-row-no-wrap',
         'items-align-center',
-        'insert',
+        'insert-card',
         'card-' + (100 - (10 * level))
       ].join(' ')
     });
