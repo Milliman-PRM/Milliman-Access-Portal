@@ -641,8 +641,8 @@ $(document).ready(function onReady() {
   $('#client-tree .action-icon-add').click(newClientClickHandler);
   $('#client-info .action-icon-edit').click(setClientFormWriteable);
   $('#client-info .action-icon-cancel').click(cancelIconClickHandler);
-  $('.action-icon-expand').click(shared.expandAll);
-  $('.action-icon-collapse').click(shared.collapseAll);
+  $('.action-icon-expand').click(shared.expandAll.listener);
+  $('.action-icon-collapse').click(shared.collapseAll.listener);
   $('#client-users .action-icon-add').click(addUserClickHandler);
   $('.submit-button').click(submitClientForm);
   $('.new-form-button-container .reset-button').click(function () {
@@ -652,7 +652,7 @@ $(document).ready(function onReady() {
     shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog);
   });
 
-  $('.admin-panel-searchbar').keyup(shared.filterTree);
+  $('.admin-panel-searchbar').keyup(shared.filterTree.listener);
   $('.tooltip').tooltipster();
 
   // TODO: find a better place for this

@@ -115,9 +115,9 @@ $(document).ready(function () {
     renderClientTree
   ))();
 
-  $('.action-icon-expand').click(shared.expandAll);
-  $('.action-icon-collapse').click(shared.collapseAll);
-  $('.admin-panel-searchbar').keyup(shared.filterTree);
+  $('.action-icon-expand').click(shared.expandAll.listener);
+  $('.action-icon-collapse').click(shared.collapseAll.listener);
+  $('.admin-panel-searchbar').keyup(shared.filterTree.listener);
 
   $('.tooltip').tooltipster();
 });

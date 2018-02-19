@@ -362,7 +362,7 @@ var card = {};
         render: function (component) {
           return function () {
             this.verify(component);
-            this.click(component, shared.toggleExpanded, '.card-button-background');
+            this.click(component, shared.toggleExpanded.listener, '.card-button-background');
             this.tooltip(component, 'Expand card', '.card-button-background');
           };
         }
@@ -767,7 +767,7 @@ var card = {};
       'user-id': user.Id,
       'client-id': client.Id
     };
-    this.callback = shared.toggleExpanded;
+    this.callback = shared.toggleExpanded.listener;
   };
   UserCard.prototype = Object.create(Card.prototype);
   UserCard.prototype.constructor = UserCard;

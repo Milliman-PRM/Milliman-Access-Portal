@@ -6,16 +6,18 @@ var shared = {};
   var SHOW_DURATION = 50;
   var ajaxStatus = [];
 
+  var updateToolbarIcons;
   var set;
 
-  shared.filterTree = function () {
-    var $filter = $(this);
-    var $panel = $filter.closest('.admin-panel-container');
+  // Functions with associated event listeners
+
+  // Filtering
+  shared.filterTree = function ($panel, $this) {
     var $content = $panel.find('ul.admin-panel-content');
     $content.children('.hr').hide();
     $content.find('[data-filter-string]').each(function (index, element) {
       var $element = $(element);
-      if ($element.data('filter-string').indexOf($filter.val().toUpperCase()) > -1) {
+      if ($element.data('filter-string').indexOf($this.val().toUpperCase()) > -1) {
         $element.show();
         $element.closest('li').nextAll('li.hr').first()
           .show();
@@ -25,7 +27,8 @@ var shared = {};
     });
   };
 
-  shared.updateToolbarIcons = function ($panel) {
+  // Card expansion
+  updateToolbarIcons = function ($panel) {
     $panel.find('.action-icon-collapse').hide().filter(function anyMaximized() {
       return $panel.find('.card-expansion-container[maximized]').length;
     }).show();
@@ -33,34 +36,77 @@ var shared = {};
       return $panel.find('.card-expansion-container:not([maximized])').length;
     }).show();
   };
-  shared.toggleExpanded = function (event) {
-    var $card = $(this);
-    var $panel = $card.closest('.admin-panel-container');
-    event.stopPropagation();
-    $card.closest('.card-container')
+  shared.toggleExpanded = function ($panel, $this) {
+    $this.closest('.card-container')
       .find('.card-expansion-container')
       .attr('maximized', function (index, attr) {
         var data = (attr === '')
           ? { text: 'Expand card', rv: null }
           : { text: 'Collapse card', rv: '' };
-        $card.find('.tooltip').tooltipster('content', data.text);
+        $this.find('.tooltip').tooltipster('content', data.text);
         return data.rv;
       });
-    shared.updateToolbarIcons($panel);
+    updateToolbarIcons($panel);
   };
-  shared.expandAll = function (event) {
-    var $panel = $(this).closest('.admin-panel-container');
-    event.stopPropagation();
+  shared.expandAll = function ($panel) {
     $panel.find('.card-expansion-container').attr('maximized', '');
-    shared.updateToolbarIcons($panel);
+    updateToolbarIcons($panel);
   };
-  shared.collapseAll = function (event) {
-    var $panel = $(this).closest('.admin-panel-container');
-    event.stopPropagation();
+  shared.collapseAll = function ($panel) {
     $panel.find('.card-expansion-container[maximized]').removeAttr('maximized');
-    shared.updateToolbarIcons($panel);
+    updateToolbarIcons($panel);
   };
 
+  // Form control
+  shared.modifiedInputs = function ($panel) {
+    return $panel.find('form.admin-panel-content')
+      .find('input[name!="__RequestVerificationToken"][type!="hidden"],select')
+      .not('.selectize-input input')
+      .filter(function () {
+        var $element = $(this);
+        return ($element.val() !== ($element.attr('data-original-value') || ''));
+      });
+  };
+  shared.resetValidation = function ($panel) {
+    $panel.find('form.admin-panel-content').validate().resetForm();
+    $panel.find('.field-validation-error > span').remove();
+  };
+  shared.resetForm = function ($panel) {
+    shared.modifiedInputs($panel).each(function () {
+      var $input = $(this);
+      if ($input.is('.selectized')) {
+        this.selectize.setValue($input.attr('data-original-value').split(','));
+      } else {
+        $input.val($input.attr('data-original-value'));
+      }
+    });
+    shared.resetValidation($panel);
+    $panel.find('.form-button-container button').hide();
+  };
+  shared.clearForm = function ($panel) {
+    $panel.find('.selectized').each(function () {
+      this.selectize.clear();
+      this.selectize.clearOptions();
+    });
+    $panel.find('input[name!="__RequestVerificationToken"],select')
+      .not('.selectize-input input')
+      .attr('data-original-value', '').val('');
+    shared.resetValidation($panel);
+  };
+
+  // Add listener property to each function
+  Object.keys(shared).forEach(function (fn) {
+    shared[fn].listener = function (event) {
+      var $this = $(this);
+      var $panel = $this.closest('.admin-panel-container');
+      event.stopPropagation();
+      shared[fn]($panel, $this);
+    };
+  });
+
+  // Functions without associated event listeners
+
+  // Wrappers
   shared.wrapCardCallback = function (callback, panels) {
     return function () {
       var $card = $(this);
@@ -104,6 +150,7 @@ var shared = {};
     };
   };
 
+  // AJAX
   shared.get = function (url) {
     var callbacks = Array.prototype.slice.call(arguments, 1);
     return function ($card) {
@@ -170,42 +217,7 @@ var shared = {};
   shared.post = function (url, successMessage) { set('POST', url, successMessage); };
   shared.delete = function (url, successMessage) { set('DELETE', url, successMessage); };
 
-  shared.modifiedInputs = function ($panel) {
-    return $panel.find('form.admin-panel-content')
-      .find('input[name!="__RequestVerificationToken"][type!="hidden"],select')
-      .not('.selectize-input input')
-      .filter(function () {
-        var $element = $(this);
-        return ($element.val() !== ($element.attr('data-original-value') || ''));
-      });
-  };
-  shared.resetValidation = function ($panel) {
-    $panel.find('form.admin-panel-content').validate().resetForm();
-    $panel.find('.field-validation-error > span').remove();
-  };
-  shared.resetForm = function ($panel) {
-    shared.modifiedInputs($panel).each(function () {
-      var $input = $(this);
-      if ($input.is('.selectized')) {
-        this.selectize.setValue($input.attr('data-original-value').split(','));
-      } else {
-        $input.val($input.attr('data-original-value'));
-      }
-    });
-    shared.resetValidation($panel);
-    $panel.find('.form-button-container button').hide();
-  };
-  shared.clearForm = function ($panel) {
-    $panel.find('.selectized').each(function () {
-      this.selectize.clear();
-      this.selectize.clearOptions();
-    });
-    $panel.find('input[name!="__RequestVerificationToken"],select')
-      .not('.selectize-input input')
-      .attr('data-original-value', '').val('');
-    shared.resetValidation($panel);
-  };
-
+  // Typeahead
   shared.userSubstringMatcher = function (users) {
     return function findMatches(query, callback) {
       var matches = [];
@@ -223,6 +235,8 @@ var shared = {};
     };
   };
 
+  // Dialog helpers
+  // TODO: consider moving to dialog.js
   shared.confirmAndContinue = function ($panel, Dialog, onContinue) {
     if ($panel.length && shared.modifiedInputs($panel).length) {
       new Dialog(function () {
