@@ -46,8 +46,8 @@
                 color: $charcoal;
                 cursor: pointer;
                 padding: 0 .25em;
-                height: 2.5em;
-                width: 2.5em;
+                height: 2.0em;
+                width: 2.0em;
 
                 &:hover {
                     color: lighten($charcoal, 20%);
