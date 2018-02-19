@@ -11,10 +11,10 @@ namespace MapDbContextLib.Models
         public ReductionFieldValueSelection()
         {}
 
-        public ReductionFieldValueSelection(ReductionFieldValue Arg)
+        public ReductionFieldValueSelection(ReductionFieldValue Arg, bool StatusArg = false)
         {
             Value = Arg.Value;
-            SelectionStatus = false;
+            SelectionStatus = StatusArg;
         }
 
         public bool SelectionStatus { get; set; } = false;

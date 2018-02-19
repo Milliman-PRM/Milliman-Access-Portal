@@ -42,7 +42,7 @@ namespace MapDbContextLib.Context
             // For example, you can rename the ASP.NET Identity table names and more.
             // Add your customizations after calling base.OnModelCreating(builder);
 
-            builder.Entity<ContentReductionTask>()
+            builder.Entity<ContentPublicationRequest>()
                 .Property(b => b.CreateDateTime)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
