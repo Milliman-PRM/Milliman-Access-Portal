@@ -474,15 +474,15 @@ var card = {};
   });
 
   Card.prototype.click = function (component, value, selector) {
-    this.findComponent(component, selector)
-      .click((this.readonly || this.disabled)
-        ? function (event) {
-          event.preventDefault();
-        }
-        : value)
-      .mousedown(function (event) {
+    var $component = this.findComponent(component, selector);
+    $component.click((this.readonly || this.disabled)
+      ? function (event) {
         event.preventDefault();
-      });
+      }
+      : value);
+    $component.mousedown(function (event) {
+      event.preventDefault();
+    });
   };
 
   Card.prototype.tooltip = function (component, value, selector) {
