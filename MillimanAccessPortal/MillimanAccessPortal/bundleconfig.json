@@ -20,6 +20,12 @@
     }
   },
   {
+    "outputFileName": "wwwroot/js/content-access-admin.min.js",
+    "inputFiles": [
+      "wwwroot/js/content-access-admin.js"
+    ]
+  },
+  {
     "outputFileName": "wwwroot/js/client-admin.min.js",
     "inputFiles": [
       "wwwroot/js/client-admin.js"

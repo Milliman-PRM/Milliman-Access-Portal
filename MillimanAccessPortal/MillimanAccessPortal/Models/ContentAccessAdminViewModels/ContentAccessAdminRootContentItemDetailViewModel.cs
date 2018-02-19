@@ -8,52 +8,32 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
     public class ContentAccessAdminRootContentItemDetailViewModel
     {
-        public string ContentName { get; set; }
-        public string ContentType { get; set; }
-        public bool CanReduce { get; set; }
-        public int NumberOfGroups { get; set; }
-        public int NumberOfAssignedUsers { get; set; }
+        public RootContentItem RootContentItemEntity { get; set; }
+        public int GroupCount { get; set; }
+        public int EligibleUserCount { get; set; }
 
-        internal static ContentAccessAdminRootContentItemDetailViewModel Build(ApplicationDbContext DbContext, RootContentItem Item)
+        internal static ContentAccessAdminRootContentItemDetailViewModel Build(ApplicationDbContext DbContext, RootContentItem RootContentItem)
         {
-            if (Item.ContentType == null)
+            if (RootContentItem.ContentType == null)
             {
-                Item.ContentType = DbContext.ContentType.Find(Item.ContentTypeId);
+                RootContentItem.ContentType = DbContext.ContentType.Find(RootContentItem.ContentTypeId);
             }
 
-            // Retrieve related users and groups to populate user and group counts
-            List<UserInSelectionGroup> RelatedUsersGroups = DbContext.UserInSelectionGroup
-                .Include(usg => usg.SelectionGroup)
-                .Where(usg => usg.SelectionGroup.RootContentItemId == Item.Id)
-                .ToList();
-
-            // See how many members are in each group
-            var GroupMemberCounts = DbContext.UserInSelectionGroup
-                .GroupBy(usg => usg.SelectionGroupId)
-                .Select(usg => new { SelectionGroupId = usg.Key, Count = usg.Count() });
-
-            // Only include a group in NumberOfGroups if it has more than one member
-            // Single-member groups are not treated as groups by the front end
             ContentAccessAdminRootContentItemDetailViewModel Model = new ContentAccessAdminRootContentItemDetailViewModel {
-                ContentName = Item.ContentName,
-                ContentType = Item.ContentType.Name,
-                CanReduce = Item.ContentType.CanReduce,
-                NumberOfGroups = RelatedUsersGroups
-                    .Where(ug => GroupMemberCounts
-                        .Single(gmc => gmc.SelectionGroupId == ug.SelectionGroupId)
-                        .Count > 1
-                        )
-                    .Select(ug => ug.SelectionGroupId)
-                    .Distinct()
+                RootContentItemEntity = RootContentItem,
+                GroupCount = DbContext.SelectionGroup
+                    .Where(sg => sg.RootContentItemId == RootContentItem.Id)
                     .Count(),
-                NumberOfAssignedUsers = RelatedUsersGroups
-                    .Select(ug => ug.UserId)
-                    .Distinct()
+                EligibleUserCount = DbContext.UserRoleInRootContentItem
+                    // TODO: Qualify with required role/membership in client
+                    .Where(ur => ur.RootContentItemId == RootContentItem.Id)
+                    .Where(ur => ur.RoleId == ((long) RoleEnum.ContentUser))
                     .Count()
                 };
 

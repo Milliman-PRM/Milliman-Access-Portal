@@ -14,42 +14,93 @@
 
 
 
+@section CSS {
+
+    <environment names="Development,CI">
+    </environment>
+    <environment names="Staging,Production">
+    </environment>
+
+
+}
+
+<div id="client-tree" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12">
+    <div class="loading-wrapper">
+        @Html.Partial("~/Views/Shared/_Loader.cshtml")
+    </div>
+    <h3 class="admin-panel-header">Client Tree</h3>
+    <div class="admin-panel-toolbar">
+        <input class="admin-panel-searchbar" type="search" placeholder="Filter Clients" />
+        <div class="admin-panel-action-icons-container">
+        </div>
+    </div>
+    <div class="admin-panel-content-container">
+        <ul class="admin-panel-content"></ul>
+    </div>
+</div>
+<div id="root-content-items" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12" style="display: none;">
+    <div class="loading-wrapper">
+        @Html.Partial("~/Views/Shared/_Loader.cshtml")
+    </div>
+    <h3 class="admin-panel-header">Content Items</h3>
+    <div class="admin-panel-toolbar">
+        <input class="admin-panel-searchbar" type="search" placeholder="Filter Content" />
+        <div class="admin-panel-action-icons-container">
+        </div>
+    </div>
+    <div class="admin-panel-content-container">
+        <ul class="admin-panel-content"></ul>
+    </div>
+</div>
+<div id="selection-groups" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12" style="display: none;">
+    <div class="loading-wrapper">
+        @Html.Partial("~/Views/Shared/_Loader.cshtml")
+    </div>
+    <h3 class="admin-panel-header">Selection Groups</h3>
+    <div class="admin-panel-toolbar">
+        <input class="admin-panel-searchbar" type="search" placeholder="Filter Users" />
+        <div class="admin-panel-action-icons-container">
+            <svg class="action-icon-collapse action-icon tooltip" title="Collapse all user cards" style="display: none;">
+                <use xlink:href="#action-icon-collapse"></use>
+            </svg>
+            <svg class="action-icon-expand action-icon tooltip" title="Expand all user cards">
+                <use xlink:href="#action-icon-expand"></use>
+            </svg>
+        </div>
+    </div>
+    <div class="admin-panel-content-container">
+        <ul class="admin-panel-content"></ul>
+    </div>
+</div>
+<div id="selections" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12" style="display: none;">
+    <div class="loading-wrapper">
+        @Html.Partial("~/Views/Shared/_Loader.cshtml")
+    </div>
+    <h3 class="admin-panel-header">Selections</h3>
+    <div class="admin-panel-toolbar">
+        <input class="admin-panel-searchbar" type="search" placeholder="Filter Users" />
+        <div class="admin-panel-action-icons-container">
+        </div>
+    </div>
+    <div class="admin-panel-content-container">
+        <ul class="admin-panel-content"></ul>
+    </div>
+</div>
 
 
 @section Scripts {
 
-    <script>
-        $(document).ready(function () {
+    <environment names="Development,CI">
+        <script src="~/js/content-access-admin.js"></script>
+        <script src="~/js/card.js"></script>
+        <script src="~/js/dialog.js"></script>
+        <script src="~/js/shared.js"></script>
+    </environment>
+    <environment names="Staging,Production">
+        <script src="~/js/content-access-admin.min.js"></script>
+        <script src="~/js/card.min.js"></script>
+        <script src="~/js/dialog.min.js"></script>
+        <script src="~/js/shared.min.js"></script>
+    </environment>
 
-            //var form = $('form');
-            //var email = $('#Email').val();
-            //var userName = $('#UserName').val();
-            //var firstName = $('#FirstName').val();
-            //var lastName = $('#LastName').val();
-            //var phoneNumber = $('#PhoneNumber').val();
-            //var employer = $('#Employer').val();
-            //var urlAction = 'ContentAccessAdmin/GetContentForClient/';
-            //var successResponse, failResponse;
-
-            $.ajax({
-                type: 'GET',
-                url: 'ContentAccessAdmin/GetContentForClient/',
-                data: {
-                    RequestedClientId: 2
-                },
-                dataType: "json"
-            }).done(function (response) {
-                var d = response;
-                console.log(response);
-                console.log(response.getResponseHeader("Warning"));
-                //toastr['success'](response.getResponseHeader("Warning"));
-            }).fail(function (response) {
-                var f = response
-                //toastr["warning"](failResponse);
-            });
-
-
-        });
-
-    </script>
 }
