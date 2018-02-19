@@ -23,6 +23,7 @@ namespace MapDbContextLib.Context
         public DbSet<ContentType> ContentType { get; set; }
         public DbSet<ProfitCenter> ProfitCenter { get; set; }
         public DbSet<ContentReductionTask> ContentReductionTask { get; set; }
+        public DbSet<ContentPublicationRequest> ContentPublicationRequest { get; set; }
 
         // Alteration of Identity entities
         public DbSet<ApplicationUser> ApplicationUser { get; set; }

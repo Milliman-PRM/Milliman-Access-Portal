@@ -37,14 +37,31 @@
 <button value="Tom Test" onclick="test1(value);">Tom Testing</button>
 <script type="text/javascript">
     function test1(Value) {
-      alert("test1 Clicked");
+        alert("test1 Clicked");
     }
 </script>
- 
+
 @section Scripts {
 
     @Html.Partial("~/Views/ContentPublishing/templates/_Node.cshtml")
 
+    <script type="text/javascript">
+        $.ajax({
+            type: 'POST',
+            url: 'ContentPublishing/RequestContentPublication',
+            data: {
+                "FileName": "xyz",
+                "RootContentId": 1
+            },
+            headers: {
+                RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+            }
+        }).done(function onDone(response) {
+            toastr.success($cardContainer.find('.card-body-primary-text').html() + ' was ' + (modifiedRole.IsAssigned ? 'set' : 'unset') + ' as ' + modifiedRole.RoleDisplayValue);
+        }).fail(function onFail(response) {
+            toastr.warning(response.getResponseHeader('Warning'));
+        });
+    </script>
 
     <environment names="Development,CI">
         <script src="~/lib/selectize/dist/js/standalone/selectize.js"></script>
