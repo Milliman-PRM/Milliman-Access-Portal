@@ -10,6 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="AzureKeyVault.AzureCI.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="AzureKeyVault.AzureCI.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
     <Content Include="ConnectionStrings.CI.json">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
