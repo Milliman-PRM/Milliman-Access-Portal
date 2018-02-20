@@ -128,7 +128,7 @@ var dialog = {};
     Dialog.call(
       this,
       'Delete Selection Group',
-      'Delete <strong>' + $selectionGroup.find('.card-body-primary-text').val() + '</strong>?',
+      'Delete <strong>' + $selectionGroup.find('.card-body-primary-text').html() + '</strong>?',
       [
         { type: vex.dialog.buttons.yes, text: 'Delete' },
         { type: vex.dialog.buttons.no, text: 'Cancel' }

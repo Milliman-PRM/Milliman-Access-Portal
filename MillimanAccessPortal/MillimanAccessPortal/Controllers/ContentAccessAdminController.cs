@@ -418,7 +418,9 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteSelectionGroup(long SelectionGroupId)
         {
-            SelectionGroup SelectionGroup = DbContext.SelectionGroup.Find(SelectionGroupId);
+            SelectionGroup SelectionGroup = DbContext.SelectionGroup
+                .Include(sg => sg.RootContentItem)
+                .SingleOrDefault(sg => sg.Id == SelectionGroupId);
 
             #region Preliminary Validation
             if (SelectionGroup == null)
