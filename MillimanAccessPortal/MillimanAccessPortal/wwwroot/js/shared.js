@@ -213,9 +213,9 @@ var shared = {};
     };
   };
 
-  shared.put = function (url, successMessage) { return set('PUT', url, successMessage); };
-  shared.post = function (url, successMessage) { return set('POST', url, successMessage); };
-  shared.delete = function (url, successMessage) { return set('DELETE', url, successMessage); };
+  shared.put = set.bind(this, 'PUT');
+  shared.post = set.bind(this, 'POST');
+  shared.delete = set.bind(this, 'DELETE');
 
   // Typeahead
   shared.userSubstringMatcher = function (users) {
