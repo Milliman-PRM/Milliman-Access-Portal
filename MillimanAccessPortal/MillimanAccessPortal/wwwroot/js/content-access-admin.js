@@ -1,11 +1,16 @@
 /* global card, dialog, shared */
 
-// TODO: move to shared
+
+function updateSelectionGroupCount() {
+  $('#root-content-items [selected] [href="#action-icon-users"]').parent().next().html($('#selection-groups ul.admin-panel-content li').length);
+}
+
 function selectionGroupAddClickHandler() {
   new dialog.AddSelectionGroupDialog(shared.post(
     'ContentAccessAdmin/CreateSelectionGroup',
     'Selection group successfully created.',
-    renderSelectionGroup
+    renderSelectionGroup,
+    updateSelectionGroupCount
   )).open();
 }
 
@@ -16,7 +21,8 @@ function selectionGroupDeleteClickHandler() {
     function (response) {
       $('#selection-groups ul.admin-panel-content').empty();
       renderSelectionGroupList(response);
-    }
+    },
+    updateSelectionGroupCount
   )).open();
 }
 
