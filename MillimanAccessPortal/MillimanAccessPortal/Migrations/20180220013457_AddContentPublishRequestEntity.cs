@@ -5,14 +5,10 @@ using System.Collections.Generic;
 
 namespace MillimanAccessPortal.Migrations
 {
-    public partial class AddContentPublishingRequestEntity : Migration
+    public partial class AddContentPublishRequestEntity : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "CreateDateTime",
-                table: "ContentReductionTask");
-
             migrationBuilder.DropColumn(
                 name: "ResultHierarchy",
                 table: "ContentReductionTask");
@@ -20,7 +16,12 @@ namespace MillimanAccessPortal.Migrations
             migrationBuilder.RenameColumn(
                 name: "ResultReducedContentFile",
                 table: "ContentReductionTask",
-                newName: "ResultContentFile");
+                newName: "ResultFilePath");
+
+            migrationBuilder.RenameColumn(
+                name: "MasterContentFile",
+                table: "ContentReductionTask",
+                newName: "MasterFilePath");
 
             migrationBuilder.AddColumn<long>(
                 name: "ContentPublicationRequestId",
@@ -42,6 +43,7 @@ namespace MillimanAccessPortal.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
                     ApplicationUserId = table.Column<long>(nullable: false),
                     CreateDateTime = table.Column<DateTimeOffset>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    MasterFilePath = table.Column<string>(nullable: false),
                     ResultHierarchy = table.Column<string>(type: "jsonb", nullable: true),
                     RootContentItemId = table.Column<long>(nullable: false)
                 },
@@ -129,15 +131,14 @@ namespace MillimanAccessPortal.Migrations
                 table: "ContentReductionTask");
 
             migrationBuilder.RenameColumn(
-                name: "ResultContentFile",
+                name: "ResultFilePath",
                 table: "ContentReductionTask",
                 newName: "ResultReducedContentFile");
 
-            migrationBuilder.AddColumn<DateTimeOffset>(
-                name: "CreateDateTime",
+            migrationBuilder.RenameColumn(
+                name: "MasterFilePath",
                 table: "ContentReductionTask",
-                nullable: false,
-                defaultValueSql: "CURRENT_TIMESTAMP");
+                newName: "MasterContentFile");
 
             migrationBuilder.AddColumn<string>(
                 name: "ResultHierarchy",

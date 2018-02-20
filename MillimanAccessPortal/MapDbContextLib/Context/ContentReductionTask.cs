@@ -16,6 +16,7 @@ namespace MapDbContextLib.Context
     public class ContentReductionTask
     {
         [Key]
+        // Default value is enforced in ApplicationDbContext.OnModelCreating()
         public Guid Id { get; set; }
 
         [ForeignKey("ContentPublicationRequest")]
@@ -27,6 +28,10 @@ namespace MapDbContextLib.Context
         public SelectionGroup SelectionGroup { get; set; }
 
         [Required]
+        // Default value is enforced in ApplicationDbContext.OnModelCreating()
+        public DateTimeOffset CreateDateTime { get; set; }
+
+        [Required]
         public string Status { get; set; }
 
         /// <summary>
@@ -34,12 +39,12 @@ namespace MapDbContextLib.Context
         /// May be different from master file in ContentPublicationRequest
         /// </summary>
         [Required]
-        public string MasterContentFile { get; set; }
+        public string MasterFilePath { get; set; }
 
         /// <summary>
         /// null if reduction not requested.  Path must be accessible to MAP application and reduction server
         /// </summary>
-        public string ResultContentFile { get; set; }
+        public string ResultFilePath { get; set; }
 
         [Column(TypeName ="jsonb")]
         public string SelectionCriteria { get; set; }

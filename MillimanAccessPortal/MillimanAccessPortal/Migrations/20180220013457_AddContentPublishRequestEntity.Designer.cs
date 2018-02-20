@@ -12,8 +12,8 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20180219214557_AddContentPublishingRequestEntity")]
-    partial class AddContentPublishingRequestEntity
+    [Migration("20180220013457_AddContentPublishRequestEntity")]
+    partial class AddContentPublishRequestEntity
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -75,6 +75,9 @@ namespace MillimanAccessPortal.Migrations
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+                    b.Property<string>("MasterFilePath")
+                        .IsRequired();
+
                     b.Property<string>("ResultHierarchy")
                         .HasColumnType("jsonb");
 
@@ -97,10 +100,14 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<long>("ContentPublicationRequestId");
 
-                    b.Property<string>("MasterContentFile")
+                    b.Property<DateTimeOffset>("CreateDateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("MasterFilePath")
                         .IsRequired();
 
-                    b.Property<string>("ResultContentFile");
+                    b.Property<string>("ResultFilePath");
 
                     b.Property<string>("SelectionCriteria")
                         .HasColumnType("jsonb");

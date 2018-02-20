@@ -6,8 +6,24 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 using MapDbContextLib.Context;
 using MillimanAccessPortal.DataQueries;
+using AuditLogLib;
+using AuditLogLib.Services;
+using Newtonsoft.Json;
+
+
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using System.Security.Claims;
+using MapDbContextLib.Identity;
+using MapCommonLib;
+
+
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -15,14 +31,20 @@ namespace MillimanAccessPortal.Controllers
     {
         private ApplicationDbContext DbContext;
         private StandardQueries DbQueries;
+        private ILogger AppLogger;
+        private IAuditLogger AuditLogger;
 
         public ContentPublishingController(
             ApplicationDbContext ContextArg,
-            StandardQueries DbQueriesArg
+            StandardQueries DbQueriesArg,
+            ILoggerFactory LoggerFactoryArg,
+            IAuditLogger AuditLoggerArg
             )
         {
             DbContext = ContextArg;
             DbQueries = DbQueriesArg;
+            AppLogger = LoggerFactoryArg.CreateLogger<ContentPublishingController>(); ;
+            AuditLogger = AuditLoggerArg;
         }
 
         public IActionResult Index()
@@ -42,11 +64,10 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
+            // TODO
             #endregion
 
             #region Validation
-            #endregion
-
             int ExistingTaskCountForRootContent = DbContext.ContentReductionTask
                                                            .Include(t => t.ContentPublicationRequest)
                                                            .Where(t => t.ContentPublicationRequest.RootContentItemId == RootContentId)
@@ -54,26 +75,48 @@ namespace MillimanAccessPortal.Controllers
                                                            .Count();
             if (ExistingTaskCountForRootContent > 0)
             {
-                Response.Headers.Add("Warning", "Requested content item not found.");
+                Response.Headers.Add("Warning", "Tasks are already pending for this content item.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            ContentPublicationRequest NewPubRequest = new ContentPublicationRequest { ApplicationUser = await DbQueries.GetCurrentApplicationUser(User), RootContentItemId = RootContentId };
+            // Virus checking here?
 
-            List<ContentReductionTask> NewTasks = new List<ContentReductionTask>();
-            foreach (SelectionGroup SelGrp in DbContext.SelectionGroup.Where(sg => sg.RootContentItemId == RootContentId))
+            // more?
+            #endregion
+
+            try
             {
-                NewTasks.Add(new ContentReductionTask { SelectionGroupId=SelGrp.Id, MasterContentFile="Generate this", ResultContentFile="ThisOutputFile", })
+                using (IDbContextTransaction Transaction = DbContext.Database.BeginTransaction())
+                {
+                    ContentPublicationRequest NewPubRequest = new ContentPublicationRequest { ApplicationUser = await DbQueries.GetCurrentApplicationUser(User),
+                                                                                              RootContentItemId = RootContentId,
+                                                                                              MasterFilePath = "ThisInputFile"};
+                    DbContext.ContentPublicationRequest.Add(NewPubRequest);
+                    DbContext.SaveChanges();
+
+                    foreach (SelectionGroup SelGrp in DbContext.SelectionGroup.Where(sg => sg.RootContentItemId == RootContentId).ToList())
+                    {
+                        string SelectionCriteriaString = JsonConvert.SerializeObject(DbQueries.GetFieldSelectionsForSelectionGroup(SelGrp.Id), Formatting.Indented);
+                        var NewTask = new ContentReductionTask
+                        {
+                            SelectionGroupId = SelGrp.Id,
+                            MasterFilePath = "ThisInputFile",
+                            ResultFilePath = "ThisOutputFile",
+                            ContentPublicationRequest = NewPubRequest,
+                            SelectionCriteria = SelectionCriteriaString,
+                            Status = "New"
+                        };
+
+                        DbContext.ContentReductionTask.Add(NewTask);
+                    }
+
+                    DbContext.SaveChanges();
+                    Transaction.Commit();
+                }
             }
-
-            using (IDbContextTransaction Transaction = DbContext.Database.BeginTransaction())
+            catch (Exception e)
             {
-                DbContext.ContentPublicationRequest.Add(NewPubRequest);
-                DbContext.SaveChanges();
-
-                                                                                  
-
-                Transaction.Commit();
+                AppLogger.LogError(e.Message);
             }
 
             return Json(new object());

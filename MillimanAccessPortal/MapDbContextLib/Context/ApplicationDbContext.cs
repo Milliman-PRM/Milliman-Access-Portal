@@ -48,6 +48,10 @@ namespace MapDbContextLib.Context
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             builder.Entity<ContentReductionTask>()
+                .Property(b => b.CreateDateTime)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            builder.Entity<ContentReductionTask>()
                 .Property(b => b.Id)
                 .HasDefaultValueSql("uuid_generate_v4()");
 

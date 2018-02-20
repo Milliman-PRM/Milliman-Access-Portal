@@ -26,6 +26,9 @@ namespace MapDbContextLib.Context
         public long ApplicationUserId { get; set; }
         public ApplicationUser ApplicationUser { get; set; }
 
+        [Required]
+        public string MasterFilePath { get; set; }
+
         [Column(TypeName = "jsonb")]
         public string ResultHierarchy { get; set; }
 
