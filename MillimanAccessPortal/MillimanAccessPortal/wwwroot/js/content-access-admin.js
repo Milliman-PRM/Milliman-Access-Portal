@@ -1,7 +1,7 @@
 /* global card, dialog, shared */
 
 // TODO: move to shared
-function selectionGroupClickHandler() {
+function selectionGroupAddClickHandler() {
   new dialog.AddSelectionGroupDialog(shared.post(
     'ContentAccessAdmin/CreateSelectionGroup',
     'Selection group successfully created.',
@@ -26,7 +26,7 @@ function renderSelectionGroupList(response, selectionGroupId) {
   $selectionGroupList.find('.tooltip').tooltipster();
 
   $('#selection-groups .admin-panel-action-icons-container .action-icon-add')
-    .click(selectionGroupClickHandler);
+    .click(selectionGroupAddClickHandler);
 
   if (selectionGroupId) {
     $('[data-selection-group-id="' + selectionGroupId + '"]').click();
@@ -106,7 +106,7 @@ $(document).ready(function () {
   $('.action-icon-collapse').click(shared.collapseAll.listener);
   $('.admin-panel-searchbar').keyup(shared.filterTree.listener);
 
-  $('#selection-groups ul.admin-panel-content-action').append(new card.AddSelectionGroupActionCard(selectionGroupClickHandler).build());
+  $('#selection-groups ul.admin-panel-content-action').append(new card.AddSelectionGroupActionCard(selectionGroupAddClickHandler).build());
 
   $('.tooltip').tooltipster();
 });
