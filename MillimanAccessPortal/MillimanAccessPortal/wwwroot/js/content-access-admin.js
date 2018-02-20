@@ -12,7 +12,11 @@ function selectionGroupAddClickHandler() {
 function selectionGroupDeleteClickHandler() {
   new dialog.DeleteSelectionGroupDialog($(this).closest('.card-container'), shared.delete(
     'ContentAccessAdmin/DeleteSelectionGroup',
-    'Selection group successfully deleted.'
+    'Selection group successfully deleted.',
+    function (response) {
+      $('#selection-groups ul.admin-panel-content').empty();
+      renderSelectionGroupList(response);
+    }
   )).open();
 }
 
