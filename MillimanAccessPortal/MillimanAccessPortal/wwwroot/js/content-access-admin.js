@@ -4,7 +4,8 @@
 function selectionGroupClickHandler() {
   new dialog.AddSelectionGroupDialog(shared.post(
     'ContentAccessAdmin/CreateSelectionGroup',
-    'Selection group successfully created.'
+    'Selection group successfully created.',
+    renderSelectionGroup
   )).open();
 }
 
@@ -22,7 +23,6 @@ function renderSelectionGroupList(response, selectionGroupId) {
   var $selectionGroupList = $('#selection-groups ul.admin-panel-content');
   $selectionGroupList.empty();
   response.SelectionGroupList.forEach(renderSelectionGroup);
-  $selectionGroupList.append(new card.AddSelectionGroupActionCard(selectionGroupClickHandler).build());
   $selectionGroupList.find('.tooltip').tooltipster();
 
   $('#selection-groups .admin-panel-action-icons-container .action-icon-add')
@@ -105,6 +105,8 @@ $(document).ready(function () {
   $('.action-icon-expand').click(shared.expandAll.listener);
   $('.action-icon-collapse').click(shared.collapseAll.listener);
   $('.admin-panel-searchbar').keyup(shared.filterTree.listener);
+
+  $('#selection-groups ul.admin-panel-content-action').append(new card.AddSelectionGroupActionCard(selectionGroupClickHandler).build());
 
   $('.tooltip').tooltipster();
 });
