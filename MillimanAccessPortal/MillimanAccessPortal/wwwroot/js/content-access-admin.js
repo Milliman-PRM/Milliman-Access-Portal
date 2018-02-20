@@ -9,12 +9,19 @@ function selectionGroupAddClickHandler() {
   )).open();
 }
 
+function selectionGroupDeleteClickHandler() {
+  new dialog.DeleteSelectionGroupDialog($(this).closest('.card-container'), shared.delete(
+    'ContentAccessAdmin/DeleteSelectionGroup',
+    'Selection group successfully deleted.'
+  )).open();
+}
+
 function renderSelectionGroup(selectionGroup) {
   var $card = new card.SelectionGroupCard(
     selectionGroup.SelectionGroupEntity,
     selectionGroup.MemberList,
     function () { console.log('Selection group clicked.'); },
-    function () { console.log('Delete group button clicked.'); },
+    selectionGroupDeleteClickHandler,
     function () { console.log('Add/remove user button clicked.'); }
   );
   $('#selection-groups ul.admin-panel-content').append($card.build());
