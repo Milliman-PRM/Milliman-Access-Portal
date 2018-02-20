@@ -1,7 +1,6 @@
 /* global shared, dialog, card */
 
 var ajaxStatus = {};
-var smallSpinner = '<div class="spinner-small"></div>';
 var eligibleUsers;
 var SHOW_DURATION = 50;
 
@@ -63,18 +62,6 @@ function setClientFormWriteable() {
     this.selectize.enable();
   });
   $clientForm.find('#Name').focus();
-}
-
-// TODO: move to shared
-function setButtonSubmitting($button, text) {
-  $button.attr('data-original-text', $button.html());
-  $button.html(text || 'Submitting');
-  $button.append(smallSpinner);
-}
-
-// TODO: move to shared
-function unsetButtonSubmitting($button) {
-  $button.html($button.attr('data-original-text'));
 }
 
 

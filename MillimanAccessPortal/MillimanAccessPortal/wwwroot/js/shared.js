@@ -182,13 +182,13 @@ var shared = {};
     };
   };
 
-  // TODO: write a wrapper for this similar to wrapCardCallback but for buttons
   set = function (method, url, successMessage) {
     var callbacks = Array.prototype.slice.call(arguments, 3);
-    return function (data, onResponse) {
+    return function (data, buttonText, onResponse) {
       if (ajaxStatus[url]) {
         return; // TODO: do something when a request has already been sent
       }
+      shared.showButtonSpinner($('.vex-first').attr('disabled', ''), buttonText);
       ajaxStatus[url] = true;
       $.ajax({
         type: method,
@@ -216,6 +216,16 @@ var shared = {};
   shared.put = set.bind(this, 'PUT');
   shared.post = set.bind(this, 'POST');
   shared.delete = set.bind(this, 'DELETE');
+
+  shared.showButtonSpinner = function ($button, text) {
+    $button.data('original-text', $button.html());
+    $button.html(text || 'Submitting');
+    $button.append('<div class="spinner-small"></div>');
+  };
+
+  shared.hideButtonSpinner = function ($button) {
+    $button.html($button.data('original-text'));
+  };
 
   // Typeahead
   shared.userSubstringMatcher = function (users) {

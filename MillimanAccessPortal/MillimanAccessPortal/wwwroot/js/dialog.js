@@ -18,6 +18,7 @@ var dialog = {};
     title, message, buttons, color, input,
     callback, submitHandler
   ) {
+    var self = this;
     this.title = title;
     this.color = color;
     this.options = {
@@ -31,17 +32,17 @@ var dialog = {};
     if (submitHandler) {
       this.options = $.extend(this.options, {
         onSubmit: function (event) {
-          var self = this;
+          var vexObject = this;
           var data;
           event.preventDefault();
-          if (this.options.input) {
+          if (self.options.input) {
             data = {};
             $.each($('.vex-dialog-input input').serializeArray(), function (i, obj) {
               data[obj.name] = obj.value;
             });
           }
-          return submitHandler(data, function () {
-            self.close();
+          return submitHandler(data, self.buttonText, function () {
+            vexObject.close();
           });
         }
       });
@@ -107,6 +108,7 @@ var dialog = {};
   ResetConfirmationDialog.prototype.constructor = ResetConfirmationDialog;
 
   RemoveUserDialog = function (username, submitHandler) {
+    this.buttonText = 'Removing';
     Dialog.call(
       this,
       'Remove User',
@@ -138,6 +140,7 @@ var dialog = {};
       null,
       submitHandler
     );
+    this.buttonText = 'Deleting';
   };
   DeleteSelectionGroupDialog.prototype = Object.create(Dialog.prototype);
   DeleteSelectionGroupDialog.prototype.constructor = DeleteSelectionGroupDialog;
