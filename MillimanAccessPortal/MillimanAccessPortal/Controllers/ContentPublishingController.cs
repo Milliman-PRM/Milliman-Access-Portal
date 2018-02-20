@@ -14,17 +14,6 @@ using AuditLogLib.Services;
 using Newtonsoft.Json;
 
 
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using System.Security.Claims;
-using MapDbContextLib.Identity;
-using MapCommonLib;
-
-
-
 namespace MillimanAccessPortal.Controllers
 {
     public class ContentPublishingController : Controller
@@ -99,6 +88,7 @@ namespace MillimanAccessPortal.Controllers
                         string SelectionCriteriaString = JsonConvert.SerializeObject(DbQueries.GetFieldSelectionsForSelectionGroup(SelGrp.Id), Formatting.Indented);
                         var NewTask = new ContentReductionTask
                         {
+                            ApplicationUser = await DbQueries.GetCurrentApplicationUser(User),
                             SelectionGroupId = SelGrp.Id,
                             MasterFilePath = "ThisInputFile",
                             ResultFilePath = "ThisOutputFile",
