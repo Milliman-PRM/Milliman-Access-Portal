@@ -14,14 +14,15 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
     public class ContentAccessAdminSelectionGroupDetailViewModel
     {
+        public SelectionGroup SelectionGroupEntity { get; set; }
         public List<ContentAccessAdminUserInfoViewModel> MemberList { get; set; } = new List<ContentAccessAdminUserInfoViewModel>();
-        public string Name { get; set; }
 
         internal static ContentAccessAdminSelectionGroupDetailViewModel Build(ApplicationDbContext DbContext, SelectionGroup SelectionGroup)
         {
-            ContentAccessAdminSelectionGroupDetailViewModel Model = new ContentAccessAdminSelectionGroupDetailViewModel();
-
-            Model.Name = SelectionGroup.GroupName;
+            ContentAccessAdminSelectionGroupDetailViewModel Model = new ContentAccessAdminSelectionGroupDetailViewModel
+            {
+                SelectionGroupEntity = SelectionGroup
+            };
 
             // Retrieve users that are members of the specified selection group
             List<ApplicationUser> MemberClients = DbContext.UserInSelectionGroup

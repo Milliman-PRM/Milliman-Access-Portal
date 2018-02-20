@@ -111,15 +111,17 @@
     }
 
     .card-stats-container {
+        display: flex;
+        flex-flow: column nowrap;
         margin: -0.25em;
 
         .card-stat-container {
+            flex: 1 0 auto;
             display: flex;
             flex-flow: row nowrap;
             align-items: center;
             margin: 0;
             padding: .25em 0;
-            height: 50%;
             min-width: 6.5em;
             background-color: $charcoal;
             color: $white;
@@ -179,6 +181,7 @@
             width: 1.25em;
         }
 
+        &.card-button-red,
         &.card-button-delete,
         &.card-button-remove-user,
         &.card-button-close {
@@ -189,6 +192,7 @@
             }
         }
 
+        &.card-button-blue,
         &.card-button-edit,
         &.card-button-options,
         &.card-button-expansion {
@@ -199,6 +203,7 @@
             }
         }
 
+        &.card-button-green,
         &.card-button-new-child {
             background-color: $green;
 
@@ -263,7 +268,7 @@
 }
 
 .action-card,
-.client-insert {
+.insert-card {
     .card-body-primary-text {
         display: flex;
         align-items: center;
