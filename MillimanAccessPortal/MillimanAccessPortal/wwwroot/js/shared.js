@@ -184,7 +184,7 @@ var shared = {};
 
   // TODO: write a wrapper for this similar to wrapCardCallback but for buttons
   set = function (method, url, successMessage) {
-    var callbacks = Array.prototype.slice.call(arguments, 1);
+    var callbacks = Array.prototype.slice.call(arguments, 3);
     return function (data, onResponse) {
       if (ajaxStatus[url]) {
         return; // TODO: do something when a request has already been sent

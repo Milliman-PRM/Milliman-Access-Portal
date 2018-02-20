@@ -446,20 +446,20 @@ function saveNewUser(username, email, callback) {
 function addUserClickHandler() {
   new dialog.AddUserDialog(
     eligibleUsers,
-    function (user, callback) {
+    function (data, callback) {
       var singleMatch = 0;
-      shared.userSubstringMatcher(eligibleUsers)(user, function (matches) {
+      shared.userSubstringMatcher(eligibleUsers)(data.username, function (matches) {
         singleMatch = matches.length;
       });
       if (singleMatch) {
         setButtonSubmitting($('.vex-first'), 'Adding');
         $('.vex-dialog-button').attr('disabled', '');
-        saveNewUser(user, null, callback);
-      } else if (emailValRegex.test(user)) {
+        saveNewUser(data.username, null, callback);
+      } else if (emailValRegex.test(data.username)) {
         setButtonSubmitting($('.vex-first'), 'Adding');
         $('.vex-dialog-button').attr('disabled', '');
-        saveNewUser(null, user, callback);
-      } else if (user) {
+        saveNewUser(null, data.username, callback);
+      } else if (data.username) {
         toastr.warning('Please provide a valid email address');
         return false;
       }

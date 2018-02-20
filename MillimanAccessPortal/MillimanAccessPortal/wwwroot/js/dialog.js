@@ -11,6 +11,7 @@ var dialog = {};
   var PasswordDialog;
   var DeleteClientDialog;
   var AddUserDialog;
+  var AddSelectionGroupDialog;
 
   Dialog = function (
     title, message, buttons, color, input,
@@ -30,11 +31,15 @@ var dialog = {};
       this.options = $.extend(this.options, {
         onSubmit: function (event) {
           var self = this;
+          var data;
           event.preventDefault();
           if (this.options.input) {
-            this.value = $('.vex-dialog-input input').last().val();
+            data = {};
+            $.each($('.vex-dialog-input input').serializeArray(), function (i, obj) {
+              data[obj.name] = obj.value;
+            });
           }
-          return submitHandler(this.value, function () {
+          return submitHandler(data, function () {
             self.close();
           });
         }
@@ -214,10 +219,32 @@ var dialog = {};
   AddUserDialog.prototype = Object.create(Dialog.prototype);
   AddUserDialog.prototype.constructor = AddUserDialog;
 
+  AddSelectionGroupDialog = function (submitHandler) {
+    Dialog.call(
+      this,
+      'Add Selection Group',
+      'Please enter the selection group name',
+      [
+        { type: vex.dialog.buttons.yes, text: 'Add Group' },
+        { type: vex.dialog.buttons.no, text: 'Cancel' }
+      ],
+      'blue',
+      [
+        '<input name="RootContentItemId" type="hidden" value="' + $('#root-content-items [selected]').data('root-content-item-id') + '">',
+        '<input name="SelectionGroupName" required />'
+      ].join(''),
+      null,
+      submitHandler
+    );
+  };
+  AddSelectionGroupDialog.prototype = Object.create(Dialog.prototype);
+  AddSelectionGroupDialog.prototype.constructor = AddSelectionGroupDialog;
+
 
   dialog.DiscardConfirmationDialog = DiscardConfirmationDialog;
   dialog.ResetConfirmationDialog = ResetConfirmationDialog;
   dialog.RemoveUserDialog = RemoveUserDialog;
   dialog.DeleteClientDialog = DeleteClientDialog;
   dialog.AddUserDialog = AddUserDialog;
+  dialog.AddSelectionGroupDialog = AddSelectionGroupDialog;
 }());

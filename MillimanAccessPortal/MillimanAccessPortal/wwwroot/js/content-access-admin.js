@@ -1,4 +1,12 @@
-/* global card, shared */
+/* global card, dialog, shared */
+
+// TODO: move to shared
+function selectionGroupClickHandler() {
+  new dialog.AddSelectionGroupDialog(shared.post(
+    'ContentAccessAdmin/CreateSelectionGroup',
+    'Selection group successfully created.'
+  )).open();
+}
 
 function renderSelectionGroup(selectionGroup) {
   var $card = new card.SelectionGroupCard(
@@ -14,8 +22,11 @@ function renderSelectionGroupList(response, selectionGroupId) {
   var $selectionGroupList = $('#selection-groups ul.admin-panel-content');
   $selectionGroupList.empty();
   response.SelectionGroupList.forEach(renderSelectionGroup);
-  $selectionGroupList.append(new card.AddSelectionGroupActionCard().build());
+  $selectionGroupList.append(new card.AddSelectionGroupActionCard(selectionGroupClickHandler).build());
   $selectionGroupList.find('.tooltip').tooltipster();
+
+  $('#selection-groups .admin-panel-action-icons-container .action-icon-add')
+    .click(selectionGroupClickHandler);
 
   if (selectionGroupId) {
     $('[data-selection-group-id="' + selectionGroupId + '"]').click();
