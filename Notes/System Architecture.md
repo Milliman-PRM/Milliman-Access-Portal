@@ -41,9 +41,7 @@ We will utilize multiple Azure products to build the production environment. Mos
 
 * **Availability Sets** - Management layer for VMs to keep them isolated within the data center. Makes the VMs more resilient to power, hardware, and network failures within the data center.
 
-* **Virtual Machines**
-
-* **Azure File Storage** - Maintain a mountable share to store QlikView reports and other content. Enables us to utilize QlikView's clustering capabilities.
+* **Virtual Machines** - 2 for QlikView Server, 2 for QlikView Publisher, 1 as a standalone file server
 
 * **Load Balancer** - Distribute HTTPS requests to QlikView-related VMs. Ensures traffic is balanced when multiple VMs are available and maintains connectivity when one or more VMs is offline.
 
