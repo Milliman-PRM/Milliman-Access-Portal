@@ -106,6 +106,7 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception e)
             {
+                string ErrMsg = "";
                 while (e != null)
                 {
                     ErrMsg += $"\r\n{e.Message}";
@@ -170,6 +171,7 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception e)
             {
+                string ErrMsg = "";
                 while (e != null)
                 {
                     ErrMsg += $"\r\n{e.Message}";

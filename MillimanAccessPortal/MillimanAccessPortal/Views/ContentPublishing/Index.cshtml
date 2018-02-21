@@ -34,10 +34,8 @@
     </div>
 </div>
 
-<button value="1" onclick="test1(value);">Publish request 1</button>
-<button value="2" onclick="test1(value);">Publish request 2</button>
-<button value="1" onclick="test2(value);">Selection request 1</button>
-<button value="2" onclick="test2(value);">Selection request 2</button>
+<button onclick="test1($('#pubNum').val());">Publish request</button><input id="pubNum" type="number" /><br />
+<button onclick="test2($('#selNum').val());">Selection request</button><input id="selNum" type="number" /><br />
 <script type="text/javascript">
     function test1(Value) {
         $.ajax({
@@ -56,6 +54,8 @@
             toastr.warning(response.getResponseHeader('Warning'));
         });
     }
+</script>
+<script type="text/javascript">
     function test2(Value) {
         $.ajax({
             type: 'POST',
