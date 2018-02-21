@@ -54,14 +54,17 @@ namespace MillimanAccessPortal
 
             string appConnectionString = Configuration.GetConnectionString("DefaultConnection");
 
-            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").StartsWith("Azure"))
+            switch (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"))
             {
-                // Modify connection strings in Azure CI to point to the correct database name
-                string branchName = Environment.GetEnvironmentVariable("BranchName");
-                string appDbName = $"appdb_{branchName}";
-                Npgsql.NpgsqlConnectionStringBuilder appConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(appConnectionString);
-                appConnBuilder.Database = appDbName;
-                appConnectionString = appConnBuilder.ConnectionString;
+                case "AzureCI":
+                case "AzureProduction":
+                    // Modify connection strings in Azure CI to point to the correct database name
+                    string branchName = Environment.GetEnvironmentVariable("BranchName");
+                    string appDbName = $"appdb_{branchName}";
+                    Npgsql.NpgsqlConnectionStringBuilder appConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(appConnectionString);
+                    appConnBuilder.Database = appDbName;
+                    appConnectionString = appConnBuilder.ConnectionString;
+                    break;
             }
 
             // Add framework services.
@@ -137,7 +140,7 @@ namespace MillimanAccessPortal
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, ApplicationDbContext db)
         {
-            if (env.EnvironmentName == "AzureCI" || env.EnvironmentName == "Production")
+            if (env.EnvironmentName == "AzureCI" || env.EnvironmentName == "AzureProduction")
             {
                 db.Database.Migrate(); // Perform any unapplied migrations
             }
@@ -187,13 +190,16 @@ namespace MillimanAccessPortal
             #region Configure Audit Logger connection string (environment-dependent)
             string auditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString");
 
-            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").StartsWith("Azure"))
+            switch (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"))
             {
-                string branchName = Environment.GetEnvironmentVariable("BranchName");
-                string logDbName = $"auditlogdb_{branchName}";
-                Npgsql.NpgsqlConnectionStringBuilder logConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString);
-                logConnBuilder.Database = logDbName;
-                auditLogConnectionString = logConnBuilder.ConnectionString;
+                case "AzureCI":
+                case "AzureProduction":
+                    string branchName = Environment.GetEnvironmentVariable("BranchName");
+                    string logDbName = $"auditlogdb_{branchName}";
+                    Npgsql.NpgsqlConnectionStringBuilder logConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString);
+                    logConnBuilder.Database = logDbName;
+                    auditLogConnectionString = logConnBuilder.ConnectionString;
+                    break;
             }
             
             AuditLogger.Config = new AuditLoggerConfiguration

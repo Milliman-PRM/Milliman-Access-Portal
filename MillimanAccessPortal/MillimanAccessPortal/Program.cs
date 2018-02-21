@@ -62,29 +62,30 @@ namespace MillimanAccessPortal
                     ;
 
                     #region Configure Azure Key Vault for CI & Production
-                    if (hostContext.HostingEnvironment.EnvironmentName.StartsWith("Azure"))
+                    switch (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"))
                     {
-                        config.AddJsonFile($"AzureKeyVault.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true);
+                        case "AzureCI":
+                        case "AzureProduction":
+                            config.AddJsonFile($"AzureKeyVault.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true);
 
-                        var builtConfig = config.Build();
+                            var builtConfig = config.Build();
                         
-                        var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-                        store.Open(OpenFlags.ReadOnly);
-                        var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
+                            var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+                            store.Open(OpenFlags.ReadOnly);
+                            var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
 
-                        config.AddAzureKeyVault(
-                            builtConfig["AzureVaultName"],
-                            builtConfig["AzureClientID"],
-                            cert.OfType<X509Certificate2>().Single()
-                            );
+                            config.AddAzureKeyVault(
+                                builtConfig["AzureVaultName"],
+                                builtConfig["AzureClientID"],
+                                cert.OfType<X509Certificate2>().Single()
+                                );
+                            break;
+                        default:
+                            config.AddUserSecrets<Startup>();
+                            break;
                         
                     }
                     #endregion
-
-                    if (hostContext.HostingEnvironment.IsDevelopment())
-                    {
-                        config.AddUserSecrets<Startup>();
-                    }
                 })
             .UseApplicationInsights()    
             .Build();

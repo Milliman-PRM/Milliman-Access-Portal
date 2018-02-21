@@ -84,35 +84,39 @@ namespace AuditLogLib
             string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             string auditLogConnectionString;
 
-            if (environmentName.StartsWith("Azure"))
+            var built = configurationBuilder.Build();
+
+            switch (environmentName)
             {
-                configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
-                var built = configurationBuilder.Build();
-                var store = new X509Store(StoreLocation.LocalMachine);
-                store.Open(OpenFlags.ReadOnly);
-                var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
+                case "AzureCI":
+                case "AzureProduction":
+                    configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
+                    built = configurationBuilder.Build();
+                    var store = new X509Store(StoreLocation.LocalMachine);
+                    store.Open(OpenFlags.ReadOnly);
+                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
 
-                configurationBuilder.AddAzureKeyVault(
-                    built["AzureVaultName"],
-                    built["AzureClientID"],
-                    cert.OfType<X509Certificate2>().Single());
+                    configurationBuilder.AddAzureKeyVault(
+                        built["AzureVaultName"],
+                        built["AzureClientID"],
+                        cert.OfType<X509Certificate2>().Single());
 
-                built = configurationBuilder.Build();
+                    built = configurationBuilder.Build();
 
-                string branchName = Environment.GetEnvironmentVariable("BranchName");
-                string logDbName = $"auditlogdb_{branchName}";
-                Npgsql.NpgsqlConnectionStringBuilder logConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(built.GetConnectionString(ConnectionStringName));
-                logConnBuilder.Database = logDbName;
-                auditLogConnectionString = logConnBuilder.ConnectionString;
+                    string branchName = Environment.GetEnvironmentVariable("BranchName");
+                    string logDbName = $"auditlogdb_{branchName}";
+                    Npgsql.NpgsqlConnectionStringBuilder logConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(built.GetConnectionString(ConnectionStringName));
+                    logConnBuilder.Database = logDbName;
+                    auditLogConnectionString = logConnBuilder.ConnectionString;
+                    break;
+                default:
+                    configurationBuilder.AddUserSecrets<AuditLogDbContext>();
+                    built = configurationBuilder.Build();
+
+                    auditLogConnectionString = built.GetConnectionString(ConnectionStringName);
+                    break;
             }
-            else
-            {
-                configurationBuilder.AddUserSecrets<AuditLogDbContext>();
-                var built = configurationBuilder.Build();
-
-                auditLogConnectionString = built.GetConnectionString(ConnectionStringName);
-            }
-                        
+      
             return auditLogConnectionString;
         }
 
