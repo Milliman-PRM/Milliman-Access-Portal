@@ -1,0 +1,2 @@
+[config]
+command = powershell.exe -file .\Publish\Deploy_Azure.ps1

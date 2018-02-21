@@ -1,4 +1,11 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Tom Puckett, Ben Wyatt
+ * OBJECTIVE: <What and WHY.>
+ * DEVELOPER NOTES: This project manages its own migrations and database updates.  
+ *                  The dotnet command must be run from this project folder.
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -40,7 +47,22 @@ namespace AuditLogLib
 
         protected AuditLogDbContext(DbContextOptions<AuditLogDbContext> options)
             : base(options)
-        { }
+        {
+            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+            switch (EnvironmentName)
+            {
+                case "AzureCI":
+                case "AzureProduction":
+                    Database.Migrate(); // Run migrations when the logger is instantiated
+                    break;
+
+                case "Development":
+                default:
+                    // nothing
+                    break;
+            }
+        }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -75,15 +97,16 @@ namespace AuditLogLib
         {
             var configurationBuilder = new ConfigurationBuilder();
             string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            string auditLogConnectionString;
 
-            // Determine location to fetch the connection string
+            var built = configurationBuilder.Build();
+
             switch (environmentName)
             {
-                case "Production": // Get connection string from Azure Key Vault for Production
-                    configurationBuilder.AddJsonFile(path: "AzureKeyVault.Production.json", optional: false);
-
-                    var built = configurationBuilder.Build();
-
+                case "AzureCI":
+                case "AzureProduction":
+                    configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
+                    built = configurationBuilder.Build();
                     var store = new X509Store(StoreLocation.LocalMachine);
                     store.Open(OpenFlags.ReadOnly);
                     var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
@@ -92,23 +115,28 @@ namespace AuditLogLib
                         built["AzureVaultName"],
                         built["AzureClientID"],
                         cert.OfType<X509Certificate2>().Single());
+
+                    built = configurationBuilder.Build();
+
+                    string branchName = Environment.GetEnvironmentVariable("BranchName");
+                    string logDbName = $"auditlogdb_{branchName}";
+                    Npgsql.NpgsqlConnectionStringBuilder logConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(built.GetConnectionString(ConnectionStringName));
+                    logConnBuilder.Database = logDbName;
+                    auditLogConnectionString = logConnBuilder.ConnectionString;
                     break;
 
-                case "CI":// Get connection string from local JSON in CI
-                    configurationBuilder.AddJsonFile(path: "ConnectionStrings.CI.json", optional: false);
-                    break;
-
-                case "Development": // Get connection string from user secrets in Development
+                case "Development":
                     configurationBuilder.AddUserSecrets<AuditLogDbContext>();
+                    built = configurationBuilder.Build();
+
+                    auditLogConnectionString = built.GetConnectionString(ConnectionStringName);
                     break;
 
-                default: // Unsupported environment name
-                    throw new InvalidOperationException($"Current environment name ({environmentName}) is not configured for AuditLogLib migrations");
+                default: // Unsupported environment name	
+                    throw new InvalidOperationException($"Current environment name ({environmentName}) is not supported for AuditLogLib migrations");
             }
 
-            var configuration = configurationBuilder.Build();
-            
-            return configuration.GetConnectionString(ConnectionStringName);
+            return auditLogConnectionString;
         }
 
     }

@@ -50,10 +50,36 @@ namespace MillimanAccessPortal
                 options.Filters.Add(new RequireHttpsAttribute());
             });
 
+            #region Configure application connection string (environment-dependent)
+
+            string appConnectionString = Configuration.GetConnectionString("DefaultConnection");
+            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+            switch (EnvironmentName)
+            {
+                case "AzureCI":
+                case "AzureProduction":
+                    // Modify connection strings in Azure CI to point to the correct database name
+                    string branchName = Environment.GetEnvironmentVariable("BranchName");
+                    string appDbName = $"appdb_{branchName}";
+                    Npgsql.NpgsqlConnectionStringBuilder appConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(appConnectionString);
+                    appConnBuilder.Database = appDbName;
+                    appConnectionString = appConnBuilder.ConnectionString;
+                    break;
+
+                case "Development":
+                    break;
+
+                default: // Unsupported environment name	
+                    throw new InvalidOperationException($"Current environment name ({EnvironmentName}) is not supported in Startup.cs");
+
+            }
+
             // Add framework services.
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("MillimanAccessPortal")));
-
+                options.UseNpgsql(appConnectionString, b => b.MigrationsAssembly("MillimanAccessPortal")));
+            #endregion
+            
             // Do not add AuditLogDbContext.  This context should be protected from direct access.  Use the api class instead.  -TP
 
             services.AddIdentity<ApplicationUser, ApplicationRole>()
@@ -120,8 +146,13 @@ namespace MillimanAccessPortal
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, ApplicationDbContext db)
         {
+            if (env.EnvironmentName == "AzureCI" || env.EnvironmentName == "AzureProduction")
+            {
+                db.Database.Migrate(); // Perform any unapplied migrations
+            }
+
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
@@ -164,11 +195,35 @@ namespace MillimanAccessPortal
                 SmtpFromName = Configuration.GetValue<string>("SmtpFromName")
             });
 
+            #region Configure Audit Logger connection string (environment-dependent)
+            string auditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString");
+            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+            switch (EnvironmentName)
+            {
+                case "AzureCI":
+                case "AzureProduction":
+                    string branchName = Environment.GetEnvironmentVariable("BranchName");
+                    string logDbName = $"auditlogdb_{branchName}";
+                    Npgsql.NpgsqlConnectionStringBuilder logConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString);
+                    logConnBuilder.Database = logDbName;
+                    auditLogConnectionString = logConnBuilder.ConnectionString;
+                    break;
+
+                case "Development":
+                    // nothing
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Current environment name ({EnvironmentName}) is not supported in Startup.cs");
+            }
+
             AuditLogger.Config = new AuditLoggerConfiguration
             {
-                AuditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString"),
+                AuditLogConnectionString = auditLogConnectionString,
             };
-            
+            #endregion
+
         }
     }
 }

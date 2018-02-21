@@ -62,28 +62,34 @@ namespace MillimanAccessPortal
                     ;
 
                     #region Configure Azure Key Vault for CI & Production
-                    if (hostContext.HostingEnvironment.EnvironmentName == "CI" || hostContext.HostingEnvironment.EnvironmentName == "Production")
+                    string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                    switch (EnvironmentName)
                     {
-                        config.AddJsonFile($"AzureKeyVault.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true);
+                        case "AzureCI":
+                        case "AzureProduction":
+                            config.AddJsonFile($"AzureKeyVault.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true);
 
-                        var builtConfig = config.Build();
+                            var builtConfig = config.Build();
+                        
+                            var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+                            store.Open(OpenFlags.ReadOnly);
+                            var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
 
-                        var store = new X509Store(StoreLocation.LocalMachine);
-                        store.Open(OpenFlags.ReadOnly);
-                        var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
+                            config.AddAzureKeyVault(
+                                builtConfig["AzureVaultName"],
+                                builtConfig["AzureClientID"],
+                                cert.OfType<X509Certificate2>().Single()
+                                );
+                            break;
+                        case "Development":
+                            config.AddUserSecrets<Startup>();
+                            break;
 
-                        config.AddAzureKeyVault(
-                            builtConfig["AzureVaultName"],
-                            builtConfig["AzureClientID"],
-                            cert.OfType<X509Certificate2>().Single()
-                            );
+                        default: // Unsupported environment name	
+                            throw new InvalidOperationException($"Current environment name ({EnvironmentName}) is not supported in Program.cs");
+
                     }
                     #endregion
-
-                    if (hostContext.HostingEnvironment.IsDevelopment())
-                    {
-                        config.AddUserSecrets<Startup>();
-                    }
                 })
             .UseApplicationInsights()    
             .Build();
