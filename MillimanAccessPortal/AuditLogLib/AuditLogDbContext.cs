@@ -1,4 +1,11 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Tom Puckett, Ben Wyatt
+ * OBJECTIVE: <What and WHY.>
+ * DEVELOPER NOTES: This project manages its own migrations and database updates.  
+ *                  The dotnet command must be run from this project folder.
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -42,10 +49,18 @@ namespace AuditLogLib
             : base(options)
         {
             string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            
-            if (EnvironmentName.StartsWith("Azure"))
+
+            switch (EnvironmentName)
             {
-                Database.Migrate(); // Run migrations when the logger is instantiated
+                case "AzureCI":
+                case "AzureProduction":
+                    Database.Migrate(); // Run migrations when the logger is instantiated
+                    break;
+
+                case "Development":
+                default:
+                    // nothing
+                    break;
             }
         }
 
@@ -109,14 +124,18 @@ namespace AuditLogLib
                     logConnBuilder.Database = logDbName;
                     auditLogConnectionString = logConnBuilder.ConnectionString;
                     break;
-                default:
+
+                case "Development":
                     configurationBuilder.AddUserSecrets<AuditLogDbContext>();
                     built = configurationBuilder.Build();
 
                     auditLogConnectionString = built.GetConnectionString(ConnectionStringName);
                     break;
+
+                default: // Unsupported environment name	
+                    throw new InvalidOperationException($"Current environment name ({environmentName}) is not supported for AuditLogLib migrations");
             }
-      
+
             return auditLogConnectionString;
         }
 

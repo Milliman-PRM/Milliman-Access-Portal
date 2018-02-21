@@ -62,7 +62,8 @@ namespace MillimanAccessPortal
                     ;
 
                     #region Configure Azure Key Vault for CI & Production
-                    switch (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"))
+                    string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                    switch (EnvironmentName)
                     {
                         case "AzureCI":
                         case "AzureProduction":
@@ -80,10 +81,13 @@ namespace MillimanAccessPortal
                                 cert.OfType<X509Certificate2>().Single()
                                 );
                             break;
-                        default:
+                        case "Development":
                             config.AddUserSecrets<Startup>();
                             break;
-                        
+
+                        default: // Unsupported environment name	
+                            throw new InvalidOperationException($"Current environment name ({EnvironmentName}) is not supported in Program.cs");
+
                     }
                     #endregion
                 })

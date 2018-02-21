@@ -53,8 +53,9 @@ namespace MillimanAccessPortal
             #region Configure application connection string (environment-dependent)
 
             string appConnectionString = Configuration.GetConnectionString("DefaultConnection");
+            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-            switch (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"))
+            switch (EnvironmentName)
             {
                 case "AzureCI":
                 case "AzureProduction":
@@ -65,6 +66,13 @@ namespace MillimanAccessPortal
                     appConnBuilder.Database = appDbName;
                     appConnectionString = appConnBuilder.ConnectionString;
                     break;
+
+                case "Development":
+                    break;
+
+                default: // Unsupported environment name	
+                    throw new InvalidOperationException($"Current environment name ({EnvironmentName}) is not supported in Startup.cs");
+
             }
 
             // Add framework services.
@@ -189,8 +197,9 @@ namespace MillimanAccessPortal
 
             #region Configure Audit Logger connection string (environment-dependent)
             string auditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString");
+            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-            switch (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"))
+            switch (EnvironmentName)
             {
                 case "AzureCI":
                 case "AzureProduction":
@@ -200,8 +209,15 @@ namespace MillimanAccessPortal
                     logConnBuilder.Database = logDbName;
                     auditLogConnectionString = logConnBuilder.ConnectionString;
                     break;
+
+                case "Development":
+                    // nothing
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Current environment name ({EnvironmentName}) is not supported in Program.cs");
             }
-            
+
             AuditLogger.Config = new AuditLoggerConfiguration
             {
                 AuditLogConnectionString = auditLogConnectionString,
