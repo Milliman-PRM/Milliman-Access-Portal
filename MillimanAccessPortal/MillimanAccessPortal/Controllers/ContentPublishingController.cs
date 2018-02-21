@@ -94,7 +94,7 @@ namespace MillimanAccessPortal.Controllers
                             ResultFilePath = "ThisOutputFile",
                             ContentPublicationRequest = NewPubRequest,
                             SelectionCriteria = SelectionCriteriaString,
-                            Status = "New"
+                            Status = "New",  // TODO improve to enum
                         };
 
                         DbContext.ContentReductionTask.Add(NewTask);
@@ -106,10 +106,80 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception e)
             {
+                while (e != null)
+                {
+                    ErrMsg += $"\r\n{e.Message}";
+                    e = e.InnerException;
+                }
                 AppLogger.LogError(e.Message);
             }
 
             return Json(new object());
+        }
+
+        public async Task<IActionResult> RequestSingleReduction(long SelectionGroupId)
+        {
+            SelectionGroup RequestedSelectionGroup= DbContext.SelectionGroup
+                                                             .Include(sg => sg.RootContentItem)
+                                                             .SingleOrDefault(sg => sg.Id == SelectionGroupId);
+            #region Preliminary validation
+            if (RequestedSelectionGroup == null)
+            {
+                Response.Headers.Add("Warning", "The requested selection group was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            // TODO
+            #endregion
+
+            #region Validation
+            bool PublicationUnderway = DbContext.ContentPublicationRequest
+                                                .Any(r => r.RootContentItemId == RequestedSelectionGroup.RootContentItemId);
+                                                    /* && r.status != completed */
+            bool ConflictingTask = DbContext.ContentReductionTask
+                                            .Any(t => t.SelectionGroupId == SelectionGroupId);
+                                                /* && r.status != completed */
+
+            if (PublicationUnderway || ConflictingTask)
+            {
+                Response.Headers.Add("Warning", "A task is already pending for this selection group.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            try
+            {
+                string SelectionCriteriaString = JsonConvert.SerializeObject(DbQueries.GetFieldSelectionsForSelectionGroup(SelectionGroupId), Formatting.Indented);
+                string MasterFilePath = "ThisInputFile";  // TODO Determine master file. Does master file need to be coppied elsewhere for reduction server
+
+                var NewTask = new ContentReductionTask
+                {
+                    ApplicationUser = await DbQueries.GetCurrentApplicationUser(User),
+                    SelectionGroupId = SelectionGroupId,
+                    MasterFilePath = MasterFilePath,
+                    ResultFilePath = "ThisOutputFile",
+                    ContentPublicationRequest = null,
+                    SelectionCriteria = SelectionCriteriaString,
+                    Status = "New",  // TODO improve to enum
+                };
+
+                DbContext.ContentReductionTask.Add(NewTask);
+                DbContext.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                while (e != null)
+                {
+                    ErrMsg += $"\r\n{e.Message}";
+                    e = e.InnerException;
+                }
+                AppLogger.LogError(e.Message);
+            }
+
+            return Json(new object());
+
         }
     }
 }
