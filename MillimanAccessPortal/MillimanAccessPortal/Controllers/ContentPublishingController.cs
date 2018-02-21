@@ -4,36 +4,41 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
 using MillimanAccessPortal.DataQueries;
+using MillimanAccessPortal.Authorization;
 using AuditLogLib;
 using AuditLogLib.Services;
 using Newtonsoft.Json;
-
 
 namespace MillimanAccessPortal.Controllers
 {
     public class ContentPublishingController : Controller
     {
-        private ApplicationDbContext DbContext;
-        private StandardQueries DbQueries;
-        private ILogger AppLogger;
-        private IAuditLogger AuditLogger;
+        private readonly ApplicationDbContext DbContext;
+        private readonly StandardQueries DbQueries;
+        private readonly ILogger AppLogger;
+        private readonly IAuditLogger AuditLogger;
+        private readonly IAuthorizationService AuthorizationService;
 
         public ContentPublishingController(
             ApplicationDbContext ContextArg,
             StandardQueries DbQueriesArg,
             ILoggerFactory LoggerFactoryArg,
-            IAuditLogger AuditLoggerArg
+            IAuditLogger AuditLoggerArg,
+            IAuthorizationService AuthorizationServiceArg
             )
         {
             DbContext = ContextArg;
             DbQueries = DbQueriesArg;
             AppLogger = LoggerFactoryArg.CreateLogger<ContentPublishingController>(); ;
             AuditLogger = AuditLoggerArg;
+            AuthorizationService = AuthorizationServiceArg;
         }
 
         public IActionResult Index()
@@ -53,7 +58,12 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            // TODO
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, RootContentId));
+            if (!Result1.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to publish this content");
+                return Unauthorized();
+            }
             #endregion
 
             #region Validation
@@ -132,7 +142,12 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            // TODO
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, RequestedSelectionGroup.RootContentItemId));
+            if (!Result1.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to modify user selections for this content");
+                return Unauthorized();
+            }
             #endregion
 
             #region Validation
