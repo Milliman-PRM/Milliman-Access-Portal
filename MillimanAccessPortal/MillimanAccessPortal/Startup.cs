@@ -215,7 +215,7 @@ namespace MillimanAccessPortal
                     break;
 
                 default:
-                    throw new InvalidOperationException($"Current environment name ({EnvironmentName}) is not supported in Program.cs");
+                    throw new InvalidOperationException($"Current environment name ({EnvironmentName}) is not supported in Startup.cs");
             }
 
             AuditLogger.Config = new AuditLoggerConfiguration
