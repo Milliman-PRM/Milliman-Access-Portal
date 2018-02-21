@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Moq;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using QlikviewLib;
@@ -447,7 +448,7 @@ namespace MapTests
             #region Initialize HierarchyField
             DbContextObject.HierarchyField.AddRange(new List<HierarchyField>
                 {
-                    new HierarchyField { Id=1, RootContentItemId=1, FieldName="Field1", FieldDisplayName="DisplayName1", StructureType=MapDbContextLib.FieldStructureType.Flat, FieldDelimiter="|" },
+                    new HierarchyField { Id=1, RootContentItemId=1, FieldName="Field1", FieldDisplayName="DisplayName1", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
                 });
             MockDbSet<HierarchyField>.AssignNavigationProperty<RootContentItem>(DbContextObject.HierarchyField, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
