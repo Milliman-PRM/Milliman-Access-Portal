@@ -8,14 +8,17 @@ var dialog = {};
   var DiscardConfirmationDialog;
   var ResetConfirmationDialog;
   var RemoveUserDialog;
+  var DeleteSelectionGroupDialog;
   var PasswordDialog;
   var DeleteClientDialog;
   var AddUserDialog;
+  var AddSelectionGroupDialog;
 
   Dialog = function (
     title, message, buttons, color, input,
     callback, submitHandler
   ) {
+    var self = this;
     this.title = title;
     this.color = color;
     this.options = {
@@ -29,13 +32,17 @@ var dialog = {};
     if (submitHandler) {
       this.options = $.extend(this.options, {
         onSubmit: function (event) {
-          var self = this;
+          var vexObject = this;
+          var data;
           event.preventDefault();
-          if (this.options.input) {
-            this.value = $('.vex-dialog-input input').last().val();
+          if (self.options.input) {
+            data = {};
+            $.each($('.vex-dialog-input input').serializeArray(), function (i, obj) {
+              data[obj.name] = obj.value;
+            });
           }
-          return submitHandler(this.value, function () {
-            self.close();
+          return submitHandler(data, self.buttonText, function () {
+            vexObject.close();
           });
         }
       });
@@ -101,6 +108,7 @@ var dialog = {};
   ResetConfirmationDialog.prototype.constructor = ResetConfirmationDialog;
 
   RemoveUserDialog = function (username, submitHandler) {
+    this.buttonText = 'Removing';
     Dialog.call(
       this,
       'Remove User',
@@ -117,6 +125,25 @@ var dialog = {};
   };
   RemoveUserDialog.prototype = Object.create(Dialog.prototype);
   RemoveUserDialog.prototype.constructor = RemoveUserDialog;
+
+  DeleteSelectionGroupDialog = function ($selectionGroup, submitHandler) {
+    Dialog.call(
+      this,
+      'Delete Selection Group',
+      'Delete <strong>' + $selectionGroup.find('.card-body-primary-text').html() + '</strong>?',
+      [
+        { type: vex.dialog.buttons.yes, text: 'Delete' },
+        { type: vex.dialog.buttons.no, text: 'Cancel' }
+      ],
+      'red',
+      '<input name="SelectionGroupId" type="hidden" value="' + $selectionGroup.data('selection-group-id') + '">',
+      null,
+      submitHandler
+    );
+    this.buttonText = 'Deleting';
+  };
+  DeleteSelectionGroupDialog.prototype = Object.create(Dialog.prototype);
+  DeleteSelectionGroupDialog.prototype.constructor = DeleteSelectionGroupDialog;
 
   PasswordDialog = function (title, message, buttons, color, submitHandler) {
     Dialog.call(
@@ -214,10 +241,33 @@ var dialog = {};
   AddUserDialog.prototype = Object.create(Dialog.prototype);
   AddUserDialog.prototype.constructor = AddUserDialog;
 
+  AddSelectionGroupDialog = function (submitHandler) {
+    Dialog.call(
+      this,
+      'Add Selection Group',
+      'Please enter the selection group name',
+      [
+        { type: vex.dialog.buttons.yes, text: 'Add Group' },
+        { type: vex.dialog.buttons.no, text: 'Cancel' }
+      ],
+      'blue',
+      [
+        '<input name="RootContentItemId" type="hidden" value="' + $('#root-content-items [selected]').data('root-content-item-id') + '">',
+        '<input name="SelectionGroupName" required />'
+      ].join(''),
+      null,
+      submitHandler
+    );
+  };
+  AddSelectionGroupDialog.prototype = Object.create(Dialog.prototype);
+  AddSelectionGroupDialog.prototype.constructor = AddSelectionGroupDialog;
+
 
   dialog.DiscardConfirmationDialog = DiscardConfirmationDialog;
   dialog.ResetConfirmationDialog = ResetConfirmationDialog;
   dialog.RemoveUserDialog = RemoveUserDialog;
+  dialog.DeleteSelectionGroupDialog = DeleteSelectionGroupDialog;
   dialog.DeleteClientDialog = DeleteClientDialog;
   dialog.AddUserDialog = AddUserDialog;
+  dialog.AddSelectionGroupDialog = AddSelectionGroupDialog;
 }());

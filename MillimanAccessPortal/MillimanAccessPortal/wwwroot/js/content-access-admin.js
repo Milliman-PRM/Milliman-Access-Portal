@@ -1,11 +1,37 @@
-/* global card, shared */
+/* global card, dialog, shared */
+
+
+function updateSelectionGroupCount() {
+  $('#root-content-items [selected] [href="#action-icon-users"]').parent().next().html($('#selection-groups ul.admin-panel-content li').length);
+}
+
+function selectionGroupAddClickHandler() {
+  new dialog.AddSelectionGroupDialog(shared.post(
+    'ContentAccessAdmin/CreateSelectionGroup',
+    'Selection group successfully created.',
+    renderSelectionGroup,
+    updateSelectionGroupCount
+  )).open();
+}
+
+function selectionGroupDeleteClickHandler() {
+  new dialog.DeleteSelectionGroupDialog($(this).closest('.card-container'), shared.delete(
+    'ContentAccessAdmin/DeleteSelectionGroup',
+    'Selection group successfully deleted.',
+    function (response) {
+      $('#selection-groups ul.admin-panel-content').empty();
+      renderSelectionGroupList(response);
+    },
+    updateSelectionGroupCount
+  )).open();
+}
 
 function renderSelectionGroup(selectionGroup) {
   var $card = new card.SelectionGroupCard(
     selectionGroup.SelectionGroupEntity,
     selectionGroup.MemberList,
     function () { console.log('Selection group clicked.'); },
-    function () { console.log('Delete group button clicked.'); },
+    selectionGroupDeleteClickHandler,
     function () { console.log('Add/remove user button clicked.'); }
   );
   $('#selection-groups ul.admin-panel-content').append($card.build());
@@ -15,6 +41,9 @@ function renderSelectionGroupList(response, selectionGroupId) {
   $selectionGroupList.empty();
   response.SelectionGroupList.forEach(renderSelectionGroup);
   $selectionGroupList.find('.tooltip').tooltipster();
+
+  $('#selection-groups .admin-panel-action-icons-container .action-icon-add')
+    .click(selectionGroupAddClickHandler);
 
   if (selectionGroupId) {
     $('[data-selection-group-id="' + selectionGroupId + '"]').click();
@@ -93,6 +122,8 @@ $(document).ready(function () {
   $('.action-icon-expand').click(shared.expandAll.listener);
   $('.action-icon-collapse').click(shared.collapseAll.listener);
   $('.admin-panel-searchbar').keyup(shared.filterTree.listener);
+
+  $('#selection-groups ul.admin-panel-content-action').append(new card.AddSelectionGroupActionCard(selectionGroupAddClickHandler).build());
 
   $('.tooltip').tooltipster();
 });

@@ -66,10 +66,14 @@
             <svg class="action-icon-expand action-icon tooltip" title="Expand all user cards">
                 <use xlink:href="#action-icon-expand"></use>
             </svg>
+            <svg class="action-icon-add action-icon tooltip" title="Add selection group">
+                <use xlink:href="#action-icon-add"></use>
+            </svg>
         </div>
     </div>
     <div class="admin-panel-content-container">
         <ul class="admin-panel-content"></ul>
+        <ul class="admin-panel-content-action"></ul>
     </div>
 </div>
 <div id="selections" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12" style="display: none;">
@@ -91,16 +95,16 @@
 @section Scripts {
 
     <environment names="Development,CI">
-        <script src="~/js/content-access-admin.js"></script>
+        <script src="~/js/shared.js"></script>
         <script src="~/js/card.js"></script>
         <script src="~/js/dialog.js"></script>
-        <script src="~/js/shared.js"></script>
+        <script src="~/js/content-access-admin.js"></script>
     </environment>
     <environment names="Staging,Production">
-        <script src="~/js/content-access-admin.min.js"></script>
+        <script src="~/js/shared.min.js"></script>
         <script src="~/js/card.min.js"></script>
         <script src="~/js/dialog.min.js"></script>
-        <script src="~/js/shared.min.js"></script>
+        <script src="~/js/content-access-admin.min.js"></script>
     </environment>
 
 }

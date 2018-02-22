@@ -1,7 +1,6 @@
 /* global shared, dialog, card */
 
 var ajaxStatus = {};
-var smallSpinner = '<div class="spinner-small"></div>';
 var eligibleUsers;
 var SHOW_DURATION = 50;
 
@@ -63,18 +62,6 @@ function setClientFormWriteable() {
     this.selectize.enable();
   });
   $clientForm.find('#Name').focus();
-}
-
-// TODO: move to shared
-function setButtonSubmitting($button, text) {
-  $button.attr('data-original-text', $button.html());
-  $button.html(text || 'Submitting');
-  $button.append(smallSpinner);
-}
-
-// TODO: move to shared
-function unsetButtonSubmitting($button) {
-  $button.html($button.attr('data-original-text'));
 }
 
 
@@ -446,20 +433,20 @@ function saveNewUser(username, email, callback) {
 function addUserClickHandler() {
   new dialog.AddUserDialog(
     eligibleUsers,
-    function (user, callback) {
+    function (data, callback) {
       var singleMatch = 0;
-      shared.userSubstringMatcher(eligibleUsers)(user, function (matches) {
+      shared.userSubstringMatcher(eligibleUsers)(data.username, function (matches) {
         singleMatch = matches.length;
       });
       if (singleMatch) {
         setButtonSubmitting($('.vex-first'), 'Adding');
         $('.vex-dialog-button').attr('disabled', '');
-        saveNewUser(user, null, callback);
-      } else if (emailValRegex.test(user)) {
+        saveNewUser(data.username, null, callback);
+      } else if (emailValRegex.test(data.username)) {
         setButtonSubmitting($('.vex-first'), 'Adding');
         $('.vex-dialog-button').attr('disabled', '');
-        saveNewUser(null, user, callback);
-      } else if (user) {
+        saveNewUser(null, data.username, callback);
+      } else if (data.username) {
         toastr.warning('Please provide a valid email address');
         return false;
       }
