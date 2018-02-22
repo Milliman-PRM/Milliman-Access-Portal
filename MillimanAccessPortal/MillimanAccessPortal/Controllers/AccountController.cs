@@ -1,4 +1,10 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: <At least 2 names.>
+ * OBJECTIVE: <What and WHY.>
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;

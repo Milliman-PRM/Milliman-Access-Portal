@@ -33,6 +33,14 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuditLogger AuditLogger;
         private readonly IAuthorizationService AuthorizationService;
 
+        /// <summary>
+        /// Constructor, stores local references to injected service instances
+        /// </summary>
+        /// <param name="ContextArg"></param>
+        /// <param name="DbQueriesArg"></param>
+        /// <param name="LoggerFactoryArg"></param>
+        /// <param name="AuditLoggerArg"></param>
+        /// <param name="AuthorizationServiceArg"></param>
         public ContentPublishingController(
             ApplicationDbContext ContextArg,
             StandardQueries DbQueriesArg,
@@ -48,6 +56,10 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationService = AuthorizationServiceArg;
         }
 
+        /// <summary>
+        /// View page in which publication UI is presented
+        /// </summary>
+        /// <returns></returns>
         public IActionResult Index()
         {
             return View();
