@@ -3,7 +3,7 @@
  * OBJECTIVE: An MVC controller to handle and present error condition(s)
  * DEVELOPER NOTES: General pattern is to pass error details in TempData and build a model as expected by the appropriate error view
  */
-
+using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using MillimanAccessPortal.Models.ErrorViewModels;
@@ -47,7 +47,7 @@ namespace MillimanAccessPortal.Controllers
 
             if (TempData.Keys.Contains(MessageVarNameArg))
             {
-                LocalMessage = (TempData[MessageVarNameArg] as string).Split(new string[] { "\r\n", "<br>" }, System.StringSplitOptions.RemoveEmptyEntries);
+                LocalMessage = (TempData[MessageVarNameArg] as string).Split(new string[] { Environment.NewLine, "<br>" }, System.StringSplitOptions.RemoveEmptyEntries);
                 TempData.Remove(MessageVarNameArg);
             }
 

@@ -48,7 +48,7 @@ namespace MapCommonLib
             string ErrMsg = LeadingLine;
             for (; e != null; e = e.InnerException)
             {
-                ErrMsg += $"\r\n    {e.Message}";
+                ErrMsg += $"{Environment.NewLine}    {e.Message}";
                 if (!RecurseInnerExceptions)
                 {
                     break;

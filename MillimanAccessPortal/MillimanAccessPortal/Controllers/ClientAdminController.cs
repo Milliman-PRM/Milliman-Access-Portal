@@ -586,9 +586,10 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception e)
             {
-                string ErrMsg = $"Failed to remove user {RequestedUser.UserName} from client {RequestedClient.Name}: error\r\n{e.Message}";
+                string ErrMsg = GlobalFunctions.LoggableExceptionString(e, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Failed to remove user {RequestedUser.UserName} from client {RequestedClient.Name}");
                 Logger.LogError(ErrMsg);
-                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+                Response.Headers.Add("Warning", "Error processing request.");
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
             ClientDetailViewModel ReturnModel = new ClientDetailViewModel { ClientEntity = RequestedClient };
@@ -880,9 +881,10 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception ex)
             {
-                string ErrMsg = $"Failed to update client {Model.Id} to database";
-                Logger.LogError(ErrMsg + $":\r\n{ ex.Message}\r\n{ ex.StackTrace}");
-                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+                string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Failed to update client {Model.Id} to database");
+                Logger.LogError(ErrMsg);
+                Response.Headers.Add("Warning", "Error processing request.");
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
             ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
@@ -970,9 +972,10 @@ namespace MillimanAccessPortal.Controllers
                 }
                 catch (Exception ex)
                 {
-                    string ErrMsg = $"Failed to delete client from database";
-                    Logger.LogError(ErrMsg + $":\r\n{ex.Message}\r\n{ex.StackTrace}");
-                    return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+                    string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Failed to delete client from database");
+                    Logger.LogError(ErrMsg);
+                    Response.Headers.Add("Warning", "Error processing request.");
+                    return StatusCode(StatusCodes.Status500InternalServerError);
                 }
             }
 
