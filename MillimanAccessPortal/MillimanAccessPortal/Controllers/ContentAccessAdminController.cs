@@ -8,6 +8,7 @@ using AuditLogLib;
 using AuditLogLib.Services;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapCommonLib;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -221,14 +222,8 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception ex)
             {
-                string ErrMsg = $"Exception while creating selection group \"{SelectionGroup.Id}\"";
-                while (ex != null)
-                {
-                    ErrMsg += $"\r\n{ex.Message}";
-                    ex = ex.InnerException;
-                }
+                string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while creating selection group \"{SelectionGroup.Id}\"");
                 Logger.LogError(ErrMsg);
-
                 Response.Headers.Add("Warning", $"Failed to complete transaction.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -366,14 +361,8 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception ex)
             {
-                string ErrMsg = $"Exception while updating selection group \"{SelectionGroupId}\" user assignments";
-                while (ex != null)
-                {
-                    ErrMsg += $"\r\n{ex.Message}";
-                    ex = ex.InnerException;
-                }
+                string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while updating selection group \"{SelectionGroupId}\" user assignments");
                 Logger.LogError(ErrMsg);
-
                 Response.Headers.Add("Warning", $"Failed to complete transaction.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -480,14 +469,8 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception ex)
             {
-                string ErrMsg = $"Exception while deleting selection group \"{SelectionGroupId}\" or removing members: [{string.Join(",", RemovedUsers)}]";
-                while (ex != null)
-                {
-                    ErrMsg += $"\r\n{ex.Message}";
-                    ex = ex.InnerException;
-                }
+                string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while deleting selection group \"{SelectionGroupId}\" or removing members: [{string.Join(",", RemovedUsers)}]");
                 Logger.LogError(ErrMsg);
-
                 Response.Headers.Add("Warning", $"Failed to complete transaction.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }

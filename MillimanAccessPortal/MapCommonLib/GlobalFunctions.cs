@@ -37,6 +37,23 @@ namespace MapCommonLib
         }
 
         /// <summary>
+        /// Concatenates a caller provided message with the message of a provided exception, optionally recursing on every InnerException
+        /// </summary>
+        /// <param name="e"></param>
+        /// <param name="LeadingLine"></param>
+        /// <param name="RecurseInnerExceptions"></param>
+        /// <returns></returns>
+        public static string LoggableExceptionString(Exception e, string LeadingLine="Exception:", bool RecurseInnerExceptions=true)
+        {
+            string ErrMsg = LeadingLine;
+            for (; e != null; e = e.InnerException)
+            {
+                ErrMsg += $"\r\n    {e.Message}";
+            }
+            return ErrMsg;
+        }
+
+        /// <summary>
         /// Gets the linker date of the assembly.
         /// </summary>
         /// <param name="assembly"></param>

@@ -1,4 +1,10 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Tom Puckett,
+ * OBJECTIVE: Controller for actions supporting the content publishing page
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,6 +16,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapCommonLib;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Authorization;
 using AuditLogLib;
@@ -22,7 +29,7 @@ namespace MillimanAccessPortal.Controllers
     {
         private readonly ApplicationDbContext DbContext;
         private readonly StandardQueries DbQueries;
-        private readonly ILogger AppLogger;
+        private readonly ILogger Logger;
         private readonly IAuditLogger AuditLogger;
         private readonly IAuthorizationService AuthorizationService;
 
@@ -36,7 +43,7 @@ namespace MillimanAccessPortal.Controllers
         {
             DbContext = ContextArg;
             DbQueries = DbQueriesArg;
-            AppLogger = LoggerFactoryArg.CreateLogger<ContentPublishingController>(); ;
+            Logger = LoggerFactoryArg.CreateLogger<ContentPublishingController>(); ;
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
         }
@@ -46,6 +53,12 @@ namespace MillimanAccessPortal.Controllers
             return View();
         }
 
+        /// <summary>
+        /// Queues a request for publication and associated reduction tasks
+        /// </summary>
+        /// <param name="FileName"></param>
+        /// <param name="RootContentId"></param>
+        /// <returns></returns>
         public async Task<IActionResult> RequestContentPublication (string FileName, long RootContentId)
         {
             #region Preliminary Validation
@@ -116,18 +129,20 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception e)
             {
-                string ErrMsg = "";
-                while (e != null)
-                {
-                    ErrMsg += $"\r\n{e.Message}";
-                    e = e.InnerException;
-                }
-                AppLogger.LogError(e.Message);
+                string ErrMsg = GlobalFunctions.LoggableExceptionString(e, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): failed to store request to database");
+                Logger.LogError(ErrMsg);
+                Response.Headers.Add("Warning", "Error processing request.");
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
             return Json(new object());
         }
 
+        /// <summary>
+        /// Queues a reduction task for an existing content item
+        /// </summary>
+        /// <param name="SelectionGroupId"></param>
+        /// <returns></returns>
         public async Task<IActionResult> RequestSingleReduction(long SelectionGroupId)
         {
             SelectionGroup RequestedSelectionGroup= DbContext.SelectionGroup
@@ -173,7 +188,7 @@ namespace MillimanAccessPortal.Controllers
                 var NewTask = new ContentReductionTask
                 {
                     ApplicationUser = await DbQueries.GetCurrentApplicationUser(User),
-                    SelectionGroupId = SelectionGroupId,
+                    SelectionGroupId = 33,
                     MasterFilePath = MasterFilePath,
                     ResultFilePath = "ThisOutputFile",
                     ContentPublicationRequest = null,
@@ -186,13 +201,10 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception e)
             {
-                string ErrMsg = "";
-                while (e != null)
-                {
-                    ErrMsg += $"\r\n{e.Message}";
-                    e = e.InnerException;
-                }
-                AppLogger.LogError(e.Message);
+                string ErrMsg = GlobalFunctions.LoggableExceptionString(e, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): failed to store request to database");
+                Logger.LogError(ErrMsg);
+                Response.Headers.Add("Warning", "Error processing request.");
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
             return Json(new object());
