@@ -329,8 +329,9 @@ var card = {};
           '<stub />'
         ].join(''),
         render: function (component) {
-          return function () {
+          return function (properties) {
             this.verify(component);
+            this.click(component, properties.click);
           };
         }
       },
@@ -716,6 +717,7 @@ var card = {};
       tooltip: 'Add/remove users',
       callback: userCallback
     });
+    this.addComponent('statistics', { click: shared.toggleExpanded.listener });
     if (members.length) {
       this.addComponent('detailText', { text: 'Members' });
     }
