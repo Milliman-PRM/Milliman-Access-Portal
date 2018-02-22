@@ -111,8 +111,8 @@ var shared = {};
     return function () {
       var $card = $(this);
       var $panel = $card.closest('.admin-panel-container');
-      var $nextPanels = $panel.nextAll().slice(0, panels || 1);
-      var $formPanels = $nextPanels.filter('form');
+      var $nextPanels = $panel.nextAll();
+      var $formPanels = $nextPanels.slice(0, panels || 1).filter('form');
       var sameCard = ($card[0] === $panel.find('[selected]')[0]);
 
       var removeInserts = function () {
@@ -122,7 +122,7 @@ var shared = {};
         $panel.find('.card-container').removeAttr('editing selected');
       };
       var showDetails = function () {
-        $nextPanels.show(SHOW_DURATION);
+        $nextPanels.hide().slice(0, panels || 1).show(SHOW_DURATION);
       };
       var hideDetails = function () {
         $panel.nextAll().hide(SHOW_DURATION);
