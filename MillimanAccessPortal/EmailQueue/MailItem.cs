@@ -14,7 +14,7 @@ namespace EmailQueue
         {
             // Configure required fields for message
             
-            MimeEntity encodedBody = new TextPart("plain")
+            MimeEntity encodedBody = new TextPart("html")
             {
                 Text = messageBody
             };
