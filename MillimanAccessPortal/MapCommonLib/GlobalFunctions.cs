@@ -49,6 +49,10 @@ namespace MapCommonLib
             for (; e != null; e = e.InnerException)
             {
                 ErrMsg += $"\r\n    {e.Message}";
+                if (!RecurseInnerExceptions)
+                {
+                    break;
+                }
             }
             return ErrMsg;
         }
