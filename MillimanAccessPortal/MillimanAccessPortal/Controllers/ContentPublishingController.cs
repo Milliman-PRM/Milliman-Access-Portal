@@ -1,46 +1,76 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Tom Puckett,
+ * OBJECTIVE: Controller for actions supporting the content publishing page
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
+using MapCommonLib;
 using MillimanAccessPortal.DataQueries;
+using MillimanAccessPortal.Authorization;
 using AuditLogLib;
 using AuditLogLib.Services;
 using Newtonsoft.Json;
-
 
 namespace MillimanAccessPortal.Controllers
 {
     public class ContentPublishingController : Controller
     {
-        private ApplicationDbContext DbContext;
-        private StandardQueries DbQueries;
-        private ILogger AppLogger;
-        private IAuditLogger AuditLogger;
+        private readonly ApplicationDbContext DbContext;
+        private readonly StandardQueries DbQueries;
+        private readonly ILogger Logger;
+        private readonly IAuditLogger AuditLogger;
+        private readonly IAuthorizationService AuthorizationService;
 
+        /// <summary>
+        /// Constructor, stores local references to injected service instances
+        /// </summary>
+        /// <param name="ContextArg"></param>
+        /// <param name="DbQueriesArg"></param>
+        /// <param name="LoggerFactoryArg"></param>
+        /// <param name="AuditLoggerArg"></param>
+        /// <param name="AuthorizationServiceArg"></param>
         public ContentPublishingController(
             ApplicationDbContext ContextArg,
             StandardQueries DbQueriesArg,
             ILoggerFactory LoggerFactoryArg,
-            IAuditLogger AuditLoggerArg
+            IAuditLogger AuditLoggerArg,
+            IAuthorizationService AuthorizationServiceArg
             )
         {
             DbContext = ContextArg;
             DbQueries = DbQueriesArg;
-            AppLogger = LoggerFactoryArg.CreateLogger<ContentPublishingController>(); ;
+            Logger = LoggerFactoryArg.CreateLogger<ContentPublishingController>(); ;
             AuditLogger = AuditLoggerArg;
+            AuthorizationService = AuthorizationServiceArg;
         }
 
+        /// <summary>
+        /// View page in which publication UI is presented
+        /// </summary>
+        /// <returns></returns>
         public IActionResult Index()
         {
             return View();
         }
 
+        /// <summary>
+        /// Queues a request for publication and associated reduction tasks
+        /// </summary>
+        /// <param name="FileName"></param>
+        /// <param name="RootContentId"></param>
+        /// <returns></returns>
         public async Task<IActionResult> RequestContentPublication (string FileName, long RootContentId)
         {
             #region Preliminary Validation
@@ -53,7 +83,12 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            // TODO
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, RootContentId));
+            if (!Result1.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to publish this content");
+                return Unauthorized();
+            }
             #endregion
 
             #region Validation
@@ -94,7 +129,7 @@ namespace MillimanAccessPortal.Controllers
                             ResultFilePath = "ThisOutputFile",
                             ContentPublicationRequest = NewPubRequest,
                             SelectionCriteria = SelectionCriteriaString,
-                            Status = "New"
+                            Status = "New",  // TODO improve to enum
                         };
 
                         DbContext.ContentReductionTask.Add(NewTask);
@@ -106,10 +141,14 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception e)
             {
-                AppLogger.LogError(e.Message);
+                string ErrMsg = GlobalFunctions.LoggableExceptionString(e, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): failed to store request to database");
+                Logger.LogError(ErrMsg);
+                Response.Headers.Add("Warning", "Error processing request.");
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
             return Json(new object());
         }
+
     }
 }

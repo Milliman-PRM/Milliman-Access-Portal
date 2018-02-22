@@ -8,6 +8,7 @@ using AuditLogLib;
 using AuditLogLib.Services;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapCommonLib;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -22,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -221,14 +223,8 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception ex)
             {
-                string ErrMsg = $"Exception while creating selection group \"{SelectionGroup.Id}\"";
-                while (ex != null)
-                {
-                    ErrMsg += $"\r\n{ex.Message}";
-                    ex = ex.InnerException;
-                }
+                string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while creating selection group \"{SelectionGroup.Id}\"");
                 Logger.LogError(ErrMsg);
-
                 Response.Headers.Add("Warning", $"Failed to complete transaction.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -366,14 +362,8 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception ex)
             {
-                string ErrMsg = $"Exception while updating selection group \"{SelectionGroupId}\" user assignments";
-                while (ex != null)
-                {
-                    ErrMsg += $"\r\n{ex.Message}";
-                    ex = ex.InnerException;
-                }
+                string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while updating selection group \"{SelectionGroupId}\" user assignments");
                 Logger.LogError(ErrMsg);
-
                 Response.Headers.Add("Warning", $"Failed to complete transaction.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -482,14 +472,8 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception ex)
             {
-                string ErrMsg = $"Exception while deleting selection group \"{SelectionGroupId}\" or removing members: [{string.Join(",", RemovedUsers)}]";
-                while (ex != null)
-                {
-                    ErrMsg += $"\r\n{ex.Message}";
-                    ex = ex.InnerException;
-                }
+                string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while deleting selection group \"{SelectionGroupId}\" or removing members: [{string.Join(",", RemovedUsers)}]");
                 Logger.LogError(ErrMsg);
-
                 Response.Headers.Add("Warning", $"Failed to complete transaction.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -554,6 +538,79 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             return Json(new { });
+        }
+
+        /// <summary>
+        /// Queues a reduction task for an existing content item
+        /// </summary>
+        /// <param name="SelectionGroupId"></param>
+        /// <returns></returns>
+        public async Task<IActionResult> RequestReductionForSelectionGroup(long SelectionGroupId)
+        {
+            SelectionGroup RequestedSelectionGroup = DbContext.SelectionGroup
+                                                             .Include(sg => sg.RootContentItem)
+                                                             .SingleOrDefault(sg => sg.Id == SelectionGroupId);
+            #region Preliminary validation
+            if (RequestedSelectionGroup == null)
+            {
+                Response.Headers.Add("Warning", "Request not saved. The requested selection group was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, RequestedSelectionGroup.RootContentItemId));
+            if (!Result1.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"Request not saved. You are not authorized to modify user selections for this content");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            bool PublicationUnderway = DbContext.ContentPublicationRequest
+                                                .Any(r => r.RootContentItemId == RequestedSelectionGroup.RootContentItemId);
+            /* && r.status != completed */
+            bool ConflictingTask = DbContext.ContentReductionTask
+                                            .Any(t => t.SelectionGroupId == SelectionGroupId);
+            /* && r.status != completed */
+
+            if (PublicationUnderway || ConflictingTask)
+            {
+                Response.Headers.Add("Warning", "Request not saved. A task is already pending for this selection group.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            try
+            {
+                string SelectionCriteriaString = JsonConvert.SerializeObject(Queries.GetFieldSelectionsForSelectionGroup(SelectionGroupId), Formatting.Indented);
+                string MasterFilePath = "ThisInputFile";  // TODO Determine master file. Does master file need to be coppied elsewhere for reduction server
+
+                var NewTask = new ContentReductionTask
+                {
+                    ApplicationUser = await Queries.GetCurrentApplicationUser(User),
+                    SelectionGroupId = SelectionGroupId,
+                    MasterFilePath = MasterFilePath,
+                    ResultFilePath = "ThisOutputFile",
+                    ContentPublicationRequest = null,
+                    SelectionCriteria = SelectionCriteriaString,
+                    Status = "New",  // TODO improve to enum
+                };
+
+                DbContext.ContentReductionTask.Add(NewTask);
+                DbContext.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                string ErrMsg = GlobalFunctions.LoggableExceptionString(e, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): failed to store request to database");
+                Logger.LogError(ErrMsg);
+                Response.Headers.Add("Warning", "Request not saved. Error processing request.");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            return Json(new object());
+
         }
     }
 }

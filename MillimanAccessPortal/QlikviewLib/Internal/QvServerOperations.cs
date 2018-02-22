@@ -42,15 +42,15 @@ namespace QlikviewLib.Internal
             }
             catch (Exception e)
             {
-                throw new MapException(string.Format("Exception from PostAsync() while calling GetWebTicket.aspx from {0}\r\nMessage: {1}", QvServerUri.Uri.AbsoluteUri, e.Message));
+                throw new MapException($"Exception from PostAsync() while calling GetWebTicket.aspx from {QvServerUri.Uri.AbsoluteUri}{Environment.NewLine}Message: {e.Message}");
             }
 
             string ResponseBody = await ResponseMsg.Content.ReadAsStringAsync();
 
             if (!ResponseMsg.IsSuccessStatusCode)
             {
-                throw new MapException($"Failed to obtain Qlikview web ticket from: {QvServerUri.Uri.AbsoluteUri}" + Environment.NewLine +
-                                       $"HTTP status: {(int)ResponseMsg.StatusCode}" + Environment.NewLine +
+                throw new MapException($"Failed to obtain Qlikview web ticket from: {QvServerUri.Uri.AbsoluteUri}{Environment.NewLine}" +
+                                       $"HTTP status: {(int)ResponseMsg.StatusCode}{Environment.NewLine}" +
                                        $"response body: {ResponseBody}");
             }
 
