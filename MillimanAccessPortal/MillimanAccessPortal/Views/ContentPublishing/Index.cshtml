@@ -36,6 +36,23 @@
 
 <button onclick="test1($('#pubNum').val());">Publish request</button><input id="pubNum" type="number" /><br />
 <button onclick="test2($('#selNum').val());">Selection request</button><input id="selNum" type="number" /><br />
+<div class="admin-panel-container flex-item-12-12">
+    <div class="admin-panel-content">
+        <form method="post" enctype="multipart/form-data" asp-controller="ContentPublishing" asp-action="Upload">
+            <div class="form-group">
+                <div class="col-md-10">
+                    <p>Upload a file using this form:</p>
+                    <input type="file" name="file" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-10">
+                    <input type="submit" value="Upload" />
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 <script type="text/javascript">
     function test1(Value) {
         $.ajax({
