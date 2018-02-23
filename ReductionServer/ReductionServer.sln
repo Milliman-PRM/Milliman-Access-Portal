@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2024
+VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{B572CDB8-B4FB-47C3-80EC-6D701B8E54AF}"
 EndProject
@@ -11,11 +11,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Applications", "Application
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QvReportReductionLib", "QvReportReductionLib\QvReportReductionLib.csproj", "{367505B5-0893-4AB7-A959-E010F894B060}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QvReportReductionGui", "QvReportReductionGui\QvReportReductionGui.csproj", "{A91F95B8-EDB8-44B8-AB7B-775DD9746D13}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContentReductionGui", "ContentReductionGui\QvReportReductionGui.csproj", "{A91F95B8-EDB8-44B8-AB7B-775DD9746D13}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Milliman.ReductionEngine", "Milliman.ReductionEngine\Milliman.ReductionEngine.csproj", "{45A38B9B-341F-4845-852B-8A3C0C20A86E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QvReportReductionService", "QvReportReductionService\QvReportReductionService.csproj", "{0F9B8555-58D7-4DAB-B3A9-60678F6B89FA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContentReductionService", "ContentReductionService\ContentReductionService.csproj", "{0F9B8555-58D7-4DAB-B3A9-60678F6B89FA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Milliman.Security", "Milliman.Security\Milliman.Security.csproj", "{BFC898B4-3139-4F49-B16C-AACD83BC71A4}"
 EndProject
