@@ -74,9 +74,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\QvReportReductionLib\QvReportReductionLib.csproj">
+    <ProjectReference Include="..\ContentReductionLib\ContentReductionLib.csproj">
       <Project>{367505b5-0893-4ab7-a959-e010f894b060}</Project>
-      <Name>QvReportReductionLib</Name>
+      <Name>ContentReductionLib</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

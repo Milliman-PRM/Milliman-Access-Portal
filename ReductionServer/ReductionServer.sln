@@ -9,9 +9,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Applications", "Applications", "{34B4814E-A430-4B07-8731-1B2C56C60DBE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QvReportReductionLib", "QvReportReductionLib\QvReportReductionLib.csproj", "{367505B5-0893-4AB7-A959-E010F894B060}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContentReductionLib", "ContentReductionLib\ContentReductionLib.csproj", "{367505B5-0893-4AB7-A959-E010F894B060}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContentReductionGui", "ContentReductionGui\QvReportReductionGui.csproj", "{A91F95B8-EDB8-44B8-AB7B-775DD9746D13}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContentReductionGui", "ContentReductionGui\ContentReductionGui.csproj", "{A91F95B8-EDB8-44B8-AB7B-775DD9746D13}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Milliman.ReductionEngine", "Milliman.ReductionEngine\Milliman.ReductionEngine.csproj", "{45A38B9B-341F-4845-852B-8A3C0C20A86E}"
 EndProject
