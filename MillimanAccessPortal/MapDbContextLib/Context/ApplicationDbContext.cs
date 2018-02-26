@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 
 namespace MapDbContextLib.Context
 {
@@ -22,6 +23,7 @@ namespace MapDbContextLib.Context
         public DbSet<ContentType> ContentType { get; set; }
         public DbSet<ProfitCenter> ProfitCenter { get; set; }
         public DbSet<ContentReductionTask> ContentReductionTask { get; set; }
+        public DbSet<ContentPublicationRequest> ContentPublicationRequest { get; set; }
 
         // Alteration of Identity entities
         public DbSet<ApplicationUser> ApplicationUser { get; set; }
@@ -41,9 +43,17 @@ namespace MapDbContextLib.Context
             // For example, you can rename the ASP.NET Identity table names and more.
             // Add your customizations after calling base.OnModelCreating(builder);
 
+            builder.Entity<ContentPublicationRequest>()
+                .Property(b => b.CreateDateTime)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
             builder.Entity<ContentReductionTask>()
                 .Property(b => b.CreateDateTime)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            builder.Entity<ContentReductionTask>()
+                .Property(b => b.Id)
+                .HasDefaultValueSql("uuid_generate_v4()");
 
             builder.Entity<HierarchyField>()
                 .Property(b => b.StructureType)

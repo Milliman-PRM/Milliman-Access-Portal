@@ -34,17 +34,49 @@
     </div>
 </div>
 
-<button value="Tom Test" onclick="test1(value);">Tom Testing</button>
+<button onclick="test1($('#pubNum').val());">Publish request</button><input id="pubNum" type="number" /><br />
+<button onclick="test2($('#selNum').val());">Selection request</button><input id="selNum" type="number" /><br />
 <script type="text/javascript">
     function test1(Value) {
-      alert("test1 Clicked");
+        $.ajax({
+            type: 'POST',
+            url: 'ContentPublishing/RequestContentPublication',
+            data: {
+                "FileName": "xyz",
+                "RootContentId": Value
+            },
+            headers: {
+                RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+            }
+        }).done(function onDone(response) {
+            toastr.success($cardContainer.find('.card-body-primary-text').html() + ' was ' + (modifiedRole.IsAssigned ? 'set' : 'unset') + ' as ' + modifiedRole.RoleDisplayValue);
+        }).fail(function onFail(response) {
+            toastr.warning(response.getResponseHeader('Warning'));
+        });
     }
 </script>
- 
+<script type="text/javascript">
+    function test2(Value) {
+        $.ajax({
+            type: 'POST',
+            url: 'ContentAccessAdmin/RequestReductionForSelectionGroup',
+            data: {
+                "SelectionGroupId": Value
+            },
+            headers: {
+                RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+            }
+        }).done(function onDone(response) {
+            toastr.success($cardContainer.find('.card-body-primary-text').html() + ' was ' + (modifiedRole.IsAssigned ? 'set' : 'unset') + ' as ' + modifiedRole.RoleDisplayValue);
+        }).fail(function onFail(response) {
+            toastr.warning(response.getResponseHeader('Warning'));
+        });
+    }
+</script>
+
 @section Scripts {
 
     @Html.Partial("~/Views/ContentPublishing/templates/_Node.cshtml")
-
 
     <environment names="Development,CI">
         <script src="~/lib/selectize/dist/js/standalone/selectize.js"></script>

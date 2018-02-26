@@ -117,12 +117,12 @@ namespace MillimanAccessPortal.Controllers
         /// <summary>
         /// Returns the requested Client and lists of eligible and already assigned users associated with a Client. Requires GET. 
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="clientId"></param>
         /// <returns>JsonResult or UnauthorizedResult</returns>
         [HttpGet]
-        public async Task<IActionResult> ClientDetail(long? id)
+        public async Task<IActionResult> ClientDetail(long? clientId)
         {
-            Client ThisClient = DbContext.Client.Include(c => c.ProfitCenter).FirstOrDefault(c => c.Id == id);
+            Client ThisClient = DbContext.Client.Include(c => c.ProfitCenter).FirstOrDefault(c => c.Id == clientId);
 
             #region Validation
             if (ThisClient == null)
@@ -276,15 +276,9 @@ namespace MillimanAccessPortal.Controllers
                 }
                 catch (Exception e)
                 {
-                    string ErrMsg = $"Exception while creating new user \"{Model.UserName}\" or assigning user membership in client(s): [{string.Join(",", Model.MemberOfClientIdArray)}]";
-                    while (e != null)
-                    {
-                        ErrMsg += $"\r\n{e.Message}";
-                        e = e.InnerException;
-                    }
+                    string ErrMsg = GlobalFunctions.LoggableExceptionString(e, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while creating new user \"{Model.UserName}\" or assigning user membership in client(s): [{string.Join(",", Model.MemberOfClientIdArray)}]");
                     Logger.LogError(ErrMsg);
-
-                    Response.Headers.Add("Warning", $"Failed to complete operation");
+                    Response.Headers.Add("Warning", "Failed to complete operation");
                     return StatusCode(StatusCodes.Status500InternalServerError);
                 }
             }
@@ -592,9 +586,10 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception e)
             {
-                string ErrMsg = $"Failed to remove user {RequestedUser.UserName} from client {RequestedClient.Name}: error\r\n{e.Message}";
+                string ErrMsg = GlobalFunctions.LoggableExceptionString(e, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Failed to remove user {RequestedUser.UserName} from client {RequestedClient.Name}");
                 Logger.LogError(ErrMsg);
-                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+                Response.Headers.Add("Warning", "Error processing request.");
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
             ClientDetailViewModel ReturnModel = new ClientDetailViewModel { ClientEntity = RequestedClient };
@@ -725,14 +720,10 @@ namespace MillimanAccessPortal.Controllers
                 }
                 catch (Exception e)
                 {
-                    string ErrMsg = $"Failed to store new client \"{Model.Name}\" to database, or assign client administrator role";
-                    while (e != null)
-                    {
-                        ErrMsg += $"\r\n{e.Message}";
-                        e = e.InnerException;
-                    }
+                    string ErrMsg = GlobalFunctions.LoggableExceptionString(e, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Failed to store new client \"{Model.Name}\" to database, or assign client administrator role");
                     Logger.LogError(ErrMsg);
-                    return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+                    Response.Headers.Add("Warning", "Error processing request.");
+                    return StatusCode(StatusCodes.Status500InternalServerError);
                 }
             }
 
@@ -890,9 +881,10 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception ex)
             {
-                string ErrMsg = $"Failed to update client {Model.Id} to database";
-                Logger.LogError(ErrMsg + $":\r\n{ ex.Message}\r\n{ ex.StackTrace}");
-                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+                string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Failed to update client {Model.Id} to database");
+                Logger.LogError(ErrMsg);
+                Response.Headers.Add("Warning", "Error processing request.");
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
             ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
@@ -980,9 +972,10 @@ namespace MillimanAccessPortal.Controllers
                 }
                 catch (Exception ex)
                 {
-                    string ErrMsg = $"Failed to delete client from database";
-                    Logger.LogError(ErrMsg + $":\r\n{ex.Message}\r\n{ex.StackTrace}");
-                    return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+                    string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Failed to delete client from database");
+                    Logger.LogError(ErrMsg);
+                    Response.Headers.Add("Warning", "Error processing request.");
+                    return StatusCode(StatusCodes.Status500InternalServerError);
                 }
             }
 

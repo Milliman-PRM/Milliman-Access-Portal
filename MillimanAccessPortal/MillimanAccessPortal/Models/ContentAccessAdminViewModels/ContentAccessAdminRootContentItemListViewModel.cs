@@ -19,7 +19,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
         public List<ContentAccessAdminRootContentItemDetailViewModel> RootContentItemList = new List<ContentAccessAdminRootContentItemDetailViewModel>();
         public long RelevantRootContentItemId { get; set; } = -1;
 
-        internal static ContentAccessAdminRootContentItemListViewModel Build(ApplicationDbContext DbContext, Client Client)
+        internal static ContentAccessAdminRootContentItemListViewModel Build(ApplicationDbContext DbContext, ApplicationUser CurrentUser, Client Client)
         {
             ContentAccessAdminRootContentItemListViewModel Model = new ContentAccessAdminRootContentItemListViewModel();
 
