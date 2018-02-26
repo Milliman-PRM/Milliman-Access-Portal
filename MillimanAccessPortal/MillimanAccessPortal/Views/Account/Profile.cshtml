@@ -5,7 +5,95 @@
      * DEVELOPER NOTES:
      */
 
-    ViewData["Title"] = "User Profile";
+    ViewData["Title"] = "Account Settings";
     Layout = "_Layout_w_NB_H_F";
     ViewData["NavIcon"] = "UserProfile";
 }
+
+<div id="account-settings-container">
+    <div id="account-settings" class="admin-panel-container flex-item-for-phone-only-12-12 flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-5-12">
+        <div class="loading-wrapper" style="display: none;">
+            @Html.Partial("~/Views/Shared/_Loader.cshtml")
+        </div>
+        <div class="admin-panel-content-container">
+            <form class="admin-panel-content">
+                <div class="form-container">
+                    <h4 class="form-section-header">User Information</h4>
+                    <div class="form-section-container">
+                        <div style="display: none;">
+                            <input @*asp-for="Id" *@ />
+                        </div>
+                        <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                            <label @*asp-for="FirstName" *@ for="FirstName">First Name</label>
+                            <div>
+                                <input @*asp-for="FirstName" *@ id="FirstName" />
+                                @*<span asp-validation-for="FirstName" class="text-danger"></span>*@
+                            </div>
+                        </div>
+                        <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                            <label @*asp-for="LastName" *@ for="LastName">Last Name</label>
+                            <div>
+                                <input @*asp-for="LastName" *@ id="LastName" />
+                                @*<span asp-validation-for="LastName" class="text-danger"></span>*@
+                            </div>
+                        </div>
+                        <div class="form-input flex-item-12-12">
+                            <label @*asp-for="Username" *@ for="UserName">Username</label>
+                            <div>
+                                <input @*asp-for="Username" *@ id="UserName" />
+                                @*<span asp-validation-for="Username" class="text-danger"></span>*@
+                            </div>
+                        </div>
+                        <div class="form-input flex-item-12-12">
+                            <label @*asp-for="Email" *@ for="Email">Email Address</label>
+                            <div>
+                                <input @*asp-for="Email" *@ id="Email" />
+                                @*<span asp-validation-for="Email" class="text-danger"></span>*@
+                            </div>
+                        </div>
+                        <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-4-12">
+                            <label @*asp-for="Phone" *@ for="Phone">Phone Number</label>
+                            <div>
+                                <input @*asp-for="Phone" *@ id="Phone" />
+                                @*<span asp-validation-for="Phone" class="text-danger"></span>*@
+                            </div>
+                        </div>
+                        <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-8-12">
+                            <label @*asp-for="Employer" *@ for="Employer">Employer</label>
+                            <div>
+                                <input @*asp-for="Employer" *@ id="Employer" />
+                                @*<span asp-validation-for="Employer" class="text-danger"></span>*@
+                            </div>
+                        </div>
+                    </div>
+                    <h4 class="form-section-header">Update Password</h4>
+                    <div class="form-section-container">
+                        <div class="form-input flex-item-12-12">
+                            <label @*asp-for="CurrentPassword" *@ for="CurrentPassword">Current Password</label>
+                            <div>
+                                <input type="password" @*asp-for="CurrentPassword" *@ id="CurrentPassword" />
+                            </div>
+                        </div>
+                        <div class="form-input flex-item-12-12">
+                            <label @*asp-for="NewPassword" *@ for="NewPassword">New Password</label>
+                            <div>
+                                <input type="password" @*asp-for="NewPassword" *@ id="NewPassword" />
+                            </div>
+                        </div>
+                        <div class="form-input flex-item-12-12">
+                            <label @*asp-for="ConfirmPassword" *@ for="ConfirmPassword">Confirm Password</label>
+                            <div>
+                                <input type="password" @*asp-for="ConfirmPassword" *@ id="ConfirmPassword" />
+                            </div>
+                        </div>
+                        @Html.AntiForgeryToken()
+                    </div>
+                    <div class="new-form-button-container form-button-container">
+                        <button type="button" class="reset-button link-button">Discard Changes</button>
+                        <button type="button" class="submit-button green-button">Update Account</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
