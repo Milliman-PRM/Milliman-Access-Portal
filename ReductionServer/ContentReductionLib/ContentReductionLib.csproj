@@ -7,8 +7,8 @@
     <ProjectGuid>{367505B5-0893-4AB7-A959-E010F894B060}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>QvReportReductionLib</RootNamespace>
-    <AssemblyName>QvReportReductionLib</AssemblyName>
+    <RootNamespace>ContentReductionLib</RootNamespace>
+    <AssemblyName>ContentReductionLib</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

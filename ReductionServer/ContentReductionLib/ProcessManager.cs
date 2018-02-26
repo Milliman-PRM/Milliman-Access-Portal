@@ -16,7 +16,7 @@ using System.Threading;
 using Milliman.Common;
 using Milliman.ReductionEngine;
 
-namespace QvReportReductionLib
+namespace ContentReductionLib
 {
     public class ProcessManager
     {

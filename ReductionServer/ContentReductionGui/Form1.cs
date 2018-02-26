@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using QvReportReductionLib;
+using ContentReductionLib;
 using System.IO;
 
 namespace QvReportReductionGui
