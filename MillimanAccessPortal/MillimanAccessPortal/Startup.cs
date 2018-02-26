@@ -29,6 +29,7 @@ using AuditLogLib.Services;
 using EmailQueue;
 using MillimanAccessPortal.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace MillimanAccessPortal
 {
@@ -48,6 +49,10 @@ namespace MillimanAccessPortal
             services.Configure<MvcOptions>(options =>
             {
                 options.Filters.Add(new RequireHttpsAttribute());
+            });
+            services.Configure<FormOptions>(options =>
+            {
+                options.MultipartBodyLengthLimit = int.MaxValue;
             });
 
             #region Configure application connection string (environment-dependent)
