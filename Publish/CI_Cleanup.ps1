@@ -6,6 +6,8 @@
 ### DEVELOPER NOTES:
 #
 
+
+#region Define Functions
 function log_statement {
     Param([string]$statement)
 
@@ -13,75 +15,186 @@ function log_statement {
 
     write-output $datestring"|"$statement
 }
+#endregion
 
-$branchName = $env:git_branch.ToLower()
-$branchFolder = "D:\installedapplications\map_ci\$branchName\"
-$AppPool = "MAP_CI_$branchName"
-$MAPDBNAME = "millimanaccessportal_ci_$branchName"
-$MAPDBNAME_DEVELOP = "millimanaccessportal_ci_develop"
-$LOGDBNAME = "mapauditlog_ci_$branchName"
-$LOGDBNAME_DEVELOP = "mapauditlog_ci_develop"
-$ASPNETCORE_ENVIRONMENT = "CI"
-$name = "MAP_CI_$branchName"
-$errorCount = 0 # Tally errors as we go, rather than failing the script immediately
+#region Configure environment properties
+$ResourceGroupName = "map-ci"
+$SubscriptionId = "8f047950-269e-43c7-94e0-ff90d22bf013"
+$TenantId = "15dfebdf-8eb6-49ea-b9c7-f4b275f6b4b4"
+$WebAppName = "map-ci-app"
+$AppServicePlanName = "map-ci"
+$BranchName = $env:git_branch.Replace("_","").Replace("-","").ToLower() # Will be used as the name of the deployment slot & appended to database names
 
-log_statement "Deleting web application"
-$requestURL = "http://localhost:8044/iis_delete_app?app_name=$name&action=delete"
-$requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
-# Return code 50 indicates the app doesn't currently exist. That's fine in this case.
-if ($requestResult.returncode -ne 0 -and $requestResult.returncode -ne 50) {
-    log_statement "ERROR: Failed to delete the web application"
-    log_statement $requestResult.stdout
-    $errorCount += 1
+$deployUser = $env:app_deploy_user
+$deployPassword = $env:app_deploy_password
+
+$gitExePath = "git"
+$credManagerPath = "L:\Hotware\Powershell_Plugins\CredMan.ps1"
+$psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
+
+$dbServerHostname = "map-ci-db"
+$dbServer = "map-ci-db.postgres.database.azure.com"
+$dbUser = $env:db_deploy_user
+$dbPassword = $env:db_deploy_password
+$appDbName = "appdb_$BranchName"
+$logDbName = "auditlogdb_$BranchName"
+$dbCreationRetries = 5 # The number of times the script will attempt to create a new database before throwing an error
+
+$env:PATH = $env:PATH+";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin\"
+$env:PSModulePath = $env:PSModulePath+';C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager'
+
+#Load required PowerShell modules
+$silent = import-module AzureRM.Profile, AzureRM.Resources, AzureRM.Websites, Microsoft.PowerShell.Security 
+
+if ($? -eq $false)
+{
+    log_statement "Failed to load modules"
+    exit -1000
 }
 
-log_statement "Deleting IIS application pool"
-$requestURL = "http://localhost:8044/iis_pool_action?pool_name=$appPool&action=delete"
-$requestResult = Invoke-WebRequest -Uri $requestURL | ConvertFrom-Json
+#region Authenticate to Azure with a service principal
 
-if ($requestResult.returncode -ne 0) {
-    log_statement "ERROR: Failed to delete application pool"
-    log_statement $requestResult.stdout
-    $errorCount += 1
+$DeployCredential = new-object -typename System.Management.Automation.PSCredential -argumentlist $deployUser,($deployPassword | ConvertTo-SecureString -AsPlainText -Force)
+$silent = Add-AzureRmAccount -ServicePrincipal -Credential $DeployCredential -TenantId $TenantId  -Subscription $SubscriptionId
+
+if ($? -eq $false)
+{
+    log_statement "Failed to authenticate to Azure. Unable to clean up."
+    exit -1000
 }
 
-log_statement "Deleting application database"
-$command = "'c:\program` files\postgresql\9.6\bin\psql.exe' -d postgres -h localhost -e -q --command=`"drop database $MAPDBNAME`""
-invoke-expression "&$command"
+#endregion
+
+log_statement "Removing deployment slot"
+
+$silent = Get-AzureRmWebAppSlot -ResourceGroupName $ResourceGroupName -Name $WebAppName -Slot $Branchname
+if ($? -eq $false)
+{
+    if ($? -eq $false)
+    {
+        log_statement "Deployment slot $BranchName was not found"
+    }
+}
+else
+{
+    Remove-AzureRmWebAppSlot -ResourceGroupName $ResourceGroupName -name $WebAppName -Slot $BranchName -Force
+    if ($? -eq $false)
+    {
+        log_statement "Deployment slot $BranchName could not be removed"
+        exit -1000
+    }
+}
+
+
+#region Remove database firewall rules
+
+$command = "az login --service-principal -u $deployUser -p $deployPassword --tenant $tenantId"
+Invoke-Expression "&$command"
+if ($? -eq $false)
+{
+    log_statement "Failed to authenticate for removal of firewall rules"
+    exit -9000
+}
+
+# Retrieve the current list of firewall rules
+# Will be compared against the app's IP addresses to see which rules need to be created
+$command = "az postgres server firewall-rule list --server-name `"$dbServerHostname`" --resource-group `"$ResourceGroupName`"" 
+$firewallRules = invoke-expression "&$command" | out-string | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0)
+{
+    log_statement "Failed retrieving list of existing firewall rules"
+}
+$firewallFailures = 0
+
+foreach ( $rule in $firewallRules) 
+{    
+    if ($rule.name -match "Allow_"+$branchname+"_")
+    {
+        $ruleName = $rule.name
+        $command = "az postgres server firewall-rule delete --yes --resource-group `"$ResourceGroupName`" --server `"$DbServerHostname`" --name `"$ruleName`""
+        invoke-expression "&$command"
+        if ($LASTEXITCODE -ne 0)
+        {
+            log_statement "Failed to create firewall rule named $ruleName"
+            $firewallFailures = $firewallFailures + 1
+        }
+    }
+} 
+
+if ($firewallFailures -gt 0)
+{
+    # Output that firewall cleanup failed for one or more rules
+    # Because this isn't a serious issue, it's not worth failing the cleanup job
+    log_statement "Failed removing one or more firewall rules. Manual cleanup may be required."
+}
+else 
+{
+    log_statement "Finished removing database firewall rules"
+}
+#endregion
+
+#region Drop Databases
+
+$env:PGPASSWORD = $dbPassword
+
+# Check if databases already exist
+$appDbFound = $false
+$logDbFound = $false
+
+$command = "$psqlExePath --dbname=postgres  -h $dbServer -U $dbUser --tuples-only --command=`"select datname from Pg_database`" --echo-errors"
+$output = invoke-expression "&$command"
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to drop application database"
-    log_statement $requestResult.stdout
-    $error_count += 1
+    log_statement "ERROR: Failed to query for existing databases"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
 }
 
-log_statement "Deleting logging database"
-$command = "'c:\program` files\postgresql\9.6\bin\psql.exe' -d postgres -h localhost -e -q --command=`"drop database $LOGDBNAME`""
-invoke-expression "&$command"
-
-if ($LASTEXITCODE -ne 0) {
-    $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to drop logging database"
-    log_statement $requestResult.stdout
-    $error_count += 1
+foreach ($db in $output) {
+    if ($db.trim() -eq $appDbName) {
+        log_statement "MAP application database found for this branch."
+        $appDbFound = $true
+    }
+    elseif ($db.trim() -eq $logDbName) {
+        log_statement "Logging database found for this branch."
+        $logDbFound = $true
+    }
 }
 
-log_statement "Deleting deployed files"
-remove-item $branchFolder -Recurse
-if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: Failure during file deletion cleanup"
-    log_statement $requestResult.stdout
-    $error_count += 1
+if ($appDbFound)
+{
+    log_statement "Deleting application database"
+    $command = "'c:\program` files\postgresql\9.6\bin\psql.exe' -d postgres -U $dbUser -h $dbServer -e -q --command=`"drop database $appDbName`""
+    invoke-expression "&$command"
+
+    if ($LASTEXITCODE -ne 0) {
+        $error_code = $LASTEXITCODE
+        log_statement "ERROR: Failed to drop application database"
+        log_statement $requestResult.stdout
+        exit 42
+    }
+}
+else 
+{
+    log_statement "Application database was not found for this branch"
 }
 
-# Check for errors and exit with an error if any occurred
-if ($errorCount -gt 0) {
-    log_statement "FAILURE: One or more errors occurred during branch cleanup"
-    log_statement "Review previous log statements to diagnose errors"
-    log_statement "Manual cleanup of some items may be required"
-    exit -1
+if ($logDbFound)
+{
+    log_statement "Deleting logging database"
+    $command = "'c:\program` files\postgresql\9.6\bin\psql.exe' -d postgres -U $dbUser -h $dbServer -e -q --command=`"drop database $logDbName`""
+    invoke-expression "&$command"
+
+    if ($LASTEXITCODE -ne 0) {
+        $error_code = $LASTEXITCODE
+        log_statement "ERROR: Failed to drop audit log database"
+        log_statement $requestResult.stdout
+        exit 42
+    }
 }
-else {
-    log_statement "Cleanup completed successfully"
+else
+{
+    log_statement "Audit Log database was not found for this branch"
 }
+#endregion
