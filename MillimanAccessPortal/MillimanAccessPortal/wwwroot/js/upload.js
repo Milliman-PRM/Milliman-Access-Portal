@@ -3,7 +3,9 @@
 function upload() {
   var data = new FormData($('#upload-form')[0]);
   $.ajax({
-    xhr: shared.xhrWithProgress(console.log),
+    xhr: shared.xhrWithProgress(function (progress) {
+      $('#file-progress').width((Math.round(progress * 10000) / 100) + '%');
+    }),
     type: 'POST',
     cache: false,
     contentType: false,
