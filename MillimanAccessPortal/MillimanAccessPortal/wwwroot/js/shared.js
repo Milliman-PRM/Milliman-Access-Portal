@@ -184,7 +184,7 @@ var shared = {};
 
   set = function (method, url, successMessage) {
     var callbacks = Array.prototype.slice.call(arguments, 3);
-    return function (data, buttonText, onResponse) {
+    return function (data, onResponse, buttonText) {
       if (ajaxStatus[url]) {
         return; // TODO: do something when a request has already been sent
       }

@@ -90,6 +90,7 @@ function populateClientForm(response) {
       field.val(value);
     }
     field.attr('data-original-value', value);
+    field.change();
   });
 }
 function populateProfitCenterDropDown(profitCenterList) {
@@ -320,12 +321,12 @@ function clientCardDeleteClickHandler(event) {
   new dialog.DeleteClientDialog(
     clientName,
     clientId,
-    function (password, callback) {
-      if (password) {
-        setButtonSubmitting($('.vex-first'), 'Deleting');
+    function (data, callback) {
+      if (data.password) {
+        shared.showButtonSpinner($('.vex-first'), 'Deleting');
         $('.vex-dialog-button').attr('disabled', '');
-        deleteClient(clientId, clientName, password, callback);
-      } else if (password === '') {
+        deleteClient(clientId, clientName, data.password, callback);
+      } else if (data.password === '') {
         toastr.warning('Please enter your password to proceed');
         return false;
       } else {
@@ -439,11 +440,11 @@ function addUserClickHandler() {
         singleMatch = matches.length;
       });
       if (singleMatch) {
-        setButtonSubmitting($('.vex-first'), 'Adding');
+        shared.showButtonSpinner($('.vex-first'), 'Adding');
         $('.vex-dialog-button').attr('disabled', '');
         saveNewUser(data.username, null, callback);
       } else if (emailValRegex.test(data.username)) {
-        setButtonSubmitting($('.vex-first'), 'Adding');
+        shared.showButtonSpinner($('.vex-first'), 'Adding');
         $('.vex-dialog-button').attr('disabled', '');
         saveNewUser(null, data.username, callback);
       } else if (data.username) {
@@ -459,7 +460,7 @@ function addUserClickHandler() {
 function removeUserFromClient(clientId, userId, callback) {
   var userName = $('#client-users ul.admin-panel-content [data-user-id="' + userId + '"] .card-body-primary-text').html();
   var clientName = $('#client-tree [data-client-id="' + clientId + '"] .card-body-primary-text').html();
-  setButtonSubmitting($('.vex-first'), 'Removing');
+  shared.showButtonSpinner($('.vex-first'), 'Removing');
   $.ajax({
     type: 'POST',
     url: 'ClientAdmin/RemoveUserFromClient',
@@ -504,7 +505,11 @@ function renderClientNode(client, level) {
       'ClientAdmin/ClientDetail',
       setClientFormReadOnly,
       populateClientForm,
-      function () { $('#client-info .action-icon-edit').hide(); },
+      function () {
+        if ($card.readonly) {
+          $('#client-info .action-icon-edit').hide();
+        }
+      },
       renderUserList
     ), 2),
     !client.Children.length && clientCardDeleteClickHandler,
@@ -552,6 +557,8 @@ function deleteClient(clientId, clientName, password, callback) {
     }
   }).done(function onDone(response) {
     shared.clearForm($('#client-info'));
+    $('#client-users .admin-panel-content').empty();
+    hideClientDetails();
     renderClientTree(response.ClientTreeList, response.RelevantClientId);
     callback();
     toastr.success(clientName + ' was successfully deleted.');
@@ -604,7 +611,7 @@ function submitClientForm() {
       $button = $('.new-form-button-container .submit-button');
     }
 
-    setButtonSubmitting($button);
+    shared.showButtonSpinner($button);
     $.ajax({
       type: 'POST',
       url: urlAction,
@@ -613,11 +620,11 @@ function submitClientForm() {
         RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
       }
     }).done(function onDone(response) {
-      unsetButtonSubmitting($button);
+      shared.hideButtonSpinner($button);
       renderClientTree(response.ClientTreeList, response.RelevantClientId);
       toastr.success(successResponse);
     }).fail(function onFail(response) {
-      unsetButtonSubmitting($button);
+      shared.hideButtonSpinner($button);
       toastr.warning(response.getResponseHeader('Warning'));
     });
   }
