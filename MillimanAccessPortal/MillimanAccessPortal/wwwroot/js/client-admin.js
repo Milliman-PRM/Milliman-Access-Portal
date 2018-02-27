@@ -557,6 +557,8 @@ function deleteClient(clientId, clientName, password, callback) {
     }
   }).done(function onDone(response) {
     shared.clearForm($('#client-info'));
+    $('#client-users .admin-panel-content').empty();
+    hideClientDetails();
     renderClientTree(response.ClientTreeList, response.RelevantClientId);
     callback();
     toastr.success(clientName + ' was successfully deleted.');
