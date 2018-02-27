@@ -22,6 +22,9 @@ namespace QvReportReductionGui
 
         public Form1()
         {
+            UserSecretsTest secrets = new UserSecretsTest();
+            secrets.UseCxnString("DefaultConnection");
+            
             DateTime StartDateTime = DateTime.Now;
             CurrentTraceListener = new TextWriterTraceListener("QvReportReductionService_Trace_" + StartDateTime.ToString("yyyyMMdd-HHmmss") + ".txt");
             Trace.Listeners.Add(CurrentTraceListener);
