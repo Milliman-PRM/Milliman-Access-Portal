@@ -90,6 +90,7 @@ function populateClientForm(response) {
       field.val(value);
     }
     field.attr('data-original-value', value);
+    field.change();
   });
 }
 function populateProfitCenterDropDown(profitCenterList) {
