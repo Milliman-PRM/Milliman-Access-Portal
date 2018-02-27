@@ -159,6 +159,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         //[DisableFormValueModelBinding]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Upload()
         {
             if (!MultipartRequestHelper.IsMultipartContentType(Request.ContentType))

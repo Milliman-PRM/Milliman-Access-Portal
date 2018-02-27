@@ -38,17 +38,17 @@
 <button onclick="test2($('#selNum').val());">Selection request</button><input id="selNum" type="number" /><br />
 <div class="admin-panel-container flex-item-12-12">
     <div class="admin-panel-content">
-        <form method="post" enctype="multipart/form-data" asp-controller="ContentPublishing" asp-action="Upload">
+        <form id="upload-form" enctype="multipart/form-data" asp-controller="ContentPublishing" asp-action="Upload" asp-antiforgery="false">
             <div class="form-group">
                 <div class="col-md-10">
                     <p>Upload a file using this form:</p>
-                    <input type="file" name="file" />
-                    <input name="RootContentItemId" />
+                    <input id="file" type="file" name="file" />
+                    <input id="rci" name="RootContentItemId" />
                 </div>
             </div>
             <div class="form-group">
                 <div class="col-md-10">
-                    <input type="submit" value="Upload" />
+                    <input class="submit" type="submit" value="Upload" />
                 </div>
             </div>
         </form>
@@ -100,6 +100,7 @@
         <script src="~/lib/selectize/dist/js/standalone/selectize.js"></script>
         <script src="~/lib/typeahead.js/dist/typeahead.jquery.js"></script>
         <script src="~/js/content-publisher.js"></script>
+        <script src="~/js/upload.js"></script>
     </environment>
     <environment names="Staging,Production">
         <script src="~/lib/selectize/dist/js/standalone/selectize.min.js"></script>
