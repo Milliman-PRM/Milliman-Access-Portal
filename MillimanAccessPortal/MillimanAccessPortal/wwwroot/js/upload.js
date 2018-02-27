@@ -16,9 +16,9 @@ function upload() {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
     }
   }).done(function onDone(response) {
-    toastr.success(response);
+    toastr.success('File uploaded to ' + response.MasterFilePath);
   }).fail(function onFail(response) {
-    toastr.warning(response);
+    toastr.warning('Error: ' + response.status);
   });
 }
 
