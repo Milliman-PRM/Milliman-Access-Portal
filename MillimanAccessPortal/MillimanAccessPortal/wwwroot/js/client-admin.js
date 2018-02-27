@@ -320,12 +320,12 @@ function clientCardDeleteClickHandler(event) {
   new dialog.DeleteClientDialog(
     clientName,
     clientId,
-    function (password, callback) {
-      if (password) {
+    function (data, callback) {
+      if (data.password) {
         shared.showButtonSpinner($('.vex-first'), 'Deleting');
         $('.vex-dialog-button').attr('disabled', '');
-        deleteClient(clientId, clientName, password, callback);
-      } else if (password === '') {
+        deleteClient(clientId, clientName, data.password, callback);
+      } else if (data.password === '') {
         toastr.warning('Please enter your password to proceed');
         return false;
       } else {
