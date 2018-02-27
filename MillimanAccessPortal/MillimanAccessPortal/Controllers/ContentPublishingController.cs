@@ -158,8 +158,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpPost]
-        [DisableFormValueModelBinding]
-        [DisableRequestSizeLimit]
+        //[DisableFormValueModelBinding]
         public async Task<IActionResult> Upload()
         {
             if (!MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
@@ -167,14 +166,15 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest($"Expected a multipart request, but got {Request.ContentType}");
             }
 
-            // Used to accumulate all the form url encoded key value pairs in the
-            // request.
+            // Used to accumulate all the form url encoded key value pairs in the request.
             var formAccumulator = new KeyValueAccumulator();
             string targetFilePath = null;
 
+            // The encapsulation boundary should never exceed 70 characters.
+            // See https://tools.ietf.org/html/rfc2046#section-5.1.1
             var boundary = MultipartRequestHelper.GetBoundary(
                 MediaTypeHeaderValue.Parse(Request.ContentType),
-                lengthLimit: 1024 * 16);
+                lengthLimit: 70);
             var reader = new MultipartReader(boundary, Request.Body);
 
             var section = await reader.ReadNextSectionAsync();
@@ -191,25 +191,19 @@ namespace MillimanAccessPortal.Controllers
                         using (var targetStream = System.IO.File.Create(targetFilePath))
                         {
                             await section.Body.CopyToAsync(targetStream);
-
-                            Logger.LogInformation($"Copied the uploaded file '{targetFilePath}'");
                         }
                     }
                     else if (MultipartRequestHelper.HasFormDataContentDisposition(contentDisposition))
                     {
-                        // Content-Disposition: form-data; name="key"
-                        //
-                        // value
-
                         // Do not limit the key name length here because the
                         // multipart headers length limit is already in effect.
                         var key = HeaderUtilities.RemoveQuotes(contentDisposition.Name);
-                        var encoding = GetEncoding(section);
+                        var encoding = MultipartRequestHelper.GetEncoding(section);
                         using (var streamReader = new StreamReader(
                             section.Body,
                             encoding,
                             detectEncodingFromByteOrderMarks: true,
-                            bufferSize: 1024 * 16,
+                            bufferSize: 1024,
                             leaveOpen: true))
                         {
                             // The value length limit is enforced by MultipartBodyLengthLimit
@@ -234,42 +228,24 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Bind form data to a model
-            var user = new ApplicationUser();
             var formValueProvider = new FormValueProvider(
                 BindingSource.Form,
                 new FormCollection(formAccumulator.GetResults()),
                 CultureInfo.CurrentCulture);
 
-            var bindingSuccessful = await TryUpdateModelAsync(user, prefix: "",
-                valueProvider: formValueProvider);
-            if (!bindingSuccessful)
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-            }
+            var ApplicationUser = await DbQueries.GetCurrentApplicationUser(User);
+            var RootContentItemId = Convert.ToInt64(formValueProvider.GetValue("RootContentItemId").FirstValue);
 
-            var uploadedData = new ContentPublicationRequest()
+            var ContentPublicationRequest = new ContentPublicationRequest()
             {
-                RootContentItemId = 1,
-                ApplicationUserId = user.Id,
+                RootContentItemId = RootContentItemId,
+                ApplicationUserId = ApplicationUser.Id,
                 MasterFilePath = targetFilePath
             };
-            return Json(uploadedData);
-        }
+            DbContext.ContentPublicationRequest.Add(ContentPublicationRequest);
+            DbContext.SaveChanges();
 
-        private static Encoding GetEncoding(MultipartSection section)
-        {
-            MediaTypeHeaderValue mediaType;
-            var hasMediaTypeHeader = MediaTypeHeaderValue.TryParse(section.ContentType, out mediaType);
-            // UTF-7 is insecure and should not be honored. UTF-8 will succeed in
-            // most cases.
-            if (!hasMediaTypeHeader || Encoding.UTF7.Equals(mediaType.Encoding))
-            {
-                return Encoding.UTF8;
-            }
-            return mediaType.Encoding;
+            return Json(ContentPublicationRequest);
         }
     }
 
@@ -292,7 +268,6 @@ namespace MillimanAccessPortal.Controllers
 
     public static class MultipartRequestHelper
     {
-        // The spec says 70 characters is a reasonable limit.
         public static string GetBoundary(MediaTypeHeaderValue contentType, int lengthLimit)
         {
             var boundary = HeaderUtilities.RemoveQuotes(contentType.Boundary);
@@ -318,7 +293,6 @@ namespace MillimanAccessPortal.Controllers
 
         public static bool HasFormDataContentDisposition(ContentDispositionHeaderValue contentDisposition)
         {
-            // Content-Disposition: form-data; name="key";
             return contentDisposition != null
                    && contentDisposition.DispositionType.Equals("form-data")
                    && string.IsNullOrEmpty(contentDisposition.FileName.Value)
@@ -327,11 +301,22 @@ namespace MillimanAccessPortal.Controllers
 
         public static bool HasFileContentDisposition(ContentDispositionHeaderValue contentDisposition)
         {
-            // Content-Disposition: form-data; name="myfile1"; filename="Misc 002.jpg"
             return contentDisposition != null
                    && contentDisposition.DispositionType.Equals("form-data")
                    && (!string.IsNullOrEmpty(contentDisposition.FileName.Value)
                        || !string.IsNullOrEmpty(contentDisposition.FileNameStar.Value));
+        }
+
+        public static Encoding GetEncoding(MultipartSection section)
+        {
+            MediaTypeHeaderValue mediaType;
+            var hasMediaTypeHeader = MediaTypeHeaderValue.TryParse(section.ContentType, out mediaType);
+            // Use UTF-8 instead of UTF-7 if it is requested
+            if (!hasMediaTypeHeader || Encoding.UTF7.Equals(mediaType.Encoding))
+            {
+                return Encoding.UTF8;
+            }
+            return mediaType.Encoding;
         }
     }
 

@@ -50,10 +50,6 @@ namespace MillimanAccessPortal
             {
                 options.Filters.Add(new RequireHttpsAttribute());
             });
-            services.Configure<FormOptions>(options =>
-            {
-                options.MultipartBodyLengthLimit = int.MaxValue;
-            });
 
             #region Configure application connection string (environment-dependent)
 
