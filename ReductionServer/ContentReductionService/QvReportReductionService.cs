@@ -8,7 +8,7 @@ using System.Linq;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
-using ContentReductionLib;
+using ContentReductionLibOld;
 
 namespace QvReportReductionService
 {

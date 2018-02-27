@@ -16,7 +16,7 @@ using System.Threading;
 using Milliman.Common;
 using Milliman.ReductionEngine;
 
-namespace ContentReductionLib
+namespace ContentReductionLibOld
 {
     public class ProcessManager
     {

@@ -2,6 +2,8 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
+    <!-- Following line is needed because:  https://www.hanselman.com/blog/ReferencingNETStandardAssembliesFromBothNETCoreAndNETFramework.aspx -->
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{A91F95B8-EDB8-44B8-AB7B-775DD9746D13}</ProjectGuid>
@@ -85,8 +87,12 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ContentReductionLib\ContentReductionLib.csproj">
+    <ProjectReference Include="..\ContentReductionLib.Old\ContentReductionLib.old.csproj">
       <Project>{367505b5-0893-4ab7-a959-e010f894b060}</Project>
+      <Name>ContentReductionLib.old</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ContentReductionLib\ContentReductionLib.csproj">
+      <Project>{37aceb95-623f-4a69-9497-0f74936c52e2}</Project>
       <Name>ContentReductionLib</Name>
     </ProjectReference>
   </ItemGroup>
