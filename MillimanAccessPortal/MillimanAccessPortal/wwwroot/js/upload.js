@@ -1,8 +1,9 @@
+/* global shared */
+
 function upload() {
-  var data = new FormData();
-  data.append('file', $('#file')[0].files[0]);
-  data.append('RootContentItemId', $('#rci').val());
+  var data = new FormData($('#upload-form')[0]);
   $.ajax({
+    xhr: shared.xhrWithProgress(console.log),
     type: 'POST',
     cache: false,
     contentType: false,
@@ -21,7 +22,6 @@ function upload() {
 
 $(document).ready(function () {
   $('#upload-form input.submit').click(function (event) {
-    event.stopPropagation();
     event.preventDefault();
     upload();
   });

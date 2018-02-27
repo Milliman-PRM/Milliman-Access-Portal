@@ -227,6 +227,18 @@ var shared = {};
     $button.html($button.data('original-text'));
   };
 
+  shared.xhrWithProgress = function (onProgress) {
+    return function () {
+      var xhr = new window.XMLHttpRequest();
+      xhr.upload.addEventListener('progress', function (event) {
+        if (event.lengthComputable) {
+          onProgress(event.loaded / event.total);
+        }
+      }, false);
+      return xhr;
+    };
+  };
+
   // Typeahead
   shared.userSubstringMatcher = function (users) {
     return function findMatches(query, callback) {
