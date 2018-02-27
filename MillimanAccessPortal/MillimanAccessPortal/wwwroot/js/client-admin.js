@@ -322,7 +322,7 @@ function clientCardDeleteClickHandler(event) {
     clientId,
     function (password, callback) {
       if (password) {
-        setButtonSubmitting($('.vex-first'), 'Deleting');
+        shared.showButtonSpinner($('.vex-first'), 'Deleting');
         $('.vex-dialog-button').attr('disabled', '');
         deleteClient(clientId, clientName, password, callback);
       } else if (password === '') {
@@ -439,11 +439,11 @@ function addUserClickHandler() {
         singleMatch = matches.length;
       });
       if (singleMatch) {
-        setButtonSubmitting($('.vex-first'), 'Adding');
+        shared.showButtonSpinner($('.vex-first'), 'Adding');
         $('.vex-dialog-button').attr('disabled', '');
         saveNewUser(data.username, null, callback);
       } else if (emailValRegex.test(data.username)) {
-        setButtonSubmitting($('.vex-first'), 'Adding');
+        shared.showButtonSpinner($('.vex-first'), 'Adding');
         $('.vex-dialog-button').attr('disabled', '');
         saveNewUser(null, data.username, callback);
       } else if (data.username) {
@@ -459,7 +459,7 @@ function addUserClickHandler() {
 function removeUserFromClient(clientId, userId, callback) {
   var userName = $('#client-users ul.admin-panel-content [data-user-id="' + userId + '"] .card-body-primary-text').html();
   var clientName = $('#client-tree [data-client-id="' + clientId + '"] .card-body-primary-text').html();
-  setButtonSubmitting($('.vex-first'), 'Removing');
+  shared.showButtonSpinner($('.vex-first'), 'Removing');
   $.ajax({
     type: 'POST',
     url: 'ClientAdmin/RemoveUserFromClient',
@@ -604,7 +604,7 @@ function submitClientForm() {
       $button = $('.new-form-button-container .submit-button');
     }
 
-    setButtonSubmitting($button);
+    shared.showButtonSpinner($button);
     $.ajax({
       type: 'POST',
       url: urlAction,
@@ -613,11 +613,11 @@ function submitClientForm() {
         RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
       }
     }).done(function onDone(response) {
-      unsetButtonSubmitting($button);
+      shared.hideButtonSpinner($button);
       renderClientTree(response.ClientTreeList, response.RelevantClientId);
       toastr.success(successResponse);
     }).fail(function onFail(response) {
-      unsetButtonSubmitting($button);
+      shared.hideButtonSpinner($button);
       toastr.warning(response.getResponseHeader('Warning'));
     });
   }
