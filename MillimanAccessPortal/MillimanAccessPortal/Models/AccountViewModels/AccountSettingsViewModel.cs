@@ -31,6 +31,10 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         public string Employer { get; set; }
 
         [DataType(DataType.Password)]
+        [Display(Name = "Current Password")]
+        public string CurrentPassword { get; set; }
+
+        [DataType(DataType.Password)]
         [Display(Name = "New Password")]
         public string NewPassword { get; set; }
 

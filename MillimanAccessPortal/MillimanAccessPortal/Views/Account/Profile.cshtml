@@ -1,4 +1,6 @@
-﻿@{
+﻿@model AccountSettingsViewModel;
+
+@{
     /*
      * CODE OWNERS: Michael Reisz
      * OBJECTIVE: Allow the user to view and edit their account settings
@@ -20,70 +22,69 @@
                 <div class="form-container">
                     <h4 class="form-section-header">User Information</h4>
                     <div class="form-section-container">
-                        <div style="display: none;">
-                            <input @*asp-for="Id" *@ />
-                        </div>
                         <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
-                            <label @*asp-for="FirstName" *@ for="FirstName">First Name</label>
+                            <label asp-for="FirstName"></label>
                             <div>
-                                <input @*asp-for="FirstName" *@ id="FirstName" />
-                                @*<span asp-validation-for="FirstName" class="text-danger"></span>*@
+                                <input asp-for="FirstName" />
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
-                            <label @*asp-for="LastName" *@ for="LastName">Last Name</label>
+                            <label asp-for="LastName"></label>
                             <div>
-                                <input @*asp-for="LastName" *@ id="LastName" />
-                                @*<span asp-validation-for="LastName" class="text-danger"></span>*@
+                                <input asp-for="LastName" />
+                                <span asp-validation-for="LastName" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="form-input flex-item-12-12">
-                            <label @*asp-for="Username" *@ for="UserName">Username</label>
+                            <label asp-for="Username"></label>
                             <div>
-                                <input @*asp-for="Username" *@ id="UserName" readonly disabled />
-                                @*<span asp-validation-for="Username" class="text-danger"></span>*@
+                                <input asp-for="Username" readonly disabled />
+                                <span asp-validation-for="Username" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="form-input flex-item-12-12" style="display: none;">
-                            <label @*asp-for="Email" *@ for="Email">Email Address</label>
+                            <label asp-for="Email"></label>
                             <div>
-                                <input @*asp-for="Email" *@ id="Email" readonly disabled />
-                                @*<span asp-validation-for="Email" class="text-danger"></span>*@
+                                <input asp-for="Email" readonly disabled />
+                                <span asp-validation-for="Email" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-4-12">
-                            <label @*asp-for="Phone" *@ for="Phone">Phone Number</label>
+                            <label asp-for="Phone" for="Phone"></label>
                             <div>
-                                <input @*asp-for="Phone" *@ id="Phone" />
-                                @*<span asp-validation-for="Phone" class="text-danger"></span>*@
+                                <input asp-for="Phone" id="Phone" />
+                                <span asp-validation-for="Phone" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-8-12">
-                            <label @*asp-for="Employer" *@ for="Employer">Employer</label>
+                            <label asp-for="Employer" for="Employer"></label>
                             <div>
-                                <input @*asp-for="Employer" *@ id="Employer" />
-                                @*<span asp-validation-for="Employer" class="text-danger"></span>*@
+                                <input asp-for="Employer" id="Employer" />
+                                <span asp-validation-for="Employer" class="text-danger"></span>
                             </div>
                         </div>
                     </div>
                     <h4 class="form-section-header">Update Password</h4>
                     <div class="form-section-container">
                         <div class="form-input flex-item-12-12">
-                            <label @*asp-for="CurrentPassword" *@ for="CurrentPassword">Current Password</label>
+                            <label asp-for="CurrentPassword" for="CurrentPassword"></label>
                             <div>
-                                <input type="password" @*asp-for="CurrentPassword" *@ id="CurrentPassword" />
+                                <input type="password" asp-for="CurrentPassword" id="CurrentPassword" />
                             </div>
                         </div>
                         <div class="form-input flex-item-12-12">
-                            <label @*asp-for="NewPassword" *@ for="NewPassword">New Password</label>
+                            <label asp-for="NewPassword" for="NewPassword"></label>
                             <div>
-                                <input type="password" @*asp-for="NewPassword" *@ id="NewPassword" />
+                                <input type="password" asp-for="NewPassword" id="NewPassword" />
+                                <span asp-validation-for="NewPassword" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="form-input flex-item-12-12">
-                            <label @*asp-for="ConfirmPassword" *@ for="ConfirmPassword">Confirm Password</label>
+                            <label asp-for="ConfirmPassword" for="ConfirmPassword"></label>
                             <div>
-                                <input type="password" @*asp-for="ConfirmPassword" *@ id="ConfirmPassword" />
+                                <input type="password" asp-for="ConfirmPassword" id="ConfirmPassword" />
+                                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                             </div>
                         </div>
                         @Html.AntiForgeryToken()
