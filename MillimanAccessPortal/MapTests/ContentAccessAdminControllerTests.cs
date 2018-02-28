@@ -496,15 +496,53 @@ namespace MapTests
             #endregion
         }
 
+        [Theory]
+        [InlineData(999)]
+        public async Task Selections_ErrorInvalid(long SelectionGroupId)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            #endregion
+
+            #region Act
+            var view = await controller.SelectionGroups(SelectionGroupId);
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(view);
+            StatusCodeResult viewResult = (StatusCodeResult)view;
+            Assert.Equal("422", viewResult.StatusCode.ToString());
+            #endregion
+        }
+
+        [Theory]
+        [InlineData("user5", 1)]
+        [InlineData("test1", 3)]
+        [InlineData("user6", 3)]
+        public async Task Selections_ErrorUnauthorized(String UserName, long SelectionGroupId)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser(UserName);
+            #endregion
+
+            #region Act
+            var view = await controller.SelectionGroups(SelectionGroupId);
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            #endregion
+        }
+
         [Fact]
         public async Task Selections_ReturnsJson()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("ClientAdmin1");
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
             #endregion
 
             #region Act
-            var view = controller.Selections(0);
+            var view = await controller.Selections(4);
             #endregion
 
             #region Assert
@@ -516,7 +554,7 @@ namespace MapTests
         public async Task UpdateSelections_ReturnsJson()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("ClientAdmin1");
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
             #endregion
 
             #region Act

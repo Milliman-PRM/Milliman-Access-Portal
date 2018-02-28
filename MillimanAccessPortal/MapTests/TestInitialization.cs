@@ -449,6 +449,7 @@ namespace MapTests
             DbContextObject.HierarchyField.AddRange(new List<HierarchyField>
                 {
                     new HierarchyField { Id=1, RootContentItemId=1, FieldName="Field1", FieldDisplayName="DisplayName1", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
+                    new HierarchyField { Id=2, RootContentItemId=3, FieldName="Field1", FieldDisplayName="DisplayName1", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
                 });
             MockDbSet<HierarchyField>.AssignNavigationProperty<RootContentItem>(DbContextObject.HierarchyField, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
@@ -457,6 +458,8 @@ namespace MapTests
             DbContextObject.HierarchyFieldValue.AddRange(new List<HierarchyFieldValue>
                 { 
                     new HierarchyFieldValue { Id=1, HierarchyFieldId=1,  Value="Value 1" },
+                    new HierarchyFieldValue { Id=2, HierarchyFieldId=2,  Value="Value 1" },
+                    new HierarchyFieldValue { Id=3, HierarchyFieldId=2,  Value="Value 2" },
                 });
             MockDbSet<HierarchyFieldValue>.AssignNavigationProperty<HierarchyField>(DbContextObject.HierarchyFieldValue, "HierarchyFieldId", DbContextObject.HierarchyField);
             #endregion
