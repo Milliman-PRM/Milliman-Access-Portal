@@ -36,6 +36,27 @@
 
 <button onclick="test1($('#pubNum').val());">Publish request</button><input id="pubNum" type="number" /><br />
 <button onclick="test2($('#selNum').val());">Selection request</button><input id="selNum" type="number" /><br />
+<div class="admin-panel-container flex-item-12-12">
+    <div class="admin-panel-content">
+        <form id="upload-form" enctype="multipart/form-data" asp-controller="ContentPublishing" asp-action="Upload" asp-antiforgery="false">
+            <div class="form-group">
+                <div style="width: 350px;">
+                    <p>Upload a file using this form:</p>
+                    <input id="file" type="file" name="file" />
+                    <input id="rci" name="RootContentItemId" placeholder="RootContentItemId" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div style="width: 350px;">
+                    <input class="submit" type="submit" value="Upload" />
+                </div>
+            </div>
+        </form>
+        <div style="display: block; width: 200px; height: 30px; background-color: white; margin-top: 10px;">
+          <div id="file-progress" style="display: block; position: relative; height: 100%; width: 0%; background-color: DodgerBlue;">Progress</div>
+        </div>
+    </div>
+</div>
 <script type="text/javascript">
     function test1(Value) {
         $.ajax({
@@ -82,6 +103,8 @@
         <script src="~/lib/selectize/dist/js/standalone/selectize.js"></script>
         <script src="~/lib/typeahead.js/dist/typeahead.jquery.js"></script>
         <script src="~/js/content-publisher.js"></script>
+        <script src="~/js/shared.js"></script>
+        <script src="~/js/upload.js"></script>
     </environment>
     <environment names="Staging,Production">
         <script src="~/lib/selectize/dist/js/standalone/selectize.min.js"></script>
