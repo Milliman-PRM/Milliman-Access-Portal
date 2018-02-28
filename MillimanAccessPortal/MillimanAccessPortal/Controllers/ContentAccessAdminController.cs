@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using MapDbContextLib.Models;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -512,15 +513,33 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="SelectionGroupId">The selection group whose selections are to be returned.</param>
         /// <returns>JsonResult</returns>
         [HttpGet]
-        public IActionResult Selections(long SelectionGroupId)
+        public async Task<IActionResult> Selections(long SelectionGroupId)
         {
+            SelectionGroup SelectionGroup = DbContext.SelectionGroup.Find(SelectionGroupId);
+
+            #region Preliminary validation
+            if (SelectionGroup == null)
+            {
+                Response.Headers.Add("Warning", "The requested selection group does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
             #region Authorization
+            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.RootContentItemId));
+            if (!RoleInRootContentItemResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                return Unauthorized();
+            }
             #endregion
 
             #region Validation
             #endregion
 
-            return Json(new { });
+            ContentReductionHierarchy Model = Queries.GetFieldSelectionsForSelectionGroup(SelectionGroupId);
+
+            return Json(Model);
         }
 
         /// <summary>Updates a selection group with new selections.</summary>
