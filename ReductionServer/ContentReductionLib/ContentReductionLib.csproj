@@ -20,6 +20,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\MillimanAccessPortal\MapDbContextLib\MapDbContextLib.csproj" />
+    <ProjectReference Include="..\Milliman.Common\Milliman.Common.csproj" />
+    <ProjectReference Include="..\Milliman.ReductionEngine\Milliman.ReductionEngine.csproj" />
   </ItemGroup>
 
 </Project>
