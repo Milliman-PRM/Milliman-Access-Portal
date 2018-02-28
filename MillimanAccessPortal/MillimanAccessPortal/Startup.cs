@@ -29,7 +29,6 @@ using AuditLogLib.Services;
 using EmailQueue;
 using MillimanAccessPortal.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Http.Features;
 
 namespace MillimanAccessPortal
 {

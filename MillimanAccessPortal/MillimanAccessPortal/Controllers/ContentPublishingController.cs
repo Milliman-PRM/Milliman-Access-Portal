@@ -22,7 +22,6 @@ using MillimanAccessPortal.Authorization;
 using AuditLogLib;
 using AuditLogLib.Services;
 using Newtonsoft.Json;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Net.Http.Headers;
 using System.IO;
@@ -158,7 +157,6 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpPost]
-        //[DisableFormValueModelBinding]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Upload()
         {
@@ -247,23 +245,6 @@ namespace MillimanAccessPortal.Controllers
             DbContext.SaveChanges();
 
             return Json(ContentPublicationRequest);
-        }
-    }
-
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-    public class DisableFormValueModelBindingAttribute : Attribute, IResourceFilter, IOrderedFilter
-    {
-        public int Order { get; set; }
-
-        public void OnResourceExecuting(ResourceExecutingContext context)
-        {
-            var factories = context.ValueProviderFactories;
-            factories.RemoveType<FormValueProviderFactory>();
-            // factories.RemoveType<JQueryFormValueProviderFactory>();
-        }
-
-        public void OnResourceExecuted(ResourceExecutedContext context)
-        {
         }
     }
 
