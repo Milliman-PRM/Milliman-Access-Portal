@@ -41,9 +41,9 @@ var dialog = {};
               data[obj.name] = obj.value;
             });
           }
-          return submitHandler(data, self.buttonText, function () {
+          return submitHandler(data, function () {
             vexObject.close();
-          });
+          }, self.buttonText);
         }
       });
     }

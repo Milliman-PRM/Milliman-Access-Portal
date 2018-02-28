@@ -184,7 +184,7 @@ var shared = {};
 
   set = function (method, url, successMessage) {
     var callbacks = Array.prototype.slice.call(arguments, 3);
-    return function (data, buttonText, onResponse) {
+    return function (data, onResponse, buttonText) {
       if (ajaxStatus[url]) {
         return; // TODO: do something when a request has already been sent
       }
@@ -225,6 +225,18 @@ var shared = {};
 
   shared.hideButtonSpinner = function ($button) {
     $button.html($button.data('original-text'));
+  };
+
+  shared.xhrWithProgress = function (onProgress) {
+    return function () {
+      var xhr = new window.XMLHttpRequest();
+      xhr.upload.addEventListener('progress', function (event) {
+        if (event.lengthComputable) {
+          onProgress(event.loaded / event.total);
+        }
+      }, false);
+      return xhr;
+    };
   };
 
   // Typeahead
