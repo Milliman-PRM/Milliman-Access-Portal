@@ -9,8 +9,8 @@ using System.IO;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
 using MapDbContextLib.Context;
 using Milliman.ReductionEngine;
 
@@ -22,6 +22,7 @@ namespace ContentReductionLib
     {
         // These collections are keyed on the config file name
         private static Dictionary<string, RunningReductionTask> ExecutingTasks = new Dictionary<string, RunningReductionTask>();
+        private Dictionary<int, JobMonitorInfo> QueueMonitorDict = new Dictionary<int, JobMonitorInfo>();
 
         /// <summary>
         /// class used to pass operational parameters to the thread that handles tasks of a single config file
@@ -49,10 +50,14 @@ namespace ContentReductionLib
         /// </summary>
         public ProcessManager()
         {
-            MapDbContextAccessor ContextAccessor = new MapDbContextAccessor();
-            using (ApplicationDbContext DbContext = ContextAccessor.Context)
+            MapDbContextAccessor.UseConfiguredConnectionString();
+
+            //foreach (var x in ConfiguredMonitors)
+            for (int i =1; i<2; i++ )
             {
-                ContentType x = DbContext.ContentType.Where(ct => ct.Id == 1).First();
+                QueueMonitorDict.Add(i, new JobMonitorInfo { Monitor=new MapDbJobMonitor(),
+                                                          TokenSource =new CancellationTokenSource(),
+                                                          AwaitableTask =null});
             }
 
             StopSignal = false;
@@ -74,30 +79,17 @@ namespace ContentReductionLib
             }
         }
 
-        public bool ThreadAlive
+        public void Start(ProcessManagerConfiguration ProcessConfig)
         {
-            get
+            foreach (var MonitorKvp in QueueMonitorDict)
             {
-                return (MainServiceWorkerThread != null &&
-                            (MainServiceWorkerThread.ThreadState == System.Threading.ThreadState.Running ||
-                             MainServiceWorkerThread.ThreadState == System.Threading.ThreadState.WaitSleepJoin));
+                JobMonitorInfo MonitorInfo = MonitorKvp.Value;
+                MonitorInfo.AwaitableTask = MonitorInfo.Monitor.Start(MonitorInfo.TokenSource.Token);
+
+                Trace.WriteLine($"JobMonitor {MonitorKvp.Key} Start() returned");
             }
-        }
 
-        public bool Start(ProcessManagerConfiguration ProcessConfig)
-        {
-            /*
-            foreach (Source of tasks)
-            {
-                Start a thread
-                sort of like `MainServiceWorkerThread.Start(ProcessConfig);`
-            }
-            */
-
-            Trace.WriteLine("Starting the processing of class " + this.GetType().Name);
-
-            MainServiceWorkerThread.Start(ProcessConfig);
-            return true;
+            Thread.Sleep(5000);
         }
 
         /// <summary>
@@ -108,15 +100,17 @@ namespace ContentReductionLib
         /// <returns></returns>
         public bool Stop(int WaitMs = 0)
         {
-            StopSignal = true;
-
-            if (WaitMs > 0)
+            foreach (var MonitorKvp in QueueMonitorDict)
             {
-                // TODO Wait as long as WaitMs for the thread to stop
-                Thread.Sleep(WaitMs);
+                JobMonitorInfo MonitorInfo = MonitorKvp.Value;
+                MonitorInfo.TokenSource.Cancel();
+
+                Trace.WriteLine($"Token {MonitorKvp.Key} cancelled");
             }
 
-            return !ThreadAlive;
+            TimeSpan MaxWaitTime = TimeSpan.FromMinutes(3);
+            // Wait for all the running job monitors to complete
+            return Task.WaitAll(QueueMonitorDict.Select(m => m.Value.AwaitableTask).ToArray(), MaxWaitTime);
         }
 
         /// <summary>
