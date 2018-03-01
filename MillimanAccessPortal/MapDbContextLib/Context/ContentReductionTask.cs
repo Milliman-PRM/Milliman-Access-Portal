@@ -13,6 +13,16 @@ using MapDbContextLib.Identity;
 
 namespace MapDbContextLib.Context
 {
+    public enum ReductionStatusEnum : long
+    {
+        Queued = 10,
+        Reducing = 20,
+        Reduced = 30,
+        Pushed = 40,
+        Canceled = 50,
+        Replaced = 51,
+    }
+
     public class ContentReductionTask
     {
         [Key]
@@ -36,7 +46,7 @@ namespace MapDbContextLib.Context
         public DateTimeOffset CreateDateTime { get; set; }
 
         [Required]
-        public string Status { get; set; }
+        public ReductionStatusEnum ReductionStatus { get; set; }
 
         /// <summary>
         /// This path must be accessible to MAP application and reduction server.  

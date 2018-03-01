@@ -614,7 +614,7 @@ namespace MillimanAccessPortal.Controllers
                     ResultFilePath = "ThisOutputFile",
                     ContentPublicationRequest = null,
                     SelectionCriteria = SelectionCriteriaString,
-                    Status = "New",  // TODO improve to enum
+                    ReductionStatus = ReductionStatusEnum.Queued,
                 };
 
                 DbContext.ContentReductionTask.Add(NewTask);
