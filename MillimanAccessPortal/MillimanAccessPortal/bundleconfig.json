@@ -6,6 +6,13 @@
       "node_modules/bootstrap/dist/css/bootstrap-reboot.css"
     ]
   },
+  {
+    "outputFileName": "wwwroot/lib/bootstrap/bootstrap-reboot.css.map",
+    "inputFiles": [
+      "node_modules/bootstrap/dist/css/bootstrap-reboot.css.map"
+    ]
+  },
+
   // Jquery
   {
     "outputFileName": "wwwroot/lib/jquery/jquery.js",
@@ -78,7 +85,7 @@
   {
     "outputFileName": "wwwroot/lib/vex-js/vex.combined.js",
     "inputFiles": [
-      "node_modules/vex-js/vex.combined.js"
+      "node_modules/vex-js/dist/js/vex.combined.js"
     ]
   },
   {
@@ -134,7 +141,7 @@
     "inputFiles": [
       "node_modules/jquery-validation/dist/jquery.validate.js",
       "node_modules/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js",
-      "node_modules/vex/dist/js/vex.combined.js",
+      "node_modules/vex-js/dist/js/vex.combined.js",
       "node_modules/toastr/toastr.js",
       "node_modules/tooltipster/src/js/tooltipster.js",
       "node_modules/tooltipster/src/js/plugins/tooltipster/sideTip/tooltipster-sideTip.js",
