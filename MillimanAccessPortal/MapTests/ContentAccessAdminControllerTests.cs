@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: 
  */
 
+using MapDbContextLib.Context;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
 using System;
@@ -517,8 +518,8 @@ namespace MapTests
 
         [Theory]
         [InlineData("user5", 1)]
-        [InlineData("test1", 3)]
-        [InlineData("user6", 3)]
+        [InlineData("test1", 4)]
+        [InlineData("user6", 4)]
         public async Task Selections_ErrorUnauthorized(String UserName, long SelectionGroupId)
         {
             #region Arrange
@@ -551,36 +552,72 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData(999)]
-        public async Task SingleReduction_ErrorInvalid(long SelectionGroupId)
+        [InlineData(999, 2,  new ReductionStatusEnum[] { })]
+        [InlineData(4, 999, new ReductionStatusEnum[] { })]
+        [InlineData(4, 1, new ReductionStatusEnum[] { })]
+        [InlineData(4, 2, new ReductionStatusEnum[] { ReductionStatusEnum.Queued })]
+        [InlineData(4, 2, new ReductionStatusEnum[] { ReductionStatusEnum.Reducing })]
+        [InlineData(4, 2, new ReductionStatusEnum[] { ReductionStatusEnum.Reduced })]
+        public async Task SingleReduction_ErrorInvalid(long SelectionGroupId, long HierarchyFieldValueId, ReductionStatusEnum[] Tasks)
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("user5");
+            var Selections = new Dictionary<long, Boolean>
+            {
+                { HierarchyFieldValueId, true }
+            };
+            foreach (var Status in Tasks)
+            {
+                TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask {
+                    ReductionStatus = Status,
+                    ContentPublicationRequestId = null,
+                    SelectionGroupId = SelectionGroupId,
+                    ApplicationUserId = 1
+                });
+            }
             #endregion
 
             #region Act
-            var view = await controller.SingleReduction(SelectionGroupId, null);
+            int tasksPreCount = TestResources.DbContextObject.SelectionGroup.Count();
+            
+            var view = await controller.SingleReduction(SelectionGroupId, Selections);
+
+            int tasksPostCount = TestResources.DbContextObject.SelectionGroup.Count();
             #endregion
 
             #region Assert
+            Assert.IsType<StatusCodeResult>(view);
+            StatusCodeResult viewResult = (StatusCodeResult)view;
+            Assert.Equal("422", viewResult.StatusCode.ToString());
+            Assert.Equal(tasksPreCount, tasksPostCount);
             #endregion
         }
 
         [Theory]
         [InlineData("user5", 1)]
-        [InlineData("user6", 3)]
         [InlineData("test1", 4)]
+        [InlineData("user6", 4)]
         public async Task SingleReduction_ErrorUnauthorized(String UserName, long SelectionGroupId)
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser(UserName);
+            var Selections = new Dictionary<long, Boolean>
+            {
+                { 2, true }
+            };
             #endregion
 
             #region Act
-            var view = await controller.SingleReduction(SelectionGroupId, null);
+            int tasksPreCount = TestResources.DbContextObject.SelectionGroup.Count();
+
+            var view = await controller.SingleReduction(SelectionGroupId, Selections);
+
+            int tasksPostCount = TestResources.DbContextObject.SelectionGroup.Count();
             #endregion
 
             #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            Assert.Equal(tasksPreCount, tasksPostCount);
             #endregion
         }
 
@@ -589,28 +626,56 @@ namespace MapTests
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("user5");
+            var Selections = new Dictionary<long, Boolean>
+            {
+                { 2, true }
+            };
             #endregion
 
             #region Act
-            var view = controller.SingleReduction(4, null);
+            var view = controller.SingleReduction(4, Selections);
             #endregion
 
             #region Assert
             #endregion
         }
 
-        [Fact]
-        public async Task SingleReduction_Success()
+        [Theory]
+        [InlineData(4, new ReductionStatusEnum[] { })]
+        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Pushed })]
+        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Canceled })]
+        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Discarded })]
+        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Replaced })]
+        public async Task SingleReduction_Success(long SelectionGroupId, ReductionStatusEnum[] Tasks)
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("user5");
+            var Selections = new Dictionary<long, Boolean>
+            {
+                { 2, true }
+            };
+            foreach (var Status in Tasks)
+            {
+                TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
+                {
+                    ReductionStatus = Status,
+                    ContentPublicationRequestId = null,
+                    SelectionGroupId = SelectionGroupId,
+                    ApplicationUserId = 1
+                });
+            }
             #endregion
 
             #region Act
-            var view = await controller.SingleReduction(4, null);
+            int tasksPreCount = TestResources.DbContextObject.SelectionGroup.Count();
+
+            var view = await controller.SingleReduction(SelectionGroupId, Selections);
+
+            int tasksPostCount = TestResources.DbContextObject.SelectionGroup.Count();
             #endregion
 
             #region Assert
+            Assert.Equal(tasksPreCount + 1, tasksPostCount);
             #endregion
         }
 
