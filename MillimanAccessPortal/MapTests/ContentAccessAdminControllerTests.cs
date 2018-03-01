@@ -190,7 +190,6 @@ namespace MapTests
 
         [Theory]
         [InlineData("user5", 1)]
-        [InlineData("test1", 3)]
         [InlineData("user6", 3)]
         public async Task SelectionGroups_ErrorUnauthorized(String UserName, long RootContentItemId)
         {
@@ -247,7 +246,6 @@ namespace MapTests
 
         [Theory]
         [InlineData("user5", 1)]
-        [InlineData("test1", 3)]
         [InlineData("user6", 3)]
         public async Task CreateSelectionGroup_ErrorUnauthorized(String UserName, long RootContentItemId)
         {
@@ -332,9 +330,8 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData("test1", 4)]
         [InlineData("user5", 3)]
-        [InlineData("user6", 3)]
+        [InlineData("user6", 4)]
         public async Task UpdateSelectionGroup_ErrorUnauthorized(String UserName, long SelectionGroupId)
         {
             #region Arrange
@@ -434,7 +431,6 @@ namespace MapTests
         [Theory]
         [InlineData("user5", 1)]
         [InlineData("user6", 3)]
-        [InlineData("test1", 4)]
         public async Task DeleteSelectionGroup_ErrorUnauthorized(String UserName, long RootContentItemId)
         {
             #region Arrange
@@ -518,7 +514,6 @@ namespace MapTests
 
         [Theory]
         [InlineData("user5", 1)]
-        [InlineData("test1", 4)]
         [InlineData("user6", 4)]
         public async Task Selections_ErrorUnauthorized(String UserName, long SelectionGroupId)
         {
@@ -568,7 +563,8 @@ namespace MapTests
             };
             foreach (var Status in Tasks)
             {
-                TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask {
+                TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
+                {
                     ReductionStatus = Status,
                     ContentPublicationRequestId = null,
                     SelectionGroupId = SelectionGroupId,
@@ -578,11 +574,11 @@ namespace MapTests
             #endregion
 
             #region Act
-            int tasksPreCount = TestResources.DbContextObject.SelectionGroup.Count();
+            int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
             
             var view = await controller.SingleReduction(SelectionGroupId, Selections);
 
-            int tasksPostCount = TestResources.DbContextObject.SelectionGroup.Count();
+            int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
             #endregion
 
             #region Assert
@@ -595,7 +591,6 @@ namespace MapTests
 
         [Theory]
         [InlineData("user5", 1)]
-        [InlineData("test1", 4)]
         [InlineData("user6", 4)]
         public async Task SingleReduction_ErrorUnauthorized(String UserName, long SelectionGroupId)
         {
@@ -608,11 +603,11 @@ namespace MapTests
             #endregion
 
             #region Act
-            int tasksPreCount = TestResources.DbContextObject.SelectionGroup.Count();
+            int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
 
             var view = await controller.SingleReduction(SelectionGroupId, Selections);
 
-            int tasksPostCount = TestResources.DbContextObject.SelectionGroup.Count();
+            int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
             #endregion
 
             #region Assert
@@ -667,11 +662,11 @@ namespace MapTests
             #endregion
 
             #region Act
-            int tasksPreCount = TestResources.DbContextObject.SelectionGroup.Count();
+            int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
 
             var view = await controller.SingleReduction(SelectionGroupId, Selections);
 
-            int tasksPostCount = TestResources.DbContextObject.SelectionGroup.Count();
+            int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
             #endregion
 
             #region Assert
@@ -680,36 +675,73 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData(999)]
-        public async Task CancelReduction_ErrorInvalid(long SelectionGroupId)
+        [InlineData(4, new ReductionStatusEnum[] { })]
+        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Reducing })]
+        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Reduced })]
+        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Pushed })]
+        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Canceled })]
+        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Discarded })]
+        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Replaced })]
+        public async Task CancelReduction_ErrorInvalid(long SelectionGroupId, ReductionStatusEnum[] Tasks)
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("user5");
+            foreach (var Status in Tasks)
+            {
+                TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
+                {
+                    ReductionStatus = Status,
+                    ContentPublicationRequestId = null,
+                    SelectionGroupId = SelectionGroupId,
+                    ApplicationUserId = 5
+                });
+            }
             #endregion
 
             #region Act
+            int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
+
             var view = await controller.CancelReduction(SelectionGroupId);
+
+            int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
             #endregion
 
             #region Assert
+            Assert.IsType<StatusCodeResult>(view);
+            StatusCodeResult viewResult = (StatusCodeResult)view;
+            Assert.Equal("422", viewResult.StatusCode.ToString());
+            Assert.Equal(tasksPreCount, tasksPostCount);
             #endregion
         }
 
         [Theory]
-        [InlineData("user5", 1)]
-        [InlineData("user6", 3)]
-        [InlineData("test1", 4)]
-        public async Task CancelReduction_ErrorUnauthorized(String UserName, long SelectionGroupId)
+        [InlineData("user5", 5, 1)]
+        [InlineData("user5", 6, 4)]
+        [InlineData("user6", 6, 4)]
+        public async Task CancelReduction_ErrorUnauthorized(String UserName, long ApplicationUserId, long SelectionGroupId)
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser(UserName);
+            TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
+            {
+                ReductionStatus = ReductionStatusEnum.Queued,
+                ContentPublicationRequestId = null,
+                SelectionGroupId = SelectionGroupId,
+                ApplicationUserId = ApplicationUserId
+            });
             #endregion
 
             #region Act
+            int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
+
             var view = await controller.CancelReduction(SelectionGroupId);
+
+            int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
             #endregion
 
             #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            Assert.Equal(tasksPreCount, tasksPostCount);
             #endregion
         }
 
@@ -718,21 +750,13 @@ namespace MapTests
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("user5");
-            #endregion
-
-            #region Act
-            var view = controller.CancelReduction(4);
-            #endregion
-
-            #region Assert
-            #endregion
-        }
-
-        [Fact]
-        public async Task CancelReduction_Success()
-        {
-            #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
+            {
+                ReductionStatus = ReductionStatusEnum.Queued,
+                ContentPublicationRequestId = null,
+                SelectionGroupId = 4,
+                ApplicationUserId = 5
+            });
             #endregion
 
             #region Act
@@ -740,6 +764,49 @@ namespace MapTests
             #endregion
 
             #region Assert
+            Assert.IsType<JsonResult>(view);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Queued })]
+        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Canceled, ReductionStatusEnum.Queued })]
+        public async Task CancelReduction_Success(long SelectionGroupId, ReductionStatusEnum[] Tasks)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            foreach (var Status in Tasks)
+            {
+                TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
+                {
+                    ReductionStatus = Status,
+                    ContentPublicationRequestId = null,
+                    SelectionGroupId = SelectionGroupId,
+                    ApplicationUserId = 5
+                });
+            }
+            #endregion
+
+            #region Act
+            int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
+            int queuedPreCount = TestResources.DbContextObject.ContentReductionTask
+                .Where(crt => crt.SelectionGroupId == SelectionGroupId)
+                .Where(crt => crt.ReductionStatus == ReductionStatusEnum.Queued)
+                .Count();
+
+            var view = await controller.CancelReduction(SelectionGroupId);
+
+            int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
+            int queuedPostCount = TestResources.DbContextObject.ContentReductionTask
+                .Where(crt => crt.SelectionGroupId == SelectionGroupId)
+                .Where(crt => crt.ReductionStatus == ReductionStatusEnum.Queued)
+                .Count();
+            #endregion
+
+            #region Assert
+            Assert.Equal(tasksPreCount, tasksPostCount);
+            Assert.Equal(1, queuedPreCount);
+            Assert.Equal(0, queuedPostCount);
             #endregion
         }
     }
