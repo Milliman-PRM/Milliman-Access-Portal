@@ -1,0 +1,37 @@
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: A ViewModel representing details of a RootContentItem for use in ContentAccessAdmin
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
+using MillimanAccessPortal.DataQueries;
+using MapDbContextLib.Models;
+
+namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
+{
+    public class ContentAccessAdminSelectionsDetailViewModel
+    {
+        public ContentReductionHierarchy Hierarchy { get; set; }
+        public ReductionStatusEnum Status { get; set; }
+
+        internal static ContentAccessAdminSelectionsDetailViewModel Build(ApplicationDbContext DbContext, StandardQueries Queries, SelectionGroup SelectionGroup)
+        {
+            ContentAccessAdminSelectionsDetailViewModel Model = new ContentAccessAdminSelectionsDetailViewModel
+            {
+                Hierarchy = Queries.GetFieldSelectionsForSelectionGroup(SelectionGroup.Id),
+                Status = DbContext.ContentReductionTask
+                    .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
+                    .OrderBy(crt => crt.CreateDateTime)
+                    .Select(crt => crt.ReductionStatus)
+                    .LastOrDefault(),
+            };
+
+            return Model;
+        }
+    }
+}

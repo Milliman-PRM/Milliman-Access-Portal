@@ -537,7 +537,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            ContentReductionHierarchy Model = Queries.GetFieldSelectionsForSelectionGroup(SelectionGroupId);
+            ContentAccessAdminSelectionsDetailViewModel Model = ContentAccessAdminSelectionsDetailViewModel.Build(DbContext, Queries, SelectionGroup);
 
             return Json(Model);
         }

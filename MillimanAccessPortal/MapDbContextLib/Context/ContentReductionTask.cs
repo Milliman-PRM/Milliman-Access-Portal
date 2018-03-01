@@ -15,13 +15,14 @@ namespace MapDbContextLib.Context
 {
     public enum ReductionStatusEnum : long
     {
+        Default = 0,
+        Canceled = 1,
+        Discarded = 2,
+        Replaced = 3,
         Queued = 10,
         Reducing = 20,
         Reduced = 30,
         Pushed = 40,
-        Canceled = 50,
-        Discarded = 51,
-        Replaced = 52,
     }
 
     public class ContentReductionTask
