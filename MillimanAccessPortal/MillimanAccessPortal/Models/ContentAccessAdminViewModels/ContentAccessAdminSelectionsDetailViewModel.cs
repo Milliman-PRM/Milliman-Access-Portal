@@ -17,7 +17,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
     public class ContentAccessAdminSelectionsDetailViewModel
     {
         public ContentReductionHierarchy Hierarchy { get; set; }
-        public ReductionStatusEnum Status { get; set; }
+        public string Status { get; set; }
 
         internal static ContentAccessAdminSelectionsDetailViewModel Build(ApplicationDbContext DbContext, StandardQueries Queries, SelectionGroup SelectionGroup)
         {
@@ -27,7 +27,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
                 Status = DbContext.ContentReductionTask
                     .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
                     .OrderBy(crt => crt.CreateDateTime)
-                    .Select(crt => crt.ReductionStatus)
+                    .Select(crt => ContentReductionTask.ReductionStatusDisplayNames[crt.ReductionStatus])
                     .LastOrDefault(),
             };
 

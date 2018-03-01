@@ -27,6 +27,18 @@ namespace MapDbContextLib.Context
 
     public class ContentReductionTask
     {
+        public static Dictionary<ReductionStatusEnum, string> ReductionStatusDisplayNames = new Dictionary<ReductionStatusEnum, string>
+        {
+            { ReductionStatusEnum.Default, "Default" },
+            { ReductionStatusEnum.Canceled, "Canceled" },
+            { ReductionStatusEnum.Discarded, "Discarded" },
+            { ReductionStatusEnum.Replaced, "Replaced" },
+            { ReductionStatusEnum.Queued, "Queued" },
+            { ReductionStatusEnum.Reducing, "Reducing" },
+            { ReductionStatusEnum.Reduced, "Reduced" },
+            { ReductionStatusEnum.Pushed, "Pushed" },
+        };
+
         [Key]
         // Default value is enforced in ApplicationDbContext.OnModelCreating()
         public Guid Id { get; set; }
