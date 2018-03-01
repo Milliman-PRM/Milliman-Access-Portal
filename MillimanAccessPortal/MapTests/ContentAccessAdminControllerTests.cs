@@ -550,21 +550,132 @@ namespace MapTests
             #endregion
         }
 
-        [Fact]
-        public async Task UpdateSelections_ReturnsJson()
+        [Theory]
+        [InlineData(999)]
+        public async Task SingleReduction_ErrorInvalid(long SelectionGroupId)
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("user5");
             #endregion
 
             #region Act
-            var view = controller.SingleReduction(0, null);
+            var view = await controller.SingleReduction(SelectionGroupId, null);
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
             #endregion
         }
 
+        [Theory]
+        [InlineData("user5", 1)]
+        [InlineData("user6", 3)]
+        [InlineData("test1", 4)]
+        public async Task SingleReduction_ErrorUnauthorized(String UserName, long SelectionGroupId)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser(UserName);
+            #endregion
+
+            #region Act
+            var view = await controller.SingleReduction(SelectionGroupId, null);
+            #endregion
+
+            #region Assert
+            #endregion
+        }
+
+        [Fact]
+        public async Task SingleReduction_ReturnsJson()
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            #endregion
+
+            #region Act
+            var view = controller.SingleReduction(4, null);
+            #endregion
+
+            #region Assert
+            #endregion
+        }
+
+        [Fact]
+        public async Task SingleReduction_Success()
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            #endregion
+
+            #region Act
+            var view = await controller.SingleReduction(4, null);
+            #endregion
+
+            #region Assert
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(999)]
+        public async Task CancelReduction_ErrorInvalid(long SelectionGroupId)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            #endregion
+
+            #region Act
+            var view = await controller.CancelReduction(SelectionGroupId);
+            #endregion
+
+            #region Assert
+            #endregion
+        }
+
+        [Theory]
+        [InlineData("user5", 1)]
+        [InlineData("user6", 3)]
+        [InlineData("test1", 4)]
+        public async Task CancelReduction_ErrorUnauthorized(String UserName, long SelectionGroupId)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser(UserName);
+            #endregion
+
+            #region Act
+            var view = await controller.CancelReduction(SelectionGroupId);
+            #endregion
+
+            #region Assert
+            #endregion
+        }
+
+        [Fact]
+        public async Task CancelReduction_ReturnsJson()
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            #endregion
+
+            #region Act
+            var view = controller.CancelReduction(4);
+            #endregion
+
+            #region Assert
+            #endregion
+        }
+
+        [Fact]
+        public async Task CancelReduction_Success()
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            #endregion
+
+            #region Act
+            var view = await controller.CancelReduction(4);
+            #endregion
+
+            #region Assert
+            #endregion
+        }
     }
 }
