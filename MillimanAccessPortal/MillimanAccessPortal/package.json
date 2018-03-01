@@ -8,10 +8,10 @@
     "jquery": "2.2.0",
     "jquery-validation": "1.14.0",
     "jquery-validation-unobtrusive": "3.2.6",
-    "toastr": "2.1.4",
     "selectize": "v0.12.4",
-    "typeahead.js": "v0.11.1",
+    "toastr": "2.1.4",
     "tooltipster": "4.2.5",
+    "typeahead.js": "v0.11.1",
     "vex-js": "v4.1.0"
   }
 }
