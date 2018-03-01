@@ -10,19 +10,12 @@
 
     <environment names="Development,CI,AzureCI">
         <link rel="stylesheet" href="~/lib/toastr/toastr.css" />
-        <link rel="stylesheet" href="~/lib/vex/dist/css/vex.css" />
-        <link rel="stylesheet" href="~/lib/vex/dist/css/vex-theme-default.css" />
-        <link rel="stylesheet" href="~/lib/tooltipster/dist/css/tooltipster.bundle.css" />
+        <link rel="stylesheet" href="~/lib/vex-js/vex.css" />
+        <link rel="stylesheet" href="~/lib/tooltipster/tooltipster.css" />
         <link rel="stylesheet" href="~/css/map.css" />
     </environment>
     <environment names="Staging,Production">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.3/toastr.min.css"
-              asp-fallback-href="~/lib/toastr/toastr.min.css"
-              asp-fallback-test-class="toast-title" asp-fallback-test-property="font-weight" asp-fallback-test-value="bold" />
-        <link rel="stylesheet" href="~/lib/vex/dist/css/vex.min.css" />
-        <link rel="stylesheet" href="~/lib/vex/dist/css/vex-theme-default.min.css" />
-        <link rel="stylesheet" href="~/lib/tooltipster/dist/css/tooltipster.bundle.min.css" />
-        <link rel="stylesheet" href="~/css/map.min.css" />
+        <link rel="stylesheet" href="~/lib/site.min.css" />
     </environment>
     @Html.Raw(JavaScriptSnippet.FullScript)
     @Html.Partial("~/wwwroot/images/svg-icon-sprites.svg")
@@ -30,18 +23,23 @@
 <body>
 
     @RenderBody()
-        <script type="text/javascript">
-                var domainValRegex = /@Html.Raw(MapCommonLib.GlobalFunctions.domainValRegex)/;
-                var emailValRegex = /@Html.Raw(MapCommonLib.GlobalFunctions.emailValRegex)/;
-        </script>
+
+    <script type="text/javascript">
+            var domainValRegex = /@Html.Raw(MapCommonLib.GlobalFunctions.domainValRegex)/;
+            var emailValRegex = /@Html.Raw(MapCommonLib.GlobalFunctions.emailValRegex)/;
+    </script>
+
     <environment names="Development,CI,AzureCI">
-        <script src="~/lib/jquery/dist/jquery.js"></script>
-        <script src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
+        <script src="~/lib/jquery/jquery.js"></script>
+        <script src="~/lib/jquery-validation/jquery.validate.js"></script>
         <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
-        <script src="~/lib/vex/dist/js/vex.combined.js"></script>
+        <script src="~/lib/vex-js/vex.combined.js"></script>
         <script src="~/lib/toastr/toastr.js"></script>
-        <script src="~/lib/tooltipster/src/js/tooltipster.js"></script>
-        <script src="~/lib/tooltipster/src/js/plugins/tooltipster/sideTip/tooltipster-sideTip.js"></script>
+        <script src="~/lib/tooltipster/tooltipster.js"></script>
+        <script src="~/js/shared.js"></script>
+        <script src="~/js/card.js"></script>
+        <script src="~/js/dialog.js"></script>
+        <script src="~/js/contact-form.js"></script>
         <script src="~/js/lib-options.js"></script>
     </environment>
     <environment names="Staging,Production">
@@ -51,12 +49,7 @@
                 crossorigin="anonymous"
                 integrity="sha384-K+ctZQ+LL8q6tP7I94W+qzQsfRV2a+AfHIi9k8z8l9ggpc8X+Ytst4yBo/hH+8Fk">
         </script>
-        <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-        <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
-        <script src="~/lib/vex/dist/js/vex.combined.min.js"></script>
-        <script src="~/lib/toastr/toastr.min.js"></script>
-        <script src="~/lib/tooltipster/dist/js/tooltipster.bundle.min.js"></script>
-        <script src="~/js/lib-options.min.js"></script>
+        <script src="~/lib/site.min.css"></script>
     </environment>
 
     @RenderSection("Scripts", required: false)
