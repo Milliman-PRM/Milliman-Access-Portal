@@ -193,6 +193,7 @@ namespace MapTests
             ReturnMockContext.Object.UserRoles = MockDbSet<IdentityUserRole<long>>.New(new List<IdentityUserRole<long>>()).Object;
             ReturnMockContext.Object.UserRoleInRootContentItem = MockDbSet<UserRoleInRootContentItem>.New(new List<UserRoleInRootContentItem>()).Object;
             ReturnMockContext.Object.UserClaims = MockDbSet<IdentityUserClaim<long>>.New(new List<IdentityUserClaim<long>>()).Object;
+            ReturnMockContext.Object.ContentReductionTask = MockDbSet<ContentReductionTask>.New(new List<ContentReductionTask>()).Object;
             ReturnMockContext.Object.Users = ReturnMockContext.Object.ApplicationUser;
             ReturnMockContext.Object.Roles = ReturnMockContext.Object.ApplicationRole;
 
@@ -467,11 +468,11 @@ namespace MapTests
             #region Initialize SelectionGroups
             DbContextObject.SelectionGroup.AddRange(new List<SelectionGroup>
                 { 
-                    new SelectionGroup { Id=1, ContentInstanceUrl="Folder1/File1", RootContentItemId=1, GroupName="Group1 For Content1" },
-                    new SelectionGroup { Id=2, ContentInstanceUrl="Folder1/File2", RootContentItemId=1, GroupName="Group2 For Content1" },
-                    new SelectionGroup { Id=3, ContentInstanceUrl="Folder2/File1", RootContentItemId=2, GroupName="Group1 For Content2" },
-                    new SelectionGroup { Id=4, ContentInstanceUrl="Folder3/File1", RootContentItemId=3, GroupName="Group1 For Content3" },
-                    new SelectionGroup { Id=5, ContentInstanceUrl="Folder3/File2", RootContentItemId=3, GroupName="Group2 For Content3" },
+                    new SelectionGroup { Id=1, ContentInstanceUrl="Folder1/File1", RootContentItemId=1, GroupName="Group1 For Content1", SelectedHierarchyFieldValueList=new long[] { } },
+                    new SelectionGroup { Id=2, ContentInstanceUrl="Folder1/File2", RootContentItemId=1, GroupName="Group2 For Content1", SelectedHierarchyFieldValueList=new long[] { } },
+                    new SelectionGroup { Id=3, ContentInstanceUrl="Folder2/File1", RootContentItemId=2, GroupName="Group1 For Content2", SelectedHierarchyFieldValueList=new long[] { } },
+                    new SelectionGroup { Id=4, ContentInstanceUrl="Folder3/File1", RootContentItemId=3, GroupName="Group1 For Content3", SelectedHierarchyFieldValueList=new long[] { } },
+                    new SelectionGroup { Id=5, ContentInstanceUrl="Folder3/File2", RootContentItemId=3, GroupName="Group2 For Content3", SelectedHierarchyFieldValueList=new long[] { } },
                 });
             MockDbSet<SelectionGroup>.AssignNavigationProperty<RootContentItem>(DbContextObject.SelectionGroup, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
