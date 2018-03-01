@@ -24,7 +24,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using MapDbContextLib.Models;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -306,9 +305,9 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var Existant = DbContext.ApplicationUser
+            var Existent = DbContext.ApplicationUser
                 .Where(u => UserAssignments.Keys.Contains(u.Id));
-            if (Existant.Count() < UserAssignments.Count())
+            if (Existent.Count() < UserAssignments.Count())
             {
                 Response.Headers.Add("Warning", "One or more requested users do not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
@@ -548,7 +547,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>JsonResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SingleReduction(long SelectionGroupId, object Selections)
+        public async Task<IActionResult> SingleReduction(long SelectionGroupId, Dictionary<long, Boolean> Selections)
         {
             SelectionGroup SelectionGroup = DbContext.SelectionGroup.Find(SelectionGroupId);
 
@@ -569,7 +568,51 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            #region Argument processing
+            var CurrentSelections = DbContext.SelectionGroup
+                .Where(sg => sg.Id == SelectionGroup.Id)
+                .Select(sg => sg.SelectedHierarchyFieldValueList)
+                .Single();
+            var SelectionAdditions = Selections
+                .Where(kvp => kvp.Value)
+                .Select(kvp => kvp.Key)
+                .Except(CurrentSelections);
+            var SelectionRemovals = Selections
+                .Where(kvp => !kvp.Value)
+                .Select(kvp => kvp.Key)
+                .Intersect(CurrentSelections);
+            #endregion
+
             #region Validation
+            var Existent = DbContext.HierarchyFieldValue
+                .Where(hfv => Selections.Keys.Contains(hfv.Id));
+            if (Existent.Count() < Selections.Count())
+            {
+                Response.Headers.Add("Warning", "One or more requested selections do not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            var Associated = Existent
+                .Where(hfv => hfv.HierarchyField.RootContentItemId == SelectionGroup.RootContentItemId);
+            if (Associated.Count() < Selections.Count())
+            {
+                Response.Headers.Add("Warning", "One or more requested selections do not belong to the specified selection group.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            var StatusOutstanding = new List<ReductionStatusEnum>
+            {
+                ReductionStatusEnum.Queued,
+                ReductionStatusEnum.Reducing,
+                ReductionStatusEnum.Reduced,
+            };
+            var OutstandingTasks = DbContext.ContentReductionTask
+                .Where(crt => StatusOutstanding.Contains(crt.ReductionStatus));
+            if (OutstandingTasks.Any())
+            {
+                Response.Headers.Add("Warning", "There are outstanding reduction tasks for this root content item.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             return Json(new { });
