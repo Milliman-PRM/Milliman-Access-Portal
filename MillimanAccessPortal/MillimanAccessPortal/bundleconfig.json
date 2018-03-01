@@ -12,7 +12,6 @@
       "node_modules/bootstrap/dist/css/bootstrap-reboot.css.map"
     ]
   },
-
   // Jquery
   {
     "outputFileName": "wwwroot/lib/jquery/jquery.js",
@@ -102,6 +101,13 @@
       "wwwroot/js/client-admin.js"
     ]
   },
+  // Contact Form
+  {
+    "outputFileName": "wwwroot/js/contact-form.min.js",
+    "inputFiles": [
+      "wwwroot/js/contact-form.js"
+    ]
+  },
   // Content Access Admin
   {
     "outputFileName": "wwwroot/js/content-access-admin.min.js",
@@ -148,7 +154,6 @@
       "wwwroot/js/shared.js",
       "wwwroot/js/card.js",
       "wwwroot/js/dialog.js",
-      "wwwroot/js/contact-form.js",
       "wwwroot/js/lib-options.js"
     ]
   }
