@@ -522,7 +522,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.SelectionGroups(SelectionGroupId);
+            var view = await controller.Selections(SelectionGroupId);
             #endregion
 
             #region Assert
