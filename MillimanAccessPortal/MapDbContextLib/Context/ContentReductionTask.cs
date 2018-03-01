@@ -20,7 +20,8 @@ namespace MapDbContextLib.Context
         Reduced = 30,
         Pushed = 40,
         Canceled = 50,
-        Replaced = 51,
+        Discarded = 51,
+        Replaced = 52,
     }
 
     public class ContentReductionTask

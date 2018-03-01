@@ -542,15 +542,63 @@ namespace MillimanAccessPortal.Controllers
             return Json(Model);
         }
 
-        /// <summary>Updates a selection group with new selections.</summary>
-        /// <param name="SelectionGroupId">The selection group whose selections are to be updated.</param>
-        /// <param name="Selections">The selections to be applied to the selection group.</param>
+        /// <summary>Submits a new reduction task.</summary>
+        /// <param name="SelectionGroupId">The selection group to reduce.</param>
+        /// <param name="Selections">A dictionary that maps selection IDs to a boolean value indicating whether to set or unset the selection.</param>
         /// <returns>JsonResult</returns>
-        [HttpPut]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult UpdateSelections(long SelectionGroupId, object Selections)
+        public async Task<IActionResult> SingleReduction(long SelectionGroupId, object Selections)
         {
+            SelectionGroup SelectionGroup = DbContext.SelectionGroup.Find(SelectionGroupId);
+
+            #region Preliminary validation
+            if (SelectionGroup == null)
+            {
+                Response.Headers.Add("Warning", "The requested selection group does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
             #region Authorization
+            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.RootContentItemId));
+            if (!RoleInRootContentItemResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            #endregion
+
+            return Json(new { });
+        }
+
+        /// <summary>Cancel a pending or completed reduction task.</summary>
+        /// <param name="SelectionGroupId">The selection group associated with the reduction to be canceled.</param>
+        /// <returns>JsonResult</returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelReduction(long SelectionGroupId)
+        {
+            SelectionGroup SelectionGroup = DbContext.SelectionGroup.Find(SelectionGroupId);
+
+            #region Preliminary validation
+            if (SelectionGroup == null)
+            {
+                Response.Headers.Add("Warning", "The requested selection group does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.RootContentItemId));
+            if (!RoleInRootContentItemResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                return Unauthorized();
+            }
             #endregion
 
             #region Validation

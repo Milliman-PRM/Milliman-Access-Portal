@@ -558,7 +558,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = controller.UpdateSelections(0, null);
+            var view = controller.SingleReduction(0, null);
             #endregion
 
             #region Assert
