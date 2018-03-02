@@ -564,6 +564,18 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.RootContentItemId));
             if (!RoleInRootContentItemResult.Succeeded)
             {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    "Request to update selections without role in root content item",
+                    AuditEventId.Unauthorized,
+                    new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, SelectionUpdates },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
                 return Unauthorized();
             }
@@ -645,6 +657,18 @@ namespace MillimanAccessPortal.Controllers
 
             DbContext.SaveChanges();
 
+            #region Log audit event
+            AuditEvent SelectionChangeReductionQueuedEvent = AuditEvent.New(
+                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                "Selection change reduction task queued",
+                AuditEventId.SelectionChangeReductionQueued,
+                new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, SelectionUpdates },
+                User.Identity.Name,
+                HttpContext.Session.Id
+                );
+            AuditLogger.Log(SelectionChangeReductionQueuedEvent);
+            #endregion
+
             return Json(ContentReductionTask);
         }
 
@@ -669,6 +693,18 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.RootContentItemId));
             if (!RoleInRootContentItemResult.Succeeded)
             {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    "Request to cancel reduction without role in root content item",
+                    AuditEventId.Unauthorized,
+                    new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
                 return Unauthorized();
             }
@@ -700,6 +736,18 @@ namespace MillimanAccessPortal.Controllers
                 UpdatedTasks.Add(Task);
             }
             DbContext.SaveChanges();
+
+            #region Log audit event
+            AuditEvent SelectionChangeReductionCanceledEvent = AuditEvent.New(
+                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                "Selection change reduction task canceled",
+                AuditEventId.SelectionChangeReductionCanceled,
+                new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, UpdatedTasks },
+                User.Identity.Name,
+                HttpContext.Session.Id
+                );
+            AuditLogger.Log(SelectionChangeReductionCanceledEvent);
+            #endregion
 
             return Json(UpdatedTasks);
         }
