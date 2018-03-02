@@ -1,4 +1,10 @@
-﻿using System;
+﻿/**//*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: <What and WHY.>
+ * DEVELOPER NOTES: POCO to contain various relevant objects about one runnable JobMonitor
+ */
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;

@@ -10,36 +10,66 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
-using System.Text;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using MapDbContextLib.Context;
 
 namespace ContentReductionLib
 {
     internal class MapDbJobMonitor : JobMonitorBase
     {
-        internal MapDbJobMonitor()
-        {
+        private DbContextOptions<ApplicationDbContext> ContextOptions = null;
 
+        internal MapDbJobMonitor()
+        {}
+
+        internal string ConfiguredConnectionStringParamName {
+            set
+            {
+                ConfigurationBuilder CfgBuilder = new ConfigurationBuilder();
+                // TODO add something for AzureKeyVault in CI and production environments
+                CfgBuilder.AddUserSecrets<MapDbJobMonitor>()
+                            .AddJsonFile(path: "appsettings.json", optional: true, reloadOnChange: true);
+                IConfigurationRoot MyConfig = CfgBuilder.Build();
+
+                ConnectionString = MyConfig.GetConnectionString(value);
+            }
+        }
+        internal string ConnectionString
+        {
+            set
+            {
+                DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+                ContextBuilder.UseNpgsql(value);
+                ContextOptions = ContextBuilder.Options;
+            }
         }
 
         internal override Task Start(CancellationToken Token)
         {
-            return Task.Run(() => Threadmain() /* TODO: , cancellationToken */ );
-        }
-
-        internal override void Threadmain()
-        {
-            for (int i=0; i < 10; i++)
+            if (ContextOptions == null)
             {
-                int count = GetItems(4);
-                Trace.WriteLine($"GetItems completed {i} times with {count} responses");
+                throw new NullReferenceException("Attempting to construct new ApplicationDbContext but connection string not initialized");
             }
-            Trace.WriteLine("Threadmain completed");
+
+            return Task.Run(() => JobMonitorThreadMain(Token));
         }
 
-        internal override int GetItems(int MaxCount)
+        internal override void JobMonitorThreadMain(CancellationToken Token)
         {
-            using (var Db=MapDbContextAccessor.New)
+            int LoopCount = 0;
+            while (!Token.IsCancellationRequested)
+            {
+                int ResponseCount = DoWork(4);
+                Thread.Sleep(4000);
+                Trace.WriteLine($"GetItems iteration {LoopCount++} completed with {ResponseCount} responses");
+            }
+            Trace.WriteLine("JobMonitorThreadMain terminating due to cancellation");
+        }
+
+        internal override int DoWork(int MaxCount)
+        {
+            using (var Db=new ApplicationDbContext(ContextOptions))
             {
                 List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => t.CreateDateTime - DateTimeOffset.UtcNow < TimeSpan.FromSeconds(30))
                                                                              .OrderBy(t => t.CreateDateTime)

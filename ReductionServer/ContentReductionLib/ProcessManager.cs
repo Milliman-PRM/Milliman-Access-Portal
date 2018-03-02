@@ -50,18 +50,7 @@ namespace ContentReductionLib
         /// </summary>
         public ProcessManager()
         {
-            MapDbContextAccessor.UseConfiguredConnectionString();
-
-            //foreach (var x in ConfiguredMonitors)
-            for (int i =1; i<2; i++ )
-            {
-                QueueMonitorDict.Add(i, new JobMonitorInfo { Monitor=new MapDbJobMonitor(),
-                                                          TokenSource =new CancellationTokenSource(),
-                                                          AwaitableTask =null});
-            }
-
-            StopSignal = false;
-            MainServiceWorkerThread = new Thread(WorkerThreadMain);
+            StopSignal = false;  // TODO remove?
         }
 
         /// <summary>
@@ -81,6 +70,19 @@ namespace ContentReductionLib
 
         public void Start(ProcessManagerConfiguration ProcessConfig)
         {
+            // Set up JobMonitor objects that are configured to run.
+            // for (int i = 0 ; i < ConfiguredMonitors.Count ; i++)
+            for (int i = 0 ; i < 2 ; i++)
+            {
+                QueueMonitorDict.Add(i, new JobMonitorInfo
+                {
+                    Monitor = new MapDbJobMonitor { ConfiguredConnectionStringParamName = "DefaultConnection" },
+                    TokenSource = new CancellationTokenSource(),
+                    AwaitableTask = null
+                });
+            }
+
+            // Start the job monitor threads
             foreach (var MonitorKvp in QueueMonitorDict)
             {
                 JobMonitorInfo MonitorInfo = MonitorKvp.Value;
@@ -88,29 +90,52 @@ namespace ContentReductionLib
 
                 Trace.WriteLine($"JobMonitor {MonitorKvp.Key} Start() returned");
             }
+        }
 
-            Thread.Sleep(5000);
+        public bool AllMonitorThreadsRunning
+        {
+            get
+            {
+                return QueueMonitorDict.Values.All(v => v.AwaitableTask.Status  == TaskStatus.Running);
+            }
+        }
+
+        public bool AnyMonitorThreadRunning
+        {
+            get
+            {
+                return QueueMonitorDict.Values.Any(v => v.AwaitableTask.Status == TaskStatus.Running);
+            }
         }
 
         /// <summary>
         /// Entry point intended for the main application to request this object to gracefully stop all processing under its control
-        /// Note this is not called on the worker thread so any member variable also accessed by the worker thread must be protected
         /// </summary>
         /// <param name="WaitMs"></param>
         /// <returns></returns>
         public bool Stop(int WaitMs = 0)
         {
+            TimeSpan MaxWaitTime = TimeSpan.FromMinutes(3);
+
             foreach (var MonitorKvp in QueueMonitorDict)
             {
                 JobMonitorInfo MonitorInfo = MonitorKvp.Value;
                 MonitorInfo.TokenSource.Cancel();
 
-                Trace.WriteLine($"Token {MonitorKvp.Key} cancelled");
+                Trace.WriteLine($"Token {MonitorKvp.Key} cancellation requested");
             }
 
-            TimeSpan MaxWaitTime = TimeSpan.FromMinutes(3);
             // Wait for all the running job monitors to complete
-            return Task.WaitAll(QueueMonitorDict.Select(m => m.Value.AwaitableTask).ToArray(), MaxWaitTime);
+            DateTime Start = DateTime.Now;
+            var WaitResult = Task.WaitAll(QueueMonitorDict.Select(m => m.Value.AwaitableTask).ToArray(), MaxWaitTime);
+            Trace.WriteLine($"WaitAll ran for {DateTime.Now - Start}");
+
+            if (!AnyMonitorThreadRunning)
+            {
+                QueueMonitorDict.Clear();
+            }
+
+            return WaitResult;
         }
 
         /// <summary>
