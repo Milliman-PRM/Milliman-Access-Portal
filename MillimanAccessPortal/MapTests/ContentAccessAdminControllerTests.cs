@@ -717,7 +717,6 @@ namespace MapTests
 
         [Theory]
         [InlineData("user5", 5, 1)]
-        [InlineData("user5", 6, 4)]
         [InlineData("user6", 6, 4)]
         public async Task CancelReduction_ErrorUnauthorized(String UserName, long ApplicationUserId, long SelectionGroupId)
         {
@@ -770,9 +769,10 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Queued })]
-        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Canceled, ReductionStatusEnum.Queued })]
-        public async Task CancelReduction_Success(long SelectionGroupId, ReductionStatusEnum[] Tasks)
+        [InlineData(4, 5, new ReductionStatusEnum[] { ReductionStatusEnum.Queued })]
+        [InlineData(4, 6, new ReductionStatusEnum[] { ReductionStatusEnum.Queued })]
+        [InlineData(4, 5, new ReductionStatusEnum[] { ReductionStatusEnum.Canceled, ReductionStatusEnum.Queued })]
+        public async Task CancelReduction_Success(long SelectionGroupId, long UserId, ReductionStatusEnum[] Tasks)
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("user5");
@@ -783,7 +783,7 @@ namespace MapTests
                     ReductionStatus = Status,
                     ContentPublicationRequestId = null,
                     SelectionGroupId = SelectionGroupId,
-                    ApplicationUserId = 5
+                    ApplicationUserId = UserId,
                 });
             }
             #endregion
