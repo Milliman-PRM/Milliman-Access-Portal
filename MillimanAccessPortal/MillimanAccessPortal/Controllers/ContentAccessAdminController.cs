@@ -615,6 +615,7 @@ namespace MillimanAccessPortal.Controllers
                 ReductionStatusEnum.Reduced,
             };
             var OutstandingTasks = DbContext.ContentReductionTask
+                .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
                 .Where(crt => OutstandingStatus.Contains(crt.ReductionStatus));
             if (OutstandingTasks.Any())
             {
@@ -674,9 +675,33 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
+            var CancelableStatus = new List<ReductionStatusEnum>
+            {
+                ReductionStatusEnum.Queued,
+            };
+            var CancelableTasks = DbContext.ContentReductionTask
+                .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
+                .Where(crt => CancelableStatus.Contains(crt.ReductionStatus))
+                .Where(crt => crt.ContentPublicationRequestId == null);
+            if (CancelableTasks.Count() == 0)
+            {
+                Response.Headers.Add("Warning", "There are no cancelable tasks for this root content item.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
-            return Json(new { });
+            // There should always be at most one cancelable task
+            var UpdatedTasks = new List<ContentReductionTask>();
+            foreach (var Task in CancelableTasks)
+            {
+                Task.ReductionStatus = ReductionStatusEnum.Canceled;
+                DbContext.Update(Task);
+
+                UpdatedTasks.Append(Task);
+            }
+            DbContext.SaveChanges();
+
+            return Json(UpdatedTasks);
         }
 
         /// <summary>
