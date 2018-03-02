@@ -193,6 +193,7 @@ namespace MapTests
             ReturnMockContext.Object.UserRoles = MockDbSet<IdentityUserRole<long>>.New(new List<IdentityUserRole<long>>()).Object;
             ReturnMockContext.Object.UserRoleInRootContentItem = MockDbSet<UserRoleInRootContentItem>.New(new List<UserRoleInRootContentItem>()).Object;
             ReturnMockContext.Object.UserClaims = MockDbSet<IdentityUserClaim<long>>.New(new List<IdentityUserClaim<long>>()).Object;
+            ReturnMockContext.Object.ContentPublicationRequest = MockDbSet<ContentPublicationRequest>.New(new List<ContentPublicationRequest>()).Object;
             ReturnMockContext.Object.ContentReductionTask = MockDbSet<ContentReductionTask>.New(new List<ContentReductionTask>()).Object;
             ReturnMockContext.Object.Users = ReturnMockContext.Object.ApplicationUser;
             ReturnMockContext.Object.Roles = ReturnMockContext.Object.ApplicationRole;
@@ -506,6 +507,13 @@ namespace MapTests
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInRootContentItem, "RoleId", DbContextObject.ApplicationRole);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInRootContentItem, "UserId", DbContextObject.ApplicationUser);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<RootContentItem>(DbContextObject.UserRoleInRootContentItem, "RootContentItemId", DbContextObject.RootContentItem);
+            #endregion
+
+            #region Initialize ContentPublicationRequest
+            DbContextObject.ContentPublicationRequest.AddRange(new List<ContentPublicationRequest>
+            {
+                new ContentPublicationRequest { Id=1, ApplicationUserId=5, MasterFilePath="C:\\Dir\\file.ext", RootContentItemId=3 },
+            });
             #endregion
         }
 

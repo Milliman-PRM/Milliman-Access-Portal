@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using System.IO;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -543,11 +544,11 @@ namespace MillimanAccessPortal.Controllers
 
         /// <summary>Submits a new reduction task.</summary>
         /// <param name="SelectionGroupId">The selection group to reduce.</param>
-        /// <param name="Selections">A dictionary that maps selection IDs to a boolean value indicating whether to set or unset the selection.</param>
+        /// <param name="SelectionUpdates">A dictionary that maps selection IDs to a boolean value indicating whether to set or unset the selection.</param>
         /// <returns>JsonResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SingleReduction(long SelectionGroupId, Dictionary<long, Boolean> Selections)
+        public async Task<IActionResult> SingleReduction(long SelectionGroupId, Dictionary<long, Boolean> SelectionUpdates)
         {
             SelectionGroup SelectionGroup = DbContext.SelectionGroup.Find(SelectionGroupId);
 
@@ -573,21 +574,35 @@ namespace MillimanAccessPortal.Controllers
                 .Where(sg => sg.Id == SelectionGroup.Id)
                 .Select(sg => sg.SelectedHierarchyFieldValueList)
                 .Single();
-            var SelectionAdditions = Selections
+            var SelectionAdditions = SelectionUpdates
                 .Where(kvp => kvp.Value)
                 .Select(kvp => kvp.Key)
                 .Except(CurrentSelections);
-            var SelectionRemovals = Selections
+            var SelectionRemovals = SelectionUpdates
                 .Where(kvp => !kvp.Value)
                 .Select(kvp => kvp.Key)
                 .Intersect(CurrentSelections);
+
+            // TODO: Use a standard query to determine ContentPublicationRequest status based on associated ContentReductionTask records.
+            var PublishedStatus = new List<ReductionStatusEnum>
+            {
+                ReductionStatusEnum.Pushed,
+                ReductionStatusEnum.Replaced,
+            };
+            var MostRecentPublication = DbContext.ContentPublicationRequest
+                .OrderBy(cpr => cpr.CreateDateTime)
+                .Where(cpr => cpr.RootContentItemId == SelectionGroup.RootContentItemId)
+                .Where(cpr => DbContext.ContentReductionTask
+                    .Where(crt => crt.ContentPublicationRequestId == cpr.Id)
+                    .All(crt => PublishedStatus.Contains(crt.ReductionStatus)))
+                .LastOrDefault();
             #endregion
 
             #region Validation
             var ValidSelections = DbContext.HierarchyFieldValue
-                .Where(hfv => Selections.Keys.Contains(hfv.Id))
+                .Where(hfv => SelectionUpdates.Keys.Contains(hfv.Id))
                 .Where(hfv => hfv.HierarchyField.RootContentItemId == SelectionGroup.RootContentItemId);
-            if (ValidSelections.Count() < Selections.Count())
+            if (ValidSelections.Count() < SelectionUpdates.Count())
             {
                 Response.Headers.Add("Warning", "One or more requested selections do not exist or do not belong to the specified selection group.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
@@ -606,7 +621,40 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "There are outstanding reduction tasks for this root content item.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+
+            if (MostRecentPublication == null)
+            {
+                Response.Headers.Add("Warning", "Nothing has been published to this root content item.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
+
+            string SelectionCriteriaString = JsonConvert.SerializeObject(Queries.GetFieldSelectionsForSelectionGroup(SelectionGroupId), Formatting.Indented);
+
+            // TODO: split file path operations into a separate function
+            var CreationDate = DateTimeOffset.Now;
+
+            var Directory = Path.GetDirectoryName(MostRecentPublication.MasterFilePath);
+            var FileName = Path.GetFileNameWithoutExtension(MostRecentPublication.MasterFilePath);
+            var FileExtension = Path.GetExtension(MostRecentPublication.MasterFilePath);
+
+            var NewFileName = $"{SelectionGroup.Id}_{CreationDate.ToString("s")}_{FileName}{FileExtension}";
+            var ResultFilePath = Path.Combine(Directory, NewFileName);
+
+            var ContentReductionTask = new ContentReductionTask
+            {
+                ApplicationUser = await Queries.GetCurrentApplicationUser(User),
+                SelectionGroupId = SelectionGroup.Id,
+                MasterFilePath = MostRecentPublication.MasterFilePath,
+                ResultFilePath = ResultFilePath,
+                ContentPublicationRequest = null,
+                SelectionCriteria = SelectionCriteriaString,
+                ReductionStatus = ReductionStatusEnum.Queued,
+                CreateDateTime = CreationDate
+            };
+            DbContext.ContentReductionTask.Add(ContentReductionTask);
+
+            DbContext.SaveChanges();
 
             return Json(new { });
         }
