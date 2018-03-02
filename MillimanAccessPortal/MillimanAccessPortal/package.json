@@ -6,6 +6,7 @@
   "dependencies": {
     "bootstrap": "4.0.0",
     "jquery": "2.2.0",
+    "jquery-mask-plugin": "1.14.13",
     "jquery-validation": "1.14.0",
     "jquery-validation-unobtrusive": "3.2.6",
     "selectize": "v0.12.4",
