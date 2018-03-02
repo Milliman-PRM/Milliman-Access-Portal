@@ -319,7 +319,7 @@ if ($? -eq $false)
 log_statement "Defining database firewall rules"
 
 # Retrieve list of IP addresses the web app may use
-$properties = Get-AzureRmResource -ResourceGroupName map-ci -ResourceType Microsoft.Web/sites/slots -ResourceName "map-ci-app/createazureci" -ApiVersion 2016-08-01
+$properties = Get-AzureRmResource -ResourceGroupName map-ci -ResourceType Microsoft.Web/sites/slots -ResourceName "map-ci-app/$BranchName" -ApiVersion 2016-08-01
 $outboundList = $properties.Properties.possibleOutboundIpAddresses.Split(',')
 
 # Retrieve the current list of firewall rules
