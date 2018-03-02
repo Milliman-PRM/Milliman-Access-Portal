@@ -112,10 +112,19 @@ if ((get-location).Path -ne $projectPath) {
     fail_statement "Failed to open project directory"
 }
 
-log_statement "Restoring bower packages"
-start-process "bower" -argumentList "install","-V","-f" -wait -RedirectStandardOutput "$env:temp\output.txt" -redirectstandarderror "$env:temp\error.txt"
-if ($? -eq $false) {
-    fail_statement "Failed to restore bower packages"
+log_statement "Restoring yarn packages"
+$command = "npm install -g yarn@1.5.1"
+invoke-expression $command
+
+if ($LASTEXITCODE -ne 0) {
+    fail_statement "ERROR: Failed to install yarn"
+}
+
+$command = "yarn install"
+invoke-expression "&$command"
+
+if ($LASTEXITCODE -ne 0) {
+    fail_statement "ERROR: yarn package restore failed"
 }
 
 #region Web Compiler setup
