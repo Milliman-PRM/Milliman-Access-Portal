@@ -631,32 +631,20 @@ namespace MillimanAccessPortal.Controllers
 
             string SelectionCriteriaString = JsonConvert.SerializeObject(Queries.GetFieldSelectionsForSelectionGroup(SelectionGroupId), Formatting.Indented);
 
-            // TODO: split file path operations into a separate function
-            var CreationDate = DateTimeOffset.Now;
-
-            var Directory = Path.GetDirectoryName(MostRecentPublication.MasterFilePath);
-            var FileName = Path.GetFileNameWithoutExtension(MostRecentPublication.MasterFilePath);
-            var FileExtension = Path.GetExtension(MostRecentPublication.MasterFilePath);
-
-            var NewFileName = $"{SelectionGroup.Id}_{CreationDate.ToString("s")}_{FileName}{FileExtension}";
-            var ResultFilePath = Path.Combine(Directory, NewFileName);
-
             var ContentReductionTask = new ContentReductionTask
             {
                 ApplicationUser = await Queries.GetCurrentApplicationUser(User),
                 SelectionGroupId = SelectionGroup.Id,
                 MasterFilePath = MostRecentPublication.MasterFilePath,
-                ResultFilePath = ResultFilePath,
                 ContentPublicationRequest = null,
                 SelectionCriteria = SelectionCriteriaString,
                 ReductionStatus = ReductionStatusEnum.Queued,
-                CreateDateTime = CreationDate
             };
             DbContext.ContentReductionTask.Add(ContentReductionTask);
 
             DbContext.SaveChanges();
 
-            return Json(new { });
+            return Json(ContentReductionTask);
         }
 
         /// <summary>Cancel a pending or completed reduction task.</summary>
