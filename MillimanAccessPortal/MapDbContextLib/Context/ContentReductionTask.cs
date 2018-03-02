@@ -23,6 +23,7 @@ namespace MapDbContextLib.Context
         Reducing = 20,
         Reduced = 30,
         Pushed = 40,
+        Error = 90,
     }
 
     public class ContentReductionTask
