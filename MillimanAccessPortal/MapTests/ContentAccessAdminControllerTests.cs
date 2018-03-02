@@ -550,6 +550,7 @@ namespace MapTests
         [InlineData(999, 2,  new ReductionStatusEnum[] { })]
         [InlineData(4, 999, new ReductionStatusEnum[] { })]
         [InlineData(4, 1, new ReductionStatusEnum[] { })]
+        [InlineData(6, 4, new ReductionStatusEnum[] { })]
         [InlineData(4, 2, new ReductionStatusEnum[] { ReductionStatusEnum.Queued })]
         [InlineData(4, 2, new ReductionStatusEnum[] { ReductionStatusEnum.Reducing })]
         [InlineData(4, 2, new ReductionStatusEnum[] { ReductionStatusEnum.Reduced })]

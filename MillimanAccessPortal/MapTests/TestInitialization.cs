@@ -442,6 +442,7 @@ namespace MapTests
                     new RootContentItem{ Id=1, ClientId=1, ContentName="RootContent 1", ContentTypeId=1 },
                     new RootContentItem{ Id=2, ClientId=2, ContentName="RootContent 2", ContentTypeId=1 },
                     new RootContentItem{ Id=3, ClientId=8, ContentName="RootContent 3", ContentTypeId=1 },
+                    new RootContentItem{ Id=4, ClientId=8, ContentName="RootContent 4", ContentTypeId=1 },
                 });
             MockDbSet<RootContentItem>.AssignNavigationProperty<ContentType>(DbContextObject.RootContentItem, "ContentTypeId", DbContextObject.ContentType);
             MockDbSet<RootContentItem>.AssignNavigationProperty<Client>(DbContextObject.RootContentItem, "ClientId", DbContextObject.Client);
@@ -452,6 +453,7 @@ namespace MapTests
                 {
                     new HierarchyField { Id=1, RootContentItemId=1, FieldName="Field1", FieldDisplayName="DisplayName1", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
                     new HierarchyField { Id=2, RootContentItemId=3, FieldName="Field1", FieldDisplayName="DisplayName1", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
+                    new HierarchyField { Id=3, RootContentItemId=4, FieldName="Field1", FieldDisplayName="DisplayName1", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
                 });
             MockDbSet<HierarchyField>.AssignNavigationProperty<RootContentItem>(DbContextObject.HierarchyField, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
@@ -462,6 +464,8 @@ namespace MapTests
                     new HierarchyFieldValue { Id=1, HierarchyFieldId=1,  Value="Value 1" },
                     new HierarchyFieldValue { Id=2, HierarchyFieldId=2,  Value="Value 1" },
                     new HierarchyFieldValue { Id=3, HierarchyFieldId=2,  Value="Value 2" },
+                    new HierarchyFieldValue { Id=4, HierarchyFieldId=3,  Value="Value 1" },
+                    new HierarchyFieldValue { Id=5, HierarchyFieldId=3,  Value="Value 2" },
                 });
             MockDbSet<HierarchyFieldValue>.AssignNavigationProperty<HierarchyField>(DbContextObject.HierarchyFieldValue, "HierarchyFieldId", DbContextObject.HierarchyField);
             #endregion
@@ -474,6 +478,7 @@ namespace MapTests
                     new SelectionGroup { Id=3, ContentInstanceUrl="Folder2/File1", RootContentItemId=2, GroupName="Group1 For Content2", SelectedHierarchyFieldValueList=new long[] { } },
                     new SelectionGroup { Id=4, ContentInstanceUrl="Folder3/File1", RootContentItemId=3, GroupName="Group1 For Content3", SelectedHierarchyFieldValueList=new long[] { } },
                     new SelectionGroup { Id=5, ContentInstanceUrl="Folder3/File2", RootContentItemId=3, GroupName="Group2 For Content3", SelectedHierarchyFieldValueList=new long[] { } },
+                    new SelectionGroup { Id=6, ContentInstanceUrl="Folder4/File1", RootContentItemId=4, GroupName="Group1 For Content4", SelectedHierarchyFieldValueList=new long[] { } },
                 });
             MockDbSet<SelectionGroup>.AssignNavigationProperty<RootContentItem>(DbContextObject.SelectionGroup, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
@@ -503,6 +508,8 @@ namespace MapTests
                 new UserRoleInRootContentItem { Id=3, RoleId=5, UserId=5, RootContentItemId=3 },
                 new UserRoleInRootContentItem { Id=4, RoleId=3, UserId=5, RootContentItemId=3 },
                 new UserRoleInRootContentItem { Id=5, RoleId=5, UserId=6, RootContentItemId=3 },
+                new UserRoleInRootContentItem { Id=6, RoleId=5, UserId=5, RootContentItemId=4 },
+                new UserRoleInRootContentItem { Id=7, RoleId=3, UserId=5, RootContentItemId=4 },
             });
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInRootContentItem, "RoleId", DbContextObject.ApplicationRole);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInRootContentItem, "UserId", DbContextObject.ApplicationUser);
