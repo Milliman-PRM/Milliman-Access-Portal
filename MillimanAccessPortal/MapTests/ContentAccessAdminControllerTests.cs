@@ -547,13 +547,13 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData(999, 2,  new ReductionStatusEnum[] { })]
-        [InlineData(4, 999, new ReductionStatusEnum[] { })]
-        [InlineData(4, 1, new ReductionStatusEnum[] { })]
-        [InlineData(6, 4, new ReductionStatusEnum[] { })]
-        [InlineData(4, 2, new ReductionStatusEnum[] { ReductionStatusEnum.Queued })]
-        [InlineData(4, 2, new ReductionStatusEnum[] { ReductionStatusEnum.Reducing })]
-        [InlineData(4, 2, new ReductionStatusEnum[] { ReductionStatusEnum.Reduced })]
+        [InlineData(999,   2, new ReductionStatusEnum[] { })]  // Selection group does not exist
+        [InlineData(  4, 999, new ReductionStatusEnum[] { })]  // Hierarchy field value does not exist
+        [InlineData(  4,   1, new ReductionStatusEnum[] { })]  // Hierarchy field value does not belong to the correct root content item
+        [InlineData(  6,   4, new ReductionStatusEnum[] { })]  // Content has not been published for the root content item
+        [InlineData(  4,   2, new ReductionStatusEnum[] { ReductionStatusEnum.Queued    })]  // An outstanding reduction task exists for the root content item
+        [InlineData(  4,   2, new ReductionStatusEnum[] { ReductionStatusEnum.Reducing  })]  // "
+        [InlineData(  4,   2, new ReductionStatusEnum[] { ReductionStatusEnum.Reduced   })]  // "
         public async Task SingleReduction_ErrorInvalid(long SelectionGroupId, long HierarchyFieldValueId, ReductionStatusEnum[] Tasks)
         {
             #region Arrange
@@ -591,8 +591,8 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData("user5", 1)]
-        [InlineData("user6", 4)]
+        [InlineData("user5", 1)]  // User has no role in the root content item
+        [InlineData("user6", 4)]  // User has the incorrect role in the root content item
         public async Task SingleReduction_ErrorUnauthorized(String UserName, long SelectionGroupId)
         {
             #region Arrange
@@ -637,11 +637,11 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData(4, new ReductionStatusEnum[] { })]
-        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Pushed })]
-        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Canceled })]
-        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Discarded })]
-        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Replaced })]
+        [InlineData(4, new ReductionStatusEnum[] { })]                                // No outstanding tasks exist
+        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Pushed    })]  // "
+        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Canceled  })]  // "
+        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Discarded })]  // "
+        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Replaced  })]  // "
         public async Task SingleReduction_Success(long SelectionGroupId, ReductionStatusEnum[] Tasks)
         {
             #region Arrange
