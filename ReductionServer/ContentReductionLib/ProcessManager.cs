@@ -13,16 +13,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using MapDbContextLib.Context;
 using Milliman.ReductionEngine;
-
 using Milliman.Common;  // TODO remove this
 
 namespace ContentReductionLib
 {
     public class ProcessManager
     {
-        // These collections are keyed on the config file name
-        private static Dictionary<string, RunningReductionTask> ExecutingTasks = new Dictionary<string, RunningReductionTask>();
-        private Dictionary<int, JobMonitorInfo> QueueMonitorDict = new Dictionary<int, JobMonitorInfo>();
+        // This collection is keyed on the config file name
+        //private static Dictionary<string, RunningReductionTask> ExecutingTasks = new Dictionary<string, RunningReductionTask>();
+
+        private Dictionary<int, JobMonitorInfo> JobMonitorDict = new Dictionary<int, JobMonitorInfo>();
 
         /// <summary>
         /// class used to pass operational parameters to the thread that handles tasks of a single config file
@@ -33,48 +33,19 @@ namespace ContentReductionLib
             internal ReduceConfig TaskConfig;
         }
 
-        private class RunningReductionTask
-        {
-            internal ReduceConfig TaskConfig;
-            internal Thread Thd;
-        }
-
-        private bool _StopSignal;  // wrapped by the thread safe StopSignal property
-        private object InstanceStateLock = new object();
-        private Thread MainServiceWorkerThread = null;
-
         private string RootPath = string.Empty;
 
         /// <summary>
-        /// Constructor
+        /// Initiate processing of configured JobMonitors
         /// </summary>
-        public ProcessManager()
-        {
-            StopSignal = false;  // TODO remove?
-        }
-
-        /// <summary>
-        /// Thread safe access to the stop signal
-        /// </summary>
-        private bool StopSignal
-        {
-            get
-            {
-                lock (InstanceStateLock) { return _StopSignal; }
-            }
-            set
-            {
-                lock (InstanceStateLock) { _StopSignal = value; }
-            }
-        }
-
+        /// <param name="ProcessConfig"></param>
         public void Start(ProcessManagerConfiguration ProcessConfig)
         {
-            // Set up JobMonitor objects that are configured to run.
+            // Based on configuration, set up JobMonitor objects
             // for (int i = 0 ; i < ConfiguredMonitors.Count ; i++)
-            for (int i = 0 ; i < 2 ; i++)
+            for (int i = 0 ; i < 1 ; i++)
             {
-                QueueMonitorDict.Add(i, new JobMonitorInfo
+                JobMonitorDict.Add(i, new JobMonitorInfo
                 {
                     Monitor = new MapDbJobMonitor { ConfiguredConnectionStringParamName = "DefaultConnection" },
                     TokenSource = new CancellationTokenSource(),
@@ -83,28 +54,12 @@ namespace ContentReductionLib
             }
 
             // Start the job monitor threads
-            foreach (var MonitorKvp in QueueMonitorDict)
+            foreach (var MonitorKvp in JobMonitorDict)
             {
                 JobMonitorInfo MonitorInfo = MonitorKvp.Value;
                 MonitorInfo.AwaitableTask = MonitorInfo.Monitor.Start(MonitorInfo.TokenSource.Token);
 
                 Trace.WriteLine($"JobMonitor {MonitorKvp.Key} Start() returned");
-            }
-        }
-
-        public bool AllMonitorThreadsRunning
-        {
-            get
-            {
-                return QueueMonitorDict.Values.All(v => v.AwaitableTask.Status  == TaskStatus.Running);
-            }
-        }
-
-        public bool AnyMonitorThreadRunning
-        {
-            get
-            {
-                return QueueMonitorDict.Values.Any(v => v.AwaitableTask.Status == TaskStatus.Running);
             }
         }
 
@@ -117,7 +72,7 @@ namespace ContentReductionLib
         {
             TimeSpan MaxWaitTime = TimeSpan.FromMinutes(3);
 
-            foreach (var MonitorKvp in QueueMonitorDict)
+            foreach (var MonitorKvp in JobMonitorDict)
             {
                 JobMonitorInfo MonitorInfo = MonitorKvp.Value;
                 MonitorInfo.TokenSource.Cancel();
@@ -127,17 +82,40 @@ namespace ContentReductionLib
 
             // Wait for all the running job monitors to complete
             DateTime Start = DateTime.Now;
-            var WaitResult = Task.WaitAll(QueueMonitorDict.Select(m => m.Value.AwaitableTask).ToArray(), MaxWaitTime);
+            var WaitResult = Task.WaitAll(JobMonitorDict.Select(m => m.Value.AwaitableTask).ToArray(), MaxWaitTime);
             Trace.WriteLine($"WaitAll ran for {DateTime.Now - Start}");
 
             if (!AnyMonitorThreadRunning)
             {
-                QueueMonitorDict.Clear();
+                JobMonitorDict.Clear();
             }
 
             return WaitResult;
         }
 
+        /// <summary>
+        /// Property that evaluates whether status of all Tasks of managed JobMonitor objects is running
+        /// </summary>
+        public bool AllMonitorThreadsRunning
+        {
+            get
+            {
+                return JobMonitorDict.Values.All(v => v.AwaitableTask.Status == TaskStatus.Running);
+            }
+        }
+
+        /// <summary>
+        /// Property that evaluates whether at least 1 status of all Tasks of managed JobMonitor objects is running
+        /// </summary>
+        public bool AnyMonitorThreadRunning
+        {
+            get
+            {
+                return JobMonitorDict.Values.Any(v => v.AwaitableTask.Status == TaskStatus.Running);
+            }
+        }
+
+        /*
         /// <summary>
         /// Thread main function that finds runnable config files and initiates processing on each one
         /// </summary>
@@ -257,11 +235,9 @@ namespace ContentReductionLib
                     // Get QMS connection parameters
                     QMSSettings QmsSettings = new QMSSettings
                     {
-                        /*
-                        QMSURL = System.Configuration.ConfigurationManager.AppSettings["QMS"],
-                        UserName = System.Configuration.ConfigurationManager.AppSettings["QMSUser"],
-                        Password = System.Configuration.ConfigurationManager.AppSettings["QMSPassword"],
-                        */
+                        //QMSURL = System.Configuration.ConfigurationManager.AppSettings["QMS"],
+                        //UserName = System.Configuration.ConfigurationManager.AppSettings["QMSUser"],
+                        //Password = System.Configuration.ConfigurationManager.AppSettings["QMSPassword"],
                     };
 
                     // Create the Runner and start the processing
@@ -279,5 +255,6 @@ namespace ContentReductionLib
                 return;
             }
         }
+        */
     }
 }

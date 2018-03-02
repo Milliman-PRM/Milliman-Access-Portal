@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using MapDbContextLib.Context;
 
@@ -19,9 +20,14 @@ namespace ContentReductionLib
     internal class MapDbJobMonitor : JobMonitorBase
     {
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
+        private List<Task> RunningTasks = new List<Task>();
 
         internal MapDbJobMonitor()
-        {}
+        {
+            MaxParallelTasks = 1;
+        }
+
+        internal int MaxParallelTasks { get; set; }
 
         internal string ConfiguredConnectionStringParamName {
             set
@@ -35,6 +41,7 @@ namespace ContentReductionLib
                 ConnectionString = MyConfig.GetConnectionString(value);
             }
         }
+
         internal string ConnectionString
         {
             set
@@ -60,24 +67,40 @@ namespace ContentReductionLib
             int LoopCount = 0;
             while (!Token.IsCancellationRequested)
             {
-                int ResponseCount = DoWork(4);
+                // TODO clean up RunningTasks collection if any are completed. 
+
+                // Start more tasks if there is room in the RunningTasks collection
+                if (RunningTasks.Count < MaxParallelTasks)
+                {
+                    List<ContentReductionTask> Responses = GetReadyTasks(MaxParallelTasks - RunningTasks.Count);
+
+                    // TODO Correct this
+                    RunningTasks.AddRange(Responses);
+
+                    Trace.WriteLine($"GetReadyTasks iteration {LoopCount++} completed with response item Ids: {string.Join(",", Responses.Select(rt => rt.Id))}");
+                }
                 Thread.Sleep(4000);
-                Trace.WriteLine($"GetItems iteration {LoopCount++} completed with {ResponseCount} responses");
             }
             Trace.WriteLine("JobMonitorThreadMain terminating due to cancellation");
         }
 
-        internal override int DoWork(int MaxCount)
+        internal List<ContentReductionTask> GetReadyTasks(int MaxCount)
         {
-            using (var Db=new ApplicationDbContext(ContextOptions))
+            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+            using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
             {
                 List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => t.CreateDateTime - DateTimeOffset.UtcNow < TimeSpan.FromSeconds(30))
-                                                                             .OrderBy(t => t.CreateDateTime)
-                                                                             .Take(MaxCount)
-                                                                             .ToList();
+                                                                                .OrderBy(t => t.CreateDateTime)
+                                                                                .Take(MaxCount)
+                                                                                .ToList();
+                TopItems.ForEach(rt => rt.Status = "Processing");
+                Db.ContentReductionTask.UpdateRange(TopItems);
+                Db.SaveChanges();
+                Transaction.Commit();
 
-                return TopItems.Count;
+                return TopItems;
             }
         }
+
     }
 }

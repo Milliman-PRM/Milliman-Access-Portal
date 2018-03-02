@@ -13,6 +13,5 @@ namespace ContentReductionLib
     {
         internal abstract Task Start(CancellationToken Token);
         internal abstract void JobMonitorThreadMain(CancellationToken Token);
-        internal abstract int DoWork(int MaxCount);
     }
 }
