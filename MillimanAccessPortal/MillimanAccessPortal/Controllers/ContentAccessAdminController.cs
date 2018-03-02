@@ -584,30 +584,23 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var Existent = DbContext.HierarchyFieldValue
-                .Where(hfv => Selections.Keys.Contains(hfv.Id));
-            if (Existent.Count() < Selections.Count())
-            {
-                Response.Headers.Add("Warning", "One or more requested selections do not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-
-            var Associated = Existent
+            var ValidSelections = DbContext.HierarchyFieldValue
+                .Where(hfv => Selections.Keys.Contains(hfv.Id))
                 .Where(hfv => hfv.HierarchyField.RootContentItemId == SelectionGroup.RootContentItemId);
-            if (Associated.Count() < Selections.Count())
+            if (ValidSelections.Count() < Selections.Count())
             {
-                Response.Headers.Add("Warning", "One or more requested selections do not belong to the specified selection group.");
+                Response.Headers.Add("Warning", "One or more requested selections do not exist or do not belong to the specified selection group.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            var StatusOutstanding = new List<ReductionStatusEnum>
+            var OutstandingStatus = new List<ReductionStatusEnum>
             {
                 ReductionStatusEnum.Queued,
                 ReductionStatusEnum.Reducing,
                 ReductionStatusEnum.Reduced,
             };
             var OutstandingTasks = DbContext.ContentReductionTask
-                .Where(crt => StatusOutstanding.Contains(crt.ReductionStatus));
+                .Where(crt => OutstandingStatus.Contains(crt.ReductionStatus));
             if (OutstandingTasks.Any())
             {
                 Response.Headers.Add("Warning", "There are outstanding reduction tasks for this root content item.");
