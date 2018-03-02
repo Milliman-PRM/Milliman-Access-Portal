@@ -676,14 +676,15 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData(4, new ReductionStatusEnum[] { })]
-        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Reducing })]
-        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Reduced })]
-        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Pushed })]
-        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Canceled })]
-        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Discarded })]
-        [InlineData(4, new ReductionStatusEnum[] { ReductionStatusEnum.Replaced })]
-        public async Task CancelReduction_ErrorInvalid(long SelectionGroupId, ReductionStatusEnum[] Tasks)
+        [InlineData(4, null, new ReductionStatusEnum[] { })]
+        [InlineData(4, null, new ReductionStatusEnum[] { ReductionStatusEnum.Reducing  })]
+        [InlineData(4, null, new ReductionStatusEnum[] { ReductionStatusEnum.Reduced   })]
+        [InlineData(4, null, new ReductionStatusEnum[] { ReductionStatusEnum.Pushed    })]
+        [InlineData(4, null, new ReductionStatusEnum[] { ReductionStatusEnum.Canceled  })]
+        [InlineData(4, null, new ReductionStatusEnum[] { ReductionStatusEnum.Discarded })]
+        [InlineData(4, null, new ReductionStatusEnum[] { ReductionStatusEnum.Replaced  })]
+        [InlineData(4,    1, new ReductionStatusEnum[] { ReductionStatusEnum.Queued    })]
+        public async Task CancelReduction_ErrorInvalid(long SelectionGroupId, long? ContentPublicationRequestId, ReductionStatusEnum[] Tasks)
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("user5");
@@ -692,7 +693,7 @@ namespace MapTests
                 TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
                 {
                     ReductionStatus = Status,
-                    ContentPublicationRequestId = null,
+                    ContentPublicationRequestId = ContentPublicationRequestId,
                     SelectionGroupId = SelectionGroupId,
                     ApplicationUserId = 5
                 });
