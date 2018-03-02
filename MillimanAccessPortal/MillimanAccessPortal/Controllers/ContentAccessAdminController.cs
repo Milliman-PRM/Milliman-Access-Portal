@@ -629,7 +629,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            string SelectionCriteriaString = JsonConvert.SerializeObject(Queries.GetFieldSelectionsForSelectionGroup(SelectionGroupId), Formatting.Indented);
+            string SelectionCriteriaString = JsonConvert.SerializeObject(Queries.GetFieldSelectionsForSelectionGroup(SelectionGroupId, SelectionUpdates), Formatting.Indented);
 
             var ContentReductionTask = new ContentReductionTask
             {

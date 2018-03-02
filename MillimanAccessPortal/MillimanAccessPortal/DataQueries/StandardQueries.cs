@@ -20,7 +20,7 @@ namespace MillimanAccessPortal.DataQueries
 {
     public partial class StandardQueries
     {
-        private ApplicationDbContext DataContext = null;
+        private ApplicationDbContext DbContext = null;
         private UserManager<ApplicationUser> UserManager = null;
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace MillimanAccessPortal.DataQueries
             UserManager<ApplicationUser> UserManagerArg
             )
         {
-            DataContext = ContextArg;
+            DbContext = ContextArg;
             UserManager = UserManagerArg;
         }
 
@@ -45,10 +45,10 @@ namespace MillimanAccessPortal.DataQueries
         {
             List<Client> ListOfAuthorizedClients = new List<Client>();
             IQueryable<Client> AuthorizedClientsQuery =
-                DataContext.UserRoleInClient
+                DbContext.UserRoleInClient
                 .Where(urc => urc.Role.RoleEnum == RoleEnum.Admin)
                 .Where(urc => urc.User.UserName == UserName)
-                .Join(DataContext.Client, urc => urc.ClientId, c => c.Id, (urc, c) => c);
+                .Join(DbContext.Client, urc => urc.ClientId, c => c.Id, (urc, c) => c);
 
             ListOfAuthorizedClients.AddRange(AuthorizedClientsQuery);  // Query executes here
 
@@ -70,7 +70,7 @@ namespace MillimanAccessPortal.DataQueries
         {
             List<Client> ReturnList = new List<Client>();
 
-            List<Client> FoundChildClients = DataContext.Client.Where(c => c.ParentClientId == ClientArg.Id).ToList();
+            List<Client> FoundChildClients = DbContext.Client.Where(c => c.ParentClientId == ClientArg.Id).ToList();
 
             ReturnList.AddRange(FoundChildClients);
             if (Recurse)
@@ -88,7 +88,7 @@ namespace MillimanAccessPortal.DataQueries
         public Client GetRootClientOfClient(long id)
         {
             // Execute query here so there is only one db query and the rest is done locally in memory
-            List<Client> AllClients = DataContext.Client.ToList();
+            List<Client> AllClients = DbContext.Client.ToList();
 
             // start with the client id supplied
             Client CandidateResult = AllClients.SingleOrDefault(c => c.Id == id);
@@ -104,7 +104,7 @@ namespace MillimanAccessPortal.DataQueries
 
         public List<Client> GetAllRootClients()
         {
-            return DataContext.Client.Where(c => c.ParentClientId == null).ToList();
+            return DbContext.Client.Where(c => c.ParentClientId == null).ToList();
         }
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace MillimanAccessPortal.DataQueries
         /// <returns></returns>
         public List<AssignedRoleInfo> GetUserRolesForClient(long UserId, long ClientId)
         {
-            IQueryable<AssignedRoleInfo> Query = DataContext.UserRoleInClient
+            IQueryable<AssignedRoleInfo> Query = DbContext.UserRoleInClient
                                                             .Include(urc => urc.Role)
                                                             .Where(urc => urc.UserId == UserId
                                                                        && urc.ClientId == ClientId)
@@ -140,7 +140,7 @@ namespace MillimanAccessPortal.DataQueries
 
         public ContentReductionHierarchy GetReductionFieldsForRootContent(long ContentId)
         {
-            RootContentItem ContentItem = DataContext.RootContentItem
+            RootContentItem ContentItem = DbContext.RootContentItem
                                                      .Include(rc => rc.ContentType)
                                                      .SingleOrDefault(rc => rc.Id == ContentId);
             if (ContentItem == null)
@@ -152,7 +152,7 @@ namespace MillimanAccessPortal.DataQueries
             {
                 ContentReductionHierarchy ReturnObject = new ContentReductionHierarchy { RootContentItemId = ContentId };
 
-                foreach (HierarchyField Field in DataContext.HierarchyField
+                foreach (HierarchyField Field in DbContext.HierarchyField
                                                             .Where(hf => hf.RootContentItemId == ContentId)
                                                             .ToList())
                 {
@@ -167,7 +167,7 @@ namespace MillimanAccessPortal.DataQueries
                                 DisplayName = Field.FieldDisplayName,
                                 ValueDelimiter = Field.FieldDelimiter,
                                 StructureType = Field.StructureType,
-                                Values = DataContext.HierarchyFieldValue
+                                Values = DbContext.HierarchyFieldValue
                                                          .Where(fv => fv.HierarchyFieldId == Field.Id)
                                                          .Select(fv => new ReductionFieldValue { Value = fv.Value })
                                                          .ToArray(),
@@ -187,55 +187,63 @@ namespace MillimanAccessPortal.DataQueries
             }
         }
 
-        public ContentReductionHierarchy GetFieldSelectionsForSelectionGroup(long SelectionGroupId)
+        public ContentReductionHierarchy GetFieldSelectionsForSelectionGroup(long SelectionGroupId, Dictionary<long, bool> SelectionUpdates = null)
         {
-            SelectionGroup SelGrp = DataContext.SelectionGroup
-                                               .Include(sg => sg.RootContentItem)
-                                                   .ThenInclude(rc => rc.ContentType)
-                                               .SingleOrDefault(sg => sg.Id == SelectionGroupId);
-            if (SelGrp == null)
+            SelectionGroup SelectionGroup = DbContext.SelectionGroup
+                .Include(sg => sg.RootContentItem)
+                    .ThenInclude(rci => rci.ContentType)
+                .SingleOrDefault(sg => sg.Id == SelectionGroupId);
+            if (SelectionGroup == null)
             {
                 return null;
             }
 
-            try
+            // Apply selection updates if provided
+            var SelectedHierarchyFieldValues = (SelectionUpdates == null)
+                ? SelectionGroup.SelectedHierarchyFieldValueList
+                : SelectionGroup.SelectedHierarchyFieldValueList
+                    .Union(SelectionUpdates.Keys.Where(k => SelectionUpdates[k]))
+                    .Except(SelectionUpdates.Keys.Where(k => !SelectionUpdates[k]));
+
+            ContentReductionHierarchy ContentReductionHierarchy = new ContentReductionHierarchy
             {
-                ContentReductionHierarchy ReturnObject = new ContentReductionHierarchy { RootContentItemId = SelGrp.RootContentItemId };
+                RootContentItemId = SelectionGroup.RootContentItemId,
+            };
 
-                foreach (HierarchyField Field in DataContext.HierarchyField
-                                                            .Where(hf => hf.RootContentItemId == SelGrp.RootContentItemId)
-                                                            .ToList())
-                {
-                    // There may be different handling required for some future content type. If so, move 
-                    // the characteristics specific to Qlikview into a class derived from ReductionFieldBase
-                    switch (SelGrp.RootContentItem.ContentType.TypeEnum)
+            var RelatedHierarchyFields = DbContext.HierarchyField
+                .Where(hf => hf.RootContentItemId == SelectionGroup.RootContentItemId);
+            foreach (var HierarchyField in RelatedHierarchyFields)
+            {
+                var HierarchyFieldValues = DbContext.HierarchyFieldValue
+                    .Where(hfv => hfv.HierarchyFieldId == HierarchyField.Id)
+                    .Select(hfv => new ReductionFieldValueSelection
                     {
-                        case ContentTypeEnum.Qlikview:
-                            ReturnObject.Fields.Add(new ReductionField
-                            {
-                                FieldName = Field.FieldName,
-                                DisplayName = Field.FieldDisplayName,
-                                ValueDelimiter = Field.FieldDelimiter,
-                                StructureType = Field.StructureType,
-                                Values = DataContext.HierarchyFieldValue
-                                                         .Where(fv => fv.HierarchyFieldId == Field.Id)
-                                                         .Select(fv => new ReductionFieldValueSelection { Value = fv.Value, SelectionStatus = SelGrp.SelectedHierarchyFieldValueList.Contains(fv.Id) })
-                                                         .ToArray(),
-                            });
-                            break;
+                        Value = hfv.Value,
+                        SelectionStatus = SelectedHierarchyFieldValues.Contains(hfv.Id),
+                    })
+                    .ToArray();
 
-                        default:
-                            break;
-                    }
+                // TODO: Create ReductionFieldBase and extend for each content type
+                ReductionField ReductionField;
+                switch (SelectionGroup.RootContentItem.ContentType.TypeEnum)
+                {
+                    case ContentTypeEnum.Qlikview:
+                    default:
+                        ReductionField = new ReductionField
+                        {
+                            FieldName = HierarchyField.FieldName,
+                            DisplayName = HierarchyField.FieldDisplayName,
+                            ValueDelimiter = HierarchyField.FieldDelimiter,
+                            StructureType = HierarchyField.StructureType,
+                            Values = HierarchyFieldValues,
+                        };
+                        break;
                 }
 
-                return ReturnObject;
+                ContentReductionHierarchy.Fields.Add(ReductionField);
             }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
 
+            return ContentReductionHierarchy;
+        }
     }
 }
