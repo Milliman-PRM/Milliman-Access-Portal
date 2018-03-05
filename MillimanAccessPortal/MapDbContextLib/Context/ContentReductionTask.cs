@@ -39,6 +39,7 @@ namespace MapDbContextLib.Context
             { ReductionStatusEnum.Reducing, "Reducing" },
             { ReductionStatusEnum.Reduced, "Reduced" },
             { ReductionStatusEnum.Pushed, "Pushed" },
+            { ReductionStatusEnum.Error, "Error" },
         };
 
         [Key]
