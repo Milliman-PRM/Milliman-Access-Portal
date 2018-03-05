@@ -484,9 +484,9 @@ namespace MillimanAccessPortal.Controllers
         }
 
         //
-        // GEET /Account/Profile
+        // GEET /Account/Settings
         [HttpGet]
-        public IActionResult Profile()
+        public async Task<IActionResult> Settings()
         {
             return View();
         }
