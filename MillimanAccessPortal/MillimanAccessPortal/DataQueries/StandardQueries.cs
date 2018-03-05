@@ -233,7 +233,6 @@ namespace MillimanAccessPortal.DataQueries
                 switch (SelectionGroup.RootContentItem.ContentType.TypeEnum)
                 {
                     case ContentTypeEnum.Qlikview:
-                    default:
                         ReductionField = new ReductionField
                         {
                             FieldName = HierarchyField.FieldName,
@@ -242,6 +241,9 @@ namespace MillimanAccessPortal.DataQueries
                             StructureType = HierarchyField.StructureType,
                             Values = HierarchyFieldValues,
                         };
+                        break;
+                    default:
+                        ReductionField = null;
                         break;
                 }
 
