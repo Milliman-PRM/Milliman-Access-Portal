@@ -602,12 +602,12 @@ namespace MillimanAccessPortal.Controllers
                 ReductionStatusEnum.Replaced,
             };
             var MostRecentPublication = DbContext.ContentPublicationRequest
-                .OrderBy(cpr => cpr.CreateDateTime)
+                .OrderByDescending(cpr => cpr.CreateDateTime)
                 .Where(cpr => cpr.RootContentItemId == SelectionGroup.RootContentItemId)
                 .Where(cpr => DbContext.ContentReductionTask
                     .Where(crt => crt.ContentPublicationRequestId == cpr.Id)
                     .All(crt => PublishedStatus.Contains(crt.ReductionStatus)))
-                .LastOrDefault();
+                .FirstOrDefault();
             #endregion
 
             #region Validation
