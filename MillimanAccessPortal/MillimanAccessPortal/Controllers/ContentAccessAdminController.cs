@@ -679,7 +679,10 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CancelReduction(long SelectionGroupId)
         {
-            SelectionGroup SelectionGroup = DbContext.SelectionGroup.Find(SelectionGroupId);
+            SelectionGroup SelectionGroup = DbContext.SelectionGroup
+                .Include(sg => sg.RootContentItem)
+                .Where(sg => sg.Id == SelectionGroupId)
+                .SingleOrDefault();
 
             #region Preliminary validation
             if (SelectionGroup == null)
