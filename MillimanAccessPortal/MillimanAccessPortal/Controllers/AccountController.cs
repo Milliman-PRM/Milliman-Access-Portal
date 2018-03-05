@@ -488,7 +488,16 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> Settings()
         {
-            return View();
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            
+            return View(new AccountSettingsViewModel {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Username = user.UserName,
+                Email = user.Email,
+                Phone = user.PhoneNumber,
+                Employer = user.Employer
+            });
         }
 
         #region Helpers
