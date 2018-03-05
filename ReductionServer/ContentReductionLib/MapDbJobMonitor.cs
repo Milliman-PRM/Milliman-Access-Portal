@@ -67,19 +67,34 @@ namespace ContentReductionLib
             int LoopCount = 0;
             while (!Token.IsCancellationRequested)
             {
-                // TODO clean up RunningTasks collection if any are completed. 
+                // Remove completed tasks from the RunningTasks collection. 
+                foreach (Task CompletedTask in RunningTasks.Where(t => t.IsCompleted).ToList())
+                {
+                    RunningTasks.Remove(CompletedTask);
+                }
 
-                // Start more tasks if there is room in the RunningTasks collection
+                // Start more tasks if there is room in the RunningTasks collection. 
                 if (RunningTasks.Count < MaxParallelTasks)
                 {
                     List<ContentReductionTask> Responses = GetReadyTasks(MaxParallelTasks - RunningTasks.Count);
 
-                    // TODO Correct this
-                    RunningTasks.AddRange(Responses);
+                    foreach (ContentReductionTask T in Responses)
+                    {
+                        // Initiate the reduction job
+
+                        var task = Task.Run(() => 
+                        {
+                            // Start the job running
+                            /* Create/configureLaunch an instance of ReductionRunner */
+                            Guid G = T.Id;  // disposable statement
+                        });
+
+                        RunningTasks.Add(task);
+                    }
 
                     Trace.WriteLine($"GetReadyTasks iteration {LoopCount++} completed with response item Ids: {string.Join(",", Responses.Select(rt => rt.Id))}");
                 }
-                Thread.Sleep(4000);
+                Thread.Sleep(1000);
             }
             Trace.WriteLine("JobMonitorThreadMain terminating due to cancellation");
         }
@@ -90,9 +105,10 @@ namespace ContentReductionLib
             using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
             {
                 List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => t.CreateDateTime - DateTimeOffset.UtcNow < TimeSpan.FromSeconds(30))
-                                                                                .OrderBy(t => t.CreateDateTime)
-                                                                                .Take(MaxCount)
-                                                                                .ToList();
+                                                                             .Where(t => t.Status == "Queued")
+                                                                             .OrderBy(t => t.CreateDateTime)
+                                                                             .Take(MaxCount)
+                                                                             .ToList();
                 TopItems.ForEach(rt => rt.Status = "Processing");
                 Db.ContentReductionTask.UpdateRange(TopItems);
                 Db.SaveChanges();
