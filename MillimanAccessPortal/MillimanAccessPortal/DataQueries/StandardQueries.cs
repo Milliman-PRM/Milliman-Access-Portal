@@ -187,6 +187,11 @@ namespace MillimanAccessPortal.DataQueries
             }
         }
 
+        /// <summary>Build hierarchy of selections for a selection group</summary>
+        /// <remarks>This builds a nested data structure to represent a hierarchy from several flat tables.</remarks>
+        /// <param name="SelectionGroupId">The selection group whose selections are to be gathered</param>
+        /// <param name="SelectionUpdates">Any changes to the current selections to effect in the returned hierarchy</param>
+        /// <returns>ContentReductionHierarchy</returns>
         public ContentReductionHierarchy GetFieldSelectionsForSelectionGroup(long SelectionGroupId, Dictionary<long, bool> SelectionUpdates = null)
         {
             SelectionGroup SelectionGroup = DbContext.SelectionGroup

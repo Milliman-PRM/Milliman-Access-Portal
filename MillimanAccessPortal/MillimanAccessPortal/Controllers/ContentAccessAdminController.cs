@@ -510,6 +510,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Returns the selections associated with a selection group.</summary>
+        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the related root content item.</remarks>
         /// <param name="SelectionGroupId">The selection group whose selections are to be returned.</param>
         /// <returns>JsonResult</returns>
         [HttpGet]
@@ -543,6 +544,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Submits a new reduction task.</summary>
+        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the related root content item.</remarks>
         /// <param name="SelectionGroupId">The selection group to reduce.</param>
         /// <param name="SelectionUpdates">A dictionary that maps selection IDs to a boolean value indicating whether to set or unset the selection.</param>
         /// <returns>JsonResult</returns>
@@ -673,6 +675,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Cancel a pending or completed reduction task.</summary>
+        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the related root content item.</remarks>
         /// <param name="SelectionGroupId">The selection group associated with the reduction to be canceled.</param>
         /// <returns>JsonResult</returns>
         [HttpPost]
