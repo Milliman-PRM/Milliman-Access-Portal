@@ -24,7 +24,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using System.IO;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -598,6 +597,7 @@ namespace MillimanAccessPortal.Controllers
                 .Intersect(CurrentSelections);
 
             // TODO: Use a standard query to determine ContentPublicationRequest status based on associated ContentReductionTask records.
+            // Select the most recent content publication request that has been published.
             var PublishedStatus = new List<ReductionStatusEnum>
             {
                 ReductionStatusEnum.Pushed,
