@@ -18,7 +18,7 @@ namespace MapDbContextLib.Context
         Default = 0,    // Default state
         Canceled = 1,   // The task was canceled by a user before the reduction server took it off the queue
         Discarded = 2,  // The task was completed by the reduction server, but a user chose not to push the reduced document
-        Replaced = 3,   // The reduced document was pushed by a user, but a more recent document has since been reduced
+        Replaced = 3,   // The reduced document was pushed by a user, but a more recent document has since been pushed
         Queued = 10,    // The task is in queue for reduction
         Reducing = 20,  // The reduction server is currently processing the reduction task
         Reduced = 30,   // The reduction server has completed the reduction task, but no user has pushed the reduced document
