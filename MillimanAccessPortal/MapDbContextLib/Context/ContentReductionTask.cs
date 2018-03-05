@@ -28,6 +28,7 @@ namespace MapDbContextLib.Context
 
     public class ContentReductionTask
     {
+        // TODO: If all display names match enum values, then use .ToString() instead of a Dictionary.
         public static Dictionary<ReductionStatusEnum, string> ReductionStatusDisplayNames = new Dictionary<ReductionStatusEnum, string>
         {
             { ReductionStatusEnum.Default, "Default" },
