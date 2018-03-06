@@ -28,7 +28,7 @@ namespace MillimanAccessPortal.DataQueries
             Dictionary<long, HostedContentViewModel> ResultBuilder = new Dictionary<long, HostedContentViewModel>();
 
             // Get a list of all content item groups authorized for user, converted to type HostedContentViewModel plus content related properties
-            List<HostedContentViewModel> query = DataContext.UserInSelectionGroup
+            List<HostedContentViewModel> query = DbContext.UserInSelectionGroup
                 .Include(usg => usg.User)
                 .Include(usg => usg.SelectionGroup)
                     .ThenInclude(sg => sg.RootContentItem)
@@ -62,7 +62,7 @@ namespace MillimanAccessPortal.DataQueries
                     try
                     {
                         // Verify that the referenced parent exists
-                        Parent = DataContext.Client
+                        Parent = DbContext.Client
                             .Where(c => c.Id == Finding.ClientList.First().ParentId)
                             .First();  // will throw if not found but that's what I'm checking
                     }

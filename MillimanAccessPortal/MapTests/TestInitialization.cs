@@ -36,6 +36,7 @@ namespace MapTests
     {
         // Important: Keep this enum synchronized with Dictionary DataGenFunctionDict in the constructor
         Basic,
+        Reduction,
     }
 
     /// <summary>
@@ -83,7 +84,8 @@ namespace MapTests
             DataGenFunctionDict = new Dictionary<DataSelection, Action>
             {
                 // Important: Keep this dictionary synchronized with enum DataSelection above
-                { DataSelection.Basic, GenerateBasicTestData }
+                { DataSelection.Basic, GenerateBasicTestData },
+                { DataSelection.Reduction, GenerateReductionTestData },
             };
         }
         /// <summary>
@@ -193,6 +195,8 @@ namespace MapTests
             ReturnMockContext.Object.UserRoles = MockDbSet<IdentityUserRole<long>>.New(new List<IdentityUserRole<long>>()).Object;
             ReturnMockContext.Object.UserRoleInRootContentItem = MockDbSet<UserRoleInRootContentItem>.New(new List<UserRoleInRootContentItem>()).Object;
             ReturnMockContext.Object.UserClaims = MockDbSet<IdentityUserClaim<long>>.New(new List<IdentityUserClaim<long>>()).Object;
+            ReturnMockContext.Object.ContentPublicationRequest = MockDbSet<ContentPublicationRequest>.New(new List<ContentPublicationRequest>()).Object;
+            ReturnMockContext.Object.ContentReductionTask = MockDbSet<ContentReductionTask>.New(new List<ContentReductionTask>()).Object;
             ReturnMockContext.Object.Users = ReturnMockContext.Object.ApplicationUser;
             ReturnMockContext.Object.Roles = ReturnMockContext.Object.ApplicationRole;
 
@@ -463,7 +467,7 @@ namespace MapTests
 
             #region Initialize SelectionGroups
             DbContextObject.SelectionGroup.AddRange(new List<SelectionGroup>
-                { 
+                {
                     new SelectionGroup { Id=1, ContentInstanceUrl="Folder1/File1", RootContentItemId=1, GroupName="Group1 For Content1" },
                     new SelectionGroup { Id=2, ContentInstanceUrl="Folder1/File2", RootContentItemId=1, GroupName="Group2 For Content1" },
                     new SelectionGroup { Id=3, ContentInstanceUrl="Folder2/File1", RootContentItemId=2, GroupName="Group1 For Content2" },
@@ -502,6 +506,151 @@ namespace MapTests
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInRootContentItem, "RoleId", DbContextObject.ApplicationRole);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInRootContentItem, "UserId", DbContextObject.ApplicationUser);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<RootContentItem>(DbContextObject.UserRoleInRootContentItem, "RootContentItemId", DbContextObject.RootContentItem);
+            #endregion
+        }
+
+        private void GenerateReductionTestData()
+        {
+            #region Initialize Users
+            DbContextObject.ApplicationUser.AddRange(new List<ApplicationUser>
+                {
+                    new ApplicationUser { Id=1, UserName="user1", Email="user1@example.com" },
+                    new ApplicationUser { Id=2, UserName="user2", Email="user2@example.com" },
+                    new ApplicationUser { Id=3, UserName="user3", Email="user3@example.com" },
+            });
+            #endregion
+
+            #region Initialize ContentType
+            DbContextObject.ContentType.AddRange(new List<ContentType>
+                {
+                    new ContentType{ Id=1, Name="Qlikview", CanReduce=true },
+                });
+            #endregion
+
+            #region Initialize ProfitCenters
+            DbContextObject.ProfitCenter.AddRange(new List<ProfitCenter>
+                {
+                    new ProfitCenter { Id=1, Name="Profit Center 1", ProfitCenterCode="pc1" },
+                });
+            #endregion
+
+            #region Initialize Clients
+            DbContextObject.Client.AddRange(new List<Client>
+                {
+                    new Client { Id=1, Name="Client 1", ClientCode="C1", ProfitCenterId=1, ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
+                    new Client { Id=2, Name="Client 2", ClientCode="C2", ProfitCenterId=1, ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
+                });
+            MockDbSet<Client>.AssignNavigationProperty<ProfitCenter>(DbContextObject.Client, "ProfitCenterId", DbContextObject.ProfitCenter);
+            #endregion
+
+            #region Initialize User associations with Clients
+            /*
+             * There has to be a UserClaim for each user who is associated with a client
+             * 
+             * The number of user claims will not necessarily match the number of UserRoleForClient records, 
+             *      since a user can have multiple roles with a client
+             */
+
+            #region Initialize UserRoleInClient
+            DbContextObject.UserRoleInClient.AddRange(new List<UserRoleInClient>
+            {
+                new UserRoleInClient { Id=1, ClientId=1, RoleId=3, UserId=1 },
+                new UserRoleInClient { Id=2, ClientId=1, RoleId=5, UserId=1 },
+                new UserRoleInClient { Id=3, ClientId=1, RoleId=5, UserId=2 },
+            });
+            MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
+            MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
+            MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInClient, "RoleId", DbContextObject.ApplicationRole);
+            #endregion
+
+            #region Initialize UserClaims
+            DbContextObject.UserClaims.AddRange(new List<IdentityUserClaim<long>>
+                {
+                    new IdentityUserClaim<long>{ Id=1, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="1", UserId=1 },
+                    new IdentityUserClaim<long>{ Id=2, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="1", UserId=2 },
+                });
+            #endregion
+            #endregion
+
+            #region Initialize RootContentItem
+            DbContextObject.RootContentItem.AddRange(new List<RootContentItem>
+            {
+                new RootContentItem{ Id=1, ClientId=1, ContentName="RootContent 1", ContentTypeId=1 },
+                new RootContentItem{ Id=2, ClientId=1, ContentName="RootContent 2", ContentTypeId=1 },
+                new RootContentItem{ Id=3, ClientId=1, ContentName="RootContent 3", ContentTypeId=1 },
+            });
+            MockDbSet<RootContentItem>.AssignNavigationProperty<ContentType>(DbContextObject.RootContentItem, "ContentTypeId", DbContextObject.ContentType);
+            MockDbSet<RootContentItem>.AssignNavigationProperty<Client>(DbContextObject.RootContentItem, "ClientId", DbContextObject.Client);
+            #endregion
+
+            #region Initialize HierarchyField
+            DbContextObject.HierarchyField.AddRange(new List<HierarchyField>
+                {
+                    new HierarchyField { Id=1, RootContentItemId=1, FieldName="Field1", FieldDisplayName="DisplayName1", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
+                    new HierarchyField { Id=2, RootContentItemId=2, FieldName="Field2", FieldDisplayName="DisplayName2", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
+                    new HierarchyField { Id=3, RootContentItemId=1, FieldName="Field1", FieldDisplayName="DisplayName3", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
+                });
+            MockDbSet<HierarchyField>.AssignNavigationProperty<RootContentItem>(DbContextObject.HierarchyField, "RootContentItemId", DbContextObject.RootContentItem);
+            #endregion
+
+            #region Initialize HierarchyFieldValue
+            DbContextObject.HierarchyFieldValue.AddRange(new List<HierarchyFieldValue>
+                {
+                    new HierarchyFieldValue { Id=1, HierarchyFieldId=1,  Value="Value 1" },
+                    new HierarchyFieldValue { Id=2, HierarchyFieldId=1,  Value="Value 2" },
+                    new HierarchyFieldValue { Id=3, HierarchyFieldId=2,  Value="Value 1" },
+                    new HierarchyFieldValue { Id=4, HierarchyFieldId=2,  Value="Value 2" },
+                    new HierarchyFieldValue { Id=5, HierarchyFieldId=3,  Value="Value 1" },
+                });
+            MockDbSet<HierarchyFieldValue>.AssignNavigationProperty<HierarchyField>(DbContextObject.HierarchyFieldValue, "HierarchyFieldId", DbContextObject.HierarchyField);
+            #endregion
+
+            #region Initialize SelectionGroups
+            DbContextObject.SelectionGroup.AddRange(new List<SelectionGroup>
+                {
+                    new SelectionGroup { Id=1, ContentInstanceUrl="Folder1/File1", RootContentItemId=1, GroupName="Group1 For Content1", SelectedHierarchyFieldValueList=new long[] { } },
+                    new SelectionGroup { Id=2, ContentInstanceUrl="Folder1/File2", RootContentItemId=1, GroupName="Group2 For Content1", SelectedHierarchyFieldValueList=new long[] { } },
+                    new SelectionGroup { Id=3, ContentInstanceUrl="Folder2/File1", RootContentItemId=2, GroupName="Group1 For Content2", SelectedHierarchyFieldValueList=new long[] { } },
+                    new SelectionGroup { Id=4, ContentInstanceUrl="Folder2/File1", RootContentItemId=3, GroupName="Group1 For Content3", SelectedHierarchyFieldValueList=new long[] { } },
+                });
+            MockDbSet<SelectionGroup>.AssignNavigationProperty<RootContentItem>(DbContextObject.SelectionGroup, "RootContentItemId", DbContextObject.RootContentItem);
+            #endregion
+
+            #region Initialize UserInSelectionGroups
+            DbContextObject.UserInSelectionGroup.AddRange(new List<UserInSelectionGroup>
+                {
+                    new UserInSelectionGroup { Id=1, SelectionGroupId=1, UserId=2 },
+                });
+            MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<SelectionGroup>(DbContextObject.UserInSelectionGroup, "SelectionGroupId", DbContextObject.SelectionGroup);
+            MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserInSelectionGroup, "UserId", DbContextObject.ApplicationUser);
+            #endregion
+
+            #region Initialize UserRoles
+            DbContextObject.UserRoles.AddRange(new List<IdentityUserRole<long>>
+                {
+                    new IdentityUserRole<long> { RoleId=((long) RoleEnum.Admin), UserId=1 },
+                });
+            #endregion
+
+            #region Initialize UserRoleInRootContentItem
+            DbContextObject.UserRoleInRootContentItem.AddRange(new List<UserRoleInRootContentItem>
+            {
+                new UserRoleInRootContentItem { Id=1, RoleId=3, UserId=1, RootContentItemId=1 },
+                new UserRoleInRootContentItem { Id=2, RoleId=5, UserId=1, RootContentItemId=1 },
+                new UserRoleInRootContentItem { Id=3, RoleId=3, UserId=1, RootContentItemId=3 },
+                new UserRoleInRootContentItem { Id=4, RoleId=5, UserId=1, RootContentItemId=3 },
+                new UserRoleInRootContentItem { Id=5, RoleId=5, UserId=2, RootContentItemId=1 },
+            });
+            MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInRootContentItem, "RoleId", DbContextObject.ApplicationRole);
+            MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInRootContentItem, "UserId", DbContextObject.ApplicationUser);
+            MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<RootContentItem>(DbContextObject.UserRoleInRootContentItem, "RootContentItemId", DbContextObject.RootContentItem);
+            #endregion
+
+            #region Initialize ContentPublicationRequest
+            DbContextObject.ContentPublicationRequest.AddRange(new List<ContentPublicationRequest>
+            {
+                new ContentPublicationRequest { Id=1, ApplicationUserId=1, MasterFilePath="C:\\Dir\\file.ext", RootContentItemId=1 },
+            });
             #endregion
         }
 

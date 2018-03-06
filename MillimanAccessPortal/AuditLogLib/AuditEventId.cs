@@ -45,8 +45,8 @@ namespace AuditLogLib
         public static readonly AuditEventId SelectionGroupDeleted = new AuditEventId(4002, "Selection group deleted");
         public static readonly AuditEventId SelectionGroupUserAssigned = new AuditEventId(4003, "User assigned to selection group");
         public static readonly AuditEventId SelectionGroupUserRemoved = new AuditEventId(4004, "User removed from selection group");
-        public static readonly AuditEventId SelectionGroupSelectionAdded = new AuditEventId(4005, "Selection added to selection group");
-        public static readonly AuditEventId SelectionGroupSelectionRemoved = new AuditEventId(4006, "Selection removed from selection group");
+        public static readonly AuditEventId SelectionChangeReductionQueued = new AuditEventId(4005, "Selection change reduction task queued");
+        public static readonly AuditEventId SelectionChangeReductionCanceled = new AuditEventId(4006, "Selection change reduction task canceled");
 
         public AuditEventId(int id, string name = "")
         {

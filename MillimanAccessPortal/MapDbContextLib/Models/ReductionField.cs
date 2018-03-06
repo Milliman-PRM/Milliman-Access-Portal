@@ -29,6 +29,7 @@ namespace MapDbContextLib.Models
             DisplayName = Field.FieldDisplayName;
             StructureType = Field.StructureType;
             ValueDelimiter = Field.FieldDelimiter;
+            // TODO: Consider using foreach instead of for
             for (int Counter=0; Counter< ValuesArg.Count(); Counter++)
             {
                 string Val = ValuesArg.ElementAt(Counter).Value;

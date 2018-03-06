@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: 
  */
 
+using MapDbContextLib.Context;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
 using System;
@@ -23,7 +24,7 @@ namespace MapTests
         public ContentAccessAdminControllerTests()
         {
             TestResources = new TestInitialization();
-            TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
+            TestResources.GenerateTestData(new DataSelection[] { DataSelection.Reduction });
         }
 
         /// <summary>Constructs a controller with the specified active user.</summary>
@@ -58,7 +59,7 @@ namespace MapTests
         public async Task Index_ErrorUnauthorized()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("test1");
+            ContentAccessAdminController controller = await GetControllerForUser("user2");
             #endregion
 
             #region Act
@@ -74,7 +75,7 @@ namespace MapTests
         public async Task Index_ReturnsView()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
             #endregion
 
             #region Act
@@ -90,7 +91,7 @@ namespace MapTests
         public async Task ClientFamilyList_ErrorUnauthorized()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("test1");
+            ContentAccessAdminController controller = await GetControllerForUser("user2");
             #endregion
 
             #region Act
@@ -106,7 +107,7 @@ namespace MapTests
         public async Task ClientFamilyList_ReturnsJson()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
             #endregion
 
             #region Act
@@ -122,7 +123,7 @@ namespace MapTests
         public async Task RootContentItems_ErrorInvalid()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
             #endregion
 
             #region Act
@@ -140,7 +141,7 @@ namespace MapTests
         public async Task RootContentItems_ErrorUnauthorized()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            ContentAccessAdminController controller = await GetControllerForUser("user2");
             #endregion
 
             #region Act
@@ -156,11 +157,11 @@ namespace MapTests
         public async Task RootContentItems_ReturnsJson()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
             #endregion
 
             #region Act
-            var view = await controller.RootContentItems(8);
+            var view = await controller.RootContentItems(1);
             #endregion
 
             #region Assert
@@ -173,7 +174,7 @@ namespace MapTests
         public async Task SelectionGroups_ErrorInvalid(long RootContentItemId)
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
             #endregion
 
             #region Act
@@ -188,9 +189,8 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData("user5", 1)]
-        [InlineData("test1", 3)]
-        [InlineData("user6", 3)]
+        [InlineData("user2", 1)]  // User is not content access admin
+        [InlineData("user1", 2)]  // User has no role in the root content item
         public async Task SelectionGroups_ErrorUnauthorized(String UserName, long RootContentItemId)
         {
             #region Arrange
@@ -210,11 +210,11 @@ namespace MapTests
         public async Task SelectionGroups_ReturnsJson()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
             #endregion
 
             #region Act
-            var view = await controller.SelectionGroups(3);
+            var view = await controller.SelectionGroups(1);
             #endregion
 
             #region Assert
@@ -227,7 +227,7 @@ namespace MapTests
         public async Task CreateSelectionGroup_ErrorInvalid(long RootContentItemId)
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
             #endregion
 
             #region Act
@@ -245,9 +245,8 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData("user5", 1)]
-        [InlineData("test1", 3)]
-        [InlineData("user6", 3)]
+        [InlineData("user2", 1)]  // User is not content access admin
+        [InlineData("user1", 2)]  // User has no role in the root content item
         public async Task CreateSelectionGroup_ErrorUnauthorized(String UserName, long RootContentItemId)
         {
             #region Arrange
@@ -270,11 +269,11 @@ namespace MapTests
         public async Task CreateSelectionGroup_ReturnsJson()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
             #endregion
 
             #region Act
-            var view = await controller.CreateSelectionGroup(3, "GroupName");
+            var view = await controller.CreateSelectionGroup(1, "GroupName");
             #endregion
 
             #region Assert
@@ -286,12 +285,12 @@ namespace MapTests
         public async Task CreateSelectionGroup_Success()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
             #endregion
 
             #region Act
             int preCount = TestResources.DbContextObject.SelectionGroup.Count();
-            var view = await controller.CreateSelectionGroup(3, "GroupName");
+            var view = await controller.CreateSelectionGroup(1, "GroupName");
             int postCount = TestResources.DbContextObject.SelectionGroup.Count();
             #endregion
 
@@ -301,18 +300,18 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData(999, 3, true)]
-        [InlineData(4, 999, true)]
-        [InlineData(4, 4, true)]  // user ID does not have appropriate role in root content item
-        [InlineData(5, 3, true)]  // user ID already belongs to another selection group for this root content item
+        [InlineData(999, 2, true)]  // selection group does not exist
+        [InlineData(1, 999, true)]  // user does not exist
+        [InlineData(2, 3, true)]    // user ID does not have appropriate role in root content item
+        [InlineData(2, 2, true)]    // user ID already belongs to another selection group for this root content item
         public async Task UpdateSelectionGroup_ErrorInvalid(long SelectionGroupId, long UserId, bool MembershipStatus)
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
             Dictionary<long, bool> MembershipSet = new Dictionary<long, bool>
             {
                 { UserId, MembershipStatus },
-                { 5, true }
+                { 1, true }
             };
             #endregion
 
@@ -331,17 +330,16 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData("test1", 4)]
-        [InlineData("user5", 3)]
-        [InlineData("user6", 3)]
+        [InlineData("user2", 1)]  // User is not content access admin
+        [InlineData("user1", 3)]  // User has no role in the root content item
         public async Task UpdateSelectionGroup_ErrorUnauthorized(String UserName, long SelectionGroupId)
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser(UserName);
             Dictionary<long, bool> MembershipSet = new Dictionary<long, bool>
             {
-                { 3, true },
-                { 5, true }
+                { 2, true },
+                { 1, true }
             };
             #endregion
 
@@ -361,16 +359,16 @@ namespace MapTests
         public async Task UpdateSelectionGroup_ReturnsJson()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
             Dictionary<long, bool> MembershipSet = new Dictionary<long, bool>
             {
-                { 3, true },
-                { 5, false }
+                { 2, true },
+                { 1, false }
             };
             #endregion
 
             #region Act
-            var view = await controller.UpdateSelectionGroupUserAssignments(4, MembershipSet);
+            var view = await controller.UpdateSelectionGroupUserAssignments(1, MembershipSet);
             #endregion
 
             #region Assert
@@ -384,17 +382,17 @@ namespace MapTests
         public async Task UpdateSelectionGroup_Success(bool MembershipStatus)
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
             Dictionary<long, bool> MembershipSet = new Dictionary<long, bool>
             {
-                { 3, MembershipStatus },
-                { 5, MembershipStatus },
+                { 2, MembershipStatus },
+                { 1, MembershipStatus },
             };
             #endregion
 
             #region Act
             int preCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
-            var view = await controller.UpdateSelectionGroupUserAssignments(4, MembershipSet);
+            var view = await controller.UpdateSelectionGroupUserAssignments(1, MembershipSet);
             int postCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
             #endregion
 
@@ -405,17 +403,17 @@ namespace MapTests
 
         [Theory]
         [InlineData(999)]
-        public async Task DeleteSelectionGroup_ErrorInvalid(long RootContentItemId)
+        public async Task DeleteSelectionGroup_ErrorInvalid(long SelectionGroupId)
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
             #endregion
 
             #region Act
             int groupsPreCount = TestResources.DbContextObject.SelectionGroup.Count();
             int userPreCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
 
-            var view = await controller.DeleteSelectionGroup(RootContentItemId);
+            var view = await controller.DeleteSelectionGroup(SelectionGroupId);
 
             int groupsPostCount = TestResources.DbContextObject.SelectionGroup.Count();
             int userPostCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
@@ -431,10 +429,9 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData("user5", 1)]
-        [InlineData("user6", 3)]
-        [InlineData("test1", 4)]
-        public async Task DeleteSelectionGroup_ErrorUnauthorized(String UserName, long RootContentItemId)
+        [InlineData("user2", 1)]  // User is not content access admin
+        [InlineData("user1", 3)]  // User has no role in the root content item
+        public async Task DeleteSelectionGroup_ErrorUnauthorized(String UserName, long SelectionGroupId)
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser(UserName);
@@ -444,7 +441,7 @@ namespace MapTests
             int groupsPreCount = TestResources.DbContextObject.SelectionGroup.Count();
             int userPreCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
 
-            var view = await controller.DeleteSelectionGroup(RootContentItemId);
+            var view = await controller.DeleteSelectionGroup(SelectionGroupId);
 
             int groupsPostCount = TestResources.DbContextObject.SelectionGroup.Count();
             int userPostCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
@@ -461,11 +458,11 @@ namespace MapTests
         public async Task DeleteSelectionGroup_ReturnsJson()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
             #endregion
 
             #region Act
-            var view = await controller.DeleteSelectionGroup(4);
+            var view = await controller.DeleteSelectionGroup(1);
             #endregion
 
             #region Assert
@@ -477,14 +474,14 @@ namespace MapTests
         public async Task DeleteSelectionGroup_Success()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("user5");
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
             #endregion
 
             #region Act
             int groupsPreCount = TestResources.DbContextObject.SelectionGroup.Count();
             int userPreCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
 
-            var view = await controller.DeleteSelectionGroup(4);
+            var view = await controller.DeleteSelectionGroup(1);
 
             int groupsPostCount = TestResources.DbContextObject.SelectionGroup.Count();
             int userPostCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
@@ -496,31 +493,275 @@ namespace MapTests
             #endregion
         }
 
+        [Theory]
+        [InlineData(999)]
+        public async Task Selections_ErrorInvalid(long SelectionGroupId)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
+            #endregion
+
+            #region Act
+            var view = await controller.SelectionGroups(SelectionGroupId);
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(view);
+            StatusCodeResult viewResult = (StatusCodeResult)view;
+            Assert.Equal("422", viewResult.StatusCode.ToString());
+            #endregion
+        }
+
+        [Theory]
+        [InlineData("user2", 1)]  // User is not content access admin
+        [InlineData("user1", 3)]  // User has no role in the root content item
+        public async Task Selections_ErrorUnauthorized(String UserName, long SelectionGroupId)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser(UserName);
+            #endregion
+
+            #region Act
+            var view = await controller.Selections(SelectionGroupId);
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            #endregion
+        }
+
         [Fact]
         public async Task Selections_ReturnsJson()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("ClientAdmin1");
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
             #endregion
 
             #region Act
-            var view = controller.Selections(0);
+            var view = await controller.Selections(1);
             #endregion
 
             #region Assert
             Assert.IsType<JsonResult>(view);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(999,   2, new ReductionStatusEnum[] { })]  // Selection group does not exist
+        [InlineData(  1, 999, new ReductionStatusEnum[] { })]  // Hierarchy field value does not exist
+        [InlineData(  1,   3, new ReductionStatusEnum[] { })]  // Hierarchy field value does not belong to the correct root content item
+        [InlineData(  4,   1, new ReductionStatusEnum[] { })]  // Content has not been published for the root content item
+        [InlineData(  1,   2, new ReductionStatusEnum[] { ReductionStatusEnum.Queued    })]  // An outstanding reduction task exists for the root content item
+        [InlineData(  1,   2, new ReductionStatusEnum[] { ReductionStatusEnum.Reducing  })]  // "
+        [InlineData(  1,   2, new ReductionStatusEnum[] { ReductionStatusEnum.Reduced   })]  // "
+        public async Task SingleReduction_ErrorInvalid(long SelectionGroupId, long HierarchyFieldValueId, ReductionStatusEnum[] Tasks)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
+            var Selections = new Dictionary<long, Boolean>
+            {
+                { HierarchyFieldValueId, true }
+            };
+            foreach (var Status in Tasks)
+            {
+                TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
+                {
+                    ReductionStatus = Status,
+                    ContentPublicationRequestId = null,
+                    SelectionGroupId = SelectionGroupId,
+                    ApplicationUserId = 1
+                });
+            }
+            #endregion
+
+            #region Act
+            int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
+            
+            var view = await controller.SingleReduction(SelectionGroupId, Selections);
+
+            int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(view);
+            StatusCodeResult viewResult = (StatusCodeResult)view;
+            Assert.Equal("422", viewResult.StatusCode.ToString());
+            Assert.Equal(tasksPreCount, tasksPostCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData("user2", 1)]  // User is not content access admin
+        [InlineData("user1", 3)]  // User has no role in the root content item
+        public async Task SingleReduction_ErrorUnauthorized(String UserName, long SelectionGroupId)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser(UserName);
+            var Selections = new Dictionary<long, Boolean>
+            {
+                { 2, true }
+            };
+            #endregion
+
+            #region Act
+            int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
+
+            var view = await controller.SingleReduction(SelectionGroupId, Selections);
+
+            int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            Assert.Equal(tasksPreCount, tasksPostCount);
             #endregion
         }
 
         [Fact]
-        public async Task UpdateSelections_ReturnsJson()
+        public async Task SingleReduction_ReturnsJson()
         {
             #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("ClientAdmin1");
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
+            var Selections = new Dictionary<long, Boolean>
+            {
+                { 2, true }
+            };
             #endregion
 
             #region Act
-            var view = controller.UpdateSelections(0, null);
+            var view = controller.SingleReduction(1, Selections);
+            #endregion
+
+            #region Assert
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(1, new ReductionStatusEnum[] { })]                                // No outstanding tasks exist
+        [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Pushed    })]  // "
+        [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Canceled  })]  // "
+        [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Discarded })]  // "
+        [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Replaced  })]  // "
+        public async Task SingleReduction_Success(long SelectionGroupId, ReductionStatusEnum[] Tasks)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
+            var Selections = new Dictionary<long, Boolean>
+            {
+                { 2, true }
+            };
+            foreach (var Status in Tasks)
+            {
+                TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
+                {
+                    ReductionStatus = Status,
+                    ContentPublicationRequestId = null,
+                    SelectionGroupId = SelectionGroupId,
+                    ApplicationUserId = 1
+                });
+            }
+            #endregion
+
+            #region Act
+            int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
+
+            var view = await controller.SingleReduction(SelectionGroupId, Selections);
+
+            int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
+            #endregion
+
+            #region Assert
+            Assert.Equal(tasksPreCount + 1, tasksPostCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(1, null, new ReductionStatusEnum[] { })]                                // No queued tasks exist
+        [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Reducing  })]  // "
+        [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Reduced   })]  // "
+        [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Pushed    })]  // "
+        [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Canceled  })]  // "
+        [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Discarded })]  // "
+        [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Replaced  })]  // "
+        [InlineData(1,    1, new ReductionStatusEnum[] { ReductionStatusEnum.Queued    })]  // The queued task is part of a publication request
+        public async Task CancelReduction_ErrorInvalid(long SelectionGroupId, long? ContentPublicationRequestId, ReductionStatusEnum[] Tasks)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
+            foreach (var Status in Tasks)
+            {
+                TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
+                {
+                    ReductionStatus = Status,
+                    ContentPublicationRequestId = ContentPublicationRequestId,
+                    SelectionGroupId = SelectionGroupId,
+                    ApplicationUserId = 1
+                });
+            }
+            #endregion
+
+            #region Act
+            int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
+
+            var view = await controller.CancelReduction(SelectionGroupId);
+
+            int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(view);
+            StatusCodeResult viewResult = (StatusCodeResult)view;
+            Assert.Equal("422", viewResult.StatusCode.ToString());
+            Assert.Equal(tasksPreCount, tasksPostCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData("user2", 1)]  // User is not content access admin
+        [InlineData("user1", 3)]  // User has no role in the root content item
+        public async Task CancelReduction_ErrorUnauthorized(String UserName, long SelectionGroupId)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser(UserName);
+            TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
+            {
+                ReductionStatus = ReductionStatusEnum.Queued,
+                ContentPublicationRequestId = null,
+                SelectionGroupId = SelectionGroupId,
+                ApplicationUserId = 1
+            });
+            #endregion
+
+            #region Act
+            int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
+
+            var view = await controller.CancelReduction(SelectionGroupId);
+
+            int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            Assert.Equal(tasksPreCount, tasksPostCount);
+            #endregion
+        }
+
+        [Fact]
+        public async Task CancelReduction_ReturnsJson()
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
+            TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
+            {
+                ReductionStatus = ReductionStatusEnum.Queued,
+                ContentPublicationRequestId = null,
+                SelectionGroupId = 1,
+                ApplicationUserId = 1
+            });
+            #endregion
+
+            #region Act
+            var view = await controller.CancelReduction(1);
             #endregion
 
             #region Assert
@@ -528,5 +769,47 @@ namespace MapTests
             #endregion
         }
 
+        [Theory]
+        [InlineData(1, 1, new ReductionStatusEnum[] { ReductionStatusEnum.Queued })]                                // A queued task created by the requesting user exists
+        [InlineData(1, 2, new ReductionStatusEnum[] { ReductionStatusEnum.Queued })]                                // A queued task created by a different user exists
+        [InlineData(1, 1, new ReductionStatusEnum[] { ReductionStatusEnum.Canceled, ReductionStatusEnum.Queued })]  // Multiple tasks exist, and at least one is queued
+        public async Task CancelReduction_Success(long SelectionGroupId, long UserId, ReductionStatusEnum[] Tasks)
+        {
+            #region Arrange
+            ContentAccessAdminController controller = await GetControllerForUser("user1");
+            foreach (var Status in Tasks)
+            {
+                TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
+                {
+                    ReductionStatus = Status,
+                    ContentPublicationRequestId = null,
+                    SelectionGroupId = SelectionGroupId,
+                    ApplicationUserId = UserId,
+                });
+            }
+            #endregion
+
+            #region Act
+            int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
+            int queuedPreCount = TestResources.DbContextObject.ContentReductionTask
+                .Where(crt => crt.SelectionGroupId == SelectionGroupId)
+                .Where(crt => crt.ReductionStatus == ReductionStatusEnum.Queued)
+                .Count();
+
+            var view = await controller.CancelReduction(SelectionGroupId);
+
+            int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
+            int queuedPostCount = TestResources.DbContextObject.ContentReductionTask
+                .Where(crt => crt.SelectionGroupId == SelectionGroupId)
+                .Where(crt => crt.ReductionStatus == ReductionStatusEnum.Queued)
+                .Count();
+            #endregion
+
+            #region Assert
+            Assert.Equal(tasksPreCount, tasksPostCount);
+            Assert.Equal(1, queuedPreCount);
+            Assert.Equal(0, queuedPostCount);
+            #endregion
+        }
     }
 }
