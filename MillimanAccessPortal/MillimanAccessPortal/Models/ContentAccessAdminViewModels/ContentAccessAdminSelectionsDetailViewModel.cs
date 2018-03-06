@@ -68,13 +68,14 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
                     .Single(),
                 Status = DbContext.ContentReductionTask
                     .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
-                    .OrderBy(crt => crt.CreateDateTime)
+                    .OrderByDescending(crt => crt.CreateDateTime)
                     .Select(crt => new
                     {
                         StatusEnum = crt.ReductionStatus,
-                        DisplayName = ContentReductionTask.ReductionStatusDisplayNames[crt.ReductionStatus]
+                        DisplayName = ContentReductionTask.ReductionStatusDisplayNames[crt.ReductionStatus],
+                        Creator = crt.ApplicationUser,
                     })
-                    .LastOrDefault(),
+                    .FirstOrDefault(),
             };
 
             return Model;
