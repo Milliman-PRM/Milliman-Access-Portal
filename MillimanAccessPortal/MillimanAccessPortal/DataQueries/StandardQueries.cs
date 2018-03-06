@@ -138,7 +138,7 @@ namespace MillimanAccessPortal.DataQueries
             return await UserManager.GetUserAsync(User);
         }
 
-        public ContentReductionHierarchy GetReductionFieldsForRootContent(long ContentId)
+        public ContentReductionHierarchy<ReductionFieldValue> GetReductionFieldsForRootContent(long ContentId)
         {
             RootContentItem ContentItem = DbContext.RootContentItem
                                                      .Include(rc => rc.ContentType)
@@ -150,7 +150,7 @@ namespace MillimanAccessPortal.DataQueries
 
             try
             {
-                ContentReductionHierarchy ReturnObject = new ContentReductionHierarchy { RootContentItemId = ContentId };
+                ContentReductionHierarchy<ReductionFieldValue> ReturnObject = new ContentReductionHierarchy<ReductionFieldValue> { RootContentItemId = ContentId };
 
                 foreach (HierarchyField Field in DbContext.HierarchyField
                                                             .Where(hf => hf.RootContentItemId == ContentId)
@@ -161,7 +161,7 @@ namespace MillimanAccessPortal.DataQueries
                     switch (ContentItem.ContentType.TypeEnum)
                     {
                         case ContentTypeEnum.Qlikview:
-                            ReturnObject.Fields.Add(new ReductionField
+                            ReturnObject.Fields.Add(new ReductionField<ReductionFieldValue>
                             {
                                 FieldName = Field.FieldName,
                                 DisplayName = Field.FieldDisplayName,
@@ -192,7 +192,7 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="SelectionGroupId">The selection group whose selections are to be gathered</param>
         /// <param name="Selections">Any changes to the current selections to effect in the returned hierarchy</param>
         /// <returns>ContentReductionHierarchy</returns>
-        public ContentReductionHierarchy GetFieldSelectionsForSelectionGroup(long SelectionGroupId, long[] Selections = null)
+        public ContentReductionHierarchy<ReductionFieldValueSelection> GetFieldSelectionsForSelectionGroup(long SelectionGroupId, long[] Selections = null)
         {
             SelectionGroup SelectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
@@ -208,7 +208,7 @@ namespace MillimanAccessPortal.DataQueries
                 ? SelectionGroup.SelectedHierarchyFieldValueList
                 : Selections;
 
-            ContentReductionHierarchy ContentReductionHierarchy = new ContentReductionHierarchy
+            ContentReductionHierarchy<ReductionFieldValueSelection> ContentReductionHierarchy = new ContentReductionHierarchy<ReductionFieldValueSelection>
             {
                 RootContentItemId = SelectionGroup.RootContentItemId,
             };
@@ -228,11 +228,11 @@ namespace MillimanAccessPortal.DataQueries
                     .ToArray();
 
                 // TODO: Create ReductionFieldBase and extend for each content type
-                ReductionField ReductionField;
+                ReductionField<ReductionFieldValueSelection> ReductionField;
                 switch (SelectionGroup.RootContentItem.ContentType.TypeEnum)
                 {
                     case ContentTypeEnum.Qlikview:
-                        ReductionField = new ReductionField
+                        ReductionField = new ReductionField<ReductionFieldValueSelection>
                         {
                             Id = HierarchyField.Id,
                             FieldName = HierarchyField.FieldName,

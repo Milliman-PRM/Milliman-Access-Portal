@@ -19,7 +19,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
     {
         // TODO: Include an attribute for pending selections
         // TODO: Include an attribute for the user responsible for current status
-        public ContentReductionHierarchy Hierarchy { get; set; }
+        public ContentReductionHierarchy<ReductionFieldValueSelection> Hierarchy { get; set; }
         public long[] OriginalSelections { get; set; } = { };
         public object Status { get; set; }
 
@@ -40,8 +40,8 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
             if (ContentReductionTask != null)
             {
                 var SelectedValues = new List<long>();
-                var DeserializedObject = JsonConvert.DeserializeObject<ContentReductionHierarchy>(ContentReductionTask.SelectionCriteria);
-                foreach (var field in DeserializedObject.Fields)
+                var Hierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>.DeserializeJson(ContentReductionTask.SelectionCriteria);
+                foreach (var field in Hierarchy.Fields)
                 {
                     foreach (var value in field.Values)
                     {
