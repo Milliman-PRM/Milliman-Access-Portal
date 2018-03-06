@@ -22,6 +22,13 @@
                 <div class="form-container">
                     <h4 class="form-section-header">User Information</h4>
                     <div class="form-section-container">
+                        <div class="form-input flex-item-12-12">
+                            <label asp-for="UserName"></label>
+                            <div>
+                                <input asp-for="UserName" readonly disabled />
+                                <span asp-validation-for="UserName" class="text-danger"></span>
+                            </div>
+                        </div>
                         <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
                             <label asp-for="FirstName"></label>
                             <div>
@@ -34,13 +41,6 @@
                             <div>
                                 <input asp-for="LastName" />
                                 <span asp-validation-for="LastName" class="text-danger"></span>
-                            </div>
-                        </div>
-                        <div class="form-input flex-item-12-12">
-                            <label asp-for="UserName"></label>
-                            <div>
-                                <input asp-for="UserName" readonly disabled />
-                                <span asp-validation-for="UserName" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="form-input flex-item-12-12" style="display: none;">
