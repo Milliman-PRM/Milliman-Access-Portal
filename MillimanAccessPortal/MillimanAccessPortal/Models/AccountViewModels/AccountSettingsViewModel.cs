@@ -17,7 +17,7 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         public string LastName { get; set; }
 
         [Required]
-        public string Username { get; set; }
+        public string UserName { get; set; }
 
         [Required]
         [EmailAddress]
@@ -26,7 +26,7 @@ namespace MillimanAccessPortal.Models.AccountViewModels
 
         [Phone]
         [Display(Name = "Phone Number")]
-        public string Phone { get; set; }
+        public string PhoneNumber { get; set; }
 
         public string Employer { get; set; }
 

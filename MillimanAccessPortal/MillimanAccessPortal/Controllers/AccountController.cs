@@ -22,6 +22,7 @@ using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Services;
 using AuditLogLib;
 using AuditLogLib.Services;
+using MillimanAccessPortal.DataQueries;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -33,19 +34,22 @@ namespace MillimanAccessPortal.Controllers
         private readonly IMessageQueue _messageSender;
         private readonly ILogger _logger;
         private readonly IAuditLogger _auditLogger;
+        private readonly StandardQueries Queries;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IMessageQueue messageSender,
             ILoggerFactory loggerFactory,
-            IAuditLogger AuditLoggerArg)
+            IAuditLogger AuditLoggerArg,
+            StandardQueries QueriesArg)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _messageSender = messageSender;
             _logger = loggerFactory.CreateLogger<AccountController>();
             _auditLogger = AuditLoggerArg;
+            Queries = QueriesArg;
         }
 
         //
@@ -489,17 +493,16 @@ namespace MillimanAccessPortal.Controllers
         [Route("Account/Settings")]
         public async Task<IActionResult> AccountSettings()
         {
-            var user = await _userManager.GetUserAsync(HttpContext.User);
-            var model = new AccountSettingsViewModel
+            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+            AccountSettingsViewModel model = new AccountSettingsViewModel
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                Username = user.UserName,
+                UserName = user.UserName,
                 Email = user.Email,
-                Phone = user.PhoneNumber,
+                PhoneNumber = user.PhoneNumber,
                 Employer = user.Employer
             };
-
 
             return View(model);
         }
