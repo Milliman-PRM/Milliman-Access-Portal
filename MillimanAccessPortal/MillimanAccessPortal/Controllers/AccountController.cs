@@ -514,7 +514,7 @@ namespace MillimanAccessPortal.Controllers
         // POST /Account/UpdateAccountSettings
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> UpdateAccountSettings([Bind("FirstName,LastName,PhoneNumber,Employer")]AccountSettingsViewModel Model)
+        public async Task<ActionResult> AccountSettings([Bind("FirstName,LastName,PhoneNumber,Employer")]AccountSettingsViewModel Model)
         {
             ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
 
