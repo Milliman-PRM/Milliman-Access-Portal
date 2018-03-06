@@ -20,6 +20,7 @@ function submitAccountSettings() {
       }
     }).done(function onDone() {
       shared.hideButtonSpinner($button);
+      $('.form-button-container').css({ 'visibility': 'hidden' });
       toastr.success("Your account has been updated");
     }).fail(function onFail(response) {
       shared.hideButtonSpinner($button);
@@ -34,7 +35,7 @@ $(document).ready(function onReady() {
     $('#Email').show();
   }
 
-  $('input').change(function () {
+  $('input').on('keyup', function () {
     $('.form-button-container').css({ 'visibility': 'visible' });
   });
 
