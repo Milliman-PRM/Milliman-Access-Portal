@@ -115,12 +115,14 @@ function renderSelections(response) {
   $selectionInfo.find('button').hide();
   if (response.Status.StatusEnum === 10) {
     $selectionInfo.find('.red-button').show();
+    $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
   } else if (response.Status.StatusEnum === 20) {
-    // display status
+    $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
   } else if (response.Status.StatusEnum === 30) {
-    // display status
+    $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
   } else {
     $selectionInfo.find('.blue-button').show();
+    $fieldsetDiv.find('input[type="checkbox"]').removeAttr('disabled');
   }
 }
 
