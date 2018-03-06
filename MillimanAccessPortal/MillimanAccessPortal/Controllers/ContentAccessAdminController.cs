@@ -1,7 +1,7 @@
 /*
  * CODE OWNERS: Joseph Sweeney,
  * OBJECTIVE:
- * DEVELOPER NOTES: 
+ * DEVELOPER NOTES:
  */
 
 using AuditLogLib;
@@ -545,11 +545,11 @@ namespace MillimanAccessPortal.Controllers
         /// <summary>Submits a new reduction task.</summary>
         /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the related root content item.</remarks>
         /// <param name="SelectionGroupId">The selection group to reduce.</param>
-        /// <param name="SelectionUpdates">A dictionary that maps selection IDs to a boolean value indicating whether to set or unset the selection.</param>
+        /// <param name="Selections">A list of selected selection IDs</param>
         /// <returns>JsonResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SingleReduction(long SelectionGroupId, Dictionary<long, Boolean> SelectionUpdates)
+        public async Task<IActionResult> SingleReduction(long SelectionGroupId, long[] Selections)
         {
             SelectionGroup SelectionGroup = DbContext.SelectionGroup.Find(SelectionGroupId);
 
@@ -570,7 +570,7 @@ namespace MillimanAccessPortal.Controllers
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     "Request to update selections without role in root content item",
                     AuditEventId.Unauthorized,
-                    new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, SelectionUpdates },
+                    new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, Selections },
                     User.Identity.Name,
                     HttpContext.Session.Id
                     );
@@ -601,9 +601,9 @@ namespace MillimanAccessPortal.Controllers
 
             #region Validation
             var ValidSelections = DbContext.HierarchyFieldValue
-                .Where(hfv => SelectionUpdates.Keys.Contains(hfv.Id))
+                .Where(hfv => Selections.Contains(hfv.Id))
                 .Where(hfv => hfv.HierarchyField.RootContentItemId == SelectionGroup.RootContentItemId);
-            if (ValidSelections.Count() < SelectionUpdates.Count())
+            if (ValidSelections.Count() < Selections.Count())
             {
                 Response.Headers.Add("Warning", "One or more requested selections do not exist or do not belong to the specified selection group.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
@@ -631,7 +631,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            string SelectionCriteriaString = JsonConvert.SerializeObject(Queries.GetFieldSelectionsForSelectionGroup(SelectionGroupId, SelectionUpdates), Formatting.Indented);
+            string SelectionCriteriaString = JsonConvert.SerializeObject(Queries.GetFieldSelectionsForSelectionGroup(SelectionGroupId, Selections), Formatting.Indented);
 
             var ContentReductionTask = new ContentReductionTask
             {
@@ -651,14 +651,16 @@ namespace MillimanAccessPortal.Controllers
                 $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                 "Selection change reduction task queued",
                 AuditEventId.SelectionChangeReductionQueued,
-                new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, SelectionUpdates },
+                new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, Selections },
                 User.Identity.Name,
                 HttpContext.Session.Id
                 );
             AuditLogger.Log(SelectionChangeReductionQueuedEvent);
             #endregion
 
-            return Json(ContentReductionTask);
+            ContentAccessAdminSelectionsDetailViewModel Model = ContentAccessAdminSelectionsDetailViewModel.Build(DbContext, Queries, SelectionGroup);
+
+            return Json(Model);
         }
 
         /// <summary>Cancel a pending or completed reduction task.</summary>
