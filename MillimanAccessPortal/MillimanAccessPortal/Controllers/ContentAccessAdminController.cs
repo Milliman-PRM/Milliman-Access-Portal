@@ -753,7 +753,9 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(SelectionChangeReductionCanceledEvent);
             #endregion
 
-            return Json(UpdatedTasks);
+            ContentAccessAdminSelectionsDetailViewModel Model = ContentAccessAdminSelectionsDetailViewModel.Build(DbContext, Queries, SelectionGroup);
+
+            return Json(Model);
         }
     }
 }

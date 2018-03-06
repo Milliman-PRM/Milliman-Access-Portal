@@ -44,6 +44,7 @@ function cancelSelectionForm() {
     }
   }).done(function onDone(response) {
     shared.hideButtonSpinner($button);
+    renderSelections(response);
     toastr.success('Reduction tasks canceled.');
   }).fail(function onFail(response) {
     shared.hideButtonSpinner($button);
@@ -73,6 +74,7 @@ function submitSelectionForm() {
     }
   }).done(function onDone(response) {
     shared.hideButtonSpinner($button);
+    renderSelections(response);
     toastr.success('A reduction task has been queued.');
   }).fail(function onFail(response) {
     shared.hideButtonSpinner($button);
