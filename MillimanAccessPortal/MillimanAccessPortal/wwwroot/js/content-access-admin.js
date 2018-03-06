@@ -53,7 +53,7 @@ function cancelSelectionForm() {
 function submitSelectionForm() {
   var $selectionInfo = $('#selection-info form.admin-panel-content');
   var $selectionGroups = $('#selection-groups ul.admin-panel-content');
-  var $button = $selectionInfo.find('.submit-button');
+  var $button = $selectionInfo.find('button');
   var data = {
     SelectionGroupId: $selectionGroups.find('[selected]').attr('data-selection-group-id'),
     Selections: $selectionInfo.serializeArray().reduce(function (acc, cur) {
