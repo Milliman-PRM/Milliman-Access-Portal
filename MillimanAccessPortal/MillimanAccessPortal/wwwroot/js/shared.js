@@ -217,14 +217,20 @@ var shared = {};
   shared.post = set.bind(this, 'POST');
   shared.delete = set.bind(this, 'DELETE');
 
-  shared.showButtonSpinner = function ($button, text) {
-    $button.data('original-text', $button.html());
-    $button.html(text || 'Submitting');
-    $button.append('<div class="spinner-small"></div>');
+  shared.showButtonSpinner = function ($buttons, text) {
+    $buttons.each(function (i) {
+      var $button = $buttons.eq(i);
+      $button.data('originalText', $button.html());
+      $button.html(text || 'Submitting');
+      $button.append('<div class="spinner-small"></div>');
+    });
   };
 
-  shared.hideButtonSpinner = function ($button) {
-    $button.html($button.data('original-text'));
+  shared.hideButtonSpinner = function ($buttons) {
+    $buttons.each(function (i) {
+      var $button = $buttons.eq(i);
+      $button.html($button.data().originalText);
+    });
   };
 
   shared.xhrWithProgress = function (onProgress) {
