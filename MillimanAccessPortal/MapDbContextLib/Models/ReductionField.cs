@@ -44,6 +44,7 @@ namespace MapDbContextLib.Models
             }
         }
 
+        public long Id { get; set; }
         public string FieldName { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
         public FieldStructureType StructureType { get; set; } = FieldStructureType.Unknown;

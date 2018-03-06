@@ -20,6 +20,7 @@ namespace MapDbContextLib.Models
             Value = Arg;
         }
 
+        public long Id { get; set; }
         public string Value { get; set; }
 
     }
