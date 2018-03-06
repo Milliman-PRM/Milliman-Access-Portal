@@ -26,6 +26,30 @@ function selectionGroupDeleteClickHandler() {
   )).open();
 }
 
+function cancelSelectionForm() {
+  var $selectionInfo = $('#selection-info form.admin-panel-content');
+  var $selectionGroups = $('#selection-groups ul.admin-panel-content');
+  var $button = $selectionInfo.find('button');
+  var data = {
+    SelectionGroupId: $selectionGroups.find('[selected]').attr('data-selection-group-id')
+  };
+
+  shared.showButtonSpinner($button, 'Canceling');
+  $.ajax({
+    type: 'POST',
+    url: 'ContentAccessAdmin/CancelReduction',
+    data: data,
+    headers: {
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+    }
+  }).done(function onDone(response) {
+    shared.hideButtonSpinner($button);
+    toastr.success('Reduction tasks canceled.');
+  }).fail(function onFail(response) {
+    shared.hideButtonSpinner($button);
+    toastr.warning(response.getResponseHeader('Warning'));
+  });
+}
 function submitSelectionForm() {
   var $selectionInfo = $('#selection-info form.admin-panel-content');
   var $selectionGroups = $('#selection-groups ul.admin-panel-content');
@@ -80,18 +104,22 @@ function renderField(field, $parent, originalSelections) {
 }
 
 function renderSelections(response) {
-  var $selectionsInfo = $('#selection-info form.admin-panel-content > .fieldset-container');
-  $selectionsInfo.empty();
+  var $selectionInfo = $('#selection-info form.admin-panel-content');
+  var $fieldsetDiv = $selectionInfo.find('.fieldset-container');
+  $fieldsetDiv.empty();
   response.Hierarchy.Fields.forEach(function (field) {
-    renderField(field, $selectionsInfo, response.OriginalSelections);
+    renderField(field, $fieldsetDiv, response.OriginalSelections);
   });
-}
-
-function populateSelections(response) {
-  $('#selection-info input[type="checkbox"]').each(function (i, box) {
-    var $box = $(box);
-    $box.prop('checked', response.SelectedHierarchyFieldValueList.includes($box.attr('name')));
-  });
+  $selectionInfo.find('button').hide();
+  if (response.Status.StatusEnum === 10) {
+    $selectionInfo.find('.red-button').show();
+  } else if (response.Status.StatusEnum === 20) {
+    // display status
+  } else if (response.Status.StatusEnum === 30) {
+    // display status
+  } else {
+    $selectionInfo.find('.blue-button').show();
+  }
 }
 
 function renderSelectionGroup(selectionGroup) {
@@ -195,7 +223,9 @@ $(document).ready(function () {
   $('.admin-panel-searchbar').keyup(shared.filterTree.listener);
 
   $('#selection-groups ul.admin-panel-content-action').append(new card.AddSelectionGroupActionCard(selectionGroupAddClickHandler).build());
-  $('#selection-info .submit-button').click(submitSelectionForm);
+  // TODO: select by ID or better classes
+  $('#selection-info .blue-button').click(submitSelectionForm);
+  $('#selection-info .red-button').click(cancelSelectionForm);
 
   $('.tooltip').tooltipster();
 });
