@@ -484,20 +484,24 @@ namespace MillimanAccessPortal.Controllers
         }
 
         //
-        // GEET /Account/Settings
+        // GET /Account/Settings
         [HttpGet]
-        public async Task<IActionResult> Settings()
+        [Route("Account/Settings")]
+        public async Task<IActionResult> AccountSettings()
         {
             var user = await _userManager.GetUserAsync(HttpContext.User);
-            
-            return View(new AccountSettingsViewModel {
+            var model = new AccountSettingsViewModel
+            {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Username = user.UserName,
                 Email = user.Email,
                 Phone = user.PhoneNumber,
                 Employer = user.Employer
-            });
+            };
+
+
+            return View(model);
         }
 
         #region Helpers
