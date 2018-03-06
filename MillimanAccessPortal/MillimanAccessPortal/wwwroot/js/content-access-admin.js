@@ -26,11 +26,80 @@ function selectionGroupDeleteClickHandler() {
   )).open();
 }
 
+function submitSelectionForm() {
+  var $selectionInfo = $('#selection-info form.admin-panel-content');
+  var $selectionGroups = $('#selection-groups ul.admin-panel-content');
+  var $button = $selectionInfo.find('.submit-button');
+  var data = {
+    SelectionGroupId: $selectionGroups.find('[selected]').attr('data-selection-group-id'),
+    Selections: $selectionInfo.serializeArray().reduce(function (acc, cur) {
+      return (cur.value === 'on')
+        ? acc.concat(cur.name)
+        : undefined;
+    }, [])
+  };
+
+  shared.showButtonSpinner($button);
+  $.ajax({
+    type: 'POST',
+    url: 'ContentAccessAdmin/SingleReduction',
+    data: data,
+    headers: {
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+    }
+  }).done(function onDone(response) {
+    shared.hideButtonSpinner($button);
+    toastr.success('A reduction task has been queued.');
+  }).fail(function onFail(response) {
+    shared.hideButtonSpinner($button);
+    toastr.warning(response.getResponseHeader('Warning'));
+  });
+}
+
+function renderValue(value, $fieldset, originalSelections) {
+  var $div;
+  $fieldset.append('<div></div>');
+  $div = $fieldset.find('div').last();
+  $div.append('<input type="checkbox" id="selection-value-' + value.Id + '" name="' + value.Id + '">');
+  $div.append('<label for="selection-value-' + value.Id + '">' + value.Value + '</label>');
+  if (originalSelections.includes(value.Id) !== value.SelectionStatus) {
+    $div.attr('style', 'background: yellow;');
+  }
+}
+
+function renderField(field, $parent, originalSelections) {
+  var $fieldset;
+  $parent.append('<fieldset></fieldset>');
+  $fieldset = $parent.find('fieldset').last();
+  $fieldset.append('<legend>' + field.DisplayName + '</legend>');
+  field.Values.forEach(function (value) {
+    renderValue(value, $fieldset, originalSelections);
+  });
+}
+
+function renderSelections(response) {
+  var $selectionsInfo = $('#selection-info form.admin-panel-content > .fieldset-container');
+  $selectionsInfo.empty();
+  response.Hierarchy.Fields.forEach(function (field) {
+    renderField(field, $selectionsInfo, response.OriginalSelections);
+  });
+}
+
+function populateSelections(response) {
+  $('#selection-info input[type="checkbox"]').each(function (i, box) {
+    var $box = $(box);
+    $box.prop('checked', response.SelectedHierarchyFieldValueList.includes($box.attr('name')));
+  });
+}
+
 function renderSelectionGroup(selectionGroup) {
   var $card = new card.SelectionGroupCard(
     selectionGroup.SelectionGroupEntity,
     selectionGroup.MemberList,
-    function () { console.log('Selection group clicked.'); },
+    shared.wrapCardCallback(shared.get(
+      'ContentAccessAdmin/Selections',
+      renderSelections
+    )),
     selectionGroupDeleteClickHandler,
     function () { console.log('Add/remove user button clicked.'); }
   );
@@ -124,6 +193,7 @@ $(document).ready(function () {
   $('.admin-panel-searchbar').keyup(shared.filterTree.listener);
 
   $('#selection-groups ul.admin-panel-content-action').append(new card.AddSelectionGroupActionCard(selectionGroupAddClickHandler).build());
+  $('#selection-info .submit-button').click(submitSelectionForm);
 
   $('.tooltip').tooltipster();
 });

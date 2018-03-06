@@ -11,6 +11,7 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MillimanAccessPortal.DataQueries;
 using MapDbContextLib.Models;
+using Newtonsoft.Json;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
@@ -19,17 +20,60 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
         // TODO: Include an attribute for pending selections
         // TODO: Include an attribute for the user responsible for current status
         public ContentReductionHierarchy Hierarchy { get; set; }
-        public string Status { get; set; }
+        public long[] OriginalSelections { get; set; } = { };
+        public object Status { get; set; }
 
         internal static ContentAccessAdminSelectionsDetailViewModel Build(ApplicationDbContext DbContext, StandardQueries Queries, SelectionGroup SelectionGroup)
         {
+            var OutstandingStatus = new List<ReductionStatusEnum>
+            {
+                ReductionStatusEnum.Queued,
+                ReductionStatusEnum.Reducing,
+                ReductionStatusEnum.Reduced,
+            };
+            var ContentReductionTask = DbContext.ContentReductionTask
+                .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
+                .Where(crt => OutstandingStatus.Contains(crt.ReductionStatus))
+                .SingleOrDefault();
+            // Convert the serialized content reduction hierarchy into a list of selected values
+            long[] SelectedValuesArray = null;
+            if (ContentReductionTask != null)
+            {
+                var SelectedValues = new List<long>();
+                var DeserializedObject = JsonConvert.DeserializeObject<ContentReductionHierarchy>(ContentReductionTask.SelectionCriteria);
+                foreach (var field in DeserializedObject.Fields)
+                {
+                    foreach (var value in field.Values)
+                    {
+                        if (!value.HasSelectionStatus)
+                        {
+                            continue;
+                        }
+                        var valueWithSelection = ((ReductionFieldValueSelection)value);
+                        if (valueWithSelection.SelectionStatus)
+                        {
+                            SelectedValues.Add(valueWithSelection.Id);
+                        }
+                    }
+                }
+                SelectedValuesArray = SelectedValues.ToArray();
+            }
+
             ContentAccessAdminSelectionsDetailViewModel Model = new ContentAccessAdminSelectionsDetailViewModel
             {
-                Hierarchy = Queries.GetFieldSelectionsForSelectionGroup(SelectionGroup.Id),
+                Hierarchy = Queries.GetFieldSelectionsForSelectionGroup(SelectionGroup.Id, SelectedValuesArray),
+                OriginalSelections = DbContext.SelectionGroup
+                    .Where(sg => sg.Id == SelectionGroup.Id)
+                    .Select(sg => sg.SelectedHierarchyFieldValueList)
+                    .Single(),
                 Status = DbContext.ContentReductionTask
                     .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
                     .OrderBy(crt => crt.CreateDateTime)
-                    .Select(crt => ContentReductionTask.ReductionStatusDisplayNames[crt.ReductionStatus])
+                    .Select(crt => new
+                    {
+                        StatusEnum = crt.ReductionStatus,
+                        DisplayName = ContentReductionTask.ReductionStatusDisplayNames[crt.ReductionStatus]
+                    })
                     .LastOrDefault(),
             };
 
