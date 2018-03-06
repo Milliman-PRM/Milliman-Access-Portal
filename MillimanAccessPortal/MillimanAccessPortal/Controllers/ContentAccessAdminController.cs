@@ -551,7 +551,10 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SingleReduction(long SelectionGroupId, long[] Selections)
         {
-            SelectionGroup SelectionGroup = DbContext.SelectionGroup.Find(SelectionGroupId);
+            SelectionGroup SelectionGroup = DbContext.SelectionGroup
+                .Include(sg => sg.RootContentItem)
+                .Where(sg => sg.Id == SelectionGroupId)
+                .SingleOrDefault();
 
             #region Preliminary validation
             if (SelectionGroup == null)
@@ -606,6 +609,12 @@ namespace MillimanAccessPortal.Controllers
             if (ValidSelections.Count() < Selections.Count())
             {
                 Response.Headers.Add("Warning", "One or more requested selections do not exist or do not belong to the specified selection group.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (Selections.ToHashSet().SetEquals(SelectionGroup.SelectedHierarchyFieldValueList))
+            {
+                Response.Headers.Add("Warning", "The requested selections match the most recently available document.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
