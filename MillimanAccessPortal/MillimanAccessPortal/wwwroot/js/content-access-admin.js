@@ -58,10 +58,12 @@ function submitSelectionForm() {
 
 function renderValue(value, $fieldset, originalSelections) {
   var $div;
+  var $checkbox = $('<input type="checkbox" id="selection-value-' + value.Id + '" name="' + value.Id + '">');
   $fieldset.append('<div></div>');
   $div = $fieldset.find('div').last();
-  $div.append('<input type="checkbox" id="selection-value-' + value.Id + '" name="' + value.Id + '">');
+  $div.append($checkbox);
   $div.append('<label for="selection-value-' + value.Id + '">' + value.Value + '</label>');
+  $checkbox.prop('checked', value.SelectionStatus);
   if (originalSelections.includes(value.Id) !== value.SelectionStatus) {
     $div.attr('style', 'background: yellow;');
   }
