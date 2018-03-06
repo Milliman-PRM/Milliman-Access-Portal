@@ -105,11 +105,11 @@ namespace ContentReductionLib
             using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
             {
                 List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => t.CreateDateTime - DateTimeOffset.UtcNow < TimeSpan.FromSeconds(30))
-                                                                             .Where(t => t.Status == "Queued")
+                                                                             .Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
                                                                              .OrderBy(t => t.CreateDateTime)
                                                                              .Take(MaxCount)
                                                                              .ToList();
-                TopItems.ForEach(rt => rt.Status = "Processing");
+                TopItems.ForEach(rt => rt.ReductionStatus = ReductionStatusEnum.Reducing);
                 Db.ContentReductionTask.UpdateRange(TopItems);
                 Db.SaveChanges();
                 Transaction.Commit();
