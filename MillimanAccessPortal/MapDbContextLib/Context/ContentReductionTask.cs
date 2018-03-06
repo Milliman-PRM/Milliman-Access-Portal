@@ -13,8 +13,35 @@ using MapDbContextLib.Identity;
 
 namespace MapDbContextLib.Context
 {
+    public enum ReductionStatusEnum : long
+    {
+        Default = 0,    // Default state
+        Canceled = 1,   // The task was canceled by a user before the reduction server took it off the queue
+        Discarded = 2,  // The task was completed by the reduction server, but a user chose not to push the reduced document
+        Replaced = 3,   // The reduced document was pushed by a user, but a more recent document has since been pushed
+        Queued = 10,    // The task is in queue for reduction
+        Reducing = 20,  // The reduction server is currently processing the reduction task
+        Reduced = 30,   // The reduction server has completed the reduction task, but no user has pushed the reduced document
+        Pushed = 40,    // A user has pushed (approved/gone live with) the reduced document - this is now the document that users will be able to view
+        Error = 90,     // A general error has occured
+    }
+
     public class ContentReductionTask
     {
+        // TODO: If all display names match enum values, then use .ToString() instead of a Dictionary.
+        public static Dictionary<ReductionStatusEnum, string> ReductionStatusDisplayNames = new Dictionary<ReductionStatusEnum, string>
+        {
+            { ReductionStatusEnum.Default, "Default" },
+            { ReductionStatusEnum.Canceled, "Canceled" },
+            { ReductionStatusEnum.Discarded, "Discarded" },
+            { ReductionStatusEnum.Replaced, "Replaced" },
+            { ReductionStatusEnum.Queued, "Queued" },
+            { ReductionStatusEnum.Reducing, "Reducing" },
+            { ReductionStatusEnum.Reduced, "Reduced" },
+            { ReductionStatusEnum.Pushed, "Pushed" },
+            { ReductionStatusEnum.Error, "Error" },
+        };
+
         [Key]
         // Default value is enforced in ApplicationDbContext.OnModelCreating()
         public Guid Id { get; set; }
@@ -36,7 +63,7 @@ namespace MapDbContextLib.Context
         public DateTimeOffset CreateDateTime { get; set; }
 
         [Required]
-        public string Status { get; set; }
+        public ReductionStatusEnum ReductionStatus { get; set; }
 
         /// <summary>
         /// This path must be accessible to MAP application and reduction server.  

@@ -305,9 +305,9 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var Existant = DbContext.ApplicationUser
+            var Existent = DbContext.ApplicationUser
                 .Where(u => UserAssignments.Keys.Contains(u.Id));
-            if (Existant.Count() < UserAssignments.Count())
+            if (Existent.Count() < UserAssignments.Count())
             {
                 Response.Headers.Add("Warning", "One or more requested users do not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
@@ -509,108 +509,240 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>Returns the selections associated with a selection group.</summary>
+        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the related root content item.</remarks>
         /// <param name="SelectionGroupId">The selection group whose selections are to be returned.</param>
         /// <returns>JsonResult</returns>
         [HttpGet]
-        public IActionResult Selections(long SelectionGroupId)
+        public async Task<IActionResult> Selections(long SelectionGroupId)
         {
-            #region Authorization
-            #endregion
+            SelectionGroup SelectionGroup = DbContext.SelectionGroup.Find(SelectionGroupId);
 
-            #region Validation
-            #endregion
-
-            return Json(new { });
-        }
-
-        /// <summary>Updates a selection group with new selections.</summary>
-        /// <param name="SelectionGroupId">The selection group whose selections are to be updated.</param>
-        /// <param name="Selections">The selections to be applied to the selection group.</param>
-        /// <returns>JsonResult</returns>
-        [HttpPut]
-        [ValidateAntiForgeryToken]
-        public IActionResult UpdateSelections(long SelectionGroupId, object Selections)
-        {
-            #region Authorization
-            #endregion
-
-            #region Validation
-            #endregion
-
-            return Json(new { });
-        }
-
-        /// <summary>
-        /// Queues a reduction task for an existing content item
-        /// </summary>
-        /// <param name="SelectionGroupId"></param>
-        /// <returns></returns>
-        public async Task<IActionResult> RequestReductionForSelectionGroup(long SelectionGroupId)
-        {
-            SelectionGroup RequestedSelectionGroup = DbContext.SelectionGroup
-                                                             .Include(sg => sg.RootContentItem)
-                                                             .SingleOrDefault(sg => sg.Id == SelectionGroupId);
             #region Preliminary validation
-            if (RequestedSelectionGroup == null)
+            if (SelectionGroup == null)
             {
-                Response.Headers.Add("Warning", "Request not saved. The requested selection group was not found.");
+                Response.Headers.Add("Warning", "The requested selection group does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
             #region Authorization
-            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, RequestedSelectionGroup.RootContentItemId));
-            if (!Result1.Succeeded)
+            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.RootContentItemId));
+            if (!RoleInRootContentItemResult.Succeeded)
             {
-                Response.Headers.Add("Warning", $"Request not saved. You are not authorized to modify user selections for this content");
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
                 return Unauthorized();
             }
             #endregion
 
             #region Validation
-            bool PublicationUnderway = DbContext.ContentPublicationRequest
-                                                .Any(r => r.RootContentItemId == RequestedSelectionGroup.RootContentItemId);
-            /* && r.status != completed */
-            bool ConflictingTask = DbContext.ContentReductionTask
-                                            .Any(t => t.SelectionGroupId == SelectionGroupId);
-            /* && r.status != completed */
+            #endregion
 
-            if (PublicationUnderway || ConflictingTask)
+            ContentAccessAdminSelectionsDetailViewModel Model = ContentAccessAdminSelectionsDetailViewModel.Build(DbContext, Queries, SelectionGroup);
+
+            return Json(Model);
+        }
+
+        /// <summary>Submits a new reduction task.</summary>
+        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the related root content item.</remarks>
+        /// <param name="SelectionGroupId">The selection group to reduce.</param>
+        /// <param name="SelectionUpdates">A dictionary that maps selection IDs to a boolean value indicating whether to set or unset the selection.</param>
+        /// <returns>JsonResult</returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SingleReduction(long SelectionGroupId, Dictionary<long, Boolean> SelectionUpdates)
+        {
+            SelectionGroup SelectionGroup = DbContext.SelectionGroup.Find(SelectionGroupId);
+
+            #region Preliminary validation
+            if (SelectionGroup == null)
             {
-                Response.Headers.Add("Warning", "Request not saved. A task is already pending for this selection group.");
+                Response.Headers.Add("Warning", "The requested selection group does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
-            try
+            #region Authorization
+            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.RootContentItemId));
+            if (!RoleInRootContentItemResult.Succeeded)
             {
-                string SelectionCriteriaString = JsonConvert.SerializeObject(Queries.GetFieldSelectionsForSelectionGroup(SelectionGroupId), Formatting.Indented);
-                string MasterFilePath = "ThisInputFile";  // TODO Determine master file. Does master file need to be coppied elsewhere for reduction server
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    "Request to update selections without role in root content item",
+                    AuditEventId.Unauthorized,
+                    new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, SelectionUpdates },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
 
-                var NewTask = new ContentReductionTask
-                {
-                    ApplicationUser = await Queries.GetCurrentApplicationUser(User),
-                    SelectionGroupId = SelectionGroupId,
-                    MasterFilePath = MasterFilePath,
-                    ResultFilePath = "ThisOutputFile",
-                    ContentPublicationRequest = null,
-                    SelectionCriteria = SelectionCriteriaString,
-                    Status = "New",  // TODO improve to enum
-                };
-
-                DbContext.ContentReductionTask.Add(NewTask);
-                DbContext.SaveChanges();
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                return Unauthorized();
             }
-            catch (Exception e)
+            #endregion
+
+            #region Argument processing
+            // TODO: Use a standard query to determine ContentPublicationRequest status based on associated ContentReductionTask records.
+            // Select the most recent content publication request that has been published.
+            var PublishedStatus = new List<ReductionStatusEnum>
             {
-                string ErrMsg = GlobalFunctions.LoggableExceptionString(e, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): failed to store request to database");
-                Logger.LogError(ErrMsg);
-                Response.Headers.Add("Warning", "Request not saved. Error processing request.");
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                ReductionStatusEnum.Pushed,
+                ReductionStatusEnum.Replaced,
+            };
+            var MostRecentPublication = DbContext.ContentPublicationRequest
+                .OrderByDescending(cpr => cpr.CreateDateTime)
+                .Where(cpr => cpr.RootContentItemId == SelectionGroup.RootContentItemId)
+                .Where(cpr => DbContext.ContentReductionTask
+                    .Where(crt => crt.ContentPublicationRequestId == cpr.Id)
+                    .All(crt => PublishedStatus.Contains(crt.ReductionStatus)))
+                .FirstOrDefault();
+            #endregion
+
+            #region Validation
+            var ValidSelections = DbContext.HierarchyFieldValue
+                .Where(hfv => SelectionUpdates.Keys.Contains(hfv.Id))
+                .Where(hfv => hfv.HierarchyField.RootContentItemId == SelectionGroup.RootContentItemId);
+            if (ValidSelections.Count() < SelectionUpdates.Count())
+            {
+                Response.Headers.Add("Warning", "One or more requested selections do not exist or do not belong to the specified selection group.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            return Json(new object());
+            var OutstandingStatus = new List<ReductionStatusEnum>
+            {
+                ReductionStatusEnum.Queued,
+                ReductionStatusEnum.Reducing,
+                ReductionStatusEnum.Reduced,
+            };
+            var OutstandingTasks = DbContext.ContentReductionTask
+                .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
+                .Where(crt => OutstandingStatus.Contains(crt.ReductionStatus));
+            if (OutstandingTasks.Any())
+            {
+                Response.Headers.Add("Warning", "There are outstanding reduction tasks for this root content item.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
 
+            if (MostRecentPublication == null)
+            {
+                Response.Headers.Add("Warning", "Nothing has been published to this root content item.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            string SelectionCriteriaString = JsonConvert.SerializeObject(Queries.GetFieldSelectionsForSelectionGroup(SelectionGroupId, SelectionUpdates), Formatting.Indented);
+
+            var ContentReductionTask = new ContentReductionTask
+            {
+                ApplicationUser = await Queries.GetCurrentApplicationUser(User),
+                SelectionGroupId = SelectionGroup.Id,
+                MasterFilePath = MostRecentPublication.MasterFilePath,
+                ContentPublicationRequest = null,
+                SelectionCriteria = SelectionCriteriaString,
+                ReductionStatus = ReductionStatusEnum.Queued,
+            };
+            DbContext.ContentReductionTask.Add(ContentReductionTask);
+
+            DbContext.SaveChanges();
+
+            #region Log audit event
+            AuditEvent SelectionChangeReductionQueuedEvent = AuditEvent.New(
+                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                "Selection change reduction task queued",
+                AuditEventId.SelectionChangeReductionQueued,
+                new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, SelectionUpdates },
+                User.Identity.Name,
+                HttpContext.Session.Id
+                );
+            AuditLogger.Log(SelectionChangeReductionQueuedEvent);
+            #endregion
+
+            return Json(ContentReductionTask);
+        }
+
+        /// <summary>Cancel a pending or completed reduction task.</summary>
+        /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the related root content item.</remarks>
+        /// <param name="SelectionGroupId">The selection group associated with the reduction to be canceled.</param>
+        /// <returns>JsonResult</returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelReduction(long SelectionGroupId)
+        {
+            SelectionGroup SelectionGroup = DbContext.SelectionGroup
+                .Include(sg => sg.RootContentItem)
+                .Where(sg => sg.Id == SelectionGroupId)
+                .SingleOrDefault();
+
+            #region Preliminary validation
+            if (SelectionGroup == null)
+            {
+                Response.Headers.Add("Warning", "The requested selection group does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, SelectionGroup.RootContentItemId));
+            if (!RoleInRootContentItemResult.Succeeded)
+            {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    "Request to cancel reduction without role in root content item",
+                    AuditEventId.Unauthorized,
+                    new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            var CancelableStatus = new List<ReductionStatusEnum>
+            {
+                ReductionStatusEnum.Queued,
+            };
+            var CancelableTasks = DbContext.ContentReductionTask
+                .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
+                .Where(crt => CancelableStatus.Contains(crt.ReductionStatus))
+                .Where(crt => crt.ContentPublicationRequestId == null);
+            if (CancelableTasks.Count() == 0)
+            {
+                Response.Headers.Add("Warning", "There are no cancelable tasks for this root content item.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            // There should always be at most one cancelable task
+            var UpdatedTasks = new List<ContentReductionTask>();
+            foreach (var Task in CancelableTasks)
+            {
+                Task.ReductionStatus = ReductionStatusEnum.Canceled;
+                DbContext.Update(Task);
+
+                UpdatedTasks.Add(Task);
+            }
+            DbContext.SaveChanges();
+
+            #region Log audit event
+            AuditEvent SelectionChangeReductionCanceledEvent = AuditEvent.New(
+                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                "Selection change reduction task canceled",
+                AuditEventId.SelectionChangeReductionCanceled,
+                new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, UpdatedTasks },
+                User.Identity.Name,
+                HttpContext.Session.Id
+                );
+            AuditLogger.Log(SelectionChangeReductionCanceledEvent);
+            #endregion
+
+            return Json(UpdatedTasks);
         }
     }
 }

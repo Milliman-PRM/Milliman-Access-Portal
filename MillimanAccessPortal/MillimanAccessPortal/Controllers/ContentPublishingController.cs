@@ -101,7 +101,7 @@ namespace MillimanAccessPortal.Controllers
             int ExistingTaskCountForRootContent = DbContext.ContentReductionTask
                                                            .Include(t => t.ContentPublicationRequest)
                                                            .Where(t => t.ContentPublicationRequest.RootContentItemId == RootContentId)
-                                                           .Where(t => t.Status != "Complete")
+                                                           .Where(t => t.ReductionStatus != ReductionStatusEnum.Pushed)
                                                            .Count();
             if (ExistingTaskCountForRootContent > 0)
             {
@@ -135,7 +135,7 @@ namespace MillimanAccessPortal.Controllers
                             ResultFilePath = "ThisOutputFile",
                             ContentPublicationRequest = NewPubRequest,
                             SelectionCriteria = SelectionCriteriaString,
-                            Status = "New",  // TODO improve to enum
+                            ReductionStatus = ReductionStatusEnum.Queued,
                         };
 
                         DbContext.ContentReductionTask.Add(NewTask);
