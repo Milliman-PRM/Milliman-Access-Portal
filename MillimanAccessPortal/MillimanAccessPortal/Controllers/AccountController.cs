@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Context;
 using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Services;
 using AuditLogLib;
@@ -29,6 +30,7 @@ namespace MillimanAccessPortal.Controllers
     [Authorize]
     public class AccountController : Controller
     {
+        private readonly ApplicationDbContext DbContext;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IMessageQueue _messageSender;
@@ -37,6 +39,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly StandardQueries Queries;
 
         public AccountController(
+            ApplicationDbContext ContextArg,
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IMessageQueue messageSender,
@@ -44,6 +47,7 @@ namespace MillimanAccessPortal.Controllers
             IAuditLogger AuditLoggerArg,
             StandardQueries QueriesArg)
         {
+            DbContext = ContextArg;
             _userManager = userManager;
             _signInManager = signInManager;
             _messageSender = messageSender;
@@ -505,6 +509,39 @@ namespace MillimanAccessPortal.Controllers
             };
 
             return View(model);
+        }
+
+        // POST /Account/UpdateAccountSettings
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> UpdateAccountSettings([Bind("FirstName,LastName,PhoneNumber,Employer")]AccountSettingsViewModel Model)
+        {
+            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+
+            if (!string.IsNullOrEmpty(Model.FirstName))
+            {
+                user.FirstName = Model.FirstName;
+            }
+
+            if (!string.IsNullOrEmpty(Model.LastName))
+            {
+                user.LastName = Model.LastName;
+            }
+
+            if (!string.IsNullOrEmpty(Model.PhoneNumber))
+            {
+                user.PhoneNumber = Model.PhoneNumber;
+            }
+
+            if (!string.IsNullOrEmpty(Model.Employer))
+            {
+                user.Employer = Model.Employer;
+            }
+
+            DbContext.ApplicationUser.Update(user);
+            DbContext.SaveChanges();
+
+            return Ok();
         }
 
         #region Helpers
