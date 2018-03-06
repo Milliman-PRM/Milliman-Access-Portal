@@ -558,9 +558,9 @@ namespace MapTests
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("user1");
-            var Selections = new Dictionary<long, Boolean>
+            var Selections = new long[]
             {
-                { HierarchyFieldValueId, true }
+                HierarchyFieldValueId,
             };
             foreach (var Status in Tasks)
             {
@@ -597,9 +597,9 @@ namespace MapTests
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser(UserName);
-            var Selections = new Dictionary<long, Boolean>
+            var Selections = new long[]
             {
-                { 2, true }
+                2,
             };
             #endregion
 
@@ -622,9 +622,9 @@ namespace MapTests
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("user1");
-            var Selections = new Dictionary<long, Boolean>
+            var Selections = new long[]
             {
-                { 2, true }
+                2,
             };
             #endregion
 
@@ -646,9 +646,9 @@ namespace MapTests
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("user1");
-            var Selections = new Dictionary<long, Boolean>
+            var Selections = new long[]
             {
-                { 2, true }
+                2,
             };
             foreach (var Status in Tasks)
             {
