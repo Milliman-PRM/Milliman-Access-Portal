@@ -583,19 +583,6 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Argument processing
-            var CurrentSelections = DbContext.SelectionGroup
-                .Where(sg => sg.Id == SelectionGroup.Id)
-                .Select(sg => sg.SelectedHierarchyFieldValueList)
-                .Single();
-            var SelectionAdditions = SelectionUpdates
-                .Where(kvp => kvp.Value)
-                .Select(kvp => kvp.Key)
-                .Except(CurrentSelections);
-            var SelectionRemovals = SelectionUpdates
-                .Where(kvp => !kvp.Value)
-                .Select(kvp => kvp.Key)
-                .Intersect(CurrentSelections);
-
             // TODO: Use a standard query to determine ContentPublicationRequest status based on associated ContentReductionTask records.
             // Select the most recent content publication request that has been published.
             var PublishedStatus = new List<ReductionStatusEnum>
