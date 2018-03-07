@@ -22,6 +22,9 @@ namespace ContentReductionLib
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
         private List<Task> RunningTasks = new List<Task>();
 
+        /// <summary>
+        /// ctor, initializes operational parameters
+        /// </summary>
         internal MapDbJobMonitor()
         {
             MaxParallelTasks = 1;
@@ -29,6 +32,9 @@ namespace ContentReductionLib
 
         internal int MaxParallelTasks { get; set; }
 
+        /// <summary>
+        /// Initializes data used to construct database context instances using a named configuration parameter.
+        /// </summary>
         internal string ConfiguredConnectionStringParamName {
             set
             {
@@ -42,6 +48,9 @@ namespace ContentReductionLib
             }
         }
 
+        /// <summary>
+        /// Initializes data used to construct database context instances.
+        /// </summary>
         internal string ConnectionString
         {
             set
@@ -52,6 +61,11 @@ namespace ContentReductionLib
             }
         }
 
+        /// <summary>
+        /// Starts the worker thread of this object
+        /// </summary>
+        /// <param name="Token">Allows the worker to react to task cancellation by the caller</param>
+        /// <returns></returns>
         internal override Task Start(CancellationToken Token)
         {
             if (ContextOptions == null)
@@ -62,9 +76,12 @@ namespace ContentReductionLib
             return Task.Run(() => JobMonitorThreadMain(Token));
         }
 
+        /// <summary>
+        /// Main long running thread of the job monitor
+        /// </summary>
+        /// <param name="Token"></param>
         internal override void JobMonitorThreadMain(CancellationToken Token)
         {
-            int LoopCount = 0;
             while (!Token.IsCancellationRequested)
             {
                 // Remove completed tasks from the RunningTasks collection. 
@@ -86,28 +103,52 @@ namespace ContentReductionLib
                         {
                             // Start the job running
                             /* Create/configureLaunch an instance of ReductionRunner */
+
+                            // All of the below simulates what will be done in the reduction related class
                             Guid G = T.Id;  // disposable statement
+                            for (int i = 0; i<5; i++)
+                            {
+                                Thread.Sleep(1000);  // doing some reduction work
+                                Trace.WriteLine($"Task {G.ToString()} on iteration {i}");
+                            }
+                            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+                            {
+                                Db.ContentReductionTask.Find(G).ReductionStatus = ReductionStatusEnum.Reduced;
+                                Db.SaveChanges();
+                            }
+
                         });
 
                         RunningTasks.Add(task);
                     }
 
-                    Trace.WriteLine($"GetReadyTasks iteration {LoopCount++} completed with response item Ids: {string.Join(",", Responses.Select(rt => rt.Id))}");
+                    //Trace.WriteLine($"GetReadyTasks iteration {LoopCount++} completed with response item Ids: {string.Join(",", Responses.Select(rt => rt.Id))}");
                 }
                 Thread.Sleep(1000);
             }
             Trace.WriteLine("JobMonitorThreadMain terminating due to cancellation");
         }
 
-        internal List<ContentReductionTask> GetReadyTasks(int MaxCount)
+        /// <summary>
+        /// Query the database for tasks to be run
+        /// </summary>
+        /// <param name="ReturnNoMoreThan">The maximum number of records to return</param>
+        /// <returns></returns>
+        internal List<ContentReductionTask> GetReadyTasks(int ReturnNoMoreThan)
         {
+            if (ReturnNoMoreThan < 1)
+            {
+                return new List<ContentReductionTask>();
+            }
+
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
             {
                 List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => t.CreateDateTime - DateTimeOffset.UtcNow < TimeSpan.FromSeconds(30))
                                                                              .Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
+                                                                             .Include(t => t.SelectionGroup).ThenInclude(sg => sg.RootContentItem).ThenInclude(rc => rc.ContentType)
                                                                              .OrderBy(t => t.CreateDateTime)
-                                                                             .Take(MaxCount)
+                                                                             .Take(ReturnNoMoreThan)
                                                                              .ToList();
                 TopItems.ForEach(rt => rt.ReductionStatus = ReductionStatusEnum.Reducing);
                 Db.ContentReductionTask.UpdateRange(TopItems);
