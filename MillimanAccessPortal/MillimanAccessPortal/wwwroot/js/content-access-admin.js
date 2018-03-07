@@ -31,7 +31,7 @@ function cancelSelectionForm() {
   var $selectionGroups = $('#selection-groups ul.admin-panel-content');
   var $button = $selectionInfo.find('button');
   var data = {
-    SelectionGroupId: $selectionGroups.find('[selected]').attr('data-selection-group-id')
+    SelectionGroupId: $selectionGroups.find('[selected]').closest('.card-container').attr('data-selection-group-id')
   };
 
   shared.showButtonSpinner($button, 'Canceling');
@@ -56,7 +56,7 @@ function submitSelectionForm() {
   var $selectionGroups = $('#selection-groups ul.admin-panel-content');
   var $button = $selectionInfo.find('button');
   var data = {
-    SelectionGroupId: $selectionGroups.find('[selected]').attr('data-selection-group-id'),
+    SelectionGroupId: $selectionGroups.find('[selected]').closest('.card-container').attr('data-selection-group-id'),
     Selections: $selectionInfo.serializeArray().reduce(function (acc, cur) {
       return (cur.value === 'on')
         ? acc.concat(cur.name)
@@ -140,8 +140,19 @@ function renderSelectionGroup(selectionGroup) {
     )),
     selectionGroupDeleteClickHandler,
     function () { console.log('Add/remove user button clicked.'); }
-  );
-  $('#selection-groups ul.admin-panel-content').append($card.build());
+  ).build();
+  var $statusContainer = $card.find('.card-status-container');
+  if (selectionGroup.Status) {
+    $statusContainer.find('em').html(selectionGroup.Status.Creator.FirstName);
+    if (selectionGroup.Status.StatusEnum === 10) {
+      $statusContainer.removeClass('status-default').addClass('status-queued');
+    } else if (selectionGroup.Status.StatusEnum === 20) {
+      $statusContainer.removeClass('status-default').addClass('status-reducing');
+    } else if (selectionGroup.Status.StatusEnum === 30) {
+      $statusContainer.removeClass('status-default').addClass('status-reduced');
+    }
+  }
+  $('#selection-groups ul.admin-panel-content').append($card);
 }
 function renderSelectionGroupList(response, selectionGroupId) {
   var $selectionGroupList = $('#selection-groups ul.admin-panel-content');

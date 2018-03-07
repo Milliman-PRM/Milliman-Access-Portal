@@ -253,7 +253,7 @@ var card = {};
         count: '?',
         selector: '.card-status-container',
         html: [
-          '<div class="card-status-container status-queued">',
+          '<div class="card-status-container status-default">',
           '  <span>',
           '    <strong></strong>',
           '    <em>Name</em>',
