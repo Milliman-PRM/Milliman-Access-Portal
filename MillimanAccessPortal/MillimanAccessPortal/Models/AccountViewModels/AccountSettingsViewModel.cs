@@ -41,7 +41,7 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         [DataType(DataType.Password)]
         [Display(Name = "Confirm password")]
         [Compare("NewPassword", ErrorMessage = "The password and confirmation password do not match.")]
-        public string ConfirmPassword { get; set; }
+        public string ConfirmNewPassword { get; set; }
 
         public string Code { get; set; }
     }

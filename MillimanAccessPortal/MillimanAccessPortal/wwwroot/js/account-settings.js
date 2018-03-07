@@ -39,7 +39,9 @@ $(document).ready(function onReady() {
     $('.form-button-container').css({ 'visibility': 'visible' });
   });
 
-  $('#CurrentPassword, #NewPassword, #ConfirmPassword').on('focus', function () {
+  $('input:not([type="password"])').attr('readonly', 'readonly');
+
+  $('input:not([disabled])').on('focus', function () {
     $(this).removeAttr('readonly');
   });
 

@@ -18,7 +18,7 @@
             @Html.Partial("~/Views/Shared/_Loader.cshtml")
         </div>
         <div class="admin-panel-content-container">
-            <form id="account-settings-form" class="admin-panel-content">
+            <form id="account-settings-form" class="admin-panel-content" autocomplete="off">
                 <div class="form-container">
                     <h4 class="form-section-header">User Information</h4>
                     <div class="form-section-container">
@@ -70,21 +70,21 @@
                         <div class="form-input flex-item-12-12">
                             <label asp-for="CurrentPassword"></label>
                             <div>
-                                <input type="password" asp-for="CurrentPassword" readonly />
+                                <input type="password" asp-for="CurrentPassword" />
                             </div>
                         </div>
                         <div class="form-input flex-item-12-12">
                             <label asp-for="NewPassword"></label>
                             <div>
-                                <input type="password" asp-for="NewPassword" readonly />
+                                <input type="password" asp-for="NewPassword" />
                                 <span asp-validation-for="NewPassword" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="form-input flex-item-12-12">
-                            <label asp-for="ConfirmPassword"></label>
+                            <label asp-for="ConfirmNewPassword"></label>
                             <div>
-                                <input type="password" asp-for="ConfirmPassword" readonly />
-                                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                                <input type="password" asp-for="ConfirmNewPassword" />
+                                <span asp-validation-for="ConfirmNewPassword" class="text-danger"></span>
                             </div>
                         </div>
                         @Html.AntiForgeryToken()
