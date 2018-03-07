@@ -120,16 +120,13 @@ if ($LASTEXITCODE -ne 0) {
     fail_statement "ERROR: Failed to install yarn"
 }
 
-log_statement "Getting yarn path"
-$potentialYarnPath = Join-Path (get-item $baseParent).Parent.FullName "node_modules\yarn\bin\yarn.cmd"
-if (test-path $potentialYarnPath) {
-    log_statement "Found yarn executable at ${potentialYarnPath}"
-    $yarnPath = $potentialYarnPath
-} else {
-    fail_statement "Failed to find the yarn executable"
-}
+log_statement "getting npm install directory"
 
-$command = "${yarnPath} install"
+$root_npm = (npm list -g) | Select -First 1
+
+log_statement "npm packages are installed to ${root_npm}"
+
+$command = "${root_npm}\yarn.cmd install"
 invoke-expression "&$command"
 
 if ($LASTEXITCODE -ne 0) {
