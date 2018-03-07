@@ -120,7 +120,16 @@ if ($LASTEXITCODE -ne 0) {
     fail_statement "ERROR: Failed to install yarn"
 }
 
-$command = "yarn install"
+log_statement "Getting yarn path"
+$potentialYarnPath = Join-Path $baseParent "node_modules\yarn\bin\yarn"
+if (test-path $potentialYarnPath) {
+    log_statement "Found yarn executable at $(potentialYarnPath)"
+    $yarnPath = $potentialYarnPath
+} else {
+    fail_statement "Failed to find the yarn executable"
+}
+
+$command = "$(yarnPath) install"
 invoke-expression "&$command"
 
 if ($LASTEXITCODE -ne 0) {
