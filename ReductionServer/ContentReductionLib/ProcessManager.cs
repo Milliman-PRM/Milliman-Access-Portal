@@ -27,7 +27,7 @@ namespace ContentReductionLib
         /// <summary>
         /// class used to pass operational parameters to the thread that handles tasks of a single config file
         /// </summary>
-        private class RuductionTaskThreadArgs
+        private class ReductionTaskThreadArgs
         {
             internal string ConfigFileName;
             internal ReduceConfig TaskConfig;
@@ -41,10 +41,12 @@ namespace ContentReductionLib
         /// <param name="ProcessConfig"></param>
         public void Start(ProcessManagerConfiguration ProcessConfig)
         {
-            // Based on configuration, set up JobMonitor objects
+            // Based on configuration, set up objects derived from JobMonitorBase
             // for (int i = 0 ; i < ConfiguredMonitors.Count ; i++)
             for (int i = 0 ; i < 1 ; i++)
             {
+                // TODO Need to switch on ConfiguredMonitors type to instantiate the correct type for Monitor property
+
                 JobMonitorDict.Add(i, new JobMonitorInfo
                 {
                     Monitor = new MapDbJobMonitor { ConfiguredConnectionStringParamName = "DefaultConnection" },
