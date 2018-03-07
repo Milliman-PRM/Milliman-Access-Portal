@@ -99,7 +99,7 @@ namespace MillimanAccessPortal.Controllers
                     }
                     else
                     {
-                        return RedirectToAction(nameof(HostedContentController.Index), nameof(HostedContentController).Replace("Controller",""));
+                        return RedirectToAction(nameof(HostedContentController.Index), nameof(HostedContentController).Replace("Controller", ""));
                     }
                 }
                 if (result.RequiresTwoFactor)
@@ -542,6 +542,32 @@ namespace MillimanAccessPortal.Controllers
             DbContext.SaveChanges();
 
             return Ok();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> UpdatePassword([Bind("CurrentPassword,NewPassword,ConfirmNewPassword")]AccountSettingsViewModel Model)
+        {
+            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+            IdentityResult result;
+
+            if (Model.NewPassword == Model.ConfirmNewPassword)
+            {
+                result = await _userManager.ChangePasswordAsync(user, Model.CurrentPassword, Model.NewPassword);
+
+                if (result.Succeeded)
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
 
         #region Helpers

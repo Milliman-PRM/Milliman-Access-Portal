@@ -26,6 +26,30 @@ function submitAccountSettings() {
       shared.hideButtonSpinner($button);
       toastr.warning(response.getResponseHeader('Warning'));
     });
+
+    if ($('#CurrentPassword').val() && $('#NewPassword').val()) {
+      $.ajax({
+        type: 'POST',
+        url: '/Account/UpdatePassword',
+        data: {
+          CurrentPassword: $('#CurrentPassword').val(),
+          NewPassword: $('#NewPassword').val(),
+          ConfirmNewPassword: $('#ConfirmNewPassword').val()
+        },
+        headers: {
+          RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+        }
+      }).done(function onDone() {
+        //shared.hideButtonSpinner($button);
+        $('.form-button-container').css({ 'visibility': 'hidden' });
+        $('input[type="password"]').val('');
+        toastr.success("Your password has been updated");
+      }).fail(function onFail(response) {
+        //shared.hideButtonSpinner($button);
+        //toastr.warning(response.getResponseHeader('Warning'));
+        toastr.warning("Your password could not be updated");
+      });
+    }
   }
 }
 
