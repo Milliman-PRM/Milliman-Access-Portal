@@ -121,7 +121,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 log_statement "Getting yarn path"
-$potentialYarnPath = Join-Path (get-item $baseParent).parent "node_modules\yarn\bin\yarn"
+$potentialYarnPath = Join-Path (get-item $baseParent).Parent.FullName "node_modules\yarn\bin\yarn"
 if (test-path $potentialYarnPath) {
     log_statement "Found yarn executable at $(potentialYarnPath)"
     $yarnPath = $potentialYarnPath
