@@ -45,7 +45,8 @@ $(document).ready(function onReady() {
     $(this).removeAttr('readonly');
   });
 
-  $('#account-settings-form button.submit-button').on('click', function () {
+  $('#account-settings-form button.submit-button').on('click', function(event) {
+    event.preventDefault();
     submitAccountSettings();
   });
 
