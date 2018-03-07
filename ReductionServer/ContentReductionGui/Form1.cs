@@ -1,4 +1,10 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Tom Puckett, 
+ * OBJECTIVE: <What and WHY.>
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using System;
 using System.Diagnostics;
 using System.Configuration;
 using System.Collections.Generic;
@@ -9,8 +15,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using QvReportReductionLib;
 using System.IO;
+using ContentReductionLib;
 
 namespace QvReportReductionGui
 {
@@ -64,14 +70,11 @@ namespace QvReportReductionGui
         {
             if (Manager != null)
             {
-                if (Manager.ThreadAlive)
-                {
-                    Manager.Stop(WaitMs);
-                }
+                Manager.Stop(WaitMs);
 
-                label1.Text = Manager.ThreadAlive.ToString();
+                label1.Text = Manager.AllMonitorThreadsRunning.ToString();
 
-                if (!Manager.ThreadAlive)
+                if (!Manager.AnyMonitorThreadRunning)
                 {
                     Manager = null;
                 }
@@ -87,7 +90,7 @@ namespace QvReportReductionGui
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            label1.Text = (Manager == null) ? "Null Manager" : Manager.ThreadAlive.ToString();
+            label1.Text = (Manager == null) ? "Null Manager" : Manager.AllMonitorThreadsRunning.ToString();
         }
 
         private void buttonBrowse_Click(object sender, EventArgs e)
