@@ -17,8 +17,6 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
     public class ContentAccessAdminSelectionsDetailViewModel
     {
-        // TODO: Include an attribute for pending selections
-        // TODO: Include an attribute for the user responsible for current status
         public ContentReductionHierarchy<ReductionFieldValueSelection> Hierarchy { get; set; }
         public long[] OriginalSelections { get; set; } = { };
         public object Status { get; set; }
