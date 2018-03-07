@@ -113,7 +113,7 @@ if ((get-location).Path -ne $projectPath) {
 }
 
 log_statement "Restoring yarn packages"
-$command = "npm install yarn@1.5.1"
+$command = "npm install -g yarn@1.5.1"
 invoke-expression $command
 
 if ($LASTEXITCODE -ne 0) {
