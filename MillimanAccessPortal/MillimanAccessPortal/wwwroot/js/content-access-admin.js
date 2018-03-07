@@ -108,17 +108,21 @@ function renderField(field, $parent, originalSelections) {
 function renderSelections(response) {
   var $selectionInfo = $('#selection-info form.admin-panel-content');
   var $fieldsetDiv = $selectionInfo.find('.fieldset-container');
+  var status;
   $fieldsetDiv.empty();
   response.Hierarchy.Fields.forEach(function (field) {
     renderField(field, $fieldsetDiv, response.OriginalSelections);
   });
   $selectionInfo.find('button').hide();
-  if (response.Status.StatusEnum === 10) {
+  status = response.Status
+    ? response.Status.StatusEnum
+    : 0;
+  if (status === 10) {
     $selectionInfo.find('.red-button').show();
     $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
-  } else if (response.Status.StatusEnum === 20) {
+  } else if (status === 20) {
     $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
-  } else if (response.Status.StatusEnum === 30) {
+  } else if (status === 30) {
     $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
   } else {
     $selectionInfo.find('.blue-button').show();

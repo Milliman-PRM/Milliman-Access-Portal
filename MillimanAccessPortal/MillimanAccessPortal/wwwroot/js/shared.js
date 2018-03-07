@@ -119,7 +119,7 @@ var shared = {};
         $panel.find('.insert-card').remove();
       };
       var clearSelection = function () {
-        $panel.find('.card-container').removeAttr('editing selected');
+        $panel.find('.card-body-container').removeAttr('editing selected');
       };
       var showDetails = function () {
         $nextPanels.hide().slice(0, panels || 1).show(SHOW_DURATION);
@@ -153,7 +153,8 @@ var shared = {};
   // AJAX
   shared.get = function (url) {
     var callbacks = Array.prototype.slice.call(arguments, 1);
-    return function ($card) {
+    return function ($clickedCard) {
+      var $card = $clickedCard && $clickedCard.closest('.card-container');
       var $panel = $card
         ? $card.closest('.admin-panel-container').nextAll().slice(0, callbacks.length)
         : $('.admin-panel-container').first();
