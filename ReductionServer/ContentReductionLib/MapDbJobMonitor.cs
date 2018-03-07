@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: <What and WHY.>
+ * OBJECTIVE: Intended that one instance of this class monitors a MAP application database for reductino jobs to perform
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 

@@ -59,6 +59,10 @@ namespace MapDbContextLib.Context
                 .HasDefaultValueSql("uuid_generate_v4()");
 
             builder.Entity<ContentReductionTask>()
+                .Property(b => b.ReductionStatus)
+                .HasDefaultValue(ReductionStatusEnum.Default);
+
+            builder.Entity<ContentReductionTask>()
                 .ForNpgsqlUseXminAsConcurrencyToken();
 
             builder.Entity<HierarchyField>()
