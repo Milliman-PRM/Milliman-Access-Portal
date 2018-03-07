@@ -108,25 +108,33 @@ function renderField(field, $parent, originalSelections) {
 function renderSelections(response) {
   var $selectionInfo = $('#selection-info form.admin-panel-content');
   var $fieldsetDiv = $selectionInfo.find('.fieldset-container');
-  var status;
+  var $statusContainer = $('#selection-groups [selected]').closest('.card-container').find('.card-status-container');
   $fieldsetDiv.empty();
   response.Hierarchy.Fields.forEach(function (field) {
     renderField(field, $fieldsetDiv, response.OriginalSelections);
   });
   $selectionInfo.find('button').hide();
-  status = response.Status
-    ? response.Status.StatusEnum
-    : 0;
-  if (status === 10) {
-    $selectionInfo.find('.red-button').show();
-    $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
-  } else if (status === 20) {
-    $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
-  } else if (status === 30) {
-    $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
+  if (response.Status) {
+    $statusContainer.find('em').html(response.Status.Creator.FirstName);
+    if (response.Status.StatusEnum === 10) {
+      $selectionInfo.find('.red-button').show();
+      $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
+      $statusContainer.attr('class', 'card-status-container status-queued');
+    } else if (response.Status.StatusEnum === 20) {
+      $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
+      $statusContainer.attr('class', 'card-status-container status-reducing');
+    } else if (response.Status.StatusEnum === 30) {
+      $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
+      $statusContainer.attr('class', 'card-status-container status-reduced');
+    } else {
+      $selectionInfo.find('.blue-button').show();
+      $fieldsetDiv.find('input[type="checkbox"]').removeAttr('disabled');
+      $statusContainer.attr('class', 'card-status-container status-default');
+    }
   } else {
     $selectionInfo.find('.blue-button').show();
     $fieldsetDiv.find('input[type="checkbox"]').removeAttr('disabled');
+    $statusContainer.attr('class', 'card-status-container status-default');
   }
 }
 
