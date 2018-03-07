@@ -549,23 +549,26 @@ namespace MillimanAccessPortal.Controllers
         public async Task<ActionResult> UpdatePassword([Bind("CurrentPassword,NewPassword,ConfirmNewPassword")]AccountSettingsViewModel Model)
         {
             ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
-            IdentityResult result;
 
             if (Model.NewPassword == Model.ConfirmNewPassword)
             {
-                result = await _userManager.ChangePasswordAsync(user, Model.CurrentPassword, Model.NewPassword);
-
+                IdentityResult result = await _userManager.ChangePasswordAsync(user, Model.CurrentPassword, Model.NewPassword);
+                
                 if (result.Succeeded)
                 {
                     return Ok();
                 }
                 else
                 {
+                    string errorMessage = string.Join("<br /><br />", result.Errors.Select(x => x.Description));
+
+                    Response.Headers.Add("Warning", errorMessage);
                     return BadRequest();
                 }
             }
             else
             {
+                Response.Headers.Add("Warning", $"The passwords provided did not match");
                 return BadRequest();
             }
         }

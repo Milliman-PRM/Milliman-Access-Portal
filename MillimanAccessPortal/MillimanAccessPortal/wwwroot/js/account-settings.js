@@ -46,8 +46,7 @@ function submitAccountSettings() {
         toastr.success("Your password has been updated");
       }).fail(function onFail(response) {
         //shared.hideButtonSpinner($button);
-        //toastr.warning(response.getResponseHeader('Warning'));
-        toastr.warning("Your password could not be updated");
+        toastr.warning(response.getResponseHeader('Warning'));
       });
     }
   }
