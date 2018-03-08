@@ -114,16 +114,16 @@ function renderSelections(response) {
     renderField(field, $fieldsetDiv, response.OriginalSelections);
   });
   $selectionInfo.find('button').hide();
-  if (response.Status) {
-    $statusContainer.find('em').html(response.Status.Creator.FirstName);
-    if (response.Status.StatusEnum === 10) {
+  if (response.ReductionDetails) {
+    $statusContainer.find('em').html(response.ReductionDetails.User.FirstName);
+    if (response.ReductionDetails.StatusEnum === 10) {
       $selectionInfo.find('.red-button').show();
       $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
       $statusContainer.attr('class', 'card-status-container status-queued');
-    } else if (response.Status.StatusEnum === 20) {
+    } else if (response.ReductionDetails.StatusEnum === 20) {
       $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
       $statusContainer.attr('class', 'card-status-container status-reducing');
-    } else if (response.Status.StatusEnum === 30) {
+    } else if (response.ReductionDetails.StatusEnum === 30) {
       $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
       $statusContainer.attr('class', 'card-status-container status-reduced');
     } else {
@@ -150,13 +150,13 @@ function renderSelectionGroup(selectionGroup) {
     function () { console.log('Add/remove user button clicked.'); }
   ).build();
   var $statusContainer = $card.find('.card-status-container');
-  if (selectionGroup.Status) {
-    $statusContainer.find('em').html(selectionGroup.Status.Creator.FirstName);
-    if (selectionGroup.Status.StatusEnum === 10) {
+  if (selectionGroup.ReductionDetails) {
+    $statusContainer.find('em').html(selectionGroup.ReductionDetails.User.FirstName);
+    if (selectionGroup.ReductionDetails.StatusEnum === 10) {
       $statusContainer.removeClass('status-default').addClass('status-queued');
-    } else if (selectionGroup.Status.StatusEnum === 20) {
+    } else if (selectionGroup.ReductionDetails.StatusEnum === 20) {
       $statusContainer.removeClass('status-default').addClass('status-reducing');
-    } else if (selectionGroup.Status.StatusEnum === 30) {
+    } else if (selectionGroup.ReductionDetails.StatusEnum === 30) {
       $statusContainer.removeClass('status-default').addClass('status-reduced');
     }
   }
@@ -268,5 +268,5 @@ $(document).ready(function () {
       setTimeout(poll, 10000);
     };
     poll();
-  }, 10000);
+  }, 10000000);
 });

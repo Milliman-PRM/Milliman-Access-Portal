@@ -16,23 +16,20 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
     {
         public SelectionGroup SelectionGroupEntity { get; set; }
         public List<ContentAccessAdminUserInfoViewModel> MemberList { get; set; } = new List<ContentAccessAdminUserInfoViewModel>();
-        public object Status { get; set; }
+        public ReductionDetails ReductionDetails { get; set; }
 
         internal static ContentAccessAdminSelectionGroupDetailViewModel Build(ApplicationDbContext DbContext, SelectionGroup SelectionGroup)
         {
+            var latestTask = DbContext.ContentReductionTask
+                    .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
+                    .OrderByDescending(crt => crt.CreateDateTime)
+                    .FirstOrDefault();
+            ReductionDetails reductionDetails = ((ReductionDetails) latestTask);
+
             ContentAccessAdminSelectionGroupDetailViewModel Model = new ContentAccessAdminSelectionGroupDetailViewModel
             {
                 SelectionGroupEntity = SelectionGroup,
-                Status = DbContext.ContentReductionTask
-                    .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
-                    .OrderByDescending(crt => crt.CreateDateTime)
-                    .Select(crt => new
-                    {
-                        StatusEnum = crt.ReductionStatus,
-                        DisplayName = ContentReductionTask.ReductionStatusDisplayNames[crt.ReductionStatus],
-                        Creator = crt.ApplicationUser,
-                    })
-                    .FirstOrDefault(),
+                ReductionDetails = reductionDetails,
             };
 
             // Retrieve users that are members of the specified selection group

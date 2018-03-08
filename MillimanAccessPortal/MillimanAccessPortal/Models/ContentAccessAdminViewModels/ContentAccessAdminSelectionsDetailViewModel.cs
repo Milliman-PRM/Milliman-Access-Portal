@@ -19,7 +19,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
     {
         public ContentReductionHierarchy<ReductionFieldValueSelection> Hierarchy { get; set; }
         public long[] OriginalSelections { get; set; } = { };
-        public object Status { get; set; }
+        public ReductionDetails ReductionDetails { get; set; }
 
         internal static ContentAccessAdminSelectionsDetailViewModel Build(ApplicationDbContext DbContext, StandardQueries Queries, SelectionGroup SelectionGroup)
         {
@@ -47,7 +47,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
                         {
                             continue;
                         }
-                        var valueWithSelection = ((ReductionFieldValueSelection)value);
+                        var valueWithSelection = ((ReductionFieldValueSelection) value);
                         if (valueWithSelection.SelectionStatus)
                         {
                             SelectedValues.Add(valueWithSelection.Id);
@@ -57,26 +57,24 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
                 SelectedValuesArray = SelectedValues.ToArray();
             }
 
-            ContentAccessAdminSelectionsDetailViewModel Model = new ContentAccessAdminSelectionsDetailViewModel
+            var latestTask = DbContext.ContentReductionTask
+                .Include(crt => crt.ContentPublicationRequest)
+                .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
+                .OrderByDescending(crt => crt.CreateDateTime)
+                .FirstOrDefault();
+            ReductionDetails reductionDetails = ((ReductionDetails) latestTask);
+
+            ContentAccessAdminSelectionsDetailViewModel model = new ContentAccessAdminSelectionsDetailViewModel
             {
                 Hierarchy = Queries.GetFieldSelectionsForSelectionGroup(SelectionGroup.Id, SelectedValuesArray),
                 OriginalSelections = DbContext.SelectionGroup
                     .Where(sg => sg.Id == SelectionGroup.Id)
                     .Select(sg => sg.SelectedHierarchyFieldValueList)
                     .Single(),
-                Status = DbContext.ContentReductionTask
-                    .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
-                    .OrderByDescending(crt => crt.CreateDateTime)
-                    .Select(crt => new
-                    {
-                        StatusEnum = crt.ReductionStatus,
-                        DisplayName = ContentReductionTask.ReductionStatusDisplayNames[crt.ReductionStatus],
-                        Creator = crt.ApplicationUser,
-                    })
-                    .FirstOrDefault(),
+                ReductionDetails = reductionDetails,
             };
 
-            return Model;
+            return model;
         }
     }
 }
