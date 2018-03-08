@@ -101,6 +101,13 @@
       "node_modules/vex-js/dist/css/vex-theme-default.css"
     ]
   },
+  // Account Settings
+  {
+    "outputFileName": "wwwroot/js/account-settings.min.js",
+    "inputFiles": [
+      "wwwroot/js/account-settings.js"
+    ]
+  },
   // Client Admin
   {
     "outputFileName": "wwwroot/js/client-admin.min.js",
@@ -166,10 +173,3 @@
     ]
   }
 ]
-
-
-
-
-
-
-
