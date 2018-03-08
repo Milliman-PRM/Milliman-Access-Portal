@@ -1,12 +1,15 @@
+var $accountSettingsForm = $('#account-settings-form');
+var $button = $('#account-settings-form button.submit-button');
+var accountSettingsRunning = false;
+var passwordChangeRunning = false;
 
 function submitAccountSettings() {
-  var $accountSettingsForm = $('#account-settings-form');
-  var $button = $('#account-settings-form button.submit-button');
   var urlPartial = 'Account/';
 
   if ($accountSettingsForm.valid()) {
 
     if (settingsChanged()) {
+      accountSettingsRunning = true;
       shared.showButtonSpinner($button);
       $.ajax({
         type: 'POST',
@@ -21,19 +24,24 @@ function submitAccountSettings() {
           RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
         }
       }).done(function onDone() {
-        shared.hideButtonSpinner($button);
         $('input[data-original-value]').each(function () {
           $(this).attr('data-original-value', $(this).val());
         });
-        $('.form-button-container').css({ 'visibility': 'hidden' });
         toastr.success("Your account has been updated");
       }).fail(function onFail(response) {
-        shared.hideButtonSpinner($button);
         toastr.warning(response.getResponseHeader('Warning'));
+      }).always(function onFinish() {
+        accountSettingsRunning = false;
+        if (!passwordChangeRunning) {
+          shared.hideButtonSpinner($button);
+          //$('.form-button-container').css({ 'visibility': 'hidden' });
+        }
       });
     }
 
     if ($('#CurrentPassword').val() && $('#NewPassword').val()) {
+      passwordChangeRunning = true;
+      shared.showButtonSpinner($button);
       $.ajax({
         type: 'POST',
         url: '/Account/UpdatePassword',
@@ -46,13 +54,16 @@ function submitAccountSettings() {
           RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
         }
       }).done(function onDone() {
-        //shared.hideButtonSpinner($button);
-        $('.form-button-container').css({ 'visibility': 'hidden' });
         $('input[type="password"]').val('');
         toastr.success("Your password has been updated");
       }).fail(function onFail(response) {
-        //shared.hideButtonSpinner($button);
         toastr.warning(response.getResponseHeader('Warning'));
+      }).always(function onFinish() {
+        passwordChangeRunning = false;
+        if (!accountSettingsRunning) {
+          shared.hideButtonSpinner($button);
+          //$('.form-button-container').css({ 'visibility': 'hidden' });
+        }
       });
     }
   }
@@ -68,7 +79,10 @@ function resetForm() {
 
   $elementsToClear.val('');
 
+  //$('.form-button-container').css({ 'visibility': 'hidden' });
+
   shared.resetValidation($('#account-settings'));
+  document.activeElement.blur();
 }
 
 function settingsChanged() {
