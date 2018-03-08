@@ -5,27 +5,33 @@ function submitAccountSettings() {
   var urlPartial = 'Account/';
 
   if ($accountSettingsForm.valid()) {
-    shared.showButtonSpinner($button);
-    $.ajax({
-      type: 'POST',
-      url: '/Account/AccountSettings',
-      data: {
-        FirstName: $('#FirstName').val(),
-        LastName: $('#LastName').val(),
-        PhoneNumber: $('#PhoneNumber').val(),
-        Employer: $('#Employer').val()
-      },
-      headers: {
-        RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
-      }
-    }).done(function onDone() {
-      shared.hideButtonSpinner($button);
-      $('.form-button-container').css({ 'visibility': 'hidden' });
-      toastr.success("Your account has been updated");
-    }).fail(function onFail(response) {
-      shared.hideButtonSpinner($button);
-      toastr.warning(response.getResponseHeader('Warning'));
-    });
+
+    if (settingsChanged()) {
+      shared.showButtonSpinner($button);
+      $.ajax({
+        type: 'POST',
+        url: '/Account/AccountSettings',
+        data: {
+          FirstName: $('#FirstName').val(),
+          LastName: $('#LastName').val(),
+          PhoneNumber: $('#PhoneNumber').val(),
+          Employer: $('#Employer').val()
+        },
+        headers: {
+          RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+        }
+      }).done(function onDone() {
+        shared.hideButtonSpinner($button);
+        $('input[data-original-value]').each(function () {
+          $(this).attr('data-original-value', $(this).val());
+        });
+        $('.form-button-container').css({ 'visibility': 'hidden' });
+        toastr.success("Your account has been updated");
+      }).fail(function onFail(response) {
+        shared.hideButtonSpinner($button);
+        toastr.warning(response.getResponseHeader('Warning'));
+      });
+    }
 
     if ($('#CurrentPassword').val() && $('#NewPassword').val()) {
       $.ajax({
@@ -63,6 +69,21 @@ function resetForm() {
   $elementsToClear.val('');
 
   shared.resetValidation($('#account-settings'));
+}
+
+function settingsChanged() {
+  var changedFields = 0;
+  $('input[data-original-value]').each(function () {
+    if ($(this).val() != $(this).attr('data-original-value')) {
+      changedFields++;
+    }
+  });
+
+  if (changedFields > 0) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 $(document).ready(function onReady() {
