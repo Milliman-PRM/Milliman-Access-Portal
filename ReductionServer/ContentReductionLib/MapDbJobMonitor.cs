@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using MapDbContextLib.Context;
+using ContentReductionLib.ReductionRunners;
 
 namespace ContentReductionLib
 {
@@ -22,15 +23,19 @@ namespace ContentReductionLib
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
         private List<Task> RunningTasks = new List<Task>();
 
+        // Settable operating parameters
+        // Some day these may come from configuration.
+        internal TimeSpan TaskAgeBeforeExecution { set; private get; }
+        internal int MaxParallelTasks { set; private get; }
+
         /// <summary>
-        /// ctor, initializes operational parameters
+        /// ctor, initializes operational parameters to default values
         /// </summary>
         internal MapDbJobMonitor()
         {
             MaxParallelTasks = 1;
+            TaskAgeBeforeExecution = TimeSpan.FromSeconds(30);
         }
-
-        internal int MaxParallelTasks { get; set; }
 
         /// <summary>
         /// Initializes data used to construct database context instances using a named configuration parameter.
@@ -97,33 +102,47 @@ namespace ContentReductionLib
 
                     foreach (ContentReductionTask T in Responses)
                     {
-                        // Initiate the reduction job
+                        Task NewTask = null;
 
-                        var task = Task.Run(() => 
+                        switch (T.SelectionGroup.RootContentItem.ContentType.TypeEnum)
                         {
-                            // Start the job running
-                            /* Create/configureLaunch an instance of ReductionRunner */
+                            case ContentTypeEnum.Qlikview:
+                                QvReductionRunner Runner = new QvReductionRunner
+                                {
+                                    QueueTask = T,
+                                    ContextOptions = ContextOptions,
+                                };
+                                NewTask = Task.Run(() => Runner.ExecuteReduction());
+                            break;
 
-                            // All of the below simulates what will be done in the reduction related class
-                            Guid G = T.Id;  // disposable statement
-                            for (int i = 0; i<5; i++)
-                            {
-                                Thread.Sleep(1000);  // doing some reduction work
-                                Trace.WriteLine($"Task {G.ToString()} on iteration {i}");
-                            }
-                            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
-                            {
-                                Db.ContentReductionTask.Find(G).ReductionStatus = ReductionStatusEnum.Reduced;
-                                Db.SaveChanges();
-                            }
+                            default:
+                                NewTask = Task.Run(() =>
+                                {
+                                    // Start the job running
+                                    /* Create/configureLaunch an instance of ReductionRunner */
 
-                        });
+                                    // All of the below simulates what will be done in the reduction related class
+                                    Guid G = T.Id;  // disposable statement
+                                    for (int i = 0; i < 5; i++)
+                                    {
+                                        Thread.Sleep(1000);  // doing some reduction work
+                                        Trace.WriteLine($"Task {G.ToString()} on iteration {i}");
+                                    }
+                                    using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+                                    {
+                                        Db.ContentReductionTask.Find(G).ReductionStatus = ReductionStatusEnum.Reduced;
+                                        Db.SaveChanges();
+                                    }
 
-                        RunningTasks.Add(task);
+                                });
+
+                                break;
+                        }
+                        RunningTasks.Add(NewTask);
                     }
 
-                    //Trace.WriteLine($"GetReadyTasks iteration {LoopCount++} completed with response item Ids: {string.Join(",", Responses.Select(rt => rt.Id))}");
                 }
+
                 Thread.Sleep(1000);
             }
             Trace.WriteLine("JobMonitorThreadMain terminating due to cancellation");
@@ -144,7 +163,7 @@ namespace ContentReductionLib
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
             {
-                List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => t.CreateDateTime - DateTimeOffset.UtcNow < TimeSpan.FromSeconds(30))
+                List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => DateTimeOffset.UtcNow - t.CreateDateTime > TaskAgeBeforeExecution)
                                                                              .Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
                                                                              .Include(t => t.SelectionGroup).ThenInclude(sg => sg.RootContentItem).ThenInclude(rc => rc.ContentType)
                                                                              .OrderBy(t => t.CreateDateTime)
