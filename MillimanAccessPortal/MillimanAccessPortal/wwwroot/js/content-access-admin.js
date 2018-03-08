@@ -242,18 +242,4 @@ $(document).ready(function () {
   $('#selection-info .red-button').click(cancelSelectionForm);
 
   $('.tooltip').tooltipster();
-
-  setTimeout(function () {
-    var poll = function () {
-      var $rootContentItem = $('#root-content-items [selected]').closest('.card-container');
-      if ($rootContentItem.length) {
-        shared.get(
-          'ContentAccessAdmin/SelectionGroups',
-          renderSelectionGroupList
-        )($rootContentItem);
-      }
-      setTimeout(poll, 10000);
-    };
-    poll();
-  }, 10000000);
 });

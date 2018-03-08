@@ -265,7 +265,7 @@ var shared = {};
   };
 
   // Card helpers
-  // TODO: decide whether to put these in card.js
+  // TODO: consider moving to card.js
   shared.updateCardStatus = function ($card, reductionDetails) {
     var $statusContainer = $card.find('.card-status-container');
     var $statusName = $statusContainer.find('strong');
