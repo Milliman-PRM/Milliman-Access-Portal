@@ -108,29 +108,31 @@ function renderField(field, $parent, originalSelections) {
 function renderSelections(response) {
   var $selectionInfo = $('#selection-info form.admin-panel-content');
   var $fieldsetDiv = $selectionInfo.find('.fieldset-container');
-  var $relatedCard = $('#selection-groups [selected]').closest('.card-container');
+  var details = $.extend({
+    User: {
+      FirstName: ''
+    },
+    StatusEnum: 0,
+    StatusName: '',
+    SelectionGroupId: 0,
+    RootContentItemId: 0
+  }, response.ReductionDetails);
+
   $fieldsetDiv.empty();
   response.Hierarchy.Fields.forEach(function (field) {
     renderField(field, $fieldsetDiv, response.OriginalSelections);
   });
-  shared.updateCardStatus($relatedCard, response.ReductionDetails);
-  $selectionInfo.find('button').hide();
-  if (response.ReductionDetails) {
-    if (response.ReductionDetails.StatusEnum === 10) {
-      $selectionInfo.find('.red-button').show();
-      $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
-    } else if (response.ReductionDetails.StatusEnum === 20) {
-      $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
-    } else if (response.ReductionDetails.StatusEnum === 30) {
-      $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
-    } else {
-      $selectionInfo.find('.blue-button').show();
-      $fieldsetDiv.find('input[type="checkbox"]').removeAttr('disabled');
-    }
-  } else {
-    $selectionInfo.find('.blue-button').show();
-    $fieldsetDiv.find('input[type="checkbox"]').removeAttr('disabled');
-  }
+  $selectionInfo
+    .find('button').hide()
+    .filter('.button-status-' + details.StatusEnum).show();
+  // TODO: rely on some flag in the response to disable checkboxes
+  $fieldsetDiv
+    .find('input[type="checkbox"]')
+    .click([10, 20, 30].includes(details.StatusEnum)
+      ? function (event) {
+        event.preventDefault();
+      }
+      : $.noop);
 }
 
 function renderSelectionGroup(selectionGroup) {
