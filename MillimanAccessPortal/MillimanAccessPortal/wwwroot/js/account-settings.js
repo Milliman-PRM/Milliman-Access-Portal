@@ -34,7 +34,7 @@ function submitAccountSettings() {
         accountSettingsRunning = false;
         if (!passwordChangeRunning) {
           shared.hideButtonSpinner($button);
-          // $('.form-button-container').css({ 'visibility': 'hidden' });
+           $('.form-button-container').css({ 'visibility': 'hidden' });
         }
       });
     }
@@ -62,7 +62,7 @@ function submitAccountSettings() {
         passwordChangeRunning = false;
         if (!accountSettingsRunning) {
           shared.hideButtonSpinner($button);
-          // $('.form-button-container').css({ 'visibility': 'hidden' });
+           $('.form-button-container').css({ 'visibility': 'hidden' });
         }
       });
     }
@@ -79,7 +79,7 @@ function resetForm() {
 
   $elementsToClear.val('');
 
-  // $('.form-button-container').css({ 'visibility': 'hidden' });
+   $('.form-button-container').css({ 'visibility': 'hidden' });
 
   shared.resetValidation($('#account-settings'));
   document.activeElement.blur();
