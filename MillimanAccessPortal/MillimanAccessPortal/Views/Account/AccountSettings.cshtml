@@ -53,7 +53,7 @@
                         <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-4-12">
                             <label asp-for="PhoneNumber"></label>
                             <div>
-                                <input asp-for="PhoneNumber" data-original-value="@Model.PhoneNumber" />
+                                <input asp-for="PhoneNumber" placeholder="(###) ###-####" data-original-value="@Model.PhoneNumber" />
                                 <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                             </div>
                         </div>

@@ -100,6 +100,9 @@ function settingsChanged() {
 }
 
 $(document).ready(function onReady() {
+
+  $('#PhoneNumber').mask("(999) 999-9999");
+
   if ($('#UserName').val() !== $('#Email').val()) {
     $('#Email').show();
   }
