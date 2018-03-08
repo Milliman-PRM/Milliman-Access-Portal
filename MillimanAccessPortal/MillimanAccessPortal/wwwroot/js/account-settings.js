@@ -1,3 +1,4 @@
+/* global shared */
 var $accountSettingsForm = $('#account-settings-form');
 var $button = $('#account-settings-form button.submit-button');
 var accountSettingsRunning = false;
@@ -7,7 +8,6 @@ function submitAccountSettings() {
   var urlPartial = 'Account/';
 
   if ($accountSettingsForm.valid()) {
-
     if (settingsChanged()) {
       accountSettingsRunning = true;
       shared.showButtonSpinner($button);
@@ -27,14 +27,14 @@ function submitAccountSettings() {
         $('input[data-original-value]').each(function () {
           $(this).attr('data-original-value', $(this).val());
         });
-        toastr.success("Your account has been updated");
+        toastr.success('Your account has been updated');
       }).fail(function onFail(response) {
         toastr.warning(response.getResponseHeader('Warning'));
       }).always(function onFinish() {
         accountSettingsRunning = false;
         if (!passwordChangeRunning) {
           shared.hideButtonSpinner($button);
-          //$('.form-button-container').css({ 'visibility': 'hidden' });
+          // $('.form-button-container').css({ 'visibility': 'hidden' });
         }
       });
     }
@@ -55,14 +55,14 @@ function submitAccountSettings() {
         }
       }).done(function onDone() {
         $('input[type="password"]').val('');
-        toastr.success("Your password has been updated");
+        toastr.success('Your password has been updated');
       }).fail(function onFail(response) {
         toastr.warning(response.getResponseHeader('Warning'));
       }).always(function onFinish() {
         passwordChangeRunning = false;
         if (!accountSettingsRunning) {
           shared.hideButtonSpinner($button);
-          //$('.form-button-container').css({ 'visibility': 'hidden' });
+          // $('.form-button-container').css({ 'visibility': 'hidden' });
         }
       });
     }
@@ -79,7 +79,7 @@ function resetForm() {
 
   $elementsToClear.val('');
 
-  //$('.form-button-container').css({ 'visibility': 'hidden' });
+  // $('.form-button-container').css({ 'visibility': 'hidden' });
 
   shared.resetValidation($('#account-settings'));
   document.activeElement.blur();
@@ -88,26 +88,24 @@ function resetForm() {
 function settingsChanged() {
   var changedFields = 0;
   $('input[data-original-value]').each(function () {
-    if ($(this).val() != $(this).attr('data-original-value')) {
-      changedFields++;
+    if ($(this).val() !== $(this).attr('data-original-value')) {
+      changedFields += 1;
     }
   });
 
   if (changedFields > 0) {
     return true;
-  } else {
-    return false;
   }
+  return false;
 }
 
 $(document).ready(function onReady() {
-
-  if ($('#UserName').val() != $('#Email').val()) {
+  if ($('#UserName').val() !== $('#Email').val()) {
     $('#Email').show();
   }
 
   $('input').on('keyup', function () {
-    $('.form-button-container').css({ 'visibility': 'visible' });
+    $('.form-button-container').css({ visibility: 'visible' });
   });
 
   $('input:not([type="password"])').attr('readonly', 'readonly');
@@ -116,7 +114,7 @@ $(document).ready(function onReady() {
     $(this).removeAttr('readonly');
   });
 
-  $('#account-settings-form button.submit-button').on('click', function(event) {
+  $('#account-settings-form button.submit-button').on('click', function (event) {
     event.preventDefault();
     submitAccountSettings();
   });
@@ -124,5 +122,4 @@ $(document).ready(function onReady() {
   $('#account-settings-form button.reset-button').on('click', function () {
     resetForm();
   });
-
 });
