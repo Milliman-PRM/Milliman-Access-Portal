@@ -1,16 +1,13 @@
 ﻿/*
  * CODE OWNERS: Joseph Sweeney
- * OBJECTIVE:
+ * OBJECTIVE: A ViewModel for MAP
  * DEVELOPER NOTES:
  */
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
-using Microsoft.AspNetCore.Identity;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {

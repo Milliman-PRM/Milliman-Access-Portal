@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Joseph Sweeney
- * OBJECTIVE: A ViewModel capturing useful reduction task information
+ * OBJECTIVE: A ViewModel for MAP
  * DEVELOPER NOTES:
  */
 

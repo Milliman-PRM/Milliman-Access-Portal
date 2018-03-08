@@ -1,7 +1,7 @@
 ﻿/*
  * CODE OWNERS: Joseph Sweeney
- * OBJECTIVE:
- * DEVELOPER NOTES: <What future developers need to know.>
+ * OBJECTIVE: A ViewModel for MAP
+ * DEVELOPER NOTES:
  */
 
 using System.Collections.Generic;

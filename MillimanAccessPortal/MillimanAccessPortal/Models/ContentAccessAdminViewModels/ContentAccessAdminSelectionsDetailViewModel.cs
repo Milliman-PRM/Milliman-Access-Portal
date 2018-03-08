@@ -1,17 +1,15 @@
 ﻿/*
- * CODE OWNERS: Tom Puckett
- * OBJECTIVE: A ViewModel representing details of a RootContentItem for use in ContentAccessAdmin
- * DEVELOPER NOTES: <What future developers need to know.>
+ * CODE OWNERS: Joseph Sweeney
+ * OBJECTIVE: A ViewModel for MAP
+ * DEVELOPER NOTES:
  */
 
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Context;
-using MapDbContextLib.Identity;
 using MillimanAccessPortal.DataQueries;
 using MapDbContextLib.Models;
-using Newtonsoft.Json;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
@@ -33,6 +31,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
                 .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
                 .Where(crt => OutstandingStatus.Contains(crt.ReductionStatus))
                 .SingleOrDefault();
+
             // Convert the serialized content reduction hierarchy into a list of selected values
             long[] SelectedValuesArray = null;
             if (ContentReductionTask != null)
@@ -43,14 +42,9 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
                 {
                     foreach (var value in field.Values)
                     {
-                        if (!value.HasSelectionStatus)
+                        if (value.SelectionStatus)
                         {
-                            continue;
-                        }
-                        var valueWithSelection = ((ReductionFieldValueSelection) value);
-                        if (valueWithSelection.SelectionStatus)
-                        {
-                            SelectedValues.Add(valueWithSelection.Id);
+                            SelectedValues.Add(value.Id);
                         }
                     }
                 }

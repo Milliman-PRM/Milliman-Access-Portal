@@ -1,4 +1,10 @@
-﻿using MapDbContextLib.Identity;
+﻿/*
+ * CODE OWNERS: Joseph Sweeney
+ * OBJECTIVE: A ViewModel for MAP
+ * DEVELOPER NOTES:
+ */
+
+using MapDbContextLib.Identity;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {

@@ -1,7 +1,7 @@
 ﻿/*
- * CODE OWNERS: Tom Puckett, 
- * OBJECTIVE: A class representing a user without sensitive fields
- * DEVELOPER NOTES: 
+ * CODE OWNERS: Joseph Sweeney
+ * OBJECTIVE: A ViewModel for MAP
+ * DEVELOPER NOTES:
  */
 
 using System.Security.Claims;
