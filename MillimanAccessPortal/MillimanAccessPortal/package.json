@@ -1,0 +1,18 @@
+{
+  "name": "milliman-access-portal",
+  "version": "1.0.0",
+  "description": "Milliman Access Portal",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "bootstrap": "4.0.0",
+    "jquery": "2.2.0",
+    "jquery-mask-plugin": "1.14.13",
+    "jquery-validation": "1.14.0",
+    "jquery-validation-unobtrusive": "3.2.6",
+    "selectize": "v0.12.4",
+    "toastr": "2.1.4",
+    "tooltipster": "4.2.5",
+    "typeahead.js": "v0.11.1",
+    "vex-js": "v4.1.0"
+  }
+}
