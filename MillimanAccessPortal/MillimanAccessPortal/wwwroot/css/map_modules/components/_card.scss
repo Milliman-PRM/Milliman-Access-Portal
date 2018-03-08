@@ -14,6 +14,7 @@
         padding-top: 0.75em;
         padding-left: 1em;
         border-radius: .25em;
+        display: none;
 
         em:before {
             content: "(created by ";
@@ -22,32 +23,19 @@
             content: ")";
         }
 
-        &.status-default {
-            display: none;
-        }
-
-        &.status-queued {
-            background: $blue;
-
-            strong:before {
-                content: "Queued";
-            }
-        }
-
-        &.status-reducing {
+        &.status-10 {
             background: $orange;
-
-            strong:before {
-                content: "Processing";
-            }
+            display: block;
         }
 
-        &.status-reduced {
-            background: $green;
+        &.status-20 {
+            background: $red;
+            display: block;
+        }
 
-            strong:before {
-                content: "Awaiting approval";
-            }
+        &.status-30 {
+            background: $green;
+            display: block;
         }
     }
 

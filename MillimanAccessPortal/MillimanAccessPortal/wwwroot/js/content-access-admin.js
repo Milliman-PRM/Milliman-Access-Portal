@@ -108,33 +108,28 @@ function renderField(field, $parent, originalSelections) {
 function renderSelections(response) {
   var $selectionInfo = $('#selection-info form.admin-panel-content');
   var $fieldsetDiv = $selectionInfo.find('.fieldset-container');
-  var $statusContainer = $('#selection-groups [selected]').closest('.card-container').find('.card-status-container');
+  var $relatedCard = $('#selection-groups [selected]').closest('.card-container');
   $fieldsetDiv.empty();
   response.Hierarchy.Fields.forEach(function (field) {
     renderField(field, $fieldsetDiv, response.OriginalSelections);
   });
+  shared.updateCardStatus($relatedCard, response.ReductionDetails);
   $selectionInfo.find('button').hide();
   if (response.ReductionDetails) {
-    $statusContainer.find('em').html(response.ReductionDetails.User.FirstName);
     if (response.ReductionDetails.StatusEnum === 10) {
       $selectionInfo.find('.red-button').show();
       $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
-      $statusContainer.attr('class', 'card-status-container status-queued');
     } else if (response.ReductionDetails.StatusEnum === 20) {
       $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
-      $statusContainer.attr('class', 'card-status-container status-reducing');
     } else if (response.ReductionDetails.StatusEnum === 30) {
       $fieldsetDiv.find('input[type="checkbox"]').click(function (event) { event.preventDefault(); });
-      $statusContainer.attr('class', 'card-status-container status-reduced');
     } else {
       $selectionInfo.find('.blue-button').show();
       $fieldsetDiv.find('input[type="checkbox"]').removeAttr('disabled');
-      $statusContainer.attr('class', 'card-status-container status-default');
     }
   } else {
     $selectionInfo.find('.blue-button').show();
     $fieldsetDiv.find('input[type="checkbox"]').removeAttr('disabled');
-    $statusContainer.attr('class', 'card-status-container status-default');
   }
 }
 
@@ -149,17 +144,7 @@ function renderSelectionGroup(selectionGroup) {
     selectionGroupDeleteClickHandler,
     function () { console.log('Add/remove user button clicked.'); }
   ).build();
-  var $statusContainer = $card.find('.card-status-container');
-  if (selectionGroup.ReductionDetails) {
-    $statusContainer.find('em').html(selectionGroup.ReductionDetails.User.FirstName);
-    if (selectionGroup.ReductionDetails.StatusEnum === 10) {
-      $statusContainer.removeClass('status-default').addClass('status-queued');
-    } else if (selectionGroup.ReductionDetails.StatusEnum === 20) {
-      $statusContainer.removeClass('status-default').addClass('status-reducing');
-    } else if (selectionGroup.ReductionDetails.StatusEnum === 30) {
-      $statusContainer.removeClass('status-default').addClass('status-reduced');
-    }
-  }
+  shared.updateCardStatus($card, selectionGroup.ReductionDetails);
   $('#selection-groups ul.admin-panel-content').append($card);
 }
 function renderSelectionGroupList(response, selectionGroupId) {

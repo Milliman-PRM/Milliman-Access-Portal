@@ -264,6 +264,36 @@ var shared = {};
     };
   };
 
+  // Card helpers
+  // TODO: decide whether to put these in card.js
+  shared.updateCardStatus = function ($card, reductionDetails) {
+    var $statusContainer = $card.find('.card-status-container');
+    var $statusName = $statusContainer.find('strong');
+    var $statusUser = $statusContainer.find('em');
+    var details = $.extend({
+      User: {
+        FirstName: ''
+      },
+      StatusEnum: 0,
+      StatusName: '',
+      SelectionGroupId: 0,
+      RootContentItemId: 0
+    }, reductionDetails);
+
+    $statusContainer
+      .removeClass(function (i, classString) {
+        var classNames = classString.split(' ');
+        return classNames
+          .filter(function (className) {
+            return className.startsWith('status-');
+          })
+          .join(' ');
+      })
+      .addClass('status-' + details.StatusEnum);
+    $statusName.html(details.StatusName);
+    $statusUser.html(details.User.FirstName);
+  };
+
   // Dialog helpers
   // TODO: consider moving to dialog.js
   shared.confirmAndContinue = function ($panel, Dialog, onContinue) {
