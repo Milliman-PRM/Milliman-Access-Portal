@@ -1,0 +1,30 @@
+/* global shared */
+
+function upload() {
+  var data = new FormData($('#upload-form')[0]);
+  $.ajax({
+    xhr: shared.xhrWithProgress(function (progress) {
+      $('#file-progress').width((Math.round(progress * 10000) / 100) + '%');
+    }),
+    type: 'POST',
+    cache: false,
+    contentType: false,
+    processData: false,
+    url: 'ContentPublishing/Upload',
+    data: data,
+    headers: {
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+    }
+  }).done(function onDone(response) {
+    toastr.success('File uploaded to ' + response.MasterFilePath);
+  }).fail(function onFail(response) {
+    toastr.warning('Error: ' + response.status);
+  });
+}
+
+$(document).ready(function () {
+  $('#upload-form input.submit').click(function (event) {
+    event.preventDefault();
+    upload();
+  });
+});

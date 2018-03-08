@@ -42,7 +42,7 @@ function create_db { # Attempt to create a database by copying another one; retr
     $commandText = "create database $newDbName with template $templateDbName owner $dbOwner;"
 
     $command = "$exePath -h $server -d postgres -U $user -c `"$commandText`" -w"
-    
+
     log_statement "Attempting to create database $newDbName with the command `"$command`""
 
     while ($attempts -lt $maxRetries -and $success -eq $false) {
@@ -95,7 +95,7 @@ $logDbTemplateName = "auditlogdb_ci_template"
 $logDbOwner = "logdb_admin"
 $dbCreationRetries = 5 # The number of times the script will attempt to create a new database before throwing an error
 
-$env:PATH = $env:PATH+";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin\"
+$env:PATH = $env:PATH+";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin\;$env:appdata\npm\"
 
 #endregion
 
@@ -107,24 +107,35 @@ $rootPath = (get-location).Path
 
 cd MillimanAccessPortal\MillimanAccessPortal
 
-log_statement "Building unit tests"
+log_statement "Restoring packages before unit tests"
 
 MSBuild /t:Restore /verbosity:quiet
 
 if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: Initial MAP package restore failed"
+    log_statement "ERROR: Initial nuget package restore failed"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
 
-$command = '"C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Web\External\bower.cmd" install'
+$command = "npm install -g yarn@1.5.1"
+invoke-expression $command
+
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: Failed to install yarn"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
+$command = "yarn install"
 invoke-expression "&$command"
 
 if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: Bower package restore failed"
+    log_statement "ERROR: yarn package restore failed"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
+
+log_statement "Building unit tests"
 
 cd $rootPath\MillimanAccessPortal\MapTests
 
@@ -162,7 +173,7 @@ cd $rootPath
 $env:PSModulePath = $env:PSModulePath+';C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager'
 
 #Load required PowerShell modules
-$silent = import-module AzureRM.Profile, AzureRM.Resources, AzureRM.Websites, Microsoft.PowerShell.Security 
+$silent = import-module AzureRM.Profile, AzureRM.Resources, AzureRM.Websites, Microsoft.PowerShell.Security
 
 if ($? -eq $false)
 {
@@ -308,12 +319,12 @@ if ($? -eq $false)
 log_statement "Defining database firewall rules"
 
 # Retrieve list of IP addresses the web app may use
-$properties = Get-AzureRmResource -ResourceGroupName map-ci -ResourceType Microsoft.Web/sites/slots -ResourceName "map-ci-app/createazureci" -ApiVersion 2016-08-01
+$properties = Get-AzureRmResource -ResourceGroupName map-ci -ResourceType Microsoft.Web/sites/slots -ResourceName "map-ci-app/$BranchName" -ApiVersion 2016-08-01
 $outboundList = $properties.Properties.possibleOutboundIpAddresses.Split(',')
 
 # Retrieve the current list of firewall rules
 # Will be compared against the app's IP addresses to see which rules need to be created
-$command = "az postgres server firewall-rule list --server-name `"$dbServerHostname`" --resource-group `"$ResourceGroupName`"" 
+$command = "az postgres server firewall-rule list --server-name `"$dbServerHostname`" --resource-group `"$ResourceGroupName`""
 $firewallRules = invoke-expression "&$command" | out-string | ConvertFrom-Json
 if ($LASTEXITCODE -ne 0)
 {
@@ -321,8 +332,8 @@ if ($LASTEXITCODE -ne 0)
 }
 $firewallFailures = 0
 
-foreach ( $ip in $outboundList) 
-{    
+foreach ( $ip in $outboundList)
+{
     if ($ip -notin $firewallRules.startIpAddress -and $ip -notin $firewallRules.endIpAddress)
     {
         $ruleName = "Allow_"+$BranchName+"_"+$ip.replace(".","")
@@ -334,14 +345,14 @@ foreach ( $ip in $outboundList)
             $firewallFailures = $firewallFailures + 1
         }
     }
-} 
+}
 
 if ($firewallFailures -gt 0)
 {
     log_statement "Failed creating one or more firewall rules. Deployment canceled."
     exit -9000
 }
-else 
+else
 {
     log_statement "Finished creating database firewall rules"
 }
@@ -425,7 +436,7 @@ if ($CredentialFound)
     {
         log_statement "Failed to unset git credential manager."
         exit -800
-    }    
+    }
 
     $command = "$gitexepath config --global credential.helper wincred"
     Invoke-Expression "$command"

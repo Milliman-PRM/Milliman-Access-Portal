@@ -5,145 +5,119 @@
  */
 
 using System;
-using System.Configuration;
 using System.IO;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
-using Milliman.Common;
+using System.Threading.Tasks;
+using MapDbContextLib.Context;
 using Milliman.ReductionEngine;
+using Milliman.Common;  // TODO remove this
 
-namespace QvReportReductionLib
+namespace ContentReductionLib
 {
     public class ProcessManager
     {
-        // These collections are keyed on the config file name
-        private static Dictionary<string, RunningReductionTask> ExecutingTasks = new Dictionary<string, RunningReductionTask>();
+        // This collection is keyed on the config file name
+        //private static Dictionary<string, RunningReductionTask> ExecutingTasks = new Dictionary<string, RunningReductionTask>();
+
+        private Dictionary<int, JobMonitorInfo> JobMonitorDict = new Dictionary<int, JobMonitorInfo>();
 
         /// <summary>
         /// class used to pass operational parameters to the thread that handles tasks of a single config file
         /// </summary>
-        private class RuductionTaskThreadArgs
+        private class ReductionTaskThreadArgs
         {
             internal string ConfigFileName;
             internal ReduceConfig TaskConfig;
         }
 
-        private class RunningReductionTask
-        {
-            internal ReduceConfig TaskConfig;
-            internal Thread Thd;
-        }
-
-        private bool _StopSignal;  // wrapped by the thread safe StopSignal property
-        private object InstanceStateLock = new object();
-        private Thread MainServiceWorkerThread = null;
-
         private string RootPath = string.Empty;
 
         /// <summary>
-        /// Constructor
+        /// Initiate processing of configured JobMonitors
         /// </summary>
-        public ProcessManager()
+        /// <param name="ProcessConfig"></param>
+        public void Start(ProcessManagerConfiguration ProcessConfig)
         {
-            StopSignal = false;
-            MainServiceWorkerThread = new Thread(WorkerThreadMain);
-        }
-
-        /// <summary>
-        /// Thread safe access to the stop signal
-        /// </summary>
-        private bool StopSignal
-        {
-            get
+            // Based on configuration, set up objects derived from JobMonitorBase
+            // for (int i = 0 ; i < ConfiguredMonitors.Count ; i++)
+            for (int i = 0 ; i < 1 ; i++)
             {
-                lock (InstanceStateLock) { return _StopSignal; }
+                // TODO Need to switch on ConfiguredMonitors type to instantiate the correct type for Monitor property
+
+                JobMonitorDict.Add(i, new JobMonitorInfo
+                {
+                    Monitor = new MapDbJobMonitor { ConfiguredConnectionStringParamName = "DefaultConnection" },
+                    TokenSource = new CancellationTokenSource(),
+                    AwaitableTask = null
+                });
             }
-            set
+
+            // Start the job monitor threads
+            foreach (var MonitorKvp in JobMonitorDict)
             {
-                lock (InstanceStateLock) { _StopSignal = value; }
+                JobMonitorInfo MonitorInfo = MonitorKvp.Value;
+                MonitorInfo.AwaitableTask = MonitorInfo.Monitor.Start(MonitorInfo.TokenSource.Token);
+
+                Trace.WriteLine($"JobMonitor {MonitorKvp.Key} Start() returned");
             }
-        }
-
-        public bool ThreadAlive
-        {
-            get {
-                return (MainServiceWorkerThread != null && 
-                            (MainServiceWorkerThread.ThreadState == System.Threading.ThreadState.Running || 
-                             MainServiceWorkerThread.ThreadState == System.Threading.ThreadState.WaitSleepJoin));
-            }
-        }
-
-        public bool Start(ProcessManagerConfiguration ProcessConfig)
-        {
-            Trace.WriteLine("Starting the processing of class " + this.GetType().Name);
-
-            MainServiceWorkerThread.Start(ProcessConfig);
-            return true;
         }
 
         /// <summary>
         /// Entry point intended for the main application to request this object to gracefully stop all processing under its control
-        /// Note this is not called on the worker thread so any member variable also accessed by the worker thread must be protected
         /// </summary>
         /// <param name="WaitMs"></param>
         /// <returns></returns>
         public bool Stop(int WaitMs = 0)
         {
-            StopSignal = true;
+            TimeSpan MaxWaitTime = TimeSpan.FromMinutes(3);
 
-            if (WaitMs > 0)
+            foreach (var MonitorKvp in JobMonitorDict)
             {
-                // TODO Wait as long as WaitMs for the thread to stop
-                Thread.Sleep(WaitMs);
+                JobMonitorInfo MonitorInfo = MonitorKvp.Value;
+                MonitorInfo.TokenSource.Cancel();
+
+                Trace.WriteLine($"Token {MonitorKvp.Key} cancellation requested");
             }
 
-            return !ThreadAlive;
+            // Wait for all the running job monitors to complete
+            DateTime Start = DateTime.Now;
+            var WaitResult = Task.WaitAll(JobMonitorDict.Select(m => m.Value.AwaitableTask).ToArray(), MaxWaitTime);
+            Trace.WriteLine($"WaitAll ran for {DateTime.Now - Start}");
+
+            if (!AnyMonitorThreadRunning)
+            {
+                JobMonitorDict.Clear();
+            }
+
+            return WaitResult;
         }
 
         /// <summary>
-        /// Evaluates contents of a folder to detect whether a reduction task is present
+        /// Property that evaluates whether status of all Tasks of managed JobMonitor objects is running
         /// </summary>
-        /// <param name="FolderName"></param>
-        /// <returns></returns>
-        public static bool FolderContainsAReductionRequest(string FolderName)
+        public bool AllMonitorThreadsRunning
         {
-            bool ReturnVal = true;  // start true because of the &= logic below
-
-            ReturnVal &= File.Exists(Path.Combine(FolderName, "request_complete.txt"));
-            ReturnVal &= !File.Exists(Path.Combine(FolderName, "processing_complete.txt"));
-            ReturnVal &= !File.Exists(Path.Combine(FolderName, "delete_me.txt"));
-
-            // Other things to look for, should cause false return if found.  
-            //  For each job completed by QV server a “*_completed.txt” file will be created
-
-            return ReturnVal;
+            get
+            {
+                return JobMonitorDict.Values.All(v => v.AwaitableTask.Status == TaskStatus.Running);
+            }
         }
 
         /// <summary>
-        /// Evaluates contents of a folder to detect whether a reduction task is present
+        /// Property that evaluates whether at least 1 status of all Tasks of managed JobMonitor objects is running
         /// </summary>
-        /// <param name="FolderName"></param>
-        /// <returns></returns>
-        public static bool FileIsAvailableToStart(string FilePath)
+        public bool AnyMonitorThreadRunning
         {
-            bool ReturnVal = true;  // start true because of the &= logic below
-
-            string FolderName = Path.GetDirectoryName(FilePath);
-            string FileShortName = Path.GetFileNameWithoutExtension(FilePath);
-
-            ReturnVal &= File.Exists(FilePath);
-            ReturnVal &= !File.Exists(Path.Combine(FolderName, FileShortName + "_running.txt"));
-            ReturnVal &= !File.Exists(Path.Combine(FolderName, FileShortName + "_completed.txt"));
-            ReturnVal &= !File.Exists(Path.Combine(FolderName, "delete_me.txt"));
-            // more?
-
-            return ReturnVal;
+            get
+            {
+                return JobMonitorDict.Values.Any(v => v.AwaitableTask.Status == TaskStatus.Running);
+            }
         }
 
+        /*
         /// <summary>
         /// Thread main function that finds runnable config files and initiates processing on each one
         /// </summary>
@@ -176,7 +150,7 @@ namespace QvReportReductionLib
                 // Identify new tasks to initiate, up to configured limit
                 // TODO Decide whether to implement a recursive search.  This currently supports search only in immediate subfolders (might be best). 
                 foreach (string TaskFolderName in Directory.EnumerateDirectories(ProcessConfig.RootPath)
-                                                           .Where(d => ProcessManager.FolderContainsAReductionRequest(d))   // only include valid, ready tasks
+                                                           //.Where(d => ProcessManager.FolderContainsAReductionRequest(d))   // only include valid, ready tasks
                                                            .OrderBy(d => new DirectoryInfo(d).CreationTime))                // order by oldest first (treat the file system like a queue)
                 {
                     Trace.WriteLine("Found task(s) in folder " + TaskFolderName);
@@ -184,7 +158,7 @@ namespace QvReportReductionLib
                     lock (ExecutingTasks)
                     {
                         foreach (string ConfigFileName in Directory.EnumerateFiles(TaskFolderName, "*.config")
-                                                                   .Where(f => ProcessManager.FileIsAvailableToStart(f))   // only include files that are appropriate to start
+                                                                   //.Where(f => ProcessManager.FileIsAvailableToStart(f))   // only include files that are appropriate to start
                                                                    .Take(ProcessConfig.MaxConcurrentTasks - ExecutingTasks.Count))  // Don't exceed the concurrent task count limit
                         {
                             Trace.WriteLine("Initiating processing on config file " + ConfigFileName);
@@ -250,9 +224,9 @@ namespace QvReportReductionLib
                     Trace.WriteLine(Signature.ErrorMessage);
                     return;
                 }
-                else if (! Signature.SignatureDictionary.Keys.Contains("can_emit")
-                      || ! bool.TryParse(Signature.SignatureDictionary["can_emit"], out CanEmit)
-                      || ! CanEmit)
+                else if (!Signature.SignatureDictionary.Keys.Contains("can_emit")
+                      || !bool.TryParse(Signature.SignatureDictionary["can_emit"], out CanEmit)
+                      || !CanEmit)
                 {
                     Trace.WriteLine(string.Format("File '{0}' marked to not be processed. Process will be terminated with success.", TaskConfig.MasterQVW));
                     return;
@@ -263,9 +237,9 @@ namespace QvReportReductionLib
                     // Get QMS connection parameters
                     QMSSettings QmsSettings = new QMSSettings
                     {
-                        QMSURL = System.Configuration.ConfigurationManager.AppSettings["QMS"],
-                        UserName = System.Configuration.ConfigurationManager.AppSettings["QMSUser"],
-                        Password = System.Configuration.ConfigurationManager.AppSettings["QMSPassword"],
+                        //QMSURL = System.Configuration.ConfigurationManager.AppSettings["QMS"],
+                        //UserName = System.Configuration.ConfigurationManager.AppSettings["QMSUser"],
+                        //Password = System.Configuration.ConfigurationManager.AppSettings["QMSPassword"],
                     };
 
                     // Create the Runner and start the processing
@@ -283,5 +257,6 @@ namespace QvReportReductionLib
                 return;
             }
         }
+        */
     }
 }

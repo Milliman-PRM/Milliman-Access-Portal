@@ -35,7 +35,7 @@ namespace MapDbContextLib.Context
             }
             get
             {
-                return Enum.Parse<ContentTypeEnum>(Name, true);
+                return (ContentTypeEnum) Enum.Parse(typeof(ContentTypeEnum), Name, true);
             }
         }
 

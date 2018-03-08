@@ -47,6 +47,9 @@ namespace MapDbContextLib.Context
                 .Property(b => b.CreateDateTime)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+            builder.Entity<ContentPublicationRequest>()
+                .ForNpgsqlUseXminAsConcurrencyToken();
+
             builder.Entity<ContentReductionTask>()
                 .Property(b => b.CreateDateTime)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
@@ -54,6 +57,13 @@ namespace MapDbContextLib.Context
             builder.Entity<ContentReductionTask>()
                 .Property(b => b.Id)
                 .HasDefaultValueSql("uuid_generate_v4()");
+
+            builder.Entity<ContentReductionTask>()
+                .Property(b => b.ReductionStatus)
+                .HasDefaultValue(ReductionStatusEnum.Default);
+
+            builder.Entity<ContentReductionTask>()
+                .ForNpgsqlUseXminAsConcurrencyToken();
 
             builder.Entity<HierarchyField>()
                 .Property(b => b.StructureType)
