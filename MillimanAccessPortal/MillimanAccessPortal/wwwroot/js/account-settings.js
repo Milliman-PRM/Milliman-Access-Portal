@@ -52,6 +52,19 @@ function submitAccountSettings() {
   }
 }
 
+function resetForm() {
+  var $elementsToReset = $('input[data-original-value]');
+  var $elementsToClear = $('input:not([data-original-value])');
+
+  $elementsToReset.each(function () {
+    $(this).val($(this).attr('data-original-value'));
+  });
+
+  $elementsToClear.val('');
+
+  shared.resetValidation($('#account-settings'));
+}
+
 $(document).ready(function onReady() {
 
   if ($('#UserName').val() != $('#Email').val()) {
@@ -71,6 +84,10 @@ $(document).ready(function onReady() {
   $('#account-settings-form button.submit-button').on('click', function(event) {
     event.preventDefault();
     submitAccountSettings();
+  });
+
+  $('#account-settings-form button.reset-button').on('click', function () {
+    resetForm();
   });
 
 });

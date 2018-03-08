@@ -25,42 +25,42 @@
                         <div class="form-input flex-item-12-12">
                             <label asp-for="UserName"></label>
                             <div>
-                                <input asp-for="UserName" readonly disabled />
+                                <input asp-for="UserName" data-original-value="@Model.UserName" readonly disabled />
                                 <span asp-validation-for="UserName" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
                             <label asp-for="FirstName"></label>
                             <div>
-                                <input asp-for="FirstName" />
+                                <input asp-for="FirstName" data-original-value="@Model.FirstName" />
                                 <span asp-validation-for="FirstName" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
                             <label asp-for="LastName"></label>
                             <div>
-                                <input asp-for="LastName" />
+                                <input asp-for="LastName" data-original-value="@Model.LastName" />
                                 <span asp-validation-for="LastName" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="form-input flex-item-12-12" style="display: none;">
                             <label asp-for="Email"></label>
                             <div>
-                                <input asp-for="Email" readonly disabled />
+                                <input asp-for="Email" data-original-value="@Model.Email" readonly disabled />
                                 <span asp-validation-for="Email" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-4-12">
                             <label asp-for="PhoneNumber"></label>
                             <div>
-                                <input asp-for="PhoneNumber" />
+                                <input asp-for="PhoneNumber" data-original-value="@Model.PhoneNumber" />
                                 <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-8-12">
                             <label asp-for="Employer"></label>
                             <div>
-                                <input asp-for="Employer" />
+                                <input asp-for="Employer" data-original-value="@Model.Employer" />
                                 <span asp-validation-for="Employer" class="text-danger"></span>
                             </div>
                         </div>
