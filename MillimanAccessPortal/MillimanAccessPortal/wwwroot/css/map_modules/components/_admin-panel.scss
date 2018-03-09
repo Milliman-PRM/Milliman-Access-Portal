@@ -106,6 +106,34 @@
                     margin: 0;
                 }
             }
+
+            .fieldset-container {
+
+                fieldset {
+
+                    legend {
+                        border-bottom: 1px solid $black;
+                    }
+
+                    .selection-option-container {
+                        padding-left: 1em;
+                        cursor: pointer;
+
+                        &:hover {
+                            color: $dark-grey;
+                            cursor: pointer;
+                        }
+
+                        .selection-option-checkbox {
+                        }
+
+                        .selection-option-label {
+                            padding-left: .5em;
+                            cursor: pointer;
+                        }
+                    }
+                }
+            }
         }
     }
 }
