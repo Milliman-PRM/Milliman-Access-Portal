@@ -5,7 +5,19 @@ var accountSettingsRunning = false;
 var passwordChangeRunning = false;
 
 function submitAccountSettings() {
-  var urlPartial = 'Account/';
+  function settingsChanged() {
+    var changedFields = 0;
+    $('input[data-original-value]').each(function () {
+      if ($(this).val() !== $(this).attr('data-original-value')) {
+        changedFields += 1;
+      }
+    });
+
+    if (changedFields > 0) {
+      return true;
+    }
+    return false;
+  }
 
   if ($accountSettingsForm.valid()) {
     if (settingsChanged()) {
@@ -34,7 +46,7 @@ function submitAccountSettings() {
         accountSettingsRunning = false;
         if (!passwordChangeRunning) {
           shared.hideButtonSpinner($button);
-           $('.form-button-container').css({ 'visibility': 'hidden' });
+          $('.form-button-container').css({ visibility: 'hidden' });
         }
       });
     }
@@ -62,7 +74,7 @@ function submitAccountSettings() {
         passwordChangeRunning = false;
         if (!accountSettingsRunning) {
           shared.hideButtonSpinner($button);
-           $('.form-button-container').css({ 'visibility': 'hidden' });
+          $('.form-button-container').css({ visibility: 'hidden' });
         }
       });
     }
@@ -79,29 +91,14 @@ function resetForm() {
 
   $elementsToClear.val('');
 
-   $('.form-button-container').css({ 'visibility': 'hidden' });
+  $('.form-button-container').css({ visibility: 'hidden' });
 
   shared.resetValidation($('#account-settings'));
   document.activeElement.blur();
 }
 
-function settingsChanged() {
-  var changedFields = 0;
-  $('input[data-original-value]').each(function () {
-    if ($(this).val() !== $(this).attr('data-original-value')) {
-      changedFields += 1;
-    }
-  });
-
-  if (changedFields > 0) {
-    return true;
-  }
-  return false;
-}
-
 $(document).ready(function onReady() {
-
-  $('#PhoneNumber').mask("(999) 999-9999");
+  $('#PhoneNumber').mask('(999) 999-9999');
 
   if ($('#UserName').val() !== $('#Email').val()) {
     $('#Email').show();
