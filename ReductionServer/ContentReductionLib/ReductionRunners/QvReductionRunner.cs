@@ -7,15 +7,36 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Context;
+using QmsApi;
 
 namespace ContentReductionLib.ReductionRunners
 {
     internal class QvReductionRunner : ReductionRunnerBase
     {
+        internal QvReductionRunner()
+        {
+            TestQvConnection().Wait();
+        }
+
+        private async Task TestQvConnection()
+        {
+            QmsApi.IQMS c;
+            // not providing an address uses default http://indy-qvtest01:4799/QMS/Service
+            c = new QMSClient(QMSClient.EndpointConfiguration.BasicHttpBinding_IQMS);
+            //c = new QMSClient(QMSClient.EndpointConfiguration.BasicHttpBinding_IQMS, "http://QmsApiInAzure");
+
+            var sk = await c.GetTimeLimitedServiceKeyAsync();
+
+            Task<ServiceInfo[]> s = c.GetServicesAsync(ServiceTypes.QlikViewDistributionService);
+            s.Wait();
+            var z = s.Result;
+        }
+
         #region Member properties
         internal ContentReductionTask QueueTask
         {
