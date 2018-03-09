@@ -26,6 +26,7 @@ _UpgradeReport_Files/
 bin/
 obj/
 TestResults/
+node_modules/
 .vs/
 **/wwwroot/lib/
 **/wwwroot/css/*.css

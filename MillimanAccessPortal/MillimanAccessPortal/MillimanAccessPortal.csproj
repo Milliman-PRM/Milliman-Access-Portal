@@ -47,7 +47,6 @@
   <ItemGroup>
     <None Include="wwwroot\favicon.ico" />
     <None Include="wwwroot\js\contact-form.js" />
-    <None Include="wwwroot\js\contact-form.min.js" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AuditLogLib\AuditLogLib.csproj" />
@@ -58,7 +57,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\PublishProfiles\" />
-    <Folder Include="Views\ClientAdmin\templates\" />
     <Folder Include="wwwroot\lib\" />
   </ItemGroup>
   <ItemGroup>
