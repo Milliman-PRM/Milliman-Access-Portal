@@ -18,23 +18,21 @@ namespace ContentReductionLib.ReductionRunners
 {
     internal class QvReductionRunner : ReductionRunnerBase
     {
+        // TODO Get this from configuration
+        const string QmsUrl = "http://indy-qvtest01:4799/QMS/Service";
+
         internal QvReductionRunner()
         {
-            TestQvConnection().Wait();
+            TestQvConnection();
         }
 
-        private async Task TestQvConnection()
+        private void TestQvConnection()
         {
-            QmsApi.IQMS c;
-            // not providing an address uses default http://indy-qvtest01:4799/QMS/Service
-            c = new QMSClient(QMSClient.EndpointConfiguration.BasicHttpBinding_IQMS);
-            //c = new QMSClient(QMSClient.EndpointConfiguration.BasicHttpBinding_IQMS, "http://QmsApiInAzure");
+            IQMS Client = QmsClientCreator.New(QmsUrl);
 
-            var sk = await c.GetTimeLimitedServiceKeyAsync();
-
-            Task<ServiceInfo[]> s = c.GetServicesAsync(ServiceTypes.QlikViewDistributionService);
-            s.Wait();
-            var z = s.Result;
+            // test
+            ServiceInfo[] Services = Client.GetServicesAsync(ServiceTypes.All).Result;
+            ServiceInfo[] Qds = Client.GetServicesAsync(ServiceTypes.QlikViewDistributionService).Result;
         }
 
         #region Member properties
