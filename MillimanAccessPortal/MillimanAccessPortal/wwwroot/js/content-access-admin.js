@@ -172,9 +172,9 @@ function renderRootContentItem(rootContentItem) {
       'ContentAccessAdmin/SelectionGroups',
       renderSelectionGroupList
     ))
-  );
-
-  $('#root-content-items ul.admin-panel-content').append($card.build());
+  ).build();
+  shared.updateCardStatus($card, rootContentItem.PublicationDetails);
+  $('#root-content-items ul.admin-panel-content').append($card);
 }
 function renderRootContentItemList(response, rootContentItemId) {
   var $rootContentItemList = $('#root-content-items ul.admin-panel-content');

@@ -16,7 +16,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
         public RootContentItem RootContentItemEntity { get; set; }
         public int GroupCount { get; set; }
         public int EligibleUserCount { get; set; }
-        public ReductionStatusEnum Status { get; set; }
+        public PublicationDetails PublicationDetails { get; set; }
 
         internal static ContentAccessAdminRootContentItemDetailViewModel Build(ApplicationDbContext DbContext, RootContentItem RootContentItem)
         {
@@ -25,7 +25,14 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
                 RootContentItem.ContentType = DbContext.ContentType.Find(RootContentItem.ContentTypeId);
             }
 
-            ContentAccessAdminRootContentItemDetailViewModel Model = new ContentAccessAdminRootContentItemDetailViewModel {
+            var latestPublication = DbContext.ContentPublicationRequest
+                .Where(crt => crt.RootContentItemId == RootContentItem.Id)
+                .OrderByDescending(crt => crt.CreateDateTime)
+                .FirstOrDefault();
+            PublicationDetails publicationDetails = PublicationDetails.Build(latestPublication, DbContext);
+
+            ContentAccessAdminRootContentItemDetailViewModel Model = new ContentAccessAdminRootContentItemDetailViewModel
+            {
                 RootContentItemEntity = RootContentItem,
                 GroupCount = DbContext.SelectionGroup
                     .Where(sg => sg.RootContentItemId == RootContentItem.Id)
@@ -35,11 +42,8 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
                     .Where(ur => ur.RootContentItemId == RootContentItem.Id)
                     .Where(ur => ur.RoleId == ((long)RoleEnum.ContentUser))
                     .Count(),
-                Status = DbContext.ContentPublicationRequestStatus
-                    .Where(cprs => cprs.ContentPublicationRequestId == RootContentItem.Id)
-                    .Select(cprs => cprs.PublicationRequestStatus)
-                    .SingleOrDefault()
-        };
+                PublicationDetails = publicationDetails,
+            };
 
             return Model;
         }
@@ -51,6 +55,36 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
                 .Single(rci => rci.Id == RootContentId);
 
             return Build(DbContext, Content);
+        }
+    }
+
+    public class PublicationDetails
+    {
+        public ApplicationUser User { get; set; }
+        public ReductionStatusEnum StatusEnum { get; set; }
+        public string StatusName { get; set; }
+        public long SelectionGroupId { get; set; } = -1;
+        public long RootContentItemId { get; set; }
+
+        public static PublicationDetails Build (ContentPublicationRequest contentPublicationRequest, ApplicationDbContext DbContext)
+        {
+            if (contentPublicationRequest == null)
+            {
+                return null;
+            }
+
+            var status = DbContext.ContentPublicationRequestStatus
+                .Where(cprs => cprs.ContentPublicationRequestId == contentPublicationRequest.Id)
+                .Select(cprs => cprs.PublicationRequestStatus)
+                .Single();
+
+            return new PublicationDetails
+            {
+                User = contentPublicationRequest.ApplicationUser,
+                StatusEnum = status,
+                StatusName = ContentReductionTask.ReductionStatusDisplayNames[status],
+                RootContentItemId = contentPublicationRequest.RootContentItemId,
+            };
         }
     }
 }

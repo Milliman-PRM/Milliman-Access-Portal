@@ -710,6 +710,8 @@ var card = {};
       value: userCount,
       tooltip: 'Eligible users'
     });
+    this.addComponent('status', {});
+
     this.data = {
       'filter-string': [
         rootContentItem.ContentName,
