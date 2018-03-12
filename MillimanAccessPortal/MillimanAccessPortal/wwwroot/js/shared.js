@@ -26,6 +26,17 @@ var shared = {};
       }
     });
   };
+  shared.filterForm = function ($panel, $this) {
+    var $content = $panel.find('form.admin-panel-content');
+    $content.find('[data-selection-value]').each(function (index, element) {
+      var $element = $(element);
+      if ($element.data('selection-value').indexOf($this.val().toUpperCase()) > -1) {
+        $element.show();
+      } else {
+        $element.hide();
+      }
+    });
+  };
 
   // Card expansion
   updateToolbarIcons = function ($panel) {

@@ -85,7 +85,7 @@ function submitSelectionForm() {
 function renderValue(value, $fieldset, originalSelections) {
   var $div;
   var $checkbox = $('<label class="selection-option-label">' + value.Value + '<input type="checkbox" id="selection-value-' + value.Id + '" name="' + value.Id + '" class="selection-option-value"><span class="selection-option-checkmark"></span></label>');
-  $fieldset.append('<div class="selection-option-container"></div>');
+  $fieldset.append('<div class="selection-option-container" data-selection-value="' + value.Value.toUpperCase() + '"></div>');
   $div = $fieldset.find('div.selection-option-container').last();
   $div.append($checkbox);
   $checkbox.find('input[type="checkbox"]').prop('checked', value.SelectionStatus);
@@ -235,7 +235,8 @@ $(document).ready(function () {
 
   $('.action-icon-expand').click(shared.expandAll.listener);
   $('.action-icon-collapse').click(shared.collapseAll.listener);
-  $('.admin-panel-searchbar').keyup(shared.filterTree.listener);
+  $('.admin-panel-searchbar-tree').keyup(shared.filterTree.listener);
+  $('.admin-panel-searchbar-form').keyup(shared.filterForm.listener);
 
   $('#selection-groups ul.admin-panel-content-action').append(new card.AddSelectionGroupActionCard(selectionGroupAddClickHandler).build());
   // TODO: select by ID or better classes
