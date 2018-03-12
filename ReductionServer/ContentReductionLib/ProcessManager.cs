@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using MapDbContextLib.Context;
 using Milliman.ReductionEngine;
 using Milliman.Common;  // TODO remove this
+using AuditLogLib;
 
 namespace ContentReductionLib
 {
@@ -23,6 +24,9 @@ namespace ContentReductionLib
         //private static Dictionary<string, RunningReductionTask> ExecutingTasks = new Dictionary<string, RunningReductionTask>();
 
         private Dictionary<int, JobMonitorInfo> JobMonitorDict = new Dictionary<int, JobMonitorInfo>();
+
+        // TODO get this from config
+        const string AuditLogCxn = "Server=localhost;Database=MapAuditLog;User Id=postgres;Password=postgres;";
 
         /// <summary>
         /// class used to pass operational parameters to the thread that handles tasks of a single config file
@@ -34,6 +38,14 @@ namespace ContentReductionLib
         }
 
         private string RootPath = string.Empty;
+
+        /// <summary>
+        /// constructor, initializes some things (do better)
+        /// </summary>
+        public ProcessManager()
+        {
+            AuditLogger.Config = new AuditLoggerConfiguration { AuditLogConnectionString = AuditLogCxn };
+        }
 
         /// <summary>
         /// Initiate processing of configured JobMonitors

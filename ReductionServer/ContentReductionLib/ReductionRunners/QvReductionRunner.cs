@@ -12,20 +12,36 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Context;
+using AuditLogLib;
 using QmsApi;
 
 namespace ContentReductionLib.ReductionRunners
 {
     internal class QvReductionRunner : ReductionRunnerBase
     {
-        // TODO Get this from configuration
+        // TODO Get these from configuration
         const string QmsUrl = "http://indy-qvtest01:4799/QMS/Service";
+        AuditLogger Logger = new AuditLogger();  // Can't instantiate unless static AuditLogger.Config is initialized (should be done once in ProcessManager)
 
         internal QvReductionRunner()
         {
+            TestAuditLogging();
             TestQvConnection();
         }
 
+        /// <summary>
+        /// Remove eventually
+        /// </summary>
+        private void TestAuditLogging()
+        {
+            AuditEvent e = AuditEvent.New("ContentReductionLib.ReductionRunners.QvReductionRunner()", "Test event", AuditEventId.Unspecified, new { Note = "This is a test", Source = "Reduction server" });
+            new AuditLogger().Log(e);
+            Thread.Sleep(200);
+        }
+
+        /// <summary>
+        /// Remove eventually
+        /// </summary>
         private void TestQvConnection()
         {
             IQMS Client = QmsClientCreator.New(QmsUrl);
@@ -54,7 +70,8 @@ namespace ContentReductionLib.ReductionRunners
         {
             return
                 QueueTask != null &&
-                ContextOptions != null
+                ContextOptions != null && 
+                Logger != null
                 ;
         }
 
@@ -66,11 +83,14 @@ namespace ContentReductionLib.ReductionRunners
             }
 
             Guid G = QueueTask.Id;
-            for (int i = 0; i < 25; i++)
-            {
-                Thread.Sleep(200);
-                Trace.WriteLine($"Qv reduction task {G.ToString()} on iteration {i}");
-            }
+
+            PreTaskSetup(G);
+            ExtractReductionHierarchy(G);
+            CreateReducedContent(G);
+            DistributeResults(G);
+            Cleanup(G);
+
+            // Update status based on outcome of above steps
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
                 Db.ContentReductionTask.Find(G).ReductionStatus = ReductionStatusEnum.Reduced;
@@ -79,5 +99,56 @@ namespace ContentReductionLib.ReductionRunners
 
             return true;
         }
+
+        /// <summary>
+        /// Complete this
+        /// </summary>
+        /// <param name="G"></param>
+        private void PreTaskSetup(Guid G)
+        {
+            Thread.Sleep(500);
+            Trace.WriteLine($"Task {G.ToString()} completed PreTaskSetup");
+        }
+
+        /// <summary>
+        /// Complete this
+        /// </summary>
+        /// <param name="G"></param>
+        private void ExtractReductionHierarchy(Guid G)
+        {
+            Thread.Sleep(500);
+            Trace.WriteLine($"Task {G.ToString()} completed ExtractReductionHierarchy");
+        }
+
+        /// <summary>
+        /// Complete this
+        /// </summary>
+        /// <param name="G"></param>
+        private void CreateReducedContent(Guid G)
+        {
+            Thread.Sleep(500);
+            Trace.WriteLine($"Task {G.ToString()} completed CreateReducedContent");
+        }
+
+        /// <summary>
+        /// Complete this
+        /// </summary>
+        /// <param name="G"></param>
+        private void DistributeResults(Guid G)
+        {
+            Thread.Sleep(500);
+            Trace.WriteLine($"Task {G.ToString()} completed DistributeResults");
+        }
+
+        /// <summary>
+        /// Complete this
+        /// </summary>
+        /// <param name="G"></param>
+        private void Cleanup(Guid G)
+        {
+            Thread.Sleep(500);
+            Trace.WriteLine($"Task {G.ToString()} completed Cleanup");
+        }
+
     }
 }
