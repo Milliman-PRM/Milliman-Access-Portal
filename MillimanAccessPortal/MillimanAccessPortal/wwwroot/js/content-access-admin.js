@@ -107,6 +107,7 @@ function renderField(field, $parent, originalSelections) {
 function renderSelections(response) {
   var $selectionInfo = $('#selection-info form.admin-panel-content');
   var $fieldsetDiv = $selectionInfo.find('.fieldset-container');
+  var $relatedCard = $('#selection-groups [selected]').closest('.card-container');
   var details = $.extend({
     User: {
       FirstName: ''
@@ -121,6 +122,7 @@ function renderSelections(response) {
   response.Hierarchy.Fields.forEach(function (field) {
     renderField(field, $fieldsetDiv, response.OriginalSelections);
   });
+  shared.updateCardStatus($relatedCard, response.ReductionDetails);
   $selectionInfo
     .find('button').hide()
     .filter('.button-status-' + details.StatusEnum).show();
