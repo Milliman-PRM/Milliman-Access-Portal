@@ -202,6 +202,7 @@ namespace MapTests
             ReturnMockContext.Object.UserRoleInRootContentItem = MockDbSet<UserRoleInRootContentItem>.New(new List<UserRoleInRootContentItem>()).Object;
             ReturnMockContext.Object.UserClaims = MockDbSet<IdentityUserClaim<long>>.New(new List<IdentityUserClaim<long>>()).Object;
             ReturnMockContext.Object.ContentPublicationRequest = MockDbSet<ContentPublicationRequest>.New(new List<ContentPublicationRequest>()).Object;
+            ReturnMockContext.Object.ContentPublicationRequestStatus = MockDbSet<ContentPublicationRequestStatus>.New(new List<ContentPublicationRequestStatus>()).Object;
             ReturnMockContext.Object.ContentReductionTask = MockDbSet<ContentReductionTask>.New(new List<ContentReductionTask>()).Object;
             ReturnMockContext.Object.Users = ReturnMockContext.Object.ApplicationUser;
             ReturnMockContext.Object.Roles = ReturnMockContext.Object.ApplicationRole;
@@ -656,6 +657,13 @@ namespace MapTests
             DbContextObject.ContentPublicationRequest.AddRange(new List<ContentPublicationRequest>
             {
                 new ContentPublicationRequest { Id=1, ApplicationUserId=1, MasterFilePath="C:\\Dir\\file.ext", RootContentItemId=1 },
+            });
+
+            // Each content publication request requires an associated status.
+            // In the real database, this is a view with a calculated field.
+            DbContextObject.ContentPublicationRequestStatus.AddRange(new List<ContentPublicationRequestStatus>
+            {
+                new ContentPublicationRequestStatus { ContentPublicationRequestId=1, PublicationRequestStatus=ReductionStatusEnum.Default },
             });
             #endregion
         }
