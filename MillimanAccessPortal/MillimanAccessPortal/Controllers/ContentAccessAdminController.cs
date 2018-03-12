@@ -604,14 +604,15 @@ namespace MillimanAccessPortal.Controllers
 
             #region Validation
             var ValidSelections = DbContext.HierarchyFieldValue
-                .Where(hfv => Selections.Contains(hfv.Id))
-                .Where(hfv => hfv.HierarchyField.RootContentItemId == SelectionGroup.RootContentItemId);
+                .Where(hfv => hfv.HierarchyField.RootContentItemId == SelectionGroup.RootContentItemId)
+                .Where(hfv => Selections.Contains(hfv.Id));
             if (ValidSelections.Count() < Selections.Count())
             {
                 Response.Headers.Add("Warning", "One or more requested selections do not exist or do not belong to the specified selection group.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
+            // Compare as sets to see if they contain the same elements
             if (Selections.ToHashSet().SetEquals(SelectionGroup.SelectedHierarchyFieldValueList))
             {
                 Response.Headers.Add("Warning", "The requested selections are not different from the active document.");
