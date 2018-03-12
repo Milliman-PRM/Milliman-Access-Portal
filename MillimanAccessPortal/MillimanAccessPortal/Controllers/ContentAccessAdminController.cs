@@ -614,7 +614,7 @@ namespace MillimanAccessPortal.Controllers
 
             if (Selections.ToHashSet().SetEquals(SelectionGroup.SelectedHierarchyFieldValueList))
             {
-                Response.Headers.Add("Warning", "The requested selections match the most recently available document.");
+                Response.Headers.Add("Warning", "The requested selections are not different from the active document.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
