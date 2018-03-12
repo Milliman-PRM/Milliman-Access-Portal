@@ -1,58 +1,175 @@
 [
+  // Bootstrap Reboot
   {
-    "outputFileName": "wwwroot/js/contact-form.min.js",
+    "outputFileName": "wwwroot/lib/bootstrap/reboot.css",
     "inputFiles": [
-      "wwwroot/js/contact-form.js"
-    ],
-    "minify": {
-      "enabled": true,
-      "renameLocals": true
-    }
-  },
-  {
-    "outputFileName": "wwwroot/js/lib-options.min.js",
-    "inputFiles": [
-      "wwwroot/js/lib-options.js"
-    ],
-    "minify": {
-      "enabled": true,
-      "renameLocals": true
-    }
-  },
-  {
-    "outputFileName": "wwwroot/js/content-access-admin.min.js",
-    "inputFiles": [
-      "wwwroot/js/content-access-admin.js"
+      "node_modules/bootstrap/dist/css/bootstrap-reboot.css"
     ]
   },
+  {
+    "outputFileName": "wwwroot/lib/bootstrap/bootstrap-reboot.css.map",
+    "inputFiles": [
+      "node_modules/bootstrap/dist/css/bootstrap-reboot.css.map"
+    ]
+  },
+  // Jquery
+  {
+    "outputFileName": "wwwroot/lib/jquery/jquery.js",
+    "inputFiles": [
+      "node_modules/jquery/dist/jquery.js"
+    ]
+  },
+  // Jquery Mask Plugin
+  {
+    "outputFileName": "wwwroot/lib/jquery-mask-plugin/jquery.mask.js",
+    "inputFiles": [
+      "node_modules/jquery-mask-plugin/dist/jquery.mask.js"
+    ]
+  },
+  // Jquery Validation
+  {
+    "outputFileName": "wwwroot/lib/jquery-validation/jquery.validate.js",
+    "inputFiles": [
+      "node_modules/jquery-validation/dist/jquery.validate.js"
+    ]
+  },
+  // Jquery Validation Unobtrusive
+  {
+    "outputFileName": "wwwroot/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js",
+    "inputFiles": [
+      "node_modules/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"
+    ]
+  },
+  // Selectize
+  {
+    "outputFileName": "wwwroot/lib/selectize/selectize.js",
+    "inputFiles": [
+      "node_modules/selectize/dist/js/standalone/selectize.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/lib/selectize/selectize.default.css",
+    "inputFiles": [
+      "node_modules/selectize/dist/css/selectize.default.css"
+    ]
+  },
+  // Toastr
+  {
+    "outputFileName": "wwwroot/lib/toastr/toastr.js",
+    "inputFiles": [
+      "node_modules/toastr/toastr.js"
+    ]
+  },
+  // Tooltipster
+  {
+    "outputFileName": "wwwroot/lib/tooltipster/tooltipster.js",
+    "inputFiles": [
+      "node_modules/tooltipster/src/js/tooltipster.js",
+      "node_modules/tooltipster/src/js/plugins/tooltipster/sideTip/tooltipster-sideTip.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/lib/tooltipster/tooltipster.css",
+    "inputFiles": [
+      "node_modules/tooltipster/dist/css/tooltipster.bundle.css"
+    ]
+  },
+  // Typeahead
+  {
+    "outputFileName": "wwwroot/lib/typeahead/typeahead.js",
+    "inputFiles": [
+      "node_modules/typeahead.js/dist/typeahead.bundle.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/lib/typeahead/typeahead.min.js",
+    "inputFiles": [
+      "node_modules/typeahead.js/dist/typeahead.bundle.js"
+    ]
+  },
+  // Vex
+  {
+    "outputFileName": "wwwroot/lib/vex-js/vex.combined.js",
+    "inputFiles": [
+      "node_modules/vex-js/dist/js/vex.combined.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/lib/vex-js/vex.css",
+    "inputFiles": [
+      "node_modules/vex-js/dist/css/vex.css",
+      "node_modules/vex-js/dist/css/vex-theme-default.css"
+    ]
+  },
+  // Client Admin
   {
     "outputFileName": "wwwroot/js/client-admin.min.js",
     "inputFiles": [
       "wwwroot/js/client-admin.js"
     ]
   },
+  // Contact Form
   {
-    "outputFileName": "wwwroot/lib/selectize/dist/css/selectize.default.min.css",
+    "outputFileName": "wwwroot/js/contact-form.min.js",
     "inputFiles": [
-      "wwwroot/lib/selectize/dist/css/selectize.default.css"
+      "wwwroot/js/contact-form.js"
     ]
   },
+  // Content Access Admin
   {
-    "outputFileName": "wwwroot/lib/vex/dist/css/vex.min.css",
+    "outputFileName": "wwwroot/js/content-access-admin.min.js",
     "inputFiles": [
-      "wwwroot/lib/vex/dist/css/vex.css"
+      "wwwroot/js/content-access-admin.js"
     ]
   },
+  // Content Publisher
   {
-    "outputFileName": "wwwroot/lib/vex/dist/css/vex-theme-default.min.css",
+    "outputFileName": "wwwroot/js/content-publisher.min.js",
     "inputFiles": [
-      "wwwroot/lib/vex/dist/css/vex-theme-default.css"
+      "wwwroot/js/content-publisher.js"
     ]
   },
+  // File Uploads
   {
-    "outputFileName": "wwwroot/css/map.min.css",
+    "outputFileName": "wwwroot/js/upload.min.js",
     "inputFiles": [
+      "wwwroot/js/upload.js"
+    ]
+  },
+  // Site Styling (Production)
+  {
+    "outputFileName": "wwwroot/lib/site.css",
+    "inputFiles": [
+      "node_modules/bootstrap/dist/css/bootstrap-reboot.css",
+      "wwwroot/lib/toastr/toastr.css",
+      "node_modules/tooltipster/dist/css/tooltipster.bundle.css",
+      "node_modules/vex-js/dist/css/vex.css",
+      "node_modules/vex-js/dist/css/vex-theme-default.css",
       "wwwroot/css/map.css"
+    ]
+  },
+  // Site Functionality (Production)
+  {
+    "outputFileName": "wwwroot/lib/site.js",
+    "inputFiles": [
+      "node_modules/jquery-validation/dist/jquery.validate.js",
+      "node_modules/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js",
+      "node_modules/jquery-mask-plugin/dist/jquery.mask.js",
+      "node_modules/vex-js/dist/js/vex.combined.js",
+      "node_modules/toastr/toastr.js",
+      "node_modules/tooltipster/src/js/tooltipster.js",
+      "node_modules/tooltipster/src/js/plugins/tooltipster/sideTip/tooltipster-sideTip.js",
+      "wwwroot/js/shared.js",
+      "wwwroot/js/card.js",
+      "wwwroot/js/dialog.js",
+      "wwwroot/js/lib-options.js"
     ]
   }
 ]
+
+
+
+
+
+
+

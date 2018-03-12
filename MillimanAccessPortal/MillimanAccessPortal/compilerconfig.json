@@ -1,7 +1,7 @@
 ﻿[
   {
     "outputFile": "wwwroot/lib/toastr/toastr.css",
-    "inputFile": "wwwroot/lib/toastr/toastr.scss"
+    "inputFile": "node_modules/toastr/toastr.scss"
   },
   {
     "outputFile": "wwwroot/css/map.css",

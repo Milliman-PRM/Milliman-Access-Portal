@@ -107,3 +107,6 @@ This file is for describing end user roles and actions.
 ##### Client
 - Remove Client from System
 - Create profit center entry
+- User Summary
+  - Role Summary
+  - Content Summary
