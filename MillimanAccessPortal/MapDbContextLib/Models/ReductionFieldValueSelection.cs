@@ -7,6 +7,7 @@ namespace MapDbContextLib.Models
     public class ReductionFieldValueSelection : ReductionFieldValue
     {
         public override bool HasSelectionStatus { get { return true; } }
+        public bool SelectionStatus { get; set; } = false;
 
         public ReductionFieldValueSelection()
         {}
@@ -17,7 +18,6 @@ namespace MapDbContextLib.Models
             SelectionStatus = StatusArg;
         }
 
-        public bool SelectionStatus { get; set; } = false;
 
     }
 }

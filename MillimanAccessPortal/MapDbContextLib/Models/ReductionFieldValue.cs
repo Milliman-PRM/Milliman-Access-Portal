@@ -7,6 +7,8 @@ namespace MapDbContextLib.Models
     public class ReductionFieldValue
     {
         public virtual bool HasSelectionStatus { get { return false; } }
+        public long Id { get; set; }
+        public string Value { get; set; }
 
         public ReductionFieldValue()
         {}
@@ -19,9 +21,6 @@ namespace MapDbContextLib.Models
         {
             Value = Arg;
         }
-
-        public long Id { get; set; }
-        public string Value { get; set; }
 
     }
 }

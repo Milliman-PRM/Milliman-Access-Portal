@@ -15,8 +15,6 @@ namespace MapDbContextLib.Models
 {
     public class ReductionField<T> where T : ReductionFieldValue
     {
-        public ReductionField() { }
-
         public long Id { get; set; }
         public string FieldName { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
