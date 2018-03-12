@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.IO;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -82,18 +83,16 @@ namespace ContentReductionLib.ReductionRunners
                 return false;
             }
 
-            Guid G = QueueTask.Id;
-
-            PreTaskSetup(G);
-            ExtractReductionHierarchy(G);
-            CreateReducedContent(G);
-            DistributeResults(G);
-            Cleanup(G);
+            PreTaskSetup();
+            ExtractReductionHierarchy();
+            CreateReducedContent();
+            DistributeResults();
+            Cleanup();
 
             // Update status based on outcome of above steps
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
-                Db.ContentReductionTask.Find(G).ReductionStatus = ReductionStatusEnum.Reduced;
+                Db.ContentReductionTask.Find(QueueTask.Id).ReductionStatus = ReductionStatusEnum.Reduced;
                 Db.SaveChanges();
             }
 
@@ -103,51 +102,58 @@ namespace ContentReductionLib.ReductionRunners
         /// <summary>
         /// Complete this
         /// </summary>
-        /// <param name="G"></param>
-        private void PreTaskSetup(Guid G)
+        private async void PreTaskSetup()
         {
-            Thread.Sleep(500);
-            Trace.WriteLine($"Task {G.ToString()} completed PreTaskSetup");
+            IQMS Client = QmsClientCreator.New(QmsUrl);
+
+            // Discover the source document folder configured in QDS 
+            ServiceInfo[] AllQdsServices = await Client.GetServicesAsync(ServiceTypes.QlikViewDistributionService);
+            DocumentFolder[] AllSourceDocFolders = await Client.GetSourceDocumentFoldersAsync(AllQdsServices[0].ID, DocumentFolderScope.All);
+            string RootSourceFolder = AllSourceDocFolders[1].General.Path;
+
+            // Create a subfolder to contain initial artifacts of this task
+            Directory.CreateDirectory(Path.Combine(RootSourceFolder, QueueTask.Id.ToString()));
+
+            // Deposit initial contents of the task folder
+            File.Copy(QueueTask.MasterFilePath, Path.Combine(RootSourceFolder, "Master.qvw"));
+
+            Trace.WriteLine($"Task {QueueTask.Id.ToString()} completed PreTaskSetup");
         }
 
         /// <summary>
         /// Complete this
         /// </summary>
-        /// <param name="G"></param>
-        private void ExtractReductionHierarchy(Guid G)
+        private void ExtractReductionHierarchy()
         {
             Thread.Sleep(500);
-            Trace.WriteLine($"Task {G.ToString()} completed ExtractReductionHierarchy");
+            Trace.WriteLine($"Task {QueueTask.Id.ToString()} completed ExtractReductionHierarchy");
         }
 
         /// <summary>
         /// Complete this
         /// </summary>
-        /// <param name="G"></param>
-        private void CreateReducedContent(Guid G)
+        private void CreateReducedContent()
         {
             Thread.Sleep(500);
-            Trace.WriteLine($"Task {G.ToString()} completed CreateReducedContent");
+            Trace.WriteLine($"Task {QueueTask.Id.ToString()} completed CreateReducedContent");
         }
 
         /// <summary>
         /// Complete this
         /// </summary>
-        /// <param name="G"></param>
-        private void DistributeResults(Guid G)
+        private void DistributeResults()
         {
             Thread.Sleep(500);
-            Trace.WriteLine($"Task {G.ToString()} completed DistributeResults");
+            Trace.WriteLine($"Task {QueueTask.Id.ToString()} completed DistributeResults");
         }
 
         /// <summary>
         /// Complete this
         /// </summary>
-        /// <param name="G"></param>
-        private void Cleanup(Guid G)
+        private void Cleanup()
         {
             Thread.Sleep(500);
-            Trace.WriteLine($"Task {G.ToString()} completed Cleanup");
+            Trace.WriteLine($"Task {QueueTask.Id.ToString()} completed Cleanup");
         }
 
     }
