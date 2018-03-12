@@ -16,6 +16,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
         public RootContentItem RootContentItemEntity { get; set; }
         public int GroupCount { get; set; }
         public int EligibleUserCount { get; set; }
+        public ReductionStatusEnum Status { get; set; }
 
         internal static ContentAccessAdminRootContentItemDetailViewModel Build(ApplicationDbContext DbContext, RootContentItem RootContentItem)
         {
@@ -32,9 +33,13 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
                 EligibleUserCount = DbContext.UserRoleInRootContentItem
                     // TODO: Qualify with required role/membership in client
                     .Where(ur => ur.RootContentItemId == RootContentItem.Id)
-                    .Where(ur => ur.RoleId == ((long) RoleEnum.ContentUser))
-                    .Count()
-                };
+                    .Where(ur => ur.RoleId == ((long)RoleEnum.ContentUser))
+                    .Count(),
+                Status = DbContext.ContentPublicationRequestStatus
+                    .Where(cprs => cprs.ContentPublicationRequestId == RootContentItem.Id)
+                    .Select(cprs => cprs.PublicationRequestStatus)
+                    .SingleOrDefault()
+        };
 
             return Model;
         }
