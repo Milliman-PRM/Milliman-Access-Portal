@@ -112,10 +112,18 @@ namespace ContentReductionLib.ReductionRunners
             string RootSourceFolder = AllSourceDocFolders[1].General.Path;
 
             // Create a subfolder to contain initial artifacts of this task
-            Directory.CreateDirectory(Path.Combine(RootSourceFolder, QueueTask.Id.ToString()));
+            string TaskFolder = Path.Combine(RootSourceFolder, QueueTask.Id.ToString());
+            try
+            {
+                Directory.CreateDirectory(TaskFolder);
+            }
+            catch (System.Exception e)
+            {
+                Trace.WriteLine($"QvReductionRunner.PreTaskSetup() failed to create task folder >{TaskFolder}<, exception:" + Environment.NewLine + e.Message);
+            }
 
-            // Deposit initial contents of the task folder
-            File.Copy(QueueTask.MasterFilePath, Path.Combine(RootSourceFolder, "Master.qvw"));
+            // Copy master file to the task folder
+            File.Copy(QueueTask.MasterFilePath, Path.Combine(TaskFolder, "Master.qvw"));
 
             Trace.WriteLine($"Task {QueueTask.Id.ToString()} completed PreTaskSetup");
         }
