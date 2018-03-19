@@ -28,6 +28,7 @@ obj/
 TestResults/
 node_modules/
 .vs/
+.vscode/
 **/wwwroot/lib/
 **/wwwroot/css/*.css
 **/wwwroot/*/*.min.*
