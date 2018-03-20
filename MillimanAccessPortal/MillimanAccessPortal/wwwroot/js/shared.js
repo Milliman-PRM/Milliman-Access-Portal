@@ -1,6 +1,9 @@
 /* global dialog */
+var $ = require('jquery');
 
 var shared = {};
+
+module.exports = shared;
 
 (function () {
   var SHOW_DURATION = 50;
@@ -113,8 +116,9 @@ var shared = {};
       if ($element.is('.hr')) {
         rv = includeHr;
         includeHr = false; // reset HR status for next group
-      } else {
-        rv = ($element.data('filter-string').indexOf(filterString.toUpperCase()) > -1);
+      } else if ($element.has('[data-filter-string]').length) {
+        rv = ($element.find('[data-filter-string]').data().filterString
+          .indexOf(filterString.toUpperCase()) > -1);
         includeHr = (includeHr || rv);
       }
       return rv;
