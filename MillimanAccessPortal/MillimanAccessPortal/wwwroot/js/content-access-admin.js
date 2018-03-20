@@ -121,7 +121,7 @@ $(document).ready(function () {
 
   $('.action-icon-expand').click(shared.expandAll.listener);
   $('.action-icon-collapse').click(shared.collapseAll.listener);
-  $('.admin-panel-searchbar').keyup(shared.filterTree.listener);
+  $('.admin-panel-searchbar').keyup(shared.filterTreeImp.listener);
 
   $('#selection-groups ul.admin-panel-content-action').append(new card.AddSelectionGroupActionCard(selectionGroupAddClickHandler).build());
 

@@ -647,7 +647,7 @@ $(document).ready(function onReady() {
     shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog);
   });
 
-  $('.admin-panel-searchbar').keyup(shared.filterTree.listener);
+  $('.admin-panel-searchbar').keyup(shared.filterTreeImp.listener);
   $('.tooltip').tooltipster();
 
   // TODO: find a better place for this
