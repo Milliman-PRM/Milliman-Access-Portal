@@ -85,7 +85,28 @@ namespace ContentReductionLib.ReductionRunners
         private string MasterFileName { get { return "Master.qvw"; } }
         #endregion
 
-        internal override bool ValidateInstance()
+        internal override (Guid TaskId, ReductionJobResultEnum Result) ExecuteReduction()
+        {
+            try
+            {
+                if (ValidateThisInstance() &&
+                    PreTaskSetup() &&
+                    ExtractReductionHierarchy().Result &&
+                    CreateReducedContent() &&
+                    DistributeResults() &&
+                    Cleanup()
+                   )
+                {
+                    return (QueueTask.Id, ReductionJobResultEnum.Success);
+                }
+            }
+            catch
+            {}
+
+            return (QueueTask.Id, ReductionJobResultEnum.Error);
+        }
+
+        internal override bool ValidateThisInstance()
         {
             bool Result = QueueTask != null &&
                           ContextOptions != null &&
@@ -104,41 +125,6 @@ namespace ContentReductionLib.ReductionRunners
             return Result;
         }
 
-        internal override async Task<bool> ExecuteReduction()
-        {
-            if (!ValidateInstance())
-            {
-                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
-                {
-                    Db.ContentReductionTask.Find(QueueTask.Id).ReductionStatus = ReductionStatusEnum.Error;
-                    Db.SaveChanges();
-                }
-
-                return false;
-            }
-
-            if (
-                // Each of these is responsible to make an appropriate task status update in the case of failure
-                ! PreTaskSetup() ||
-                ! ExtractReductionHierarchy() ||
-                ! CreateReducedContent() ||
-                ! DistributeResults() ||
-                ! Cleanup()
-               )
-            {
-                return false;
-            }
-
-            // Update task with status reduced
-            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
-            {
-                Db.ContentReductionTask.Find(QueueTask.Id).ReductionStatus = ReductionStatusEnum.Reduced;
-                Db.SaveChanges();
-            }
-
-            return true;
-        }
-
         /// <summary>
         /// Sets up the starting conditions that are unique to this specific task
         /// </summary>
@@ -146,10 +132,10 @@ namespace ContentReductionLib.ReductionRunners
         {
             IQMS Client = QmsClientCreator.New(QmsUrl);
 
-            // Folder is named for the task guid from the database
-            WorkingFolderRelative = QueueTask.Id.ToString();
-
+            WorkingFolderRelative = QueueTask.Id.ToString();  // Folder is named for the task guid from the database
             string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
+            string MasterFileDestinationPath = Path.Combine(WorkingFolderAbsolute, MasterFileName);
+
             try
             {
                 if (Directory.Exists(WorkingFolderAbsolute))
@@ -157,11 +143,11 @@ namespace ContentReductionLib.ReductionRunners
                     Directory.Delete(WorkingFolderAbsolute, true);
                 }
                 Directory.CreateDirectory(WorkingFolderAbsolute);
-                File.Copy(QueueTask.MasterFilePath, Path.Combine(WorkingFolderAbsolute, MasterFileName));
+                File.Copy(QueueTask.MasterFilePath, MasterFileDestinationPath);
             }
             catch (System.Exception e)
             {
-                Trace.WriteLine($"QvReductionRunner.PreTaskSetup() failed to create task folder {WorkingFolderAbsolute} or copy master file to>{MasterFileName}<, exception message:" + Environment.NewLine + e.Message);
+                Trace.WriteLine($"QvReductionRunner.PreTaskSetup() failed to create folder {WorkingFolderAbsolute} or copy master file {QueueTask.MasterFilePath} to {MasterFileDestinationPath}, exception message:" + Environment.NewLine + e.Message);
                 return false;
             }
 
@@ -171,18 +157,36 @@ namespace ContentReductionLib.ReductionRunners
         /// <summary>
         /// Complete this
         /// </summary>
-        private bool ExtractReductionHierarchy()
+        private async Task<bool> ExtractReductionHierarchy()
         {
             // Create ancillary script
             string AncillaryScriptFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "ancillary_script.txt");
             File.WriteAllText(AncillaryScriptFilePath, "LET DataExtraction=true();");
 
             // Create task object
-            TaskInfo I = CreateHierarchyExtractionTask().Result;
+            TaskInfo Info = await CreateHierarchyExtractionQdsTask();
 
             // run partial reduction
+            await RunQdsTask(Info);
 
             // Remove ancillary script
+            // Maybe I don't really need to do this, just remove the task folder at the end of processing? 
+            File.Delete(AncillaryScriptFilePath);
+
+            string ReductionSchemeFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "reduction.scheme.csv");
+            foreach (string Line in File.ReadLines(ReductionSchemeFilePath))
+            {
+                if (Line.Contains("FieldName"))
+                {
+                    continue;
+                }
+
+                string[] Fields = Line.Split(new char[]{','}, StringSplitOptions.None);
+                string ContentFieldName = Fields[1];
+                string ValuesFileName = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "fieldvalues." + ContentFieldName + ".csv");
+                string[] Values = File.ReadAllLines(ValuesFileName);
+                int x = Values.Length;
+            }
 
             Thread.Sleep(500);
             Trace.WriteLine($"Task {QueueTask.Id.ToString()} completed ExtractReductionHierarchy");
@@ -245,9 +249,8 @@ namespace ContentReductionLib.ReductionRunners
             return DocNode;
         }
 
-        private async Task<QmsApi.TaskInfo> CreateHierarchyExtractionTask()
+        private async Task<QmsApi.TaskInfo> CreateHierarchyExtractionQdsTask()
         {
-            QmsApi.TaskInfo ReturnTaskInfo = new TaskInfo();
             string TaskDateTimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
             // Create new task object
@@ -296,24 +299,84 @@ namespace ContentReductionLib.ReductionRunners
             ((QmsApi.ScheduleTrigger)NewDocumentTask.Triggering.Triggers[0]).StartAt = DateTime.Now;
             #endregion
 
-            int counter = 0;
-            TaskInfo Info;
-
             IQMS QmsClient = QmsClientCreator.New(QmsUrl);
-            QmsClient.SaveDocumentTaskAsync(NewDocumentTask);
 
-            do
-            {
-                Info = await QmsClient.FindTaskAsync(QdsServiceInfo.ID, QmsApi.TaskType.DocumentTask, NewDocumentTask.General.TaskName);
-                counter++;
-                System.Threading.Thread.Sleep(500);
-            }
-            while (Info == null);
+            await QmsClient.SaveDocumentTaskAsync(NewDocumentTask);
+            QmsApi.TaskInfo ReturnTaskInfo = await QmsClient.FindTaskAsync(QdsServiceInfo.ID, QmsApi.TaskType.DocumentTask, NewDocumentTask.General.TaskName);
 
             Trace.WriteLine($"Task with ID '{NewDocumentTask.ID.ToString("N")}' successfully saved");
 
             return ReturnTaskInfo;
         }
 
+        private async Task RunQdsTask(QmsApi.TaskInfo TInfo)
+        {
+            // TODO make these configurable
+            TimeSpan MaxStartDelay = new TimeSpan(0, 5, 0);
+            TimeSpan MaxElapsedRun = new TimeSpan(0, 5, 0);
+
+            IQMS QmsClient = QmsClientCreator.New(QmsUrl);
+
+            QmsApi.TaskStatus Status;
+
+            // Get task started, this generally requires more than one call to RunTaskAsync
+            DateTime StartTime = DateTime.Now;
+            do
+            {
+                if (DateTime.Now - StartTime > MaxStartDelay)
+                {
+                    Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TInfo.ID} failed to start running, aborting");
+                    throw new System.Exception($"Qlikview publisher failed to start task {TInfo.ID}");
+                }
+
+                await QmsClient.RunTaskAsync(TInfo.ID);
+                Thread.Sleep(500);
+                Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
+                Trace.WriteLine($"Starting task waited for {DateTime.Now - StartTime}");
+            } while (Status == null || Status.Extended == null || string.IsNullOrEmpty(Status.Extended.StartTime));
+            Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TInfo.ID} started running after {DateTime.Now - StartTime}");
+
+            // Wait for started task to finish
+            DateTime RunningStartTime = DateTime.Now;
+            do
+            {
+                if (DateTime.Now - RunningStartTime > MaxElapsedRun)
+                {
+                    Trace.WriteLine($"QvReductionRunner.RunQdsTask() elapsed time is {DateTime.Now - RunningStartTime}, aborting");
+                    throw new System.Exception($"Qlikview publisher failed to finish task {TInfo.ID}");
+                }
+
+                Thread.Sleep(500);
+                Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
+            } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out DateTime dummy));
+            Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TInfo.ID} finished running after {DateTime.Now - RunningStartTime}");
+
+            int i = 8;
+            /*
+            try
+            {
+                DateTime StartTime = DateTime.Now;
+
+                this.RunTaskSynchronously(TInfo.ID);
+
+                this.AddCleanUpAction(new Action(() => {
+                    QmsApi.IQMS QmsClient = ConnectToQMS(this.QVConnectionSettings);
+
+                    Trace.WriteLine(string.Format("Deleting task '{0}'", TInfo.ID.ToString("N")));
+                    QmsClient.DeleteTask(TInfo.ID, QMSAPI.TaskType.DocumentTask);
+                }));
+
+                DateTime EndTime = DateTime.Now;
+
+                //LogToUser("Hierarchy Task ran on Qlikview Server, duration " + (EndTime-StartTime).ToString("g"));
+                Trace.WriteLine("Hierarchy Task ran on Qlikview Server, duration " + (EndTime - StartTime).ToString("g"));
+            }
+            catch (System.Exception ex)
+            {
+                //LogToUser("Error when running the Hierarchy task on Qlikview Server: {0}", ex.Message);
+                Trace.WriteLine(string.Format("An error occurred running the Hierarchy task... {0}", ex));
+                throw new ReductionRunnerException(string.Format("An error occurred running the Hierarchy task... {0}", ex));
+            }*/
+        }
     }
 }

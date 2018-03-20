@@ -28,15 +28,6 @@ namespace ContentReductionLib
         // TODO get this from config
         const string AuditLogCxn = "Server=localhost;Database=MapAuditLog;User Id=postgres;Password=postgres;";
 
-        /// <summary>
-        /// class used to pass operational parameters to the thread that handles tasks of a single config file
-        /// </summary>
-        private class ReductionTaskThreadArgs
-        {
-            internal string ConfigFileName;
-            internal ReduceConfig TaskConfig;
-        }
-
         private string RootPath = string.Empty;
 
         /// <summary>

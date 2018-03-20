@@ -13,7 +13,8 @@ namespace ContentReductionLib.ReductionRunners
 {
     internal abstract class ReductionRunnerBase
     {
-        internal abstract Task<bool> ExecuteReduction();
-        internal abstract bool ValidateInstance();
+        internal abstract (Guid TaskId, ReductionJobResultEnum Result) ExecuteReduction();
+
+        internal abstract bool ValidateThisInstance();
     }
 }

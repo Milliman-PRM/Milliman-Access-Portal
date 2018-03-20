@@ -90,8 +90,17 @@ namespace ContentReductionLib
             while (!Token.IsCancellationRequested)
             {
                 // Remove completed tasks from the RunningTasks collection. 
-                foreach (Task CompletedTask in RunningTasks.Where(t => t.IsCompleted).ToList())
+                foreach (Task<(Guid TaskId, ReductionJobResultEnum Status)> CompletedTask in RunningTasks.Where(t => t.IsCompleted).ToList())
                 {
+                    switch (CompletedTask.Result.Status)
+                    {
+                        case ReductionJobResultEnum.Success:
+                            SetTaskStatus(CompletedTask.Result.TaskId, ReductionStatusEnum.Reduced);
+                            break;
+                        case ReductionJobResultEnum.Error:
+                            SetTaskStatus(CompletedTask.Result.TaskId, ReductionStatusEnum.Error);
+                            break;
+                    }
                     RunningTasks.Remove(CompletedTask);
                 }
 
@@ -128,12 +137,8 @@ namespace ContentReductionLib
                                         Thread.Sleep(1000);  // doing some reduction work
                                         Trace.WriteLine($"Task {G.ToString()} on iteration {i}");
                                     }
-                                    using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
-                                    {
-                                        Db.ContentReductionTask.Find(G).ReductionStatus = ReductionStatusEnum.Reduced;
-                                        Db.SaveChanges();
-                                    }
 
+                                    SetTaskStatus(G, ReductionStatusEnum.Reduced);
                                 });
 
                                 break;
@@ -176,6 +181,24 @@ namespace ContentReductionLib
 
                 return TopItems;
             }
+        }
+
+        private bool SetTaskStatus(Guid TaskId, ReductionStatusEnum Status)
+        {
+            try
+            {
+                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+                {
+                    Db.ContentReductionTask.Find(TaskId).ReductionStatus = Status;
+                    Db.SaveChanges();
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            return true;
         }
 
     }
