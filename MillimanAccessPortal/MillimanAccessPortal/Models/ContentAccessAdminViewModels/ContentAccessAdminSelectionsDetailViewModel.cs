@@ -1,14 +1,13 @@
 ﻿/*
- * CODE OWNERS: Tom Puckett
- * OBJECTIVE: A ViewModel representing details of a RootContentItem for use in ContentAccessAdmin
- * DEVELOPER NOTES: <What future developers need to know.>
+ * CODE OWNERS: Joseph Sweeney
+ * OBJECTIVE:
+ * DEVELOPER NOTES:
  */
 
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Context;
-using MapDbContextLib.Identity;
 using MillimanAccessPortal.DataQueries;
 using MapDbContextLib.Models;
 
@@ -16,24 +15,60 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
     public class ContentAccessAdminSelectionsDetailViewModel
     {
-        // TODO: Include an attribute for pending selections
-        // TODO: Include an attribute for the user responsible for current status
-        public ContentReductionHierarchy Hierarchy { get; set; }
-        public string Status { get; set; }
+        public ContentReductionHierarchy<ReductionFieldValueSelection> Hierarchy { get; set; }
+        public long[] OriginalSelections { get; set; } = { };
+        public ReductionDetails ReductionDetails { get; set; }
 
         internal static ContentAccessAdminSelectionsDetailViewModel Build(ApplicationDbContext DbContext, StandardQueries Queries, SelectionGroup SelectionGroup)
         {
-            ContentAccessAdminSelectionsDetailViewModel Model = new ContentAccessAdminSelectionsDetailViewModel
+            var OutstandingStatus = new List<ReductionStatusEnum>
             {
-                Hierarchy = Queries.GetFieldSelectionsForSelectionGroup(SelectionGroup.Id),
-                Status = DbContext.ContentReductionTask
-                    .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
-                    .OrderBy(crt => crt.CreateDateTime)
-                    .Select(crt => ContentReductionTask.ReductionStatusDisplayNames[crt.ReductionStatus])
-                    .LastOrDefault(),
+                ReductionStatusEnum.Queued,
+                ReductionStatusEnum.Reducing,
+                ReductionStatusEnum.Reduced,
+            };
+            var ContentReductionTask = DbContext.ContentReductionTask
+                .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
+                .Where(crt => OutstandingStatus.Contains(crt.ReductionStatus))
+                .SingleOrDefault();
+
+            // Convert the serialized content reduction hierarchy into a list of selected values
+            long[] SelectedValuesArray = null;
+            if (ContentReductionTask != null)
+            {
+                var SelectedValues = new List<long>();
+                var Hierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>.DeserializeJson(ContentReductionTask.SelectionCriteria);
+                foreach (var field in Hierarchy.Fields)
+                {
+                    foreach (var value in field.Values)
+                    {
+                        if (value.SelectionStatus)
+                        {
+                            SelectedValues.Add(value.Id);
+                        }
+                    }
+                }
+                SelectedValuesArray = SelectedValues.ToArray();
+            }
+
+            var latestTask = DbContext.ContentReductionTask
+                .Include(crt => crt.ContentPublicationRequest)
+                .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
+                .OrderByDescending(crt => crt.CreateDateTime)
+                .FirstOrDefault();
+            ReductionDetails reductionDetails = ((ReductionDetails) latestTask);
+
+            ContentAccessAdminSelectionsDetailViewModel model = new ContentAccessAdminSelectionsDetailViewModel
+            {
+                Hierarchy = Queries.GetFieldSelectionsForSelectionGroup(SelectionGroup.Id, SelectedValuesArray),
+                OriginalSelections = DbContext.SelectionGroup
+                    .Where(sg => sg.Id == SelectionGroup.Id)
+                    .Select(sg => sg.SelectedHierarchyFieldValueList)
+                    .Single(),
+                ReductionDetails = reductionDetails,
             };
 
-            return Model;
+            return model;
         }
     }
 }

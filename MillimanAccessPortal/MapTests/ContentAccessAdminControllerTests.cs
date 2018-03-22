@@ -547,21 +547,25 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData(999,   2, new ReductionStatusEnum[] { })]  // Selection group does not exist
-        [InlineData(  1, 999, new ReductionStatusEnum[] { })]  // Hierarchy field value does not exist
-        [InlineData(  1,   3, new ReductionStatusEnum[] { })]  // Hierarchy field value does not belong to the correct root content item
-        [InlineData(  4,   1, new ReductionStatusEnum[] { })]  // Content has not been published for the root content item
-        [InlineData(  1,   2, new ReductionStatusEnum[] { ReductionStatusEnum.Queued    })]  // An outstanding reduction task exists for the root content item
-        [InlineData(  1,   2, new ReductionStatusEnum[] { ReductionStatusEnum.Reducing  })]  // "
-        [InlineData(  1,   2, new ReductionStatusEnum[] { ReductionStatusEnum.Reduced   })]  // "
-        public async Task SingleReduction_ErrorInvalid(long SelectionGroupId, long HierarchyFieldValueId, ReductionStatusEnum[] Tasks)
+        [InlineData(999,    2, new ReductionStatusEnum[] { })]  // Selection group does not exist
+        [InlineData(  1,  999, new ReductionStatusEnum[] { })]  // Hierarchy field value does not exist
+        [InlineData(  1,    3, new ReductionStatusEnum[] { })]  // Hierarchy field value does not belong to the correct root content item
+        [InlineData(  4,    1, new ReductionStatusEnum[] { })]  // Content has not been published for the root content item
+        [InlineData(  1, null, new ReductionStatusEnum[] { })]  // The submit selections match the currently reduced selections
+        [InlineData(  1,    2, new ReductionStatusEnum[] { ReductionStatusEnum.Queued    })]  // An outstanding reduction task exists for the root content item
+        [InlineData(  1,    2, new ReductionStatusEnum[] { ReductionStatusEnum.Reducing  })]  // "
+        [InlineData(  1,    2, new ReductionStatusEnum[] { ReductionStatusEnum.Reduced   })]  // "
+        public async Task SingleReduction_ErrorInvalid(long SelectionGroupId, long? HierarchyFieldValueId, ReductionStatusEnum[] Tasks)
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("user1");
-            var Selections = new Dictionary<long, Boolean>
-            {
-                { HierarchyFieldValueId, true }
-            };
+            var Selections = HierarchyFieldValueId.HasValue
+                ? new long[]
+                {
+                    HierarchyFieldValueId.Value,
+                }
+                : new long[] { };
+
             foreach (var Status in Tasks)
             {
                 TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
@@ -597,9 +601,9 @@ namespace MapTests
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser(UserName);
-            var Selections = new Dictionary<long, Boolean>
+            var Selections = new long[]
             {
-                { 2, true }
+                2,
             };
             #endregion
 
@@ -622,9 +626,9 @@ namespace MapTests
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("user1");
-            var Selections = new Dictionary<long, Boolean>
+            var Selections = new long[]
             {
-                { 2, true }
+                2,
             };
             #endregion
 
@@ -646,9 +650,9 @@ namespace MapTests
         {
             #region Arrange
             ContentAccessAdminController controller = await GetControllerForUser("user1");
-            var Selections = new Dictionary<long, Boolean>
+            var Selections = new long[]
             {
-                { 2, true }
+                2,
             };
             foreach (var Status in Tasks)
             {

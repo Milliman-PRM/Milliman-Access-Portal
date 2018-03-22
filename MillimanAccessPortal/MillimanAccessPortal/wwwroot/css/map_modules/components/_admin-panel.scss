@@ -106,6 +106,71 @@
                     margin: 0;
                 }
             }
+
+            .fieldset-container {
+
+                fieldset {
+
+                    legend {
+                        border-bottom: 1px solid $black;
+                    }
+
+                    .selection-option-container {
+                        padding-left: .5em;
+                        cursor: pointer;
+
+                        .selection-option-label {
+                            display: block;
+                            position: relative;
+                            padding-left: 2.5em;
+                            margin-bottom: 1em;
+                            cursor: pointer;
+                            user-select: none;
+
+                            .selection-option-value {
+                                position: absolute;
+                                opacity: 0;
+                                cursor: pointer;
+                            }
+
+                            .selection-option-checkmark {
+                                position: absolute;
+                                top: 0;
+                                left: 0;
+                                height: 1.75em;
+                                width: 1.75em;
+                                background-color: $grey;
+
+                                &:after {
+                                    content: "";
+                                    position: absolute;
+                                    display: none;
+                                    left: .7em;
+                                    top: .4em;
+                                    width: .5em;
+                                    height: 1em;
+                                    border: solid $white;
+                                    border-width: 0 3px 3px 0;
+                                    transform: rotate(45deg);
+                                }
+                            }
+
+                            &:hover .selection-option-value ~ .selection-option-checkmark {
+                                background-color: $dark-grey;
+                            }
+
+                            .selection-option-value:checked ~ .selection-option-checkmark {
+                                background-color: $blue;
+
+                                &:after {
+                                    display: block;
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
         }
     }
 }

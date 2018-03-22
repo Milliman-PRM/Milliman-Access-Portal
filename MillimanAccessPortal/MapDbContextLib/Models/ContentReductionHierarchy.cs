@@ -12,7 +12,7 @@ using Newtonsoft.Json;
 
 namespace MapDbContextLib.Models
 {
-    public class ContentReductionHierarchy
+    public class ContentReductionHierarchy<T> where T : ReductionFieldValue
     {
         public ContentReductionHierarchy()
         {}
@@ -23,19 +23,19 @@ namespace MapDbContextLib.Models
             {
                 JsonString = File.ReadAllText(@"C:\Users\Tom.Puckett\Desktop\testHierarchy.json");
             }
-            ContentReductionHierarchy ObjFromJson = DeserializeJson(JsonString);
-            string str = SerializeJson(ObjFromJson);
+            ContentReductionHierarchy<ReductionFieldValue> ObjFromJson = ContentReductionHierarchy<ReductionFieldValue>.DeserializeJson(JsonString);
+            string str = ContentReductionHierarchy<ReductionFieldValue>.SerializeJson(ObjFromJson);
         }
 
-        public List<ReductionField> Fields { get; set; } = new List<ReductionField>();
+        public List<ReductionField<T>> Fields { get; set; } = new List<ReductionField<T>>();
 
         public long RootContentItemId { get; set; }
 
-        public static ContentReductionHierarchy DeserializeJson(string JsonString)
+        public static ContentReductionHierarchy<T> DeserializeJson(string JsonString)
         {
             try  // Can fail e.g. if structureType field value does not match an enumeration value name
             {
-                return JsonConvert.DeserializeObject<ContentReductionHierarchy>(JsonString);
+                return JsonConvert.DeserializeObject<ContentReductionHierarchy<T>>(JsonString);
             }
             catch
             {
@@ -43,9 +43,9 @@ namespace MapDbContextLib.Models
             }
         }
 
-        public static string SerializeJson(ContentReductionHierarchy Arg)
+        public static string SerializeJson(ContentReductionHierarchy<T> hierarchy)
         {
-            return JsonConvert.SerializeObject(Arg, Formatting.Indented);
+            return JsonConvert.SerializeObject(hierarchy, Formatting.Indented);
         }
     }
 }

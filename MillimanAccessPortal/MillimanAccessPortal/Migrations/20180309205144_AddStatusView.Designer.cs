@@ -12,9 +12,10 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180309205144_AddStatusView")]
+    partial class AddStatusView
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -98,9 +99,14 @@ namespace MillimanAccessPortal.Migrations
 
             modelBuilder.Entity("MapDbContextLib.Context.ContentPublicationRequestStatus", b =>
                 {
-                    b.Property<long>("ContentPublicationRequestId");
+                    b.Property<long>("ContentPublicationRequestId")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<int>("PublicationStatus");
+
+                    b.HasKey("ContentPublicationRequestId");
+
+                    b.ToTable("ContentPublicationRequestStatus");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.ContentReductionTask", b =>
@@ -120,7 +126,9 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("MasterFilePath")
                         .IsRequired();
 
-                    b.Property<long>("ReductionStatus");
+                    b.Property<long>("ReductionStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValue(0L);
 
                     b.Property<string>("ResultFilePath");
 
