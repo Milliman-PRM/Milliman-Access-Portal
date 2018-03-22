@@ -13,7 +13,7 @@ namespace ContentReductionLib.ReductionRunners
 {
     internal abstract class ReductionRunnerBase
     {
-        internal abstract (Guid TaskId, ReductionJobResultEnum Result) ExecuteReduction();
+        internal abstract ReductionJobResult ExecuteReduction();
 
         internal abstract bool ValidateThisInstance();
     }

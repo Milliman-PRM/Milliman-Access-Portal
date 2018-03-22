@@ -60,7 +60,7 @@ namespace MapDbContextLib.Context
 
             builder.Entity<ContentReductionTask>()
                 .Property(b => b.ReductionStatus)
-                .HasDefaultValue(ReductionStatusEnum.Default);
+                .HasDefaultValue(ReductionStatusEnum.Unspecified);
 
             builder.Entity<ContentReductionTask>()
                 .ForNpgsqlUseXminAsConcurrencyToken();

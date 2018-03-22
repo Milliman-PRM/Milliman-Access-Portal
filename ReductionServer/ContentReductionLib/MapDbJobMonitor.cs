@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: Intended that one instance of this class monitors a MAP application database for reductino jobs to perform
+ * OBJECTIVE: Intended that one instance of this class monitors a MAP application database for reduction jobs to perform
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
@@ -14,7 +14,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using MapDbContextLib.Context;
+using MapDbContextLib.Models;
 using ContentReductionLib.ReductionRunners;
+using Newtonsoft.Json;
 
 namespace ContentReductionLib
 {
@@ -90,17 +92,9 @@ namespace ContentReductionLib
             while (!Token.IsCancellationRequested)
             {
                 // Remove completed tasks from the RunningTasks collection. 
-                foreach (Task<(Guid TaskId, ReductionJobResultEnum Status)> CompletedTask in RunningTasks.Where(t => t.IsCompleted).ToList())
+                foreach (Task<ReductionJobResult> CompletedTask in RunningTasks.Where(t => t.IsCompleted).ToList())
                 {
-                    switch (CompletedTask.Result.Status)
-                    {
-                        case ReductionJobResultEnum.Success:
-                            SetTaskStatus(CompletedTask.Result.TaskId, ReductionStatusEnum.Reduced);
-                            break;
-                        case ReductionJobResultEnum.Error:
-                            SetTaskStatus(CompletedTask.Result.TaskId, ReductionStatusEnum.Error);
-                            break;
-                    }
+                    UpdateTask(CompletedTask.Result);
                     RunningTasks.Remove(CompletedTask);
                 }
 
@@ -127,18 +121,12 @@ namespace ContentReductionLib
                             default:
                                 NewTask = Task.Run(() =>
                                 {
-                                    // Start the job running
-                                    /* Create/configureLaunch an instance of ReductionRunner */
-
                                     // All of the below simulates what will be done in the reduction related class
-                                    Guid G = T.Id;  // disposable statement
                                     for (int i = 0; i < 5; i++)
                                     {
                                         Thread.Sleep(1000);  // doing some reduction work
-                                        Trace.WriteLine($"Task {G.ToString()} on iteration {i}");
+                                        Trace.WriteLine($"Dummy task for unsupported content type on iteration {i}");
                                     }
-
-                                    SetTaskStatus(G, ReductionStatusEnum.Reduced);
                                 });
 
                                 break;
@@ -183,22 +171,47 @@ namespace ContentReductionLib
             }
         }
 
-        private bool SetTaskStatus(Guid TaskId, ReductionStatusEnum Status)
+        private bool UpdateTask(ReductionJobResult Result)
         {
             try
             {
                 using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
-                    Db.ContentReductionTask.Find(TaskId).ReductionStatus = Status;
+                    ContentReductionTask DbTask = Db.ContentReductionTask.Find(Result.TaskId);
+
+                    if (DbTask == null || DbTask.ReductionStatus == ReductionStatusEnum.Canceled)
+                    {
+                        return false;
+                    }
+
+                    switch (Result.Status)
+                    {
+                        case ReductionJobStatusEnum.Unspecified:
+                            break;
+                        case ReductionJobStatusEnum.Error:
+                            DbTask.ReductionStatus = ReductionStatusEnum.Error;
+                            break;
+                        case ReductionJobStatusEnum.Success:
+                            DbTask.ReductionStatus = ReductionStatusEnum.Reduced;
+                            break;
+                        default:
+                            throw new Exception("Unsupported job result status in MapDbJobMonitor.UpdateTask().");
+                    }
+
+                    DbTask.ExtractedHierarchy = JsonConvert.SerializeObject((ContentReductionHierarchy)Result.ExtractedHierarchy, Formatting.Indented);
+
+                    DbTask.ResultFilePath = Result.ReducedContentFilePath;
+
+                    Db.ContentReductionTask.Update(DbTask);
                     Db.SaveChanges();
+
+                    return true;
                 }
             }
             catch (Exception)
             {
                 return false;
             }
-
-            return true;
         }
 
     }
