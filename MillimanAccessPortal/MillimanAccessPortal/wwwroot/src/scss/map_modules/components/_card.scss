@@ -1,275 +1,312 @@
 ﻿/* Card */
 
 .card-container {
-    display: flex;
-    flex-flow: row wrap;
-    justify-content: flex-start;
-    align-content: stretch;
     position: relative;
     padding: 0;
-    background-color: $white;
-    border: 2px solid $charcoal;
-    border-radius: .25em;
     margin-top: 0;
     margin-bottom: 1.75em;
     cursor: pointer;
+    border-radius: .25em;
 
-    &:hover {
-        box-shadow: rgba(0, 0, 0, .3) .2em .2em .75em;
-    }
+    .card-status-container {
+        margin-top: -0.5em;
+        padding: 0.5em;
+        padding-top: 0.75em;
+        padding-left: 1em;
+        border-radius: .25em;
+        display: none;
 
-    &[disabled] {
-        color: $dark-grey !important;
-        background-color: darken($light-grey, 5%) !important;
+        em:before {
+            content: "(created by ";
+        }
+        em:after {
+            content: ")";
+        }
 
-        &[selected] {
-            border-color: $blue;
-            box-shadow: 0 0 0 3px $blue;
+        &.status-10 {
+            background: $orange;
+            display: block;
+        }
+
+        &.status-20 {
+            background: $red;
+            display: block;
+        }
+
+        &.status-30 {
+            background: $green;
+            display: block;
         }
     }
 
-    &[selected] {
-        color: $white;
-        background-color: $blue;
-    }
-
-    &[editing] {
-    }
-
-    .card-body-main-container {
+    .card-body-container {
         position: relative;
-        padding: .25em;
-        margin: 0;
-        width: 100%;
-        flex: 1 0 auto;
-        flex-flow: row nowrap;
+        display: flex;
+        flex-flow: row wrap;
         justify-content: flex-start;
-        align-items: stretch;
         align-content: stretch;
-        display: flex;
-        min-height: 4.2em;
-
-        &.full-width {
-            flex: 1 0 auto;
-        }
-
-        .card-body-primary-container {
-            display: inline-block;
-            flex: 1;
-            padding: 0 .5em;
-            margin: auto;
-            overflow: hidden;
-
-            .card-body-primary-text {
-                margin: 0;
-            }
-
-            .card-body-secondary-text {
-                display: inline-block;
-                margin: 0;
-                height: 100%;
-                width: 75%;
-            }
-        }
-
-        .card-body-primary-text {
-
-            &.indent-level-0 {
-                font-size: 2rem;
-            }
-
-            &.indent-level-1 {
-                font-size: 1.5rem;
-            }
-
-            &.indent-level-2 {
-                font-size: 1.17rem;
-            }
-        }
-
-        .card-body-secondary-container {
-            position: relative;
-            text-align: center;
-            flex: 0 1 auto;
-            margin: auto;
-
-            .card-user-icon {
-                height: 4rem;
-                width: 4rem;
-            }
-
-            .card-user-role-indicator {
-                position: absolute;
-                top: 15%;
-                left: 70%;
-                height: 1.25rem;
-                width: 1.25rem;
-                color: $green;
-                stroke: context-fill $green;
-                stroke-width: 3px;
-            }
-        }
-    }
-
-    .card-stats-container {
-        display: flex;
-        flex-flow: column nowrap;
-        margin: -0.25em;
-
-        .card-stat-container {
-            flex: 1 0 auto;
-            display: flex;
-            flex-flow: row nowrap;
-            align-items: center;
-            margin: 0;
-            padding: .25em 0;
-            min-width: 6.5em;
-            background-color: $charcoal;
-            color: $white;
-
-            .card-stat-icon {
-                margin-left: .5em;
-                height: 2em;
-                width: 2em;
-            }
-
-            .card-stat-value {
-                flex: 1;
-                margin-left: .75em;
-            }
-        }
-    }
-
-    .card-button-side-container {
-        position: absolute;
-        display: flex;
-        flex-flow: column nowrap;
-        justify-content: space-between;
-        right: 0;
-        top: 50%;
-        /*text-align: right;*/
-        transform: translate(50%, -50%);
-    }
-
-    .card-button-bottom-container {
-        position: absolute;
-        display: inline;
-        right: 1.5em;
-        bottom: 0;
-        transform: translate(0, 50%);
-        cursor: pointer;
-
-        .card-expansion-button {
-            background-color: $green;
-
-            &:hover {
-                background-color: darken($green, 5%);
-            }
-        }
-    }
-
-    .card-button-background {
-        border-radius: 50%;
-        display: flex;
-        padding: .25em;
-        margin-top: .25em;
-        margin-bottom: .25em;
-        transform-origin: center center;
-        color: $white;
-        transition: .2s all linear;
-
-        .card-button-icon {
-            height: 1.25em;
-            width: 1.25em;
-        }
-
-        &.card-button-red,
-        &.card-button-delete,
-        &.card-button-remove-user,
-        &.card-button-close {
-            background-color: $red;
-
-            &:hover {
-                background-color: darken($red, 5%);
-            }
-        }
-
-        &.card-button-blue,
-        &.card-button-edit,
-        &.card-button-options,
-        &.card-button-expansion {
-            background-color: $blue;
-
-            &:hover {
-                background-color: darken($blue, 5%);
-            }
-        }
-
-        &.card-button-green,
-        &.card-button-new-child {
-            background-color: $green;
-
-            &:hover {
-                background-color: darken($green, 5%);
-            }
-        }
+        background-color: $white;
+        border: 2px solid $charcoal;
+        border-radius: .25em;
 
         &:hover {
-            transform: scale(1.25);
-            transform-origin: center center;
+            box-shadow: rgba(0, 0, 0, .3) .2em .2em .75em;
         }
 
-        .card-button-icon {
-            height: 1.3em;
-            width: 1.3em;
-            color: white;
-            line-height: inherit;
+        &[disabled] {
+          color: $dark-grey !important;
+          background-color: darken($light-grey, 5%) !important;
+
+          &[selected] {
+            border-color: $blue;
+            box-shadow: 0 0 0 3px $blue;
+          }
         }
-    }
 
+        &[selected] {
+          color: $white;
+          background-color: $blue;
+        }
 
-    .card-expansion-container {
-        overflow: hidden;
-        padding: .25em .75em;
-        border-top: 1px solid $light-grey;
-        margin: 0 .25em;
-        max-height: 0;
-        width: 100%;
-        border: none;
-        padding: 0 .75em;
-        transition: .25s all linear;
-        cursor: default;
+        &[editing] {
+        }
 
-        &[maximized] {
-            max-height: 15.5em;
-            transition: .25s all linear;
+        .card-body-main-container {
+            position: relative;
+            padding: .25em;
+            margin: 0;
+            width: 100%;
+            flex: 1 0 auto;
+            flex-flow: row nowrap;
+            justify-content: flex-start;
+            align-items: stretch;
+            align-content: stretch;
+            display: flex;
+            min-height: 4.2em;
 
-            .card-button-expansion {
-                -webkit-transform: rotateX(180deg);
-                -moz-transform: rotateX(180deg);
-                -o-transform: rotateX(180deg);
-                -ms-transform: rotateX(180deg);
-                transform: rotateX(180deg);
-                transition: .25s all linear;
+            &.full-width {
+                flex: 1 0 auto;
+            }
+
+            .card-body-primary-container {
+                display: inline-block;
+                flex: 1;
+                padding: 0 .5em;
+                margin: auto;
+                overflow: hidden;
+
+                .card-body-primary-text {
+                    margin: 0;
+                }
+
+                .card-body-secondary-text {
+                    display: inline-block;
+                    margin: 0;
+                    height: 100%;
+                    width: 75%;
+                }
+            }
+
+            .card-body-primary-text {
+
+                &.indent-level-0 {
+                    font-size: 2rem;
+                }
+
+                &.indent-level-1 {
+                    font-size: 1.5rem;
+                }
+
+                &.indent-level-2 {
+                    font-size: 1.17rem;
+                }
+            }
+
+            .card-body-secondary-container {
+                position: relative;
+                text-align: center;
+                flex: 0 1 auto;
+                margin: auto;
+
+                .card-user-icon {
+                    height: 4rem;
+                    width: 4rem;
+                }
+
+                .card-user-role-indicator {
+                    position: absolute;
+                    top: 15%;
+                    left: 70%;
+                    height: 1.25rem;
+                    width: 1.25rem;
+                    color: $green;
+                    stroke: context-fill $green;
+                    stroke-width: 3px;
+                }
             }
         }
 
-        .card-expansion-category-label {
-            font-weight: bold;
-            margin-bottom: .25rem;
+        .card-stats-container {
+            display: flex;
+            flex-flow: column nowrap;
+            margin: -0.25em;
+
+            .card-stat-container {
+                flex: 1 0 auto;
+                display: flex;
+                flex-flow: row nowrap;
+                align-items: center;
+                margin: 0;
+                padding: .25em 0;
+                min-width: 6.5em;
+                background-color: $charcoal;
+                color: $white;
+
+                .card-stat-icon {
+                    margin-left: .5em;
+                    height: 2em;
+                    width: 2em;
+                }
+
+                .card-stat-value {
+                    flex: 1;
+                    margin-left: .75em;
+                }
+            }
         }
 
-        .card-expansion-option-label {
+        .card-button-side-container {
+            position: absolute;
+            display: flex;
+            flex-flow: column nowrap;
+            justify-content: space-between;
+            right: 0;
+            top: 50%;
+            /*text-align: right;*/
+            transform: translate(50%, -50%);
         }
 
-        .detail-item {
-            padding: 0 .25em;
-            margin-left: .75em;
-            border: 1px solid $charcoal;
-            background-color: $light-grey;
+        .card-button-bottom-container {
+            position: absolute;
+            display: inline;
+            right: 1.5em;
+            bottom: 0;
+            transform: translate(0, 50%);
+            cursor: pointer;
 
-            &:last-of-type {
-                margin-bottom: 1.25em;
+            .card-expansion-button {
+                background-color: $green;
+
+                &:hover {
+                    background-color: darken($green, 5%);
+                }
+            }
+        }
+
+        .card-button-background {
+            border-radius: 50%;
+            display: flex;
+            padding: .25em;
+            margin-top: .25em;
+            margin-bottom: .25em;
+            transform-origin: center center;
+            color: $white;
+            transition: .2s all linear;
+
+            .card-button-icon {
+                height: 1.25em;
+                width: 1.25em;
+            }
+
+            &.card-button-red,
+            &.card-button-delete,
+            &.card-button-remove-user,
+            &.card-button-close {
+                background-color: $red;
+
+                &:hover {
+                    background-color: darken($red, 5%);
+                }
+            }
+
+            &.card-button-blue,
+            &.card-button-edit,
+            &.card-button-options,
+            &.card-button-expansion {
+                background-color: $blue;
+
+                &:hover {
+                    background-color: darken($blue, 5%);
+                }
+            }
+
+            &.card-button-green,
+            &.card-button-new-child {
+                background-color: $green;
+
+                &:hover {
+                    background-color: darken($green, 5%);
+                }
+            }
+
+            &:hover {
+                transform: scale(1.25);
+                transform-origin: center center;
+            }
+
+            .card-button-icon {
+                height: 1.3em;
+                width: 1.3em;
+                color: white;
+                line-height: inherit;
+            }
+        }
+
+
+        .card-expansion-container {
+            overflow: hidden;
+            padding: .25em .75em;
+            border-top: 1px solid $light-grey;
+            margin: 0 .25em;
+            max-height: 0;
+            width: 100%;
+            border: none;
+            padding: 0 .75em;
+            transition: .25s all linear;
+            cursor: default;
+
+            &[maximized] {
+                max-height: 15.5em;
+                transition: .25s all linear;
+
+                .card-button-expansion {
+                    -webkit-transform: rotateX(180deg);
+                    -moz-transform: rotateX(180deg);
+                    -o-transform: rotateX(180deg);
+                    -ms-transform: rotateX(180deg);
+                    transform: rotateX(180deg);
+                    transition: .25s all linear;
+                }
+            }
+
+            .card-expansion-category-label {
+                font-weight: bold;
+                margin-bottom: .25rem;
+            }
+
+            .card-expansion-option-label {
+            }
+
+            .detail-item {
+                padding: 0 .25em;
+                margin-left: .75em;
+                border: 1px solid $charcoal;
+                color: $charcoal;
+                background-color: $light-grey;
+
+                &:last-of-type {
+                    margin-bottom: 1.25em;
+                }
             }
         }
     }

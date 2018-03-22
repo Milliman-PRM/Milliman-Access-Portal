@@ -25,28 +25,31 @@ module.exports = card;
 
   var cardLayout = {
     card: {
-      main: {
-        icons: {
-          icon: {}
+      body: {
+        main: {
+          icons: {
+            icon: {}
+          },
+          text: {
+            primaryText: {},
+            secondaryText: {}
+          },
+          statistics: {
+            statistic: {}
+          },
+          side: {
+            button: {}
+          }
         },
-        text: {
-          primaryText: {},
-          secondaryText: {}
+        detail: {
+          detailText: {},
+          toggle: {},
+          detailItem: {}
         },
-        statistics: {
-          statistic: {}
-        },
-        side: {
-          button: {}
-        }
+        action: {},
+        insert: {}
       },
-      detail: {
-        detailText: {},
-        toggle: {},
-        detailItem: {}
-      },
-      action: {},
-      insert: {}
+      status: {}
     }
   };
 
@@ -249,6 +252,23 @@ module.exports = card;
             this.html(component, properties.text);
           };
         }
+      },
+      status: {
+        count: '?',
+        selector: '.card-status-container',
+        html: [
+          '<div class="card-status-container status-default">',
+          '  <span>',
+          '    <strong></strong>',
+          '    <em>Name</em>',
+          '  </span>',
+          '</div>'
+        ].join(''),
+        render: function (component) {
+          return function () {
+            this.verify(component);
+          };
+        }
       }
     },
     {
@@ -267,13 +287,30 @@ module.exports = card;
             this.verify(component);
             if (Object.hasOwnProperty.call(properties, 'id')) {
               this.attr(component, { id: properties.id });
-              this.addClass(component, 'card-100 action-card');
             }
             if (Object.hasOwnProperty.call(properties, 'class')) {
               this.addClass(component, properties.class);
             }
             if (this.readonly || this.disabled) {
               this.attr(component, { disabled: '' });
+            }
+          };
+        }
+      },
+      body: {
+        count: '1',
+        selector: '.card-body-container',
+        html: [
+          '<div class="card-body-container">',
+          '  <stub />',
+          '</div>',
+          '<stub />'
+        ].join(''),
+        render: function (component) {
+          return function (properties) {
+            this.verify(component);
+            if (Object.hasOwnProperty.call(properties, 'id')) {
+              this.addClass(component, 'card-100 action-card');
             }
           };
         }
@@ -471,7 +508,7 @@ module.exports = card;
       this.attr('card', toAttr(this.data));
     }
     if (!this.disabled) {
-      this.click('card', this.callback);
+      this.click('body', this.callback);
     }
     this.$representation.find('stub').remove();
     return this.$representation;
@@ -485,7 +522,7 @@ module.exports = card;
 
   Card.prototype.click = function (component, value, selector) {
     var $component = this.findComponent(component, selector);
-    $component.click(component !== 'card' && (this.readonly || this.disabled)
+    $component.click(component !== 'body' && (this.readonly || this.disabled)
       ? function (event) {
         event.preventDefault();
       }
@@ -554,7 +591,7 @@ module.exports = card;
   ActionCard = function (icon, text, callback) {
     Card.call(this);
 
-    this.addComponent('card', {
+    this.addComponent('body', {
       id: text.toLowerCase().split(' ').join('-') + '-card'
     });
     this.addComponent('action', {
@@ -677,6 +714,8 @@ module.exports = card;
       value: userCount,
       tooltip: 'Eligible users'
     });
+    this.addComponent('status', {});
+
     this.data = {
       'filter-string': [
         rootContentItem.ContentName,
@@ -728,6 +767,7 @@ module.exports = card;
     members.forEach(function (member) {
       this.addComponent('detailItem', { text: member.Email });
     }, this);
+    this.addComponent('status', {});
 
     this.data = {
       'filter-string': memberInfo.concat([selectionGroup.GroupName]).join('|').toUpperCase(),
@@ -788,6 +828,10 @@ module.exports = card;
   };
   UserCard.prototype = Object.create(Card.prototype);
   UserCard.prototype.constructor = UserCard;
+
+  card.setStatus = function ($card) {
+
+  };
 
   // Add cards to global card object
   card.Card = Card;

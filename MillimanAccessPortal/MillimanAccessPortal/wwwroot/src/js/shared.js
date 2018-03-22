@@ -29,6 +29,17 @@ module.exports = shared;
       }
     });
   };
+  shared.filterForm = function ($panel, $this) {
+    var $content = $panel.find('form.admin-panel-content');
+    $content.find('[data-selection-value]').each(function (index, element) {
+      var $element = $(element);
+      if ($element.data('selection-value').indexOf($this.val().toUpperCase()) > -1) {
+        $element.show();
+      } else {
+        $element.hide();
+      }
+    });
+  };
 
   // Card expansion
   updateToolbarIcons = function ($panel) {
@@ -138,7 +149,7 @@ module.exports = shared;
         $panel.find('.insert-card').remove();
       };
       var clearSelection = function () {
-        $panel.find('.card-container').removeAttr('editing selected');
+        $panel.find('.card-body-container').removeAttr('editing selected');
       };
       var showDetails = function () {
         $nextPanels.hide().slice(0, panels || 1).show(SHOW_DURATION);
@@ -172,7 +183,8 @@ module.exports = shared;
   // AJAX
   shared.get = function (url) {
     var callbacks = Array.prototype.slice.call(arguments, 1);
-    return function ($card) {
+    return function ($clickedCard) {
+      var $card = $clickedCard && $clickedCard.closest('.card-container');
       var $panel = $card
         ? $card.closest('.admin-panel-container').nextAll().slice(0, callbacks.length)
         : $('.admin-panel-container').first();
@@ -236,14 +248,20 @@ module.exports = shared;
   shared.post = set.bind(this, 'POST');
   shared.delete = set.bind(this, 'DELETE');
 
-  shared.showButtonSpinner = function ($button, text) {
-    $button.data('original-text', $button.html());
-    $button.html(text || 'Submitting');
-    $button.append('<div class="spinner-small"></div>');
+  shared.showButtonSpinner = function ($buttons, text) {
+    $buttons.each(function (i) {
+      var $button = $buttons.eq(i);
+      $button.data('originalText', $button.html());
+      $button.html(text || 'Submitting');
+      $button.append('<div class="spinner-small"></div>');
+    });
   };
 
-  shared.hideButtonSpinner = function ($button) {
-    $button.html($button.data('original-text'));
+  shared.hideButtonSpinner = function ($buttons) {
+    $buttons.each(function (i) {
+      var $button = $buttons.eq(i);
+      $button.html($button.data().originalText);
+    });
   };
 
   shared.xhrWithProgress = function (onProgress) {
@@ -274,6 +292,36 @@ module.exports = shared;
 
       callback(matches);
     };
+  };
+
+  // Card helpers
+  // TODO: consider moving to card.js
+  shared.updateCardStatus = function ($card, reductionDetails) {
+    var $statusContainer = $card.find('.card-status-container');
+    var $statusName = $statusContainer.find('strong');
+    var $statusUser = $statusContainer.find('em');
+    var details = $.extend({
+      User: {
+        FirstName: ''
+      },
+      StatusEnum: 0,
+      StatusName: '',
+      SelectionGroupId: 0,
+      RootContentItemId: 0
+    }, reductionDetails);
+
+    $statusContainer
+      .removeClass(function (i, classString) {
+        var classNames = classString.split(' ');
+        return classNames
+          .filter(function (className) {
+            return className.startsWith('status-');
+          })
+          .join(' ');
+      })
+      .addClass('status-' + details.StatusEnum);
+    $statusName.html(details.StatusName);
+    $statusUser.html(details.User.FirstName);
   };
 
   // Dialog helpers

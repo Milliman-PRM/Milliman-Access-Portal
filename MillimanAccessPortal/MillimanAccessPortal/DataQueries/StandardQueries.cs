@@ -1,7 +1,7 @@
 ﻿/*
- * CODE OWNERS: Tom Puckett, 
+ * CODE OWNERS: Tom Puckett,
  * OBJECTIVE: Wrapper for database queries.  Reusable methods appear in this file, methods for single caller appear in files named for the caller
- * DEVELOPER NOTES: 
+ * DEVELOPER NOTES:
  */
 
 using System;
@@ -120,7 +120,7 @@ namespace MillimanAccessPortal.DataQueries
                                                             .Where(urc => urc.UserId == UserId
                                                                        && urc.ClientId == ClientId)
                                                             .Distinct()
-                                                            .Select(urc => 
+                                                            .Select(urc =>
                                                                 new AssignedRoleInfo
                                                                 {
                                                                     RoleEnum = urc.Role.RoleEnum,
@@ -138,7 +138,7 @@ namespace MillimanAccessPortal.DataQueries
             return await UserManager.GetUserAsync(User);
         }
 
-        public ContentReductionHierarchy GetReductionFieldsForRootContent(long ContentId)
+        public ContentReductionHierarchy<ReductionFieldValue> GetReductionFieldsForRootContent(long ContentId)
         {
             RootContentItem ContentItem = DbContext.RootContentItem
                                                      .Include(rc => rc.ContentType)
@@ -150,18 +150,18 @@ namespace MillimanAccessPortal.DataQueries
 
             try
             {
-                ContentReductionHierarchy ReturnObject = new ContentReductionHierarchy { RootContentItemId = ContentId };
+                ContentReductionHierarchy<ReductionFieldValue> ReturnObject = new ContentReductionHierarchy<ReductionFieldValue> { RootContentItemId = ContentId };
 
                 foreach (HierarchyField Field in DbContext.HierarchyField
                                                             .Where(hf => hf.RootContentItemId == ContentId)
                                                             .ToList())
                 {
-                    // There may be different handling required for some future content type. If so, move 
+                    // There may be different handling required for some future content type. If so, move
                     // the characteristics specific to Qlikview into a class derived from ReductionFieldBase
                     switch (ContentItem.ContentType.TypeEnum)
                     {
                         case ContentTypeEnum.Qlikview:
-                            ReturnObject.Fields.Add(new ReductionField
+                            ReturnObject.Fields.Add(new ReductionField<ReductionFieldValue>
                             {
                                 FieldName = Field.FieldName,
                                 DisplayName = Field.FieldDisplayName,
@@ -190,9 +190,9 @@ namespace MillimanAccessPortal.DataQueries
         /// <summary>Build hierarchy of selections for a selection group</summary>
         /// <remarks>This builds a nested data structure to represent a hierarchy from several flat tables.</remarks>
         /// <param name="SelectionGroupId">The selection group whose selections are to be gathered</param>
-        /// <param name="SelectionUpdates">Any changes to the current selections to effect in the returned hierarchy</param>
+        /// <param name="Selections">Any changes to the current selections to effect in the returned hierarchy</param>
         /// <returns>ContentReductionHierarchy</returns>
-        public ContentReductionHierarchy GetFieldSelectionsForSelectionGroup(long SelectionGroupId, Dictionary<long, bool> SelectionUpdates = null)
+        public ContentReductionHierarchy<ReductionFieldValueSelection> GetFieldSelectionsForSelectionGroup(long SelectionGroupId, long[] Selections = null)
         {
             SelectionGroup SelectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
@@ -204,13 +204,11 @@ namespace MillimanAccessPortal.DataQueries
             }
 
             // Apply selection updates if provided
-            var SelectedHierarchyFieldValues = (SelectionUpdates == null)
+            var SelectedHierarchyFieldValues = (Selections == null)
                 ? SelectionGroup.SelectedHierarchyFieldValueList
-                : SelectionGroup.SelectedHierarchyFieldValueList
-                    .Union(SelectionUpdates.Keys.Where(k => SelectionUpdates[k]))
-                    .Except(SelectionUpdates.Keys.Where(k => !SelectionUpdates[k]));
+                : Selections;
 
-            ContentReductionHierarchy ContentReductionHierarchy = new ContentReductionHierarchy
+            ContentReductionHierarchy<ReductionFieldValueSelection> ContentReductionHierarchy = new ContentReductionHierarchy<ReductionFieldValueSelection>
             {
                 RootContentItemId = SelectionGroup.RootContentItemId,
             };
@@ -223,18 +221,20 @@ namespace MillimanAccessPortal.DataQueries
                     .Where(hfv => hfv.HierarchyFieldId == HierarchyField.Id)
                     .Select(hfv => new ReductionFieldValueSelection
                     {
+                        Id = hfv.Id,
                         Value = hfv.Value,
                         SelectionStatus = SelectedHierarchyFieldValues.Contains(hfv.Id),
                     })
                     .ToArray();
 
                 // TODO: Create ReductionFieldBase and extend for each content type
-                ReductionField ReductionField;
+                ReductionField<ReductionFieldValueSelection> ReductionField;
                 switch (SelectionGroup.RootContentItem.ContentType.TypeEnum)
                 {
                     case ContentTypeEnum.Qlikview:
-                        ReductionField = new ReductionField
+                        ReductionField = new ReductionField<ReductionFieldValueSelection>
                         {
+                            Id = HierarchyField.Id,
                             FieldName = HierarchyField.FieldName,
                             DisplayName = HierarchyField.FieldDisplayName,
                             ValueDelimiter = HierarchyField.FieldDelimiter,

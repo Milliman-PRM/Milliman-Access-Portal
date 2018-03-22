@@ -1,7 +1,7 @@
 ﻿/*
  * CODE OWNERS: Joseph Sweeney
  * OBJECTIVE:
- * DEVELOPER NOTES: <What future developers need to know.>
+ * DEVELOPER NOTES:
  */
 
 using System.Collections.Generic;
