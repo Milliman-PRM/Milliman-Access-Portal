@@ -35,7 +35,10 @@ We will utilize multiple Azure products to build the production environment. Mos
 
 * **Virtual Machines** - 2 for QlikView Server, 2 for QlikView Publisher, 2 for file server clustering
 
-* **Load Balancer** - Distribute HTTPS requests to QlikView-related VMs. Ensures traffic is balanced when multiple VMs are available and maintains connectivity when one or more VMs is offline.
+* **Application Gateway** - Distribute HTTPS requests to web app or QlikView Servers, as appropriate.
+    * **Web Application Firewall** - A feature of the Application Gateway. Applies additional security filtering to ensure malicious traffic doesn't reach either endpoint.
+
+* **Azure Security Center** - Monitor our Azure infrastructure and alert security staff about possible issues.
 
 ## Virtual Machines
 
@@ -44,14 +47,14 @@ VMs in the MAP environment are segmented by function and user access. Throughout
 |VM Type|Primary Functions|Availability to users|
 |----|----|----|
 |QlikView Server|Surface QlikView reports|Available to end users over the web|
-|QlikView Publisher|Reduce QlikView reports and host the Milliman Reduction Service|Not available directly to end users. Application Servers will interface with Publishers via the Publisher API|
+|QlikView Publisher|Reduce QlikView reports and host the Milliman Reduction Service|Not available to end users. These will operate largely independently, retrieving tasks from the database directly.|
 |File Server|Store QVWs and other content to be delivered to end users via the web app|Not available directly to end users. Content will be streamed to users via the web app|
 
-## Load balancing within primary data center
+## Load balancing
 
-Load balancers will handle incoming user requests to QlikView Servers and QlikView Publishers. When all nodes are available, all will be utilized simultaneously, to spread out the computational load.
+Application Gateway will perform load balancing of incoming user requests to QlikView Servers. When all nodes are available, all will be utilized simultaneously, to spread out the computational load.
 
-Using load balancers to manage requests to the VMs also enables "online" maintenance of the QlikView servers, as long as one VM of each type stays online.
+Using load balancing to manage requests to the VMs also enables "online" maintenance of the QlikView servers, as long as one VM of each type stays online.
 
 User requests will be distributed on a per-session basis, meaning that an individual user will be routed to the same QlikView Server for the duration of their session.
 
@@ -106,6 +109,14 @@ In the case that the data center becomes unavailable permanently or for a signif
 
 ## Security Policies
 
+### Web Application firewall
+
+The Web Application Firewall will guard our infrastructure against common types of attacks and vulnerabilities. All end-user traffic will flow through the WAF.
+
+### Azure Security Center
+
+We will utilize Azure Security Center to monitor for potential issues within our Azure infrastructure. Over time, we will evaluate for possible automated actions to take in response to log entries or other security events.
+
 ### Filesystem Encryption
 
 Virtual machines' file systems must be encrypted at all times.
@@ -116,7 +127,7 @@ Sensitive configuration options will be stored in Azure Key Vault.
 
 ### Firewall Configuration
 
-Inbound requests from the public internet will pass through a hardware firewall. Additionally, the operating system firewall must be enabled and properly configured on each VM.
+Inbound requests from the public internet will pass through the Application Gateway. Additionally, the operating system firewall must be enabled and properly configured on each VM.
 
 In the table below, all public rules also apply to internal requests (from Milliman's network). Internal traffic may be open for additional protocols/services.
 
@@ -124,10 +135,9 @@ In addition to the services outlined in the table, Microsoft Remote Desktop shou
 
 |Server Type|Public (external) allowed protocols|Additional internal services|
 |-----|-----|-----|
-|Application servers|HTTPS & HTTP (Only for redirect to HTTPS)|---|
-|QlikView Server|HTTPS|---|
-|QlikView Publisher|---|HTTPS|
-|Database servers|---|PostgreSQL (port 5433)|
+|QlikView Server|HTTPS|RDP only from Milliman's network|
+|QlikView Publisher|---|RDP only from Milliman's network|
+|File Server|---|RDP only from Milliman's network|
 
 ### Antivirus Software
 
