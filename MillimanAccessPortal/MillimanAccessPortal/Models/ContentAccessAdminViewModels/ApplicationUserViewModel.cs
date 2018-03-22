@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Joseph Sweeney
- * OBJECTIVE: A ViewModel for MAP
+ * OBJECTIVE:
  * DEVELOPER NOTES:
  */
 
