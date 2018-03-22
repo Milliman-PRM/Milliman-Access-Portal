@@ -8,18 +8,8 @@
 
     @RenderSection("CSS", required: false)
 
-    <environment names="Development,CI,AzureCI">
-        <link rel="stylesheet" href="~/lib/bootstrap/reboot.css" />
-        <link rel="stylesheet" href="~/lib/toastr/toastr.css" />
-        <link rel="stylesheet" href="~/lib/vex-js/vex.css" />
-        <link rel="stylesheet" href="~/lib/tooltipster/tooltipster.css" />
-        <link rel="stylesheet" href="~/css/map.css" />
-    </environment>
-    <environment names="Staging,Production">
-        <link rel="stylesheet" href="~/lib/site.min.css" />
-    </environment>
     @Html.Raw(JavaScriptSnippet.FullScript)
-    @Html.Partial("~/wwwroot/images/svg-icon-sprites.svg")
+    @Html.Partial("~/wwwroot/dist/images/svg-icon-sprites.svg")
 </head>
 <body>
 
@@ -29,29 +19,6 @@
             var domainValRegex = /@Html.Raw(MapCommonLib.GlobalFunctions.domainValRegex)/;
             var emailValRegex = /@Html.Raw(MapCommonLib.GlobalFunctions.emailValRegex)/;
     </script>
-
-    <environment names="Development,CI,AzureCI">
-        <script src="~/lib/jquery/jquery.js"></script>
-        <script src="~/lib/jquery-validation/jquery.validate.js"></script>
-        <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
-        <script src="~/lib/vex-js/vex.combined.js"></script>
-        <script src="~/lib/toastr/toastr.js"></script>
-        <script src="~/lib/tooltipster/tooltipster.js"></script>
-        <script src="~/lib/jquery-mask-plugin/jquery.mask.js"></script>
-        <script src="~/js/shared.js"></script>
-        <script src="~/js/card.js"></script>
-        <script src="~/js/dialog.js"></script>
-        <script src="~/js/lib-options.js"></script>
-    </environment>
-    <environment names="Staging,Production">
-        <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-2.2.0.min.js"
-                asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
-                asp-fallback-test="window.jQuery"
-                crossorigin="anonymous"
-                integrity="sha384-K+ctZQ+LL8q6tP7I94W+qzQsfRV2a+AfHIi9k8z8l9ggpc8X+Ytst4yBo/hH+8Fk">
-        </script>
-        <script src="~/lib/site.min.css"></script>
-    </environment>
 
     @RenderSection("Scripts", required: false)
 
