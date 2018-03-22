@@ -30,7 +30,7 @@
     </div>
     <h3 class="admin-panel-header">Client Tree</h3>
     <div class="admin-panel-toolbar">
-        <input class="admin-panel-searchbar" type="search" placeholder="Filter Clients" />
+        <input class="admin-panel-searchbar-tree" type="search" placeholder="Filter Clients" />
         <div class="admin-panel-action-icons-container">
         </div>
     </div>
@@ -44,7 +44,7 @@
     </div>
     <h3 class="admin-panel-header">Content Items</h3>
     <div class="admin-panel-toolbar">
-        <input class="admin-panel-searchbar" type="search" placeholder="Filter Content" />
+        <input class="admin-panel-searchbar-tree" type="search" placeholder="Filter Content" />
         <div class="admin-panel-action-icons-container">
         </div>
     </div>
@@ -58,7 +58,7 @@
     </div>
     <h3 class="admin-panel-header">Selection Groups</h3>
     <div class="admin-panel-toolbar">
-        <input class="admin-panel-searchbar" type="search" placeholder="Filter Users" />
+        <input class="admin-panel-searchbar-tree" type="search" placeholder="Filter Users" />
         <div class="admin-panel-action-icons-container">
             <svg class="action-icon-collapse action-icon tooltip" title="Collapse all user cards" style="display: none;">
                 <use xlink:href="#action-icon-collapse"></use>
@@ -76,18 +76,22 @@
         <ul class="admin-panel-content-action"></ul>
     </div>
 </div>
-<div id="selections" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12" style="display: none;">
+<div id="selection-info" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12" style="display: none;">
     <div class="loading-wrapper">
         @Html.Partial("~/Views/Shared/_Loader.cshtml")
     </div>
     <h3 class="admin-panel-header">Selections</h3>
     <div class="admin-panel-toolbar">
-        <input class="admin-panel-searchbar" type="search" placeholder="Filter Users" />
+        <input class="admin-panel-searchbar-form" type="search" placeholder="Filter Selections" />
         <div class="admin-panel-action-icons-container">
         </div>
     </div>
     <div class="admin-panel-content-container">
-        <ul class="admin-panel-content"></ul>
+        <form class="admin-panel-content">
+            <div class="fieldset-container"></div>
+            <button type="button" class="blue-button button-status-0 button-status-1 button-status-40">Submit</button>
+            <button type="button" class="red-button button-status-10">Cancel</button>
+        </form>
     </div>
 </div>
 

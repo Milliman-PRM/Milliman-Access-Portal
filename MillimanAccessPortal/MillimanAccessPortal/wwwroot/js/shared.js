@@ -26,6 +26,17 @@ var shared = {};
       }
     });
   };
+  shared.filterForm = function ($panel, $this) {
+    var $content = $panel.find('form.admin-panel-content');
+    $content.find('[data-selection-value]').each(function (index, element) {
+      var $element = $(element);
+      if ($element.data('selection-value').indexOf($this.val().toUpperCase()) > -1) {
+        $element.show();
+      } else {
+        $element.hide();
+      }
+    });
+  };
 
   // Card expansion
   updateToolbarIcons = function ($panel) {
@@ -119,7 +130,7 @@ var shared = {};
         $panel.find('.insert-card').remove();
       };
       var clearSelection = function () {
-        $panel.find('.card-container').removeAttr('editing selected');
+        $panel.find('.card-body-container').removeAttr('editing selected');
       };
       var showDetails = function () {
         $nextPanels.hide().slice(0, panels || 1).show(SHOW_DURATION);
@@ -153,7 +164,8 @@ var shared = {};
   // AJAX
   shared.get = function (url) {
     var callbacks = Array.prototype.slice.call(arguments, 1);
-    return function ($card) {
+    return function ($clickedCard) {
+      var $card = $clickedCard && $clickedCard.closest('.card-container');
       var $panel = $card
         ? $card.closest('.admin-panel-container').nextAll().slice(0, callbacks.length)
         : $('.admin-panel-container').first();
@@ -262,6 +274,36 @@ var shared = {};
 
       callback(matches);
     };
+  };
+
+  // Card helpers
+  // TODO: consider moving to card.js
+  shared.updateCardStatus = function ($card, reductionDetails) {
+    var $statusContainer = $card.find('.card-status-container');
+    var $statusName = $statusContainer.find('strong');
+    var $statusUser = $statusContainer.find('em');
+    var details = $.extend({
+      User: {
+        FirstName: ''
+      },
+      StatusEnum: 0,
+      StatusName: '',
+      SelectionGroupId: 0,
+      RootContentItemId: 0
+    }, reductionDetails);
+
+    $statusContainer
+      .removeClass(function (i, classString) {
+        var classNames = classString.split(' ');
+        return classNames
+          .filter(function (className) {
+            return className.startsWith('status-');
+          })
+          .join(' ');
+      })
+      .addClass('status-' + details.StatusEnum);
+    $statusName.html(details.StatusName);
+    $statusUser.html(details.User.FirstName);
   };
 
   // Dialog helpers

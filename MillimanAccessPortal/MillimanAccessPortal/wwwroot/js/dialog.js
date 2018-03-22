@@ -136,7 +136,7 @@ var dialog = {};
         { type: vex.dialog.buttons.no, text: 'Cancel' }
       ],
       'red',
-      '<input name="SelectionGroupId" type="hidden" value="' + $selectionGroup.data('selection-group-id') + '">',
+      '<input name="SelectionGroupId" type="hidden" value="' + $selectionGroup.closest('.card-container').data('selection-group-id') + '">',
       null,
       submitHandler
     );
@@ -252,7 +252,7 @@ var dialog = {};
       ],
       'blue',
       [
-        '<input name="RootContentItemId" type="hidden" value="' + $('#root-content-items [selected]').data('root-content-item-id') + '">',
+        '<input name="RootContentItemId" type="hidden" value="' + $('#root-content-items [selected]').closest('.card-container').data('root-content-item-id') + '">',
         '<input name="SelectionGroupName" required />'
       ].join(''),
       null,

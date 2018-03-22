@@ -102,6 +102,12 @@ select {
             display: none;
         }
     }
+
+    &[type="checkbox"] {
+        display: inline-block;
+        width: unset;
+        background: $white;
+    }
 }
 
 input:-webkit-autofill,
