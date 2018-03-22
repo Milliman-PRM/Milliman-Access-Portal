@@ -585,20 +585,14 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            #region Argument processing
-            // TODO: Use a standard query to determine ContentPublicationRequest status based on associated ContentReductionTask records.
+            #region Pre-validation queries
             // Select the most recent content publication request that has been published.
-            var PublishedStatus = new List<ReductionStatusEnum>
-            {
-                ReductionStatusEnum.Pushed,
-                ReductionStatusEnum.Replaced,
-            };
             var MostRecentPublication = DbContext.ContentPublicationRequest
+                .Where(cpr => DbContext.ContentPublicationRequestStatus
+                    .Where(cprs => cpr.Id == cprs.ContentPublicationRequestId)
+                    .Where(cprs => cprs.PublicationRequestStatus == ReductionStatusEnum.Pushed)
+                    .Any())
                 .OrderByDescending(cpr => cpr.CreateDateTime)
-                .Where(cpr => cpr.RootContentItemId == SelectionGroup.RootContentItemId)
-                .Where(cpr => DbContext.ContentReductionTask
-                    .Where(crt => crt.ContentPublicationRequestId == cpr.Id)
-                    .All(crt => PublishedStatus.Contains(crt.ReductionStatus)))
                 .FirstOrDefault();
             #endregion
 
