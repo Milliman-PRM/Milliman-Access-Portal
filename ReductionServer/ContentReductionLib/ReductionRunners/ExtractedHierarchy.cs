@@ -23,6 +23,10 @@ namespace ContentReductionLib.ReductionRunners
         public string ValueStructure { get; set; } = string.Empty;
         public List<string> FieldValues { get; set; } = new List<string>();
 
+        /// <summary>
+        /// Explicit cast operator for conversion to MapDbContextLib.Models.ReductionField
+        /// </summary>
+        /// <param name="ExtractedField"></param>
         public static explicit operator ReductionField(ExtractedField ExtractedField)
         {
             ReductionField NewField = new ReductionField
@@ -59,6 +63,9 @@ namespace ContentReductionLib.ReductionRunners
     {
         public List<ExtractedField> Fields = new List<ExtractedField>();
 
+        /// <summary>
+        /// Explicit cast operator for conversion to MapDbContextLib.Models.ContentReductionHierarchy
+        /// </summary>
         public static explicit operator ContentReductionHierarchy(ExtractedHierarchy Hierarchy)
         {
             ContentReductionHierarchy ReturnObject = new ContentReductionHierarchy();

@@ -67,6 +67,9 @@ namespace ContentReductionLib.ReductionRunners
         #region Member properties
         ReductionJobResult TaskResultObj { get; set; } = new ReductionJobResult();
 
+        /// <summary>
+        /// TODO This is a MapDb type, need an independent type to represent request properties agnostic of queue type
+        /// </summary>
         private ContentReductionTask _QueueTask;
         internal ContentReductionTask QueueTask
         {
@@ -79,12 +82,6 @@ namespace ContentReductionLib.ReductionRunners
             {
                 return _QueueTask;
             }
-        }
-
-        internal DbContextOptions<ApplicationDbContext> ContextOptions
-        {
-            set;
-            private get;
         }
 
         private DocumentFolder SourceDocFolder { get; set; } = null;
@@ -122,7 +119,6 @@ namespace ContentReductionLib.ReductionRunners
         internal override bool ValidateThisInstance()
         {
             bool Result = QueueTask != null &&
-                          ContextOptions != null &&
                           Logger != null &&
                           QdsServiceInfo != null &&
                           QdsServiceInfo.ID != Guid.Empty &&

@@ -113,7 +113,6 @@ namespace ContentReductionLib
                                 QvReductionRunner Runner = new QvReductionRunner
                                 {
                                     QueueTask = T,
-                                    ContextOptions = ContextOptions,
                                 };
                                 NewTask = Task.Run(() => Runner.ExecuteReduction());
                             break;
