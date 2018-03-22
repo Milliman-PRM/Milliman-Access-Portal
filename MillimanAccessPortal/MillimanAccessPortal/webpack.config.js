@@ -4,7 +4,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
   entry: {
-    navbar: './src/js/navbar.js',
+    'hosted-content': './src/js/hosted-content.js',
   },
   mode: 'development',
   module: {
@@ -17,7 +17,7 @@ module.exports = {
         ],
       },
       {
-        test: /\.scss$/,
+        test: /\.s[ac]ss$/,
         use: [
           { loader: 'style-loader' },
           { loader: 'css-loader' },
