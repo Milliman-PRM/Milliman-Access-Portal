@@ -1,6 +1,10 @@
 /* global shared */
 
+var $ = require('jquery');
+var shared = require('./shared');
 var card = {};
+
+module.exports = card;
 
 (function () {
   // Helper function declarations

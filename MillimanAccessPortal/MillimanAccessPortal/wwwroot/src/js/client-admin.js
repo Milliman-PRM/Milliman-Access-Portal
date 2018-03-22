@@ -1,4 +1,22 @@
 /* global shared, dialog, card */
+var $ = require('jquery');
+var card = require('./card');
+var dialog = require('./dialog');
+var selectize = require('selectize');
+var shared = require('./shared');
+var toastr = require('toastr');
+var tooltipster = require('tooltipster');
+var typeahead = require('typeahead.js');
+require('../scss/map.scss');
+require('bootstrap/dist/css/bootstrap-reboot.css');
+require('vex-js/dist/css/vex.css');
+require('tooltipster/dist/css/tooltipster.main.css');
+
+require('toastr/toastr.scss');
+require('jquery-validation');
+require('jquery-validation-unobtrusive');
+require('vex-js');
+require('jquery-mask-plugin');
 
 var ajaxStatus = {};
 var eligibleUsers;
@@ -647,7 +665,7 @@ $(document).ready(function onReady() {
     shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog);
   });
 
-  $('.admin-panel-searchbar').keyup(shared.filterTree.listener);
+  $('.admin-panel-searchbar').keyup(shared.filterTreeImp.listener);
   $('.tooltip').tooltipster();
 
   // TODO: find a better place for this

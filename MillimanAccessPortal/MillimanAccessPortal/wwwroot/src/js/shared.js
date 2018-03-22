@@ -1,6 +1,9 @@
 /* global dialog */
+var $ = require('jquery');
 
 var shared = {};
+
+module.exports = shared;
 
 (function () {
   var SHOW_DURATION = 50;
@@ -12,7 +15,7 @@ var shared = {};
   // Functions with associated event listeners
 
   // Filtering
-  shared.filterTree = function ($panel, $this) {
+  shared.filterTreeImp = function ($panel, $this) {
     var $content = $panel.find('ul.admin-panel-content');
     $content.children('.hr').hide();
     $content.find('[data-filter-string]').each(function (index, element) {
@@ -116,6 +119,22 @@ var shared = {};
   });
 
   // Functions without associated event listeners
+  shared.filterTree = function ($content, filterString) {
+    var includeHr = false; // should be in CSS
+    return $content.filter(function (index, element) {
+      var $element = $(element);
+      var rv = false;
+      if ($element.is('.hr')) {
+        rv = includeHr;
+        includeHr = false; // reset HR status for next group
+      } else if ($element.has('[data-filter-string]').length) {
+        rv = ($element.find('[data-filter-string]').data().filterString
+          .indexOf(filterString.toUpperCase()) > -1);
+        includeHr = (includeHr || rv);
+      }
+      return rv;
+    });
+  };
 
   // Wrappers
   shared.wrapCardCallback = function (callback, panels) {

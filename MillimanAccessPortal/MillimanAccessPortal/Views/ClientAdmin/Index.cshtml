@@ -8,14 +8,6 @@
 
 @section CSS {
 
-<environment names="Development,CI">
-    <link rel="stylesheet" href="~/lib/selectize/selectize.default.css" />
-</environment>
-<environment names="Staging,Production">
-    <link rel="stylesheet" href="~/lib/selectize/selectize.default.min.css" />
-</environment>
-
-
 }
 
 <div id="client-tree" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12">
@@ -189,16 +181,5 @@
 </div>
 
 @section Scripts {
-
-    <environment names="Development,CI">
-        <script src="~/lib/selectize/selectize.js"></script>
-        <script src="~/lib/typeahead/typeahead.js"></script>
-        <script src="~/js/client-admin.js"></script>
-    </environment>
-    <environment names="Staging,Production">
-        <script src="~/lib/selectize/selectize.min.js"></script>
-        <script src="~/lib/typeahead/typeahead.min.js"></script>
-        <script src="~/js/client-admin.min.js"></script>
-    </environment>
-
+    <script src="dist/js/clientAdmin.bundle.js"></script>
 }

@@ -1,5 +1,7 @@
 // Contact Form
 
+var $ = require('jquery');
+
 /**
  * Submit the contact form
  * @return {undefined}
