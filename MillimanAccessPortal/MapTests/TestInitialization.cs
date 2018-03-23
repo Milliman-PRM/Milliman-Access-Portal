@@ -663,7 +663,7 @@ namespace MapTests
             // In the real database, this is a view with a calculated field.
             DbContextObject.ContentPublicationRequestStatus.AddRange(new List<ContentPublicationRequestStatus>
             {
-                new ContentPublicationRequestStatus { ContentPublicationRequestId=1, PublicationRequestStatus=ReductionStatusEnum.Default },
+                new ContentPublicationRequestStatus { ContentPublicationRequestId=1, PublicationRequestStatus=ReductionStatusEnum.Pushed },
             });
             #endregion
         }
