@@ -12,16 +12,8 @@
     ViewData["NavIcon"] = "ContentAccessAdmin";
 }
 
-
-
-@section CSS {
-
-    <environment names="Development,CI">
-    </environment>
-    <environment names="Staging,Production">
-    </environment>
-
-
+@section Scripts {
+    <script src="/js/content-access-admin.bundle.js"></script>
 }
 
 <div id="client-tree" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12">
@@ -94,15 +86,3 @@
         </form>
     </div>
 </div>
-
-
-@section Scripts {
-
-    <environment names="Development,CI">
-        <script src="~/js/content-access-admin.js"></script>
-    </environment>
-    <environment names="Staging,Production">
-        <script src="~/js/content-access-admin.min.js"></script>
-    </environment>
-
-}

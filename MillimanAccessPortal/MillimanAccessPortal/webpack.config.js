@@ -5,6 +5,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 module.exports = {
   entry: {
     'client-admin': './src/js/client-admin.js',
+    'content-access-admin': './src/js/content-access-admin.js',
     'login': './src/js/login.js',
     'hosted-content': './src/js/hosted-content.js',
   },
