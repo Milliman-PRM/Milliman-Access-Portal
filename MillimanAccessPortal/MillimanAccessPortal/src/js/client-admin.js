@@ -1,15 +1,15 @@
-require('jquery');
+var $ = require('jquery');
 require('jquery-mask-plugin');
 require('jquery-validation');
 require('jquery-validation-unobtrusive');
 require('selectize');
-require('toastr');
+var toastr = require('toastr');
 require('tooltipster');
 require('vex-js');
-require('./card');
-require('./dialog');
+var card = require('./card');
+var dialog = require('./dialog');
 require('./lib-options');
-require('./shared');
+var shared = require('./shared');
 
 require('bootstrap/scss/bootstrap-reboot.scss');
 require('selectize/src/less/selectize.default.less');

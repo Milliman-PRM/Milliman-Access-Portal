@@ -8,7 +8,6 @@ module.exports = {
     'login': './src/js/login.js',
     'hosted-content': './src/js/hosted-content.js',
   },
-  mode: 'development',
   module: {
     rules: [
       {
@@ -46,4 +45,6 @@ module.exports = {
       jQuery: 'jquery',
     }),
   ],
+  mode: 'development',
+  devtool: 'source-map',
 };
