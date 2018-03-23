@@ -232,6 +232,7 @@ var shared = {};
   shared.showButtonSpinner = function ($buttons, text) {
     $buttons.each(function (i) {
       var $button = $buttons.eq(i);
+      if ($buttons.find('.spinner-small').length) return;
       $button.data('originalText', $button.html());
       $button.html(text || 'Submitting');
       $button.append('<div class="spinner-small"></div>');

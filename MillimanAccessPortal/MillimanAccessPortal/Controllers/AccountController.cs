@@ -18,34 +18,42 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Context;
 using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Services;
 using AuditLogLib;
 using AuditLogLib.Services;
+using MillimanAccessPortal.DataQueries;
 
 namespace MillimanAccessPortal.Controllers
 {
     [Authorize]
     public class AccountController : Controller
     {
+        private readonly ApplicationDbContext DbContext;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IMessageQueue _messageSender;
         private readonly ILogger _logger;
         private readonly IAuditLogger _auditLogger;
+        private readonly StandardQueries Queries;
 
         public AccountController(
+            ApplicationDbContext ContextArg,
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IMessageQueue messageSender,
             ILoggerFactory loggerFactory,
-            IAuditLogger AuditLoggerArg)
+            IAuditLogger AuditLoggerArg,
+            StandardQueries QueriesArg)
         {
+            DbContext = ContextArg;
             _userManager = userManager;
             _signInManager = signInManager;
             _messageSender = messageSender;
             _logger = loggerFactory.CreateLogger<AccountController>();
             _auditLogger = AuditLoggerArg;
+            Queries = QueriesArg;
         }
 
         //
@@ -91,7 +99,7 @@ namespace MillimanAccessPortal.Controllers
                     }
                     else
                     {
-                        return RedirectToAction(nameof(HostedContentController.Index), nameof(HostedContentController).Replace("Controller",""));
+                        return RedirectToAction(nameof(HostedContentController.Index), nameof(HostedContentController).Replace("Controller", ""));
                     }
                 }
                 if (result.RequiresTwoFactor)
@@ -484,11 +492,85 @@ namespace MillimanAccessPortal.Controllers
         }
 
         //
-        // GEET /Account/Profile
+        // GET /Account/Settings
         [HttpGet]
-        public IActionResult Profile()
+        [Route("Account/Settings")]
+        public async Task<IActionResult> AccountSettings()
         {
-            return View();
+            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+            AccountSettingsViewModel model = new AccountSettingsViewModel
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                UserName = user.UserName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Employer = user.Employer
+            };
+
+            return View(model);
+        }
+
+        // POST /Account/UpdateAccountSettings
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> AccountSettings([Bind("FirstName,LastName,PhoneNumber,Employer")]AccountSettingsViewModel Model)
+        {
+            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+
+            if (!string.IsNullOrEmpty(Model.FirstName))
+            {
+                user.FirstName = Model.FirstName;
+            }
+
+            if (!string.IsNullOrEmpty(Model.LastName))
+            {
+                user.LastName = Model.LastName;
+            }
+
+            if (!string.IsNullOrEmpty(Model.PhoneNumber))
+            {
+                user.PhoneNumber = Model.PhoneNumber;
+            }
+
+            if (!string.IsNullOrEmpty(Model.Employer))
+            {
+                user.Employer = Model.Employer;
+            }
+
+            DbContext.ApplicationUser.Update(user);
+            DbContext.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> UpdatePassword([Bind("CurrentPassword,NewPassword,ConfirmNewPassword")]AccountSettingsViewModel Model)
+        {
+            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+
+            if (Model.NewPassword == Model.ConfirmNewPassword)
+            {
+                IdentityResult result = await _userManager.ChangePasswordAsync(user, Model.CurrentPassword, Model.NewPassword);
+                
+                if (result.Succeeded)
+                {
+                    return Ok();
+                }
+                else
+                {
+                    string errorMessage = string.Join("<br /><br />", result.Errors.Select(x => x.Description));
+
+                    Response.Headers.Add("Warning", errorMessage);
+                    return BadRequest();
+                }
+            }
+            else
+            {
+                Response.Headers.Add("Warning", $"The passwords provided did not match");
+                return BadRequest();
+            }
         }
 
         #region Helpers
