@@ -189,16 +189,5 @@
 </div>
 
 @section Scripts {
-
-    <environment names="Development,CI">
-        <script src="~/lib/selectize/selectize.js"></script>
-        <script src="~/lib/typeahead/typeahead.js"></script>
-        <script src="~/js/client-admin.js"></script>
-    </environment>
-    <environment names="Staging,Production">
-        <script src="~/lib/selectize/selectize.min.js"></script>
-        <script src="~/lib/typeahead/typeahead.min.js"></script>
-        <script src="~/js/client-admin.min.js"></script>
-    </environment>
-
+    <script src="/js/client-admin.bundle.js"></script>
 }
