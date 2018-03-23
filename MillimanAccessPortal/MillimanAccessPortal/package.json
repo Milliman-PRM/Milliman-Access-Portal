@@ -31,5 +31,10 @@
   },
   "scripts": {
     "build": "webpack"
+  },
+  "-vs-binding": {
+    "AfterBuild": [
+      "build"
+    ]
   }
 }
