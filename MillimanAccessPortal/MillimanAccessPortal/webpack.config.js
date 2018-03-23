@@ -4,6 +4,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
   entry: {
+    'account-settings': './src/js/account-settings.js',
     'client-admin': './src/js/client-admin.js',
     'content-access-admin': './src/js/content-access-admin.js',
     'login': './src/js/login.js',
