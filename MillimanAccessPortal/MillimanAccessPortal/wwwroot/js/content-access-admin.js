@@ -26,15 +26,129 @@ function selectionGroupDeleteClickHandler() {
   )).open();
 }
 
+function cancelSelectionForm() {
+  var $selectionInfo = $('#selection-info form.admin-panel-content');
+  var $selectionGroups = $('#selection-groups ul.admin-panel-content');
+  var $button = $selectionInfo.find('button');
+  var data = {
+    SelectionGroupId: $selectionGroups.find('[selected]').closest('.card-container').attr('data-selection-group-id')
+  };
+
+  shared.showButtonSpinner($button, 'Canceling');
+  $.ajax({
+    type: 'POST',
+    url: 'ContentAccessAdmin/CancelReduction',
+    data: data,
+    headers: {
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+    }
+  }).done(function onDone(response) {
+    shared.hideButtonSpinner($button);
+    renderSelections(response);
+    toastr.success('Reduction tasks canceled.');
+  }).fail(function onFail(response) {
+    shared.hideButtonSpinner($button);
+    toastr.warning(response.getResponseHeader('Warning'));
+  });
+}
+function submitSelectionForm() {
+  var $selectionInfo = $('#selection-info form.admin-panel-content');
+  var $selectionGroups = $('#selection-groups ul.admin-panel-content');
+  var $button = $selectionInfo.find('button');
+  var data = {
+    SelectionGroupId: $selectionGroups.find('[selected]').closest('.card-container').attr('data-selection-group-id'),
+    Selections: $selectionInfo.serializeArray().reduce(function (acc, cur) {
+      return (cur.value === 'on')
+        ? acc.concat(cur.name)
+        : undefined;
+    }, [])
+  };
+
+  shared.showButtonSpinner($button);
+  $.ajax({
+    type: 'POST',
+    url: 'ContentAccessAdmin/SingleReduction',
+    data: data,
+    headers: {
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+    }
+  }).done(function onDone(response) {
+    shared.hideButtonSpinner($button);
+    renderSelections(response);
+    toastr.success('A reduction task has been queued.');
+  }).fail(function onFail(response) {
+    shared.hideButtonSpinner($button);
+    toastr.warning(response.getResponseHeader('Warning'));
+  });
+}
+
+function renderValue(value, $fieldset, originalSelections) {
+  var $div;
+  var $checkbox = $('<label class="selection-option-label">' + value.Value + '<input type="checkbox" id="selection-value-' + value.Id + '" name="' + value.Id + '" class="selection-option-value"><span class="selection-option-checkmark"></span></label>');
+  $fieldset.append('<div class="selection-option-container" data-selection-value="' + value.Value.toUpperCase() + '"></div>');
+  $div = $fieldset.find('div.selection-option-container').last();
+  $div.append($checkbox);
+  $checkbox.find('input[type="checkbox"]').prop('checked', value.SelectionStatus);
+  if (originalSelections.includes(value.Id) !== value.SelectionStatus) {
+    $div.attr('style', 'background: yellow;');
+  }
+}
+
+function renderField(field, $parent, originalSelections) {
+  var $fieldset;
+  $parent.append('<fieldset></fieldset>');
+  $fieldset = $parent.find('fieldset').last();
+  $fieldset.append('<legend>' + field.DisplayName + '</legend>');
+  field.Values.forEach(function (value) {
+    renderValue(value, $fieldset, originalSelections);
+  });
+}
+
+function renderSelections(response) {
+  var $selectionInfo = $('#selection-info form.admin-panel-content');
+  var $fieldsetDiv = $selectionInfo.find('.fieldset-container');
+  var $relatedCard = $('#selection-groups [selected]').closest('.card-container');
+  var details = $.extend({
+    User: {
+      FirstName: ''
+    },
+    StatusEnum: 0,
+    StatusName: '',
+    SelectionGroupId: 0,
+    RootContentItemId: 0
+  }, response.ReductionDetails);
+
+  $fieldsetDiv.empty();
+  response.Hierarchy.Fields.forEach(function (field) {
+    renderField(field, $fieldsetDiv, response.OriginalSelections);
+  });
+  shared.updateCardStatus($relatedCard, response.ReductionDetails);
+  $selectionInfo
+    .find('button').hide()
+    .filter('.button-status-' + details.StatusEnum).show();
+  // TODO: rely on some flag in the response to disable checkboxes
+  $fieldsetDiv
+    .find('input[type="checkbox"]')
+    .click([10, 20, 30].includes(details.StatusEnum)
+      ? function (event) {
+        event.preventDefault();
+      }
+      : $.noop);
+}
+
 function renderSelectionGroup(selectionGroup) {
   var $card = new card.SelectionGroupCard(
     selectionGroup.SelectionGroupEntity,
     selectionGroup.MemberList,
-    function () { console.log('Selection group clicked.'); },
+    shared.wrapCardCallback(shared.get(
+      'ContentAccessAdmin/Selections',
+      renderSelections
+    )),
     selectionGroupDeleteClickHandler,
     function () { console.log('Add/remove user button clicked.'); }
-  );
-  $('#selection-groups ul.admin-panel-content').append($card.build());
+  ).build();
+  shared.updateCardStatus($card, selectionGroup.ReductionDetails);
+  $('#selection-groups ul.admin-panel-content').append($card);
 }
 function renderSelectionGroupList(response, selectionGroupId) {
   var $selectionGroupList = $('#selection-groups ul.admin-panel-content');
@@ -60,9 +174,9 @@ function renderRootContentItem(rootContentItem) {
       'ContentAccessAdmin/SelectionGroups',
       renderSelectionGroupList
     ))
-  );
-
-  $('#root-content-items ul.admin-panel-content').append($card.build());
+  ).build();
+  shared.updateCardStatus($card, rootContentItem.PublicationDetails);
+  $('#root-content-items ul.admin-panel-content').append($card);
 }
 function renderRootContentItemList(response, rootContentItemId) {
   var $rootContentItemList = $('#root-content-items ul.admin-panel-content');
@@ -121,9 +235,13 @@ $(document).ready(function () {
 
   $('.action-icon-expand').click(shared.expandAll.listener);
   $('.action-icon-collapse').click(shared.collapseAll.listener);
-  $('.admin-panel-searchbar').keyup(shared.filterTree.listener);
+  $('.admin-panel-searchbar-tree').keyup(shared.filterTree.listener);
+  $('.admin-panel-searchbar-form').keyup(shared.filterForm.listener);
 
   $('#selection-groups ul.admin-panel-content-action').append(new card.AddSelectionGroupActionCard(selectionGroupAddClickHandler).build());
+  // TODO: select by ID or better classes
+  $('#selection-info .blue-button').click(submitSelectionForm);
+  $('#selection-info .red-button').click(cancelSelectionForm);
 
   $('.tooltip').tooltipster();
 });

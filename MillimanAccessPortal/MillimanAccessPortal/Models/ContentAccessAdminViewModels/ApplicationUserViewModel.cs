@@ -1,7 +1,7 @@
 ﻿/*
- * CODE OWNERS: Tom Puckett, 
- * OBJECTIVE: A class representing a user without sensitive fields
- * DEVELOPER NOTES: 
+ * CODE OWNERS: Joseph Sweeney
+ * OBJECTIVE:
+ * DEVELOPER NOTES:
  */
 
 using System.Security.Claims;

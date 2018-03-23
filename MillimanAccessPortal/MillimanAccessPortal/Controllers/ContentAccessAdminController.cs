@@ -1,7 +1,7 @@
 /*
  * CODE OWNERS: Joseph Sweeney,
  * OBJECTIVE:
- * DEVELOPER NOTES: 
+ * DEVELOPER NOTES:
  */
 
 using AuditLogLib;
@@ -191,7 +191,7 @@ namespace MillimanAccessPortal.Controllers
                 #region Log audit event
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                    "Request to create selection group without role in root content item",
+                    $"Request to create selection group without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentAccessAdmin]} role in root content item",
                     AuditEventId.Unauthorized,
                     new { RootContentItem.ClientId, RootContentItemId },
                     User.Identity.Name,
@@ -275,7 +275,7 @@ namespace MillimanAccessPortal.Controllers
                 #region Log audit event
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                    "Request to update selection group without role in root content item",
+                    $"Request to update selection group without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentAccessAdmin]} role in root content item",
                     AuditEventId.Unauthorized,
                     new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId },
                     User.Identity.Name,
@@ -427,7 +427,7 @@ namespace MillimanAccessPortal.Controllers
                 #region Log audit event
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                    "Request to delete selection group without role in root content item",
+                    $"Request to delete selection group without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentAccessAdmin]} role in root content item",
                     AuditEventId.Unauthorized,
                     new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId },
                     User.Identity.Name,
@@ -545,13 +545,16 @@ namespace MillimanAccessPortal.Controllers
         /// <summary>Submits a new reduction task.</summary>
         /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the related root content item.</remarks>
         /// <param name="SelectionGroupId">The selection group to reduce.</param>
-        /// <param name="SelectionUpdates">A dictionary that maps selection IDs to a boolean value indicating whether to set or unset the selection.</param>
+        /// <param name="Selections">A list of selected selection IDs</param>
         /// <returns>JsonResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SingleReduction(long SelectionGroupId, Dictionary<long, Boolean> SelectionUpdates)
+        public async Task<IActionResult> SingleReduction(long SelectionGroupId, long[] Selections)
         {
-            SelectionGroup SelectionGroup = DbContext.SelectionGroup.Find(SelectionGroupId);
+            SelectionGroup SelectionGroup = DbContext.SelectionGroup
+                .Include(sg => sg.RootContentItem)
+                .Where(sg => sg.Id == SelectionGroupId)
+                .SingleOrDefault();
 
             #region Preliminary validation
             if (SelectionGroup == null)
@@ -568,9 +571,9 @@ namespace MillimanAccessPortal.Controllers
                 #region Log audit event
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                    "Request to update selections without role in root content item",
+                    $"Request to update selections without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentAccessAdmin]} role in root content item",
                     AuditEventId.Unauthorized,
-                    new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, SelectionUpdates },
+                    new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, Selections },
                     User.Identity.Name,
                     HttpContext.Session.Id
                     );
@@ -582,30 +585,31 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            #region Argument processing
-            // TODO: Use a standard query to determine ContentPublicationRequest status based on associated ContentReductionTask records.
+            #region Pre-validation queries
             // Select the most recent content publication request that has been published.
-            var PublishedStatus = new List<ReductionStatusEnum>
-            {
-                ReductionStatusEnum.Pushed,
-                ReductionStatusEnum.Replaced,
-            };
             var MostRecentPublication = DbContext.ContentPublicationRequest
+                .Where(cpr => DbContext.ContentPublicationRequestStatus
+                    .Where(cprs => cpr.Id == cprs.ContentPublicationRequestId)
+                    .Where(cprs => cprs.PublicationRequestStatus == ReductionStatusEnum.Pushed)
+                    .Any())
                 .OrderByDescending(cpr => cpr.CreateDateTime)
-                .Where(cpr => cpr.RootContentItemId == SelectionGroup.RootContentItemId)
-                .Where(cpr => DbContext.ContentReductionTask
-                    .Where(crt => crt.ContentPublicationRequestId == cpr.Id)
-                    .All(crt => PublishedStatus.Contains(crt.ReductionStatus)))
                 .FirstOrDefault();
             #endregion
 
             #region Validation
             var ValidSelections = DbContext.HierarchyFieldValue
-                .Where(hfv => SelectionUpdates.Keys.Contains(hfv.Id))
-                .Where(hfv => hfv.HierarchyField.RootContentItemId == SelectionGroup.RootContentItemId);
-            if (ValidSelections.Count() < SelectionUpdates.Count())
+                .Where(hfv => hfv.HierarchyField.RootContentItemId == SelectionGroup.RootContentItemId)
+                .Where(hfv => Selections.Contains(hfv.Id));
+            if (ValidSelections.Count() < Selections.Count())
             {
                 Response.Headers.Add("Warning", "One or more requested selections do not exist or do not belong to the specified selection group.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            // Compare as sets to see if they contain the same elements
+            if (Selections.ToHashSet().SetEquals(SelectionGroup.SelectedHierarchyFieldValueList))
+            {
+                Response.Headers.Add("Warning", "The requested selections are not different from the active document.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
@@ -631,7 +635,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            string SelectionCriteriaString = JsonConvert.SerializeObject(Queries.GetFieldSelectionsForSelectionGroup(SelectionGroupId, SelectionUpdates), Formatting.Indented);
+            string SelectionCriteriaString = JsonConvert.SerializeObject(Queries.GetFieldSelectionsForSelectionGroup(SelectionGroupId, Selections), Formatting.Indented);
 
             var ContentReductionTask = new ContentReductionTask
             {
@@ -651,14 +655,16 @@ namespace MillimanAccessPortal.Controllers
                 $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                 "Selection change reduction task queued",
                 AuditEventId.SelectionChangeReductionQueued,
-                new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, SelectionUpdates },
+                new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, Selections },
                 User.Identity.Name,
                 HttpContext.Session.Id
                 );
             AuditLogger.Log(SelectionChangeReductionQueuedEvent);
             #endregion
 
-            return Json(ContentReductionTask);
+            ContentAccessAdminSelectionsDetailViewModel Model = ContentAccessAdminSelectionsDetailViewModel.Build(DbContext, Queries, SelectionGroup);
+
+            return Json(Model);
         }
 
         /// <summary>Cancel a pending or completed reduction task.</summary>
@@ -689,7 +695,7 @@ namespace MillimanAccessPortal.Controllers
                 #region Log audit event
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                    "Request to cancel reduction without role in root content item",
+                    $"Request to cancel reduction without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentAccessAdmin]} role in root content item",
                     AuditEventId.Unauthorized,
                     new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId },
                     User.Identity.Name,
@@ -742,7 +748,9 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(SelectionChangeReductionCanceledEvent);
             #endregion
 
-            return Json(UpdatedTasks);
+            ContentAccessAdminSelectionsDetailViewModel Model = ContentAccessAdminSelectionsDetailViewModel.Build(DbContext, Queries, SelectionGroup);
+
+            return Json(Model);
         }
     }
 }

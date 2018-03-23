@@ -24,6 +24,7 @@ namespace MapDbContextLib.Context
         public DbSet<ProfitCenter> ProfitCenter { get; set; }
         public DbSet<ContentReductionTask> ContentReductionTask { get; set; }
         public DbSet<ContentPublicationRequest> ContentPublicationRequest { get; set; }
+        public DbSet<ContentPublicationRequestStatus> ContentPublicationRequestStatus { get; set; }
 
         // Alteration of Identity entities
         public DbSet<ApplicationUser> ApplicationUser { get; set; }

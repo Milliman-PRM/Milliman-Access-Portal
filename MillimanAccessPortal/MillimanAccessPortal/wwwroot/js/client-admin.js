@@ -11,7 +11,7 @@ function removeClientInserts() {
 
 // TODO: move to shared
 function clearClientSelection() {
-  $('.card-container').removeAttr('editing selected');
+  $('.card-body-container').removeAttr('editing selected');
 }
 
 // TODO: move to shared
@@ -274,7 +274,7 @@ function getClientDetail(clientDiv) {
 function openClientCardReadOnly($clientCard) {
   removeClientInserts();
   clearClientSelection();
-  $clientCard.attr('selected', '');
+  $clientCard.find('div.card-body-container').attr('selected', '');
   setClientFormReadOnly();
   getClientDetail($clientCard);
   showClientDetails();
@@ -284,7 +284,7 @@ function openClientCardReadOnly($clientCard) {
 function openClientCardWriteable($clientCard) {
   removeClientInserts();
   clearClientSelection();
-  $clientCard.attr({ selected: '', editing: '' });
+  $clientCard.find('div.card-body-container').attr({ selected: '', editing: '' });
   getClientDetail($clientCard);
   setClientFormWriteable();
   showClientDetails();
@@ -296,7 +296,7 @@ function openNewChildClientForm($parentCard) {
   clearClientSelection();
   setClientFormWriteable();
   setupChildClientForm($parentCard);
-  $parentCard.parent().next('li').find('div.card-container')
+  $parentCard.parent().next('li').find('div.card-body-container')
     .attr({ selected: '', editing: '' });
   hideClientUsers();
   showClientDetails();
@@ -307,7 +307,7 @@ function openNewClientForm() {
   clearClientSelection();
   setClientFormWriteable();
   setupClientForm();
-  $('#new-client-card').attr('selected', '');
+  $('#new-client-card').find('div.card-body-container').attr('selected', '');
   hideClientUsers();
   showClientDetails();
 }
@@ -341,7 +341,7 @@ function clientCardDeleteClickHandler(event) {
 function clientCardEditClickHandler(event) {
   var $clickedCard = $(this).closest('.card-container');
   var $clientTree = $('#client-tree');
-  var sameCard = ($clickedCard[0] === $clientTree.find('[selected]')[0]);
+  var sameCard = ($clickedCard[0] === $clientTree.find('[selected]').closest('.card-container')[0]);
   event.stopPropagation();
   if ($clientTree.has('[editing]').length) {
     if (!sameCard) {
@@ -388,7 +388,7 @@ function userCardRemoveClickHandler(event) {
 // TODO: move to shared
 function newClientClickHandler() {
   var $clientTree = $('#client-tree');
-  var sameCard = ($('#new-client-card')[0] === $clientTree.find('[selected]')[0]);
+  var sameCard = ($('#new-client-card')[0] === $clientTree.find('[selected]').closest('.card-container')[0]);
   if ($clientTree.has('[selected]').length) {
     shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
       if (sameCard) {
