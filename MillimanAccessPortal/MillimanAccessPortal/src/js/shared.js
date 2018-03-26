@@ -11,7 +11,7 @@ var set;
 // Functions with associated event listeners
 
 // Filtering
-shared.filterTree = function ($panel, $this) {
+shared.filterTreeImperative = function ($panel, $this) {
   var $content = $panel.find('ul.admin-panel-content');
   $content.children('.hr').hide();
   $content.find('[data-filter-string]').each(function (index, element) {
@@ -25,7 +25,7 @@ shared.filterTree = function ($panel, $this) {
     }
   });
 };
-shared.filterForm = function ($panel, $this) {
+shared.filterFormImperative = function ($panel, $this) {
   var $content = $panel.find('form.admin-panel-content');
   $content.find('[data-selection-value]').each(function (index, element) {
     var $element = $(element);

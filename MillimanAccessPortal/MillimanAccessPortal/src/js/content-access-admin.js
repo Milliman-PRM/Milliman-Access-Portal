@@ -248,8 +248,8 @@ $(document).ready(function () {
 
   $('.action-icon-expand').click(shared.expandAll.listener);
   $('.action-icon-collapse').click(shared.collapseAll.listener);
-  $('.admin-panel-searchbar-tree').keyup(shared.filterTree.listener);
-  $('.admin-panel-searchbar-form').keyup(shared.filterForm.listener);
+  $('.admin-panel-searchbar-tree').keyup(shared.filterTreeImperative.listener);
+  $('.admin-panel-searchbar-form').keyup(shared.filterFormImperative.listener);
 
   $('#selection-groups ul.admin-panel-content-action').append(new card.AddSelectionGroupActionCard(selectionGroupAddClickHandler).build());
   // TODO: select by ID or better classes
