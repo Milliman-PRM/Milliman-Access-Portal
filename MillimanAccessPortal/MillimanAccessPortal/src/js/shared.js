@@ -1,3 +1,4 @@
+var $ = require('jquery');
 var dialog = require('./dialog');
 
 var shared = {};
@@ -318,6 +319,34 @@ shared.confirmAndContinue = function ($panel, Dialog, onContinue) {
   } else if (onContinue) {
     onContinue();
   }
+};
+
+shared.filterTree = function ($tree, filterString) {
+  var anyMatch = false;
+  return $tree.filter(function (index, element) {
+    var $element = $(element);
+    var $card = $element.find('[data-filter-string]');
+    var rv = false;
+    if ($card.length) {
+      rv = ($card.data().filterString
+        .indexOf(filterString.toUpperCase()) > -1);
+      anyMatch = rv || anyMatch;
+    } else if ($element.is('.hr')) {
+      rv = anyMatch;
+      anyMatch = false;
+    }
+    return rv;
+  });
+};
+shared.filterSelections = function ($selections, filterString) {
+  return $selections.filter(function (index, element) {
+    var $card = $(element).find('[data-selection-value]');
+    if ($card.length) {
+      return ($card.data().selectionValue
+        .indexOf(filterString.toUpperCase()) > -1);
+    }
+    return false;
+  });
 };
 
 module.exports = shared;
