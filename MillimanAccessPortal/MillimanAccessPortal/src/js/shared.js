@@ -1,5 +1,6 @@
 var $ = require('jquery');
 var dialog = require('./dialog');
+var toastr = require('toastr');
 
 var shared = {};
 
