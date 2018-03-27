@@ -15,15 +15,15 @@ namespace MapDbContextLib.Context
 {
     public enum ReductionStatusEnum : long
     {
-        Default = 0,    // Default state
-        Canceled = 1,   // The task was canceled by a user before the reduction server took it off the queue
-        Discarded = 2,  // The task was completed by the reduction server, but a user chose not to push the reduced document
-        Replaced = 3,   // The reduced document was pushed by a user, but a more recent document has since been pushed
+        Unspecified = 0,// Default unknown state
+        Canceled = 1,   // The task was canceled before the reduction server began processing
+        Discarded = 2,  // The task was completed by the reduction server, but a user did not publish the reduced document
+        Replaced = 3,   // The reduced document was published, but a more recent document has since been published
         Queued = 10,    // The task is in queue for reduction
         Reducing = 20,  // The reduction server is currently processing the reduction task
         Reduced = 30,   // The reduction server has completed the reduction task, but no user has pushed the reduced document
-        Pushed = 40,    // A user has pushed (approved/gone live with) the reduced document - this is now the document that users will be able to view
-        Error = 90,     // A general error has occured
+        Live = 40,      // The reduced document is published and is currently being served to users
+        Error = 90,     // An error has occured
     }
 
     public class ContentReductionTask
@@ -31,14 +31,14 @@ namespace MapDbContextLib.Context
         // TODO: If all display names match enum values, then use .ToString() instead of a Dictionary.
         public static Dictionary<ReductionStatusEnum, string> ReductionStatusDisplayNames = new Dictionary<ReductionStatusEnum, string>
         {
-            { ReductionStatusEnum.Default, "Default" },
+            { ReductionStatusEnum.Unspecified, "Default" },
             { ReductionStatusEnum.Canceled, "Canceled" },
             { ReductionStatusEnum.Discarded, "Discarded" },
             { ReductionStatusEnum.Replaced, "Replaced" },
             { ReductionStatusEnum.Queued, "Queued" },
             { ReductionStatusEnum.Reducing, "Reducing" },
             { ReductionStatusEnum.Reduced, "Reduced" },
-            { ReductionStatusEnum.Pushed, "Pushed" },
+            { ReductionStatusEnum.Live, "Pushed" },
             { ReductionStatusEnum.Error, "Error" },
         };
 

@@ -590,7 +590,7 @@ namespace MillimanAccessPortal.Controllers
             var MostRecentPublication = DbContext.ContentPublicationRequest
                 .Where(cpr => DbContext.ContentPublicationRequestStatus
                     .Where(cprs => cpr.Id == cprs.ContentPublicationRequestId)
-                    .Where(cprs => cprs.PublicationRequestStatus == ReductionStatusEnum.Pushed)
+                    .Where(cprs => cprs.PublicationRequestStatus == ReductionStatusEnum.Live)
                     .Any())
                 .OrderByDescending(cpr => cpr.CreateDateTime)
                 .FirstOrDefault();

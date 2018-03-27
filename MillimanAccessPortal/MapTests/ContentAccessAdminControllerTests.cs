@@ -642,7 +642,7 @@ namespace MapTests
 
         [Theory]
         [InlineData(1, new ReductionStatusEnum[] { })]                                // No outstanding tasks exist
-        [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Pushed    })]  // "
+        [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Live    })]  // "
         [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Canceled  })]  // "
         [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Discarded })]  // "
         [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Replaced  })]  // "
@@ -683,7 +683,7 @@ namespace MapTests
         [InlineData(1, null, new ReductionStatusEnum[] { })]                                // No queued tasks exist
         [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Reducing  })]  // "
         [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Reduced   })]  // "
-        [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Pushed    })]  // "
+        [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Live    })]  // "
         [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Canceled  })]  // "
         [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Discarded })]  // "
         [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Replaced  })]  // "

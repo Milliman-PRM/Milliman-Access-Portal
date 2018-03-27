@@ -1,11 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+﻿/*
+ * CODE OWNERS: Tom Puckett, 
+ * OBJECTIVE: <What and WHY.>
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using System;
+using System.Data;
+using System.Data.Common;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
+using Npgsql;
 
 namespace MapDbContextLib.Context
 {
@@ -24,7 +31,6 @@ namespace MapDbContextLib.Context
         public DbSet<ProfitCenter> ProfitCenter { get; set; }
         public DbSet<ContentReductionTask> ContentReductionTask { get; set; }
         public DbSet<ContentPublicationRequest> ContentPublicationRequest { get; set; }
-        public DbSet<ContentPublicationRequestStatus> ContentPublicationRequestStatus { get; set; }
 
         // Alteration of Identity entities
         public DbSet<ApplicationUser> ApplicationUser { get; set; }
@@ -61,7 +67,7 @@ namespace MapDbContextLib.Context
 
             builder.Entity<ContentReductionTask>()
                 .Property(b => b.ReductionStatus)
-                .HasDefaultValue(ReductionStatusEnum.Default);
+                .HasDefaultValue(ReductionStatusEnum.Unspecified);
 
             builder.Entity<ContentReductionTask>()
                 .ForNpgsqlUseXminAsConcurrencyToken();
@@ -71,6 +77,41 @@ namespace MapDbContextLib.Context
                 .HasDefaultValue(FieldStructureType.Unknown);
         }
 
+        public ReductionStatusEnum GetPublicationRequestStatus(long RequestId)
+        {
+            using (var command = Database.GetDbConnection().CreateCommand())
+            {
+                command.CommandText = "WITH BaseTable AS ( " +
+                                          "SELECT \"ContentPublicationRequestId\", ARRAY_AGG(DISTINCT \"ReductionStatus\")::bigint[] as status_list " +
+                                          "FROM \"ContentReductionTask\" " +
+                                          "WHERE \"ContentPublicationRequestId\" = @p0 " +
+                                          "GROUP BY \"ContentPublicationRequestId\" ) " +
+                                      "SELECT " +
+                                          "CASE " +
+                                          "WHEN 90::bigint = ANY(status_list) THEN 90::bigint " + // One or more tasks has the Error status
+                                          "WHEN status_list<@ ARRAY[40::bigint, 3::bigint] THEN 40::bigint " +  // All tasks are live
+                                          "WHEN array_length(status_list, 1) = 1 THEN status_list[1] " +  // All task statuses are the same; return whatever that status is
+                                          "WHEN status_list <@ ARRAY[10::bigint, 20::bigint, 30::bigint] THEN 20::bigint " +
+                                          "ELSE 0::bigint " +  // Default
+                                          "END as \"PublicationRequestStatus\" " +
+                                      "From BaseTable; ";
+
+                var p0 = new NpgsqlParameter { ParameterName = "p0", DbType = DbType.Int64, Direction = ParameterDirection.Input, Value = RequestId };
+                command.Parameters.Add(p0);
+
+                Database.OpenConnection();
+                using (DbDataReader result = command.ExecuteReader())
+                {
+                    if (result.Read() && result.HasRows && result.VisibleFieldCount == 1)
+                    {
+                        ReductionStatusEnum ReturnStatus = (ReductionStatusEnum)result.GetInt64(0);
+                        return ReturnStatus;
+                    }
+                }
+            }
+            
+            return ReductionStatusEnum.Unspecified;  // TODO maybe this should throw instead
+        }
         public bool ClientExists(long id)
         {
             return Client.Any(e => e.Id == id);
