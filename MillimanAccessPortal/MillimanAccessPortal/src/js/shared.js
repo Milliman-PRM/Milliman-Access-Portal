@@ -338,15 +338,13 @@ shared.filterTree = function ($tree, filterString) {
     return rv;
   });
 };
-shared.filterSelections = function ($selections, filterString) {
-  return $selections.filter(function (index, element) {
-    var $card = $(element).find('[data-selection-value]');
-    if ($card.length) {
+shared.filterSelections = function ($form, filterString) {
+  return $form.find('[data-selection-value]')
+    .filter(function (index, element) {
+      var $card = $(element);
       return ($card.data().selectionValue
         .indexOf(filterString.toUpperCase()) > -1);
-    }
-    return false;
-  });
+    });
 };
 
 module.exports = shared;
