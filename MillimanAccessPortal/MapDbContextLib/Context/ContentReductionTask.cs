@@ -31,14 +31,14 @@ namespace MapDbContextLib.Context
         // TODO: If all display names match enum values, then use .ToString() instead of a Dictionary.
         public static Dictionary<ReductionStatusEnum, string> ReductionStatusDisplayNames = new Dictionary<ReductionStatusEnum, string>
         {
-            { ReductionStatusEnum.Unspecified, "Default" },
+            { ReductionStatusEnum.Unspecified, "Unspecified" },
             { ReductionStatusEnum.Canceled, "Canceled" },
             { ReductionStatusEnum.Discarded, "Discarded" },
             { ReductionStatusEnum.Replaced, "Replaced" },
             { ReductionStatusEnum.Queued, "Queued" },
             { ReductionStatusEnum.Reducing, "Reducing" },
             { ReductionStatusEnum.Reduced, "Reduced" },
-            { ReductionStatusEnum.Live, "Pushed" },
+            { ReductionStatusEnum.Live, "Live" },
             { ReductionStatusEnum.Error, "Error" },
         };
 

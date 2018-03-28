@@ -5,14 +5,11 @@
  */
 
 using System;
-using System.Data;
-using System.Data.Common;
 using System.Linq;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
-using Npgsql;
 
 namespace MapDbContextLib.Context
 {
@@ -77,41 +74,6 @@ namespace MapDbContextLib.Context
                 .HasDefaultValue(FieldStructureType.Unknown);
         }
 
-        public ReductionStatusEnum GetPublicationRequestStatus(long RequestId)
-        {
-            using (var command = Database.GetDbConnection().CreateCommand())
-            {
-                command.CommandText = "WITH BaseTable AS ( " +
-                                          "SELECT \"ContentPublicationRequestId\", ARRAY_AGG(DISTINCT \"ReductionStatus\")::bigint[] as status_list " +
-                                          "FROM \"ContentReductionTask\" " +
-                                          "WHERE \"ContentPublicationRequestId\" = @p0 " +
-                                          "GROUP BY \"ContentPublicationRequestId\" ) " +
-                                      "SELECT " +
-                                          "CASE " +
-                                          "WHEN 90::bigint = ANY(status_list) THEN 90::bigint " + // One or more tasks has the Error status
-                                          "WHEN status_list<@ ARRAY[40::bigint, 3::bigint] THEN 40::bigint " +  // All tasks are live
-                                          "WHEN array_length(status_list, 1) = 1 THEN status_list[1] " +  // All task statuses are the same; return whatever that status is
-                                          "WHEN status_list <@ ARRAY[10::bigint, 20::bigint, 30::bigint] THEN 20::bigint " +
-                                          "ELSE 0::bigint " +  // Default
-                                          "END as \"PublicationRequestStatus\" " +
-                                      "From BaseTable; ";
-
-                var p0 = new NpgsqlParameter { ParameterName = "p0", DbType = DbType.Int64, Direction = ParameterDirection.Input, Value = RequestId };
-                command.Parameters.Add(p0);
-
-                Database.OpenConnection();
-                using (DbDataReader result = command.ExecuteReader())
-                {
-                    if (result.Read() && result.HasRows && result.VisibleFieldCount == 1)
-                    {
-                        ReductionStatusEnum ReturnStatus = (ReductionStatusEnum)result.GetInt64(0);
-                        return ReturnStatus;
-                    }
-                }
-            }
-            
-            return ReductionStatusEnum.Unspecified;  // TODO maybe this should throw instead
-        }
         public bool ClientExists(long id)
         {
             return Client.Any(e => e.Id == id);
