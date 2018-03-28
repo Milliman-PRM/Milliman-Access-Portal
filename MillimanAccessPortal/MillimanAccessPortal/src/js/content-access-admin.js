@@ -257,7 +257,14 @@ $(document).ready(function () {
       .filterTree($(this).val())
       .show();
   });
-  $('.admin-panel-searchbar-form').keyup(shared.filterFormImperative.listener);
+  $('.admin-panel-searchbar-form').keyup(function (event) {
+    event.stopPropagation();
+    $(this).closest('.admin-panel-container')
+      .find('.admin-panel-content').children()
+      .hide()
+      .filterSelections($(this).val())
+      .show();
+  });
 
   $('#selection-groups ul.admin-panel-content-action').append(new card.AddSelectionGroupActionCard(selectionGroupAddClickHandler).build());
   // TODO: select by ID or better classes
