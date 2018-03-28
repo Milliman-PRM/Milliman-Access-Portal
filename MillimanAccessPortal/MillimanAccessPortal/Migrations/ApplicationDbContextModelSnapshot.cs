@@ -96,13 +96,6 @@ namespace MillimanAccessPortal.Migrations
                     b.ToTable("ContentPublicationRequest");
                 });
 
-            modelBuilder.Entity("MapDbContextLib.Context.ContentPublicationRequestStatus", b =>
-                {
-                    b.Property<long>("ContentPublicationRequestId");
-
-                    b.Property<int>("PublicationStatus");
-                });
-
             modelBuilder.Entity("MapDbContextLib.Context.ContentReductionTask", b =>
                 {
                     b.Property<Guid>("Id")
@@ -120,7 +113,9 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("MasterFilePath")
                         .IsRequired();
 
-                    b.Property<long>("ReductionStatus");
+                    b.Property<long>("ReductionStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValue(0L);
 
                     b.Property<string>("ResultFilePath");
 

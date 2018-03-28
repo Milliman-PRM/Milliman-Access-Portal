@@ -12,18 +12,14 @@ This architecture is intended to conform to the following objectives, roughly pr
 * The system architecture must be resilient and able to withstand the failure of one or more components.
 * System maintenance & updates must be possible without taking the application offline.
 * Backups must be maintained at all times, and they must conform to an established [Recovery Point Objective](https://en.wikipedia.org/wiki/Recovery_point_objective) and [Recovery Time Objective](https://en.wikipedia.org/wiki/Recovery_time_objective).
-* Backups should be stored in a separate Azure zone when possible, to enable quick recovery in the case of a full data center outage
+* Backups should be stored in a separate Azure zone when possible (or utilize Geo-Redundant Storage), to enable quick recovery in the case of a full data center outage
 * Data backups must be regularly tested to verify that they are valid and usable for running the application.
-* Recovery process to a secondary Azure zone must be documented in sufficient detail that any staff with the necessary permissions can perform the process.
+* Recovery process to a secondary Azure zone must be documented in sufficient detail that any staff with the necessary permissions in Azure can perform the process.
 * Backups should have as little impact on production performance as possible.
 
 ## Data Centers
 
 MAP will be hosted on Microsoft's Azure platform, in the North Central US region. Backups will be performed to the South Central US region when possible.
-
-## Hosting Platform
-
-MAP will run entirely on virtual machines, which will be hosted on physical hosts dedicated to MAP. No physical hardware will be shared with other systems, with the possible exception of storage.
 
 ## Azure Products Used
 
@@ -33,19 +29,16 @@ We will utilize multiple Azure products to build the production environment. Mos
 
 * **Azure Database for PostgreSQL** - Managed database service to be leveraged by the application
 
-* **Azure Service Bus** - Out-of-process queue for storing auditing events waiting to be processed
-
-* **Azure Functions** - Scheduled task execution to process log events and load into a database
-
 * **Azure Key Vault** - Secure storage of configuration secrets, including connection strings and QlikView Server credentials
 
 * **Availability Sets** - Management layer for VMs to keep them isolated within the data center. Makes the VMs more resilient to power, hardware, and network failures within the data center.
 
-* **Virtual Machines**
+* **Virtual Machines** - 2 for QlikView Server, 2 for QlikView Publisher, 2 for file server clustering
 
-* **Azure File Storage** - Maintain a mountable share to store QlikView reports and other content. Enables us to utilize QlikView's clustering capabilities.
+* **Application Gateway** - Distribute HTTPS requests to web app or QlikView Servers, as appropriate.
+    * **Web Application Firewall** - A feature of the Application Gateway. Applies additional security filtering to ensure malicious traffic doesn't reach either endpoint.
 
-* **Load Balancer** - Distribute HTTPS requests to QlikView-related VMs. Ensures traffic is balanced when multiple VMs are available and maintains connectivity when one or more VMs is offline.
+* **Azure Security Center** - Monitor our Azure infrastructure and alert security staff about possible issues.
 
 ## Virtual Machines
 
@@ -54,13 +47,14 @@ VMs in the MAP environment are segmented by function and user access. Throughout
 |VM Type|Primary Functions|Availability to users|
 |----|----|----|
 |QlikView Server|Surface QlikView reports|Available to end users over the web|
-|QlikView Publisher|Reduce QlikView reports and host the Milliman Reduction Service|Not available directly to end users. Application Servers will interface with Publishers via the Publisher API|
+|QlikView Publisher|Reduce QlikView reports and host the Milliman Reduction Service|Not available to end users. These will operate largely independently, retrieving tasks from the database directly.|
+|File Server|Store QVWs and other content to be delivered to end users via the web app|Not available directly to end users. Content will be streamed to users via the web app|
 
-## Load balancing within primary data center
+## Load balancing
 
-Load balancers will handle incoming user requests to QlikView Servers and QlikView Publishers. When all nodes are available, all will be utilized simultaneously, to spread out the computational load.
+Application Gateway will perform load balancing of incoming user requests to QlikView Servers. When all nodes are available, all will be utilized simultaneously, to spread out the computational load.
 
-Using load balancers to manage requests to the VMs also enables "online" maintenance of the QlikView servers, as long as one VM of each type stays online.
+Using load balancing to manage requests to the VMs also enables "online" maintenance of the QlikView servers, as long as one VM of each type stays online.
 
 User requests will be distributed on a per-session basis, meaning that an individual user will be routed to the same QlikView Server for the duration of their session.
 
@@ -90,13 +84,13 @@ We will perform regular restore tests of the Azure backups, to ensure we are abl
 
 In the case that we have to stand up a new PostgreSQL instance, the connection strings stored in Azure Key Store will also need to be updated.
 
-## File storage redundancy
+## File server redundancy
 
-The file storage instance hosting content will be [geo-redundant](https://docs.microsoft.com/en-us/azure/storage/common/storage-redundancy?toc=%2fazure%2fstorage%2fblobs%2ftoc.json#geo-redundant-storage), which means Azure will maintain a second copy in a separate data center (South Central US), which we can stand up in an emergency.
+The File servers in production will be a cluster of two servers, utilizing Windows Server 2016's [Storage Replica feature](https://docs.microsoft.com/en-us/windows-server/storage/storage-replica/storage-replica-overview). This is a block-level replication solution that ensures maximum performance of the replication.
 
-## Virtual machine backups
+## Data backups
 
-All virtual machines will be backed up to geo-redundant storage. This enables fast recovery in the case of a data center outage. It also provides the ability to recover a single VM in the case of data corruption.
+All virtual machines and databases will be backed up to geo-redundant storage. This enables fast recovery in the case of a data center outage. It also provides the ability to recover a single VM in the case of a machine failure.
 
 ## Recovery to secondary data center
 
@@ -107,7 +101,6 @@ In the case that the data center becomes unavailable permanently or for a signif
 * Stand up services in the new location, utilizing the configuration scripts used to stand up the original data center
   * Azure Database for PostgreSQL
   * Azure Key Vault
-  * Service Bus
   * Load balancer
 * Restore the QlikView Server and Publisher backups
 * Restore most recent available PostgreSQL database backups
@@ -115,6 +108,14 @@ In the case that the data center becomes unavailable permanently or for a signif
 * Verify that all applications and services are functioning normally
 
 ## Security Policies
+
+### Web Application firewall
+
+The Web Application Firewall will guard our infrastructure against common types of attacks and vulnerabilities. All end-user traffic will flow through the WAF.
+
+### Azure Security Center
+
+We will utilize Azure Security Center to monitor for potential issues within our Azure infrastructure. Over time, we will evaluate for possible automated actions to take in response to log entries or other security events.
 
 ### Filesystem Encryption
 
@@ -126,7 +127,7 @@ Sensitive configuration options will be stored in Azure Key Vault.
 
 ### Firewall Configuration
 
-Inbound requests from the public internet will pass through a hardware firewall. Additionally, the operating system firewall must be enabled and properly configured on each VM.
+Inbound requests from the public internet will pass through the Application Gateway. Additionally, the operating system firewall must be enabled and properly configured on each VM.
 
 In the table below, all public rules also apply to internal requests (from Milliman's network). Internal traffic may be open for additional protocols/services.
 
@@ -134,16 +135,15 @@ In addition to the services outlined in the table, Microsoft Remote Desktop shou
 
 |Server Type|Public (external) allowed protocols|Additional internal services|
 |-----|-----|-----|
-|Application servers|HTTPS & HTTP (Only for redirect to HTTPS)|---|
-|QlikView Server|HTTPS|---|
-|QlikView Publisher|---|HTTPS|
-|Database servers|---|PostgreSQL (port 5433)|
+|QlikView Server|HTTPS|RDP only from Milliman's network|
+|QlikView Publisher|---|RDP only from Milliman's network|
+|File Server|---|RDP only from Milliman's network|
 
 ### Antivirus Software
 
-All servers will run antivirus software, utilizing real-time scanning.
+All virtual machines will run Windows Defender antimalware software, utilizing real-time scanning.
 
-Additionally, files uploaded by users should be scanned before the system takes any action on them or serves them up to end-users. Specific implementation details should be coordinated between the security manager and back-end developers.
+Additionally, files uploaded by users should be scanned before the system takes any action on them or serves them up to end-users. Windows Defender has a [command line interface](https://docs.microsoft.com/en-us/windows/security/threat-protection/windows-defender-antivirus/command-line-arguments-windows-defender-antivirus) and [PowerShell cmdlets](https://docs.microsoft.com/en-us/powershell/module/defender/index?view=win10-ps) that may be useful to developers.
 
 ## Change Management
 

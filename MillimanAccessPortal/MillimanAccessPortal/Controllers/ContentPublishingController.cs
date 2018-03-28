@@ -101,7 +101,7 @@ namespace MillimanAccessPortal.Controllers
             int ExistingTaskCountForRootContent = DbContext.ContentReductionTask
                                                            .Include(t => t.ContentPublicationRequest)
                                                            .Where(t => t.ContentPublicationRequest.RootContentItemId == RootContentId)
-                                                           .Where(t => t.ReductionStatus != ReductionStatusEnum.Pushed)
+                                                           .Where(t => t.ReductionStatus != ReductionStatusEnum.Live)
                                                            .Count();
             if (ExistingTaskCountForRootContent > 0)
             {
