@@ -12,8 +12,8 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20180309205144_AddStatusView")]
-    partial class AddStatusView
+    [Migration("20180328195733_AdjustReductionStatusEnum")]
+    partial class AdjustReductionStatusEnum
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -95,18 +95,6 @@ namespace MillimanAccessPortal.Migrations
                     b.HasIndex("RootContentItemId");
 
                     b.ToTable("ContentPublicationRequest");
-                });
-
-            modelBuilder.Entity("MapDbContextLib.Context.ContentPublicationRequestStatus", b =>
-                {
-                    b.Property<long>("ContentPublicationRequestId")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<int>("PublicationStatus");
-
-                    b.HasKey("ContentPublicationRequestId");
-
-                    b.ToTable("ContentPublicationRequestStatus");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.ContentReductionTask", b =>

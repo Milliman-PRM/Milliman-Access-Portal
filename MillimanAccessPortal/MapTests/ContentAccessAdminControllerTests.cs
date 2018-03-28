@@ -605,6 +605,13 @@ namespace MapTests
             {
                 2,
             };
+            TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
+            {
+                ReductionStatus = ReductionStatusEnum.Live,
+                ContentPublicationRequestId = null,
+                SelectionGroupId = SelectionGroupId,
+                ApplicationUserId = 1
+            });
             #endregion
 
             #region Act
@@ -641,11 +648,10 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData(1, new ReductionStatusEnum[] { })]                                // No outstanding tasks exist
-        [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Pushed    })]  // "
-        [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Canceled  })]  // "
-        [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Discarded })]  // "
-        [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Replaced  })]  // "
+        [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Live })]                                // No outstanding tasks exist
+        [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Live, ReductionStatusEnum.Canceled  })]  // "
+        [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Live, ReductionStatusEnum.Discarded })]  // "
+        [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Live, ReductionStatusEnum.Replaced  })]  // "
         public async Task SingleReduction_Success(long SelectionGroupId, ReductionStatusEnum[] Tasks)
         {
             #region Arrange
@@ -683,7 +689,7 @@ namespace MapTests
         [InlineData(1, null, new ReductionStatusEnum[] { })]                                // No queued tasks exist
         [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Reducing  })]  // "
         [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Reduced   })]  // "
-        [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Pushed    })]  // "
+        [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Live      })]  // "
         [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Canceled  })]  // "
         [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Discarded })]  // "
         [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Replaced  })]  // "
