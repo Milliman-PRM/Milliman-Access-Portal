@@ -5,6 +5,7 @@
  */
 
 using System.Linq;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
@@ -61,7 +62,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
     public class PublicationDetails
     {
         public ApplicationUser User { get; set; }
-        public ReductionStatusEnum StatusEnum { get; set; }
+        public PublicationStatus StatusEnum { get; set; }
         public string StatusName { get; set; }
         public long SelectionGroupId { get; set; } = -1;
         public long RootContentItemId { get; set; }
@@ -73,16 +74,18 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
                 return null;
             }
 
-            var status = DbContext.ContentPublicationRequestStatus
-                .Where(cprs => cprs.ContentPublicationRequestId == contentPublicationRequest.Id)
-                .Select(cprs => cprs.PublicationRequestStatus)
-                .Single();
+            List<ReductionStatusEnum> ReductionStatusList = DbContext.ContentReductionTask
+                                                      .Where(t => t.ContentPublicationRequestId == contentPublicationRequest.Id)
+                                                      .Select(t => t.ReductionStatus)
+                                                      .ToList();
+
+            PublicationStatus Status = ContentPublicationRequest.GetPublicationStatus(ReductionStatusList);
 
             return new PublicationDetails
             {
                 User = contentPublicationRequest.ApplicationUser,
-                StatusEnum = status,
-                StatusName = ContentReductionTask.ReductionStatusDisplayNames[status],
+                StatusEnum = Status,
+                StatusName = ContentPublicationRequest.PublicationStatusString[Status],
                 RootContentItemId = contentPublicationRequest.RootContentItemId,
             };
         }
