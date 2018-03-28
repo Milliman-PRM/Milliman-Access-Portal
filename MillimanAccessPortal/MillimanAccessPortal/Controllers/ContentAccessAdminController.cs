@@ -596,18 +596,24 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            // There must be no pending or unexpected reduction task created after the current live reduction
-            var ConflictingStatus = new List<ReductionStatusEnum>
-            {
-                ReductionStatusEnum.Queued, ReductionStatusEnum.Reducing, ReductionStatusEnum.Reduced,  // pending
-                ReductionStatusEnum.Unspecified, ReductionStatusEnum.Replaced,  // unexpected
-            };
+            // There must be no pending reduction task created after the current live reduction
+            var PendingStatus = new List<ReductionStatusEnum> { ReductionStatusEnum.Queued, ReductionStatusEnum.Reducing, ReductionStatusEnum.Reduced, };
             if (DbContext.ContentReductionTask
                          .Where(t => t.CreateDateTime > CurrentLiveReduction.CreateDateTime)
-                         .Any(t => ConflictingStatus.Contains(t.ReductionStatus)))
+                         .Any(t => PendingStatus.Contains(t.ReductionStatus)))
             {
                 Response.Headers.Add("Warning", "An unresolved publication or selection change prevents this action.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            // There must be no reduction task with erroneous or unexpected status created after the current live reduction
+            var UnexpectedStatus = new List<ReductionStatusEnum> { ReductionStatusEnum.Unspecified, ReductionStatusEnum.Replaced, };
+            if (DbContext.ContentReductionTask
+                         .Where(t => t.CreateDateTime > CurrentLiveReduction.CreateDateTime)
+                         .Any(t => UnexpectedStatus.Contains(t.ReductionStatus)))
+            {
+                Response.Headers.Add("Warning", "An erroneous reduction status prevents this action.");
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
             // The requested selections must be valid for the content item
