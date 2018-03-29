@@ -126,7 +126,7 @@ $root_npm = (npm list -g) | Select -First 1
 
 log_statement "npm packages are installed to ${root_npm}"
 
-$command = "${root_npm}\yarn.cmd install"
+$command = "${root_npm}\yarn.cmd install --frozen-lockfile"
 invoke-expression "&$command"
 
 if ($LASTEXITCODE -ne 0) {
