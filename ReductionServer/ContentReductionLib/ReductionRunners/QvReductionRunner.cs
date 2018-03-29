@@ -11,12 +11,10 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 using MapDbContextLib.Context;
 using AuditLogLib;
 using QmsApi;
-using Newtonsoft.Json;
 
 namespace ContentReductionLib.ReductionRunners
 {
@@ -25,6 +23,8 @@ namespace ContentReductionLib.ReductionRunners
         // TODO Get these from configuration
         const string QmsUrl = "http://indy-qvtest01:4799/QMS/Service";
         AuditLogger Logger = new AuditLogger();  // Exception if static AuditLogger.Config is not initialized (should be done globally for process)
+
+        internal CancellationToken _CancellationToken { private get; set; }
 
         /// <summary>
         /// Constructor, sets up starting conditions that are associated with the system configuration rather than this specific task.
@@ -93,45 +93,62 @@ namespace ContentReductionLib.ReductionRunners
         private string MasterFileName { get { return "Master.qvw"; } }
         #endregion
 
-        internal override ReductionJobResult ExecuteReduction()
+        internal async override Task<ReductionJobResult> ExecuteReduction(CancellationToken cancellationToken)
         {
+            _CancellationToken = cancellationToken;
+            MethodBase Method = MethodBase.GetCurrentMethod();
+
             try
             {
-                if (ValidateThisInstance() &&
-                    PreTaskSetup() &&
-                    ExtractReductionHierarchy().Result &&
-                    CreateReducedContent() &&
-                    DistributeResults() &&
-                    Cleanup()
-                   )
-                {
-                    TaskResultObj.Status = ReductionJobStatusEnum.Success;
-                }
+                ValidateThisInstance();
+                _CancellationToken.ThrowIfCancellationRequested();
+
+                PreTaskSetup();
+                _CancellationToken.ThrowIfCancellationRequested();
+
+                await ExtractReductionHierarchy();
+                _CancellationToken.ThrowIfCancellationRequested();
+
+                CreateReducedContent();
+                _CancellationToken.ThrowIfCancellationRequested();
+
+                DistributeResults();
+
+                TaskResultObj.Status = ReductionJobStatusEnum.Success;
             }
-            catch
+            catch (OperationCanceledException e)
+            {
+                TaskResultObj.Status = ReductionJobStatusEnum.Canceled;
+                Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
+            }
+            catch (System.Exception e)
             {
                 TaskResultObj.Status = ReductionJobStatusEnum.Error;
+                Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
+            }
+            finally
+            {
+                // Never touch TaskResultObj.Status in the finally block. This value should always be finalized before we get here. 
+                Cleanup();
             }
 
             return TaskResultObj;
         }
 
-        internal override bool ValidateThisInstance()
+        internal override void ValidateThisInstance()
         {
-            bool Result = QueueTask != null &&
-                          Logger != null &&
-                          QdsServiceInfo != null &&
-                          QdsServiceInfo.ID != Guid.Empty &&
-                          SourceDocFolder != null &&
-                          Directory.Exists(SourceDocFolder.General.Path);
-
-            if (!Result)
+            if (QueueTask == null ||
+                Logger == null ||
+                QdsServiceInfo == null ||
+                QdsServiceInfo.ID == Guid.Empty ||
+                SourceDocFolder == null ||
+                !Directory.Exists(SourceDocFolder.General.Path) ||
+                _CancellationToken == null)
             {
-                // TODO log specifically what failed
-                Trace.WriteLine("QvReductionRunner.ValidateInstance() failed");
+                MethodBase Method = MethodBase.GetCurrentMethod();
+                string Msg = $"Error in {Method.ReflectedType.Name}.{Method.Name}";
+                throw new System.Exception(Msg);
             }
-
-            return Result;
         }
 
         /// <summary>
@@ -181,31 +198,38 @@ namespace ContentReductionLib.ReductionRunners
             File.Delete(AncillaryScriptFilePath);
 
             #region Build hierarchy json output
-            ExtractedHierarchy Hierarchy = new ExtractedHierarchy();
-
             string ReductionSchemeFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "reduction.scheme.csv");
-            foreach (string Line in File.ReadLines(ReductionSchemeFilePath))
+            try
             {
-                // First line is csv header
-                if (Line.Contains("FieldName"))
+                ExtractedHierarchy Hierarchy = new ExtractedHierarchy();
+
+                foreach (string Line in File.ReadLines(ReductionSchemeFilePath))
                 {
-                    continue;
+                    // First line is csv header
+                    if (Line.Contains("FieldName"))
+                    {
+                        continue;
+                    }
+
+                    string[] Fields = Line.Split(new char[] { ',' }, StringSplitOptions.None);
+
+                    ExtractedField NewField = new ExtractedField { FieldName = Fields[1], DisplayName = Fields[2], Delimiter = Fields[4] };
+                    NewField.ValueStructure = Fields[3];
+
+                    string ValuesFileName = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "fieldvalues." + Fields[1] + ".csv");
+                    NewField.FieldValues = File.ReadAllLines(ValuesFileName).ToList();
+
+                    File.Delete(ValuesFileName);
+
+                    Hierarchy.Fields.Add(NewField);
                 }
 
-                string[] Fields = Line.Split(new char[] { ',' }, StringSplitOptions.None);
-
-                ExtractedField NewField = new ExtractedField { FieldName = Fields[1], DisplayName = Fields[2], Delimiter=Fields[4] };
-                NewField.ValueStructure = Fields[3];
-
-                string ValuesFileName = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "fieldvalues." + Fields[1] + ".csv");
-                NewField.FieldValues = File.ReadAllLines(ValuesFileName).ToList();
-
-                File.Delete(ValuesFileName);
-
-                Hierarchy.Fields.Add(NewField);
+                TaskResultObj.ExtractedHierarchy = Hierarchy;
             }
-
-            TaskResultObj.ExtractedHierarchy = Hierarchy;
+            catch (System.Exception e)
+            {
+                Trace.WriteLine($"Error converting file {ReductionSchemeFilePath} to json output.  Details:" + Environment.NewLine + e.Message);
+            }
             #endregion
 
             File.Delete(ReductionSchemeFilePath);
@@ -232,7 +256,8 @@ namespace ContentReductionLib.ReductionRunners
         /// </summary>
         private bool CreateReducedContent()
         {
-            Thread.Sleep(500);
+            Trace.WriteLine($"Task {QueueTask.Id.ToString()} started CreateReducedContent");
+            Thread.Sleep(2500);
             Trace.WriteLine($"Task {QueueTask.Id.ToString()} completed CreateReducedContent");
 
             return true;
@@ -243,7 +268,8 @@ namespace ContentReductionLib.ReductionRunners
         /// </summary>
         private bool DistributeResults()
         {
-            Thread.Sleep(500);
+            Trace.WriteLine($"Task {QueueTask.Id.ToString()} started DistributeResults");
+            Thread.Sleep(2500);
             Trace.WriteLine($"Task {QueueTask.Id.ToString()} completed DistributeResults");
 
             return true;
@@ -254,7 +280,8 @@ namespace ContentReductionLib.ReductionRunners
         /// </summary>
         private bool Cleanup()
         {
-            Thread.Sleep(500);
+            Trace.WriteLine($"Task {QueueTask.Id.ToString()} started Cleanup");
+            Thread.Sleep(2500);
             Trace.WriteLine($"Task {QueueTask.Id.ToString()} completed Cleanup");
 
             return true;

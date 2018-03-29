@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text;
@@ -13,8 +14,8 @@ namespace ContentReductionLib.ReductionRunners
 {
     internal abstract class ReductionRunnerBase
     {
-        internal abstract ReductionJobResult ExecuteReduction();
+        internal abstract Task<ReductionJobResult> ExecuteReduction(CancellationToken cancellationToken);
 
-        internal abstract bool ValidateThisInstance();
+        internal abstract void ValidateThisInstance();
     }
 }

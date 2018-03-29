@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
@@ -23,11 +24,13 @@ namespace ContentReductionLib
     internal class MapDbJobMonitor : JobMonitorBase
     {
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
-        private List<Task> RunningTasks = new List<Task>();
+        private List<(Task task,CancellationTokenSource tokenSource)> RunningTasks = new List<(Task, CancellationTokenSource)>();
 
         // Settable operating parameters
-        // Some day these may come from configuration.
+        // TODO These should come from configuration.
         internal TimeSpan TaskAgeBeforeExecution { set; private get; }
+        private TimeSpan WaitTimeForTasksOnStop { get { return new TimeSpan(0, 3, 0); } }
+
         internal int MaxParallelTasks { set; private get; }
 
         /// <summary>
@@ -92,10 +95,10 @@ namespace ContentReductionLib
             while (!Token.IsCancellationRequested)
             {
                 // Remove completed tasks from the RunningTasks collection. 
-                foreach (Task<ReductionJobResult> CompletedTask in RunningTasks.Where(t => t.IsCompleted).ToList())
+                foreach ((Task<ReductionJobResult> task, CancellationTokenSource tokenSource) CompletedItem in RunningTasks.Where(t => t.task.IsCompleted).ToList())
                 {
-                    UpdateTask(CompletedTask.Result);
-                    RunningTasks.Remove(CompletedTask);
+                    UpdateTask(CompletedItem.task.Result);
+                    RunningTasks.Remove(CompletedItem);
                 }
 
                 // Start more tasks if there is room in the RunningTasks collection. 
@@ -106,6 +109,7 @@ namespace ContentReductionLib
                     foreach (ContentReductionTask T in Responses)
                     {
                         Task NewTask = null;
+                        CancellationTokenSource cancelSource = new CancellationTokenSource();
 
                         switch (T.SelectionGroup.RootContentItem.ContentType.TypeEnum)
                         {
@@ -114,7 +118,7 @@ namespace ContentReductionLib
                                 {
                                     QueueTask = T,
                                 };
-                                NewTask = Task.Run(() => Runner.ExecuteReduction());
+                                NewTask = Task.Run(() => Runner.ExecuteReduction(cancelSource.Token));
                             break;
 
                             default:
@@ -130,14 +134,39 @@ namespace ContentReductionLib
 
                                 break;
                         }
-                        RunningTasks.Add(NewTask);
+
+                        if (NewTask != null)
+                        {
+                            RunningTasks.Add( (NewTask, cancelSource) );
+                        }
                     }
 
                 }
 
                 Thread.Sleep(1000);
             }
-            Trace.WriteLine("JobMonitorThreadMain terminating due to cancellation");
+
+            MethodBase Method = MethodBase.GetCurrentMethod();
+            Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} received stop request, waiting up to {WaitTimeForTasksOnStop} for any running tasks to complete");
+            DateTime WaitStart = DateTime.Now;
+
+            while (RunningTasks.Count > 0)
+            {
+                if (DateTime.Now - WaitStart > WaitTimeForTasksOnStop)
+                {
+                    break;
+                }
+
+                RunningTasks.ForEach(t => t.tokenSource.Cancel());
+
+                int CompletedTaskIndex = Task.WaitAny(RunningTasks.Select(t => t.task).ToArray(), new TimeSpan(WaitTimeForTasksOnStop.Ticks/100));
+                if (CompletedTaskIndex > -1)
+                {
+                    RunningTasks.RemoveAt(CompletedTaskIndex);
+                }
+            }
+            Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} after timer expired, {RunningTasks.Count} reduction tasks not completed");
+            Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} stopped due to application request");
         }
 
         /// <summary>
@@ -197,7 +226,7 @@ namespace ContentReductionLib
                             throw new Exception("Unsupported job result status in MapDbJobMonitor.UpdateTask().");
                     }
 
-                    DbTask.ExtractedHierarchy = JsonConvert.SerializeObject((ContentReductionHierarchy)Result.ExtractedHierarchy, Formatting.Indented);
+                    DbTask.ExtractedHierarchy = JsonConvert.SerializeObject((ContentReductionHierarchy<ReductionFieldValue>)Result.ExtractedHierarchy, Formatting.Indented);
 
                     DbTask.ResultFilePath = Result.ReducedContentFilePath;
 

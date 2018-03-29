@@ -11,6 +11,7 @@ namespace ContentReductionLib.ReductionRunners
     internal enum ReductionJobStatusEnum
     {
         Unspecified,
+        Canceled,
         Success,
         Error,
     }
