@@ -1,0 +1,1 @@
+import caa = require('../content-access-admin');

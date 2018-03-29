@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "allowJs": true
+    "allowJs": true,
+    "target": "es5"
   },
   "include": [
     "src/**/*"
