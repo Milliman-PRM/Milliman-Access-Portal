@@ -27,9 +27,9 @@ namespace ContentReductionLib.ReductionRunners
         /// Explicit cast operator for conversion to MapDbContextLib.Models.ReductionField
         /// </summary>
         /// <param name="ExtractedField"></param>
-        public static explicit operator ReductionField(ExtractedField ExtractedField)
+        public static explicit operator ReductionField<ReductionFieldValue>(ExtractedField ExtractedField)
         {
-            ReductionField NewField = new ReductionField
+            ReductionField<ReductionFieldValue> NewField = new ReductionField<ReductionFieldValue>
             {
                 FieldName = ExtractedField.FieldName,
                 DisplayName = ExtractedField.DisplayName,
@@ -66,12 +66,12 @@ namespace ContentReductionLib.ReductionRunners
         /// <summary>
         /// Explicit cast operator for conversion to MapDbContextLib.Models.ContentReductionHierarchy
         /// </summary>
-        public static explicit operator ContentReductionHierarchy(ExtractedHierarchy Hierarchy)
+        public static explicit operator ContentReductionHierarchy<ReductionFieldValue>(ExtractedHierarchy Hierarchy)
         {
-            ContentReductionHierarchy ReturnObject = new ContentReductionHierarchy();
+            ContentReductionHierarchy<ReductionFieldValue> ReturnObject = new ContentReductionHierarchy<ReductionFieldValue>();
             foreach (ExtractedField Field in Hierarchy.Fields)
             {
-                ReturnObject.Fields.Add((ReductionField)Field);
+                ReturnObject.Fields.Add((ReductionField<ReductionFieldValue>)Field);
             };
 
             return ReturnObject;
