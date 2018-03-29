@@ -1,5 +1,5 @@
 ﻿/*
- * CODE OWNERS: Tom Puckett
+ * CODE OWNERS: Tom Puckett, Joseph Sweeney
  * OBJECTIVE: Represents reduction job outputs and status, agnostic to the types used by the application that originated the queued task
  * DEVELOPER NOTES: This gets converted to queue specific 
  */

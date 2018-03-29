@@ -1,11 +1,10 @@
 ﻿/*
- * CODE OWNERS: Tom Puckett
+ * CODE OWNERS: Tom Puckett, Joseph Sweeney
  * OBJECTIVE: Internal representation of the reduction hierarchy found in the master content for a job, independent of any types in task queue source applications
  * DEVELOPER NOTES: If different queue sources are ever added these classes should add corresponding cast operators to convert from this type to 
  * the type that is meaningful to the application.  This is then used in the class that interfaces with the task queue (e.g. class MapDbJobMonitor).
  */
 
-using System;
 using System.Linq;
 using System.Collections.Generic;
 using MapDbContextLib.Models;
