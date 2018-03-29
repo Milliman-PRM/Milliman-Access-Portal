@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
@@ -13,8 +14,25 @@ using MapDbContextLib.Identity;
 
 namespace MapDbContextLib.Context
 {
+    public enum PublicationStatus
+    {
+        Unknown = 0,
+        Queued = 10,
+        Processing = 20,
+        Complete = 30,
+    }
+
     public class ContentPublicationRequest
     {
+        [NotMapped]
+        public static Dictionary<PublicationStatus, string> PublicationStatusString = new Dictionary<PublicationStatus, string>
+        {
+            { PublicationStatus.Unknown, "Unknown"},
+            { PublicationStatus.Queued, "Queued"},
+            { PublicationStatus.Processing, "Processing"},
+            { PublicationStatus.Complete, "Complete"},
+        };
+
         [Key]
         public long Id { get; set; }
 
@@ -36,5 +54,34 @@ namespace MapDbContextLib.Context
         // Default value is enforced in ApplicationDbContext.OnModelCreating()
         public DateTimeOffset CreateDateTime { get; set; }
 
+        public static PublicationStatus GetPublicationStatus(List<ReductionStatusEnum> TaskStatusList)
+        {
+            List<ReductionStatusEnum> CompleteList = new List<ReductionStatusEnum> { ReductionStatusEnum.Reduced, ReductionStatusEnum.Canceled, ReductionStatusEnum.Live };
+            List<ReductionStatusEnum> QueuedList = new List<ReductionStatusEnum> { ReductionStatusEnum.Queued };
+
+            if (TaskStatusList.TrueForAll(s => CompleteList.Contains(s)))
+            {
+                return PublicationStatus.Complete;
+            }
+
+            else if (TaskStatusList.TrueForAll(s => s == ReductionStatusEnum.Queued))
+            {
+                return PublicationStatus.Queued;
+            }
+
+            else if (TaskStatusList.All(s => s == ReductionStatusEnum.Queued
+                                          || s == ReductionStatusEnum.Reducing
+                                          || s == ReductionStatusEnum.Reduced
+                                          || s == ReductionStatusEnum.Replaced
+                                          || s == ReductionStatusEnum.Canceled
+                                          || s == ReductionStatusEnum.Discarded
+                                          || s == ReductionStatusEnum.Live)
+                  && TaskStatusList.Count(s => s == ReductionStatusEnum.Queued || s == ReductionStatusEnum.Reducing) > 0)
+            {
+                return PublicationStatus.Processing;
+            }
+
+            return PublicationStatus.Unknown;
+        }
     }
 }
