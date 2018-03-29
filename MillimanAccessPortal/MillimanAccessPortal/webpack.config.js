@@ -19,13 +19,6 @@ module.exports = {
         ],
       },
       {
-        enforce: 'pre',
-        test: /\.js$/,
-        use: [
-          { loader: 'source-map-loader' },
-        ],
-      },
-      {
         test: /\.css$/,
         use: [
           { loader: 'style-loader' },
@@ -70,5 +63,5 @@ module.exports = {
     ],
   },
   mode: 'development',
-  devtool: 'source-map',
+  devtool: 'inline-source-map',
 };
