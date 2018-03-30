@@ -1,5 +1,5 @@
 ﻿/*
- * CODE OWNERS: Tom Puckett
+ * CODE OWNERS: Tom Puckett, Joseph Sweeney
  * OBJECTIVE: Intended that one instance of this class monitors a MAP application database for reduction jobs to perform
  * DEVELOPER NOTES: <What future developers need to know.>
  */
@@ -29,7 +29,7 @@ namespace ContentReductionLib
         // Settable operating parameters
         // TODO These should come from configuration.
         internal TimeSpan TaskAgeBeforeExecution { set; private get; }
-        private TimeSpan WaitTimeForTasksOnStop { get { return new TimeSpan(0, 3, 0); } }
+        private TimeSpan WaitTimeForTasksOnStop { get { return TimeSpan.FromMinutes(3); } }
 
         internal int MaxParallelTasks { set; private get; }
 
@@ -119,7 +119,7 @@ namespace ContentReductionLib
                                     QueueTask = T,
                                 };
                                 NewTask = Task.Run(() => Runner.ExecuteReduction(cancelSource.Token));
-                            break;
+                                break;
 
                             default:
                                 NewTask = Task.Run(() =>
@@ -131,7 +131,6 @@ namespace ContentReductionLib
                                         Trace.WriteLine($"Dummy task for unsupported content type on iteration {i}");
                                     }
                                 });
-
                                 break;
                         }
 
@@ -140,7 +139,6 @@ namespace ContentReductionLib
                             ActiveReductionRunnerItems.Add( (NewTask, cancelSource) );
                         }
                     }
-
                 }
 
                 Thread.Sleep(1000);

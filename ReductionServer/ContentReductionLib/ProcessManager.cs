@@ -1,19 +1,15 @@
 ﻿/*
- * CODE OWNERS: Tom Puckett,
+ * CODE OWNERS: Tom Puckett, Joseph Sweeney
  * OBJECTIVE: Intended as the main library API for use by applications.  
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
 using System;
-using System.IO;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MapDbContextLib.Context;
-using Milliman.ReductionEngine;
-using Milliman.Common;  // TODO remove this
 using AuditLogLib;
 
 namespace ContentReductionLib

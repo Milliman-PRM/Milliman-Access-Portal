@@ -1,5 +1,5 @@
 ﻿/*
- * CODE OWNERS: Tom Puckett, 
+ * CODE OWNERS: Tom Puckett
  * OBJECTIVE: The reduction runner class for Qlikview content
  * DEVELOPER NOTES: <What future developers need to know.>
  */
@@ -10,7 +10,6 @@ using System.IO;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using System.Reflection;
 using MapDbContextLib.Context;
 using AuditLogLib;
