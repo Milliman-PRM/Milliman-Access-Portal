@@ -30,6 +30,7 @@
     "sass-loader": "^6.0.7",
     "source-map-loader": "^0.2.3",
     "style-loader": "^0.20.3",
+    "testcafe": "^0.19.1",
     "ts-jest": "^22.4.2",
     "typescript": "^2.7.2",
     "webpack": "^4.2.0",
@@ -38,12 +39,17 @@
   },
   "scripts": {
     "build": "webpack",
-    "test": "jest"
+    "test": "jest",
+    "test-browsers": "testcafe chrome,firefox,ie src/browser_tests/"
   },
   "jest": {
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     },
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/src/browser_tests/"
+    ],
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
     "moduleFileExtensions": [
       "ts",

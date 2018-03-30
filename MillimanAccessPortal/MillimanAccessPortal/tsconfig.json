@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
     "allowJs": true,
+    "lib": [
+      "es2015"
+    ],
     "noImplicitAny": true,
     "sourceMap": true,
     "target": "es5"
