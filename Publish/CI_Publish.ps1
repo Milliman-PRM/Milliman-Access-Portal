@@ -160,7 +160,16 @@ log_statement "Performing unit tests"
 dotnet test --no-build -v q
 
 if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: One or more tests failed"
+    log_statement "ERROR: One or more xUnit tests failed"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
+$command = "yarn test"
+invoke-expression "&$command"
+
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: One or more Jest tests failed"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
