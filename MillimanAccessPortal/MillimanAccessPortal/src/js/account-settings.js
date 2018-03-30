@@ -1,4 +1,16 @@
-/* global shared */
+var $ = require('jquery');
+require('jquery-mask-plugin');
+require('jquery-validation');
+require('jquery-validation-unobtrusive');
+var toastr = require('toastr');
+require('./lib-options');
+var shared = require('./shared');
+
+require('bootstrap/scss/bootstrap-reboot.scss');
+require('toastr/toastr.scss');
+require('../scss/map.scss');
+
+
 var $accountSettingsForm = $('#account-settings-form');
 var $button = $('#account-settings-form button.submit-button');
 var accountSettingsRunning = false;

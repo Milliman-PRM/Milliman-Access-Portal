@@ -1,3 +1,9 @@
+var $ = require('jquery');
+require('jquery-validation');
+var toastr = require('toastr');
+var vex = require('vex-js');
+vex.registerPlugin(require('vex-dialog'));
+
 // Configure jQuery validation overrides
 $.validator.methods.email = function validateEmail(value, element) {
   return this.optional(element) || emailValRegex.test(value);
