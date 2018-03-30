@@ -165,6 +165,8 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+cd $rootPath\MillimanAccessPortal\MillimanAccessPortal
+
 $command = "yarn test"
 invoke-expression "&$command"
 
