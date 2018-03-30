@@ -75,7 +75,7 @@ namespace MapDbContextLib.Context
         /// <summary>
         /// null if reduction not requested.  Path must be accessible to MAP application and reduction server
         /// </summary>
-        public string ResultFilePath { get; set; }
+        public string ResultFilePath { get; set; } = string.Empty;
 
         /// <summary>
         /// From reduction server. json is intended to deserialize to an instance of ContentReductionHierarchy
