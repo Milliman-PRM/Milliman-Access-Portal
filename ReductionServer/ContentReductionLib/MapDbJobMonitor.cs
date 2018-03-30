@@ -29,7 +29,7 @@ namespace ContentReductionLib
         // Settable operating parameters
         // TODO These should come from configuration.
         internal TimeSpan TaskAgeBeforeExecution { set; private get; }
-        private TimeSpan WaitTimeForTasksOnStop { get { return TimeSpan.FromMinutes(3); } }
+        private TimeSpan WaitTimeForTasksAfterCancel { get { return TimeSpan.FromMinutes(3); } }
 
         internal int MaxParallelTasks { set; private get; }
 
@@ -145,19 +145,19 @@ namespace ContentReductionLib
             }
 
             MethodBase Method = MethodBase.GetCurrentMethod();
-            Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} received stop request, waiting up to {WaitTimeForTasksOnStop} for any running tasks to complete");
+            Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} received stop request, waiting up to {WaitTimeForTasksAfterCancel} for any running tasks to complete");
             DateTime WaitStart = DateTime.Now;
 
             ActiveReductionRunnerItems.ForEach(t => t.tokenSource.Cancel());
 
             while (ActiveReductionRunnerItems.Count > 0)
             {
-                if (DateTime.Now - WaitStart > WaitTimeForTasksOnStop)
+                if (DateTime.Now - WaitStart > WaitTimeForTasksAfterCancel)
                 {
                     break;
                 }
 
-                int CompletedTaskIndex = Task.WaitAny(ActiveReductionRunnerItems.Select(t => t.task).ToArray(), new TimeSpan(WaitTimeForTasksOnStop.Ticks/100));
+                int CompletedTaskIndex = Task.WaitAny(ActiveReductionRunnerItems.Select(t => t.task).ToArray(), new TimeSpan(WaitTimeForTasksAfterCancel.Ticks/100));
                 if (CompletedTaskIndex > -1)
                 {
                     ActiveReductionRunnerItems.RemoveAt(CompletedTaskIndex);
@@ -244,7 +244,9 @@ namespace ContentReductionLib
                             throw new Exception("Unsupported job result status in MapDbJobMonitor.UpdateTask().");
                     }
 
-                    DbTask.ExtractedHierarchy = JsonConvert.SerializeObject((ContentReductionHierarchy<ReductionFieldValue>)Result.ExtractedHierarchy, Formatting.Indented);
+                    DbTask.ExtractedHierarchy = Result.ExtractedHierarchy != null ?
+                                                JsonConvert.SerializeObject((ContentReductionHierarchy<ReductionFieldValue>)Result.ExtractedHierarchy, Formatting.Indented) :
+                                                null;
 
                     DbTask.ResultFilePath = Result.ReducedContentFilePath;
 
@@ -255,7 +257,7 @@ namespace ContentReductionLib
 
                 return true;
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 return false;
             }
