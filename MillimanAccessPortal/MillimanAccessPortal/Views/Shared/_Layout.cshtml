@@ -9,7 +9,8 @@
     @RenderSection("CSS", required: false)
 
     @Html.Raw(JavaScriptSnippet.FullScript)
-    @Html.Partial("~/src/images/svg-icon-sprites.svg")
+    @Html.Partial("~/wwwroot/images/svg-icon-sprites.svg")
+    @RenderSection("Scripts", required: false)
 </head>
 <body>
 
@@ -20,7 +21,6 @@
         var emailValRegex = /@Html.Raw(MapCommonLib.GlobalFunctions.emailValRegex)/;
     </script>
 
-    @RenderSection("Scripts", required: false)
 
 </body>
 </html>

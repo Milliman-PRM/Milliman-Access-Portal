@@ -20,6 +20,7 @@
     "@types/jest": "^22.2.2",
     "@types/jquery": "^3.3.1",
     "awesome-typescript-loader": "^4.0.1",
+    "copy-webpack-plugin": "^4.5.1",
     "css-loader": "^0.28.11",
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
     "html-webpack-plugin": "^3.0.7",
@@ -62,7 +63,11 @@
   },
   "-vs-binding": {
     "AfterBuild": [
+      "install",
       "build"
     ]
+  },
+  "engines": {
+    "node": "8.9.4"
   }
 }

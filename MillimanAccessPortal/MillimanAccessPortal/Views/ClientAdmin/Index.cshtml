@@ -6,18 +6,6 @@
     ViewData["NavIcon"] = "ClientAdmin";
 }
 
-@section CSS {
-
-<environment names="Development,CI">
-    <link rel="stylesheet" href="~/lib/selectize/selectize.default.css" />
-</environment>
-<environment names="Staging,Production">
-    <link rel="stylesheet" href="~/lib/selectize/selectize.default.min.css" />
-</environment>
-
-
-}
-
 <div id="client-tree" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12">
     <div class="loading-wrapper" style="display: none;">
         @Html.Partial("~/Views/Shared/_Loader.cshtml")

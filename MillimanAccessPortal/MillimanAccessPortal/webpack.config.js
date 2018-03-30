@@ -1,5 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
@@ -48,6 +49,16 @@ module.exports = {
     filename: '[name].bundle.js',
   },
   plugins: [
+    new CopyWebpackPlugin([
+      {
+        from: 'src/images',
+        to: '../images',
+      },
+      {
+        from: 'src/favicon.ico',
+        to: '../favicon.ico',
+      },
+    ]),
     new webpack.ProvidePlugin({
       $: 'jquery',
       jQuery: 'jquery',

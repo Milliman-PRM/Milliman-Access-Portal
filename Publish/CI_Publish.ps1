@@ -126,7 +126,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-$command = "yarn install"
+$command = "yarn install --frozen-lockfile"
 invoke-expression "&$command"
 
 if ($LASTEXITCODE -ne 0) {
