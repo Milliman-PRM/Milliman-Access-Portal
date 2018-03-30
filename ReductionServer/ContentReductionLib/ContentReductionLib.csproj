@@ -16,12 +16,21 @@
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="2.0.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.0.1" />
+    <PackageReference Include="System.ServiceModel.Duplex" Version="4.4.0" />
+    <PackageReference Include="System.ServiceModel.Http" Version="4.4.0" />
+    <PackageReference Include="System.ServiceModel.NetTcp" Version="4.4.0" />
+    <PackageReference Include="System.ServiceModel.Security" Version="4.4.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\MillimanAccessPortal\AuditLogLib\AuditLogLib.csproj" />
     <ProjectReference Include="..\..\MillimanAccessPortal\MapDbContextLib\MapDbContextLib.csproj" />
     <ProjectReference Include="..\Milliman.Common\Milliman.Common.csproj" />
     <ProjectReference Include="..\Milliman.ReductionEngine\Milliman.ReductionEngine.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 ﻿/*
- * CODE OWNERS: Tom Puckett
- * OBJECTIVE: Intended that one instance of this class monitors a MAP application database for reductino jobs to perform
+ * CODE OWNERS: Tom Puckett, Joseph Sweeney
+ * OBJECTIVE: Intended that one instance of this class monitors a MAP application database for reduction jobs to perform
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
@@ -10,27 +10,37 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using MapDbContextLib.Context;
+using MapDbContextLib.Models;
+using ContentReductionLib.ReductionRunners;
+using Newtonsoft.Json;
 
 namespace ContentReductionLib
 {
     internal class MapDbJobMonitor : JobMonitorBase
     {
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
-        private List<Task> RunningTasks = new List<Task>();
+        private List<(Task task,CancellationTokenSource tokenSource)> ActiveReductionRunnerItems = new List<(Task, CancellationTokenSource)>();
+
+        // Settable operating parameters
+        // TODO These should come from configuration.
+        internal TimeSpan TaskAgeBeforeExecution { set; private get; }
+        private TimeSpan WaitTimeForTasksOnStop { get { return TimeSpan.FromMinutes(3); } }
+
+        internal int MaxParallelTasks { set; private get; }
 
         /// <summary>
-        /// ctor, initializes operational parameters
+        /// ctor, initializes operational parameters to default values
         /// </summary>
         internal MapDbJobMonitor()
         {
             MaxParallelTasks = 1;
+            TaskAgeBeforeExecution = TimeSpan.FromSeconds(30);
         }
-
-        internal int MaxParallelTasks { get; set; }
 
         /// <summary>
         /// Initializes data used to construct database context instances using a named configuration parameter.
@@ -85,48 +95,76 @@ namespace ContentReductionLib
             while (!Token.IsCancellationRequested)
             {
                 // Remove completed tasks from the RunningTasks collection. 
-                foreach (Task CompletedTask in RunningTasks.Where(t => t.IsCompleted).ToList())
+                foreach ((Task<ReductionJobResult> task, CancellationTokenSource tokenSource) CompletedReductionRunnerItem in ActiveReductionRunnerItems.Where(t => t.task.IsCompleted).ToList())
                 {
-                    RunningTasks.Remove(CompletedTask);
+                    UpdateTask(CompletedReductionRunnerItem.task.Result);
+                    ActiveReductionRunnerItems.Remove(CompletedReductionRunnerItem);
                 }
 
                 // Start more tasks if there is room in the RunningTasks collection. 
-                if (RunningTasks.Count < MaxParallelTasks)
+                if (ActiveReductionRunnerItems.Count < MaxParallelTasks)
                 {
-                    List<ContentReductionTask> Responses = GetReadyTasks(MaxParallelTasks - RunningTasks.Count);
+                    List<ContentReductionTask> Responses = GetReadyTasks(MaxParallelTasks - ActiveReductionRunnerItems.Count);
 
                     foreach (ContentReductionTask T in Responses)
                     {
-                        // Initiate the reduction job
+                        Task NewTask = null;
+                        CancellationTokenSource cancelSource = new CancellationTokenSource();
 
-                        var task = Task.Run(() => 
+                        switch (T.SelectionGroup.RootContentItem.ContentType.TypeEnum)
                         {
-                            // Start the job running
-                            /* Create/configureLaunch an instance of ReductionRunner */
+                            case ContentTypeEnum.Qlikview:
+                                QvReductionRunner Runner = new QvReductionRunner
+                                {
+                                    QueueTask = T,
+                                };
+                                NewTask = Task.Run(() => Runner.ExecuteReduction(cancelSource.Token));
+                                break;
 
-                            // All of the below simulates what will be done in the reduction related class
-                            Guid G = T.Id;  // disposable statement
-                            for (int i = 0; i<5; i++)
-                            {
-                                Thread.Sleep(1000);  // doing some reduction work
-                                Trace.WriteLine($"Task {G.ToString()} on iteration {i}");
-                            }
-                            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
-                            {
-                                Db.ContentReductionTask.Find(G).ReductionStatus = ReductionStatusEnum.Reduced;
-                                Db.SaveChanges();
-                            }
+                            default:
+                                NewTask = Task.Run(() =>
+                                {
+                                    // All of the below simulates what will be done in the reduction related class
+                                    for (int i = 0; i < 5; i++)
+                                    {
+                                        Thread.Sleep(1000);  // doing some reduction work
+                                        Trace.WriteLine($"Dummy task for unsupported content type on iteration {i}");
+                                    }
+                                });
+                                break;
+                        }
 
-                        });
-
-                        RunningTasks.Add(task);
+                        if (NewTask != null)
+                        {
+                            ActiveReductionRunnerItems.Add( (NewTask, cancelSource) );
+                        }
                     }
-
-                    //Trace.WriteLine($"GetReadyTasks iteration {LoopCount++} completed with response item Ids: {string.Join(",", Responses.Select(rt => rt.Id))}");
                 }
+
                 Thread.Sleep(1000);
             }
-            Trace.WriteLine("JobMonitorThreadMain terminating due to cancellation");
+
+            MethodBase Method = MethodBase.GetCurrentMethod();
+            Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} received stop request, waiting up to {WaitTimeForTasksOnStop} for any running tasks to complete");
+            DateTime WaitStart = DateTime.Now;
+
+            ActiveReductionRunnerItems.ForEach(t => t.tokenSource.Cancel());
+
+            while (ActiveReductionRunnerItems.Count > 0)
+            {
+                if (DateTime.Now - WaitStart > WaitTimeForTasksOnStop)
+                {
+                    break;
+                }
+
+                int CompletedTaskIndex = Task.WaitAny(ActiveReductionRunnerItems.Select(t => t.task).ToArray(), new TimeSpan(WaitTimeForTasksOnStop.Ticks/100));
+                if (CompletedTaskIndex > -1)
+                {
+                    ActiveReductionRunnerItems.RemoveAt(CompletedTaskIndex);
+                }
+            }
+            Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} after timer expired, {ActiveReductionRunnerItems.Count} reduction tasks not completed");
+            Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} stopped due to application request");
         }
 
         /// <summary>
@@ -144,7 +182,7 @@ namespace ContentReductionLib
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
             {
-                List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => t.CreateDateTime - DateTimeOffset.UtcNow < TimeSpan.FromSeconds(30))
+                List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => DateTimeOffset.UtcNow - t.CreateDateTime > TaskAgeBeforeExecution)
                                                                              .Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
                                                                              .Include(t => t.SelectionGroup).ThenInclude(sg => sg.RootContentItem).ThenInclude(rc => rc.ContentType)
                                                                              .OrderBy(t => t.CreateDateTime)
@@ -156,6 +194,70 @@ namespace ContentReductionLib
                 Transaction.Commit();
 
                 return TopItems;
+            }
+        }
+
+        /// <summary>
+        /// Updates the MAP database ContentReductionTask record with the outcome of <...>ReductionRunner processing.
+        /// </summary>
+        /// <param name="Result">Contains the field values to be saved. All field values will be saved.</param>
+        /// <returns></returns>
+        private bool UpdateTask(ReductionJobResult Result)
+        {
+            if (Result == null || Result.TaskId == Guid.Empty)
+            {
+                MethodBase Method = MethodBase.GetCurrentMethod();
+                string Msg = $"{Method.ReflectedType.Name}.{Method.Name} unusable argument";
+                Trace.WriteLine(Msg);
+                return false;
+            }
+
+            try
+            {
+                // Use a transaction so that there is no concurrency issue after we get the current db record
+                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+                using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
+                {
+                    ContentReductionTask DbTask = Db.ContentReductionTask.Find(Result.TaskId);
+
+                    // Canceled here implies that the application does not want the update
+                    if (DbTask == null || DbTask.ReductionStatus == ReductionStatusEnum.Canceled)
+                    {
+                        return false;
+                    }
+
+                    switch (Result.Status)
+                    {
+                        case ReductionJobStatusEnum.Unspecified:
+                            DbTask.ReductionStatus = ReductionStatusEnum.Unspecified;
+                            break;
+                        case ReductionJobStatusEnum.Error:
+                            DbTask.ReductionStatus = ReductionStatusEnum.Error;
+                            break;
+                        case ReductionJobStatusEnum.Success:
+                            DbTask.ReductionStatus = ReductionStatusEnum.Reduced;
+                            break;
+                        case ReductionJobStatusEnum.Canceled:
+                            DbTask.ReductionStatus = ReductionStatusEnum.Canceled;
+                            break;
+                        default:
+                            throw new Exception("Unsupported job result status in MapDbJobMonitor.UpdateTask().");
+                    }
+
+                    DbTask.ExtractedHierarchy = JsonConvert.SerializeObject((ContentReductionHierarchy<ReductionFieldValue>)Result.ExtractedHierarchy, Formatting.Indented);
+
+                    DbTask.ResultFilePath = Result.ReducedContentFilePath;
+
+                    Db.ContentReductionTask.Update(DbTask);
+                    Db.SaveChanges();
+                    Transaction.Commit();
+                }
+
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
 
