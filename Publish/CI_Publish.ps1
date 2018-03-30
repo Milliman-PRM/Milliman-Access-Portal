@@ -481,9 +481,9 @@ catch
     exit -404
 }
 
-if ($resp.StatusCode -ne 200) 
+if ($resp.StatusCode -ne 200)
 {
-    log_statement "ERRORL: Login page failed with code $($resp.StatusCode)"
+    log_statement "ERROR: Login page failed with code $($resp.StatusCode)"
     exit $resp.StatusCode
 }
 
