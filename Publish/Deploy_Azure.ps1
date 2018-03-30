@@ -126,78 +126,21 @@ $root_npm = (npm list -g) | Select -First 1
 
 log_statement "npm packages are installed to ${root_npm}"
 
-$command = "${root_npm}\yarn.cmd install"
+$command = "${root_npm}\yarn.cmd install --frozen-lockfile"
 invoke-expression "&$command"
 
 if ($LASTEXITCODE -ne 0) {
     fail_statement "ERROR: yarn package restore failed"
 }
 
-#region Web Compiler setup
-# If the WebCompiler folder isn't present, do a build that will fail, which triggers it to be created
-if ((test-path "$env:temp\webcomp*") -eq $false)
-{
-    "Running false build to generate the WebCompiler folder."
-    $command = "`"$msbuild15path`" /verbosity:minimal /nowarn:MSB3884"
-    Invoke-Expression "&$command"
+log_statement "Running yarn scripts"
+$command = "${root_npm}\yarn.cmd build"
+invoke-expression "&$command"
 
+if($LASTEXITCODE -ne 0) {
+    fail_statement "ERROR: yarn build command failed"
 }
 
-log_statement "Looking for Web Compiler"
-$tries = 0
-while ((test-path "$env:temp\webcompiler*" -PathType Container) -eq $false -and $tries -lt $loopRetries)
-{
-    $tries = $tries + 1
-    log_statement "Web Compiler directory not found. Waiting for $loopWaitSeconds seconds before trying again."
-    log_statement "Attempt $tries of $loopRetries"
-    start-sleep -seconds $loopWaitSeconds
-}
-
-if (test-path "$env:temp\webcompiler*" -PathType Container)
-{
-    log_statement "Web Compiler directory located"
-    log_statement "Looking for Web Compiler packages or prepare.cmd"
-
-    $WebCompilerPath = get-childitem -Path $env:temp | where {$_.name -match 'WebComp'} | sort-object LastWriteTime | select -first 1
-    $WebCompilerPath = $WebCompilerPath.FullName
-
-    # Wait for Web compiler contents to exist
-    $tries = 0
-    while ((test-path "$WebCompilerPath\node_modules") -eq $false -and (test-path "$WebCompilerPath\prepare.cmd") -eq $false -and $tries -lt $loopRetries)
-    {
-        $tries = $tries + 1
-        log_statement "Web Compiler components not found. Waiting for $loopWaitSeconds seconds before trying again."
-        log_statement "Attempt $tries of $loopRetries"
-        start-sleep -seconds $loopWaitSeconds
-    }
-
-    cd $WebCompilerPath
-    if ((get-location).Path -ne $WebCompilerPath) {
-        fail_statement "Failed to change to WebCompiler directory"
-    }
-
-    if (test-path "$WebCompilerPath\node_modules")
-    {
-        log_statement "Web Compiler packages were found"
-    }
-    elseif (test-path "$WebCompilerPath\prepare.cmd")
-    {
-        log_statement "Executing prepare.cmd"
-        start-process "$pwd\prepare.cmd" -wait -RedirectStandardOutput "$env:temp\output.txt" -redirectstandarderror "$env:temp\error.txt"
-        if ($? -eq $false) {
-            fail_statement "Web Compiler's prepare.cmd returned an error"
-        }
-    }
-    elseif ($tries -ge $loopRetries)
-    {
-        fail_statement "Web Compiler components were not found after $loopRetries attempts."
-    }
-}
-else
-{
-    fail_statement "Web compiler directory was not found"
-}
-#endregion
 #endregion
 
 #region Build and publish to temporary folder

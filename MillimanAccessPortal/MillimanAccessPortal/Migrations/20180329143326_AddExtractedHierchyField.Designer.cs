@@ -12,8 +12,8 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20180309205144_AddStatusView")]
-    partial class AddStatusView
+    [Migration("20180329143326_AddExtractedHierchyField")]
+    partial class AddExtractedHierchyField
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -97,18 +97,6 @@ namespace MillimanAccessPortal.Migrations
                     b.ToTable("ContentPublicationRequest");
                 });
 
-            modelBuilder.Entity("MapDbContextLib.Context.ContentPublicationRequestStatus", b =>
-                {
-                    b.Property<long>("ContentPublicationRequestId")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<int>("PublicationStatus");
-
-                    b.HasKey("ContentPublicationRequestId");
-
-                    b.ToTable("ContentPublicationRequestStatus");
-                });
-
             modelBuilder.Entity("MapDbContextLib.Context.ContentReductionTask", b =>
                 {
                     b.Property<Guid>("Id")
@@ -122,6 +110,9 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<DateTimeOffset>("CreateDateTime")
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("ExtractedHierarchy")
+                        .HasColumnType("jsonb");
 
                     b.Property<string>("MasterFilePath")
                         .IsRequired();

@@ -1,7 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿/*
+ * CODE OWNERS: Tom Puckett, 
+ * OBJECTIVE: <What and WHY.>
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Identity;
@@ -24,7 +28,6 @@ namespace MapDbContextLib.Context
         public DbSet<ProfitCenter> ProfitCenter { get; set; }
         public DbSet<ContentReductionTask> ContentReductionTask { get; set; }
         public DbSet<ContentPublicationRequest> ContentPublicationRequest { get; set; }
-        public DbSet<ContentPublicationRequestStatus> ContentPublicationRequestStatus { get; set; }
 
         // Alteration of Identity entities
         public DbSet<ApplicationUser> ApplicationUser { get; set; }
@@ -61,7 +64,7 @@ namespace MapDbContextLib.Context
 
             builder.Entity<ContentReductionTask>()
                 .Property(b => b.ReductionStatus)
-                .HasDefaultValue(ReductionStatusEnum.Default);
+                .HasDefaultValue(ReductionStatusEnum.Unspecified);
 
             builder.Entity<ContentReductionTask>()
                 .ForNpgsqlUseXminAsConcurrencyToken();

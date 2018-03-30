@@ -23,7 +23,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Milliman.Common", "Milliman
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapDbContextLib", "..\MillimanAccessPortal\MapDbContextLib\MapDbContextLib.csproj", "{038A40A4-CEB4-4F47-B955-762F29BF5843}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContentReductionLib", "ContentReductionLib\ContentReductionLib.csproj", "{37ACEB95-623F-4A69-9497-0F74936C52E2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContentReductionLib", "ContentReductionLib\ContentReductionLib.csproj", "{37ACEB95-623F-4A69-9497-0F74936C52E2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuditLogLib", "..\MillimanAccessPortal\AuditLogLib\AuditLogLib.csproj", "{89E0F008-3136-4AB9-AA55-479D833134FF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,6 +65,10 @@ Global
 		{37ACEB95-623F-4A69-9497-0F74936C52E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{37ACEB95-623F-4A69-9497-0F74936C52E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{37ACEB95-623F-4A69-9497-0F74936C52E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89E0F008-3136-4AB9-AA55-479D833134FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89E0F008-3136-4AB9-AA55-479D833134FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89E0F008-3136-4AB9-AA55-479D833134FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89E0F008-3136-4AB9-AA55-479D833134FF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -76,6 +82,7 @@ Global
 		{E8C5D9C8-78D0-4BDF-91B5-E5DF4D9DA3F3} = {4FE72080-2FDD-4857-8B49-02976DE7498B}
 		{038A40A4-CEB4-4F47-B955-762F29BF5843} = {4FE72080-2FDD-4857-8B49-02976DE7498B}
 		{37ACEB95-623F-4A69-9497-0F74936C52E2} = {4FE72080-2FDD-4857-8B49-02976DE7498B}
+		{89E0F008-3136-4AB9-AA55-479D833134FF} = {4FE72080-2FDD-4857-8B49-02976DE7498B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1035EE4B-49AC-4059-B136-CA35FD52A8AE}

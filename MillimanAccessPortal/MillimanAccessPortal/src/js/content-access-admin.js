@@ -1,4 +1,17 @@
-/* global card, dialog, shared */
+var $ = require('jquery');
+var toastr = require('toastr');
+require('tooltipster');
+require('vex-js');
+var card = require('./card');
+var dialog = require('./dialog');
+require('./lib-options');
+var shared = require('./shared');
+
+require('bootstrap/scss/bootstrap-reboot.scss');
+require('toastr/toastr.scss');
+require('tooltipster/src/css/tooltipster.css');
+require('vex-js/sass/vex.sass');
+require('../scss/map.scss');
 
 
 function updateSelectionGroupCount() {
