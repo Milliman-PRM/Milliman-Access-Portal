@@ -333,7 +333,12 @@ namespace MillimanAccessPortal.Controllers
 
             var remainingChunksKey = $"remaining-chunks-{resumableIdentifier}";
 
-
+            // Rename the received file chunk
+            if (System.IO.File.Exists(targetFilePath))
+            {
+                // It is OK to receive a chunk more than once
+                System.IO.File.Delete(targetFilePath);
+            }
             System.IO.File.Move(tempFilePath, targetFilePath);
 
             // Keep track of which chunks we have
