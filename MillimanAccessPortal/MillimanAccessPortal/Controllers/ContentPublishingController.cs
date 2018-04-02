@@ -77,7 +77,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="FileName"></param>
         /// <param name="RootContentId"></param>
         /// <returns></returns>
-        public async Task<IActionResult> RequestContentPublication (string FileName, long RootContentId)
+        public async Task<IActionResult> RequestContentPublication(string FileName, long RootContentId)
         {
             #region Preliminary Validation
             RootContentItem RootContent = DbContext.RootContentItem.SingleOrDefault(rc => rc.Id == RootContentId);
@@ -119,8 +119,8 @@ namespace MillimanAccessPortal.Controllers
                 using (IDbContextTransaction Transaction = DbContext.Database.BeginTransaction())
                 {
                     ContentPublicationRequest NewPubRequest = new ContentPublicationRequest { ApplicationUser = await DbQueries.GetCurrentApplicationUser(User),
-                                                                                              RootContentItemId = RootContentId,
-                                                                                              MasterFilePath = "ThisInputFile"};
+                        RootContentItemId = RootContentId,
+                        MasterFilePath = "ThisInputFile" };
                     DbContext.ContentPublicationRequest.Add(NewPubRequest);
                     DbContext.SaveChanges();
 
@@ -246,6 +246,95 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(ContentPublicationRequest);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadResumable()
+        {
+            if (!MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
+            {
+                return BadRequest($"Expected a multipart request, but got {Request.ContentType}");
+            }
+
+            // Used to accumulate all the form url encoded key value pairs in the request.
+            var formAccumulator = new KeyValueAccumulator();
+            string targetFilePath = null;
+
+            var tempFilePath = Path.GetTempFileName();
+
+            // The encapsulation boundary should never exceed 70 characters.
+            // See https://tools.ietf.org/html/rfc2046#section-5.1.1
+            var boundary = MultipartRequestHelper.GetBoundary(
+                MediaTypeHeaderValue.Parse(Request.ContentType),
+                lengthLimit: 70);
+            var reader = new MultipartReader(boundary, Request.Body);
+
+            var section = await reader.ReadNextSectionAsync();
+            while (section != null)
+            {
+                ContentDispositionHeaderValue contentDisposition;
+                var hasContentDispositionHeader = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out contentDisposition);
+
+                if (hasContentDispositionHeader)
+                {
+                    if (MultipartRequestHelper.HasFileContentDisposition(contentDisposition))
+                    {
+                        using (var targetStream = System.IO.File.Create(tempFilePath))
+                        {
+                            await section.Body.CopyToAsync(targetStream);
+                        }
+                    }
+                    else if (MultipartRequestHelper.HasFormDataContentDisposition(contentDisposition))
+                    {
+                        // Do not limit the key name length here because the
+                        // multipart headers length limit is already in effect.
+                        var key = HeaderUtilities.RemoveQuotes(contentDisposition.Name);
+                        var encoding = MultipartRequestHelper.GetEncoding(section);
+                        using (var streamReader = new StreamReader(
+                            section.Body,
+                            encoding,
+                            detectEncodingFromByteOrderMarks: true,
+                            bufferSize: 1024,
+                            leaveOpen: true))
+                        {
+                            // The value length limit is enforced by MultipartBodyLengthLimit
+                            var value = await streamReader.ReadToEndAsync();
+                            if (String.Equals(value, "undefined", StringComparison.OrdinalIgnoreCase))
+                            {
+                                value = String.Empty;
+                            }
+                            formAccumulator.Append(key.Value, value);
+
+                            if (formAccumulator.ValueCount > 10)
+                            {
+                                throw new InvalidDataException("Form key count limit 10 exceeded.");
+                            }
+                        }
+                    }
+                }
+
+                // Drains any remaining section body that has not been consumed and
+                // reads the headers for the next section.
+                section = await reader.ReadNextSectionAsync();
+            }
+
+            // Bind form data to a model
+            var formValueProvider = new FormValueProvider(
+                BindingSource.Form,
+                new FormCollection(formAccumulator.GetResults()),
+                CultureInfo.CurrentCulture);
+
+            var resumableIdentifier = formValueProvider.GetValue("resumableIdentifier").FirstValue;
+            var resumableFilename = formValueProvider.GetValue("resumableFilename").FirstValue;
+            var resumableChunkNumber = Convert.ToInt64(formValueProvider.GetValue("resumableChunkNumber").FirstValue);
+            var resumableTotalChunks = Convert.ToInt64(formValueProvider.GetValue("resumableTotalChunks").FirstValue);
+            var fileExtension = Path.GetExtension(resumableFilename);
+            targetFilePath = Path.Combine(Path.GetTempPath(), $"{resumableIdentifier}.chunk-{resumableChunkNumber}.upload");
+
+            System.IO.File.Move(tempFilePath, targetFilePath);
+
+            return Ok();
+        }
     }
 
     public static class MultipartRequestHelper
@@ -301,5 +390,4 @@ namespace MillimanAccessPortal.Controllers
             return mediaType.Encoding;
         }
     }
-
 }

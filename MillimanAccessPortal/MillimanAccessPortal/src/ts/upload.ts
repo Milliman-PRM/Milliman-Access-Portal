@@ -1,11 +1,12 @@
 import $ = require('jquery');
 import shared = require('./shared');
+import { Resumable } from 'resumablejs';
 
 function displayProgress(progress: number): void {
   $('#file-progress').width((Math.round(progress * 10000) / 100) + '%');
 }
 
-export = function upload() {
+export function upload() {
   const data = new FormData(<HTMLFormElement> $('#upload-form')[0]);
   $.ajax({
     xhr: shared.xhrWithProgress(displayProgress),
@@ -23,4 +24,8 @@ export = function upload() {
   }).fail(function onFail(response) {
     toastr.warning('Error: ' + response.status);
   });
+}
+
+export function uploadResumable(r: Resumable) {
+  r.upload();
 }
