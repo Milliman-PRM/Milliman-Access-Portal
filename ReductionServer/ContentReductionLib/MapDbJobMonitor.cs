@@ -257,7 +257,7 @@ namespace ContentReductionLib
 
                 return true;
             }
-            catch (Exception e)
+            catch (Exception /*e*/)
             {
                 return false;
             }

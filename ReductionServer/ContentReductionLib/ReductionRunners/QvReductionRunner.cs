@@ -104,7 +104,7 @@ namespace ContentReductionLib.ReductionRunners
                 ValidateThisInstance();
                 _CancellationToken.ThrowIfCancellationRequested();
 
-                PreTaskSetup();
+                await PreTaskSetup();
                 _CancellationToken.ThrowIfCancellationRequested();
 
                 await ExtractReductionHierarchy();
@@ -122,6 +122,12 @@ namespace ContentReductionLib.ReductionRunners
                 TaskResultObj.Status = ReductionJobStatusEnum.Canceled;
                 Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
             }
+            catch (ArgumentOutOfRangeException e)
+            {
+                TaskResultObj.Status = ReductionJobStatusEnum.Error;
+                Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
+                TaskResultObj.UserMessage = e.Message;
+            }
             catch (System.Exception e)
             {
                 TaskResultObj.Status = ReductionJobStatusEnum.Error;
@@ -129,7 +135,7 @@ namespace ContentReductionLib.ReductionRunners
             }
             finally
             {
-                // Never touch TaskResultObj.Status in the finally block. This value should always be finalized before we get here. 
+                // Don't touch TaskResultObj.Status in the finally block. This value should always be finalized before we get here. 
                 Cleanup();
             }
 
@@ -155,10 +161,8 @@ namespace ContentReductionLib.ReductionRunners
         /// <summary>
         /// Sets up the starting conditions that are unique to this specific task
         /// </summary>
-        private bool PreTaskSetup()
+        private async Task<bool> PreTaskSetup()
         {
-            IQMS Client = QmsClientCreator.New(QmsUrl);
-
             WorkingFolderRelative = QueueTask.Id.ToString();  // Folder is named for the task guid from the database
             string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
             string MasterFileDestinationPath = Path.Combine(WorkingFolderAbsolute, MasterFileName);
@@ -171,6 +175,8 @@ namespace ContentReductionLib.ReductionRunners
                 }
                 Directory.CreateDirectory(WorkingFolderAbsolute);
                 File.Copy(QueueTask.MasterFilePath, MasterFileDestinationPath);
+
+                DocumentNode x = await GetSourceDocumentNode(MasterFileName, WorkingFolderRelative);
             }
             catch (System.Exception e)
             {
@@ -190,8 +196,10 @@ namespace ContentReductionLib.ReductionRunners
             string AncillaryScriptFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "ancillary_script.txt");
             File.WriteAllText(AncillaryScriptFilePath, "LET DataExtraction=true();");
 
-            // Create and run Qlikview publisher (QDS) task
+            // Create Qlikview publisher (QDS) task
             TaskInfo Info = await CreateHierarchyExtractionQdsTask();
+
+            // Run Qlikview publisher (QDS) task
             await RunQdsTask(Info);
 
             // Clean up
@@ -253,16 +261,34 @@ namespace ContentReductionLib.ReductionRunners
         }
 
         /// <summary>
-        /// Complete this
+        /// Create a reduced version of the master content file based on requested field value selections
         /// </summary>
         private async Task<bool> CreateReducedContent()
         {
-            // TODO create a properly typed object here
             ContentReductionHierarchy<ReductionFieldValueSelection> Selections = JsonConvert.DeserializeObject<ContentReductionHierarchy<ReductionFieldValueSelection>>(QueueTask.SelectionCriteria);
 
+            // Validate the selected field name(s) exists in the extracted hierarchy
+            foreach (var SelectedField in Selections.Fields)
+            {
+                if (!TaskResultObj.ExtractedHierarchy.Fields.Any(f => f.FieldName == SelectedField.FieldName))
+                {
+                    string Msg = $"The requested reduction field {SelectedField.FieldName} is not found in the extracted data reduction hierarchy";
+                    Trace.WriteLine(Msg);
+                    throw new ArgumentOutOfRangeException(SelectedField.FieldName, Msg);
+                }
+
+                // It is not an error if selected values do not exist in the extracted hierarchy for fields that do exist
+            }
+
+            // Create Qlikview publisher (QDS) task
             TaskInfo Info = await CreateReductionQdsTask(Selections);
-            Trace.WriteLine($"Task {QueueTask.Id.ToString()} started CreateReducedContent");
-            Thread.Sleep(2500);
+
+            // Run Qlikview publisher (QDS) task
+            await RunQdsTask(Info);
+
+            // Clean up
+            await DeleteQdsTask(Info);
+
             Trace.WriteLine($"Task {QueueTask.Id.ToString()} completed CreateReducedContent");
 
             return true;
@@ -273,20 +299,32 @@ namespace ContentReductionLib.ReductionRunners
         /// </summary>
         private bool DistributeResults()
         {
-            Trace.WriteLine($"Task {QueueTask.Id.ToString()} started DistributeResults");
-            Thread.Sleep(2500);
+            string ApplicationDataExchangeFolder = Path.GetDirectoryName(QueueTask.MasterFilePath);
+            string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
+            
+            string FileNamePattern = $"{Path.GetFileNameWithoutExtension(MasterFileName)}.reduced.*";
+            string ReducedFile = Directory.GetFiles(WorkingFolderAbsolute, FileNamePattern).Single();
+            string CopyDestinationPath = Path.Combine(ApplicationDataExchangeFolder, Path.GetFileName(ReducedFile));
+
+            File.Copy(ReducedFile, CopyDestinationPath, true);
+            TaskResultObj.ReducedContentFilePath = CopyDestinationPath;
+
             Trace.WriteLine($"Task {QueueTask.Id.ToString()} completed DistributeResults");
 
             return true;
         }
 
         /// <summary>
-        /// Complete this
+        /// Remove all temporary artifacts of the entire process
         /// </summary>
         private bool Cleanup()
         {
-            Trace.WriteLine($"Task {QueueTask.Id.ToString()} started Cleanup");
-            Thread.Sleep(2500);
+            string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
+            if (Directory.Exists(WorkingFolderAbsolute))
+            {
+                Directory.Delete(WorkingFolderAbsolute, true);
+            }
+
             Trace.WriteLine($"Task {QueueTask.Id.ToString()} completed Cleanup");
 
             return true;
@@ -298,15 +336,25 @@ namespace ContentReductionLib.ReductionRunners
         /// <param name="RequestedFileName"></param>
         /// <param name="RequestedRelativeFolder">Path relative to the selected source documents folder.</param>
         /// <returns></returns>
-        private QmsApi.DocumentNode GetSourceDocumentNode(string RequestedFileName, string RequestedRelativeFolder)
+        private async Task<QmsApi.DocumentNode> GetSourceDocumentNode(string RequestedFileName, string RequestedRelativeFolder)
         {
             IQMS QmsClient = QmsClientCreator.New(QmsUrl);
 
-            DocumentNode[] AllDocNodes = QmsClient.GetSourceDocumentNodesAsync(QdsServiceInfo.ID, SourceDocFolder.ID, RequestedRelativeFolder).Result;
+            DocumentNode[] AllDocNodes = await QmsClient.GetSourceDocumentNodesAsync(QdsServiceInfo.ID, SourceDocFolder.ID, RequestedRelativeFolder);
+
+            int TriesLeft = 120;
+            int SleepTime = 62 * 1000 / TriesLeft;
+            while (AllDocNodes.Length == 0 && TriesLeft > 0)
+            {
+                Thread.Sleep(SleepTime);
+                AllDocNodes = await QmsClient.GetSourceDocumentNodesAsync(QdsServiceInfo.ID, SourceDocFolder.ID, RequestedRelativeFolder);
+                TriesLeft--;
+            }
             DocumentNode DocNode = AllDocNodes.SingleOrDefault(dn => dn.FolderID == SourceDocFolder.ID
                                                                   && dn.Name == RequestedFileName
                                                                   && dn.RelativePath == RequestedRelativeFolder);
 
+            Trace.WriteLine($"TriesLeft is {TriesLeft}");
             if (DocNode == null)
             {
                 Trace.WriteLine(string.Format($"Did not find SourceDocument '{MasterFileName}' in source documents folder {SourceDocFolder.General.Path}"));
@@ -323,7 +371,7 @@ namespace ContentReductionLib.ReductionRunners
 
             NewDocumentTask.ID = Guid.NewGuid();
             NewDocumentTask.QDSID = QdsServiceInfo.ID;
-            NewDocumentTask.Document = GetSourceDocumentNode(MasterFileName, WorkingFolderRelative);
+            NewDocumentTask.Document = await GetSourceDocumentNode(MasterFileName, WorkingFolderRelative);
 
             #region General Tab
             NewDocumentTask.Scope |= DocumentTaskScope.General;
@@ -384,7 +432,7 @@ namespace ContentReductionLib.ReductionRunners
 
             NewDocumentTask.ID = Guid.NewGuid();
             NewDocumentTask.QDSID = QdsServiceInfo.ID;
-            NewDocumentTask.Document = GetSourceDocumentNode(MasterFileName, WorkingFolderRelative);
+            NewDocumentTask.Document = await GetSourceDocumentNode(MasterFileName, WorkingFolderRelative);
 
             #region general
             NewDocumentTask.Scope |= QmsApi.DocumentTaskScope.General;
@@ -400,14 +448,14 @@ namespace ContentReductionLib.ReductionRunners
 
             NewDocumentTask.Scope |= QmsApi.DocumentTaskScope.Reduce;
             NewDocumentTask.Reduce = new QmsApi.DocumentTask.TaskReduce();
-            NewDocumentTask.Reduce.DocumentNameTemplate = Path.GetFileNameWithoutExtension(MasterFileName) + ".reduced." + Path.GetExtension(MasterFileName);
+            NewDocumentTask.Reduce.DocumentNameTemplate = Path.GetFileNameWithoutExtension(MasterFileName) + ".reduced";
             NewDocumentTask.Reduce.Static = new QmsApi.DocumentTask.TaskReduce.TaskReduceStatic();
             NewDocumentTask.Reduce.Static.Reductions = new QmsApi.TaskReduction[NumSelectedValues];
 
             int Index = 0;
             foreach (var Field in Selections.Fields)
             {
-                foreach (var Val in Field.Values)
+                foreach (var Val in Field.Values.Where(v => v.SelectionStatus))
                 {
                     Trace.WriteLine(string.Format($"Reduction task: assigning selection for field <{Field.FieldName}> with value <{Val.Value}>")); // TODO delete this
                     NewDocumentTask.Reduce.Static.Reductions[Index] = new QmsApi.TaskReduction();
