@@ -1,11 +1,14 @@
-/* global shared */
+import $ = require('jquery');
+import shared = require('./shared');
 
-function upload() {
-  var data = new FormData($('#upload-form')[0]);
+function displayProgress(progress: number): void {
+  $('#file-progress').width((Math.round(progress * 10000) / 100) + '%');
+}
+
+export = function upload() {
+  const data = new FormData(<HTMLFormElement> $('#upload-form')[0]);
   $.ajax({
-    xhr: shared.xhrWithProgress(function (progress) {
-      $('#file-progress').width((Math.round(progress * 10000) / 100) + '%');
-    }),
+    xhr: shared.xhrWithProgress(displayProgress),
     type: 'POST',
     cache: false,
     contentType: false,
@@ -13,7 +16,7 @@ function upload() {
     url: 'ContentPublishing/Upload',
     data: data,
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
     }
   }).done(function onDone(response) {
     toastr.success('File uploaded to ' + response.MasterFilePath);
@@ -21,10 +24,3 @@ function upload() {
     toastr.warning('Error: ' + response.status);
   });
 }
-
-$(document).ready(function () {
-  $('#upload-form input.submit').click(function (event) {
-    event.preventDefault();
-    upload();
-  });
-});

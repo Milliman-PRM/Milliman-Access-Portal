@@ -1,4 +1,4 @@
-var $ = require('jquery');
+import $ = require('jquery');
 var dialog = require('./dialog');
 var toastr = require('toastr');
 
@@ -247,10 +247,10 @@ shared.hideButtonSpinner = function ($buttons) {
   });
 };
 
-shared.xhrWithProgress = function (onProgress) {
+export function xhrWithProgress(onProgress: Function) {
   return function () {
-    var xhr = new window.XMLHttpRequest();
-    xhr.upload.addEventListener('progress', function (event) {
+    var xhr = new XMLHttpRequest();
+    xhr.upload.addEventListener('progress', function (event: ProgressEvent) {
       if (event.lengthComputable) {
         onProgress(event.loaded / event.total);
       }
@@ -321,5 +321,3 @@ shared.confirmAndContinue = function ($panel, Dialog, onContinue) {
     onContinue();
   }
 };
-
-module.exports = shared;
