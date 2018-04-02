@@ -326,12 +326,38 @@ namespace MillimanAccessPortal.Controllers
 
             var resumableIdentifier = formValueProvider.GetValue("resumableIdentifier").FirstValue;
             var resumableFilename = formValueProvider.GetValue("resumableFilename").FirstValue;
-            var resumableChunkNumber = Convert.ToInt64(formValueProvider.GetValue("resumableChunkNumber").FirstValue);
-            var resumableTotalChunks = Convert.ToInt64(formValueProvider.GetValue("resumableTotalChunks").FirstValue);
+            var resumableChunkNumber = Convert.ToInt32(formValueProvider.GetValue("resumableChunkNumber").FirstValue);
+            var resumableTotalChunks = Convert.ToInt32(formValueProvider.GetValue("resumableTotalChunks").FirstValue);
             var fileExtension = Path.GetExtension(resumableFilename);
             targetFilePath = Path.Combine(Path.GetTempPath(), $"{resumableIdentifier}.chunk-{resumableChunkNumber}.upload");
 
+            var remainingChunksKey = $"remaining-chunks-{resumableIdentifier}";
+
+
             System.IO.File.Move(tempFilePath, targetFilePath);
+
+            // Keep track of which chunks we have
+            ISet<int> remainingChunks;
+
+            string serializedData = ((string)TempData[remainingChunksKey]);
+            if (serializedData == null)
+            {
+                remainingChunks = new HashSet<int>(Enumerable.Range(1, resumableTotalChunks));
+            }
+            else
+            {
+                remainingChunks = JsonConvert.DeserializeObject<HashSet<int>>(serializedData);
+            }
+            remainingChunks.Remove(resumableChunkNumber);
+            if (remainingChunks.Count == 0)
+            {
+                // assemble the chunks!
+            }
+            else
+            {
+                serializedData = JsonConvert.SerializeObject(remainingChunks);
+                TempData[remainingChunksKey] = serializedData;
+            }
 
             return Ok();
         }
