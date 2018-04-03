@@ -28,6 +28,7 @@ using System.IO;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Globalization;
 using System.Text;
+using MillimanAccessPortal.Models.ContentPublicationViewModels;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -247,6 +248,36 @@ namespace MillimanAccessPortal.Controllers
             return Json(ContentPublicationRequest);
         }
 
+        [HttpGet]
+        public ActionResult ChunkStatus(ResumableData resumableData)
+        {
+            ISet<int> remainingChunks;
+            string serializedData = ((string) TempData[resumableData.UID]);
+            if (serializedData == null)
+            {
+                // Verify that existing chunks are of specified chunk size to prevent an interupted chunk from spoiling the file upload
+                var existingChunks = Directory.GetFiles(Path.Combine(Path.GetTempPath(), resumableData.UID))
+                    .Where(fileName => new FileInfo(fileName).Length == resumableData.ChunkSize)
+                    .Select(fileName => Path.GetFileName(fileName));
+
+                remainingChunks = new HashSet<int>(Enumerable.Range(1, resumableData.TotalChunks)
+                    .Where(chunkNumber => !existingChunks.Contains($"{chunkNumber:D8}.chunk")));
+
+                serializedData = JsonConvert.SerializeObject(remainingChunks);
+            }
+            else
+            {
+                remainingChunks = JsonConvert.DeserializeObject<HashSet<int>>(serializedData);
+            }
+
+            // TempData removes values after they are read, so reset the chunk data even if it hasn't changed
+            TempData[resumableData.UID] = serializedData;
+
+            return remainingChunks.Contains(resumableData.ChunkNumber)
+                ? ((ActionResult) NotFound())
+                : Ok();
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UploadResumable()
@@ -305,6 +336,7 @@ namespace MillimanAccessPortal.Controllers
                             }
                             formAccumulator.Append(key.Value, value);
 
+                            // This action expects at most 10 values
                             if (formAccumulator.ValueCount > 10)
                             {
                                 throw new InvalidDataException("Form key count limit 10 exceeded.");
@@ -319,49 +351,72 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Bind form data to a model
+            var resumableData = new ResumableData();
             var formValueProvider = new FormValueProvider(
                 BindingSource.Form,
                 new FormCollection(formAccumulator.GetResults()),
                 CultureInfo.CurrentCulture);
 
-            var resumableIdentifier = formValueProvider.GetValue("resumableIdentifier").FirstValue;
-            var resumableFilename = formValueProvider.GetValue("resumableFilename").FirstValue;
-            var resumableChunkNumber = Convert.ToInt32(formValueProvider.GetValue("resumableChunkNumber").FirstValue);
-            var resumableTotalChunks = Convert.ToInt32(formValueProvider.GetValue("resumableTotalChunks").FirstValue);
-            var fileExtension = Path.GetExtension(resumableFilename);
-            targetFilePath = Path.Combine(Path.GetTempPath(), $"{resumableIdentifier}.chunk-{resumableChunkNumber}.upload");
+            var bindingSuccessful = await TryUpdateModelAsync(resumableData, prefix: "",
+                valueProvider: formValueProvider);
+            if (!bindingSuccessful)
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+            }
 
-            var remainingChunksKey = $"remaining-chunks-{resumableIdentifier}";
-
-            // Rename the received file chunk
+            // Move the temporary file
+            targetFilePath = Path.Combine(
+                Path.GetTempPath(),
+                resumableData.UID,
+                $"{resumableData.ChunkNumber:D8}.chunk");
+            
             if (System.IO.File.Exists(targetFilePath))
             {
                 // It is OK to receive a chunk more than once
                 System.IO.File.Delete(targetFilePath);
             }
+            System.IO.Directory.CreateDirectory(Path.GetDirectoryName(targetFilePath));
             System.IO.File.Move(tempFilePath, targetFilePath);
 
-            // Keep track of which chunks we have
-            ISet<int> remainingChunks;
 
-            string serializedData = ((string)TempData[remainingChunksKey]);
-            if (serializedData == null)
-            {
-                remainingChunks = new HashSet<int>(Enumerable.Range(1, resumableTotalChunks));
-            }
-            else
-            {
-                remainingChunks = JsonConvert.DeserializeObject<HashSet<int>>(serializedData);
-            }
-            remainingChunks.Remove(resumableChunkNumber);
-            if (remainingChunks.Count == 0)
-            {
-                // assemble the chunks!
-            }
-            else
+            // Keep track of which chunks we have
+            string serializedData = ((string) TempData[resumableData.UID]);
+            ISet<int> remainingChunks = JsonConvert.DeserializeObject<HashSet<int>>(serializedData);
+            remainingChunks.Remove(Convert.ToInt32(resumableData.ChunkNumber));
+            if (remainingChunks.Count > 0)
             {
                 serializedData = JsonConvert.SerializeObject(remainingChunks);
-                TempData[remainingChunksKey] = serializedData;
+                TempData[resumableData.UID] = serializedData;
+            }
+            else
+            {
+                // Reassemble the file from its parts
+                var srcFileNames = Enumerable.Range(1, Convert.ToInt32(resumableData.TotalChunks))
+                    .Select(chunkNumber => Path.Combine(
+                        Path.GetTempPath(),
+                        resumableData.UID,
+                        $"{chunkNumber:D8}.chunk"));
+                var dstFileName = Path.Combine(
+                    Path.GetTempPath(),
+                    $"{resumableData.UID}.upload");
+                using (Stream dstStream = System.IO.File.OpenWrite(dstFileName))
+                {
+                    foreach (var srcFileName in srcFileNames)
+                    {
+                        using (Stream srcStream = System.IO.File.OpenRead(srcFileName))
+                        {
+                            srcStream.CopyTo(dstStream);
+                        }
+                        System.IO.File.Delete(srcFileName);
+                    }
+                }
+
+                // checksum the file
+
+                // rename the file with proper extension, this will allow it to be noticed by virus scanner
             }
 
             return Ok();

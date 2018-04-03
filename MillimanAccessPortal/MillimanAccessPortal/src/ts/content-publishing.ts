@@ -1,6 +1,8 @@
 import $ = require('jquery');
 import upload = require('./upload');
+import forge = require('node-forge');
 import resumable = require('resumablejs');
+import options = require('./lib-options');
 import 'bootstrap/scss/bootstrap-reboot.scss';
 import 'selectize/src/less/selectize.default.less';
 import 'toastr/toastr.scss';
@@ -12,15 +14,51 @@ import '../scss/map.scss';
 $(document).ready(function(): void {
   const r = new resumable({
     target: '/ContentPublishing/UploadResumable',
-    headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
-    },
-    query: function () {
+    testTarget: '/ContentPublishing/ChunkStatus',
+    headers: function() {
       return {
-        RootContentItemId: $('#rci-resumable').val().toString(),
-      }
+        RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
+      };
     },
-    simultaneousUploads: 1
+    query: function() {
+      return {
+        rootContentItemId: $('#rci-resumable').val().toString(),
+      };
+    },
+    simultaneousUploads: 1,
+    generateUniqueIdentifier: function (file: File, event: Event) {
+      return new Promise((resolve, reject) => {
+        const filename = file.name.split('.').join('_');
+        const md = forge.md.sha1.create();
+        const reader = new FileReader();
+        const chunkSize = 1024 * 1024;
+        let offset = 0;
+        reader.onload = function() {
+          md.update(this.result);
+          offset += chunkSize;
+          if (offset >= file.size) {
+            const checksum = md.digest().toHex();
+            resolve(`${filename}-${checksum}`);
+          } else {
+            reader.readAsArrayBuffer(
+              file.slice(offset, offset + chunkSize));
+          }
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsArrayBuffer(
+          file.slice(offset, offset + chunkSize));
+      })
+    },
+    maxFileSize: (5 * (2 ** 30)), // 5GiB
+    chunkNumberParameterName: 'chunkNumber',
+    totalChunksParameterName: 'totalChunks',
+    identifierParameterName: 'uid',
+    typeParameterName: 'type',
+    chunkSizeParameterName: 'chunkSize',
+    totalSizeParameterName: '',
+    fileNameParameterName: '',
+    relativePathParameterName: '',
+    currentChunkSizeParameterName: '',
   });
   if (!r.support) {
     alert('not supported');

@@ -9,6 +9,7 @@
     "jquery-mask-plugin": "1.14.13",
     "jquery-validation": "1.14.0",
     "jquery-validation-unobtrusive": "3.2.6",
+    "node-forge": "^0.7.5",
     "popper.js": "^1.14.1",
     "resumablejs": "^1.1.0",
     "selectize": "v0.12.4",
@@ -20,7 +21,9 @@
   "devDependencies": {
     "@types/jest": "^22.2.2",
     "@types/jquery": "^3.3.1",
+    "@types/lodash": "^4.14.106",
     "@types/node": "8.9.4",
+    "@types/node-forge": "^0.7.2",
     "@types/webpack-env": "^1.13.5",
     "awesome-typescript-loader": "^4.0.1",
     "copy-webpack-plugin": "^4.5.1",
