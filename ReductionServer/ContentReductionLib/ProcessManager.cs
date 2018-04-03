@@ -31,6 +31,11 @@ namespace ContentReductionLib
         /// </summary>
         public ProcessManager()
         {
+            if (Configuration.Cfg == null)
+            {
+                throw new ApplicationException("Application configuration is not initialized");
+            }
+
             AuditLogger.Config = new AuditLoggerConfiguration { AuditLogConnectionString = AuditLogCxn };
         }
 
@@ -38,7 +43,7 @@ namespace ContentReductionLib
         /// Initiate processing of configured JobMonitors
         /// </summary>
         /// <param name="ProcessConfig"></param>
-        public void Start(ProcessManagerConfiguration ProcessConfig)
+        public void Start()
         {
             // Based on configuration, set up objects derived from JobMonitorBase
             // for (int i = 0 ; i < ConfiguredMonitors.Count ; i++)

@@ -1,6 +1,6 @@
-﻿namespace QvReportReductionService
+﻿namespace ContentReductionService
 {
-    partial class QvReportReductionService
+    partial class ContentReductionService
     {
         /// <summary> 
         /// Required designer variable.
@@ -28,8 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
-            components = new System.ComponentModel.Container();
-            this.ServiceName = "QvReportReductionService";
+            // 
+            // ContentReductionService
+            // 
+            this.CanShutdown = true;
+            this.ServiceName = "ContentReductionService";
+
         }
 
         #endregion

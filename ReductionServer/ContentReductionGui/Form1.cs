@@ -6,7 +6,7 @@
 
 using System;
 using System.Diagnostics;
-using System.Configuration;
+//using System.Configuration;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -34,26 +34,16 @@ namespace QvReportReductionGui
 
             InitializeComponent();
 
-            textBox1.Text = ConfigurationManager.AppSettings["RootPath"];
-            numericUpDownThreads.Value = int.Parse(ConfigurationManager.AppSettings["MaxConcurrentTasks"]);
-
             timer1.Interval = 1000;
             timer1.Start();
         }
 
         private void ButtonInitiateLoop_Click(object sender, EventArgs e)
         {
+            Configuration.GetConfiguration();
+
             Manager = new ProcessManager();
-
-            ProcessManagerConfiguration ProcessConfig = new ProcessManagerConfiguration
-            {
-                RootPath = textBox1.Text,
-                MaxConcurrentTasks = (int)numericUpDownThreads.Value,
-            };
-
-            Trace.WriteLine(DateTime.Now + " - " + ProcessConfig.ToString());
-
-            Manager.Start(ProcessConfig);
+            Manager.Start();
         }
 
         private void ButtonStop_Click(object sender, EventArgs e)
@@ -93,13 +83,5 @@ namespace QvReportReductionGui
             label1.Text = (Manager == null) ? "Null Manager" : Manager.AllMonitorThreadsRunning.ToString();
         }
 
-        private void buttonBrowse_Click(object sender, EventArgs e)
-        {
-            if (folderBrowserDialog1.ShowDialog() == DialogResult.OK &&
-                Directory.Exists(folderBrowserDialog1.SelectedPath))
-            {
-                textBox1.Text = folderBrowserDialog1.SelectedPath;
-            }
-        }
     }
 }

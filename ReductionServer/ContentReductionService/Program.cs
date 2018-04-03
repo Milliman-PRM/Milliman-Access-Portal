@@ -5,7 +5,7 @@ using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace QvReportReductionService
+namespace ContentReductionService
 {
     static class Program
     {
@@ -17,7 +17,7 @@ namespace QvReportReductionService
             ServiceBase[] ServicesToRun;
             ServicesToRun = new ServiceBase[]
             {
-                new QvReportReductionService()
+                new ContentReductionService()
             };
             ServiceBase.Run(ServicesToRun);
         }

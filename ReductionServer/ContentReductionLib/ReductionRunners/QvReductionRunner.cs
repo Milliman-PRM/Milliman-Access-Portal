@@ -92,6 +92,8 @@ namespace ContentReductionLib.ReductionRunners
         private ServiceInfo QdsServiceInfo { get; set; } = null;
 
         private string MasterFileName { get { return "Master.qvw"; } }
+
+        private DocumentNode MasterDocumentNode { get; set; } = null;
         #endregion
 
         internal async override Task<ReductionJobResult> ExecuteReduction(CancellationToken cancellationToken)
@@ -121,8 +123,9 @@ namespace ContentReductionLib.ReductionRunners
             {
                 TaskResultObj.Status = ReductionJobStatusEnum.Canceled;
                 Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
+                TaskResultObj.UserMessage = e.Message;
             }
-            catch (ArgumentOutOfRangeException e)
+            catch (ApplicationException e)
             {
                 TaskResultObj.Status = ReductionJobStatusEnum.Error;
                 Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
@@ -132,6 +135,7 @@ namespace ContentReductionLib.ReductionRunners
             {
                 TaskResultObj.Status = ReductionJobStatusEnum.Error;
                 Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
+                TaskResultObj.UserMessage = e.Message;
             }
             finally
             {
@@ -176,14 +180,18 @@ namespace ContentReductionLib.ReductionRunners
                 Directory.CreateDirectory(WorkingFolderAbsolute);
                 File.Copy(QueueTask.MasterFilePath, MasterFileDestinationPath);
 
-                DocumentNode x = await GetSourceDocumentNode(MasterFileName, WorkingFolderRelative);
+                MasterDocumentNode = await GetSourceDocumentNode(MasterFileName, WorkingFolderRelative);
             }
             catch (System.Exception e)
             {
                 Trace.WriteLine($"QvReductionRunner.PreTaskSetup() failed to create folder {WorkingFolderAbsolute} or copy master file {QueueTask.MasterFilePath} to {MasterFileDestinationPath}, exception message:" + Environment.NewLine + e.Message);
-                return false;
+                throw;
             }
 
+            if (MasterDocumentNode == null)
+            {
+                throw new ApplicationException("Failed to obtain DocumentNode object from Qlikview Publisher for master content file");
+            }
             return true;
         }
 
@@ -272,9 +280,9 @@ namespace ContentReductionLib.ReductionRunners
             {
                 if (!TaskResultObj.ExtractedHierarchy.Fields.Any(f => f.FieldName == SelectedField.FieldName))
                 {
-                    string Msg = $"The requested reduction field {SelectedField.FieldName} is not found in the extracted data reduction hierarchy";
+                    string Msg = $"The requested reduction field <{SelectedField.FieldName}> is not found in the reduction hierarchy";
                     Trace.WriteLine(Msg);
-                    throw new ArgumentOutOfRangeException(SelectedField.FieldName, Msg);
+                    throw new ApplicationException(Msg);
                 }
 
                 // It is not an error if selected values do not exist in the extracted hierarchy for fields that do exist
@@ -371,7 +379,7 @@ namespace ContentReductionLib.ReductionRunners
 
             NewDocumentTask.ID = Guid.NewGuid();
             NewDocumentTask.QDSID = QdsServiceInfo.ID;
-            NewDocumentTask.Document = await GetSourceDocumentNode(MasterFileName, WorkingFolderRelative);
+            NewDocumentTask.Document = MasterDocumentNode;
 
             #region General Tab
             NewDocumentTask.Scope |= DocumentTaskScope.General;
@@ -432,7 +440,7 @@ namespace ContentReductionLib.ReductionRunners
 
             NewDocumentTask.ID = Guid.NewGuid();
             NewDocumentTask.QDSID = QdsServiceInfo.ID;
-            NewDocumentTask.Document = await GetSourceDocumentNode(MasterFileName, WorkingFolderRelative);
+            NewDocumentTask.Document = MasterDocumentNode;
 
             #region general
             NewDocumentTask.Scope |= QmsApi.DocumentTaskScope.General;

@@ -48,13 +48,7 @@ namespace ContentReductionLib
         internal string ConfiguredConnectionStringParamName {
             set
             {
-                ConfigurationBuilder CfgBuilder = new ConfigurationBuilder();
-                // TODO add something for AzureKeyVault in CI and production environments
-                CfgBuilder.AddUserSecrets<MapDbJobMonitor>()
-                            .AddJsonFile(path: "appsettings.json", optional: true, reloadOnChange: true);
-                IConfigurationRoot MyConfig = CfgBuilder.Build();
-
-                ConnectionString = MyConfig.GetConnectionString(value);
+                ConnectionString = Configuration.Cfg.GetConnectionString(value);
             }
         }
 
@@ -250,6 +244,8 @@ namespace ContentReductionLib
 
                     DbTask.ResultFilePath = Result.ReducedContentFilePath;
 
+                    DbTask.ReductionStatusMessage = Result.UserMessage;
+
                     Db.ContentReductionTask.Update(DbTask);
                     Db.SaveChanges();
                     Transaction.Commit();
@@ -257,8 +253,9 @@ namespace ContentReductionLib
 
                 return true;
             }
-            catch (Exception /*e*/)
+            catch (Exception e)
             {
+                Trace.WriteLine("Failed to update task in database" + Environment.NewLine + e.Message);
                 return false;
             }
         }

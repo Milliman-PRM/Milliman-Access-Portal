@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Configuration;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -10,28 +9,23 @@ using System.Text;
 using System.Threading.Tasks;
 using ContentReductionLib;
 
-namespace QvReportReductionService
+namespace ContentReductionService
 {
-    public partial class QvReportReductionService : ServiceBase
+    public partial class ContentReductionService : ServiceBase
     {
         ProcessManager Manager = null;
 
-        public QvReportReductionService()
+        public ContentReductionService()
         {
             InitializeComponent();
         }
 
         protected override void OnStart(string[] args)
         {
+            Configuration.GetConfiguration();
+
             Manager = new ProcessManager();
-
-            ProcessManagerConfiguration ProcessConfig = new ProcessManagerConfiguration
-            {
-                RootPath = ConfigurationManager.AppSettings["RootPath"],
-                MaxConcurrentTasks = int.Parse(ConfigurationManager.AppSettings["MaxConcurrentTasks"]),
-            };
-
-            Manager.Start(ProcessConfig);
+            Manager.Start();
         }
 
         protected override void OnStop()
@@ -53,6 +47,10 @@ namespace QvReportReductionService
 
         protected override void OnShutdown()
         {
+            if (Manager != null)
+            {
+                Manager.Stop();
+            }
             base.OnShutdown();
         }
 

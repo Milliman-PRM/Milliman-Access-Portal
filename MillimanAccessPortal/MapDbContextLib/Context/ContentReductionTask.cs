@@ -66,6 +66,11 @@ namespace MapDbContextLib.Context
         public ReductionStatusEnum ReductionStatus { get; set; }
 
         /// <summary>
+        /// This conveys a user level message regarding an error status from reduction server.
+        /// </summary>
+        public string ReductionStatusMessage { get; set; } = null;
+
+        /// <summary>
         /// This path must be accessible to MAP application and reduction server.  
         /// May be different from master file in ContentPublicationRequest
         /// </summary>

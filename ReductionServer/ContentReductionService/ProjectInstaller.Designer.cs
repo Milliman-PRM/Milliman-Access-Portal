@@ -38,7 +38,7 @@
             // 
             // serviceInstaller1
             // 
-            this.serviceInstaller1.ServiceName = "QvReportReductionService";
+            this.serviceInstaller1.ServiceName = "ContentReductionService";
             // 
             // ProjectInstaller
             // 
