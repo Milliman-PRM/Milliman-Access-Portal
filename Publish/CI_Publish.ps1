@@ -479,3 +479,24 @@ else
     exit -200
 }
 #endregion
+
+#region Check login page to confirm deployment
+
+try
+{
+    $resp = Invoke-WebRequest "$publicURL/Account/Login"
+}
+catch
+{
+    log_statement "Failed to get login page: $publicURL/Account/Login"
+    exit -404
+}
+
+if ($resp.StatusCode -ne 200)
+{
+    log_statement "ERROR: Login page failed with code $($resp.StatusCode)"
+    exit $resp.StatusCode
+}
+
+
+#endregion

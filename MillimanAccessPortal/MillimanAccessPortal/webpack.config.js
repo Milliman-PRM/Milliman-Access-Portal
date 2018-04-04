@@ -48,6 +48,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'wwwroot', 'js'),
     filename: '[name].bundle.js',
+    publicPath: 'wwwroot/',
   },
   plugins: [
     new CopyWebpackPlugin([
@@ -64,6 +65,7 @@ module.exports = {
       $: 'jquery',
       jQuery: 'jquery',
     }),
+    new webpack.NamedModulesPlugin(),
   ],
   resolve: {
     extensions: [
