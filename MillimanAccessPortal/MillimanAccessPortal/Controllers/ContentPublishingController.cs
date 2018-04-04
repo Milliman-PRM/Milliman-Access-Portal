@@ -256,9 +256,12 @@ namespace MillimanAccessPortal.Controllers
             if (serializedData == null)
             {
                 // Verify that existing chunks are of specified chunk size to prevent an interupted chunk from spoiling the file upload
-                var existingChunks = Directory.GetFiles(Path.Combine(Path.GetTempPath(), resumableData.UID))
-                    .Where(fileName => new FileInfo(fileName).Length == resumableData.ChunkSize)
-                    .Select(fileName => Path.GetFileName(fileName));
+                var targetPath = Path.Combine(Path.GetTempPath(), resumableData.UID);
+                var existingChunks = Directory.Exists(targetPath)
+                    ? Directory.GetFiles(targetPath)
+                        .Where(fileName => new FileInfo(fileName).Length == resumableData.ChunkSize)
+                        .Select(fileName => Path.GetFileName(fileName))
+                    : new List<string>();
 
                 remainingChunks = new HashSet<int>(Enumerable.Range(1, resumableData.TotalChunks)
                     .Where(chunkNumber => !existingChunks.Contains($"{chunkNumber:D8}.chunk")));
@@ -394,14 +397,10 @@ namespace MillimanAccessPortal.Controllers
             else
             {
                 // Reassemble the file from its parts
+                var srcPath = Path.Combine(Path.GetTempPath(), resumableData.UID);
                 var srcFileNames = Enumerable.Range(1, Convert.ToInt32(resumableData.TotalChunks))
-                    .Select(chunkNumber => Path.Combine(
-                        Path.GetTempPath(),
-                        resumableData.UID,
-                        $"{chunkNumber:D8}.chunk"));
-                var dstFileName = Path.Combine(
-                    Path.GetTempPath(),
-                    $"{resumableData.UID}.upload");
+                    .Select(chunkNumber => Path.Combine(srcPath, $"{chunkNumber:D8}.chunk"));
+                var dstFileName = Path.Combine(Path.GetTempPath(), $"{resumableData.UID}.upload");
                 using (Stream dstStream = System.IO.File.OpenWrite(dstFileName))
                 {
                     foreach (var srcFileName in srcFileNames)
@@ -412,6 +411,15 @@ namespace MillimanAccessPortal.Controllers
                         }
                         System.IO.File.Delete(srcFileName);
                     }
+                }
+                try
+                {
+                    Directory.Delete(srcPath);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    // TODO: notify that directory was not empty
+                    Directory.Delete(srcPath, true);
                 }
 
                 // checksum the file
