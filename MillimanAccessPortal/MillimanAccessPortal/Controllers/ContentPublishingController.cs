@@ -29,6 +29,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using System.Globalization;
 using System.Text;
 using MillimanAccessPortal.Models.ContentPublicationViewModels;
+using System.Security.Cryptography;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -423,8 +424,24 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 // checksum the file
+                byte[] checksumBytes;
+                using (Stream dstStream = System.IO.File.OpenRead(dstFileName))
+                using (HashAlgorithm hashAlgorithm = new SHA1Managed())
+                {
+                    checksumBytes = hashAlgorithm.ComputeHash(dstStream);
+                }
+                var checksum = BitConverter.ToString(checksumBytes).Replace("-", "");
+
+                if (!resumableData.Checksum.Equals(checksum, StringComparison.OrdinalIgnoreCase))
+                {
+                    // checksums do not match, something went wrong during upload
+                    // there isn't a great response code for this, so return a 400 with a warning.
+                    return BadRequest();
+                }
 
                 // rename the file with proper extension, this will allow it to be noticed by virus scanner
+
+                // create the publication request and potentially reduction tasks
             }
 
             return Ok();

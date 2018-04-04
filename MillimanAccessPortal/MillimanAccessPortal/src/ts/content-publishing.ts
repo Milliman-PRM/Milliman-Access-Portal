@@ -27,6 +27,7 @@ $(document).ready(function(): void {
       };
     },
     simultaneousUploads: 1,
+    maxFiles: 1,
     generateUniqueIdentifier: function (file: File, event: Event) {
       return new Promise((resolve, reject) => {
         const filename = file.name.split('.').join('_');
@@ -43,12 +44,12 @@ $(document).ready(function(): void {
             const checksum = md.digest().toHex();
             resolve(`${filename}-${checksum}`);
           } else {
-            reader.readAsArrayBuffer(
+            reader.readAsBinaryString(
               file.slice(offset, offset + chunkSize));
           }
         };
         reader.onerror = () => reject(reader.error);
-        reader.readAsArrayBuffer(
+        reader.readAsBinaryString(
           file.slice(offset, offset + chunkSize));
       })
     },
@@ -58,7 +59,7 @@ $(document).ready(function(): void {
     identifierParameterName: 'uid',
     typeParameterName: 'type',
     chunkSizeParameterName: 'chunkSize',
-    totalSizeParameterName: '',
+    totalSizeParameterName: 'totalSize',
     fileNameParameterName: '',
     relativePathParameterName: '',
     currentChunkSizeParameterName: '',

@@ -47,7 +47,7 @@
     "webpack-hot-middleware": "^2.21.2"
   },
   "scripts": {
-    "build": "webpack",
+    "build": "tsc || webpack",
     "test": "jest",
     "test-browsers": "testcafe chrome,firefox,ie src/browser_tests/"
   },

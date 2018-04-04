@@ -10,8 +10,10 @@ namespace MillimanAccessPortal.Models.ContentPublicationViewModels
         public int ChunkNumber { get; set; }
         public int TotalChunks { get; set; }
         public int ChunkSize { get; set; }
+        public int TotalSize { get; set; }
         public string UID { get; set; }
         public string Type { get; set; }
         public long RootContentItemId { get; set; }
+        public string Checksum { get => UID.Split('-').Last(); }
     }
 }
