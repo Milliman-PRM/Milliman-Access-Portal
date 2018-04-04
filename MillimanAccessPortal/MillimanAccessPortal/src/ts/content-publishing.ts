@@ -1,8 +1,7 @@
-import $ = require('jquery');
-import upload = require('./upload');
-import forge = require('node-forge');
-import resumable = require('resumablejs');
-import options = require('./lib-options');
+import * as $ from 'jquery';
+import * as upload from './upload';
+import * as forge from 'node-forge';
+import * as resumable from 'resumablejs';
 import 'bootstrap/scss/bootstrap-reboot.scss';
 import 'selectize/src/less/selectize.default.less';
 import 'toastr/toastr.scss';
@@ -22,7 +21,7 @@ $(document).ready(function(): void {
     },
     query: function() {
       return {
-        rootContentItemId: $('#rci-resumable').val().toString(),
+        rootContentItemId: '1',
       };
     },
     simultaneousUploads: 1,
@@ -73,3 +72,7 @@ $(document).ready(function(): void {
     upload.uploadResumable(r);
   })
 });
+
+if (module.hot) {
+  module.hot.accept();
+}
