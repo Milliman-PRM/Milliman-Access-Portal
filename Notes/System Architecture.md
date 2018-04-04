@@ -159,6 +159,18 @@ The below table maps out allowable traffic flows between VLANs.
 |File Servers|---|MAP application, QlikView Servers, QlikView Publishers|
 |MAP application|File Servers, Qlikview Servers| --- |
 
+### File Share Isolation
+
+We will utilize multiple file shares throughout the content publication pipeline, to ensure that components can only access the files they need to complete their tasks.
+
+|Share|Description|Accessed By|
+|-------|------|--------|
+|Quarantine|Landing place for user content uploads. Virus scanning will be performed here before any other actions are taken on the file.|MAP application|
+|Waiting for Reduction|Holding area for files waiting to be reduced by the Publishers|MAP, QlikView Publishers|
+|Reducing (non-shared)|Local storage on QlikView Publishers. Publishers will copy files locally for reduction. Reduced files will undergo a verification process before being promoted for publishing.|Local only|
+|User verification & validation|Holding area for pending content publications. End users with appropriate rights must verify the content before it is published into production.|QlikView Publishers, MAP|
+|Live content|Holds content currently being served by MAP.|MAP, QlikView Servers|
+
 ## Change Management
 
 In any high-availability environment, it is critical to have a change management plan in place. This plan outlines proper procedures for deploying, updating, or replacing components, whether hardware or software.
