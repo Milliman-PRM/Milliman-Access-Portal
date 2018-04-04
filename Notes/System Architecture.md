@@ -171,6 +171,23 @@ We will utilize multiple file shares throughout the content publication pipeline
 |User verification & validation|Holding area for pending content publications. End users with appropriate rights must verify the content before it is published into production.|QlikView Publishers, MAP|
 |Live content|Holds content currently being served by MAP.|MAP, QlikView Servers|
 
+### File Integrity
+
+All uploaded files must be verified to detect possible data corruption or tampering. The primary mechanism for this will be content checksum values, which will be generated and verified at every use.
+
+This applies both to uploaded content files and uploaded user guides.
+
+* When a user uploads content to be published, a checksum is generated client-side and verified server-side. If the checksums don't match, the content is not published and the user is notified that an error has occurred.
+   * This checksum is stored in the database and used to validate the master content file in future steps.
+*  When the reduction service processes master content files, the checksum is validated before performing reduction tasks.
+* When the reduction server generates reduced content files, a checksum is generated and stored for each output file.
+* When users promote/approve content for publication, the checksum is validated again.
+* The checksum is validated again before content is presented to the end user.
+
+If at any point a checksum does not match the expected value, the task being performed should be canceled.
+
+This verification increases our confidence in the quality of the content being served and reduces the risk of exploitation for multiple possible ePHI leakage vectors.
+
 ## Change Management
 
 In any high-availability environment, it is critical to have a change management plan in place. This plan outlines proper procedures for deploying, updating, or replacing components, whether hardware or software.
