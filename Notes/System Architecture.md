@@ -62,7 +62,7 @@ User requests will be distributed on a per-session basis, meaning that an indivi
 
 ### Application availability
 
-Microsoft guarantees a 99.95% availability SLA. This is sufficient for our purposes, so we will plan to maintain a single instance of the application.
+Microsoft guarantees a 99.95% availability SLA. This is sufficient for our purposes, so we will plan to maintain a single instance of the application. Note that this SLA is only for Microsoft services, not for our application itself. We have not determined an SLA for our application at this time.
 
 ### QlikView clustering
 
@@ -76,11 +76,9 @@ QlikView Server will serve reports out of a single file share, avoiding duplicat
 
 ### Database availability
 
-Microsoft does not yet offer an SLA for Azure Database for PostgreSQL, because it is still in "Preview" mode. It should be generally available, which will include an SLA, by the time we launch MAP for clients in the fall of 2018.
+Microsoft currently offers a 99.99% connectivity SLA for Azure Database for PostgreSQL.
 
-For SQL Database (the most similar product with an SLA), they currently offer a 99.99% availability guarantee.
-
-Despite not having an SLA, the PostgreSQL product does perform backups of every database every 5 minutes, giving us a 5-minute RPO for our databases.
+Azure performs backups of every database every 5 minutes, giving us a 5-minute RPO for each of our databases.
 
 We will perform regular restore tests of the Azure backups, to ensure we are able to stand up a new server using the backups in case of an emergency.
 
