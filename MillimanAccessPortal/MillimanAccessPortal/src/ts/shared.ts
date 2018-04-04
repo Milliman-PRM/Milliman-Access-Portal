@@ -260,9 +260,9 @@ export function xhrWithProgress(onProgress: Function) {
 };
 
 // Typeahead
-shared.userSubstringMatcher = function (users) {
-  return function findMatches(query, callback) {
-    var matches = [];
+export function userSubstringMatcher(users: any) {
+  return function findMatches(query: string, callback: Function) {
+    var matches: Array<any> = [];
     var regex = new RegExp(query, 'i');
 
     $.each(users, function check(i, user) {
