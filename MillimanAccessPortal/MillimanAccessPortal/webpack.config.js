@@ -5,21 +5,15 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
   entry: {
-    'account-settings': './src/ts/account-settings.ts',
-    'client-admin': './src/ts/client-admin.ts',
-    'content-access-admin': './src/ts/content-access-admin.ts',
-    'content-publishing': './src/ts/content-publishing.ts',
-    'hosted-content': './src/ts/hosted-content.ts',
-    'login': './src/ts/login.ts',
+    'account-settings': './src/js/account-settings.js',
+    'client-admin': './src/js/client-admin.js',
+    'content-access-admin': './src/js/content-access-admin.js',
+    'content-publishing': './src/js/content-publishing.js',
+    'hosted-content': './src/js/hosted-content.js',
+    'login': './src/js/login.js',
   },
   module: {
     rules: [
-      {
-        test: /\.tsx?$/,
-        use: [
-          { loader: 'awesome-typescript-loader' },
-        ],
-      },
       {
         test: /\.css$/,
         use: [
@@ -48,7 +42,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'wwwroot', 'js'),
     filename: '[name].bundle.js',
-    publicPath: 'wwwroot/',
+    publicPath: '/wwwroot/',
   },
   plugins: [
     new CopyWebpackPlugin([
@@ -71,8 +65,6 @@ module.exports = {
     extensions: [
       '.webpack.js',
       '.web.js',
-      '.ts',
-      '.tsx',
       '.js',
     ],
   },

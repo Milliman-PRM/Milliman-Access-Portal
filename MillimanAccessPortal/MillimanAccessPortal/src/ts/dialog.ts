@@ -1,4 +1,4 @@
-var shared = require('./shared');
+import * as shared from './shared';
 
 var dialog = {};
 
@@ -270,4 +270,4 @@ dialog.DeleteClientDialog = DeleteClientDialog;
 dialog.AddUserDialog = AddUserDialog;
 dialog.AddSelectionGroupDialog = AddSelectionGroupDialog;
 
-module.exports = dialog;
+exports = dialog;

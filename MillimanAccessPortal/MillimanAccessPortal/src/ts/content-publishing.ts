@@ -2,6 +2,7 @@ import * as $ from 'jquery';
 import * as upload from './upload';
 import * as forge from 'node-forge';
 import * as resumable from 'resumablejs';
+import * as tooltipster from 'tooltipster';
 import { Promise } from 'es6-promise';
 import 'bootstrap/scss/bootstrap-reboot.scss';
 import 'selectize/src/less/selectize.default.less';

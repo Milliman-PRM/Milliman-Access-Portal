@@ -1,10 +1,10 @@
-var $ = require('jquery');
-require('jquery-mask-plugin');
-require('jquery-validation');
-require('jquery-validation-unobtrusive');
-var toastr = require('toastr');
-require('./lib-options');
-var shared = require('./shared');
+import * as $ from 'jquery';
+import * as toastr from 'toastr';
+import * as shared from './shared';
+import 'jquery-mask-plugin';
+import 'jquery-validation';
+import 'jquery-validation-unobtrusive';
+import './lib-options';
 
 require('bootstrap/scss/bootstrap-reboot.scss');
 require('toastr/toastr.scss');

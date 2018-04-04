@@ -1,4 +1,4 @@
-var shared = require('./shared');
+import * as shared from './shared';
 
 var card = {};
 
@@ -841,4 +841,4 @@ card.RootContentItemCard = RootContentItemCard;
 card.SelectionGroupCard = SelectionGroupCard;
 card.UserCard = UserCard;
 
-module.exports = card;
+exports = card;

@@ -29,3 +29,7 @@ export function upload() {
 export function uploadResumable(r: Resumable) {
   r.upload();
 }
+
+if (module.hot) {
+  module.hot.accept();
+}
