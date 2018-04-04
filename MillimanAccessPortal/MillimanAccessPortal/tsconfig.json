@@ -6,7 +6,6 @@
       "es5",
       "scripthost"
     ],
-    "module": "commonjs",
     "noImplicitAny": true,
     "sourceMap": true,
     "target": "es5"

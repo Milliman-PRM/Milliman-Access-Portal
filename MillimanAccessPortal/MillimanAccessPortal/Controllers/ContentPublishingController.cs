@@ -277,7 +277,7 @@ namespace MillimanAccessPortal.Controllers
             TempData[resumableData.UID] = serializedData;
 
             return remainingChunks.Contains(resumableData.ChunkNumber)
-                ? ((ActionResult) NotFound())
+                ? ((ActionResult) NoContent())
                 : Ok();
         }
 

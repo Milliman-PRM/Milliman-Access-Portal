@@ -2,6 +2,7 @@ import * as $ from 'jquery';
 import * as upload from './upload';
 import * as forge from 'node-forge';
 import * as resumable from 'resumablejs';
+import { Promise } from 'es6-promise';
 import 'bootstrap/scss/bootstrap-reboot.scss';
 import 'selectize/src/less/selectize.default.less';
 import 'toastr/toastr.scss';
@@ -33,9 +34,11 @@ $(document).ready(function(): void {
         const chunkSize = 1024 * 1024;
         let offset = 0;
         reader.onload = function() {
+          $('#checksum-progress-resumable').width((Math.round(offset / file.size * 10000) / 100) + '%');
           md.update(this.result);
           offset += chunkSize;
           if (offset >= file.size) {
+            $('#checksum-progress-resumable').width('100%');
             const checksum = md.digest().toHex();
             resolve(`${filename}-${checksum}`);
           } else {
@@ -67,6 +70,9 @@ $(document).ready(function(): void {
     event.preventDefault();
     upload.upload();
   });
+  r.on('progress', function() {
+    $('#file-progress-resumable').width((Math.round(r.progress() * 10000) / 100) + '%');
+  })
   $('#upload-form-resumable input.submit').click(function (event): void {
     event.preventDefault();
     upload.uploadResumable(r);
