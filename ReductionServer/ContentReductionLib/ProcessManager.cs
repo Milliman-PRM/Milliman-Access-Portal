@@ -31,7 +31,7 @@ namespace ContentReductionLib
         /// </summary>
         public ProcessManager()
         {
-            if (Configuration.AppSettings == null)
+            if (Configuration.ApplicationConfiguration == null)
             {
                 throw new ApplicationException("Application configuration is not initialized");
             }

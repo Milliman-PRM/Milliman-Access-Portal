@@ -40,7 +40,7 @@ namespace QvReportReductionGui
 
         private void ButtonInitiateLoop_Click(object sender, EventArgs e)
         {
-            Configuration.GetConfiguration();
+            Configuration.LoadConfiguration();
 
             Manager = new ProcessManager();
             Manager.Start();

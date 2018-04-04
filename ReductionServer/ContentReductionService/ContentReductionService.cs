@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
+using System.Threading;
 using System.Diagnostics;
 using System.Linq;
 using System.ServiceProcess;
@@ -22,7 +22,7 @@ namespace ContentReductionService
 
         protected override void OnStart(string[] args)
         {
-            Configuration.GetConfiguration();
+            Configuration.LoadConfiguration();
 
             Manager = new ProcessManager();
             Manager.Start();

@@ -13,16 +13,17 @@ namespace ContentReductionLib
 {
     public static class Configuration
     {
-        public static void GetConfiguration()
+        public static void LoadConfiguration()
         {
-            ConfigurationBuilder CfgBuilder = new ConfigurationBuilder();
+            IConfigurationBuilder CfgBuilder = new ConfigurationBuilder();
             CfgBuilder.AddJsonFile(path: "appsettings.json", optional: true, reloadOnChange: true)
-                        .AddUserSecrets<MapDbJobMonitor>();
+                      .AddUserSecrets<MapDbJobMonitor>();
 
             // TODO add something for AzureKeyVault in CI and production environments
 
-            AppSettings = CfgBuilder.Build();
+            ApplicationConfiguration = CfgBuilder.Build();
         }
-        public static IConfigurationRoot AppSettings { get; set; } = null;
+
+        public static IConfigurationRoot ApplicationConfiguration { get; set; } = null;
     }
 }

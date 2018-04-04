@@ -48,7 +48,7 @@ namespace ContentReductionLib
         internal string ConfiguredConnectionStringParamName {
             set
             {
-                ConnectionString = Configuration.AppSettings.GetConnectionString(value);
+                ConnectionString = Configuration.ApplicationConfiguration.GetConnectionString(value);
             }
         }
 

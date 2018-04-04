@@ -21,9 +21,9 @@ namespace ContentReductionLib.ReductionRunners
 {
     internal class QvReductionRunner : ReductionRunnerBase
     {
-        // TODO Get these from configuration
         string QmsUrl = null;
         AuditLogger Logger = new AuditLogger();  // Exception if static AuditLogger.Config is not initialized (should be done globally for process)
+        Impersonation ImpersonationObj = null;
 
         internal CancellationToken _CancellationToken { private get; set; }
 
@@ -32,14 +32,20 @@ namespace ContentReductionLib.ReductionRunners
         /// </summary>
         internal QvReductionRunner()
         {
-            QmsUrl = Configuration.AppSettings["QmsUrl"];
+            QmsUrl = Configuration.ApplicationConfiguration["QmsUrl"];
+            ImpersonationObj = new Impersonation(Configuration.ApplicationConfiguration["IQmsUser"],
+                                             Configuration.ApplicationConfiguration["IQmsDomain"],
+                                             Configuration.ApplicationConfiguration["IQmsPassword"]);
+            ImpersonationObj.UsingImpersonatedIdentity(() =>
+                {
+                    // Initialize members
+                    IQMS Client = QmsClientCreator.New(QmsUrl);
+                    // Initialize member variables
+                    QdsServiceInfo = Client.GetServicesAsync(ServiceTypes.QlikViewDistributionService).Result[0];
+                    SourceDocFolder = Client.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All).Result[1];
+                }
+            );
 
-            // Initialize members
-            IQMS Client = QmsClientCreator.New(QmsUrl);
-
-            // Initialize member variables
-            QdsServiceInfo = Client.GetServicesAsync(ServiceTypes.QlikViewDistributionService).Result[0];
-            SourceDocFolder = Client.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All).Result[1];
 
             TestAuditLogging();
             //TestQvConnection();
@@ -60,11 +66,14 @@ namespace ContentReductionLib.ReductionRunners
         /// </summary>
         private void TestQvConnection()
         {
-            IQMS Client = QmsClientCreator.New(QmsUrl);
+            ImpersonationObj.UsingImpersonatedIdentity(async () =>
+            {
+                IQMS Client = QmsClientCreator.New(QmsUrl);
 
-            // test
-            ServiceInfo[] Services = Client.GetServicesAsync(ServiceTypes.All).Result;
-            ServiceInfo[] Qds = Client.GetServicesAsync(ServiceTypes.QlikViewDistributionService).Result;
+                // test
+                ServiceInfo[] Services = await Client.GetServicesAsync(ServiceTypes.All);
+                ServiceInfo[] Qds = await Client.GetServicesAsync(ServiceTypes.QlikViewDistributionService);
+            });
         }
 
         #region Member properties
@@ -105,21 +114,25 @@ namespace ContentReductionLib.ReductionRunners
 
             try
             {
-                ValidateThisInstance();
-                _CancellationToken.ThrowIfCancellationRequested();
+                // TODO maybe the impersonated scope should be more local to only the code that requires it
+                await ImpersonationObj.UsingImpersonatedIdentity(async () =>
+                {
+                    ValidateThisInstance();
+                    _CancellationToken.ThrowIfCancellationRequested();
 
-                await PreTaskSetup();
-                _CancellationToken.ThrowIfCancellationRequested();
+                    await PreTaskSetup();
+                    _CancellationToken.ThrowIfCancellationRequested();
 
-                await ExtractReductionHierarchy();
-                _CancellationToken.ThrowIfCancellationRequested();
+                    await ExtractReductionHierarchy();
+                    _CancellationToken.ThrowIfCancellationRequested();
 
-                await CreateReducedContent();
-                _CancellationToken.ThrowIfCancellationRequested();
+                    await CreateReducedContent();
+                    _CancellationToken.ThrowIfCancellationRequested();
 
-                DistributeResults();
+                    DistributeResults();
 
-                TaskResultObj.Status = ReductionJobStatusEnum.Success;
+                    TaskResultObj.Status = ReductionJobStatusEnum.Success;
+                });
             }
             catch (OperationCanceledException e)
             {
@@ -150,16 +163,41 @@ namespace ContentReductionLib.ReductionRunners
 
         internal override void ValidateThisInstance()
         {
-            if (QueueTask == null ||
-                Logger == null ||
-                QdsServiceInfo == null ||
-                QdsServiceInfo.ID == Guid.Empty ||
-                SourceDocFolder == null ||
-                !Directory.Exists(SourceDocFolder.General.Path) ||
-                _CancellationToken == null)
+            string Msg = null;
+
+            if (QueueTask == null)
+            {
+                Msg = "QueueTask is null";
+            }
+            if (Logger == null)
+            {
+                Msg = "Logger is null";
+            }
+            if (QdsServiceInfo == null)
+            {
+                Msg = "QdsServiceInfo is null";
+            }
+            if (QdsServiceInfo.ID == Guid.Empty)
+            {
+                Msg = "QdsServiceInfo.ID is Guid.Empty";
+            }
+            if (SourceDocFolder == null)
+            {
+                Msg = "SourceDocFolder is null";
+            }
+            if (!Directory.Exists(SourceDocFolder.General.Path))
+            {
+                Msg = $"SourceDocFolder {SourceDocFolder.General.Path} not found";
+            }
+            if (_CancellationToken == null)
+            {
+                Msg = "_CancellationToken is null";
+            }
+
+            if (!string.IsNullOrEmpty(Msg))
             {
                 MethodBase Method = MethodBase.GetCurrentMethod();
-                string Msg = $"Error in {Method.ReflectedType.Name}.{Method.Name}";
+                Msg = $"Error in {Method.ReflectedType.Name}.{Method.Name}: {Msg}";
                 throw new System.Exception(Msg);
             }
         }
@@ -360,11 +398,11 @@ namespace ContentReductionLib.ReductionRunners
                 AllDocNodes = await QmsClient.GetSourceDocumentNodesAsync(QdsServiceInfo.ID, SourceDocFolder.ID, RequestedRelativeFolder);
                 TriesLeft--;
             }
-            DocumentNode DocNode = AllDocNodes.SingleOrDefault(dn => dn.FolderID == SourceDocFolder.ID
-                                                                  && dn.Name == RequestedFileName
-                                                                  && dn.RelativePath == RequestedRelativeFolder);
 
-            Trace.WriteLine($"TriesLeft is {TriesLeft}");
+            DocumentNode DocNode = AllDocNodes.SingleOrDefault(dn => dn.FolderID == SourceDocFolder.ID
+                                                                    && dn.Name == RequestedFileName
+                                                                    && dn.RelativePath == RequestedRelativeFolder);
+
             if (DocNode == null)
             {
                 Trace.WriteLine(string.Format($"Did not find SourceDocument '{MasterFileName}' in source documents folder {SourceDocFolder.General.Path}"));
