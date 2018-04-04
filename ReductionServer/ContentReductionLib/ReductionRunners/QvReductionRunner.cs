@@ -22,7 +22,7 @@ namespace ContentReductionLib.ReductionRunners
     internal class QvReductionRunner : ReductionRunnerBase
     {
         // TODO Get these from configuration
-        const string QmsUrl = "http://indy-qvtest01:4799/QMS/Service";
+        string QmsUrl = null;
         AuditLogger Logger = new AuditLogger();  // Exception if static AuditLogger.Config is not initialized (should be done globally for process)
 
         internal CancellationToken _CancellationToken { private get; set; }
@@ -32,6 +32,8 @@ namespace ContentReductionLib.ReductionRunners
         /// </summary>
         internal QvReductionRunner()
         {
+            QmsUrl = Configuration.AppSettings["QmsUrl"];
+
             // Initialize members
             IQMS Client = QmsClientCreator.New(QmsUrl);
 
@@ -48,7 +50,7 @@ namespace ContentReductionLib.ReductionRunners
         /// </summary>
         private void TestAuditLogging()
         {
-            AuditEvent e = AuditEvent.New("ContentReductionLib.ReductionRunners.QvReductionRunner()", "Test event", AuditEventId.Unspecified, new { Note = "This is a test", Source = "Reduction server" });
+            AuditEvent e = AuditEvent.New("ContentReductionLib.ReductionRunners.QvReductionRunner()", "Test event", AuditEventId.Unspecified, new { Note = "This is a test", Source = "Reduction server", Test = QmsUrl });
             new AuditLogger().Log(e);
             Thread.Sleep(200);
         }
