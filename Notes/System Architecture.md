@@ -35,6 +35,8 @@ We will utilize multiple Azure products to build the production environment. Mos
 
 * **Virtual Machines** - 2 for QlikView Server, 2 for QlikView Publisher, 2 for file server clustering
 
+* **Network Security Groups** - Network-level security configuration for VMs. Applies Firewall rules to VMs which use the Security Group.
+
 * **Application Gateway** - Distribute HTTPS requests to web app or QlikView Servers, as appropriate.
     * **Web Application Firewall** - A feature of the Application Gateway. Applies additional security filtering to ensure malicious traffic doesn't reach either endpoint.
 
@@ -111,7 +113,7 @@ In the case that the data center becomes unavailable permanently or for a signif
 
 ### Web Application firewall
 
-The Web Application Firewall will guard our infrastructure against common types of attacks and vulnerabilities. All end-user traffic will flow through the WAF.
+The Web Application Firewall will guard our infrastructure against common types of attacks and vulnerabilities, as defined by the [OWASP 3.0 Core Rule Set](https://coreruleset.org/). All end-user traffic will flow through the WAF.
 
 ### Azure Security Center
 
@@ -125,25 +127,39 @@ Virtual machines' file systems must be encrypted at all times.
 
 Sensitive configuration options will be stored in Azure Key Vault.
 
-### Firewall Configuration
+### Network Security Groups & Windows Firewall Configuration
 
-Inbound requests from the public internet will pass through the Application Gateway. Additionally, the operating system firewall must be enabled and properly configured on each VM.
+Inbound requests from the public internet will pass through the Application Gateway. Additionally, the operating system firewall will be enabled and properly configured on each VM.
 
-In the table below, all public rules also apply to internal requests (from Milliman's network). Internal traffic may be open for additional protocols/services.
+
+The table defines rules to be applied both within Network Security Groups as well as the Windows Firewall.
 
 In addition to the services outlined in the table, Microsoft Remote Desktop should be allowed to all VMs from internal (Milliman) IP addresses. Zabbix monitoring will be allowed internally for all servers as well (TCP & UDP ports 10050-10051).
 
-|Server Type|Public (external) allowed protocols|Additional internal services|
-|-----|-----|-----|
-|QlikView Server|HTTPS|RDP only from Milliman's network|
-|QlikView Publisher|---|RDP only from Milliman's network|
-|File Server|---|RDP only from Milliman's network|
+|Server Type|Public (external) allowed protocols|Internal (From Milliman) connections allowed|Outbound connections allowed|
+|-----|-----|-----|------|
+|QlikView Server|HTTPS|HTTPS, RDP, Zabbix|File Servers|
+|QlikView Publisher|---|RDP, Zabbix|PostgreSQL, File Servers|
+|File Server|---|RDP, Zabbix|---|
 
 ### Antivirus Software
 
 All virtual machines will run Windows Defender antimalware software, utilizing real-time scanning.
 
 Additionally, files uploaded by users should be scanned before the system takes any action on them or serves them up to end-users. Windows Defender has a [command line interface](https://docs.microsoft.com/en-us/windows/security/threat-protection/windows-defender-antivirus/command-line-arguments-windows-defender-antivirus) and [PowerShell cmdlets](https://docs.microsoft.com/en-us/powershell/module/defender/index?view=win10-ps) that may be useful to developers.
+
+### VLAN Isolation
+
+We will utilize Azure VLANs to isolate our Azure resources from each other and allow traffic to flow between VLANs only as needed.
+
+The below table maps out allowable traffic flows between VLANs.
+
+|VLAN|Connects to|Allow connections from|
+|----|-----------|----------------------|
+|QlikView Servers|File Servers|MAP application|
+|QlikView Publishers|File Servers|---|
+|File Servers|---|MAP application, QlikView Servers, QlikView Publishers|
+|MAP application|File Servers, Qlikview Servers| --- |
 
 ## Change Management
 
