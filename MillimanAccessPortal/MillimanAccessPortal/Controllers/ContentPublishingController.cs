@@ -158,97 +158,6 @@ namespace MillimanAccessPortal.Controllers
             return Json(new object());
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Upload()
-        {
-            if (!MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
-            {
-                return BadRequest($"Expected a multipart request, but got {Request.ContentType}");
-            }
-
-            // Used to accumulate all the form url encoded key value pairs in the request.
-            var formAccumulator = new KeyValueAccumulator();
-            string targetFilePath = null;
-
-            // The encapsulation boundary should never exceed 70 characters.
-            // See https://tools.ietf.org/html/rfc2046#section-5.1.1
-            var boundary = MultipartRequestHelper.GetBoundary(
-                MediaTypeHeaderValue.Parse(Request.ContentType),
-                lengthLimit: 70);
-            var reader = new MultipartReader(boundary, Request.Body);
-
-            var section = await reader.ReadNextSectionAsync();
-            while (section != null)
-            {
-                ContentDispositionHeaderValue contentDisposition;
-                var hasContentDispositionHeader = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out contentDisposition);
-
-                if (hasContentDispositionHeader)
-                {
-                    if (MultipartRequestHelper.HasFileContentDisposition(contentDisposition))
-                    {
-                        targetFilePath = Path.GetTempFileName();
-                        using (var targetStream = System.IO.File.Create(targetFilePath))
-                        {
-                            await section.Body.CopyToAsync(targetStream);
-                        }
-                    }
-                    else if (MultipartRequestHelper.HasFormDataContentDisposition(contentDisposition))
-                    {
-                        // Do not limit the key name length here because the
-                        // multipart headers length limit is already in effect.
-                        var key = HeaderUtilities.RemoveQuotes(contentDisposition.Name);
-                        var encoding = MultipartRequestHelper.GetEncoding(section);
-                        using (var streamReader = new StreamReader(
-                            section.Body,
-                            encoding,
-                            detectEncodingFromByteOrderMarks: true,
-                            bufferSize: 1024,
-                            leaveOpen: true))
-                        {
-                            // The value length limit is enforced by MultipartBodyLengthLimit
-                            var value = await streamReader.ReadToEndAsync();
-                            if (String.Equals(value, "undefined", StringComparison.OrdinalIgnoreCase))
-                            {
-                                value = String.Empty;
-                            }
-                            formAccumulator.Append(key.Value, value);
-
-                            if (formAccumulator.ValueCount > 10)
-                            {
-                                throw new InvalidDataException("Form key count limit 10 exceeded.");
-                            }
-                        }
-                    }
-                }
-
-                // Drains any remaining section body that has not been consumed and
-                // reads the headers for the next section.
-                section = await reader.ReadNextSectionAsync();
-            }
-
-            // Bind form data to a model
-            var formValueProvider = new FormValueProvider(
-                BindingSource.Form,
-                new FormCollection(formAccumulator.GetResults()),
-                CultureInfo.CurrentCulture);
-
-            var ApplicationUser = await DbQueries.GetCurrentApplicationUser(User);
-            var RootContentItemId = Convert.ToInt64(formValueProvider.GetValue("RootContentItemId").FirstValue);
-
-            var ContentPublicationRequest = new ContentPublicationRequest()
-            {
-                RootContentItemId = RootContentItemId,
-                ApplicationUserId = ApplicationUser.Id,
-                MasterFilePath = targetFilePath
-            };
-            DbContext.ContentPublicationRequest.Add(ContentPublicationRequest);
-            DbContext.SaveChanges();
-
-            return Json(ContentPublicationRequest);
-        }
-
         [HttpGet]
         public ActionResult ChunkStatus(ResumableData resumableData)
         {
@@ -307,8 +216,7 @@ namespace MillimanAccessPortal.Controllers
             var section = await reader.ReadNextSectionAsync();
             while (section != null)
             {
-                ContentDispositionHeaderValue contentDisposition;
-                var hasContentDispositionHeader = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out contentDisposition);
+                var hasContentDispositionHeader = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
 
                 if (hasContentDispositionHeader)
                 {
@@ -361,6 +269,7 @@ namespace MillimanAccessPortal.Controllers
                 new FormCollection(formAccumulator.GetResults()),
                 CultureInfo.CurrentCulture);
 
+            // All required model attributes must be present for binding to succeed
             var bindingSuccessful = await TryUpdateModelAsync(resumableData, prefix: "",
                 valueProvider: formValueProvider);
             if (!bindingSuccessful)
@@ -377,12 +286,12 @@ namespace MillimanAccessPortal.Controllers
                 resumableData.UID,
                 $"{resumableData.ChunkNumber:D8}.chunk");
             
+            // It is OK to receive a chunk more than once
             if (System.IO.File.Exists(targetFilePath))
             {
-                // It is OK to receive a chunk more than once
                 System.IO.File.Delete(targetFilePath);
             }
-            System.IO.Directory.CreateDirectory(Path.GetDirectoryName(targetFilePath));
+            Directory.CreateDirectory(Path.GetDirectoryName(targetFilePath));
             System.IO.File.Move(tempFilePath, targetFilePath);
 
 
@@ -398,37 +307,37 @@ namespace MillimanAccessPortal.Controllers
             else
             {
                 // Reassemble the file from its parts
-                var srcPath = Path.Combine(Path.GetTempPath(), resumableData.UID);
-                var srcFileNames = Enumerable.Range(1, Convert.ToInt32(resumableData.TotalChunks))
-                    .Select(chunkNumber => Path.Combine(srcPath, $"{chunkNumber:D8}.chunk"));
-                var dstFileName = Path.Combine(Path.GetTempPath(), $"{resumableData.UID}.upload");
-                using (Stream dstStream = System.IO.File.OpenWrite(dstFileName))
+                var chunkPath = Path.Combine(Path.GetTempPath(), resumableData.UID);
+                var chunkFileNames = Enumerable.Range(1, Convert.ToInt32(resumableData.TotalChunks))
+                    .Select(chunkNumber => Path.Combine(chunkPath, $"{chunkNumber:D8}.chunk"));
+                var concatFileName = Path.Combine(Path.GetTempPath(), $"{resumableData.UID}.upload");
+                using (Stream concatStream = System.IO.File.OpenWrite(concatFileName))
                 {
-                    foreach (var srcFileName in srcFileNames)
+                    foreach (var chunkFileName in chunkFileNames)
                     {
-                        using (Stream srcStream = System.IO.File.OpenRead(srcFileName))
+                        using (Stream srcStream = System.IO.File.OpenRead(chunkFileName))
                         {
-                            srcStream.CopyTo(dstStream);
+                            srcStream.CopyTo(concatStream);
                         }
-                        System.IO.File.Delete(srcFileName);
+                        System.IO.File.Delete(chunkFileName);
                     }
                 }
                 try
                 {
-                    Directory.Delete(srcPath);
+                    Directory.Delete(chunkPath);
                 }
                 catch (UnauthorizedAccessException)
                 {
                     // TODO: notify that directory was not empty
-                    Directory.Delete(srcPath, true);
+                    Directory.Delete(chunkPath, true);
                 }
 
                 // checksum the file
                 byte[] checksumBytes;
-                using (Stream dstStream = System.IO.File.OpenRead(dstFileName))
+                using (Stream concatStream = System.IO.File.OpenRead(concatFileName))
                 using (HashAlgorithm hashAlgorithm = new SHA1Managed())
                 {
-                    checksumBytes = hashAlgorithm.ComputeHash(dstStream);
+                    checksumBytes = hashAlgorithm.ComputeHash(concatStream);
                 }
                 var checksum = BitConverter.ToString(checksumBytes).Replace("-", "");
 
@@ -436,6 +345,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     // checksums do not match, something went wrong during upload
                     // there isn't a great response code for this, so return a 400 with a warning.
+                    Directory.Delete(concatFileName);
                     return BadRequest();
                 }
 
@@ -491,8 +401,7 @@ namespace MillimanAccessPortal.Controllers
 
         public static Encoding GetEncoding(MultipartSection section)
         {
-            MediaTypeHeaderValue mediaType;
-            var hasMediaTypeHeader = MediaTypeHeaderValue.TryParse(section.ContentType, out mediaType);
+            var hasMediaTypeHeader = MediaTypeHeaderValue.TryParse(section.ContentType, out MediaTypeHeaderValue mediaType);
             // Use UTF-8 instead of UTF-7 if it is requested
             if (!hasMediaTypeHeader || Encoding.UTF7.Equals(mediaType.Encoding))
             {

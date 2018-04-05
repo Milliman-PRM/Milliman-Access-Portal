@@ -65,13 +65,9 @@ $(document).ready(function(): void {
     currentChunkSizeParameterName: '',
   });
   if (!r.support) {
-    alert('not supported');
+    alert('not supported'); // TODO: tell user to use a modern browser
   }
   r.assignBrowse($('#upload-form-resumable span')[0], false);
-  $('#upload-form input.submit').click(function (event): void {
-    event.preventDefault();
-    upload.upload();
-  });
   r.on('progress', function() {
     $('#file-progress-resumable').width((Math.round(r.progress() * 10000) / 100) + '%');
   })
@@ -80,7 +76,3 @@ $(document).ready(function(): void {
     upload.uploadResumable(r);
   })
 });
-
-if (module.hot) {
-  module.hot.accept();
-}
