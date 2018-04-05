@@ -350,14 +350,47 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 // rename the file with proper extension, this will allow it to be noticed by virus scanner
-                var finalFileName = Path.Combine(Path.GetTempPath(), $"{resumableData.UID}.{resumableData.FileExt}");
+                var finalFileName = Path.Combine(Path.GetTempPath(), $"{resumableData.UID}{resumableData.FileExt}");
                 if (System.IO.File.Exists(finalFileName))
                 {
                     System.IO.File.Delete(finalFileName);
                 }
                 System.IO.File.Move(concatFileName, finalFileName);
 
-                // create the publication request and potentially reduction tasks
+                // create the publication request and reduction task(s)
+                var currentApplicationUser = await DbQueries.GetCurrentApplicationUser(User);
+                var contentPublicationRequest = new ContentPublicationRequest
+                {
+                    ApplicationUserId = currentApplicationUser.Id,
+                    MasterFilePath = finalFileName,
+                    RootContentItemId = resumableData.RootContentItemId,
+                };
+                DbContext.ContentPublicationRequest.Add(contentPublicationRequest);
+                DbContext.SaveChanges();
+
+                // Master selection group is created when root content item is created, so there must always
+                // be at least one available selection group.
+                // TODO: possibly create master selection group at publication time (here).
+                var selectionGroups = DbContext.SelectionGroup
+                    .Where(sg => sg.RootContentItemId == resumableData.RootContentItemId)
+                    .ToList();
+
+                var contentReductionTasks = selectionGroups
+                    .Select(sg => new ContentReductionTask
+                    {
+                        ApplicationUserId = contentPublicationRequest.ApplicationUserId,
+                        ContentPublicationRequestId = contentPublicationRequest.Id,
+                        SelectionGroupId = sg.Id,
+                        MasterFilePath = contentPublicationRequest.MasterFilePath,
+                        SelectionCriteria = JsonConvert.SerializeObject(
+                            DbQueries.GetFieldSelectionsForSelectionGroup(sg.Id, sg.SelectedHierarchyFieldValueList)), // TODO: special case when selection group is a master selection group
+                        ReductionStatus = ReductionStatusEnum.Validating,
+                    });
+
+                DbContext.ContentReductionTask.AddRange(contentReductionTasks);
+                DbContext.SaveChanges();
+
+                return Json(contentPublicationRequest);
             }
 
             return Ok();
