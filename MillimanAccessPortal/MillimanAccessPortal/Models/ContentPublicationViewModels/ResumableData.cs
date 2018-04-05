@@ -11,7 +11,7 @@ namespace MillimanAccessPortal.Models.ContentPublicationViewModels
         public int ChunkNumber { get; set; }
         public int TotalChunks { get; set; }
         public int ChunkSize { get; set; }
-        public int TotalSize { get; set; }
+        public long TotalSize { get; set; }
         public string FileName { get; set; }
         public string FileExt { get => Path.GetExtension(FileName); }
         public string UID { get; set; }

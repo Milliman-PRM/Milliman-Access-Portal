@@ -276,8 +276,16 @@ namespace MillimanAccessPortal.Controllers
             {
                 if (!ModelState.IsValid)
                 {
+                    System.IO.File.Delete(tempFilePath);
                     return BadRequest(ModelState);
                 }
+            }
+
+            // Ensure file is within size limit
+            if (resumableData.TotalSize > (5 * 1024 * 1024 * 1024L)) // TODO: move to configuration
+            {
+                System.IO.File.Delete(tempFilePath);
+                return BadRequest();
             }
 
             // Move the temporary file
