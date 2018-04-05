@@ -60,7 +60,7 @@ $(document).ready(function(): void {
     typeParameterName: 'type',
     chunkSizeParameterName: 'chunkSize',
     totalSizeParameterName: 'totalSize',
-    fileNameParameterName: '',
+    fileNameParameterName: 'fileName',
     relativePathParameterName: '',
     currentChunkSizeParameterName: '',
   });

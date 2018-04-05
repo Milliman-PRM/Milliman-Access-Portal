@@ -350,6 +350,7 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 // rename the file with proper extension, this will allow it to be noticed by virus scanner
+                var finalFilePath = Path.Combine(Path.GetTempPath(), $"{resumableData.UID}.{resumableData.FileExt}");
 
                 // create the publication request and potentially reduction tasks
             }
