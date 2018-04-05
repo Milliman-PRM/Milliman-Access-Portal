@@ -16,6 +16,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Milliman.ReductionEngine", "Milliman.ReductionEngine\Milliman.ReductionEngine.csproj", "{45A38B9B-341F-4845-852B-8A3C0C20A86E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContentReductionService", "ContentReductionService\ContentReductionService.csproj", "{0F9B8555-58D7-4DAB-B3A9-60678F6B89FA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{89E0F008-3136-4AB9-AA55-479D833134FF} = {89E0F008-3136-4AB9-AA55-479D833134FF}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Milliman.Security", "Milliman.Security\Milliman.Security.csproj", "{BFC898B4-3139-4F49-B16C-AACD83BC71A4}"
 EndProject

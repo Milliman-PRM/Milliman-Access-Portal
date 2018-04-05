@@ -19,11 +19,17 @@ namespace ContentReductionLib
             CfgBuilder.AddJsonFile(path: "appsettings.json", optional: true, reloadOnChange: true)
                       .AddUserSecrets<MapDbJobMonitor>();
 
-            // TODO add something for AzureKeyVault in CI and production environments
+            // TODO .Add... environment dependent configuration content (e.g. for AzureKeyVault in CI and production environments)
+            // Make sure to consider running both as service and GUI app, (secrets not available as service)
 
             ApplicationConfiguration = CfgBuilder.Build();
         }
 
         public static IConfigurationRoot ApplicationConfiguration { get; set; } = null;
+
+        public static string GetConnectionString(string CxnStringName)
+        {
+            return ApplicationConfiguration.GetConnectionString(CxnStringName);
+        }
     }
 }

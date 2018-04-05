@@ -32,7 +32,7 @@ namespace ContentReductionLib.ReductionRunners
         /// </summary>
         internal QvReductionRunner()
         {
-            QmsUrl = Configuration.ApplicationConfiguration["QmsUrl"];
+            QmsUrl = Configuration.ApplicationConfiguration["IQmsUrl"];
             ImpersonationObj = new Impersonation(Configuration.ApplicationConfiguration["IQmsUser"],
                                              Configuration.ApplicationConfiguration["IQmsDomain"],
                                              Configuration.ApplicationConfiguration["IQmsPassword"]);
@@ -45,20 +45,6 @@ namespace ContentReductionLib.ReductionRunners
                     SourceDocFolder = Client.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All).Result[1];
                 }
             );
-
-
-            TestAuditLogging();
-            //TestQvConnection();
-        }
-
-        /// <summary>
-        /// Remove eventually
-        /// </summary>
-        private void TestAuditLogging()
-        {
-            AuditEvent e = AuditEvent.New("ContentReductionLib.ReductionRunners.QvReductionRunner()", "Test event", AuditEventId.Unspecified, new { Note = "This is a test", Source = "Reduction server", Test = QmsUrl });
-            new AuditLogger().Log(e);
-            Thread.Sleep(200);
         }
 
         /// <summary>
@@ -105,6 +91,8 @@ namespace ContentReductionLib.ReductionRunners
         private string MasterFileName { get { return "Master.qvw"; } }
 
         private DocumentNode MasterDocumentNode { get; set; } = null;
+
+        private DocumentNode ReducedDocumentNode { get; set; } = null;
         #endregion
 
         internal async override Task<ReductionJobResult> ExecuteReduction(CancellationToken cancellationToken)
@@ -115,24 +103,24 @@ namespace ContentReductionLib.ReductionRunners
             try
             {
                 // TODO maybe the impersonated scope should be more local to only the code that requires it
-                await ImpersonationObj.UsingImpersonatedIdentity(async () =>
-                {
-                    ValidateThisInstance();
-                    _CancellationToken.ThrowIfCancellationRequested();
+                ValidateThisInstance();
+                _CancellationToken.ThrowIfCancellationRequested();
 
-                    await PreTaskSetup();
-                    _CancellationToken.ThrowIfCancellationRequested();
+                await PreTaskSetup();
+                _CancellationToken.ThrowIfCancellationRequested();
 
-                    await ExtractReductionHierarchy();
-                    _CancellationToken.ThrowIfCancellationRequested();
+                TaskResultObj.MasterContentHierarchy = await ExtractReductionHierarchy(MasterDocumentNode);
+                _CancellationToken.ThrowIfCancellationRequested();
 
-                    await CreateReducedContent();
-                    _CancellationToken.ThrowIfCancellationRequested();
+                await CreateReducedContent();
+                _CancellationToken.ThrowIfCancellationRequested();
 
-                    DistributeResults();
+                TaskResultObj.ReducedContentHierarchy = await ExtractReductionHierarchy(ReducedDocumentNode);
+                _CancellationToken.ThrowIfCancellationRequested();
 
-                    TaskResultObj.Status = ReductionJobStatusEnum.Success;
-                });
+                DistributeResults();
+
+                TaskResultObj.Status = ReductionJobStatusEnum.Success;
             }
             catch (OperationCanceledException e)
             {
@@ -169,26 +157,35 @@ namespace ContentReductionLib.ReductionRunners
             {
                 Msg = "QueueTask is null";
             }
+
             if (Logger == null)
             {
                 Msg = "Logger is null";
             }
+
             if (QdsServiceInfo == null)
             {
                 Msg = "QdsServiceInfo is null";
             }
+
             if (QdsServiceInfo.ID == Guid.Empty)
             {
                 Msg = "QdsServiceInfo.ID is Guid.Empty";
             }
+
             if (SourceDocFolder == null)
             {
                 Msg = "SourceDocFolder is null";
             }
-            if (!Directory.Exists(SourceDocFolder.General.Path))
+
+            ImpersonationObj.UsingImpersonatedIdentity(() =>
             {
-                Msg = $"SourceDocFolder {SourceDocFolder.General.Path} not found";
-            }
+                if (!Directory.Exists(SourceDocFolder.General.Path))
+                {
+                    Msg = $"SourceDocFolder {SourceDocFolder.General.Path} not found";
+                }
+            });
+
             if (_CancellationToken == null)
             {
                 Msg = "_CancellationToken is null";
@@ -213,14 +210,17 @@ namespace ContentReductionLib.ReductionRunners
 
             try
             {
-                if (Directory.Exists(WorkingFolderAbsolute))
+                await ImpersonationObj.UsingImpersonatedIdentity(async () =>
                 {
-                    Directory.Delete(WorkingFolderAbsolute, true);
-                }
-                Directory.CreateDirectory(WorkingFolderAbsolute);
-                File.Copy(QueueTask.MasterFilePath, MasterFileDestinationPath);
+                    if (Directory.Exists(WorkingFolderAbsolute))
+                    {
+                        Directory.Delete(WorkingFolderAbsolute, true);
+                    }
+                    Directory.CreateDirectory(WorkingFolderAbsolute);
+                    File.Copy(QueueTask.MasterFilePath, MasterFileDestinationPath);
 
-                MasterDocumentNode = await GetSourceDocumentNode(MasterFileName, WorkingFolderRelative);
+                    MasterDocumentNode = await GetSourceDocumentNode(MasterFileName, WorkingFolderRelative);
+                });
             }
             catch (System.Exception e)
             {
@@ -238,14 +238,17 @@ namespace ContentReductionLib.ReductionRunners
         /// <summary>
         /// Complete this
         /// </summary>
-        private async Task<bool> ExtractReductionHierarchy()
+        private async Task<ExtractedHierarchy> ExtractReductionHierarchy(DocumentNode DocumentNodeArg)
         {
             // Create ancillary script
             string AncillaryScriptFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "ancillary_script.txt");
-            File.WriteAllText(AncillaryScriptFilePath, "LET DataExtraction=true();");
+            ImpersonationObj.UsingImpersonatedIdentity(() =>
+            {
+                File.WriteAllText(AncillaryScriptFilePath, "LET DataExtraction=true();");
+            });
 
             // Create Qlikview publisher (QDS) task
-            TaskInfo Info = await CreateHierarchyExtractionQdsTask();
+            TaskInfo Info = await CreateHierarchyExtractionQdsTask(DocumentNodeArg);
 
             // Run Qlikview publisher (QDS) task
             await RunQdsTask(Info);
@@ -256,10 +259,10 @@ namespace ContentReductionLib.ReductionRunners
 
             #region Build hierarchy json output
             string ReductionSchemeFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "reduction.scheme.csv");
+
+            ExtractedHierarchy ResultHierarchy = new ExtractedHierarchy();
             try
             {
-                ExtractedHierarchy Hierarchy = new ExtractedHierarchy();
-
                 foreach (string Line in File.ReadLines(ReductionSchemeFilePath))
                 {
                     // First line is csv header
@@ -278,10 +281,8 @@ namespace ContentReductionLib.ReductionRunners
 
                     File.Delete(ValuesFileName);
 
-                    Hierarchy.Fields.Add(NewField);
+                    ResultHierarchy.Fields.Add(NewField);
                 }
-
-                TaskResultObj.ExtractedHierarchy = Hierarchy;
             }
             catch (System.Exception e)
             {
@@ -305,7 +306,7 @@ namespace ContentReductionLib.ReductionRunners
 
             Trace.WriteLine($"Task {QueueTask.Id.ToString()} completed ExtractReductionHierarchy");
 
-            return true;
+            return ResultHierarchy;
         }
 
         /// <summary>
@@ -318,7 +319,7 @@ namespace ContentReductionLib.ReductionRunners
             // Validate the selected field name(s) exists in the extracted hierarchy
             foreach (var SelectedField in Selections.Fields)
             {
-                if (!TaskResultObj.ExtractedHierarchy.Fields.Any(f => f.FieldName == SelectedField.FieldName))
+                if (!TaskResultObj.MasterContentHierarchy.Fields.Any(f => f.FieldName == SelectedField.FieldName))
                 {
                     string Msg = $"The requested reduction field <{SelectedField.FieldName}> is not found in the reduction hierarchy";
                     Trace.WriteLine(Msg);
@@ -337,6 +338,8 @@ namespace ContentReductionLib.ReductionRunners
             // Clean up
             await DeleteQdsTask(Info);
 
+            ReducedDocumentNode = await GetSourceDocumentNode(Path.GetFileNameWithoutExtension(MasterFileName) + ".reduced.qvw", WorkingFolderRelative);
+
             Trace.WriteLine($"Task {QueueTask.Id.ToString()} completed CreateReducedContent");
 
             return true;
@@ -351,10 +354,14 @@ namespace ContentReductionLib.ReductionRunners
             string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
             
             string FileNamePattern = $"{Path.GetFileNameWithoutExtension(MasterFileName)}.reduced.*";
-            string ReducedFile = Directory.GetFiles(WorkingFolderAbsolute, FileNamePattern).Single();
-            string CopyDestinationPath = Path.Combine(ApplicationDataExchangeFolder, Path.GetFileName(ReducedFile));
+            string CopyDestinationPath = "";
+            ImpersonationObj.UsingImpersonatedIdentity(() =>
+            {
+                string ReducedFile = Directory.GetFiles(WorkingFolderAbsolute, FileNamePattern).Single();
+                CopyDestinationPath = Path.Combine(ApplicationDataExchangeFolder, Path.GetFileName(ReducedFile));
 
-            File.Copy(ReducedFile, CopyDestinationPath, true);
+                File.Copy(ReducedFile, CopyDestinationPath, true);
+            });
             TaskResultObj.ReducedContentFilePath = CopyDestinationPath;
 
             Trace.WriteLine($"Task {QueueTask.Id.ToString()} completed DistributeResults");
@@ -410,7 +417,7 @@ namespace ContentReductionLib.ReductionRunners
             return DocNode;
         }
 
-        private async Task<QmsApi.TaskInfo> CreateHierarchyExtractionQdsTask()
+        private async Task<QmsApi.TaskInfo> CreateHierarchyExtractionQdsTask(DocumentNode DocNodeArg)
         {
             string TaskDateTimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
@@ -419,7 +426,7 @@ namespace ContentReductionLib.ReductionRunners
 
             NewDocumentTask.ID = Guid.NewGuid();
             NewDocumentTask.QDSID = QdsServiceInfo.ID;
-            NewDocumentTask.Document = MasterDocumentNode;
+            NewDocumentTask.Document = DocNodeArg;
 
             #region General Tab
             NewDocumentTask.Scope |= DocumentTaskScope.General;
@@ -460,12 +467,16 @@ namespace ContentReductionLib.ReductionRunners
             ((QmsApi.ScheduleTrigger)NewDocumentTask.Triggering.Triggers[0]).StartAt = DateTime.Now;
             #endregion
 
-            IQMS QmsClient = QmsClientCreator.New(QmsUrl);
+            QmsApi.TaskInfo ReturnTaskInfo = null;
+            await ImpersonationObj.UsingImpersonatedIdentity(async () =>
+            {
+                IQMS QmsClient = QmsClientCreator.New(QmsUrl);
 
-            await QmsClient.SaveDocumentTaskAsync(NewDocumentTask);
-            QmsApi.TaskInfo ReturnTaskInfo = await QmsClient.FindTaskAsync(QdsServiceInfo.ID, QmsApi.TaskType.DocumentTask, NewDocumentTask.General.TaskName);
+                await QmsClient.SaveDocumentTaskAsync(NewDocumentTask);
+                ReturnTaskInfo = await QmsClient.FindTaskAsync(QdsServiceInfo.ID, QmsApi.TaskType.DocumentTask, NewDocumentTask.General.TaskName);
+            });
 
-            Trace.WriteLine($"Task with ID '{NewDocumentTask.ID.ToString("N")}' successfully saved");
+            Trace.WriteLine($"Hierarchy extraction task with ID '{NewDocumentTask.ID.ToString("N")}' successfully saved");
 
             return ReturnTaskInfo;
         }
@@ -547,6 +558,7 @@ namespace ContentReductionLib.ReductionRunners
             #region reload
             NewDocumentTask.Scope |= QmsApi.DocumentTaskScope.Reload;
             NewDocumentTask.Reload = new QmsApi.DocumentTask.TaskReload();
+            // Note: following conditional is leftover from Millframe, left here as a reminder of previously supported functionality
             //if (drop_required)
             //    task_reduction.Reload.Mode = QmsApi.TaskReloadMode.Partial; //this will result in tables being dropped as defined by the drop table processor
             //else
@@ -571,12 +583,16 @@ namespace ContentReductionLib.ReductionRunners
             };
             #endregion
 
-            IQMS QmsClient = QmsClientCreator.New(QmsUrl);
+            QmsApi.TaskInfo ReturnTaskInfo = null;
+            await ImpersonationObj.UsingImpersonatedIdentity(async () =>
+            {
+                IQMS QmsClient = QmsClientCreator.New(QmsUrl);
 
-            await QmsClient.SaveDocumentTaskAsync(NewDocumentTask);
-            QmsApi.TaskInfo ReturnTaskInfo = await QmsClient.FindTaskAsync(QdsServiceInfo.ID, QmsApi.TaskType.DocumentTask, NewDocumentTask.General.TaskName);
+                await QmsClient.SaveDocumentTaskAsync(NewDocumentTask);
+                ReturnTaskInfo = await QmsClient.FindTaskAsync(QdsServiceInfo.ID, QmsApi.TaskType.DocumentTask, NewDocumentTask.General.TaskName);
+            });
 
-            Trace.WriteLine($"Task with ID '{NewDocumentTask.ID.ToString("N")}' successfully saved");
+            Trace.WriteLine($"Content reduction task with ID '{NewDocumentTask.ID.ToString("N")}' successfully saved");
 
             return ReturnTaskInfo;
         }
@@ -592,49 +608,57 @@ namespace ContentReductionLib.ReductionRunners
             TimeSpan MaxStartDelay = new TimeSpan(0, 5, 0);
             TimeSpan MaxElapsedRun = new TimeSpan(0, 5, 0);
 
-            IQMS QmsClient = QmsClientCreator.New(QmsUrl);
-
             QmsApi.TaskStatus Status;
 
-            // Get task started, this generally requires more than one call to RunTaskAsync
-            DateTime StartTime = DateTime.Now;
-            do
+            await ImpersonationObj.UsingImpersonatedIdentity(async () =>
             {
-                if (DateTime.Now - StartTime > MaxStartDelay)
+                IQMS QmsClient = QmsClientCreator.New(QmsUrl);
+
+                // Get the task started, this generally requires more than one call to RunTaskAsync
+                DateTime StartTime = DateTime.Now;
+                do
                 {
-                    throw new System.Exception($"Qlikview publisher failed to start task {TInfo.ID} before timeout");
-                }
+                    if (DateTime.Now - StartTime > MaxStartDelay)
+                    {
+                        throw new System.Exception($"Qlikview publisher failed to start task {TInfo.ID} before timeout");
+                    }
 
-                await QmsClient.RunTaskAsync(TInfo.ID);
-                Thread.Sleep(250);
+                    await QmsClient.RunTaskAsync(TInfo.ID);
+                    Thread.Sleep(250);
 
-                Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
-            } while (Status == null || Status.Extended == null || string.IsNullOrEmpty(Status.Extended.StartTime));
-            Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TInfo.ID} started running after {DateTime.Now - StartTime}");
+                    Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
+                } while (Status == null || Status.Extended == null || string.IsNullOrEmpty(Status.Extended.StartTime));
 
-            // Wait for started task to finish
-            DateTime RunningStartTime = DateTime.Now;
-            do
-            {
-                if (DateTime.Now - RunningStartTime > MaxElapsedRun)
+                Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TInfo.ID} started running after {DateTime.Now - StartTime}");
+
+                // Wait for started task to finish
+                DateTime RunningStartTime = DateTime.Now;
+                do
                 {
-                    throw new System.Exception($"Qlikview publisher failed to finish task {TInfo.ID} before timeout");
-                }
+                    if (DateTime.Now - RunningStartTime > MaxElapsedRun)
+                    {
+                        throw new System.Exception($"Qlikview publisher failed to finish task {TInfo.ID} before timeout");
+                    }
 
-                Thread.Sleep(250);
+                    Thread.Sleep(250);
 
-                Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
-            } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out DateTime dummy));
-            Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TInfo.ID} finished running after {DateTime.Now - RunningStartTime}");
+                    Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
+                } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));
+                Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TInfo.ID} finished running after {DateTime.Now - RunningStartTime}");
+            });
         }
 
         private async Task<bool> DeleteQdsTask(QmsApi.TaskInfo TInfo)
         {
-            IQMS QmsClient = QmsClientCreator.New(QmsUrl);
-            QmsApi.TaskStatus Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
+            bool Result = false;
+            await ImpersonationObj.UsingImpersonatedIdentity(async () =>
+            {
+                IQMS QmsClient = QmsClientCreator.New(QmsUrl);
+                QmsApi.TaskStatus Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
 
-            // null should indicate that the task doesn't exist
-            bool Result = (Status == null) || await QmsClient.DeleteTaskAsync(TInfo.ID, TInfo.Type);
+                // null should indicate that the task doesn't exist
+                Result = (Status == null) || await QmsClient.DeleteTaskAsync(TInfo.ID, TInfo.Type);
+            });
 
             return Result;
         }

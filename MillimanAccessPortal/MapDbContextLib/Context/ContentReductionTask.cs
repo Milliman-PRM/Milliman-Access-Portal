@@ -86,7 +86,13 @@ namespace MapDbContextLib.Context
         /// From reduction server. json is intended to deserialize to an instance of ContentReductionHierarchy
         /// </summary>
         [Column(TypeName = "jsonb")]
-        public string ExtractedHierarchy { get; set; }
+        public string MasterContentHierarchy { get; set; }
+
+        /// <summary>
+        /// From reduction server. json is intended to deserialize to an instance of ContentReductionHierarchy
+        /// </summary>
+        [Column(TypeName = "jsonb")]
+        public string ReducedContentHierarchy { get; set; }
 
         [Column(TypeName ="jsonb")]
         public string SelectionCriteria { get; set; }

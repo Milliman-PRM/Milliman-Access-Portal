@@ -24,7 +24,9 @@ namespace ContentReductionLib.ReductionRunners
 
         internal string ReducedContentFilePath { get; set; } = string.Empty;
 
-        internal ExtractedHierarchy ExtractedHierarchy { get; set; } = null;
+        internal ExtractedHierarchy MasterContentHierarchy { get; set; } = null;
+
+        internal ExtractedHierarchy ReducedContentHierarchy { get; set; } = null;
 
         internal string UserMessage { get; set; } = string.Empty;
     }
