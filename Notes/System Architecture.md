@@ -64,6 +64,12 @@ User requests will be distributed on a per-session basis, meaning that an indivi
 
 Microsoft guarantees a 99.95% availability SLA. This is sufficient for our purposes, so we will plan to maintain a single instance of the application. Note that this SLA is only for Microsoft services, not for our application itself. We have not determined an SLA for our application at this time.
 
+### Virtual Machine Availability
+
+Every virtual machine must be redundant with at least one more providing the same functionality.
+
+Virtual Machines will be assigned to Availability Sets, with one Set defined for each distinct group of VMs. Within the set, each VM must be assigned to a different [Fault Domain and Update Domain](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/manage-availability), to reduce risk of downtime from datacenter failures or updates to the underlying infrastructure.
+
 ### QlikView clustering
 
 QlikView Server and QlikView Publisher both have support for clustering, with multiple available nodes simultaneously using one license.
