@@ -139,6 +139,23 @@ Sensitive configuration options will be stored in Azure Key Vault.
 
 We will utilize a [Virtual Network Gateway](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpngateways) to establish a VPN between Milliman and our Azure infrastructure. This gateway will ensure traffic between Milliman's network and our infrastructure is encrypted at all times, providing another layer of security for administrative tasks.
 
+### Virtual Network Isolation
+
+We will utilize Azure Virtual Networks to isolate our Azure resources from each other and allow traffic to flow between networks only as needed.
+
+The below table maps out Peering arrangements between the virtual networks.
+
+Specific ports and protocols will be opened to groups of VMs via Network Security Groups (see below).
+
+|Virtual Network|IP range|Peered with|
+|----|--------|-----------|
+|Domain Controllers|10.42.1.0/24|File Servers, QlikView Publishers, QlikView Servers, Clients|
+|File Servers|10.42.2.0/24|Domain Controllers, MAP application, QlikView Servers, QlikView Publishers|
+|QlikView Servers|10.42.3.0/24|File Servers, Domain Controllers, MAP application|
+|QlikView Publishers|10.42.4.0/24|File Servers, Domain Controllers|
+|MAP application|10.42.5.0/24|File Servers, Qlikview Servers|
+|Clients|10.42.6.0/24|File Servers, QlikView Publishers, QlikView Servers, Clients|
+
 ### Network Security Groups & Windows Firewall Configuration
 
 Inbound requests from the public internet will pass through the Application Gateway. Additionally, the operating system firewall will be enabled and properly configured on each VM.
@@ -154,23 +171,6 @@ Zabbix monitoring will be allowed for all virtual machines (TCP & UDP ports 1005
 |QlikView Publisher|---|RDP, Zabbix|Domain Controllers (Active Directory & DNS), PostgreSQL, File Servers|---|
 |File Server|---|RDP, Zabbix|Domain Controllers (Active Directory & DNS)|File access (SMB3)|
 |Client VMs|---|RDP, Zabbix|QlikView Servers, Domain Controllers (Active Directory & DNS), QlikView Publishers, File Servers|---|
-
-### Virtual Network Isolation
-
-We will utilize Azure Virtual Networks to isolate our Azure resources from each other and allow traffic to flow between networks only as needed.
-
-The below table maps out allowable traffic flows between networks and their IP ranges. The connection relationships used below are implemented as Peering arrangements between the virtual networks.
-
-Specific ports and protocols will be opened to groups of VMs via Network Security Groups (see above).
-
-|VLAN|IP range|Connects to|Allow connections from|
-|----|--------|-----------|----------------------|
-|Domain Controllers|10.42.1.0/24|---|File Servers, QlikView Publishers, QlikView Servers, Clients|
-|File Servers|10.42.2.0/24|Domain Controllers|MAP application, QlikView Servers, QlikView Publishers|
-|QlikView Servers|10.42.3.0/24|File Servers, Domain Controllers|MAP application|
-|QlikView Publishers|10.42.4.0/24|File Servers, Domain Controllers|---|
-|MAP application|10.42.5.0/24|File Servers, Qlikview Servers| --- |
-|Clients|10.42.6.0/24|File Servers, QlikView Publishers, QlikView Servers, Clients|---|
 
 ### Client access
 
