@@ -174,11 +174,19 @@ Specific ports and protocols will be opened to groups of VMs via Network Securit
 
 ### Client access
 
-We will utilize the Clients virtual network to host a virtual machine to be utilized by developers and administrators via Remote Desktop on an as-needed basis for troubleshooting purposes. Users who need to perform troubleshooting within the network or application who are not Azure administrators will be allowed only to connect to this network.
+We will utilize the Clients virtual network to host one or more virtual machines to be utilized by developers and administrators via Remote Desktop on an as-needed basis for troubleshooting purposes. Users who need to perform troubleshooting within the network or application who are not Azure administrators will be allowed only to connect to this network.
 
-By default, this network can only connect to the Active Directory Domain Controllers, for authentication. Additional peering arrangements may be configured by Azure administrators to facilitate access to other systems as needed.
+Access to VMs in this network should not be granted on a permanent basis to users who are not Azure administrators.
 
-Access to VMs in this network should not be granted on a permanent basis.
+### Remote Desktop access
+
+Remote Desktop access from Milliman will only be allowed to VMs within the Clients virtual network.
+
+Non-administrator users will not be allowed to remotely connect to any machines beyond that virtual network.
+
+Administrators can use these VMs as an entry point and connect from them to VMs in other virtual networks.
+
+These restrictions will be enforced via Group Policy.
 
 ### File Share Isolation
 
