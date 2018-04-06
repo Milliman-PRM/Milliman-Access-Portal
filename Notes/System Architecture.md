@@ -172,6 +172,12 @@ Zabbix monitoring will be allowed for all virtual machines (TCP & UDP ports 1005
 |File Server|---|RDP, Zabbix|Domain Controllers (Active Directory & DNS)|File access (SMB3)|
 |Client VMs|---|RDP, Zabbix|QlikView Servers, Domain Controllers (Active Directory & DNS), QlikView Publishers, File Servers|---|
 
+#### Additional Firewall rule for Azure VMs
+
+Microsoft publishes a [guide to Azure networking](https://docs.microsoft.com/en-us/azure/virtual-network/security-overview#azure-platform-considerations) that specifies two Microsoft-owned IP addresses used for monitoring and managing Azure resources. Our Virtual Machines must allow traffic on both addresses for Azure services to function properly.
+
+A Group Policy Object should be defined to ensure traffic is always accepted from `168.63.129.16` and `169.254.169.254`.
+
 ### Client access
 
 We will utilize the Clients virtual network to host one or more virtual machines to be utilized by developers and administrators via Remote Desktop on an as-needed basis for troubleshooting purposes. Users who need to perform troubleshooting within the network or application who are not Azure administrators will be allowed only to connect to this network.
