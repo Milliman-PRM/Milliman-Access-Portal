@@ -33,7 +33,13 @@ We will utilize multiple Azure products to build the production environment. Mos
 
 * **Availability Sets** - Management layer for VMs to keep them isolated within the data center. Makes the VMs more resilient to power, hardware, and network failures within the data center.
 
-* **Virtual Machines** - 2 for QlikView Server, 2 for QlikView Publisher, 2 for file server clustering
+* **Virtual Machines** - 2 for QlikView Server, 2 for QlikView Publisher, 2 for file server clustering, 2 for domain controllers
+
+* **Virtual Networks** - Isolate groups of resources and control which portions of the infrastructure they can access.
+
+* **Virtual Network Gateway** - Create a point-to-point VPN between Milliman and our Azure environment.
+
+* **Network Security Groups** - Network-level security configuration for VMs. Applies Firewall rules to VMs which use the Security Group.
 
 * **Application Gateway** - Distribute HTTPS requests to web app or QlikView Servers, as appropriate.
     * **Web Application Firewall** - A feature of the Application Gateway. Applies additional security filtering to ensure malicious traffic doesn't reach either endpoint.
@@ -60,7 +66,13 @@ User requests will be distributed on a per-session basis, meaning that an indivi
 
 ### Application availability
 
-Microsoft guarantees a 99.95% availability SLA. This is sufficient for our purposes, so we will plan to maintain a single instance of the application.
+Microsoft guarantees a 99.95% availability SLA. This is sufficient for our purposes, so we will plan to maintain a single instance of the application. Note that this SLA is only for Microsoft services, not for our application itself. We have not determined an SLA for our application at this time.
+
+### Virtual Machine Availability
+
+Every virtual machine must be redundant with at least one more providing the same functionality.
+
+Virtual Machines will be assigned to Availability Sets, with one Set defined for each distinct group of VMs. Within the set, each VM must be assigned to a different [Fault Domain and Update Domain](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/manage-availability), to reduce risk of downtime from datacenter failures or updates to the underlying infrastructure.
 
 ### QlikView clustering
 
@@ -74,11 +86,9 @@ QlikView Server will serve reports out of a single file share, avoiding duplicat
 
 ### Database availability
 
-Microsoft does not yet offer an SLA for Azure Database for PostgreSQL, because it is still in "Preview" mode. It should be generally available, which will include an SLA, by the time we launch MAP for clients in the fall of 2018.
+Microsoft currently offers a 99.99% connectivity SLA for Azure Database for PostgreSQL.
 
-For SQL Database (the most similar product with an SLA), they currently offer a 99.99% availability guarantee.
-
-Despite not having an SLA, the PostgreSQL product does perform backups of every database every 5 minutes, giving us a 5-minute RPO for our databases.
+Azure performs backups of every database every 5 minutes, giving us a 5-minute RPO for each of our databases.
 
 We will perform regular restore tests of the Azure backups, to ensure we are able to stand up a new server using the backups in case of an emergency.
 
@@ -111,13 +121,13 @@ In the case that the data center becomes unavailable permanently or for a signif
 
 ### Web Application firewall
 
-The Web Application Firewall will guard our infrastructure against common types of attacks and vulnerabilities. All end-user traffic will flow through the WAF.
+The Web Application Firewall will guard our infrastructure against common types of attacks and vulnerabilities, as defined by the [OWASP 3.0 Core Rule Set](https://coreruleset.org/). All end-user traffic will flow through the WAF.
 
 ### Azure Security Center
 
 We will utilize Azure Security Center to monitor for potential issues within our Azure infrastructure. Over time, we will evaluate for possible automated actions to take in response to log entries or other security events.
 
-### Filesystem Encryption
+### File system Encryption
 
 Virtual machines' file systems must be encrypted at all times.
 
@@ -125,43 +135,185 @@ Virtual machines' file systems must be encrypted at all times.
 
 Sensitive configuration options will be stored in Azure Key Vault.
 
-### Firewall Configuration
+### Point-to-Point VPN
 
-Inbound requests from the public internet will pass through the Application Gateway. Additionally, the operating system firewall must be enabled and properly configured on each VM.
+We will utilize a [Virtual Network Gateway](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpngateways) to establish a VPN between Milliman and our Azure infrastructure. This gateway will ensure traffic between Milliman's network and our infrastructure is encrypted at all times, providing another layer of security for administrative tasks.
 
-In the table below, all public rules also apply to internal requests (from Milliman's network). Internal traffic may be open for additional protocols/services.
+### Virtual Network Isolation
 
-In addition to the services outlined in the table, Microsoft Remote Desktop should be allowed to all VMs from internal (Milliman) IP addresses. Zabbix monitoring will be allowed internally for all servers as well (TCP & UDP ports 10050-10051).
+We will utilize Azure Virtual Networks to isolate our Azure resources from each other and allow traffic to flow between networks only as needed.
 
-|Server Type|Public (external) allowed protocols|Additional internal services|
-|-----|-----|-----|
-|QlikView Server|HTTPS|RDP only from Milliman's network|
-|QlikView Publisher|---|RDP only from Milliman's network|
-|File Server|---|RDP only from Milliman's network|
+The below table maps out Peering arrangements between the virtual networks.
 
-### Antivirus Software
+Specific ports and protocols will be opened to groups of VMs via Network Security Groups (see below).
+
+|Virtual Network|IP range|Peered with|
+|----|--------|-----------|
+|Domain Controllers|10.42.1.0/24|File Servers, QlikView Publishers, QlikView Servers, Clients|
+|File Servers|10.42.2.0/24|Domain Controllers, MAP application, QlikView Servers, QlikView Publishers|
+|QlikView Servers|10.42.3.0/24|File Servers, Domain Controllers, MAP application|
+|QlikView Publishers|10.42.4.0/24|File Servers, Domain Controllers|
+|MAP application|10.42.5.0/24|File Servers, Qlikview Servers|
+|Clients|10.42.6.0/24|File Servers, QlikView Publishers, QlikView Servers|
+
+### Network Security Groups & Windows Firewall Configuration
+
+Inbound requests from the public internet will pass through the Application Gateway. Additionally, the operating system firewall will be enabled and properly configured on each VM.
+
+The table defines rules to be applied both within Network Security Groups as well as the Windows Firewall.
+
+Zabbix monitoring will be allowed for all virtual machines (TCP & UDP ports 10050-10051).
+
+|Server Type|Public (external) allowed protocols|Internal (From Milliman) connections allowed|Outbound (within Azure) connections allowed|Inbound (within Azure) connections allowed|
+|-----|-----|-----|-----|-----|
+|Domain Controllers|---|---|Active Directory & DNS traffic only|Active Directory & DNS traffic only|
+|QlikView Server|HTTPS|HTTPS, RDP, Zabbix|Domain Controllers (Active Directory & DNS), File Servers|QlikView API|
+|QlikView Publisher|---|RDP, Zabbix|Domain Controllers (Active Directory & DNS), PostgreSQL, File Servers|---|
+|File Server|---|RDP, Zabbix|Domain Controllers (Active Directory & DNS)|File access (SMB3)|
+|Client VMs|---|RDP, Zabbix|QlikView Servers, Domain Controllers (Active Directory & DNS), QlikView Publishers, File Servers|---|
+
+#### Additional Firewall rule for Azure VMs
+
+Microsoft publishes a [guide to Azure networking](https://docs.microsoft.com/en-us/azure/virtual-network/security-overview#azure-platform-considerations) that specifies two Microsoft-owned IP addresses used for monitoring and managing Azure resources. Our Virtual Machines must allow traffic on both addresses for Azure services to function properly.
+
+A Group Policy Object should be defined to ensure traffic is always accepted from `168.63.129.16` and `169.254.169.254`.
+
+### Client access
+
+We will utilize the Clients virtual network to host one or more virtual machines to be utilized by developers and administrators via Remote Desktop on an as-needed basis for troubleshooting purposes. Users who need to perform troubleshooting within the network or application who are not Azure administrators will be allowed only to connect to this network.
+
+Access to VMs in this network should not be granted on a permanent basis to users who are not Azure administrators.
+
+### Remote Desktop access
+
+Remote Desktop access from Milliman will only be allowed to VMs within the Clients virtual network.
+
+Non-administrator users will not be allowed to remotely connect to any machines beyond that virtual network.
+
+Administrators can use these VMs as an entry point and connect from them to VMs in other virtual networks.
+
+These restrictions will be enforced via Group Policy.
+
+### File Share Isolation
+
+We will utilize multiple file shares throughout the content publication pipeline, to ensure that components can only access the files they need to complete their tasks.
+
+|Share|Description|Accessed By|
+|-------|------|--------|
+|Quarantine|Landing place for user content uploads. Virus scanning will be performed here before any other actions are taken on the file.|MAP application|
+|Waiting for Reduction|Holding area for files waiting to be reduced by the Publishers|MAP, QlikView Publishers|
+|Reducing (non-shared)|Local storage on QlikView Publishers. Publishers will copy files locally for reduction. Reduced files will undergo a verification process before being promoted for publishing.|Local only|
+|User verification & validation|Holding area for pending content publications. End users with appropriate rights must verify the content before it is published into production.|QlikView Publishers, MAP|
+|Live content|Holds content currently being served by MAP.|MAP, QlikView Servers|
+
+### Malware Protection
 
 All virtual machines will run Windows Defender antimalware software, utilizing real-time scanning.
 
 Additionally, files uploaded by users should be scanned before the system takes any action on them or serves them up to end-users. Windows Defender has a [command line interface](https://docs.microsoft.com/en-us/windows/security/threat-protection/windows-defender-antivirus/command-line-arguments-windows-defender-antivirus) and [PowerShell cmdlets](https://docs.microsoft.com/en-us/powershell/module/defender/index?view=win10-ps) that may be useful to developers.
 
+### File Integrity
+
+All uploaded files must be verified to detect possible data corruption or tampering. The primary mechanism for this will be content checksum values, which will be generated and verified at every use.
+
+This applies both to uploaded content files and uploaded user guides.
+
+* When a user uploads content to be published, a checksum is generated client-side and verified server-side. If the checksums don't match, the content is not published and the user is notified that an error has occurred.
+   * This checksum is stored in the database and used to validate the master content file in future steps.
+*  When the reduction service processes master content files, the checksum is validated before performing reduction tasks.
+* When the reduction server generates reduced content files, a checksum is generated and stored for each output file.
+* When users promote/approve content for publication, the checksum is validated again.
+* The checksum is validated again before content is presented to the end user.
+
+If at any point a checksum does not match the expected value, the task being performed should be canceled.
+
+This verification increases our confidence in the quality of the content being served and reduces the risk of exploitation for multiple possible ePHI leakage vectors.
+
+## Database Security
+
+Ensuring the integrity of the databases is essential to the security of the application. Multiple policies will be enforced to ensure data is not inappropriately accessed or modified.
+
+### Limited connections allowed
+
+Connections to the PostgreSQL server should only be allowed from within Azure, and only from specific resources.
+
+Enabling VM access to PostgreSQL server requires the creation of a role permitting outbound traffic over port 5432 from the Network Security Group to the destination `Sql.NorthCentralUS`.
+
+Currently, our PostgreSQL server is configured to allow all Azure services to communicate with it by default. The Azure PostgreSQL team says it expects to have [VNET Service Endpoint support in public preview within a few weeks](https://feedback.azure.com/forums/597976-azure-database-for-postgresql/suggestions/19601389-vnet-integration) (as of March 28, 2018). Once that feature becomes available, we will utilize it and disable the option for allowing all Azure connections. 
+
+At this time, only the MAP application and QlikView Publishers need access to the databases full-time.
+
+Connections will additionally be allowed from specific VMs within the Client access Virtual Network, to facilitate administrative actions and troubleshooting.
+
+### Limited logins
+
+All PostgreSQL users will be limited in the data they can access.
+
+Each application will have its own login to each database (one for the Application DB, and another for the Audit Log DB). Additionally, the application Staging environment will have separate logins from production, and those logins will only have access to the Staging (non-production) databases.
+
+Permissions to read and write data will be granted to group roles, rather than directly to user roles. This allows a DBA to assign access on an as-needed basis, under defined criteria.
+
+No shared accounts/credentials will be created or distributed.
+
+### Limited write access
+
+Only the applications (MAP and the Reduction Service) should have write access to the database. At no time will any non-DBA user be granted write access to any database in this environment.
+
+DBAs may temporarily grant themselves write access to the application only when necessary. They should never have write access to the Audit Log database.
+
+## Active Directory Management
+
+### Separation of duties
+
+Active Directory administrators will have two logins - one for general tasks, and a second for performing administrative functions. The generic account will have read only access to a limited set of resources. Accessing other resources requires elevating to the admin account.
+
+Each administrator will have their own set of accounts
+
+### Permissions to groups, not Users
+
+Permissions to resources such as file shares should be granted to security groups, rather than to individual users. This facilitates delegation of permission management in the future if needed and reduces "rot" from deleted accounts being left in permission lists on resources.
+
+Groups will be named with this convention: `[resource type]_[resource name]_[access level]`, e.g. `share_LiveContent_ReadOnly` or `share_Quarantine_ReadWrite`.
+
+### User naming conventions
+
+Regular accounts: `firstname.lastname`
+
+Admin accounts: `firstname.lastname.admin`
+
+### Service accounts
+
+QlikView services will be installed to run under [Group Managed Service Accounts](https://docs.microsoft.com/en-us/windows-server/security/group-managed-service-accounts/group-managed-service-accounts-overview). Active Directory manages the credentials for these accounts and keep them updated. The servers which need the accounts will be authorized to retrieve the credentials, but they will not be available to any users.
+
+Service accounts will be named with this convention: `svc_[serverGroup]_[ServiceName]`, e.g. `svc_QlikViewServers_QlikView` or `svc_QlikViewPublishers_ReductionService`.
+
 ## Change Management
 
-In any high-availability environment, it is critical to have a change management plan in place. This plan outlines proper procedures for deploying, updating, or replacing components, whether hardware or software.
+In any high-availability environment, it is critical to have a change management plan in place. This plan outlines proper procedures for deploying, updating, or replacing components or configuration, whether in the infrastructure or application configuration.
 
 ### Configuration Testing
 
 From time to time, system configuration changes may become necessary. When at all feasible, these changes should be tested on non-production systems before being made in production.
 
-### General software update workflow
+### Change tracking and approval
 
-To maintain a robust environment, precautions must be taken during system updates.
+Changes to Azure infrastructure should be submitted first as an issue in Github, where it should be approved by both Azure administrators and application developers before the change is implemented.
+
+In the case of an emergency (defined as a change that's necessary to fix an immediate critical production issue), a change request can be opened after the work is completed. If Azure administrators and application developers do not approve of the change, they must put together a plan to revert the change or identify additional needed changes.
 
 ### Automated VM updates
 
-Azure provides the capability to automate Windows updates on VMs. By utilizing Availability Sets, we guarantee that only one server of each type will be updated at a time.
+[Automated Windows updates](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/tutorial-monitoring#manage-windows-updates) should be scheduled for all VMs. VMs within an availability set should be set to update on different days of the week, with at least 2 business days between to detect any potential issues caused by the updates.
 
-### Manual VM updates
+Updates must be scheduled for installation overnight, to reduce disruption to critical services.
+
+For example, the first VM in each availability set could be scheduled to install Windows updates at 12 AM on Tuesday, and the second set could be scheduled to install them at 12 AM on Friday.
+
+**One exception to this schedule:** Definition Updates should be installed daily on File Servers, to maximize protection from potentially malicious uploads from users.
+
+Additional update installations may be scheduled at the discretion of a Security Manager.
+
+### Manual VM software updates
 
 Manual updates will typically only be applied for QlikView services.
 
