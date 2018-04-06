@@ -89,7 +89,7 @@ namespace ContentReductionLib
             while (!Token.IsCancellationRequested)
             {
                 // Remove completed tasks from the RunningTasks collection. 
-                foreach ((Task<ReductionJobResult> task, CancellationTokenSource tokenSource) CompletedReductionRunnerItem in ActiveReductionRunnerItems.Where(t => t.task.IsCompleted).ToList())
+                foreach ((Task<ReductionJobDetail> task, CancellationTokenSource tokenSource) CompletedReductionRunnerItem in ActiveReductionRunnerItems.Where(t => t.task.IsCompleted).ToList())
                 {
                     UpdateTask(CompletedReductionRunnerItem.task.Result);
                     ActiveReductionRunnerItems.Remove(CompletedReductionRunnerItem);
@@ -110,8 +110,9 @@ namespace ContentReductionLib
                             case ContentTypeEnum.Qlikview:
                                 QvReductionRunner Runner = new QvReductionRunner
                                 {
-                                    QueueTask = T,
+                                    JobDetail = (ReductionJobDetail)T,
                                 };
+
                                 NewTask = Task.Run(() => Runner.ExecuteReduction(cancelSource.Token));
                                 break;
 
@@ -196,9 +197,9 @@ namespace ContentReductionLib
         /// </summary>
         /// <param name="Result">Contains the field values to be saved. All field values will be saved.</param>
         /// <returns></returns>
-        private bool UpdateTask(ReductionJobResult Result)
+        private bool UpdateTask(ReductionJobDetail JobDetail)
         {
-            if (Result == null || Result.TaskId == Guid.Empty)
+            if (JobDetail == null || JobDetail.Result == null || JobDetail.TaskId == Guid.Empty)
             {
                 MethodBase Method = MethodBase.GetCurrentMethod();
                 string Msg = $"{Method.ReflectedType.Name}.{Method.Name} unusable argument";
@@ -212,7 +213,7 @@ namespace ContentReductionLib
                 using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
                 {
-                    ContentReductionTask DbTask = Db.ContentReductionTask.Find(Result.TaskId);
+                    ContentReductionTask DbTask = Db.ContentReductionTask.Find(JobDetail.TaskId);
 
                     // Canceled here implies that the application does not want the update
                     if (DbTask == null || DbTask.ReductionStatus == ReductionStatusEnum.Canceled)
@@ -220,7 +221,7 @@ namespace ContentReductionLib
                         return false;
                     }
 
-                    switch (Result.Status)
+                    switch (JobDetail.Result.Status)
                     {
                         case ReductionJobStatusEnum.Unspecified:
                             DbTask.ReductionStatus = ReductionStatusEnum.Unspecified;
@@ -238,17 +239,17 @@ namespace ContentReductionLib
                             throw new Exception("Unsupported job result status in MapDbJobMonitor.UpdateTask().");
                     }
 
-                    DbTask.MasterContentHierarchy = Result.MasterContentHierarchy != null ?
-                                                JsonConvert.SerializeObject((ContentReductionHierarchy<ReductionFieldValue>)Result.MasterContentHierarchy, Formatting.Indented) :
+                    DbTask.MasterContentHierarchy = JobDetail.Result.MasterContentHierarchy != null ?
+                                                JsonConvert.SerializeObject((ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.MasterContentHierarchy, Formatting.Indented) :
                                                 null;
 
-                    DbTask.ReducedContentHierarchy = Result.ReducedContentHierarchy != null ?
-                                                JsonConvert.SerializeObject((ContentReductionHierarchy<ReductionFieldValue>)Result.ReducedContentHierarchy, Formatting.Indented) :
+                    DbTask.ReducedContentHierarchy = JobDetail.Result.ReducedContentHierarchy != null ?
+                                                JsonConvert.SerializeObject((ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.ReducedContentHierarchy, Formatting.Indented) :
                                                 null;
 
-                    DbTask.ResultFilePath = Result.ReducedContentFilePath;
+                    DbTask.ResultFilePath = JobDetail.Result.ReducedContentFilePath;
 
-                    DbTask.ReductionStatusMessage = Result.UserMessage;
+                    DbTask.ReductionStatusMessage = JobDetail.Result.StatusMessage;
 
                     Db.ContentReductionTask.Update(DbTask);
                     Db.SaveChanges();

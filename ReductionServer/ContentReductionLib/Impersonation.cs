@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -61,7 +62,7 @@ namespace ContentReductionLib
             if (!returnValue)
             {
                 int result = GetLastError();
-                Console.WriteLine($"Login failed, GetLastError returned {result}");
+                Trace.WriteLine($"LoginUser failed, GetLastError returned {result}");
                 throw new ApplicationException("Impersonation login failed");
             }
         }

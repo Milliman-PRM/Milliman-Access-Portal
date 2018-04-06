@@ -1,4 +1,11 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Tom Puckett, 
+ * OBJECTIVE: A Windows service that invokes the functionality of the ContentReductinLib project
+ * DEVELOPER NOTES: Intended to live a parallel with a GUI project, both of which do no 
+ * more than is necessary to invoke all features of the library. 
+ */
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
