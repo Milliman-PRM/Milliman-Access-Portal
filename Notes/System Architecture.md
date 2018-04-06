@@ -154,7 +154,7 @@ Specific ports and protocols will be opened to groups of VMs via Network Securit
 |QlikView Servers|10.42.3.0/24|File Servers, Domain Controllers, MAP application|
 |QlikView Publishers|10.42.4.0/24|File Servers, Domain Controllers|
 |MAP application|10.42.5.0/24|File Servers, Qlikview Servers|
-|Clients|10.42.6.0/24|File Servers, QlikView Publishers, QlikView Servers, Clients|
+|Clients|10.42.6.0/24|File Servers, QlikView Publishers, QlikView Servers|
 
 ### Network Security Groups & Windows Firewall Configuration
 
