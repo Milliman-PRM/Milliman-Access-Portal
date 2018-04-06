@@ -33,7 +33,7 @@ We will utilize multiple Azure products to build the production environment. Mos
 
 * **Availability Sets** - Management layer for VMs to keep them isolated within the data center. Makes the VMs more resilient to power, hardware, and network failures within the data center.
 
-* **Virtual Machines** - 2 for QlikView Server, 2 for QlikView Publisher, 2 for file server clustering
+* **Virtual Machines** - 2 for QlikView Server, 2 for QlikView Publisher, 2 for file server clustering, 2 for domain controllers
 
 * **Network Security Groups** - Network-level security configuration for VMs. Applies Firewall rules to VMs which use the Security Group.
 
@@ -199,6 +199,32 @@ This applies both to uploaded content files and uploaded user guides.
 If at any point a checksum does not match the expected value, the task being performed should be canceled.
 
 This verification increases our confidence in the quality of the content being served and reduces the risk of exploitation for multiple possible ePHI leakage vectors.
+
+## Active Directory Management
+
+### Separation of duties
+
+Active Directory administrators will have two logins - one for general tasks, and a second for performing administrative functions. The generic account will have read only access to a limited set of resources. Accessing other resources requires elevating to the admin account.
+
+Each administrator will have their own set of accounts
+
+### Permissions to groups, not Users
+
+Permissions to resources such as file shares should be granted to security groups, rather than to individual users. This facilitates delegation of permission management in the future if needed and reduces "rot" from deleted accounts being left in permission lists on resources.
+
+Groups will be named with this convention: `[resource type]_[resource name]_[access level]`, e.g. `share_LiveContent_ReadOnly` or `share_Quarantine_ReadWrite`.
+
+### User naming conventions
+
+Regular accounts: `firstname.lastname`
+
+Admin accounts: `firstname.lastname.admin`
+
+### Service accounts
+
+QlikView services will be installed to run under [Group Managed Service Accounts](https://docs.microsoft.com/en-us/windows-server/security/group-managed-service-accounts/group-managed-service-accounts-overview). Active Directory manages the credentials for these accounts and keep them updated. The servers which need the accounts will be authorized to retrieve the credentials, but they will not be available to any users.
+
+Service accounts will be named with this convention: `svc_[serverGroup]_[ServiceName]`, e.g. `svc_QlikViewServers_QlikView` or `svc_QlikViewPublishers_ReductionService`.
 
 ## Change Management
 
