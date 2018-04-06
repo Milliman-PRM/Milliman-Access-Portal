@@ -35,6 +35,10 @@ We will utilize multiple Azure products to build the production environment. Mos
 
 * **Virtual Machines** - 2 for QlikView Server, 2 for QlikView Publisher, 2 for file server clustering, 2 for domain controllers
 
+* **Virtual Networks** - Isolate groups of resources and control which portions of the infrastructure they can access.
+
+* **Virtual Network Gateway** - Create a point-to-point VPN between Milliman and our Azure environment.
+
 * **Network Security Groups** - Network-level security configuration for VMs. Applies Firewall rules to VMs which use the Security Group.
 
 * **Application Gateway** - Distribute HTTPS requests to web app or QlikView Servers, as appropriate.
@@ -131,26 +135,25 @@ Virtual machines' file systems must be encrypted at all times.
 
 Sensitive configuration options will be stored in Azure Key Vault.
 
+### Point-to-Point VPN
+
+We will utilize a [Virtual Network Gateway](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpngateways) to establish a VPN between Milliman and our Azure infrastructure. This gateway will ensure traffic between Milliman's network and our infrastructure is encrypted at all times, providing another layer of security for administrative tasks.
+
 ### Network Security Groups & Windows Firewall Configuration
 
 Inbound requests from the public internet will pass through the Application Gateway. Additionally, the operating system firewall will be enabled and properly configured on each VM.
 
-
 The table defines rules to be applied both within Network Security Groups as well as the Windows Firewall.
 
-In addition to the services outlined in the table, Microsoft Remote Desktop should be allowed to all VMs from internal (Milliman) IP addresses. Zabbix monitoring will be allowed internally for all servers as well (TCP & UDP ports 10050-10051).
+Zabbix monitoring will be allowed for all virtual machines (TCP & UDP ports 10050-10051).
 
-|Server Type|Public (external) allowed protocols|Internal (From Milliman) connections allowed|Outbound (within Azure) connections allowed|
+|Server Type|Public (external) allowed protocols|Internal (From Milliman) connections allowed|Outbound (within Azure) connections allowed|Inbound (within Azure) connections allowed|
 |-----|-----|-----|------|
-|QlikView Server|HTTPS|HTTPS, RDP, Zabbix|File Servers|
-|QlikView Publisher|---|RDP, Zabbix|PostgreSQL, File Servers|
-|File Server|---|RDP, Zabbix|---|
-
-### Antivirus Software
-
-All virtual machines will run Windows Defender antimalware software, utilizing real-time scanning.
-
-Additionally, files uploaded by users should be scanned before the system takes any action on them or serves them up to end-users. Windows Defender has a [command line interface](https://docs.microsoft.com/en-us/windows/security/threat-protection/windows-defender-antivirus/command-line-arguments-windows-defender-antivirus) and [PowerShell cmdlets](https://docs.microsoft.com/en-us/powershell/module/defender/index?view=win10-ps) that may be useful to developers.
+|Domain Controllers|---|---|Active Directory & DNS traffic only|Active Directory & DNS traffic only|
+|QlikView Server|HTTPS|HTTPS, RDP, Zabbix|Domain Controllers (Active Directory & DNS), File Servers|QlikView API|
+|QlikView Publisher|---|RDP, Zabbix|Domain Controllers (Active Directory & DNS), PostgreSQL, File Servers|---|
+|File Server|---|RDP, Zabbix|Domain Controllers (Active Directory & DNS)|File access (SMB3)|
+|Client VMs|---|RDP, Zabbix|QlikView Servers, Domain Controllers (Active Directory & DNS), QlikView Publishers, File Servers|---|
 
 ### Virtual Network Isolation
 
@@ -167,7 +170,7 @@ Specific ports and protocols will be opened to groups of VMs via Network Securit
 |QlikView Servers|10.42.3.0/24|File Servers, Domain Controllers|MAP application|
 |QlikView Publishers|10.42.4.0/24|File Servers, Domain Controllers|---|
 |MAP application|10.42.5.0/24|File Servers, Qlikview Servers| --- |
-|Clients|10.42.6.0/24|Domain Controllers, Other connections authorized temporarily as needed|---|
+|Clients|10.42.6.0/24|File Servers, QlikView Publishers, QlikView Servers, Clients|---|
 
 ### Client access
 
