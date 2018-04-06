@@ -16,6 +16,20 @@ namespace ContentReductionLib
 
     public class Impersonation : IDisposable
     {
+        // These support various types of LogonUser() requests.  From winbase.h
+        const int LOGON32_PROVIDER_DEFAULT = 0;
+        const int LOGON32_PROVIDER_WINNT35 = 1;
+        const int LOGON32_PROVIDER_WINNT40 = 2;
+        const int LOGON32_PROVIDER_WINNT50 = 3;
+        const int LOGON32_PROVIDER_VIRTUAL = 4;
+        const int LOGON32_LOGON_INTERACTIVE = 2;
+        const int LOGON32_LOGON_NETWORK = 3;
+        const int LOGON32_LOGON_BATCH = 4;
+        const int LOGON32_LOGON_SERVICE = 5;
+        const int LOGON32_LOGON_UNLOCK = 7;
+        const int LOGON32_LOGON_NETWORK_CLEARTEXT = 8;
+        const int LOGON32_LOGON_NEW_CREDENTIALS = 9;
+
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern bool LogonUser(String lpszUsername, 
                                             String lpszDomain, 
@@ -26,15 +40,6 @@ namespace ContentReductionLib
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern int GetLastError();
-
-        const int LOGON32_PROVIDER_DEFAULT = 0;
-
-        const int LOGON32_LOGON_INTERACTIVE         = 2;
-        const int LOGON32_LOGON_NETWORK             = 3;
-        const int LOGON32_LOGON_BATCH               = 4;
-        const int LOGON32_LOGON_SERVICE             = 5;
-        const int LOGON32_LOGON_NETWORK_CLEARTEXT   = 8;
-        const int LOGON32_LOGON_NEW_CREDENTIALS     = 9;
 
         private SafeAccessTokenHandle _SafeAccessTokenHandle = null;
 
