@@ -140,7 +140,7 @@ The table defines rules to be applied both within Network Security Groups as wel
 
 In addition to the services outlined in the table, Microsoft Remote Desktop should be allowed to all VMs from internal (Milliman) IP addresses. Zabbix monitoring will be allowed internally for all servers as well (TCP & UDP ports 10050-10051).
 
-|Server Type|Public (external) allowed protocols|Internal (From Milliman) connections allowed|Outbound connections allowed|
+|Server Type|Public (external) allowed protocols|Internal (From Milliman) connections allowed|Outbound (within Azure) connections allowed|
 |-----|-----|-----|------|
 |QlikView Server|HTTPS|HTTPS, RDP, Zabbix|File Servers|
 |QlikView Publisher|---|RDP, Zabbix|PostgreSQL, File Servers|
@@ -205,6 +205,34 @@ This applies both to uploaded content files and uploaded user guides.
 If at any point a checksum does not match the expected value, the task being performed should be canceled.
 
 This verification increases our confidence in the quality of the content being served and reduces the risk of exploitation for multiple possible ePHI leakage vectors.
+
+## Database Security
+
+Ensuring the integrity of the databases is essential to the security of the application. Multiple policies will be enforced to ensure data is not inappropriately accessed or modified.
+
+### Limited connections allowed
+
+Connections to the PostgreSQL server should only be allowed from within Azure, and only from specific resources.
+
+At this time, only the MAP application and QlikView Publishers need access to the databases full-time.
+
+Connections will additionally be allowed from specific VMs within the Client access Virtual Network, to facilitate administrative actions and troubleshooting.
+
+### Limited logins
+
+All PostgreSQL users will be limited in the data they can access.
+
+Each application will have its own login to each database (one for the Application DB, and another for the Audit Log DB). Additionally, the application Staging environment will have separate logins from production, and those logins will only have access to the Staging (non-production) databases.
+
+Permissions to read and write data will be granted to group roles, rather than directly to user roles. This allows a DBA to assign access on an as-needed basis, under defined criteria.
+
+No shared accounts/credentials will be created or distributed.
+
+### Limited write access
+
+Only the applications (MAP and the Reduction Service) should have write access to the database. At no time will any non-DBA user be granted write access to any database in this environment.
+
+DBAs may temporarily grant themselves write access to the application only when necessary. They should never have write access to the Audit Log database.
 
 ## Active Directory Management
 
