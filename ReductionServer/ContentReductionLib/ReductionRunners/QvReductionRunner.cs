@@ -47,21 +47,6 @@ namespace ContentReductionLib.ReductionRunners
             );
         }
 
-        /// <summary>
-        /// Remove eventually
-        /// </summary>
-        private void TestQvConnection()
-        {
-            ImpersonationObj.UsingImpersonatedIdentity(async () =>
-            {
-                IQMS Client = QmsClientCreator.New(QmsUrl);
-
-                // test
-                ServiceInfo[] Services = await Client.GetServicesAsync(ServiceTypes.All);
-                ServiceInfo[] Qds = await Client.GetServicesAsync(ServiceTypes.QlikViewDistributionService);
-            });
-        }
-
         #region Member properties
         ReductionJobResult TaskResultObj { get; set; } = new ReductionJobResult();
 
@@ -240,69 +225,70 @@ namespace ContentReductionLib.ReductionRunners
         /// </summary>
         private async Task<ExtractedHierarchy> ExtractReductionHierarchy(DocumentNode DocumentNodeArg)
         {
-            // Create ancillary script
-            string AncillaryScriptFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "ancillary_script.txt");
-            ImpersonationObj.UsingImpersonatedIdentity(() =>
-            {
-                File.WriteAllText(AncillaryScriptFilePath, "LET DataExtraction=true();");
-            });
-
-            // Create Qlikview publisher (QDS) task
-            TaskInfo Info = await CreateHierarchyExtractionQdsTask(DocumentNodeArg);
-
-            // Run Qlikview publisher (QDS) task
-            await RunQdsTask(Info);
-
-            // Clean up
-            await DeleteQdsTask(Info);
-            File.Delete(AncillaryScriptFilePath);
-
-            #region Build hierarchy json output
-            string ReductionSchemeFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "reduction.scheme.csv");
-
             ExtractedHierarchy ResultHierarchy = new ExtractedHierarchy();
-            try
+
+            // Create ancillary script
+            await ImpersonationObj.UsingImpersonatedIdentity(async () =>
             {
-                foreach (string Line in File.ReadLines(ReductionSchemeFilePath))
-                {
-                    // First line is csv header
-                    if (Line.Contains("FieldName"))
-                    {
-                        continue;
-                    }
+                string AncillaryScriptFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "ancillary_script.txt");
+                File.WriteAllText(AncillaryScriptFilePath, "LET DataExtraction=true();");
 
-                    string[] Fields = Line.Split(new char[] { ',' }, StringSplitOptions.None);
+                // Create Qlikview publisher (QDS) task
+                TaskInfo Info = await CreateHierarchyExtractionQdsTask(DocumentNodeArg);
 
-                    ExtractedField NewField = new ExtractedField { FieldName = Fields[1], DisplayName = Fields[2], Delimiter = Fields[4] };
-                    NewField.ValueStructure = Fields[3];
+                // Run Qlikview publisher (QDS) task
+                await RunQdsTask(Info);
 
-                    string ValuesFileName = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "fieldvalues." + Fields[1] + ".csv");
-                    NewField.FieldValues = File.ReadAllLines(ValuesFileName).ToList();
+                // Clean up
+                await DeleteQdsTask(Info);
+                File.Delete(AncillaryScriptFilePath);
 
-                    File.Delete(ValuesFileName);
+                #region Build hierarchy json output
+                string ReductionSchemeFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "reduction.scheme.csv");
 
-                    ResultHierarchy.Fields.Add(NewField);
-                }
-            }
-            catch (System.Exception e)
-            {
-                Trace.WriteLine($"Error converting file {ReductionSchemeFilePath} to json output.  Details:" + Environment.NewLine + e.Message);
-            }
-            #endregion
-
-            File.Delete(ReductionSchemeFilePath);
-            foreach (string LogFile in Directory.EnumerateFiles(Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative), MasterFileName + "*.log"))
-            {
                 try
                 {
-                    File.Delete(LogFile);
+                    foreach (string Line in File.ReadLines(ReductionSchemeFilePath))
+                    {
+                        // First line is csv header
+                        if (Line.Contains("FieldName"))
+                        {
+                            continue;
+                        }
+
+                        string[] Fields = Line.Split(new char[] { ',' }, StringSplitOptions.None);
+
+                        ExtractedField NewField = new ExtractedField { FieldName = Fields[1], DisplayName = Fields[2], Delimiter = Fields[4] };
+                        NewField.ValueStructure = Fields[3];
+
+                        string ValuesFileName = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "fieldvalues." + Fields[1] + ".csv");
+                        NewField.FieldValues = File.ReadAllLines(ValuesFileName).ToList();
+
+                        File.Delete(ValuesFileName);
+
+                        ResultHierarchy.Fields.Add(NewField);
+                    }
                 }
                 catch (System.Exception e)
                 {
-                    Trace.WriteLine($"Failed to delete Qlikview task log file {LogFile}:" + Environment.NewLine + e.Message);
-                    throw;
+                    Trace.WriteLine($"Error converting file {ReductionSchemeFilePath} to json output.  Details:" + Environment.NewLine + e.Message);
                 }
-            }
+                #endregion
+
+                File.Delete(ReductionSchemeFilePath);
+                foreach (string LogFile in Directory.EnumerateFiles(Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative), MasterFileName + "*.log"))
+                {
+                    try
+                    {
+                        File.Delete(LogFile);
+                    }
+                    catch (System.Exception e)
+                    {
+                        Trace.WriteLine($"Failed to delete Qlikview task log file {LogFile}:" + Environment.NewLine + e.Message);
+                        throw;
+                    }
+                }
+            });
 
             Trace.WriteLine($"Task {QueueTask.Id.ToString()} completed ExtractReductionHierarchy");
 
