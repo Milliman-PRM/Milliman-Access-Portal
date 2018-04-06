@@ -165,7 +165,7 @@ The table defines rules to be applied both within Network Security Groups as wel
 Zabbix monitoring will be allowed for all virtual machines (TCP & UDP ports 10050-10051).
 
 |Server Type|Public (external) allowed protocols|Internal (From Milliman) connections allowed|Outbound (within Azure) connections allowed|Inbound (within Azure) connections allowed|
-|-----|-----|-----|------|
+|-----|-----|-----|-----|-----|
 |Domain Controllers|---|---|Active Directory & DNS traffic only|Active Directory & DNS traffic only|
 |QlikView Server|HTTPS|HTTPS, RDP, Zabbix|Domain Controllers (Active Directory & DNS), File Servers|QlikView API|
 |QlikView Publisher|---|RDP, Zabbix|Domain Controllers (Active Directory & DNS), PostgreSQL, File Servers|---|
