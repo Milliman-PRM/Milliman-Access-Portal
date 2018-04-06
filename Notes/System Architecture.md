@@ -228,15 +228,17 @@ Service accounts will be named with this convention: `svc_[serverGroup]_[Service
 
 ## Change Management
 
-In any high-availability environment, it is critical to have a change management plan in place. This plan outlines proper procedures for deploying, updating, or replacing components, whether hardware or software.
+In any high-availability environment, it is critical to have a change management plan in place. This plan outlines proper procedures for deploying, updating, or replacing components or configuration, whether in the infrastructure or application configuration.
 
 ### Configuration Testing
 
 From time to time, system configuration changes may become necessary. When at all feasible, these changes should be tested on non-production systems before being made in production.
 
-### General software update workflow
+### Change tracking and approval
 
-To maintain a robust environment, precautions must be taken during system updates.
+Changes to Azure infrastructure should be submitted first as an issue in Github, where it should be approved by both Azure administrators and application developers before the change is implemented.
+
+In the case of an emergency (defined as a change that's necessary to fix an immediate critical production issue), a change request can be opened after the work is completed. If Azure administrators and application developers do not approve of the change, they must put together a plan to revert the change or identify additional needed changes.
 
 ### Automated VM updates
 
