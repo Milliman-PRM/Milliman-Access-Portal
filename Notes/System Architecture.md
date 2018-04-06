@@ -200,6 +200,12 @@ We will utilize multiple file shares throughout the content publication pipeline
 |User verification & validation|Holding area for pending content publications. End users with appropriate rights must verify the content before it is published into production.|QlikView Publishers, MAP|
 |Live content|Holds content currently being served by MAP.|MAP, QlikView Servers|
 
+### Malware Protection
+
+All virtual machines will run Windows Defender antimalware software, utilizing real-time scanning.
+
+Additionally, files uploaded by users should be scanned before the system takes any action on them or serves them up to end-users. Windows Defender has a [command line interface](https://docs.microsoft.com/en-us/windows/security/threat-protection/windows-defender-antivirus/command-line-arguments-windows-defender-antivirus) and [PowerShell cmdlets](https://docs.microsoft.com/en-us/powershell/module/defender/index?view=win10-ps) that may be useful to developers.
+
 ### File Integrity
 
 All uploaded files must be verified to detect possible data corruption or tampering. The primary mechanism for this will be content checksum values, which will be generated and verified at every use.
