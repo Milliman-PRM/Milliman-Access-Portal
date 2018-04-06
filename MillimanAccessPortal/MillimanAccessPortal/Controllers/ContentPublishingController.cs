@@ -161,34 +161,12 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public ActionResult ChunkStatus(ResumableData resumableData)
         {
-            ISet<int> remainingChunks;
-            string serializedData = ((string) TempData[resumableData.UID]);
-            if (serializedData == null)
-            {
-                // Verify that existing chunks are of specified chunk size to prevent an interupted chunk from spoiling the file upload
-                var targetPath = Path.Combine(Path.GetTempPath(), resumableData.UID);
-                var existingChunks = Directory.Exists(targetPath)
-                    ? Directory.GetFiles(targetPath)
-                        .Where(fileName => new FileInfo(fileName).Length == resumableData.ChunkSize)
-                        .Select(fileName => Path.GetFileName(fileName))
-                    : new List<string>();
+            var chunkFilePath = Path.Combine(Path.GetTempPath(), resumableData.UID, $"{resumableData.ChunkNumber:D8}.chunk");
+            var chunkInfo = new FileInfo(chunkFilePath);
 
-                remainingChunks = new HashSet<int>(Enumerable.Range(1, resumableData.TotalChunks)
-                    .Where(chunkNumber => !existingChunks.Contains($"{chunkNumber:D8}.chunk")));
-
-                serializedData = JsonConvert.SerializeObject(remainingChunks);
-            }
-            else
-            {
-                remainingChunks = JsonConvert.DeserializeObject<HashSet<int>>(serializedData);
-            }
-
-            // TempData removes values after they are read, so reset the chunk data even if it hasn't changed
-            TempData[resumableData.UID] = serializedData;
-
-            return remainingChunks.Contains(resumableData.ChunkNumber)
-                ? ((ActionResult) NoContent())
-                : Ok();
+            return (chunkInfo.Exists && chunkInfo.Length == resumableData.ChunkSize)
+                ? ((ActionResult) Ok())
+                : NoContent();
         }
 
         [HttpPost]
@@ -303,16 +281,7 @@ namespace MillimanAccessPortal.Controllers
             System.IO.File.Move(tempFilePath, targetFilePath);
 
 
-            // Keep track of which chunks we have
-            string serializedData = ((string) TempData[resumableData.UID]);
-            ISet<int> remainingChunks = JsonConvert.DeserializeObject<HashSet<int>>(serializedData);
-            remainingChunks.Remove(Convert.ToInt32(resumableData.ChunkNumber));
-            if (remainingChunks.Count > 0)
-            {
-                serializedData = JsonConvert.SerializeObject(remainingChunks);
-                TempData[resumableData.UID] = serializedData;
-            }
-            else
+            if (resumableData.ChunkNumber == resumableData.TotalChunks)
             {
                 // Reassemble the file from its parts
                 var chunkPath = Path.Combine(Path.GetTempPath(), resumableData.UID);
