@@ -146,18 +146,30 @@ All virtual machines will run Windows Defender antimalware software, utilizing r
 
 Additionally, files uploaded by users should be scanned before the system takes any action on them or serves them up to end-users. Windows Defender has a [command line interface](https://docs.microsoft.com/en-us/windows/security/threat-protection/windows-defender-antivirus/command-line-arguments-windows-defender-antivirus) and [PowerShell cmdlets](https://docs.microsoft.com/en-us/powershell/module/defender/index?view=win10-ps) that may be useful to developers.
 
-### VLAN Isolation
+### Virtual Network Isolation
 
-We will utilize Azure VLANs to isolate our Azure resources from each other and allow traffic to flow between VLANs only as needed.
+We will utilize Azure Virtual Networks to isolate our Azure resources from each other and allow traffic to flow between networks only as needed.
 
-The below table maps out allowable traffic flows between VLANs.
+The below table maps out allowable traffic flows between networks and their IP ranges. The connection relationships used below are implemented as Peering arrangements between the virtual networks.
 
-|VLAN|Connects to|Allow connections from|
-|----|-----------|----------------------|
-|QlikView Servers|File Servers|MAP application|
-|QlikView Publishers|File Servers|---|
-|File Servers|---|MAP application, QlikView Servers, QlikView Publishers|
-|MAP application|File Servers, Qlikview Servers| --- |
+Specific ports and protocols will be opened to groups of VMs via Network Security Groups (see above).
+
+|VLAN|IP range|Connects to|Allow connections from|
+|----|--------|-----------|----------------------|
+|Domain Controllers|10.42.1.0/24|---|File Servers, QlikView Publishers, QlikView Servers, Clients|
+|File Servers|10.42.2.0/24|Domain Controllers|MAP application, QlikView Servers, QlikView Publishers|
+|QlikView Servers|10.42.3.0/24|File Servers, Domain Controllers|MAP application|
+|QlikView Publishers|10.42.4.0/24|File Servers, Domain Controllers|---|
+|MAP application|10.42.5.0/24|File Servers, Qlikview Servers| --- |
+|Clients|10.42.6.0/24|Domain Controllers, Other connections authorized temporarily as needed|---|
+
+### Client access
+
+We will utilize the Clients virtual network to host a virtual machine to be utilized by developers and administrators via Remote Desktop on an as-needed basis for troubleshooting purposes. Users who need to perform troubleshooting within the network or application who are not Azure administrators will be allowed only to connect to this network.
+
+By default, this network can only connect to the Active Directory Domain Controllers, for authentication. Additional peering arrangements may be configured by Azure administrators to facilitate access to other systems as needed.
+
+Access to VMs in this network should not be granted on a permanent basis.
 
 ### File Share Isolation
 
