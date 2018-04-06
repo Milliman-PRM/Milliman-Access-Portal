@@ -26,7 +26,7 @@ $(document).ready(function(): void {
         rootContentItemId: '1',
       };
     },
-    simultaneousUploads: 1,
+    simultaneousUploads: 3,
     maxFiles: 1,
     generateUniqueIdentifier: function (file: File, event: Event) {
       return new Promise((resolve, reject) => {
@@ -64,15 +64,22 @@ $(document).ready(function(): void {
     relativePathParameterName: '',
     currentChunkSizeParameterName: '',
   });
+  const progressStats = new upload.ResumableProgressStats(10);
   if (!r.support) {
     alert('not supported'); // TODO: tell user to use a modern browser
   }
   r.assignBrowse($('#upload-form-resumable span')[0], false);
-  r.on('progress', function() {
-    $('#file-progress-resumable').width((Math.round(r.progress() * 10000) / 100) + '%');
-  })
   $('#upload-form-resumable input.submit').click(function (event): void {
     event.preventDefault();
-    upload.uploadResumable(r);
-  })
+    r.upload();
+    (function updateProgress() {
+      setTimeout(() => {
+        progressStats.update(r);
+        progressStats.render();
+        if (r.progress() < 1) {
+          updateProgress();
+        }
+      }, 1000);
+    })();
+  });
 });
