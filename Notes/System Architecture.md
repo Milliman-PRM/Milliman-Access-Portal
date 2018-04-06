@@ -237,6 +237,10 @@ Ensuring the integrity of the databases is essential to the security of the appl
 
 Connections to the PostgreSQL server should only be allowed from within Azure, and only from specific resources.
 
+Enabling VM access to PostgreSQL server requires the creation of a role permitting outbound traffic over port 5432 from the Network Security Group to the destination `Sql.NorthCentralUS`.
+
+Currently, our PostgreSQL server is configured to allow all Azure services to communicate with it by default. The Azure PostgreSQL team says it expects to have [VNET Service Endpoint support in public preview within a few weeks](https://feedback.azure.com/forums/597976-azure-database-for-postgresql/suggestions/19601389-vnet-integration) (as of March 28, 2018). Once that feature becomes available, we will utilize it and disable the option for allowing all Azure connections. 
+
 At this time, only the MAP application and QlikView Publishers need access to the databases full-time.
 
 Connections will additionally be allowed from specific VMs within the Client access Virtual Network, to facilitate administrative actions and troubleshooting.
