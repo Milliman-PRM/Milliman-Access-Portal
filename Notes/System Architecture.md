@@ -127,7 +127,7 @@ The Web Application Firewall will guard our infrastructure against common types 
 
 We will utilize Azure Security Center to monitor for potential issues within our Azure infrastructure. Over time, we will evaluate for possible automated actions to take in response to log entries or other security events.
 
-### Filesystem Encryption
+### File system Encryption
 
 Virtual machines' file systems must be encrypted at all times.
 
