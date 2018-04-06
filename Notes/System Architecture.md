@@ -242,9 +242,17 @@ In the case of an emergency (defined as a change that's necessary to fix an imme
 
 ### Automated VM updates
 
-Azure provides the capability to automate Windows updates on VMs. By utilizing Availability Sets, we guarantee that only one server of each type will be updated at a time.
+[Automated Windows updates](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/tutorial-monitoring#manage-windows-updates) should be scheduled for all VMs. VMs within an availability set should be set to update on different days of the week, with at least 2 business days between to detect any potential issues caused by the updates.
 
-### Manual VM updates
+Updates must be scheduled for installation overnight, to reduce disruption to critical services.
+
+For example, the first VM in each availability set could be scheduled to install Windows updates at 12 AM on Tuesday, and the second set could be scheduled to install them at 12 AM on Friday.
+
+**One exception to this schedule:** Definition Updates should be installed daily on File Servers, to maximize protection from potentially malicious uploads from users.
+
+Additional update installations may be scheduled at the discretion of a Security Manager.
+
+### Manual VM software updates
 
 Manual updates will typically only be applied for QlikView services.
 
