@@ -249,6 +249,8 @@ namespace ContentReductionLib
 
                     DbTask.ResultFilePath = JobDetail.Result.ReducedContentFilePath;
 
+                    DbTask.ReducedContentHash = JobDetail.Result.ReducedContentFileHash;
+
                     DbTask.ReductionStatusMessage = JobDetail.Result.StatusMessage;
 
                     Db.ContentReductionTask.Update(DbTask);

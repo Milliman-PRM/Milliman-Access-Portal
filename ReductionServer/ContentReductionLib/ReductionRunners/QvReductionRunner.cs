@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Reflection;
 using AuditLogLib;
 using QmsApi;
+using MapCommonLib;
 
 namespace ContentReductionLib.ReductionRunners
 {
@@ -57,6 +58,8 @@ namespace ContentReductionLib.ReductionRunners
         private string MasterFileName { get { return "Master.qvw"; } }
 
         private DocumentNode MasterDocumentNode { get; set; } = null;
+
+        internal string ReducedFileName { get; private set; }
 
         private DocumentNode ReducedDocumentNode { get; set; } = null;
         #endregion
@@ -161,7 +164,7 @@ namespace ContentReductionLib.ReductionRunners
             {
                 MethodBase Method = MethodBase.GetCurrentMethod();
                 Msg = $"Error in {Method.ReflectedType.Name}.{Method.Name}: {Msg}";
-                throw new System.Exception(Msg);
+                throw new System.ApplicationException(Msg);
             }
         }
 
@@ -176,15 +179,25 @@ namespace ContentReductionLib.ReductionRunners
 
             try
             {
-                await ImpersonationObj.UsingImpersonatedIdentity(async () =>
+                ImpersonationObj.UsingImpersonatedIdentity(() =>
                 {
                     if (Directory.Exists(WorkingFolderAbsolute))
                     {
                         Directory.Delete(WorkingFolderAbsolute, true);
                     }
+
+                    if (!File.Exists(JobDetail.Request.MasterFilePath))
+                    {
+                        throw new ApplicationException($"Master file {JobDetail.Request.MasterFilePath} does not exist");
+                    }
+
                     Directory.CreateDirectory(WorkingFolderAbsolute);
                     File.Copy(JobDetail.Request.MasterFilePath, MasterFileDestinationPath);
 
+                    if (GlobalFunctions.GetFileHash(MasterFileDestinationPath) != JobDetail.Request.MasterContentHash)
+                    {
+                        throw new ApplicationException("Master content file integrity check failed, mismatch of file hash");
+                    }
                 });
                 MasterDocumentNode = await GetSourceDocumentNode(MasterFileName, WorkingFolderRelative);
             }
@@ -331,6 +344,8 @@ namespace ContentReductionLib.ReductionRunners
                 CopyDestinationPath = Path.Combine(ApplicationDataExchangeFolder, Path.GetFileName(ReducedFile));
 
                 File.Copy(ReducedFile, CopyDestinationPath, true);
+
+                JobDetail.Result.ReducedContentFileHash = GlobalFunctions.GetFileHash(CopyDestinationPath);
             });
             JobDetail.Result.ReducedContentFilePath = CopyDestinationPath;
 
