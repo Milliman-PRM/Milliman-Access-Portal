@@ -64,16 +64,16 @@ export class ResumableProgressStats {
       return `${_}%`;
     })(1);
     const rate = ((precision: number, upperThreshold: number, lowerThreshold: number): string => {
-      const units = ['', 'Ki', 'Mi', 'Gi'];
+      const units = ['', 'K', 'M', 'G'];
       let rateUnitIndex = 0;
       let now = this.rate.now;
-      while (now > (1024 * upperThreshold) && rateUnitIndex < units.length) {
-        now /= 1024;
+      while (now > (1000 * upperThreshold) && rateUnitIndex < units.length) {
+        now /= 1000;
         rateUnitIndex += 1;
       }
       if (this.lastRateUnitIndex > rateUnitIndex) {
-        if (now > (1024 * lowerThreshold)) {
-          now /= 1024;
+        if (now > (1000 * lowerThreshold)) {
+          now /= 1000;
           rateUnitIndex += 1;
         }
       }
