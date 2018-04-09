@@ -32,6 +32,8 @@ using AuditLogLib;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using MillimanAccessPortal.Services;
+using System.IO;
+using Microsoft.Extensions.FileProviders;
 
 namespace MapTests
 {
@@ -65,6 +67,8 @@ namespace MapTests
 
         public Mock<IMessageQueue> MockMessageQueueService { get; set; }
         public IMessageQueue MessageQueueServicesObject { get => MockMessageQueueService.Object; }
+
+        public IFileProvider FileProviderObject { get; } = new PhysicalFileProvider(Path.GetTempPath());
 
         public IOptions<QlikviewConfig> QvConfig { get; set; }
 
