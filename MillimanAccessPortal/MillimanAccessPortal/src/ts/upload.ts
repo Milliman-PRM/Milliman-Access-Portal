@@ -1,4 +1,5 @@
 import $ = require('jquery');
+import _ = require('lodash');
 import shared = require('./shared');
 import { Resumable } from 'resumablejs';
 
@@ -17,7 +18,25 @@ class RetainedValue<T> {
   }
   public insert(value: T): void {
     this.values.splice(0, 0, value);
-    this.values.slice(this.lengthLimit);
+    this.values = this.values.slice(0, this.lengthLimit);
+  }
+  // TODO: extract into separate function; allow arbitrary maps on values
+  public avg(weights: Array<number> = []): number {
+    let result = 0;
+    // fill weights to match length of values
+    if (!weights.length) {
+      _.fill(weights, 1, 0, this.values.length);
+    }
+    weights = _.slice(weights, 0, this.values.length);
+    _.fill(weights, 0, weights.length, this.values.length);
+    // normalize weights
+    const sum = _.sum(weights);
+    weights = _.map(weights, (x) => x / sum);
+    // compute weighted average
+    for (let pair of _.zip(this.values, weights)) {
+      result += <any>pair[0] * pair[1];
+    }
+    return result;
   }
 }
 
@@ -63,10 +82,10 @@ export class ResumableProgressStats {
       const _ = Math.floor(this.snapshot.now.ratio * 100 * precisionFactor) / precisionFactor;
       return `${_}%`;
     })(1);
-    const rate = ((precision: number, upperThreshold: number, lowerThreshold: number): string => {
+    const rate = ((precision: number, upperThreshold: number, lowerThreshold: number, weights: Array<number>): string => {
       const units = ['', 'K', 'M', 'G'];
       let rateUnitIndex = 0;
-      let now = this.rate.now;
+      let now = this.rate.avg(weights);
       while (now > (1000 * upperThreshold) && rateUnitIndex < units.length) {
         now /= 1000;
         rateUnitIndex += 1;
@@ -80,7 +99,7 @@ export class ResumableProgressStats {
       this.lastRateUnitIndex = rateUnitIndex;
       const _ = `${now}`.slice(0, precision).replace(/\.$/, '');
       return `${_} ${units[rateUnitIndex]}B/s`;
-    })(5, 2, 1);
+    })(4, 2, 1, _.map(_.range(4, 0, -1), (x) => x**2));
     const remainingTime = (() => {
       const remainingSeconds = Math.ceil(this.remainingTime.now);
       const seconds = remainingSeconds % 60;
