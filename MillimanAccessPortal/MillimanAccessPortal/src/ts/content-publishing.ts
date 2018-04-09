@@ -12,7 +12,15 @@ import 'tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css'
 import 'vex-js/sass/vex.sass';
 import '../scss/map.scss';
 
+function setUnloadAlert(value: boolean) {
+  window.onbeforeunload = value
+    ? () => { return true; }
+    : null;
+}
+
 $(document).ready(function(): void {
+  // Alert the user if leaving the page during an upload
+  setUnloadAlert(false);
   const r = new resumable({
     target: '/ContentPublishing/UploadResumable',
     testTarget: '/ContentPublishing/ChunkStatus',
@@ -69,8 +77,12 @@ $(document).ready(function(): void {
     alert('not supported'); // TODO: tell user to use a modern browser
   }
   r.assignBrowse($('#upload-form-resumable span')[0], false);
+  r.on('complete', () => {
+    setUnloadAlert(false);
+  });
   $('#upload-form-resumable input.submit').click(function (event): void {
     event.preventDefault();
+    setUnloadAlert(true);
     r.upload();
     (function updateProgress() {
       setTimeout(() => {

@@ -2,7 +2,9 @@ import $ = require('jquery');
 import shared = require('./shared');
 import { Resumable } from 'resumablejs';
 
-class LaggingValue<T> {
+// A value that retains a configurable number of past values
+// Only the most recent value and the oldest value are public
+class RetainedValue<T> {
   private values: Array<T>;
   constructor(readonly lengthLimit: number) {
     this.values = [];
@@ -20,19 +22,19 @@ class LaggingValue<T> {
 }
 
 interface ResumableProgressSnapshot {
-  ratio: number;
-  time: number;
+  ratio: number; // uploaded / total
+  time: number; // absolute time at which this snapshot was taken
 }
 
 export class ResumableProgressStats {
-  snapshot: LaggingValue<ResumableProgressSnapshot>;
-  rate: LaggingValue<number>;
-  remainingTime: LaggingValue<number>;
-  lastRateUnitIndex: number;
+  snapshot: RetainedValue<ResumableProgressSnapshot>;
+  rate: RetainedValue<number>;
+  remainingTime: RetainedValue<number>;
+  lastRateUnitIndex: number; // corresponds with the magnitude of this.rate
   constructor(snapshotLengthLimit: number) {
-    this.snapshot = new LaggingValue(snapshotLengthLimit);
-    this.rate = new LaggingValue(1);
-    this.remainingTime = new LaggingValue(1);
+    this.snapshot = new RetainedValue(snapshotLengthLimit);
+    this.rate = new RetainedValue(1);
+    this.remainingTime = new RetainedValue(1);
     this.lastRateUnitIndex = 0;
   }
 
