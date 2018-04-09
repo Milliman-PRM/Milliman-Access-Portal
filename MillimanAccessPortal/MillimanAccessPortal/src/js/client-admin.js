@@ -141,10 +141,10 @@ function updateUserRoleIndicator(userId, userRoles) {
 }
 
 // TODO: move to shared
-function setUserRole(userId, roleEnum, isAssigned, onResponse) {
+function setUserRole(clientId, userId, roleEnum, isAssigned, onResponse) {
   var $cardContainer = $('#client-users ul.admin-panel-content .card-container[data-user-id="' + userId + '"]');
   var postData = {
-    ClientId: $('#client-tree [selected]').attr('data-client-id'),
+    ClientId: clientId,
     UserId: userId,
     RoleEnum: roleEnum,
     IsAssigned: isAssigned
@@ -183,6 +183,7 @@ function userCardRoleToggleClickHandler(event) {
   event.preventDefault();
 
   setUserRole(
+    $clickedInput.closest('.card-container').attr('data-client-id'),
     $clickedInput.closest('.card-container').attr('data-user-id'),
     $clickedInput.attr('data-role-enum'),
     $clickedInput.prop('checked'),
