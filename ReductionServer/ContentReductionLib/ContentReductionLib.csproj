@@ -30,8 +30,6 @@
     <ProjectReference Include="..\..\MillimanAccessPortal\AuditLogLib\AuditLogLib.csproj" />
     <ProjectReference Include="..\..\MillimanAccessPortal\MapCommonLib\MapCommonLib.csproj" />
     <ProjectReference Include="..\..\MillimanAccessPortal\MapDbContextLib\MapDbContextLib.csproj" />
-    <ProjectReference Include="..\Milliman.Common\Milliman.Common.csproj" />
-    <ProjectReference Include="..\Milliman.ReductionEngine\Milliman.ReductionEngine.csproj" />
   </ItemGroup>
 
   <ItemGroup>
