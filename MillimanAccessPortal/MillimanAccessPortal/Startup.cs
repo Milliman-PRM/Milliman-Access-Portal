@@ -30,6 +30,8 @@ using AuditLogLib.Services;
 using EmailQueue;
 using MillimanAccessPortal.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.FileProviders;
+using System.IO;
 
 namespace MillimanAccessPortal
 {
@@ -136,6 +138,8 @@ namespace MillimanAccessPortal
                     res.NamingStrategy = null;  // Remove the default lowerCamelCasing of the json output
                 }
             });
+
+            services.AddSingleton<IFileProvider>(new PhysicalFileProvider(Path.GetTempPath()));
 
             // Depends on UserManager from Identity, which is scoped, so don't add the following as singleton
             services.AddScoped<IAuthorizationHandler, MapAuthorizationHandler>();
