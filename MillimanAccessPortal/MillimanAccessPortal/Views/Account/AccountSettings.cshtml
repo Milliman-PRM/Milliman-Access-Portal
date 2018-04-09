@@ -12,6 +12,10 @@
     ViewData["NavIcon"] = "AccountSettings";
 }
 
+@section Scripts {
+    <script src="/js/account-settings.bundle.js"></script>
+}
+
 <div id="account-settings-container">
     <div id="account-settings" class="admin-panel-container flex-item-for-phone-only-12-12 flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-5-12">
         <div class="loading-wrapper" style="display: none;">
@@ -98,15 +102,3 @@
         </div>
     </div>
 </div>
-
-
-@section Scripts {
-
-    <environment names="Development,CI">
-        <script src="~/js/account-settings.js"></script>
-    </environment>
-    <environment names="Staging,Production">
-        <script src="~/js/account-settings.min.js"></script>
-    </environment>
-
-}

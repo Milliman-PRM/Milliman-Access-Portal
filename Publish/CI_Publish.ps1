@@ -126,7 +126,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-$command = "yarn install"
+$command = "yarn install --frozen-lockfile"
 invoke-expression "&$command"
 
 if ($LASTEXITCODE -ne 0) {
@@ -467,4 +467,25 @@ else
     log_statement "Git credential was not found"
     exit -200
 }
+#endregion
+
+#region Check login page to confirm deployment
+
+try
+{
+    $resp = Invoke-WebRequest "$publicURL/Account/Login"
+}
+catch
+{
+    log_statement "Failed to get login page: $publicURL/Account/Login"
+    exit -404
+}
+
+if ($resp.StatusCode -ne 200)
+{
+    log_statement "ERROR: Login page failed with code $($resp.StatusCode)"
+    exit $resp.StatusCode
+}
+
+
 #endregion

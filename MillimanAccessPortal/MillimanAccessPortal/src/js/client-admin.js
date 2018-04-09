@@ -1,4 +1,24 @@
-/* global shared, dialog, card */
+var $ = require('jquery');
+require('jquery-mask-plugin');
+require('jquery-validation');
+require('jquery-validation-unobtrusive');
+require('selectize');
+var toastr = require('toastr');
+require('tooltipster');
+require('vex-js');
+var card = require('./card');
+var dialog = require('./dialog');
+require('./lib-options');
+var shared = require('./shared');
+
+require('bootstrap/scss/bootstrap-reboot.scss');
+require('selectize/src/less/selectize.default.less');
+require('toastr/toastr.scss');
+require('tooltipster/src/css/tooltipster.css');
+require('tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css');
+require('vex-js/sass/vex.sass');
+require('../scss/map.scss');
+
 
 var ajaxStatus = {};
 var eligibleUsers;

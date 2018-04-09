@@ -18,8 +18,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BuildBundlerMinifier" Version="2.6.362" />
-    <PackageReference Include="BuildWebCompiler" Version="1.11.375" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.0.1" />
@@ -29,6 +27,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Rewrite" Version="2.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Session" Version="2.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaServices" Version="2.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.0.1" PrivateAssets="All" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.0.1" PrivateAssets="All" />
@@ -45,8 +44,8 @@
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="wwwroot\favicon.ico" />
-    <None Include="wwwroot\js\contact-form.js" />
+    <None Include="wwwroot\**" />
+    <None Include="node_modules\**" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AuditLogLib\AuditLogLib.csproj" />
@@ -57,7 +56,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\PublishProfiles\" />
-    <Folder Include="wwwroot\lib\" />
+    <Folder Include="wwwroot\" /> 
+    <Folder Include="node_modules\" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="qlikview.json">
