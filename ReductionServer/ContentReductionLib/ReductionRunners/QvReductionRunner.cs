@@ -22,7 +22,6 @@ namespace ContentReductionLib.ReductionRunners
     {
         string QmsUrl = null;
         AuditLogger Logger = new AuditLogger();  // Exception if static AuditLogger.Config is not initialized (should be done globally for process)
-        Impersonation ImpersonationObj = null;
 
         internal CancellationToken _CancellationToken { private get; set; }
 
@@ -31,19 +30,12 @@ namespace ContentReductionLib.ReductionRunners
         /// </summary>
         internal QvReductionRunner()
         {
+            // Initialize members
             QmsUrl = Configuration.ApplicationConfiguration["IQmsUrl"];
-            ImpersonationObj = new Impersonation(Configuration.ApplicationConfiguration["IQmsUser"],
-                                             Configuration.ApplicationConfiguration["IQmsDomain"],
-                                             Configuration.ApplicationConfiguration["IQmsPassword"]);
-            ImpersonationObj.UsingImpersonatedIdentity(() =>
-                {
-                    // Initialize members
-                    IQMS Client = QmsClientCreator.New(QmsUrl);
-                    // Initialize member variables
-                    QdsServiceInfo = Client.GetServicesAsync(ServiceTypes.QlikViewDistributionService).Result[0];
-                    SourceDocFolder = Client.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All).Result[1];
-                }
-            );
+
+            IQMS Client = QmsClientCreator.New(QmsUrl);
+            QdsServiceInfo = Client.GetServicesAsync(ServiceTypes.QlikViewDistributionService).Result[0];
+            SourceDocFolder = Client.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All).Result[1];
         }
 
         #region Member properties
@@ -147,13 +139,10 @@ namespace ContentReductionLib.ReductionRunners
                 Msg = "SourceDocFolder is null";
             }
 
-            ImpersonationObj.UsingImpersonatedIdentity(() =>
+            if (!Directory.Exists(SourceDocFolder.General.Path))
             {
-                if (!Directory.Exists(SourceDocFolder.General.Path))
-                {
-                    Msg = $"SourceDocFolder {SourceDocFolder.General.Path} not found";
-                }
-            });
+                Msg = $"SourceDocFolder {SourceDocFolder.General.Path} not found";
+            }
 
             if (_CancellationToken == null)
             {
@@ -179,26 +168,24 @@ namespace ContentReductionLib.ReductionRunners
 
             try
             {
-                ImpersonationObj.UsingImpersonatedIdentity(() =>
+                if (Directory.Exists(WorkingFolderAbsolute))
                 {
-                    if (Directory.Exists(WorkingFolderAbsolute))
-                    {
-                        Directory.Delete(WorkingFolderAbsolute, true);
-                    }
+                    Directory.Delete(WorkingFolderAbsolute, true);
+                }
 
-                    if (!File.Exists(JobDetail.Request.MasterFilePath))
-                    {
-                        throw new ApplicationException($"Master file {JobDetail.Request.MasterFilePath} does not exist");
-                    }
+                if (!File.Exists(JobDetail.Request.MasterFilePath))
+                {
+                    throw new ApplicationException($"Master file {JobDetail.Request.MasterFilePath} does not exist");
+                }
 
-                    Directory.CreateDirectory(WorkingFolderAbsolute);
-                    File.Copy(JobDetail.Request.MasterFilePath, MasterFileDestinationPath);
+                Directory.CreateDirectory(WorkingFolderAbsolute);
+                File.Copy(JobDetail.Request.MasterFilePath, MasterFileDestinationPath);
 
-                    if (GlobalFunctions.GetFileHash(MasterFileDestinationPath) != JobDetail.Request.MasterContentHash)
-                    {
-                        throw new ApplicationException("Master content file integrity check failed, mismatch of file hash");
-                    }
-                });
+                if (GlobalFunctions.GetFileHash(MasterFileDestinationPath) != JobDetail.Request.MasterContentHash)
+                {
+                    throw new ApplicationException("Master content file integrity check failed, mismatch of file hash");
+                }
+
                 MasterDocumentNode = await GetSourceDocumentNode(MasterFileName, WorkingFolderRelative);
             }
             catch (System.Exception e)
@@ -222,67 +209,64 @@ namespace ContentReductionLib.ReductionRunners
             ExtractedHierarchy ResultHierarchy = new ExtractedHierarchy();
 
             // Create ancillary script
-            await ImpersonationObj.UsingImpersonatedIdentity(async () =>
+            string AncillaryScriptFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "ancillary_script.txt");
+            File.WriteAllText(AncillaryScriptFilePath, "LET DataExtraction=true();");
+
+            // Create Qlikview publisher (QDS) task
+            TaskInfo Info = await CreateHierarchyExtractionQdsTask(DocumentNodeArg);
+
+            // Run Qlikview publisher (QDS) task
+            await RunQdsTask(Info);
+
+            // Clean up
+            await DeleteQdsTask(Info);
+            File.Delete(AncillaryScriptFilePath);
+
+            #region Build hierarchy json output
+            string ReductionSchemeFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "reduction.scheme.csv");
+
+            try
             {
-                string AncillaryScriptFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "ancillary_script.txt");
-                File.WriteAllText(AncillaryScriptFilePath, "LET DataExtraction=true();");
+                foreach (string Line in File.ReadLines(ReductionSchemeFilePath))
+                {
+                    // First line is csv header
+                    if (Line.Contains("FieldName"))
+                    {
+                        continue;
+                    }
 
-                // Create Qlikview publisher (QDS) task
-                TaskInfo Info = await CreateHierarchyExtractionQdsTask(DocumentNodeArg);
+                    string[] Fields = Line.Split(new char[] { ',' }, StringSplitOptions.None);
 
-                // Run Qlikview publisher (QDS) task
-                await RunQdsTask(Info);
+                    ExtractedField NewField = new ExtractedField { FieldName = Fields[1], DisplayName = Fields[2], Delimiter = Fields[4] };
+                    NewField.ValueStructure = Fields[3];
 
-                // Clean up
-                await DeleteQdsTask(Info);
-                File.Delete(AncillaryScriptFilePath);
+                    string ValuesFileName = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "fieldvalues." + Fields[1] + ".csv");
+                    NewField.FieldValues = File.ReadAllLines(ValuesFileName).Skip(1).ToList();  // skip because the first line is the field name
 
-                #region Build hierarchy json output
-                string ReductionSchemeFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "reduction.scheme.csv");
+                    File.Delete(ValuesFileName);
 
+                    ResultHierarchy.Fields.Add(NewField);
+                }
+            }
+            catch (System.Exception e)
+            {
+                Trace.WriteLine($"Error converting file {ReductionSchemeFilePath} to json output.  Details:" + Environment.NewLine + e.Message);
+            }
+            #endregion
+
+            File.Delete(ReductionSchemeFilePath);
+            foreach (string LogFile in Directory.EnumerateFiles(Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative), DocumentNodeArg.Name + "*.log"))
+            {
                 try
                 {
-                    foreach (string Line in File.ReadLines(ReductionSchemeFilePath))
-                    {
-                        // First line is csv header
-                        if (Line.Contains("FieldName"))
-                        {
-                            continue;
-                        }
-
-                        string[] Fields = Line.Split(new char[] { ',' }, StringSplitOptions.None);
-
-                        ExtractedField NewField = new ExtractedField { FieldName = Fields[1], DisplayName = Fields[2], Delimiter = Fields[4] };
-                        NewField.ValueStructure = Fields[3];
-
-                        string ValuesFileName = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "fieldvalues." + Fields[1] + ".csv");
-                        NewField.FieldValues = File.ReadAllLines(ValuesFileName).Skip(1).ToList();  // skip because the first line is the field name
-
-                        File.Delete(ValuesFileName);
-
-                        ResultHierarchy.Fields.Add(NewField);
-                    }
+                    File.Delete(LogFile);
                 }
                 catch (System.Exception e)
                 {
-                    Trace.WriteLine($"Error converting file {ReductionSchemeFilePath} to json output.  Details:" + Environment.NewLine + e.Message);
+                    Trace.WriteLine($"Failed to delete Qlikview task log file {LogFile}:" + Environment.NewLine + e.Message);
+                    throw;
                 }
-                #endregion
-
-                File.Delete(ReductionSchemeFilePath);
-                foreach (string LogFile in Directory.EnumerateFiles(Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative), DocumentNodeArg.Name + "*.log"))
-                {
-                    try
-                    {
-                        File.Delete(LogFile);
-                    }
-                    catch (System.Exception e)
-                    {
-                        Trace.WriteLine($"Failed to delete Qlikview task log file {LogFile}:" + Environment.NewLine + e.Message);
-                        throw;
-                    }
-                }
-            });
+            }
 
             Trace.WriteLine($"Task {JobDetail.TaskId.ToString()} completed ExtractReductionHierarchy");
 
@@ -338,15 +322,12 @@ namespace ContentReductionLib.ReductionRunners
             
             string FileNamePattern = $"{Path.GetFileNameWithoutExtension(MasterFileName)}.reduced*{Path.GetExtension(MasterFileName)}";
             string CopyDestinationPath = "";
-            ImpersonationObj.UsingImpersonatedIdentity(() =>
-            {
-                string ReducedFile = Directory.GetFiles(WorkingFolderAbsolute, FileNamePattern).Single();
-                CopyDestinationPath = Path.Combine(ApplicationDataExchangeFolder, Path.GetFileName(ReducedFile));
+            string ReducedFile = Directory.GetFiles(WorkingFolderAbsolute, FileNamePattern).Single();
+            CopyDestinationPath = Path.Combine(ApplicationDataExchangeFolder, Path.GetFileName(ReducedFile));
 
-                File.Copy(ReducedFile, CopyDestinationPath, true);
+            File.Copy(ReducedFile, CopyDestinationPath, true);
 
-                JobDetail.Result.ReducedContentFileHash = GlobalFunctions.GetFileHash(CopyDestinationPath);
-            });
+            JobDetail.Result.ReducedContentFileHash = GlobalFunctions.GetFileHash(CopyDestinationPath);
             JobDetail.Result.ReducedContentFilePath = CopyDestinationPath;
 
             Trace.WriteLine($"Task {JobDetail.TaskId.ToString()} completed DistributeResults");
@@ -380,21 +361,18 @@ namespace ContentReductionLib.ReductionRunners
         {
             DocumentNode DocNode = null;
 
-            await ImpersonationObj.UsingImpersonatedIdentity(async () =>
-            {
-                IQMS QmsClient = QmsClientCreator.New(QmsUrl);
+            IQMS QmsClient = QmsClientCreator.New(QmsUrl);
 
-                DocumentNode[] AllDocNodes = new DocumentNode[0];
-                DateTime Start = DateTime.Now;
-                while (DocNode == null && (DateTime.Now - Start) < new TimeSpan(0, 1, 10))  // QV server seems to poll for files every minute
-                {
-                    Thread.Sleep(500);
-                    AllDocNodes = await QmsClient.GetSourceDocumentNodesAsync(QdsServiceInfo.ID, SourceDocFolder.ID, RequestedRelativeFolder);
-                    DocNode = AllDocNodes.SingleOrDefault(dn => dn.FolderID == SourceDocFolder.ID
-                                                             && dn.Name == RequestedFileName
-                                                             && dn.RelativePath == RequestedRelativeFolder);
-                }
-            });
+            DocumentNode[] AllDocNodes = new DocumentNode[0];
+            DateTime Start = DateTime.Now;
+            while (DocNode == null && (DateTime.Now - Start) < new TimeSpan(0, 1, 10))  // QV server seems to poll for files every minute
+            {
+                Thread.Sleep(500);
+                AllDocNodes = await QmsClient.GetSourceDocumentNodesAsync(QdsServiceInfo.ID, SourceDocFolder.ID, RequestedRelativeFolder);
+                DocNode = AllDocNodes.SingleOrDefault(dn => dn.FolderID == SourceDocFolder.ID
+                                                            && dn.Name == RequestedFileName
+                                                            && dn.RelativePath == RequestedRelativeFolder);
+            }
 
             if (DocNode == null)
             {
@@ -454,14 +432,10 @@ namespace ContentReductionLib.ReductionRunners
             ((QmsApi.ScheduleTrigger)NewDocumentTask.Triggering.Triggers[0]).StartAt = DateTime.Now;
             #endregion
 
-            QmsApi.TaskInfo ReturnTaskInfo = null;
-            await ImpersonationObj.UsingImpersonatedIdentity(async () =>
-            {
-                IQMS QmsClient = QmsClientCreator.New(QmsUrl);
+            IQMS QmsClient = QmsClientCreator.New(QmsUrl);
 
-                await QmsClient.SaveDocumentTaskAsync(NewDocumentTask);
-                ReturnTaskInfo = await QmsClient.FindTaskAsync(QdsServiceInfo.ID, QmsApi.TaskType.DocumentTask, NewDocumentTask.General.TaskName);
-            });
+            await QmsClient.SaveDocumentTaskAsync(NewDocumentTask);
+            QmsApi.TaskInfo ReturnTaskInfo = await QmsClient.FindTaskAsync(QdsServiceInfo.ID, QmsApi.TaskType.DocumentTask, NewDocumentTask.General.TaskName);
 
             Trace.WriteLine($"Hierarchy extraction task with ID '{NewDocumentTask.ID.ToString("N")}' successfully saved");
 
@@ -566,14 +540,10 @@ namespace ContentReductionLib.ReductionRunners
             };
             #endregion
 
-            QmsApi.TaskInfo ReturnTaskInfo = null;
-            await ImpersonationObj.UsingImpersonatedIdentity(async () =>
-            {
-                IQMS QmsClient = QmsClientCreator.New(QmsUrl);
+            IQMS QmsClient = QmsClientCreator.New(QmsUrl);
 
-                await QmsClient.SaveDocumentTaskAsync(NewDocumentTask);
-                ReturnTaskInfo = await QmsClient.FindTaskAsync(QdsServiceInfo.ID, QmsApi.TaskType.DocumentTask, NewDocumentTask.General.TaskName);
-            });
+            await QmsClient.SaveDocumentTaskAsync(NewDocumentTask);
+            QmsApi.TaskInfo ReturnTaskInfo = await QmsClient.FindTaskAsync(QdsServiceInfo.ID, QmsApi.TaskType.DocumentTask, NewDocumentTask.General.TaskName);
 
             Trace.WriteLine($"Content reduction task with ID '{NewDocumentTask.ID.ToString("N")}' successfully saved");
 
@@ -593,55 +563,48 @@ namespace ContentReductionLib.ReductionRunners
 
             QmsApi.TaskStatus Status;
 
-            await ImpersonationObj.UsingImpersonatedIdentity(async () =>
+            IQMS QmsClient = QmsClientCreator.New(QmsUrl);
+
+            // Get the task started, this generally requires more than one call to RunTaskAsync
+            DateTime StartTime = DateTime.Now;
+            do
             {
-                IQMS QmsClient = QmsClientCreator.New(QmsUrl);
-
-                // Get the task started, this generally requires more than one call to RunTaskAsync
-                DateTime StartTime = DateTime.Now;
-                do
+                if (DateTime.Now - StartTime > MaxStartDelay)
                 {
-                    if (DateTime.Now - StartTime > MaxStartDelay)
-                    {
-                        throw new System.Exception($"Qlikview publisher failed to start task {TInfo.ID} before timeout");
-                    }
+                    throw new System.Exception($"Qlikview publisher failed to start task {TInfo.ID} before timeout");
+                }
 
-                    await QmsClient.RunTaskAsync(TInfo.ID);
-                    Thread.Sleep(250);
+                await QmsClient.RunTaskAsync(TInfo.ID);
+                Thread.Sleep(250);
 
-                    Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
-                } while (Status == null || Status.Extended == null || string.IsNullOrEmpty(Status.Extended.StartTime));
+                Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
+            } while (Status == null || Status.Extended == null || string.IsNullOrEmpty(Status.Extended.StartTime));
 
-                Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TInfo.ID} started running after {DateTime.Now - StartTime}");
+            Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TInfo.ID} started running after {DateTime.Now - StartTime}");
 
-                // Wait for started task to finish
-                DateTime RunningStartTime = DateTime.Now;
-                do
+            // Wait for started task to finish
+            DateTime RunningStartTime = DateTime.Now;
+            do
+            {
+                if (DateTime.Now - RunningStartTime > MaxElapsedRun)
                 {
-                    if (DateTime.Now - RunningStartTime > MaxElapsedRun)
-                    {
-                        throw new System.Exception($"Qlikview publisher failed to finish task {TInfo.ID} before timeout");
-                    }
+                    throw new System.Exception($"Qlikview publisher failed to finish task {TInfo.ID} before timeout");
+                }
 
-                    Thread.Sleep(250);
+                Thread.Sleep(250);
 
-                    Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
-                } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));
-                Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TInfo.ID} finished running after {DateTime.Now - RunningStartTime}");
-            });
+                Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
+            } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));
+            Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TInfo.ID} finished running after {DateTime.Now - RunningStartTime}");
         }
 
         private async Task<bool> DeleteQdsTask(QmsApi.TaskInfo TInfo)
         {
-            bool Result = false;
-            await ImpersonationObj.UsingImpersonatedIdentity(async () =>
-            {
-                IQMS QmsClient = QmsClientCreator.New(QmsUrl);
-                QmsApi.TaskStatus Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
+            IQMS QmsClient = QmsClientCreator.New(QmsUrl);
+            QmsApi.TaskStatus Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
 
-                // null should indicate that the task doesn't exist
-                Result = (Status == null) || await QmsClient.DeleteTaskAsync(TInfo.ID, TInfo.Type);
-            });
+            // null should indicate that the task doesn't exist
+            bool Result = (Status == null) || await QmsClient.DeleteTaskAsync(TInfo.ID, TInfo.Type);
 
             return Result;
         }

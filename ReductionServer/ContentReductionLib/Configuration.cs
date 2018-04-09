@@ -13,6 +13,9 @@ namespace ContentReductionLib
 {
     public static class Configuration
     {
+        /// <summary>
+        /// Intended to be invoked at the application project level using json managed by the application
+        /// </summary>
         public static void LoadConfiguration()
         {
             IConfigurationBuilder CfgBuilder = new ConfigurationBuilder();

@@ -6,13 +6,11 @@
 
 using System;
 using System.Diagnostics;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Security;
 using System.Security.Principal;
 using Microsoft.Win32.SafeHandles;
 
-namespace ContentReductionLib
+namespace MapCommonLib
 {
 
     public class Impersonation : IDisposable
@@ -87,12 +85,13 @@ namespace ContentReductionLib
             return WindowsIdentity.RunImpersonated(_SafeAccessTokenHandle, F);
         }
 
-        public void Test()
+        public static void Test()
         {
+            Impersonation Imp = new Impersonation("TestUser", "TestDomain", "TestPassword");
+
             Console.WriteLine("Before impersonation: " + WindowsIdentity.GetCurrent().Name);
 
-            // Note: To run unimpersonated, pass 'SafeAccessTokenHandle.InvalidHandle' instead of variable 'safeAccessTokenHandle'
-            WindowsIdentity.RunImpersonated(_SafeAccessTokenHandle, () =>
+            Imp.UsingImpersonatedIdentity(() =>
             {
                 // Check the identity.
                 Console.WriteLine("During impersonation: " + WindowsIdentity.GetCurrent().Name);
