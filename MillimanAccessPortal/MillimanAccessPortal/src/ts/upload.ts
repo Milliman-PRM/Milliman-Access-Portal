@@ -49,7 +49,7 @@ export class ResumableProgressStats {
   snapshot: RetainedValue<ResumableProgressSnapshot>;
   rate: RetainedValue<number>;
   remainingTime: RetainedValue<number>;
-  lastRateUnitIndex: number; // corresponds with the magnitude of this.rate
+  private lastRateUnitIndex: number; // corresponds with the magnitude of this.rate
   constructor(snapshotLengthLimit: number) {
     this.snapshot = new RetainedValue(snapshotLengthLimit);
     this.rate = new RetainedValue(1);
@@ -82,8 +82,10 @@ export class ResumableProgressStats {
       const _ = Math.floor(this.snapshot.now.ratio * 100 * precisionFactor) / precisionFactor;
       return `${_}%`;
     })(1);
-    const rate = ((precision: number, upperThreshold: number, lowerThreshold: number, weights: Array<number>): string => {
+    const rate = ((precision: number, unitThreshold: [number, number], weights: Array<number>): string => {
       const units = ['', 'K', 'M', 'G'];
+      const upperThreshold = unitThreshold[0];
+      const lowerThreshold = unitThreshold[1];
       let rateUnitIndex = 0;
       let now = this.rate.avg(weights);
       while (now > (1000 * upperThreshold) && rateUnitIndex < units.length) {
@@ -99,7 +101,7 @@ export class ResumableProgressStats {
       this.lastRateUnitIndex = rateUnitIndex;
       const _ = `${now}`.slice(0, precision).replace(/\.$/, '');
       return `${_} ${units[rateUnitIndex]}B/s`;
-    })(4, 2, 1, _.map(_.range(4, 0, -1), (x) => x**2));
+    })(5, [2, 1], _.map(_.range(4, 0, -1), (x) => x**2));
     const remainingTime = (() => {
       const remainingSeconds = Math.ceil(this.remainingTime.now);
       const seconds = remainingSeconds % 60;
