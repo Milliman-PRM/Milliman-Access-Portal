@@ -5,14 +5,20 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
   entry: {
-    'account-settings': './src/js/account-settings.js',
-    'client-admin': './src/js/client-admin.js',
-    'content-access-admin': './src/js/content-access-admin.js',
-    'login': './src/js/login.js',
-    'hosted-content': './src/js/hosted-content.js',
+    'account-settings': './src/ts/account-settings.ts',
+    'client-admin': './src/ts/client-admin.ts',
+    'content-access-admin': './src/ts/content-access-admin.ts',
+    'login': './src/ts/login.ts',
+    'hosted-content': './src/ts/hosted-content.ts',
   },
   module: {
     rules: [
+      {
+        test: /\.tsx?$/,
+        use: [
+          { loader: 'awesome-typescript-loader' },
+        ],
+      },
       {
         test: /\.css$/,
         use: [
@@ -60,6 +66,15 @@ module.exports = {
     }),
     new webpack.NamedModulesPlugin(),
   ],
+  resolve: {
+    extensions: [
+      '.webpack.js',
+      '.web.js',
+      '.ts',
+      '.tsx',
+      '.js',
+    ],
+  },
   mode: 'development',
-  devtool: 'source-map',
+  devtool: 'inline-source-map',
 };

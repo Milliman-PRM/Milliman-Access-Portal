@@ -6,6 +6,7 @@ var card = require('./card');
 var dialog = require('./dialog');
 require('./lib-options');
 var shared = require('./shared');
+require('./jquery-map');
 
 require('bootstrap/scss/bootstrap-reboot.scss');
 require('toastr/toastr.scss');
@@ -248,8 +249,22 @@ $(document).ready(function () {
 
   $('.action-icon-expand').click(shared.expandAll.listener);
   $('.action-icon-collapse').click(shared.collapseAll.listener);
-  $('.admin-panel-searchbar-tree').keyup(shared.filterTree.listener);
-  $('.admin-panel-searchbar-form').keyup(shared.filterForm.listener);
+  $('.admin-panel-searchbar-tree').keyup(function (event) {
+    event.stopPropagation();
+    $(this).closest('.admin-panel-container')
+      .find('.admin-panel-content').children()
+      .hide()
+      .filterTree($(this).val())
+      .show();
+  });
+  $('.admin-panel-searchbar-form').keyup(function (event) {
+    event.stopPropagation();
+    $(this).closest('.admin-panel-container')
+      .find('.admin-panel-content').children()
+      .hide()
+      .filterSelections($(this).val())
+      .show();
+  });
 
   $('#selection-groups ul.admin-panel-content-action').append(new card.AddSelectionGroupActionCard(selectionGroupAddClickHandler).build());
   // TODO: select by ID or better classes
