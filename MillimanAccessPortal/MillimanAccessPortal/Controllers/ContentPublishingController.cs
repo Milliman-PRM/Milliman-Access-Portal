@@ -281,7 +281,7 @@ namespace MillimanAccessPortal.Controllers
             System.IO.File.Move(tempFilePath, targetFilePath);
 
 
-            if (resumableData.ChunkNumber == resumableData.TotalChunks)
+            if (new DirectoryInfo(Path.GetDirectoryName(targetFilePath)).GetFiles().Length == resumableData.TotalChunks)
             {
                 // Reassemble the file from its parts
                 var chunkPath = Path.Combine(Path.GetTempPath(), resumableData.UID);
@@ -299,15 +299,7 @@ namespace MillimanAccessPortal.Controllers
                         System.IO.File.Delete(chunkFileName);
                     }
                 }
-                try
-                {
-                    Directory.Delete(chunkPath);
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    // TODO: notify that directory was not empty
-                    Directory.Delete(chunkPath, true);
-                }
+                Directory.Delete(chunkPath);
 
                 // checksum the file
                 byte[] checksumBytes;
