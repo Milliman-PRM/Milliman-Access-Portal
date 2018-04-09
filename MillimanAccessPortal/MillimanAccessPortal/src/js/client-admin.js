@@ -400,7 +400,7 @@ function userCardRemoveClickHandler(event) {
   var userName = $clickedCard.find('.card-body-primary-text').html();
   event.stopPropagation();
   new dialog.RemoveUserDialog(userName, function removeUser(value, callback) {
-    var clientId = $('#client-tree [selected]').attr('data-client-id');
+    var clientId = $clickedCard.attr('data-client-id');
     var userId = $clickedCard.attr('data-user-id');
     removeUserFromClient(clientId, userId, callback);
   }).open();
