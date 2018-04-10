@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace MillimanAccessPortal.Migrations
 {
-    public partial class AddMoreReductionTaskFields : Migration
+    public partial class AddReductionTaskFields : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -14,7 +14,7 @@ namespace MillimanAccessPortal.Migrations
                 newName: "ReducedContentHierarchy");
 
             migrationBuilder.AddColumn<string>(
-                name: "MasterContentHash",
+                name: "MasterContentChecksum",
                 table: "ContentReductionTask",
                 nullable: true);
 
@@ -25,7 +25,7 @@ namespace MillimanAccessPortal.Migrations
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
-                name: "ReducedContentHash",
+                name: "ReducedContentChecksum",
                 table: "ContentReductionTask",
                 nullable: true);
         }
@@ -33,7 +33,7 @@ namespace MillimanAccessPortal.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "MasterContentHash",
+                name: "MasterContentChecksum",
                 table: "ContentReductionTask");
 
             migrationBuilder.DropColumn(
@@ -41,7 +41,7 @@ namespace MillimanAccessPortal.Migrations
                 table: "ContentReductionTask");
 
             migrationBuilder.DropColumn(
-                name: "ReducedContentHash",
+                name: "ReducedContentChecksum",
                 table: "ContentReductionTask");
 
             migrationBuilder.RenameColumn(

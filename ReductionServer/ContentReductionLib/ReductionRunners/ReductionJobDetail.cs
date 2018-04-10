@@ -46,7 +46,7 @@ namespace ContentReductionLib.ReductionRunners
                                                      .SelectMany(f => f.Values
                                                                        .Select(v => new FieldValueSelection { FieldName = f.FieldName, FieldValue = v.Value, Selected = v.SelectionStatus }))
                                                      .ToList(),
-                    MasterContentHash = T.MasterContentHash,
+                    MasterContentChecksum = T.MasterContentChecksum,
                 },
                 Result = new ReductionJobResult(),
             };
@@ -60,14 +60,14 @@ namespace ContentReductionLib.ReductionRunners
             internal string ReducedContentFilePath { get; set; } = string.Empty;
             internal ExtractedHierarchy MasterContentHierarchy { get; set; } = null;
             internal ExtractedHierarchy ReducedContentHierarchy { get; set; } = null;
-            internal string ReducedContentFileHash { get; set; } = string.Empty;
+            internal string ReducedContentFileChecksum { get; set; } = string.Empty;
         }
 
         internal class ReductionJobRequest
         {
             internal string MasterFilePath { get; set; }
             internal List<FieldValueSelection> SelectionCriteria { get; set; }
-            internal string MasterContentHash { get; set; } = string.Empty;
+            internal string MasterContentChecksum { get; set; } = string.Empty;
         }
     }
 }

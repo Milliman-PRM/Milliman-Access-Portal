@@ -110,7 +110,7 @@ namespace MillimanAccessPortal.Migrations
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<string>("MasterContentHash");
+                    b.Property<string>("MasterContentChecksum");
 
                     b.Property<string>("MasterContentHierarchy")
                         .HasColumnType("jsonb");
@@ -118,7 +118,7 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("MasterFilePath")
                         .IsRequired();
 
-                    b.Property<string>("ReducedContentHash");
+                    b.Property<string>("ReducedContentChecksum");
 
                     b.Property<string>("ReducedContentHierarchy")
                         .HasColumnType("jsonb");

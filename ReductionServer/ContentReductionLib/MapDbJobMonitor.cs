@@ -239,17 +239,17 @@ namespace ContentReductionLib
                             throw new Exception("Unsupported job result status in MapDbJobMonitor.UpdateTask().");
                     }
 
-                    DbTask.MasterContentHierarchy = JobDetail.Result.MasterContentHierarchy != null ?
-                                                JsonConvert.SerializeObject((ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.MasterContentHierarchy, Formatting.Indented) :
-                                                null;
+                    DbTask.MasterContentHierarchy = JobDetail.Result.MasterContentHierarchy != null 
+                                                ? JsonConvert.SerializeObject((ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.MasterContentHierarchy, Formatting.Indented)
+                                                : null;
 
-                    DbTask.ReducedContentHierarchy = JobDetail.Result.ReducedContentHierarchy != null ?
-                                                JsonConvert.SerializeObject((ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.ReducedContentHierarchy, Formatting.Indented) :
-                                                null;
+                    DbTask.ReducedContentHierarchy = JobDetail.Result.ReducedContentHierarchy != null
+                                                ? JsonConvert.SerializeObject((ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.ReducedContentHierarchy, Formatting.Indented)
+                                                : null;
 
                     DbTask.ResultFilePath = JobDetail.Result.ReducedContentFilePath;
 
-                    DbTask.ReducedContentHash = JobDetail.Result.ReducedContentFileHash;
+                    DbTask.ReducedContentChecksum = JobDetail.Result.ReducedContentFileChecksum;
 
                     DbTask.ReductionStatusMessage = JobDetail.Result.StatusMessage;
 

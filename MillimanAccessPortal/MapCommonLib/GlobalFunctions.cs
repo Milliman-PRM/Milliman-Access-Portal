@@ -29,7 +29,7 @@ namespace MapCommonLib
             }
         }
 
-        public static string GetFileHash(string FilePath)
+        public static string GetFileChecksum(string FilePath)
         {
             byte[] checksumBytes;
             using (Stream concatStream = System.IO.File.OpenRead(FilePath))

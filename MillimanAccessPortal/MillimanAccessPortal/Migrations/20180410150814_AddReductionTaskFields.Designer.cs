@@ -12,8 +12,8 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20180406182511_AddMoreReductionTaskFields")]
-    partial class AddMoreReductionTaskFields
+    [Migration("20180410150814_AddReductionTaskFields")]
+    partial class AddReductionTaskFields
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -111,7 +111,7 @@ namespace MillimanAccessPortal.Migrations
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<string>("MasterContentHash");
+                    b.Property<string>("MasterContentChecksum");
 
                     b.Property<string>("MasterContentHierarchy")
                         .HasColumnType("jsonb");
@@ -119,7 +119,7 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("MasterFilePath")
                         .IsRequired();
 
-                    b.Property<string>("ReducedContentHash");
+                    b.Property<string>("ReducedContentChecksum");
 
                     b.Property<string>("ReducedContentHierarchy")
                         .HasColumnType("jsonb");

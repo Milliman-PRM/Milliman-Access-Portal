@@ -80,7 +80,9 @@ namespace QvReportReductionGui
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            label1.Text = (Manager == null) ? "Null Manager" : Manager.AllMonitorThreadsRunning.ToString();
+            label1.Text = (Manager == null) 
+                            ? "Null Manager" 
+                            : Manager.AllMonitorThreadsRunning.ToString();
         }
 
     }

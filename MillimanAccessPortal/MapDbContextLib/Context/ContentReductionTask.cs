@@ -97,9 +97,9 @@ namespace MapDbContextLib.Context
         [Column(TypeName ="jsonb")]
         public string SelectionCriteria { get; set; }
 
-        public string MasterContentHash { get; set; }
+        public string MasterContentChecksum { get; set; }
 
-        public string ReducedContentHash { get; set; }
+        public string ReducedContentChecksum { get; set; }
     }
 }
 

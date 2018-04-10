@@ -181,7 +181,7 @@ namespace ContentReductionLib.ReductionRunners
                 Directory.CreateDirectory(WorkingFolderAbsolute);
                 File.Copy(JobDetail.Request.MasterFilePath, MasterFileDestinationPath);
 
-                if (GlobalFunctions.GetFileHash(MasterFileDestinationPath) != JobDetail.Request.MasterContentHash)
+                if (GlobalFunctions.GetFileChecksum(MasterFileDestinationPath) != JobDetail.Request.MasterContentChecksum)
                 {
                     throw new ApplicationException("Master content file integrity check failed, mismatch of file hash");
                 }
@@ -313,7 +313,7 @@ namespace ContentReductionLib.ReductionRunners
         }
 
         /// <summary>
-        /// Complete this
+        /// Makes the outcome of the processing operation accessible to the main application
         /// </summary>
         private bool DistributeResults()
         {
@@ -327,7 +327,7 @@ namespace ContentReductionLib.ReductionRunners
 
             File.Copy(ReducedFile, CopyDestinationPath, true);
 
-            JobDetail.Result.ReducedContentFileHash = GlobalFunctions.GetFileHash(CopyDestinationPath);
+            JobDetail.Result.ReducedContentFileChecksum = GlobalFunctions.GetFileChecksum(CopyDestinationPath);
             JobDetail.Result.ReducedContentFilePath = CopyDestinationPath;
 
             Trace.WriteLine($"Task {JobDetail.TaskId.ToString()} completed DistributeResults");
