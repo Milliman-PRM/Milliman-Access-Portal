@@ -12,9 +12,10 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180403132513_AddUserMessageField")]
+    partial class AddUserMessageField
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -110,18 +111,11 @@ namespace MillimanAccessPortal.Migrations
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<string>("MasterContentChecksum");
-
-                    b.Property<string>("MasterContentHierarchy")
+                    b.Property<string>("ExtractedHierarchy")
                         .HasColumnType("jsonb");
 
                     b.Property<string>("MasterFilePath")
                         .IsRequired();
-
-                    b.Property<string>("ReducedContentChecksum");
-
-                    b.Property<string>("ReducedContentHierarchy")
-                        .HasColumnType("jsonb");
 
                     b.Property<long>("ReductionStatus")
                         .ValueGeneratedOnAdd()
