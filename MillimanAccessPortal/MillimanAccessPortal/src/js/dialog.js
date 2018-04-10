@@ -1,4 +1,6 @@
 var shared = require('./shared');
+var vex = require('vex-js');
+var toastr = require('toastr');
 
 var dialog = {};
 
