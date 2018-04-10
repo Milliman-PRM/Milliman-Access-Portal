@@ -151,10 +151,11 @@ Specific ports and protocols will be opened to groups of VMs via Network Securit
 |----|--------|-----------|
 |Domain Controllers|10.42.1.0/24|File Servers, QlikView Publishers, QlikView Servers, Clients|
 |File Servers|10.42.2.0/24|Domain Controllers, MAP application, QlikView Servers, QlikView Publishers|
-|QlikView Servers|10.42.3.0/24|File Servers, Domain Controllers, MAP application|
+|QlikView Servers|10.42.3.0/24|File Servers, Domain Controllers, MAP application, Application Gateways|
 |QlikView Publishers|10.42.4.0/24|File Servers, Domain Controllers|
-|MAP application|10.42.5.0/24|File Servers, Qlikview Servers|
+|MAP application|10.42.5.0/24|File Servers, Qlikview Servers, Application Gateways|
 |Clients|10.42.6.0/24|File Servers, QlikView Publishers, QlikView Servers|
+|Application Gateways|10.42.7.0/24|MAP application, QlikView Servers
 
 ### Network Security Groups & Windows Firewall Configuration
 
@@ -239,7 +240,7 @@ Connections to the PostgreSQL server should only be allowed from within Azure, a
 
 Enabling VM access to PostgreSQL server requires the creation of a role permitting outbound traffic over port 5432 from the Network Security Group to the destination `Sql.NorthCentralUS`.
 
-Currently, our PostgreSQL server is configured to allow all Azure services to communicate with it by default. The Azure PostgreSQL team says it expects to have [VNET Service Endpoint support in public preview within a few weeks](https://feedback.azure.com/forums/597976-azure-database-for-postgresql/suggestions/19601389-vnet-integration) (as of March 28, 2018). Once that feature becomes available, we will utilize it and disable the option for allowing all Azure connections. 
+Currently, our PostgreSQL server is configured to allow all Azure services to communicate with it by default. The Azure PostgreSQL team says it expects to have [VNET Service Endpoint support in public preview within a few weeks](https://feedback.azure.com/forums/597976-azure-database-for-postgresql/suggestions/19601389-vnet-integration) (as of March 28, 2018). Once that feature becomes available, we will utilize it and disable the option for allowing all Azure connections.
 
 At this time, only the MAP application and QlikView Publishers need access to the databases full-time.
 
