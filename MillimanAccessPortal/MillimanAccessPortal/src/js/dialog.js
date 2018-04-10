@@ -2,6 +2,9 @@ var shared = require('./shared');
 var vex = require('vex-js');
 var toastr = require('toastr');
 
+require('vex-js/sass/vex.sass');
+require('vex-js/sass/vex-theme-default.sass');
+
 var dialog = {};
 
 var Dialog;
