@@ -68,7 +68,8 @@ namespace MapTests
         public Mock<IMessageQueue> MockMessageQueueService { get; set; }
         public IMessageQueue MessageQueueServicesObject { get => MockMessageQueueService.Object; }
 
-        public IFileProvider FileProviderObject { get; } = new PhysicalFileProvider(Path.GetTempPath());
+        public Mock<IFileProvider> MockFileProvider { get; set; }
+        public IFileProvider FileProviderObject { get => MockFileProvider.Object; }
 
         public IOptions<QlikviewConfig> QvConfig { get; set; }
 
@@ -141,6 +142,7 @@ namespace MapTests
             MockUserManager = MapTests.MockUserManager.New(MockDbContext);
             MockRoleManager = GenerateRoleManager(MockDbContext);
             MockMessageQueueService = GenerateMessageQueueService();
+            MockFileProvider = GenerateFileProvider();
             LoggerFactory = new LoggerFactory();
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject);
@@ -283,6 +285,18 @@ namespace MapTests
         private Mock<IMessageQueue> GenerateMessageQueueService()
         {
             Mock<IMessageQueue> ReturnObject = new Mock<IMessageQueue>();
+
+            return ReturnObject;
+        }
+
+        private Mock<IFileProvider> GenerateFileProvider()
+        {
+            Mock<IFileProvider> ReturnObject = new Mock<IFileProvider>();
+
+            Mock<IFileInfo> MockFileInfo = new Mock<IFileInfo>();
+            MockFileInfo.Setup(f => f.Exists).Returns(false);
+
+            ReturnObject.Setup(f => f.GetFileInfo(It.IsAny<string>())).Returns(MockFileInfo.Object);
 
             return ReturnObject;
         }
