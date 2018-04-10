@@ -21,7 +21,6 @@ namespace ContentReductionLib.ReductionRunners
     internal class QvReductionRunner : ReductionRunnerBase
     {
         string QmsUrl = null;
-        AuditLogger Logger = new AuditLogger();  // Exception if static AuditLogger.Config is not initialized (should be done globally for process)
 
         /// <summary>
         /// Constructor, sets up starting conditions that are associated with the system configuration rather than this specific task.
@@ -127,11 +126,6 @@ namespace ContentReductionLib.ReductionRunners
                 Msg = "JobDetailObj, or a member of it, is null";
             }
 
-            else if (Logger == null)
-            {
-                Msg = "Logger is null";
-            }
-
             else if (QdsServiceInfo == null)
             {
                 Msg = "QdsServiceInfo is null";
@@ -165,7 +159,13 @@ namespace ContentReductionLib.ReductionRunners
             if (!string.IsNullOrEmpty(Msg))
             {
                 MethodBase Method = MethodBase.GetCurrentMethod();
+
+                object DetailObj = new { ReductionTaskId = JobDetail.TaskId.ToString(), Error = Msg};
+                AuditEvent Event = AuditEvent.New($"{Method.ReflectedType.Name}.{Method.Name}", "Validation of processing prerequisites failed", AuditEventId.ReductionValidationFailed, DetailObj);
+                new AuditLogger().Log(Event);
+
                 Msg = $"Error in {Method.ReflectedType.Name}.{Method.Name}: {Msg}";
+
                 throw new System.ApplicationException(Msg);
             }
         }

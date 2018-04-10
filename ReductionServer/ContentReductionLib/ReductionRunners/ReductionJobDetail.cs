@@ -34,7 +34,9 @@ namespace ContentReductionLib.ReductionRunners
         // cast operator to convert a MAP ContentReductionTask to this type
         public static explicit operator ReductionJobDetail(ContentReductionTask T)
         {
-            ContentReductionHierarchy<ReductionFieldValueSelection> MapSelections = JsonConvert.DeserializeObject<ContentReductionHierarchy<ReductionFieldValueSelection>>(T.SelectionCriteria);
+            ContentReductionHierarchy<ReductionFieldValueSelection> MapSelections = T.SelectionCriteria != null
+                ? JsonConvert.DeserializeObject<ContentReductionHierarchy<ReductionFieldValueSelection>>(T.SelectionCriteria)
+                : new ContentReductionHierarchy<ReductionFieldValueSelection>();
 
             return new ReductionJobDetail
             {

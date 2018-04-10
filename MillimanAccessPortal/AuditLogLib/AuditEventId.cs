@@ -48,6 +48,13 @@ namespace AuditLogLib
         public static readonly AuditEventId SelectionChangeReductionQueued = new AuditEventId(4005, "Selection change reduction task queued");
         public static readonly AuditEventId SelectionChangeReductionCanceled = new AuditEventId(4006, "Selection change reduction task canceled");
 
+        // Reduction Server category 5000 - 5999
+        public static readonly AuditEventId ReductionValidationFailed = new AuditEventId(5001, "Reduction Validation Failed");
+        public static readonly AuditEventId HierarchyExtractionSucceeded = new AuditEventId(5101, "Content hierarchy extraction completed");
+        public static readonly AuditEventId HierarchyExtractionFailed = new AuditEventId(5102, "Content hierarchy extraction failed");
+        public static readonly AuditEventId ContentReductionSucceeded = new AuditEventId(5201, "Content reduction completed");
+        public static readonly AuditEventId ContentReductionFailed = new AuditEventId(5202, "Content reduction failed");
+
         public AuditEventId(int id, string name = "")
         {
             Id = id;
