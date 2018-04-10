@@ -23,8 +23,6 @@ namespace ContentReductionLib.ReductionRunners
         string QmsUrl = null;
         AuditLogger Logger = new AuditLogger();  // Exception if static AuditLogger.Config is not initialized (should be done globally for process)
 
-        internal CancellationToken _CancellationToken { private get; set; }
-
         /// <summary>
         /// Constructor, sets up starting conditions that are associated with the system configuration rather than this specific task.
         /// </summary>
@@ -39,6 +37,8 @@ namespace ContentReductionLib.ReductionRunners
         }
 
         #region Member properties
+        internal CancellationToken _CancellationToken { private get; set; }
+
         internal ReductionJobDetail JobDetail { get; set; } = new ReductionJobDetail();
 
         private DocumentFolder SourceDocFolder { get; set; } = null;
@@ -56,6 +56,11 @@ namespace ContentReductionLib.ReductionRunners
         private DocumentNode ReducedDocumentNode { get; set; } = null;
         #endregion
 
+        /// <summary>
+        /// Entry point for the execution of a reduction task.  Intended to be invoked as a Task by a JobMonitorBase derived object. 
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         internal async override Task<ReductionJobDetail> ExecuteReduction(CancellationToken cancellationToken)
         {
             _CancellationToken = cancellationToken;
@@ -110,41 +115,49 @@ namespace ContentReductionLib.ReductionRunners
             return JobDetail;
         }
 
+        /// <summary>
+        /// Validate as many as possible of the member properties
+        /// </summary>
         internal override void ValidateThisInstance()
         {
             string Msg = null;
 
-            if (JobDetail == null || JobDetail.Request == null || JobDetail.Result == null)
+            if (JobDetail == null || JobDetail.Request == null || JobDetail.Request.SelectionCriteria == null || JobDetail.Result == null)
             {
                 Msg = "JobDetailObj, or a member of it, is null";
             }
 
-            if (Logger == null)
+            else if (Logger == null)
             {
                 Msg = "Logger is null";
             }
 
-            if (QdsServiceInfo == null)
+            else if (QdsServiceInfo == null)
             {
                 Msg = "QdsServiceInfo is null";
             }
 
-            if (QdsServiceInfo.ID == Guid.Empty)
+            else if (QdsServiceInfo.ID == Guid.Empty)
             {
                 Msg = "QdsServiceInfo.ID is Guid.Empty";
             }
 
-            if (SourceDocFolder == null)
+            else if (SourceDocFolder == null)
             {
                 Msg = "SourceDocFolder is null";
             }
 
-            if (!Directory.Exists(SourceDocFolder.General.Path))
+            else if (JobDetail.Request.SelectionCriteria.Count(v => v.Selected) == 0)
+            {
+                Msg = $"No selected field values are included in the reduction request";
+            }
+
+            else if (!Directory.Exists(SourceDocFolder.General.Path))
             {
                 Msg = $"SourceDocFolder {SourceDocFolder.General.Path} not found";
             }
 
-            if (_CancellationToken == null)
+            else if (_CancellationToken == null)
             {
                 Msg = "_CancellationToken is null";
             }
@@ -202,7 +215,7 @@ namespace ContentReductionLib.ReductionRunners
         }
 
         /// <summary>
-        /// Complete this
+        /// Extracts the reduction fields and corresponding values of a Qlikview content item
         /// </summary>
         private async Task<ExtractedHierarchy> ExtractReductionHierarchy(DocumentNode DocumentNodeArg)
         {
@@ -382,6 +395,11 @@ namespace ContentReductionLib.ReductionRunners
             return DocNode;
         }
 
+        /// <summary>
+        /// Creates and stores a Qlikview publisher task to extract the selection hierarchy info for a QV document
+        /// </summary>
+        /// <param name="DocNodeArg"></param>
+        /// <returns></returns>
         private async Task<QmsApi.TaskInfo> CreateHierarchyExtractionQdsTask(DocumentNode DocNodeArg)
         {
             string TaskDateTimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
@@ -442,6 +460,11 @@ namespace ContentReductionLib.ReductionRunners
             return ReturnTaskInfo;
         }
 
+        /// <summary>
+        /// Creates and stores a Qlikview publisher task to produce a reduced version of a master QV document
+        /// </summary>
+        /// <param name="Selections"></param>
+        /// <returns></returns>
         private async Task<QmsApi.TaskInfo> CreateReductionQdsTask(IEnumerable<FieldValueSelection> Selections)
         {
             //TODO debug this function
@@ -598,6 +621,11 @@ namespace ContentReductionLib.ReductionRunners
             Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TInfo.ID} finished running after {DateTime.Now - RunningStartTime}");
         }
 
+        /// <summary>
+        /// Deletes a Qlikview server task. 
+        /// </summary>
+        /// <param name="TInfo"></param>
+        /// <returns></returns>
         private async Task<bool> DeleteQdsTask(QmsApi.TaskInfo TInfo)
         {
             IQMS QmsClient = QmsClientCreator.New(QmsUrl);
