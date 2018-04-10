@@ -140,7 +140,7 @@ cd $rootpath\ReductionServer
 
 log_statement "Performing test build of reduction server"
 
-MSBuild /restore:true
+MSBuild /restore:true /verbosity:quiet /nowarn:CS1998
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Test build or package restore failed for reduction server solution"
