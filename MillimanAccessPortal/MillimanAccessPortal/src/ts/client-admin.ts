@@ -1,4 +1,5 @@
 var $ = require('jquery');
+require('./jquery-map');
 require('jquery-mask-plugin');
 require('jquery-validation');
 require('jquery-validation-unobtrusive');
@@ -667,7 +668,14 @@ $(document).ready(function onReady() {
     shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog);
   });
 
-  $('.admin-panel-searchbar').keyup(shared.filterTree.listener);
+  $('.admin-panel-searchbar-tree').keyup(function (event) {
+    event.stopPropagation();
+    $(this).closest('.admin-panel-container')
+      .find('.admin-panel-content').children()
+      .hide()
+      .filterTree($(this).val())
+      .show();
+  });
   $('.tooltip').tooltipster();
 
   // TODO: find a better place for this
