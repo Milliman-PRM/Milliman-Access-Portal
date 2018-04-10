@@ -8,10 +8,10 @@ namespace MillimanAccessPortal.Models.ContentPublicationViewModels
 {
     public class ResumableData
     {
-        public int ChunkNumber { get; set; }
-        public int TotalChunks { get; set; }
-        public int ChunkSize { get; set; }
-        public long TotalSize { get; set; }
+        public uint ChunkNumber { get; set; }
+        public uint TotalChunks { get; set; }
+        public uint ChunkSize { get; set; }
+        public ulong TotalSize { get; set; }
         public string FileName { get; set; }
         public string FileExt { get => Path.GetExtension(FileName); }
         public string UID { get; set; }

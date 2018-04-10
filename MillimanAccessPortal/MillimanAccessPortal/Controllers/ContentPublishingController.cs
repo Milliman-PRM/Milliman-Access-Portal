@@ -266,7 +266,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Ensure file is within size limit
-            if (resumableData.TotalSize > (5 * 1000 * 1000 * 1000L)) // TODO: move to configuration
+            if (resumableData.TotalSize > GlobalFunctions.maxFileUploadSize)
             {
                 System.IO.File.Delete(tempFilePath);
                 return BadRequest();

@@ -12,7 +12,7 @@ import 'tooltipster/src/css/tooltipster.css';
 import 'tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css';
 import 'vex-js/sass/vex.sass';
 import '../scss/map.scss';
-const appSettings = require('../../appSettings.json');
+const appSettings = require('../../appsettings.json');
 
 function setUnloadAlert(value: boolean) {
   window.onbeforeunload = value
@@ -32,7 +32,7 @@ function generateUIDFromSHA1(render: (progress: number) => void) {
       const reader = new FileReader();
       const chunkSize = (2 ** 20); // 1 MiB
       let offset = 0;
-      reader.onload = () => {
+      reader.onload = function () {
         render(offset / file.size);
         md.update(this.result);
         offset += chunkSize;

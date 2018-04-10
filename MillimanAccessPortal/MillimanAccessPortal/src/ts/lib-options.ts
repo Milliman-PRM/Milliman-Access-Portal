@@ -3,7 +3,7 @@ require('jquery-validation');
 import toastr = require('toastr');
 const vex = require('vex-js');
 vex.registerPlugin(require('vex-dialog'));
-const appSettings = require('../../appSettings.json');
+const appSettings = require('../../appsettings.json');
 
 // Configure jQuery validation overrides
 // See https://jqueryvalidation.org/jQuery.validator.methods/
@@ -47,7 +47,7 @@ toastr.options = {
 };
 
 export const resumableOptions = {
-  simultaneousUploads: appSettings.Global.MaxSimultaneousUploads,
+  simultaneousUploads: 3,
   maxFiles: 1,
   maxFileSize: appSettings.Global.MaxFileUploadSize,
   chunkNumberParameterName: 'chunkNumber',
