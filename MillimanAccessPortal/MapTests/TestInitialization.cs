@@ -84,6 +84,7 @@ namespace MapTests
         /// Associates each DataSelection enum value with the function that implements it
         /// </summary>
         private Dictionary<DataSelection, Action> DataGenFunctionDict;
+        private string TestDataPath = Path.GetFullPath("../../../TestData");
 
         /// <summary>
         /// Constructor, initiates construction of functional but empty dependencies
@@ -291,14 +292,25 @@ namespace MapTests
 
         private Mock<IFileProvider> GenerateFileProvider()
         {
-            Mock<IFileProvider> ReturnObject = new Mock<IFileProvider>();
+            Mock<IFileProvider> mockFileProvider = new Mock<IFileProvider>();
 
-            Mock<IFileInfo> MockFileInfo = new Mock<IFileInfo>();
-            MockFileInfo.Setup(f => f.Exists).Returns(false);
+            mockFileProvider.Setup(f => f.GetFileInfo(It.IsAny<string>())).Returns<string>((s) =>
+            {
+                Mock<IFileInfo> mock = new Mock<IFileInfo>();
+                var fileInfo = new FileInfo(Path.Combine(TestDataPath, "Uploads", s));
+                mock.Setup(f => f.Exists).Returns(fileInfo.Exists);
+                mock.Setup(f => f.Length).Returns(fileInfo.Exists ? fileInfo.Length : -1);
+                mock.Setup(f => f.PhysicalPath).Returns(fileInfo.Exists ? fileInfo.FullName : "");
+                return mock.Object;
+            });
+            mockFileProvider.Setup(f => f.GetDirectoryContents(It.IsAny<string>())).Returns<string>((s) =>
+            {
+                Mock<IDirectoryContents> mock = new Mock<IDirectoryContents>();
+                mock.Setup(m => m.Count()).Returns(Directory.EnumerateFileSystemEntries(s).Count());
+                return mock.Object;
+            });
 
-            ReturnObject.Setup(f => f.GetFileInfo(It.IsAny<string>())).Returns(MockFileInfo.Object);
-
-            return ReturnObject;
+            return mockFileProvider;
         }
 
         private Mock<AuditLogger> GenerateAuditLogger()
