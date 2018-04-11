@@ -1,4 +1,5 @@
 var $ = require('jquery');
+require('./navbar');
 require('jquery-mask-plugin');
 require('jquery-validation');
 require('jquery-validation-unobtrusive');

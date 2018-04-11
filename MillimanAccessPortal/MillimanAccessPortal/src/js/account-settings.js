@@ -2,6 +2,7 @@ var $ = require('jquery');
 require('jquery-mask-plugin');
 require('jquery-validation');
 require('jquery-validation-unobtrusive');
+require('./navbar');
 var toastr = require('toastr');
 require('./lib-options');
 var shared = require('./shared');

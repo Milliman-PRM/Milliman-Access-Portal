@@ -1,3 +1,5 @@
+require('./navbar');
+
 /// <reference path="client-admin.js" />
 /* global domainValRegex, emailValRegex */
 
