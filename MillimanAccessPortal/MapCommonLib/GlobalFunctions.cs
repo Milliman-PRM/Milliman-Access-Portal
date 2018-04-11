@@ -33,14 +33,12 @@ namespace MapCommonLib
         public static string GetFileChecksum(string FilePath)
         {
             byte[] checksumBytes;
-            using (Stream concatStream = System.IO.File.OpenRead(FilePath))
+            using (Stream concatStream = File.OpenRead(FilePath))
             using (HashAlgorithm hashAlgorithm = new SHA1Managed())
             {
                 checksumBytes = hashAlgorithm.ComputeHash(concatStream);
             }
-            string ChecksumString = BitConverter.ToString(checksumBytes).Replace("-", "");
-            return ChecksumString;
-            //var equal = resumableData.Checksum.Equals(checksum, StringComparison.OrdinalIgnoreCase)
+            return BitConverter.ToString(checksumBytes).Replace("-", "");
         }
 
         public static string GetAssemblyCopyrightString(Assembly AssemblyArg)

@@ -76,97 +76,11 @@ namespace MillimanAccessPortal.Controllers
             return View();
         }
 
-        /// <summary>
-        /// Queues a request for publication and associated reduction tasks
-        /// </summary>
-        /// <param name="FileName"></param>
-        /// <param name="RootContentId"></param>
-        /// <returns></returns>
-        public async Task<IActionResult> RequestContentPublication(string FileName, long RootContentId)
-        {
-            #region Preliminary Validation
-            RootContentItem RootContent = DbContext.RootContentItem.SingleOrDefault(rc => rc.Id == RootContentId);
-            if (RootContent == null)
-            {
-                Response.Headers.Add("Warning", "Requested content item not found.");
-                return BadRequest();
-            }
-            #endregion
-
-            #region Authorization
-            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, RootContentId));
-            if (!Result1.Succeeded)
-            {
-                Response.Headers.Add("Warning", $"You are not authorized to publish this content");
-                return Unauthorized();
-            }
-            #endregion
-
-            #region Validation
-            int ExistingTaskCountForRootContent = DbContext.ContentReductionTask
-                                                           .Include(t => t.ContentPublicationRequest)
-                                                           .Where(t => t.ContentPublicationRequest.RootContentItemId == RootContentId)
-                                                           .Where(t => t.ReductionStatus != ReductionStatusEnum.Live)
-                                                           .Count();
-            if (ExistingTaskCountForRootContent > 0)
-            {
-                Response.Headers.Add("Warning", "Tasks are already pending for this content item.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-
-            // Virus checking here?
-
-            // more?
-            #endregion
-
-            try
-            {
-                using (IDbContextTransaction Transaction = DbContext.Database.BeginTransaction())
-                {
-                    ContentPublicationRequest NewPubRequest = new ContentPublicationRequest { ApplicationUser = await Queries.GetCurrentApplicationUser(User),
-                        RootContentItemId = RootContentId,
-                        MasterFilePath = "ThisInputFile" };
-                    DbContext.ContentPublicationRequest.Add(NewPubRequest);
-                    DbContext.SaveChanges();
-
-                    foreach (SelectionGroup SelGrp in DbContext.SelectionGroup.Where(sg => sg.RootContentItemId == RootContentId).ToList())
-                    {
-                        string SelectionCriteriaString = JsonConvert.SerializeObject(Queries.GetFieldSelectionsForSelectionGroup(SelGrp.Id), Formatting.Indented);
-                        var NewTask = new ContentReductionTask
-                        {
-                            ApplicationUser = await Queries.GetCurrentApplicationUser(User),
-                            SelectionGroupId = SelGrp.Id,
-                            MasterFilePath = "ThisInputFile",
-                            ResultFilePath = "ThisOutputFile",
-                            ContentPublicationRequest = NewPubRequest,
-                            SelectionCriteria = SelectionCriteriaString,
-                            ReductionStatus = ReductionStatusEnum.Queued,
-                        };
-
-                        DbContext.ContentReductionTask.Add(NewTask);
-                    }
-
-                    DbContext.SaveChanges();
-                    Transaction.Commit();
-                }
-            }
-            catch (Exception e)
-            {
-                string ErrMsg = GlobalFunctions.LoggableExceptionString(e, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): failed to store request to database");
-                Logger.LogError(ErrMsg);
-                Response.Headers.Add("Warning", "Error processing request.");
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-
-            return Json(new object());
-        }
-
         [HttpGet]
         public ActionResult ChunkStatus(ResumableData resumableData)
         {
             var chunkRelPath = Path.Combine(resumableData.UID, $"{resumableData.ChunkNumber:D8}.chunk");
             var chunkInfo = FileProvider.GetFileInfo(chunkRelPath);
-
 
             return (chunkInfo.Exists
                     && chunkInfo.Length == resumableData.ChunkSize // basic validation
@@ -177,8 +91,9 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UploadResumable()
+        public async Task<IActionResult> RequestContentPublication()
         {
+            #region Model binding
             if (!MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
             {
                 return BadRequest($"Expected a multipart request, but got {Request.ContentType}");
@@ -264,34 +179,68 @@ namespace MillimanAccessPortal.Controllers
                     return BadRequest(ModelState);
                 }
             }
+            #endregion
+
+            #region Preliminary Validation
+            RootContentItem rootContentItem = DbContext.RootContentItem.SingleOrDefault(rc => rc.Id == resumableData.RootContentItemId);
+            if (rootContentItem == null)
+            {
+                Response.Headers.Add("Warning", "Requested content item not found.");
+                return BadRequest();
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, resumableData.RootContentItemId));
+            if (!RoleInRootContentItemResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to publish this content");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            // TODO: add additional validation
 
             // Ensure file is within size limit
             if (resumableData.TotalSize > GlobalFunctions.maxFileUploadSize)
             {
                 System.IO.File.Delete(tempFilePath);
+                Response.Headers.Add("Warning", "Uploaded file is too large.");
                 return BadRequest();
             }
+            #endregion
 
             // Move the temporary file
-            var targetFileInfo = FileProvider.GetFileInfo(Path.Combine(
-                resumableData.UID, $"{resumableData.ChunkNumber:D8}.chunk"));
-            var targetFilePath = targetFileInfo.PhysicalPath;
-            var targetDirPath = Path.GetDirectoryName(targetFilePath);
-
-            // It is OK to receive a chunk more than once
-            if (System.IO.File.Exists(targetFilePath))
             {
-                System.IO.File.Delete(targetFilePath);
+                var targetFileInfo = FileProvider.GetFileInfo(Path.Combine(
+                    resumableData.UID, $"{resumableData.ChunkNumber:D8}.chunk"));
+                var targetFilePath = targetFileInfo.PhysicalPath;
+                var targetDirPath = Path.GetDirectoryName(targetFilePath);
+
+                // It is OK to receive a chunk more than once
+                if (System.IO.File.Exists(targetFilePath))
+                {
+                    System.IO.File.Delete(targetFilePath);
+                }
+                Directory.CreateDirectory(targetDirPath);
+                System.IO.File.Move(tempFilePath, targetFilePath);
             }
-            Directory.CreateDirectory(targetDirPath);
-            System.IO.File.Move(tempFilePath, targetFilePath);
 
-            if (FileProvider.GetDirectoryContents(resumableData.UID).Count() == resumableData.TotalChunks)
+            // If the upload is not complete, take no further action
+            if (FileProvider.GetDirectoryContents(resumableData.UID).Count() < resumableData.TotalChunks)
             {
-                // Reassemble the file from its parts
+                return Ok();
+            }
+
+            // The upload is complete - prepare it for virus scanning and create a publication request
+            var concatFileName = FileProvider.GetFileInfo($"{resumableData.UID}.upload").PhysicalPath;
+            var finalFileName = FileProvider.GetFileInfo($"{resumableData.UID}{resumableData.FileExt}").PhysicalPath;
+
+            // Reassemble the file from its parts
+            {
                 var chunkFileNames = Enumerable.Range(1, Convert.ToInt32(resumableData.TotalChunks))
                     .Select(chunkNumber => FileProvider.GetFileInfo(Path.Combine(resumableData.UID, $"{chunkNumber:D8}.chunk")).PhysicalPath);
-                var concatFileName = FileProvider.GetFileInfo($"{resumableData.UID}.upload").PhysicalPath;
                 using (Stream concatStream = System.IO.File.OpenWrite(concatFileName))
                 {
                     foreach (var chunkFileName in chunkFileNames)
@@ -304,35 +253,34 @@ namespace MillimanAccessPortal.Controllers
                     }
                 }
                 Directory.Delete(FileProvider.GetFileInfo(resumableData.UID).PhysicalPath);
+            }
 
-                // checksum the file
-                byte[] checksumBytes;
-                using (Stream concatStream = System.IO.File.OpenRead(concatFileName))
-                using (HashAlgorithm hashAlgorithm = new SHA1Managed())
-                {
-                    checksumBytes = hashAlgorithm.ComputeHash(concatStream);
-                }
-                var checksum = BitConverter.ToString(checksumBytes).Replace("-", "");
-
+            // Checksum the file
+            {
+                var checksum = GlobalFunctions.GetFileChecksum(concatFileName);
                 if (!resumableData.Checksum.Equals(checksum, StringComparison.OrdinalIgnoreCase))
                 {
-                    // checksums do not match, something went wrong during upload
-                    // there isn't a great response code for this, so return a 400 with a warning.
+                    // Checksums do not match, something went wrong during upload
                     Directory.Delete(concatFileName);
+                    Response.Headers.Add("Warning", "File was corrupted during upload. Please re-upload.");
                     return BadRequest();
                 }
+            }
 
-                // rename the file with proper extension, this will allow it to be noticed by virus scanner
-                var finalFileName = FileProvider.GetFileInfo($"{resumableData.UID}{resumableData.FileExt}").PhysicalPath;
+            // Rename the file with proper extension - this makes it visible to the virus scanner
+            {
                 if (System.IO.File.Exists(finalFileName))
                 {
                     System.IO.File.Delete(finalFileName);
                 }
                 System.IO.File.Move(concatFileName, finalFileName);
+            }
 
-                // create the publication request and reduction task(s)
+            // Create the publication request and reduction task(s)
+            ContentPublicationRequest contentPublicationRequest;
+            {
                 var currentApplicationUser = await Queries.GetCurrentApplicationUser(User);
-                var contentPublicationRequest = new ContentPublicationRequest
+                contentPublicationRequest = new ContentPublicationRequest
                 {
                     ApplicationUserId = currentApplicationUser.Id,
                     MasterFilePath = finalFileName,
@@ -340,10 +288,12 @@ namespace MillimanAccessPortal.Controllers
                 };
                 DbContext.ContentPublicationRequest.Add(contentPublicationRequest);
                 DbContext.SaveChanges();
+            }
 
-                // Master selection group is created when root content item is created, so there must always
-                // be at least one available selection group.
-                // TODO: possibly create master selection group at publication time (here).
+            // Master selection group is created when root content item is created, so there must always
+            // be at least one available selection group.
+            // TODO: possibly create master selection group at publication time (here).
+            {
                 var selectionGroups = DbContext.SelectionGroup
                     .Where(sg => sg.RootContentItemId == resumableData.RootContentItemId)
                     .ToList();
@@ -357,16 +307,14 @@ namespace MillimanAccessPortal.Controllers
                         MasterFilePath = contentPublicationRequest.MasterFilePath,
                         SelectionCriteria = JsonConvert.SerializeObject(
                             Queries.GetFieldSelectionsForSelectionGroup(sg.Id, sg.SelectedHierarchyFieldValueList)), // TODO: special case when selection group is a master selection group
-                        ReductionStatus = ReductionStatusEnum.Validating,
+                    ReductionStatus = ReductionStatusEnum.Validating,
                     });
 
                 DbContext.ContentReductionTask.AddRange(contentReductionTasks);
                 DbContext.SaveChanges();
-
-                return Json(contentPublicationRequest);
             }
 
-            return Ok();
+            return Json(contentPublicationRequest);
         }
     }
 
