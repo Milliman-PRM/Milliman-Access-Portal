@@ -112,7 +112,7 @@ log_statement "Restoring packages before unit tests"
 MSBuild /t:Restore /verbosity:quiet
 
 if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: Initial nuget package restore failed"
+    log_statement "ERROR: Initial nuget package restore failed for MAP solution"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
@@ -134,6 +134,20 @@ if ($LASTEXITCODE -ne 0) {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
+
+
+cd $rootpath\ReductionServer
+
+log_statement "Performing test build of reduction server"
+
+MSBuild /restore:true /verbosity:quiet /nowarn:CS1998
+
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: Test build or package restore failed for reduction server solution"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
 
 log_statement "Building unit tests"
 

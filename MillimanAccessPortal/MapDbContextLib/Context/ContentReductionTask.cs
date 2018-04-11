@@ -68,6 +68,11 @@ namespace MapDbContextLib.Context
         public ReductionStatusEnum ReductionStatus { get; set; }
 
         /// <summary>
+        /// This conveys a user level message regarding an error status from reduction server.
+        /// </summary>
+        public string ReductionStatusMessage { get; set; } = null;
+
+        /// <summary>
         /// This path must be accessible to MAP application and reduction server.  
         /// May be different from master file in ContentPublicationRequest
         /// </summary>
@@ -83,10 +88,20 @@ namespace MapDbContextLib.Context
         /// From reduction server. json is intended to deserialize to an instance of ContentReductionHierarchy
         /// </summary>
         [Column(TypeName = "jsonb")]
-        public string ExtractedHierarchy { get; set; }
+        public string MasterContentHierarchy { get; set; }
+
+        /// <summary>
+        /// From reduction server. json is intended to deserialize to an instance of ContentReductionHierarchy
+        /// </summary>
+        [Column(TypeName = "jsonb")]
+        public string ReducedContentHierarchy { get; set; }
 
         [Column(TypeName ="jsonb")]
         public string SelectionCriteria { get; set; }
+
+        public string MasterContentChecksum { get; set; }
+
+        public string ReducedContentChecksum { get; set; }
     }
 }
 

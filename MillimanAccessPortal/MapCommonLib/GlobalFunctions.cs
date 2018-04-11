@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Cryptography;
 using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
@@ -27,6 +28,19 @@ namespace MapCommonLib
             {
                 return false;
             }
+        }
+
+        public static string GetFileChecksum(string FilePath)
+        {
+            byte[] checksumBytes;
+            using (Stream concatStream = System.IO.File.OpenRead(FilePath))
+            using (HashAlgorithm hashAlgorithm = new SHA1Managed())
+            {
+                checksumBytes = hashAlgorithm.ComputeHash(concatStream);
+            }
+            string ChecksumString = BitConverter.ToString(checksumBytes).Replace("-", "");
+            return ChecksumString;
+            //var equal = resumableData.Checksum.Equals(checksum, StringComparison.OrdinalIgnoreCase)
         }
 
         public static string GetAssemblyCopyrightString(Assembly AssemblyArg)
