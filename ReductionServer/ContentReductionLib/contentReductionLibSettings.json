@@ -1,0 +1,18 @@
+﻿{
+  "ConnectionStrings": {
+    "AuditLogConnectionString": "",
+    "DefaultConnection": ""
+  },
+  "Logging": {
+    "IncludeScopes": false,
+    "LogLevel": {
+      "Default": "Warning"
+    }
+  },
+  "QvServerHost": "",
+  "IQmsUrl": "",
+  "StopWaitTimeSeconds": "180",
+  "QvServerAdminUserAuthenticationDomain": "",
+  "QvServerAdminUserName": "",
+  "QvServerAdminUserPassword": ""
+}

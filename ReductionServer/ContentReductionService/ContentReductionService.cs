@@ -38,14 +38,17 @@ namespace ContentReductionService
             Trace.WriteLine($"Service OnStart() called");
             Configuration.LoadConfiguration();
 
-            Manager = new ProcessManager();
-            Manager.Start();
+            if (Manager == null || !Manager.AnyMonitorThreadRunning)
+            {
+                Manager = new ProcessManager();
+                Manager.Start();
+            }
         }
 
         protected override void OnStop()
         {
             Trace.WriteLine($"Service OnStop() called");
-            if (Manager == null)
+            if (Manager != null)
             {
                 Manager.Stop();
                 Manager = null;

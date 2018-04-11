@@ -32,6 +32,7 @@
             // ContentReductionService
             // 
             this.CanShutdown = true;
+            this.CanPauseAndContinue = true;
             this.ServiceName = "ContentReductionService";
 
         }

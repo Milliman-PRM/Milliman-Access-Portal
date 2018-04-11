@@ -29,7 +29,17 @@ namespace ContentReductionLib
         // Settable operating parameters
         // TODO These should come from configuration.
         internal TimeSpan TaskAgeBeforeExecution { set; private get; }
-        private TimeSpan WaitTimeForTasksAfterCancel { get { return TimeSpan.FromMinutes(3); } }
+        private TimeSpan StopWaitTimeSeconds
+        {
+            get
+            {
+                if (!int.TryParse(Configuration.ApplicationConfiguration["StopWaitTimeSeconds"], out int WaitSec))
+                {
+                    WaitSec = 3 * 60;
+                }
+                return TimeSpan.FromSeconds(WaitSec);
+            }
+        }
 
         internal int MaxParallelTasks { set; private get; }
 
@@ -140,26 +150,35 @@ namespace ContentReductionLib
             }
 
             MethodBase Method = MethodBase.GetCurrentMethod();
-            Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} received stop request, waiting up to {WaitTimeForTasksAfterCancel} for any running tasks to complete");
-            DateTime WaitStart = DateTime.Now;
 
+            if (ActiveReductionRunnerItems.Count == 0)
+            {
+                Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} stopped due to cancellation request");
+                return;
+            }
+
+            Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} received stop request, cancelling {ActiveReductionRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
             ActiveReductionRunnerItems.ForEach(t => t.tokenSource.Cancel());
 
-            while (ActiveReductionRunnerItems.Count > 0)
+            DateTime WaitStart = DateTime.Now;
+            while (DateTime.Now - WaitStart < StopWaitTimeSeconds)
             {
-                if (DateTime.Now - WaitStart > WaitTimeForTasksAfterCancel)
-                {
-                    break;
-                }
+                Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} waiting for {ActiveReductionRunnerItems.Count} running tasks to complete");
 
-                int CompletedTaskIndex = Task.WaitAny(ActiveReductionRunnerItems.Select(t => t.task).ToArray(), new TimeSpan(WaitTimeForTasksAfterCancel.Ticks/100));
+                int CompletedTaskIndex = Task.WaitAny(ActiveReductionRunnerItems.Select(t => t.task).ToArray(), new TimeSpan(StopWaitTimeSeconds.Ticks/100));
                 if (CompletedTaskIndex > -1)
                 {
                     ActiveReductionRunnerItems.RemoveAt(CompletedTaskIndex);
                 }
+
+                if (ActiveReductionRunnerItems.Count == 0)
+                {
+                    Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} all reduction runners terminated successfully");
+                    return;
+                }
             }
+
             Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} after timer expired, {ActiveReductionRunnerItems.Count} reduction tasks not completed");
-            Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} stopped due to application request");
         }
 
         /// <summary>

@@ -67,11 +67,19 @@ namespace ContentReductionLib
         /// <summary>
         /// Entry point intended for the main application to request this object to gracefully stop all processing under its control
         /// </summary>
-        /// <param name="WaitMs"></param>
+        /// <param name="WaitMs">if negative, use configured parameter "StopWaitTimeSeconds" or default to hard coded value</param>
         /// <returns></returns>
-        public bool Stop(int WaitMs = 0)
+        public bool Stop(int WaitSec = -1)
         {
-            TimeSpan MaxWaitTime = TimeSpan.FromMinutes(3);
+            if (WaitSec < 0)
+            {
+                if (!int.TryParse(Configuration.ApplicationConfiguration["StopWaitTimeSeconds"], out WaitSec))
+                {
+                    WaitSec = 3 * 60;
+                }
+            }
+
+            TimeSpan MaxWaitTime = TimeSpan.FromSeconds(WaitSec);
 
             foreach (var MonitorKvp in JobMonitorDict)
             {

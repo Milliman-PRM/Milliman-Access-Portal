@@ -18,9 +18,10 @@ namespace ContentReductionLib
         /// </summary>
         public static void LoadConfiguration()
         {
-            IConfigurationBuilder CfgBuilder = new ConfigurationBuilder();
-            CfgBuilder.AddJsonFile(path: "appsettings.json", optional: true, reloadOnChange: true)
-                      .AddUserSecrets<MapDbJobMonitor>();
+            IConfigurationBuilder CfgBuilder = new ConfigurationBuilder()
+                .AddJsonFile(path: "contentReductionLibSettings.json", optional: true, reloadOnChange: true)
+                .AddJsonFile(path: "appSettings.json", optional: true, reloadOnChange: true)
+                .AddUserSecrets<MapDbJobMonitor>();
 
             // TODO .Add... environment dependent configuration content (e.g. for AzureKeyVault in CI and production environments)
             // Make sure to consider running both as service and GUI app, (secrets not available as service)
