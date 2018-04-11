@@ -10,6 +10,7 @@ var shared = require('./shared');
 require('bootstrap/scss/bootstrap-reboot.scss');
 require('toastr/toastr.scss');
 require('tooltipster/src/css/tooltipster.css');
+require('tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css');
 require('vex-js/sass/vex.sass');
 require('../scss/map.scss');
 
