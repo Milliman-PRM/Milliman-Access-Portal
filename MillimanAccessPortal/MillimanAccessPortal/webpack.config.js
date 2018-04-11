@@ -8,6 +8,7 @@ module.exports = {
     'account-settings': './src/js/account-settings.js',
     'client-admin': './src/js/client-admin.js',
     'content-access-admin': './src/js/content-access-admin.js',
+    'content-publisher': './src/js/content-publisher.js',
     'login': './src/js/login.js',
     'hosted-content': './src/js/hosted-content.js',
   },

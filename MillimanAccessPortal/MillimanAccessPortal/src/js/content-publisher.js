@@ -1,4 +1,8 @@
+require('jquery');
 require('./navbar');
+
+require('bootstrap/scss/bootstrap-reboot.scss');
+require('../scss/map.scss');
 
 /// <reference path="client-admin.js" />
 /* global domainValRegex, emailValRegex */
