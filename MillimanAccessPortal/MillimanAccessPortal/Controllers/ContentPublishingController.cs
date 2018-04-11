@@ -29,6 +29,7 @@ using System.Text;
 using MillimanAccessPortal.Models.ContentPublicationViewModels;
 using System.Security.Cryptography;
 using Microsoft.Extensions.FileProviders;
+using MillimanAccessPortal.Services;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -37,7 +38,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuditLogger AuditLogger;
         private readonly IAuthorizationService AuthorizationService;
         private readonly ApplicationDbContext DbContext;
-        private readonly IFileProvider FileProvider;
+        private readonly IUploadHelper UploadHelper;
         private readonly ILogger Logger;
         private readonly StandardQueries Queries;
 
@@ -54,7 +55,7 @@ namespace MillimanAccessPortal.Controllers
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
             ApplicationDbContext ContextArg,
-            IFileProvider FileProverArg,
+            IUploadHelper UploadHelperArg,
             ILoggerFactory LoggerFactoryArg,
             StandardQueries QueriesArg
             )
@@ -62,7 +63,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
             DbContext = ContextArg;
-            FileProvider = FileProverArg;
+            UploadHelper = UploadHelperArg;
             Logger = LoggerFactoryArg.CreateLogger<ContentPublishingController>(); ;
             Queries = QueriesArg;
         }
@@ -77,14 +78,9 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpGet]
-        public ActionResult ChunkStatus(ResumableData resumableData)
+        public ActionResult ChunkStatus(ResumableInfo resumableInfo)
         {
-            var chunkRelPath = Path.Combine(resumableData.UID, $"{resumableData.ChunkNumber:D8}.chunk");
-            var chunkInfo = FileProvider.GetFileInfo(chunkRelPath);
-
-            return (chunkInfo.Exists
-                    && chunkInfo.Length == resumableData.ChunkSize // basic validation
-                    && resumableData.ChunkNumber != resumableData.TotalChunks) // always upload the last chunk
+            return UploadHelper.GetChunkReceived(resumableInfo, resumableInfo.ChunkNumber)
                 ? ((ActionResult) Ok())
                 : NoContent();
         }
@@ -102,9 +98,6 @@ namespace MillimanAccessPortal.Controllers
             // Used to accumulate all the form url encoded key value pairs in the request.
             var formAccumulator = new KeyValueAccumulator();
 
-            // TODO: It is possible, however unlikely, to have multiple chunks choose the same temp path. Use managed temp file names instead.
-            var tempFilePath = FileProvider.GetFileInfo(Path.GetRandomFileName()).PhysicalPath;
-
             // The encapsulation boundary should never exceed 70 characters.
             // See https://tools.ietf.org/html/rfc2046#section-5.1.1
             var boundary = MultipartRequestHelper.GetBoundary(
@@ -121,9 +114,9 @@ namespace MillimanAccessPortal.Controllers
                 {
                     if (MultipartRequestHelper.HasFileContentDisposition(contentDisposition))
                     {
-                        using (var targetStream = System.IO.File.Create(tempFilePath))
+                        using (var tempFileStream = UploadHelper.OpenTempFile())
                         {
-                            await section.Body.CopyToAsync(targetStream);
+                            await section.Body.CopyToAsync(tempFileStream);
                         }
                     }
                     else if (MultipartRequestHelper.HasFormDataContentDisposition(contentDisposition))
@@ -162,27 +155,26 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Bind form data to a model
-            var resumableData = new ResumableData();
+            var resumableInfo = new ResumableInfo();
             var formValueProvider = new FormValueProvider(
                 BindingSource.Form,
                 new FormCollection(formAccumulator.GetResults()),
                 CultureInfo.CurrentCulture);
 
             // All required model attributes must be present for binding to succeed
-            var bindingSuccessful = await TryUpdateModelAsync(resumableData, prefix: "",
+            var bindingSuccessful = await TryUpdateModelAsync(resumableInfo, prefix: "",
                 valueProvider: formValueProvider);
             if (!bindingSuccessful)
             {
                 if (!ModelState.IsValid)
                 {
-                    System.IO.File.Delete(tempFilePath);
                     return BadRequest(ModelState);
                 }
             }
             #endregion
 
             #region Preliminary Validation
-            RootContentItem rootContentItem = DbContext.RootContentItem.SingleOrDefault(rc => rc.Id == resumableData.RootContentItemId);
+            RootContentItem rootContentItem = DbContext.RootContentItem.SingleOrDefault(rc => rc.Id == resumableInfo.RootContentItemId);
             if (rootContentItem == null)
             {
                 Response.Headers.Add("Warning", "Requested content item not found.");
@@ -191,7 +183,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, resumableData.RootContentItemId));
+            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, resumableInfo.RootContentItemId));
             if (!RoleInRootContentItemResult.Succeeded)
             {
                 Response.Headers.Add("Warning", $"You are not authorized to publish this content");
@@ -201,79 +193,13 @@ namespace MillimanAccessPortal.Controllers
 
             #region Validation
             // TODO: add additional validation
-
-            // Ensure file is within size limit
-            if (resumableData.TotalSize > GlobalFunctions.maxFileUploadSize)
-            {
-                System.IO.File.Delete(tempFilePath);
-                Response.Headers.Add("Warning", "Uploaded file is too large.");
-                return BadRequest();
-            }
             #endregion
 
-            // Move the temporary file
-            {
-                var targetFileInfo = FileProvider.GetFileInfo(Path.Combine(
-                    resumableData.UID, $"{resumableData.ChunkNumber:D8}.chunk"));
-                var targetFilePath = targetFileInfo.PhysicalPath;
-                var targetDirPath = Path.GetDirectoryName(targetFilePath);
+            UploadHelper.ProcessUpload(resumableInfo, out bool allChunksReceived);
 
-                // It is OK to receive a chunk more than once
-                if (System.IO.File.Exists(targetFilePath))
-                {
-                    System.IO.File.Delete(targetFilePath);
-                }
-                Directory.CreateDirectory(targetDirPath);
-                System.IO.File.Move(tempFilePath, targetFilePath);
-            }
-
-            // If the upload is not complete, take no further action
-            if (FileProvider.GetDirectoryContents(resumableData.UID).Count() < resumableData.TotalChunks)
+            if (!allChunksReceived)
             {
                 return Ok();
-            }
-
-            // The upload is complete - prepare it for virus scanning and create a publication request
-            var concatFileName = FileProvider.GetFileInfo($"{resumableData.UID}.upload").PhysicalPath;
-            var finalFileName = FileProvider.GetFileInfo($"{resumableData.UID}{resumableData.FileExt}").PhysicalPath;
-
-            // Reassemble the file from its parts
-            {
-                var chunkFileNames = Enumerable.Range(1, Convert.ToInt32(resumableData.TotalChunks))
-                    .Select(chunkNumber => FileProvider.GetFileInfo(Path.Combine(resumableData.UID, $"{chunkNumber:D8}.chunk")).PhysicalPath);
-                using (Stream concatStream = System.IO.File.OpenWrite(concatFileName))
-                {
-                    foreach (var chunkFileName in chunkFileNames)
-                    {
-                        using (Stream srcStream = System.IO.File.OpenRead(chunkFileName))
-                        {
-                            srcStream.CopyTo(concatStream);
-                        }
-                        System.IO.File.Delete(chunkFileName);
-                    }
-                }
-                Directory.Delete(FileProvider.GetFileInfo(resumableData.UID).PhysicalPath);
-            }
-
-            // Checksum the file
-            {
-                var checksum = GlobalFunctions.GetFileChecksum(concatFileName);
-                if (!resumableData.Checksum.Equals(checksum, StringComparison.OrdinalIgnoreCase))
-                {
-                    // Checksums do not match, something went wrong during upload
-                    Directory.Delete(concatFileName);
-                    Response.Headers.Add("Warning", "File was corrupted during upload. Please re-upload.");
-                    return BadRequest();
-                }
-            }
-
-            // Rename the file with proper extension - this makes it visible to the virus scanner
-            {
-                if (System.IO.File.Exists(finalFileName))
-                {
-                    System.IO.File.Delete(finalFileName);
-                }
-                System.IO.File.Move(concatFileName, finalFileName);
             }
 
             // Create the publication request and reduction task(s)
@@ -283,8 +209,8 @@ namespace MillimanAccessPortal.Controllers
                 contentPublicationRequest = new ContentPublicationRequest
                 {
                     ApplicationUserId = currentApplicationUser.Id,
-                    MasterFilePath = finalFileName,
-                    RootContentItemId = resumableData.RootContentItemId,
+                    MasterFilePath = UploadHelper.GetOutputFilePath(),
+                    RootContentItemId = resumableInfo.RootContentItemId,
                 };
                 DbContext.ContentPublicationRequest.Add(contentPublicationRequest);
                 DbContext.SaveChanges();
@@ -295,7 +221,7 @@ namespace MillimanAccessPortal.Controllers
             // TODO: possibly create master selection group at publication time (here).
             {
                 var selectionGroups = DbContext.SelectionGroup
-                    .Where(sg => sg.RootContentItemId == resumableData.RootContentItemId)
+                    .Where(sg => sg.RootContentItemId == resumableInfo.RootContentItemId)
                     .ToList();
 
                 var contentReductionTasks = selectionGroups

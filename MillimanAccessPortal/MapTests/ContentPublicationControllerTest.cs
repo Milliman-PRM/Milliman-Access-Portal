@@ -91,10 +91,10 @@ namespace MapTests
             #endregion
         }
 
-        private ResumableData BuildResumableData(string fileName, string checksum, ulong size, uint chunkNumber)
+        private ResumableInfo BuildResumableData(string fileName, string checksum, ulong size, uint chunkNumber)
         {
             const uint chunkSize = (1024 * 1024);
-            var resumableData = new ResumableData
+            var resumableData = new ResumableInfo
             {
                 ChunkNumber = chunkNumber,
                 TotalChunks = ((uint) size) / chunkSize,

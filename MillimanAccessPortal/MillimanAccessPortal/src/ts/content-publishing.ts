@@ -56,7 +56,7 @@ $(document).ready(function(): void {
   // Alert the user if leaving the page during an upload
   setUnloadAlert(false);
   const r = new resumable($.extend({}, options.resumableOptions, {
-    target: '/ContentPublishing/UploadResumable',
+    target: '/ContentPublishing/RequestContentPublication',
     testTarget: '/ContentPublishing/ChunkStatus',
     headers: function() {
       return {

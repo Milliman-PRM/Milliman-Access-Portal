@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Models.ContentPublicationViewModels
 {
-    public class ResumableData
+    public class ResumableInfo
     {
         public uint ChunkNumber { get; set; }
         public uint TotalChunks { get; set; }
