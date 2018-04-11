@@ -35,13 +35,21 @@ namespace ContentReductionService
 
         protected override void OnStart(string[] args)
         {
-            Trace.WriteLine($"Service OnStart() called");
-            Configuration.LoadConfiguration();
-
-            if (Manager == null || !Manager.AnyMonitorThreadRunning)
+            try
             {
-                Manager = new ProcessManager();
-                Manager.Start();
+                Trace.WriteLine($"Service OnStart() called");
+                Configuration.LoadConfiguration();
+
+                if (Manager == null || !Manager.AnyMonitorThreadRunning)
+                {
+                    Manager = new ProcessManager();
+                    Manager.Start();
+                }
+            }
+            catch (Exception e)
+            {
+                Trace.WriteLine($"Failed to launch service, exception:{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}");
+                throw;
             }
         }
 
@@ -59,12 +67,27 @@ namespace ContentReductionService
         protected override void OnPause()
         {
             Trace.WriteLine($"Service OnPause() called");
+            if (Manager != null)
+            {
+                Manager.Stop();
+                Manager = null;
+            }
+
             base.OnPause();
         }
 
         protected override void OnContinue()
         {
             Trace.WriteLine($"Service OnContinue() called");
+
+            Configuration.LoadConfiguration();
+
+            if (Manager == null || !Manager.AnyMonitorThreadRunning)
+            {
+                Manager = new ProcessManager();
+                Manager.Start();
+            }
+
             base.OnContinue();
         }
 

@@ -13,12 +13,19 @@ using Newtonsoft.Json;
 
 namespace ContentReductionLib.ReductionRunners
 {
-    internal enum ReductionJobStatusEnum
+    internal enum JobStatusEnum
     {
         Unspecified,
         Canceled,
         Success,
         Error,
+    }
+
+    public enum JobActionEnum
+    {
+        Unspecified = 0,    // Default unknown state
+        HierarchyOnly = 1,
+        HierarchyAndReduction = 2,
     }
 
     /// <summary>
@@ -49,6 +56,11 @@ namespace ContentReductionLib.ReductionRunners
                                                                        .Select(v => new FieldValueSelection { FieldName = f.FieldName, FieldValue = v.Value, Selected = v.SelectionStatus }))
                                                      .ToList(),
                     MasterContentChecksum = T.MasterContentChecksum,
+                    JobAction = T.TaskAction == TaskActionEnum.HierarchyOnly 
+                                ? JobActionEnum.HierarchyOnly
+                                : T.TaskAction == TaskActionEnum.HierarchyAndReduction 
+                                ? JobActionEnum.HierarchyAndReduction
+                                : JobActionEnum.Unspecified,
                 },
                 Result = new ReductionJobResult(),
             };
@@ -57,7 +69,7 @@ namespace ContentReductionLib.ReductionRunners
 
         internal class ReductionJobResult
         {
-            internal ReductionJobStatusEnum Status { get; set; } = ReductionJobStatusEnum.Unspecified;
+            internal JobStatusEnum Status { get; set; } = JobStatusEnum.Unspecified;
             internal string StatusMessage { get; set; } = string.Empty;
             internal string ReducedContentFilePath { get; set; } = string.Empty;
             internal ExtractedHierarchy MasterContentHierarchy { get; set; } = null;
@@ -70,6 +82,8 @@ namespace ContentReductionLib.ReductionRunners
             internal string MasterFilePath { get; set; }
             internal List<FieldValueSelection> SelectionCriteria { get; set; }
             internal string MasterContentChecksum { get; set; } = string.Empty;
+            internal bool DoReduction { get; set; } = false;
+            internal JobActionEnum JobAction { get; set; } = JobActionEnum.Unspecified;
         }
     }
 }

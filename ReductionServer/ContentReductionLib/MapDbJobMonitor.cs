@@ -17,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using ContentReductionLib.ReductionRunners;
+using AuditLogLib;
 using Newtonsoft.Json;
 
 namespace ContentReductionLib
@@ -58,7 +59,7 @@ namespace ContentReductionLib
         internal string ConfiguredConnectionStringParamName {
             set
             {
-                ConnectionString = Configuration.ApplicationConfiguration.GetConnectionString(value);
+                ConnectionString = Configuration.GetConnectionString(value);
             }
         }
 
@@ -96,6 +97,7 @@ namespace ContentReductionLib
         /// <param name="Token"></param>
         internal override void JobMonitorThreadMain(CancellationToken Token)
         {
+            MethodBase Method = MethodBase.GetCurrentMethod();
             while (!Token.IsCancellationRequested)
             {
                 // Remove completed tasks from the RunningTasks collection. 
@@ -123,19 +125,11 @@ namespace ContentReductionLib
                                     JobDetail = (ReductionJobDetail)T,
                                 };
 
-                                NewTask = Task.Run(() => Runner.ExecuteReduction(cancelSource.Token));
+                                NewTask = Task.Run(() => Runner.Execute(cancelSource.Token));
                                 break;
 
                             default:
-                                NewTask = Task.Run(() =>
-                                {
-                                    // All of the below simulates what will be done in the reduction related class
-                                    for (int i = 0; i < 5; i++)
-                                    {
-                                        Thread.Sleep(1000);  // doing some reduction work
-                                        Trace.WriteLine($"Dummy task for unsupported content type on iteration {i}");
-                                    }
-                                });
+                                Trace.WriteLine($"Task record discovered for unsupported content type");
                                 break;
                         }
 
@@ -148,8 +142,6 @@ namespace ContentReductionLib
 
                 Thread.Sleep(1000);
             }
-
-            MethodBase Method = MethodBase.GetCurrentMethod();
 
             if (ActiveReductionRunnerItems.Count == 0)
             {
@@ -242,16 +234,16 @@ namespace ContentReductionLib
 
                     switch (JobDetail.Result.Status)
                     {
-                        case ReductionJobStatusEnum.Unspecified:
+                        case JobStatusEnum.Unspecified:
                             DbTask.ReductionStatus = ReductionStatusEnum.Unspecified;
                             break;
-                        case ReductionJobStatusEnum.Error:
+                        case JobStatusEnum.Error:
                             DbTask.ReductionStatus = ReductionStatusEnum.Error;
                             break;
-                        case ReductionJobStatusEnum.Success:
+                        case JobStatusEnum.Success:
                             DbTask.ReductionStatus = ReductionStatusEnum.Reduced;
                             break;
-                        case ReductionJobStatusEnum.Canceled:
+                        case JobStatusEnum.Canceled:
                             DbTask.ReductionStatus = ReductionStatusEnum.Canceled;
                             break;
                         default:

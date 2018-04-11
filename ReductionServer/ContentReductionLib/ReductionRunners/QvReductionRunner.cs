@@ -60,48 +60,72 @@ namespace ContentReductionLib.ReductionRunners
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        internal async override Task<ReductionJobDetail> ExecuteReduction(CancellationToken cancellationToken)
+        internal async override Task<ReductionJobDetail> Execute(CancellationToken cancellationToken)
         {
             _CancellationToken = cancellationToken;
             MethodBase Method = MethodBase.GetCurrentMethod();
+            object DetailObj;
+            AuditEvent Event;
 
             try
             {
-                // TODO maybe the impersonated scope should be more local to only the code that requires it
                 ValidateThisInstance();
                 _CancellationToken.ThrowIfCancellationRequested();
 
                 await PreTaskSetup();
-                _CancellationToken.ThrowIfCancellationRequested();
 
+                #region Extract master content hierarchy
                 JobDetail.Result.MasterContentHierarchy = await ExtractReductionHierarchy(MasterDocumentNode);
+
+                DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), Hierarchy = JobDetail.Result.MasterContentHierarchy };
+                Event = AuditEvent.New("Reduction server", "Extraction of master content hierarchy succeeded", AuditEventId.HierarchyExtractionSucceeded, DetailObj);
+                new AuditLogger().Log(Event);
+                #endregion
+
                 _CancellationToken.ThrowIfCancellationRequested();
 
-                await CreateReducedContent();
-                _CancellationToken.ThrowIfCancellationRequested();
+                if (JobDetail.Request.JobAction == JobActionEnum.HierarchyAndReduction)
+                {
+                    #region Create reduced content
+                    await CreateReducedContent();
 
-                JobDetail.Result.ReducedContentHierarchy = await ExtractReductionHierarchy(ReducedDocumentNode);
-                _CancellationToken.ThrowIfCancellationRequested();
+                    DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), RequestedSelections = JobDetail.Request.SelectionCriteria };
+                    Event = AuditEvent.New("Reduction server", "Creation of reduced content succeeded", AuditEventId.ContentReductionSucceeded, DetailObj);
+                    new AuditLogger().Log(Event);
+                    #endregion
 
-                DistributeResults();
+                    _CancellationToken.ThrowIfCancellationRequested();
 
-                JobDetail.Result.Status = ReductionJobStatusEnum.Success;
+                    #region Extract reduced content hierarchy
+                    JobDetail.Result.ReducedContentHierarchy = await ExtractReductionHierarchy(ReducedDocumentNode);
+
+                    DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), Hierarchy = JobDetail.Result.ReducedContentHierarchy };
+                    Event = AuditEvent.New("Reduction server", "Extraction of master content hierarchy succeeded", AuditEventId.HierarchyExtractionSucceeded, DetailObj);
+                    new AuditLogger().Log(Event);
+                    #endregion
+
+                    _CancellationToken.ThrowIfCancellationRequested();
+
+                    DistributeReducedContent();
+                }
+
+                JobDetail.Result.Status = JobStatusEnum.Success;
             }
             catch (OperationCanceledException e)
             {
-                JobDetail.Result.Status = ReductionJobStatusEnum.Canceled;
+                JobDetail.Result.Status = JobStatusEnum.Canceled;
                 Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = e.Message;
             }
             catch (ApplicationException e)
             {
-                JobDetail.Result.Status = ReductionJobStatusEnum.Error;
+                JobDetail.Result.Status = JobStatusEnum.Error;
                 Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = e.Message;
             }
             catch (System.Exception e)
             {
-                JobDetail.Result.Status = ReductionJobStatusEnum.Error;
+                JobDetail.Result.Status = JobStatusEnum.Error;
                 Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = e.Message;
             }
@@ -160,8 +184,8 @@ namespace ContentReductionLib.ReductionRunners
             {
                 MethodBase Method = MethodBase.GetCurrentMethod();
 
-                object DetailObj = new { ReductionTaskId = JobDetail.TaskId.ToString(), Error = Msg};
-                AuditEvent Event = AuditEvent.New($"{Method.ReflectedType.Name}.{Method.Name}", "Validation of processing prerequisites failed", AuditEventId.ReductionValidationFailed, DetailObj);
+                object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), Error = Msg};
+                AuditEvent Event = AuditEvent.New("Reduction server", "Validation of processing prerequisites failed", AuditEventId.ReductionValidationFailed, DetailObj);
                 new AuditLogger().Log(Event);
 
                 Msg = $"Error in {Method.ReflectedType.Name}.{Method.Name}: {Msg}";
@@ -264,6 +288,11 @@ namespace ContentReductionLib.ReductionRunners
             catch (System.Exception e)
             {
                 Trace.WriteLine($"Error converting file {ReductionSchemeFilePath} to json output.  Details:" + Environment.NewLine + e.Message);
+
+                // TODO may need to log more issues, like if the Qlikview task processing fails
+                object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), ExceptionMessage = e.Message };
+                AuditEvent Event = AuditEvent.New("Reduction server", "Extraction of hierarchy failed", AuditEventId.HierarchyExtractionFailed, DetailObj);
+                new AuditLogger().Log(Event);
             }
             #endregion
 
@@ -297,6 +326,9 @@ namespace ContentReductionLib.ReductionRunners
                 if (!JobDetail.Result.MasterContentHierarchy.Fields.Any(f => f.FieldName == SelectedFieldValue.FieldName))
                 {
                     string Msg = $"The requested reduction field <{SelectedFieldValue.FieldName}> is not found in the reduction hierarchy";
+                    object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), Error = Msg };
+                    AuditEvent Event = AuditEvent.New("Reduction server", "Creation of reduced content file failed", AuditEventId.ContentReductionFailed, DetailObj);
+                    new AuditLogger().Log(Event);
                     Trace.WriteLine(Msg);
                     throw new ApplicationException(Msg);
                 }
@@ -326,24 +358,22 @@ namespace ContentReductionLib.ReductionRunners
         }
 
         /// <summary>
-        /// Makes the outcome of the processing operation accessible to the main application
+        /// Makes the outcome of the content reduction operation accessible to the main application
         /// </summary>
-        private bool DistributeResults()
+        private bool DistributeReducedContent()
         {
             string ApplicationDataExchangeFolder = Path.GetDirectoryName(JobDetail.Request.MasterFilePath);
             string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
-            
+
             string FileNamePattern = $"{Path.GetFileNameWithoutExtension(MasterFileName)}.reduced*{Path.GetExtension(MasterFileName)}";
-            string CopyDestinationPath = "";
             string ReducedFile = Directory.GetFiles(WorkingFolderAbsolute, FileNamePattern).Single();
-            CopyDestinationPath = Path.Combine(ApplicationDataExchangeFolder, Path.GetFileName(ReducedFile));
+            string CopyDestinationPath = Path.Combine(ApplicationDataExchangeFolder, Path.GetFileName(ReducedFile));
 
             File.Copy(ReducedFile, CopyDestinationPath, true);
-
             JobDetail.Result.ReducedContentFileChecksum = GlobalFunctions.GetFileChecksum(CopyDestinationPath);
             JobDetail.Result.ReducedContentFilePath = CopyDestinationPath;
 
-            Trace.WriteLine($"Task {JobDetail.TaskId.ToString()} completed DistributeResults");
+            Trace.WriteLine($"Task {JobDetail.TaskId.ToString()} completed DistributeReducedContent");
 
             return true;
         }

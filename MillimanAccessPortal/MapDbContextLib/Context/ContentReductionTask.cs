@@ -26,6 +26,13 @@ namespace MapDbContextLib.Context
         Error = 90,         // An error has occured
     }
 
+    public enum TaskActionEnum
+    {
+        Unspecified = 0,    // Default unknown state
+        HierarchyOnly = 1,
+        HierarchyAndReduction = 2,
+    }
+
     public class ContentReductionTask
     {
         // TODO: If all display names match enum values, then use .ToString() instead of a Dictionary.
@@ -100,6 +107,8 @@ namespace MapDbContextLib.Context
         public string MasterContentChecksum { get; set; }
 
         public string ReducedContentChecksum { get; set; }
+
+        public TaskActionEnum TaskAction { get; set; } = TaskActionEnum.Unspecified;
     }
 }
 
