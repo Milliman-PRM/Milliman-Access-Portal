@@ -104,7 +104,7 @@ namespace MillimanAccessPortal.Services
                     && resumableInfo.ChunkNumber != resumableInfo.TotalChunks);
         }
 
-        public FileStream OpenTempFile()
+        public Stream OpenTempFile()
         {
             return File.Create(_fileProvider.GetFileInfo(TempFilePath).PhysicalPath);
         }

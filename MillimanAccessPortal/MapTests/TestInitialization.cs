@@ -34,6 +34,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using MillimanAccessPortal.Services;
 using System.IO;
 using Microsoft.Extensions.FileProviders;
+using MillimanAccessPortal.Models.ContentPublicationViewModels;
 
 namespace MapTests
 {
@@ -68,8 +69,8 @@ namespace MapTests
         public Mock<IMessageQueue> MockMessageQueueService { get; set; }
         public IMessageQueue MessageQueueServicesObject { get => MockMessageQueueService.Object; }
 
-        public Mock<IFileProvider> MockFileProvider { get; set; }
-        public IFileProvider FileProviderObject { get => MockFileProvider.Object; }
+        public Mock<IUploadHelper> MockUploadHelper { get; set; }
+        public IUploadHelper UploadHelperObject { get => MockUploadHelper.Object; }
 
         public IOptions<QlikviewConfig> QvConfig { get; set; }
 
@@ -143,7 +144,7 @@ namespace MapTests
             MockUserManager = MapTests.MockUserManager.New(MockDbContext);
             MockRoleManager = GenerateRoleManager(MockDbContext);
             MockMessageQueueService = GenerateMessageQueueService();
-            MockFileProvider = GenerateFileProvider();
+            MockUploadHelper = GenerateUploadHelper();
             LoggerFactory = new LoggerFactory();
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject);
@@ -290,27 +291,33 @@ namespace MapTests
             return ReturnObject;
         }
 
-        private Mock<IFileProvider> GenerateFileProvider()
+        delegate void ProcessUploadCallback(ResumableInfo resumableInfo, out bool AllChunksReceived);
+
+        private Mock<IUploadHelper> GenerateUploadHelper()
         {
-            Mock<IFileProvider> mockFileProvider = new Mock<IFileProvider>();
+            Mock<IUploadHelper> mock = new Mock<IUploadHelper>();
 
-            mockFileProvider.Setup(f => f.GetFileInfo(It.IsAny<string>())).Returns<string>((s) =>
+            ResumableInfo resumableInfo = null;
+            mock.Setup(m => m.GetChunkReceived(It.IsAny<ResumableInfo>(), It.IsAny<uint>())).Returns<ResumableInfo, uint>((x, y) =>
             {
-                Mock<IFileInfo> mock = new Mock<IFileInfo>();
-                var fileInfo = new FileInfo(Path.Combine(TestDataPath, "Uploads", s));
-                mock.Setup(f => f.Exists).Returns(fileInfo.Exists);
-                mock.Setup(f => f.Length).Returns(fileInfo.Exists ? fileInfo.Length : -1);
-                mock.Setup(f => f.PhysicalPath).Returns(fileInfo.Exists ? fileInfo.FullName : "");
-                return mock.Object;
+                var chunkFileInfo = new FileInfo(Path.Combine(TestDataPath, "Uploads", x.UID, $"{y:D8}.chunk"));
+                return (chunkFileInfo.Exists
+                        && chunkFileInfo.Length == x.ChunkSize
+                        && x.ChunkNumber != x.TotalChunks);
             });
-            mockFileProvider.Setup(f => f.GetDirectoryContents(It.IsAny<string>())).Returns<string>((s) =>
+            mock.Setup(m => m.OpenTempFile()).Returns(Stream.Null);
+            mock.Setup(m => m.ProcessUpload(It.IsAny<ResumableInfo>(), out It.Ref<bool>.IsAny))
+                .Callback(new ProcessUploadCallback((ResumableInfo info, out bool AllChunksReceived) => {
+                    resumableInfo = info;
+                    var chunkDirInfo = new DirectoryInfo(Path.Combine(TestDataPath, "Uploads", info.UID));
+                    AllChunksReceived = chunkDirInfo.GetFiles().Count() == info.TotalChunks;
+                    }));
+            mock.Setup(m => m.GetOutputFilePath()).Returns(() =>
             {
-                Mock<IDirectoryContents> mock = new Mock<IDirectoryContents>();
-                mock.Setup(m => m.Count()).Returns(Directory.EnumerateFileSystemEntries(s).Count());
-                return mock.Object;
+                return Path.Combine(TestDataPath, $"{resumableInfo.UID}{resumableInfo.FileExt}");
             });
 
-            return mockFileProvider;
+            return mock;
         }
 
         private Mock<AuditLogger> GenerateAuditLogger()
@@ -538,6 +545,7 @@ namespace MapTests
                 new UserRoleInRootContentItem { Id=3, RoleId=5, UserId=5, RootContentItemId=3 },
                 new UserRoleInRootContentItem { Id=4, RoleId=3, UserId=5, RootContentItemId=3 },
                 new UserRoleInRootContentItem { Id=5, RoleId=5, UserId=6, RootContentItemId=3 },
+                new UserRoleInRootContentItem { Id=1, RoleId=4, UserId=1, RootContentItemId=1 },
             });
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInRootContentItem, "RoleId", DbContextObject.ApplicationRole);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInRootContentItem, "UserId", DbContextObject.ApplicationUser);

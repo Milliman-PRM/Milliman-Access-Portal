@@ -85,8 +85,6 @@ namespace MillimanAccessPortal.Controllers
                 : NoContent();
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> RequestContentPublication()
         {
             #region Model binding
@@ -173,6 +171,13 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            return await RequestContentPublication(resumableInfo);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RequestContentPublication(ResumableInfo resumableInfo)
+        {
             #region Preliminary Validation
             RootContentItem rootContentItem = DbContext.RootContentItem.SingleOrDefault(rc => rc.Id == resumableInfo.RootContentItemId);
             if (rootContentItem == null)
@@ -203,6 +208,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Create the publication request and reduction task(s)
+            /* TODO: correct this section
             ContentPublicationRequest contentPublicationRequest;
             {
                 var currentApplicationUser = await Queries.GetCurrentApplicationUser(User);
@@ -239,8 +245,8 @@ namespace MillimanAccessPortal.Controllers
                 DbContext.ContentReductionTask.AddRange(contentReductionTasks);
                 DbContext.SaveChanges();
             }
-
-            return Json(contentPublicationRequest);
+            */
+            return Json(new { });
         }
     }
 
