@@ -68,7 +68,7 @@ namespace MapTests
         public Mock<IMessageQueue> MockMessageQueueService { get; set; }
         public IMessageQueue MessageQueueServicesObject { get => MockMessageQueueService.Object; }
 
-        public IFileProvider FileProviderObject { get; } = new PhysicalFileProvider(Path.GetTempPath());
+        //public IFileProvider FileProviderObject { get; } = new PhysicalFileProvider(Path.GetTempPath());
 
         public IOptions<QlikviewConfig> QvConfig { get; set; }
 
