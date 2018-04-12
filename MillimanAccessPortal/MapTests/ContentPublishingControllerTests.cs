@@ -26,8 +26,8 @@ namespace MapTests
         /// <remarks>This constructor is called before each test.</remarks>
         public ContentPublishingControllerTests()
         {
-            TestResources = new TestInitialization();
-            TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
+            //TestResources = new TestInitialization();
+            //TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
         }
 
         /// <summary>Constructs a controller with the specified active user.</summary>
@@ -59,7 +59,7 @@ namespace MapTests
         }
 
         [Fact]
-        public async Task Index_ReturnsView()
+        public void Index_ReturnsView()
         {
             #region Arrange
             //ContentPublishingController controller = await GetControllerForUser("test1");
