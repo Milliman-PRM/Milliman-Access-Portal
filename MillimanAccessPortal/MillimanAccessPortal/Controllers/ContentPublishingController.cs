@@ -28,38 +28,43 @@ using System.Globalization;
 using System.Text;
 using MillimanAccessPortal.Models.ContentPublicationViewModels;
 using System.Security.Cryptography;
+using Microsoft.Extensions.FileProviders;
 
 namespace MillimanAccessPortal.Controllers
 {
     public class ContentPublishingController : Controller
     {
-        private readonly ApplicationDbContext DbContext;
-        private readonly StandardQueries DbQueries;
-        private readonly ILogger Logger;
         private readonly IAuditLogger AuditLogger;
         private readonly IAuthorizationService AuthorizationService;
+        private readonly ApplicationDbContext DbContext;
+//      private readonly IFileProvider FileProvider;
+        private readonly ILogger Logger;
+        private readonly StandardQueries Queries;
+
 
         /// <summary>
         /// Constructor, stores local references to injected service instances
         /// </summary>
         /// <param name="ContextArg"></param>
-        /// <param name="DbQueriesArg"></param>
+        /// <param name="QueriesArg"></param>
         /// <param name="LoggerFactoryArg"></param>
         /// <param name="AuditLoggerArg"></param>
         /// <param name="AuthorizationServiceArg"></param>
         public ContentPublishingController(
-            ApplicationDbContext ContextArg,
-            StandardQueries DbQueriesArg,
-            ILoggerFactory LoggerFactoryArg,
             IAuditLogger AuditLoggerArg,
-            IAuthorizationService AuthorizationServiceArg
+            IAuthorizationService AuthorizationServiceArg,
+            ApplicationDbContext ContextArg,
+//          IFileProvider FileProverArg,
+            ILoggerFactory LoggerFactoryArg,
+            StandardQueries QueriesArg
             )
         {
-            DbContext = ContextArg;
-            DbQueries = DbQueriesArg;
-            Logger = LoggerFactoryArg.CreateLogger<ContentPublishingController>(); ;
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
+            DbContext = ContextArg;
+//          FileProvider = FileProverArg;
+            Logger = LoggerFactoryArg.CreateLogger<ContentPublishingController>(); ;
+            Queries = QueriesArg;
         }
 
         /// <summary>
@@ -118,7 +123,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 using (IDbContextTransaction Transaction = DbContext.Database.BeginTransaction())
                 {
-                    ContentPublicationRequest NewPubRequest = new ContentPublicationRequest { ApplicationUser = await DbQueries.GetCurrentApplicationUser(User),
+                    ContentPublicationRequest NewPubRequest = new ContentPublicationRequest { ApplicationUser = await Queries.GetCurrentApplicationUser(User),
                         RootContentItemId = RootContentId,
                         MasterFilePath = "ThisInputFile" };
                     DbContext.ContentPublicationRequest.Add(NewPubRequest);
@@ -126,10 +131,10 @@ namespace MillimanAccessPortal.Controllers
 
                     foreach (SelectionGroup SelGrp in DbContext.SelectionGroup.Where(sg => sg.RootContentItemId == RootContentId).ToList())
                     {
-                        string SelectionCriteriaString = JsonConvert.SerializeObject(DbQueries.GetFieldSelectionsForSelectionGroup(SelGrp.Id), Formatting.Indented);
+                        string SelectionCriteriaString = JsonConvert.SerializeObject(Queries.GetFieldSelectionsForSelectionGroup(SelGrp.Id), Formatting.Indented);
                         var NewTask = new ContentReductionTask
                         {
-                            ApplicationUser = await DbQueries.GetCurrentApplicationUser(User),
+                            ApplicationUser = await Queries.GetCurrentApplicationUser(User),
                             SelectionGroupId = SelGrp.Id,
                             MasterFilePath = "ThisInputFile",
                             ResultFilePath = "ThisOutputFile",
@@ -159,10 +164,13 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public ActionResult ChunkStatus(ResumableData resumableData)
         {
-            var chunkFilePath = Path.Combine(Path.GetTempPath(), resumableData.UID, $"{resumableData.ChunkNumber:D8}.chunk");
-            var chunkInfo = new FileInfo(chunkFilePath);
+            var chunkRelPath = Path.Combine(resumableData.UID, $"{resumableData.ChunkNumber:D8}.chunk");
+//          var chunkInfo = FileProvider.GetFileInfo(chunkRelPath);
+            var chunkInfo = new FileInfo(Path.Combine(Path.GetTempPath(), chunkRelPath));
 
-            return (chunkInfo.Exists && chunkInfo.Length == resumableData.ChunkSize)
+            return (chunkInfo.Exists
+                    && chunkInfo.Length == resumableData.ChunkSize // basic validation
+                    && resumableData.ChunkNumber != resumableData.TotalChunks) // always upload the last chunk
                 ? ((ActionResult) Ok())
                 : NoContent();
         }
@@ -178,8 +186,9 @@ namespace MillimanAccessPortal.Controllers
 
             // Used to accumulate all the form url encoded key value pairs in the request.
             var formAccumulator = new KeyValueAccumulator();
-            string targetFilePath = null;
 
+            // TODO: It is possible, however unlikely, to have multiple chunks choose the same temp path. Use managed temp file names instead.
+//          var tempFilePath = FileProvider.GetFileInfo(Path.GetRandomFileName()).PhysicalPath;
             var tempFilePath = Path.GetTempFileName();
 
             // The encapsulation boundary should never exceed 70 characters.
@@ -265,25 +274,29 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Move the temporary file
-            targetFilePath = Path.Combine(
-                Path.GetTempPath(),
-                resumableData.UID,
-                $"{resumableData.ChunkNumber:D8}.chunk");
-            
+//          var targetFileInfo = FileProvider.GetFileInfo(Path.Combine(
+//              resumableData.UID, $"{resumableData.ChunkNumber:D8}.chunk"));
+//          var targetFilePath = targetFileInfo.PhysicalPath;
+            targetFilePath = Path.Combine(Path.GetTempPath(), resumableData.UID, $"{resumableData.ChunkNumber:D8}.chunk");
+
+            var targetDirPath = Path.GetDirectoryName(targetFilePath);
+
             // It is OK to receive a chunk more than once
             if (System.IO.File.Exists(targetFilePath))
             {
                 System.IO.File.Delete(targetFilePath);
             }
-            Directory.CreateDirectory(Path.GetDirectoryName(targetFilePath));
+            Directory.CreateDirectory(targetDirPath);
             System.IO.File.Move(tempFilePath, targetFilePath);
 
-
+//          if (FileProvider.GetDirectoryContents(resumableData.UID).Count() == resumableData.TotalChunks)
             if (new DirectoryInfo(Path.GetDirectoryName(targetFilePath)).GetFiles().Length == resumableData.TotalChunks)
             {
+                var chunkPath = Path.Combine(Path.GetTempPath(), resumableData.UID);//
                 // Reassemble the file from its parts
-                var chunkPath = Path.Combine(Path.GetTempPath(), resumableData.UID);
                 var chunkFileNames = Enumerable.Range(1, Convert.ToInt32(resumableData.TotalChunks))
+//                  .Select(chunkNumber => FileProvider.GetFileInfo(Path.Combine(resumableData.UID, $"{chunkNumber:D8}.chunk")).PhysicalPath);
+//              var concatFileName = FileProvider.GetFileInfo($"{resumableData.UID}.upload").PhysicalPath;
                     .Select(chunkNumber => Path.Combine(chunkPath, $"{chunkNumber:D8}.chunk"));
                 var concatFileName = Path.Combine(Path.GetTempPath(), $"{resumableData.UID}.upload");
                 using (Stream concatStream = System.IO.File.OpenWrite(concatFileName))
@@ -297,6 +310,7 @@ namespace MillimanAccessPortal.Controllers
                         System.IO.File.Delete(chunkFileName);
                     }
                 }
+//              Directory.Delete(FileProvider.GetFileInfo(resumableData.UID).PhysicalPath);
                 Directory.Delete(chunkPath);
 
                 // checksum the file
@@ -317,7 +331,7 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 // rename the file with proper extension, this will allow it to be noticed by virus scanner
-                var finalFileName = Path.Combine(Path.GetTempPath(), $"{resumableData.UID}{resumableData.FileExt}");
+//              var finalFileName = FileProvider.GetFileInfo($"{resumableData.UID}{resumableData.FileExt}").PhysicalPath;
                 if (System.IO.File.Exists(finalFileName))
                 {
                     System.IO.File.Delete(finalFileName);
@@ -325,7 +339,7 @@ namespace MillimanAccessPortal.Controllers
                 System.IO.File.Move(concatFileName, finalFileName);
 
                 // create the publication request and reduction task(s)
-                var currentApplicationUser = await DbQueries.GetCurrentApplicationUser(User);
+                var currentApplicationUser = await Queries.GetCurrentApplicationUser(User);
                 var contentPublicationRequest = new ContentPublicationRequest
                 {
                     ApplicationUserId = currentApplicationUser.Id,
@@ -350,7 +364,7 @@ namespace MillimanAccessPortal.Controllers
                         SelectionGroupId = sg.Id,
                         MasterFilePath = contentPublicationRequest.MasterFilePath,
                         SelectionCriteria = JsonConvert.SerializeObject(
-                            DbQueries.GetFieldSelectionsForSelectionGroup(sg.Id, sg.SelectedHierarchyFieldValueList)), // TODO: special case when selection group is a master selection group
+                            Queries.GetFieldSelectionsForSelectionGroup(sg.Id, sg.SelectedHierarchyFieldValueList)), // TODO: special case when selection group is a master selection group
                         ReductionStatus = ReductionStatusEnum.Validating,
                     });
 
