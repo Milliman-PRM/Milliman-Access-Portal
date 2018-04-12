@@ -157,7 +157,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.RequestContentPublication(resumableInfo);
+            var view = await controller.Publish(resumableInfo);
             #endregion
 
             #region Assert

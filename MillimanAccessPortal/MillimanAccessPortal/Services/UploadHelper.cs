@@ -148,12 +148,13 @@ namespace MillimanAccessPortal.Services
         {
             var tempFilePath = _fileProvider.GetFileInfo(TempFilePath).PhysicalPath;
             var chunkFilePath = _fileProvider.GetFileInfo(ChunkFilePath(Info.ChunkNumber)).PhysicalPath;
+            var chunkDirPath = _fileProvider.GetFileInfo(ChunkDirPath).PhysicalPath;
 
             if (File.Exists(chunkFilePath))
             {
                 File.Delete(chunkFilePath);
             }
-            Directory.CreateDirectory(ChunkDirPath);
+            Directory.CreateDirectory(chunkDirPath);
             try
             {
                 File.Move(tempFilePath, chunkFilePath);

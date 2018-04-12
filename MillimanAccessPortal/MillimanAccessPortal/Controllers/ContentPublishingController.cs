@@ -85,7 +85,7 @@ namespace MillimanAccessPortal.Controllers
                 : NoContent();
         }
 
-        public async Task<IActionResult> RequestContentPublication()
+        public async Task<IActionResult> UploadAndPublish()
         {
             #region Model binding
             if (!MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
@@ -171,12 +171,12 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            return await RequestContentPublication(resumableInfo);
+            return await Publish(resumableInfo);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RequestContentPublication(ResumableInfo resumableInfo)
+        public async Task<IActionResult> Publish(ResumableInfo resumableInfo)
         {
             #region Preliminary Validation
             RootContentItem rootContentItem = DbContext.RootContentItem.SingleOrDefault(rc => rc.Id == resumableInfo.RootContentItemId);
