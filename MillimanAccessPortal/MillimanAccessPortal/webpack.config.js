@@ -5,13 +5,13 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
   entry: {
-    'account-settings': './src/js/account-settings.ts',
-    'client-admin': './src/js/client-admin.ts',
-    'content-access-admin': './src/js/content-access-admin.ts',
-    'content-publisher': './src/js/content-publisher.ts',
-    'login': './src/js/login.ts',
-    'hosted-content': './src/js/hosted-content.ts',
-    'system-admin': './src/js/system-admin.ts',
+    'account-settings': './src/ts/account-settings.ts',
+    'client-admin': './src/ts/client-admin.ts',
+    'content-access-admin': './src/ts/content-access-admin.ts',
+    'content-publisher': './src/ts/content-publisher.ts',
+    'login': './src/ts/login.ts',
+    'hosted-content': './src/ts/hosted-content.ts',
+    'system-admin': './src/ts/system-admin.ts',
   },
   module: {
     rules: [
