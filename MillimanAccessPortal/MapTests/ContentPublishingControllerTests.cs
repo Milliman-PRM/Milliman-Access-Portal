@@ -27,7 +27,7 @@ namespace MapTests
         public ContentPublishingControllerTests()
         {
             TestResources = new TestInitialization();
-            TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
+            //TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
         }
 
         /// <summary>Constructs a controller with the specified active user.</summary>
