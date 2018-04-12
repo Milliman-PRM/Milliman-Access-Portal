@@ -26,8 +26,8 @@ namespace MapTests
         /// <remarks>This constructor is called before each test.</remarks>
         public ContentPublishingControllerTests()
         {
-            //TestResources = new TestInitialization();
-            //TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
+            TestResources = new TestInitialization();
+            TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
         }
 
         /// <summary>Constructs a controller with the specified active user.</summary>
