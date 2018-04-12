@@ -17,21 +17,51 @@
     "vex-js": "v4.1.0"
   },
   "devDependencies": {
+    "@types/jest": "^22.2.2",
+    "@types/jquery": "^3.3.1",
+    "aspnet-webpack": "^2.0.3",
+    "awesome-typescript-loader": "^4.0.1",
     "copy-webpack-plugin": "^4.5.1",
     "css-loader": "^0.28.11",
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
     "html-webpack-plugin": "^3.0.7",
+    "jest": "^22.4.3",
     "less": "^3.0.1",
     "less-loader": "^4.1.0",
     "node-sass": "^4.7.2",
     "sass-loader": "^6.0.7",
+    "source-map-loader": "^0.2.3",
     "style-loader": "^0.20.3",
+    "testcafe": "^0.19.1",
+    "ts-jest": "^22.4.2",
+    "typescript": "^2.7.2",
     "webpack": "^4.2.0",
     "webpack-cli": "^2.0.13",
-    "webpack-dev-server": "^3.1.1"
+    "webpack-dev-server": "^3.1.1",
+    "webpack-hot-middleware": "^2.21.2"
   },
   "scripts": {
-    "build": "webpack"
+    "build": "webpack",
+    "test": "jest",
+    "test-browsers": "testcafe chrome,firefox,ie src/browser_tests/"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/src/browser_tests/"
+    ],
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
   },
   "-vs-binding": {
     "AfterBuild": [

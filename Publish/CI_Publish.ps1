@@ -112,7 +112,7 @@ log_statement "Restoring packages before unit tests"
 MSBuild /t:Restore /verbosity:quiet
 
 if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: Initial nuget package restore failed"
+    log_statement "ERROR: Initial nuget package restore failed for MAP solution"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
@@ -134,6 +134,20 @@ if ($LASTEXITCODE -ne 0) {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
+
+
+cd $rootpath\ReductionServer
+
+log_statement "Performing test build of reduction server"
+
+MSBuild /restore:true /verbosity:quiet /nowarn:CS1998
+
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: Test build or package restore failed for reduction server solution"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
 
 log_statement "Building unit tests"
 
@@ -160,7 +174,18 @@ log_statement "Performing unit tests"
 dotnet test --no-build -v q
 
 if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: One or more tests failed"
+    log_statement "ERROR: One or more xUnit tests failed"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
+cd $rootPath\MillimanAccessPortal\MillimanAccessPortal
+
+$command = "yarn test"
+invoke-expression "&$command"
+
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: One or more Jest tests failed"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
@@ -467,4 +492,25 @@ else
     log_statement "Git credential was not found"
     exit -200
 }
+#endregion
+
+#region Check login page to confirm deployment
+
+try
+{
+    $resp = Invoke-WebRequest "$publicURL/Account/Login"
+}
+catch
+{
+    log_statement "Failed to get login page: $publicURL/Account/Login"
+    exit -404
+}
+
+if ($resp.StatusCode -ne 200)
+{
+    log_statement "ERROR: Login page failed with code $($resp.StatusCode)"
+    exit $resp.StatusCode
+}
+
+
 #endregion

@@ -642,7 +642,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 ApplicationUser = await Queries.GetCurrentApplicationUser(User),
                 SelectionGroupId = RequestedSelectionGroup.Id,
-                MasterFilePath = "TODO: Fix this",
+                MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",  // TODO Fix this
                 ContentPublicationRequest = null,
                 SelectionCriteria = SelectionCriteriaString,
                 ReductionStatus = ReductionStatusEnum.Queued,

@@ -5,16 +5,22 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
   entry: {
-    'account-settings': './src/js/account-settings.js',
-    'client-admin': './src/js/client-admin.js',
-    'content-access-admin': './src/js/content-access-admin.js',
-    'content-publisher': './src/js/content-publisher.js',
-    'login': './src/js/login.js',
-    'hosted-content': './src/js/hosted-content.js',
-    'system-admin': './src/js/system-admin.js',
+    'account-settings': './src/js/account-settings.ts',
+    'client-admin': './src/js/client-admin.ts',
+    'content-access-admin': './src/js/content-access-admin.ts',
+    'content-publisher': './src/js/content-publisher.ts',
+    'login': './src/js/login.ts',
+    'hosted-content': './src/js/hosted-content.ts',
+    'system-admin': './src/js/system-admin.ts',
   },
   module: {
     rules: [
+      {
+        test: /\.tsx?$/,
+        use: [
+          { loader: 'awesome-typescript-loader' },
+        ],
+      },
       {
         test: /\.css$/,
         use: [
@@ -43,6 +49,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'wwwroot', 'js'),
     filename: '[name].bundle.js',
+    publicPath: 'wwwroot/',
   },
   plugins: [
     new CopyWebpackPlugin([
@@ -59,7 +66,17 @@ module.exports = {
       $: 'jquery',
       jQuery: 'jquery',
     }),
+    new webpack.NamedModulesPlugin(),
   ],
+  resolve: {
+    extensions: [
+      '.webpack.js',
+      '.web.js',
+      '.ts',
+      '.tsx',
+      '.js',
+    ],
+  },
   mode: 'development',
-  devtool: 'source-map',
+  devtool: 'inline-source-map',
 };
