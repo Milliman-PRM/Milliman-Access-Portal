@@ -59,7 +59,7 @@ namespace MapTests
         }
 
         [Fact]
-        public void Index_ReturnsView()
+        public async Task Index_ReturnsView()
         {
             #region Arrange
             ContentPublishingController controller = await GetControllerForUser("test1");
