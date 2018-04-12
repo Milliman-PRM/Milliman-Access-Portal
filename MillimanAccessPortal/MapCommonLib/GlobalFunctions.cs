@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Cryptography;
 using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ namespace MapCommonLib
 
         public static string emailValRegex { get; set; } = @"^(([^<>()[\]\\.,;:\s@']+(\.[^<>()[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$";
         public static string domainValRegex { get; set; } = @"^((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$";
+        public static ulong maxFileUploadSize { get; set; } = 5368709120;
 
         static Regex EmailAddressValidationRegex = new Regex (emailValRegex, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
 
@@ -26,6 +28,17 @@ namespace MapCommonLib
             {
                 return false;
             }
+        }
+
+        public static string GetFileChecksum(string FilePath)
+        {
+            byte[] checksumBytes;
+            using (Stream concatStream = File.OpenRead(FilePath))
+            using (HashAlgorithm hashAlgorithm = new SHA1Managed())
+            {
+                checksumBytes = hashAlgorithm.ComputeHash(concatStream);
+            }
+            return BitConverter.ToString(checksumBytes).Replace("-", "");
         }
 
         public static string GetAssemblyCopyrightString(Assembly AssemblyArg)

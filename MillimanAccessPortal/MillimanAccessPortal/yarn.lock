@@ -32,6 +32,18 @@
   version "22.2.2"
   resolved "https://registry.yarnpkg.com/@types/jest/-/jest-22.2.2.tgz#afe5dacbd00d65325f52da0ed3e76e259629ac9d"
 
+"@types/jquery-validation-unobtrusive@^3.2.32":
+  version "3.2.32"
+  resolved "https://registry.yarnpkg.com/@types/jquery-validation-unobtrusive/-/jquery-validation-unobtrusive-3.2.32.tgz#21e8de36da77d9ec323d5d4fe582c4e6cf9c02c7"
+  dependencies:
+    "@types/jquery.validation" "*"
+
+"@types/jquery.validation@*", "@types/jquery.validation@^1.16.4":
+  version "1.16.4"
+  resolved "https://registry.yarnpkg.com/@types/jquery.validation/-/jquery.validation-1.16.4.tgz#4306dbf0630bb252648d75734c8cbd097122e78c"
+  dependencies:
+    "@types/jquery" "*"
+
 "@types/jquery@*", "@types/jquery@^3.3.1":
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/@types/jquery/-/jquery-3.3.1.tgz#55758d44d422756d6329cbf54e6d41931d7ba28f"
@@ -51,6 +63,12 @@
 "@types/toastr@^2.1.35":
   version "2.1.35"
   resolved "https://registry.yarnpkg.com/@types/toastr/-/toastr-2.1.35.tgz#9b29ee786744994c4f7eafee415b125f835dd854"
+  dependencies:
+    "@types/jquery" "*"
+
+"@types/vex-js@^2.3.29":
+  version "2.3.29"
+  resolved "https://registry.yarnpkg.com/@types/vex-js/-/vex-js-2.3.29.tgz#d3c2ef2fe4e98e6568b728d4900721c2d0446343"
   dependencies:
     "@types/jquery" "*"
 

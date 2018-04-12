@@ -34,6 +34,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using MillimanAccessPortal.Services;
 using System.IO;
 using Microsoft.Extensions.FileProviders;
+using MillimanAccessPortal.Models.ContentPublicationViewModels;
 
 namespace MapTests
 {
@@ -68,7 +69,8 @@ namespace MapTests
         public Mock<IMessageQueue> MockMessageQueueService { get; set; }
         public IMessageQueue MessageQueueServicesObject { get => MockMessageQueueService.Object; }
 
-        public IFileProvider FileProviderObject { get; } = new PhysicalFileProvider(Path.GetTempPath());
+        public Mock<IUploadHelper> MockUploadHelper { get; set; }
+        public IUploadHelper UploadHelperObject { get => MockUploadHelper.Object; }
 
         public IOptions<QlikviewConfig> QvConfig { get; set; }
 
@@ -83,6 +85,7 @@ namespace MapTests
         /// Associates each DataSelection enum value with the function that implements it
         /// </summary>
         private Dictionary<DataSelection, Action> DataGenFunctionDict;
+        private string TestDataPath = Path.GetFullPath("../../../TestData");
 
         /// <summary>
         /// Constructor, initiates construction of functional but empty dependencies
@@ -141,6 +144,7 @@ namespace MapTests
             MockUserManager = MapTests.MockUserManager.New(MockDbContext);
             MockRoleManager = GenerateRoleManager(MockDbContext);
             MockMessageQueueService = GenerateMessageQueueService();
+            MockUploadHelper = GenerateUploadHelper();
             LoggerFactory = new LoggerFactory();
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject);
@@ -285,6 +289,35 @@ namespace MapTests
             Mock<IMessageQueue> ReturnObject = new Mock<IMessageQueue>();
 
             return ReturnObject;
+        }
+
+        delegate void ProcessUploadCallback(ResumableInfo resumableInfo, out bool AllChunksReceived);
+
+        private Mock<IUploadHelper> GenerateUploadHelper()
+        {
+            Mock<IUploadHelper> mock = new Mock<IUploadHelper>();
+
+            ResumableInfo resumableInfo = null;
+            mock.Setup(m => m.GetChunkReceived(It.IsAny<ResumableInfo>(), It.IsAny<uint>())).Returns<ResumableInfo, uint>((x, y) =>
+            {
+                var chunkFileInfo = new FileInfo(Path.Combine(TestDataPath, "Uploads", x.UID, $"{y:D8}.chunk"));
+                return (chunkFileInfo.Exists
+                        && chunkFileInfo.Length == x.ChunkSize
+                        && x.ChunkNumber != x.TotalChunks);
+            });
+            mock.Setup(m => m.OpenTempFile()).Returns(Stream.Null);
+            mock.Setup(m => m.ProcessUpload(It.IsAny<ResumableInfo>(), out It.Ref<bool>.IsAny))
+                .Callback(new ProcessUploadCallback((ResumableInfo info, out bool AllChunksReceived) => {
+                    resumableInfo = info;
+                    var chunkDirInfo = new DirectoryInfo(Path.Combine(TestDataPath, "Uploads", info.UID));
+                    AllChunksReceived = chunkDirInfo.GetFiles().Count() == info.TotalChunks;
+                    }));
+            mock.Setup(m => m.GetOutputFilePath()).Returns(() =>
+            {
+                return Path.Combine(TestDataPath, $"{resumableInfo.UID}{resumableInfo.FileExt}");
+            });
+
+            return mock;
         }
 
         private Mock<AuditLogger> GenerateAuditLogger()
@@ -512,6 +545,7 @@ namespace MapTests
                 new UserRoleInRootContentItem { Id=3, RoleId=5, UserId=5, RootContentItemId=3 },
                 new UserRoleInRootContentItem { Id=4, RoleId=3, UserId=5, RootContentItemId=3 },
                 new UserRoleInRootContentItem { Id=5, RoleId=5, UserId=6, RootContentItemId=3 },
+                new UserRoleInRootContentItem { Id=1, RoleId=4, UserId=1, RootContentItemId=1 },
             });
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInRootContentItem, "RoleId", DbContextObject.ApplicationRole);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInRootContentItem, "UserId", DbContextObject.ApplicationUser);

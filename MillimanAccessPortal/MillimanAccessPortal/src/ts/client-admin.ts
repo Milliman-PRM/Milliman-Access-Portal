@@ -11,6 +11,7 @@ import 'selectize';
 import 'tooltipster';
 import 'vex-js';
 import './lib-options';
+const appSettings = require('../../appsettings.json');
 
 require('bootstrap/scss/bootstrap-reboot.scss');
 require('selectize/src/less/selectize.default.less');
@@ -20,10 +21,12 @@ require('tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css
 require('vex-js/sass/vex.sass');
 require('../scss/map.scss');
 
-
 var ajaxStatus = {};
 var eligibleUsers;
 var SHOW_DURATION = 50;
+
+const domainRegex = new RegExp(appSettings.Global.DomainValidationRegex);
+const emailRegex = new RegExp(appSettings.Global.EmailValidationRegex);
 
 // TODO: move to shared
 function removeClientInserts() {
@@ -464,7 +467,7 @@ function addUserClickHandler() {
         shared.showButtonSpinner($('.vex-first'), 'Adding');
         $('.vex-dialog-button').attr('disabled', '');
         saveNewUser(data.username, null, callback);
-      } else if (emailValRegex.test(data.username)) {
+      } else if (emailRegex.test(data.username)) {
         shared.showButtonSpinner($('.vex-first'), 'Adding');
         $('.vex-dialog-button').attr('disabled', '');
         saveNewUser(null, data.username, callback);
@@ -692,7 +695,7 @@ $(document).ready(function onReady() {
     plugins: ['remove_button'],
     persist: false,
     create: function onCreate(input) {
-      if (input.match(domainValRegex)) {
+      if (input.match(domainRegex)) {
         return {
           value: input,
           text: input
@@ -714,7 +717,7 @@ $(document).ready(function onReady() {
     delimiter: ',',
     persist: false,
     create: function onCreate(input) {
-      if (input.match(emailValRegex)) {
+      if (input.match(emailRegex)) {
         return {
           value: input,
           text: input

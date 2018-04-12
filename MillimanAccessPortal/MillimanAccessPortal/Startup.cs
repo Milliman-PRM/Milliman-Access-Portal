@@ -148,6 +148,7 @@ namespace MillimanAccessPortal
             // Add application services.
             services.AddTransient<IMessageQueue, MessageQueueServices>();
             services.AddScoped<StandardQueries>();
+            services.AddScoped<IUploadHelper, UploadHelper>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -21,10 +21,13 @@
   "devDependencies": {
     "@types/jest": "^22.2.2",
     "@types/jquery": "^3.3.1",
+    "@types/jquery-validation-unobtrusive": "^3.2.32",
+    "@types/jquery.validation": "^1.16.4",
     "@types/lodash": "^4.14.106",
     "@types/node": "8.9.4",
     "@types/node-forge": "^0.7.2",
     "@types/toastr": "^2.1.35",
+    "@types/vex-js": "^2.3.29",
     "@types/webpack-env": "^1.13.5",
     "aspnet-webpack": "^2.0.3",
     "awesome-typescript-loader": "^4.0.1",

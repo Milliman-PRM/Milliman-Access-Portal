@@ -1,14 +1,15 @@
-var $ = require('jquery');
+import $ = require('jquery');
 require('jquery-validation');
-var toastr = require('toastr');
-var vex = require('vex-js');
+import toastr = require('toastr');
+const vex = require('vex-js');
 vex.registerPlugin(require('vex-dialog'));
+const appSettings = require('../../appsettings.json');
 
 // Configure jQuery validation overrides
-$.validator.methods.email = function validateEmail(value, element) {
-  return this.optional(element) || emailValRegex.test(value);
-};
-
+// See https://jqueryvalidation.org/jQuery.validator.methods/
+$.validator.methods.email = function(value: string, element: any) {
+  return this.optional(element) || appSettings.Global.EmailValidationRegex;
+}
 // Configure default vex options
 vex.defaultOptions = $.extend(
   {}, vex.defaultOptions,
@@ -18,11 +19,11 @@ vex.defaultOptions = $.extend(
   }
 );
 
-vex.dialog.buttons.yes = function yes(text, color) {
+vex.dialog.buttons.yes = (text: string, color: string) => {
   return $.extend({}, vex.dialog.buttons.YES, { text: text, className: color + '-button' });
 };
 
-vex.dialog.buttons.no = function no(text) {
+vex.dialog.buttons.no = (text: string) => {
   return $.extend({}, vex.dialog.buttons.NO, { text: text, className: 'link-button' });
 };
 
@@ -35,12 +36,27 @@ toastr.options = {
   positionClass: 'toast-bottom-right',
   preventDuplicates: false,
   onclick: null,
-  showDuration: '300',
-  hideDuration: '1000',
-  timeOut: '5000',
-  extendedTimeOut: '1000',
+  showDuration: 300,
+  hideDuration: 1000,
+  timeOut: 5000,
+  extendedTimeOut: 1000,
   showEasing: 'swing',
   hideEasing: 'swing',
   showMethod: 'show',
   hideMethod: 'hide'
+};
+
+export const resumableOptions = {
+  simultaneousUploads: 3,
+  maxFiles: 1,
+  maxFileSize: appSettings.Global.MaxFileUploadSize,
+  chunkNumberParameterName: 'chunkNumber',
+  totalChunksParameterName: 'totalChunks',
+  identifierParameterName: 'uid',
+  typeParameterName: 'type',
+  chunkSizeParameterName: 'chunkSize',
+  totalSizeParameterName: 'totalSize',
+  fileNameParameterName: 'fileName',
+  relativePathParameterName: '',
+  currentChunkSizeParameterName: '',
 };

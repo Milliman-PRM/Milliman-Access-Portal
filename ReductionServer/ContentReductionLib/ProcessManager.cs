@@ -21,26 +21,26 @@ namespace ContentReductionLib
 
         private Dictionary<int, JobMonitorInfo> JobMonitorDict = new Dictionary<int, JobMonitorInfo>();
 
-        // TODO get this from config
-        const string AuditLogCxn = "Server=localhost;Database=MapAuditLog;User Id=postgres;Password=postgres;";
-
-        private string RootPath = string.Empty;
-
         /// <summary>
         /// constructor, initializes some things (do better)
         /// </summary>
         public ProcessManager()
         {
-            AuditLogger.Config = new AuditLoggerConfiguration { AuditLogConnectionString = AuditLogCxn };
+            if (Configuration.ApplicationConfiguration == null)
+            {
+                throw new ApplicationException("Application configuration is not initialized");
+            }
+
+            AuditLogger.Config = new AuditLoggerConfiguration { AuditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString") };
         }
 
         /// <summary>
         /// Initiate processing of configured JobMonitors
         /// </summary>
         /// <param name="ProcessConfig"></param>
-        public void Start(ProcessManagerConfiguration ProcessConfig)
+        public void Start()
         {
-            // Based on configuration, set up objects derived from JobMonitorBase
+            // TODO Based on configuration, set up objects derived from JobMonitorBase
             // for (int i = 0 ; i < ConfiguredMonitors.Count ; i++)
             for (int i = 0 ; i < 1 ; i++)
             {
