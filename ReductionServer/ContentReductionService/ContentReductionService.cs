@@ -63,7 +63,6 @@ namespace ContentReductionService
             }
         }
 
-        #region Unimplemented service callbacks
         protected override void OnPause()
         {
             Trace.WriteLine($"Service OnPause() called");
@@ -101,6 +100,7 @@ namespace ContentReductionService
             base.OnShutdown();
         }
 
+        #region Unimplemented service callbacks
         protected override void OnCustomCommand(int command)
         {
             Trace.WriteLine($"Service OnCommand() called with command= {command}");

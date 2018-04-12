@@ -20,6 +20,8 @@ namespace ContentReductionLib
         //private static Dictionary<string, RunningReductionTask> ExecutingTasks = new Dictionary<string, RunningReductionTask>();
 
         private Dictionary<int, JobMonitorInfo> JobMonitorDict = new Dictionary<int, JobMonitorInfo>();
+        private Timer JobMonitorHealthCheckTimer;
+        static TimeSpan HealthCheckInterval = new TimeSpan(0, 0, 10);
 
         /// <summary>
         /// constructor, initializes some things (do better)
@@ -32,6 +34,28 @@ namespace ContentReductionLib
             }
 
             AuditLogger.Config = new AuditLoggerConfiguration { AuditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString") };
+
+            // Initiate periodic checking of the Task status of each JobMonitor
+            JobMonitorHealthCheckTimer = new Timer(JobMonitorHealthCheck, null, HealthCheckInterval, HealthCheckInterval);
+        }
+
+        /// <summary>
+        /// Checks each JobMonitor for whether it continues to run, maintaining the dictionary that tracks those JobMonitors
+        /// </summary>
+        /// <param name="state"></param>
+        public void JobMonitorHealthCheck(object state)
+        {
+            for (int DownCounter = JobMonitorDict.Count-1; DownCounter >= 0; DownCounter--)
+            {
+                JobMonitorInfo MonitorInfo = JobMonitorDict[DownCounter];
+
+                if (MonitorInfo.AwaitableTask.IsCompleted)
+                {
+                    Trace.WriteLine($"From ProcessManager, JobMonitor of type {MonitorInfo.Monitor.GetType().Name} ended with task status {MonitorInfo.AwaitableTask.Status.ToString()}.  There are {JobMonitorDict.Count} JobMonitor instances running");
+                    JobMonitorDict.Remove(DownCounter);
+                    // TODO Notification may be in order here if status is Faulted or RanToCompletion
+                }
+            }
         }
 
         /// <summary>
@@ -60,7 +84,7 @@ namespace ContentReductionLib
                 JobMonitorInfo MonitorInfo = MonitorKvp.Value;
                 MonitorInfo.AwaitableTask = MonitorInfo.Monitor.Start(MonitorInfo.TokenSource.Token);
 
-                Trace.WriteLine($"JobMonitor {MonitorKvp.Key} Start() returned");
+                Trace.WriteLine($"JobMonitor.Start() returned");
             }
         }
 
@@ -71,6 +95,8 @@ namespace ContentReductionLib
         /// <returns></returns>
         public bool Stop(int WaitSec = -1)
         {
+            JobMonitorHealthCheckTimer.Dispose();
+
             if (WaitSec < 0)
             {
                 if (!int.TryParse(Configuration.ApplicationConfiguration["StopWaitTimeSeconds"], out WaitSec))
@@ -78,7 +104,6 @@ namespace ContentReductionLib
                     WaitSec = 3 * 60;
                 }
             }
-
             TimeSpan MaxWaitTime = TimeSpan.FromSeconds(WaitSec);
 
             foreach (var MonitorKvp in JobMonitorDict)
