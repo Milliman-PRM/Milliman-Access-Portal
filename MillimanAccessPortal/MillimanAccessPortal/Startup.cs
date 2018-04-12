@@ -139,6 +139,8 @@ namespace MillimanAccessPortal
                 }
             });
 
+            services.AddSingleton<IFileProvider>(new PhysicalFileProvider(Path.GetTempPath()));
+
             // Depends on UserManager from Identity, which is scoped, so don't add the following as singleton
             services.AddScoped<IAuthorizationHandler, MapAuthorizationHandler>();
             services.AddScoped<IAuditLogger, AuditLogger>();

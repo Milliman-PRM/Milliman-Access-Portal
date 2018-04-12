@@ -37,7 +37,7 @@ namespace MapTests
                 TestResources.AuditLoggerObject,
                 TestResources.AuthorizationService,
                 TestResources.DbContextObject,
-//              TestResources.FileProviderObject,
+                TestResources.FileProviderObject,
                 TestResources.LoggerFactory,
                 TestResources.QueriesObj
                 );

@@ -37,7 +37,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuditLogger AuditLogger;
         private readonly IAuthorizationService AuthorizationService;
         private readonly ApplicationDbContext DbContext;
-//      private readonly IFileProvider FileProvider;
+        private readonly IFileProvider FileProvider;
         private readonly ILogger Logger;
         private readonly StandardQueries Queries;
 
@@ -54,7 +54,7 @@ namespace MillimanAccessPortal.Controllers
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
             ApplicationDbContext ContextArg,
-//          IFileProvider FileProverArg,
+            IFileProvider FileProverArg,
             ILoggerFactory LoggerFactoryArg,
             StandardQueries QueriesArg
             )
@@ -62,7 +62,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
             DbContext = ContextArg;
-//          FileProvider = FileProverArg;
+            FileProvider = FileProverArg;
             Logger = LoggerFactoryArg.CreateLogger<ContentPublishingController>(); ;
             Queries = QueriesArg;
         }
@@ -165,8 +165,8 @@ namespace MillimanAccessPortal.Controllers
         public ActionResult ChunkStatus(ResumableData resumableData)
         {
             var chunkRelPath = Path.Combine(resumableData.UID, $"{resumableData.ChunkNumber:D8}.chunk");
-//          var chunkInfo = FileProvider.GetFileInfo(chunkRelPath);
-            var chunkInfo = new FileInfo(Path.Combine(Path.GetTempPath(), chunkRelPath));
+            var chunkInfo = FileProvider.GetFileInfo(chunkRelPath);
+
 
             return (chunkInfo.Exists
                     && chunkInfo.Length == resumableData.ChunkSize // basic validation
@@ -188,8 +188,7 @@ namespace MillimanAccessPortal.Controllers
             var formAccumulator = new KeyValueAccumulator();
 
             // TODO: It is possible, however unlikely, to have multiple chunks choose the same temp path. Use managed temp file names instead.
-//          var tempFilePath = FileProvider.GetFileInfo(Path.GetRandomFileName()).PhysicalPath;
-            var tempFilePath = Path.GetTempFileName();
+            var tempFilePath = FileProvider.GetFileInfo(Path.GetRandomFileName()).PhysicalPath;
 
             // The encapsulation boundary should never exceed 70 characters.
             // See https://tools.ietf.org/html/rfc2046#section-5.1.1
@@ -274,11 +273,9 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Move the temporary file
-//          var targetFileInfo = FileProvider.GetFileInfo(Path.Combine(
-//              resumableData.UID, $"{resumableData.ChunkNumber:D8}.chunk"));
-//          var targetFilePath = targetFileInfo.PhysicalPath;
-            var targetFilePath = Path.Combine(Path.GetTempPath(), resumableData.UID, $"{resumableData.ChunkNumber:D8}.chunk");
-
+            var targetFileInfo = FileProvider.GetFileInfo(Path.Combine(
+                resumableData.UID, $"{resumableData.ChunkNumber:D8}.chunk"));
+            var targetFilePath = targetFileInfo.PhysicalPath;
             var targetDirPath = Path.GetDirectoryName(targetFilePath);
 
             // It is OK to receive a chunk more than once
@@ -289,16 +286,12 @@ namespace MillimanAccessPortal.Controllers
             Directory.CreateDirectory(targetDirPath);
             System.IO.File.Move(tempFilePath, targetFilePath);
 
-//          if (FileProvider.GetDirectoryContents(resumableData.UID).Count() == resumableData.TotalChunks)
-            if (new DirectoryInfo(Path.GetDirectoryName(targetFilePath)).GetFiles().Length == resumableData.TotalChunks)
+            if (FileProvider.GetDirectoryContents(resumableData.UID).Count() == resumableData.TotalChunks)
             {
-                var chunkPath = Path.Combine(Path.GetTempPath(), resumableData.UID);//
                 // Reassemble the file from its parts
                 var chunkFileNames = Enumerable.Range(1, Convert.ToInt32(resumableData.TotalChunks))
-//                  .Select(chunkNumber => FileProvider.GetFileInfo(Path.Combine(resumableData.UID, $"{chunkNumber:D8}.chunk")).PhysicalPath);
-//              var concatFileName = FileProvider.GetFileInfo($"{resumableData.UID}.upload").PhysicalPath;
-                    .Select(chunkNumber => Path.Combine(chunkPath, $"{chunkNumber:D8}.chunk"));
-                var concatFileName = Path.Combine(Path.GetTempPath(), $"{resumableData.UID}.upload");
+                    .Select(chunkNumber => FileProvider.GetFileInfo(Path.Combine(resumableData.UID, $"{chunkNumber:D8}.chunk")).PhysicalPath);
+                var concatFileName = FileProvider.GetFileInfo($"{resumableData.UID}.upload").PhysicalPath;
                 using (Stream concatStream = System.IO.File.OpenWrite(concatFileName))
                 {
                     foreach (var chunkFileName in chunkFileNames)
@@ -310,8 +303,7 @@ namespace MillimanAccessPortal.Controllers
                         System.IO.File.Delete(chunkFileName);
                     }
                 }
-//              Directory.Delete(FileProvider.GetFileInfo(resumableData.UID).PhysicalPath);
-                Directory.Delete(chunkPath);
+                Directory.Delete(FileProvider.GetFileInfo(resumableData.UID).PhysicalPath);
 
                 // checksum the file
                 byte[] checksumBytes;
@@ -331,8 +323,7 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 // rename the file with proper extension, this will allow it to be noticed by virus scanner
-//              var finalFileName = FileProvider.GetFileInfo($"{resumableData.UID}{resumableData.FileExt}").PhysicalPath;
-                var finalFileName = Path.Combine(Path.GetTempPath(), $"{resumableData.UID}{resumableData.FileExt}");
+                var finalFileName = FileProvider.GetFileInfo($"{resumableData.UID}{resumableData.FileExt}").PhysicalPath;
                 if (System.IO.File.Exists(finalFileName))
                 {
                     System.IO.File.Delete(finalFileName);
