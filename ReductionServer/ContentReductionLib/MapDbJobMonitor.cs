@@ -29,7 +29,7 @@ namespace ContentReductionLib
         // Settable operating parameters
         // TODO These should come from configuration.
         internal TimeSpan TaskAgeBeforeExecution { set; private get; }
-        private TimeSpan WaitTimeForTasksAfterCancel { get { return TimeSpan.FromMinutes(3); } }
+        private TimeSpan WaitTimeForTasksOnStop { get { return TimeSpan.FromMinutes(3); } }
 
         internal int MaxParallelTasks { set; private get; }
 
@@ -48,7 +48,13 @@ namespace ContentReductionLib
         internal string ConfiguredConnectionStringParamName {
             set
             {
-                ConnectionString = Configuration.ApplicationConfiguration.GetConnectionString(value);
+                ConfigurationBuilder CfgBuilder = new ConfigurationBuilder();
+                // TODO add something for AzureKeyVault in CI and production environments
+                CfgBuilder.AddUserSecrets<MapDbJobMonitor>()
+                            .AddJsonFile(path: "appsettings.json", optional: true, reloadOnChange: true);
+                IConfigurationRoot MyConfig = CfgBuilder.Build();
+
+                ConnectionString = MyConfig.GetConnectionString(value);
             }
         }
 
@@ -89,7 +95,7 @@ namespace ContentReductionLib
             while (!Token.IsCancellationRequested)
             {
                 // Remove completed tasks from the RunningTasks collection. 
-                foreach ((Task<ReductionJobDetail> task, CancellationTokenSource tokenSource) CompletedReductionRunnerItem in ActiveReductionRunnerItems.Where(t => t.task.IsCompleted).ToList())
+                foreach ((Task<ReductionJobResult> task, CancellationTokenSource tokenSource) CompletedReductionRunnerItem in ActiveReductionRunnerItems.Where(t => t.task.IsCompleted).ToList())
                 {
                     UpdateTask(CompletedReductionRunnerItem.task.Result);
                     ActiveReductionRunnerItems.Remove(CompletedReductionRunnerItem);
@@ -110,9 +116,8 @@ namespace ContentReductionLib
                             case ContentTypeEnum.Qlikview:
                                 QvReductionRunner Runner = new QvReductionRunner
                                 {
-                                    JobDetail = (ReductionJobDetail)T,
+                                    QueueTask = T,
                                 };
-
                                 NewTask = Task.Run(() => Runner.ExecuteReduction(cancelSource.Token));
                                 break;
 
@@ -140,19 +145,19 @@ namespace ContentReductionLib
             }
 
             MethodBase Method = MethodBase.GetCurrentMethod();
-            Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} received stop request, waiting up to {WaitTimeForTasksAfterCancel} for any running tasks to complete");
+            Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} received stop request, waiting up to {WaitTimeForTasksOnStop} for any running tasks to complete");
             DateTime WaitStart = DateTime.Now;
 
             ActiveReductionRunnerItems.ForEach(t => t.tokenSource.Cancel());
 
             while (ActiveReductionRunnerItems.Count > 0)
             {
-                if (DateTime.Now - WaitStart > WaitTimeForTasksAfterCancel)
+                if (DateTime.Now - WaitStart > WaitTimeForTasksOnStop)
                 {
                     break;
                 }
 
-                int CompletedTaskIndex = Task.WaitAny(ActiveReductionRunnerItems.Select(t => t.task).ToArray(), new TimeSpan(WaitTimeForTasksAfterCancel.Ticks/100));
+                int CompletedTaskIndex = Task.WaitAny(ActiveReductionRunnerItems.Select(t => t.task).ToArray(), new TimeSpan(WaitTimeForTasksOnStop.Ticks/100));
                 if (CompletedTaskIndex > -1)
                 {
                     ActiveReductionRunnerItems.RemoveAt(CompletedTaskIndex);
@@ -197,9 +202,9 @@ namespace ContentReductionLib
         /// </summary>
         /// <param name="Result">Contains the field values to be saved. All field values will be saved.</param>
         /// <returns></returns>
-        private bool UpdateTask(ReductionJobDetail JobDetail)
+        private bool UpdateTask(ReductionJobResult Result)
         {
-            if (JobDetail == null || JobDetail.Result == null || JobDetail.TaskId == Guid.Empty)
+            if (Result == null || Result.TaskId == Guid.Empty)
             {
                 MethodBase Method = MethodBase.GetCurrentMethod();
                 string Msg = $"{Method.ReflectedType.Name}.{Method.Name} unusable argument";
@@ -213,7 +218,7 @@ namespace ContentReductionLib
                 using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
                 {
-                    ContentReductionTask DbTask = Db.ContentReductionTask.Find(JobDetail.TaskId);
+                    ContentReductionTask DbTask = Db.ContentReductionTask.Find(Result.TaskId);
 
                     // Canceled here implies that the application does not want the update
                     if (DbTask == null || DbTask.ReductionStatus == ReductionStatusEnum.Canceled)
@@ -221,7 +226,7 @@ namespace ContentReductionLib
                         return false;
                     }
 
-                    switch (JobDetail.Result.Status)
+                    switch (Result.Status)
                     {
                         case ReductionJobStatusEnum.Unspecified:
                             DbTask.ReductionStatus = ReductionStatusEnum.Unspecified;
@@ -239,19 +244,9 @@ namespace ContentReductionLib
                             throw new Exception("Unsupported job result status in MapDbJobMonitor.UpdateTask().");
                     }
 
-                    DbTask.MasterContentHierarchy = JobDetail.Result.MasterContentHierarchy != null 
-                                                ? JsonConvert.SerializeObject((ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.MasterContentHierarchy, Formatting.Indented)
-                                                : null;
+                    DbTask.ExtractedHierarchy = JsonConvert.SerializeObject((ContentReductionHierarchy<ReductionFieldValue>)Result.ExtractedHierarchy, Formatting.Indented);
 
-                    DbTask.ReducedContentHierarchy = JobDetail.Result.ReducedContentHierarchy != null
-                                                ? JsonConvert.SerializeObject((ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.ReducedContentHierarchy, Formatting.Indented)
-                                                : null;
-
-                    DbTask.ResultFilePath = JobDetail.Result.ReducedContentFilePath;
-
-                    DbTask.ReducedContentChecksum = JobDetail.Result.ReducedContentFileChecksum;
-
-                    DbTask.ReductionStatusMessage = JobDetail.Result.StatusMessage;
+                    DbTask.ResultFilePath = Result.ReducedContentFilePath;
 
                     Db.ContentReductionTask.Update(DbTask);
                     Db.SaveChanges();
@@ -260,9 +255,8 @@ namespace ContentReductionLib
 
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Trace.WriteLine("Failed to update task in database" + Environment.NewLine + e.Message);
                 return false;
             }
         }

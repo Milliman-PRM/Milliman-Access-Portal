@@ -9,8 +9,8 @@
     <ProjectGuid>{0F9B8555-58D7-4DAB-B3A9-60678F6B89FA}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ContentReductionService</RootNamespace>
-    <AssemblyName>ContentReductionService</AssemblyName>
+    <RootNamespace>QvReportReductionService</RootNamespace>
+    <AssemblyName>ReductionService</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -56,27 +56,24 @@
     <Compile Include="ProjectInstaller.Designer.cs">
       <DependentUpon>ProjectInstaller.cs</DependentUpon>
     </Compile>
-    <Compile Include="ContentReductionService.cs">
+    <Compile Include="QvReportReductionService.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ContentReductionService.Designer.cs">
-      <DependentUpon>ContentReductionService.cs</DependentUpon>
+    <Compile Include="QvReportReductionService.Designer.cs">
+      <DependentUpon>QvReportReductionService.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="appSettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ProjectInstaller.resx">
       <DependentUpon>ProjectInstaller.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ContentReductionService.resx">
-      <DependentUpon>ContentReductionService.cs</DependentUpon>
+    <EmbeddedResource Include="QvReportReductionService.resx">
+      <DependentUpon>QvReportReductionService.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

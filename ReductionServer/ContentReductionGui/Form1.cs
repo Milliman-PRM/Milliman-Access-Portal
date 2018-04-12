@@ -6,7 +6,7 @@
 
 using System;
 using System.Diagnostics;
-//using System.Configuration;
+using System.Configuration;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -28,11 +28,14 @@ namespace QvReportReductionGui
         public Form1()
         {
             DateTime StartDateTime = DateTime.Now;
-            CurrentTraceListener = new TextWriterTraceListener("QvReportReductionGui_Trace_" + StartDateTime.ToString("yyyyMMdd-HHmmss") + ".txt");
+            CurrentTraceListener = new TextWriterTraceListener("QvReportReductionService_Trace_" + StartDateTime.ToString("yyyyMMdd-HHmmss") + ".txt");
             Trace.Listeners.Add(CurrentTraceListener);
             Trace.AutoFlush = true;
 
             InitializeComponent();
+
+            textBox1.Text = ConfigurationManager.AppSettings["RootPath"];
+            numericUpDownThreads.Value = int.Parse(ConfigurationManager.AppSettings["MaxConcurrentTasks"]);
 
             timer1.Interval = 1000;
             timer1.Start();
@@ -40,10 +43,17 @@ namespace QvReportReductionGui
 
         private void ButtonInitiateLoop_Click(object sender, EventArgs e)
         {
-            Configuration.LoadConfiguration();
-
             Manager = new ProcessManager();
-            Manager.Start();
+
+            ProcessManagerConfiguration ProcessConfig = new ProcessManagerConfiguration
+            {
+                RootPath = textBox1.Text,
+                MaxConcurrentTasks = (int)numericUpDownThreads.Value,
+            };
+
+            Trace.WriteLine(DateTime.Now + " - " + ProcessConfig.ToString());
+
+            Manager.Start(ProcessConfig);
         }
 
         private void ButtonStop_Click(object sender, EventArgs e)
@@ -80,10 +90,16 @@ namespace QvReportReductionGui
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            label1.Text = (Manager == null) 
-                            ? "Null Manager" 
-                            : Manager.AllMonitorThreadsRunning.ToString();
+            label1.Text = (Manager == null) ? "Null Manager" : Manager.AllMonitorThreadsRunning.ToString();
         }
 
+        private void buttonBrowse_Click(object sender, EventArgs e)
+        {
+            if (folderBrowserDialog1.ShowDialog() == DialogResult.OK &&
+                Directory.Exists(folderBrowserDialog1.SelectedPath))
+            {
+                textBox1.Text = folderBrowserDialog1.SelectedPath;
+            }
+        }
     }
 }

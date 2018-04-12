@@ -30,8 +30,6 @@ using AuditLogLib.Services;
 using EmailQueue;
 using MillimanAccessPortal.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.FileProviders;
-using System.IO;
 
 namespace MillimanAccessPortal
 {
@@ -139,8 +137,6 @@ namespace MillimanAccessPortal
                 }
             });
 
-            services.AddSingleton<IFileProvider>(new PhysicalFileProvider(Path.GetTempPath()));
-
             // Depends on UserManager from Identity, which is scoped, so don't add the following as singleton
             services.AddScoped<IAuthorizationHandler, MapAuthorizationHandler>();
             services.AddScoped<IAuditLogger, AuditLogger>();
@@ -148,7 +144,6 @@ namespace MillimanAccessPortal
             // Add application services.
             services.AddTransient<IMessageQueue, MessageQueueServices>();
             services.AddScoped<StandardQueries>();
-            services.AddScoped<IUploadHelper, UploadHelper>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

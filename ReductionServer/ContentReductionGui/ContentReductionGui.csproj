@@ -87,6 +87,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ContentReductionLib.Old\ContentReductionLib.old.csproj">
+      <Project>{367505b5-0893-4ab7-a959-e010f894b060}</Project>
+      <Name>ContentReductionLib.old</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ContentReductionLib\ContentReductionLib.csproj">
       <Project>{37aceb95-623f-4a69-9497-0f74936c52e2}</Project>
       <Name>ContentReductionLib</Name>

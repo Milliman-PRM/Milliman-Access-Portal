@@ -33,14 +33,12 @@
             // 
             // serviceProcessInstaller1
             // 
-            this.serviceProcessInstaller1.Account = System.ServiceProcess.ServiceAccount.User;
             this.serviceProcessInstaller1.Password = null;
             this.serviceProcessInstaller1.Username = null;
             // 
             // serviceInstaller1
             // 
-            this.serviceInstaller1.DisplayName = "Milliman Content Reduction Service";
-            this.serviceInstaller1.ServiceName = "ContentReductionService";
+            this.serviceInstaller1.ServiceName = "QvReportReductionService";
             // 
             // ProjectInstaller
             // 
