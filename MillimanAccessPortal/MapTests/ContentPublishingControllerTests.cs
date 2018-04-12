@@ -18,13 +18,13 @@ using Xunit;
 
 namespace MapTests
 {
-    public class ContentPublicationControllerTests
+    public class ContentPublishingControllerTests
     {
         internal TestInitialization TestResources { get; set; }
 
         /// <summary>Initializes test resources.</summary>
         /// <remarks>This constructor is called before each test.</remarks>
-        public ContentPublicationControllerTests()
+        public ContentPublishingControllerTests()
         {
             TestResources = new TestInitialization();
             TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
@@ -97,14 +97,14 @@ namespace MapTests
             var resumableData = new ResumableInfo
             {
                 ChunkNumber = chunkNumber,
-                TotalChunks = ((uint)size) / chunkSize,
+                TotalChunks = ((uint) size) / chunkSize,
                 TotalSize = size,
                 FileName = fileName,
                 UID = $"{String.Join('_', fileName.Split('.'))}-{checksum}",
                 RootContentItemId = 1,
             };
             resumableData.ChunkSize = (resumableData.ChunkNumber == resumableData.TotalChunks)
-                ? ((uint)size) % chunkSize + chunkSize
+                ? ((uint) size) % chunkSize + chunkSize
                 : chunkSize;
             return resumableData;
         }
@@ -121,11 +121,11 @@ namespace MapTests
             #endregion
 
             #region Act
-            // var view = controller.ChunkStatus(resumableInfo);
+            var view = controller.ChunkStatus(resumableInfo);
             #endregion
 
             #region Assert
-            Assert.True(true); // Assert.IsType<NoContentResult>(view);
+            Assert.IsType<NoContentResult>(view);
             #endregion
         }
 
@@ -139,11 +139,11 @@ namespace MapTests
             #endregion
 
             #region Act
-            // var view = controller.ChunkStatus(resumableInfo);
+            var view = controller.ChunkStatus(resumableInfo);
             #endregion
 
             #region Assert
-            Assert.True(true); // Assert.IsType<OkResult>(view);
+            Assert.IsType<OkResult>(view);
             #endregion
         }
 
@@ -157,11 +157,11 @@ namespace MapTests
             #endregion
 
             #region Act
-            // var view = await controller.Publish(resumableInfo);
+            var view = await controller.Publish(resumableInfo);
             #endregion
 
             #region Assert
-            Assert.True(true); // Assert.IsType<JsonResult>(view);
+            Assert.IsType<JsonResult>(view);
             #endregion
         }
     }
