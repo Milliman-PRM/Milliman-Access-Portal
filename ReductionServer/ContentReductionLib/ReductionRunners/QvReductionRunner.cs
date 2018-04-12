@@ -419,7 +419,7 @@ namespace ContentReductionLib.ReductionRunners
 
             if (DocNode == null)
             {
-                Trace.WriteLine(string.Format($"Did not find SourceDocument '{MasterFileName}' in source documents folder {SourceDocFolder.General.Path}"));
+                Trace.WriteLine(string.Format($"Did not find SourceDocument '{MasterFileName}' in subfolder {RequestedRelativeFolder} of source documents folder {SourceDocFolder.General.Path}"));
             }
 
             return DocNode;

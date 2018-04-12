@@ -187,27 +187,25 @@ namespace ContentReductionLib
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
             {
-                List<ContentReductionTask> TopItems = new List<ContentReductionTask>();
                 try
                 {
-                    TopItems.AddRange(Db.ContentReductionTask.Where(t => DateTimeOffset.UtcNow - t.CreateDateTime > TaskAgeBeforeExecution)
-                                                             .Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
-                                                             .Include(t => t.SelectionGroup).ThenInclude(sg => sg.RootContentItem).ThenInclude(rc => rc.ContentType)
-                                                             .OrderBy(t => t.CreateDateTime)
-                                                             .Take(ReturnNoMoreThan)
-                                                             .ToList());
+                    List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => DateTimeOffset.UtcNow - t.CreateDateTime > TaskAgeBeforeExecution)
+                                                                                 .Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
+                                                                                 .Include(t => t.SelectionGroup).ThenInclude(sg => sg.RootContentItem).ThenInclude(rc => rc.ContentType)
+                                                                                 .OrderBy(t => t.CreateDateTime)
+                                                                                 .Take(ReturnNoMoreThan)
+                                                                                 .ToList();
                     TopItems.ForEach(rt => rt.ReductionStatus = ReductionStatusEnum.Reducing);
                     Db.ContentReductionTask.UpdateRange(TopItems);
                     Db.SaveChanges();
                     Transaction.Commit();
+                    return TopItems;
                 }
                 catch (Exception e)
                 {
                     Trace.WriteLine($"Failed to query MAP database for available tasks.  Exception:{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}");
                     throw;
                 }
-
-                return TopItems;
             }
         }
 

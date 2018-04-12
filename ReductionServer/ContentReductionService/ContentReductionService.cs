@@ -6,6 +6,7 @@
  */
 
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -25,20 +26,18 @@ namespace ContentReductionService
 
         public ContentReductionService()
         {
-            DateTime StartDateTime = DateTime.Now;
-            CurrentTraceListener = new TextWriterTraceListener(@"C:\temp\QvReportReductionService_Trace_" + StartDateTime.ToString("yyyyMMdd-HHmmss") + ".txt");
-            Trace.Listeners.Add(CurrentTraceListener);
-            Trace.AutoFlush = true;
-
             InitializeComponent();
         }
 
         protected override void OnStart(string[] args)
         {
+            Thread.Sleep(12000);
             try
             {
                 Trace.WriteLine($"Service OnStart() called");
                 Configuration.LoadConfiguration();
+
+                InitiateTraceLogging();
 
                 if (Manager == null || !Manager.AnyMonitorThreadRunning)
                 {
@@ -53,6 +52,26 @@ namespace ContentReductionService
             }
         }
 
+        private void InitiateTraceLogging()
+        {
+            if (CurrentTraceListener == null)
+            {
+                string TraceLogDirectory = Configuration.ApplicationConfiguration["TraceLogDirectory"];
+                if (!Directory.Exists(TraceLogDirectory))
+                {
+                    EventLog.WriteEntry($"No configured Tracelog directory, or directory {TraceLogDirectory} does not exist", EventLogEntryType.Warning);
+                    TraceLogDirectory = @"C:\temp\";
+                }
+
+                string TraceLogFilePath = Path.Combine(TraceLogDirectory, $"QvReportReductionService_Trace_{DateTime.Now.ToString("yyyyMMdd-HHmmss")}.txt");
+                EventLog.WriteEntry($"Using Trace logging file {TraceLogFilePath}", EventLogEntryType.Warning);
+
+                CurrentTraceListener = new TextWriterTraceListener(Path.Combine(TraceLogDirectory, $"QvReportReductionService_Trace_{DateTime.Now.ToString("yyyyMMdd-HHmmss")}.txt"));
+                Trace.Listeners.Add(CurrentTraceListener);
+                Trace.AutoFlush = true;
+            }
+        }
+
         protected override void OnStop()
         {
             Trace.WriteLine($"Service OnStop() called");
@@ -61,33 +80,6 @@ namespace ContentReductionService
                 Manager.Stop();
                 Manager = null;
             }
-        }
-
-        protected override void OnPause()
-        {
-            Trace.WriteLine($"Service OnPause() called");
-            if (Manager != null)
-            {
-                Manager.Stop();
-                Manager = null;
-            }
-
-            base.OnPause();
-        }
-
-        protected override void OnContinue()
-        {
-            Trace.WriteLine($"Service OnContinue() called");
-
-            Configuration.LoadConfiguration();
-
-            if (Manager == null || !Manager.AnyMonitorThreadRunning)
-            {
-                Manager = new ProcessManager();
-                Manager.Start();
-            }
-
-            base.OnContinue();
         }
 
         protected override void OnShutdown()
@@ -101,6 +93,20 @@ namespace ContentReductionService
         }
 
         #region Unimplemented service callbacks
+        protected override void OnPause()
+        {
+            Trace.WriteLine($"Service OnPause() called");
+
+            base.OnPause();
+        }
+
+        protected override void OnContinue()
+        {
+            Trace.WriteLine($"Service OnContinue() called");
+
+            base.OnContinue();
+        }
+
         protected override void OnCustomCommand(int command)
         {
             Trace.WriteLine($"Service OnCommand() called with command= {command}");
