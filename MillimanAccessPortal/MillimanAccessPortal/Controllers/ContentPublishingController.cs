@@ -277,7 +277,7 @@ namespace MillimanAccessPortal.Controllers
 //          var targetFileInfo = FileProvider.GetFileInfo(Path.Combine(
 //              resumableData.UID, $"{resumableData.ChunkNumber:D8}.chunk"));
 //          var targetFilePath = targetFileInfo.PhysicalPath;
-            targetFilePath = Path.Combine(Path.GetTempPath(), resumableData.UID, $"{resumableData.ChunkNumber:D8}.chunk");
+            var targetFilePath = Path.Combine(Path.GetTempPath(), resumableData.UID, $"{resumableData.ChunkNumber:D8}.chunk");
 
             var targetDirPath = Path.GetDirectoryName(targetFilePath);
 
@@ -332,6 +332,7 @@ namespace MillimanAccessPortal.Controllers
 
                 // rename the file with proper extension, this will allow it to be noticed by virus scanner
 //              var finalFileName = FileProvider.GetFileInfo($"{resumableData.UID}{resumableData.FileExt}").PhysicalPath;
+                var finalFileName = Path.Combine(Path.GetTempPath(), $"{resumableData.UID}{resumableData.FileExt}");
                 if (System.IO.File.Exists(finalFileName))
                 {
                     System.IO.File.Delete(finalFileName);
