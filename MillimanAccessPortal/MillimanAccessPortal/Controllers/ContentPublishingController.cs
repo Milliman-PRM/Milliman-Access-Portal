@@ -5,7 +5,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +18,6 @@ using MapDbContextLib.Identity;
 using MapCommonLib;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Authorization;
-using AuditLogLib;
 using AuditLogLib.Services;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -260,7 +258,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Ensure file is within size limit
-            if (resumableData.TotalSize > (5 * 1024 * 1024 * 1024L)) // TODO: move to configuration
+            if (resumableData.TotalSize > (5 * 1000 * 1000 * 1000L)) // TODO: move to configuration
             {
                 System.IO.File.Delete(tempFilePath);
                 return BadRequest();
