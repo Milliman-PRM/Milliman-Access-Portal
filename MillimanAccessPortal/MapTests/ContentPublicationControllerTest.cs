@@ -39,7 +39,7 @@ namespace MapTests
                 TestResources.AuditLoggerObject,
                 TestResources.AuthorizationService,
                 TestResources.DbContextObject,
-                TestResources.FileProviderObject,
+                TestResources.UploadHelperObject,
                 TestResources.LoggerFactory,
                 TestResources.QueriesObj
                 );
@@ -91,7 +91,7 @@ namespace MapTests
             #endregion
         }
 
-        private ResumableInfo BuildResumableData(string fileName, string checksum, ulong size, uint chunkNumber)
+        private ResumableInfo BuildResumableInfo(string fileName, string checksum, ulong size, uint chunkNumber)
         {
             const uint chunkSize = (1024 * 1024);
             var resumableData = new ResumableInfo
@@ -117,11 +117,11 @@ namespace MapTests
         {
             #region Arrange
             ContentPublishingController controller = await GetControllerForUser("test1");
-            var resumableData = BuildResumableData(fileName, checksum, size, chunkNumber);
+            var resumableInfo = BuildResumableInfo(fileName, checksum, size, chunkNumber);
             #endregion
 
             #region Act
-            var view = controller.ChunkStatus(resumableData);
+            var view = controller.ChunkStatus(resumableInfo);
             #endregion
 
             #region Assert
@@ -135,15 +135,33 @@ namespace MapTests
         {
             #region Arrange
             ContentPublishingController controller = await GetControllerForUser("test1");
-            var resumableData = BuildResumableData(fileName, checksum, size, chunkNumber);
+            var resumableInfo = BuildResumableInfo(fileName, checksum, size, chunkNumber);
             #endregion
 
             #region Act
-            var view = controller.ChunkStatus(resumableData);
+            var view = controller.ChunkStatus(resumableInfo);
             #endregion
 
             #region Assert
             Assert.IsType<OkResult>(view);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData("3MB.txt", "51a3bcc4149bd86bd6a635d36ecc2d0a39d01f75", 3000000, 1)]
+        public async Task RequestContentPublication_Ok(string fileName, string checksum, ulong size, uint chunkNumber)
+        {
+            #region Arrange
+            ContentPublishingController controller = await GetControllerForUser("test1");
+            var resumableInfo = BuildResumableInfo(fileName, checksum, size, chunkNumber);
+            #endregion
+
+            #region Act
+            var view = await controller.RequestContentPublication(resumableInfo);
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(view);
             #endregion
         }
     }

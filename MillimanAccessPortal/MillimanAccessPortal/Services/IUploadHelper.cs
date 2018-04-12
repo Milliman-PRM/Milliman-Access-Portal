@@ -7,7 +7,7 @@ namespace MillimanAccessPortal.Services
     {
         bool GetChunkReceived(ResumableInfo resumableInfo, uint chunkNumber);
 
-        FileStream OpenTempFile();
+        Stream OpenTempFile();
 
         void ProcessUpload(ResumableInfo resumableInfo, out bool AllChunksReceived);
 
