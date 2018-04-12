@@ -94,12 +94,12 @@ namespace MapTests
         {
             //GenerateDependencies();
 
-            //DataGenFunctionDict = new Dictionary<DataSelection, Action>
-            //{
-            //    // Important: Keep this dictionary synchronized with enum DataSelection above
-            //    { DataSelection.Basic, GenerateBasicTestData },
-            //    { DataSelection.Reduction, GenerateReductionTestData },
-            //};
+            DataGenFunctionDict = new Dictionary<DataSelection, Action>
+            {
+                // Important: Keep this dictionary synchronized with enum DataSelection above
+                { DataSelection.Basic, GenerateBasicTestData },
+                { DataSelection.Reduction, GenerateReductionTestData },
+            };
         }
         /// <summary>
         /// Initializes a ControllerContext based on a user name. 
