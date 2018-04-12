@@ -297,6 +297,7 @@ namespace MapTests
         {
             Mock<IUploadHelper> mock = new Mock<IUploadHelper>();
 
+            /*
             ResumableInfo resumableInfo = null;
             mock.Setup(m => m.GetChunkReceived(It.IsAny<ResumableInfo>(), It.IsAny<uint>())).Returns<ResumableInfo, uint>((x, y) =>
             {
@@ -316,6 +317,7 @@ namespace MapTests
             {
                 return Path.Combine(TestDataPath, $"{resumableInfo.UID}{resumableInfo.FileExt}");
             });
+            */
 
             return mock;
         }
