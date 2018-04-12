@@ -1,6 +1,7 @@
 var $ = require('jquery');
 var toastr = require('toastr');
 var vex = require('vex-js');
+require('./lib-options');
 
 require('bootstrap/scss/bootstrap-reboot.scss');
 require('toastr/toastr.scss');
