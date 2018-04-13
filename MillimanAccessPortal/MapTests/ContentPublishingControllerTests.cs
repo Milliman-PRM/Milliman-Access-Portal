@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Joseph Sweeney,
- * OBJECTIVE: Unit tests for the content puiblishing controller
+ * OBJECTIVE: Unit tests for the content publishing controller
  * DEVELOPER NOTES: 
  */
 
