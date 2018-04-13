@@ -140,10 +140,10 @@ namespace MapTests
         /// </summary>
         private void GenerateDependencies()
         {
-            MockDbContext = GenerateDbContext();
-            MockUserManager = MapTests.MockUserManager.New(MockDbContext);
-            MockRoleManager = GenerateRoleManager(MockDbContext);
-            MockMessageQueueService = GenerateMessageQueueService();
+            //MockDbContext = GenerateDbContext();
+            //MockUserManager = MapTests.MockUserManager.New(MockDbContext);
+            //MockRoleManager = GenerateRoleManager(MockDbContext);
+            //MockMessageQueueService = GenerateMessageQueueService();
             //MockUploadHelper = GenerateUploadHelper();
             LoggerFactory = new LoggerFactory();
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
