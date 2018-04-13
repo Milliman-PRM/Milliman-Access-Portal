@@ -429,7 +429,7 @@ function newClientClickHandler() {
 
 // TODO: move to shared
 function saveNewUser(username, email, callback) {
-  var clientId = $('#client-tree [selected]').attr('data-client-id');
+  var clientId = $('#client-tree [selected]').closest('[data-client-id]').attr('data-client-id');
   $.ajax({
     type: 'POST',
     url: 'ClientAdmin/SaveNewUser',
