@@ -1,18 +1,15 @@
 ﻿/*
  * CODE OWNERS: Joseph Sweeney,
- * OBJECTIVE: Unit tests for the content access admin controller
+ * OBJECTIVE: Unit tests for the content puiblishing controller
  * DEVELOPER NOTES: 
  */
 
 using MapCommonLib;
-using MapDbContextLib.Context;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.ContentPublicationViewModels;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -75,7 +72,7 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData("3MB.txt", "51a3bcc4149bd86bd6a635d36ecc2d0a39d01f75")]
+        [InlineData("random.dat", "2339ebed070fd30a869a22193ef2f76284ed333b")]
         public void GetFileChecksum_Match(string fileName, string checksum)
         {
             #region Arrange
@@ -110,9 +107,9 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData("nonexistant_3MB.txt", "51a3bcc4149bd86bd6a635d36ecc2d0a39d01f75", 3000000, 1)]
-        [InlineData("incomplete_3MB.txt", "51a3bcc4149bd86bd6a635d36ecc2d0a39d01f75", 3000000, 1)]
-        [InlineData("3MB.txt", "51a3bcc4149bd86bd6a635d36ecc2d0a39d01f75", 3000000, 2)]
+        [InlineData("nonexistant_random.dat", "2339ebed070fd30a869a22193ef2f76284ed333b", 2097152, 1)]
+        [InlineData("incomplete_random.dat", "2339ebed070fd30a869a22193ef2f76284ed333b", 2097152, 1)]
+        [InlineData("random.dat", "2339ebed070fd30a869a22193ef2f76284ed333b", 2097152, 2)]
         public async Task ChunkStatus_NotFound(string fileName, string checksum, ulong size, uint chunkNumber)
         {
             #region Arrange
@@ -130,7 +127,7 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData("3MB.txt", "51a3bcc4149bd86bd6a635d36ecc2d0a39d01f75", 3000000, 1)]
+        [InlineData("random.dat", "2339ebed070fd30a869a22193ef2f76284ed333b", 2097152, 1)]
         public async Task ChunkStatus_Ok(string fileName, string checksum, ulong size, uint chunkNumber)
         {
             #region Arrange
@@ -148,7 +145,7 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData("3MB.txt", "51a3bcc4149bd86bd6a635d36ecc2d0a39d01f75", 3000000, 1)]
+        [InlineData("random.dat", "2339ebed070fd30a869a22193ef2f76284ed333b", 2097152, 1)]
         public async Task RequestContentPublication_Ok(string fileName, string checksum, ulong size, uint chunkNumber)
         {
             #region Arrange
