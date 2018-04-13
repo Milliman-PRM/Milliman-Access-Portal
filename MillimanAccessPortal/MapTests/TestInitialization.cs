@@ -166,9 +166,9 @@ namespace MapTests
 
                     var built = configurationBuilder.Build();
 
-                    //var store = new X509Store(StoreLocation.LocalMachine);
-                    //store.Open(OpenFlags.ReadOnly);
-                    //var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
+                    var store = new X509Store(StoreLocation.LocalMachine);
+                    store.Open(OpenFlags.ReadOnly);
+                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
 
                     //configurationBuilder.AddAzureKeyVault(
                     //    built["AzureVaultName"],
