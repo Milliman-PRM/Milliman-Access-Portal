@@ -66,50 +66,62 @@ namespace ContentReductionLib.ReductionRunners
             MethodBase Method = MethodBase.GetCurrentMethod();
             object DetailObj;
             AuditEvent Event;
+            JobActionEnum[] SupportedJobActions = new JobActionEnum[] 
+            {
+                JobActionEnum.HierarchyOnly,
+                JobActionEnum.HierarchyAndReduction
+            };
 
             try
             {
-                ValidateThisInstance();
-                _CancellationToken.ThrowIfCancellationRequested();
-
-                await PreTaskSetup();
-
-                #region Extract master content hierarchy
-                JobDetail.Result.MasterContentHierarchy = await ExtractReductionHierarchy(MasterDocumentNode);
-
-                DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), Hierarchy = JobDetail.Result.MasterContentHierarchy };
-                Event = AuditEvent.New("Reduction server", "Extraction of master content hierarchy succeeded", AuditEventId.HierarchyExtractionSucceeded, DetailObj);
-                new AuditLogger().Log(Event);
-                #endregion
-
-                _CancellationToken.ThrowIfCancellationRequested();
-
-                if (JobDetail.Request.JobAction == JobActionEnum.HierarchyAndReduction)
+                if (!SupportedJobActions.Contains(JobDetail.Request.JobAction))
                 {
-                    #region Create reduced content
-                    await CreateReducedContent();
-
-                    DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), RequestedSelections = JobDetail.Request.SelectionCriteria };
-                    Event = AuditEvent.New("Reduction server", "Creation of reduced content succeeded", AuditEventId.ContentReductionSucceeded, DetailObj);
-                    new AuditLogger().Log(Event);
-                    #endregion
-
+                    throw new ApplicationException($"QvReductionRunner.Execute() refusing to process job with unsupported requested action: {JobDetail.Request.JobAction.ToString()}");
+                }
+                else
+                {
+                    ValidateThisInstance();
                     _CancellationToken.ThrowIfCancellationRequested();
 
-                    #region Extract reduced content hierarchy
-                    JobDetail.Result.ReducedContentHierarchy = await ExtractReductionHierarchy(ReducedDocumentNode);
+                    await PreTaskSetup();
 
-                    DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), Hierarchy = JobDetail.Result.ReducedContentHierarchy };
+                    #region Extract master content hierarchy
+                    JobDetail.Result.MasterContentHierarchy = await ExtractReductionHierarchy(MasterDocumentNode);
+
+                    DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), JobAction = JobDetail.Request.JobAction, Hierarchy = JobDetail.Result.MasterContentHierarchy };
                     Event = AuditEvent.New("Reduction server", "Extraction of master content hierarchy succeeded", AuditEventId.HierarchyExtractionSucceeded, DetailObj);
                     new AuditLogger().Log(Event);
                     #endregion
 
                     _CancellationToken.ThrowIfCancellationRequested();
 
-                    DistributeReducedContent();
-                }
+                    if (JobDetail.Request.JobAction == JobActionEnum.HierarchyAndReduction)
+                    {
+                        #region Create reduced content
+                        await CreateReducedContent();
 
-                JobDetail.Result.Status = JobStatusEnum.Success;
+                        DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), RequestedSelections = JobDetail.Request.SelectionCriteria };
+                        Event = AuditEvent.New("Reduction server", "Creation of reduced content succeeded", AuditEventId.ContentReductionSucceeded, DetailObj);
+                        new AuditLogger().Log(Event);
+                        #endregion
+
+                        _CancellationToken.ThrowIfCancellationRequested();
+
+                        #region Extract reduced content hierarchy
+                        JobDetail.Result.ReducedContentHierarchy = await ExtractReductionHierarchy(ReducedDocumentNode);
+
+                        DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), JobAction = JobDetail.Request.JobAction, Hierarchy = JobDetail.Result.ReducedContentHierarchy };
+                        Event = AuditEvent.New("Reduction server", "Extraction of reduced content hierarchy succeeded", AuditEventId.HierarchyExtractionSucceeded, DetailObj);
+                        new AuditLogger().Log(Event);
+                        #endregion
+
+                        _CancellationToken.ThrowIfCancellationRequested();
+
+                        DistributeReducedContent();
+                    }
+
+                    JobDetail.Result.Status = JobStatusEnum.Success;
+                }
             }
             catch (OperationCanceledException e)
             {

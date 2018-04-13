@@ -13,6 +13,9 @@ using MapDbContextLib.Identity;
 
 namespace MapDbContextLib.Context
 {
+    /// <summary>
+    /// Represents the evolving status of the task
+    /// </summary>
     public enum ReductionStatusEnum : long
     {
         Unspecified = 0,    // Default unknown state
@@ -26,6 +29,9 @@ namespace MapDbContextLib.Context
         Error = 90,         // An error has occured
     }
 
+    /// <summary>
+    /// Represent what action MAP is requesting from the reduction server
+    /// </summary>
     public enum TaskActionEnum
     {
         Unspecified = 0,    // Default unknown state

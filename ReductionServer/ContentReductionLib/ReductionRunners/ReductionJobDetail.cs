@@ -82,7 +82,6 @@ namespace ContentReductionLib.ReductionRunners
             internal string MasterFilePath { get; set; }
             internal List<FieldValueSelection> SelectionCriteria { get; set; }
             internal string MasterContentChecksum { get; set; } = string.Empty;
-            internal bool DoReduction { get; set; } = false;
             internal JobActionEnum JobAction { get; set; } = JobActionEnum.Unspecified;
         }
     }
