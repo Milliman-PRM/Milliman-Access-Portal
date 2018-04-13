@@ -142,7 +142,7 @@ namespace MapTests
         {
             MockDbContext = GenerateDbContext();
             MockUserManager = MapTests.MockUserManager.New(MockDbContext);
-            //MockRoleManager = GenerateRoleManager(MockDbContext);
+            MockRoleManager = GenerateRoleManager(MockDbContext);
             //MockMessageQueueService = GenerateMessageQueueService();
             //MockUploadHelper = GenerateUploadHelper();
             //LoggerFactory = new LoggerFactory();
