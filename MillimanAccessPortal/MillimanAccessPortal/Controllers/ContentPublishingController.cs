@@ -1,5 +1,5 @@
 ﻿/*
- * CODE OWNERS: Tom Puckett,
+ * CODE OWNERS: Tom Puckett, Joseph Sweeney
  * OBJECTIVE: Controller for actions supporting the content publishing page
  * DEVELOPER NOTES: <What future developers need to know.>
  */
@@ -10,16 +10,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
-using MapCommonLib;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Authorization;
 using AuditLogLib.Services;
-using Newtonsoft.Json;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Net.Http.Headers;
 using System.IO;
@@ -27,8 +23,6 @@ using Microsoft.AspNetCore.WebUtilities;
 using System.Globalization;
 using System.Text;
 using MillimanAccessPortal.Models.ContentPublicationViewModels;
-using System.Security.Cryptography;
-using Microsoft.Extensions.FileProviders;
 using MillimanAccessPortal.Services;
 
 namespace MillimanAccessPortal.Controllers

@@ -29,11 +29,9 @@ using QlikviewLib;
 using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography.X509Certificates;
 using AuditLogLib;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using MillimanAccessPortal.Services;
 using System.IO;
-using Microsoft.Extensions.FileProviders;
 using MillimanAccessPortal.Models.ContentPublicationViewModels;
 
 namespace MapTests
@@ -182,7 +180,7 @@ namespace MapTests
 
             var configuration = configurationBuilder.Build();
 
-            return Options.Create<QlikviewConfig>(new QlikviewConfig
+            return Options.Create(new QlikviewConfig
             {
                 QvServerHost = configuration["QvServerHost"],
                 QvServerAdminUserAuthenticationDomain = configuration["QvServerAdminUserAuthenticationDomain"],
@@ -321,7 +319,7 @@ namespace MapTests
 
         private Mock<AuditLogger> GenerateAuditLogger()
         {
-            AuditLogLib.AuditLogger.Config = new AuditLogLib.AuditLoggerConfiguration { AuditLogConnectionString = "" };
+            AuditLogLib.AuditLogger.Config = new AuditLoggerConfiguration { AuditLogConnectionString = "" };
             Mock<AuditLogger> ReturnObject = new Mock<AuditLogger>();
             ReturnObject.Setup(al => al.Log(It.IsAny<AuditEvent>())).Callback(() => { });
 
