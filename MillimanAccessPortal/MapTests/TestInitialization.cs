@@ -92,7 +92,7 @@ namespace MapTests
         /// </summary>
         public TestInitialization()
         {
-            //GenerateDependencies();
+            GenerateDependencies();
 
             DataGenFunctionDict = new Dictionary<DataSelection, Action>
             {
@@ -144,7 +144,7 @@ namespace MapTests
             MockUserManager = MapTests.MockUserManager.New(MockDbContext);
             MockRoleManager = GenerateRoleManager(MockDbContext);
             MockMessageQueueService = GenerateMessageQueueService();
-            MockUploadHelper = GenerateUploadHelper();
+            //MockUploadHelper = GenerateUploadHelper();
             LoggerFactory = new LoggerFactory();
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject);
