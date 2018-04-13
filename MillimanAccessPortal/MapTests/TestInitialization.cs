@@ -72,7 +72,7 @@ namespace MapTests
         public Mock<IUploadHelper> MockUploadHelper { get; set; }
         public IUploadHelper UploadHelperObject { get => MockUploadHelper.Object; }
 
-        public IOptions<QlikviewConfig> QvConfig { get; set; }
+        public IOptions<QlikviewConfig> QvConfig { get { return BuildQvConfig(); } }
 
         public DefaultAuthorizationService AuthorizationService { get; set; }
 
@@ -148,7 +148,6 @@ namespace MapTests
             LoggerFactory = new LoggerFactory();
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject);
-            QvConfig = BuildQvConfig();
             MockAuditLogger = GenerateAuditLogger();
         }
 
@@ -170,10 +169,10 @@ namespace MapTests
                     store.Open(OpenFlags.ReadOnly);
                     var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
 
-                    //configurationBuilder.AddAzureKeyVault(
-                    //    built["AzureVaultName"],
-                    //    built["AzureClientID"],
-                    //    cert.OfType<X509Certificate2>().Single());
+                    configurationBuilder.AddAzureKeyVault(
+                        built["AzureVaultName"],
+                        built["AzureClientID"],
+                        cert.OfType<X509Certificate2>().Single());
                     break;
 
                 default: // Get connection string from user secrets in Development (ASPNETCORE_ENVIRONMENT is not set during local unit tests)
