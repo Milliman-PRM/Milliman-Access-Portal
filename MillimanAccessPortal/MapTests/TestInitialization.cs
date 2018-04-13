@@ -170,10 +170,10 @@ namespace MapTests
                     store.Open(OpenFlags.ReadOnly);
                     var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
 
-                    configurationBuilder.AddAzureKeyVault(
-                        built["AzureVaultName"],
-                        built["AzureClientID"],
-                        cert.OfType<X509Certificate2>().Single());
+                    //configurationBuilder.AddAzureKeyVault(
+                    //    built["AzureVaultName"],
+                    //    built["AzureClientID"],
+                    //    cert.OfType<X509Certificate2>().Single());
                     break;
 
                 default: // Get connection string from user secrets in Development (ASPNETCORE_ENVIRONMENT is not set during local unit tests)
@@ -185,10 +185,10 @@ namespace MapTests
 
             return Options.Create<QlikviewConfig>(new QlikviewConfig
             {
-            //    QvServerHost = configuration["QvServerHost"],
-            //    QvServerAdminUserAuthenticationDomain = configuration["QvServerAdminUserAuthenticationDomain"],
-            //    QvServerAdminUserName = configuration["QvServerAdminUserName"],
-            //    QvServerAdminUserPassword = configuration["QvServerAdminUserPassword"]
+                QvServerHost = configuration["QvServerHost"],
+                QvServerAdminUserAuthenticationDomain = configuration["QvServerAdminUserAuthenticationDomain"],
+                QvServerAdminUserName = configuration["QvServerAdminUserName"],
+                QvServerAdminUserPassword = configuration["QvServerAdminUserPassword"]
             });
         }
 
