@@ -154,34 +154,34 @@ namespace MapTests
 
         private IOptions<QlikviewConfig> BuildQvConfig()
         {
-            //var configurationBuilder = new ConfigurationBuilder();
-            //string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            var configurationBuilder = new ConfigurationBuilder();
+            string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-            //// Determine location to fetch the configuration
-            //switch (environmentName)
-            //{
-            //    case "CI":
-            //    case "Production": // Get configuration from Azure Key Vault for Production
-            //        configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
+            // Determine location to fetch the configuration
+            switch (environmentName)
+            {
+                case "CI":
+                case "Production": // Get configuration from Azure Key Vault for Production
+                    configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
 
-            //        var built = configurationBuilder.Build();
+                    var built = configurationBuilder.Build();
 
-            //        var store = new X509Store(StoreLocation.LocalMachine);
-            //        store.Open(OpenFlags.ReadOnly);
-            //        var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
+                    var store = new X509Store(StoreLocation.LocalMachine);
+                    store.Open(OpenFlags.ReadOnly);
+                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
 
-            //        configurationBuilder.AddAzureKeyVault(
-            //            built["AzureVaultName"],
-            //            built["AzureClientID"],
-            //            cert.OfType<X509Certificate2>().Single());
-            //        break;
+                    configurationBuilder.AddAzureKeyVault(
+                        built["AzureVaultName"],
+                        built["AzureClientID"],
+                        cert.OfType<X509Certificate2>().Single());
+                    break;
 
-            //    default: // Get connection string from user secrets in Development (ASPNETCORE_ENVIRONMENT is not set during local unit tests)
-            //        configurationBuilder.AddUserSecrets<TestInitialization>();
-            //        break;
-            //}
+                default: // Get connection string from user secrets in Development (ASPNETCORE_ENVIRONMENT is not set during local unit tests)
+                    configurationBuilder.AddUserSecrets<TestInitialization>();
+                    break;
+            }
 
-            //var configuration = configurationBuilder.Build();
+            var configuration = configurationBuilder.Build();
 
             return Options.Create<QlikviewConfig>(new QlikviewConfig
             {
