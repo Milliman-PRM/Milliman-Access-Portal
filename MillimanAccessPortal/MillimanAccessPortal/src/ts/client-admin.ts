@@ -63,7 +63,7 @@ function setClientFormReadOnly() {
   $('#client-info .action-icon-cancel').hide();
   $clientForm.find(':input').attr('readonly', '');
   $clientForm.find(':input,select').attr('disabled', '');
-  $clientForm.find('.form-button-container').add('button').hide();
+  $clientForm.find('.form-button-container').hide();
   $clientForm.find('.selectized').each(function disable() {
     this.selectize.disable();
   });
@@ -76,7 +76,7 @@ function setClientFormWriteable() {
   $('#client-info .action-icon-cancel').show();
   $clientForm.find(':input').removeAttr('readonly');
   $clientForm.find(':input,select').removeAttr('disabled');
-  $clientForm.find('.form-button-container').add('button').hide();
+  $clientForm.find('.form-button-container').hide();
   $clientForm.find('.edit-form-button-container').show();
   $clientForm.find('.selectized').each(function enable() {
     this.selectize.enable();
@@ -242,7 +242,7 @@ function setupChildClientForm(parentClientDiv) {
       });
     });
 
-  $('#client-info .form-button-container').add('button').hide();
+  $('#client-info .form-button-container').hide();
   $('#client-info .new-form-button-container').show();
 }
 
@@ -250,7 +250,7 @@ function setupChildClientForm(parentClientDiv) {
 function setupClientForm() {
   var $clientForm = $('#client-info form.admin-panel-content');
   shared.clearForm($('#client-info'));
-  $clientForm.find('.form-button-container').add('button').hide();
+  $clientForm.find('.form-button-container').hide();
   $clientForm.find('.new-form-button-container').show();
 }
 
