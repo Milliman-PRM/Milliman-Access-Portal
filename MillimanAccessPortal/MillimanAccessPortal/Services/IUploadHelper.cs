@@ -9,7 +9,7 @@ namespace MillimanAccessPortal.Services
 
         Stream OpenTempFile();
 
-        void ProcessUpload(ResumableInfo resumableInfo, out bool AllChunksReceived);
+        int? ProcessUpload(ResumableInfo resumableInfo);
 
         string GetOutputFilePath();
     }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using MapCommonLib;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.FileProviders;
 using MillimanAccessPortal.Models.ContentPublicationViewModels;
 
@@ -109,32 +110,40 @@ namespace MillimanAccessPortal.Services
             return File.Create(_fileProvider.GetFileInfo(TempFilePath).PhysicalPath);
         }
 
-        public void ProcessUpload(ResumableInfo resumableInfo, out bool AllChunksReceived)
+        public int? ProcessUpload(ResumableInfo resumableInfo)
         {
-            AllChunksReceived = false;
             Info = resumableInfo;
 
+            // Expect the chunk to have been uploaded
             if (!_fileProvider.GetFileInfo(TempFilePath).Exists)
             {
-                // panic
+                return StatusCodes.Status400BadRequest;
             }
 
+            // Expect the total file size to be within the limit
             if (Info.TotalSize > GlobalFunctions.maxFileUploadSize)
             {
-                // panic
+                return StatusCodes.Status413PayloadTooLarge;
             }
 
             SolidifyChunk();
 
+            // If any chunks have not been received, don't try to reassemble yet
             if (_fileProvider.GetDirectoryContents(ChunkDirPath).Count() < Info.TotalChunks)
             {
-                return;
+                return StatusCodes.Status200OK;
             }
-            AllChunksReceived = true;
 
             ConcatenateChunks();
 
-            VerifyUpload();
+            // Verify received file meets quality standards
+            var success = VerifyUpload();
+            if (!success)
+            {
+                return StatusCodes.Status409Conflict;
+            }
+
+            return null;
         }
 
         public string GetOutputFilePath()
@@ -185,13 +194,13 @@ namespace MillimanAccessPortal.Services
             Directory.Delete(_fileProvider.GetFileInfo(ChunkDirPath).PhysicalPath);
         }
 
-        private void VerifyUpload()
+        private bool VerifyUpload()
         {
             var concatenationFilePath = _fileProvider.GetFileInfo(ConcatenationFilePath).PhysicalPath;
             var computedChecksum = GlobalFunctions.GetFileChecksum(concatenationFilePath);
             if (!Info.Checksum.Equals(computedChecksum, StringComparison.OrdinalIgnoreCase))
             {
-                // panic
+                return false;
             }
 
             // Rename the file with proper extension - this makes it visible to the virus scanner
@@ -201,6 +210,8 @@ namespace MillimanAccessPortal.Services
                 File.Delete(outputFilePath);
             }
             File.Move(concatenationFilePath, outputFilePath);
+
+            return true;
         }
 
         public void Dispose()

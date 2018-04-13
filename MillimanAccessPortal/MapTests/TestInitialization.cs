@@ -288,8 +288,6 @@ namespace MapTests
             return ReturnObject;
         }
 
-        delegate void ProcessUploadCallback(ResumableInfo resumableInfo, out bool AllChunksReceived);
-
         private Mock<IUploadHelper> GenerateUploadHelper()
         {
             Mock<IUploadHelper> mock = new Mock<IUploadHelper>();
@@ -303,12 +301,14 @@ namespace MapTests
                         && x.ChunkNumber != x.TotalChunks);
             });
             mock.Setup(m => m.OpenTempFile()).Returns(Stream.Null);
-            mock.Setup(m => m.ProcessUpload(It.IsAny<ResumableInfo>(), out It.Ref<bool>.IsAny))
-                .Callback(new ProcessUploadCallback((ResumableInfo info, out bool AllChunksReceived) => {
-                    resumableInfo = info;
-                    var chunkDirInfo = new DirectoryInfo(Path.Combine(TestDataPath, "Uploads", info.UID));
-                    AllChunksReceived = chunkDirInfo.GetFiles().Count() == info.TotalChunks;
-                    }));
+            mock.Setup(m => m.ProcessUpload(It.IsAny<ResumableInfo>()))
+                .Returns<ResumableInfo>((s) =>
+                {
+                    var chunkDirInfo = new DirectoryInfo(Path.Combine(TestDataPath, "Uploads", s.UID));
+                    return (chunkDirInfo.GetFiles().Count() == s.TotalChunks)
+                        ? (int?)null
+                        : StatusCodes.Status200OK;
+                });
             mock.Setup(m => m.GetOutputFilePath()).Returns(() =>
             {
                 return Path.Combine(TestDataPath, $"{resumableInfo.UID}{resumableInfo.FileExt}");

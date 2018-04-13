@@ -194,11 +194,12 @@ namespace MillimanAccessPortal.Controllers
             // TODO: add additional validation
             #endregion
 
-            UploadHelper.ProcessUpload(resumableInfo, out bool allChunksReceived);
+            int? returnStatus = UploadHelper.ProcessUpload(resumableInfo);
 
-            if (!allChunksReceived)
+            if (returnStatus.HasValue)
             {
-                return Ok();
+                Response.Headers.Add("Warning", $"{returnStatus.Value}"); // TODO: Return meaningful messages
+                return new StatusCodeResult(returnStatus.Value);
             }
 
             // Create the publication request and reduction task(s)
