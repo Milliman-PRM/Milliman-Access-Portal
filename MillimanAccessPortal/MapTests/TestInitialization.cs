@@ -147,8 +147,8 @@ namespace MapTests
             MockUploadHelper = GenerateUploadHelper();
             LoggerFactory = new LoggerFactory();
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
-            //QueriesObj = new StandardQueries(DbContextObject, UserManagerObject);
-            //QvConfig = BuildQvConfig();
+            QueriesObj = new StandardQueries(DbContextObject, UserManagerObject);
+            QvConfig = BuildQvConfig();
             //MockAuditLogger = GenerateAuditLogger();
         }
 
