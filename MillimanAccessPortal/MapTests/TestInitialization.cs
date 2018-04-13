@@ -154,7 +154,7 @@ namespace MapTests
 
         private IOptions<QlikviewConfig> BuildQvConfig()
         {
-            var configurationBuilder = new ConfigurationBuilder();
+            //var configurationBuilder = new ConfigurationBuilder();
             //string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
             //// Determine location to fetch the configuration
@@ -183,14 +183,13 @@ namespace MapTests
 
             //var configuration = configurationBuilder.Build();
 
-            //return Options.Create<QlikviewConfig>(new QlikviewConfig
-            //{
+            return Options.Create<QlikviewConfig>(new QlikviewConfig
+            {
             //    QvServerHost = configuration["QvServerHost"],
             //    QvServerAdminUserAuthenticationDomain = configuration["QvServerAdminUserAuthenticationDomain"],
             //    QvServerAdminUserName = configuration["QvServerAdminUserName"],
             //    QvServerAdminUserPassword = configuration["QvServerAdminUserPassword"]
-            //});
-            return configurationBuilder;
+            });
         }
 
         private Mock<ApplicationDbContext> GenerateDbContext()
