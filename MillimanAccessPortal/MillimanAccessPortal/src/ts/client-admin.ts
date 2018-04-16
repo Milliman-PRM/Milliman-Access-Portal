@@ -505,7 +505,7 @@ function removeUserFromClient(clientId, userId, callback) {
 // TODO: move to shared
 function cancelIconClickHandler() {
   shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
-    if ($('#client-tree [selected]').attr('data-client-id')) {
+    if ($('#client-tree [selected]').parent().attr('data-client-id')) {
       $('#client-tree [editing]').removeAttr('editing');
       setClientFormReadOnly();
     } else {
