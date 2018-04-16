@@ -33,7 +33,6 @@ function generateUIDFromSHA1(render: (progress: number) => void) {
       const chunkSize = (2 ** 20); // 1 MiB
       let offset = 0;
       reader.onload = function () {
-        render(offset / file.size);
         md.update(this.result);
         offset += chunkSize;
         if (offset >= file.size) {
@@ -41,6 +40,7 @@ function generateUIDFromSHA1(render: (progress: number) => void) {
           const checksum = md.digest().toHex();
           resolve(`${filename}-${checksum}`);
         } else {
+          render(offset / file.size);
           reader.readAsBinaryString(
             file.slice(offset, offset + chunkSize));
         }
