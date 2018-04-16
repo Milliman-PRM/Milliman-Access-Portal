@@ -661,6 +661,11 @@ namespace ContentReductionLib.ReductionRunners
                 Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
             } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));
             Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TInfo.ID} finished running after {DateTime.Now - RunningStartTime}");
+
+            if (Status.Extended.LastLogMessages.Contains("failed"))
+            {
+                throw new ApplicationException($"Qlikview server error while processing task {TInfo.ID}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
+            }
         }
 
         /// <summary>

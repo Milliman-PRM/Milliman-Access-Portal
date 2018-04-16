@@ -31,7 +31,6 @@ namespace ContentReductionService
 
         protected override void OnStart(string[] args)
         {
-            //Thread.Sleep(12000);
             try
             {
                 Trace.WriteLine($"Service OnStart() called");
@@ -52,6 +51,9 @@ namespace ContentReductionService
             }
         }
 
+        /// <summary>
+        /// Adds a service trace logging file to the collection of Trace listeners
+        /// </summary>
         private void InitiateTraceLogging()
         {
             if (CurrentTraceListener == null)
@@ -60,7 +62,9 @@ namespace ContentReductionService
                 if (!Directory.Exists(TraceLogDirectory))
                 {
                     EventLog.WriteEntry($"No configured Tracelog directory, or directory {TraceLogDirectory} does not exist", EventLogEntryType.Warning);
-                    TraceLogDirectory = @"C:\temp\";
+                    // Get the full path of the assembly in which ContentReductionService declared
+                    string fullPath = System.Reflection.Assembly.GetAssembly(typeof(ContentReductionService)).Location;
+                    TraceLogDirectory = Path.GetDirectoryName(fullPath);
                 }
 
                 string TraceLogFilePath = Path.Combine(TraceLogDirectory, $"QvReportReductionService_Trace_{DateTime.Now.ToString("yyyyMMdd-HHmmss")}.txt");
