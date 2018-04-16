@@ -3,16 +3,14 @@
     "lib": [
       "dom",
       "es2015",
+      "es2016",
       "es5",
       "scripthost"
     ],
-    "noImplicitAny": true,
     "sourceMap": true,
     "target": "es5",
-    "outDir": "src/js"
-  },
-  "awesomeTypescriptLoaderOptions": {
-    "errorsAsWarnings": true
+    "outDir": "src/js",
+    "module": "commonjs"
   },
   "include": [
     "src/ts/*"

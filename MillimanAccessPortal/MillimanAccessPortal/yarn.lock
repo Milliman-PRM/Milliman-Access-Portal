@@ -32,6 +32,12 @@
   version "22.2.2"
   resolved "https://registry.yarnpkg.com/@types/jest/-/jest-22.2.2.tgz#afe5dacbd00d65325f52da0ed3e76e259629ac9d"
 
+"@types/jquery-mask-plugin@^1.14.3":
+  version "1.14.3"
+  resolved "https://registry.yarnpkg.com/@types/jquery-mask-plugin/-/jquery-mask-plugin-1.14.3.tgz#d0114b29ba193c7631430134aee833cbdf5e2bdb"
+  dependencies:
+    "@types/jquery" "*"
+
 "@types/jquery-validation-unobtrusive@^3.2.32":
   version "3.2.32"
   resolved "https://registry.yarnpkg.com/@types/jquery-validation-unobtrusive/-/jquery-validation-unobtrusive-3.2.32.tgz#21e8de36da77d9ec323d5d4fe582c4e6cf9c02c7"
@@ -60,6 +66,10 @@
   version "8.9.4"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-8.9.4.tgz#dfd327582a06c114eb6e0441fa3d6fab35edad48"
 
+"@types/selectize@^0.12.33":
+  version "0.12.33"
+  resolved "https://registry.yarnpkg.com/@types/selectize/-/selectize-0.12.33.tgz#a24d715c8b011d24f67afa35e8e107b435cd5c17"
+
 "@types/toastr@^2.1.35":
   version "2.1.35"
   resolved "https://registry.yarnpkg.com/@types/toastr/-/toastr-2.1.35.tgz#9b29ee786744994c4f7eafee415b125f835dd854"
@@ -69,6 +79,12 @@
 "@types/tooltipster@^0.0.29":
   version "0.0.29"
   resolved "https://registry.yarnpkg.com/@types/tooltipster/-/tooltipster-0.0.29.tgz#550aa1c495fdf44c4a48b237ba99c62d08679616"
+  dependencies:
+    "@types/jquery" "*"
+
+"@types/typeahead@^0.11.32":
+  version "0.11.32"
+  resolved "https://registry.yarnpkg.com/@types/typeahead/-/typeahead-0.11.32.tgz#117693a253a8ad46b3824b47539982c093cc9296"
   dependencies:
     "@types/jquery" "*"
 

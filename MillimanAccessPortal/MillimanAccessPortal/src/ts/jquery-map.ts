@@ -1,8 +1,7 @@
-var jQuery = require('jquery');
+import jQuery = require('jquery');
 
-/* eslint-disable no-param-reassign */
 (function ($) {
-  $.fn.filterTree = function (filterString) {
+  const filterTree = function (filterString) {
     return this.filter(function () {
       var data = $(this).find('.card-container').data();
       return (data !== undefined
@@ -11,7 +10,7 @@ var jQuery = require('jquery');
           .indexOf(filterString.toUpperCase()) > -1));
     });
   };
-  $.fn.filterSelections = function (filterString) {
+  const filterSelections = function (filterString) {
     return this.filter(function () {
       var data = $(this).find('.selection-option-container').data();
       return (data !== undefined
@@ -21,4 +20,3 @@ var jQuery = require('jquery');
     });
   };
 }(jQuery));
-/* eslint-enable no-param-reassign */

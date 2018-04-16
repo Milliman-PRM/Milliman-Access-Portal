@@ -21,13 +21,16 @@
   "devDependencies": {
     "@types/jest": "^22.2.2",
     "@types/jquery": "^3.3.1",
+    "@types/jquery-mask-plugin": "^1.14.3",
     "@types/jquery-validation-unobtrusive": "^3.2.32",
     "@types/jquery.validation": "^1.16.4",
     "@types/lodash": "^4.14.106",
     "@types/node": "8.9.4",
     "@types/node-forge": "^0.7.2",
+    "@types/selectize": "^0.12.33",
     "@types/toastr": "^2.1.35",
     "@types/tooltipster": "^0.0.29",
+    "@types/typeahead": "^0.11.32",
     "@types/vex-js": "^2.3.29",
     "@types/webpack-env": "^1.13.5",
     "aspnet-webpack": "^2.0.3",
@@ -51,7 +54,7 @@
     "webpack-hot-middleware": "^2.21.2"
   },
   "scripts": {
-    "build": "tsc || webpack",
+    "build": "tsc & webpack",
     "test": "jest",
     "test-browsers": "testcafe chrome,firefox,ie src/browser_tests/"
   },
@@ -75,8 +78,7 @@
   },
   "-vs-binding": {
     "AfterBuild": [
-      "install",
-      "build"
+      "install"
     ]
   },
   "engines": {

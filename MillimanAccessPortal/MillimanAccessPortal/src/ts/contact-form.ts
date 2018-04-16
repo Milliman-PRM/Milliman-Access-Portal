@@ -1,4 +1,5 @@
-// Contact Form
+const vex = require('vex-js');
+vex.registerPlugin(require('vex-dialog'));
 
 /**
  * Submit the contact form
@@ -19,7 +20,7 @@ function submitForm() {
       message: formMessage
     },
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
     }
   }).done(function onDone() {
     toastr.success('Your message has been sent');

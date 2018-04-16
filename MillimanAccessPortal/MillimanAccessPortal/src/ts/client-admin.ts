@@ -1,16 +1,16 @@
-import * as $ from 'jquery';
-import * as toastr from 'toastr';
-import * as card from './card';
-import * as dialog from './dialog';
-import * as shared from './shared';
-import './jquery-map';
-import 'jquery-mask-plugin';
-import 'jquery-validation';
-import 'jquery-validation-unobtrusive';
-import 'selectize';
-import 'tooltipster';
-import 'vex-js';
-import './lib-options';
+import $ = require('jquery');
+import toastr = require('toastr');
+import card = require('./card');
+import dialog = require('./dialog');
+import shared = require('./shared');
+import { Dictionary } from 'lodash';
+require('jquery-mask-plugin');
+require('jquery-validation');
+require('jquery-validation-unobtrusive');
+require('selectize');
+require('tooltipster');
+require('vex-js');
+require('./lib-options');
 const appSettings = require('../../appsettings.json');
 
 require('bootstrap/scss/bootstrap-reboot.scss');
@@ -21,7 +21,7 @@ require('tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css
 require('vex-js/sass/vex.sass');
 require('../scss/map.scss');
 
-var ajaxStatus = {};
+var ajaxStatus: Dictionary<any>;
 var eligibleUsers;
 var SHOW_DURATION = 50;
 
@@ -126,7 +126,7 @@ function populateProfitCenterDropDown(profitCenterList) {
 
 
 function elevatedRoles(userRoles) {
-  return !!$.grep(userRoles, function isElevatedRole(role) {
+  return !!$.grep(userRoles, function isElevatedRole(role: {RoleEnum: number, IsAssigned: boolean}) {
     // FIXME: Definition of 'elevated role' should not live here
     return [1, 3, 4].some(function matchesRole(elevatedRole) {
       return role.RoleEnum === elevatedRole;
@@ -159,7 +159,7 @@ function setUserRole(userId, roleEnum, isAssigned, onResponse) {
     url: 'ClientAdmin/SetUserRoleInClient',
     data: postData,
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
     }
   }).done(function onDone(response) {
     var modifiedRole;
@@ -278,7 +278,7 @@ function getClientDetail(clientDiv) {
     url: 'ClientAdmin/ClientDetail',
     data: clientDiv.data(),
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
     }
   }).done(function onDone(response) {
     if (ajaxStatus.getClientDetail !== clientId) return;
@@ -442,7 +442,7 @@ function saveNewUser(username, email, callback) {
       MemberOfClientIdArray: [clientId]
     },
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
     }
   }).done(function onDone() {
     openClientCardReadOnly($('#client-tree [data-client-id="' + clientId + '"]'));
@@ -493,7 +493,7 @@ function removeUserFromClient(clientId, userId, callback) {
       userId: userId
     },
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
     }
   }).done(function onDone(response) {
     renderUserList(response);
@@ -527,14 +527,16 @@ function renderClientNode(client, level) {
     level,
     shared.wrapCardCallback(shared.get(
       'ClientAdmin/ClientDetail',
-      setClientFormReadOnly,
-      populateClientForm,
-      function () {
-        if ($card.readonly) {
-          $('#client-info .action-icon-edit').hide();
-        }
-      },
-      renderUserList
+      [
+        setClientFormReadOnly,
+        populateClientForm,
+        function () {
+          if ($card.readonly) {
+            $('#client-info .action-icon-edit').hide();
+          }
+        },
+        renderUserList,
+      ],
     ), 2),
     !client.Children.length && clientCardDeleteClickHandler,
     clientCardEditClickHandler,
@@ -577,7 +579,7 @@ function deleteClient(clientId, clientName, password, callback) {
       Password: password
     },
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
     }
   }).done(function onDone(response) {
     shared.clearForm($('#client-info'));
@@ -593,7 +595,7 @@ function deleteClient(clientId, clientName, password, callback) {
 }
 
 // TODO: move to shared
-function getClientTree(clientId) {
+function getClientTree(clientId?) {
   $('#client-tree .loading-wrapper').show();
   $.ajax({
     type: 'GET',
@@ -641,7 +643,7 @@ function submitClientForm() {
       url: urlAction,
       data: $clientForm.serialize(),
       headers: {
-        RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+        RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
       }
     }).done(function onDone(response) {
       shared.hideButtonSpinner($button);
@@ -660,8 +662,8 @@ $(document).ready(function onReady() {
   $('#client-tree .action-icon-add').click(newClientClickHandler);
   $('#client-info .action-icon-edit').click(setClientFormWriteable);
   $('#client-info .action-icon-cancel').click(cancelIconClickHandler);
-  $('.action-icon-expand').click(shared.expandAll.listener);
-  $('.action-icon-collapse').click(shared.collapseAll.listener);
+  $('.action-icon-expand').click(shared.expandAllListener);
+  $('.action-icon-collapse').click(shared.collapseAllListener);
   $('#client-users .action-icon-add').click(addUserClickHandler);
   $('.submit-button').click(submitClientForm);
   $('.new-form-button-container .reset-button').click(function () {
@@ -671,14 +673,7 @@ $(document).ready(function onReady() {
     shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog);
   });
 
-  $('.admin-panel-searchbar-tree').keyup(function (event) {
-    event.stopPropagation();
-    $(this).closest('.admin-panel-container')
-      .find('.admin-panel-content').children()
-      .hide()
-      .filterTree($(this).val())
-      .show();
-  });
+  $('.admin-panel-searchbar-tree').keyup(shared.filterTreeListener);
   $('.tooltip').tooltipster();
 
   // TODO: find a better place for this

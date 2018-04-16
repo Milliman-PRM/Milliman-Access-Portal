@@ -1,10 +1,10 @@
-import * as $ from 'jquery';
-import * as toastr from 'toastr';
-import * as shared from './shared';
-import 'jquery-mask-plugin';
-import 'jquery-validation';
-import 'jquery-validation-unobtrusive';
-import './lib-options';
+import $ = require('jquery');
+import toastr = require('toastr');
+import shared = require('./shared');
+require( 'jquery-mask-plugin');
+require( 'jquery-validation');
+require( 'jquery-validation-unobtrusive');
+require( './lib-options');
 
 require('bootstrap/scss/bootstrap-reboot.scss');
 require('toastr/toastr.scss');
@@ -45,11 +45,11 @@ function submitAccountSettings() {
           Employer: $('#Employer').val()
         },
         headers: {
-          RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+          RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
         }
       }).done(function onDone() {
         $('input[data-original-value]').each(function () {
-          $(this).attr('data-original-value', $(this).val());
+          $(this).attr('data-original-value', $(this).val().toString());
         });
         toastr.success('Your account has been updated');
       }).fail(function onFail(response) {
@@ -75,7 +75,7 @@ function submitAccountSettings() {
           ConfirmNewPassword: $('#ConfirmNewPassword').val()
         },
         headers: {
-          RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+          RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
         }
       }).done(function onDone() {
         $('input[type="password"]').val('');
@@ -106,7 +106,9 @@ function resetForm() {
   $('.form-button-container').css({ visibility: 'hidden' });
 
   shared.resetValidation($('#account-settings'));
-  document.activeElement.blur();
+  if (document.activeElement instanceof HTMLElement) {
+    (<HTMLElement>document.activeElement).blur();
+  }
 }
 
 $(document).ready(function onReady() {

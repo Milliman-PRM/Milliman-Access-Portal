@@ -1,5 +1,5 @@
-import 'jquery';
-import 'jquery-validation';
-import 'jquery-validation-unobtrusive';
-import 'bootstrap/scss/bootstrap-reboot.scss';
-import '../scss/map.scss';
+import $ = require('jquery');
+require('jquery-validation');
+require('jquery-validation-unobtrusive');
+require('bootstrap/scss/bootstrap-reboot.scss');
+require('../scss/map.scss');
