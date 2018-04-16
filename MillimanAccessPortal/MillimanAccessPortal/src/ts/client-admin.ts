@@ -557,7 +557,7 @@ function renderClientTree(clientTreeList, clientId) {
   $clientTreeList.find('.tooltip').tooltipster();
 
   if (clientId) {
-    $('[data-client-id="' + clientId + '"]').click();
+    $('#client-tree [data-client-id="' + clientId + '"] .card-body-container').click();
   }
   if ($('#client-tree .action-icon-add').length) {
     $clientTreeList.append(new card.AddClientActionCard(newClientClickHandler).build());
