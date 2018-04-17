@@ -642,7 +642,7 @@ namespace ContentReductionLib.ReductionRunners
                 await QmsClient.RunTaskAsync(TInfo.ID);
                 Thread.Sleep(250);
 
-                Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
+                Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.All);
             } while (Status == null || Status.Extended == null || string.IsNullOrEmpty(Status.Extended.StartTime));
 
             Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TInfo.ID} started running after {DateTime.Now - StartTime}");
@@ -658,11 +658,11 @@ namespace ContentReductionLib.ReductionRunners
 
                 Thread.Sleep(250);
 
-                Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
+                Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.All);
             } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));
             Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TInfo.ID} finished running after {DateTime.Now - RunningStartTime}");
 
-            if (Status.Extended.LastLogMessages.Contains("failed"))
+            if (Status.General.Status == TaskStatusValue.Failed)
             {
                 throw new ApplicationException($"Qlikview server error while processing task {TInfo.ID}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
             }
@@ -676,7 +676,7 @@ namespace ContentReductionLib.ReductionRunners
         private async Task<bool> DeleteQdsTask(QmsApi.TaskInfo TInfo)
         {
             IQMS QmsClient = QmsClientCreator.New(QmsUrl);
-            QmsApi.TaskStatus Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
+            QmsApi.TaskStatus Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.All);
 
             // null should indicate that the task doesn't exist
             bool Result = (Status == null) || await QmsClient.DeleteTaskAsync(TInfo.ID, TInfo.Type);
