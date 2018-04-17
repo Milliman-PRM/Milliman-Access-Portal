@@ -65,7 +65,7 @@ $(document).ready(function(): void {
     },
     query: function() {
       return {
-        rootContentItemId: '1', // TODO: get this from DOM
+        rootContentItemId: $('#rci-resumable').val().toString(), // TODO: get this from DOM
       };
     },
     generateUniqueIdentifier: generateUIDFromSHA1(renderChecksumProgress),
