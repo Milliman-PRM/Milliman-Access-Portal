@@ -23,8 +23,15 @@ namespace ContentReductionLib
 {
     internal class MapDbJobMonitor : JobMonitorBase
     {
+        internal class JobTrackingItem
+        {
+            internal Task<ReductionJobDetail> task;
+            internal CancellationTokenSource tokenSource;
+            internal ContentReductionTask dbTask;
+        }
+
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
-        private List<(Task task,CancellationTokenSource tokenSource)> ActiveReductionRunnerItems = new List<(Task, CancellationTokenSource)>();
+        private List<JobTrackingItem> ActiveReductionRunnerItems = new List<JobTrackingItem>();
 
         // Settable operating parameters
         // TODO These should come from configuration.
@@ -100,7 +107,7 @@ namespace ContentReductionLib
             while (!Token.IsCancellationRequested)
             {
                 // Remove completed tasks from the RunningTasks collection. 
-                foreach ((Task<ReductionJobDetail> task, CancellationTokenSource tokenSource) CompletedReductionRunnerItem in ActiveReductionRunnerItems.Where(t => t.task.IsCompleted).ToList())
+                foreach (JobTrackingItem CompletedReductionRunnerItem in ActiveReductionRunnerItems.Where(t => t.task.IsCompleted).ToList())
                 {
                     UpdateTask(CompletedReductionRunnerItem.task.Result);
                     ActiveReductionRunnerItems.Remove(CompletedReductionRunnerItem);
@@ -111,17 +118,17 @@ namespace ContentReductionLib
                 {
                     List<ContentReductionTask> Responses = GetReadyTasks(MaxParallelTasks - ActiveReductionRunnerItems.Count);
 
-                    foreach (ContentReductionTask T in Responses)
+                    foreach (ContentReductionTask DbTask in Responses)
                     {
-                        Task NewTask = null;
+                        Task<ReductionJobDetail> NewTask = null;
                         CancellationTokenSource cancelSource = new CancellationTokenSource();
 
-                        switch (T.SelectionGroup.RootContentItem.ContentType.TypeEnum)
+                        switch (DbTask.SelectionGroup.RootContentItem.ContentType.TypeEnum)
                         {
                             case ContentTypeEnum.Qlikview:
                                 QvReductionRunner Runner = new QvReductionRunner
                                 {
-                                    JobDetail = (ReductionJobDetail)T,
+                                    JobDetail = (ReductionJobDetail)DbTask,
                                 };
 
                                 NewTask = Task.Run(() => Runner.Execute(cancelSource.Token));
@@ -134,7 +141,7 @@ namespace ContentReductionLib
 
                         if (NewTask != null)
                         {
-                            ActiveReductionRunnerItems.Add( (NewTask, cancelSource) );
+                            ActiveReductionRunnerItems.Add( new JobTrackingItem { dbTask = DbTask, task = NewTask, tokenSource = cancelSource } );
                         }
                     }
                 }
@@ -169,7 +176,12 @@ namespace ContentReductionLib
                 }
             }
 
-            Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} after timer expired, {ActiveReductionRunnerItems.Count} reduction tasks not completed");
+            foreach (var Item in ActiveReductionRunnerItems)
+            {
+                Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} after timer expired, task {Item.dbTask.Id.ToString()} not completed");
+            }
+
+            Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} returning");
         }
 
         /// <summary>
