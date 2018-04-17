@@ -50,6 +50,7 @@ export const resumableOptions = {
   simultaneousUploads: 3,
   maxFiles: 1,
   maxFileSize: appSettings.Global.MaxFileUploadSize,
+  permanentErrors: [400, 401, 404, 409, 415, 500, 501],
   chunkNumberParameterName: 'chunkNumber',
   totalChunksParameterName: 'totalChunks',
   identifierParameterName: 'uid',
