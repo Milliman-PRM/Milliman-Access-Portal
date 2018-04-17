@@ -226,13 +226,13 @@ namespace MillimanAccessPortal.Services
                     continue; // the file was not used or was already removed
                 }
 
-                try
-                {
-                    File.Delete(fileInfo.PhysicalPath);
-                }
-                catch (UnauthorizedAccessException)
+                if (fileInfo.IsDirectory)
                 {
                     Directory.Delete(fileInfo.PhysicalPath, recursive: true);
+                }
+                else
+                {
+                    File.Delete(fileInfo.PhysicalPath);
                 }
             }
         }
