@@ -34,29 +34,41 @@ namespace ContentReductionLib
         private List<JobTrackingItem> ActiveReductionRunnerItems = new List<JobTrackingItem>();
 
         // Settable operating parameters
-        // TODO These should come from configuration.
-        internal TimeSpan TaskAgeBeforeExecution { set; private get; }
+        internal TimeSpan TaskAgeBeforeExecution
+        {
+            get
+            {
+                if (!int.TryParse(Configuration.ApplicationConfiguration["TaskAgeBeforeExecutionSeconds"], out int TaskAgeSec))
+                {
+                    TaskAgeSec = 30;
+                }
+                return TimeSpan.FromSeconds(TaskAgeSec);
+            }
+        }
+
         private TimeSpan StopWaitTimeSeconds
         {
             get
             {
                 if (!int.TryParse(Configuration.ApplicationConfiguration["StopWaitTimeSeconds"], out int WaitSec))
                 {
-                    WaitSec = 3 * 60;
+                    // Increases the total time with more concurrent tasks, but less than linearly
+                    WaitSec = 3 * 60 * (int)Math.Ceiling(Math.Sqrt(MaxParallelTasks));
                 }
                 return TimeSpan.FromSeconds(WaitSec);
             }
         }
 
-        internal int MaxParallelTasks { set; private get; }
-
-        /// <summary>
-        /// ctor, initializes operational parameters to default values
-        /// </summary>
-        internal MapDbJobMonitor()
+        private int MaxParallelTasks
         {
-            MaxParallelTasks = 1;
-            TaskAgeBeforeExecution = TimeSpan.FromSeconds(30);
+            get
+            {
+                if (int.TryParse(Configuration.ApplicationConfiguration["MaxParallelTasks"], out int MaxTasks))
+                {
+                    return MaxTasks;
+                }
+                return 1;
+            }
         }
 
         /// <summary>

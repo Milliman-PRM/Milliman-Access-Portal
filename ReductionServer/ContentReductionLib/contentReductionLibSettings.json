@@ -11,7 +11,9 @@
   },
   "QvServerHost": "",
   "IQmsUrl": "",
-  "StopWaitTimeSeconds": "180",
+  "TaskAgeBeforeExecutionSeconds": 20,
+  "StopWaitTimeSeconds": 180,
+  "MaxParallelTasks": 1,
   "QvServerAdminUserAuthenticationDomain": "",
   "QvServerAdminUserName": "",
   "QvServerAdminUserPassword": ""
