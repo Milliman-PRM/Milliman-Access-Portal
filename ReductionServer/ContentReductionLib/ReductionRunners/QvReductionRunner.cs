@@ -50,8 +50,6 @@ namespace ContentReductionLib.ReductionRunners
 
         private DocumentNode MasterDocumentNode { get; set; } = null;
 
-        internal string ReducedFileName { get; private set; }
-
         private DocumentNode ReducedDocumentNode { get; set; } = null;
         #endregion
 
@@ -330,7 +328,7 @@ namespace ContentReductionLib.ReductionRunners
         /// <summary>
         /// Create a reduced version of the master content file based on requested field value selections
         /// </summary>
-        private async Task<bool> CreateReducedContent()
+        private async Task CreateReducedContent()
         {
             // Validate the selected field name(s) exists in the extracted hierarchy
             foreach (var SelectedFieldValue in JobDetail.Request.SelectionCriteria)
@@ -365,14 +363,12 @@ namespace ContentReductionLib.ReductionRunners
             }
 
             Trace.WriteLine($"Task {JobDetail.TaskId.ToString()} completed CreateReducedContent");
-
-            return ReducedDocumentNode != null;
         }
 
         /// <summary>
         /// Makes the outcome of the content reduction operation accessible to the main application
         /// </summary>
-        private bool DistributeReducedContent()
+        private void DistributeReducedContent()
         {
             string ApplicationDataExchangeFolder = Path.GetDirectoryName(JobDetail.Request.MasterFilePath);
             string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
@@ -386,8 +382,6 @@ namespace ContentReductionLib.ReductionRunners
             JobDetail.Result.ReducedContentFilePath = CopyDestinationPath;
 
             Trace.WriteLine($"Task {JobDetail.TaskId.ToString()} completed DistributeReducedContent");
-
-            return true;
         }
 
         /// <summary>
