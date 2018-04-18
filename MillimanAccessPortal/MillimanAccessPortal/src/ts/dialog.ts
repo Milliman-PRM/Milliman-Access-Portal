@@ -1,7 +1,7 @@
+import $ = require('jquery');
+import toastr = require('toastr');
 import shared = require('./shared');
-var $ = require('jquery');
-var vex = require('vex-js');
-var toastr = require('toastr');
+const vex = require('vex-js');
 require('typeahead.js');
 
 require('vex-js/sass/vex.sass');

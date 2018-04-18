@@ -9,6 +9,7 @@ require('jquery-validation');
 require('jquery-validation-unobtrusive');
 require('selectize');
 require('tooltipster');
+require('vex-js');
 require('./navbar');
 require('./lib-options');
 const appSettings = require('../../appsettings.json');

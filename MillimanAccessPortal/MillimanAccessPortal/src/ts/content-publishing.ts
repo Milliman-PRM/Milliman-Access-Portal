@@ -5,6 +5,7 @@ import options = require('./lib-options');
 import { Promise } from 'es6-promise';
 const resumable = require('resumablejs');
 require('tooltipster');
+require('./navbar');
 
 import 'bootstrap/scss/bootstrap-reboot.scss';
 import 'selectize/src/less/selectize.default.less';

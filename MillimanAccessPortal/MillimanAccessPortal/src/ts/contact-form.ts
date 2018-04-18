@@ -1,8 +1,7 @@
-var $ = require('jquery');
-var toastr = require('toastr');
-const vex = require('vex-js');
-vex.registerPlugin(require('vex-dialog'));
+import $ = require('jquery');
+import toastr = require('toastr');
 require('./lib-options');
+import vex = require('vex-js');
 
 require('bootstrap/scss/bootstrap-reboot.scss');
 require('toastr/toastr.scss');
