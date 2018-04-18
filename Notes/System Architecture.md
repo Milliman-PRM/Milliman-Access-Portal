@@ -155,7 +155,7 @@ Specific ports and protocols will be opened to groups of VMs via Network Securit
 |File Servers|10.254.5.0/24|Domain Controllers, MAP application, QlikView Servers, QlikView Publishers|
 |QlikView Servers|10.254.10.0/24|File Servers, Domain Controllers, MAP application, Application Gateways|
 |QlikView Publishers|10.254.12.0/24|File Servers, Domain Controllers|
-|MAP application|10.254.11.0/24|File Servers, Qlikview Servers, Application Gateways|
+|MAP application|10.254.11.0/24|File Servers, Qlikview Servers, Application Gateways, Shared Infrastructure|
 |Clients|10.254.6.0/24|File Servers, QlikView Publishers, QlikView Servers|
 |Application Gateways|10.254.7.0/24|MAP application, QlikView Servers|
 |VPN Gateway|10.254.0.0/22|Domain Controllers, File Servers, Any others added temporarily as-needed|
