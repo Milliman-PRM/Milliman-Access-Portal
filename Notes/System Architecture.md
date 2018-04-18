@@ -149,13 +149,17 @@ Specific ports and protocols will be opened to groups of VMs via Network Securit
 
 |Virtual Network|IP range|Peered with|
 |----|--------|-----------|
-|Domain Controllers|10.42.1.0/24|File Servers, QlikView Publishers, QlikView Servers, Clients|
-|File Servers|10.42.2.0/24|Domain Controllers, MAP application, QlikView Servers, QlikView Publishers|
-|QlikView Servers|10.42.3.0/24|File Servers, Domain Controllers, MAP application, Application Gateways|
-|QlikView Publishers|10.42.4.0/24|File Servers, Domain Controllers|
-|MAP application|10.42.5.0/24|File Servers, Qlikview Servers, Application Gateways|
-|Clients|10.42.6.0/24|File Servers, QlikView Publishers, QlikView Servers|
-|Application Gateways|10.42.7.0/24|MAP application, QlikView Servers
+|Domain Controllers|10.254.4.0/24|File Servers, QlikView Publishers, QlikView Servers, Clients|
+|File Servers|10.254.5.0/24|Domain Controllers, MAP application, QlikView Servers, QlikView Publishers|
+|QlikView Servers|10.254.10.0/24|File Servers, Domain Controllers, MAP application, Application Gateways|
+|QlikView Publishers|10.254.12.0/24|File Servers, Domain Controllers|
+|MAP application|10.254.11.0/24|File Servers, Qlikview Servers, Application Gateways|
+|Clients|10.254.6.0/24|File Servers, QlikView Publishers, QlikView Servers|
+|Application Gateways|10.254.7.0/24|MAP application, QlikView Servers|
+|VPN Gateway|10.254.0.0/22|Domain Controllers, File Servers, Any others added temporarily as-needed|
+|Shared infrastructure|10.0.0.0/24|MAP application|
+
+> The Shared Infrastructure VNET listed above contains VMs and other resources shared with non-MAP infrastructure, such as the SMTP server.
 
 ### Network Security Groups & Windows Firewall Configuration
 
