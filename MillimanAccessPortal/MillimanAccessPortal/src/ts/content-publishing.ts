@@ -63,16 +63,10 @@ $(document).ready(function(): void {
   // Alert the user if leaving the page during an upload
   setUnloadAlert(false);
   const r = new resumable($.extend({}, options.resumableOptions, {
-    target: '/ContentPublishing/Upload',
-    testTarget: '/ContentPublishing/ChunkStatus',
+    target: '/ContentPublishing/UploadChunk',
     headers: function() {
       return {
         RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
-      };
-    },
-    query: function() {
-      return {
-        rootContentItemId: $('#rci-resumable').val().toString(), // TODO: get this from DOM
       };
     },
     generateUniqueIdentifier: generateUIDFromSHA1(renderChecksumProgress),

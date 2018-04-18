@@ -98,7 +98,6 @@ namespace MapTests
                 TotalSize = size,
                 FileName = fileName,
                 UID = $"{String.Join('_', fileName.Split('.'))}-{checksum}",
-                RootContentItemId = 1,
             };
             resumableData.ChunkSize = (resumableData.ChunkNumber == resumableData.TotalChunks)
                 ? ((uint) size) % chunkSize + chunkSize
@@ -122,7 +121,7 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<NoContentResult>(view);
+            Assert.IsType<JsonResult>(view);
             #endregion
         }
 
@@ -140,7 +139,7 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<OkResult>(view);
+            Assert.IsType<JsonResult>(view);
             #endregion
         }
 
@@ -154,7 +153,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.Publish(resumableInfo);
+            var view = await controller.Publish();
             #endregion
 
             #region Assert

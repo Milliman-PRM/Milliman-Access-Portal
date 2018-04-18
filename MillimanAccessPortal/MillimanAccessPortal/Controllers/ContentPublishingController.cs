@@ -74,12 +74,12 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public ActionResult ChunkStatus(ResumableInfo resumableInfo)
         {
-            return UploadHelper.GetChunkReceived(resumableInfo, resumableInfo.ChunkNumber)
-                ? ((ActionResult) Ok())
-                : NoContent();
+            return new JsonResult(UploadHelper.GetChunkStatus(resumableInfo));
         }
 
-        public async Task<IActionResult> Upload()
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadChunk()
         {
             #region Model binding
             if (!MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
@@ -132,10 +132,10 @@ namespace MillimanAccessPortal.Controllers
                             }
                             formAccumulator.Append(key.Value, value);
 
-                            // This action expects at most 10 values
-                            if (formAccumulator.ValueCount > 10)
+                            // This action expects at most 8 values
+                            if (formAccumulator.ValueCount > 8)
                             {
-                                throw new InvalidDataException("Form key count limit 10 exceeded.");
+                                throw new InvalidDataException("Form key count limit 8 exceeded.");
                             }
                         }
                     }
@@ -156,51 +156,55 @@ namespace MillimanAccessPortal.Controllers
             // All required model attributes must be present for binding to succeed
             var bindingSuccessful = await TryUpdateModelAsync(resumableInfo, prefix: "",
                 valueProvider: formValueProvider);
-            if (!bindingSuccessful)
+            if (!(bindingSuccessful || ModelState.IsValid))
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
+                return BadRequest(ModelState);
             }
             #endregion
 
-            return await Publish(resumableInfo);
+            UploadHelper.FinalizeChunk(resumableInfo);
+
+            return Ok();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Publish(ResumableInfo resumableInfo)
+        public async Task<IActionResult> FinalizeUpload(ResumableInfo resumableInfo)
+        {
+            UploadHelper.FinalizeUpload(resumableInfo);
+
+            return Ok();
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> Publish()
         {
             #region Preliminary Validation
+            /* TODO: correct this section
             RootContentItem rootContentItem = DbContext.RootContentItem.SingleOrDefault(rc => rc.Id == resumableInfo.RootContentItemId);
             if (rootContentItem == null)
             {
                 Response.Headers.Add("Warning", "Requested content item not found.");
                 return BadRequest();
             }
+            */
             #endregion
 
             #region Authorization
+            /* TODO: correct this section
             AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, resumableInfo.RootContentItemId));
             if (!RoleInRootContentItemResult.Succeeded)
             {
                 Response.Headers.Add("Warning", $"You are not authorized to publish this content");
                 return Unauthorized();
             }
+            */
             #endregion
 
             #region Validation
             // TODO: add additional validation
             #endregion
-
-            int? returnStatus = UploadHelper.ProcessUpload(resumableInfo);
-
-            if (returnStatus.HasValue)
-            {
-                Response.Headers.Add("Warning", $"{returnStatus.Value}"); // TODO: Return meaningful messages
-                return new StatusCodeResult(returnStatus.Value);
-            }
 
             // Create the publication request and reduction task(s)
             /* TODO: correct this section

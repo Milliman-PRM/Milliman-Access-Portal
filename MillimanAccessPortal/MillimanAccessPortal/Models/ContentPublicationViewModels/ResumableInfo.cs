@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.IO;
 
 namespace MillimanAccessPortal.Models.ContentPublicationViewModels
 {
@@ -15,8 +11,7 @@ namespace MillimanAccessPortal.Models.ContentPublicationViewModels
         public string FileName { get; set; }
         public string FileExt { get => Path.GetExtension(FileName); }
         public string UID { get; set; }
-        public string Checksum { get => UID.Split('-').Last(); }
+        public string Checksum { get; set; }
         public string Type { get; set; }
-        public long RootContentItemId { get; set; }
     }
 }

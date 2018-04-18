@@ -96,13 +96,19 @@ namespace MillimanAccessPortal.Services
             _fileProvider = fileProvider;
         }
 
-        public bool GetChunkReceived(ResumableInfo resumableInfo, uint chunkNumber)
+        public List<uint> GetChunkStatus(ResumableInfo resumableInfo)
         {
-            Info = resumableInfo;
-            var chunkInfo = _fileProvider.GetFileInfo(ChunkFilePath(chunkNumber));
-            return (chunkInfo.Exists
-                    && chunkInfo.Length == resumableInfo.ChunkSize // basic validation
-                    && resumableInfo.ChunkNumber != resumableInfo.TotalChunks);
+            var receivedChunks = new List<uint>();
+            var chunkDirInfo = _fileProvider.GetFileInfo(ChunkDirPath);
+
+            if (chunkDirInfo.Exists && chunkDirInfo.IsDirectory)
+            {
+                receivedChunks.AddRange(_fileProvider.GetDirectoryContents(ChunkDirPath)
+                    .Where(f => f.Exists && f.Length == resumableInfo.ChunkSize)
+                    .Select(f => Convert.ToUInt32(f.Name.Split('.')[0])));
+            }
+            
+            return receivedChunks;
         }
 
         public Stream OpenTempFile()
@@ -110,51 +116,22 @@ namespace MillimanAccessPortal.Services
             return File.Create(_fileProvider.GetFileInfo(TempFilePath).PhysicalPath);
         }
 
-        public int? ProcessUpload(ResumableInfo resumableInfo)
+        public void FinalizeChunk(ResumableInfo resumableInfo)
         {
             Info = resumableInfo;
 
             // Expect the chunk to have been uploaded
             if (!_fileProvider.GetFileInfo(TempFilePath).Exists)
             {
-                return StatusCodes.Status400BadRequest;
+                return; // StatusCodes.Status400BadRequest;
             }
 
             // Expect the total file size to be within the limit
             if (Info.TotalSize > GlobalFunctions.maxFileUploadSize)
             {
-                return StatusCodes.Status413PayloadTooLarge;
+                return; // StatusCodes.Status413PayloadTooLarge;
             }
 
-            SolidifyChunk();
-
-            // If any chunks have not been received, don't try to reassemble yet
-            if (_fileProvider.GetDirectoryContents(ChunkDirPath).Count() < Info.TotalChunks)
-            {
-                return StatusCodes.Status200OK;
-            }
-
-            ConcatenateChunks();
-
-            // Verify received file meets quality standards
-            var success = VerifyUpload();
-            if (!success)
-            {
-                return StatusCodes.Status409Conflict;
-            }
-
-            return null;
-        }
-
-        public string GetOutputFilePath()
-        {
-            return (Info != null)
-                ? _fileProvider.GetFileInfo(OutputFilePath).PhysicalPath
-                : null;
-        }
-
-        private void SolidifyChunk()
-        {
             var tempFilePath = _fileProvider.GetFileInfo(TempFilePath).PhysicalPath;
             var chunkFilePath = _fileProvider.GetFileInfo(ChunkFilePath(Info.ChunkNumber)).PhysicalPath;
             var chunkDirPath = _fileProvider.GetFileInfo(ChunkDirPath).PhysicalPath;
@@ -174,13 +151,20 @@ namespace MillimanAccessPortal.Services
             }
         }
 
-        private void ConcatenateChunks()
+        public void FinalizeUpload(ResumableInfo resumableInfo)
         {
-            var concatenationFilePath = ConcatenationFilePath;
-            var chunkFilePaths = Enumerable.Range(1, Convert.ToInt32(Info.TotalChunks))
-                .Select(chunkNumber => ChunkFilePath(((uint) chunkNumber)));
-            using (var concatenationStream = File.OpenWrite(_fileProvider.GetFileInfo(concatenationFilePath).PhysicalPath))
+            // Make sure the expected and actual number of chunks match
+            if (_fileProvider.GetDirectoryContents(ChunkDirPath).Count() != Info.TotalChunks)
             {
+                return; // StatusCodes.Status400BadRequest;
+            }
+
+            #region Concatenate chunks
+            var concatenationFilePath = _fileProvider.GetFileInfo(ConcatenationFilePath).PhysicalPath;
+            using (var concatenationStream = File.OpenWrite(concatenationFilePath))
+            {
+                var chunkFilePaths = Enumerable.Range(1, Convert.ToInt32(Info.TotalChunks))
+                    .Select(chunkNumber => ChunkFilePath(((uint) chunkNumber)));
                 foreach (var chunkFilePath in chunkFilePaths)
                 {
                     var chunkFilePathPhysical = _fileProvider.GetFileInfo(chunkFilePath).PhysicalPath;
@@ -191,16 +175,15 @@ namespace MillimanAccessPortal.Services
                     File.Delete(chunkFilePathPhysical);
                 }
             }
-            Directory.Delete(_fileProvider.GetFileInfo(ChunkDirPath).PhysicalPath);
-        }
+            var chunkDirPath = _fileProvider.GetFileInfo(ChunkDirPath).PhysicalPath;
+            Directory.Delete(chunkDirPath);
+            #endregion
 
-        private bool VerifyUpload()
-        {
-            var concatenationFilePath = _fileProvider.GetFileInfo(ConcatenationFilePath).PhysicalPath;
+            #region Verify upload
             var computedChecksum = GlobalFunctions.GetFileChecksum(concatenationFilePath);
             if (!Info.Checksum.Equals(computedChecksum, StringComparison.OrdinalIgnoreCase))
             {
-                return false;
+                return; // StatusCodes.Status409Conflict;
             }
 
             // Rename the file with proper extension - this makes it visible to the virus scanner
@@ -210,8 +193,16 @@ namespace MillimanAccessPortal.Services
                 File.Delete(outputFilePath);
             }
             File.Move(concatenationFilePath, outputFilePath);
+            #endregion
 
-            return true;
+            return; // null;
+        }
+
+        public string GetOutputFilePath()
+        {
+            return (Info != null)
+                ? _fileProvider.GetFileInfo(OutputFilePath).PhysicalPath
+                : null;
         }
 
         public void Dispose()

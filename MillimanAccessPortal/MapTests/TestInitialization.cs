@@ -293,22 +293,22 @@ namespace MapTests
             Mock<IUploadHelper> mock = new Mock<IUploadHelper>();
 
             ResumableInfo resumableInfo = null;
-            mock.Setup(m => m.GetChunkReceived(It.IsAny<ResumableInfo>(), It.IsAny<uint>())).Returns<ResumableInfo, uint>((x, y) =>
+            mock.Setup(m => m.GetChunkStatus(It.IsAny<ResumableInfo>())).Returns<ResumableInfo>((x) =>
             {
-                var chunkFileInfo = new FileInfo(Path.Combine(TestDataPath, "Uploads", x.UID, $"{y:D8}.chunk"));
-                return (chunkFileInfo.Exists
-                        && chunkFileInfo.Length == x.ChunkSize
-                        && x.ChunkNumber != x.TotalChunks);
+                var chunkDirInfo = new DirectoryInfo(Path.Combine(TestDataPath, "Uploads", x.UID));
+                var receivedChunks = new List<uint>();
+
+                if (chunkDirInfo.Exists)
+                {
+                    receivedChunks.AddRange(chunkDirInfo.EnumerateFiles()
+                        .Where(f => f.Exists && f.Length == x.ChunkSize)
+                        .Select(f => Convert.ToUInt32(f.Name.Split('.')[0])));
+                }
+
+                return receivedChunks;
             });
             mock.Setup(m => m.OpenTempFile()).Returns(Stream.Null);
-            mock.Setup(m => m.ProcessUpload(It.IsAny<ResumableInfo>()))
-                .Returns<ResumableInfo>((s) =>
-                {
-                    var chunkDirInfo = new DirectoryInfo(Path.Combine(TestDataPath, "Uploads", s.UID));
-                    return (chunkDirInfo.GetFiles().Count() == s.TotalChunks)
-                        ? (int?)null
-                        : StatusCodes.Status200OK;
-                });
+            mock.Setup(m => m.FinalizeUpload(It.IsAny<ResumableInfo>()));
             mock.Setup(m => m.GetOutputFilePath()).Returns(() =>
             {
                 return Path.Combine(TestDataPath, $"{resumableInfo.UID}{resumableInfo.FileExt}");
