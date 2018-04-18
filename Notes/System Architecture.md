@@ -135,9 +135,11 @@ Virtual machines' file systems must be encrypted at all times.
 
 Sensitive configuration options will be stored in Azure Key Vault.
 
-### Point-to-Point VPN
+### Point-to-Site VPN
 
-We will utilize a [Virtual Network Gateway](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpngateways) to establish a VPN between Milliman and our Azure infrastructure. This gateway will ensure traffic between Milliman's network and our infrastructure is encrypted at all times, providing another layer of security for administrative tasks.
+We will utilize a [Virtual Network Gateway](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpngateways) to establish a VPN between individual Milliman computers and our Azure infrastructure. This gateway will ensure traffic between Milliman's network and our infrastructure is encrypted at all times, providing another layer of security for administrative tasks.
+
+Access to the VPN is controlled by the Azure administrators and is only granted on an as-needed basis.
 
 ### Virtual Network Isolation
 
