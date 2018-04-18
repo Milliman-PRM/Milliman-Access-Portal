@@ -66,6 +66,12 @@
   dependencies:
     "@types/jquery" "*"
 
+"@types/tooltipster@^0.0.29":
+  version "0.0.29"
+  resolved "https://registry.yarnpkg.com/@types/tooltipster/-/tooltipster-0.0.29.tgz#550aa1c495fdf44c4a48b237ba99c62d08679616"
+  dependencies:
+    "@types/jquery" "*"
+
 "@types/vex-js@^2.3.29":
   version "2.3.29"
   resolved "https://registry.yarnpkg.com/@types/vex-js/-/vex-js-2.3.29.tgz#d3c2ef2fe4e98e6568b728d4900721c2d0446343"

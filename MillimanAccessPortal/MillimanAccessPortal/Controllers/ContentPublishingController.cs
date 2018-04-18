@@ -79,7 +79,7 @@ namespace MillimanAccessPortal.Controllers
                 : NoContent();
         }
 
-        public async Task<IActionResult> UploadAndPublish()
+        public async Task<IActionResult> Upload()
         {
             #region Model binding
             if (!MultipartRequestHelper.IsMultipartContentType(Request.ContentType))

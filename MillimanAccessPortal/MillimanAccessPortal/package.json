@@ -27,6 +27,7 @@
     "@types/node": "8.9.4",
     "@types/node-forge": "^0.7.2",
     "@types/toastr": "^2.1.35",
+    "@types/tooltipster": "^0.0.29",
     "@types/vex-js": "^2.3.29",
     "@types/webpack-env": "^1.13.5",
     "aspnet-webpack": "^2.0.3",

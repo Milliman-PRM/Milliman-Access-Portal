@@ -1,10 +1,11 @@
 import $ = require('jquery');
 import upload = require('./upload');
 import forge = require('node-forge');
-import resumable = require('resumablejs');
-import tooltipster = require('tooltipster');
 import options = require('./lib-options');
 import { Promise } from 'es6-promise';
+const resumable = require('resumablejs');
+require('tooltipster');
+
 import 'bootstrap/scss/bootstrap-reboot.scss';
 import 'selectize/src/less/selectize.default.less';
 import 'toastr/toastr.scss';
@@ -14,10 +15,16 @@ import 'vex-js/sass/vex.sass';
 import '../scss/map.scss';
 const appSettings = require('../../appsettings.json');
 
+
 function setUnloadAlert(value: boolean) {
   window.onbeforeunload = value
-    ? () => { return true; }
-    : null;
+    ? (e) => {
+      // In modern browsers, a generic message is displayed instead.
+      const dialogText = 'Are you sure you want to leave this page? File upload progress will be lost.';
+      e.returnValue = dialogText;
+      return dialogText;
+    }
+    : undefined;
 }
 
 function renderChecksumProgress(progress: number) {
@@ -56,7 +63,7 @@ $(document).ready(function(): void {
   // Alert the user if leaving the page during an upload
   setUnloadAlert(false);
   const r = new resumable($.extend({}, options.resumableOptions, {
-    target: '/ContentPublishing/UploadAndPublish',
+    target: '/ContentPublishing/Upload',
     testTarget: '/ContentPublishing/ChunkStatus',
     headers: function() {
       return {
