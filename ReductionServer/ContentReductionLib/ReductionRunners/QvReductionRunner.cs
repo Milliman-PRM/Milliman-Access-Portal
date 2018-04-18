@@ -21,9 +21,6 @@ namespace ContentReductionLib.ReductionRunners
     internal class QvReductionRunner : ReductionRunnerBase
     {
         string QmsUrl = null;
-        AuditLogger Logger = new AuditLogger();  // Exception if static AuditLogger.Config is not initialized (should be done globally for process)
-
-        internal CancellationToken _CancellationToken { private get; set; }
 
         /// <summary>
         /// Constructor, sets up starting conditions that are associated with the system configuration rather than this specific task.
@@ -39,6 +36,8 @@ namespace ContentReductionLib.ReductionRunners
         }
 
         #region Member properties
+        internal CancellationToken _CancellationToken { private get; set; }
+
         internal ReductionJobDetail JobDetail { get; set; } = new ReductionJobDetail();
 
         private DocumentFolder SourceDocFolder { get; set; } = null;
@@ -51,53 +50,92 @@ namespace ContentReductionLib.ReductionRunners
 
         private DocumentNode MasterDocumentNode { get; set; } = null;
 
-        internal string ReducedFileName { get; private set; }
-
         private DocumentNode ReducedDocumentNode { get; set; } = null;
         #endregion
 
-        internal async override Task<ReductionJobDetail> ExecuteReduction(CancellationToken cancellationToken)
+        /// <summary>
+        /// Entry point for the execution of a reduction task.  Intended to be invoked as a Task by a JobMonitorBase derived object. 
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        internal async override Task<ReductionJobDetail> Execute(CancellationToken cancellationToken)
         {
             _CancellationToken = cancellationToken;
             MethodBase Method = MethodBase.GetCurrentMethod();
+            object DetailObj;
+            AuditEvent Event;
+            JobActionEnum[] SupportedJobActions = new JobActionEnum[] 
+            {
+                JobActionEnum.HierarchyOnly,
+                JobActionEnum.HierarchyAndReduction
+            };
 
             try
             {
-                // TODO maybe the impersonated scope should be more local to only the code that requires it
-                ValidateThisInstance();
-                _CancellationToken.ThrowIfCancellationRequested();
+                if (!SupportedJobActions.Contains(JobDetail.Request.JobAction))
+                {
+                    throw new ApplicationException($"QvReductionRunner.Execute() refusing to process job with unsupported requested action: {JobDetail.Request.JobAction.ToString()}");
+                }
+                else
+                {
+                    ValidateThisInstance();
+                    _CancellationToken.ThrowIfCancellationRequested();
 
-                await PreTaskSetup();
-                _CancellationToken.ThrowIfCancellationRequested();
+                    await PreTaskSetup();
 
-                JobDetail.Result.MasterContentHierarchy = await ExtractReductionHierarchy(MasterDocumentNode);
-                _CancellationToken.ThrowIfCancellationRequested();
+                    #region Extract master content hierarchy
+                    JobDetail.Result.MasterContentHierarchy = await ExtractReductionHierarchy(MasterDocumentNode);
 
-                await CreateReducedContent();
-                _CancellationToken.ThrowIfCancellationRequested();
+                    DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), JobAction = JobDetail.Request.JobAction, Hierarchy = JobDetail.Result.MasterContentHierarchy };
+                    Event = AuditEvent.New("Reduction server", "Extraction of master content hierarchy succeeded", AuditEventId.HierarchyExtractionSucceeded, DetailObj);
+                    new AuditLogger().Log(Event);
+                    #endregion
 
-                JobDetail.Result.ReducedContentHierarchy = await ExtractReductionHierarchy(ReducedDocumentNode);
-                _CancellationToken.ThrowIfCancellationRequested();
+                    _CancellationToken.ThrowIfCancellationRequested();
 
-                DistributeResults();
+                    if (JobDetail.Request.JobAction == JobActionEnum.HierarchyAndReduction)
+                    {
+                        #region Create reduced content
+                        await CreateReducedContent();
 
-                JobDetail.Result.Status = ReductionJobStatusEnum.Success;
+                        DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), RequestedSelections = JobDetail.Request.SelectionCriteria };
+                        Event = AuditEvent.New("Reduction server", "Creation of reduced content succeeded", AuditEventId.ContentReductionSucceeded, DetailObj);
+                        new AuditLogger().Log(Event);
+                        #endregion
+
+                        _CancellationToken.ThrowIfCancellationRequested();
+
+                        #region Extract reduced content hierarchy
+                        JobDetail.Result.ReducedContentHierarchy = await ExtractReductionHierarchy(ReducedDocumentNode);
+
+                        DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), JobAction = JobDetail.Request.JobAction, Hierarchy = JobDetail.Result.ReducedContentHierarchy };
+                        Event = AuditEvent.New("Reduction server", "Extraction of reduced content hierarchy succeeded", AuditEventId.HierarchyExtractionSucceeded, DetailObj);
+                        new AuditLogger().Log(Event);
+                        #endregion
+
+                        _CancellationToken.ThrowIfCancellationRequested();
+
+                        DistributeReducedContent();
+                    }
+
+                    JobDetail.Result.Status = JobStatusEnum.Success;
+                }
             }
             catch (OperationCanceledException e)
             {
-                JobDetail.Result.Status = ReductionJobStatusEnum.Canceled;
+                JobDetail.Result.Status = JobStatusEnum.Canceled;
                 Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = e.Message;
             }
             catch (ApplicationException e)
             {
-                JobDetail.Result.Status = ReductionJobStatusEnum.Error;
+                JobDetail.Result.Status = JobStatusEnum.Error;
                 Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = e.Message;
             }
             catch (System.Exception e)
             {
-                JobDetail.Result.Status = ReductionJobStatusEnum.Error;
+                JobDetail.Result.Status = JobStatusEnum.Error;
                 Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = e.Message;
             }
@@ -110,41 +148,44 @@ namespace ContentReductionLib.ReductionRunners
             return JobDetail;
         }
 
+        /// <summary>
+        /// Validate as many as possible of the member properties
+        /// </summary>
         internal override void ValidateThisInstance()
         {
             string Msg = null;
 
-            if (JobDetail == null || JobDetail.Request == null || JobDetail.Result == null)
+            if (JobDetail == null || JobDetail.Request == null || JobDetail.Request.SelectionCriteria == null || JobDetail.Result == null)
             {
                 Msg = "JobDetailObj, or a member of it, is null";
             }
 
-            if (Logger == null)
-            {
-                Msg = "Logger is null";
-            }
-
-            if (QdsServiceInfo == null)
+            else if (QdsServiceInfo == null)
             {
                 Msg = "QdsServiceInfo is null";
             }
 
-            if (QdsServiceInfo.ID == Guid.Empty)
+            else if (QdsServiceInfo.ID == Guid.Empty)
             {
                 Msg = "QdsServiceInfo.ID is Guid.Empty";
             }
 
-            if (SourceDocFolder == null)
+            else if (SourceDocFolder == null)
             {
                 Msg = "SourceDocFolder is null";
             }
 
-            if (!Directory.Exists(SourceDocFolder.General.Path))
+            else if (JobDetail.Request.SelectionCriteria.Count(v => v.Selected) == 0)
+            {
+                Msg = $"No selected field values are included in the reduction request";
+            }
+
+            else if (!Directory.Exists(SourceDocFolder.General.Path))
             {
                 Msg = $"SourceDocFolder {SourceDocFolder.General.Path} not found";
             }
 
-            if (_CancellationToken == null)
+            else if (_CancellationToken == null)
             {
                 Msg = "_CancellationToken is null";
             }
@@ -152,7 +193,13 @@ namespace ContentReductionLib.ReductionRunners
             if (!string.IsNullOrEmpty(Msg))
             {
                 MethodBase Method = MethodBase.GetCurrentMethod();
+
+                object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), Error = Msg};
+                AuditEvent Event = AuditEvent.New("Reduction server", "Validation of processing prerequisites failed", AuditEventId.ReductionValidationFailed, DetailObj);
+                new AuditLogger().Log(Event);
+
                 Msg = $"Error in {Method.ReflectedType.Name}.{Method.Name}: {Msg}";
+
                 throw new System.ApplicationException(Msg);
             }
         }
@@ -202,7 +249,7 @@ namespace ContentReductionLib.ReductionRunners
         }
 
         /// <summary>
-        /// Complete this
+        /// Extracts the reduction fields and corresponding values of a Qlikview content item
         /// </summary>
         private async Task<ExtractedHierarchy> ExtractReductionHierarchy(DocumentNode DocumentNodeArg)
         {
@@ -251,6 +298,11 @@ namespace ContentReductionLib.ReductionRunners
             catch (System.Exception e)
             {
                 Trace.WriteLine($"Error converting file {ReductionSchemeFilePath} to json output.  Details:" + Environment.NewLine + e.Message);
+
+                // TODO may need to log more issues, like if the Qlikview task processing fails
+                object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), ExceptionMessage = e.Message };
+                AuditEvent Event = AuditEvent.New("Reduction server", "Extraction of hierarchy failed", AuditEventId.HierarchyExtractionFailed, DetailObj);
+                new AuditLogger().Log(Event);
             }
             #endregion
 
@@ -276,7 +328,7 @@ namespace ContentReductionLib.ReductionRunners
         /// <summary>
         /// Create a reduced version of the master content file based on requested field value selections
         /// </summary>
-        private async Task<bool> CreateReducedContent()
+        private async Task CreateReducedContent()
         {
             // Validate the selected field name(s) exists in the extracted hierarchy
             foreach (var SelectedFieldValue in JobDetail.Request.SelectionCriteria)
@@ -284,6 +336,9 @@ namespace ContentReductionLib.ReductionRunners
                 if (!JobDetail.Result.MasterContentHierarchy.Fields.Any(f => f.FieldName == SelectedFieldValue.FieldName))
                 {
                     string Msg = $"The requested reduction field <{SelectedFieldValue.FieldName}> is not found in the reduction hierarchy";
+                    object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), Error = Msg };
+                    AuditEvent Event = AuditEvent.New("Reduction server", "Creation of reduced content file failed", AuditEventId.ContentReductionFailed, DetailObj);
+                    new AuditLogger().Log(Event);
                     Trace.WriteLine(Msg);
                     throw new ApplicationException(Msg);
                 }
@@ -308,31 +363,25 @@ namespace ContentReductionLib.ReductionRunners
             }
 
             Trace.WriteLine($"Task {JobDetail.TaskId.ToString()} completed CreateReducedContent");
-
-            return ReducedDocumentNode != null;
         }
 
         /// <summary>
-        /// Makes the outcome of the processing operation accessible to the main application
+        /// Makes the outcome of the content reduction operation accessible to the main application
         /// </summary>
-        private bool DistributeResults()
+        private void DistributeReducedContent()
         {
             string ApplicationDataExchangeFolder = Path.GetDirectoryName(JobDetail.Request.MasterFilePath);
             string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
-            
+
             string FileNamePattern = $"{Path.GetFileNameWithoutExtension(MasterFileName)}.reduced*{Path.GetExtension(MasterFileName)}";
-            string CopyDestinationPath = "";
             string ReducedFile = Directory.GetFiles(WorkingFolderAbsolute, FileNamePattern).Single();
-            CopyDestinationPath = Path.Combine(ApplicationDataExchangeFolder, Path.GetFileName(ReducedFile));
+            string CopyDestinationPath = Path.Combine(ApplicationDataExchangeFolder, Path.GetFileName(ReducedFile));
 
             File.Copy(ReducedFile, CopyDestinationPath, true);
-
             JobDetail.Result.ReducedContentFileChecksum = GlobalFunctions.GetFileChecksum(CopyDestinationPath);
             JobDetail.Result.ReducedContentFilePath = CopyDestinationPath;
 
-            Trace.WriteLine($"Task {JobDetail.TaskId.ToString()} completed DistributeResults");
-
-            return true;
+            Trace.WriteLine($"Task {JobDetail.TaskId.ToString()} completed DistributeReducedContent");
         }
 
         /// <summary>
@@ -376,12 +425,17 @@ namespace ContentReductionLib.ReductionRunners
 
             if (DocNode == null)
             {
-                Trace.WriteLine(string.Format($"Did not find SourceDocument '{MasterFileName}' in source documents folder {SourceDocFolder.General.Path}"));
+                Trace.WriteLine(string.Format($"Did not find SourceDocument '{MasterFileName}' in subfolder {RequestedRelativeFolder} of source documents folder {SourceDocFolder.General.Path}"));
             }
 
             return DocNode;
         }
 
+        /// <summary>
+        /// Creates and stores a Qlikview publisher task to extract the selection hierarchy info for a QV document
+        /// </summary>
+        /// <param name="DocNodeArg"></param>
+        /// <returns></returns>
         private async Task<QmsApi.TaskInfo> CreateHierarchyExtractionQdsTask(DocumentNode DocNodeArg)
         {
             string TaskDateTimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
@@ -442,6 +496,11 @@ namespace ContentReductionLib.ReductionRunners
             return ReturnTaskInfo;
         }
 
+        /// <summary>
+        /// Creates and stores a Qlikview publisher task to produce a reduced version of a master QV document
+        /// </summary>
+        /// <param name="Selections"></param>
+        /// <returns></returns>
         private async Task<QmsApi.TaskInfo> CreateReductionQdsTask(IEnumerable<FieldValueSelection> Selections)
         {
             //TODO debug this function
@@ -577,7 +636,7 @@ namespace ContentReductionLib.ReductionRunners
                 await QmsClient.RunTaskAsync(TInfo.ID);
                 Thread.Sleep(250);
 
-                Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
+                Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.All);
             } while (Status == null || Status.Extended == null || string.IsNullOrEmpty(Status.Extended.StartTime));
 
             Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TInfo.ID} started running after {DateTime.Now - StartTime}");
@@ -593,15 +652,25 @@ namespace ContentReductionLib.ReductionRunners
 
                 Thread.Sleep(250);
 
-                Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
+                Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.All);
             } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));
             Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TInfo.ID} finished running after {DateTime.Now - RunningStartTime}");
+
+            if (Status.General.Status == TaskStatusValue.Failed)
+            {
+                throw new ApplicationException($"Qlikview server error while processing task {TInfo.ID}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
+            }
         }
 
+        /// <summary>
+        /// Deletes a Qlikview server task. 
+        /// </summary>
+        /// <param name="TInfo"></param>
+        /// <returns></returns>
         private async Task<bool> DeleteQdsTask(QmsApi.TaskInfo TInfo)
         {
             IQMS QmsClient = QmsClientCreator.New(QmsUrl);
-            QmsApi.TaskStatus Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.Extended);
+            QmsApi.TaskStatus Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.All);
 
             // null should indicate that the task doesn't exist
             bool Result = (Status == null) || await QmsClient.DeleteTaskAsync(TInfo.ID, TInfo.Type);

@@ -4,16 +4,15 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace ContentReductionLib.ReductionRunners
 {
-    internal class FieldValueSelection
+    /// <summary>
+    /// This type is public because it is serialized to Json and the serializer needs full access
+    /// </summary>
+    public class FieldValueSelection
     {
-        internal string FieldName;
-        internal string FieldValue;
-        internal bool Selected;
+        public string FieldName;
+        public string FieldValue;
+        public bool Selected;
     }
 }

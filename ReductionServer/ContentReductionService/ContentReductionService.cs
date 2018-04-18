@@ -6,6 +6,7 @@
  */
 
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -25,44 +26,64 @@ namespace ContentReductionService
 
         public ContentReductionService()
         {
-            DateTime StartDateTime = DateTime.Now;
-            CurrentTraceListener = new TextWriterTraceListener(@"C:\temp\QvReportReductionService_Trace_" + StartDateTime.ToString("yyyyMMdd-HHmmss") + ".txt");
-            Trace.Listeners.Add(CurrentTraceListener);
-            Trace.AutoFlush = true;
-
             InitializeComponent();
         }
 
         protected override void OnStart(string[] args)
         {
-            Trace.WriteLine($"Service OnStart() called");
-            Configuration.LoadConfiguration();
+            try
+            {
+                Trace.WriteLine($"Service OnStart() called");
+                Configuration.LoadConfiguration();
 
-            Manager = new ProcessManager();
-            Manager.Start();
+                InitiateTraceLogging();
+
+                if (Manager == null || !Manager.AnyMonitorThreadRunning)
+                {
+                    Manager = new ProcessManager();
+                    Manager.Start();
+                }
+            }
+            catch (Exception e)
+            {
+                Trace.WriteLine($"Failed to launch service, exception:{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Adds a service trace logging file to the collection of Trace listeners
+        /// </summary>
+        private void InitiateTraceLogging()
+        {
+            if (CurrentTraceListener == null)
+            {
+                string TraceLogDirectory = Configuration.ApplicationConfiguration["TraceLogDirectory"];
+                if (!Directory.Exists(TraceLogDirectory))
+                {
+                    EventLog.WriteEntry($"No configured Tracelog directory, or directory {TraceLogDirectory} does not exist", EventLogEntryType.Warning);
+                    // Get the full path of the assembly in which ContentReductionService declared
+                    string fullPath = System.Reflection.Assembly.GetAssembly(typeof(ContentReductionService)).Location;
+                    TraceLogDirectory = Path.GetDirectoryName(fullPath);
+                }
+
+                string TraceLogFilePath = Path.Combine(TraceLogDirectory, $"QvReportReductionService_Trace_{DateTime.Now.ToString("yyyyMMdd-HHmmss")}.txt");
+                EventLog.WriteEntry($"Using Trace logging file {TraceLogFilePath}", EventLogEntryType.Warning);
+
+                CurrentTraceListener = new TextWriterTraceListener(Path.Combine(TraceLogDirectory, $"QvReportReductionService_Trace_{DateTime.Now.ToString("yyyyMMdd-HHmmss")}.txt"));
+                Trace.Listeners.Add(CurrentTraceListener);
+                Trace.AutoFlush = true;
+            }
         }
 
         protected override void OnStop()
         {
             Trace.WriteLine($"Service OnStop() called");
-            if (Manager == null)
+            if (Manager != null)
             {
                 Manager.Stop();
                 Manager = null;
             }
-        }
-
-        #region Unimplemented service callbacks
-        protected override void OnPause()
-        {
-            Trace.WriteLine($"Service OnPause() called");
-            base.OnPause();
-        }
-
-        protected override void OnContinue()
-        {
-            Trace.WriteLine($"Service OnContinue() called");
-            base.OnContinue();
         }
 
         protected override void OnShutdown()
@@ -73,6 +94,21 @@ namespace ContentReductionService
                 Manager.Stop();
             }
             base.OnShutdown();
+        }
+
+        #region Unimplemented service callbacks
+        protected override void OnPause()
+        {
+            Trace.WriteLine($"Service OnPause() called");
+
+            base.OnPause();
+        }
+
+        protected override void OnContinue()
+        {
+            Trace.WriteLine($"Service OnContinue() called");
+
+            base.OnContinue();
         }
 
         protected override void OnCustomCommand(int command)
