@@ -8,8 +8,10 @@ module.exports = {
     'account-settings': './src/ts/account-settings.ts',
     'client-admin': './src/ts/client-admin.ts',
     'content-access-admin': './src/ts/content-access-admin.ts',
+    'content-publisher': './src/ts/content-publisher.ts',
     'login': './src/ts/login.ts',
     'hosted-content': './src/ts/hosted-content.ts',
+    'system-admin': './src/ts/system-admin.ts',
   },
   module: {
     rules: [

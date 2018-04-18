@@ -2,6 +2,7 @@ require('jquery');
 require('jquery-mask-plugin');
 require('jquery-validation');
 require('jquery-validation-unobtrusive');
+require('./navbar');
 require('toastr');
 require('tooltipster');
 require('vex-js');

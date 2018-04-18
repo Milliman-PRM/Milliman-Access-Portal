@@ -45,5 +45,16 @@ div.selectize-input {
 
     div.item {
         margin: .25em !important;
+        cursor: default !important;
+
+        a.remove {
+            margin-left: .25em;
+            font-size: 1.2em;
+            color: $dark-grey;
+
+            &:hover {
+                text-decoration: none;
+            }
+        }
     }
 }

@@ -11,19 +11,9 @@
 }
 
 
-@section CSS {
-    <environment names="Development,CI">
-        <link rel="stylesheet" href="~/lib/selectize/selectize.default.css" />
-    </environment>
-    <environment names="Staging,Production">
-        <link rel="stylesheet" href="~/lib/selectize/selectize.default.min.css" />
-    </environment>
-}
-
-
 <div id="client-tree" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12">
     <div class="loading-wrapper" style="display: none;">
-        @Html.Partial("~/Views/ContentPublishing/templates/_Loader.cshtml")
+        @Html.Partial("~/Views/Shared/_Loader.cshtml")
     </div>
     <h3 class="admin-panel-header">Client Tree</h3>
     <div class="admin-panel-toolbar">
@@ -53,7 +43,7 @@
             </div>
         </form>
         <div style="display: block; width: 200px; height: 30px; background-color: white; margin-top: 10px;">
-          <div id="file-progress" style="display: block; position: relative; height: 100%; width: 0%; background-color: DodgerBlue;">Progress</div>
+            <div id="file-progress" style="display: block; position: relative; height: 100%; width: 0%; background-color: DodgerBlue;">Progress</div>
         </div>
     </div>
 </div>
@@ -95,20 +85,7 @@
     }
 </script>
 
+
 @section Scripts {
-
-    @Html.Partial("~/Views/ContentPublishing/templates/_Node.cshtml")
-
-    <environment names="Development,CI">
-        <script src="~/lib/selectize/selectize.js"></script>
-        <script src="~/lib/typeahead/typeahead.js"></script>
-        <script src="~/js/upload.js"></script>
-        <script src="~/js/content-publisher.js"></script>
-    </environment>
-    <environment names="Staging,Production">
-        <script src="~/lib/selectize/selectize.min.js"></script>
-        <script src="~/lib/typeahead/typeahead.min.js"></script>
-        <script src="~/js/content-publisher.min.js"></script>
-    </environment>
-
+    <script src="/js/content-publisher.bundle.js"></script>
 }

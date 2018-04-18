@@ -1,7 +1,7 @@
 var $ = require('jquery');
+require('./navbar');
 var toastr = require('toastr');
 require('tooltipster');
-require('vex-js');
 var card = require('./card');
 var dialog = require('./dialog');
 require('./lib-options');
@@ -11,7 +11,7 @@ require('./jquery-map');
 require('bootstrap/scss/bootstrap-reboot.scss');
 require('toastr/toastr.scss');
 require('tooltipster/src/css/tooltipster.css');
-require('vex-js/sass/vex.sass');
+require('tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css');
 require('../scss/map.scss');
 
 
