@@ -96,17 +96,16 @@ $logDbOwner = "logdb_admin"
 $dbCreationRetries = 5 # The number of times the script will attempt to create a new database before throwing an error
 
 $env:PATH = $env:PATH+";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin\;$env:appdata\npm\"
+$rootPath = (get-location).Path
 
 #endregion
 
-#region Run unit tests and exit if any fail
 
 #region Exit if only notes have changed within the current branch (comparing against develop)
 
 $command = "$gitExePath diff --name-only develop 2>&1"
 $diffOutput = Invoke-Expression "&$command" | out-string
 
-$rootPath = (get-location).Path
 log_statement "git diff Output:"
 write-output $diffOutput
 
