@@ -23,7 +23,7 @@ using Moq;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
-using MapDbContextLibTest;
+using TestResourcesLib;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using QlikviewLib;
@@ -135,7 +135,7 @@ namespace MapTests
         private void GenerateDependencies()
         {
             MockDbContext = GenerateDbContext();
-            MockUserManager = MapDbContextLibTest.MockUserManager.New(MockDbContext);
+            MockUserManager = TestResourcesLib.MockUserManager.New(MockDbContext);
             MockRoleManager = GenerateRoleManager(MockDbContext);
             MockMessageQueueService = GenerateMessageQueueService();
             LoggerFactory = new LoggerFactory();

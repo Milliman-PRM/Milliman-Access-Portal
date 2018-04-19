@@ -8,7 +8,7 @@ using MapDbContextLib.Context;
 using System.Threading;
 using System.Linq;
 
-namespace MapDbContextLibTest
+namespace TestResourcesLib
 {
     public class MockRoleStore
     {
