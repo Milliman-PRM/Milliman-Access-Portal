@@ -109,6 +109,11 @@ $diffOutput = Invoke-Expression "&$command" | out-string
 log_statement "git diff Output:"
 write-output $diffOutput
 
+if ($diffOutput -includes "git.exe*fatal:*")
+{
+  exit 42
+}
+
 $diffOutput = $diffOutput.Split([Environment]::NewLine)
 
 $codeChangeFound = $false
