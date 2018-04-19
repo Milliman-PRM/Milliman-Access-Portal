@@ -159,6 +159,17 @@ if ($? -eq $false) {
 log_output
 #endregion
 
+#region Clean up target folder before publishing
+log_statement "Cleaning target folder before publishing"
+try{
+  Get-ChildItem -Path $DeploymentTarget -Recurse | foreach { $_.delete($true)}
+}
+catch {
+  fail_statement "Failed to delete contents of target directory"
+}
+log_statement "Target directory is now empty"
+#endregion
+
 #region Use KuduSync to complete the publication process
 
 log_statement "Finalizing deployment with KuduSync"
