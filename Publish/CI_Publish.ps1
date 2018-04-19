@@ -104,7 +104,7 @@ $rootPath = (get-location).Path
 #region Exit if only notes have changed within the current branch (comparing against develop)
 
 $command = "$gitExePath diff --name-only develop 2>&1"
-$diffOutput = Invoke-Expression "&$command" | out-string
+$diffOutput = Invoke-Expression "$command" | out-string
 
 log_statement "git diff Output:"
 write-output $diffOutput
