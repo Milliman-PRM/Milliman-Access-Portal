@@ -14,7 +14,105 @@ import 'tooltipster/src/css/tooltipster.css';
 import 'tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css';
 import 'vex-js/sass/vex.sass';
 import '../scss/map.scss';
+import { randomBytes } from 'crypto';
 const appSettings = require('../../appsettings.json');
+
+
+let publishingGUID: string;
+
+class Upload {
+  r: any; // resumable.js instance, don't have typings for this
+  rootElement: HTMLElement;
+  checksum: string;
+  stats: upload.ResumableProgressStats;
+
+  constructor(rootElement: HTMLElement) {
+    this.r = new resumable(Object.assign({}, options.resumableOptions, {
+      target: '/ContentPublishing/UploadChunk',
+      headers: () => {
+        return {
+          RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString(),
+        };
+      },
+      query: () => {
+        return {
+          Checksum: this.checksum,
+        }
+      },
+      generateUniqueIdentifier: (file: File, event: Event) => {
+        if (publishingGUID === undefined) {
+          throw new Error('GUID has not been initialized.')
+        }
+        return `publication-${publishingGUID}-${/*some way to identify which file on the page it is*/0}`;
+      }
+    }));
+    if (!this.r.support) {
+      throw new Error('This browser does not support resumable file uploads.');
+    }
+    this.r.assignBrowse(rootElement, false);
+    this.r.on('fileAdded', (file) => {
+      $('#file-name-resumable').html(file.fileName);
+      this.generateChecksum(file.file)
+        .then(() => this.getChunkStatus())
+        .then(() => this.r.upload())
+        .then(() => console.log('done'));
+    });
+    this.r.on('complete', () => {
+      // send request to concatenate chunks
+    });
+    this.rootElement = rootElement;
+    this.stats = new upload.ResumableProgressStats(10);
+  }
+
+  private generateChecksum(file: File) {
+    return new Promise((resolve, reject) => {
+      const self = this;
+      const md = forge.md.sha1.create();
+      const reader = new FileReader();
+      const chunkSize = (2 ** 20); // 1 MiB
+      let offset = 0;
+      reader.onload = function () {
+        md.update(this.result);
+        offset += chunkSize;
+        if (offset >= file.size) {
+          self.renderChecksumProgress(1);
+          self.checksum = md.digest().toHex();
+          resolve();
+        } else {
+          self.renderChecksumProgress(offset / file.size);
+          reader.readAsBinaryString(file.slice(offset, offset + chunkSize));
+        }
+      };
+      reader.onerror = () => reject;
+      reader.readAsBinaryString(file.slice(offset, offset + chunkSize));
+    })
+  }
+
+  private getChunkStatus() {
+    // Not implemented
+    // TODO: get request for already-received chunks
+    // TODO: set `this.r.files[0].chunks[n].tested = true;` for already received
+  }
+
+  private renderChecksumProgress(progress: number) {
+    const precision = 2;
+    const progressFmt = `${Math.floor(progress * 100 * (10 ** precision)) / (10 ** precision)}%`;
+    $('#checksum-progress-resumable').width(progressFmt);
+  }
+
+  private updateUploadProgress() {
+    setTimeout(() => {
+      this.stats.update(this.r);
+      this.stats.render();
+      console.log('rendered upload progress');
+      if (this.r.progress() < 1) {
+        this.updateUploadProgress();
+      }
+    }, 1000);
+  }
+}
+
+let uploads: (Upload);
 
 
 function setUnloadAlert(value: boolean) {
@@ -28,70 +126,11 @@ function setUnloadAlert(value: boolean) {
     : undefined;
 }
 
-function renderChecksumProgress(progress: number) {
-  $('#checksum-progress-resumable').width((Math.round(progress * 10000) / 100) + '%');
-}
-
-function generateUIDFromSHA1(render: (progress: number) => void) {
-  return (file: File, event: Event) => {
-    return new Promise((resolve, reject) => {
-      const filename = file.name.split('.').join('_');
-      const md = forge.md.sha1.create();
-      const reader = new FileReader();
-      const chunkSize = (2 ** 20); // 1 MiB
-      let offset = 0;
-      reader.onload = function () {
-        md.update(this.result);
-        offset += chunkSize;
-        if (offset >= file.size) {
-          render(1);
-          const checksum = md.digest().toHex();
-          resolve(`${filename}-${checksum}`);
-        } else {
-          render(offset / file.size);
-          reader.readAsBinaryString(
-            file.slice(offset, offset + chunkSize));
-        }
-      };
-      reader.onerror = () => reject(reader.error);
-      reader.readAsBinaryString(
-        file.slice(offset, offset + chunkSize));
-    });
-  };
+function generateGUID() {
+  return randomBytes(8).toString('hex');
 }
 
 $(document).ready(function(): void {
-  // Alert the user if leaving the page during an upload
-  setUnloadAlert(false);
-  const r = new resumable($.extend({}, options.resumableOptions, {
-    target: '/ContentPublishing/UploadChunk',
-    headers: function() {
-      return {
-        RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
-      };
-    },
-    generateUniqueIdentifier: generateUIDFromSHA1(renderChecksumProgress),
-  }));
-  const progressStats = new upload.ResumableProgressStats(10);
-  if (!r.support) {
-    alert('not supported'); // TODO: tell user to use a modern browser
-  }
-  r.assignBrowse($('#upload-form-resumable span')[0], false);
-  r.on('complete', () => {
-    setUnloadAlert(false);
-  });
-  $('#upload-form-resumable input.submit').click(function (event): void {
-    event.preventDefault();
-    setUnloadAlert(true);
-    r.upload();
-    (function updateProgress() {
-      setTimeout(() => {
-        progressStats.update(r);
-        progressStats.render();
-        if (r.progress() < 1) {
-          updateProgress();
-        }
-      }, 1000);
-    })();
-  });
+  publishingGUID = generateGUID();
+  uploads = new Upload($('#file-browse')[0]);
 });
