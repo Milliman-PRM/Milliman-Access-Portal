@@ -11,9 +11,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MapTests
+namespace MapDbContextLibTest
 {
-    class MockUserManager
+    public class MockUserManager
     {
         public static Mock<UserManager<ApplicationUser>> New(Mock<ApplicationDbContext> MockDbContextArg)
         {

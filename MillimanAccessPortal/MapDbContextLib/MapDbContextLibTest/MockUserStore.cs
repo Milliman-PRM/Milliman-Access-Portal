@@ -11,7 +11,7 @@ using MapDbContextLib.Context;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using System.Threading.Tasks;
 
-namespace MapTests
+namespace MapDbContextLibTest
 {
     internal class MockUserStore
     {
