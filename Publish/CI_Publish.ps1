@@ -101,9 +101,38 @@ $env:PATH = $env:PATH+";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin\;$
 
 #region Run unit tests and exit if any fail
 
+#region Exit if only notes have changed within the current branch (comparing against develop)
 
+$command = "$gitExePath diff --name-only develop 2>&1"
+$diffOutput = Invoke-Expression "&$command" | out-string
 
 $rootPath = (get-location).Path
+log_statement "git diff Output:"
+write-output $diffOutput
+
+$diffOutput = $diffOutput.Split([Environment]::NewLine)
+
+$codeChangeFound = $false
+
+foreach ($diff in $diffOutput)
+{
+  # If both of these are true, the line being examined is likely a change to the software that needs testing
+  if ($diff -like '*/*' -and $diff -notlike 'Notes/*')
+  {
+    $codeChangeFound = $true
+    break
+  }
+}
+
+# If no code changes were found, we don't have to run the rest of this script
+if ($codeChangeFound -eq $false)
+{
+  exit 0
+}
+
+#endregion
+
+#region Run unit tests and exit if any fail
 
 cd MillimanAccessPortal\MillimanAccessPortal
 
