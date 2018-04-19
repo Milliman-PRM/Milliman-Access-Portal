@@ -109,7 +109,7 @@ $diffOutput = Invoke-Expression "&$command" | out-string
 log_statement "git diff Output:"
 write-output $diffOutput
 
-if ($diffOutput -includes "git.exe*fatal:*")
+if ($diffOutput -like "git.exe*fatal:*")
 {
   exit 42
 }
