@@ -118,6 +118,7 @@ foreach ($diff in $diffOutput)
   # If both of these are true, the line being examined is likely a change to the software that needs testing
   if ($diff -like '*/*' -and $diff -notlike 'Notes/*')
   {
+    log_statement "Code change found in $diff"
     $codeChangeFound = $true
     break
   }
