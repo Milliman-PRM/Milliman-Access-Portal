@@ -153,6 +153,8 @@ namespace MillimanAccessPortal.Services
 
         public void FinalizeUpload(ResumableInfo resumableInfo)
         {
+            Info = resumableInfo;
+
             // Make sure the expected and actual number of chunks match
             if (_fileProvider.GetDirectoryContents(ChunkDirPath).Count() != Info.TotalChunks)
             {

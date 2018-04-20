@@ -20,6 +20,17 @@ const appSettings = require('../../appsettings.json');
 
 let publishingGUID: string;
 
+interface ResumableInfo {
+  ChunkNumber: number;
+  TotalChunks: number;
+  ChunkSize: number;
+  TotalSize: number;
+  FileName: string;
+  UID: string;
+  Checksum: string;
+  Type: string;
+}
+
 class Upload {
   r: any; // resumable.js instance, don't have typings for this
   rootElement: HTMLElement;
@@ -60,8 +71,30 @@ class Upload {
         })
         .then(() => this.updateUploadProgress());
     });
-    this.r.on('complete', () => {
-      // send request to concatenate chunks
+    this.r.on('fileSuccess', (file, message) => {
+      const finalizeInfo: ResumableInfo = {
+        ChunkNumber: 0,
+        TotalChunks: file.chunks.length,
+        ChunkSize: this.r.opts.chunkSize,
+        TotalSize: file.size,
+        FileName: file.fileName,
+        UID: file.uniqueIdentifier,
+        Checksum: this.checksum,
+        Type: '',
+      };
+      $.ajax({
+        type: 'POST',
+        url: 'ContentPublishing/FinalizeUpload',
+        data: finalizeInfo,
+        headers: {
+          RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
+        }
+      }).done((response) => {
+        // File is uploaded
+        setUploadState(uploadState.initial);
+      }).fail((response) => {
+        throw new Error(`Something went wrong. Response: ${response}`);
+      });
     });
     this.rootElement = rootElement;
     this.stats = new upload.ResumableProgressStats(10);

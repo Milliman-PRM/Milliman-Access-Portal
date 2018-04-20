@@ -168,8 +168,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> FinalizeUpload(ResumableInfo resumableInfo)
+        public IActionResult FinalizeUpload(ResumableInfo resumableInfo)
         {
             UploadHelper.FinalizeUpload(resumableInfo);
 
