@@ -186,7 +186,7 @@ namespace MillimanAccessPortal.Controllers
                 return new StatusCodeResult(e.HttpStatus);
             }
 
-            return Ok();
+            return new JsonResult(UploadHelper.GetOutputFilePath());
         }
     }
 
