@@ -14,4 +14,19 @@ namespace MillimanAccessPortal.Models.ContentPublicationViewModels
         public string Checksum { get; set; }
         public string Type { get; set; }
     }
+
+    public static class ResumableExtensions
+    {
+        public static bool LastChunk(this ResumableInfo resumableInfo)
+        {
+            return resumableInfo.ChunkNumber == resumableInfo.TotalChunks;
+        }
+
+        public static ulong ExpectedSize(this ResumableInfo resumableInfo)
+        {
+            return resumableInfo.LastChunk()
+                ? (resumableInfo.TotalSize % resumableInfo.ChunkSize) + resumableInfo.ChunkSize
+                : resumableInfo.ChunkSize;
+        }
+    }
 }

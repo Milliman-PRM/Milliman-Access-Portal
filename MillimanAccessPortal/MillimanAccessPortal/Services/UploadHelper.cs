@@ -12,6 +12,9 @@ namespace MillimanAccessPortal.Services
 {
     public class UploadHelper : IUploadHelper, IDisposable
     {
+        /// <summary>
+        /// Enumerates the paths managed by UploadHelper.
+        /// </summary>
         private class PathSet : IEnumerable<string>
         {
             public string Temp;
@@ -96,6 +99,14 @@ namespace MillimanAccessPortal.Services
             _fileProvider = fileProvider;
         }
 
+        /// <summary>
+        /// Get which chunks have already been received for an upload
+        /// </summary>
+        /// <remarks>
+        /// Only useful to resumable.js, and mostly useful when resuming an interupted upload.
+        /// </remarks>
+        /// <param name="resumableInfo">Identifies the resumable upload</param>
+        /// <returns>List of chunks that already exist on the server</returns>
         public List<uint> GetChunkStatus(ResumableInfo resumableInfo)
         {
             var receivedChunks = new List<uint>();
@@ -111,17 +122,29 @@ namespace MillimanAccessPortal.Services
             return receivedChunks;
         }
 
+        /// <summary>
+        /// Open a stream to a new temporary file
+        /// </summary>
+        /// <remarks>
+        /// Use this method to have UploadHelper remove the temporary file when it goes out of scope.
+        /// </remarks>
+        /// <returns>A Stream to the new temporary file</returns>
         public Stream OpenTempFile()
         {
             return File.Create(_fileProvider.GetFileInfo(TempFilePath).PhysicalPath);
         }
 
+        /// <summary>
+        /// Copy the temporary file opened in OpenTempFile() to a known location
+        /// </summary>
+        /// <param name="resumableInfo">Identifies the resumable upload</param>
         public void FinalizeChunk(ResumableInfo resumableInfo)
         {
             Info = resumableInfo;
 
+            var tempFileInfo = _fileProvider.GetFileInfo(TempFilePath);
             // Expect the chunk to have been uploaded
-            if (!_fileProvider.GetFileInfo(TempFilePath).Exists)
+            if (!tempFileInfo.Exists)
             {
                 return; // StatusCodes.Status400BadRequest;
             }
@@ -130,6 +153,12 @@ namespace MillimanAccessPortal.Services
             if (Info.TotalSize > GlobalFunctions.maxFileUploadSize)
             {
                 return; // StatusCodes.Status413PayloadTooLarge;
+            }
+
+            // Ensure the temp file size is as expected
+            if (tempFileInfo.Length != ((long) resumableInfo.ExpectedSize()))
+            {
+                return; // StatusCodes.Status400BadRequest;
             }
 
             var tempFilePath = _fileProvider.GetFileInfo(TempFilePath).PhysicalPath;
@@ -151,6 +180,10 @@ namespace MillimanAccessPortal.Services
             }
         }
 
+        /// <summary>
+        /// Concatenate the uploaded chunks into a single file and verify
+        /// </summary>
+        /// <param name="resumableInfo">Identifies the resumable upload</param>
         public void FinalizeUpload(ResumableInfo resumableInfo)
         {
             Info = resumableInfo;
@@ -200,6 +233,10 @@ namespace MillimanAccessPortal.Services
             return; // null;
         }
 
+        /// <summary>
+        /// Get the location of the verified uploaded file
+        /// </summary>
+        /// <returns>Absolute path to the file</returns>
         public string GetOutputFilePath()
         {
             return (Info != null)
@@ -207,9 +244,11 @@ namespace MillimanAccessPortal.Services
                 : null;
         }
 
+        /// <summary>
+        /// Delete any leftover files
+        /// </summary>
         public void Dispose()
         {
-            // Remove any leftover files
             foreach (var path in _paths)
             {
                 var fileInfo = _fileProvider.GetFileInfo(path);
