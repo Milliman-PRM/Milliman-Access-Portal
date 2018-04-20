@@ -54,8 +54,11 @@ class Upload {
       $('#file-name-resumable').html(file.fileName);
       this.generateChecksum(file.file)
         .then(() => this.getChunkStatus())
-        .then(() => this.r.upload())
-        .then(() => console.log('done'));
+        .then(() => {
+          this.r.upload();
+          setUploadState(uploadState.uploading)
+        })
+        .then(() => this.updateUploadProgress());
     });
     this.r.on('complete', () => {
       // send request to concatenate chunks
@@ -104,7 +107,6 @@ class Upload {
     setTimeout(() => {
       this.stats.update(this.r);
       this.stats.render();
-      console.log('rendered upload progress');
       if (this.r.progress() < 1) {
         this.updateUploadProgress();
       }
@@ -112,7 +114,7 @@ class Upload {
   }
 }
 
-let uploads: (Upload);
+let uploads: [Upload];
 
 
 function setUnloadAlert(value: boolean) {
@@ -130,7 +132,53 @@ function generateGUID() {
   return randomBytes(8).toString('hex');
 }
 
+// WIP jQuery upload state management
+const uploadState = {
+  initial: 0,
+  uploading: 1,
+  paused: 2,
+}
+let currentState = uploadState.initial;
+
+function setUploadState(state: number) {
+  switch (state) {
+    case uploadState.initial:
+      $('input.upload').attr('disabled', '');
+      break;
+    case uploadState.uploading:
+      $('input.upload').attr('disabled', '');
+      $('#btn-cancel').removeAttr('disabled');
+      $('#btn-pause').removeAttr('disabled');
+      break;
+    case uploadState.paused:
+      $('input.upload').attr('disabled', '');
+      $('#btn-cancel').removeAttr('disabled');
+      $('#btn-resume').removeAttr('disabled');
+      break;
+  }
+}
+
+function configureControlButtons() {
+  $('#btn-cancel').click(() => {
+    setUploadState(uploadState.initial);
+    uploads[0].r.cancel();
+  });
+  $('#btn-pause').click(() => {
+    setUploadState(uploadState.paused);
+    uploads[0].r.pause();
+  });
+  $('#btn-resume').click(() => {
+    setUploadState(uploadState.uploading);
+    uploads[0].r.upload();
+  });
+}
+
+
 $(document).ready(function(): void {
   publishingGUID = generateGUID();
-  uploads = new Upload($('#file-browse')[0]);
+  configureControlButtons();
+  setUploadState(uploadState.initial);
+  uploads = [
+    new Upload($('#file-browse')[0]),
+  ]
 });
