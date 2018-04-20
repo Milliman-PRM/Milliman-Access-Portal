@@ -1,4 +1,10 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Joseph Sweeney
+ * OBJECTIVE: Controller for actions supporting the content publishing page
+ * DEVELOPER NOTES:
+ */
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -100,7 +106,7 @@ namespace MillimanAccessPortal.Services
         }
 
         /// <summary>
-        /// Get which chunks have already been received for an upload
+        /// Get chunk status based on existing files on disk
         /// </summary>
         /// <remarks>
         /// Only useful to resumable.js, and mostly useful when resuming an interupted upload.

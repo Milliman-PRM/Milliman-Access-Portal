@@ -1,4 +1,11 @@
-﻿using System.IO;
+﻿/*
+ * CODE OWNERS: Joseph Sweeney
+ * OBJECTIVE: ViewModel for data commonly sent by resumable.js
+ * DEVELOPER NOTES:
+ *      Must match data sent by resumable.js, which is defined in src/ts/lib-options.ts
+ */
+
+using System.IO;
 
 namespace MillimanAccessPortal.Models.ContentPublicationViewModels
 {
@@ -17,14 +24,24 @@ namespace MillimanAccessPortal.Models.ContentPublicationViewModels
 
     public static class ResumableExtensions
     {
-        public static bool LastChunk(this ResumableInfo resumableInfo)
+        /// <summary>
+        /// Check if the chunk indicated by this info is the last chunk
+        /// </summary>
+        /// <param name="resumableInfo">The chunk info to check</param>
+        /// <returns>True if the chunk is the last chunk; false otherwise</returns>
+        public static bool IsLastChunk(this ResumableInfo resumableInfo)
         {
             return resumableInfo.ChunkNumber == resumableInfo.TotalChunks;
         }
 
+        /// <summary>
+        /// Get the expected size of the chunk indicated by this info
+        /// </summary>
+        /// <param name="resumableInfo">The chunk info to check</param>
+        /// <returns>The expected size in bytes of the chunk</returns>
         public static ulong ExpectedSize(this ResumableInfo resumableInfo)
         {
-            return resumableInfo.LastChunk()
+            return resumableInfo.IsLastChunk()
                 ? (resumableInfo.TotalSize % resumableInfo.ChunkSize) + resumableInfo.ChunkSize
                 : resumableInfo.ChunkSize;
         }

@@ -39,7 +39,7 @@ class Upload {
 
   constructor(rootElement: HTMLElement) {
     this.r = new resumable(Object.assign({}, options.resumableOptions, {
-      target: '/ContentPublishing/UploadChunk',
+      target: '/FileUpload/UploadChunk',
       headers: () => {
         return {
           RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString(),
@@ -84,7 +84,7 @@ class Upload {
       };
       $.ajax({
         type: 'POST',
-        url: 'ContentPublishing/FinalizeUpload',
+        url: 'FileUpload/FinalizeUpload',
         data: finalizeInfo,
         headers: {
           RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
