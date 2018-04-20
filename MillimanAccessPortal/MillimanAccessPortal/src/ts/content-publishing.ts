@@ -1,9 +1,7 @@
 import $ = require('jquery');
 import upload = require('./upload');
-import forge = require('node-forge');
 import options = require('./lib-options');
 import { Promise } from 'es6-promise';
-const resumable = require('resumablejs');
 require('tooltipster');
 require('./navbar');
 
@@ -18,138 +16,13 @@ import { randomBytes } from 'crypto';
 const appSettings = require('../../appsettings.json');
 
 
-let publishingGUID: string;
+let publicationGUID: string;
 
-interface ResumableInfo {
-  ChunkNumber: number;
-  TotalChunks: number;
-  ChunkSize: number;
-  TotalSize: number;
-  FileName: string;
-  UID: string;
-  Checksum: string;
-  Type: string;
-}
 
-class Upload {
-  r: any; // resumable.js instance, don't have typings for this
-  rootElement: HTMLElement;
-  checksum: string;
-  stats: upload.ResumableProgressStats;
 
-  constructor(rootElement: HTMLElement) {
-    this.r = new resumable(Object.assign({}, options.resumableOptions, {
-      target: '/FileUpload/UploadChunk',
-      headers: () => {
-        return {
-          RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString(),
-        };
-      },
-      query: () => {
-        return {
-          Checksum: this.checksum,
-        }
-      },
-      generateUniqueIdentifier: (file: File, event: Event) => {
-        if (publishingGUID === undefined) {
-          throw new Error('GUID has not been initialized.')
-        }
-        return `publication-${publishingGUID}-${/*some way to identify which file on the page it is*/0}`;
-      }
-    }));
-    if (!this.r.support) {
-      throw new Error('This browser does not support resumable file uploads.');
-    }
-    this.r.assignBrowse(rootElement, false);
-    this.r.on('fileAdded', (file) => {
-      $('#file-name-resumable').html(file.fileName);
-      setUploadState(uploadState.uploading);
-      this.generateChecksum(file.file)
-        .then(() => this.getChunkStatus())
-        .then(() => this.r.upload())
-        .then(() => this.updateUploadProgress());
-    });
-    this.r.on('fileSuccess', (file, message) => {
-      const finalizeInfo: ResumableInfo = {
-        ChunkNumber: 0,
-        TotalChunks: file.chunks.length,
-        ChunkSize: this.r.opts.chunkSize,
-        TotalSize: file.size,
-        FileName: file.fileName,
-        UID: file.uniqueIdentifier,
-        Checksum: this.checksum,
-        Type: '',
-      };
-      $.ajax({
-        type: 'POST',
-        url: 'FileUpload/FinalizeUpload',
-        data: finalizeInfo,
-        headers: {
-          RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
-        }
-      }).done((response) => {
-        // File is uploaded
-        setUploadState(uploadState.initial);
-      }).fail((response) => {
-        throw new Error(`Something went wrong. Response: ${response}`);
-      });
-    });
-    this.rootElement = rootElement;
-    this.stats = new upload.ResumableProgressStats(10);
-  }
-
-  private generateChecksum(file: File) {
-    return new Promise((resolve, reject) => {
-      const self = this;
-      const md = forge.md.sha1.create();
-      const reader = new FileReader();
-      const chunkSize = (2 ** 20); // 1 MiB
-      let offset = 0;
-      reader.onload = function () {
-        if (currentState === uploadState.initial) {
-          reject();
-          return
-        }
-        md.update(this.result);
-        offset += chunkSize;
-        if (offset >= file.size) {
-          self.renderChecksumProgress(1);
-          self.checksum = md.digest().toHex();
-          resolve();
-        } else {
-          self.renderChecksumProgress(offset / file.size);
-          reader.readAsBinaryString(file.slice(offset, offset + chunkSize));
-        }
-      };
-      reader.onerror = () => reject;
-      reader.readAsBinaryString(file.slice(offset, offset + chunkSize));
-    })
-  }
-
-  private getChunkStatus() {
-    // Not implemented
-    // TODO: get request for already-received chunks
-    // TODO: set `this.r.files[0].chunks[n].tested = true;` for already received
-  }
-
-  private renderChecksumProgress(progress: number) {
-    const precision = 2;
-    const progressFmt = `${Math.floor(progress * 100 * (10 ** precision)) / (10 ** precision)}%`;
-    $('#checksum-progress-resumable').width(progressFmt);
-  }
-
-  private updateUploadProgress() {
-    setTimeout(() => {
-      this.stats.update(this.r);
-      this.stats.render();
-      if (this.r.progress() < 1) {
-        this.updateUploadProgress();
-      }
-    }, 1000);
-  }
-}
-
-let uploads: [Upload];
+let uploads: {
+  content: upload.PublicationUpload;
+};
 
 
 function setUnloadAlert(value: boolean) {
@@ -200,24 +73,24 @@ function setUploadState(state: number) {
 function configureControlButtons() {
   $('#btn-cancel').click(() => {
     setUploadState(uploadState.initial);
-    uploads[0].r.cancel();
+    uploads.content.resumable.cancel();
   });
   $('#btn-pause').click(() => {
     setUploadState(uploadState.paused);
-    uploads[0].r.pause();
+    uploads.content.resumable.pause();
   });
   $('#btn-resume').click(() => {
     setUploadState(uploadState.uploading);
-    uploads[0].r.upload();
+    uploads.content.resumable.upload();
   });
 }
 
 
 $(document).ready(function(): void {
-  publishingGUID = generateGUID();
+  publicationGUID = generateGUID();
   configureControlButtons();
   setUploadState(uploadState.initial);
-  uploads = [
-    new Upload($('#file-browse')[0]),
-  ]
+  uploads = {
+    content: new upload.PublicationUpload($('#file-browse')[0], publicationGUID, upload.PublicationComponent.Content, setUploadState),
+  };
 });
