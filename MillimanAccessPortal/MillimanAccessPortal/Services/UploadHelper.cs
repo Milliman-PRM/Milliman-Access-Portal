@@ -24,10 +24,10 @@ namespace MillimanAccessPortal.Services
         /// </summary>
         private class PathSet : IEnumerable<string>
         {
-            public string Temp;
-            public string Chunk;
-            public string Concat;
-            public string Output;
+            public string Temp = null;
+            public string Chunk = null;
+            public string Concat = null;
+            public string Output = null;
 
             public IEnumerator<string> GetEnumerator()
             {
