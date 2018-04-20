@@ -545,6 +545,9 @@ if ($resp.StatusCode -ne 200)
     log_statement "ERROR: Login page failed with code $($resp.StatusCode)"
     exit $resp.StatusCode
 }
-
+else
+{
+  log_statement "Successfully loaded login page: $publicURL/Account/Login"
+}
 
 #endregion
