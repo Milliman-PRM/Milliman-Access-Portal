@@ -63,12 +63,10 @@ class Upload {
     this.r.assignBrowse(rootElement, false);
     this.r.on('fileAdded', (file) => {
       $('#file-name-resumable').html(file.fileName);
+      setUploadState(uploadState.uploading);
       this.generateChecksum(file.file)
         .then(() => this.getChunkStatus())
-        .then(() => {
-          this.r.upload();
-          setUploadState(uploadState.uploading)
-        })
+        .then(() => this.r.upload())
         .then(() => this.updateUploadProgress());
     });
     this.r.on('fileSuccess', (file, message) => {
@@ -108,6 +106,10 @@ class Upload {
       const chunkSize = (2 ** 20); // 1 MiB
       let offset = 0;
       reader.onload = function () {
+        if (currentState === uploadState.initial) {
+          reject();
+          return
+        }
         md.update(this.result);
         offset += chunkSize;
         if (offset >= file.size) {
@@ -174,12 +176,15 @@ const uploadState = {
 let currentState = uploadState.initial;
 
 function setUploadState(state: number) {
+  console.log('setting state to ' + state);
   switch (state) {
     case uploadState.initial:
       $('input.upload').attr('disabled', '');
+      $('#file-browse input').removeAttr('disabled');
       break;
     case uploadState.uploading:
       $('input.upload').attr('disabled', '');
+      $('#file-browse input').attr('disabled', '');
       $('#btn-cancel').removeAttr('disabled');
       $('#btn-pause').removeAttr('disabled');
       break;
@@ -189,6 +194,7 @@ function setUploadState(state: number) {
       $('#btn-resume').removeAttr('disabled');
       break;
   }
+  currentState = state;
 }
 
 function configureControlButtons() {
