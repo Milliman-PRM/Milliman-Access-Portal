@@ -162,7 +162,7 @@ log_output
 #region Clean up target folder before publishing
 log_statement "Cleaning target folder before publishing"
 try{
-  Get-ChildItem -Path $DeploymentTarget -Recurse -File | foreach { $_.delete($true)}
+  Get-ChildItem -Path $DeploymentTarget -Recurse -File | foreach { $_.delete()}
   Get-ChildItem -Path $DeploymentTarget -Recurse | foreach { $_.delete($true)}
 }
 catch {
