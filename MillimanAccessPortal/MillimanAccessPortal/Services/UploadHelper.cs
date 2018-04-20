@@ -111,6 +111,7 @@ namespace MillimanAccessPortal.Services
         /// </summary>
         /// <remarks>
         /// Only useful to resumable.js, and mostly useful when resuming an interupted upload.
+        /// Not currently in use since resumable uploads are not currently supported.
         /// </remarks>
         /// <param name="resumableInfo">Identifies the resumable upload</param>
         /// <returns>List of chunks that already exist on the server</returns>
@@ -192,7 +193,7 @@ namespace MillimanAccessPortal.Services
             // Make sure the expected and actual number of chunks match
             if (_fileProvider.GetDirectoryContents(ChunkDirPath).Count() != Info.TotalChunks)
             {
-                throw new FileUploadException(StatusCodes.Status400BadRequest, "Number of uploaded chunks does not match expectation.");
+                throw new FileUploadException(StatusCodes.Status400BadRequest, "Number of uploaded chunks did not match expectation.");
             }
 
             #region Concatenate chunks
