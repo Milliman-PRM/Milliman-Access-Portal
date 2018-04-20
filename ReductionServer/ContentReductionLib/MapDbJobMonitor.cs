@@ -18,10 +18,12 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using ContentReductionLib.ReductionRunners;
 using Newtonsoft.Json;
+using TestResourcesLib;
+using Moq;
 
 namespace ContentReductionLib
 {
-    internal class MapDbJobMonitor : JobMonitorBase
+    public class MapDbJobMonitor : JobMonitorBase
     {
         internal class JobTrackingItem
         {
@@ -34,11 +36,19 @@ namespace ContentReductionLib
         private List<JobTrackingItem> ActiveReductionRunnerItems = new List<JobTrackingItem>();
 
         // Settable operating parameters
-        internal TimeSpan TaskAgeBeforeExecution
+        public TimeSpan TaskAgeBeforeExecution
         {
             get
             {
-                if (!int.TryParse(Configuration.ApplicationConfiguration["TaskAgeBeforeExecutionSeconds"], out int TaskAgeSec))
+                int TaskAgeSec;
+                try
+                {
+                    if (!int.TryParse(Configuration.ApplicationConfiguration["TaskAgeBeforeExecutionSeconds"], out TaskAgeSec))
+                    {
+                        throw new Exception();
+                    }
+                }
+                catch
                 {
                     TaskAgeSec = 30;
                 }
@@ -50,9 +60,17 @@ namespace ContentReductionLib
         {
             get
             {
-                if (!int.TryParse(Configuration.ApplicationConfiguration["StopWaitTimeSeconds"], out int WaitSec))
+                int WaitSec;
+                try
                 {
-                    // Increases the total time with more concurrent tasks, but less than linearly
+                    if (!int.TryParse(Configuration.ApplicationConfiguration["StopWaitTimeSeconds"], out WaitSec))
+                    {
+                        throw new Exception();
+                    }
+                }
+                catch
+                {
+                    // Increases the total time based on concurrent tasks, but less than linearly
                     WaitSec = 3 * 60 * (int)Math.Ceiling(Math.Sqrt(MaxParallelTasks));
                 }
                 return TimeSpan.FromSeconds(WaitSec);
@@ -63,10 +81,15 @@ namespace ContentReductionLib
         {
             get
             {
-                if (int.TryParse(Configuration.ApplicationConfiguration["MaxParallelTasks"], out int MaxTasks))
+                try
                 {
-                    return MaxTasks;
+                    if (int.TryParse(Configuration.ApplicationConfiguration["MaxParallelTasks"], out int MaxTasks))
+                    {
+                        return MaxTasks;
+                    }
                 }
+                catch
+                {}
                 return 1;
             }
         }
@@ -80,6 +103,31 @@ namespace ContentReductionLib
                 ConnectionString = Configuration.GetConnectionString(value);
             }
         }
+
+        /// <summary>
+        /// To support use of Mocked types for unit testing
+        /// </summary>
+        private bool _UseMockForTesting { get; set; } = false;
+        public bool UseMockForTesting
+        {
+            // This setter first validates that the current call stack includes any frame from the namespace that implements unit testing
+            set
+            {
+                var CallStack = new StackTrace();
+                var IsTest = CallStack.GetFrames().Any(f => f.GetMethod().DeclaringType.Namespace.Contains("ContentReductionServiceTests"));
+                if (!IsTest)
+                {
+                    throw new ApplicationException($"Attempt to set mocked testing of MapDbJobMonitor by an unsupported caller.  Stack trace:{Environment.NewLine}{CallStack.ToString()}");
+                }
+                _UseMockForTesting = value;
+            }
+            private get
+            {
+                return _UseMockForTesting;
+            }
+        }
+
+        public Func<Mock<ApplicationDbContext>, Mock<ApplicationDbContext>> InitializationFunc { private get; set; } = null;
 
         /// <summary>
         /// Initializes data used to construct database context instances.
@@ -99,9 +147,9 @@ namespace ContentReductionLib
         /// </summary>
         /// <param name="Token">Allows the worker to react to task cancellation by the caller</param>
         /// <returns></returns>
-        internal override Task Start(CancellationToken Token)
+        public override Task Start(CancellationToken Token)
         {
-            if (ContextOptions == null)
+            if (ContextOptions == null && !UseMockForTesting)
             {
                 throw new NullReferenceException("Attempting to construct new ApplicationDbContext but connection string not initialized");
             }
@@ -113,7 +161,7 @@ namespace ContentReductionLib
         /// Main long running thread of the job monitor
         /// </summary>
         /// <param name="Token"></param>
-        internal override void JobMonitorThreadMain(CancellationToken Token)
+        public override void JobMonitorThreadMain(CancellationToken Token)
         {
             MethodBase Method = MethodBase.GetCurrentMethod();
             while (!Token.IsCancellationRequested)
@@ -208,7 +256,9 @@ namespace ContentReductionLib
                 return new List<ContentReductionTask>();
             }
 
-            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+            using (ApplicationDbContext Db = UseMockForTesting
+                                             ? MockMapDbContext.New(InitializationFunc).Object
+                                             : new ApplicationDbContext(ContextOptions))
             using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
             {
                 try

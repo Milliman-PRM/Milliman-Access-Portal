@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace ContentReductionLib
 {
-    internal abstract class JobMonitorBase
+    public abstract class JobMonitorBase
     {
-        internal abstract Task Start(CancellationToken Token);
-        internal abstract void JobMonitorThreadMain(CancellationToken Token);
+        public abstract Task Start(CancellationToken Token);
+        public abstract void JobMonitorThreadMain(CancellationToken Token);
     }
 }

@@ -31,6 +31,7 @@ namespace ContentReductionService
 
         protected override void OnStart(string[] args)
         {
+            Thread.Sleep(12000);
             try
             {
                 Trace.WriteLine($"Service OnStart() called");

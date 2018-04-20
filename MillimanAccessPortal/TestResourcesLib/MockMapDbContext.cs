@@ -24,7 +24,7 @@ namespace TestResourcesLib
         /// <summary>
         /// Creates an instance of mocked ApplicationDbContext with no data
         /// </summary>
-        public static Mock<ApplicationDbContext> New()
+        public static Mock<ApplicationDbContext> New(Func<Mock<ApplicationDbContext>, Mock<ApplicationDbContext>> Initialize = null)
         {
             // Had to implement a parameterless constructor in the context class, I hope this doesn't cause any problem in EF
             Mock<ApplicationDbContext> ReturnMockContext = new Mock<ApplicationDbContext>();
@@ -74,6 +74,11 @@ namespace TestResourcesLib
             Mock<DatabaseFacade> MockDatabaseFacade = new Mock<DatabaseFacade>(ReturnMockContext.Object);
             MockDatabaseFacade.Setup(x => x.BeginTransaction()).Returns(DbTransaction.Object);
             ReturnMockContext.SetupGet(x => x.Database).Returns(MockDatabaseFacade.Object);
+
+            if (Initialize != null)
+            {
+                ReturnMockContext = Initialize(ReturnMockContext);
+            }
 
             return ReturnMockContext;
         }
