@@ -35,15 +35,34 @@ namespace MillimanAccessPortal.Models.ContentPublicationViewModels
         }
 
         /// <summary>
+        /// Check if the chunk indicated by this info is smaller than the chunk size
+        /// </summary>
+        /// <param name="resumableInfo">The chunk info to check</param>
+        /// <returns>True if the file size is smaller than chunk size; false otherwise</returns>
+        public static bool IsSmall(this ResumableInfo resumableInfo)
+        {
+            return resumableInfo.TotalSize < resumableInfo.ChunkSize;
+        }
+
+        /// <summary>
         /// Get the expected size of the chunk indicated by this info
         /// </summary>
         /// <param name="resumableInfo">The chunk info to check</param>
         /// <returns>The expected size in bytes of the chunk</returns>
         public static ulong ExpectedSize(this ResumableInfo resumableInfo)
         {
-            return resumableInfo.IsLastChunk()
-                ? (resumableInfo.TotalSize % resumableInfo.ChunkSize) + resumableInfo.ChunkSize
-                : resumableInfo.ChunkSize;
+            if (resumableInfo.IsSmall())
+            {
+                return resumableInfo.TotalSize;
+            }
+            else if (resumableInfo.IsLastChunk())
+            {
+                return resumableInfo.TotalSize % resumableInfo.ChunkSize + resumableInfo.ChunkSize;
+            }
+            else
+            {
+                return resumableInfo.ChunkSize;
+            }
         }
     }
 }
