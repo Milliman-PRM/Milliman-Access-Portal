@@ -155,7 +155,15 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            UploadHelper.FinalizeChunk(resumableInfo);
+            try
+            {
+                UploadHelper.FinalizeChunk(resumableInfo);
+            }
+            catch (FileUploadException e)
+            {
+                Response.Headers.Add("Warning", e.Message);
+                return new StatusCodeResult(e.HttpStatus);
+            }
 
             return Ok();
         }
@@ -168,7 +176,15 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         public IActionResult FinalizeUpload(ResumableInfo resumableInfo)
         {
-            UploadHelper.FinalizeUpload(resumableInfo);
+            try
+            {
+                UploadHelper.FinalizeUpload(resumableInfo);
+            }
+            catch (FileUploadException e)
+            {
+                Response.Headers.Add("Warning", e.Message);
+                return new StatusCodeResult(e.HttpStatus);
+            }
 
             return Ok();
         }
@@ -227,6 +243,35 @@ namespace MillimanAccessPortal.Controllers
                 return Encoding.UTF8;
             }
             return mediaType.Encoding;
+        }
+    }
+
+    /// <summary>
+    /// Signifies an exception related to chunked file uploads
+    /// </summary>
+    public class FileUploadException : Exception
+    {
+        public int HttpStatus { get; set; } = StatusCodes.Status500InternalServerError;
+
+        public FileUploadException()
+        {
+        }
+
+        public FileUploadException(int status)
+        {
+            HttpStatus = status;
+        }
+
+        public FileUploadException(int status, string message)
+            : base(message)
+        {
+            HttpStatus = status;
+        }
+
+        public FileUploadException(int status, string message, Exception inner)
+            : base(message, inner)
+        {
+            HttpStatus = status;
         }
     }
 }

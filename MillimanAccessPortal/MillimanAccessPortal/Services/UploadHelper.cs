@@ -12,6 +12,7 @@ using System.Linq;
 using MapCommonLib;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.FileProviders;
+using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.ContentPublicationViewModels;
 
 namespace MillimanAccessPortal.Services
@@ -149,22 +150,23 @@ namespace MillimanAccessPortal.Services
             Info = resumableInfo;
 
             var tempFileInfo = _fileProvider.GetFileInfo(TempFilePath);
+
             // Expect the chunk to have been uploaded
             if (!tempFileInfo.Exists)
             {
-                return; // StatusCodes.Status400BadRequest;
+                throw new FileUploadException(StatusCodes.Status400BadRequest, "Uploaded chunk does not exist.");
             }
 
             // Expect the total file size to be within the limit
             if (Info.TotalSize > GlobalFunctions.maxFileUploadSize)
             {
-                return; // StatusCodes.Status413PayloadTooLarge;
+                throw new FileUploadException(StatusCodes.Status413PayloadTooLarge, "File size is too large.");
             }
 
             // Ensure the temp file size is as expected
             if (tempFileInfo.Length != ((long) resumableInfo.ExpectedSize()))
             {
-                return; // StatusCodes.Status400BadRequest;
+                throw new FileUploadException(StatusCodes.Status400BadRequest, "Uploaded chunk is not expected size.");
             }
 
             var tempFilePath = _fileProvider.GetFileInfo(TempFilePath).PhysicalPath;
@@ -176,14 +178,7 @@ namespace MillimanAccessPortal.Services
                 File.Delete(chunkFilePath);
             }
             Directory.CreateDirectory(chunkDirPath);
-            try
-            {
-                File.Move(tempFilePath, chunkFilePath);
-            }
-            catch (Exception e)
-            {
-                Console.Write(e);
-            }
+            File.Move(tempFilePath, chunkFilePath);
         }
 
         /// <summary>
@@ -197,7 +192,7 @@ namespace MillimanAccessPortal.Services
             // Make sure the expected and actual number of chunks match
             if (_fileProvider.GetDirectoryContents(ChunkDirPath).Count() != Info.TotalChunks)
             {
-                return; // StatusCodes.Status400BadRequest;
+                throw new FileUploadException(StatusCodes.Status400BadRequest, "Number of uploaded chunks does not match expectation.");
             }
 
             #region Concatenate chunks
@@ -224,7 +219,7 @@ namespace MillimanAccessPortal.Services
             var computedChecksum = GlobalFunctions.GetFileChecksum(concatenationFilePath);
             if (!Info.Checksum.Equals(computedChecksum, StringComparison.OrdinalIgnoreCase))
             {
-                return; // StatusCodes.Status409Conflict;
+                throw new FileUploadException(StatusCodes.Status409Conflict, "Checksums do not match.");
             }
 
             // Rename the file with proper extension - this makes it visible to the virus scanner
@@ -235,8 +230,6 @@ namespace MillimanAccessPortal.Services
             }
             File.Move(concatenationFilePath, outputFilePath);
             #endregion
-
-            return; // null;
         }
 
         /// <summary>
