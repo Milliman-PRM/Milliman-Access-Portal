@@ -20,23 +20,3 @@
         <ul class="admin-panel-content"></ul>
     </div>
 </div>
-<div class="admin-panel-container">
-    <div class="admin-panel-content">
-        <form id="upload-form-resumable" enctype="multipart/form-data" asp-controller="ContentPublishing" asp-action="Upload" asp-antiforgery="false">
-            <div class="form-group">
-                <div style="width: 350px;">
-                    <p>Upload a file using this form.</p>
-                    <span id="file-browse" style="background-color:rgb(219, 166, 255); padding: 0.5em; width: 100%; position: relative;">Browse</span>
-                    <span id="file-name-resumable">hello</span>
-                    <input id="btn-cancel" class="submit upload" type="submit" value="Cancel" />
-                    <input id="btn-pause" class="submit upload" type="submit" value="Pause" />
-                    <input id="btn-resume" class="submit upload" type="submit" value="Resume" />
-                </div>
-            </div>
-        </form>
-        <div style="display: block; position: relative; width: 200px; height: 30px; background-color: white; margin-top: 10px;">
-          <div id="checksum-progress-resumable" style="display: block; position: absolute; top: 0; left: 0; height: 30px; width: 0%; background-color: LimeGreen;">Checksum</div>
-          <div id="file-progress-resumable" style="display: block; position: absolute; top: 0; left: 0; height: 30px; width: 0%; background-color: DodgerBlue;">Upload</div>
-        </div>
-    </div>
-</div>
