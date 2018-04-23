@@ -1,20 +1,22 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: <What and WHY.>
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 using ContentReductionLib;
 using TestResourcesLib;
-using MapDbContextLib.Context;
-using MapDbContextLib.Identity;
 using Moq;
 
 namespace ContentReductionServiceTests
 {
-    public class UnitTest1
+    public class MapDbJobMonitorTests
     {
-        DateTime TimeNow = DateTime.MaxValue;
+        DateTime StartTime = DateTime.MaxValue;
 
         //private Mock<ApplicationDbContext> GenerateBasicTestData(Mock<ApplicationDbContext> MockDbContext)
         //{
@@ -243,10 +245,8 @@ namespace ContentReductionServiceTests
         [Fact]
         public void TestMethod1()
         {
-            TimeNow = DateTime.UtcNow;
-
             MapDbJobMonitor JobMonitor = new MapDbJobMonitor { UseMockForTesting = true,
-                                                               InitializationFunc = Initialize, };
+                                                               InitializationFunc = InitializeTests.Initialize, };
 
             CancellationToken Token = new CancellationToken();
             Task MonitorTask = JobMonitor.Start(Token);
@@ -255,49 +255,44 @@ namespace ContentReductionServiceTests
                 Thread.Sleep(1000);
             }
 
-            Assert.False(DateTime.UtcNow - TimeNow > JobMonitor.TaskAgeBeforeExecution);
+            Assert.False(DateTime.UtcNow - StartTime > JobMonitor.TaskAgeBeforeExecution);
 
             Assert.NotEqual<TaskStatus>(MonitorTask.Status, TaskStatus.Faulted);
         }
 
-        public Mock<ApplicationDbContext> Initialize(Mock<ApplicationDbContext> Db) 
+        [Fact]
+        public void CorrectStatusAfterCancelWhileIdle()
         {
-            Db.Object.ContentType.Add(new ContentType
+            #region arrange
+            MapDbJobMonitor JobMonitor = new MapDbJobMonitor
             {
-                Id = 1,
-                Name = "Qlikview",
-                CanReduce = true,
-                TypeEnum = ContentTypeEnum.Qlikview,
-            });
+                UseMockForTesting = true,
+                InitializationFunc = InitializeTests.Initialize,
+            };
 
-            Db.Object.RootContentItem.Add(new RootContentItem
-            {
-                Id = 1,
-                ContentName = "Test content",
-                ClientId = 1,
-                ContentTypeId = 1,
-                TypeSpecificDetail = "",
-            });
-            MockDbSet<RootContentItem>.AssignNavigationProperty<ContentType>(Db.Object.RootContentItem, "ContentTypeId", Db.Object.ContentType);
+            CancellationTokenSource TokenSource = new CancellationTokenSource();
+            #endregion
 
-            Db.Object.SelectionGroup.Add(new SelectionGroup
-            {
-                Id = 1,
-                RootContentItemId = 1,
-            });
-            MockDbSet<SelectionGroup>.AssignNavigationProperty<RootContentItem>(Db.Object.SelectionGroup, "RootContentItemId", Db.Object.RootContentItem);
+            #region Act
+            Task MonitorTask = JobMonitor.Start(TokenSource.Token);
+            Thread.Sleep(new TimeSpan(0, 0, 5));
+            #endregion
 
-            Db.Object.ContentReductionTask.Add(new ContentReductionTask { Id = Guid.NewGuid(),
-                                                                          TaskAction = TaskActionEnum.HierarchyAndReduction, 
-                                                                          CreateDateTime = TimeNow,
-                                                                          MasterFilePath = "xyz",
-                                                                          SelectionGroupId = 1,
-                                                                          MasterContentChecksum = "",
-                                                                          ReductionStatus = ReductionStatusEnum.Queued,
-            });
-            MockDbSet<ContentReductionTask>.AssignNavigationProperty<SelectionGroup>(Db.Object.ContentReductionTask, "SelectionGroupId", Db.Object.SelectionGroup);
+            #region Assert
+            Assert.Equal<TaskStatus>(MonitorTask.Status, TaskStatus.Running);
+            #endregion
 
-            return Db;
+            #region Act again
+            DateTime CancelTime = DateTime.UtcNow;
+            TokenSource.Cancel();
+            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 0, 40));
+            #endregion
+
+            #region Assert
+            Assert.Equal<TaskStatus>(MonitorTask.Status, TaskStatus.RanToCompletion);
+            Assert.True(DateTime.UtcNow - CancelTime < new TimeSpan(0,0,30), "MapDbJobMonitor took too long to be canceled while idle");
+            #endregion
         }
+
     }
 }
