@@ -115,7 +115,10 @@ export class ResumableProgressStats {
       const $root = $(rootElement);
       const $text = $root.find('.card-body-secondary-text').last();
       const $prog = $root.find('.card-progress-bar-2');
-      $text.html(`${rate}  ${remainingTime}...`);
+      const statString = (remainingTime.indexOf('0:00') === -1 && rate.indexOf('NaN') === -1)
+        ? `${rate}  ${remainingTime}...`
+        : '';
+      $text.html(statString);
       $prog.width(percentage);
     })();
   }
@@ -143,7 +146,15 @@ abstract class Upload {
   protected rootElement: HTMLElement;
   protected checksum: string;
   protected stats: ResumableProgressStats;
-  protected state: UploadState;
+
+  protected _state: UploadState;
+  protected get state(): UploadState {
+    return this._state;
+  }
+  protected set state(value: UploadState) {
+    // Todo: run hooks
+    this._state = value;
+  }
 
   protected headers = {
     RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString(),
@@ -162,14 +173,27 @@ abstract class Upload {
     if (!this.resumable.support) {
       throw new Error('This browser does not support resumable file uploads.');
     }
+    this.resumable.on('fileAdded', (file) => {
+      this.selectFileNameElement(this.rootElement).innerHTML = file.fileName;
+      this.state = UploadState.Uploading;
+      this.generateChecksum(file.file)
+        .then(() => this.getChunkStatus())
+        .then(() => this.resumable.upload())
+        .then(() => this.updateUploadProgress());
+    });
     this.resumable.assignBrowse(this.selectBrowseElement(rootElement), false);
     this.rootElement = rootElement;
     this.stats = new ResumableProgressStats(10);
+    this.state = UploadState.Initial;
   }
 
   protected abstract generateUID(file: File, event: Event): string;
   
   protected abstract selectBrowseElement(rootElement: HTMLElement): HTMLElement;
+
+  protected abstract selectFileNameElement(rootElement: HTMLElement): HTMLElement;
+
+  protected abstract selectChecksumBarElement(rootElement: HTMLElement): HTMLElement;
   
   protected generateChecksum(file: File) {
     return new Promise((resolve, reject) => {
@@ -179,10 +203,10 @@ abstract class Upload {
       const chunkSize = (2 ** 20); // 1 MiB
       let offset = 0;
       reader.onload = function () {
-        //if (currentState === uploadState.initial) {
-        //  reject();
-        //  return
-        //}
+        if (self.state === UploadState.Initial) {
+          reject();
+          return
+        }
         md.update(this.result);
         offset += chunkSize;
         if (offset >= file.size) {
@@ -208,7 +232,7 @@ abstract class Upload {
   protected renderChecksumProgress(progress: number) {
     const precision = 2;
     const progressFmt = `${Math.floor(progress * 100 * (10 ** precision)) / (10 ** precision)}%`;
-    $('#checksum-progress-resumable').width(progressFmt);
+    $(this.selectChecksumBarElement(this.rootElement)).width(progressFmt);
   }
 
   protected updateUploadProgress() {
@@ -237,14 +261,6 @@ export class PublicationUpload extends Upload {
     super(rootElement);
     this.publicationGUID = publicationGUID;
     this.component = component;
-    this.resumable.on('fileAdded', (file) => {
-      $('#file-name-resumable').html(file.fileName);
-      setUploadState(1); // TODO: remove
-      this.generateChecksum(file.file)
-        .then(() => this.getChunkStatus())
-        .then(() => this.resumable.upload())
-        .then(() => this.updateUploadProgress());
-    });
     this.resumable.on('fileSuccess', (file, message) => {
       const finalizeInfo: ResumableInfo = {
         ChunkNumber: 0,
@@ -278,6 +294,14 @@ export class PublicationUpload extends Upload {
 
   protected selectBrowseElement(rootElement: HTMLElement): HTMLElement {
     return rootElement;
+  }
+
+  protected selectFileNameElement(rootElement: HTMLElement): HTMLElement {
+    return $(rootElement).find('.card-body-secondary-text')[0];
+  }
+
+  protected selectChecksumBarElement(rootElement: HTMLElement): HTMLElement {
+    return $(rootElement).find('.card-progress-bar-1')[0];
   }
 
 }
