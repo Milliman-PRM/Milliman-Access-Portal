@@ -154,10 +154,14 @@ abstract class Upload {
   protected set state(value: UploadState) {
     // Todo: run hooks
     if (value === UploadState.Initial) {
+      $(this.rootElement).find('.btn-pause').css('visibility', 'hidden');
+      $(this.rootElement).find('.btn-cancel').css('visibility', 'hidden');
       this.resumable.cancel();
     } else if (value === UploadState.Paused) {
       this.resumable.pause();
     } else if (value === UploadState.Uploading) {
+      $(this.rootElement).find('.btn-pause').css('visibility', 'visible');
+      $(this.rootElement).find('.btn-cancel').css('visibility', 'visible');
     }
     this._state = value;
   }

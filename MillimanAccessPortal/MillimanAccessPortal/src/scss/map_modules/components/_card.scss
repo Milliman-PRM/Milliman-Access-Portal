@@ -156,7 +156,6 @@
                     .card-progress-status-text {
                         font-style: italic;
                         font-weight: normal;
-                        display: inline-block;
                         flex: 1;
                         height: 1em;
                         margin-bottom: 0;
@@ -164,14 +163,14 @@
                         font-size: 0.8em;
                     }
                     .card-progress-status-btn {
-                        display: inline-block;
                         flex: 0;
                         margin-left: 0.2em;
                         height: 1em;
                         margin-bottom: 0.4em;
+                        visibility: hidden;
 
                         &:hover {
-                            background-color: greenyellow;
+                            background-color: hotpink;
                         }
 
                         .card-button-icon {
