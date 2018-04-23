@@ -105,14 +105,14 @@ namespace ContentReductionLib
         }
 
         /// <summary>
-        /// To support use of Mocked types for unit testing
+        /// To support use of Mocked external resources for unit testing
         /// </summary>
         private bool _UseMockForTesting { get; set; } = false;
         public bool UseMockForTesting
         {
-            // This setter first validates that the current call stack includes any frame from the namespace that implements unit testing
             set
             {
+                // First validate that the current call stack includes any frame from the namespace of the unit test project
                 var CallStack = new StackTrace();
                 var IsTest = CallStack.GetFrames().Any(f => f.GetMethod().DeclaringType.Namespace.Contains("ContentReductionServiceTests"));
                 if (!IsTest)

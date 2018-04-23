@@ -72,7 +72,7 @@ namespace ContentReductionLib
 
                 JobMonitorDict.Add(i, new JobMonitorInfo
                 {
-                    Monitor = new MapDbJobMonitor { ConfiguredConnectionStringParamName = "DefaultConnection", UseMockForTesting = true },
+                    Monitor = new MapDbJobMonitor { ConfiguredConnectionStringParamName = "DefaultConnection" },
                     TokenSource = new CancellationTokenSource(),
                     AwaitableTask = null
                 });
