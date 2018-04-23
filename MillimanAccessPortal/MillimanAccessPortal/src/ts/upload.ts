@@ -78,7 +78,7 @@ export class ResumableProgressStats {
     })());
   }
 
-  public render() {
+  public render(rootElement: HTMLElement) {
     const percentage = ((precision: number): string => {
       const precisionFactor = (10 ** precision);
       const _ = Math.floor(this.snapshot.now.ratio * 100 * precisionFactor) / precisionFactor;
@@ -112,9 +112,12 @@ export class ResumableProgressStats {
     })();
     
     (() => {
-      $('#file-progress-resumable').width(percentage);
+      const $root = $(rootElement);
+      const $text = $root.find('.card-body-secondary-text').last();
+      const $prog = $root.find('.card-progress-bar-2');
+      $text.html(`${rate}  ${remainingTime}...`);
+      $prog.width(percentage);
     })();
-    console.log(`${rate}  ${remainingTime}...`);
   }
 }
 
@@ -129,11 +132,18 @@ export interface ResumableInfo {
   Type: string;
 }
 
+enum UploadState {
+  Initial = 'initial',
+  Uploading = 'uploading',
+  Paused = 'paused',
+}
+
 abstract class Upload {
   public resumable: any;
   protected rootElement: HTMLElement;
   protected checksum: string;
   protected stats: ResumableProgressStats;
+  protected state: UploadState;
 
   protected headers = {
     RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString(),
@@ -204,7 +214,7 @@ abstract class Upload {
   protected updateUploadProgress() {
     setTimeout(() => {
       this.stats.update(this.resumable);
-      this.stats.render();
+      this.stats.render(this.rootElement);
       if (this.resumable.progress() < 1) {
         this.updateUploadProgress();
       }

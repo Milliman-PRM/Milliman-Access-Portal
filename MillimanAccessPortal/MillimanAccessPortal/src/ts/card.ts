@@ -11,7 +11,8 @@ var cardLayout = {
         },
         text: {
           primaryText: {},
-          secondaryText: {}
+          secondaryText: {},
+          progressBar: {}
         },
         statistics: {
           statistic: {}
@@ -392,6 +393,21 @@ var components = Object.assign(
           this.tooltip(component, 'Expand card', '.card-button-background');
         };
       }
+    },
+    progressBar: {
+      count: '?',
+      selector: '.card-body-primary-container',
+      html: [
+        '<div class="card-progress-bars">',
+        '  <div class="card-progress-bar-1"></div>',
+        '  <div class="card-progress-bar-2"></div>',
+        '</div>',
+      ].join(''),
+      render: function (component) {
+        return function () {
+          this.verify(component);
+        }
+      }
     }
   }
 );
@@ -707,6 +723,19 @@ export function RootContentItemCard(
 };
 RootContentItemCard.prototype = Object.create(Card.prototype);
 RootContentItemCard.prototype.constructor = RootContentItemCard;
+
+export function FileUploadCard(
+  contentName
+) {
+  Card.call(this);
+
+  this.addComponent('primaryText', { text: contentName });
+  this.addComponent('secondaryText', { text: 'Click to select file...' });
+  this.addComponent('secondaryText', { text: '' });
+  this.addComponent('progressBar', {});
+};
+FileUploadCard.prototype = Object.create(Card.prototype);
+FileUploadCard.prototype.constructor = FileUploadCard;
 
 export function SelectionGroupCard(
   selectionGroup, members,

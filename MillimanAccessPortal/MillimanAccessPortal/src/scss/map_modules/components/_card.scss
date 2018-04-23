@@ -144,6 +144,25 @@
                     stroke-width: 3px;
                 }
             }
+
+            .card-progress-bars {
+                position: relative;
+                height: 0.5em;
+                border: 1px solid black;
+
+                .card-progress-bar-1 {
+                    position: absolute;
+                    background-color: lightblue;
+                    width: 0;
+                    height: 100%;
+                }
+                .card-progress-bar-2 {
+                    position: absolute;
+                    background-color: lightgreen;
+                    width: 0;
+                    height: 100%;
+                }
+            }
         }
 
         .card-stats-container {

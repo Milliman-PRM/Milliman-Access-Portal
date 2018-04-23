@@ -1,4 +1,5 @@
 import $ = require('jquery');
+import card = require('./card');
 import upload = require('./upload');
 import options = require('./lib-options');
 import { Promise } from 'es6-promise';
@@ -13,6 +14,7 @@ import 'tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css'
 import 'vex-js/sass/vex.sass';
 import '../scss/map.scss';
 import { randomBytes } from 'crypto';
+import { PublicationUpload } from './upload';
 const appSettings = require('../../appsettings.json');
 
 
@@ -88,9 +90,16 @@ function configureControlButtons() {
 
 $(document).ready(function(): void {
   publicationGUID = generateGUID();
-  configureControlButtons();
-  setUploadState(uploadState.initial);
-  uploads = {
-    content: new upload.PublicationUpload($('#file-browse')[0], publicationGUID, upload.PublicationComponent.Content, setUploadState),
-  };
+
+  const c = new card.FileUploadCard(
+    'Content file'
+  ).build();
+  $('#card-list .admin-panel-content').append(c);
+
+  const u = new upload.PublicationUpload(
+    c.find('.card-body-container')[0],
+    publicationGUID,
+    upload.PublicationComponent.Content,
+    () => console.log('update state')
+  )
 });
