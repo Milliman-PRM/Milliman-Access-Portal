@@ -113,7 +113,7 @@ export class ResumableProgressStats {
     
     (() => {
       const $root = $(rootElement);
-      const $text = $root.find('.card-body-secondary-text').last();
+      const $text = $root.find('.card-progress-status-text');
       const $prog = $root.find('.card-progress-bar-2');
       const statString = (remainingTime.indexOf('0:00') === -1 && rate.indexOf('NaN') === -1)
         ? `${rate}  ${remainingTime}...`
@@ -153,6 +153,12 @@ abstract class Upload {
   }
   protected set state(value: UploadState) {
     // Todo: run hooks
+    if (value === UploadState.Initial) {
+      this.resumable.cancel();
+    } else if (value === UploadState.Paused) {
+      this.resumable.pause();
+    } else if (value === UploadState.Uploading) {
+    }
     this._state = value;
   }
 
@@ -179,10 +185,26 @@ abstract class Upload {
       this.generateChecksum(file.file)
         .then(() => this.getChunkStatus())
         .then(() => this.resumable.upload())
-        .then(() => this.updateUploadProgress());
+        .then(() => this.updateUploadProgress())
+        .catch(() => console.log('upload canceled'));
     });
     this.resumable.assignBrowse(this.selectBrowseElement(rootElement), false);
     this.rootElement = rootElement;
+    $(rootElement).find('.btn-pause').click((event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (this.state === UploadState.Paused) {
+        this.state = UploadState.Uploading;
+        this.resumable.upload();
+      } else {
+        this.state = UploadState.Paused;
+      }
+    });
+    $(rootElement).find('.btn-cancel').click((event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      this.state = UploadState.Initial;
+    });
     this.stats = new ResumableProgressStats(10);
     this.state = UploadState.Initial;
   }

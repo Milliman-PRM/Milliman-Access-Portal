@@ -12,7 +12,7 @@ var cardLayout = {
         text: {
           primaryText: {},
           secondaryText: {},
-          progressBar: {}
+          progressInfo: {}
         },
         statistics: {
           statistic: {}
@@ -394,13 +394,28 @@ var components = Object.assign(
         };
       }
     },
-    progressBar: {
+    progressInfo: {
       count: '?',
       selector: '.card-body-primary-container',
       html: [
-        '<div class="card-progress-bars">',
-        '  <div class="card-progress-bar-1"></div>',
-        '  <div class="card-progress-bar-2"></div>',
+        '<div class="card-progress">',
+        '  <div class="card-progress-status">',
+        '    <p class="card-progress-status-text"></p>',
+        '    <div class="card-progress-status-btn btn-pause">',
+        '      <svg class="card-button-icon">',
+        '        <use href="#action-icon-add"></use>',
+        '      </svg>',
+        '    </div>',
+        '    <div class="card-progress-status-btn btn-cancel">',
+        '      <svg class="card-button-icon">',
+        '        <use href="#action-icon-cancel"></use>',
+        '      </svg>',
+        '    </div>',
+        '  </div>',
+        '  <div class="card-progress-bars">',
+        '    <div class="card-progress-bar-1"></div>',
+        '    <div class="card-progress-bar-2"></div>',
+        '  </div>',
         '</div>',
       ].join(''),
       render: function (component) {
@@ -731,8 +746,7 @@ export function FileUploadCard(
 
   this.addComponent('primaryText', { text: contentName });
   this.addComponent('secondaryText', { text: 'Click to select file...' });
-  this.addComponent('secondaryText', { text: '' });
-  this.addComponent('progressBar', {});
+  this.addComponent('progressInfo', {});
 };
 FileUploadCard.prototype = Object.create(Card.prototype);
 FileUploadCard.prototype.constructor = FileUploadCard;
