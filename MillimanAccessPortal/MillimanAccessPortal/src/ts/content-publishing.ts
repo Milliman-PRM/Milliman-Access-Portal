@@ -1,6 +1,6 @@
 import $ = require('jquery');
 import card = require('./card');
-import upload = require('./upload');
+import upload = require('./upload/upload');
 import options = require('./lib-options');
 import { Promise } from 'es6-promise';
 require('tooltipster');
@@ -14,7 +14,7 @@ import 'tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css'
 import 'vex-js/sass/vex.sass';
 import '../scss/map.scss';
 import { randomBytes } from 'crypto';
-import { PublicationUpload } from './upload';
+import { PublicationUpload } from './upload/upload';
 const appSettings = require('../../appsettings.json');
 
 
