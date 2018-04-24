@@ -27,7 +27,7 @@ class RetainedValue<T> {
     let result = 0;
     // fill weights to match length of values
     if (!weights.length) {
-      _.fill(weights, 1, 0, this.values.length);
+      weights = _.times(this.values.length, () => 1);
     }
     weights = _.slice(weights, 0, this.values.length);
     _.fill(weights, 0, weights.length, this.values.length);
@@ -78,7 +78,7 @@ export class ResumableProgressStats {
     })());
   }
 
-  public render(rootElement: HTMLElement) {
+  public render(rootElement: HTMLElement, state: UploadState) {
     const percentage = ((precision: number): string => {
       const precisionFactor = (10 ** precision);
       const _ = Math.floor(this.snapshot.now.ratio * 100 * precisionFactor) / precisionFactor;
@@ -115,9 +115,14 @@ export class ResumableProgressStats {
       const $root = $(rootElement);
       const $text = $root.find('.card-progress-status-text');
       const $prog = $root.find('.card-progress-bar-2');
-      const statString = (remainingTime.indexOf('0:00') === -1 && rate.indexOf('NaN') === -1)
-        ? `${rate}  ${remainingTime}...`
-        : '';
+      let statString = '';
+      if (state === UploadState.Paused) {
+        statString = 'Paused';
+      } else if (state === UploadState.Uploading) {
+        if (this.remainingTime.now > 0 && !isNaN(this.remainingTime.now) && !isNaN(this.rate.avg())) {
+          statString = `${rate}  ${remainingTime}...`;
+        }
+      }
       $text.html(statString);
       $prog.width(percentage);
     })();
@@ -245,6 +250,8 @@ abstract class Upload {
         }
       };
       reader.onerror = () => reject;
+
+      $(self.rootElement).find('.card-progress-status-text').html('Processing...');
       reader.readAsBinaryString(file.slice(offset, offset + chunkSize));
     })
   }
@@ -264,7 +271,7 @@ abstract class Upload {
   protected updateUploadProgress() {
     setTimeout(() => {
       this.stats.update(this.resumable);
-      this.stats.render(this.rootElement);
+      this.stats.render(this.rootElement, this.state);
       if (this.resumable.progress() < 1) {
         this.updateUploadProgress();
       }
