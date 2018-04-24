@@ -42,52 +42,6 @@ function generateGUID() {
   return randomBytes(8).toString('hex');
 }
 
-// WIP jQuery upload state management
-const uploadState = {
-  initial: 0,
-  uploading: 1,
-  paused: 2,
-}
-let currentState = uploadState.initial;
-
-function setUploadState(state: number) {
-  console.log('setting state to ' + state);
-  switch (state) {
-    case uploadState.initial:
-      $('input.upload').attr('disabled', '');
-      $('#file-browse input').removeAttr('disabled');
-      break;
-    case uploadState.uploading:
-      $('input.upload').attr('disabled', '');
-      $('#file-browse input').attr('disabled', '');
-      $('#btn-cancel').removeAttr('disabled');
-      $('#btn-pause').removeAttr('disabled');
-      break;
-    case uploadState.paused:
-      $('input.upload').attr('disabled', '');
-      $('#btn-cancel').removeAttr('disabled');
-      $('#btn-resume').removeAttr('disabled');
-      break;
-  }
-  currentState = state;
-}
-
-function configureControlButtons() {
-  $('#btn-cancel').click(() => {
-    setUploadState(uploadState.initial);
-    uploads.content.resumable.cancel();
-  });
-  $('#btn-pause').click(() => {
-    setUploadState(uploadState.paused);
-    uploads.content.resumable.pause();
-  });
-  $('#btn-resume').click(() => {
-    setUploadState(uploadState.uploading);
-    uploads.content.resumable.upload();
-  });
-}
-
-
 $(document).ready(function(): void {
   publicationGUID = generateGUID();
 
@@ -100,6 +54,6 @@ $(document).ready(function(): void {
     c.find('.card-body-container')[0],
     publicationGUID,
     upload.PublicationComponent.Content,
-    () => console.log('update state')
+    () => {}
   )
 });

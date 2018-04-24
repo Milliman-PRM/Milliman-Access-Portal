@@ -5,6 +5,36 @@ import options = require('./lib-options');
 import shared = require('./shared');
 const resumable = require('resumablejs');
 
+
+interface ProgressSnapshot {
+  ratio: number; // uploaded / total
+  time: number; // absolute time at which this snapshot was taken
+}
+
+interface ProgressStats {
+  percentage: string;
+  rate: string;
+  remainingTime: string;
+}
+
+interface ResumableInfo {
+  ChunkNumber: number;
+  TotalChunks: number;
+  ChunkSize: number;
+  TotalSize: number;
+  FileName: string;
+  UID: string;
+  Checksum: string;
+  Type: string;
+}
+
+enum UploadState {
+  Initial = 'initial',
+  Uploading = 'uploading',
+  Paused = 'paused',
+}
+
+
 // A value that retains a configurable number of past values
 class RetainedValue<T> {
   private _values: Array<T>;
@@ -30,12 +60,7 @@ class RetainedValue<T> {
   }
 }
 
-interface ProgressSnapshot {
-  ratio: number; // uploaded / total
-  time: number; // absolute time at which this snapshot was taken
-}
-
-export class ProgressStats {
+class ProgressTracker {
   private snapshot: RetainedValue<ProgressSnapshot>;
   private rate: RetainedValue<number>;
   private remainingTime: RetainedValue<number>;
@@ -61,7 +86,7 @@ export class ProgressStats {
       time: time,
     });
     this.rate.insert((() => {
-      // Compute upload rate
+      // Compute rate
       const bytes = this.chunkSize * (this.snapshot.now.ratio - this.snapshot.ref.ratio);
       const seconds = (this.snapshot.now.time - this.snapshot.ref.time) / 1000;
       return seconds
@@ -78,86 +103,55 @@ export class ProgressStats {
     })());
   }
 
-  public render(rootElement: HTMLElement, state: UploadState) {
-    const percentage = ((precision: number): string => {
-      const precisionFactor = (10 ** precision);
-      const _ = Math.floor(this.snapshot.now.ratio * 100 * precisionFactor) / precisionFactor;
-      return `${_}%`;
-    })(1);
-    const rate = ((precision: number, unitThreshold: [number, number], weights: Array<number>): string => {
-      const units = ['', 'K', 'M', 'G'];
-      const upperThreshold = unitThreshold[0];
-      const lowerThreshold = unitThreshold[1];
-      let rateUnitIndex = 0;
-      let now = (() => {
-        const sWeights = weights.slice(0, this.rate.values.length);
-        const weightSum = sWeights.reduce((prev, cur) => prev + cur);
-        const nWeights = sWeights.map((value) => value / weightSum);
-        return this.rate.values
-          .map((value, i) => value * (nWeights[i] || 0))
-          .reduce((prev, cur) => prev + cur);
-        })();
-      while (now > (1000 * upperThreshold) && rateUnitIndex < units.length) {
-        now /= 1000;
-        rateUnitIndex += 1;
-      }
-      if (this.lastRateUnitIndex > rateUnitIndex) {
-        if (now > (1000 * lowerThreshold)) {
+  public render(): ProgressStats {
+    return {
+      percentage: ((precision: number): string => {
+        const precisionFactor = (10 ** precision);
+        const _ = Math.floor(this.snapshot.now.ratio * 100 * precisionFactor) / precisionFactor;
+        return `${_}%`;
+      })(1),
+      rate: ((precision: number, unitThreshold: [number, number], weights: Array<number>): string => {
+        const units = ['', 'K', 'M', 'G'];
+        const upperThreshold = unitThreshold[0];
+        const lowerThreshold = unitThreshold[1];
+        let rateUnitIndex = 0;
+        let now = (() => {
+          const sWeights = weights.slice(0, this.rate.values.length);
+          const weightSum = sWeights.reduce((prev, cur) => prev + cur);
+          const nWeights = sWeights.map((value) => value / weightSum);
+          return this.rate.values
+            .map((value, i) => value * (nWeights[i] || 0))
+            .reduce((prev, cur) => prev + cur);
+          })();
+        while (now > (1000 * upperThreshold) && rateUnitIndex < units.length) {
           now /= 1000;
           rateUnitIndex += 1;
         }
-      }
-      this.lastRateUnitIndex = rateUnitIndex;
-      const _ = `${now}`.slice(0, precision).replace(/\.$/, '');
-      return `${_} ${units[rateUnitIndex]}B/s`;
-    })(5, [2, 1], _.map(_.range(4, 0, -1), (x) => x**2));
-    const remainingTime = (() => {
-      const remainingSeconds = Math.ceil(this.remainingTime.now);
-      const seconds = remainingSeconds % 60;
-      const minutes = Math.floor(remainingSeconds / 60);
-      return `${minutes}:${('0' + seconds).slice(-2)} remaining`;
-    })();
-    
-    (() => {
-      const $root = $(rootElement);
-      const $text = $root.find('.card-progress-status-text');
-      const $prog = $root.find('.card-progress-bar-2');
-      let statString = '';
-      if (state === UploadState.Paused) {
-        statString = 'Paused';
-      } else if (state === UploadState.Uploading) {
-        if (this.remainingTime.now > 0) {
-          statString = `${rate}  ${remainingTime}...`;
+        if (this.lastRateUnitIndex > rateUnitIndex) {
+          if (now > (1000 * lowerThreshold)) {
+            now /= 1000;
+            rateUnitIndex += 1;
+          }
         }
-      }
-      $text.html(statString);
-      $prog.width(percentage);
-    })();
+        this.lastRateUnitIndex = rateUnitIndex;
+        const _ = `${now}`.slice(0, precision).replace(/\.$/, '');
+        return `${_} ${units[rateUnitIndex]}B/s`;
+      })(5, [2, 1], _.map(_.range(4, 0, -1), (x) => x**2)),
+      remainingTime: (() => {
+        const remainingSeconds = Math.ceil(this.remainingTime.now);
+        const seconds = remainingSeconds % 60;
+        const minutes = Math.floor(remainingSeconds / 60);
+        return `${minutes}:${('0' + seconds).slice(-2)} remaining`;
+      })(),
+    };
   }
-}
-
-export interface ResumableInfo {
-  ChunkNumber: number;
-  TotalChunks: number;
-  ChunkSize: number;
-  TotalSize: number;
-  FileName: string;
-  UID: string;
-  Checksum: string;
-  Type: string;
-}
-
-enum UploadState {
-  Initial = 'initial',
-  Uploading = 'uploading',
-  Paused = 'paused',
 }
 
 abstract class Upload {
   public resumable: any;
   protected rootElement: HTMLElement;
   protected checksum: string;
-  protected stats: ProgressStats;
+  protected stats: ProgressTracker;
 
   protected _state: UploadState;
   protected get state(): UploadState {
@@ -221,7 +215,7 @@ abstract class Upload {
       event.stopPropagation();
       this.state = UploadState.Initial;
     });
-    this.stats = new ProgressStats(this.resumable.opts.chunkSize);
+    this.stats = new ProgressTracker(this.resumable.opts.chunkSize);
     this.state = UploadState.Initial;
   }
 
@@ -278,7 +272,7 @@ abstract class Upload {
   protected updateUploadProgress() {
     setTimeout(() => {
       this.stats.update(this.resumable.progress(), new Date().getTime());
-      this.stats.render(this.rootElement, this.state);
+      this.stats.render();
       if (this.resumable.progress() < 1) {
         this.updateUploadProgress();
       }
