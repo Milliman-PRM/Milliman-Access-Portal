@@ -506,6 +506,14 @@ if ($CredentialFound)
         exit -800
     }
 
+    Stop-AzureRmWebAppSlot -Name $webappname -Slot $BranchName -ResourceGroupName $ResourceGroupName
+
+    if ($? -eq $false)
+    {
+        log_statement "Failed to stop running web app slot. Deployment cannot be successful."
+        exit -1000
+    }
+
     $command = "$gitExePath push ci_push `"HEAD:refs/heads/master`" --force 2>&1"
     $pushOutput = Invoke-Expression "&$command" | out-string
 
@@ -517,7 +525,13 @@ if ($CredentialFound)
         log_statement "Deployment failed"
         exit -300
     }
+
+    Start-AzureRmWebAppSlot -Name $webappname -Slot $BranchName -ResourceGroupName $ResourceGroupName
+
+    if ($? -eq $false)
     {
+        log_statement "Failed to start web app slot after deployment."
+        exit -1000
     }
 }
 else
