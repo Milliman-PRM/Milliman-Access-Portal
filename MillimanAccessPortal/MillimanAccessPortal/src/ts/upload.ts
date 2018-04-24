@@ -8,37 +8,26 @@ const resumable = require('resumablejs');
 // A value that retains a configurable number of past values
 // Only the most recent value and the oldest value are public
 class RetainedValue<T> {
-  private values: Array<T>;
+  private _values: Array<T>;
+  public get values(): Array<T> {
+    return this._values;
+  }
+
   constructor(readonly lengthLimit: number) {
-    this.values = [];
+    this.reset();
+  }
+  public reset() {
+    this._values = [];
   }
   get now(): T {
-    return this.values[0];
+    return this._values[0];
   }
   get ref(): T {
-    return this.values[this.values.length - 1];
+    return this._values[this._values.length - 1];
   }
   public insert(value: T): void {
-    this.values.splice(0, 0, value);
-    this.values = this.values.slice(0, this.lengthLimit);
-  }
-  // TODO: extract into separate function; allow arbitrary maps on values
-  public avg(weights: Array<number> = []): number {
-    let result = 0;
-    // fill weights to match length of values
-    if (!weights.length) {
-      weights = _.times(this.values.length, () => 1);
-    }
-    weights = _.slice(weights, 0, this.values.length);
-    _.fill(weights, 0, weights.length, this.values.length);
-    // normalize weights
-    const sum = _.sum(weights);
-    weights = _.map(weights, (x) => x / sum);
-    // compute weighted average
-    for (let pair of _.zip(this.values, weights)) {
-      result += <any>pair[0] * pair[1];
-    }
-    return result;
+    this._values.splice(0, 0, value);
+    this._values = this._values.slice(0, this.lengthLimit);
   }
 }
 
@@ -48,33 +37,45 @@ interface ResumableProgressSnapshot {
 }
 
 export class ResumableProgressStats {
-  snapshot: RetainedValue<ResumableProgressSnapshot>;
-  rate: RetainedValue<number>;
-  remainingTime: RetainedValue<number>;
+  private snapshot: RetainedValue<ResumableProgressSnapshot>;
+  private rate: RetainedValue<number>;
+  private remainingTime: RetainedValue<number>;
   private lastRateUnitIndex: number; // corresponds with the magnitude of this.rate
-  constructor(snapshotLengthLimit: number) {
-    this.snapshot = new RetainedValue(snapshotLengthLimit);
-    this.rate = new RetainedValue(1);
+
+  constructor(readonly chunkSize: number) {
+    this.snapshot = new RetainedValue(8);
+    this.rate = new RetainedValue(4);
     this.remainingTime = new RetainedValue(1);
     this.lastRateUnitIndex = 0;
   }
 
-  public update(r: any) {
+  public reset() {
+    this.snapshot.reset();
+    this.rate.reset();
+    this.remainingTime.reset();
+    this.lastRateUnitIndex = 0;
+  }
+
+  public update(ratio: number, time: number) {
     this.snapshot.insert({
-      ratio: r.progress(),
-      time: new Date().getTime(),
+      ratio: ratio,
+      time: time,
     });
     this.rate.insert((() => {
       // Compute upload rate
-      const bytes = r.getSize() * (this.snapshot.now.ratio - this.snapshot.ref.ratio);
+      const bytes = this.chunkSize * (this.snapshot.now.ratio - this.snapshot.ref.ratio);
       const seconds = (this.snapshot.now.time - this.snapshot.ref.time) / 1000;
-      return bytes / seconds;
+      return seconds
+        ? bytes / seconds
+        : 0; // return 0 instead of NaN when denominator is 0
     })());
     this.remainingTime.insert((() => {
       // Estimate remaining time
-      const bytes = r.getSize() * (1 - this.snapshot.now.ratio);
+      const bytes = this.chunkSize * (1 - this.snapshot.now.ratio);
       const bytes_p_second = this.rate.now;
-      return bytes / bytes_p_second;
+      return bytes_p_second
+        ? bytes / bytes_p_second
+        : 0; // return 0 instead of NaN when denominator is 0
     })());
   }
 
@@ -89,7 +90,14 @@ export class ResumableProgressStats {
       const upperThreshold = unitThreshold[0];
       const lowerThreshold = unitThreshold[1];
       let rateUnitIndex = 0;
-      let now = this.rate.avg(weights);
+      let now = (() => {
+        const sWeights = weights.slice(0, this.rate.values.length);
+        const weightSum = sWeights.reduce((prev, cur) => prev + cur);
+        const nWeights = sWeights.map((value) => value / weightSum);
+        return this.rate.values
+          .map((value, i) => value * (nWeights[i] || 0))
+          .reduce((prev, cur) => prev + cur);
+        })();
       while (now > (1000 * upperThreshold) && rateUnitIndex < units.length) {
         now /= 1000;
         rateUnitIndex += 1;
@@ -119,7 +127,7 @@ export class ResumableProgressStats {
       if (state === UploadState.Paused) {
         statString = 'Paused';
       } else if (state === UploadState.Uploading) {
-        if (this.remainingTime.now > 0 && !isNaN(this.remainingTime.now) && !isNaN(this.rate.avg())) {
+        if (this.remainingTime.now > 0) {
           statString = `${rate}  ${remainingTime}...`;
         }
       }
@@ -270,7 +278,7 @@ abstract class Upload {
 
   protected updateUploadProgress() {
     setTimeout(() => {
-      this.stats.update(this.resumable);
+      this.stats.update(this.resumable.progress(), new Date().getTime());
       this.stats.render(this.rootElement, this.state);
       if (this.resumable.progress() < 1) {
         this.updateUploadProgress();
