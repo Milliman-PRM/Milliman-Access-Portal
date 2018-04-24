@@ -13,32 +13,33 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
 using AuditLogLib;
+using AuditLogLib.Services;
 using QmsApi;
 using MapCommonLib;
 
 namespace ContentReductionLib.ReductionRunners
 {
-    internal class QvReductionRunner : ReductionRunnerBase
+    public class QvReductionRunner : ReductionRunnerBase
     {
-        string QmsUrl = null;
+        private string QmsUrl = null;
 
         /// <summary>
         /// Constructor, sets up starting conditions that are associated with the system configuration rather than this specific task.
         /// </summary>
-        internal QvReductionRunner()
+        public QvReductionRunner()
         {
             // Initialize members
             QmsUrl = Configuration.ApplicationConfiguration["IQmsUrl"];
 
             IQMS Client = QmsClientCreator.New(QmsUrl);
             QdsServiceInfo = Client.GetServicesAsync(ServiceTypes.QlikViewDistributionService).Result[0];
-            SourceDocFolder = Client.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All).Result[1];
+            SourceDocFolder = Client.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All).Result[1];  // TODO Get this index right for production
         }
 
         #region Member properties
         internal CancellationToken _CancellationToken { private get; set; }
 
-        internal ReductionJobDetail JobDetail { get; set; } = new ReductionJobDetail();
+        public ReductionJobDetail JobDetail { get; set; } = new ReductionJobDetail();
 
         private DocumentFolder SourceDocFolder { get; set; } = null;
 
@@ -53,13 +54,34 @@ namespace ContentReductionLib.ReductionRunners
         private DocumentNode ReducedDocumentNode { get; set; } = null;
         #endregion
 
+        #region Testing support
+        private IAuditLogger _AuditLog = null;
+        public IAuditLogger AuditLog
+        {
+            set
+            {
+                AssertTesting();
+                _AuditLog = value;
+            }
+            private get
+            {
+                return _AuditLog;
+            }
+        }
+        #endregion
+
         /// <summary>
         /// Entry point for the execution of a reduction task.  Intended to be invoked as a Task by a JobMonitorBase derived object. 
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        internal async override Task<ReductionJobDetail> Execute(CancellationToken cancellationToken)
+        public async override Task<ReductionJobDetail> Execute(CancellationToken cancellationToken)
         {
+            if (AuditLog == null)
+            {
+                AuditLog = new AuditLogger();
+            }
+
             _CancellationToken = cancellationToken;
             MethodBase Method = MethodBase.GetCurrentMethod();
             object DetailObj;
@@ -88,7 +110,7 @@ namespace ContentReductionLib.ReductionRunners
 
                     DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), JobAction = JobDetail.Request.JobAction, Hierarchy = JobDetail.Result.MasterContentHierarchy };
                     Event = AuditEvent.New("Reduction server", "Extraction of master content hierarchy succeeded", AuditEventId.HierarchyExtractionSucceeded, DetailObj);
-                    new AuditLogger().Log(Event);
+                    AuditLog.Log(Event);
                     #endregion
 
                     _CancellationToken.ThrowIfCancellationRequested();
@@ -100,7 +122,7 @@ namespace ContentReductionLib.ReductionRunners
 
                         DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), RequestedSelections = JobDetail.Request.SelectionCriteria };
                         Event = AuditEvent.New("Reduction server", "Creation of reduced content succeeded", AuditEventId.ContentReductionSucceeded, DetailObj);
-                        new AuditLogger().Log(Event);
+                        AuditLog.Log(Event);
                         #endregion
 
                         _CancellationToken.ThrowIfCancellationRequested();
@@ -110,7 +132,7 @@ namespace ContentReductionLib.ReductionRunners
 
                         DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), JobAction = JobDetail.Request.JobAction, Hierarchy = JobDetail.Result.ReducedContentHierarchy };
                         Event = AuditEvent.New("Reduction server", "Extraction of reduced content hierarchy succeeded", AuditEventId.HierarchyExtractionSucceeded, DetailObj);
-                        new AuditLogger().Log(Event);
+                        AuditLog.Log(Event);
                         #endregion
 
                         _CancellationToken.ThrowIfCancellationRequested();
@@ -196,7 +218,7 @@ namespace ContentReductionLib.ReductionRunners
 
                 object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), Error = Msg};
                 AuditEvent Event = AuditEvent.New("Reduction server", "Validation of processing prerequisites failed", AuditEventId.ReductionValidationFailed, DetailObj);
-                new AuditLogger().Log(Event);
+                AuditLog.Log(Event);
 
                 Msg = $"Error in {Method.ReflectedType.Name}.{Method.Name}: {Msg}";
 
@@ -302,7 +324,7 @@ namespace ContentReductionLib.ReductionRunners
                 // TODO may need to log more issues, like if the Qlikview task processing fails
                 object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), ExceptionMessage = e.Message };
                 AuditEvent Event = AuditEvent.New("Reduction server", "Extraction of hierarchy failed", AuditEventId.HierarchyExtractionFailed, DetailObj);
-                new AuditLogger().Log(Event);
+                AuditLog.Log(Event);
             }
             #endregion
 
@@ -338,7 +360,7 @@ namespace ContentReductionLib.ReductionRunners
                     string Msg = $"The requested reduction field <{SelectedFieldValue.FieldName}> is not found in the reduction hierarchy";
                     object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), Error = Msg };
                     AuditEvent Event = AuditEvent.New("Reduction server", "Creation of reduced content file failed", AuditEventId.ContentReductionFailed, DetailObj);
-                    new AuditLogger().Log(Event);
+                    AuditLog.Log(Event);
                     Trace.WriteLine(Msg);
                     throw new ApplicationException(Msg);
                 }
@@ -616,9 +638,10 @@ namespace ContentReductionLib.ReductionRunners
         /// <returns></returns>
         private async Task RunQdsTask(QmsApi.TaskInfo TInfo)
         {
-            // TODO make these configurable
+            // TODO make these configurable?
             TimeSpan MaxStartDelay = new TimeSpan(0, 5, 0);
             TimeSpan MaxElapsedRun = new TimeSpan(0, 5, 0);
+            int PublisherPollingIntervalMs = 250;
 
             QmsApi.TaskStatus Status;
 
@@ -634,7 +657,7 @@ namespace ContentReductionLib.ReductionRunners
                 }
 
                 await QmsClient.RunTaskAsync(TInfo.ID);
-                Thread.Sleep(250);
+                Thread.Sleep(PublisherPollingIntervalMs);
 
                 Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.All);
             } while (Status == null || Status.Extended == null || string.IsNullOrEmpty(Status.Extended.StartTime));
@@ -650,7 +673,7 @@ namespace ContentReductionLib.ReductionRunners
                     throw new System.Exception($"Qlikview publisher failed to finish task {TInfo.ID} before timeout");
                 }
 
-                Thread.Sleep(250);
+                Thread.Sleep(PublisherPollingIntervalMs);
 
                 Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.All);
             } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));

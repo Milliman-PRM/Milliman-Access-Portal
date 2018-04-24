@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Moq;
 using MapDbContextLib.Context;
 using TestResourcesLib;
@@ -7,7 +8,16 @@ namespace ContentReductionServiceTests
 {
     class InitializeTests
     {
-        public static Mock<ApplicationDbContext> Initialize(Mock<ApplicationDbContext> Db)
+        public static Mock<ApplicationDbContext> InitializeWithQueuedStatus(Mock<ApplicationDbContext> Db)
+        {
+            Db = InitializeWithUnspecifiedStatus(Db);
+            ContentReductionTask T = Db.Object.ContentReductionTask.Single(t => t.Id == new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1));
+            T.ReductionStatus = ReductionStatusEnum.Queued;
+            Db.Object.ContentReductionTask.Update(T);
+            return Db;
+        }
+
+        public static Mock<ApplicationDbContext> InitializeWithUnspecifiedStatus(Mock<ApplicationDbContext> Db)
         {
             #region Initialize ContentType
             Db.Object.ContentType.Add(new ContentType

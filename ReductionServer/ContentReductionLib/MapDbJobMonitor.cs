@@ -36,7 +36,7 @@ namespace ContentReductionLib
         private List<JobTrackingItem> ActiveReductionRunnerItems = new List<JobTrackingItem>();
 
         // Settable operating parameters
-        public TimeSpan TaskAgeBeforeExecution
+        private TimeSpan TaskAgeBeforeExecution
         {
             get
             {
@@ -104,21 +104,16 @@ namespace ContentReductionLib
             }
         }
 
+        #region Unit testing support
         /// <summary>
-        /// To support use of Mocked external resources for unit testing
+        /// A signal flag for this object to use mocked replacements for external resources 
         /// </summary>
         private bool _UseMockForTesting { get; set; } = false;
         public bool UseMockForTesting
         {
             set
             {
-                // First validate that the current call stack includes any frame from the namespace of the unit test project
-                var CallStack = new StackTrace();
-                var IsTest = CallStack.GetFrames().Any(f => f.GetMethod().DeclaringType.Namespace.Contains("ContentReductionServiceTests"));
-                if (!IsTest)
-                {
-                    throw new ApplicationException($"Attempt to set mocked testing of MapDbJobMonitor by an unsupported caller.  Stack trace:{Environment.NewLine}{CallStack.ToString()}");
-                }
+                AssertTesting();
                 _UseMockForTesting = value;
             }
             private get
@@ -127,7 +122,32 @@ namespace ContentReductionLib
             }
         }
 
-        public Func<Mock<ApplicationDbContext>, Mock<ApplicationDbContext>> InitializationFunc { private get; set; } = null;
+        public TimeSpan TaskAgeBeforeExecution_TestAssert
+        {
+            get
+            {
+                AssertTesting();
+                return TaskAgeBeforeExecution;
+            }
+        }
+
+        /// <summary>
+        /// Can be provided by test code to initializate data in a mocked ApplicationDbContext
+        /// </summary>
+        private Mock<ApplicationDbContext> _MockContext = null;
+        public Mock<ApplicationDbContext> MockContext
+        {
+            private get
+            {
+                return _MockContext;
+            }
+            set
+            {
+                AssertTesting();
+                _MockContext = value;
+            }
+        }
+        #endregion
 
         /// <summary>
         /// Initializes data used to construct database context instances.
@@ -190,6 +210,10 @@ namespace ContentReductionLib
                                 {
                                     JobDetail = (ReductionJobDetail)DbTask,
                                 };
+                                if (UseMockForTesting)
+                                {
+                                    Runner.AuditLog = MockAuditLogger.New().Object;
+                                }
 
                                 NewTask = Task.Run(() => Runner.Execute(cancelSource.Token));
                                 break;
@@ -257,7 +281,7 @@ namespace ContentReductionLib
             }
 
             using (ApplicationDbContext Db = UseMockForTesting
-                                             ? MockMapDbContext.New(InitializationFunc).Object
+                                             ? MockContext.Object
                                              : new ApplicationDbContext(ContextOptions))
             using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
             {
@@ -269,10 +293,13 @@ namespace ContentReductionLib
                                                                                  .OrderBy(t => t.CreateDateTime)
                                                                                  .Take(ReturnNoMoreThan)
                                                                                  .ToList();
-                    TopItems.ForEach(rt => rt.ReductionStatus = ReductionStatusEnum.Reducing);
-                    Db.ContentReductionTask.UpdateRange(TopItems);
-                    Db.SaveChanges();
-                    Transaction.Commit();
+                    if (TopItems.Count > 0)
+                    {
+                        TopItems.ForEach(rt => rt.ReductionStatus = ReductionStatusEnum.Reducing);
+                        Db.ContentReductionTask.UpdateRange(TopItems);
+                        Db.SaveChanges();
+                        Transaction.Commit();
+                    }
                     return TopItems;
                 }
                 catch (Exception e)
