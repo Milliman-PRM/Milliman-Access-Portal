@@ -11,7 +11,7 @@ interface ProgressStats {
   remainingTime: string;
 }
 
-class ProgressTracker {
+export class ProgressTracker {
   private snapshot: RetainedValue<ProgressSnapshot>;
   private rate: RetainedValue<number>;
   private remainingTime: RetainedValue<number>;

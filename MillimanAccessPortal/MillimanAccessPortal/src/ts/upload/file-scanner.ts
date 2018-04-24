@@ -1,4 +1,4 @@
-import forge from 'node-forge';
+import * as forge from 'node-forge';
 
 enum ScannerState {
   Idle,
@@ -33,7 +33,7 @@ export class FileScanner {
 
   private state: ScannerState = ScannerState.Idle;
 
-  constructor(readonly file: File, readonly chunkSize: number) {
+  constructor(readonly file: File, readonly chunkSize: number = 2 ** 20) {
     this.slicer = new FileSlicer(file, chunkSize);
     this.reader = new FileReader();
   }

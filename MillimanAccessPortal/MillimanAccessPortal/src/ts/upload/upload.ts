@@ -1,6 +1,7 @@
 import $ = require('jquery');
 import options = require('../lib-options');
 const resumable = require('resumablejs');
+import * as forge from 'node-forge';
 
 import { ProgressTracker } from './progress-tracker';
 import { FileScanner } from './file-scanner';
@@ -24,13 +25,12 @@ enum UploadState {
 }
 
 
-
-
 abstract class Upload {
   public resumable: any;
   protected rootElement: HTMLElement;
   protected checksum: string;
   protected stats: ProgressTracker;
+  protected scanner: FileScanner;
 
   protected _state: UploadState;
   protected get state(): UploadState {
@@ -71,10 +71,14 @@ abstract class Upload {
     this.resumable.on('fileAdded', (file) => {
       this.selectFileNameElement(this.rootElement).innerHTML = file.fileName;
       this.state = UploadState.Uploading;
-      new FileScanner(file.file, 2 ** 20).scan(() => {}, console.log)
+      this.scanner = new FileScanner(file.file);
+      const message = forge.md.sha1.create();
+      this.scanner.scan(message.update, this.renderChecksumProgress)
+        .then(() => {this.checksum = message.digest().toHex();})
+        .then(() => console.log(this.checksum))
         .then(() => this.getChunkStatus())
-        //.then(() => this.resumable.upload())
-        //.then(() => this.updateUploadProgress())
+        .then(() => this.resumable.upload())
+        .then(() => this.updateUploadProgress())
         .catch(() => console.log('upload canceled'));
     });
     this.resumable.assignBrowse(this.selectBrowseElement(rootElement), false);
@@ -84,18 +88,22 @@ abstract class Upload {
       event.stopPropagation();
       if (this.state === UploadState.Paused) {
         this.state = UploadState.Uploading;
+        this.scanner.resume();
         this.resumable.upload();
       } else {
+        this.scanner.pause();
         this.state = UploadState.Paused;
       }
     });
     $(rootElement).find('.btn-cancel').click((event) => {
       event.preventDefault();
       event.stopPropagation();
+      this.scanner.cancel();
       this.state = UploadState.Initial;
     });
     // this.stats = new ProgressTracker(this.resumable.opts.chunkSize);
     this.state = UploadState.Initial;
+    this.renderChecksumProgress = this.renderChecksumProgress.bind(this);
   }
 
   protected abstract generateUID(file: File, event: Event): string;
@@ -116,7 +124,7 @@ abstract class Upload {
   protected renderChecksumProgress(progress: number) {
     const precision = 2;
     const progressFmt = `${Math.floor(progress * 100 * (10 ** precision)) / (10 ** precision)}%`;
-    $(this.selectChecksumBarElement(this.rootElement)).width(progressFmt);
+    $(this.rootElement).find('.card-progress-bar-1').width(progressFmt);
   }
 
   protected updateUploadProgress() {
