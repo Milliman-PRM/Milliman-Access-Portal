@@ -55,6 +55,8 @@ VMs in the MAP environment are segmented by function and user access. Throughout
 |QlikView Server|Surface QlikView reports|Available to end users over the web|
 |QlikView Publisher|Reduce QlikView reports and host the Milliman Reduction Service|Not available to end users. These will operate largely independently, retrieving tasks from the database directly.|
 |File Server|Store QVWs and other content to be delivered to end users via the web app|Not available directly to end users. Content will be streamed to users via the web app|
+|Domain Controllers|Authentication to internal (MAP server) resources|Not available to users.|
+|Remote Administration|Secure entry point for system administrators to access private MAP resources.|VPN access is required to connect. No general users will have access.|
 
 ## Load balancing
 
