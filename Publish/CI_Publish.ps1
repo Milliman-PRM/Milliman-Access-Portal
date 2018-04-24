@@ -471,7 +471,6 @@ while ($attempts -lt $NumberRetries -and $credentialFound -eq $false)
     {
         $credentialFound = $true
         log_statement "Credential was found; ready to push to Azure to finalize deployment"
-        log_statement "Local script complete. Console output will be delayed until the remote deployment script is finished."
     }
     else
     {
@@ -506,6 +505,8 @@ if ($CredentialFound)
         exit -800
     }
 
+    log_statement "Local script complete. Console output will be delayed until the remote deployment script is finished."
+    
     Stop-AzureRmWebAppSlot -Name $webappname -Slot $BranchName -ResourceGroupName $ResourceGroupName
 
     if ($? -eq $false)
