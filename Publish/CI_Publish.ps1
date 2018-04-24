@@ -517,9 +517,7 @@ if ($CredentialFound)
         log_statement "Deployment failed"
         exit -300
     }
-    else
     {
-        log_statement "Deployment succeeded to $publicURL"
     }
 }
 else
