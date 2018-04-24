@@ -34,6 +34,7 @@ We will utilize multiple Azure products to build the production environment. Mos
 * **Availability Sets** - Management layer for VMs to keep them isolated within the data center. Makes the VMs more resilient to power, hardware, and network failures within the data center.
 
 * **Virtual Machines** - 2 for QlikView Server, 2 for QlikView Publisher, 2 for file server clustering, 2 for domain controllers
+    * An additional virtual machine will be deployed into a VPN-controlled DMZ. This machine will be used as a [jump box](https://en.wikipedia.org/wiki/Jump_server) to access other servers in the infrastructure.
 
 * **Virtual Networks** - Isolate groups of resources and control which portions of the infrastructure they can access.
 
@@ -154,13 +155,13 @@ Specific ports and protocols will be opened to groups of VMs via Network Securit
 |Virtual Network|IP range|Peered with|
 |----|--------|-----------|
 |Domain Controllers|10.254.4.0/24|File Servers, QlikView Publishers, QlikView Servers, Clients|
-|File Servers|10.254.5.0/24|Domain Controllers, MAP application, QlikView Servers, QlikView Publishers, Clients|
+|File Servers|10.254.5.0/24|Domain Controllers, MAP application, QlikView Servers, QlikView Publishers, Remote Administration|
 |QlikView Servers|10.254.10.0/24|File Servers, Domain Controllers, MAP application, Application Gateways|
 |QlikView Publishers|10.254.12.0/24|File Servers, Domain Controllers|
 |MAP application|10.254.11.0/24|File Servers, Qlikview Servers, Application Gateways, Shared Infrastructure|
-|Clients|10.254.6.0/24|Domain Controllers, File Servers, Any others added temporarily as-needed|
+|Remote Administration|10.254.6.0/24|Domain Controllers, File Servers, Any others added temporarily as-needed|
 |Application Gateways|10.254.7.0/24|MAP application, QlikView Servers|
-|VPN Gateway|10.254.0.0/22|Clients|
+|VPN Gateway|10.254.0.0/22|Remote Administration|
 |Shared infrastructure|10.0.0.0/24|MAP application|
 
 > The Shared Infrastructure VNET listed above contains VMs and other resources shared with non-MAP infrastructure, such as the SMTP server.
@@ -179,7 +180,7 @@ Zabbix monitoring will be allowed for all virtual machines (TCP & UDP ports 1005
 |QlikView Server|HTTPS|HTTPS, RDP, Zabbix|Domain Controllers (Active Directory & DNS), File Servers|QlikView API|
 |QlikView Publisher|---|RDP, Zabbix|Domain Controllers (Active Directory & DNS), PostgreSQL, File Servers|---|
 |File Server|---|RDP, Zabbix|Domain Controllers (Active Directory & DNS)|File access (SMB3)|
-|Client VMs|---|RDP, Zabbix|QlikView Servers, Domain Controllers (Active Directory & DNS), QlikView Publishers, File Servers|---|
+|Remote Administration VMs|---|RDP|QlikView Servers, Domain Controllers (Active Directory & DNS), QlikView Publishers, File Servers|---|
 
 #### Additional Firewall rule for Azure VMs
 
