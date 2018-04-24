@@ -506,12 +506,12 @@ if ($CredentialFound)
     }
 
     log_statement "Local script complete. Console output will be delayed until the remote deployment script is finished."
-    
-    Stop-AzureRmWebAppSlot -Name $webappname -Slot $BranchName -ResourceGroupName $ResourceGroupName
+
+    Restart-AzureRmWebAppSlot -Name $webappname -Slot $BranchName -ResourceGroupName $ResourceGroupName
 
     if ($? -eq $false)
     {
-        log_statement "Failed to stop running web app slot. Deployment cannot be successful."
+        log_statement "Failed to restart running web app slot. Deployment cannot be successful."
         exit -1000
     }
 
@@ -525,14 +525,6 @@ if ($CredentialFound)
     {
         log_statement "Deployment failed"
         exit -300
-    }
-
-    Start-AzureRmWebAppSlot -Name $webappname -Slot $BranchName -ResourceGroupName $ResourceGroupName
-
-    if ($? -eq $false)
-    {
-        log_statement "Failed to start web app slot after deployment."
-        exit -1000
     }
 }
 else
