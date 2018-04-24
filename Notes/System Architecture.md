@@ -37,7 +37,7 @@ We will utilize multiple Azure products to build the production environment. Mos
 
 * **Virtual Networks** - Isolate groups of resources and control which portions of the infrastructure they can access.
 
-* **Virtual Network Gateway** - Create a point-to-point VPN between Milliman and our Azure environment.
+* **Virtual Network Gateway** - Create a point-to-site VPN between Milliman and our Azure environment.
 
 * **Network Security Groups** - Network-level security configuration for VMs. Applies Firewall rules to VMs which use the Security Group.
 
