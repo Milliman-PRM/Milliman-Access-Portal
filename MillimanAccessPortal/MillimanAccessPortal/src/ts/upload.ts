@@ -6,7 +6,6 @@ import shared = require('./shared');
 const resumable = require('resumablejs');
 
 // A value that retains a configurable number of past values
-// Only the most recent value and the oldest value are public
 class RetainedValue<T> {
   private _values: Array<T>;
   public get values(): Array<T> {
@@ -31,13 +30,13 @@ class RetainedValue<T> {
   }
 }
 
-interface ResumableProgressSnapshot {
+interface ProgressSnapshot {
   ratio: number; // uploaded / total
   time: number; // absolute time at which this snapshot was taken
 }
 
-export class ResumableProgressStats {
-  private snapshot: RetainedValue<ResumableProgressSnapshot>;
+export class ProgressStats {
+  private snapshot: RetainedValue<ProgressSnapshot>;
   private rate: RetainedValue<number>;
   private remainingTime: RetainedValue<number>;
   private lastRateUnitIndex: number; // corresponds with the magnitude of this.rate
@@ -158,7 +157,7 @@ abstract class Upload {
   public resumable: any;
   protected rootElement: HTMLElement;
   protected checksum: string;
-  protected stats: ResumableProgressStats;
+  protected stats: ProgressStats;
 
   protected _state: UploadState;
   protected get state(): UploadState {
@@ -222,7 +221,7 @@ abstract class Upload {
       event.stopPropagation();
       this.state = UploadState.Initial;
     });
-    this.stats = new ResumableProgressStats(10);
+    this.stats = new ProgressStats(this.resumable.opts.chunkSize);
     this.state = UploadState.Initial;
   }
 
