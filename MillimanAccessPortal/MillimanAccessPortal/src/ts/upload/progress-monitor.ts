@@ -15,17 +15,23 @@ export class ProgressMonitor {
   private snapshot: RetainedValue<ProgressSnapshot>;
   private rate: RetainedValue<number>;
   private remainingTime: RetainedValue<number>;
+  private readonly monitorInterval: number;
   private lastRateUnitIndex: number = 0; // corresponds with the magnitude of this.rate
-
   private active: boolean = false;
 
   public progressFn: () => number;
   public renderFn: (s: ProgressSummary) => void;
 
-  constructor(progressFn: () => number, renderFn: (s: ProgressSummary) => void, readonly fileSize: number, readonly monitorInterval: number = 1000) {
+  constructor(progressFn: () => number, renderFn: (s: ProgressSummary) => void, readonly fileSize: number) {
     this.snapshot = new RetainedValue(8);
     this.rate = new RetainedValue(4);
     this.remainingTime = new RetainedValue(1);
+    this.monitorInterval = ((size: number) => {
+      const minInterval = 0;
+      const maxInterval = 1000;
+      const factor = 500000; // pick a number that makes bar look smooth
+      return Math.min(Math.max(size / factor, minInterval), maxInterval);
+    })(this.fileSize);
 
     this.progressFn = progressFn;
     this.renderFn = renderFn;
@@ -58,10 +64,9 @@ export class ProgressMonitor {
       const summary = this.render();
       this.renderFn(summary);
 
-      if (progress < 1) {
-        setTimeout(this._monitor, this.monitorInterval);
-      } else {
-      }
+
+      this.active = (progress < 1);
+      setTimeout(this._monitor, this.monitorInterval);
     }
   }
 
@@ -92,7 +97,8 @@ export class ProgressMonitor {
     return {
       percentage: ((precision: number): string => {
         const precisionFactor = (10 ** precision);
-        const _ = Math.floor(this.snapshot.now.progress * 100 * precisionFactor) / precisionFactor;
+        const progress = Math.min(Math.max(this.snapshot.now.progress, 0), 1);
+        const _ = Math.floor(progress * 100 * precisionFactor) / precisionFactor;
         return `${_}%`;
       })(1),
       rate: ((precision: number, unitThreshold: [number, number], weights: Array<number>): string => {

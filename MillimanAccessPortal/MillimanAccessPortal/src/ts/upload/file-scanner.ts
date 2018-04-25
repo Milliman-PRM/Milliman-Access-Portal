@@ -58,5 +58,6 @@ export class FileScanner {
   }
   public cancel() {
     this.active = false;
+    this.slicer = undefined;
   }
 }

@@ -25,7 +25,28 @@ abstract class Upload {
   protected monitor: ProgressMonitor;
 
   protected checksum: string;
-  protected cancelable: boolean;
+  protected serverFile: string;
+  protected _cancelable: boolean;
+  protected get cancelable(): boolean {
+    if (this._cancelable === undefined) {
+      this._cancelable = false;
+    }
+    return this._cancelable;
+  }
+  protected set cancelable(cancelable: boolean) {
+    const $resumableInput = $(this.selectBrowseElement(this.rootElement))
+      .children('input');
+    const $cancelButton = $(this.selectBrowseElement(this.rootElement))
+      .find('.btn-cancel');
+    if (cancelable) {
+      $resumableInput.attr('disabled', '');
+      $cancelButton.css('visibility', 'visible');
+    } else {
+      $resumableInput.removeAttr('disabled');
+      $cancelButton.css('visibility', 'hidden');
+    }
+    this._cancelable = cancelable;
+  }
 
   protected headers = {
     RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString(),
@@ -48,6 +69,7 @@ abstract class Upload {
 
     this.resumable.assignBrowse(this.selectBrowseElement(rootElement), false);
     this.resumable.on('fileAdded', async (file) => {
+      this.cancelable = true;
       this.selectFileNameElement(this.rootElement).innerHTML = file.fileName;
       //s this.state = UploadState.Uploading;
 
@@ -58,7 +80,12 @@ abstract class Upload {
         file.file.size,
       );
       this.monitor.monitor();
-      await this.scanner.scan(file.file, message.update);
+      try {
+        await this.scanner.scan(file.file, message.update);
+      } catch {
+        // Upload was canceled
+        return
+      }
       this.checksum = message.digest().toHex();
 
       this.monitor = new ProgressMonitor(
@@ -71,6 +98,7 @@ abstract class Upload {
       this.resumable.upload();
     });
     this.resumable.on('fileSuccess', (file, message) => {
+      this.cancelable = false;
       const finalizeInfo: ResumableInfo = {
         ChunkNumber: 0,
         TotalChunks: file.chunks.length,
@@ -89,28 +117,43 @@ abstract class Upload {
           RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
         }
       }).done((response) => {
+        this.monitor.monitorEnd();
         this.renderUploadProgress({
           percentage: '100%',
           rate: 'Upload complete',
           remainingTime: '',
         });
+        this.serverFile = response; // TODO: replace with something useful
       }).fail((response) => {
         throw new Error(`Something went wrong. Response: ${response}`);
       }).always((response) => {
+        this.checksum = undefined;
       });
     });
 
     $(rootElement).find('.btn-cancel').click((event) => {
       event.preventDefault();
       event.stopPropagation();
-      this.scanner.cancel();
-      //s this.state = UploadState.Initial;
+      if (this.checksum) {
+        this.resumable.cancel();
+      } else {
+        this.scanner.cancel();
+      }
+      this.monitor.monitorEnd();
+      this.setProgressMessage('Upload canceled');
+      this.cancelable = false;
+      this.checksum = undefined;
     });
-    //s this.state = UploadState.Initial;
 
     // bind functions
     this.renderChecksumProgress = this.renderChecksumProgress.bind(this);
     this.renderUploadProgress = this.renderUploadProgress.bind(this);
+  }
+
+  protected getChunkStatus() {
+    // Not implemented
+    // TODO: get request for already-received chunks
+    // TODO: set `this.resumable.files[0].chunks[n].tested = true;` for already received
   }
 
   protected abstract generateUID(file: File, event: Event): string;
@@ -120,27 +163,12 @@ abstract class Upload {
   protected abstract selectFileNameElement(rootElement: HTMLElement): HTMLElement;
 
   protected abstract selectChecksumBarElement(rootElement: HTMLElement): HTMLElement;
-  
 
-  protected getChunkStatus() {
-    // Not implemented
-    // TODO: get request for already-received chunks
-    // TODO: set `this.r.files[0].chunks[n].tested = true;` for already received
-  }
+  protected abstract renderChecksumProgress(summary: ProgressSummary);
 
-  protected renderChecksumProgress(summary: ProgressSummary) {
-    $(this.rootElement).find('.card-progress-bar-1').width(summary.percentage);
-    $(this.rootElement)
-      .find('.card-progress-status-text')
-      .html(`${summary.rate}   ${summary.remainingTime}`);
-  }
+  protected abstract renderUploadProgress(summary: ProgressSummary);
 
-  protected renderUploadProgress(summary: ProgressSummary) {
-    $(this.rootElement).find('.card-progress-bar-2').width(summary.percentage);
-    $(this.rootElement)
-      .find('.card-progress-status-text')
-      .html(`${summary.rate}   ${summary.remainingTime}`);
-  }
+  protected abstract setProgressMessage(message: string);
 }
 
 
@@ -176,4 +204,23 @@ export class PublicationUpload extends Upload {
     return $(rootElement).find('.card-progress-bar-1')[0];
   }
 
+  protected renderChecksumProgress(summary: ProgressSummary) {
+    $(this.rootElement).find('.card-progress-bar-1').width(summary.percentage);
+    $(this.rootElement)
+      .find('.card-progress-status-text')
+      .html(`${summary.rate}   ${summary.remainingTime}`);
+  }
+
+  protected renderUploadProgress(summary: ProgressSummary) {
+    $(this.rootElement).find('.card-progress-bar-2').width(summary.percentage);
+    $(this.rootElement)
+      .find('.card-progress-status-text')
+      .html(`${summary.rate}   ${summary.remainingTime}`);
+  }
+
+  protected setProgressMessage(message: string) {
+    $(this.rootElement)
+      .find('.card-progress-status-text')
+      .html(message);
+  }
 }
