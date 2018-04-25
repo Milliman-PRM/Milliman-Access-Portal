@@ -139,7 +139,12 @@ namespace MillimanAccessPortal
                 }
             });
 
-            services.AddSingleton<IFileProvider>(new PhysicalFileProvider(Path.GetTempPath()));
+            string fileUploadPath = Path.GetTempPath();
+            if (!string.IsNullOrWhiteSpace(Configuration.GetValue<string>("FileSystem:FileUploadPath")))
+            {
+                fileUploadPath = Configuration.GetValue<string>("FileSystem:FileUploadPath");
+            }
+            services.AddSingleton<IFileProvider>(new PhysicalFileProvider(fileUploadPath));
 
             // Depends on UserManager from Identity, which is scoped, so don't add the following as singleton
             services.AddScoped<IAuthorizationHandler, MapAuthorizationHandler>();

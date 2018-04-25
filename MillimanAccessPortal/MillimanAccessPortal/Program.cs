@@ -32,7 +32,14 @@ namespace MillimanAccessPortal
                 {
                     GlobalFunctions.emailValRegex = Configuration.GetValue<string>("Global:EmailValidationRegex");
                 }
-                GlobalFunctions.maxFileUploadSize = Configuration.GetValue<ulong>("Global:MaxFileUploadSize");
+                try
+                {
+                    GlobalFunctions.maxFileUploadSize = Configuration.GetValue<ulong>("Global:MaxFileUploadSize");
+                }
+                catch (InvalidOperationException)
+                {
+                    // The value could not be read, fall back on the default value
+                }
                 #endregion
 
                 try
