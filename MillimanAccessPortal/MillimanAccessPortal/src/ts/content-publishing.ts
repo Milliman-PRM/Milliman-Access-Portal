@@ -2,17 +2,13 @@ import $ = require('jquery');
 import toastr = require('toastr');
 import { randomBytes } from 'crypto';
 import { FileUploadCard } from './card';
-import { PublicationUpload, PublicationComponent } from './upload/upload';
+import { PublicationUpload, PublicationComponent, PublicationComponentInfo } from './upload/upload';
 require('./navbar');
 
 import 'bootstrap/scss/bootstrap-reboot.scss';
 import 'toastr/toastr.scss';
 import '../scss/map.scss';
 
-let publicationGUID: string;
-let uploads: {
-  content: PublicationUpload;
-};
 
 function setUnloadAlert(value: boolean) {
   window.onbeforeunload = value
@@ -30,24 +26,24 @@ function generateGUID() {
 }
 
 $(document).ready(() => {
-  publicationGUID = generateGUID();
-
-  const componentDisplayNames: Array<{comp: PublicationComponent, name: string}> = [
-    {comp: PublicationComponent.Content, name: 'Content'},
-    {comp: PublicationComponent.Image, name: 'Cover image'},
-    {comp: PublicationComponent.UserGuide, name: 'User guide'},
-  ];
+  const publicationGUID = generateGUID();
+  const unloadAlertStates: Array<boolean> = [];
 
   $('#card-list .admin-panel-content').empty();
-  componentDisplayNames.forEach((component) => {
-    const componentCard = new FileUploadCard(component.name).build();
+  PublicationComponentInfo.forEach((componentInfo, component) => {
+    const componentCard = new FileUploadCard(componentInfo.displayName).build();
     $('#card-list .admin-panel-content').append(componentCard);
-    const publicationUploads = new PublicationUpload(
+    const publicationUpload = new PublicationUpload(
       componentCard.find('.card-body-container')[0],
-      (a) => console.log(`"${component.comp}" upload set unload requirement to: ${a}`),
+      (a) => {
+        unloadAlertStates[component] = a;
+        setUnloadAlert(unloadAlertStates.reduce((prev, cur) => prev || cur, false));
+        console.log(`Set unload alert status to: ${unloadAlertStates.reduce((prev, cur) => prev || cur, false)}`);
+      },
       publicationGUID,
-      component.comp,
+      component,
     );
+    unloadAlertStates.push(false);
   });
 
   toastr.info('Page loaded');

@@ -71,7 +71,10 @@ abstract class Upload {
     Checksum: this.checksum,
   }
 
-  constructor(readonly rootElement: HTMLElement, readonly unloadAlertCallback: (a: boolean) => void) {
+  constructor(
+    readonly rootElement: HTMLElement,
+    readonly unloadAlertCallback: (a: boolean) => void,
+  ) {
     this.scanner = new FileScanner();
     this.resumable = new Resumable(Object.assign({}, resumableOptions, {
       target: '/FileUpload/UploadChunk',
@@ -191,14 +194,33 @@ abstract class Upload {
 
 
 export enum PublicationComponent {
-  Content = 'content',
-  UserGuide = 'user_guide',
-  Image = 'image',
+  Content,
+  UserGuide,
+  Image,
 }
+export const PublicationComponentInfo = [
+  {
+    name: 'content',
+    displayName: 'Content',
+  },
+  {
+    name: 'user_guide',
+    displayName: 'User guide',
+  },
+  {
+    name: 'image',
+    displayName: 'Image',
+  },
+];
 
 export class PublicationUpload extends Upload {
 
-  constructor(rootElement: HTMLElement, unloadAlertCallback: (a: boolean) => void, readonly publicationGUID: string, readonly component: PublicationComponent) {
+  constructor(
+    rootElement: HTMLElement,
+    unloadAlertCallback: (a: boolean) => void,
+    readonly publicationGUID: string,
+    readonly component: PublicationComponent,
+  ) {
     super(rootElement, unloadAlertCallback);
   }
 
