@@ -249,7 +249,7 @@ namespace MillimanAccessPortal.Controllers
     /// <summary>
     /// Signifies an exception related to chunked file uploads
     /// </summary>
-    public class FileUploadException : Exception
+    public class FileUploadException : ApplicationException
     {
         public int HttpStatus { get; set; } = StatusCodes.Status500InternalServerError;
 
