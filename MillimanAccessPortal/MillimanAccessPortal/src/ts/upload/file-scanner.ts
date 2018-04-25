@@ -1,11 +1,5 @@
 import * as forge from 'node-forge';
 
-enum ScannerState {
-  Idle,
-  Scanning,
-  Canceled,
-}
-
 interface FileReaderOnLoadEventTarget extends EventTarget {
   result: BinaryType;
 }
@@ -28,29 +22,28 @@ class FileSlicer {
 }
 
 export class FileScanner {
-  private readonly slicer: FileSlicer;
   private readonly reader: FileReader;
 
-  private state: ScannerState = ScannerState.Idle;
+  private slicer: FileSlicer;
+  private active: boolean = false;
 
-  constructor(readonly file: File, readonly chunkSize: number = 2 ** 20) {
-    this.slicer = new FileSlicer(file, chunkSize);
+  constructor(readonly chunkSize: number = 2 ** 20) {
     this.reader = new FileReader();
   }
-  public scan(fn: (result: any) => void, progress: (ratio: number) => void) {
-    this.state = ScannerState.Scanning;
+  public scan(file: File, fn: (result: any) => void) {
+    this.slicer = new FileSlicer(file, this.chunkSize);
+    this.active = true;
     return new Promise((resolve, reject) => {
       this.reader.onload = (event) => {
-        if (this.state !== ScannerState.Scanning) {
-          if (this.state === ScannerState.Canceled) reject();
+        if (!this.active) {
+          reject();
           return;
         }
         fn((event.target as FileReaderOnLoadEventTarget).result);
         if (this.slicer.isEmpty()) {
-          progress(1);
+          this.active = false;
           resolve();
         } else {
-          progress(this.slicer.progress)
           this.reader.readAsBinaryString(this.slicer.next());
         }
       };
@@ -58,14 +51,12 @@ export class FileScanner {
       this.reader.readAsBinaryString(this.slicer.next());
     });
   }
-  public pause() {
-    this.state = ScannerState.Idle;
-  }
-  public resume() {
-    this.state = ScannerState.Scanning;
-    this.reader.readAsBinaryString(this.slicer.next());
+  public get progress() {
+    return this.slicer
+      ? this.slicer.progress
+      : 0;
   }
   public cancel() {
-    this.state = ScannerState.Canceled;
+    this.active = false;
   }
 }

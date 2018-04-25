@@ -1,27 +1,36 @@
 import { RetainedValue } from './retained-value';
 
 interface ProgressSnapshot {
-  ratio: number; // uploaded / total
+  progress: number; // uploaded / total
   time: number; // absolute time at which this snapshot was taken
 }
 
-interface ProgressStats {
+interface ProgressSummary {
   percentage: string;
   rate: string;
   remainingTime: string;
 }
 
-export class ProgressTracker {
+export class ProgressMonitor {
   private snapshot: RetainedValue<ProgressSnapshot>;
   private rate: RetainedValue<number>;
   private remainingTime: RetainedValue<number>;
-  private lastRateUnitIndex: number; // corresponds with the magnitude of this.rate
+  private lastRateUnitIndex: number = 0; // corresponds with the magnitude of this.rate
 
-  constructor(readonly chunkSize: number) {
+  private active: boolean = false;
+
+  public progressFn: () => number;
+  public renderFn: (s: ProgressSummary) => void;
+
+  constructor(progressFn: () => number, renderFn: (s: ProgressSummary) => void, readonly fileSize: number, readonly monitorInterval: number = 1000) {
     this.snapshot = new RetainedValue(8);
     this.rate = new RetainedValue(4);
     this.remainingTime = new RetainedValue(1);
-    this.lastRateUnitIndex = 0;
+
+    this.progressFn = progressFn;
+    this.renderFn = renderFn;
+
+    this._monitor = this._monitor.bind(this);
   }
 
   public reset() {
@@ -31,14 +40,38 @@ export class ProgressTracker {
     this.lastRateUnitIndex = 0;
   }
 
-  public update(ratio: number, time: number) {
+  public monitor() {
+    this.active = true;
+    this._monitor();
+  }
+
+  public monitorEnd() {
+    this.active = false;
+  }
+
+  private _monitor() {
+    if (this.active) {
+      const progress = this.progressFn();
+      const now = new Date().getTime();
+      this.update(progress, now);
+
+      const summary = this.render();
+      this.renderFn(summary);
+
+      if (progress < 1) {
+        setTimeout(this._monitor, this.monitorInterval);
+      }
+    }
+  }
+
+  private update(progress: number, time: number) {
     this.snapshot.insert({
-      ratio: ratio,
+      progress: progress,
       time: time,
     });
     this.rate.insert((() => {
       // Compute rate
-      const bytes = this.chunkSize * (this.snapshot.now.ratio - this.snapshot.ref.ratio);
+      const bytes = this.fileSize * (this.snapshot.now.progress - this.snapshot.ref.progress);
       const seconds = (this.snapshot.now.time - this.snapshot.ref.time) / 1000;
       return seconds
         ? bytes / seconds
@@ -46,7 +79,7 @@ export class ProgressTracker {
     })());
     this.remainingTime.insert((() => {
       // Estimate remaining time
-      const bytes = this.chunkSize * (1 - this.snapshot.now.ratio);
+      const bytes = this.fileSize * (1 - this.snapshot.now.progress);
       const bytes_p_second = this.rate.now;
       return bytes_p_second
         ? bytes / bytes_p_second
@@ -54,11 +87,11 @@ export class ProgressTracker {
     })());
   }
 
-  public render(): ProgressStats {
+  private render(): ProgressSummary {
     return {
       percentage: ((precision: number): string => {
         const precisionFactor = (10 ** precision);
-        const _ = Math.floor(this.snapshot.now.ratio * 100 * precisionFactor) / precisionFactor;
+        const _ = Math.floor(this.snapshot.now.progress * 100 * precisionFactor) / precisionFactor;
         return `${_}%`;
       })(1),
       rate: ((precision: number, unitThreshold: [number, number], weights: Array<number>): string => {

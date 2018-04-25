@@ -1,10 +1,11 @@
 import $ = require('jquery');
 import options = require('../lib-options');
-const resumable = require('resumablejs');
+const Resumable = require('resumablejs');
 import * as forge from 'node-forge';
 
-import { ProgressTracker } from './progress-tracker';
+import { ProgressMonitor } from './progress-monitor';
 import { FileScanner } from './file-scanner';
+import { RetainedValue } from './retained-value';
 
 
 interface ResumableInfo {
@@ -18,38 +19,13 @@ interface ResumableInfo {
   Type: string;
 }
 
-enum UploadState {
-  Initial = 'initial',
-  Uploading = 'uploading',
-  Paused = 'paused',
-}
-
-
 abstract class Upload {
-  public resumable: any;
-  protected rootElement: HTMLElement;
-  protected checksum: string;
-  protected stats: ProgressTracker;
   protected scanner: FileScanner;
+  protected resumable: any;
+  protected monitor: ProgressMonitor;
 
-  protected _state: UploadState;
-  protected get state(): UploadState {
-    return this._state;
-  }
-  protected set state(value: UploadState) {
-    // Todo: run hooks
-    if (value === UploadState.Initial) {
-      $(this.rootElement).find('.btn-pause').css('visibility', 'hidden');
-      $(this.rootElement).find('.btn-cancel').css('visibility', 'hidden');
-      this.resumable.cancel();
-    } else if (value === UploadState.Paused) {
-      this.resumable.pause();
-    } else if (value === UploadState.Uploading) {
-      $(this.rootElement).find('.btn-pause').css('visibility', 'visible');
-      $(this.rootElement).find('.btn-cancel').css('visibility', 'visible');
-    }
-    this._state = value;
-  }
+  protected checksum: string;
+  protected cancelable: boolean;
 
   protected headers = {
     RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString(),
@@ -58,8 +34,9 @@ abstract class Upload {
     Checksum: this.checksum,
   }
 
-  constructor(rootElement: HTMLElement) {
-    this.resumable = new resumable(Object.assign({}, options.resumableOptions, {
+  constructor(readonly rootElement: HTMLElement) {
+    this.scanner = new FileScanner();
+    this.resumable = new Resumable(Object.assign({}, options.resumableOptions, {
       target: '/FileUpload/UploadChunk',
       headers: () => this.headers,
       query: () => this.formData,
@@ -68,91 +45,31 @@ abstract class Upload {
     if (!this.resumable.support) {
       throw new Error('This browser does not support resumable file uploads.');
     }
-    this.resumable.on('fileAdded', (file) => {
-      this.selectFileNameElement(this.rootElement).innerHTML = file.fileName;
-      this.state = UploadState.Uploading;
-      this.scanner = new FileScanner(file.file);
-      const message = forge.md.sha1.create();
-      this.scanner.scan(message.update, this.renderChecksumProgress)
-        .then(() => {this.checksum = message.digest().toHex();})
-        .then(() => console.log(this.checksum))
-        .then(() => this.getChunkStatus())
-        .then(() => this.resumable.upload())
-        .then(() => this.updateUploadProgress())
-        .catch(() => console.log('upload canceled'));
-    });
+
     this.resumable.assignBrowse(this.selectBrowseElement(rootElement), false);
-    this.rootElement = rootElement;
-    $(rootElement).find('.btn-pause').click((event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      if (this.state === UploadState.Paused) {
-        this.state = UploadState.Uploading;
-        this.scanner.resume();
-        this.resumable.upload();
-      } else {
-        this.scanner.pause();
-        this.state = UploadState.Paused;
-      }
+    this.resumable.on('fileAdded', async (file) => {
+      this.selectFileNameElement(this.rootElement).innerHTML = file.fileName;
+      //s this.state = UploadState.Uploading;
+
+      const message = forge.md.sha1.create();
+      this.monitor = new ProgressMonitor(
+        () => this.scanner.progress,
+        (s) => this.renderChecksumProgress(s.percentage),
+        file.file.size,
+      );
+      this.monitor.monitor();
+      await this.scanner.scan(file.file, message.update);
+      this.checksum = message.digest().toHex();
+
+      this.monitor = new ProgressMonitor(
+        () => this.resumable.progress(),
+        (s) => this.renderUploadProgress(s.percentage),
+        file.file.size,
+      );
+      this.monitor.monitor();
+      this.getChunkStatus();
+      this.resumable.upload();
     });
-    $(rootElement).find('.btn-cancel').click((event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      this.scanner.cancel();
-      this.state = UploadState.Initial;
-    });
-    // this.stats = new ProgressTracker(this.resumable.opts.chunkSize);
-    this.state = UploadState.Initial;
-    this.renderChecksumProgress = this.renderChecksumProgress.bind(this);
-  }
-
-  protected abstract generateUID(file: File, event: Event): string;
-  
-  protected abstract selectBrowseElement(rootElement: HTMLElement): HTMLElement;
-
-  protected abstract selectFileNameElement(rootElement: HTMLElement): HTMLElement;
-
-  protected abstract selectChecksumBarElement(rootElement: HTMLElement): HTMLElement;
-  
-
-  protected getChunkStatus() {
-    // Not implemented
-    // TODO: get request for already-received chunks
-    // TODO: set `this.r.files[0].chunks[n].tested = true;` for already received
-  }
-
-  protected renderChecksumProgress(progress: number) {
-    const precision = 2;
-    const progressFmt = `${Math.floor(progress * 100 * (10 ** precision)) / (10 ** precision)}%`;
-    $(this.rootElement).find('.card-progress-bar-1').width(progressFmt);
-  }
-
-  protected updateUploadProgress() {
-    setTimeout(() => {
-      // this.stats.update(this.resumable.progress(), new Date().getTime());
-      // this.stats.render();
-      if (this.resumable.progress() < 1) {
-        this.updateUploadProgress();
-      }
-    }, 1000);
-  }
-}
-
-
-export enum PublicationComponent {
-  Content = 'content',
-  UserGuide = 'user_guide',
-  Image = 'image',
-}
-
-export class PublicationUpload extends Upload {
-  private publicationGUID: string;
-  private component: PublicationComponent;
-
-  constructor(rootElement: HTMLElement, publicationGUID: string, component: PublicationComponent, setUploadState: any) {
-    super(rootElement);
-    this.publicationGUID = publicationGUID;
-    this.component = component;
     this.resumable.on('fileSuccess', (file, message) => {
       const finalizeInfo: ResumableInfo = {
         ChunkNumber: 0,
@@ -172,12 +89,64 @@ export class PublicationUpload extends Upload {
           RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
         }
       }).done((response) => {
-        // File is uploaded
-        setUploadState(0); // TODO: remove
+        console.log('upload complete :)');
       }).fail((response) => {
         throw new Error(`Something went wrong. Response: ${response}`);
+      }).always((response) => {
       });
     });
+
+    $(rootElement).find('.btn-cancel').click((event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      this.scanner.cancel();
+      //s this.state = UploadState.Initial;
+    });
+    //s this.state = UploadState.Initial;
+
+    // bind functions
+    this.renderChecksumProgress = this.renderChecksumProgress.bind(this);
+  }
+
+  protected abstract generateUID(file: File, event: Event): string;
+  
+  protected abstract selectBrowseElement(rootElement: HTMLElement): HTMLElement;
+
+  protected abstract selectFileNameElement(rootElement: HTMLElement): HTMLElement;
+
+  protected abstract selectChecksumBarElement(rootElement: HTMLElement): HTMLElement;
+  
+
+  protected getChunkStatus() {
+    // Not implemented
+    // TODO: get request for already-received chunks
+    // TODO: set `this.r.files[0].chunks[n].tested = true;` for already received
+  }
+
+  protected renderChecksumProgress(percentage: string) {
+    $(this.rootElement).find('.card-progress-bar-1').width(percentage);
+  }
+
+  protected renderUploadProgress(percentage: string) {
+    $(this.rootElement).find('.card-progress-bar-2').width(percentage);
+  }
+}
+
+
+export enum PublicationComponent {
+  Content = 'content',
+  UserGuide = 'user_guide',
+  Image = 'image',
+}
+
+export class PublicationUpload extends Upload {
+  private publicationGUID: string;
+  private component: PublicationComponent;
+
+  constructor(rootElement: HTMLElement, publicationGUID: string, component: PublicationComponent, setUploadState: any) {
+    super(rootElement);
+    this.publicationGUID = publicationGUID;
+    this.component = component;
   }
 
   protected generateUID(file: File, event: Event): string {
