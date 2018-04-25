@@ -5,7 +5,7 @@ interface ProgressSnapshot {
   time: number; // absolute time at which this snapshot was taken
 }
 
-interface ProgressSummary {
+export interface ProgressSummary {
   percentage: string;
   rate: string;
   remainingTime: string;
@@ -60,6 +60,7 @@ export class ProgressMonitor {
 
       if (progress < 1) {
         setTimeout(this._monitor, this.monitorInterval);
+      } else {
       }
     }
   }

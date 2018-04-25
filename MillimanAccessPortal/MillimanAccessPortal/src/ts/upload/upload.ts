@@ -3,7 +3,7 @@ import options = require('../lib-options');
 const Resumable = require('resumablejs');
 import * as forge from 'node-forge';
 
-import { ProgressMonitor } from './progress-monitor';
+import { ProgressMonitor, ProgressSummary } from './progress-monitor';
 import { FileScanner } from './file-scanner';
 import { RetainedValue } from './retained-value';
 
@@ -54,7 +54,7 @@ abstract class Upload {
       const message = forge.md.sha1.create();
       this.monitor = new ProgressMonitor(
         () => this.scanner.progress,
-        (s) => this.renderChecksumProgress(s.percentage),
+        this.renderChecksumProgress,
         file.file.size,
       );
       this.monitor.monitor();
@@ -63,7 +63,7 @@ abstract class Upload {
 
       this.monitor = new ProgressMonitor(
         () => this.resumable.progress(),
-        (s) => this.renderUploadProgress(s.percentage),
+        this.renderUploadProgress,
         file.file.size,
       );
       this.monitor.monitor();
@@ -89,7 +89,11 @@ abstract class Upload {
           RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
         }
       }).done((response) => {
-        console.log('upload complete :)');
+        this.renderUploadProgress({
+          percentage: '100%',
+          rate: 'Upload complete',
+          remainingTime: '',
+        });
       }).fail((response) => {
         throw new Error(`Something went wrong. Response: ${response}`);
       }).always((response) => {
@@ -106,6 +110,7 @@ abstract class Upload {
 
     // bind functions
     this.renderChecksumProgress = this.renderChecksumProgress.bind(this);
+    this.renderUploadProgress = this.renderUploadProgress.bind(this);
   }
 
   protected abstract generateUID(file: File, event: Event): string;
@@ -123,12 +128,18 @@ abstract class Upload {
     // TODO: set `this.r.files[0].chunks[n].tested = true;` for already received
   }
 
-  protected renderChecksumProgress(percentage: string) {
-    $(this.rootElement).find('.card-progress-bar-1').width(percentage);
+  protected renderChecksumProgress(summary: ProgressSummary) {
+    $(this.rootElement).find('.card-progress-bar-1').width(summary.percentage);
+    $(this.rootElement)
+      .find('.card-progress-status-text')
+      .html(`${summary.rate}   ${summary.remainingTime}`);
   }
 
-  protected renderUploadProgress(percentage: string) {
-    $(this.rootElement).find('.card-progress-bar-2').width(percentage);
+  protected renderUploadProgress(summary: ProgressSummary) {
+    $(this.rootElement).find('.card-progress-bar-2').width(summary.percentage);
+    $(this.rootElement)
+      .find('.card-progress-status-text')
+      .html(`${summary.rate}   ${summary.remainingTime}`);
   }
 }
 

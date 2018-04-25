@@ -3,6 +3,7 @@ import card = require('./card');
 import upload = require('./upload/upload');
 import options = require('./lib-options');
 import { Promise } from 'es6-promise';
+import toastr = require('toastr');
 require('tooltipster');
 require('./navbar');
 
@@ -17,15 +18,10 @@ import { randomBytes } from 'crypto';
 import { PublicationUpload } from './upload/upload';
 const appSettings = require('../../appsettings.json');
 
-
 let publicationGUID: string;
-
-
-
 let uploads: {
   content: upload.PublicationUpload;
 };
-
 
 function setUnloadAlert(value: boolean) {
   window.onbeforeunload = value
@@ -42,18 +38,24 @@ function generateGUID() {
   return randomBytes(8).toString('hex');
 }
 
-$(document).ready(function(): void {
+$(document).ready(() => {
   publicationGUID = generateGUID();
 
   const c = new card.FileUploadCard(
     'Content file'
   ).build();
-  $('#card-list .admin-panel-content').append(c);
+  $('#card-list .admin-panel-content').empty().append(c);
 
   const u = new upload.PublicationUpload(
     c.find('.card-body-container')[0],
     publicationGUID,
     upload.PublicationComponent.Content,
     () => {}
-  )
+  );
+
+  toastr.info('Page loaded');
 });
+
+if (module.hot) {
+  module.hot.accept();
+}
