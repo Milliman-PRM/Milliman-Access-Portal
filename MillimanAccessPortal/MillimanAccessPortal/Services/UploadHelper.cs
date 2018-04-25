@@ -80,7 +80,7 @@ namespace MillimanAccessPortal.Services
         }
 
         /// <summary>
-        /// Get chunk status based on existing files on disk
+        /// Get status of all chunks for a single upload based on existing files on disk
         /// </summary>
         /// <remarks>
         /// Only useful to resumable.js, and mostly useful when resuming an interupted upload.
@@ -88,7 +88,7 @@ namespace MillimanAccessPortal.Services
         /// </remarks>
         /// <param name="resumableInfo">Identifies the resumable upload</param>
         /// <returns>List of chunks that already exist on the server</returns>
-        public List<uint> GetChunkStatus(ResumableInfo resumableInfo)
+        public List<uint> GetUploadStatus(ResumableInfo resumableInfo)
         {
             var receivedChunks = new List<uint>();
             var chunkDirInfo = _fileProvider.GetFileInfo(pathSet.Chunk);

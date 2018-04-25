@@ -293,7 +293,7 @@ namespace MapTests
             Mock<IUploadHelper> mock = new Mock<IUploadHelper>();
 
             ResumableInfo resumableInfo = null;
-            mock.Setup(m => m.GetChunkStatus(It.IsAny<ResumableInfo>())).Returns<ResumableInfo>((x) =>
+            mock.Setup(m => m.GetUploadStatus(It.IsAny<ResumableInfo>())).Returns<ResumableInfo>((x) =>
             {
                 var chunkDirInfo = new DirectoryInfo(Path.Combine(TestDataPath, "Uploads", x.UID));
                 var receivedChunks = new List<uint>();

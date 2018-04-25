@@ -7,6 +7,15 @@
  *                  
  *      Code from the following page was referenced when writing this controller:
  *      https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads?view=aspnetcore-2.0#uploading-large-files-with-streaming
+ *
+ *      The general flow of resumable file uploads is as follows:
+ *          1. For every chunk:
+ *              a. The client posts a chunk to /FileUpload/UploadChunk/ and saved to a temp file
+ *              b. The temp file is moved to a named .chunk file
+ *          2. The client posts to /FileUpload/FinalizeUpload/
+ *              a. The .chunk files are concatenated into a .upload file
+ *              b. The checksum of the .upload file is verified to match the provided checksum
+ *              c. The .upload file is moved to a .<ext> file (where <ext> is the original file's extension)
  */
 
 using System;
@@ -63,7 +72,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public ActionResult ChunkStatus(ResumableInfo resumableInfo)
         {
-            return new JsonResult(UploadHelper.GetChunkStatus(resumableInfo));
+            return new JsonResult(UploadHelper.GetUploadStatus(resumableInfo));
         }
 
         /// <summary>

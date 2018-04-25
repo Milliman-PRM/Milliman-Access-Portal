@@ -23,7 +23,7 @@ namespace MillimanAccessPortal.Services
         /// </remarks>
         /// <param name="resumableInfo">Identifies the resumable upload</param>
         /// <returns>List of chunks that already exist on the server</returns>
-        List<uint> GetChunkStatus(ResumableInfo resumableInfo);
+        List<uint> GetUploadStatus(ResumableInfo resumableInfo);
 
         /// <summary>
         /// Open a stream to a new temporary file
