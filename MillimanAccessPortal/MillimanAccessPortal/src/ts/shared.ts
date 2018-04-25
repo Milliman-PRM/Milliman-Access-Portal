@@ -25,7 +25,7 @@ export function filterTree($panel, $this) {
   });
 };
 export function filterTreeListener(event) {
-  buildListener(filterTree)(event);
+  buildListener(filterTree).bind(this)(event);
 };
 export function filterForm($panel, $this) {
   var $content = $panel.find('form.admin-panel-content');
@@ -39,7 +39,7 @@ export function filterForm($panel, $this) {
   });
 };
 export function filterFormListener(event) {
-  buildListener(filterForm)(event);
+  buildListener(filterForm).bind(this)(event);
 };
 
 // Card expansion
@@ -64,21 +64,21 @@ export function toggleExpanded($panel, $this) {
   updateToolbarIcons($panel);
 };
 export function toggleExpandedListener(event) {
-  buildListener(toggleExpanded)(event);
+  buildListener(toggleExpanded).bind(this)(event);
 };
 export function expandAll($panel) {
   $panel.find('.card-expansion-container').attr('maximized', '');
   updateToolbarIcons($panel);
 };
 export function expandAllListener(event) {
-  buildListener(expandAll)(event);
+  buildListener(expandAll).bind(this)(event);
 };
 export function collapseAll($panel) {
   $panel.find('.card-expansion-container[maximized]').removeAttr('maximized');
   updateToolbarIcons($panel);
 };
 export function collapseAllListener(event) {
-  buildListener(collapseAll)(event);
+  buildListener(collapseAll).bind(this)(event);
 };
 
 // Form control
@@ -92,14 +92,14 @@ export function modifiedInputs($panel) {
     });
 };
 export function modifiedInputsListener(event) {
-  buildListener(modifiedInputs)(event);
+  buildListener(modifiedInputs).bind(this)(event);
 };
 export function resetValidation($panel) {
   $panel.find('form.admin-panel-content').validate().resetForm();
   $panel.find('.field-validation-error > span').remove();
 };
 export function resetValidationListener(event) {
-  buildListener(resetValidation)(event);
+  buildListener(resetValidation).bind(this)(event);
 };
 export function resetForm($panel) {
   modifiedInputs($panel).each(function () {
@@ -114,7 +114,7 @@ export function resetForm($panel) {
   $panel.find('.form-button-container button').hide();
 };
 export function resetFormListener(event) {
-  buildListener(resetForm)(event);
+  buildListener(resetForm).bind(this)(event);
 };
 export function clearForm($panel) {
   $panel.find('.selectized').each(function () {
@@ -127,7 +127,7 @@ export function clearForm($panel) {
   resetValidation($panel);
 };
 export function clearFormListener(event) {
-  buildListener(clearForm)(event);
+  buildListener(clearForm).bind(this)(event);
 };
 
 function buildListener(fn) {
