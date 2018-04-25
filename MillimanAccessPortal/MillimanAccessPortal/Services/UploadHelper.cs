@@ -180,6 +180,9 @@ namespace MillimanAccessPortal.Services
             }
             Directory.CreateDirectory(chunkDirPath);
             File.Move(tempFilePath, chunkFilePath);
+
+            // Chunk was finalized properly; do not delete chunk directory in Dispose()
+            _paths.Chunk = null;
         }
 
         /// <summary>
@@ -251,9 +254,11 @@ namespace MillimanAccessPortal.Services
         {
             foreach (var path in _paths)
             {
-                var fileInfo = _fileProvider.GetFileInfo(path);
+                var fileInfo = _fileProvider.GetDirectoryContents("/")
+                    .Where(i => i.Name == path)
+                    .SingleOrDefault();
 
-                if (path == null || !fileInfo.Exists)
+                if (fileInfo == null)
                 {
                     continue; // the file was not used or was already removed
                 }
