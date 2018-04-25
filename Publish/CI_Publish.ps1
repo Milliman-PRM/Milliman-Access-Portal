@@ -121,7 +121,7 @@ $codeChangeFound = $false
 foreach ($diff in $diffOutput)
 {
   # If both of these are true, the line being examined is likely a change to the software that needs testing
-  if ($diff -like '*/*' -and $diff -notlike 'Notes/*')
+  if ($diff -like '*/*' -and $diff -notlike 'Notes/*' -and $diff -notlike '.github/*')
   {
     log_statement "Code change found in $diff"
     $codeChangeFound = $true
