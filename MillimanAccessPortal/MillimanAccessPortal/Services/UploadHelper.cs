@@ -24,10 +24,15 @@ namespace MillimanAccessPortal.Services
         /// </summary>
         private class PathSet : IEnumerable<string>
         {
-            public string Temp = null;
-            public string Chunk = null;
-            public string Concat = null;
-            public string Output = null;
+            public string Temp { get; set; } = null;
+            public string Chunk { get; set; } = null;
+            public string Concat { get; set; } = null;
+            public string Output { get; set; } = null;
+
+            public string ChunkFilePath(uint chunkNumber)
+            {
+                return Path.Combine(Chunk, $"{chunkNumber:D8}.chunk");
+            }
 
             public IEnumerator<string> GetEnumerator()
             {
@@ -43,59 +48,27 @@ namespace MillimanAccessPortal.Services
         }
 
         private readonly IFileProvider _fileProvider;
-        private PathSet _paths = new PathSet();
-        private ResumableInfo Info { get; set; }
-
-        private string TempFilePath
+        private PathSet pathSet { get; set; } = null;
+        private ResumableInfo _info = null;
+        private ResumableInfo Info
         {
             get
             {
-                if (_paths.Temp == null)
-                {
-                    _paths.Temp = Path.GetRandomFileName();
-                }
-                return _paths.Temp;
+                return _info;
             }
-        }
-
-        private string ChunkFilePath(uint chunkNumber)
-        {
-            return Path.Combine(ChunkDirPath, $"{chunkNumber:D8}.chunk");
-        }
-
-        private string ChunkDirPath
-        {
-            get
+            set
             {
-                if (_paths.Chunk == null)
+                if (pathSet == null)
                 {
-                    _paths.Chunk = Info.UID;
-                }
-                return _paths.Chunk;
-            }
-        }
-
-        private string ConcatenationFilePath
-        {
-            get
-            {
-                if (_paths.Concat == null)
-                {
-                    _paths.Concat = $"{Info.UID}.upload";
-                }
-                return _paths.Concat;
-            }
-        }
-
-        private string OutputFilePath
-        {
-            get
-            {
-                if (_paths.Output == null)
-                {
-                    _paths.Output = $"{Info.UID}{Info.FileExt}";
-                }
-                return _paths.Output;
+                    pathSet = new PathSet
+                    {
+                        Temp = Path.GetRandomFileName(),
+                        Chunk = value.UID,
+                        Concat = $"{Info.UID}.upload",
+                        Output = $"{Info.UID}{Info.FileExt}",
+                    };
+                }                
+                _info = value;
             }
         }
 
@@ -118,11 +91,11 @@ namespace MillimanAccessPortal.Services
         public List<uint> GetChunkStatus(ResumableInfo resumableInfo)
         {
             var receivedChunks = new List<uint>();
-            var chunkDirInfo = _fileProvider.GetFileInfo(ChunkDirPath);
+            var chunkDirInfo = _fileProvider.GetFileInfo(pathSet.Chunk);
 
             if (chunkDirInfo.Exists && chunkDirInfo.IsDirectory)
             {
-                receivedChunks.AddRange(_fileProvider.GetDirectoryContents(ChunkDirPath)
+                receivedChunks.AddRange(_fileProvider.GetDirectoryContents(pathSet.Chunk)
                     .Where(f => f.Exists && f.Length == resumableInfo.ChunkSize)
                     .Select(f => Convert.ToUInt32(f.Name.Split('.')[0])));
             }
@@ -139,7 +112,7 @@ namespace MillimanAccessPortal.Services
         /// <returns>A Stream to the new temporary file</returns>
         public Stream OpenTempFile()
         {
-            return File.Create(_fileProvider.GetFileInfo(TempFilePath).PhysicalPath);
+            return File.Create(_fileProvider.GetFileInfo(pathSet.Temp).PhysicalPath);
         }
 
         /// <summary>
@@ -150,7 +123,7 @@ namespace MillimanAccessPortal.Services
         {
             Info = resumableInfo;
 
-            var tempFileInfo = _fileProvider.GetFileInfo(TempFilePath);
+            var tempFileInfo = _fileProvider.GetFileInfo(pathSet.Temp);
 
             // Expect the chunk to have been uploaded
             if (!tempFileInfo.Exists)
@@ -170,9 +143,9 @@ namespace MillimanAccessPortal.Services
                 throw new FileUploadException(StatusCodes.Status400BadRequest, "Uploaded chunk is not expected size.");
             }
 
-            var tempFilePath = _fileProvider.GetFileInfo(TempFilePath).PhysicalPath;
-            var chunkFilePath = _fileProvider.GetFileInfo(ChunkFilePath(Info.ChunkNumber)).PhysicalPath;
-            var chunkDirPath = _fileProvider.GetFileInfo(ChunkDirPath).PhysicalPath;
+            var tempFilePath = _fileProvider.GetFileInfo(pathSet.Temp).PhysicalPath;
+            var chunkFilePath = _fileProvider.GetFileInfo(pathSet.ChunkFilePath(Info.ChunkNumber)).PhysicalPath;
+            var chunkDirPath = _fileProvider.GetFileInfo(pathSet.Chunk).PhysicalPath;
 
             if (File.Exists(chunkFilePath))
             {
@@ -182,7 +155,7 @@ namespace MillimanAccessPortal.Services
             File.Move(tempFilePath, chunkFilePath);
 
             // Chunk was finalized properly; do not delete chunk directory in Dispose()
-            _paths.Chunk = null;
+            pathSet.Chunk = null;
         }
 
         /// <summary>
@@ -194,17 +167,17 @@ namespace MillimanAccessPortal.Services
             Info = resumableInfo;
 
             // Make sure the expected and actual number of chunks match
-            if (_fileProvider.GetDirectoryContents(ChunkDirPath).Count() != Info.TotalChunks)
+            if (_fileProvider.GetDirectoryContents(pathSet.Chunk).Count() != Info.TotalChunks)
             {
                 throw new FileUploadException(StatusCodes.Status400BadRequest, "Number of uploaded chunks did not match expectation.");
             }
 
             #region Concatenate chunks
-            var concatenationFilePath = _fileProvider.GetFileInfo(ConcatenationFilePath).PhysicalPath;
+            var concatenationFilePath = _fileProvider.GetFileInfo(pathSet.Concat).PhysicalPath;
             using (var concatenationStream = File.OpenWrite(concatenationFilePath))
             {
                 var chunkFilePaths = Enumerable.Range(1, Convert.ToInt32(Info.TotalChunks))
-                    .Select(chunkNumber => ChunkFilePath(((uint) chunkNumber)));
+                    .Select(chunkNumber => pathSet.ChunkFilePath(((uint) chunkNumber)));
                 foreach (var chunkFilePath in chunkFilePaths)
                 {
                     var chunkFilePathPhysical = _fileProvider.GetFileInfo(chunkFilePath).PhysicalPath;
@@ -215,7 +188,7 @@ namespace MillimanAccessPortal.Services
                     File.Delete(chunkFilePathPhysical);
                 }
             }
-            var chunkDirPath = _fileProvider.GetFileInfo(ChunkDirPath).PhysicalPath;
+            var chunkDirPath = _fileProvider.GetFileInfo(pathSet.Chunk).PhysicalPath;
             Directory.Delete(chunkDirPath);
             #endregion
 
@@ -227,7 +200,7 @@ namespace MillimanAccessPortal.Services
             }
 
             // Rename the file with proper extension - this makes it visible to the virus scanner
-            var outputFilePath = _fileProvider.GetFileInfo(OutputFilePath).PhysicalPath;
+            var outputFilePath = _fileProvider.GetFileInfo(pathSet.Output).PhysicalPath;
             if (File.Exists(outputFilePath))
             {
                 File.Delete(outputFilePath);
@@ -243,7 +216,7 @@ namespace MillimanAccessPortal.Services
         public string GetOutputFilePath()
         {
             return (Info != null)
-                ? _fileProvider.GetFileInfo(OutputFilePath).PhysicalPath
+                ? _fileProvider.GetFileInfo(pathSet.Output).PhysicalPath
                 : null;
         }
 
@@ -252,7 +225,7 @@ namespace MillimanAccessPortal.Services
         /// </summary>
         public void Dispose()
         {
-            foreach (var path in _paths)
+            foreach (var path in pathSet)
             {
                 var fileInfo = _fileProvider.GetDirectoryContents("/")
                     .Where(i => i.Name == path)
