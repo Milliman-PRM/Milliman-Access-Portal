@@ -11,6 +11,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AuditLogLib;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
 
 namespace ContentReductionLib
 {
@@ -34,9 +36,6 @@ namespace ContentReductionLib
             }
 
             AuditLogger.Config = new AuditLoggerConfiguration { AuditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString") };
-
-            // Initiate periodic checking of the Task status of each JobMonitor
-            JobMonitorHealthCheckTimer = new Timer(JobMonitorHealthCheck, null, HealthCheckInterval, HealthCheckInterval);
         }
 
         /// <summary>
@@ -51,10 +50,24 @@ namespace ContentReductionLib
 
                 if (MonitorInfo.AwaitableTask.IsCompleted)
                 {
-                    Trace.WriteLine($"From ProcessManager, JobMonitor of type {MonitorInfo.Monitor.GetType().Name} ended with task status {MonitorInfo.AwaitableTask.Status.ToString()}.  There are {JobMonitorDict.Count} JobMonitor instances running");
                     JobMonitorDict.Remove(DownCounter);
-                    // TODO Notification may be in order here if status is Faulted or RanToCompletion
+                    Trace.WriteLine($"From ProcessManager, JobMonitor of type {MonitorInfo.Monitor.GetType().Name} ended with task status {MonitorInfo.AwaitableTask.Status.ToString()}.  There are {JobMonitorDict.Count} JobMonitor instances still running");
+
+                    if (MonitorInfo.AwaitableTask.Status != TaskStatus.Canceled)
+                    {
+                        // TODO Try to signal the service to shut down
+                        //var e = new ApplicationException("Some Message that will lead to service shutdown.");
+                        //throw e;
+                    }
+
                 }
+            }
+
+            if (JobMonitorDict.Count == 0)
+            {
+                JobMonitorHealthCheckTimer.Dispose();
+                // Likely a problem, terminate the service so service monitoring can pick it up
+                Environment.Exit(int.MaxValue);
             }
         }
 
@@ -86,6 +99,9 @@ namespace ContentReductionLib
 
                 Trace.WriteLine($"JobMonitor.Start() returned");
             }
+
+            // Initiate periodic checking of the Task status of each JobMonitor
+            JobMonitorHealthCheckTimer = new Timer(JobMonitorHealthCheck, null, HealthCheckInterval, HealthCheckInterval);
         }
 
         /// <summary>

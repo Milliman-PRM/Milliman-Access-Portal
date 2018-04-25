@@ -183,6 +183,8 @@ namespace ContentReductionLib
         /// <param name="Token"></param>
         public override void JobMonitorThreadMain(CancellationToken Token)
         {
+            Attention!
+            throw new Exception();  // temporary to test fault handling in ProcessManager
             MethodBase Method = MethodBase.GetCurrentMethod();
             while (!Token.IsCancellationRequested)
             {
@@ -212,7 +214,7 @@ namespace ContentReductionLib
                                 };
                                 if (UseMockForTesting)
                                 {
-                                    Runner.AuditLog = MockAuditLogger.New().Object;
+                                    Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
                                 }
 
                                 NewTask = Task.Run(() => Runner.Execute(cancelSource.Token));

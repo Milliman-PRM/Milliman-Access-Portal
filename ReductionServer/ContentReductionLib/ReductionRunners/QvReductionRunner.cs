@@ -52,21 +52,15 @@ namespace ContentReductionLib.ReductionRunners
         private DocumentNode MasterDocumentNode { get; set; } = null;
 
         private DocumentNode ReducedDocumentNode { get; set; } = null;
+
+        private IAuditLogger AuditLog = null;
         #endregion
 
         #region Testing support
-        private IAuditLogger _AuditLog = null;
-        public IAuditLogger AuditLog
+        public void SetTestAuditLogger(IAuditLogger LoggerArg)
         {
-            set
-            {
-                AssertTesting();
-                _AuditLog = value;
-            }
-            private get
-            {
-                return _AuditLog;
-            }
+            AssertTesting();
+            AuditLog = LoggerArg;
         }
         #endregion
 

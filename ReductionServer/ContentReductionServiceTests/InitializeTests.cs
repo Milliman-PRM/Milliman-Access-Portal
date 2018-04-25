@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Moq;
 using MapDbContextLib.Context;
+using MapDbContextLib.Models;
 using TestResourcesLib;
+using Newtonsoft.Json;
 
 namespace ContentReductionServiceTests
 {
@@ -51,15 +54,46 @@ namespace ContentReductionServiceTests
             #endregion
 
             #region Initialize ContentReductionTask
+            ContentReductionHierarchy<ReductionFieldValueSelection> SelectionsObject = new ContentReductionHierarchy<ReductionFieldValueSelection>
+            {
+                RootContentItemId = 1,
+                Fields = new List<ReductionField<ReductionFieldValueSelection>>
+                {
+                    new ReductionField<ReductionFieldValueSelection>
+                    {
+                        FieldName = "Assigned Provider Clinic (Hier)",
+                        DisplayName = "Assigned Provider Clinic (Hier)",
+                        StructureType = FieldStructureType.Tree,
+                        ValueDelimiter = " | ",
+                        Id = 1,
+                        Values = new ReductionFieldValueSelection[]
+                        {
+                            new ReductionFieldValueSelection
+                            {
+                                Id = 1,
+                                Value = "Assigned Provider Clinic (Hier) 0434",
+                                SelectionStatus = true,
+                            },
+                            new ReductionFieldValueSelection
+                            {
+                                Id = 2,
+                                Value = "Assigned Provider Clinic (Hier) 4025",
+                                SelectionStatus = true,
+                            },
+                        },
+                    }
+                }
+            };
             Db.Object.ContentReductionTask.Add(new ContentReductionTask
             {
                 Id = new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTime = DateTime.UtcNow,
-                MasterFilePath = "xyz",
+                MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
                 SelectionGroupId = 1,
-                MasterContentChecksum = "",
+                MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
+                SelectionCriteria = JsonConvert.SerializeObject(SelectionsObject, Formatting.Indented),                
             });
             MockDbSet<ContentReductionTask>.AssignNavigationProperty<SelectionGroup>(Db.Object.ContentReductionTask, "SelectionGroupId", Db.Object.SelectionGroup);
             #endregion
