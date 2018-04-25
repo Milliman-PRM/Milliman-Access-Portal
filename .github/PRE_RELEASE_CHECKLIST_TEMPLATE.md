@@ -23,6 +23,7 @@ Completed by: ___________
 ##### Tasks
 
 - [ ] Deploy application to staging for testing and paste URL in pull request
+- [ ] Fill in the Release Version above and name this pull request "Pre-Release - MAP vX.X.X" to match the release version
 - [ ] Prepare formal UAT document
 - [ ] Complete the testing checklist
 - [ ] Create issues for any bugs found, prioritize them, and add to release milestone
@@ -34,10 +35,13 @@ Completed by: ___________
 
 ##### Assertions
 
+- [ ] The Release Version and URL have been updated in this pull request above
 - [ ] All tests are passing
 - [ ] The software version and release versions match
 - [ ] The release notes are up to date and reflect the changes included in this release
 - [ ] The UAT Documentation has been prepared for the reviewer(s)
+- [ ] All developers that have completed this section have been documented above
+- [ ] The staging instance deployed successfuly and is working properly
 
 ### PRPR
 
@@ -48,11 +52,15 @@ Completed by: ___________
 ##### Tasks
 
 - [ ] Determine risk level
-- [ ] Sign off on release
+- [ ] Perform PRPR
+- [ ] Document your Peer Review in comment below
 
 ##### Assertions
 
 - [ ] The release has been documented appropriately
+- [ ] All reviewers have been documented above
+- [ ] The risk level for this release has been documented in this pull request
+- [ ] All necessary reviewers have added their Peer Review Attestation below
 
 ### Post-Review Tasks
 
@@ -71,3 +79,4 @@ Completed by: ___________
 
 - [ ] All tasks have been completed
 - [ ] All assertions have been met
+- [ ] All developers that have completed this section have been documented above
