@@ -1,26 +1,17 @@
 import $ = require('jquery');
-import card = require('./card');
-import upload = require('./upload/upload');
-import options = require('./lib-options');
-import { Promise } from 'es6-promise';
 import toastr = require('toastr');
-require('tooltipster');
+import { randomBytes } from 'crypto';
+import { FileUploadCard } from './card';
+import { PublicationUpload, PublicationComponent } from './upload/upload';
 require('./navbar');
 
 import 'bootstrap/scss/bootstrap-reboot.scss';
-import 'selectize/src/less/selectize.default.less';
 import 'toastr/toastr.scss';
-import 'tooltipster/src/css/tooltipster.css';
-import 'tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css';
-import 'vex-js/sass/vex.sass';
 import '../scss/map.scss';
-import { randomBytes } from 'crypto';
-import { PublicationUpload } from './upload/upload';
-const appSettings = require('../../appsettings.json');
 
 let publicationGUID: string;
 let uploads: {
-  content: upload.PublicationUpload;
+  content: PublicationUpload;
 };
 
 function setUnloadAlert(value: boolean) {
@@ -41,17 +32,23 @@ function generateGUID() {
 $(document).ready(() => {
   publicationGUID = generateGUID();
 
-  const c = new card.FileUploadCard(
-    'Content file'
-  ).build();
-  $('#card-list .admin-panel-content').empty().append(c);
+  const componentDisplayNames: Array<{comp: PublicationComponent, name: string}> = [
+    {comp: PublicationComponent.Content, name: 'Content'},
+    {comp: PublicationComponent.Image, name: 'Cover image'},
+    {comp: PublicationComponent.UserGuide, name: 'User guide'},
+  ];
 
-  const u = new upload.PublicationUpload(
-    c.find('.card-body-container')[0],
-    publicationGUID,
-    upload.PublicationComponent.Content,
-    () => {}
-  );
+  $('#card-list .admin-panel-content').empty();
+  componentDisplayNames.forEach((component) => {
+    const componentCard = new FileUploadCard(component.name).build();
+    $('#card-list .admin-panel-content').append(componentCard);
+    const publicationUploads = new PublicationUpload(
+      componentCard.find('.card-body-container')[0],
+      (a) => console.log(`"${component.comp}" upload set unload requirement to: ${a}`),
+      publicationGUID,
+      component.comp,
+    );
+  });
 
   toastr.info('Page loaded');
 });

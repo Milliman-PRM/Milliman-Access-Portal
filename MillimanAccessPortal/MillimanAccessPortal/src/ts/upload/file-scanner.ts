@@ -1,4 +1,4 @@
-import * as forge from 'node-forge';
+import forge = require('node-forge');
 
 interface FileReaderOnLoadEventTarget extends EventTarget {
   result: BinaryType;
@@ -9,9 +9,9 @@ class FileSlicer {
   constructor(readonly file: File, readonly chunkSize: number) {
   }
   public next(): Blob {
-    const blob = this.file.slice(this.offset, this.offset + this.chunkSize);
+    const chunk = this.file.slice(this.offset, this.offset + this.chunkSize);
     this.offset += this.chunkSize;
-    return blob;
+    return chunk;
   }
   public isEmpty(): boolean {
     return this.offset >= this.file.size;
@@ -30,7 +30,7 @@ export class FileScanner {
   constructor(readonly chunkSize: number = 2 ** 20) {
     this.reader = new FileReader();
   }
-  public scan(file: File, fn: (result: any) => void) {
+  public scan(file: File, chunkLoadedCallback: (result: any) => void) {
     this.slicer = new FileSlicer(file, this.chunkSize);
     this.active = true;
     return new Promise((resolve, reject) => {
@@ -39,7 +39,8 @@ export class FileScanner {
           reject();
           return;
         }
-        fn((event.target as FileReaderOnLoadEventTarget).result);
+        const chunk = (event.target as FileReaderOnLoadEventTarget).result;
+        chunkLoadedCallback(chunk);
         if (this.slicer.isEmpty()) {
           this.active = false;
           resolve();

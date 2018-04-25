@@ -19,10 +19,11 @@ export class ProgressMonitor {
   private lastRateUnitIndex: number = 0; // corresponds with the magnitude of this.rate
   private active: boolean = false;
 
-  public progressFn: () => number;
-  public renderFn: (s: ProgressSummary) => void;
-
-  constructor(progressFn: () => number, renderFn: (s: ProgressSummary) => void, readonly fileSize: number) {
+  constructor(
+    readonly progressCallback: () => number,
+    readonly renderCallback: (s: ProgressSummary) => void,
+    readonly fileSize: number,
+  ) {
     this.snapshot = new RetainedValue(8);
     this.rate = new RetainedValue(4);
     this.remainingTime = new RetainedValue(1);
@@ -33,17 +34,7 @@ export class ProgressMonitor {
       return Math.min(Math.max(size / factor, minInterval), maxInterval);
     })(this.fileSize);
 
-    this.progressFn = progressFn;
-    this.renderFn = renderFn;
-
     this._monitor = this._monitor.bind(this);
-  }
-
-  public reset() {
-    this.snapshot.reset();
-    this.rate.reset();
-    this.remainingTime.reset();
-    this.lastRateUnitIndex = 0;
   }
 
   public monitor() {
@@ -57,15 +48,16 @@ export class ProgressMonitor {
 
   private _monitor() {
     if (this.active) {
-      const progress = this.progressFn();
+      const progress = this.progressCallback();
       const now = new Date().getTime();
       this.update(progress, now);
 
       const summary = this.render();
-      this.renderFn(summary);
+      this.renderCallback(summary);
 
-
+      // stop monitoring if monitored callback has finished
       this.active = (progress < 1);
+
       setTimeout(this._monitor, this.monitorInterval);
     }
   }

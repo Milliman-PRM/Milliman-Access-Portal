@@ -1,8 +1,8 @@
 import $ = require('jquery');
-import options = require('../lib-options');
+import forge = require('node-forge');
 const Resumable = require('resumablejs');
-import * as forge from 'node-forge';
 
+import { resumableOptions } from '../lib-options';
 import { ProgressMonitor, ProgressSummary } from './progress-monitor';
 import { FileScanner } from './file-scanner';
 import { RetainedValue } from './retained-value';
@@ -24,8 +24,23 @@ abstract class Upload {
   protected resumable: any;
   protected monitor: ProgressMonitor;
 
-  protected checksum: string;
-  protected serverFile: string;
+  // attributes that indicate the upload state
+  protected _checksum: string;
+  protected get checksum(): string {
+    return this._checksum;
+  }
+  protected set checksum(checksum: string) {
+    this._checksum = checksum;
+    this.signalRequiresUnloadAlert();
+  }
+  protected _serverFile: string;
+  protected get serverFile(): string {
+    return this._serverFile;
+  }
+  protected set serverFile(serverFile: string) {
+    this._serverFile = serverFile;
+    this.signalRequiresUnloadAlert();
+  }
   protected _cancelable: boolean;
   protected get cancelable(): boolean {
     if (this._cancelable === undefined) {
@@ -46,6 +61,7 @@ abstract class Upload {
       $cancelButton.css('visibility', 'hidden');
     }
     this._cancelable = cancelable;
+    this.signalRequiresUnloadAlert();
   }
 
   protected headers = {
@@ -55,9 +71,9 @@ abstract class Upload {
     Checksum: this.checksum,
   }
 
-  constructor(readonly rootElement: HTMLElement) {
+  constructor(readonly rootElement: HTMLElement, readonly unloadAlertCallback: (a: boolean) => void) {
     this.scanner = new FileScanner();
-    this.resumable = new Resumable(Object.assign({}, options.resumableOptions, {
+    this.resumable = new Resumable(Object.assign({}, resumableOptions, {
       target: '/FileUpload/UploadChunk',
       headers: () => this.headers,
       query: () => this.formData,
@@ -71,12 +87,11 @@ abstract class Upload {
     this.resumable.on('fileAdded', async (file) => {
       this.cancelable = true;
       this.selectFileNameElement(this.rootElement).innerHTML = file.fileName;
-      //s this.state = UploadState.Uploading;
 
       const message = forge.md.sha1.create();
       this.monitor = new ProgressMonitor(
         () => this.scanner.progress,
-        this.renderChecksumProgress,
+        this.renderChecksumProgress.bind(this),
         file.file.size,
       );
       this.monitor.monitor();
@@ -90,7 +105,7 @@ abstract class Upload {
 
       this.monitor = new ProgressMonitor(
         () => this.resumable.progress(),
-        this.renderUploadProgress,
+        this.renderUploadProgress.bind(this),
         file.file.size,
       );
       this.monitor.monitor();
@@ -123,14 +138,13 @@ abstract class Upload {
           rate: 'Upload complete',
           remainingTime: '',
         });
-        this.serverFile = response; // TODO: replace with something useful
+        this.serverFile = response; // TODO: process response
       }).fail((response) => {
         throw new Error(`Something went wrong. Response: ${response}`);
       }).always((response) => {
         this.checksum = undefined;
       });
     });
-
     $(rootElement).find('.btn-cancel').click((event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -144,13 +158,17 @@ abstract class Upload {
       this.cancelable = false;
       this.checksum = undefined;
     });
-
-    // bind functions
-    this.renderChecksumProgress = this.renderChecksumProgress.bind(this);
-    this.renderUploadProgress = this.renderUploadProgress.bind(this);
   }
 
-  protected getChunkStatus() {
+  private signalRequiresUnloadAlert() {
+    this.unloadAlertCallback(
+      this.cancelable
+      || this.checksum !== undefined
+      || this.serverFile !== undefined
+    );
+  }
+
+  private getChunkStatus() {
     // Not implemented
     // TODO: get request for already-received chunks
     // TODO: set `this.resumable.files[0].chunks[n].tested = true;` for already received
@@ -179,13 +197,9 @@ export enum PublicationComponent {
 }
 
 export class PublicationUpload extends Upload {
-  private publicationGUID: string;
-  private component: PublicationComponent;
 
-  constructor(rootElement: HTMLElement, publicationGUID: string, component: PublicationComponent, setUploadState: any) {
-    super(rootElement);
-    this.publicationGUID = publicationGUID;
-    this.component = component;
+  constructor(rootElement: HTMLElement, unloadAlertCallback: (a: boolean) => void, readonly publicationGUID: string, readonly component: PublicationComponent) {
+    super(rootElement, unloadAlertCallback);
   }
 
   protected generateUID(file: File, event: Event): string {
