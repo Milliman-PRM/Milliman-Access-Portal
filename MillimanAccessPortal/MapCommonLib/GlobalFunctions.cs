@@ -57,16 +57,21 @@ namespace MapCommonLib
         /// <param name="LeadingLine"></param>
         /// <param name="RecurseInnerExceptions"></param>
         /// <returns></returns>
-        public static string LoggableExceptionString(Exception e, string LeadingLine="Exception:", bool RecurseInnerExceptions=true)
+        public static string LoggableExceptionString(Exception e, string LeadingLine="Exception:", bool RecurseInnerExceptions=true, bool IncludeStackTrace = false)
         {
             string ErrMsg = LeadingLine;
-            for (; e != null; e = e.InnerException)
+            for (string Indent = "" ; e != null; e = e.InnerException)
             {
-                ErrMsg += $"{Environment.NewLine}    {e.Message}";
+                ErrMsg += $"{Environment.NewLine}{Indent}{e.Message}";
+                if (IncludeStackTrace && e.StackTrace != null)
+                {
+                    ErrMsg += $"{Environment.NewLine}{Regex.Replace(e.StackTrace, @" {2,}at ", $"{Indent}at ")}";
+                }
                 if (!RecurseInnerExceptions)
                 {
                     break;
                 }
+                Indent += "  ";
             }
             return ErrMsg;
         }
