@@ -1,4 +1,11 @@
 import shared = require('./shared');
+var $ = require('jquery');
+var vex = require('vex-js');
+var toastr = require('toastr');
+require('typeahead.js');
+
+require('vex-js/sass/vex.sass');
+require('vex-js/sass/vex-theme-default.sass');
 
 // TODO: move to types file
 interface User {
@@ -6,6 +13,28 @@ interface User {
   Email: string,
   FirstName: string,
   LastName: string,
+};
+
+
+// This is a duplicate of the function in shared
+// Better separation of functionality would allow this to exist in one place
+// This is a temporary solution only.
+var userSubstringMatcher = function (users) {
+  console.warn('You are using a duplicate of shared.userSubstringMatcher. Refactor shared.js to require this function in only one place.')
+  return function findMatches(query, callback) {
+    var matches = [];
+    var regex = new RegExp(query, 'i');
+
+    $.each(users, function check(i, user) {
+      if (regex.test(user.Email) ||
+          regex.test(user.UserName) ||
+          regex.test(user.FirstName + ' ' + user.LastName)) {
+        matches.push(user);
+      }
+    });
+
+    callback(matches);
+  };
 };
 
 
@@ -210,7 +239,7 @@ export function AddUserDialog(eligibleUsers, submitHandler) {
       },
       {
         name: 'eligibleUsers',
-        source: shared.userSubstringMatcher(eligibleUsers),
+        source: userSubstringMatcher(eligibleUsers),
         display: function (data: User) {
           return data.UserName;
         },

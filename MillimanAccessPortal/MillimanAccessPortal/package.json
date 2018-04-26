@@ -74,7 +74,10 @@
       "jsx",
       "json",
       "node"
-    ]
+    ],
+    "moduleNameMapper": {
+      "\\.(css|less|sass|scss)$": "<rootDir>/src/ts/__mocks__/styleMock.ts"
+    }
   },
   "-vs-binding": {
     "AfterBuild": [

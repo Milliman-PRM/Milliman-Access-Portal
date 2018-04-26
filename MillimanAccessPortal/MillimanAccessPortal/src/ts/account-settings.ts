@@ -5,18 +5,19 @@ require( 'jquery-mask-plugin');
 require( 'jquery-validation');
 require( 'jquery-validation-unobtrusive');
 require( './lib-options');
+require('./navbar');
 
 require('bootstrap/scss/bootstrap-reboot.scss');
 require('toastr/toastr.scss');
 require('../scss/map.scss');
 
 
-var $accountSettingsForm = $('#account-settings-form');
-var $button = $('#account-settings-form button.submit-button');
 var accountSettingsRunning = false;
 var passwordChangeRunning = false;
 
 function submitAccountSettings() {
+  var $button = $('#account-settings-form button.submit-button');
+
   function settingsChanged() {
     var changedFields = 0;
     $('input[data-original-value]').each(function () {
@@ -31,7 +32,7 @@ function submitAccountSettings() {
     return false;
   }
 
-  if ($accountSettingsForm.valid()) {
+  if ($('#account-settings-form').valid()) {
     if (settingsChanged()) {
       accountSettingsRunning = true;
       shared.showButtonSpinner($button);

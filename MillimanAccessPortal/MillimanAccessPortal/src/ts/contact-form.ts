@@ -1,5 +1,14 @@
+var $ = require('jquery');
+var toastr = require('toastr');
 const vex = require('vex-js');
 vex.registerPlugin(require('vex-dialog'));
+require('./lib-options');
+
+require('bootstrap/scss/bootstrap-reboot.scss');
+require('toastr/toastr.scss');
+require('vex-js/sass/vex.sass');
+require('vex-js/sass/vex-theme-default.sass');
+require('../scss/map.scss');
 
 /**
  * Submit the contact form
@@ -91,6 +100,10 @@ function initializeContactForm() {
   });
 }
 
-$('#contact-button').click(function onClick() {
-  initializeContactForm();
+$(document).ready(function onReady() {
+
+  $('#contact-button').click(function onClick() {
+    initializeContactForm();
+  });
+
 });

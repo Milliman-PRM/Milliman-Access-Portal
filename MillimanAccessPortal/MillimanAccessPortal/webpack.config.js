@@ -11,6 +11,7 @@ module.exports = {
     'content-publishing': './src/js/content-publishing.js',
     'hosted-content': './src/js/hosted-content.js',
     'login': './src/js/login.js',
+    'system-admin': './src/js/system-admin.js',
   },
   module: {
     rules: [

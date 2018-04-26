@@ -13,6 +13,9 @@ using MapDbContextLib.Identity;
 
 namespace MapDbContextLib.Context
 {
+    /// <summary>
+    /// Represents the evolving status of the task
+    /// </summary>
     public enum ReductionStatusEnum : long
     {
         Unspecified = 0,    // Default unknown state
@@ -25,6 +28,16 @@ namespace MapDbContextLib.Context
         Reduced = 30,       // The reduction server has completed the reduction task, but no user has pushed the reduced document
         Live = 40,          // The reduced document is published and is currently being served to users
         Error = 90,         // An error has occured
+    }
+
+    /// <summary>
+    /// Represent what action MAP is requesting from the reduction server
+    /// </summary>
+    public enum TaskActionEnum
+    {
+        Unspecified = 0,    // Default unknown state
+        HierarchyOnly = 1,
+        HierarchyAndReduction = 2,
     }
 
     public class ContentReductionTask
@@ -102,6 +115,8 @@ namespace MapDbContextLib.Context
         public string MasterContentChecksum { get; set; }
 
         public string ReducedContentChecksum { get; set; }
+
+        public TaskActionEnum TaskAction { get; set; } = TaskActionEnum.Unspecified;
     }
 }
 

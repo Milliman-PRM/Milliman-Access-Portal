@@ -33,7 +33,7 @@ namespace AuditLogLib
             {
                 if (Config == null)
                 {
-                    throw new Exception("Attempt to instantiate AuditLogger before initializing!");
+                    throw new ApplicationException("Attempt to instantiate AuditLogger before initializing!");
                 }
 
                 InstanceCount++;
@@ -71,7 +71,8 @@ namespace AuditLogLib
         }
 
         /// <summary>
-        /// Compliant with ILogger interface, which is not the primary intended type of use for this class. 
+        /// Method compliant with ILogger interface, which is not the primary intended use for this class. 
+        /// Full ILogger support requires additional work since this does not currently inherit interface ILogger
         /// </summary>
         /// <typeparam name="TState"></typeparam>
         /// <param name="LogLevel">Provide one of the enum values</param>

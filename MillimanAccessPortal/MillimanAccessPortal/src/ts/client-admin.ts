@@ -9,7 +9,7 @@ require('jquery-validation');
 require('jquery-validation-unobtrusive');
 require('selectize');
 require('tooltipster');
-require('vex-js');
+require('./navbar');
 require('./lib-options');
 const appSettings = require('../../appsettings.json');
 
@@ -18,7 +18,6 @@ require('selectize/src/less/selectize.default.less');
 require('toastr/toastr.scss');
 require('tooltipster/src/css/tooltipster.css');
 require('tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css');
-require('vex-js/sass/vex.sass');
 require('../scss/map.scss');
 
 var ajaxStatus: Dictionary<any>;
@@ -67,7 +66,7 @@ function setClientFormReadOnly() {
   $('#client-info .action-icon-cancel').hide();
   $clientForm.find(':input').attr('readonly', '');
   $clientForm.find(':input,select').attr('disabled', '');
-  $clientForm.find('.form-button-container').add('button').hide();
+  $clientForm.find('.form-button-container').hide();
   $clientForm.find('.selectized').each(function disable() {
     this.selectize.disable();
   });
@@ -80,7 +79,7 @@ function setClientFormWriteable() {
   $('#client-info .action-icon-cancel').show();
   $clientForm.find(':input').removeAttr('readonly');
   $clientForm.find(':input,select').removeAttr('disabled');
-  $clientForm.find('.form-button-container').add('button').hide();
+  $clientForm.find('.form-button-container').hide();
   $clientForm.find('.edit-form-button-container').show();
   $clientForm.find('.selectized').each(function enable() {
     this.selectize.enable();
@@ -145,10 +144,10 @@ function updateUserRoleIndicator(userId, userRoles) {
 }
 
 // TODO: move to shared
-function setUserRole(userId, roleEnum, isAssigned, onResponse) {
+function setUserRole(clientId, userId, roleEnum, isAssigned, onResponse) {
   var $cardContainer = $('#client-users ul.admin-panel-content .card-container[data-user-id="' + userId + '"]');
   var postData = {
-    ClientId: $('#client-tree [selected]').attr('data-client-id'),
+    ClientId: clientId,
     UserId: userId,
     RoleEnum: roleEnum,
     IsAssigned: isAssigned
@@ -187,6 +186,7 @@ function userCardRoleToggleClickHandler(event) {
   event.preventDefault();
 
   setUserRole(
+    $clickedInput.closest('.card-container').attr('data-client-id'),
     $clickedInput.closest('.card-container').attr('data-user-id'),
     $clickedInput.attr('data-role-enum'),
     $clickedInput.prop('checked'),
@@ -245,7 +245,7 @@ function setupChildClientForm(parentClientDiv) {
       });
     });
 
-  $('#client-info .form-button-container').add('button').hide();
+  $('#client-info .form-button-container').hide();
   $('#client-info .new-form-button-container').show();
 }
 
@@ -253,7 +253,7 @@ function setupChildClientForm(parentClientDiv) {
 function setupClientForm() {
   var $clientForm = $('#client-info form.admin-panel-content');
   shared.clearForm($('#client-info'));
-  $clientForm.find('.form-button-container').add('button').hide();
+  $clientForm.find('.form-button-container').hide();
   $clientForm.find('.new-form-button-container').show();
 }
 
@@ -403,7 +403,7 @@ function userCardRemoveClickHandler(event) {
   var userName = $clickedCard.find('.card-body-primary-text').html();
   event.stopPropagation();
   new dialog.RemoveUserDialog(userName, function removeUser(value, callback) {
-    var clientId = $('#client-tree [selected]').attr('data-client-id');
+    var clientId = $clickedCard.attr('data-client-id');
     var userId = $clickedCard.attr('data-user-id');
     removeUserFromClient(clientId, userId, callback);
   }).open();
@@ -432,7 +432,7 @@ function newClientClickHandler() {
 
 // TODO: move to shared
 function saveNewUser(username, email, callback) {
-  var clientId = $('#client-tree [selected]').attr('data-client-id');
+  var clientId = $('#client-tree [selected]').closest('[data-client-id]').attr('data-client-id');
   $.ajax({
     type: 'POST',
     url: 'ClientAdmin/SaveNewUser',
@@ -508,7 +508,7 @@ function removeUserFromClient(clientId, userId, callback) {
 // TODO: move to shared
 function cancelIconClickHandler() {
   shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
-    if ($('#client-tree [selected]').attr('data-client-id')) {
+    if ($('#client-tree [selected]').parent().attr('data-client-id')) {
       $('#client-tree [editing]').removeAttr('editing');
       setClientFormReadOnly();
     } else {
@@ -562,7 +562,7 @@ function renderClientTree(clientTreeList, clientId) {
   $clientTreeList.find('.tooltip').tooltipster();
 
   if (clientId) {
-    $('[data-client-id="' + clientId + '"]').click();
+    $('#client-tree [data-client-id="' + clientId + '"] .card-body-container').click();
   }
   if ($('#client-tree .action-icon-add').length) {
     $clientTreeList.append(new card.AddClientActionCard(newClientClickHandler).build());

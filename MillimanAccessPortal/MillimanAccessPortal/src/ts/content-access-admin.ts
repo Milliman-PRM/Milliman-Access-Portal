@@ -5,12 +5,13 @@ import dialog = require('./dialog');
 import shared = require('./shared');
 require('tooltipster');
 require('vex-js');
+require('./navbar');
 require('./lib-options');
 
 require('bootstrap/scss/bootstrap-reboot.scss');
 require('toastr/toastr.scss');
 require('tooltipster/src/css/tooltipster.css');
-require('vex-js/sass/vex.sass');
+require('tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css');
 require('../scss/map.scss');
 
 

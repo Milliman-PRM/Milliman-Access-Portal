@@ -11,7 +11,7 @@ namespace ContentReductionLib.ReductionRunners
 {
     internal abstract class ReductionRunnerBase
     {
-        internal abstract Task<ReductionJobDetail> ExecuteReduction(CancellationToken cancellationToken);
+        internal abstract Task<ReductionJobDetail> Execute(CancellationToken cancellationToken);
 
         internal abstract void ValidateThisInstance();
     }

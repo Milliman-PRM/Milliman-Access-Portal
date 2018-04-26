@@ -42,8 +42,11 @@ namespace QvReportReductionGui
         {
             Configuration.LoadConfiguration();
 
-            Manager = new ProcessManager();
-            Manager.Start();
+            if (Manager == null || !Manager.AnyMonitorThreadRunning)
+            {
+                Manager = new ProcessManager();
+                Manager.Start();
+            }
         }
 
         private void ButtonStop_Click(object sender, EventArgs e)
@@ -56,11 +59,11 @@ namespace QvReportReductionGui
             StopProcessing();
         }
 
-        private void StopProcessing(int WaitMs = 10)
+        private void StopProcessing(int WaitSec = -1)
         {
             if (Manager != null)
             {
-                Manager.Stop(WaitMs);
+                Manager.Stop(WaitSec);
 
                 label1.Text = Manager.AllMonitorThreadsRunning.ToString();
 

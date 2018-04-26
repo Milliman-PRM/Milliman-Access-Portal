@@ -5,93 +5,93 @@
     flex-flow: row nowrap;
     align-items: center;
     margin-bottom: 10px;
-}
 
-.toggle-switch {
-    display: inline-block;
-    position: relative;
-    width: 65px;
-    margin-left: 15px;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    flex: 0 1 65px;
-}
+    .toggle-switch {
+        display: inline-block;
+        position: relative;
+        width: 65px;
+        margin-left: 15px;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        flex: 0 1 65px;
 
-.toggle-switch-checkbox {
-    display: none;
-}
+        .toggle-switch-checkbox {
+            display: none;
+        }
 
-.toggle-switch-label {
-    display: block;
-    overflow: hidden;
-    cursor: pointer;
-    border: 2px solid $charcoal;
-    border-radius: 50px;
-    margin: 0;
-    padding: 0;
-}
+        .toggle-switch-label {
+            display: block;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid $charcoal;
+            border-radius: 50px;
+            margin: 0;
+            padding: 0;
+        }
 
-.toggle-switch-inner {
-    display: block;
-    width: 200%;
-    margin-left: -100%;
-    transition: margin 0.3s ease-in 0s;
-}
+        .toggle-switch-inner {
+            display: block;
+            width: 200%;
+            margin-left: -100%;
+            transition: margin 0.3s ease-in 0s;
+        }
 
-.toggle-switch-inner:before, .toggle-switch-inner:after {
-    display: block;
-    float: left;
-    width: 50%;
-    height: 20px;
-    padding: 0;
-    line-height: 20px;
-    font-size: 14px;
-    color: $white;
-    font-weight: bold;
-    box-sizing: border-box;
-}
+        .toggle-switch-inner:before, .toggle-switch-inner:after {
+            display: block;
+            float: left;
+            width: 50%;
+            height: 20px;
+            padding: 0;
+            line-height: 20px;
+            font-size: 14px;
+            color: $white;
+            font-weight: bold;
+            box-sizing: border-box;
+        }
 
-.toggle-switch-inner:before {
-    content: "ON";
-    padding-left: 10px;
-    background-color: $blue;
-    color: $white;
-}
+        .toggle-switch-inner:before {
+            content: "ON";
+            padding-left: 10px;
+            background-color: $blue;
+            color: $white;
+        }
 
-.toggle-switch-inner:after {
-    content: "OFF";
-    padding-right: 10px;
-    background-color: $light-grey;
-    color: $dark-grey;
-    text-align: right;
-}
+        .toggle-switch-inner:after {
+            content: "OFF";
+            padding-right: 10px;
+            background-color: $light-grey;
+            color: $dark-grey;
+            text-align: right;
+        }
 
-.toggle-switch-switch {
-    display: block;
-    width: 20px;
-    margin: 3px;
-    background: $white;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    right: 39px;
-    border: 2px solid $dark-grey;
-    border-radius: 50px;
-    transition: all 0.3s ease-in 0s;
-}
+        .toggle-switch-switch {
+            display: block;
+            width: 20px;
+            margin: 3px;
+            background: $white;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 39px;
+            border: 2px solid $dark-grey;
+            border-radius: 50px;
+            transition: all 0.3s ease-in 0s;
+        }
 
-.toggle-switch-checkbox:checked + .toggle-switch-label .toggle-switch-inner {
-    margin-left: 0;
-}
+        .toggle-switch-checkbox:checked + .toggle-switch-label .toggle-switch-inner {
+            margin-left: 0;
+        }
 
-.toggle-switch-checkbox:checked + .toggle-switch-label .toggle-switch-switch {
-    right: 0px;
-}
+        .toggle-switch-checkbox:checked + .toggle-switch-label .toggle-switch-switch {
+            right: 0px;
+        }
+    }
 
-.switch-label {
-    margin-left: 10px;
-    flex: 2;
-    cursor: pointer;
-    font-size: 1em;
+    .switch-label {
+        margin-left: 10px;
+        flex: 2;
+        cursor: pointer;
+        font-size: 1em;
+    }
 }
