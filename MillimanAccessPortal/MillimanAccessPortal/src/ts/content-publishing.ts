@@ -38,7 +38,6 @@ $(document).ready(() => {
       (a) => {
         unloadAlertStates[component] = a;
         setUnloadAlert(unloadAlertStates.reduce((prev, cur) => prev || cur, false));
-        console.log(`Set unload alert status to: ${unloadAlertStates.reduce((prev, cur) => prev || cur, false)}`);
       },
       publicationGUID,
       component,

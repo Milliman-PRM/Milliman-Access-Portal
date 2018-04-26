@@ -115,6 +115,33 @@ abstract class Upload {
       this.getChunkStatus();
       this.resumable.upload();
     });
+    this.resumable.on('beforeCancel', () => {
+      this.resumable.files.forEach((file) => {
+        const cancelInfo: ResumableInfo = {
+          ChunkNumber: 0,
+          TotalChunks: -1,
+          ChunkSize: this.resumable.opts.chunkSize,
+          TotalSize: file.size,
+          FileName: file.fileName,
+          UID: file.uniqueIdentifier,
+          Checksum: this.checksum,
+          Type: '',
+        };
+        $.ajax({
+          type: 'POST',
+          url: 'FileUpload/CancelUpload',
+          data: cancelInfo,
+          headers: {
+            RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
+          }
+        }).done((response) => {
+        }).fail((response) => {
+          throw new Error(`Something went wrong. Response: ${response}`);
+        }).always((response) => {
+          this.checksum = undefined;
+        });
+    });
+      });
     this.resumable.on('fileSuccess', (file, message) => {
       this.cancelable = false;
       const finalizeInfo: ResumableInfo = {
