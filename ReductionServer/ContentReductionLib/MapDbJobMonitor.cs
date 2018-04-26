@@ -183,8 +183,6 @@ namespace ContentReductionLib
         /// <param name="Token"></param>
         public override void JobMonitorThreadMain(CancellationToken Token)
         {
-            Attention!
-            throw new Exception();  // temporary to test fault handling in ProcessManager
             MethodBase Method = MethodBase.GetCurrentMethod();
             while (!Token.IsCancellationRequested)
             {

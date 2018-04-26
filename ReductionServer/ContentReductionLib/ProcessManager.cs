@@ -10,9 +10,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.ServiceProcess;
 using AuditLogLib;
-using System.ComponentModel;
-using System.Runtime.InteropServices;
+using MapCommonLib;
 
 namespace ContentReductionLib
 {
@@ -24,11 +24,12 @@ namespace ContentReductionLib
         private Dictionary<int, JobMonitorInfo> JobMonitorDict = new Dictionary<int, JobMonitorInfo>();
         private Timer JobMonitorHealthCheckTimer;
         static TimeSpan HealthCheckInterval = new TimeSpan(0, 0, 10);
+        private string ServiceName = string.Empty;
 
         /// <summary>
         /// constructor, initializes some things (do better)
         /// </summary>
-        public ProcessManager()
+        public ProcessManager(string ServiceNameArg = "")
         {
             if (Configuration.ApplicationConfiguration == null)
             {
@@ -36,6 +37,8 @@ namespace ContentReductionLib
             }
 
             AuditLogger.Config = new AuditLoggerConfiguration { AuditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString") };
+
+            ServiceName = ServiceNameArg;
         }
 
         /// <summary>
@@ -52,22 +55,29 @@ namespace ContentReductionLib
                 {
                     JobMonitorDict.Remove(DownCounter);
                     Trace.WriteLine($"From ProcessManager, JobMonitor of type {MonitorInfo.Monitor.GetType().Name} ended with task status {MonitorInfo.AwaitableTask.Status.ToString()}.  There are {JobMonitorDict.Count} JobMonitor instances still running");
-
+                    if (MonitorInfo.AwaitableTask.Status == TaskStatus.Faulted)
+                    {
+                        Trace.WriteLine(GlobalFunctions.LoggableExceptionString(MonitorInfo.AwaitableTask.Exception, "Exception was", true, true));
+                        Thread.Sleep(1000);
+                    }
                     if (MonitorInfo.AwaitableTask.Status != TaskStatus.Canceled)
                     {
-                        // TODO Try to signal the service to shut down
-                        //var e = new ApplicationException("Some Message that will lead to service shutdown.");
-                        //throw e;
+                        // this is intended to crash the service rather than continue running with no activity
+                        throw new ApplicationException("JobMonitor ended", MonitorInfo.AwaitableTask.Exception);
                     }
-
                 }
             }
 
             if (JobMonitorDict.Count == 0)
             {
+                // We are probably only here when the JobMonitor object(s) is cancelled, e.g. during a stop or shutdown
                 JobMonitorHealthCheckTimer.Dispose();
-                // Likely a problem, terminate the service so service monitoring can pick it up
-                Environment.Exit(int.MaxValue);
+
+                if (!string.IsNullOrWhiteSpace(ServiceName))
+                {
+                    ServiceController sc = new ServiceController(ServiceName);
+                    sc.Stop();
+                }
             }
         }
 
@@ -97,7 +107,7 @@ namespace ContentReductionLib
                 JobMonitorInfo MonitorInfo = MonitorKvp.Value;
                 MonitorInfo.AwaitableTask = MonitorInfo.Monitor.Start(MonitorInfo.TokenSource.Token);
 
-                Trace.WriteLine($"JobMonitor.Start() returned");
+                Trace.WriteLine($"JobMonitor of type {MonitorInfo.Monitor.GetType().Name} started");
             }
 
             // Initiate periodic checking of the Task status of each JobMonitor

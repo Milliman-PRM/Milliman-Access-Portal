@@ -22,9 +22,9 @@ namespace TestResourcesLib
     public static class MockMapDbContext
     {
         /// <summary>
-        /// Creates an instance of mocked ApplicationDbContext with no data
+        /// Creates an instance of mocked ApplicationDbContext. 
         /// </summary>
-        /// <param name="Initialize">Intended for unit testing to initialize data of the mocked context.  Called after creating the mock, if provided</param>
+        /// <param name="Initialize">A Func that modifies the mocked context to be returned. Optional, you can add data later too</param>
         /// <returns></returns>
         public static Mock<ApplicationDbContext> New(Func<Mock<ApplicationDbContext>, Mock<ApplicationDbContext>> Initialize = null)
         {

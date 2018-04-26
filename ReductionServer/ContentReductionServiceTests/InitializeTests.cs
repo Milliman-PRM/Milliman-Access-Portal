@@ -11,15 +11,6 @@ namespace ContentReductionServiceTests
 {
     class InitializeTests
     {
-        public static Mock<ApplicationDbContext> InitializeWithQueuedStatus(Mock<ApplicationDbContext> Db)
-        {
-            Db = InitializeWithUnspecifiedStatus(Db);
-            ContentReductionTask T = Db.Object.ContentReductionTask.Single(t => t.Id == new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1));
-            T.ReductionStatus = ReductionStatusEnum.Queued;
-            Db.Object.ContentReductionTask.Update(T);
-            return Db;
-        }
-
         public static Mock<ApplicationDbContext> InitializeWithUnspecifiedStatus(Mock<ApplicationDbContext> Db)
         {
             #region Initialize ContentType
@@ -54,7 +45,7 @@ namespace ContentReductionServiceTests
             #endregion
 
             #region Initialize ContentReductionTask
-            ContentReductionHierarchy<ReductionFieldValueSelection> SelectionsObject = new ContentReductionHierarchy<ReductionFieldValueSelection>
+            ContentReductionHierarchy<ReductionFieldValueSelection> ValidSelectionsObject = new ContentReductionHierarchy<ReductionFieldValueSelection>
             {
                 RootContentItemId = 1,
                 Fields = new List<ReductionField<ReductionFieldValueSelection>>
@@ -64,7 +55,7 @@ namespace ContentReductionServiceTests
                         FieldName = "Assigned Provider Clinic (Hier)",
                         DisplayName = "Assigned Provider Clinic (Hier)",
                         StructureType = FieldStructureType.Tree,
-                        ValueDelimiter = " | ",
+                        ValueDelimiter = "|",
                         Id = 1,
                         Values = new ReductionFieldValueSelection[]
                         {
@@ -84,6 +75,7 @@ namespace ContentReductionServiceTests
                     }
                 }
             };
+            // Valid reducable task
             Db.Object.ContentReductionTask.Add(new ContentReductionTask
             {
                 Id = new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
@@ -93,8 +85,83 @@ namespace ContentReductionServiceTests
                 SelectionGroupId = 1,
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
-                SelectionCriteria = JsonConvert.SerializeObject(SelectionsObject, Formatting.Indented),                
+                SelectionCriteria = JsonConvert.SerializeObject(ValidSelectionsObject, Formatting.Indented),                
             });
+
+            ContentReductionHierarchy<ReductionFieldValueSelection> InvalidFieldValueObject = new ContentReductionHierarchy<ReductionFieldValueSelection>
+            {
+                RootContentItemId = 1,
+                Fields = new List<ReductionField<ReductionFieldValueSelection>>
+                {
+                    new ReductionField<ReductionFieldValueSelection>
+                    {
+                        FieldName = "Assigned Provider Clinic (Hier)",
+                        DisplayName = "Assigned Provider Clinic (Hier)",
+                        StructureType = FieldStructureType.Tree,
+                        ValueDelimiter = "|",
+                        Id = 1,
+                        Values = new ReductionFieldValueSelection[]
+                        {
+                            new ReductionFieldValueSelection
+                            {
+                                Id = 1,
+                                Value = "Invalid selection value",
+                                SelectionStatus = true,
+                            },
+                        },
+                    }
+                }
+            };
+            // Invalid field value
+            Db.Object.ContentReductionTask.Add(new ContentReductionTask
+            {
+                Id = new Guid(2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2),
+                TaskAction = TaskActionEnum.HierarchyAndReduction,
+                CreateDateTime = DateTime.UtcNow,
+                MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
+                SelectionGroupId = 1,
+                MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
+                ReductionStatus = ReductionStatusEnum.Unspecified,
+                SelectionCriteria = JsonConvert.SerializeObject(InvalidFieldValueObject, Formatting.Indented),
+            });
+
+            ContentReductionHierarchy<ReductionFieldValueSelection> InvalidFieldNameObject = new ContentReductionHierarchy<ReductionFieldValueSelection>
+            {
+                RootContentItemId = 1,
+                Fields = new List<ReductionField<ReductionFieldValueSelection>>
+                {
+                    new ReductionField<ReductionFieldValueSelection>
+                    {
+                        FieldName = "Invalid Field Name",
+                        DisplayName = "Invalid Field Name",
+                        StructureType = FieldStructureType.Tree,
+                        ValueDelimiter = "|",
+                        Id = 1,
+                        Values = new ReductionFieldValueSelection[]
+                        {
+                            new ReductionFieldValueSelection
+                            {
+                                Id = 1,
+                                Value = "Whatever value",
+                                SelectionStatus = true,
+                            },
+                        },
+                    }
+                }
+            };
+            // Invalid field name
+            Db.Object.ContentReductionTask.Add(new ContentReductionTask
+            {
+                Id = new Guid(3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3),
+                TaskAction = TaskActionEnum.HierarchyAndReduction,
+                CreateDateTime = DateTime.UtcNow,
+                MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
+                SelectionGroupId = 1,
+                MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
+                ReductionStatus = ReductionStatusEnum.Unspecified,
+                SelectionCriteria = JsonConvert.SerializeObject(InvalidFieldNameObject, Formatting.Indented),
+            });
+
             MockDbSet<ContentReductionTask>.AssignNavigationProperty<SelectionGroup>(Db.Object.ContentReductionTask, "SelectionGroupId", Db.Object.SelectionGroup);
             #endregion
 

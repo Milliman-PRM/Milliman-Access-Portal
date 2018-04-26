@@ -34,20 +34,20 @@ namespace ContentReductionService
             Thread.Sleep(12000);
             try
             {
-                Trace.WriteLine($"Service OnStart() called");
                 Configuration.LoadConfiguration();
 
                 InitiateTraceLogging();
+                Trace.WriteLine($"Service OnStart() called");
 
                 if (Manager == null || !Manager.AnyMonitorThreadRunning)
                 {
-                    Manager = new ProcessManager();
+                    Manager = new ProcessManager(this.ServiceName);
                     Manager.Start();
                 }
             }
             catch (Exception e)
             {
-                Trace.WriteLine($"Failed to launch service, exception:{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}");
+                Trace.WriteLine($"Failed to start service, exception:{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}");
                 throw;
             }
         }
@@ -59,17 +59,23 @@ namespace ContentReductionService
         {
             if (CurrentTraceListener == null)
             {
+                EventLogEntryType EvtType = EventLogEntryType.Information;
+                string EvtMsg = string.Empty;
+
                 string TraceLogDirectory = Configuration.ApplicationConfiguration["TraceLogDirectory"];
                 if (!Directory.Exists(TraceLogDirectory))
                 {
-                    EventLog.WriteEntry($"No configured Tracelog directory, or directory {TraceLogDirectory} does not exist", EventLogEntryType.Warning);
+                    EvtMsg += $"No configured Tracelog directory, or directory {TraceLogDirectory} does not exist. ";
+                    EvtType = EventLogEntryType.Warning;
+
                     // Get the full path of the assembly in which ContentReductionService declared
                     string fullPath = System.Reflection.Assembly.GetAssembly(typeof(ContentReductionService)).Location;
                     TraceLogDirectory = Path.GetDirectoryName(fullPath);
                 }
 
                 string TraceLogFilePath = Path.Combine(TraceLogDirectory, $"QvReportReductionService_Trace_{DateTime.Now.ToString("yyyyMMdd-HHmmss")}.txt");
-                EventLog.WriteEntry($"Using Trace logging file {TraceLogFilePath}", EventLogEntryType.Warning);
+                EvtMsg += $"Using Trace logging file {Environment.NewLine}    {TraceLogFilePath}";
+                EventLog.WriteEntry(EvtMsg, EvtType);
 
                 CurrentTraceListener = new TextWriterTraceListener(Path.Combine(TraceLogDirectory, $"QvReportReductionService_Trace_{DateTime.Now.ToString("yyyyMMdd-HHmmss")}.txt"));
                 Trace.Listeners.Add(CurrentTraceListener);
