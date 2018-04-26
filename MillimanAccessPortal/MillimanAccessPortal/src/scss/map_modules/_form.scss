@@ -5,13 +5,9 @@ a,
     color: $blue;
     background-color: transparent;
 
-    &:hover {
-        color: darken( $blue, 10% );
-        text-decoration: underline;
-    }
-
-    &:visited {
-        color: darken( $blue, 50% );
+    &:hover, &:active {
+        color: darken( $blue, 15% );
+        text-decoration: none;
     }
 }
 
