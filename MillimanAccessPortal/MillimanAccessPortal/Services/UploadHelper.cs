@@ -58,16 +58,10 @@ namespace MillimanAccessPortal.Services
             }
             set
             {
-                if (pathSet == null)
-                {
-                    pathSet = new PathSet
-                    {
-                        Temp = Path.GetRandomFileName(),
-                        Chunk = value.UID,
-                        Concat = $"{Info.UID}.upload",
-                        Output = $"{Info.UID}{Info.FileExt}",
-                    };
-                }                
+                pathSet.Chunk = value.UID;
+                pathSet.Concat = $"{value.UID}.upload";
+                pathSet.Output = $"{value.UID}{value.FileExt}";
+
                 _info = value;
             }
         }
@@ -77,6 +71,10 @@ namespace MillimanAccessPortal.Services
             )
         {
             _fileProvider = fileProvider;
+            pathSet = new PathSet
+            {
+                Temp = Path.GetRandomFileName(),
+            };
         }
 
         /// <summary>
