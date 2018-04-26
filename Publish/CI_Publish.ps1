@@ -271,7 +271,15 @@ if ($? -eq $false)
 }
 else
 {
-    log_statement "Deployment slot $BranchName already exists"
+    log_statement "Deployment slot $BranchName already exists. Restarting to avoid file access conflicts."
+
+    Restart-AzureRmWebAppSlot -Name $webappname -Slot $BranchName -ResourceGroupName $ResourceGroupName
+
+    if ($? -eq $false)
+    {
+        log_statement "Failed to restart running web app slot. Deployment cannot be successful."
+        exit -1000
+    }
 }
 
 # Configure local Git deployment
@@ -506,14 +514,6 @@ if ($CredentialFound)
     }
 
     log_statement "Local script complete. Console output will be delayed until the remote deployment script is finished."
-
-    Restart-AzureRmWebAppSlot -Name $webappname -Slot $BranchName -ResourceGroupName $ResourceGroupName
-
-    if ($? -eq $false)
-    {
-        log_statement "Failed to restart running web app slot. Deployment cannot be successful."
-        exit -1000
-    }
 
     $command = "$gitExePath push ci_push `"HEAD:refs/heads/master`" --force 2>&1"
     $pushOutput = Invoke-Expression "&$command" | out-string
