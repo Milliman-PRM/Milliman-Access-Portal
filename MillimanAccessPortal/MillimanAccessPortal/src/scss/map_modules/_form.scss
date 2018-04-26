@@ -5,12 +5,7 @@ a,
     color: $blue;
     background-color: transparent;
 
-    &:hover {
-        color: darken( $blue, 15% );
-        text-decoration: none;
-    }
-
-    &:active {
+    &:hover, &:active {
         color: darken( $blue, 15% );
         text-decoration: none;
     }
