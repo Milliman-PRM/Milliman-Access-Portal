@@ -21,7 +21,7 @@ require('tooltipster/src/css/tooltipster.css');
 require('tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css');
 require('../scss/map.scss');
 
-var ajaxStatus: Dictionary<any>;
+var ajaxStatus: any = {};
 var eligibleUsers;
 var SHOW_DURATION = 50;
 
