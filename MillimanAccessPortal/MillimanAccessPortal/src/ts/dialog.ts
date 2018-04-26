@@ -1,23 +1,19 @@
-var $ = require('jquery');
-var vex = require('vex-js');
-var toastr = require('toastr');
+import $ = require('jquery');
+import toastr = require('toastr');
+import shared = require('./shared');
+const vex = require('vex-js');
 require('typeahead.js');
 
 require('vex-js/sass/vex.sass');
 require('vex-js/sass/vex-theme-default.sass');
 
-var dialog = {};
-
-var Dialog;
-var ConfirmationDialog;
-var DiscardConfirmationDialog;
-var ResetConfirmationDialog;
-var RemoveUserDialog;
-var DeleteSelectionGroupDialog;
-var PasswordDialog;
-var DeleteClientDialog;
-var AddUserDialog;
-var AddSelectionGroupDialog;
+// TODO: move to types file
+interface User {
+  UserName: string,
+  Email: string,
+  FirstName: string,
+  LastName: string,
+};
 
 
 // This is a duplicate of the function in shared
@@ -42,7 +38,7 @@ var userSubstringMatcher = function (users) {
 };
 
 
-Dialog = function (
+export function Dialog(
   title, message, buttons, color, input,
   callback, submitHandler
 ) {
@@ -90,7 +86,7 @@ Dialog.prototype.open = function () {
   if (this.afterOpen) this.afterOpen();
 };
 
-ConfirmationDialog = function (title, message, buttonText, callback) {
+export function ConfirmationDialog(title, message, buttonText, callback) {
   Dialog.call(
     this,
     title,
@@ -111,7 +107,7 @@ ConfirmationDialog = function (title, message, buttonText, callback) {
 ConfirmationDialog.prototype = Object.create(Dialog.prototype);
 ConfirmationDialog.prototype.constructor = ConfirmationDialog;
 
-DiscardConfirmationDialog = function (callback) {
+export function DiscardConfirmationDialog(callback) {
   ConfirmationDialog.call(
     this,
     'Discard Changes',
@@ -123,7 +119,7 @@ DiscardConfirmationDialog = function (callback) {
 DiscardConfirmationDialog.prototype = Object.create(ConfirmationDialog.prototype);
 DiscardConfirmationDialog.prototype.constructor = DiscardConfirmationDialog;
 
-ResetConfirmationDialog = function (callback) {
+export function ResetConfirmationDialog(callback) {
   ConfirmationDialog.call(
     this,
     'Reset Form',
@@ -135,7 +131,7 @@ ResetConfirmationDialog = function (callback) {
 ResetConfirmationDialog.prototype = Object.create(ConfirmationDialog.prototype);
 ResetConfirmationDialog.prototype.constructor = ResetConfirmationDialog;
 
-RemoveUserDialog = function (username, submitHandler) {
+export function RemoveUserDialog(username, submitHandler) {
   this.buttonText = 'Removing';
   Dialog.call(
     this,
@@ -154,7 +150,7 @@ RemoveUserDialog = function (username, submitHandler) {
 RemoveUserDialog.prototype = Object.create(Dialog.prototype);
 RemoveUserDialog.prototype.constructor = RemoveUserDialog;
 
-DeleteSelectionGroupDialog = function ($selectionGroup, submitHandler) {
+export function DeleteSelectionGroupDialog($selectionGroup, submitHandler) {
   Dialog.call(
     this,
     'Delete Selection Group',
@@ -173,7 +169,7 @@ DeleteSelectionGroupDialog = function ($selectionGroup, submitHandler) {
 DeleteSelectionGroupDialog.prototype = Object.create(Dialog.prototype);
 DeleteSelectionGroupDialog.prototype.constructor = DeleteSelectionGroupDialog;
 
-PasswordDialog = function (title, message, buttons, color, submitHandler) {
+export function PasswordDialog(title, message, buttons, color, submitHandler) {
   Dialog.call(
     this,
     title,
@@ -188,7 +184,7 @@ PasswordDialog = function (title, message, buttons, color, submitHandler) {
 PasswordDialog.prototype = Object.create(Dialog.prototype);
 PasswordDialog.prototype.constructor = PasswordDialog;
 
-DeleteClientDialog = function (clientName, clientId, submitHandler) {
+export function DeleteClientDialog(clientName, clientId, submitHandler) {
   var title = 'Delete Client';
   var buttons = [
     { type: vex.dialog.buttons.yes, text: 'Delete' },
@@ -220,7 +216,7 @@ DeleteClientDialog = function (clientName, clientId, submitHandler) {
 DeleteClientDialog.prototype = Object.create(Dialog.prototype);
 DeleteClientDialog.prototype.constructor = DeleteClientDialog;
 
-AddUserDialog = function (eligibleUsers, submitHandler) {
+export function AddUserDialog(eligibleUsers, submitHandler) {
   Dialog.call(
     this,
     'Add User',
@@ -244,11 +240,11 @@ AddUserDialog = function (eligibleUsers, submitHandler) {
       {
         name: 'eligibleUsers',
         source: userSubstringMatcher(eligibleUsers),
-        display: function (data) {
+        display: function (data: User) {
           return data.UserName;
         },
         templates: {
-          suggestion: function (data) {
+          suggestion: function (data: User) {
             return [
               '<div>',
               data.UserName + '',
@@ -269,7 +265,7 @@ AddUserDialog = function (eligibleUsers, submitHandler) {
 AddUserDialog.prototype = Object.create(Dialog.prototype);
 AddUserDialog.prototype.constructor = AddUserDialog;
 
-AddSelectionGroupDialog = function (submitHandler) {
+export function AddSelectionGroupDialog(submitHandler) {
   Dialog.call(
     this,
     'Add Selection Group',
@@ -289,14 +285,3 @@ AddSelectionGroupDialog = function (submitHandler) {
 };
 AddSelectionGroupDialog.prototype = Object.create(Dialog.prototype);
 AddSelectionGroupDialog.prototype.constructor = AddSelectionGroupDialog;
-
-
-dialog.DiscardConfirmationDialog = DiscardConfirmationDialog;
-dialog.ResetConfirmationDialog = ResetConfirmationDialog;
-dialog.RemoveUserDialog = RemoveUserDialog;
-dialog.DeleteSelectionGroupDialog = DeleteSelectionGroupDialog;
-dialog.DeleteClientDialog = DeleteClientDialog;
-dialog.AddUserDialog = AddUserDialog;
-dialog.AddSelectionGroupDialog = AddSelectionGroupDialog;
-
-module.exports = dialog;

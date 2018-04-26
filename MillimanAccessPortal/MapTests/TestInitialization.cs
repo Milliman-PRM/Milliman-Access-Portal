@@ -29,9 +29,10 @@ using QlikviewLib;
 using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography.X509Certificates;
 using AuditLogLib;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using MillimanAccessPortal.Services;
+using System.IO;
+using MillimanAccessPortal.Models.ContentPublicationViewModels;
 
 namespace MapTests
 {
@@ -66,7 +67,10 @@ namespace MapTests
         public Mock<IMessageQueue> MockMessageQueueService { get; set; }
         public IMessageQueue MessageQueueServicesObject { get => MockMessageQueueService.Object; }
 
-        public IOptions<QlikviewConfig> QvConfig { get; set; }
+        public Mock<IUploadHelper> MockUploadHelper { get; set; }
+        public IUploadHelper UploadHelperObject { get => MockUploadHelper.Object; }
+
+        public IOptions<QlikviewConfig> QvConfig { get { return BuildQvConfig(); } }
 
         public DefaultAuthorizationService AuthorizationService { get; set; }
 
@@ -79,6 +83,7 @@ namespace MapTests
         /// Associates each DataSelection enum value with the function that implements it
         /// </summary>
         private Dictionary<DataSelection, Action> DataGenFunctionDict;
+        private string TestDataPath = Path.GetFullPath("../../../TestData");
 
         /// <summary>
         /// Constructor, initiates construction of functional but empty dependencies
@@ -137,10 +142,10 @@ namespace MapTests
             MockUserManager = MapTests.MockUserManager.New(MockDbContext);
             MockRoleManager = GenerateRoleManager(MockDbContext);
             MockMessageQueueService = GenerateMessageQueueService();
+            MockUploadHelper = GenerateUploadHelper();
             LoggerFactory = new LoggerFactory();
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject);
-            QvConfig = BuildQvConfig();
             MockAuditLogger = GenerateAuditLogger();
         }
 
@@ -167,15 +172,15 @@ namespace MapTests
                         built["AzureClientID"],
                         cert.OfType<X509Certificate2>().Single());
                     break;
-                    
+
                 default: // Get connection string from user secrets in Development (ASPNETCORE_ENVIRONMENT is not set during local unit tests)
                     configurationBuilder.AddUserSecrets<TestInitialization>();
                     break;
             }
 
             var configuration = configurationBuilder.Build();
-            
-            return Options.Create<QlikviewConfig>(new QlikviewConfig
+
+            return Options.Create(new QlikviewConfig
             {
                 QvServerHost = configuration["QvServerHost"],
                 QvServerAdminUserAuthenticationDomain = configuration["QvServerAdminUserAuthenticationDomain"],
@@ -283,9 +288,38 @@ namespace MapTests
             return ReturnObject;
         }
 
+        private Mock<IUploadHelper> GenerateUploadHelper()
+        {
+            Mock<IUploadHelper> mock = new Mock<IUploadHelper>();
+
+            ResumableInfo resumableInfo = null;
+            mock.Setup(m => m.GetUploadStatus(It.IsAny<ResumableInfo>())).Returns<ResumableInfo>((x) =>
+            {
+                var chunkDirInfo = new DirectoryInfo(Path.Combine(TestDataPath, "Uploads", x.UID));
+                var receivedChunks = new List<uint>();
+
+                if (chunkDirInfo.Exists)
+                {
+                    receivedChunks.AddRange(chunkDirInfo.EnumerateFiles()
+                        .Where(f => f.Exists && f.Length == x.ChunkSize)
+                        .Select(f => Convert.ToUInt32(f.Name.Split('.')[0])));
+                }
+
+                return receivedChunks;
+            });
+            mock.Setup(m => m.OpenTempFile()).Returns(Stream.Null);
+            mock.Setup(m => m.FinalizeUpload(It.IsAny<ResumableInfo>()));
+            mock.Setup(m => m.GetOutputFilePath()).Returns(() =>
+            {
+                return Path.Combine(TestDataPath, $"{resumableInfo.UID}{resumableInfo.FileExt}");
+            });
+
+            return mock;
+        }
+
         private Mock<AuditLogger> GenerateAuditLogger()
         {
-            AuditLogLib.AuditLogger.Config = new AuditLogLib.AuditLoggerConfiguration { AuditLogConnectionString = "" };
+            AuditLogLib.AuditLogger.Config = new AuditLoggerConfiguration { AuditLogConnectionString = "" };
             Mock<AuditLogger> ReturnObject = new Mock<AuditLogger>();
             ReturnObject.Setup(al => al.Log(It.IsAny<AuditEvent>())).Callback(() => { });
 
@@ -508,6 +542,7 @@ namespace MapTests
                 new UserRoleInRootContentItem { Id=3, RoleId=5, UserId=5, RootContentItemId=3 },
                 new UserRoleInRootContentItem { Id=4, RoleId=3, UserId=5, RootContentItemId=3 },
                 new UserRoleInRootContentItem { Id=5, RoleId=5, UserId=6, RootContentItemId=3 },
+                new UserRoleInRootContentItem { Id=1, RoleId=4, UserId=1, RootContentItemId=1 },
             });
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInRootContentItem, "RoleId", DbContextObject.ApplicationRole);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInRootContentItem, "UserId", DbContextObject.ApplicationUser);

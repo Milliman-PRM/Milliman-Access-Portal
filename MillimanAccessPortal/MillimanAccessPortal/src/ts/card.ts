@@ -1,22 +1,6 @@
-var shared = require('./shared');
+import shared = require('./shared');
 
 var card = {};
-
-// Helper function declarations
-var toAttr;
-
-// classes
-var Card;
-var ActionCard;
-var AddClientActionCard;
-var AddUserActionCard;
-var AddSelectionGroupActionCard;
-var InsertCard;
-var AddChildInsertCard;
-var ClientCard;
-var RootContentItemCard;
-var SelectionGroupCard;
-var UserCard;
 
 var cardLayout = {
   card: {
@@ -404,7 +388,7 @@ var components = Object.assign(
       render: function (component) {
         return function () {
           this.verify(component);
-          this.click(component, shared.toggleExpanded.listener, '.card-button-background');
+          this.click(component, shared.toggleExpandedListener, '.card-button-background');
           this.tooltip(component, 'Expand card', '.card-button-background');
         };
       }
@@ -432,7 +416,7 @@ var components = Object.assign(
 
 
 // Helper function definitions
-toAttr = function (data) {
+function toAttr(data) {
   var attrs = {};
   Object.keys(data).forEach(function (key) {
     if (Object.hasOwnProperty.call(data, key)) {
@@ -443,7 +427,7 @@ toAttr = function (data) {
 };
 
 // Class definitions
-Card = function (representation) {
+export function Card(representation) {
   this.components = [];
   this.data = {};
   this.callback = function () {};
@@ -583,7 +567,7 @@ Card.prototype.add = function (component, partialPath) {
 };
 
 
-ActionCard = function (icon, text, callback) {
+export function ActionCard(icon, text, callback) {
   Card.call(this);
 
   this.addComponent('body', {
@@ -598,25 +582,25 @@ ActionCard = function (icon, text, callback) {
 ActionCard.prototype = Object.create(Card.prototype);
 ActionCard.prototype.constructor = ActionCard;
 
-AddClientActionCard = function (callback) {
+export function AddClientActionCard(callback) {
   ActionCard.call(this, 'add', 'New Client', callback);
 };
 AddClientActionCard.prototype = Object.create(ActionCard.prototype);
 AddClientActionCard.prototype.constructor = AddClientActionCard;
 
-AddUserActionCard = function (callback) {
+export function AddUserActionCard(callback) {
   ActionCard.call(this, 'add', 'Add User', callback);
 };
 AddUserActionCard.prototype = Object.create(ActionCard.prototype);
 AddUserActionCard.prototype.constructor = AddUserActionCard;
 
-AddSelectionGroupActionCard = function (callback) {
+export function AddSelectionGroupActionCard(callback) {
   ActionCard.call(this, 'add', 'Add Selection Group', callback);
 };
 AddSelectionGroupActionCard.prototype = Object.create(ActionCard.prototype);
 AddSelectionGroupActionCard.prototype.constructor = AddSelectionGroupActionCard;
 
-InsertCard = function (icon, text, level, callback) {
+export function InsertCard(icon, text, level, callback) {
   Card.call(this);
 
   this.addComponent('card', {
@@ -638,16 +622,16 @@ InsertCard = function (icon, text, level, callback) {
 InsertCard.prototype = Object.create(Card.prototype);
 InsertCard.prototype.constructor = InsertCard;
 
-AddChildInsertCard = function (level, callback) {
+export function AddChildInsertCard(level, callback?) {
   InsertCard.call(this, 'expand-card', 'New Sub-Client', level, callback);
 };
 AddChildInsertCard.prototype = Object.create(InsertCard.prototype);
 AddChildInsertCard.prototype.constructor = AddChildInsertCard;
 
 
-ClientCard = function (
+export function ClientCard(
   client, userCount, reportCount, level,
-  callback, deleteCallback, editCallback, newChildCallback
+  callback, deleteCallback?, editCallback?, newChildCallback?
 ) {
   Card.call(this);
 
@@ -691,7 +675,7 @@ ClientCard = function (
 ClientCard.prototype = Object.create(Card.prototype);
 ClientCard.prototype.constructor = ClientCard;
 
-RootContentItemCard = function (
+export function RootContentItemCard(
   rootContentItem, groupCount, userCount,
   callback
 ) {
@@ -724,7 +708,7 @@ RootContentItemCard = function (
 RootContentItemCard.prototype = Object.create(Card.prototype);
 RootContentItemCard.prototype.constructor = RootContentItemCard;
 
-SelectionGroupCard = function (
+export function SelectionGroupCard(
   selectionGroup, members,
   callback, deleteCallback, userCallback
 ) {
@@ -755,7 +739,7 @@ SelectionGroupCard = function (
     tooltip: 'Add/remove users',
     callback: userCallback
   });
-  this.addComponent('statistics', { click: shared.toggleExpanded.listener });
+  this.addComponent('statistics', { click: shared.toggleExpandedListener });
   if (members.length) {
     this.addComponent('detailText', { text: 'Members' });
   }
@@ -774,7 +758,7 @@ SelectionGroupCard = function (
 SelectionGroupCard.prototype = Object.create(Card.prototype);
 SelectionGroupCard.prototype.constructor = SelectionGroupCard;
 
-UserCard = function (
+export function UserCard(
   user, client,
   roleCallback, removeCallback
 ) {
@@ -819,26 +803,7 @@ UserCard = function (
     'user-id': user.Id,
     'client-id': client.Id
   };
-  this.callback = shared.toggleExpanded.listener;
+  this.callback = shared.toggleExpandedListener;
 };
 UserCard.prototype = Object.create(Card.prototype);
 UserCard.prototype.constructor = UserCard;
-
-card.setStatus = function ($card) {
-
-};
-
-// Add cards to global card object
-card.Card = Card;
-card.ActionCard = ActionCard;
-card.AddClientActionCard = AddClientActionCard;
-card.AddUserActionCard = AddUserActionCard;
-card.AddSelectionGroupActionCard = AddSelectionGroupActionCard;
-card.InsertCard = InsertCard;
-card.AddChildInsertCard = AddChildInsertCard;
-card.ClientCard = ClientCard;
-card.RootContentItemCard = RootContentItemCard;
-card.SelectionGroupCard = SelectionGroupCard;
-card.UserCard = UserCard;
-
-module.exports = card;

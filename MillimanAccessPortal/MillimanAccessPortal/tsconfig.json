@@ -1,21 +1,24 @@
 {
   "compilerOptions": {
-    "allowJs": true,
     "lib": [
-      "es2015"
+      "dom",
+      "es2015",
+      "es2016",
+      "es5",
+      "scripthost"
     ],
     "noImplicitAny": false,
     "sourceMap": true,
-    "target": "es5"
-  },
-  "awesomeTypescriptLoaderOptions": {
-    "errorsAsWarnings": true
+    "target": "es5",
+    "outDir": "src/js",
+    "module": "commonjs"
   },
   "include": [
-    "src/**/*"
+    "src/ts/*"
   ],
   "exclude": [
     "node_modules",
-    "**/*.test.ts"
+    "**/__tests__/*",
+    "src/browser_tests"
   ]
 }

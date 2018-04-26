@@ -1,7 +1,7 @@
-var $ = require('jquery');
-var toastr = require('toastr');
-var vex = require('vex-js');
+import $ = require('jquery');
+import toastr = require('toastr');
 require('./lib-options');
+import vex = require('vex-js');
 
 require('bootstrap/scss/bootstrap-reboot.scss');
 require('toastr/toastr.scss');
@@ -28,7 +28,7 @@ function submitForm() {
       message: formMessage
     },
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
     }
   }).done(function onDone() {
     toastr.success('Your message has been sent');
