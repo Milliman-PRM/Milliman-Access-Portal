@@ -24,22 +24,10 @@ namespace MillimanAccessPortal
 
                 #region Initialize global expressions
                 IConfiguration Configuration = serviceProvider.GetService<IConfiguration>();
-                if (!string.IsNullOrWhiteSpace(Configuration.GetValue<string>("Global:DomainValidationRegex")))
-                {
-                    GlobalFunctions.domainValRegex = Configuration.GetValue<string>("Global:DomainValidationRegex");
-                }
-                if (!string.IsNullOrWhiteSpace(Configuration.GetValue<string>("Global:EmailValidationRegex")))
-                {
-                    GlobalFunctions.emailValRegex = Configuration.GetValue<string>("Global:EmailValidationRegex");
-                }
-                try
-                {
-                    GlobalFunctions.maxFileUploadSize = Configuration.GetValue<ulong>("Global:MaxFileUploadSize");
-                }
-                catch (InvalidOperationException)
-                {
-                    // The value could not be read, fall back on the default value
-                }
+
+                GlobalFunctions.domainValRegex = Configuration.GetValue("Global:DomainValidationRegex", GlobalFunctions.domainValRegex);
+                GlobalFunctions.emailValRegex = Configuration.GetValue("Global:EmailValidationRegex", GlobalFunctions.emailValRegex);
+                GlobalFunctions.maxFileUploadSize = Configuration.GetValue("Global:MaxFileUploadSize", GlobalFunctions.maxFileUploadSize);
                 #endregion
 
                 try

@@ -48,7 +48,7 @@ namespace MillimanAccessPortal.Services
         }
 
         private readonly IFileProvider _fileProvider;
-        private PathSet pathSet { get; set; } = null;
+        private PathSet _pathSet { get; set; } = null;
         private ResumableInfo _info = null;
         private ResumableInfo Info
         {
@@ -58,9 +58,9 @@ namespace MillimanAccessPortal.Services
             }
             set
             {
-                pathSet.Chunk = value.UID;
-                pathSet.Concat = $"{value.UID}.upload";
-                pathSet.Output = $"{value.UID}{value.FileExt}";
+                _pathSet.Chunk = value.UID;
+                _pathSet.Concat = $"{value.UID}.upload";
+                _pathSet.Output = $"{value.UID}{value.FileExt}";
 
                 _info = value;
             }
@@ -71,7 +71,7 @@ namespace MillimanAccessPortal.Services
             )
         {
             _fileProvider = fileProvider;
-            pathSet = new PathSet
+            _pathSet = new PathSet
             {
                 Temp = Path.GetRandomFileName(),
             };
@@ -89,11 +89,11 @@ namespace MillimanAccessPortal.Services
         public List<uint> GetUploadStatus(ResumableInfo resumableInfo)
         {
             var receivedChunks = new List<uint>();
-            var chunkDirInfo = _fileProvider.GetFileInfo(pathSet.Chunk);
+            var chunkDirInfo = _fileProvider.GetFileInfo(_pathSet.Chunk);
 
             if (chunkDirInfo.Exists && chunkDirInfo.IsDirectory)
             {
-                receivedChunks.AddRange(_fileProvider.GetDirectoryContents(pathSet.Chunk)
+                receivedChunks.AddRange(_fileProvider.GetDirectoryContents(_pathSet.Chunk)
                     .Where(f => f.Exists && f.Length == resumableInfo.ChunkSize)
                     .Select(f => Convert.ToUInt32(f.Name.Split('.')[0])));
             }
@@ -110,7 +110,7 @@ namespace MillimanAccessPortal.Services
         /// <returns>A Stream to the new temporary file</returns>
         public Stream OpenTempFile()
         {
-            return File.Create(_fileProvider.GetFileInfo(pathSet.Temp).PhysicalPath);
+            return File.Create(_fileProvider.GetFileInfo(_pathSet.Temp).PhysicalPath);
         }
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace MillimanAccessPortal.Services
         {
             Info = resumableInfo;
 
-            var tempFileInfo = _fileProvider.GetFileInfo(pathSet.Temp);
+            var tempFileInfo = _fileProvider.GetFileInfo(_pathSet.Temp);
 
             // Expect the chunk to have been uploaded
             if (!tempFileInfo.Exists)
@@ -141,9 +141,9 @@ namespace MillimanAccessPortal.Services
                 throw new FileUploadException(StatusCodes.Status400BadRequest, "Uploaded chunk is not expected size.");
             }
 
-            var tempFilePath = _fileProvider.GetFileInfo(pathSet.Temp).PhysicalPath;
-            var chunkFilePath = _fileProvider.GetFileInfo(pathSet.ChunkFilePath(Info.ChunkNumber)).PhysicalPath;
-            var chunkDirPath = _fileProvider.GetFileInfo(pathSet.Chunk).PhysicalPath;
+            var tempFilePath = _fileProvider.GetFileInfo(_pathSet.Temp).PhysicalPath;
+            var chunkFilePath = _fileProvider.GetFileInfo(_pathSet.ChunkFilePath(Info.ChunkNumber)).PhysicalPath;
+            var chunkDirPath = _fileProvider.GetFileInfo(_pathSet.Chunk).PhysicalPath;
 
             if (File.Exists(chunkFilePath))
             {
@@ -153,7 +153,7 @@ namespace MillimanAccessPortal.Services
             File.Move(tempFilePath, chunkFilePath);
 
             // Chunk was finalized properly; do not delete chunk directory in Dispose()
-            pathSet.Chunk = null;
+            _pathSet.Chunk = null;
         }
 
         /// <summary>
@@ -165,17 +165,17 @@ namespace MillimanAccessPortal.Services
             Info = resumableInfo;
 
             // Make sure the expected and actual number of chunks match
-            if (_fileProvider.GetDirectoryContents(pathSet.Chunk).Count() != Info.TotalChunks)
+            if (_fileProvider.GetDirectoryContents(_pathSet.Chunk).Count() != Info.TotalChunks)
             {
                 throw new FileUploadException(StatusCodes.Status400BadRequest, "Number of uploaded chunks did not match expectation.");
             }
 
             #region Concatenate chunks
-            var concatenationFilePath = _fileProvider.GetFileInfo(pathSet.Concat).PhysicalPath;
+            var concatenationFilePath = _fileProvider.GetFileInfo(_pathSet.Concat).PhysicalPath;
             using (var concatenationStream = File.OpenWrite(concatenationFilePath))
             {
                 var chunkFilePaths = Enumerable.Range(1, Convert.ToInt32(Info.TotalChunks))
-                    .Select(chunkNumber => pathSet.ChunkFilePath(((uint) chunkNumber)));
+                    .Select(chunkNumber => _pathSet.ChunkFilePath(((uint) chunkNumber)));
                 foreach (var chunkFilePath in chunkFilePaths)
                 {
                     var chunkFilePathPhysical = _fileProvider.GetFileInfo(chunkFilePath).PhysicalPath;
@@ -186,7 +186,7 @@ namespace MillimanAccessPortal.Services
                     File.Delete(chunkFilePathPhysical);
                 }
             }
-            var chunkDirPath = _fileProvider.GetFileInfo(pathSet.Chunk).PhysicalPath;
+            var chunkDirPath = _fileProvider.GetFileInfo(_pathSet.Chunk).PhysicalPath;
             Directory.Delete(chunkDirPath);
             #endregion
 
@@ -198,7 +198,7 @@ namespace MillimanAccessPortal.Services
             }
 
             // Rename the file with proper extension - this makes it visible to the virus scanner
-            var outputFilePath = _fileProvider.GetFileInfo(pathSet.Output).PhysicalPath;
+            var outputFilePath = _fileProvider.GetFileInfo(_pathSet.Output).PhysicalPath;
             if (File.Exists(outputFilePath))
             {
                 File.Delete(outputFilePath);
@@ -214,7 +214,7 @@ namespace MillimanAccessPortal.Services
         public string GetOutputFilePath()
         {
             return (Info != null)
-                ? _fileProvider.GetFileInfo(pathSet.Output).PhysicalPath
+                ? _fileProvider.GetFileInfo(_pathSet.Output).PhysicalPath
                 : null;
         }
 
@@ -223,7 +223,7 @@ namespace MillimanAccessPortal.Services
         /// </summary>
         public void Dispose()
         {
-            foreach (var path in pathSet)
+            foreach (var path in _pathSet)
             {
                 var fileInfo = _fileProvider.GetDirectoryContents("/")
                     .Where(i => i.Name == path)
