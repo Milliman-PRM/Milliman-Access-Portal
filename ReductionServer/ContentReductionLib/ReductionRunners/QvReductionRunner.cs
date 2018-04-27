@@ -47,7 +47,9 @@ namespace ContentReductionLib.ReductionRunners
 
         private ServiceInfo QdsServiceInfo { get; set; } = null;
 
-        private string MasterFileName { get { return "Master.qvw"; } }
+        private string MasterFileName { get { return Path.GetFileName(JobDetail.Request.MasterFilePath); } }
+
+        private string ReducedFileName { get { return Path.ChangeExtension(MasterFileName, $".reduced{Path.GetExtension(MasterFileName)}"); } }
 
         private DocumentNode MasterDocumentNode { get; set; } = null;
 
@@ -358,8 +360,18 @@ namespace ContentReductionLib.ReductionRunners
                     Trace.WriteLine(Msg);
                     throw new ApplicationException(Msg);
                 }
+            }
 
-                // It is not an error if selected values do not exist in the extracted hierarchy for fields that do exist
+            // Validate that there is at least one selected value that exists in the hierarchy. 
+            if (!JobDetail.Request.SelectionCriteria.Any(s => s.Selected &&
+                                                              JobDetail.Result.MasterContentHierarchy.Fields.Any(f => f.FieldName == s.FieldName && f.FieldValues.Contains(s.FieldValue))))
+            {
+                string Msg = $"No requested selections exist in the master hierarchy";
+                object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), RequestesSelections = JobDetail.Request.SelectionCriteria, Error = Msg };
+                AuditEvent Event = AuditEvent.New("Reduction server", "Creation of reduced content file failed", AuditEventId.ContentReductionFailed, DetailObj);
+                AuditLog.Log(Event);
+                Trace.WriteLine(Msg);
+                throw new ApplicationException(Msg);
             }
 
             // Create Qlikview publisher (QDS) task
@@ -371,11 +383,11 @@ namespace ContentReductionLib.ReductionRunners
             // Clean up
             await DeleteQdsTask(Info);
 
-            ReducedDocumentNode = await GetSourceDocumentNode(Path.GetFileNameWithoutExtension(MasterFileName) + ".reduced.qvw", WorkingFolderRelative);
+            ReducedDocumentNode = await GetSourceDocumentNode(ReducedFileName, WorkingFolderRelative);
 
             if (ReducedDocumentNode == null)
             {
-                Trace.WriteLine($"Failed to get DocumentNode for file {Path.GetFileNameWithoutExtension(MasterFileName) + ".reduced.qvw"} in folder {SourceDocFolder.General.Path}\\{WorkingFolderRelative}");
+                Trace.WriteLine($"Failed to get DocumentNode for file {ReducedFileName} in folder {SourceDocFolder.General.Path}\\{WorkingFolderRelative}");
             }
 
             Trace.WriteLine($"Task {JobDetail.TaskId.ToString()} completed CreateReducedContent");
@@ -389,8 +401,7 @@ namespace ContentReductionLib.ReductionRunners
             string ApplicationDataExchangeFolder = Path.GetDirectoryName(JobDetail.Request.MasterFilePath);
             string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
 
-            string FileNamePattern = $"{Path.GetFileNameWithoutExtension(MasterFileName)}.reduced*{Path.GetExtension(MasterFileName)}";
-            string ReducedFile = Directory.GetFiles(WorkingFolderAbsolute, FileNamePattern).Single();
+            string ReducedFile = Directory.GetFiles(WorkingFolderAbsolute, ReducedFileName).Single();
             string CopyDestinationPath = Path.Combine(ApplicationDataExchangeFolder, Path.GetFileName(ReducedFile));
 
             File.Copy(ReducedFile, CopyDestinationPath, true);
@@ -542,7 +553,7 @@ namespace ContentReductionLib.ReductionRunners
 
             NewDocumentTask.Scope |= QmsApi.DocumentTaskScope.Reduce;
             NewDocumentTask.Reduce = new QmsApi.DocumentTask.TaskReduce();
-            NewDocumentTask.Reduce.DocumentNameTemplate = Path.GetFileNameWithoutExtension(MasterFileName) + ".reduced";
+            NewDocumentTask.Reduce.DocumentNameTemplate = Path.GetFileNameWithoutExtension(ReducedFileName);
             NewDocumentTask.Reduce.Static = new QmsApi.DocumentTask.TaskReduce.TaskReduceStatic();
             NewDocumentTask.Reduce.Static.Reductions = new QmsApi.TaskReduction[NumSelectedValues];
 
