@@ -125,6 +125,60 @@ namespace ContentReductionServiceTests
                 SelectionCriteria = JsonConvert.SerializeObject(InvalidFieldValueObject, Formatting.Indented),
             });
 
+            ContentReductionHierarchy<ReductionFieldValueSelection> OneValidAndOneInvalidFieldValueObject = new ContentReductionHierarchy<ReductionFieldValueSelection>
+            {
+                RootContentItemId = 1,
+                Fields = new List<ReductionField<ReductionFieldValueSelection>>
+                {
+                    new ReductionField<ReductionFieldValueSelection>
+                    {
+                        FieldName = "Assigned Provider Clinic (Hier)",
+                        DisplayName = "Assigned Provider Clinic (Hier)",
+                        StructureType = FieldStructureType.Tree,
+                        ValueDelimiter = "|",
+                        Id = 1,
+                        Values = new ReductionFieldValueSelection[]
+                        {
+                            new ReductionFieldValueSelection
+                            {
+                                Id = 1,
+                                Value = "Invalid selection value",
+                                SelectionStatus = true,
+                            },
+                        },
+                    },
+                    new ReductionField<ReductionFieldValueSelection>
+                    {
+                        FieldName = "Assigned Provider Clinic (Hier)",
+                        DisplayName = "Assigned Provider Clinic (Hier)",
+                        StructureType = FieldStructureType.Tree,
+                        ValueDelimiter = "|",
+                        Id = 1,
+                        Values = new ReductionFieldValueSelection[]
+                        {
+                            new ReductionFieldValueSelection
+                            {
+                                Id = 1,
+                                Value = "Assigned Provider Clinic (Hier) 4025",
+                                SelectionStatus = true,
+                            },
+                        },
+                    },
+                }
+            };
+            // One Valid, one invalid field value
+            Db.Object.ContentReductionTask.Add(new ContentReductionTask
+            {
+                Id = new Guid(3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3),
+                TaskAction = TaskActionEnum.HierarchyAndReduction,
+                CreateDateTime = DateTime.UtcNow,
+                MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
+                SelectionGroupId = 1,
+                MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
+                ReductionStatus = ReductionStatusEnum.Unspecified,
+                SelectionCriteria = JsonConvert.SerializeObject(OneValidAndOneInvalidFieldValueObject, Formatting.Indented),
+            });
+
             ContentReductionHierarchy<ReductionFieldValueSelection> InvalidFieldNameObject = new ContentReductionHierarchy<ReductionFieldValueSelection>
             {
                 RootContentItemId = 1,
@@ -142,7 +196,7 @@ namespace ContentReductionServiceTests
                             new ReductionFieldValueSelection
                             {
                                 Id = 1,
-                                Value = "Whatever value",
+                                Value = "Invalid value",
                                 SelectionStatus = true,
                             },
                         },
@@ -152,7 +206,7 @@ namespace ContentReductionServiceTests
             // Invalid field name
             Db.Object.ContentReductionTask.Add(new ContentReductionTask
             {
-                Id = new Guid(3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3),
+                Id = new Guid(4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTime = DateTime.UtcNow,
                 MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",

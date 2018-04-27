@@ -2,9 +2,6 @@
 using System.Security.Cryptography;
 using System.IO;
 using System.Reflection;
-using System.Collections.Generic;
-using System.Text;
-using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 
 namespace MapCommonLib
