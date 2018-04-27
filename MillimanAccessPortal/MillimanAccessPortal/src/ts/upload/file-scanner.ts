@@ -1,5 +1,3 @@
-import forge = require('node-forge');
-
 interface FileReaderOnLoadEventTarget extends EventTarget {
   result: BinaryType;
 }
@@ -30,8 +28,10 @@ export class FileScanner {
   constructor(readonly chunkSize: number = 2 ** 20) {
     this.reader = new FileReader();
   }
-  public scan(file: File, chunkLoadedCallback: (result: any) => void) {
+  public open(file: File) {
     this.slicer = new FileSlicer(file, this.chunkSize);
+  }
+  public scan(chunkLoadedCallback: (result: any) => void) {
     this.active = true;
     return new Promise((resolve, reject) => {
       this.reader.onload = (event) => {

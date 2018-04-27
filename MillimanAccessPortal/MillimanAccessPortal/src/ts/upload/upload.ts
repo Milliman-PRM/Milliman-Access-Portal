@@ -91,7 +91,13 @@ abstract class Upload {
       this.cancelable = true;
       this.selectFileNameElement(this.rootElement).innerHTML = file.fileName;
 
+      this.renderUploadProgress({
+        percentage: '0%',
+        rate: '',
+        remainingTime: '',
+      });
       const message = forge.md.sha1.create();
+      this.scanner.open(file.file);
       this.monitor = new ProgressMonitor(
         () => this.scanner.progress,
         this.renderChecksumProgress.bind(this),
@@ -99,7 +105,7 @@ abstract class Upload {
       );
       this.monitor.monitor();
       try {
-        await this.scanner.scan(file.file, message.update);
+        await this.scanner.scan(message.update);
       } catch {
         // Upload was canceled
         return

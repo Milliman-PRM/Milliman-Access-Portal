@@ -27,12 +27,7 @@ export class ProgressMonitor {
     this.snapshot = new RetainedValue(8);
     this.rate = new RetainedValue(4);
     this.remainingTime = new RetainedValue(1);
-    this.monitorInterval = ((size: number) => {
-      const minInterval = 0;
-      const maxInterval = 1000;
-      const factor = 500000; // pick a number that makes bar look smooth
-      return Math.min(Math.max(size / factor, minInterval), maxInterval);
-    })(this.fileSize);
+    this.monitorInterval = 1000;
 
     this._monitor = this._monitor.bind(this);
   }
