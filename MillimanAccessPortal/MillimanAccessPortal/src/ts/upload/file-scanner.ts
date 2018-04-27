@@ -1,5 +1,5 @@
 interface FileReaderOnLoadEventTarget extends EventTarget {
-  result: BinaryType;
+  result: Blob | ArrayBuffer;
 }
 
 class FileSlicer {

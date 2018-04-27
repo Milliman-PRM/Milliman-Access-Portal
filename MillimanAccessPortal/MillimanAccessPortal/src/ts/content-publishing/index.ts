@@ -1,13 +1,13 @@
 import $ = require('jquery');
 import toastr = require('toastr');
 import { randomBytes } from 'crypto';
-import { FileUploadCard } from './card';
-import { PublicationUpload, PublicationComponent, PublicationComponentInfo } from './upload/upload';
-require('./navbar');
+import { FileUploadCard } from '../card';
+import { PublicationUpload, PublicationComponent, PublicationComponentInfo } from './publication-upload';
+require('../navbar');
 
 import 'bootstrap/scss/bootstrap-reboot.scss';
 import 'toastr/toastr.scss';
-import '../scss/map.scss';
+import '../../scss/map.scss';
 
 
 function setUnloadAlert(value: boolean) {
