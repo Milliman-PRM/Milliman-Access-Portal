@@ -15,7 +15,7 @@ class FileSlicer {
     return this.offset >= this.file.size;
   }
   public get progress(): number {
-    return this.offset / this.file.size;
+    return Math.min(this.offset / this.file.size, 1);
   }
 }
 
@@ -36,14 +36,15 @@ export class FileScanner {
     return new Promise((resolve, reject) => {
       this.reader.onload = (event) => {
         if (!this.active) {
-          reject();
+          this.slicer = undefined;
+          reject('Scan cancelled');
           return;
         }
         const chunk = (event.target as FileReaderOnLoadEventTarget).result;
         chunkLoadedCallback(chunk);
         if (this.slicer.isEmpty()) {
           this.active = false;
-          resolve();
+          resolve(this.slicer.file.size);
         } else {
           this.reader.readAsBinaryString(this.slicer.next());
         }
@@ -59,6 +60,5 @@ export class FileScanner {
   }
   public cancel() {
     this.active = false;
-    this.slicer = undefined;
   }
 }

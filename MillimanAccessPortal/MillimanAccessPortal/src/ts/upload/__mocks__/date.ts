@@ -1,4 +1,4 @@
-const ORIGIN = 1577836800000;
+const ORIGIN = 1577836800000; // Jan 1, 2020 GMT
 const OFFSET = 1000;
 
 export class MockDate {
