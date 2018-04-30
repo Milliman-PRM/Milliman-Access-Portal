@@ -19,4 +19,10 @@
     <ProjectReference Include="..\ContentReductionLib\ContentReductionLib.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
