@@ -147,7 +147,6 @@ namespace MapTests
             LoggerFactory = new LoggerFactory();
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject);
-            QvConfig = BuildQvConfig();
             MockAuditLogger = TestResourcesLib.MockAuditLogger.New();
         }
 
