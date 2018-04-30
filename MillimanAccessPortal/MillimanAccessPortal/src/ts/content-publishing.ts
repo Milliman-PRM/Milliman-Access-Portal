@@ -13,7 +13,6 @@ import 'tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css'
 import 'vex-js/sass/vex.sass';
 import '../scss/map.scss';
 import { randomBytes } from 'crypto';
-const appSettings = require('../../appsettings.json');
 
 
 let publicationGUID: string;
