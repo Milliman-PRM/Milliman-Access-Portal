@@ -26,7 +26,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapCommonLib", "..\Milliman
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestResourcesLib", "..\MillimanAccessPortal\TestResourcesLib\TestResourcesLib.csproj", "{89C79317-CCA1-456F-B7C7-0E20D3C3CCE3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContentReductionServiceTests", "ContentReductionServiceTests\ContentReductionServiceTests.csproj", "{5E711B9C-7E55-4B3B-8411-CA13D3D83B96}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContentReductionServiceTests", "ContentReductionServiceTests\ContentReductionServiceTests.csproj", "{5E711B9C-7E55-4B3B-8411-CA13D3D83B96}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
