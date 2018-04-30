@@ -174,11 +174,13 @@ namespace ContentReductionLib
                 throw new NullReferenceException("Attempting to construct new ApplicationDbContext but connection string not initialized");
             }
 
-            return Task.Run(() => JobMonitorThreadMain(Token));
+            return Task.Run(() => JobMonitorThreadMain(Token), Token);
         }
 
         /// <summary>
         /// Main long running thread of the job monitor
+        /// TODO It should not be necessary to pass the cancellation token here since the Task.Run method has the token as second argument. 
+        /// Follow up when there is an answer at: https://github.com/dotnet/docs/issues/5085
         /// </summary>
         /// <param name="Token"></param>
         public override void JobMonitorThreadMain(CancellationToken Token)
@@ -215,7 +217,7 @@ namespace ContentReductionLib
                                     Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
                                 }
 
-                                NewTask = Task.Run(() => Runner.Execute(cancelSource.Token));
+                                NewTask = Task.Run(() => Runner.Execute(cancelSource.Token), cancelSource.Token);
                                 break;
 
                             default:
@@ -233,38 +235,37 @@ namespace ContentReductionLib
                 Thread.Sleep(1000);
             }
 
-            if (ActiveReductionRunnerItems.Count == 0)
+            Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} stopping {ActiveReductionRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
+
+            if (ActiveReductionRunnerItems.Count != 0)
             {
-                Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} stopped due to cancellation request");
-                return;
-            }
+                ActiveReductionRunnerItems.ForEach(t => t.tokenSource.Cancel());
 
-            Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} received stop request, cancelling {ActiveReductionRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
-            ActiveReductionRunnerItems.ForEach(t => t.tokenSource.Cancel());
-
-            DateTime WaitStart = DateTime.Now;
-            while (DateTime.Now - WaitStart < StopWaitTimeSeconds)
-            {
-                Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} waiting for {ActiveReductionRunnerItems.Count} running tasks to complete");
-
-                int CompletedTaskIndex = Task.WaitAny(ActiveReductionRunnerItems.Select(t => t.task).ToArray(), new TimeSpan(StopWaitTimeSeconds.Ticks/100));
-                if (CompletedTaskIndex > -1)
+                DateTime WaitStart = DateTime.Now;
+                while (DateTime.Now - WaitStart < StopWaitTimeSeconds)
                 {
-                    ActiveReductionRunnerItems.RemoveAt(CompletedTaskIndex);
+                    Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} waiting for {ActiveReductionRunnerItems.Count} running tasks to complete");
+
+                    int CompletedTaskIndex = Task.WaitAny(ActiveReductionRunnerItems.Select(t => t.task).ToArray(), new TimeSpan(StopWaitTimeSeconds.Ticks / 100));
+                    if (CompletedTaskIndex > -1)
+                    {
+                        ActiveReductionRunnerItems.RemoveAt(CompletedTaskIndex);
+                    }
+
+                    if (ActiveReductionRunnerItems.Count == 0)
+                    {
+                        Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} all reduction runners terminated successfully");
+                        break;
+                    }
                 }
 
-                if (ActiveReductionRunnerItems.Count == 0)
+                foreach (var Item in ActiveReductionRunnerItems)
                 {
-                    Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} all reduction runners terminated successfully");
-                    return;
+                    Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} after timer expired, task {Item.dbTask.Id.ToString()} not completed");
                 }
             }
 
-            foreach (var Item in ActiveReductionRunnerItems)
-            {
-                Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} after timer expired, task {Item.dbTask.Id.ToString()} not completed");
-            }
-
+            Token.ThrowIfCancellationRequested();
             Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} returning");
         }
 

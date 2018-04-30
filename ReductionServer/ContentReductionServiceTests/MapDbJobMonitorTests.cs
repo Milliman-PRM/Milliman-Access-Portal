@@ -39,14 +39,21 @@ namespace ContentReductionServiceTests
             #endregion
 
             #region Act again
-            DateTime CancelTime = DateTime.UtcNow;
+            DateTime CancelStartTime = DateTime.UtcNow;
             CancelTokenSource.Cancel();
-            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 0, 40));
+            try
+            {
+                Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 0, 40));
+            }
+            catch (AggregateException)  // This is thrown when a task is cancelled
+            { }
+            DateTime CancelEndTime = DateTime.UtcNow;
             #endregion
 
-            #region Assert
-            Assert.Equal<TaskStatus>(TaskStatus.RanToCompletion, MonitorTask.Status);
-            Assert.True(DateTime.UtcNow - CancelTime < new TimeSpan(0,0,30), "MapDbJobMonitor took too long to be canceled while idle");
+            #region Assert again
+            Assert.Equal<TaskStatus>(TaskStatus.Canceled, MonitorTask.Status);
+            Assert.True(MonitorTask.IsCanceled);
+            Assert.True(CancelEndTime - CancelStartTime < new TimeSpan(0,0,30), "MapDbJobMonitor took too long to be canceled while idle");
             #endregion
         }
 
