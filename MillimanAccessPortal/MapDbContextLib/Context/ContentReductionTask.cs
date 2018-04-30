@@ -22,6 +22,7 @@ namespace MapDbContextLib.Context
         Canceled = 1,       // The task was canceled before the reduction server began processing
         Discarded = 2,      // The task was completed by the reduction server, but a user did not publish the reduced document
         Replaced = 3,       // The reduced document was published, but a more recent document has since been published
+        Validating = 11,    // The task is awaiting content validation (e.g. virus scan)
         Queued = 10,        // The task is in queue for reduction
         Reducing = 20,      // The reduction server is currently processing the reduction task
         Reduced = 30,       // The reduction server has completed the reduction task, but no user has pushed the reduced document
@@ -48,6 +49,7 @@ namespace MapDbContextLib.Context
             { ReductionStatusEnum.Canceled, "Canceled" },
             { ReductionStatusEnum.Discarded, "Discarded" },
             { ReductionStatusEnum.Replaced, "Replaced" },
+            { ReductionStatusEnum.Validating, "Validating" },
             { ReductionStatusEnum.Queued, "Queued" },
             { ReductionStatusEnum.Reducing, "Reducing" },
             { ReductionStatusEnum.Reduced, "Reduced" },

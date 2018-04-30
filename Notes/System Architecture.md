@@ -34,10 +34,11 @@ We will utilize multiple Azure products to build the production environment. Mos
 * **Availability Sets** - Management layer for VMs to keep them isolated within the data center. Makes the VMs more resilient to power, hardware, and network failures within the data center.
 
 * **Virtual Machines** - 2 for QlikView Server, 2 for QlikView Publisher, 2 for file server clustering, 2 for domain controllers
+    * An additional virtual machine will be deployed into a VPN-controlled DMZ. This machine will be used as a [jump box](https://en.wikipedia.org/wiki/Jump_server) to access other servers in the infrastructure.
 
 * **Virtual Networks** - Isolate groups of resources and control which portions of the infrastructure they can access.
 
-* **Virtual Network Gateway** - Create a point-to-point VPN between Milliman and our Azure environment.
+* **Virtual Network Gateway** - Create a point-to-site VPN between Milliman and our Azure environment.
 
 * **Network Security Groups** - Network-level security configuration for VMs. Applies Firewall rules to VMs which use the Security Group.
 
@@ -55,6 +56,8 @@ VMs in the MAP environment are segmented by function and user access. Throughout
 |QlikView Server|Surface QlikView reports|Available to end users over the web|
 |QlikView Publisher|Reduce QlikView reports and host the Milliman Reduction Service|Not available to end users. These will operate largely independently, retrieving tasks from the database directly.|
 |File Server|Store QVWs and other content to be delivered to end users via the web app|Not available directly to end users. Content will be streamed to users via the web app|
+|Domain Controllers|Authentication to internal (MAP server) resources|Not available to users.|
+|Remote Administration|Secure entry point for system administrators to access private MAP resources.|VPN access is required to connect. No general users will have access.|
 
 ## Load balancing
 
@@ -135,9 +138,11 @@ Virtual machines' file systems must be encrypted at all times.
 
 Sensitive configuration options will be stored in Azure Key Vault.
 
-### Point-to-Point VPN
+### Point-to-Site VPN
 
-We will utilize a [Virtual Network Gateway](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpngateways) to establish a VPN between Milliman and our Azure infrastructure. This gateway will ensure traffic between Milliman's network and our infrastructure is encrypted at all times, providing another layer of security for administrative tasks.
+We will utilize a [Virtual Network Gateway](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpngateways) to establish a VPN between individual Milliman computers and our Azure infrastructure. This gateway will ensure traffic between Milliman's network and our infrastructure is encrypted at all times, providing another layer of security for administrative tasks.
+
+Access to the VPN is controlled by the Azure administrators and is only granted on an as-needed basis.
 
 ### Virtual Network Isolation
 
@@ -149,12 +154,17 @@ Specific ports and protocols will be opened to groups of VMs via Network Securit
 
 |Virtual Network|IP range|Peered with|
 |----|--------|-----------|
-|Domain Controllers|10.42.1.0/24|File Servers, QlikView Publishers, QlikView Servers, Clients|
-|File Servers|10.42.2.0/24|Domain Controllers, MAP application, QlikView Servers, QlikView Publishers|
-|QlikView Servers|10.42.3.0/24|File Servers, Domain Controllers, MAP application|
-|QlikView Publishers|10.42.4.0/24|File Servers, Domain Controllers|
-|MAP application|10.42.5.0/24|File Servers, Qlikview Servers|
-|Clients|10.42.6.0/24|File Servers, QlikView Publishers, QlikView Servers|
+|Domain Controllers|10.254.4.0/24|File Servers, QlikView Publishers, QlikView Servers, Clients|
+|File Servers|10.254.5.0/24|Domain Controllers, MAP application, QlikView Servers, QlikView Publishers, Remote Administration|
+|QlikView Servers|10.254.10.0/24|File Servers, Domain Controllers, MAP application, Application Gateways|
+|QlikView Publishers|10.254.12.0/24|File Servers, Domain Controllers|
+|MAP application|10.254.11.0/24|File Servers, Qlikview Servers, Application Gateways, Shared Infrastructure|
+|Remote Administration|10.254.6.0/24|Domain Controllers, File Servers, Any others added temporarily as-needed|
+|Application Gateways|10.254.7.0/24|MAP application, QlikView Servers|
+|VPN Gateway|10.254.0.0/22|Remote Administration|
+|Shared infrastructure|10.0.0.0/24|MAP application|
+
+> The Shared Infrastructure VNET listed above contains VMs and other resources shared with non-MAP infrastructure, such as the SMTP server.
 
 ### Network Security Groups & Windows Firewall Configuration
 
@@ -170,7 +180,7 @@ Zabbix monitoring will be allowed for all virtual machines (TCP & UDP ports 1005
 |QlikView Server|HTTPS|HTTPS, RDP, Zabbix|Domain Controllers (Active Directory & DNS), File Servers|QlikView API|
 |QlikView Publisher|---|RDP, Zabbix|Domain Controllers (Active Directory & DNS), PostgreSQL, File Servers|---|
 |File Server|---|RDP, Zabbix|Domain Controllers (Active Directory & DNS)|File access (SMB3)|
-|Client VMs|---|RDP, Zabbix|QlikView Servers, Domain Controllers (Active Directory & DNS), QlikView Publishers, File Servers|---|
+|Remote Administration VMs|---|RDP|QlikView Servers, Domain Controllers (Active Directory & DNS), QlikView Publishers, File Servers|---|
 
 #### Additional Firewall rule for Azure VMs
 
@@ -239,7 +249,7 @@ Connections to the PostgreSQL server should only be allowed from within Azure, a
 
 Enabling VM access to PostgreSQL server requires the creation of a role permitting outbound traffic over port 5432 from the Network Security Group to the destination `Sql.NorthCentralUS`.
 
-Currently, our PostgreSQL server is configured to allow all Azure services to communicate with it by default. The Azure PostgreSQL team says it expects to have [VNET Service Endpoint support in public preview within a few weeks](https://feedback.azure.com/forums/597976-azure-database-for-postgresql/suggestions/19601389-vnet-integration) (as of March 28, 2018). Once that feature becomes available, we will utilize it and disable the option for allowing all Azure connections. 
+Currently, our PostgreSQL server is configured to allow all Azure services to communicate with it by default. The Azure PostgreSQL team says it expects to have [VNET Service Endpoint support in public preview within a few weeks](https://feedback.azure.com/forums/597976-azure-database-for-postgresql/suggestions/19601389-vnet-integration) (as of March 28, 2018). Once that feature becomes available, we will utilize it and disable the option for allowing all Azure connections.
 
 At this time, only the MAP application and QlikView Publishers need access to the databases full-time.
 

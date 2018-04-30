@@ -8,6 +8,8 @@
 *.pdb
 *.dll.config
 *.cache
+**/*.js
+*.map
 *.suo
 .sass-cache
 # Include dlls if they’re in the NuGet packages directory

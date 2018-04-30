@@ -96,14 +96,49 @@ $logDbOwner = "logdb_admin"
 $dbCreationRetries = 5 # The number of times the script will attempt to create a new database before throwing an error
 
 $env:PATH = $env:PATH+";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin\;$env:appdata\npm\"
+$rootPath = (get-location).Path
+
+#endregion
+
+
+#region Exit if only notes have changed within the current branch (comparing against develop)
+
+$command = "$gitExePath diff --name-only origin/develop 2>&1"
+$diffOutput = Invoke-Expression "$command" | out-string
+
+log_statement "git diff Output:"
+write-output $diffOutput
+
+if ($diffOutput -like "git*:*fatal:*")
+{
+  exit 42
+}
+
+$diffOutput = $diffOutput.Split([Environment]::NewLine)
+
+$codeChangeFound = $false
+
+foreach ($diff in $diffOutput)
+{
+  # If both of these are true, the line being examined is likely a change to the software that needs testing
+  if ($diff -like '*/*' -and $diff -notlike 'Notes/*' -and $diff -notlike '.github/*')
+  {
+    log_statement "Code change found in $diff"
+    $codeChangeFound = $true
+    break
+  }
+}
+
+# If no code changes were found, we don't have to run the rest of this script
+if ($codeChangeFound -eq $false)
+{
+  log_statement "Code changes were not found. No build or deployment is needed."
+  exit 0
+}
 
 #endregion
 
 #region Run unit tests and exit if any fail
-
-
-
-$rootPath = (get-location).Path
 
 cd MillimanAccessPortal\MillimanAccessPortal
 
@@ -236,7 +271,15 @@ if ($? -eq $false)
 }
 else
 {
-    log_statement "Deployment slot $BranchName already exists"
+    log_statement "Deployment slot $BranchName already exists. Restarting to avoid file access conflicts."
+
+    Restart-AzureRmWebAppSlot -Name $webappname -Slot $BranchName -ResourceGroupName $ResourceGroupName
+
+    if ($? -eq $false)
+    {
+        log_statement "Failed to restart running web app slot. Deployment cannot be successful."
+        exit -1000
+    }
 }
 
 # Configure local Git deployment
@@ -436,7 +479,6 @@ while ($attempts -lt $NumberRetries -and $credentialFound -eq $false)
     {
         $credentialFound = $true
         log_statement "Credential was found; ready to push to Azure to finalize deployment"
-        log_statement "Local script complete. Console output will be delayed until the remote deployment script is finished."
     }
     else
     {
@@ -471,6 +513,8 @@ if ($CredentialFound)
         exit -800
     }
 
+    log_statement "Local script complete. Console output will be delayed until the remote deployment script is finished."
+
     $command = "$gitExePath push ci_push `"HEAD:refs/heads/master`" --force 2>&1"
     $pushOutput = Invoke-Expression "&$command" | out-string
 
@@ -481,10 +525,6 @@ if ($CredentialFound)
     {
         log_statement "Deployment failed"
         exit -300
-    }
-    else
-    {
-        log_statement "Deployment succeeded to $publicURL"
     }
 }
 else
@@ -511,6 +551,9 @@ if ($resp.StatusCode -ne 200)
     log_statement "ERROR: Login page failed with code $($resp.StatusCode)"
     exit $resp.StatusCode
 }
-
+else
+{
+  log_statement "Successfully loaded login page: $publicURL/Account/Login"
+}
 
 #endregion

@@ -10,82 +10,27 @@
     ViewData["NavIcon"] = "ContentPublisher";
 }
 
+@section Scripts {
+    <script src="/js/content-publishing.bundle.js"></script>
+}
 
-<div id="client-tree" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12">
-    <div class="loading-wrapper" style="display: none;">
-        @Html.Partial("~/Views/Shared/_Loader.cshtml")
-    </div>
-    <h3 class="admin-panel-header">Client Tree</h3>
-    <div class="admin-panel-toolbar">
-        <input id="client-search-box" class="admin-panel-searchbar" type="search" placeholder="Filter Clients" />
-    </div>
-    <div id="client-tree" class="admin-panel-content-container">
-        <ul id="client-tree-list" class="admin-panel-content"></ul>
-    </div>
-</div>
-
-<button onclick="test1($('#pubNum').val());">Publish request</button><input id="pubNum" type="number" /><br />
-<button onclick="test2($('#selNum').val());">Selection request</button><input id="selNum" type="number" /><br />
-<div class="admin-panel-container flex-item-12-12">
+<div class="admin-panel-container">
     <div class="admin-panel-content">
-        <form id="upload-form" enctype="multipart/form-data" asp-controller="ContentPublishing" asp-action="Upload" asp-antiforgery="false">
+        <form id="upload-form-resumable" enctype="multipart/form-data" asp-controller="ContentPublishing" asp-action="Upload" asp-antiforgery="false">
             <div class="form-group">
                 <div style="width: 350px;">
-                    <p>Upload a file using this form:</p>
-                    <input id="file" type="file" name="file" />
-                    <input id="rci" name="RootContentItemId" placeholder="RootContentItemId" />
-                </div>
-            </div>
-            <div class="form-group">
-                <div style="width: 350px;">
-                    <input class="submit" type="submit" value="Upload" />
+                    <p>Upload a file using this form.</p>
+                    <span id="file-browse" style="background-color:rgb(219, 166, 255); padding: 0.5em; width: 100%; position: relative;">Browse</span>
+                    <span id="file-name-resumable">hello</span>
+                    <input id="btn-cancel" class="submit upload" type="submit" value="Cancel" />
+                    <input id="btn-pause" class="submit upload" type="submit" value="Pause" />
+                    <input id="btn-resume" class="submit upload" type="submit" value="Resume" />
                 </div>
             </div>
         </form>
-        <div style="display: block; width: 200px; height: 30px; background-color: white; margin-top: 10px;">
-            <div id="file-progress" style="display: block; position: relative; height: 100%; width: 0%; background-color: DodgerBlue;">Progress</div>
+        <div style="display: block; position: relative; width: 200px; height: 30px; background-color: white; margin-top: 10px;">
+          <div id="checksum-progress-resumable" style="display: block; position: absolute; top: 0; left: 0; height: 30px; width: 0%; background-color: LimeGreen;">Checksum</div>
+          <div id="file-progress-resumable" style="display: block; position: absolute; top: 0; left: 0; height: 30px; width: 0%; background-color: DodgerBlue;">Upload</div>
         </div>
     </div>
 </div>
-<script type="text/javascript">
-    function test1(Value) {
-        $.ajax({
-            type: 'POST',
-            url: 'ContentPublishing/RequestContentPublication',
-            data: {
-                "FileName": "xyz",
-                "RootContentId": Value
-            },
-            headers: {
-                RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
-            }
-        }).done(function onDone(response) {
-            toastr.success($cardContainer.find('.card-body-primary-text').html() + ' was ' + (modifiedRole.IsAssigned ? 'set' : 'unset') + ' as ' + modifiedRole.RoleDisplayValue);
-        }).fail(function onFail(response) {
-            toastr.warning(response.getResponseHeader('Warning'));
-        });
-    }
-</script>
-<script type="text/javascript">
-    function test2(Value) {
-        $.ajax({
-            type: 'POST',
-            url: 'ContentAccessAdmin/RequestReductionForSelectionGroup',
-            data: {
-                "SelectionGroupId": Value
-            },
-            headers: {
-                RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
-            }
-        }).done(function onDone(response) {
-            toastr.success($cardContainer.find('.card-body-primary-text').html() + ' was ' + (modifiedRole.IsAssigned ? 'set' : 'unset') + ' as ' + modifiedRole.RoleDisplayValue);
-        }).fail(function onFail(response) {
-            toastr.warning(response.getResponseHeader('Warning'));
-        });
-    }
-</script>
-
-
-@section Scripts {
-    <script src="/js/content-publisher.bundle.js"></script>
-}

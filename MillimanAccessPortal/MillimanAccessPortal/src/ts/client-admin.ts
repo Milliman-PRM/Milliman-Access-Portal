@@ -1,16 +1,18 @@
-var $ = require('jquery');
-require('./jquery-map');
+import $ = require('jquery');
+import toastr = require('toastr');
+import card = require('./card');
+import dialog = require('./dialog');
+import shared = require('./shared');
+import { Dictionary } from 'lodash';
 require('jquery-mask-plugin');
 require('jquery-validation');
 require('jquery-validation-unobtrusive');
 require('selectize');
-var toastr = require('toastr');
 require('tooltipster');
-var card = require('./card');
-var dialog = require('./dialog');
+require('vex-js');
 require('./navbar');
 require('./lib-options');
-var shared = require('./shared');
+const appSettings = require('../../appsettings.json');
 
 require('bootstrap/scss/bootstrap-reboot.scss');
 require('selectize/src/less/selectize.default.less');
@@ -19,10 +21,12 @@ require('tooltipster/src/css/tooltipster.css');
 require('tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css');
 require('../scss/map.scss');
 
-
-var ajaxStatus = {};
+var ajaxStatus: any = {};
 var eligibleUsers;
 var SHOW_DURATION = 50;
+
+const domainRegex = new RegExp(appSettings.Global.DomainValidationRegex);
+const emailRegex = new RegExp(appSettings.Global.EmailValidationRegex);
 
 // TODO: move to shared
 function removeClientInserts() {
@@ -122,7 +126,7 @@ function populateProfitCenterDropDown(profitCenterList) {
 
 
 function elevatedRoles(userRoles) {
-  return !!$.grep(userRoles, function isElevatedRole(role) {
+  return !!$.grep(userRoles, function isElevatedRole(role: {RoleEnum: number, IsAssigned: boolean}) {
     // FIXME: Definition of 'elevated role' should not live here
     return [1, 3, 4].some(function matchesRole(elevatedRole) {
       return role.RoleEnum === elevatedRole;
@@ -155,7 +159,7 @@ function setUserRole(clientId, userId, roleEnum, isAssigned, onResponse) {
     url: 'ClientAdmin/SetUserRoleInClient',
     data: postData,
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
     }
   }).done(function onDone(response) {
     var modifiedRole;
@@ -275,7 +279,7 @@ function getClientDetail(clientDiv) {
     url: 'ClientAdmin/ClientDetail',
     data: clientDiv.data(),
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
     }
   }).done(function onDone(response) {
     if (ajaxStatus.getClientDetail !== clientId) return;
@@ -439,7 +443,7 @@ function saveNewUser(username, email, callback) {
       MemberOfClientIdArray: [clientId]
     },
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
     }
   }).done(function onDone() {
     openClientCardReadOnly($('#client-tree [data-client-id="' + clientId + '"]'));
@@ -464,7 +468,7 @@ function addUserClickHandler() {
         shared.showButtonSpinner($('.vex-first'), 'Adding');
         $('.vex-dialog-button').attr('disabled', '');
         saveNewUser(data.username, null, callback);
-      } else if (emailValRegex.test(data.username)) {
+      } else if (emailRegex.test(data.username)) {
         shared.showButtonSpinner($('.vex-first'), 'Adding');
         $('.vex-dialog-button').attr('disabled', '');
         saveNewUser(null, data.username, callback);
@@ -490,7 +494,7 @@ function removeUserFromClient(clientId, userId, callback) {
       userId: userId
     },
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
     }
   }).done(function onDone(response) {
     renderUserList(response);
@@ -524,14 +528,16 @@ function renderClientNode(client, level) {
     level,
     shared.wrapCardCallback(shared.get(
       'ClientAdmin/ClientDetail',
-      setClientFormReadOnly,
-      populateClientForm,
-      function () {
-        if ($card.readonly) {
-          $('#client-info .action-icon-edit').hide();
-        }
-      },
-      renderUserList
+      [
+        setClientFormReadOnly,
+        populateClientForm,
+        function () {
+          if ($card.readonly) {
+            $('#client-info .action-icon-edit').hide();
+          }
+        },
+        renderUserList,
+      ],
     ), 2),
     !client.Children.length && clientCardDeleteClickHandler,
     clientCardEditClickHandler,
@@ -574,7 +580,7 @@ function deleteClient(clientId, clientName, password, callback) {
       Password: password
     },
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
     }
   }).done(function onDone(response) {
     shared.clearForm($('#client-info'));
@@ -590,7 +596,7 @@ function deleteClient(clientId, clientName, password, callback) {
 }
 
 // TODO: move to shared
-function getClientTree(clientId) {
+function getClientTree(clientId?) {
   $('#client-tree .loading-wrapper').show();
   $.ajax({
     type: 'GET',
@@ -638,7 +644,7 @@ function submitClientForm() {
       url: urlAction,
       data: $clientForm.serialize(),
       headers: {
-        RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+        RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
       }
     }).done(function onDone(response) {
       shared.hideButtonSpinner($button);
@@ -657,8 +663,8 @@ $(document).ready(function onReady() {
   $('#client-tree .action-icon-add').click(newClientClickHandler);
   $('#client-info .action-icon-edit').click(setClientFormWriteable);
   $('#client-info .action-icon-cancel').click(cancelIconClickHandler);
-  $('.action-icon-expand').click(shared.expandAll.listener);
-  $('.action-icon-collapse').click(shared.collapseAll.listener);
+  $('.action-icon-expand').click(shared.expandAllListener);
+  $('.action-icon-collapse').click(shared.collapseAllListener);
   $('#client-users .action-icon-add').click(addUserClickHandler);
   $('.submit-button').click(submitClientForm);
   $('.new-form-button-container .reset-button').click(function () {
@@ -668,14 +674,7 @@ $(document).ready(function onReady() {
     shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog);
   });
 
-  $('.admin-panel-searchbar-tree').keyup(function (event) {
-    event.stopPropagation();
-    $(this).closest('.admin-panel-container')
-      .find('.admin-panel-content').children()
-      .hide()
-      .filterTree($(this).val())
-      .show();
-  });
+  $('.admin-panel-searchbar-tree').keyup(shared.filterTreeListener);
   $('.tooltip').tooltipster();
 
   // TODO: find a better place for this
@@ -692,7 +691,7 @@ $(document).ready(function onReady() {
     plugins: ['remove_button'],
     persist: false,
     create: function onCreate(input) {
-      if (input.match(domainValRegex)) {
+      if (input.match(domainRegex)) {
         return {
           value: input,
           text: input
@@ -714,7 +713,7 @@ $(document).ready(function onReady() {
     delimiter: ',',
     persist: false,
     create: function onCreate(input) {
-      if (input.match(emailValRegex)) {
+      if (input.match(emailRegex)) {
         return {
           value: input,
           text: input

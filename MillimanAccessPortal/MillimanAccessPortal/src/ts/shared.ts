@@ -1,19 +1,16 @@
-var $ = require('jquery');
-var dialog = require('./dialog');
-var toastr = require('toastr');
-
-var shared = {};
+import $ = require('jquery');
+import dialog = require('./dialog');
+import toastr = require('toastr');
 
 var SHOW_DURATION = 50;
 var ajaxStatus = [];
 
 var updateToolbarIcons;
-var set;
 
 // Functions with associated event listeners
 
 // Filtering
-shared.filterTreeImperative = function ($panel, $this) {
+export function filterTree($panel, $this) {
   var $content = $panel.find('ul.admin-panel-content');
   $content.children('.hr').hide();
   $content.find('[data-filter-string]').each(function (index, element) {
@@ -27,7 +24,10 @@ shared.filterTreeImperative = function ($panel, $this) {
     }
   });
 };
-shared.filterFormImperative = function ($panel, $this) {
+export function filterTreeListener(event) {
+  buildListener(filterTree).bind(this)(event);
+};
+export function filterForm($panel, $this) {
   var $content = $panel.find('form.admin-panel-content');
   $content.find('[data-selection-value]').each(function (index, element) {
     var $element = $(element);
@@ -37,6 +37,9 @@ shared.filterFormImperative = function ($panel, $this) {
       $element.hide();
     }
   });
+};
+export function filterFormListener(event) {
+  buildListener(filterForm).bind(this)(event);
 };
 
 // Card expansion
@@ -48,7 +51,7 @@ updateToolbarIcons = function ($panel) {
     return $panel.find('.card-expansion-container:not([maximized])').length;
   }).show();
 };
-shared.toggleExpanded = function ($panel, $this) {
+export function toggleExpanded($panel, $this) {
   $this.closest('.card-container')
     .find('.card-expansion-container')
     .attr('maximized', function (index, attr) {
@@ -60,17 +63,26 @@ shared.toggleExpanded = function ($panel, $this) {
     });
   updateToolbarIcons($panel);
 };
-shared.expandAll = function ($panel) {
+export function toggleExpandedListener(event) {
+  buildListener(toggleExpanded).bind(this)(event);
+};
+export function expandAll($panel) {
   $panel.find('.card-expansion-container').attr('maximized', '');
   updateToolbarIcons($panel);
 };
-shared.collapseAll = function ($panel) {
+export function expandAllListener(event) {
+  buildListener(expandAll).bind(this)(event);
+};
+export function collapseAll($panel) {
   $panel.find('.card-expansion-container[maximized]').removeAttr('maximized');
   updateToolbarIcons($panel);
 };
+export function collapseAllListener(event) {
+  buildListener(collapseAll).bind(this)(event);
+};
 
 // Form control
-shared.modifiedInputs = function ($panel) {
+export function modifiedInputs($panel) {
   return $panel.find('form.admin-panel-content')
     .find('input[name!="__RequestVerificationToken"][type!="hidden"],select')
     .not('.selectize-input input')
@@ -79,12 +91,18 @@ shared.modifiedInputs = function ($panel) {
       return ($element.val() !== ($element.attr('data-original-value') || ''));
     });
 };
-shared.resetValidation = function ($panel) {
+export function modifiedInputsListener(event) {
+  buildListener(modifiedInputs).bind(this)(event);
+};
+export function resetValidation($panel) {
   $panel.find('form.admin-panel-content').validate().resetForm();
   $panel.find('.field-validation-error > span').remove();
 };
-shared.resetForm = function ($panel) {
-  shared.modifiedInputs($panel).each(function () {
+export function resetValidationListener(event) {
+  buildListener(resetValidation).bind(this)(event);
+};
+export function resetForm($panel) {
+  modifiedInputs($panel).each(function () {
     var $input = $(this);
     if ($input.is('.selectized')) {
       this.selectize.setValue($input.attr('data-original-value').split(','));
@@ -92,10 +110,13 @@ shared.resetForm = function ($panel) {
       $input.val($input.attr('data-original-value'));
     }
   });
-  shared.resetValidation($panel);
+  resetValidation($panel);
   $panel.find('.form-button-container button').hide();
 };
-shared.clearForm = function ($panel) {
+export function resetFormListener(event) {
+  buildListener(resetForm).bind(this)(event);
+};
+export function clearForm($panel) {
   $panel.find('.selectized').each(function () {
     this.selectize.clear();
     this.selectize.clearOptions();
@@ -103,23 +124,25 @@ shared.clearForm = function ($panel) {
   $panel.find('input[name!="__RequestVerificationToken"],select')
     .not('.selectize-input input')
     .attr('data-original-value', '').val('');
-  shared.resetValidation($panel);
+  resetValidation($panel);
+};
+export function clearFormListener(event) {
+  buildListener(clearForm).bind(this)(event);
 };
 
-// Add listener property to each function
-Object.keys(shared).forEach(function (fn) {
-  shared[fn].listener = function (event) {
-    var $this = $(this);
-    var $panel = $this.closest('.admin-panel-container');
+function buildListener(fn) {
+  return (function (event) {
+    const $this = $(this);
+    const $panel = $this.closest('.admin-panel-container');
     event.stopPropagation();
-    shared[fn]($panel, $this);
-  };
-});
+    fn($panel, $this);
+  });
+}
 
 // Functions without associated event listeners
 
 // Wrappers
-shared.wrapCardCallback = function (callback, panels) {
+export function wrapCardCallback(callback, panels?) {
   return function () {
     var $card = $(this);
     var $panel = $card.closest('.admin-panel-container');
@@ -148,7 +171,7 @@ shared.wrapCardCallback = function (callback, panels) {
     };
 
     if ($panel.has('[selected]').length) {
-      shared.confirmAndContinue($formPanels, dialog.DiscardConfirmationDialog, function () {
+      confirmAndContinue($formPanels, dialog.DiscardConfirmationDialog, function () {
         if (sameCard) {
           clearSelection();
           hideDetails();
@@ -163,9 +186,8 @@ shared.wrapCardCallback = function (callback, panels) {
 };
 
 // AJAX
-shared.get = function (url) {
-  var callbacks = Array.prototype.slice.call(arguments, 1);
-  return function ($clickedCard) {
+export function get(url, callbacks) {
+  return function ($clickedCard?) {
     var $card = $clickedCard && $clickedCard.closest('.card-container');
     var $panel = $card
       ? $card.closest('.admin-panel-container').nextAll().slice(0, callbacks.length)
@@ -195,20 +217,19 @@ shared.get = function (url) {
   };
 };
 
-set = function (method, url, successMessage) {
-  var callbacks = Array.prototype.slice.call(arguments, 3);
+function set(method, url, successMessage, callbacks) {
   return function (data, onResponse, buttonText) {
     if (ajaxStatus[url]) {
       return; // TODO: do something when a request has already been sent
     }
-    shared.showButtonSpinner($('.vex-first').attr('disabled', ''), buttonText);
+    showButtonSpinner($('.vex-first').attr('disabled', ''), buttonText);
     ajaxStatus[url] = true;
     $.ajax({
       type: method,
       url: url,
       data: data,
       headers: {
-        RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+        RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
       }
     }).done(function (response) {
       ajaxStatus[url] = false;
@@ -226,11 +247,17 @@ set = function (method, url, successMessage) {
   };
 };
 
-shared.put = set.bind(this, 'PUT');
-shared.post = set.bind(this, 'POST');
-shared.delete = set.bind(this, 'DELETE');
+export function post(url, successMessage, callbacks) {
+  set('POST', url, successMessage, callbacks);
+}
+export function del(url, successMessage, callbacks) {
+  set('DELETE', url, successMessage, callbacks);
+}
+export function put(url, successMessage, callbacks) {
+  set('PUT', url, successMessage, callbacks);
+}
 
-shared.showButtonSpinner = function ($buttons, text) {
+export function showButtonSpinner($buttons, text?) {
   $buttons.each(function (i) {
     var $button = $buttons.eq(i);
     if ($buttons.find('.spinner-small').length) return;
@@ -240,17 +267,17 @@ shared.showButtonSpinner = function ($buttons, text) {
   });
 };
 
-shared.hideButtonSpinner = function ($buttons) {
+export function hideButtonSpinner($buttons) {
   $buttons.each(function (i) {
     var $button = $buttons.eq(i);
     $button.html($button.data().originalText);
   });
 };
 
-shared.xhrWithProgress = function (onProgress) {
+export function xhrWithProgress(onProgress: Function) {
   return function () {
-    var xhr = new window.XMLHttpRequest();
-    xhr.upload.addEventListener('progress', function (event) {
+    var xhr = new XMLHttpRequest();
+    xhr.upload.addEventListener('progress', function (event: ProgressEvent) {
       if (event.lengthComputable) {
         onProgress(event.loaded / event.total);
       }
@@ -260,9 +287,9 @@ shared.xhrWithProgress = function (onProgress) {
 };
 
 // Typeahead
-shared.userSubstringMatcher = function (users) {
-  return function findMatches(query, callback) {
-    var matches = [];
+export function userSubstringMatcher(users: any) {
+  return function findMatches(query: string, callback: Function) {
+    var matches: Array<any> = [];
     var regex = new RegExp(query, 'i');
 
     $.each(users, function check(i, user) {
@@ -279,7 +306,7 @@ shared.userSubstringMatcher = function (users) {
 
 // Card helpers
 // TODO: consider moving to card.js
-shared.updateCardStatus = function ($card, reductionDetails) {
+export function updateCardStatus($card, reductionDetails) {
   var $statusContainer = $card.find('.card-status-container');
   var $statusName = $statusContainer.find('strong');
   var $statusUser = $statusContainer.find('em');
@@ -309,10 +336,10 @@ shared.updateCardStatus = function ($card, reductionDetails) {
 
 // Dialog helpers
 // TODO: consider moving to dialog.js
-shared.confirmAndContinue = function ($panel, Dialog, onContinue) {
-  if ($panel.length && shared.modifiedInputs($panel).length) {
+export function confirmAndContinue($panel, Dialog, onContinue?) {
+  if ($panel.length && modifiedInputs($panel).length) {
     new Dialog(function () {
-      shared.resetForm($panel);
+      resetForm($panel);
       if (onContinue) {
         onContinue();
       }
@@ -321,5 +348,3 @@ shared.confirmAndContinue = function ($panel, Dialog, onContinue) {
     onContinue();
   }
 };
-
-module.exports = shared;

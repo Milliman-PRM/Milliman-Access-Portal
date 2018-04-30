@@ -1,12 +1,12 @@
-var $ = require('jquery');
-require('./navbar');
-var toastr = require('toastr');
+import $ = require('jquery');
+import toastr = require('toastr');
+import card = require('./card');
+import dialog = require('./dialog');
+import shared = require('./shared');
 require('tooltipster');
-var card = require('./card');
-var dialog = require('./dialog');
+require('vex-js');
+require('./navbar');
 require('./lib-options');
-var shared = require('./shared');
-require('./jquery-map');
 
 require('bootstrap/scss/bootstrap-reboot.scss');
 require('toastr/toastr.scss');
@@ -16,27 +16,31 @@ require('../scss/map.scss');
 
 
 function updateSelectionGroupCount() {
-  $('#root-content-items [selected] [href="#action-icon-users"]').parent().next().html($('#selection-groups ul.admin-panel-content li').length);
+  $('#root-content-items [selected] [href="#action-icon-users"]').parent().next().html($('#selection-groups ul.admin-panel-content li').length.toString());
 }
 
 function selectionGroupAddClickHandler() {
   new dialog.AddSelectionGroupDialog(shared.post(
     'ContentAccessAdmin/CreateSelectionGroup',
     'Selection group successfully created.',
-    renderSelectionGroup,
-    updateSelectionGroupCount
+    [
+      renderSelectionGroup,
+      updateSelectionGroupCount,
+    ],
   )).open();
 }
 
 function selectionGroupDeleteClickHandler() {
-  new dialog.DeleteSelectionGroupDialog($(this).closest('.card-container'), shared.delete(
+  new dialog.DeleteSelectionGroupDialog($(this).closest('.card-container'), shared.del(
     'ContentAccessAdmin/DeleteSelectionGroup',
     'Selection group successfully deleted.',
-    function (response) {
-      $('#selection-groups ul.admin-panel-content').empty();
-      renderSelectionGroupList(response);
-    },
-    updateSelectionGroupCount
+    [
+      function (response) {
+        $('#selection-groups ul.admin-panel-content').empty();
+        renderSelectionGroupList(response);
+      },
+      updateSelectionGroupCount,
+    ],
   )).open();
 }
 
@@ -54,7 +58,7 @@ function cancelSelectionForm() {
     url: 'ContentAccessAdmin/CancelReduction',
     data: data,
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
     }
   }).done(function onDone(response) {
     shared.hideButtonSpinner($button);
@@ -84,7 +88,7 @@ function submitSelectionForm() {
     url: 'ContentAccessAdmin/SingleReduction',
     data: data,
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
     }
   }).done(function onDone(response) {
     shared.hideButtonSpinner($button);
@@ -156,7 +160,9 @@ function renderSelectionGroup(selectionGroup) {
     selectionGroup.MemberList,
     shared.wrapCardCallback(shared.get(
       'ContentAccessAdmin/Selections',
-      renderSelections
+      [
+        renderSelections,
+      ],
     )),
     selectionGroupDeleteClickHandler,
     function () { console.log('Add/remove user button clicked.'); }
@@ -164,7 +170,7 @@ function renderSelectionGroup(selectionGroup) {
   shared.updateCardStatus($card, selectionGroup.ReductionDetails);
   $('#selection-groups ul.admin-panel-content').append($card);
 }
-function renderSelectionGroupList(response, selectionGroupId) {
+function renderSelectionGroupList(response, selectionGroupId?) {
   var $selectionGroupList = $('#selection-groups ul.admin-panel-content');
   $selectionGroupList.empty();
   response.SelectionGroupList.forEach(renderSelectionGroup);
@@ -186,7 +192,9 @@ function renderRootContentItem(rootContentItem) {
     rootContentItem.EligibleUserCount,
     shared.wrapCardCallback(shared.get(
       'ContentAccessAdmin/SelectionGroups',
-      renderSelectionGroupList
+      [
+        renderSelectionGroupList,
+      ],
     ))
   ).build();
   shared.updateCardStatus($card, rootContentItem.PublicationDetails);
@@ -244,27 +252,15 @@ function renderClientTree(response, clientId) {
 $(document).ready(function () {
   (shared.get(
     'ContentAccessAdmin/ClientFamilyList',
-    renderClientTree
+    [
+      renderClientTree,
+    ],
   )());
 
-  $('.action-icon-expand').click(shared.expandAll.listener);
-  $('.action-icon-collapse').click(shared.collapseAll.listener);
-  $('.admin-panel-searchbar-tree').keyup(function (event) {
-    event.stopPropagation();
-    $(this).closest('.admin-panel-container')
-      .find('.admin-panel-content').children()
-      .hide()
-      .filterTree($(this).val())
-      .show();
-  });
-  $('.admin-panel-searchbar-form').keyup(function (event) {
-    event.stopPropagation();
-    $(this).closest('.admin-panel-container')
-      .find('.admin-panel-content').children()
-      .hide()
-      .filterSelections($(this).val())
-      .show();
-  });
+  $('.action-icon-expand').click(shared.expandAllListener);
+  $('.action-icon-collapse').click(shared.collapseAllListener);
+  $('.admin-panel-searchbar-tree').keyup(shared.filterTreeListener);
+  $('.admin-panel-searchbar-form').keyup(shared.filterFormListener);
 
   $('#selection-groups ul.admin-panel-content-action').append(new card.AddSelectionGroupActionCard(selectionGroupAddClickHandler).build());
   // TODO: select by ID or better classes
