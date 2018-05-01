@@ -11,7 +11,14 @@ export class MockFile {
 }
 
 export class MockBlob {
-  constructor(readonly contents: string) { }
+  public contents: Uint8Array;
+  constructor(contents: string) {
+    const buffer = new ArrayBuffer(contents.length);
+    this.contents = new Uint8Array(buffer);
+    for (let i = 0; i < contents.length; i += 1) {
+      this.contents[i] = contents.charCodeAt(i);
+    }
+  }
 }
 
 export class MockFileReader {
@@ -23,7 +30,7 @@ export class MockFileReader {
     this.onerror = () => {};
   }
 
-  public readAsBinaryString(blob: MockBlob) {
+  public readAsArrayBuffer(blob: MockBlob) {
     const event = {
       target: {
         result: blob.contents
