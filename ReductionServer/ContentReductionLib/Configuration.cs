@@ -41,7 +41,7 @@ namespace ContentReductionLib
                     System.Console.WriteLine($"store has {store.Certificates.Count} certificates");
                     foreach (var cer in store.Certificates)
                     {
-                        System.Console.WriteLine($"cert type: {cer.GetType().Name}");
+                        System.Console.WriteLine($"cert type {cer.GetType().Name} and thumbprint: {cer.Thumbprint}");
                     }
                     System.Console.WriteLine($"store name is {store.Name}");
                     var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
