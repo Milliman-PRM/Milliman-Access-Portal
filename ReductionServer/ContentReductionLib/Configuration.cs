@@ -47,6 +47,21 @@ namespace ContentReductionLib
                         builtConfig["AzureClientID"],
                         cert.OfType<X509Certificate2>().Single()
                         );
+
+                    #region test
+                    IConfigurationBuilder TestBuilder = new ConfigurationBuilder()
+                        .AddAzureKeyVault(
+                            builtConfig["AzureVaultName"],
+                            builtConfig["AzureClientID"],
+                            cert.OfType<X509Certificate2>().Single()
+                        );
+                    ApplicationConfiguration = TestBuilder.Build();
+                    foreach (var x in ApplicationConfiguration.AsEnumerable().ToList())
+                    {
+                        System.Console.WriteLine($"Test config entry key {x.Key} value is {x.Value}");
+                    }
+                    #endregion
+
                     break;
 
                 case "Development":
@@ -59,10 +74,6 @@ namespace ContentReductionLib
             }
 
             ApplicationConfiguration = CfgBuilder.Build();
-            foreach (var x in ApplicationConfiguration.AsEnumerable().ToList())
-            {
-                System.Console.WriteLine($"config entry key {x.Key} value is {x.Value}");
-            }
             
         }
 
