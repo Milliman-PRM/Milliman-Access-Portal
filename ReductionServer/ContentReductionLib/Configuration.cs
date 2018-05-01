@@ -49,17 +49,22 @@ namespace ContentReductionLib
                         );
 
                     #region test
-                    IConfigurationBuilder TestBuilder = new ConfigurationBuilder()
-                        .AddAzureKeyVault(
-                            builtConfig["AzureVaultName"],
-                            builtConfig["AzureClientID"],
-                            cert.OfType<X509Certificate2>().Single()
-                        );
-                    ApplicationConfiguration = TestBuilder.Build();
-                    foreach (var x in ApplicationConfiguration.AsEnumerable().ToList())
+                    System.Console.WriteLine("=============");
+                    foreach (var c in store.Certificates)
                     {
-                        System.Console.WriteLine($"Test config entry key {x.Key} value is {x.Value}");
+                        IConfigurationBuilder TestBuilder = new ConfigurationBuilder()
+                            .AddAzureKeyVault(
+                                builtConfig["AzureVaultName"],
+                                builtConfig["AzureClientID"],
+                                c
+                            );
+                        ApplicationConfiguration = TestBuilder.Build();
+                        foreach (var x in ApplicationConfiguration.AsEnumerable().ToList())
+                        {
+                            System.Console.WriteLine($"Test config entry key {x.Key} value is {x.Value}");
+                        }
                     }
+                    System.Console.WriteLine("=============");
                     #endregion
 
                     break;
