@@ -27,7 +27,7 @@ namespace ContentReductionLib
             string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             switch (EnvironmentName)
             {
-                case "AzureCI":
+                case "CI":
                 case "AzureProduction":
                     CfgBuilder.AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true);
 
