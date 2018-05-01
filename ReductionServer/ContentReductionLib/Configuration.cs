@@ -37,11 +37,12 @@ namespace ContentReductionLib
                     store.Open(OpenFlags.ReadOnly);
                     var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
 
-                    System.Console.WriteLine($"store has {store.Certificates.Count} certificate count");
-                    System.Console.WriteLine($"store has {store.Location} location");
-                    System.Console.WriteLine($"store has {store.Name} name");
+                    System.Console.WriteLine($"store has certificate count {store.Certificates.Count}");
+                    System.Console.WriteLine($"store has location {store.Location}");
+                    System.Console.WriteLine($"store has name {store.Name}");
                     System.Console.WriteLine($"AzureVaultName is {builtConfig["AzureVaultName"]}");
                     System.Console.WriteLine($"AzureClientID  is {builtConfig["AzureClientID"]}");
+                    System.Console.WriteLine($"AzureCertificateThumbprint is {builtConfig["AzureCertificateThumbprint"]}");
 
                     CfgBuilder.AddAzureKeyVault(
                         builtConfig["AzureVaultName"],
