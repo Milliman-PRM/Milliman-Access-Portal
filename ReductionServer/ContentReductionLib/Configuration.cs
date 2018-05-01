@@ -54,6 +54,7 @@ namespace ContentReductionLib
             }
 
             ApplicationConfiguration = CfgBuilder.Build();
+            System.Console.WriteLine($"IQmsUrl config is {ApplicationConfiguration["IQmsUrl"]}");
         }
 
         public static IConfigurationRoot ApplicationConfiguration { get; set; } = null;
