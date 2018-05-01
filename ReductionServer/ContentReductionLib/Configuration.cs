@@ -32,18 +32,9 @@ namespace ContentReductionLib
                     CfgBuilder.AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true);
 
                     var builtConfig = CfgBuilder.Build();
-                    System.Console.WriteLine($"AzureVaultName = {builtConfig["AzureVaultName"]}");
-                    System.Console.WriteLine($"AzureClientID = {builtConfig["AzureClientID"]}");
-                    System.Console.WriteLine($"AzureCertificateThumbprint = {builtConfig["AzureCertificateThumbprint"]}");
-
                     var store = new X509Store(StoreLocation.LocalMachine);
                     store.Open(OpenFlags.ReadOnly);
-                    System.Console.WriteLine($"store has {store.Certificates.Count} certificates");
-                    foreach (var cer in store.Certificates)
-                    {
-                        System.Console.WriteLine($"cert type {cer.GetType().Name} and thumbprint: {cer.Thumbprint}");
-                    }
-                    System.Console.WriteLine($"store name is {store.Name}");
+
                     var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
 
                     CfgBuilder.AddAzureKeyVault(
@@ -54,19 +45,16 @@ namespace ContentReductionLib
 
                     #region test
                     System.Console.WriteLine("=============");
-                    foreach (var c in store.Certificates)
+                    IConfigurationBuilder TestBuilder = new ConfigurationBuilder()
+                        .AddAzureKeyVault(
+                            builtConfig["AzureVaultName"],
+                            builtConfig["AzureClientID"],
+                            cert.OfType<X509Certificate2>().Single()
+                        );
+                    ApplicationConfiguration = TestBuilder.Build();
+                    foreach (var x in ApplicationConfiguration.AsEnumerable().ToList())
                     {
-                        IConfigurationBuilder TestBuilder = new ConfigurationBuilder()
-                            .AddAzureKeyVault(
-                                builtConfig["AzureVaultName"],
-                                builtConfig["AzureClientID"],
-                                c
-                            );
-                        ApplicationConfiguration = TestBuilder.Build();
-                        foreach (var x in ApplicationConfiguration.AsEnumerable().ToList())
-                        {
-                            System.Console.WriteLine($"Test config entry key {x.Key} value is {x.Value}");
-                        }
+                        System.Console.WriteLine($"Test config entry key {x.Key} value is {(x.Value.Length < 100 ? x.Value : "<something long>")}");
                     }
                     System.Console.WriteLine("=============");
                     #endregion
