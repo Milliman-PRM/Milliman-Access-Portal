@@ -5,9 +5,9 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using Microsoft.Extensions.Configuration;
+using System.Security.Cryptography.X509Certificates;
 
 namespace ContentReductionLib
 {
@@ -21,10 +21,37 @@ namespace ContentReductionLib
             IConfigurationBuilder CfgBuilder = new ConfigurationBuilder()
                 .AddJsonFile(path: "contentReductionLibSettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile(path: "appSettings.json", optional: true, reloadOnChange: true)
-                .AddUserSecrets<MapDbJobMonitor>();
+                ;
 
-            // TODO .Add... environment dependent configuration content (e.g. for AzureKeyVault in CI and production environments)
-            // Make sure to consider running both as service and GUI app, (secrets not available as service)
+            // Add environment dependent configuration
+            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            switch (EnvironmentName)
+            {
+                case "AzureCI":
+                case "AzureProduction":
+                    CfgBuilder.AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true);
+
+                    var builtConfig = CfgBuilder.Build();
+                        
+                    var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+                    store.Open(OpenFlags.ReadOnly);
+                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
+
+                    CfgBuilder.AddAzureKeyVault(
+                        builtConfig["AzureVaultName"],
+                        builtConfig["AzureClientID"],
+                        cert.OfType<X509Certificate2>().Single()
+                        );
+                    break;
+
+                case "Development":
+                    CfgBuilder.AddUserSecrets<MapDbJobMonitor>();
+                    break;
+
+                default: // Unsupported environment name	
+                    throw new InvalidOperationException($"Current environment name ({EnvironmentName}) is not supported in Configuration.cs");
+
+            }
 
             ApplicationConfiguration = CfgBuilder.Build();
         }

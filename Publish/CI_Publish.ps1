@@ -142,7 +142,7 @@ if ($codeChangeFound -eq $false)
 
 cd MillimanAccessPortal\MillimanAccessPortal
 
-log_statement "Restoring packages before unit tests"
+log_statement "Restoring packages and building MAP"
 
 MSBuild /t:Restore /verbosity:quiet
 
