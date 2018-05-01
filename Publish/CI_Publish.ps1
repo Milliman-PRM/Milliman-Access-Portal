@@ -188,15 +188,7 @@ log_statement "Building MAP unit tests"
 
 cd $rootPath\MillimanAccessPortal\MapTests
 
-MSBuild /t:Restore /verbosity:quiet
-
-if ( $LASTEXITCODE -ne 0 ) {
-    log_statement "ERROR: Unit test dependency restore failed"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
-}
-
-MSBuild /verbosity:quiet /nowarn:CS1998
+MSBuild /restore:True /verbosity:quiet /nowarn:CS1998
 
 if ( $LASTEXITCODE -ne 0 ) {
     log_statement "ERROR: Unit test build failed"
@@ -227,17 +219,9 @@ if ($LASTEXITCODE -ne 0) {
 
 log_statement "Building Reduction Server unit tests"
 
-cd $rootpath\ReductionServer
+cd $rootpath\ReductionServer\ContentReductionServiceTests
 
-MSBuild /t:Restore /verbosity:quiet
-
-if ( $LASTEXITCODE -ne 0 ) {
-    log_statement "ERROR: Reduction server unit test dependency restore failed"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
-}
-
-MSBuild /verbosity:quiet
+MSBuild /restore:True /verbosity:quiet
 
 if ( $LASTEXITCODE -ne 0 ) {
     log_statement "ERROR: Reduction server unit test build failed"
