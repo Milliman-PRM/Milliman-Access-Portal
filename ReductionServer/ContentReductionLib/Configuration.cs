@@ -39,6 +39,10 @@ namespace ContentReductionLib
                     var store = new X509Store(StoreLocation.LocalMachine);
                     store.Open(OpenFlags.ReadOnly);
                     System.Console.WriteLine($"store has {store.Certificates.Count} certificates");
+                    foreach (var cer in store.Certificates)
+                    {
+                        System.Console.WriteLine($"cert type: {cer.GetType().Name}");
+                    }
                     System.Console.WriteLine($"store name is {store.Name}");
                     var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
 
