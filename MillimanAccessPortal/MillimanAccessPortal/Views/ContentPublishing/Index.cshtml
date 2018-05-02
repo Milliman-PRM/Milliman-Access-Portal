@@ -1,4 +1,6 @@
-﻿@{
+﻿@model MapDbContextLib.Context.RootContentItem;
+
+@{
     /*
      * CODE OWNERS: Mike Reisz, Kelsie Stevenson
      * OBJECTIVE: Provide an interface for uploading and updating content
@@ -28,7 +30,7 @@
         <ul class="admin-panel-content"></ul>
     </div>
 </div>
-<div id="root-content-items" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12" style="display: none;">
+<div id="root-content-items" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12" @*style="display: none;" *@>
     <div class="loading-wrapper">
         @Html.Partial("~/Views/Shared/_Loader.cshtml")
     </div>
@@ -40,5 +42,88 @@
     </div>
     <div class="admin-panel-content-container">
         <ul class="admin-panel-content"></ul>
+    </div>
+</div>
+<div id="content-publishing-form" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-6-12" @*style="display: none;" *@>
+    <div class="loading-wrapper" style="display: none;">
+        @Html.Partial("~/Views/Shared/_Loader.cshtml")
+    </div>
+    <h3 class="admin-panel-header">Content Item</h3>
+    <div class="admin-panel-toolbar">
+        <div class="admin-panel-action-icons-container">
+            <svg class="action-icon-edit action-icon tooltip" title="Edit Content Item details">
+                <use xlink:href="#action-icon-edit"></use>
+            </svg>
+            <svg class="action-icon-cancel action-icon tooltip" title="Cancel edit">
+                <use xlink:href="#action-icon-cancel"></use>
+            </svg>
+        </div>
+    </div>
+    <div class="admin-panel-content-container">
+        <form class="admin-panel-content">
+            <div class="form-container">
+                <h4 class="form-section-header">Content Item Information</h4>
+                <div class="form-section-container">
+                    <div style="display: none;">
+                        <input asp-for="Id" />
+                    </div>
+                    <div class="form-input flex-item-12-12">
+                        <label asp-for="ContentName"></label>
+                        <div>
+                            <input asp-for="ContentName" />
+                            <span asp-validation-for="ContentName" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-input content-item-flex-1">
+                        <label asp-for="ContentTypeId"></label>
+                        <div>
+                            <select asp-for="ContentTypeId">
+                                <option value="">Make a Selection</option>
+                            </select>
+                            <span asp-validation-for="ContentTypeId" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-input form-input-flex content-item-flex-none">
+                        <div class="switch-container">
+                            <div class="toggle-switch">
+                                <input type="checkbox" class="toggle-switch-checkbox" name="contentReducable" id="contentReducable">
+                                <label class="toggle-switch-label" for="contentReducable">
+                                    <span class="toggle-switch-inner"></span>
+                                    <span class="toggle-switch-switch"></span>
+                                </label>
+                            </div>
+                            <label class="switch-label" for="contentReducable">Reducable?</label>
+                        </div>
+                    </div>
+                </div>
+                <h4 class="form-section-header">Files</h4>
+                <div class="form-section-container">
+                </div>
+                <h4 class="form-section-header">Content Description</h4>
+                <div class="form-section-container">
+                    <div class="form-input flex-item-12-12">
+                        <label for="ContentDescription">Description</label>
+                        <div>
+                            <textarea id="ContentDescription" for="ContentDescription" required></textarea>
+                        </div>
+                    </div>
+                    <div class="form-input flex-item-12-12">
+                        <label for="ContentNotes">Notes</label>
+                        <div>
+                            <textarea id="ContentNotes" for="ContentNotes"></textarea>
+                        </div>
+                    </div>
+                </div>
+                @Html.AntiForgeryToken()
+                <div class="new-form-button-container form-button-container">
+                    <button type="button" class="reset-button link-button">Reset Form</button>
+                    <button type="button" class="submit-button green-button">Create Content Item</button>
+                </div>
+                <div class="edit-form-button-container form-button-container" style="display: none;">
+                    <button type="button" class="reset-button link-button">Discard Changes</button>
+                    <button type="button" class="submit-button blue-button">Save Changes</button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>

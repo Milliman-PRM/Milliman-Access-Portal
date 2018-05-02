@@ -137,6 +137,16 @@ input:-webkit-autofill {
         & > [class*="form-input"] {
             padding: .25em .5em;
         }
+
+        .form-input-flex {
+            display: flex;
+
+            & > .switch-container {
+                align-self: flex-end;
+                margin-bottom: 0;
+                margin-left: .5em;
+            }
+        }
     }
 
     .form-button-container {
