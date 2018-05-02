@@ -1,21 +1,16 @@
-export class Client {
+abstract class Nestable {
   Id: number;
-  Name: string;
-  ClientCode: string;
-  ContactName: string;
-  ContactTitle: string;
-  ContactEmail: string;
-  ContactPhone: string;
-  ConsultantName: string;
-  ConsultantEmail: string;
-  ConsultantOffice: string;
-  AcceptedEmailDomainList: Array<string>;
-  AcceptedEmailAddressExceptionList: Array<string>;
-  ParentClientId?: number;
-  ParentClient: Client;
-  ProfitCenterId: number;
-  ProfitCenter: any; // TODO: write ProfitCenter interface
+  ParentId?: number;
 }
+
+class BasicTree<T extends Nestable> {
+  Root: BasicNode<T>;
+}
+export class BasicNode<T extends Nestable> {
+  Value: T;
+  Children: Array<BasicNode<T>>;
+}
+
 export class UserInfo {
   Id: number;
   LastName: string;
@@ -23,23 +18,18 @@ export class UserInfo {
   Email: string;
   UserName: string;
 }
-export class ClientDetail {
-  ClientEntity: Client;
+export class ClientDetail extends Nestable {
+  Name: string;
+  Code: string;
+
+  CanManage: boolean;
   AssignedUsers: Array<UserInfo>;
   EligibleUserCount: number;
   RootContentItemCount: number;
-  CanManage: boolean;
 }
-export class ClientWithChildren {
-  ClientDetailModel: ClientDetail;
-  ChildClientModels: Array<ClientWithChildren>;
+export class ClientTree extends BasicTree<ClientDetail> {
+  SelectedClientId: number;
 }
-export class ClientTree {
-  ClientTreeList: Array<ClientWithChildren>;
-  RelevantClientId: number;
-}
-
-
 
 export enum PublicationStatus {
   Unknown = 0,
@@ -76,7 +66,7 @@ export class RootContentItem {
   ContentTypeId: number;
   ContentType: ContentType;
   ClientId: number;
-  Client: Client;
+  Client: ClientDetail;
   TypeSpecificDetails: string;
 }
 export class RootContentItemDetail {

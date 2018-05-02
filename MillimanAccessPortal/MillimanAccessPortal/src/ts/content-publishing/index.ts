@@ -31,27 +31,27 @@ function generateGUID() {
 }
 
 $(document).ready(() => {
-  // const publicationGUID = generateGUID();
-  // const unloadAlertStates: Array<boolean> = [];
+  const publicationGUID = generateGUID();
+  const unloadAlertStates: Array<boolean> = [];
 
-  // $('#card-list .admin-panel-content').empty();
-  // PublicationComponentInfo.forEach((componentInfo, component) => {
-  //   const componentCard = new FileUploadCard(componentInfo.displayName).build();
-  //   $('#card-list .admin-panel-content').append(componentCard);
-  //   const publicationUpload = new PublicationUpload(
-  //     componentCard.find('.card-body-container')[0],
-  //     (a) => {
-  //       unloadAlertStates[component] = a;
-  //       setUnloadAlert(unloadAlertStates.reduce((prev, cur) => prev || cur, false));
-  //     },
-  //     publicationGUID,
-  //     component,
-  //   );
-  //   unloadAlertStates.push(false);
-  // });
+  $('#card-list .admin-panel-content').empty();
+  PublicationComponentInfo.forEach((componentInfo, component) => {
+    const componentCard = new FileUploadCard(componentInfo.displayName).build();
+    $('#card-list .admin-panel-content').append(componentCard);
+    const publicationUpload = new PublicationUpload(
+      componentCard.find('.card-body-container')[0],
+      (a) => {
+        unloadAlertStates[component] = a;
+        setUnloadAlert(unloadAlertStates.reduce((prev, cur) => prev || cur, false));
+      },
+      publicationGUID,
+      component,
+    );
+    unloadAlertStates.push(false);
+  });
 
   shared.get(
-    'ContentAccessAdmin/ClientFamilyList',
+    'ContentPublishing/ClientTree',
     [ renderClientTree ],
   )();
 

@@ -2,7 +2,7 @@ import $ = require('jquery');
 require('tooltipster');
 import shared = require('../shared');
 import { ClientCard, RootContentItemCard } from '../card';
-import { ClientTree, ClientWithChildren, RootContentItemList, RootContentItemDetail } from '../view-models/content-access-admin';
+import { ClientTree, RootContentItemList, RootContentItemDetail, BasicNode, ClientDetail } from '../view-models/content-access-admin';
 
 
 
@@ -31,29 +31,29 @@ function renderRootContentItemList(response: RootContentItemList, rootContentIte
 }
 
 
-function renderClientNode(rootClient: ClientWithChildren, level: number = 0) {
+function renderClientNode(rootClient: BasicNode<ClientDetail>, level: number = 0) {
   const $card = new ClientCard(
-    rootClient.ClientDetailModel.ClientEntity,
-    rootClient.ClientDetailModel.EligibleUserCount,
-    rootClient.ClientDetailModel.RootContentItemCount,
+    rootClient.Value,
+    rootClient.Value.EligibleUserCount,
+    rootClient.Value.RootContentItemCount,
     level,
     shared.wrapCardCallback(shared.get(
       'ContentAccessAdmin/RootContentItems',
       [ renderRootContentItemList ],
     )),
   );
-  $card.disabled = !rootClient.ClientDetailModel.CanManage;
+  $card.disabled = !rootClient.Value.CanManage;
   $('#client-tree ul.admin-panel-content').append($card.build());
 
   // Render child nodes
-  rootClient.ChildClientModels.forEach((childNode) => {
+  rootClient.Children.forEach((childNode) => {
     renderClientNode(childNode, level + 1);
   });
 }
 export function renderClientTree(response: ClientTree, clientId?: number) {
   const $clientTreeList = $('#client-tree ul.admin-panel-content');
   $clientTreeList.empty();
-  response.ClientTreeList.forEach((rootClient) => {
+  response.Root.Children.forEach((rootClient) => {
     renderClientNode(rootClient);
     $clientTreeList.append('<li class="hr width-100pct"></li>');
   });

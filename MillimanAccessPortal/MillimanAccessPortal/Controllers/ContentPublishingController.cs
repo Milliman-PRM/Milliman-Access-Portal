@@ -4,13 +4,16 @@
  * DEVELOPER NOTES:
  */
 
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Logging;
-using MapDbContextLib.Context;
-using MillimanAccessPortal.DataQueries;
 using AuditLogLib.Services;
+using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using MillimanAccessPortal.Authorization;
+using MillimanAccessPortal.DataQueries;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -21,6 +24,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly ApplicationDbContext DbContext;
         private readonly ILogger Logger;
         private readonly StandardQueries Queries;
+        private readonly UserManager<ApplicationUser> UserManager;
 
 
         /// <summary>
@@ -36,7 +40,8 @@ namespace MillimanAccessPortal.Controllers
             IAuthorizationService AuthorizationServiceArg,
             ApplicationDbContext ContextArg,
             ILoggerFactory LoggerFactoryArg,
-            StandardQueries QueriesArg
+            StandardQueries QueriesArg,
+            UserManager<ApplicationUser> UserManagerArg
             )
         {
             AuditLogger = AuditLoggerArg;
@@ -44,6 +49,7 @@ namespace MillimanAccessPortal.Controllers
             DbContext = ContextArg;
             Logger = LoggerFactoryArg.CreateLogger<ContentPublishingController>(); ;
             Queries = QueriesArg;
+            UserManager = UserManagerArg;
         }
 
         /// <summary>
@@ -53,6 +59,25 @@ namespace MillimanAccessPortal.Controllers
         public IActionResult Index()
         {
             return View();
+        }
+
+        async public Task<IActionResult> ClientTree()
+        {
+            #region Authorization
+            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, null));
+            if (!RoleInClientResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to publish content.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            #endregion
+
+            var model = await Models.ContentPublishing.ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
+
+            return new JsonResult(model);
         }
 
         [HttpPost]
