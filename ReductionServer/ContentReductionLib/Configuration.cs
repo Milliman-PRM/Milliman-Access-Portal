@@ -28,13 +28,13 @@ namespace ContentReductionLib
             switch (EnvironmentName)
             {
                 case "CI":
+                case "AzureCI":
                 case "AzureProduction":
                     CfgBuilder.AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true);
-
                     var builtConfig = CfgBuilder.Build();
+
                     var store = new X509Store(StoreLocation.LocalMachine);
                     store.Open(OpenFlags.ReadOnly);
-
                     var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
 
                     CfgBuilder.AddAzureKeyVault(
@@ -42,23 +42,6 @@ namespace ContentReductionLib
                         builtConfig["AzureClientID"],
                         cert.OfType<X509Certificate2>().Single()
                         );
-
-                    #region test
-                    System.Console.WriteLine("=============");
-                    IConfigurationBuilder TestBuilder = new ConfigurationBuilder()
-                        .AddAzureKeyVault(
-                            builtConfig["AzureVaultName"],
-                            builtConfig["AzureClientID"],
-                            cert.OfType<X509Certificate2>().Single()
-                        );
-                    ApplicationConfiguration = TestBuilder.Build();
-                    foreach (var x in ApplicationConfiguration.AsEnumerable().ToList())
-                    {
-                        System.Console.WriteLine($"Test config entry key {x.Key} value is {(x.Value.Length < 100 ? x.Value : "<something long>")}");
-                    }
-                    System.Console.WriteLine("=============");
-                    #endregion
-
                     break;
 
                 case "Development":
