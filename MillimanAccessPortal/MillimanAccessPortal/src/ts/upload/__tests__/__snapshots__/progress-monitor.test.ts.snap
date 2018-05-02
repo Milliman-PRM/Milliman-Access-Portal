@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`progress monitor renders progress 1`] = `
+Array [
+  Array [
+    Object {
+      "percentage": "0%",
+      "rate": "0 B/s",
+      "remainingTime": "0:00 remaining",
+    },
+  ],
+  Array [
+    Object {
+      "percentage": "20%",
+      "rate": "128 KB/s",
+      "remainingTime": "0:04 remaining",
+    },
+  ],
+]
+`;

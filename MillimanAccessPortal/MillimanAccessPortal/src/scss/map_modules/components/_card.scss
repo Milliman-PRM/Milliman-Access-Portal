@@ -102,7 +102,6 @@
                 .card-body-secondary-text {
                     display: inline-block;
                     margin: 0;
-                    height: 100%;
                     width: 75%;
                 }
             }
@@ -144,6 +143,62 @@
                     stroke-width: 3px;
                 }
             }
+
+            .card-progress {
+                position: relative;
+                margin-top: 0.5em;
+                margin-bottom: 0.5em;
+
+                .card-progress-status {
+                    display: flex;
+
+                    .card-progress-status-text {
+                        font-style: italic;
+                        font-weight: normal;
+                        flex: 1;
+                        height: 1em;
+                        margin-bottom: 0;
+                        color: $dark-grey;
+                        font-size: 0.8em;
+                    }
+                    .card-progress-status-btn {
+                        flex: 0;
+                        margin-left: 0.2em;
+                        height: 1em;
+                        margin-bottom: 0.4em;
+                        visibility: hidden;
+
+                        &:hover {
+                            background-color: hotpink;
+                        }
+
+                        .card-button-icon {
+                            width: 1em;
+                            height: 1em;
+                        }
+                    }
+                }
+                .card-progress-bars {
+                    position: relative;
+                    display: block;
+                    height: 0.8em;
+                    border: 1px solid $dark-grey;
+
+                    .card-progress-bar-1 {
+                        position: absolute;
+                        background-color: rgb(100, 200, 255);
+                        width: 0;
+                        height: 100%;
+                    }
+                    .card-progress-bar-2 {
+                        position: absolute;
+                        background-color: rgb(0, 235, 0);
+                        width: 0;
+                        height: 100%;
+                    }
+                }
+            }
+
         }
 
         .card-stats-container {

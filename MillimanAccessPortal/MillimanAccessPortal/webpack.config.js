@@ -8,7 +8,7 @@ module.exports = {
     'account-settings': './src/js/account-settings.js',
     'client-admin': './src/js/client-admin.js',
     'content-access-admin': './src/js/content-access-admin.js',
-    'content-publishing': './src/js/content-publishing.js',
+    'content-publishing': './src/js/content-publishing/index.js',
     'hosted-content': './src/js/hosted-content.js',
     'login': './src/js/login.js',
     'system-admin': './src/js/system-admin.js',
