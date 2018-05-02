@@ -3,6 +3,7 @@ import toastr = require('toastr');
 import card = require('./card');
 import dialog = require('./dialog');
 import shared = require('./shared');
+import { globalSettings } from './lib-options';
 import { Dictionary } from 'lodash';
 require('jquery-mask-plugin');
 require('jquery-validation');
@@ -11,8 +12,6 @@ require('selectize');
 require('tooltipster');
 require('vex-js');
 require('./navbar');
-require('./lib-options');
-const appSettings = require('../../appsettings.json');
 
 require('bootstrap/scss/bootstrap-reboot.scss');
 require('selectize/src/less/selectize.default.less');
@@ -25,8 +24,13 @@ var ajaxStatus: any = {};
 var eligibleUsers;
 var SHOW_DURATION = 50;
 
-const domainRegex = new RegExp(appSettings.Global.DomainValidationRegex);
-const emailRegex = new RegExp(appSettings.Global.EmailValidationRegex);
+
+function domainRegex() {
+  return new RegExp(globalSettings.domainValidationRegex);
+}
+function emailRegex() {
+  return new RegExp(globalSettings.emailValidationRegex);
+}
 
 // TODO: move to shared
 function removeClientInserts() {
@@ -468,7 +472,7 @@ function addUserClickHandler() {
         shared.showButtonSpinner($('.vex-first'), 'Adding');
         $('.vex-dialog-button').attr('disabled', '');
         saveNewUser(data.username, null, callback);
-      } else if (emailRegex.test(data.username)) {
+      } else if (emailRegex().test(data.username)) {
         shared.showButtonSpinner($('.vex-first'), 'Adding');
         $('.vex-dialog-button').attr('disabled', '');
         saveNewUser(null, data.username, callback);
@@ -691,7 +695,7 @@ $(document).ready(function onReady() {
     plugins: ['remove_button'],
     persist: false,
     create: function onCreate(input) {
-      if (input.match(domainRegex)) {
+      if (input.match(domainRegex())) {
         return {
           value: input,
           text: input
@@ -713,7 +717,7 @@ $(document).ready(function onReady() {
     delimiter: ',',
     persist: false,
     create: function onCreate(input) {
-      if (input.match(emailRegex)) {
+      if (input.match(emailRegex())) {
         return {
           value: input,
           text: input
