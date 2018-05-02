@@ -95,6 +95,8 @@ $logDbTemplateName = "auditlogdb_ci_template"
 $logDbOwner = "logdb_admin"
 $dbCreationRetries = 5 # The number of times the script will attempt to create a new database before throwing an error
 
+$jUnitOutputJest = "../../_test_results/jest-test-results.xml"
+
 $env:PATH = $env:PATH+";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin\;$env:appdata\npm\"
 $rootPath = (get-location).Path
 
@@ -208,7 +210,9 @@ if ($LASTEXITCODE -ne 0) {
 
 cd $rootPath\MillimanAccessPortal\MillimanAccessPortal
 
-$command = "yarn test"
+$env:JEST_JUNIT_OUTPUT = $jUnitOutputJest
+
+$command = "yarn test --testResultsProcessor='jest-junit'"
 invoke-expression "&$command"
 
 if ($LASTEXITCODE -ne 0) {

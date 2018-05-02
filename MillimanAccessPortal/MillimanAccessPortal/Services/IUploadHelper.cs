@@ -38,6 +38,12 @@ namespace MillimanAccessPortal.Services
         void FinalizeChunk(ResumableInfo resumableInfo);
 
         /// <summary>
+        /// Delete all files related to an upload
+        /// </summary>
+        /// <param name="resumableInfo">Identifies the resumable upload</param>
+        void DeleteAllChunks(ResumableInfo resumableInfo);
+
+        /// <summary>
         /// Run post-file upload procedures
         /// </summary>
         /// <param name="resumableInfo">Identifies the resumable upload</param>

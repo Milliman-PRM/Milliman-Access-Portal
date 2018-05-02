@@ -178,6 +178,19 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>
+        /// Perform actions when an upload is canceled by the user
+        /// </summary>
+        /// <param name="resumableInfo">Identifies the resumable upload</param>
+        /// <returns>Ok</returns>
+        [HttpPost]
+        public IActionResult CancelUpload(ResumableInfo resumableInfo)
+        {
+            UploadHelper.DeleteAllChunks(resumableInfo);
+
+            return Ok();
+        }
+
+        /// <summary>
         /// Finalize upload by reassmebling and verifying the file
         /// </summary>
         /// <param name="resumableInfo">Identifies the resumable upload</param>

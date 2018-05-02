@@ -4,12 +4,31 @@ import toastr = require('toastr');
 const vex = require('vex-js');
 vex.registerPlugin(require('vex-dialog'));
 const resumable = require('resumablejs');
-const appSettings = require('../../appsettings.json');
+const initialAppSettings = require('../../appsettings.json');
+
+
+interface GlobalSettings {
+  domainValidationRegex: string;
+  emailValidationRegex: string;
+  maxFileUploadSize: number;
+}
+
+export let globalSettings: GlobalSettings = {
+  domainValidationRegex: initialAppSettings.Global.DomainValidationRegex,
+  emailValidationRegex: initialAppSettings.Global.EmailValidationRegex,
+  maxFileUploadSize: initialAppSettings.Global.MaxFileUploadSize,
+};
+$(document).on('ready', () => {
+  globalSettings = $('#global-settings').data() as GlobalSettings;
+  console.log('Updated global settings');
+});
+
 
 // Configure jQuery validation overrides
 // See https://jqueryvalidation.org/jQuery.validator.methods/
 $.validator.methods.email = function(value: string, element: any) {
-  return this.optional(element) || appSettings.Global.EmailValidationRegex;
+  return this.optional(element)
+    || new RegExp(globalSettings.emailValidationRegex).test(value);
 }
 // Configure default vex options
 vex.defaultOptions = $.extend(
@@ -51,7 +70,7 @@ export const resumableOptions = {
   testChunks: false,
   simultaneousUploads: 3,
   maxFiles: 1,
-  maxFileSize: appSettings.Global.MaxFileUploadSize,
+  maxFileSize: globalSettings.maxFileUploadSize,
   permanentErrors: [400, 401, 404, 409, 415, 500, 501],
   chunkNumberParameterName: 'chunkNumber',
   totalChunksParameterName: 'totalChunks',
