@@ -31,7 +31,7 @@ using System.IO;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Globalization;
 using System.Text;
-using MillimanAccessPortal.Models.ContentPublicationViewModels;
+using MillimanAccessPortal.Models.ContentPublishingViewModels;
 using MillimanAccessPortal.Services;
 
 namespace MillimanAccessPortal.Controllers

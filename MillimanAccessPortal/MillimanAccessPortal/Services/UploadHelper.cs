@@ -13,7 +13,7 @@ using MapCommonLib;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.FileProviders;
 using MillimanAccessPortal.Controllers;
-using MillimanAccessPortal.Models.ContentPublicationViewModels;
+using MillimanAccessPortal.Models.ContentPublishingViewModels;
 
 namespace MillimanAccessPortal.Services
 {

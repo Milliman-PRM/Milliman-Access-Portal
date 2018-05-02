@@ -32,7 +32,7 @@ using AuditLogLib;
 using Microsoft.EntityFrameworkCore.Storage;
 using MillimanAccessPortal.Services;
 using System.IO;
-using MillimanAccessPortal.Models.ContentPublicationViewModels;
+using MillimanAccessPortal.Models.ContentPublishingViewModels;
 
 namespace MapTests
 {

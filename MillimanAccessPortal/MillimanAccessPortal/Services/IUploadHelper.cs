@@ -7,7 +7,7 @@
  *      would be beneficial.
  */
 
-using MillimanAccessPortal.Models.ContentPublicationViewModels;
+using MillimanAccessPortal.Models.ContentPublishingViewModels;
 using System.Collections.Generic;
 using System.IO;
 

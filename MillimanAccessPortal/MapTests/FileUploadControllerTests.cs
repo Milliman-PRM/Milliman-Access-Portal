@@ -7,7 +7,7 @@
 using MapCommonLib;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
-using MillimanAccessPortal.Models.ContentPublicationViewModels;
+using MillimanAccessPortal.Models.ContentPublishingViewModels;
 using System;
 using System.IO;
 using System.Threading.Tasks;
