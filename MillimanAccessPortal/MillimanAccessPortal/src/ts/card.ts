@@ -11,7 +11,8 @@ var cardLayout = {
         },
         text: {
           primaryText: {},
-          secondaryText: {}
+          secondaryText: {},
+          progressInfo: {}
         },
         statistics: {
           statistic: {}
@@ -392,6 +393,31 @@ var components = Object.assign(
           this.tooltip(component, 'Expand card', '.card-button-background');
         };
       }
+    },
+    progressInfo: {
+      count: '?',
+      selector: '.card-body-primary-container',
+      html: [
+        '<div class="card-progress">',
+        '  <div class="card-progress-status">',
+        '    <p class="card-progress-status-text"></p>',
+        '    <div class="card-progress-status-btn btn-cancel">',
+        '      <svg class="card-button-icon">',
+        '        <use href="#action-icon-cancel"></use>',
+        '      </svg>',
+        '    </div>',
+        '  </div>',
+        '  <div class="card-progress-bars">',
+        '    <div class="card-progress-bar-1"></div>',
+        '    <div class="card-progress-bar-2"></div>',
+        '  </div>',
+        '</div>',
+      ].join(''),
+      render: function (component) {
+        return function () {
+          this.verify(component);
+        }
+      }
     }
   }
 );
@@ -707,6 +733,18 @@ export function RootContentItemCard(
 };
 RootContentItemCard.prototype = Object.create(Card.prototype);
 RootContentItemCard.prototype.constructor = RootContentItemCard;
+
+export function FileUploadCard(
+  contentName
+) {
+  Card.call(this);
+
+  this.addComponent('primaryText', { text: contentName });
+  this.addComponent('secondaryText', { text: 'Click to select file...' });
+  this.addComponent('progressInfo', {});
+};
+FileUploadCard.prototype = Object.create(Card.prototype);
+FileUploadCard.prototype.constructor = FileUploadCard;
 
 export function SelectionGroupCard(
   selectionGroup, members,

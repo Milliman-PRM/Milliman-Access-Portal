@@ -157,6 +157,19 @@ namespace MillimanAccessPortal.Services
         }
 
         /// <summary>
+        /// Delete all files related to an upload
+        /// </summary>
+        /// <remarks>
+        /// The actual cleanup is handled by Dispose(). This method isn't functionaly necessary
+        /// and exists only for semantic reasons.
+        /// </remarks>
+        /// <param name="resumableInfo">Identifies the resumable upload</param>
+        public void DeleteAllChunks(ResumableInfo resumableInfo)
+        {
+            Info = resumableInfo;
+        }
+
+        /// <summary>
         /// Concatenate the uploaded chunks into a single file and verify
         /// </summary>
         /// <param name="resumableInfo">Identifies the resumable upload</param>
