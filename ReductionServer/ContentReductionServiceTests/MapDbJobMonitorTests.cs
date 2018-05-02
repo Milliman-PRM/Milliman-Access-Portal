@@ -22,7 +22,6 @@ namespace ContentReductionServiceTests
             #region arrange
             MapDbJobMonitor JobMonitor = new MapDbJobMonitor
             {
-                UseMockForTesting = true,
                 MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus),
             };
 

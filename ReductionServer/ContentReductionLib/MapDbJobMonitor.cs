@@ -105,23 +105,6 @@ namespace ContentReductionLib
         }
 
         #region Unit testing support
-        /// <summary>
-        /// A signal flag for this object to use mocked replacements for external resources 
-        /// </summary>
-        private bool _UseMockForTesting { get; set; } = false;
-        public bool UseMockForTesting
-        {
-            set
-            {
-                AssertTesting();
-                _UseMockForTesting = value;
-            }
-            private get
-            {
-                return _UseMockForTesting;
-            }
-        }
-
         public TimeSpan TaskAgeBeforeExecution_TestAssert
         {
             get
@@ -169,7 +152,7 @@ namespace ContentReductionLib
         /// <returns></returns>
         public override Task Start(CancellationToken Token)
         {
-            if (ContextOptions == null && !UseMockForTesting)
+            if (ContextOptions == null && MockContext == null)
             {
                 throw new NullReferenceException("Attempting to construct new ApplicationDbContext but connection string not initialized");
             }
@@ -212,7 +195,7 @@ namespace ContentReductionLib
                                 {
                                     JobDetail = (ReductionJobDetail)DbTask,
                                 };
-                                if (UseMockForTesting)
+                                if (MockContext != null)
                                 {
                                     Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
                                 }
@@ -281,7 +264,7 @@ namespace ContentReductionLib
                 return new List<ContentReductionTask>();
             }
 
-            using (ApplicationDbContext Db = UseMockForTesting
+            using (ApplicationDbContext Db = MockContext != null
                                              ? MockContext.Object
                                              : new ApplicationDbContext(ContextOptions))
             using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
