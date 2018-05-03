@@ -8,7 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 
-namespace MapTests
+namespace TestResourcesLib
 {
     public class MockDbSet<T> where T : class
     {

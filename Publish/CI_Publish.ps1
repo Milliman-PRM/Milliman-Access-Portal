@@ -144,7 +144,7 @@ if ($codeChangeFound -eq $false)
 
 cd MillimanAccessPortal\MillimanAccessPortal
 
-log_statement "Restoring packages before unit tests"
+log_statement "Restoring packages and building MAP"
 
 MSBuild /t:Restore /verbosity:quiet
 
@@ -186,19 +186,11 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 
-log_statement "Building unit tests"
+log_statement "Building MAP unit tests"
 
 cd $rootPath\MillimanAccessPortal\MapTests
 
-MSBuild /t:Restore /verbosity:quiet
-
-if ( $LASTEXITCODE -ne 0 ) {
-    log_statement "ERROR: Unit test dependency restore failed"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
-}
-
-MSBuild /verbosity:quiet /nowarn:CS1998
+MSBuild /restore:True /verbosity:quiet /nowarn:CS1998
 
 if ( $LASTEXITCODE -ne 0 ) {
     log_statement "ERROR: Unit test build failed"
@@ -206,7 +198,7 @@ if ( $LASTEXITCODE -ne 0 ) {
     exit $LASTEXITCODE
 }
 
-log_statement "Performing unit tests"
+log_statement "Performing MAP unit tests"
 
 dotnet test --no-build -v q
 
@@ -225,6 +217,28 @@ invoke-expression "&$command"
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: One or more Jest tests failed"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
+log_statement "Building Reduction Server unit tests"
+
+cd $rootpath\ReductionServer\ContentReductionServiceTests
+
+MSBuild /restore:True /verbosity:quiet
+
+if ( $LASTEXITCODE -ne 0 ) {
+    log_statement "ERROR: Reduction server unit test build failed"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
+log_statement "Performing Reduction server unit tests"
+
+dotnet test --no-build -v q
+
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: One or more Reduction server xUnit tests failed"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
