@@ -52,7 +52,7 @@ namespace ContentReductionServiceTests
             Assert.Equal<TaskStatus>(TaskStatus.RanToCompletion, MonitorTask.Status);
             Assert.False(MonitorTask.IsCanceled);
             Assert.False(MonitorTask.IsFaulted);
-            if (string.IsNullOrEmpty(TaskResult.StatusMessage))
+            if (!string.IsNullOrEmpty(TaskResult.StatusMessage))
             {
                 System.Console.WriteLine($"TaskResult.StatusMessage is {TaskResult.StatusMessage}");
             }
@@ -104,7 +104,7 @@ namespace ContentReductionServiceTests
             Assert.Equal<TaskStatus>(TaskStatus.RanToCompletion, MonitorTask.Status);
             Assert.False(MonitorTask.IsCanceled);
             Assert.False(MonitorTask.IsFaulted);
-            if (string.IsNullOrEmpty(TaskResult.StatusMessage))
+            if (!string.IsNullOrEmpty(TaskResult.StatusMessage))
             {
                 System.Console.WriteLine($"TaskResult.StatusMessage is {TaskResult.StatusMessage}");
             }
@@ -265,7 +265,7 @@ namespace ContentReductionServiceTests
             Assert.Equal<TaskStatus>(TaskStatus.RanToCompletion, MonitorTask.Status);
             Assert.False(MonitorTask.IsCanceled);
             Assert.False(MonitorTask.IsFaulted);
-            if (string.IsNullOrEmpty(TaskResult.StatusMessage))
+            if (!string.IsNullOrEmpty(TaskResult.StatusMessage))
             {
                 System.Console.WriteLine($"TaskResult.StatusMessage is {TaskResult.StatusMessage}");
             }
