@@ -1,0 +1,5 @@
+﻿{
+  // documentation: http://xunit.github.io/docs/configuring-with-json
+  "parallelizeAssembly": true,
+  "parallelizeTestCollections": false
+}

@@ -18,10 +18,12 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using ContentReductionLib.ReductionRunners;
 using Newtonsoft.Json;
+using TestResourcesLib;
+using Moq;
 
 namespace ContentReductionLib
 {
-    internal class MapDbJobMonitor : JobMonitorBase
+    public class MapDbJobMonitor : JobMonitorBase
     {
         internal class JobTrackingItem
         {
@@ -34,11 +36,19 @@ namespace ContentReductionLib
         private List<JobTrackingItem> ActiveReductionRunnerItems = new List<JobTrackingItem>();
 
         // Settable operating parameters
-        internal TimeSpan TaskAgeBeforeExecution
+        private TimeSpan TaskAgeBeforeExecution
         {
             get
             {
-                if (!int.TryParse(Configuration.ApplicationConfiguration["TaskAgeBeforeExecutionSeconds"], out int TaskAgeSec))
+                int TaskAgeSec;
+                try
+                {
+                    if (!int.TryParse(Configuration.ApplicationConfiguration["TaskAgeBeforeExecutionSeconds"], out TaskAgeSec))
+                    {
+                        throw new Exception();
+                    }
+                }
+                catch
                 {
                     TaskAgeSec = 30;
                 }
@@ -50,9 +60,17 @@ namespace ContentReductionLib
         {
             get
             {
-                if (!int.TryParse(Configuration.ApplicationConfiguration["StopWaitTimeSeconds"], out int WaitSec))
+                int WaitSec;
+                try
                 {
-                    // Increases the total time with more concurrent tasks, but less than linearly
+                    if (!int.TryParse(Configuration.ApplicationConfiguration["StopWaitTimeSeconds"], out WaitSec))
+                    {
+                        throw new Exception();
+                    }
+                }
+                catch
+                {
+                    // Increases the total time based on concurrent tasks, but less than linearly
                     WaitSec = 3 * 60 * (int)Math.Ceiling(Math.Sqrt(MaxParallelTasks));
                 }
                 return TimeSpan.FromSeconds(WaitSec);
@@ -63,10 +81,15 @@ namespace ContentReductionLib
         {
             get
             {
-                if (int.TryParse(Configuration.ApplicationConfiguration["MaxParallelTasks"], out int MaxTasks))
+                try
                 {
-                    return MaxTasks;
+                    if (int.TryParse(Configuration.ApplicationConfiguration["MaxParallelTasks"], out int MaxTasks))
+                    {
+                        return MaxTasks;
+                    }
                 }
+                catch
+                {}
                 return 1;
             }
         }
@@ -80,6 +103,34 @@ namespace ContentReductionLib
                 ConnectionString = Configuration.GetConnectionString(value);
             }
         }
+
+        #region Unit testing support
+        public TimeSpan TaskAgeBeforeExecution_TestAssert
+        {
+            get
+            {
+                AssertTesting();
+                return TaskAgeBeforeExecution;
+            }
+        }
+
+        /// <summary>
+        /// Can be provided by test code to initializate data in a mocked ApplicationDbContext
+        /// </summary>
+        private Mock<ApplicationDbContext> _MockContext = null;
+        public Mock<ApplicationDbContext> MockContext
+        {
+            private get
+            {
+                return _MockContext;
+            }
+            set
+            {
+                AssertTesting();
+                _MockContext = value;
+            }
+        }
+        #endregion
 
         /// <summary>
         /// Initializes data used to construct database context instances.
@@ -99,21 +150,23 @@ namespace ContentReductionLib
         /// </summary>
         /// <param name="Token">Allows the worker to react to task cancellation by the caller</param>
         /// <returns></returns>
-        internal override Task Start(CancellationToken Token)
+        public override Task Start(CancellationToken Token)
         {
-            if (ContextOptions == null)
+            if (ContextOptions == null && MockContext == null)
             {
                 throw new NullReferenceException("Attempting to construct new ApplicationDbContext but connection string not initialized");
             }
 
-            return Task.Run(() => JobMonitorThreadMain(Token));
+            return Task.Run(() => JobMonitorThreadMain(Token), Token);
         }
 
         /// <summary>
         /// Main long running thread of the job monitor
+        /// TODO It should not be necessary to pass the cancellation token here since the Task.Run method has the token as second argument. 
+        /// Follow up when there is an answer at: https://github.com/dotnet/docs/issues/5085
         /// </summary>
         /// <param name="Token"></param>
-        internal override void JobMonitorThreadMain(CancellationToken Token)
+        public override void JobMonitorThreadMain(CancellationToken Token)
         {
             MethodBase Method = MethodBase.GetCurrentMethod();
             while (!Token.IsCancellationRequested)
@@ -142,8 +195,12 @@ namespace ContentReductionLib
                                 {
                                     JobDetail = (ReductionJobDetail)DbTask,
                                 };
+                                if (MockContext != null)
+                                {
+                                    Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
+                                }
 
-                                NewTask = Task.Run(() => Runner.Execute(cancelSource.Token));
+                                NewTask = Task.Run(() => Runner.Execute(cancelSource.Token), cancelSource.Token);
                                 break;
 
                             default:
@@ -161,38 +218,37 @@ namespace ContentReductionLib
                 Thread.Sleep(1000);
             }
 
-            if (ActiveReductionRunnerItems.Count == 0)
+            Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} stopping {ActiveReductionRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
+
+            if (ActiveReductionRunnerItems.Count != 0)
             {
-                Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} stopped due to cancellation request");
-                return;
-            }
+                ActiveReductionRunnerItems.ForEach(t => t.tokenSource.Cancel());
 
-            Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} received stop request, cancelling {ActiveReductionRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
-            ActiveReductionRunnerItems.ForEach(t => t.tokenSource.Cancel());
-
-            DateTime WaitStart = DateTime.Now;
-            while (DateTime.Now - WaitStart < StopWaitTimeSeconds)
-            {
-                Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} waiting for {ActiveReductionRunnerItems.Count} running tasks to complete");
-
-                int CompletedTaskIndex = Task.WaitAny(ActiveReductionRunnerItems.Select(t => t.task).ToArray(), new TimeSpan(StopWaitTimeSeconds.Ticks/100));
-                if (CompletedTaskIndex > -1)
+                DateTime WaitStart = DateTime.Now;
+                while (DateTime.Now - WaitStart < StopWaitTimeSeconds)
                 {
-                    ActiveReductionRunnerItems.RemoveAt(CompletedTaskIndex);
+                    Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} waiting for {ActiveReductionRunnerItems.Count} running tasks to complete");
+
+                    int CompletedTaskIndex = Task.WaitAny(ActiveReductionRunnerItems.Select(t => t.task).ToArray(), new TimeSpan(StopWaitTimeSeconds.Ticks / 100));
+                    if (CompletedTaskIndex > -1)
+                    {
+                        ActiveReductionRunnerItems.RemoveAt(CompletedTaskIndex);
+                    }
+
+                    if (ActiveReductionRunnerItems.Count == 0)
+                    {
+                        Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} all reduction runners terminated successfully");
+                        break;
+                    }
                 }
 
-                if (ActiveReductionRunnerItems.Count == 0)
+                foreach (var Item in ActiveReductionRunnerItems)
                 {
-                    Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} all reduction runners terminated successfully");
-                    return;
+                    Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} after timer expired, task {Item.dbTask.Id.ToString()} not completed");
                 }
             }
 
-            foreach (var Item in ActiveReductionRunnerItems)
-            {
-                Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} after timer expired, task {Item.dbTask.Id.ToString()} not completed");
-            }
-
+            Token.ThrowIfCancellationRequested();
             Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} returning");
         }
 
@@ -208,7 +264,9 @@ namespace ContentReductionLib
                 return new List<ContentReductionTask>();
             }
 
-            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+            using (ApplicationDbContext Db = MockContext != null
+                                             ? MockContext.Object
+                                             : new ApplicationDbContext(ContextOptions))
             using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
             {
                 try
@@ -219,10 +277,13 @@ namespace ContentReductionLib
                                                                                  .OrderBy(t => t.CreateDateTime)
                                                                                  .Take(ReturnNoMoreThan)
                                                                                  .ToList();
-                    TopItems.ForEach(rt => rt.ReductionStatus = ReductionStatusEnum.Reducing);
-                    Db.ContentReductionTask.UpdateRange(TopItems);
-                    Db.SaveChanges();
-                    Transaction.Commit();
+                    if (TopItems.Count > 0)
+                    {
+                        TopItems.ForEach(rt => rt.ReductionStatus = ReductionStatusEnum.Reducing);
+                        Db.ContentReductionTask.UpdateRange(TopItems);
+                        Db.SaveChanges();
+                        Transaction.Commit();
+                    }
                     return TopItems;
                 }
                 catch (Exception e)

@@ -13,32 +13,33 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
 using AuditLogLib;
+using AuditLogLib.Services;
 using QmsApi;
 using MapCommonLib;
 
 namespace ContentReductionLib.ReductionRunners
 {
-    internal class QvReductionRunner : ReductionRunnerBase
+    public class QvReductionRunner : ReductionRunnerBase
     {
-        string QmsUrl = null;
+        private string QmsUrl = null;
 
         /// <summary>
         /// Constructor, sets up starting conditions that are associated with the system configuration rather than this specific task.
         /// </summary>
-        internal QvReductionRunner()
+        public QvReductionRunner()
         {
             // Initialize members
             QmsUrl = Configuration.ApplicationConfiguration["IQmsUrl"];
 
             IQMS Client = QmsClientCreator.New(QmsUrl);
             QdsServiceInfo = Client.GetServicesAsync(ServiceTypes.QlikViewDistributionService).Result[0];
-            SourceDocFolder = Client.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All).Result[1];
+            SourceDocFolder = Client.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All).Result[1];  // TODO Get this index right for production
         }
 
         #region Member properties
         internal CancellationToken _CancellationToken { private get; set; }
 
-        internal ReductionJobDetail JobDetail { get; set; } = new ReductionJobDetail();
+        public ReductionJobDetail JobDetail { get; set; } = new ReductionJobDetail();
 
         private DocumentFolder SourceDocFolder { get; set; } = null;
 
@@ -46,11 +47,23 @@ namespace ContentReductionLib.ReductionRunners
 
         private ServiceInfo QdsServiceInfo { get; set; } = null;
 
-        private string MasterFileName { get { return "Master.qvw"; } }
+        private string MasterFileName { get { return Path.GetFileName(JobDetail.Request.MasterFilePath); } }
+
+        private string ReducedFileName { get { return Path.ChangeExtension(MasterFileName, $".reduced{Path.GetExtension(MasterFileName)}"); } }
 
         private DocumentNode MasterDocumentNode { get; set; } = null;
 
         private DocumentNode ReducedDocumentNode { get; set; } = null;
+
+        private IAuditLogger AuditLog = null;
+        #endregion
+
+        #region Testing support
+        public void SetTestAuditLogger(IAuditLogger LoggerArg)
+        {
+            AssertTesting();
+            AuditLog = LoggerArg;
+        }
         #endregion
 
         /// <summary>
@@ -58,8 +71,13 @@ namespace ContentReductionLib.ReductionRunners
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        internal async override Task<ReductionJobDetail> Execute(CancellationToken cancellationToken)
+        public async override Task<ReductionJobDetail> Execute(CancellationToken cancellationToken)
         {
+            if (AuditLog == null)
+            {
+                AuditLog = new AuditLogger();
+            }
+
             _CancellationToken = cancellationToken;
             MethodBase Method = MethodBase.GetCurrentMethod();
             object DetailObj;
@@ -88,7 +106,7 @@ namespace ContentReductionLib.ReductionRunners
 
                     DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), JobAction = JobDetail.Request.JobAction, Hierarchy = JobDetail.Result.MasterContentHierarchy };
                     Event = AuditEvent.New("Reduction server", "Extraction of master content hierarchy succeeded", AuditEventId.HierarchyExtractionSucceeded, DetailObj);
-                    new AuditLogger().Log(Event);
+                    AuditLog.Log(Event);
                     #endregion
 
                     _CancellationToken.ThrowIfCancellationRequested();
@@ -100,7 +118,7 @@ namespace ContentReductionLib.ReductionRunners
 
                         DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), RequestedSelections = JobDetail.Request.SelectionCriteria };
                         Event = AuditEvent.New("Reduction server", "Creation of reduced content succeeded", AuditEventId.ContentReductionSucceeded, DetailObj);
-                        new AuditLogger().Log(Event);
+                        AuditLog.Log(Event);
                         #endregion
 
                         _CancellationToken.ThrowIfCancellationRequested();
@@ -110,7 +128,7 @@ namespace ContentReductionLib.ReductionRunners
 
                         DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), JobAction = JobDetail.Request.JobAction, Hierarchy = JobDetail.Result.ReducedContentHierarchy };
                         Event = AuditEvent.New("Reduction server", "Extraction of reduced content hierarchy succeeded", AuditEventId.HierarchyExtractionSucceeded, DetailObj);
-                        new AuditLogger().Log(Event);
+                        AuditLog.Log(Event);
                         #endregion
 
                         _CancellationToken.ThrowIfCancellationRequested();
@@ -196,7 +214,7 @@ namespace ContentReductionLib.ReductionRunners
 
                 object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), Error = Msg};
                 AuditEvent Event = AuditEvent.New("Reduction server", "Validation of processing prerequisites failed", AuditEventId.ReductionValidationFailed, DetailObj);
-                new AuditLogger().Log(Event);
+                AuditLog.Log(Event);
 
                 Msg = $"Error in {Method.ReflectedType.Name}.{Method.Name}: {Msg}";
 
@@ -302,7 +320,7 @@ namespace ContentReductionLib.ReductionRunners
                 // TODO may need to log more issues, like if the Qlikview task processing fails
                 object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), ExceptionMessage = e.Message };
                 AuditEvent Event = AuditEvent.New("Reduction server", "Extraction of hierarchy failed", AuditEventId.HierarchyExtractionFailed, DetailObj);
-                new AuditLogger().Log(Event);
+                AuditLog.Log(Event);
             }
             #endregion
 
@@ -338,12 +356,22 @@ namespace ContentReductionLib.ReductionRunners
                     string Msg = $"The requested reduction field <{SelectedFieldValue.FieldName}> is not found in the reduction hierarchy";
                     object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), Error = Msg };
                     AuditEvent Event = AuditEvent.New("Reduction server", "Creation of reduced content file failed", AuditEventId.ContentReductionFailed, DetailObj);
-                    new AuditLogger().Log(Event);
+                    AuditLog.Log(Event);
                     Trace.WriteLine(Msg);
                     throw new ApplicationException(Msg);
                 }
+            }
 
-                // It is not an error if selected values do not exist in the extracted hierarchy for fields that do exist
+            // Validate that there is at least one selected value that exists in the hierarchy. 
+            if (!JobDetail.Request.SelectionCriteria.Any(s => s.Selected &&
+                                                              JobDetail.Result.MasterContentHierarchy.Fields.Any(f => f.FieldName == s.FieldName && f.FieldValues.Contains(s.FieldValue))))
+            {
+                string Msg = $"No requested selections exist in the master hierarchy";
+                object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), RequestesSelections = JobDetail.Request.SelectionCriteria, Error = Msg };
+                AuditEvent Event = AuditEvent.New("Reduction server", "Creation of reduced content file failed", AuditEventId.ContentReductionFailed, DetailObj);
+                AuditLog.Log(Event);
+                Trace.WriteLine(Msg);
+                throw new ApplicationException(Msg);
             }
 
             // Create Qlikview publisher (QDS) task
@@ -355,11 +383,11 @@ namespace ContentReductionLib.ReductionRunners
             // Clean up
             await DeleteQdsTask(Info);
 
-            ReducedDocumentNode = await GetSourceDocumentNode(Path.GetFileNameWithoutExtension(MasterFileName) + ".reduced.qvw", WorkingFolderRelative);
+            ReducedDocumentNode = await GetSourceDocumentNode(ReducedFileName, WorkingFolderRelative);
 
             if (ReducedDocumentNode == null)
             {
-                Trace.WriteLine($"Failed to get DocumentNode for file {Path.GetFileNameWithoutExtension(MasterFileName) + ".reduced.qvw"} in folder {SourceDocFolder.General.Path}\\{WorkingFolderRelative}");
+                Trace.WriteLine($"Failed to get DocumentNode for file {ReducedFileName} in folder {SourceDocFolder.General.Path}\\{WorkingFolderRelative}");
             }
 
             Trace.WriteLine($"Task {JobDetail.TaskId.ToString()} completed CreateReducedContent");
@@ -373,8 +401,7 @@ namespace ContentReductionLib.ReductionRunners
             string ApplicationDataExchangeFolder = Path.GetDirectoryName(JobDetail.Request.MasterFilePath);
             string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
 
-            string FileNamePattern = $"{Path.GetFileNameWithoutExtension(MasterFileName)}.reduced*{Path.GetExtension(MasterFileName)}";
-            string ReducedFile = Directory.GetFiles(WorkingFolderAbsolute, FileNamePattern).Single();
+            string ReducedFile = Directory.GetFiles(WorkingFolderAbsolute, ReducedFileName).Single();
             string CopyDestinationPath = Path.Combine(ApplicationDataExchangeFolder, Path.GetFileName(ReducedFile));
 
             File.Copy(ReducedFile, CopyDestinationPath, true);
@@ -526,7 +553,7 @@ namespace ContentReductionLib.ReductionRunners
 
             NewDocumentTask.Scope |= QmsApi.DocumentTaskScope.Reduce;
             NewDocumentTask.Reduce = new QmsApi.DocumentTask.TaskReduce();
-            NewDocumentTask.Reduce.DocumentNameTemplate = Path.GetFileNameWithoutExtension(MasterFileName) + ".reduced";
+            NewDocumentTask.Reduce.DocumentNameTemplate = Path.GetFileNameWithoutExtension(ReducedFileName);
             NewDocumentTask.Reduce.Static = new QmsApi.DocumentTask.TaskReduce.TaskReduceStatic();
             NewDocumentTask.Reduce.Static.Reductions = new QmsApi.TaskReduction[NumSelectedValues];
 
@@ -616,9 +643,10 @@ namespace ContentReductionLib.ReductionRunners
         /// <returns></returns>
         private async Task RunQdsTask(QmsApi.TaskInfo TInfo)
         {
-            // TODO make these configurable
+            // TODO make these configurable?
             TimeSpan MaxStartDelay = new TimeSpan(0, 5, 0);
             TimeSpan MaxElapsedRun = new TimeSpan(0, 5, 0);
+            int PublisherPollingIntervalMs = 250;
 
             QmsApi.TaskStatus Status;
 
@@ -634,7 +662,7 @@ namespace ContentReductionLib.ReductionRunners
                 }
 
                 await QmsClient.RunTaskAsync(TInfo.ID);
-                Thread.Sleep(250);
+                Thread.Sleep(PublisherPollingIntervalMs);
 
                 Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.All);
             } while (Status == null || Status.Extended == null || string.IsNullOrEmpty(Status.Extended.StartTime));
@@ -650,7 +678,7 @@ namespace ContentReductionLib.ReductionRunners
                     throw new System.Exception($"Qlikview publisher failed to finish task {TInfo.ID} before timeout");
                 }
 
-                Thread.Sleep(250);
+                Thread.Sleep(PublisherPollingIntervalMs);
 
                 Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.All);
             } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));

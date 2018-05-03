@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -15,7 +16,6 @@ namespace AuditLogLib
     public class AuditLogger : IAuditLogger
     {
         // TODO instead of an in-process queue, switch to use an out of process asynchronous message queue.
-        // Hint, MSMQ was an idea but that probably will never be supported in .NET Core since it is a Windows only service.  
         // The issue here is that if the process is terminated or crashes, any unprocessed log messages in the queue could be lost.  
         private static ConcurrentQueue<AuditEvent> LogEventQueue = new ConcurrentQueue<AuditEvent>();
         private static Task WorkerTask = null;
@@ -33,7 +33,9 @@ namespace AuditLogLib
             {
                 if (Config == null)
                 {
-                    throw new ApplicationException("Attempt to instantiate AuditLogger before initializing!");
+                    string msg = "Attempt to instantiate AuditLogger before initializing!";
+                    Trace.WriteLine($"{msg}{Environment.NewLine}{new StackTrace().ToString()}");
+                    throw new ApplicationException(msg);
                 }
 
                 InstanceCount++;

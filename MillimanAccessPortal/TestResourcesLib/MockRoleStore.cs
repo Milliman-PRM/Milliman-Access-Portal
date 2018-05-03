@@ -8,11 +8,11 @@ using MapDbContextLib.Context;
 using System.Threading;
 using System.Linq;
 
-namespace MapTests
+namespace TestResourcesLib
 {
-    internal class MockRoleStore
+    public class MockRoleStore
     {
-        internal static Mock<IRoleStore<ApplicationRole>> NewStore(Mock<ApplicationDbContext> Context)
+        public static Mock<IRoleStore<ApplicationRole>> NewStore(Mock<ApplicationDbContext> Context)
         {
             Mock<IRoleStore<ApplicationRole>> ReturnRoleStore = new Mock<IRoleStore<ApplicationRole>>();
 
