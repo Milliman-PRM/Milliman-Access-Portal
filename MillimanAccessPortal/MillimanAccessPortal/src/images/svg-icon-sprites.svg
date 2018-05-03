@@ -151,4 +151,12 @@
         <path fill="currentColor" d="M12 12.416L3.586 4.001 5 2.587l7 7 7-7 1.414 1.414zm0 10l-8.414-8.415L5 12.587l7 7 7-7 1.414 1.414z" />
     </symbol>
 
+    <!-- File Upload Icon -->
+    <symbol id="action-icon-file-upload" viewBox="0 0 24 24">
+        <g fill="currentColor">
+            <path d="M11 6.415V18h2V6.415l3.293 3.293 1.414-1.414L12 2.587 6.293 8.294l1.414 1.414L11 6.415z" />
+            <path d="M18.026 17L18 20.001H6L6.026 17h-2L4 20.001c0 1.102.896 2 2 2h12c1.104 0 2-.898 2-2L20.026 17h-2z" />
+        </g>
+    </symbol>
+
 </svg>
