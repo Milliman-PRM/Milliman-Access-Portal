@@ -11,8 +11,8 @@ function mapRootContentItemDetail(item: RootContentItemDetail) {
 
   formMap.set('Id',item.Id);
   formMap.set('ContentName',item.ContentName);
-  formMap.set('ContentTypeId',item.ContentType.Name);
-  formMap.set('DoesReduce',item.DoesReduce);
+  formMap.set('ContentTypeId',item.ContentType.Id);
+  formMap.set('DoesReduce', item.DoesReduce);
   formMap.set('Description',item.Description);
   formMap.set('Notes',item.Notes);
 
@@ -24,11 +24,23 @@ function renderRootContentItemForm(item: RootContentItemDetail) {
   const $rootContentItemForm = $panel.find('form.admin-panel-content');
   shared.clearForm($panel);
 
-  const formMap = mapRootContentItemDetail(item);
-
-  formMap.forEach((value, key) => {
-    console.log(`Setting '${key}' to '${value}'`);
+  const $contentTypeDropdown = $rootContentItemForm.find('#ContentTypeId');
+  item.AvailableContentTypes.forEach((contentType) => {
+    $contentTypeDropdown.append(
+      new Option(contentType.Name, contentType.Id.toString()));
   });
+
+  const formMap = mapRootContentItemDetail(item);
+  formMap.forEach((value, key) => {
+    const $element = $rootContentItemForm.find(`#${key}`);
+    if (typeof value === 'boolean') {
+      $element.prop('checked', value);
+    } else {
+      $element.val(value.toString());
+    }
+  });
+
+
 }
 
 

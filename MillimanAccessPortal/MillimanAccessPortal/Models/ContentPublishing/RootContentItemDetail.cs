@@ -5,6 +5,8 @@
  */
 
 using MapDbContextLib.Context;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
 {
@@ -13,6 +15,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public long Id { get; set; }
         public string ContentName { get; set; }
         public ContentType ContentType { get; set; }
+        public List<ContentType> AvailableContentTypes { get; set; }
         public bool DoesReduce { get; set; }
         public string Description { get; set; }
         public string Notes { get; set; }
@@ -24,6 +27,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 Id = rootContentItem.Id,
                 ContentName = rootContentItem.ContentName,
                 ContentType = dbContext.ContentType.Find(rootContentItem.ContentTypeId),
+                AvailableContentTypes = dbContext.ContentType.ToList(),
                 DoesReduce = true,
                 Description = "Sample description",
                 Notes = "Sample notes",

@@ -67,6 +67,7 @@ export class RootContentItemDetail {
   Id: number;
   ContentName: string;
   ContentType: ContentType;
+  AvailableContentTypes: Array<ContentType>;
   DoesReduce: boolean;
   Description: string;
   Notes: string;
