@@ -34,7 +34,8 @@ namespace MapTests
                 TestResources.AuthorizationService,
                 TestResources.DbContextObject,
                 TestResources.LoggerFactory,
-                TestResources.QueriesObj
+                TestResources.QueriesObj,
+                TestResources.UserManagerObject
                 );
 
             try
