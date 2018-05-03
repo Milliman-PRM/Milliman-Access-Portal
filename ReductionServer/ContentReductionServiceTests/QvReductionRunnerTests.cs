@@ -40,7 +40,7 @@ namespace ContentReductionServiceTests
 
             #region Act
             Task<ReductionJobDetail> MonitorTask = TestRunner.Execute(CancelTokenSource.Token);
-            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 3, 0));
+            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 5, 0));
             var TaskResult = MonitorTask.Result.Result;
             var TaskRequest = MonitorTask.Result.Request;
             #endregion
@@ -52,6 +52,10 @@ namespace ContentReductionServiceTests
             Assert.Equal<TaskStatus>(TaskStatus.RanToCompletion, MonitorTask.Status);
             Assert.False(MonitorTask.IsCanceled);
             Assert.False(MonitorTask.IsFaulted);
+            if (!string.IsNullOrEmpty(TaskResult.StatusMessage))
+            {
+                System.Console.WriteLine($"TaskResult.StatusMessage is {TaskResult.StatusMessage}");
+            }
             Assert.Equal(JobStatusEnum.Success, TaskResult.Status);
 
             Assert.NotNull(TaskResult.MasterContentHierarchy);
@@ -87,7 +91,7 @@ namespace ContentReductionServiceTests
 
             #region Act
             Task<ReductionJobDetail> MonitorTask = TestRunner.Execute(CancelTokenSource.Token);
-            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 3, 0));
+            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 5, 0));
             var TaskRequest = MonitorTask.Result.Request;
             var TaskResult = MonitorTask.Result.Result;
             #endregion
@@ -100,6 +104,10 @@ namespace ContentReductionServiceTests
             Assert.Equal<TaskStatus>(TaskStatus.RanToCompletion, MonitorTask.Status);
             Assert.False(MonitorTask.IsCanceled);
             Assert.False(MonitorTask.IsFaulted);
+            if (!string.IsNullOrEmpty(TaskResult.StatusMessage))
+            {
+                System.Console.WriteLine($"TaskResult.StatusMessage is {TaskResult.StatusMessage}");
+            }
             Assert.Equal(JobStatusEnum.Success, TaskResult.Status);
 
             Assert.NotNull(TaskResult.MasterContentHierarchy);
@@ -145,7 +153,7 @@ namespace ContentReductionServiceTests
 
             #region Act
             Task<ReductionJobDetail> MonitorTask = TestRunner.Execute(CancelTokenSource.Token);
-            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 3, 0));
+            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 5, 0));
             var TaskRequest = MonitorTask.Result.Request;
             var TaskResult = MonitorTask.Result.Result;
             #endregion
@@ -196,7 +204,7 @@ namespace ContentReductionServiceTests
 
             #region Act
             Task<ReductionJobDetail> MonitorTask = TestRunner.Execute(CancelTokenSource.Token);
-            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 3, 0));
+            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 5, 0));
             var TaskRequest = MonitorTask.Result.Request;
             var TaskResult = MonitorTask.Result.Result;
             #endregion
@@ -244,7 +252,7 @@ namespace ContentReductionServiceTests
 
             #region Act
             Task<ReductionJobDetail> MonitorTask = TestRunner.Execute(CancelTokenSource.Token);
-            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 3, 0));
+            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 5, 0));
             var TaskRequest = MonitorTask.Result.Request;
             var TaskResult = MonitorTask.Result.Result;
             #endregion
@@ -257,6 +265,10 @@ namespace ContentReductionServiceTests
             Assert.Equal<TaskStatus>(TaskStatus.RanToCompletion, MonitorTask.Status);
             Assert.False(MonitorTask.IsCanceled);
             Assert.False(MonitorTask.IsFaulted);
+            if (!string.IsNullOrEmpty(TaskResult.StatusMessage))
+            {
+                System.Console.WriteLine($"TaskResult.StatusMessage is {TaskResult.StatusMessage}");
+            }
             Assert.Equal(JobStatusEnum.Success, TaskResult.Status);
 
             Assert.NotNull(TaskResult.MasterContentHierarchy);
@@ -299,7 +311,7 @@ namespace ContentReductionServiceTests
 
             #region Act
             Task<ReductionJobDetail> MonitorTask = TestRunner.Execute(CancelTokenSource.Token);
-            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 3, 0));
+            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 5, 0));
             var TaskRequest = MonitorTask.Result.Request;
             var TaskResult = MonitorTask.Result.Result;
             #endregion

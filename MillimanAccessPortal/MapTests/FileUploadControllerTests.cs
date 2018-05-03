@@ -34,6 +34,7 @@ namespace MapTests
         public async Task<FileUploadController> GetControllerForUser(string Username)
         {
             var testController = new FileUploadController(
+                TestResources.MockDbContext.Object,
                 TestResources.AuditLoggerObject,
                 TestResources.AuthorizationService,
                 TestResources.UploadHelperObject,
