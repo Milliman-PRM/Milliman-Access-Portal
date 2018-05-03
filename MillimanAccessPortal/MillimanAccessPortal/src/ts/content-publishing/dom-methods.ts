@@ -8,7 +8,7 @@ import { ClientTree, RootContentItemList, RootContentItemDetail, BasicNode, Clie
 
 function renderRootContentItem(rootContentItem: RootContentItemDetail) {
   const $card = new RootContentItemCard(
-    rootContentItem.RootContentItemEntity,
+    rootContentItem,
     rootContentItem.GroupCount,
     rootContentItem.EligibleUserCount,
     shared.wrapCardCallback(shared.get(
@@ -22,7 +22,7 @@ function renderRootContentItem(rootContentItem: RootContentItemDetail) {
 function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: number) {
   const $rootContentItemList = $('#root-content-items ul.admin-panel-content');
   $rootContentItemList.empty();
-  response.RootContentItemList.forEach(renderRootContentItem);
+  response.DetailList.forEach(renderRootContentItem);
   $rootContentItemList.find('.tooltip').tooltipster();
 
   if (!isNaN(rootContentItemId)) {
@@ -38,7 +38,7 @@ function renderClientNode(rootClient: BasicNode<ClientDetail>, level: number = 0
     rootClient.Value.RootContentItemCount,
     level,
     shared.wrapCardCallback(shared.get(
-      'ContentAccessAdmin/RootContentItems',
+      'ContentPublishing/RootContentItems',
       [ renderRootContentItemList ],
     )),
   );

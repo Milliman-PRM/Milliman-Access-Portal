@@ -8,11 +8,13 @@ using AuditLogLib.Services;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
+using MillimanAccessPortal.Models.ContentPublishing;
 using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Controllers
@@ -61,7 +63,7 @@ namespace MillimanAccessPortal.Controllers
             return View();
         }
 
-        async public Task<IActionResult> ClientTree()
+        async public Task<IActionResult> Clients()
         {
             #region Authorization
             AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, null));
@@ -78,6 +80,36 @@ namespace MillimanAccessPortal.Controllers
             var model = await Models.ContentPublishing.ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
 
             return new JsonResult(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> RootContentItems(long clientId)
+        {
+            Client client = DbContext.Client.Find(clientId);
+
+            #region Preliminary validation
+            if (client == null)
+            {
+                Response.Headers.Add("Warning", "The requested client does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult roleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, clientId));
+            if (!roleInClientResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            #endregion
+
+            RootContentItemList model = RootContentItemList.Build(DbContext, client);
+
+            return Json(model);
         }
 
         [HttpPost]

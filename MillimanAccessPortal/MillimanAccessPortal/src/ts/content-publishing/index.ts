@@ -51,7 +51,7 @@ $(document).ready(() => {
   });
 
   shared.get(
-    'ContentPublishing/ClientTree',
+    'ContentPublishing/Clients',
     [ renderClientTree ],
   )();
 
