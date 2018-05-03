@@ -1,12 +1,11 @@
 ﻿/*
- * CODE OWNERS: Tom Puckett
- * OBJECTIVE: An entity representing a group of users who share common hierarchy selections applicable to one RootContentItem
+ * CODE OWNERS: Tom Puckett, Joseph Sweeney
+ * OBJECTIVE: An entity representing a file that has been uploaded to the system
  * DEVELOPER NOTES: 
  */
 
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MapDbContextLib.Context
 {
