@@ -77,7 +77,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            var model = await Models.ContentPublishing.ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
+            var model = await ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
 
             return new JsonResult(model);
         }

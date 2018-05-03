@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
 {
-    public class RootContentItemDetail
+    public class RootContentItemSummary
     {
         public long Id { get; set; }
         public string ContentName { get; set; }
@@ -21,7 +21,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public int EligibleUserCount { get; set; }
         public PublicationDetails PublicationDetails { get; set; }
 
-        internal static RootContentItemDetail Build(ApplicationDbContext dbContext, RootContentItem rootContentItem)
+        internal static RootContentItemSummary Build(ApplicationDbContext dbContext, RootContentItem rootContentItem)
         {
             if (rootContentItem.ContentType == null)
             {
@@ -34,7 +34,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 .FirstOrDefault();
             PublicationDetails publicationDetails = PublicationDetails.Build(latestPublication, dbContext);
 
-            RootContentItemDetail model = new RootContentItemDetail
+            RootContentItemSummary model = new RootContentItemSummary
             {
                 Id = rootContentItem.Id,
                 ContentName = rootContentItem.ContentName,

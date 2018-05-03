@@ -2,11 +2,11 @@ import $ = require('jquery');
 require('tooltipster');
 import shared = require('../shared');
 import { ClientCard, RootContentItemCard } from '../card';
-import { ClientTree, RootContentItemList, RootContentItemDetail, BasicNode, ClientDetail } from '../view-models/content-access-admin';
+import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary } from '../view-models/content-access-admin';
 
 
 
-function renderRootContentItem(rootContentItem: RootContentItemDetail) {
+function renderRootContentItem(rootContentItem: RootContentItemSummary) {
   const $card = new RootContentItemCard(
     rootContentItem,
     rootContentItem.GroupCount,
@@ -31,7 +31,7 @@ function renderRootContentItemList(response: RootContentItemList, rootContentIte
 }
 
 
-function renderClientNode(rootClient: BasicNode<ClientDetail>, level: number = 0) {
+function renderClientNode(rootClient: BasicNode<ClientSummary>, level: number = 0) {
   const $card = new ClientCard(
     rootClient.Value,
     rootClient.Value.EligibleUserCount,

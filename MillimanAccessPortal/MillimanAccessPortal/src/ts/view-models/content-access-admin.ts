@@ -18,7 +18,7 @@ export class UserInfo {
   Email: string;
   UserName: string;
 }
-export class ClientDetail extends Nestable {
+export class ClientSummary extends Nestable {
   Name: string;
   Code: string;
 
@@ -27,7 +27,7 @@ export class ClientDetail extends Nestable {
   EligibleUserCount: number;
   RootContentItemCount: number;
 }
-export class ClientTree extends BasicTree<ClientDetail> {
+export class ClientTree extends BasicTree<ClientSummary> {
   SelectedClientId: number;
 }
 
@@ -37,22 +37,22 @@ export enum PublicationStatus {
   Processing = 20,
   Complete = 30,
 }
-export class PublicationDetails {
+export class PublicationSummary {
   User: UserInfo;
   StatusEnum: PublicationStatus;
   StatusName: string;
   SelectionGroupId: number;
   RootContentItemId: number;
 }
-export class RootContentItemDetail {
+export class RootContentItemSummary {
   Id: number;
   ContentName: string;
   ContentTypeName: string;
   GroupCount: number;
   EligibleUserCount: number;
-  PublicationDetails: PublicationDetails;
+  PublicationDetails: PublicationSummary;
 }
 export class RootContentItemList {
-  DetailList: Array<RootContentItemDetail>;
+  DetailList: Array<RootContentItemSummary>;
   SelectedRootContentItemId: number;
 }

@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 namespace MillimanAccessPortal.Models.ContentPublishing
 {
 
-    public class ClientDetail : Nestable
+    public class ClientSummary : Nestable
     {
         public string Name { get; set; }
         public string Code { get; set; }
@@ -27,9 +27,9 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public long EligibleUserCount { get; set; }
         public long RootContentItemCount { get; set; }
         
-        async public static Task<ClientDetail> Build(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager, ApplicationUser currentUser, Client client)
+        async public static Task<ClientSummary> Build(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager, ApplicationUser currentUser, Client client)
         {
-            var clientDetail = new ClientDetail
+            var clientDetail = new ClientSummary
             {
                 Id = client.Id,
                 ParentId = client.ParentClientId,

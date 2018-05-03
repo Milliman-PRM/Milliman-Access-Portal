@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
 {
-    public class ClientTree : BasicTree<ClientDetail>
+    public class ClientTree : BasicTree<ClientSummary>
     {
         public long SelectedClientId { get; set; } = 0;
 
@@ -28,14 +28,14 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
             ClientTree Model = new ClientTree();
 
-            var clientDetails = new List<ClientDetail>();
+            var clientDetails = new List<ClientSummary>();
             foreach (var client in dbContext.Client)
             {
-                clientDetails.Add(await ClientDetail.Build(dbContext, userManager, currentUser, client));
+                clientDetails.Add(await ClientSummary.Build(dbContext, userManager, currentUser, client));
             }
 
             Model.Root.Populate(ref clientDetails);
-            Model.Root.Prune((ClientDetail cd) => cd.CanManage, (cum, cur) => cum || cur, false);
+            Model.Root.Prune((ClientSummary cd) => cd.CanManage, (cum, cur) => cum || cur, false);
 
             return Model;
         }

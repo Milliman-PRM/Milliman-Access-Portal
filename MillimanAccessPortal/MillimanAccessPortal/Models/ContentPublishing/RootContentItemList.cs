@@ -12,7 +12,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 {
     public class RootContentItemList
     {
-        public List<RootContentItemDetail> DetailList = new List<RootContentItemDetail>();
+        public List<RootContentItemSummary> DetailList = new List<RootContentItemSummary>();
         public long SelectedRootContentItemId { get; set; } = -1;
 
         internal static RootContentItemList Build(ApplicationDbContext dbContext, Client client)
@@ -25,7 +25,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
             foreach (var rootContentItem in rootContentItems)
             {
-                model.DetailList.Add(RootContentItemDetail.Build(dbContext, rootContentItem));
+                model.DetailList.Add(RootContentItemSummary.Build(dbContext, rootContentItem));
             }
 
             return model;
