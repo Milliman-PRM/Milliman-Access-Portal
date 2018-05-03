@@ -38,10 +38,9 @@ function renderRootContentItemForm(item: RootContentItemDetail) {
   });
 
   const $doesReduceToggle = $rootContentItemForm.find(`#DoesReduce`);
-  if (!item.ContentType.CanReduce) {
-    $doesReduceToggle.attr('disabled', '');
-  }
   $doesReduceToggle.prop('checked', item.DoesReduce);
+
+  $contentTypeDropdown.change(); // trigger change event
 }
 
 
@@ -105,13 +104,8 @@ function renderClientTree(response: ClientTree, clientId?: number) {
 }
 
 export function setup() {
-  shared.get(
-    'ContentPublishing/Clients',
-    [ renderClientTree ],
-  )();
-
   const $contentTypeDropdown = $('#ContentTypeId');
-  $contentTypeDropdown.on('change', () => {
+  $contentTypeDropdown.change(() => {
     const $doesReduceToggle = $('#DoesReduce');
     const contentType = $contentTypeDropdown
       .find(`option[value="${$contentTypeDropdown.val()}"]`)
@@ -130,4 +124,9 @@ export function setup() {
   $('.admin-panel-searchbar-form').keyup(shared.filterFormListener);
 
   $('.tooltip').tooltipster();
+
+  shared.get(
+    'ContentPublishing/Clients',
+    [ renderClientTree ],
+  )();
 }
