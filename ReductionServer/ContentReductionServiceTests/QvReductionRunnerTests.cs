@@ -40,7 +40,7 @@ namespace ContentReductionServiceTests
 
             #region Act
             Task<ReductionJobDetail> MonitorTask = TestRunner.Execute(CancelTokenSource.Token);
-            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 3, 0));
+            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 5, 0));
             var TaskResult = MonitorTask.Result.Result;
             var TaskRequest = MonitorTask.Result.Request;
             #endregion
@@ -87,7 +87,7 @@ namespace ContentReductionServiceTests
 
             #region Act
             Task<ReductionJobDetail> MonitorTask = TestRunner.Execute(CancelTokenSource.Token);
-            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 3, 0));
+            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 5, 0));
             var TaskRequest = MonitorTask.Result.Request;
             var TaskResult = MonitorTask.Result.Result;
             #endregion
@@ -145,7 +145,7 @@ namespace ContentReductionServiceTests
 
             #region Act
             Task<ReductionJobDetail> MonitorTask = TestRunner.Execute(CancelTokenSource.Token);
-            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 3, 0));
+            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 5, 0));
             var TaskRequest = MonitorTask.Result.Request;
             var TaskResult = MonitorTask.Result.Result;
             #endregion
@@ -196,7 +196,7 @@ namespace ContentReductionServiceTests
 
             #region Act
             Task<ReductionJobDetail> MonitorTask = TestRunner.Execute(CancelTokenSource.Token);
-            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 3, 0));
+            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 5, 0));
             var TaskRequest = MonitorTask.Result.Request;
             var TaskResult = MonitorTask.Result.Result;
             #endregion
@@ -244,7 +244,7 @@ namespace ContentReductionServiceTests
 
             #region Act
             Task<ReductionJobDetail> MonitorTask = TestRunner.Execute(CancelTokenSource.Token);
-            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 3, 0));
+            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 5, 0));
             var TaskRequest = MonitorTask.Result.Request;
             var TaskResult = MonitorTask.Result.Result;
             #endregion
@@ -299,7 +299,7 @@ namespace ContentReductionServiceTests
 
             #region Act
             Task<ReductionJobDetail> MonitorTask = TestRunner.Execute(CancelTokenSource.Token);
-            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 3, 0));
+            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 5, 0));
             var TaskRequest = MonitorTask.Result.Request;
             var TaskResult = MonitorTask.Result.Result;
             #endregion
