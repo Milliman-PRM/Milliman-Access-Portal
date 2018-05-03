@@ -18,22 +18,22 @@
  *              c. The .upload file is moved to a .<ext> file (where <ext> is the original file's extension)
  */
 
-using System;
-using System.IO;
-using System.Threading.Tasks;
-using System.Globalization;
-using System.Text;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.Net.Http.Headers;
-using Microsoft.AspNetCore.WebUtilities;
-using MillimanAccessPortal.Models.ContentPublicationViewModels;
-using MillimanAccessPortal.Services;
 using AuditLogLib.Services;
 using MapDbContextLib.Context;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
+using MillimanAccessPortal.Models.ContentPublicationViewModels;
+using MillimanAccessPortal.Services;
+using System;
+using System.Globalization;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -205,10 +205,13 @@ namespace MillimanAccessPortal.Controllers
             {
                 UploadHelper.FinalizeUpload(resumableInfo);
 
-                DbContext.FileUpload.Add(new FileUpload { StoragePath = UploadHelper.GetOutputFilePath(),
-                                                          Checksum = resumableInfo.Checksum,
-                                                          ClientFileIdentifier = resumableInfo.UID,
-                                                          CreatedDateTimeUtc = DateTime.UtcNow });
+                DbContext.FileUpload.Add(new FileUpload
+                {
+                    StoragePath = UploadHelper.GetOutputFilePath(),
+                    Checksum = resumableInfo.Checksum,
+                    ClientFileIdentifier = resumableInfo.UID,
+                    CreatedDateTimeUtc = DateTime.UtcNow
+                });
                 DbContext.SaveChanges();
             }
             catch (FileUploadException e)

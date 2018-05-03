@@ -4,12 +4,12 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-using System;
-using System.Linq;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
 
 namespace MapDbContextLib.Context
 {
