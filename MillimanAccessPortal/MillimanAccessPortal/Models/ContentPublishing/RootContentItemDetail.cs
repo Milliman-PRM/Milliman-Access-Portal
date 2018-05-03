@@ -17,13 +17,13 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public string Description { get; set; }
         public string Notes { get; set; }
 
-        internal static RootContentItemDetail Build(RootContentItem rootContentItem)
+        internal static RootContentItemDetail Build(ApplicationDbContext dbContext ,RootContentItem rootContentItem)
         {
             RootContentItemDetail model = new RootContentItemDetail
             {
                 Id = rootContentItem.Id,
                 ContentName = rootContentItem.ContentName,
-                ContentType = rootContentItem.ContentType,
+                ContentType = dbContext.ContentType.Find(rootContentItem.ContentTypeId),
                 DoesReduce = true,
                 Description = "Sample description",
                 Notes = "Sample notes",

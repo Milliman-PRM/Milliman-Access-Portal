@@ -2,21 +2,47 @@ import $ = require('jquery');
 require('tooltipster');
 import shared = require('../shared');
 import { ClientCard, RootContentItemCard } from '../card';
-import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary } from '../view-models/content-access-admin';
+import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail } from '../view-models/content-access-admin';
 
 
 
-function renderRootContentItem(rootContentItem: RootContentItemSummary) {
+function mapRootContentItemDetail(item: RootContentItemDetail) {
+  const formMap = new Map<string, string | number | boolean>();
+
+  formMap.set('Id',item.Id);
+  formMap.set('ContentName',item.ContentName);
+  formMap.set('ContentTypeId',item.ContentType.Name);
+  formMap.set('DoesReduce',item.DoesReduce);
+  formMap.set('Description',item.Description);
+  formMap.set('Notes',item.Notes);
+
+  return formMap;
+}
+
+function renderRootContentItemForm(item: RootContentItemDetail) {
+  const $panel = $('#content-publishing-form');
+  const $rootContentItemForm = $panel.find('form.admin-panel-content');
+  shared.clearForm($panel);
+
+  const formMap = mapRootContentItemDetail(item);
+
+  formMap.forEach((value, key) => {
+    console.log(`Setting '${key}' to '${value}'`);
+  });
+}
+
+
+function renderRootContentItem(item: RootContentItemSummary) {
   const $card = new RootContentItemCard(
-    rootContentItem,
-    rootContentItem.GroupCount,
-    rootContentItem.EligibleUserCount,
+    item,
+    item.GroupCount,
+    item.EligibleUserCount,
     shared.wrapCardCallback(shared.get(
-      'ContentAccessAdmin/SelectionGroups',
-      [ ],
+      'ContentPublishing/RootContentItemDetail',
+      [ renderRootContentItemForm ],
     )),
   ).build();
-  shared.updateCardStatus($card, rootContentItem.PublicationDetails);
+  shared.updateCardStatus($card, item.PublicationDetails);
   $('#root-content-items ul.admin-panel-content').append($card);
 }
 function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: number) {
@@ -31,22 +57,22 @@ function renderRootContentItemList(response: RootContentItemList, rootContentIte
 }
 
 
-function renderClientNode(rootClient: BasicNode<ClientSummary>, level: number = 0) {
+function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
   const $card = new ClientCard(
-    rootClient.Value,
-    rootClient.Value.EligibleUserCount,
-    rootClient.Value.RootContentItemCount,
+    client.Value,
+    client.Value.EligibleUserCount,
+    client.Value.RootContentItemCount,
     level,
     shared.wrapCardCallback(shared.get(
       'ContentPublishing/RootContentItems',
       [ renderRootContentItemList ],
     )),
   );
-  $card.disabled = !rootClient.Value.CanManage;
+  $card.disabled = !client.Value.CanManage;
   $('#client-tree ul.admin-panel-content').append($card.build());
 
   // Render child nodes
-  rootClient.Children.forEach((childNode) => {
+  client.Children.forEach((childNode) => {
     renderClientNode(childNode, level + 1);
   });
 }

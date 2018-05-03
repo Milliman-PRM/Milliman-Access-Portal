@@ -56,3 +56,18 @@ export class RootContentItemList {
   DetailList: Array<RootContentItemSummary>;
   SelectedRootContentItemId: number;
 }
+
+export class ContentType {
+  Id: number;
+  TypeEnum: number;
+  Name: string;
+  CanReduce: boolean;
+}
+export class RootContentItemDetail {
+  Id: number;
+  ContentName: string;
+  ContentType: ContentType;
+  DoesReduce: boolean;
+  Description: string;
+  Notes: string;
+}

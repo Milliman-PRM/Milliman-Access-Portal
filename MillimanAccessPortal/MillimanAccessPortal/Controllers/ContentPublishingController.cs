@@ -138,7 +138,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            RootContentItemDetail model = Models.ContentPublishing.RootContentItemDetail.Build(rootContentItem);
+            RootContentItemDetail model = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, rootContentItem);
 
             return Json(model);
         }
