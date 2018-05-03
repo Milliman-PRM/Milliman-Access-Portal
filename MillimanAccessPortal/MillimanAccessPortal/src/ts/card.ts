@@ -708,7 +708,7 @@ export function RootContentItemCard(
   Card.call(this);
 
   this.addComponent('primaryText', { text: rootContentItem.ContentName });
-  this.addComponent('secondaryText', { text: rootContentItem.ContentType.Name });
+  this.addComponent('secondaryText', { text: rootContentItem.ContentTypeName });
   this.addComponent('statistic', {
     icon: 'users',
     value: groupCount,
@@ -724,7 +724,7 @@ export function RootContentItemCard(
   this.data = {
     'filter-string': [
       rootContentItem.ContentName,
-      rootContentItem.ContentType.Name
+      rootContentItem.ContentTypeName
     ].join('|').toUpperCase(),
     'root-content-item-id': rootContentItem.Id
   };

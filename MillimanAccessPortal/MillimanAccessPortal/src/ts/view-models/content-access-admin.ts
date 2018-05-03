@@ -37,45 +37,22 @@ export enum PublicationStatus {
   Processing = 20,
   Complete = 30,
 }
-export class ApplicationUser {
-  Id: number;
-  LastName: string;
-  FirstName: string;
-  Employer: string;
-}
 export class PublicationDetails {
-  User: ApplicationUser;
+  User: UserInfo;
   StatusEnum: PublicationStatus;
   StatusName: string;
   SelectionGroupId: number;
   RootContentItemId: number;
 }
-export enum ContentTypeEnum {
-  Unknown = 0,
-  Qlikview = 1,
-}
-export class ContentType {
-  Id: number;
-  TypeEnum: ContentTypeEnum;
-  Name: string;
-  CanReduce: boolean;
-}
-export class RootContentItem {
+export class RootContentItemDetail {
   Id: number;
   ContentName: string;
-  ContentTypeId: number;
-  ContentType: ContentType;
-  ClientId: number;
-  Client: ClientDetail;
-  TypeSpecificDetails: string;
-}
-export class RootContentItemDetail {
-  RootContentItemEntity: RootContentItem;
+  ContentTypeName: string;
   GroupCount: number;
   EligibleUserCount: number;
   PublicationDetails: PublicationDetails;
 }
 export class RootContentItemList {
-  RootContentItemList: Array<RootContentItemDetail>;
-  RelevantRootContentItemId: number;
+  DetailList: Array<RootContentItemDetail>;
+  SelectedRootContentItemId: number;
 }
