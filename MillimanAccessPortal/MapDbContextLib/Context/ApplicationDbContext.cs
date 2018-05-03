@@ -28,6 +28,7 @@ namespace MapDbContextLib.Context
         public DbSet<ProfitCenter> ProfitCenter { get; set; }
         public DbSet<ContentReductionTask> ContentReductionTask { get; set; }
         public DbSet<ContentPublicationRequest> ContentPublicationRequest { get; set; }
+        public DbSet<FileUpload> FileUpload { get; set; }
 
         // Alteration of Identity entities
         public DbSet<ApplicationUser> ApplicationUser { get; set; }
@@ -72,6 +73,10 @@ namespace MapDbContextLib.Context
             builder.Entity<HierarchyField>()
                 .Property(b => b.StructureType)
                 .HasDefaultValue(FieldStructureType.Unknown);
+
+            builder.Entity<FileUpload>()
+                .Property(b => b.Id)
+                .HasDefaultValueSql("uuid_generate_v4()");
         }
 
         public bool ClientExists(long id)
