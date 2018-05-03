@@ -112,6 +112,37 @@ namespace MillimanAccessPortal.Controllers
             return Json(model);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> RootContentItemDetail(long rootContentItemId)
+        {
+            RootContentItem rootContentItem = DbContext.RootContentItem.Find(rootContentItemId);
+
+            #region Preliminary validation
+            if (rootContentItem == null)
+            {
+                Response.Headers.Add("Warning", "The requested root content item does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult roleInClientResult = await AuthorizationService.AuthorizeAsync(
+                User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItemId));
+            if (!roleInClientResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            #endregion
+
+            RootContentItemDetail model = Models.ContentPublishing.RootContentItemDetail.Build(rootContentItem);
+
+            return Json(model);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Publish()
         {
