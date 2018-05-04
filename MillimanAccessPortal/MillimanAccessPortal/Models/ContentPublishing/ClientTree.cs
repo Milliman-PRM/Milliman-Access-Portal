@@ -9,6 +9,7 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Identity;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
@@ -29,7 +30,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             ClientTree Model = new ClientTree();
 
             var clientDetails = new List<ClientSummary>();
-            foreach (var client in dbContext.Client)
+            foreach (var client in dbContext.Client.OrderBy(c => c.Name))
             {
                 clientDetails.Add(await ClientSummary.Build(dbContext, userManager, currentUser, client));
             }

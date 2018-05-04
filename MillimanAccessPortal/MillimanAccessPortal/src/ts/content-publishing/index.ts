@@ -5,7 +5,7 @@ import toastr = require('toastr');
 import { randomBytes } from 'crypto';
 import { FileUploadCard } from '../card';
 import { PublicationUpload, PublicationComponent, PublicationComponentInfo } from './publication-upload';
-import { renderClientTree } from './dom-methods';
+import { setup } from './dom-methods';
 
 require('../navbar');
 import 'bootstrap/scss/bootstrap-reboot.scss';
@@ -50,17 +50,7 @@ $(document).ready(() => {
     unloadAlertStates.push(false);
   });
 
-  shared.get(
-    'ContentPublishing/Clients',
-    [ renderClientTree ],
-  )();
-
-  $('.action-icon-expand').click(shared.expandAllListener);
-  $('.action-icon-collapse').click(shared.collapseAllListener);
-  $('.admin-panel-searchbar-tree').keyup(shared.filterTreeListener);
-  $('.admin-panel-searchbar-form').keyup(shared.filterFormListener);
-
-  $('.tooltip').tooltipster();
+  setup();
 
   // TODO: Remove for production
   toastr.info('Page loaded');

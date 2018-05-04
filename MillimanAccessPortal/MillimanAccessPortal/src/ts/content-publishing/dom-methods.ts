@@ -2,7 +2,7 @@ import $ = require('jquery');
 require('tooltipster');
 import shared = require('../shared');
 import { ClientCard, RootContentItemCard } from '../card';
-import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail } from '../view-models/content-access-admin';
+import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType } from '../view-models/content-access-admin';
 
 
 
@@ -25,22 +25,22 @@ function renderRootContentItemForm(item: RootContentItemDetail) {
   shared.clearForm($panel);
 
   const $contentTypeDropdown = $rootContentItemForm.find('#ContentTypeId');
+  $contentTypeDropdown.children(':not(option[value = ""])').remove();
   item.AvailableContentTypes.forEach((contentType) => {
-    $contentTypeDropdown.append(
-      new Option(contentType.Name, contentType.Id.toString()));
+    const option = new Option(contentType.Name, contentType.Id.toString());
+    $(option).data(contentType);
+    $contentTypeDropdown.append(option);
   });
 
   const formMap = mapRootContentItemDetail(item);
   formMap.forEach((value, key) => {
-    const $element = $rootContentItemForm.find(`#${key}`);
-    if (typeof value === 'boolean') {
-      $element.prop('checked', value);
-    } else {
-      $element.val(value.toString());
-    }
+    $rootContentItemForm.find(`#${key}`).val(value.toString());
   });
 
+  const $doesReduceToggle = $rootContentItemForm.find(`#DoesReduce`);
+  $doesReduceToggle.prop('checked', item.DoesReduce);
 
+  $contentTypeDropdown.change(); // trigger change event
 }
 
 
@@ -88,7 +88,7 @@ function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
     renderClientNode(childNode, level + 1);
   });
 }
-export function renderClientTree(response: ClientTree, clientId?: number) {
+function renderClientTree(response: ClientTree, clientId?: number) {
   const $clientTreeList = $('#client-tree ul.admin-panel-content');
   $clientTreeList.empty();
   response.Root.Children.forEach((rootClient) => {
@@ -101,4 +101,32 @@ export function renderClientTree(response: ClientTree, clientId?: number) {
   if (!isNaN(clientId)) {
     $(`[data-client-id=${clientId}]`).click();
   }
+}
+
+export function setup() {
+  const $contentTypeDropdown = $('#ContentTypeId');
+  $contentTypeDropdown.change(() => {
+    const $doesReduceToggle = $('#DoesReduce');
+    const contentType = $contentTypeDropdown
+      .find(`option[value="${$contentTypeDropdown.val()}"]`)
+      .data() as ContentType;
+    if (!contentType.CanReduce) {
+      $doesReduceToggle.attr('disabled', '');
+      $doesReduceToggle.prop('checked', false);
+    } else {
+      $doesReduceToggle.removeAttr('disabled');
+    }
+  });
+
+  $('.action-icon-expand').click(shared.expandAllListener);
+  $('.action-icon-collapse').click(shared.collapseAllListener);
+  $('.admin-panel-searchbar-tree').keyup(shared.filterTreeListener);
+  $('.admin-panel-searchbar-form').keyup(shared.filterFormListener);
+
+  $('.tooltip').tooltipster();
+
+  shared.get(
+    'ContentPublishing/Clients',
+    [ renderClientTree ],
+  )();
 }
