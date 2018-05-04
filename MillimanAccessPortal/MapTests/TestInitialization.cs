@@ -624,7 +624,7 @@ namespace MapTests
             #region Initialize ContentPublicationRequest
             DbContextObject.ContentPublicationRequest.AddRange(new List<ContentPublicationRequest>
             {
-                new ContentPublicationRequest { Id=1, ApplicationUserId=1, MasterFilePath="C:\\Dir\\file.ext", RootContentItemId=1 },
+                new ContentPublicationRequest { Id=1, ApplicationUserId=1, PublishRequest = new PublishRequest{ RootContentItemId=1, RelatedFiles=new ContentRelatedFile[]{ /*...*/ } } },
             });
             #endregion
         }

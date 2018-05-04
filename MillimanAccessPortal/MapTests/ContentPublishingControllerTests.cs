@@ -10,6 +10,7 @@ using System;
 using System.Threading.Tasks;
 using Xunit;
 using TestResourcesLib;
+using MapDbContextLib.Models;
 
 namespace MapTests
 {
@@ -77,7 +78,8 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.Publish();
+            // TODO Make this test meaningful
+            var view = await controller.Publish(new PublishRequest { RootContentItemId = 1, RelatedFiles= new ContentRelatedFile[] { new ContentRelatedFile{ FilePurpose = "Master", FileUploadId = Guid.Empty } } });
             #endregion
 
             #region Assert

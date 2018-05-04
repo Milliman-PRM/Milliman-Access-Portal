@@ -11,6 +11,8 @@ using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
+using Newtonsoft.Json;
 
 namespace MapDbContextLib.Context
 {
@@ -44,15 +46,33 @@ namespace MapDbContextLib.Context
         public long ApplicationUserId { get; set; }
         public ApplicationUser ApplicationUser { get; set; }
 
-        [Required]
-        public string MasterFilePath { get; set; }
-
         [Column(TypeName = "jsonb")]
         public string ResultHierarchy { get; set; }
 
         [Required]
         // Default value is enforced in ApplicationDbContext.OnModelCreating()
         public DateTimeOffset CreateDateTime { get; set; }
+
+        [Column(TypeName = "jsonb")]
+        public string ContentRelatedFiles { get; set; } = "{}";
+
+        [NotMapped]
+        public PublishRequest PublishRequest
+        {
+            get
+            {
+                return new PublishRequest
+                {
+                    RootContentItemId = RootContentItemId,
+                    RelatedFiles = JsonConvert.DeserializeObject<ContentRelatedFile[]>(ContentRelatedFiles),
+                };
+            }
+            set
+            {
+                RootContentItemId = value.RootContentItemId;
+                ContentRelatedFiles = JsonConvert.SerializeObject(value.RelatedFiles);
+            }
+        }
 
         public static PublicationStatus GetPublicationStatus(List<ReductionStatusEnum> TaskStatusList)
         {
