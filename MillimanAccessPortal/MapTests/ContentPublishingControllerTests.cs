@@ -9,6 +9,7 @@ using MillimanAccessPortal.Controllers;
 using System;
 using System.Threading.Tasks;
 using Xunit;
+using TestResourcesLib;
 
 namespace MapTests
 {

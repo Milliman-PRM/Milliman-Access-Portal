@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MapTests
+namespace TestResourcesLib
 {
-    class MockSession : ISession 
+    public class MockSession : ISession 
     {
         public MockSession getSession()
         {

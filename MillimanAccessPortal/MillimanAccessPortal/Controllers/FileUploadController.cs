@@ -18,21 +18,22 @@
  *              c. The .upload file is moved to a .<ext> file (where <ext> is the original file's extension)
  */
 
-using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Logging;
 using AuditLogLib.Services;
+using MapDbContextLib.Context;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.Net.Http.Headers;
-using System.IO;
 using Microsoft.AspNetCore.WebUtilities;
-using System.Globalization;
-using System.Text;
+using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
 using MillimanAccessPortal.Models.ContentPublishing;
 using MillimanAccessPortal.Services;
+using System;
+using System.Globalization;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -42,7 +43,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuthorizationService AuthorizationService;
         private readonly IUploadHelper UploadHelper;
         private readonly ILogger Logger;
-
+        private readonly ApplicationDbContext DbContext;
 
         /// <summary>
         /// Constructor, stores local references to injected service instances
@@ -52,6 +53,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="UploadHelperArg"></param>
         /// <param name="LoggerFactoryArg"></param>
         public FileUploadController(
+            ApplicationDbContext ContextArg,
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
             IUploadHelper UploadHelperArg,
@@ -62,6 +64,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationService = AuthorizationServiceArg;
             UploadHelper = UploadHelperArg;
             Logger = LoggerFactoryArg.CreateLogger<FileUploadController>();
+            DbContext = ContextArg;
         }
 
         /// <summary>
@@ -201,6 +204,15 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 UploadHelper.FinalizeUpload(resumableInfo);
+
+                DbContext.FileUpload.Add(new FileUpload
+                {
+                    StoragePath = UploadHelper.GetOutputFilePath(),
+                    Checksum = resumableInfo.Checksum,
+                    ClientFileIdentifier = resumableInfo.UID,
+                    CreatedDateTimeUtc = DateTime.UtcNow
+                });
+                DbContext.SaveChanges();
             }
             catch (FileUploadException e)
             {

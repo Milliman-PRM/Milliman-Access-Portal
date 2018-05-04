@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 
 namespace ContentReductionLib.ReductionRunners
 {
-    internal enum JobStatusEnum
+    public enum JobStatusEnum
     {
         Unspecified,
         Canceled,
@@ -32,11 +32,11 @@ namespace ContentReductionLib.ReductionRunners
     /// Internal representation of the job request and result
     /// Each queue type typically submits selections in its own typed fashion so a cast operator will be needed for each new source
     /// </summary>
-    internal class ReductionJobDetail
+    public class ReductionJobDetail
     {
-        internal ReductionJobRequest Request;
-        internal ReductionJobResult Result;
-        internal Guid TaskId { get; set; } = Guid.Empty;
+        public ReductionJobRequest Request;
+        public ReductionJobResult Result;
+        public Guid TaskId { get; set; } = Guid.Empty;
 
         // cast operator to convert a MAP ContentReductionTask to this type
         public static explicit operator ReductionJobDetail(ContentReductionTask DbTask)
@@ -67,22 +67,22 @@ namespace ContentReductionLib.ReductionRunners
 
         }
 
-        internal class ReductionJobResult
+        public class ReductionJobResult
         {
-            internal JobStatusEnum Status { get; set; } = JobStatusEnum.Unspecified;
-            internal string StatusMessage { get; set; } = string.Empty;
-            internal string ReducedContentFilePath { get; set; } = string.Empty;
-            internal ExtractedHierarchy MasterContentHierarchy { get; set; } = null;
-            internal ExtractedHierarchy ReducedContentHierarchy { get; set; } = null;
-            internal string ReducedContentFileChecksum { get; set; } = string.Empty;
+            public JobStatusEnum Status { get; set; } = JobStatusEnum.Unspecified;
+            public string StatusMessage { get; set; } = string.Empty;
+            public string ReducedContentFilePath { get; set; } = string.Empty;
+            public ExtractedHierarchy MasterContentHierarchy { get; set; } = null;
+            public ExtractedHierarchy ReducedContentHierarchy { get; set; } = null;
+            public string ReducedContentFileChecksum { get; set; } = string.Empty;
         }
 
-        internal class ReductionJobRequest
+        public class ReductionJobRequest
         {
-            internal string MasterFilePath { get; set; }
-            internal List<FieldValueSelection> SelectionCriteria { get; set; }
-            internal string MasterContentChecksum { get; set; } = string.Empty;
-            internal JobActionEnum JobAction { get; set; } = JobActionEnum.Unspecified;
+            public string MasterFilePath { get; set; }
+            public List<FieldValueSelection> SelectionCriteria { get; set; }
+            public string MasterContentChecksum { get; set; } = string.Empty;
+            public JobActionEnum JobAction { get; set; } = JobActionEnum.Unspecified;
         }
     }
 }

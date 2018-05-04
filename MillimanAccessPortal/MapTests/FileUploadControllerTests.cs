@@ -11,6 +11,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Xunit;
+using TestResourcesLib;
 
 namespace MapTests
 {
@@ -32,6 +33,7 @@ namespace MapTests
         public async Task<FileUploadController> GetControllerForUser(string Username)
         {
             var testController = new FileUploadController(
+                TestResources.MockDbContext.Object,
                 TestResources.AuditLoggerObject,
                 TestResources.AuthorizationService,
                 TestResources.UploadHelperObject,

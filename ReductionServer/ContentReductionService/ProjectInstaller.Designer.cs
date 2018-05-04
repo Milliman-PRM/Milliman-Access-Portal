@@ -1,4 +1,4 @@
-﻿namespace ReductionService
+﻿namespace ContentReductionService
 {
     partial class ProjectInstaller
     {
