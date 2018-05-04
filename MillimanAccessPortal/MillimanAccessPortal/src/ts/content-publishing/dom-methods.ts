@@ -2,7 +2,7 @@ import $ = require('jquery');
 require('tooltipster');
 import shared = require('../shared');
 import { ClientCard, RootContentItemCard } from '../card';
-import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType } from '../view-models/content-access-admin';
+import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType } from '../view-models/content-publishing';
 
 
 
