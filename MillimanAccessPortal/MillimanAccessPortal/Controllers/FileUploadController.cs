@@ -29,7 +29,7 @@ using System.Globalization;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
-using MillimanAccessPortal.Models.ContentPublicationViewModels;
+using MillimanAccessPortal.Models.ContentPublishingViewModels;
 using MillimanAccessPortal.Services;
 using System;
 using System.Globalization;
