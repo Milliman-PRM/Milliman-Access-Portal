@@ -10,6 +10,7 @@ function mapRootContentItemDetail(item: RootContentItemDetail) {
   const formMap = new Map<string, string | number | boolean>();
 
   formMap.set('Id',item.Id);
+  formMap.set('ClientId',item.ClientId);
   formMap.set('ContentName',item.ContentName);
   formMap.set('ContentTypeId',item.ContentType.Id);
   formMap.set('DoesReduce', item.DoesReduce);
@@ -23,11 +24,6 @@ function renderRootContentItemForm(item: RootContentItemDetail) {
   const $panel = $('#content-publishing-form');
   const $rootContentItemForm = $panel.find('form.admin-panel-content');
   shared.clearForm($panel);
-
-  $('#Id').val(
-    $('#root-content-items [selected]').parent().data().rootContentItemId.toString());
-  $('#ClientId').val(
-    $('#client-tree [selected]').parent().data().clientId.toString());
 
   const $contentTypeDropdown = $rootContentItemForm.find('#ContentTypeId');
   $contentTypeDropdown.children(':not(option[value = ""])').remove();
@@ -130,7 +126,7 @@ export function setup() {
       data: formData,
     }).done((response) => {
     }).fail((response) => {
-    })
+    });
   });
 
 
