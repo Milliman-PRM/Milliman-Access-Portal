@@ -7,7 +7,7 @@
 
 using System.IO;
 
-namespace MillimanAccessPortal.Models.ContentPublishingViewModels
+namespace MillimanAccessPortal.Models.ContentPublishing
 {
     public class ResumableInfo
     {

@@ -4,35 +4,35 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-using System;
-using System.Linq;
-using System.Threading;
-using System.Collections.Generic;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authorization.Infrastructure;
-using Moq;
+using AuditLogLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
-using QlikviewLib;
-using Microsoft.Extensions.Configuration;
-using System.Security.Cryptography.X509Certificates;
-using AuditLogLib;
-using Microsoft.EntityFrameworkCore.Storage;
+using MillimanAccessPortal.Models.ContentPublishing;
 using MillimanAccessPortal.Services;
+using Moq;
+using QlikviewLib;
+using System;
+using System.Collections.Generic;
 using System.IO;
-using MillimanAccessPortal.Models.ContentPublishingViewModels;
+using System.Linq;
+using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 
 namespace MapTests
 {
