@@ -141,9 +141,9 @@ input:-webkit-autofill {
         .form-input-flex {
             display: flex;
             flex-flow: column nowrap;
+            justify-content: flex-end;
 
             & > .switch-container {
-                align-self: flex-end;
                 margin-bottom: 0;
                 margin-left: .5em;
             }
