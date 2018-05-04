@@ -24,6 +24,11 @@ function renderRootContentItemForm(item: RootContentItemDetail) {
   const $rootContentItemForm = $panel.find('form.admin-panel-content');
   shared.clearForm($panel);
 
+  $('#Id').val(
+    $('#root-content-items [selected]').parent().data().rootContentItemId.toString());
+  $('#ClientId').val(
+    $('#client-tree [selected]').parent().data().clientId.toString());
+
   const $contentTypeDropdown = $rootContentItemForm.find('#ContentTypeId');
   $contentTypeDropdown.children(':not(option[value = ""])').remove();
   item.AvailableContentTypes.forEach((contentType) => {
@@ -117,6 +122,17 @@ export function setup() {
       $doesReduceToggle.removeAttr('disabled');
     }
   });
+
+  $('#content-publishing-form .new-form-button-container button.submit-button').click(() => {
+    const formData = $('#content-publishing-form form').serialize();
+    $.post({
+      url: 'ContentPublishing/CreateRootContentItem',
+      data: formData,
+    }).done((response) => {
+    }).fail((response) => {
+    })
+  });
+
 
   $('.action-icon-expand').click(shared.expandAllListener);
   $('.action-icon-collapse').click(shared.collapseAllListener);
