@@ -140,6 +140,7 @@ input:-webkit-autofill {
 
         .form-input-flex {
             display: flex;
+            flex-flow: column nowrap;
 
             & > .switch-container {
                 align-self: flex-end;
@@ -154,6 +155,46 @@ input:-webkit-autofill {
     }
 }
 
+label.input-with-upload {
+    position: relative;
+    padding-left: 2em;
+    cursor: pointer;
+
+    &.image {
+        display: flex;
+        flex-flow: column nowrap;
+        height: 100%;
+        width: 100%;
+
+        .image-placeholder {
+            flex: 1 0 auto;
+            background-color: $white;
+            border-radius: .25em;
+        }
+    }
+
+    input,
+    div.image-placeholder {
+        cursor: pointer;
+    }
+
+    input {
+        padding-right: 2.5em;
+    }
+
+    svg.upload-icon {
+        color: $charcoal;
+        height: 2em;
+        width: 2em;
+        position: absolute;
+        right: .25em;
+        bottom: .1em;
+    }
+
+    &:hover svg.upload-icon {
+        color: $green;
+    }
+}
 /* Validation Error Styling */
 .input-validation-error {
     border: solid 2px $red !important;
