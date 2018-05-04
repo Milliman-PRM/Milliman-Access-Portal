@@ -1,7 +1,7 @@
 import { Promise } from 'es6-promise';
 
 interface FileReaderOnLoadEventTarget extends EventTarget {
-  result: Blob | ArrayBuffer;
+  result: ArrayBuffer;
 }
 
 class FileSlicer {

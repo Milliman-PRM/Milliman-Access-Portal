@@ -1,11 +1,16 @@
 import $ = require('jquery');
+require('tooltipster');
+import shared = require('../shared');
 import toastr = require('toastr');
 import { randomBytes } from 'crypto';
 import { FileUploadCard } from '../card';
 import { PublicationUpload, PublicationComponent, PublicationComponentInfo } from './publication-upload';
-require('../navbar');
+import { setup } from './dom-methods';
 
+require('../navbar');
 import 'bootstrap/scss/bootstrap-reboot.scss';
+import 'tooltipster/src/css/tooltipster.css';
+import 'tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css';
 import 'toastr/toastr.scss';
 import '../../scss/map.scss';
 
@@ -45,6 +50,9 @@ $(document).ready(() => {
     unloadAlertStates.push(false);
   });
 
+  setup();
+
+  // TODO: Remove for production
   toastr.info('Page loaded');
 });
 

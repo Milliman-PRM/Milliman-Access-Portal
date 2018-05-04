@@ -4,17 +4,18 @@
  * DEVELOPER NOTES:
  */
 
-using System.Collections.Generic;
-using System.Linq;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MillimanAccessPortal.Models.AccountViewModels;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
     public class ContentAccessAdminSelectionGroupDetailViewModel
     {
         public SelectionGroup SelectionGroupEntity { get; set; }
-        public List<ContentAccessAdminUserInfoViewModel> MemberList { get; set; } = new List<ContentAccessAdminUserInfoViewModel>();
+        public List<UserInfoViewModel> MemberList { get; set; } = new List<UserInfoViewModel>();
         public ReductionDetails ReductionDetails { get; set; }
 
         internal static ContentAccessAdminSelectionGroupDetailViewModel Build(ApplicationDbContext DbContext, SelectionGroup SelectionGroup)
@@ -39,7 +40,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 
             foreach (var MemberClient in MemberClients)
             {
-                ContentAccessAdminUserInfoViewModel MemberModel = (ContentAccessAdminUserInfoViewModel) MemberClient;
+                UserInfoViewModel MemberModel = (UserInfoViewModel) MemberClient;
                 Model.MemberList.Add(MemberModel);
             }
 

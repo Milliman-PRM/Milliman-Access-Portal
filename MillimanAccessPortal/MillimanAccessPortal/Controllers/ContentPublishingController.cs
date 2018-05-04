@@ -4,13 +4,18 @@
  * DEVELOPER NOTES:
  */
 
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Logging;
-using MapDbContextLib.Context;
-using MillimanAccessPortal.DataQueries;
 using AuditLogLib.Services;
+using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using MillimanAccessPortal.Authorization;
+using MillimanAccessPortal.DataQueries;
+using MillimanAccessPortal.Models.ContentPublishing;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -21,6 +26,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly ApplicationDbContext DbContext;
         private readonly ILogger Logger;
         private readonly StandardQueries Queries;
+        private readonly UserManager<ApplicationUser> UserManager;
 
 
         /// <summary>
@@ -36,7 +42,8 @@ namespace MillimanAccessPortal.Controllers
             IAuthorizationService AuthorizationServiceArg,
             ApplicationDbContext ContextArg,
             ILoggerFactory LoggerFactoryArg,
-            StandardQueries QueriesArg
+            StandardQueries QueriesArg,
+            UserManager<ApplicationUser> UserManagerArg
             )
         {
             AuditLogger = AuditLoggerArg;
@@ -44,6 +51,7 @@ namespace MillimanAccessPortal.Controllers
             DbContext = ContextArg;
             Logger = LoggerFactoryArg.CreateLogger<ContentPublishingController>(); ;
             Queries = QueriesArg;
+            UserManager = UserManagerArg;
         }
 
         /// <summary>
@@ -53,6 +61,86 @@ namespace MillimanAccessPortal.Controllers
         public IActionResult Index()
         {
             return View();
+        }
+
+        async public Task<IActionResult> Clients()
+        {
+            #region Authorization
+            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, null));
+            if (!RoleInClientResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to publish content.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            #endregion
+
+            var model = await ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
+
+            return new JsonResult(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> RootContentItems(long clientId)
+        {
+            Client client = DbContext.Client.Find(clientId);
+
+            #region Preliminary validation
+            if (client == null)
+            {
+                Response.Headers.Add("Warning", "The requested client does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult roleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, clientId));
+            if (!roleInClientResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            #endregion
+
+            RootContentItemList model = RootContentItemList.Build(DbContext, client);
+
+            return Json(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> RootContentItemDetail(long rootContentItemId)
+        {
+            RootContentItem rootContentItem = DbContext.RootContentItem.Find(rootContentItemId);
+
+            #region Preliminary validation
+            if (rootContentItem == null)
+            {
+                Response.Headers.Add("Warning", "The requested root content item does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult roleInClientResult = await AuthorizationService.AuthorizeAsync(
+                User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItemId));
+            if (!roleInClientResult.Succeeded)
+            {
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            #endregion
+
+            RootContentItemDetail model = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, rootContentItem);
+
+            return Json(model);
         }
 
         [HttpPost]

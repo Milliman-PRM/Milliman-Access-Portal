@@ -6,9 +6,9 @@
 
 using MapDbContextLib.Identity;
 
-namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
+namespace MillimanAccessPortal.Models.AccountViewModels
 {
-    public class ContentAccessAdminUserInfoViewModel
+    public class UserInfoViewModel
     {
         public long Id { get; set; }
         public string LastName { get; set; } = string.Empty;
@@ -16,9 +16,9 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
         public string Email { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
 
-        public static explicit operator ContentAccessAdminUserInfoViewModel(ApplicationUser User)
+        public static explicit operator UserInfoViewModel(ApplicationUser User)
         {
-            return new ContentAccessAdminUserInfoViewModel
+            return new UserInfoViewModel
             {
                 Id = User.Id,
                 Email = User.Email,

@@ -13,6 +13,7 @@ using MapDbContextLib.Context;
 using Microsoft.AspNetCore.Identity;
 using System.Threading.Tasks;
 using System.Security.Claims;
+using MillimanAccessPortal.Models.AccountViewModels;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
@@ -20,7 +21,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
     public class ContentAccessAdminClientDetailViewModel
     {
         public Client ClientEntity { get; set; }
-        public List<ContentAccessAdminUserInfoViewModel> AssignedUsers { get; set; }
+        public List<UserInfoViewModel> AssignedUsers { get; set; }
         public long EligibleUserCount { get; set; }
         public long RootContentItemCount { get; set; }
         public bool CanManage { get; set; }
@@ -50,7 +51,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
             Claim MembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientEntity.Id.ToString());
             IList<ApplicationUser> UsersForClaim = await UserManager.GetUsersForClaimAsync(MembershipClaim);
             AssignedUsers = UsersForClaim
-                .Select(u => (ContentAccessAdminUserInfoViewModel) u)
+                .Select(u => (UserInfoViewModel) u)
                 .OrderBy(u => u.LastName)
                 .ThenBy(u => u.FirstName)
                 .ThenBy(u => u.UserName)
