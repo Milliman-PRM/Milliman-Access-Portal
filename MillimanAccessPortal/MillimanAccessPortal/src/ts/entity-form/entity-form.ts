@@ -216,8 +216,9 @@ abstract class EntityFormInput extends EntityFormElement {
   get children() { return []; }
 
   onChange(callback: () => void) {
-    // TODO: Remove previous callback
-    this.$entryPoint.change(callback);
+    this.$entryPoint
+      .off('change')
+      .on('change', callback);
   }
 
   reset() {
@@ -466,13 +467,15 @@ class EntityFormSubmission extends EntityFormElement {
     this.$entryPoint
       .find(this.buttonSelector)
       .find('.button-reset')
-      .click(callback);
+      .off('click')
+      .on('click', callback);
   }
   onSubmit(callback: () => void) {
     this.$entryPoint
       .find(this.buttonSelector)
       .find('.button-submit')
-      .click(callback);
+      .off('click')
+      .on('click', callback);
   }
 }
 
