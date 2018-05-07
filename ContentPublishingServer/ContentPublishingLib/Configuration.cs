@@ -44,6 +44,7 @@ namespace ContentPublishingLib
                         );
                     break;
 
+                case null:  // for framework GUI project
                 case "Development":
                     CfgBuilder.AddUserSecrets<MapDbReductionJobMonitor>();
                     break;
