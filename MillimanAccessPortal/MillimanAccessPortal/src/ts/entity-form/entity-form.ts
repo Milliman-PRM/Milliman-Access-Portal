@@ -45,7 +45,11 @@ export class EntityForm extends EntityFormElement {
     </form>
     `
 
-  constructor(readonly entryPoint: HTMLElement) {
+  constructor(
+    readonly entryPoint: HTMLElement,
+    submissionMode: EntityFormSubmissionMode,
+    submitGroups: Array<EntityFormSubmissionGroup>,
+  ) {
     super(entryPoint);
 
     if (!$(entryPoint).is(`.${this.cssClasses.main}`)) {
@@ -66,7 +70,7 @@ export class EntityForm extends EntityFormElement {
       .find(`.${this.cssClasses.extension}`).children()
       .toArray().map((input) => {
         try {
-          return new EntityFormSubmission(input, EntityFormSubmissionMode.Update);
+          return new EntityFormSubmission(input, submissionMode);
         } catch (e) {
           return undefined;
         }
@@ -91,7 +95,21 @@ export class EntityForm extends EntityFormElement {
       });
     });
     this.submission.onSubmit(() => {
-
+      let requests: Array<() => void> = [];
+      for (let i = 0; i < submitGroups.length; i += 1) {
+        requests.push(() => $.post({
+          url: submitGroups[i].url,
+          data: this.serialize(submitGroups[i].sections),
+        }).done((response) => {
+          if (i + 1 < submitGroups.length) {
+            requests[i + 1]();
+          } else {
+          }
+        }).fail((response) => {
+        }).always((response) => {
+        }));
+      }
+      requests[0]();
     });
   }
 
@@ -124,6 +142,23 @@ export class EntityForm extends EntityFormElement {
       });
     }
     this._mode = mode;
+  }
+
+  serialize(sections?: Array<string>): string {
+    const allInputs = this.$entryPoint.serializeArray();
+    const filteredInputs = (() => {
+      return sections
+        ? allInputs.filter((input) => 
+          this.sections
+            .map((section) => 
+              sections.indexOf(section.section) > -1
+              && section.hasInput(input.name))
+            .reduce((cum, cur) => cum || cur, false))
+        : allInputs;
+    })();
+    return filteredInputs
+      .map((kvp) => `${kvp.name}=${kvp.value}`)
+      .join('&');
   }
 }
 
@@ -182,8 +217,17 @@ class EntityFormSection extends EntityFormElement {
       .map((input) => input.modified)
       .reduce((cum, cur) => cum || cur, false);
   }
-}
 
+  get section() {
+    return this.$entryPoint.data().section;
+  }
+
+  hasInput(inputName: string) {
+    return this.inputs
+      .map((input) => input.name === inputName)
+      .reduce((cum, cur) => cum || cur);
+  }
+}
 
 
 
@@ -223,6 +267,10 @@ abstract class EntityFormInput extends EntityFormElement {
 
   reset() {
     this.value = this.originalValue;
+  }
+
+  get name(): string {
+    return this.$input.attr('name');
   }
 }
 
@@ -437,7 +485,7 @@ class EntityFormSubmission extends EntityFormElement {
       : '.button-container-edit';
   }
 
-  constructor (entryPoint: HTMLElement, readonly mode: EntityFormSubmissionMode) {
+  constructor(entryPoint: HTMLElement, readonly mode: EntityFormSubmissionMode) {
     super(entryPoint);
 
     if (!$(entryPoint).is(`.${this.cssClasses.main}`)) {
@@ -480,18 +528,16 @@ class EntityFormSubmission extends EntityFormElement {
 }
 
 
-class EntityFormSubmissionStatus {
-  sections: Array<EntityFormSection>;
-
-  constructor(readonly url: string) {
-  }  
+export class EntityFormSubmissionGroup {
+  sections: Array<string>;
+  url: string;
 }
 
 export enum EntityFormMode {
   Read,
   Write,
 }
-enum EntityFormSubmissionMode {
+export enum EntityFormSubmissionMode {
   Create,
   Update,
 }

@@ -3,7 +3,7 @@ require('tooltipster');
 import shared = require('../shared');
 import { ClientCard, RootContentItemCard } from '../card';
 import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType } from '../view-models/content-publishing';
-import { EntityForm, EntityFormMode } from '../entity-form/entity-form';
+import { EntityForm, EntityFormMode, EntityFormSubmissionMode } from '../entity-form/entity-form';
 
 
 let form: EntityForm;
@@ -44,7 +44,26 @@ function renderRootContentItemForm(item: RootContentItemDetail) {
   $doesReduceToggle.prop('checked', item.DoesReduce);
 
   $contentTypeDropdown.change(); // trigger change event
-  form = new EntityForm($rootContentItemForm[0]); 
+
+  form = new EntityForm(
+    $rootContentItemForm[0],
+    EntityFormSubmissionMode.Update,
+    [
+      {
+        url: 'ContentPublishing/CreateRootContentItem',
+        sections: [
+          'root-content-item-info',
+          'root-content-item-description',
+        ],
+      },
+      {
+        url: 'ContentPublishing/RequestPublication',
+        sections: [
+          'publication-files',
+        ],
+      },
+    ],
+  );
 }
 
 
