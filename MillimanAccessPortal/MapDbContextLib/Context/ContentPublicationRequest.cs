@@ -53,6 +53,9 @@ namespace MapDbContextLib.Context
         // Default value is enforced in ApplicationDbContext.OnModelCreating()
         public DateTimeOffset CreateDateTime { get; set; }
 
+        /// <summary>
+        /// May also be accessed through [NotMapped] property PublishRequest
+        /// </summary>
         [Column(TypeName = "jsonb")]
         public string ContentRelatedFiles { get; set; } = "{}";
 

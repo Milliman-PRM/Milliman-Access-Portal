@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett,
- * OBJECTIVE: Represents a reduction server task
+ * OBJECTIVE: Represents a publishing server reduction task
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 

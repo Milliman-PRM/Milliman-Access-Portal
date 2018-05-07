@@ -26,9 +26,11 @@ namespace MapDbContextLib.Context
         public long ClientId { get; set; }
         public Client Client { get; set; }
 
+        [Required]
+        public bool DoesReduce { get; set; }
+
         [Column(TypeName ="jsonb")]
         // [Required] This causes a problem with migration database update
         public string TypeSpecificDetail { get; set; }
-
     }
 }
