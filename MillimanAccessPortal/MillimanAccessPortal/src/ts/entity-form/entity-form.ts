@@ -24,6 +24,7 @@ abstract class EntityFormElement {
 export class EntityForm extends EntityFormElement {
   mode: EntityFormMode;
   sections: Array<EntityFormSection>;
+  submission: EntityFormSubmission;
 
   readonly cssClasses = {
     main: 'admin-panel-content',
@@ -52,6 +53,15 @@ export class EntityForm extends EntityFormElement {
           return undefined;
         }
       }).filter((child) => child !== undefined);
+    this.submission = $(entryPoint)
+      .find(`.${this.cssClasses.extension}`).children()
+      .toArray().map((input) => {
+        try {
+          return new EntityFormSubmission(input);
+        } catch (e) {
+          return undefined;
+        }
+      }).filter((child) => child !== undefined)[0];
   }
 
   get children() {
@@ -72,7 +82,7 @@ class EntityFormSection extends EntityFormElement {
     <div class="${this.cssClasses.main}">
       <h4 class="${this.cssClasses.title}"></h4>
       <div class="${this.cssClasses.extension}"></div>
-    </form>
+    </div>
     `
   inputs: Array<EntityFormInput>;
   submission: EntityFormSubmission;
@@ -102,6 +112,7 @@ class EntityFormSection extends EntityFormElement {
           }
         }
       }).filter((child) => child !== undefined);
+
   }
 
   get children() {
@@ -144,7 +155,7 @@ class EntityFormTextInput extends EntityFormInput {
         <input></input>
         <span></span>
       </div>
-    </form>
+    </div>
     `
   constructor(entryPoint: HTMLElement) {
     super(entryPoint);
@@ -168,7 +179,7 @@ class EntityFormDropdownInput extends EntityFormInput {
       <label class="${this.cssClasses.title}"></label>
       <div class="${this.cssClasses.extension}">
       </div>
-    </form>
+    </div>
     `
   constructor(entryPoint: HTMLElement) {
     super(entryPoint);
@@ -192,7 +203,7 @@ class EntityFormToggleInput extends EntityFormInput {
       <label class="${this.cssClasses.title}"></label>
       <div class="${this.cssClasses.extension}">
       </div>
-    </form>
+    </div>
     `
   constructor(entryPoint: HTMLElement) {
     super(entryPoint);
@@ -216,7 +227,7 @@ class EntityFormSelectizedInput extends EntityFormInput {
       <label class="${this.cssClasses.title}"></label>
       <div class="${this.cssClasses.extension}">
       </div>
-    </form>
+    </div>
     `
   constructor(entryPoint: HTMLElement) {
     super(entryPoint);
@@ -240,7 +251,7 @@ class EntityFormFileUploadInput extends EntityFormInput {
       <label class="${this.cssClasses.title}"></label>
       <div class="${this.cssClasses.extension}">
       </div>
-    </form>
+    </div>
     `
   constructor(entryPoint: HTMLElement) {
     super(entryPoint);
@@ -255,16 +266,15 @@ class EntityFormHiddenInput extends EntityFormInput {
   get cssClasses() {
     return {
       main: 'form-input-hidden',
-      title: 'form-input-hidden-title',
+      title: '',
       extension: 'form-input-hidden-contents',
     };
   }
   readonly template = `
     <div class="${this.cssClasses.main}">
-      <label class="${this.cssClasses.title}"></label>
       <div class="${this.cssClasses.extension}">
       </div>
-    </form>
+    </div>
     `
   constructor(entryPoint: HTMLElement) {
     super(entryPoint);
@@ -275,9 +285,36 @@ class EntityFormHiddenInput extends EntityFormInput {
   }
 }
 
+class EntityFormSubmission extends EntityFormElement {
+  get cssClasses() {
+    return {
+      main: 'form-submission',
+      title: '',
+      extension: '',
+    };
+  }
+  readonly template = `
+    <div class="${this.cssClasses.main}">
+      <button></button>
+    </div>
+    `
+
+  constructor (readonly entryPoint: HTMLElement) {
+    super();
+
+    if (!$(entryPoint).is(`.${this.cssClasses.main}`)) {
+      throw new Error(`Cannot bind form: element not of class ${this.cssClasses.main}`);
+    }
+
+  }
+
+  get children() {
+    return [];
+  }
+}
 
 
-class EntityFormSubmission {
+class EntityFormSubmissionStatus {
   sections: Array<EntityFormSection>;
 
   constructor(readonly url: string) {
