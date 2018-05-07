@@ -61,110 +61,134 @@
     </div>
     <div class="admin-panel-content-container">
         <form class="admin-panel-content">
-            <div class="form-container">
-                <h4 class="form-section-header">Content Item Information</h4>
-                <div class="form-section-container">
-                    <div style="display: none;">
-                        <input asp-for="Id" />
-                    </div>
-                    <div style="display: none;">
-                        <input asp-for="ClientId" />
-                    </div>
-                    <div class="form-input flex-item-12-12">
-                        <label asp-for="ContentName"></label>
-                        <div>
-                            <input asp-for="ContentName" />
-                            <span asp-validation-for="ContentName" class="text-danger"></span>
+            <div class="form-section-container">
+                <div class="form-section">
+                    <h4 class="form-section-title">Content Item Information</h4>
+                    <div class="form-input-container">
+                        <div class="form-input form-input-hidden" style="display: none;">
+                            <input asp-for="Id" />
+                        </div>
+                        <div class="form-input form-input-hidden" style="display: none;">
+                            <input asp-for="ClientId" />
+                        </div>
+                        <div class="form-input form-input-text flex-item-12-12">
+                            <label asp-for="ContentName"></label>
+                            <div>
+                                <input asp-for="ContentName" />
+                                <span asp-validation-for="ContentName" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-input form-input-text content-item-flex-1">
+                            <label asp-for="ContentTypeId"></label>
+                            <div>
+                                <select asp-for="ContentTypeId">
+                                    <option value="">Make a Selection</option>
+                                </select>
+                                <span asp-validation-for="ContentTypeId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-input form-input-toggle form-input-flex content-item-flex-none">
+                            <div class="switch-container">
+                                <div class="toggle-switch">
+                                    <input type="checkbox" class="toggle-switch-checkbox" name="DoesReduce" id="DoesReduce">
+                                    <label class="toggle-switch-label" for="DoesReduce">
+                                        <span class="toggle-switch-inner"></span>
+                                        <span class="toggle-switch-switch"></span>
+                                    </label>
+                                </div>
+                                <label class="switch-label" for="DoesReduce">Reducible</label>
+                            </div>
                         </div>
                     </div>
-                    <div class="form-input content-item-flex-1">
-                        <label asp-for="ContentTypeId"></label>
-                        <div>
-                            <select asp-for="ContentTypeId">
-                                <option value="">Make a Selection</option>
-                            </select>
-                            <span asp-validation-for="ContentTypeId" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="form-input form-input-flex content-item-flex-none">
-                        <div class="switch-container">
-                            <div class="toggle-switch">
-                                <input type="checkbox" class="toggle-switch-checkbox" name="DoesReduce" id="DoesReduce">
-                                <label class="toggle-switch-label" for="DoesReduce">
-                                    <span class="toggle-switch-inner"></span>
-                                    <span class="toggle-switch-switch"></span>
+                </div>
+                <div class="form-section">
+                    <h4 class="form-section-title">Files</h4>
+                    <div class="form-input-container">
+                        <div class="form-input-container flex-item-4-12">
+                            <div class="form-input form-input-file-upload">
+                                <label for="ThumbnailImage" class="input-with-upload image">
+                                    Thumbnail Image
+                                    <span>
+                                        <div class="image-placeholder"></div>
+                                    </span>
+                                    <input type="text" id="thumbnailImageHash" style="display: none;" />
+                                    <input type="text" id="thumbnailImageUID" style="display: none;" />
+                                    <svg class="upload-icon tooltip" title="Upload thumbnail image">
+                                        <use xlink:href="#action-icon-file-upload"></use>
+                                    </svg>
                                 </label>
                             </div>
-                            <label class="switch-label" for="DoesReduce">Reducible</label>
+                        </div>
+                        <div class="form-input-container flex-item-8-12">
+                            <div class="form-input form-input-file-upload">
+                                <label for="ContentFile" class="input-with-upload">
+                                    File
+                                    <span>
+                                        <input type="text" id="ContentFile" />
+                                    </span>
+                                    <input type="text" id="ContentFileHash" style="display: none;" />
+                                    <input type="text" id="ContentFileUID" style="display: none;" />
+                                    <svg class="upload-icon tooltip" title="Upload thumbnail image">
+                                        <use xlink:href="#action-icon-file-upload"></use>
+                                    </svg>
+                                </label>
+                            </div>
+                            <div class="form-input form-input-file-upload">
+                                <label for="UserguideFile" class="input-with-upload">
+                                    Userguide
+                                    <span>
+                                        <input type="text" id="UserguideFile" />
+                                    </span>
+                                    <input type="text" id="UserguideFileHash" style="display: none;" />
+                                    <input type="text" id="UserguideFileUID" style="display: none;" />
+                                    <svg class="upload-icon tooltip" title="Upload thumbnail image">
+                                        <use xlink:href="#action-icon-file-upload"></use>
+                                    </svg>
+                                </label>
+                            </div>
+                            <div class="form-input form-input-file-upload">
+                                <label for="ReleaseNotesFile" class="input-with-upload">
+                                    Release Notes
+                                    <span>
+                                        <input type="text" id="ReleaseNotesFile" />
+                                    </span>
+                                    <input type="text" id="ReleaseNotesFileHash" style="display: none;" />
+                                    <input type="text" id="ReleaseNotesFileUID" style="display: none;" />
+                                    <svg class="upload-icon tooltip" title="Upload thumbnail image">
+                                        <use xlink:href="#action-icon-file-upload"></use>
+                                    </svg>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <h4 class="form-section-header">Files</h4>
-                <div class="form-section-container">
-                    <div class="form-input flex-item-4-12">
-                        <label for="ThumbnailImage" class="input-with-upload image">
-                            Thumbnail Image
-                            <div class="image-placeholder"></div>
-                            <input type="text" id="thumbnailImageHash" style="display: none;" />
-                            <input type="text" id="thumbnailImageUID" style="display: none;" />
-                            <svg class="upload-icon tooltip" title="Upload thumbnail image">
-                                <use xlink:href="#action-icon-file-upload"></use>
-                            </svg>
-                        </label>
-                    </div>
-                    <div class="form-input-flex flex-item-8-12">
-                        <label for="ContentFile" class="input-with-upload">
-                            File
-                            <input type="text" id="ContentFile" />
-                            <input type="text" id="ContentFileHash" style="display: none;" />
-                            <input type="text" id="ContentFileUID" style="display: none;" />
-                            <svg class="upload-icon tooltip" title="Upload thumbnail image">
-                                <use xlink:href="#action-icon-file-upload"></use>
-                            </svg>
-                        </label>
-                        <label for="UserguideFile" class="input-with-upload">
-                            Userguide
-                            <input type="text" id="UserguideFile" />
-                            <input type="text" id="UserguideFileHash" style="display: none;" />
-                            <input type="text" id="UserguideFileUID" style="display: none;" />
-                            <svg class="upload-icon tooltip" title="Upload thumbnail image">
-                                <use xlink:href="#action-icon-file-upload"></use>
-                            </svg>
-                        </label>
-                        <label for="ReleaseNotesFile" class="input-with-upload">
-                            Release Notes
-                            <input type="text" id="ReleaseNotesFile" />
-                            <input type="text" id="ReleaseNotesFileHash" style="display: none;" />
-                            <input type="text" id="ReleaseNotesFileUID" style="display: none;" />
-                            <svg class="upload-icon tooltip" title="Upload thumbnail image">
-                                <use xlink:href="#action-icon-file-upload"></use>
-                            </svg>
-                        </label>
-                    </div>
-                </div>
-                <h4 class="form-section-header">Content Description</h4>
-                <div class="form-section-container">
-                    <div class="form-input flex-item-12-12">
-                        <label for="Description">Description</label>
-                        <div>
-                            <textarea id="Description" for="Description" required></textarea>
+                <div class="form-section">
+                    <h4 class="form-section-title">Content Description</h4>
+                    <div class="form-input-container">
+                        <div class="form-input form-input-text flex-item-12-12">
+                            <label class="form-input-text-title" for="Description">Description</label>
+                            <div class="form-input-text-contents">
+                                <textarea id="Description" for="Description" required></textarea>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-input flex-item-12-12">
-                        <label for="Notes">Notes</label>
-                        <div>
-                            <textarea id="Notes" for="Notes"></textarea>
+                        <div class="form-input form-input-text flex-item-12-12">
+                            <label class="form-input-text-title" for="Notes">Notes</label>
+                            <div class="form-input-text-contents">
+                                <textarea id="Notes" for="Notes"></textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
-                @Html.AntiForgeryToken()
-                <div class="new-form-button-container form-button-container">
-                    <button type="button" class="reset-button link-button">Reset Form</button>
-                    <button type="button" class="submit-button green-button">Create Content Item</button>
-                </div>
-                <div class="edit-form-button-container form-button-container" style="display: none;">
-                    <button type="button" class="reset-button link-button">Discard Changes</button>
-                    <button type="button" class="submit-button blue-button">Save Changes</button>
+                <div>
+                    @Html.AntiForgeryToken()
+                    <div class="new-form-button-container form-button-container">
+                        <button type="button" class="reset-button link-button">Reset Form</button>
+                        <button type="button" class="submit-button green-button">Create Content Item</button>
+                    </div>
+                    <div class="edit-form-button-container form-button-container" style="display: none;">
+                        <button type="button" class="reset-button link-button">Discard Changes</button>
+                        <button type="button" class="submit-button blue-button">Save Changes</button>
+                    </div>
                 </div>
             </div>
         </form>

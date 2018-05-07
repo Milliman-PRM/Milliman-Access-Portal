@@ -3,6 +3,7 @@ require('tooltipster');
 import shared = require('../shared');
 import { ClientCard, RootContentItemCard } from '../card';
 import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType } from '../view-models/content-publishing';
+import { EntityForm } from '../entity-form/entity-form';
 
 
 
@@ -128,6 +129,8 @@ export function setup() {
     }).fail((response) => {
     });
   });
+
+  const $form = new EntityForm($('form.admin-panel-content')[0], 'title'); 
 
 
   $('.action-icon-expand').click(shared.expandAllListener);
