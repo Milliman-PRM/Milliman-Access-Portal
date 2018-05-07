@@ -10,6 +10,11 @@ interface EntityFormClassRegistry {
 abstract class EntityFormElement {
   protected abstract get cssClasses(): EntityFormClassRegistry;
   protected readonly template: string;
+  protected readonly $entryPoint: JQuery<HTMLElement>;
+
+  protected constructor(entryPoint: HTMLElement) {
+    this.$entryPoint = $(entryPoint);
+  }
 
   protected abstract get children(): Array<EntityFormElement>;
   build(): JQuery<HTMLElement> {
@@ -19,6 +24,8 @@ abstract class EntityFormElement {
     });
     return $form;
   }
+
+  abstract get modified(): boolean;
 }
 
 export class EntityForm extends EntityFormElement {
@@ -37,13 +44,14 @@ export class EntityForm extends EntityFormElement {
     </form>
     `
 
-  constructor(readonly entryPoint: HTMLElement, readonly title: string) {
-    super();
+  constructor(readonly entryPoint: HTMLElement) {
+    super(entryPoint);
 
     if (!$(entryPoint).is(`.${this.cssClasses.main}`)) {
       throw new Error(`Cannot bind form: element not of class ${this.cssClasses.main}`);
     }
 
+    // bind members to DOM elements
     this.sections = $(entryPoint)
       .find(`.${this.cssClasses.extension}`).children()
       .toArray().map((section) => {
@@ -62,12 +70,26 @@ export class EntityForm extends EntityFormElement {
           return undefined;
         }
       }).filter((child) => child !== undefined)[0];
+
+    // attach event listeners
+    this.sections.forEach((section) => {
+      section.inputs.forEach((input) => {
+        input.onChange(() => {
+          this.submission.disabled = this.modified;
+        });
+      });
+    });
   }
 
   get children() {
     return this.sections;
   }
 
+  get modified() {
+    return this.sections
+      .map((section) => section.modified)
+      .reduce((cum, cur) => cum || cur, false);
+  }
 }
 
 class EntityFormSection extends EntityFormElement {
@@ -88,7 +110,7 @@ class EntityFormSection extends EntityFormElement {
   submission: EntityFormSubmission;
 
   constructor (readonly entryPoint: HTMLElement) {
-    super();
+    super(entryPoint);
 
     if (!$(entryPoint).is(`.${this.cssClasses.main}`)) {
       throw new Error(`Cannot bind form: element not of class ${this.cssClasses.main}`);
@@ -96,6 +118,7 @@ class EntityFormSection extends EntityFormElement {
 
     const inputConstructors: Array<(input: HTMLElement) => EntityFormInput> = [
       (input) => new EntityFormTextInput(input),
+      (input) => new EntityFormTextAreaInput(input),
       (input) => new EntityFormDropdownInput(input),
       (input) => new EntityFormToggleInput(input),
       (input) => new EntityFormSelectizedInput(input),
@@ -118,17 +141,24 @@ class EntityFormSection extends EntityFormElement {
   get children() {
     return this.inputs;
   }
+
+  get modified() {
+    return this.inputs
+      .map((input) => input.modified)
+      .reduce((cum, cur) => cum || cur, false);
+  }
 }
 
 
 
 
 abstract class EntityFormInput extends EntityFormElement {
-  protected value: string;
+  protected abstract get value(): string;
   protected originalValue: string;
+  protected $entryPoint: JQuery<HTMLElement>;
 
   constructor(entryPoint: HTMLElement) {
-    super();
+    super(entryPoint);
     
     if (!$(entryPoint).is(`.${this.cssClasses.main}`)) {
       throw new Error(`Cannot bind form: element not of class ${this.cssClasses.main}`);
@@ -137,7 +167,10 @@ abstract class EntityFormInput extends EntityFormElement {
 
   get children() { return []; }
 
-  abstract get modified();
+  onChange(callback: () => void) {
+    // TODO: Remove previous callback
+    this.$entryPoint.change(callback);
+  }
 }
 
 class EntityFormTextInput extends EntityFormInput {
@@ -157,8 +190,41 @@ class EntityFormTextInput extends EntityFormInput {
       </div>
     </div>
     `
+  get value() {
+    return this.$entryPoint.find('input').val().toString();
+  }
   constructor(entryPoint: HTMLElement) {
     super(entryPoint);
+    this.originalValue = this.value;
+  }
+
+  get modified() {
+    return (this.value !== this.originalValue);
+  }
+}
+
+class EntityFormTextAreaInput extends EntityFormInput {
+  get cssClasses() {
+    return {
+      main: 'form-input-text-area',
+      title: 'form-input-text-area-title',
+      extension: 'form-input-text-area-contents',
+    };
+  }
+  readonly template = `
+    <div class="${this.cssClasses.main}">
+      <label class="${this.cssClasses.title}"></label>
+      <div class="${this.cssClasses.extension}">
+        <textarea></textarea>
+      </div>
+    </div>
+    `
+  get value() {
+    return this.$entryPoint.find('textarea').val().toString();
+  }
+  constructor(entryPoint: HTMLElement) {
+    super(entryPoint);
+    this.originalValue = this.value;
   }
 
   get modified() {
@@ -181,8 +247,12 @@ class EntityFormDropdownInput extends EntityFormInput {
       </div>
     </div>
     `
+  get value() {
+    return this.$entryPoint.find('select').val().toString();
+  }
   constructor(entryPoint: HTMLElement) {
     super(entryPoint);
+    this.originalValue = this.value;
   }
 
   get modified() {
@@ -205,8 +275,12 @@ class EntityFormToggleInput extends EntityFormInput {
       </div>
     </div>
     `
+  get value() {
+    return this.$entryPoint.find('input').prop('checked').toString();
+  }
   constructor(entryPoint: HTMLElement) {
     super(entryPoint);
+    this.originalValue = this.value;
   }
 
   get modified() {
@@ -229,8 +303,12 @@ class EntityFormSelectizedInput extends EntityFormInput {
       </div>
     </div>
     `
+  get value() {
+    return this.$entryPoint.find('input').val().toString();
+  }
   constructor(entryPoint: HTMLElement) {
     super(entryPoint);
+    this.originalValue = this.value;
   }
 
   get modified() {
@@ -253,8 +331,12 @@ class EntityFormFileUploadInput extends EntityFormInput {
       </div>
     </div>
     `
+  get value() {
+    return this.$entryPoint.find('input').val().toString();
+  }
   constructor(entryPoint: HTMLElement) {
     super(entryPoint);
+    this.originalValue = this.value;
   }
 
   get modified() {
@@ -276,8 +358,12 @@ class EntityFormHiddenInput extends EntityFormInput {
       </div>
     </div>
     `
+  get value() {
+    return this.$entryPoint.find('input').val().toString();
+  }
   constructor(entryPoint: HTMLElement) {
     super(entryPoint);
+    this.originalValue = this.value;
   }
 
   get modified() {
@@ -299,17 +385,31 @@ class EntityFormSubmission extends EntityFormElement {
     </div>
     `
 
-  constructor (readonly entryPoint: HTMLElement) {
-    super();
+  private _disabled = false;
+
+  constructor (entryPoint: HTMLElement) {
+    super(entryPoint);
 
     if (!$(entryPoint).is(`.${this.cssClasses.main}`)) {
       throw new Error(`Cannot bind form: element not of class ${this.cssClasses.main}`);
     }
-
   }
 
   get children() {
     return [];
+  }
+
+  get modified() {
+    return false;
+  }
+
+  set disabled(value: boolean) {
+    if (value) {
+      this.$entryPoint.find('button').attr('disabled', '');
+    } else {
+      this.$entryPoint.find('button').removeAttr('disabled');
+    }
+    this._disabled = value;
   }
 }
 

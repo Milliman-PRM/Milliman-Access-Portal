@@ -43,6 +43,7 @@ function renderRootContentItemForm(item: RootContentItemDetail) {
   $doesReduceToggle.prop('checked', item.DoesReduce);
 
   $contentTypeDropdown.change(); // trigger change event
+  const form = new EntityForm($rootContentItemForm[0]); 
 }
 
 
@@ -130,8 +131,7 @@ export function setup() {
     });
   });
 
-  const $form = new EntityForm($('form.admin-panel-content')[0], 'title'); 
-
+  const form = new EntityForm($('form.admin-panel-content')[0]); 
 
   $('.action-icon-expand').click(shared.expandAllListener);
   $('.action-icon-collapse').click(shared.collapseAllListener);
