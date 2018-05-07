@@ -1,4 +1,5 @@
 import * as $ from 'jquery';
+import { confirmAndContinueForm } from '../shared';
 
 
 interface EntityFormClassRegistry {
@@ -65,7 +66,7 @@ export class EntityForm extends EntityFormElement {
       .find(`.${this.cssClasses.extension}`).children()
       .toArray().map((input) => {
         try {
-          return new EntityFormSubmission(input);
+          return new EntityFormSubmission(input, EntityFormSubmissionMode.Update);
         } catch (e) {
           return undefined;
         }
@@ -75,9 +76,22 @@ export class EntityForm extends EntityFormElement {
     this.sections.forEach((section) => {
       section.inputs.forEach((input) => {
         input.onChange(() => {
-          this.submission.disabled = this.modified;
+          this.submission.modified = this.modified;
         });
       });
+    });
+    this.submission.onReset(() => {
+      confirmAndContinueForm(() => {
+        this.sections.forEach((section) => {
+          section.inputs.forEach((input) => {
+            input.reset();
+          });
+        });
+        this.submission.modified = this.modified;
+      });
+    });
+    this.submission.onSubmit(() => {
+
     });
   }
 
@@ -153,9 +167,15 @@ class EntityFormSection extends EntityFormElement {
 
 
 abstract class EntityFormInput extends EntityFormElement {
-  protected abstract get value(): string;
+  protected get value(): string {
+    return this.$input.val().toString();
+  }
+  protected set value(value: string) {
+    this.$input.val(value);
+  }
   protected originalValue: string;
   protected $entryPoint: JQuery<HTMLElement>;
+  protected $input: JQuery<HTMLElement>;
 
   constructor(entryPoint: HTMLElement) {
     super(entryPoint);
@@ -170,6 +190,10 @@ abstract class EntityFormInput extends EntityFormElement {
   onChange(callback: () => void) {
     // TODO: Remove previous callback
     this.$entryPoint.change(callback);
+  }
+
+  reset() {
+    this.value = this.originalValue;
   }
 }
 
@@ -190,11 +214,9 @@ class EntityFormTextInput extends EntityFormInput {
       </div>
     </div>
     `
-  get value() {
-    return this.$entryPoint.find('input').val().toString();
-  }
   constructor(entryPoint: HTMLElement) {
     super(entryPoint);
+    this.$input = this.$entryPoint.find('input');
     this.originalValue = this.value;
   }
 
@@ -219,11 +241,9 @@ class EntityFormTextAreaInput extends EntityFormInput {
       </div>
     </div>
     `
-  get value() {
-    return this.$entryPoint.find('textarea').val().toString();
-  }
   constructor(entryPoint: HTMLElement) {
     super(entryPoint);
+    this.$input = this.$entryPoint.find('textarea');
     this.originalValue = this.value;
   }
 
@@ -247,11 +267,9 @@ class EntityFormDropdownInput extends EntityFormInput {
       </div>
     </div>
     `
-  get value() {
-    return this.$entryPoint.find('select').val().toString();
-  }
   constructor(entryPoint: HTMLElement) {
     super(entryPoint);
+    this.$input = this.$entryPoint.find('select');
     this.originalValue = this.value;
   }
 
@@ -276,10 +294,14 @@ class EntityFormToggleInput extends EntityFormInput {
     </div>
     `
   get value() {
-    return this.$entryPoint.find('input').prop('checked').toString();
+    return this.$input.prop('checked').toString();
+  }
+  set value(value: string) {
+    this.$input.prop('checked', value === 'true');
   }
   constructor(entryPoint: HTMLElement) {
     super(entryPoint);
+    this.$input = this.$entryPoint.find('input');
     this.originalValue = this.value;
   }
 
@@ -303,11 +325,9 @@ class EntityFormSelectizedInput extends EntityFormInput {
       </div>
     </div>
     `
-  get value() {
-    return this.$entryPoint.find('input').val().toString();
-  }
   constructor(entryPoint: HTMLElement) {
     super(entryPoint);
+    this.$input = this.$entryPoint.find('input');
     this.originalValue = this.value;
   }
 
@@ -331,11 +351,9 @@ class EntityFormFileUploadInput extends EntityFormInput {
       </div>
     </div>
     `
-  get value() {
-    return this.$entryPoint.find('input').val().toString();
-  }
   constructor(entryPoint: HTMLElement) {
     super(entryPoint);
+    this.$input = this.$entryPoint.find('input');
     this.originalValue = this.value;
   }
 
@@ -358,11 +376,9 @@ class EntityFormHiddenInput extends EntityFormInput {
       </div>
     </div>
     `
-  get value() {
-    return this.$entryPoint.find('input').val().toString();
-  }
   constructor(entryPoint: HTMLElement) {
     super(entryPoint);
+    this.$input = this.$entryPoint.find('input');
     this.originalValue = this.value;
   }
 
@@ -371,6 +387,10 @@ class EntityFormHiddenInput extends EntityFormInput {
   }
 }
 
+enum EntityFormSubmissionMode {
+  Create,
+  Update,
+}
 class EntityFormSubmission extends EntityFormElement {
   get cssClasses() {
     return {
@@ -386,13 +406,19 @@ class EntityFormSubmission extends EntityFormElement {
     `
 
   private _disabled = false;
+  private get buttonSelector(): string {
+    return this.mode === EntityFormSubmissionMode.Create
+      ? '.button-container-new'
+      : '.button-container-edit';
+  }
 
-  constructor (entryPoint: HTMLElement) {
+  constructor (entryPoint: HTMLElement, readonly mode: EntityFormSubmissionMode) {
     super(entryPoint);
 
     if (!$(entryPoint).is(`.${this.cssClasses.main}`)) {
       throw new Error(`Cannot bind form: element not of class ${this.cssClasses.main}`);
     }
+
   }
 
   get children() {
@@ -403,13 +429,26 @@ class EntityFormSubmission extends EntityFormElement {
     return false;
   }
 
-  set disabled(value: boolean) {
+  set modified(value: boolean) {
     if (value) {
-      this.$entryPoint.find('button').attr('disabled', '');
+      this.$entryPoint.find(this.buttonSelector).show();
     } else {
-      this.$entryPoint.find('button').removeAttr('disabled');
+      this.$entryPoint.find(this.buttonSelector).hide();
     }
     this._disabled = value;
+  }
+
+  onReset(callback: () => void) {
+    this.$entryPoint
+      .find(this.buttonSelector)
+      .find('.button-reset')
+      .click(callback);
+  }
+  onSubmit(callback: () => void) {
+    this.$entryPoint
+      .find(this.buttonSelector)
+      .find('.button-submit')
+      .click(callback);
   }
 }
 

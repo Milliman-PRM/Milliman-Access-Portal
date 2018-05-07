@@ -131,8 +131,6 @@ export function setup() {
     });
   });
 
-  const form = new EntityForm($('form.admin-panel-content')[0]); 
-
   $('.action-icon-expand').click(shared.expandAllListener);
   $('.action-icon-collapse').click(shared.collapseAllListener);
   $('.admin-panel-searchbar-tree').keyup(shared.filterTreeListener);
