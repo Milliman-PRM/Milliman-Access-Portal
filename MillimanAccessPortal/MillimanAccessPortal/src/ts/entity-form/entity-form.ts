@@ -30,7 +30,7 @@ abstract class EntityFormElement {
 }
 
 export class EntityForm extends EntityFormElement {
-  mode: EntityFormMode;
+  private _mode: EntityFormMode;
   sections: Array<EntityFormSection>;
   submission: EntityFormSubmission;
 
@@ -104,6 +104,27 @@ export class EntityForm extends EntityFormElement {
       .map((section) => section.modified)
       .reduce((cum, cur) => cum || cur, false);
   }
+
+  set mode(mode: EntityFormMode) {
+    if (mode === EntityFormMode.Read && this.modified) {
+      confirmAndContinueForm(() => {
+        this.sections.forEach((section) => {
+          section.inputs.forEach((input) => {
+            input.reset();
+            input.mode = mode;
+          });
+        });
+        this.submission.modified = this.modified;
+      });
+    } else {
+      this.sections.forEach((section) => {
+        section.inputs.forEach((input) => {
+          input.mode = mode;
+        });
+      });
+    }
+    this._mode = mode;
+  }
 }
 
 class EntityFormSection extends EntityFormElement {
@@ -172,6 +193,13 @@ abstract class EntityFormInput extends EntityFormElement {
   }
   protected set value(value: string) {
     this.$input.val(value);
+  }
+  set mode(value: EntityFormMode) {
+    if (value === EntityFormMode.Read) {
+      this.$input.attr('disabled', '');
+    } else if (value === EntityFormMode.Write) {
+      this.$input.removeAttr('disabled');
+    }
   }
   protected originalValue: string;
   protected $entryPoint: JQuery<HTMLElement>;
@@ -387,10 +415,6 @@ class EntityFormHiddenInput extends EntityFormInput {
   }
 }
 
-enum EntityFormSubmissionMode {
-  Create,
-  Update,
-}
 class EntityFormSubmission extends EntityFormElement {
   get cssClasses() {
     return {
@@ -460,18 +484,14 @@ class EntityFormSubmissionStatus {
   }  
 }
 
-enum EntityFormMode {
+export enum EntityFormMode {
   Read,
   Write,
 }
-
-enum EntityFormInputType {
-  Text,
-  Selectize,
-  Dropdown,
-  Toggle,
+enum EntityFormSubmissionMode {
+  Create,
+  Update,
 }
-
 enum EntityFormValidationType {
   Any,
   Email,

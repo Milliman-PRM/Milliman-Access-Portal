@@ -3,9 +3,10 @@ require('tooltipster');
 import shared = require('../shared');
 import { ClientCard, RootContentItemCard } from '../card';
 import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType } from '../view-models/content-publishing';
-import { EntityForm } from '../entity-form/entity-form';
+import { EntityForm, EntityFormMode } from '../entity-form/entity-form';
 
 
+let form: EntityForm;
 
 function mapRootContentItemDetail(item: RootContentItemDetail) {
   const formMap = new Map<string, string | number | boolean>();
@@ -43,7 +44,7 @@ function renderRootContentItemForm(item: RootContentItemDetail) {
   $doesReduceToggle.prop('checked', item.DoesReduce);
 
   $contentTypeDropdown.change(); // trigger change event
-  const form = new EntityForm($rootContentItemForm[0]); 
+  form = new EntityForm($rootContentItemForm[0]); 
 }
 
 
@@ -135,6 +136,13 @@ export function setup() {
   $('.action-icon-collapse').click(shared.collapseAllListener);
   $('.admin-panel-searchbar-tree').keyup(shared.filterTreeListener);
   $('.admin-panel-searchbar-form').keyup(shared.filterFormListener);
+
+  $('.action-icon-edit').click(() => {
+    form.mode = EntityFormMode.Write;
+  });
+  $('.action-icon-cancel').click(() => {
+    form.mode = EntityFormMode.Read;
+  });
 
   $('.tooltip').tooltipster();
 
