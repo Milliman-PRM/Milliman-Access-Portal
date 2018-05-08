@@ -148,9 +148,9 @@ export class EntityForm extends EntityFormElement {
     const allInputs = this.$entryPoint.serializeArray();
     const filteredInputs = (() => {
       return sections
-        ? allInputs.filter((input) => 
+        ? allInputs.filter((input) =>
           this.sections
-            .map((section) => 
+            .map((section) =>
               sections.indexOf(section.section) > -1
               && section.hasInput(input.name))
             .reduce((cum, cur) => cum || cur, false))
@@ -261,8 +261,8 @@ abstract class EntityFormInput extends EntityFormElement {
 
   onChange(callback: () => void) {
     this.$entryPoint
-      .off('change')
-      .on('change', callback);
+      .off('keyup')
+      .on('keyup', callback);
   }
 
   reset() {

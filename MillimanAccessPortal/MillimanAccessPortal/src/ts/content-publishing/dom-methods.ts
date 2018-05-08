@@ -57,7 +57,7 @@ function renderRootContentItemForm(item: RootContentItemDetail) {
         ],
       },
       {
-        url: 'ContentPublishing/RequestPublication',
+        url: 'ContentPublishing/Publish',
         sections: [
           'publication-files',
         ],
