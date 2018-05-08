@@ -143,7 +143,18 @@ namespace ContentPublishingLib
 
             // Wait for all the running job monitors to complete
             DateTime Start = DateTime.Now;
-            var WaitResult = Task.WaitAll(JobMonitorDict.Select(m => m.Value.AwaitableTask).ToArray(), MaxWaitTime);
+            bool WaitResult = false;
+            try
+            {
+                WaitResult = Task.WaitAll(JobMonitorDict.Select(m => m.Value.AwaitableTask).ToArray(), MaxWaitTime);
+            }
+            catch (AggregateException e)
+            {
+                if (e.InnerException.GetType() != typeof(TaskCanceledException))
+                {
+                    throw;
+                }
+            }
             Trace.WriteLine($"WaitAll ran for {DateTime.Now - Start}");
 
             if (!AnyMonitorThreadRunning)
