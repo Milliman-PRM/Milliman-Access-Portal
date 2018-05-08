@@ -33,7 +33,7 @@
             // 
             this.CanShutdown = true;
             this.CanPauseAndContinue = false;
-            this.ServiceName = "ContentReductionService";
+            this.ServiceName = "ContentPublishingService";
 
         }
 
