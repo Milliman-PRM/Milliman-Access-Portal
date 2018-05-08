@@ -59,6 +59,9 @@ namespace MapDbContextLib.Context
         [Column(TypeName = "jsonb")]
         public string ContentRelatedFiles { get; set; } = "{}";
 
+        [Required]
+        public PublicationStatus RequestStatus { get; set; }
+
         [NotMapped]
         public PublishRequest PublishRequest
         {
