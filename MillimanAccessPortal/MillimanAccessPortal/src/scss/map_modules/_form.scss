@@ -138,6 +138,10 @@ input:-webkit-autofill {
             padding: .25em .5em;
         }
 
+        .form-input-file-upload {
+            width: 100%;
+        }
+
         .form-input-flex {
             display: flex;
             flex-flow: column nowrap;
@@ -159,6 +163,7 @@ label.input-with-upload {
     position: relative;
     padding-left: 2em;
     cursor: pointer;
+    width: 100%;
 
     &.image {
         display: flex;
