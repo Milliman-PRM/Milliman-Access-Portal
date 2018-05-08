@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ContentPublishingLib
+namespace ContentPublishingLib.JobMonitors
 {
     internal class JobMonitorInfo
     {

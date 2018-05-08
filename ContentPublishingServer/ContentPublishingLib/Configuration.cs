@@ -46,7 +46,7 @@ namespace ContentPublishingLib
 
                 case null:  // for framework GUI project
                 case "Development":
-                    CfgBuilder.AddUserSecrets<MapDbReductionJobMonitor>();
+                    CfgBuilder.AddUserSecrets<ProcessManager>();
                     break;
 
                 default: // Unsupported environment name	

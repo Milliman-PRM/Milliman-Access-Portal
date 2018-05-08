@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.ServiceProcess;
 using AuditLogLib;
 using MapCommonLib;
+using ContentPublishingLib.JobMonitors;
 
 namespace ContentPublishingLib
 {

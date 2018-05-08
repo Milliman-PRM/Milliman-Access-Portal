@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
 
-namespace ContentPublishingLib
+namespace ContentPublishingLib.JobMonitors
 {
     public abstract class JobMonitorBase
     {

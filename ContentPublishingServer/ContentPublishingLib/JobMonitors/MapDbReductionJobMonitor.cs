@@ -21,7 +21,7 @@ using Newtonsoft.Json;
 using TestResourcesLib;
 using Moq;
 
-namespace ContentPublishingLib
+namespace ContentPublishingLib.JobMonitors
 {
     public class MapDbReductionJobMonitor : JobMonitorBase
     {
