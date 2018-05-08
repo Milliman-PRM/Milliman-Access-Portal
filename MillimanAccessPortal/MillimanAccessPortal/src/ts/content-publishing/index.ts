@@ -5,7 +5,7 @@ import toastr = require('toastr');
 import { randomBytes } from 'crypto';
 import { FileUploadCard } from '../card';
 import { PublicationUpload, PublicationComponent, PublicationComponentInfo } from './publication-upload';
-import { setup } from './dom-methods';
+import { ContentPublishingDOMMethods } from './dom-methods';
 
 require('../navbar');
 import 'bootstrap/scss/bootstrap-reboot.scss';
@@ -50,7 +50,7 @@ $(document).ready(() => {
     unloadAlertStates.push(false);
   });
 
-  setup();
+  ContentPublishingDOMMethods.setup();
 
   // TODO: Remove for production
   toastr.info('Page loaded');

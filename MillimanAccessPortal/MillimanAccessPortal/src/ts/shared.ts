@@ -349,6 +349,10 @@ export function confirmAndContinue($panel, Dialog, onContinue?) {
   }
 };
 
-export function confirmAndContinueForm(onContinue) {
-  new ResetConfirmationDialog(onContinue).open();
+export function confirmAndContinueForm(onContinue, condition = true) {
+  if (condition) {
+    new ResetConfirmationDialog(onContinue).open();
+  } else {
+    onContinue();
+  }
 }
