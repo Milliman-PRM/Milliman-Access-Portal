@@ -19,6 +19,8 @@ namespace MapDbContextLib.Context
     public enum PublicationStatus
     {
         Unknown = 0,
+        Canceled = 1,
+        Error = 2,
         Queued = 10,
         Processing = 20,
         Complete = 30,
@@ -29,7 +31,9 @@ namespace MapDbContextLib.Context
         [NotMapped]
         public static Dictionary<PublicationStatus, string> PublicationStatusString = new Dictionary<PublicationStatus, string>
         {
-            { PublicationStatus.Unknown, "Unknown"},
+            { PublicationStatus.Unknown, "Unknown" },
+            { PublicationStatus.Canceled, "Canceled" },
+            { PublicationStatus.Error, "Error" },
             { PublicationStatus.Queued, "Queued"},
             { PublicationStatus.Processing, "Processing"},
             { PublicationStatus.Complete, "Complete"},

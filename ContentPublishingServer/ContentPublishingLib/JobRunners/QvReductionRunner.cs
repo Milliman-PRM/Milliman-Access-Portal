@@ -136,24 +136,24 @@ namespace ContentPublishingLib.JobRunners
                         DistributeReducedContent();
                     }
 
-                    JobDetail.Result.Status = JobStatusEnum.Success;
+                    JobDetail.Status = ReductionJobDetail.JobStatusEnum.Success;
                 }
             }
             catch (OperationCanceledException e)
             {
-                JobDetail.Result.Status = JobStatusEnum.Canceled;
+                JobDetail.Status = ReductionJobDetail.JobStatusEnum.Canceled;
                 Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = e.Message;
             }
             catch (ApplicationException e)
             {
-                JobDetail.Result.Status = JobStatusEnum.Error;
+                JobDetail.Status = ReductionJobDetail.JobStatusEnum.Error;
                 Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = e.Message;
             }
             catch (System.Exception e)
             {
-                JobDetail.Result.Status = JobStatusEnum.Error;
+                JobDetail.Status = ReductionJobDetail.JobStatusEnum.Error;
                 Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = e.Message;
             }

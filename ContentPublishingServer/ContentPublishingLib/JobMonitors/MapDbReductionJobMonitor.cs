@@ -114,23 +114,6 @@ namespace ContentPublishingLib.JobMonitors
                 return TaskAgeBeforeExecution;
             }
         }
-
-        /// <summary>
-        /// Can be provided by test code to initializate data in a mocked ApplicationDbContext
-        /// </summary>
-        private Mock<ApplicationDbContext> _MockContext = null;
-        public Mock<ApplicationDbContext> MockContext
-        {
-            private get
-            {
-                return _MockContext;
-            }
-            set
-            {
-                AssertTesting();
-                _MockContext = value;
-            }
-        }
         #endregion
 
         /// <summary>
@@ -324,18 +307,18 @@ namespace ContentPublishingLib.JobMonitors
                         return false;
                     }
 
-                    switch (JobDetail.Result.Status)
+                    switch (JobDetail.Status)
                     {
-                        case JobStatusEnum.Unspecified:
+                        case ReductionJobDetail.JobStatusEnum.Unspecified:
                             DbTask.ReductionStatus = ReductionStatusEnum.Unspecified;
                             break;
-                        case JobStatusEnum.Error:
+                        case ReductionJobDetail.JobStatusEnum.Error:
                             DbTask.ReductionStatus = ReductionStatusEnum.Error;
                             break;
-                        case JobStatusEnum.Success:
+                        case ReductionJobDetail.JobStatusEnum.Success:
                             DbTask.ReductionStatus = ReductionStatusEnum.Reduced;
                             break;
-                        case JobStatusEnum.Canceled:
+                        case ReductionJobDetail.JobStatusEnum.Canceled:
                             DbTask.ReductionStatus = ReductionStatusEnum.Canceled;
                             break;
                         default:

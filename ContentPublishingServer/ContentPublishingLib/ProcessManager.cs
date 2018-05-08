@@ -88,19 +88,19 @@ namespace ContentPublishingLib
         /// <param name="ProcessConfig"></param>
         public void Start()
         {
-            // TODO Based on configuration, set up objects derived from JobMonitorBase
-            // for (int i = 0 ; i < ConfiguredMonitors.Count ; i++)
-            for (int i = 0 ; i < 1 ; i++)
+            JobMonitorDict.Add(0, new JobMonitorInfo
             {
-                // TODO Need to switch on ConfiguredMonitors type to instantiate the correct type for Monitor property
+                Monitor = new MapDbReductionJobMonitor { ConfiguredConnectionStringParamName = "DefaultConnection" },
+                TokenSource = new CancellationTokenSource(),
+                AwaitableTask = null
+            });
 
-                JobMonitorDict.Add(i, new JobMonitorInfo
-                {
-                    Monitor = new MapDbReductionJobMonitor { ConfiguredConnectionStringParamName = "DefaultConnection" },
-                    TokenSource = new CancellationTokenSource(),
-                    AwaitableTask = null
-                });
-            }
+            JobMonitorDict.Add(1, new JobMonitorInfo
+            {
+                Monitor = new MapDbPublishJobMonitor { ConfiguredConnectionStringParamName = "DefaultConnection" },
+                TokenSource = new CancellationTokenSource(),
+                AwaitableTask = null
+            });
 
             // Start the job monitor threads
             foreach (var MonitorKvp in JobMonitorDict)

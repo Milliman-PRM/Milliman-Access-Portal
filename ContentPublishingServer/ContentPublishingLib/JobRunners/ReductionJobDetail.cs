@@ -13,14 +13,6 @@ using Newtonsoft.Json;
 
 namespace ContentPublishingLib.JobRunners
 {
-    public enum JobStatusEnum
-    {
-        Unspecified,
-        Canceled,
-        Success,
-        Error,
-    }
-
     public enum ReductionJobActionEnum
     {
         Unspecified = 0,    // Default unknown state
@@ -34,9 +26,18 @@ namespace ContentPublishingLib.JobRunners
     /// </summary>
     public class ReductionJobDetail
     {
+        public enum JobStatusEnum
+        {
+            Unspecified,
+            Canceled,
+            Success,
+            Error,
+        }
+
         public ReductionJobRequest Request;
         public ReductionJobResult Result;
         public Guid TaskId { get; set; } = Guid.Empty;
+        public JobStatusEnum Status { get; set; } = JobStatusEnum.Unspecified;
 
         // cast operator to convert a MAP ContentReductionTask to this type
         public static explicit operator ReductionJobDetail(ContentReductionTask DbTask)
@@ -69,7 +70,6 @@ namespace ContentPublishingLib.JobRunners
 
         public class ReductionJobResult
         {
-            public JobStatusEnum Status { get; set; } = JobStatusEnum.Unspecified;
             public string StatusMessage { get; set; } = string.Empty;
             public string ReducedContentFilePath { get; set; } = string.Empty;
             public ExtractedHierarchy MasterContentHierarchy { get; set; } = null;

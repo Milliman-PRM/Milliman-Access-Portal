@@ -9,6 +9,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using Moq;
+using MapDbContextLib.Context;
 
 namespace ContentPublishingLib.JobMonitors
 {
@@ -16,6 +18,23 @@ namespace ContentPublishingLib.JobMonitors
     {
         public abstract Task Start(CancellationToken Token);
         public abstract void JobMonitorThreadMain(CancellationToken Token);
+
+        /// <summary>
+        /// Can be provided by test code to initializate data in a mocked ApplicationDbContext
+        /// </summary>
+        private Mock<ApplicationDbContext> _MockContext = null;
+        public Mock<ApplicationDbContext> MockContext
+        {
+            protected get
+            {
+                return _MockContext;
+            }
+            set
+            {
+                AssertTesting();
+                _MockContext = value;
+            }
+        }
 
         protected void AssertTesting()
         {
