@@ -17,7 +17,7 @@ using AuditLogLib.Services;
 using QlikviewLib.Qms;
 using MapCommonLib;
 
-namespace ContentPublishingLib.ReductionRunners
+namespace ContentPublishingLib.JobRunners
 {
     public class QvReductionRunner : ReductionRunnerBase
     {
@@ -82,10 +82,10 @@ namespace ContentPublishingLib.ReductionRunners
             MethodBase Method = MethodBase.GetCurrentMethod();
             object DetailObj;
             AuditEvent Event;
-            JobActionEnum[] SupportedJobActions = new JobActionEnum[] 
+            ReductionJobActionEnum[] SupportedJobActions = new ReductionJobActionEnum[] 
             {
-                JobActionEnum.HierarchyOnly,
-                JobActionEnum.HierarchyAndReduction
+                ReductionJobActionEnum.HierarchyOnly,
+                ReductionJobActionEnum.HierarchyAndReduction
             };
 
             try
@@ -111,7 +111,7 @@ namespace ContentPublishingLib.ReductionRunners
 
                     _CancellationToken.ThrowIfCancellationRequested();
 
-                    if (JobDetail.Request.JobAction == JobActionEnum.HierarchyAndReduction)
+                    if (JobDetail.Request.JobAction == ReductionJobActionEnum.HierarchyAndReduction)
                     {
                         #region Create reduced content
                         await CreateReducedContent();

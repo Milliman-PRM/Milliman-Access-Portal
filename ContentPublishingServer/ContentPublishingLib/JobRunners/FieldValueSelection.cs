@@ -4,7 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-namespace ContentPublishingLib.ReductionRunners
+namespace ContentPublishingLib.JobRunners
 {
     /// <summary>
     /// This type is public because it is serialized to Json and the serializer needs full access

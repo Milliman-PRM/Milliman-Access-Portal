@@ -16,7 +16,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
-using ContentPublishingLib.ReductionRunners;
+using ContentPublishingLib.JobRunners;
 using Newtonsoft.Json;
 using TestResourcesLib;
 using Moq;
@@ -25,7 +25,7 @@ namespace ContentPublishingLib.JobMonitors
 {
     public class MapDbReductionJobMonitor : JobMonitorBase
     {
-        internal class JobTrackingItem
+        internal class ReductionJobTrackingItem
         {
             internal Task<ReductionJobDetail> task;
             internal CancellationTokenSource tokenSource;
@@ -33,7 +33,7 @@ namespace ContentPublishingLib.JobMonitors
         }
 
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
-        private List<JobTrackingItem> ActiveReductionRunnerItems = new List<JobTrackingItem>();
+        private List<ReductionJobTrackingItem> ActiveReductionRunnerItems = new List<ReductionJobTrackingItem>();
 
         // Settable operating parameters
         private TimeSpan TaskAgeBeforeExecution
@@ -97,7 +97,8 @@ namespace ContentPublishingLib.JobMonitors
         /// <summary>
         /// Initializes data used to construct database context instances using a named configuration parameter.
         /// </summary>
-        internal string ConfiguredConnectionStringParamName {
+        internal string ConfiguredConnectionStringParamName
+        {
             set
             {
                 ConnectionString = Configuration.GetConnectionString(value);
@@ -172,7 +173,7 @@ namespace ContentPublishingLib.JobMonitors
             while (!Token.IsCancellationRequested)
             {
                 // Remove completed tasks from the RunningTasks collection. 
-                foreach (JobTrackingItem CompletedReductionRunnerItem in ActiveReductionRunnerItems.Where(t => t.task.IsCompleted).ToList())
+                foreach (ReductionJobTrackingItem CompletedReductionRunnerItem in ActiveReductionRunnerItems.Where(t => t.task.IsCompleted).ToList())
                 {
                     UpdateTask(CompletedReductionRunnerItem.task.Result);
                     ActiveReductionRunnerItems.Remove(CompletedReductionRunnerItem);
@@ -210,7 +211,7 @@ namespace ContentPublishingLib.JobMonitors
 
                         if (NewTask != null)
                         {
-                            ActiveReductionRunnerItems.Add( new JobTrackingItem { dbTask = DbTask, task = NewTask, tokenSource = cancelSource } );
+                            ActiveReductionRunnerItems.Add( new ReductionJobTrackingItem { dbTask = DbTask, task = NewTask, tokenSource = cancelSource } );
                         }
                     }
                 }

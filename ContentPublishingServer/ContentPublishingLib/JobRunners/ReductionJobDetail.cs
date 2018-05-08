@@ -11,7 +11,7 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Newtonsoft.Json;
 
-namespace ContentPublishingLib.ReductionRunners
+namespace ContentPublishingLib.JobRunners
 {
     public enum JobStatusEnum
     {
@@ -21,7 +21,7 @@ namespace ContentPublishingLib.ReductionRunners
         Error,
     }
 
-    public enum JobActionEnum
+    public enum ReductionJobActionEnum
     {
         Unspecified = 0,    // Default unknown state
         HierarchyOnly = 1,
@@ -57,10 +57,10 @@ namespace ContentPublishingLib.ReductionRunners
                                                      .ToList(),
                     MasterContentChecksum = DbTask.MasterContentChecksum,
                     JobAction = DbTask.TaskAction == TaskActionEnum.HierarchyOnly 
-                                ? JobActionEnum.HierarchyOnly
+                                ? ReductionJobActionEnum.HierarchyOnly
                                 : DbTask.TaskAction == TaskActionEnum.HierarchyAndReduction 
-                                ? JobActionEnum.HierarchyAndReduction
-                                : JobActionEnum.Unspecified,
+                                ? ReductionJobActionEnum.HierarchyAndReduction
+                                : ReductionJobActionEnum.Unspecified,
                 },
                 Result = new ReductionJobResult(),
             };
@@ -82,7 +82,7 @@ namespace ContentPublishingLib.ReductionRunners
             public string MasterFilePath { get; set; }
             public List<FieldValueSelection> SelectionCriteria { get; set; }
             public string MasterContentChecksum { get; set; } = string.Empty;
-            public JobActionEnum JobAction { get; set; } = JobActionEnum.Unspecified;
+            public ReductionJobActionEnum JobAction { get; set; } = ReductionJobActionEnum.Unspecified;
         }
     }
 }

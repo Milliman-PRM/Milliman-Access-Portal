@@ -9,7 +9,7 @@ using System.Linq;
 using System.Collections.Generic;
 using MapDbContextLib.Models;
 
-namespace ContentPublishingLib.ReductionRunners
+namespace ContentPublishingLib.JobRunners
 {
     /// <summary>
     /// Needs to be all public because json serializer requires full access

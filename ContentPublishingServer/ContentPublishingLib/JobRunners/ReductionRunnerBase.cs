@@ -10,7 +10,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ContentPublishingLib.ReductionRunners
+namespace ContentPublishingLib.JobRunners
 {
     public abstract class ReductionRunnerBase
     {
