@@ -5,6 +5,7 @@ import { ClientCard, RootContentItemCard } from '../card';
 import { EntityForm } from '../entity-form/entity-form';
 import { SubmissionMode, AccessMode } from '../entity-form/form-modes';
 import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType } from '../view-models/content-publishing';
+import { setUnloadAlert } from '../unload-alerts';
 
 
 export namespace ContentPublishingDOMMethods {
@@ -165,6 +166,8 @@ export namespace ContentPublishingDOMMethods {
     $('.action-icon-cancel').click(() => {
       form.mode = AccessMode.Read;
     });
+
+    setUnloadAlert(() => form && form.modified);
 
     $('.tooltip').tooltipster();
 

@@ -18,10 +18,14 @@ export class EntityFormFileUploadInput extends EntityFormInput {
   protected disable = ($input: JQuery<HTMLElement>) => $input.attr('disabled', '');
   protected enable = ($input: JQuery<HTMLElement>) => $input.removeAttr('disabled');
 
-  protected comparator = (a: string, b: string) => a === b;
+  protected comparator = (a: string, b: string) => (a === b) && !this.uploadInProgress;
 
   private token: string;
-  private component: PublicationComponent;
+  private _component: PublicationComponent;
+  public get component(): PublicationComponent {
+    return this._component;
+  }
+  private uploadInProgress: boolean = false;
   private _upload: PublicationUpload;
   public get upload(): PublicationUpload {
     return this._upload;
@@ -30,7 +34,7 @@ export class EntityFormFileUploadInput extends EntityFormInput {
     // TODO: generalize for other upload types
     this._upload = this.token && this.component && new PublicationUpload(
       this.$entryPoint[0],
-      () => {},
+      (a: boolean) => this.uploadInProgress = a, 
       this.$input.val.bind(this.$input),
       this.token,
       this.component,
@@ -50,7 +54,7 @@ export class EntityFormFileUploadInput extends EntityFormInput {
   public bind(entryPoint: HTMLElement) {
     super.bind(entryPoint);
 
-    this.component = this.componentMap.get(this.name);
+    this._component = this.componentMap.get(this.name);
   }
 
   public configure(token: string) {
