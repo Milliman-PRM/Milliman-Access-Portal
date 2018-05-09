@@ -23,8 +23,8 @@ export class EntityFormSection extends FormElement {
 
   }
 
-  public bind(entryPoint: HTMLElement) {
-    super.bind(entryPoint);
+  public bindToDOM(entryPoint: HTMLElement) {
+    super.bindToDOM(entryPoint);
 
     const childElements = this.$entryPoint
       .find(`.${this.cssClasses.extension}`).children().toArray();
@@ -49,7 +49,7 @@ export class EntityFormSection extends FormElement {
           return undefined; 
         }
         const singleMatchedInput = matchedInputs[0];
-        singleMatchedInput.bind(x);
+        singleMatchedInput.bindToDOM(x);
         return singleMatchedInput;
       })
       .filter((x: EntityFormInput) => x !== undefined);
@@ -91,8 +91,8 @@ export class EntityFormSubmission extends FormElement {
     super();
   }
 
-  public bind(entryPoint: HTMLElement) {
-    super.bind(entryPoint);
+  public bindToDOM(entryPoint: HTMLElement) {
+    super.bindToDOM(entryPoint);
   }
 
   get modified() {

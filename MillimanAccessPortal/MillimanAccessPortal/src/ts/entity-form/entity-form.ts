@@ -44,8 +44,8 @@ export class EntityForm extends FormElement {
     super();
   }
 
-  public bind(entryPoint: HTMLElement) {
-    super.bind(entryPoint);
+  public bindToDOM(entryPoint: HTMLElement) {
+    super.bindToDOM(entryPoint);
 
     const childElements = this.$entryPoint
       .find(`.${this.cssClasses.extension}`).children().toArray();
@@ -58,7 +58,7 @@ export class EntityForm extends FormElement {
       }))
       .filter((x) => $(x.element).is(`.${x.section.cssClasses.main}`))
       .map((x) => {
-        x.section.bind(x.element);
+        x.section.bindToDOM(x.element);
         return x.section;
       });
     this.submission = childElements
@@ -68,7 +68,7 @@ export class EntityForm extends FormElement {
       }))
       .filter((x) => $(x.element).is(`.${x.submission.cssClasses.main}`))
       .map((x) => {
-        x.submission.bind(x.element);
+        x.submission.bindToDOM(x.element);
         return x.submission;
       })[0];
 

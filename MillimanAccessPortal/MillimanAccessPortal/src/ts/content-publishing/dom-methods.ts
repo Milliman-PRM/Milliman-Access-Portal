@@ -49,7 +49,7 @@ export namespace ContentPublishingDOMMethods {
     $contentTypeDropdown.change(); // trigger change event
 
     form = new EntityForm();
-    form.bind($rootContentItemForm[0]);
+    form.bindToDOM($rootContentItemForm[0]);
     form.configure(
       [
         {
@@ -143,16 +143,6 @@ export namespace ContentPublishingDOMMethods {
       } else {
         $doesReduceToggle.removeAttr('disabled');
       }
-    });
-
-    $('#content-publishing-form .new-form-button-container button.submit-button').click(() => {
-      const formData = $('#content-publishing-form form').serialize();
-      $.post({
-        url: 'ContentPublishing/CreateRootContentItem',
-        data: formData,
-      }).done((response) => {
-      }).fail((response) => {
-      });
     });
 
     $('.action-icon-expand').click(shared.expandAllListener);

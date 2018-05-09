@@ -20,7 +20,6 @@ export class EntityFormFileUploadInput extends EntityFormInput {
 
   protected comparator = (a: string, b: string) => (a === b) && !this.uploadInProgress;
 
-  private token: string;
   private _component: PublicationComponent;
   public get component(): PublicationComponent {
     return this._component;
@@ -30,13 +29,13 @@ export class EntityFormFileUploadInput extends EntityFormInput {
   public get upload(): PublicationUpload {
     return this._upload;
   }
-  protected createUpload() {
+  protected createUpload(token: string) {
     // TODO: generalize for other upload types
-    this._upload = this.token && this.component && new PublicationUpload(
+    this._upload = token && this.component && new PublicationUpload(
       this.$entryPoint[0],
       (a: boolean) => this.uploadInProgress = a, 
       this.$input.val.bind(this.$input),
-      this.token,
+      token,
       this.component,
     );
   }
@@ -51,14 +50,13 @@ export class EntityFormFileUploadInput extends EntityFormInput {
     this.componentMap.set('UserguideFile', PublicationComponent.UserGuide);
   }
 
-  public bind(entryPoint: HTMLElement) {
-    super.bind(entryPoint);
+  public bindToDOM(entryPoint: HTMLElement) {
+    super.bindToDOM(entryPoint);
 
     this._component = this.componentMap.get(this.name);
   }
 
   public configure(token: string) {
-    this.token = token;
-    this.createUpload();
+    this.createUpload(token);
   }
 }
