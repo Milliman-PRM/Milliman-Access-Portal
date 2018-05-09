@@ -3,6 +3,8 @@ import { FormElement } from './form-element';
 import { AccessMode, SubmissionMode } from './form-modes';
 import { EntityFormSection, EntityFormSubmission } from './form-section';
 import { confirmAndContinueForm } from '../shared';
+import { EntityFormFileUploadInput } from './form-input/file-upload';
+import { PublicationComponent } from '../content-publishing/publication-upload';
 
 export class EntityForm extends FormElement {
   private _mode: AccessMode;
@@ -62,11 +64,11 @@ export class EntityForm extends FormElement {
         return x.submission;
       })[0];
 
-    // freeze original input values
+    // record original input values
     // attach event listeners
     this.sections.forEach((section) => {
       section.inputs.forEach((input) => {
-        input.freezeOriginalValue();
+        input.recordOriginalValue();
         input.onChange(() => {
           this.submission.modified = this.modified;
         });
@@ -85,6 +87,12 @@ export class EntityForm extends FormElement {
   }
 
   public configure(submitGroups: Array<EntityFormSubmissionGroup>, submissionMode: SubmissionMode) {
+    this.sections.forEach((section) => {
+      section.inputs
+        .filter((input) => input instanceof EntityFormFileUploadInput)
+        .map((upload) => (upload as EntityFormFileUploadInput).configure('xyz'));
+    });
+
     this.submission.onSubmit(() => {
       let requests: Array<() => void> = [];
       for (let i = 0; i < submitGroups.length; i += 1) {

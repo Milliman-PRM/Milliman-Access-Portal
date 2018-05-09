@@ -41,7 +41,7 @@ export abstract class EntityFormInput extends FormElement {
     super();
   }
 
-  freezeOriginalValue() {
+  recordOriginalValue() {
     this.originalValue = this.value;
   }
 

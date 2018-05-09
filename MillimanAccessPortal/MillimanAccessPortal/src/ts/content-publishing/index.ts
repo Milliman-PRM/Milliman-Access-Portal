@@ -4,7 +4,7 @@ import shared = require('../shared');
 import toastr = require('toastr');
 import { randomBytes } from 'crypto';
 import { FileUploadCard } from '../card';
-import { PublicationUpload, PublicationComponent, PublicationComponentInfo } from './publication-upload';
+import { PublicationUpload, PublicationComponent } from './publication-upload';
 import { ContentPublishingDOMMethods } from './dom-methods';
 
 require('../navbar');
@@ -26,29 +26,29 @@ function setUnloadAlert(value: boolean) {
     : undefined;
 }
 
-function generateGUID() {
+function generateToken() {
   return randomBytes(8).toString('hex');
 }
 
 $(document).ready(() => {
-  const publicationGUID = generateGUID();
+  const publicationToken = generateToken();
   const unloadAlertStates: Array<boolean> = [];
 
-  $('#card-list .admin-panel-content').empty();
-  PublicationComponentInfo.forEach((componentInfo, component) => {
-    const componentCard = new FileUploadCard(componentInfo.displayName).build();
-    $('#card-list .admin-panel-content').append(componentCard);
-    const publicationUpload = new PublicationUpload(
-      componentCard.find('.card-body-container')[0],
-      (a) => {
-        unloadAlertStates[component] = a;
-        setUnloadAlert(unloadAlertStates.reduce((prev, cur) => prev || cur, false));
-      },
-      publicationGUID,
-      component,
-    );
-    unloadAlertStates.push(false);
-  });
+//  $('#card-list .admin-panel-content').empty();
+//  PublicationComponentNames.forEach((componentInfo, component) => {
+//    const componentCard = new FileUploadCard(componentInfo.displayName).build();
+//    $('#card-list .admin-panel-content').append(componentCard);
+//    const publicationUpload = new PublicationUpload(
+//      componentCard.find('.card-body-container')[0],
+//      (a) => {
+//        unloadAlertStates[component] = a;
+//        setUnloadAlert(unloadAlertStates.reduce((prev, cur) => prev || cur, false));
+//      },
+//      publicationToken,
+//      component,
+//    );
+//    unloadAlertStates.push(false);
+//  });
 
   ContentPublishingDOMMethods.setup();
 
