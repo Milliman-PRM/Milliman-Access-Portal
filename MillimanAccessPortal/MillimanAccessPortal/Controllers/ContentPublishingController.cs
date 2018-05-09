@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
@@ -223,6 +224,76 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             RootContentItemSummary model = RootContentItemSummary.Build(DbContext, rootContentItem);
+
+            return Json(model);
+        }
+
+        [HttpDelete]
+        //[ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteRootContentItem(long rootContentItemId)
+        {
+            var rootContentItem = DbContext.RootContentItem
+                .Include(x => x.Client)
+                .SingleOrDefault(x => x.Id == rootContentItemId);
+
+            #region Preliminary Validation
+            if (rootContentItem == null)
+            {
+                Response.Headers.Add("Warning", "The requested root content item does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItem.Id));
+            if (!roleInRootContentItemResult.Succeeded)
+            {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    $"Request to delete root content item without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in root content item",
+                    AuditEventId.Unauthorized,
+                    new { ClientId = rootContentItem.ClientId, RootContentItemId = rootContentItem.Id },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
+                Response.Headers.Add("Warning", "You are not authorized to administer the specified root content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            #endregion
+
+            try
+            {
+                DbContext.RootContentItem.Remove(rootContentItem);
+                DbContext.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while deleting root content item \"{rootContentItemId}\"");
+                Logger.LogError(ErrMsg);
+                Response.Headers.Add("Warning", $"Failed to complete transaction.");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            #region Log audit event(s)
+            AuditEvent rootContentItemDeletedEvent = AuditEvent.New(
+                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                "Root content item deleted",
+                AuditEventId.RootContentItemDeleted,
+                new { ClientId = rootContentItem.ClientId, RootContentItemId = rootContentItem.Id },
+                User.Identity.Name,
+                HttpContext.Session.Id
+                );
+            AuditLogger.Log(rootContentItemDeletedEvent);
+            #endregion
+
+            RootContentItemList model = RootContentItemList.Build(DbContext, rootContentItem.Client);
 
             return Json(model);
         }
