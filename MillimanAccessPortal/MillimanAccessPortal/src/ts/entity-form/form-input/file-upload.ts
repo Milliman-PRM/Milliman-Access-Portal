@@ -15,8 +15,8 @@ export class EntityFormFileUploadInput extends EntityFormInput {
   protected getValueFn = ($input: JQuery<HTMLElement>) => $input.val;
   protected setValueFn = ($input: JQuery<HTMLElement>) => $input.val;
 
-  protected disable = ($input: JQuery<HTMLElement>) => $input.attr('disabled', '');
-  protected enable = ($input: JQuery<HTMLElement>) => $input.removeAttr('disabled');
+  protected disable = ($input: JQuery<HTMLElement>) => $input.attr('disabled', '').prev().attr('disabled', '');
+  protected enable = ($input: JQuery<HTMLElement>) => $input.removeAttr('disabled').prev().removeAttr('disabled');
 
   protected comparator = (a: string, b: string) => (a === b) && !this.uploadInProgress;
 
