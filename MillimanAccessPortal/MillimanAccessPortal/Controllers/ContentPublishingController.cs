@@ -4,17 +4,22 @@
  * DEVELOPER NOTES:
  */
 
+using AuditLogLib;
 using AuditLogLib.Services;
+using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentPublishing;
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Controllers
@@ -145,9 +150,81 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult CreateRootContentItem(RootContentItem rootContentItem)
+        public async Task<IActionResult> CreateRootContentItem(RootContentItem rootContentItem)
         {
-            return Json(rootContentItem);
+            #region Authorization
+            AuthorizationResult roleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, rootContentItem.ClientId));
+            if (!roleInClientResult.Succeeded)
+            {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    $"Request to create root content item without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in client",
+                    AuditEventId.Unauthorized,
+                    new { ClientId = rootContentItem.ClientId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
+                Response.Headers.Add("Warning", "You are not authorized to create root content items for the specified client.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            #endregion
+
+            try
+            {
+                using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
+                {
+                    // Commit the new root content item
+                    DbContext.RootContentItem.Add(rootContentItem);
+                    DbContext.SaveChanges();
+
+                    // Copy user roles for the new root content item from its client.
+                    // In the future, root content item management and publishing roles may
+                    // be separated in which case this automatic role copy should be removed.
+                    var automaticRoles = DbContext.UserRoleInClient
+                        .Where(r => r.ClientId == rootContentItem.ClientId)
+                        .Where(r => r.RoleId == ((long) RoleEnum.ContentPublisher))
+                        .Select(r => new UserRoleInRootContentItem
+                        {
+                            UserId = r.UserId,
+                            RootContentItemId = rootContentItem.Id,
+                            RoleId = ((long) RoleEnum.ContentPublisher),
+                        });
+                    DbContext.UserRoleInRootContentItem.AddRange(automaticRoles);
+                    DbContext.SaveChanges();
+
+                    DbTransaction.Commit();
+                }
+            }
+            catch (Exception ex)
+            {
+                string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while creating root content item\"{rootContentItem.Id}\"");
+                Logger.LogError(ErrMsg);
+                Response.Headers.Add("Warning", $"Failed to complete transaction.");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            #region Log audit event
+            AuditEvent rootContentItemCreatedEvent = AuditEvent.New(
+                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                "Root content item created",
+                AuditEventId.RootContentItemCreated,
+                new { ClientId = rootContentItem.ClientId, RootContentItemId = rootContentItem.Id },
+                User.Identity.Name,
+                HttpContext.Session.Id
+                );
+            AuditLogger.Log(rootContentItemCreatedEvent);
+            #endregion
+
+            RootContentItemSummary model = RootContentItemSummary.Build(DbContext, rootContentItem);
+
+            return Json(model);
         }
 
         [HttpPost]
