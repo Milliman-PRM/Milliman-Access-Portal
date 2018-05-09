@@ -30,7 +30,7 @@
         <ul class="admin-panel-content"></ul>
     </div>
 </div>
-<div id="root-content-items" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12" @*style="display: none;" *@>
+<div id="root-content-items" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12" style="display: none;">
     <div class="loading-wrapper">
         @Html.Partial("~/Views/Shared/_Loader.cshtml")
     </div>
@@ -44,7 +44,7 @@
         <ul class="admin-panel-content"></ul>
     </div>
 </div>
-<div id="content-publishing-form" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-6-12" @*style="display: none;" *@>
+<div id="content-publishing-form" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-6-12" style="display: none;">
     <div class="loading-wrapper" style="display: none;">
         @Html.Partial("~/Views/Shared/_Loader.cshtml")
     </div>
@@ -53,6 +53,9 @@
         <div class="admin-panel-action-icons-container">
             <svg class="action-icon-edit action-icon tooltip" title="Edit Content Item details">
                 <use xlink:href="#action-icon-edit"></use>
+            </svg>
+            <svg class="action-icon-file-upload action-icon tooltip" title="Submit new publication">
+                <use xlink:href="#action-icon-file-upload"></use>
             </svg>
             <svg class="action-icon-cancel action-icon tooltip" title="Cancel edit">
                 <use xlink:href="#action-icon-cancel"></use>
