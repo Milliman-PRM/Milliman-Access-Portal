@@ -1,4 +1,5 @@
 import * as $ from 'jquery';
+import { randomBytes } from 'crypto';
 import { FormElement } from './form-element';
 import { AccessMode, SubmissionMode } from './form-modes';
 import { EntityFormSection, EntityFormSubmission } from './form-section';
@@ -22,6 +23,13 @@ export class EntityForm extends FormElement {
       this.submission.modified = this.modified;
     }, mode === AccessMode.Read && this.modified);
     this._mode = mode;
+  }
+  private _token: string;
+  public get token(): string {
+    if (!this._token) {
+      this._token = randomBytes(8).toString('hex');
+    }
+    return this._token;
   }
   sections: Array<EntityFormSection>;
   submission: EntityFormSubmission;
