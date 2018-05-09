@@ -6,10 +6,12 @@ import { EntityForm } from '../entity-form/entity-form';
 import { SubmissionMode, AccessMode } from '../entity-form/form-modes';
 import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType } from '../view-models/content-publishing';
 import { setUnloadAlert } from '../unload-alerts';
+import { DeleteRootContentItemDialog } from '../dialog';
 
 
 export namespace ContentPublishingDOMMethods {
-  let form: EntityForm;
+  let forms = new Map<string, EntityForm>();
+  let newForm: EntityForm;
 
   function mapRootContentItemDetail(item: RootContentItemDetail) {
     const formMap = new Map<string, string | number | boolean>();
@@ -48,7 +50,7 @@ export namespace ContentPublishingDOMMethods {
 
     $contentTypeDropdown.change(); // trigger change event
 
-    form = new EntityForm();
+    const form = new EntityForm();
     form.bindToDOM($rootContentItemForm[0]);
     form.configure(
       [
@@ -68,8 +70,105 @@ export namespace ContentPublishingDOMMethods {
       ],
       SubmissionMode.Update,
     );
+    
+    forms.set(item.Id.toString(), form);
   }
 
+
+  function rootContentItemPublishClickHandler() {
+    var $clickedCard = $(this).closest('.card-container');
+    var rootContentItemId = $clickedCard.attr('data-root-content-item-id');
+    event.stopPropagation();
+
+    const form = forms.get(rootContentItemId);
+    form.configure(
+      [
+        {
+          url: 'ContentPublishing/Publish',
+          sections: [
+            'publication-files',
+          ],
+        },
+      ],
+      SubmissionMode.Update,
+    );
+    form.mode = AccessMode.Write;
+    $('#content-publishing-form').show();
+  }
+  function rootContentItemEditClickHandler() {
+    var $clickedCard = $(this).closest('.card-container');
+    var rootContentItemId = $clickedCard.attr('data-root-content-item-id');
+    event.stopPropagation();
+
+    const form = forms.get(rootContentItemId);
+    form.configure(
+      [
+        {
+          url: 'ContentPublishing/UpdateRootContentItem',
+          sections: [
+            'root-content-item-info',
+            'root-content-item-description',
+          ],
+        },
+      ],
+      SubmissionMode.Update,
+    );
+    form.mode = AccessMode.Write;
+    $('#content-publishing-form').show();
+  }
+  function deleteRootContentItem(rootContentItemId: string, rootContentItemName: string, password: string, callback: () => void) {
+    // TODO: AJAX request to delete root content item
+  }
+  function rootContentItemDeleteClickHandler() {
+    var $clickedCard = $(this).closest('.card-container');
+    var rootContentItemId = $clickedCard.attr('data-root-content-item-id');
+    var rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
+    event.stopPropagation();
+    new DeleteRootContentItemDialog(
+      rootContentItemName,
+      rootContentItemId,
+      function (data, callback) {
+        if (data.password) {
+          shared.showButtonSpinner($('.vex-first'), 'Deleting');
+          $('.vex-dialog-button').attr('disabled', '');
+          deleteRootContentItem(rootContentItemId, rootContentItemName, data.password, callback);
+        } else if (data.password === '') {
+          toastr.warning('Please enter your password to proceed');
+          return false;
+        } else {
+          toastr.info('Deletion was canceled');
+        }
+        return true;
+      },
+    ).open();
+  }
+//  function newRootContentItemClickHandler() {
+//    function openNewClientForm() {
+//      clearClientSelection();
+//      setClientFormWriteable();
+//      setupClientForm();
+//      $('#new-client-card').find('div.card-body-container').attr('selected', '');
+//      hideClientUsers();
+//      showClientDetails();
+//    }
+//    var $clientTree = $('#client-tree');
+//    var sameCard = ($('#new-client-card')[0] === $clientTree.find('[selected]').closest('.card-container')[0]);
+//    if ($clientTree.has('[selected]').length) {
+//      shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
+//        if (sameCard) {
+//          clearClientSelection();
+//          hideClientDetails();
+//        } else {
+//          if ($('.insert-card').length) {
+//            removeClientInserts();
+//          }
+//          openNewClientForm();
+//        }
+//      });
+//    } else {
+//      openNewClientForm();
+//    }
+//  }
 
   function renderRootContentItem(item: RootContentItemSummary) {
     const $card = new RootContentItemCard(
@@ -80,6 +179,9 @@ export namespace ContentPublishingDOMMethods {
         'ContentPublishing/RootContentItemDetail',
         [ renderRootContentItemForm ],
       )),
+      rootContentItemPublishClickHandler,
+      rootContentItemEditClickHandler,
+      rootContentItemDeleteClickHandler,
     ).build();
     shared.updateCardStatus($card, item.PublicationDetails);
     $('#root-content-items ul.admin-panel-content').append($card);
@@ -151,13 +253,19 @@ export namespace ContentPublishingDOMMethods {
     $('.admin-panel-searchbar-form').keyup(shared.filterFormListener);
 
     $('.action-icon-edit').click(() => {
-      form.mode = AccessMode.Write;
+      const formKey = $('#root-content-items [selected]').attr('data-root-content-item-id');
+      forms.get(formKey).mode = AccessMode.Write;
     });
     $('.action-icon-cancel').click(() => {
-      form.mode = AccessMode.Read;
+      const formKey = $('#root-content-items [selected]').attr('data-root-content-item-id');
+      forms.get(formKey).mode = AccessMode.Read;
     });
 
-    setUnloadAlert(() => form && form.modified);
+    setUnloadAlert(() => {
+      const formKey = $('#root-content-items [selected]').attr('data-root-content-item-id');
+      const form = forms.has(formKey) && forms.get(formKey);
+      return form && form.modified;
+    });
 
     $('.tooltip').tooltipster();
 
