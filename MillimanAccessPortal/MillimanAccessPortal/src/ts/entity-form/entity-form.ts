@@ -98,7 +98,7 @@ export class EntityForm extends FormElement {
     this.sections.forEach((section) => {
       section.inputs
         .filter((input) => input instanceof EntityFormFileUploadInput)
-        .map((upload) => (upload as EntityFormFileUploadInput).configure('xyz'));
+        .map((upload) => (upload as EntityFormFileUploadInput).configure(this.token));
     });
 
     this.submission.onSubmit(() => {

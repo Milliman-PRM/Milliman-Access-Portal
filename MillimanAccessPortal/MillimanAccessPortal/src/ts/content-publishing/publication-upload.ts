@@ -13,10 +13,11 @@ export class PublicationUpload extends Upload {
   constructor(
     rootElement: HTMLElement,
     unloadAlertCallback: (a: boolean) => void,
+    fileSuccessCallback: (guid: string) => void,
     readonly formToken: string,
     readonly component: PublicationComponent,
   ) {
-    super(rootElement, unloadAlertCallback);
+    super(rootElement, unloadAlertCallback, fileSuccessCallback);
   }
 
   protected generateUID(file: File, event: Event): string {

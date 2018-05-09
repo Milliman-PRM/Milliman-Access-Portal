@@ -31,6 +31,7 @@ export class EntityFormFileUploadInput extends EntityFormInput {
     this._upload = this.token && this.component && new PublicationUpload(
       this.$entryPoint[0],
       () => {},
+      this.$input.val.bind(this.$input),
       this.token,
       this.component,
     );

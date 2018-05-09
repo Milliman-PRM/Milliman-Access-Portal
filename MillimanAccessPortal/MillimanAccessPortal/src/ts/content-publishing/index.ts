@@ -27,7 +27,6 @@ function setUnloadAlert(value: boolean) {
 }
 
 function generateToken() {
-  return randomBytes(8).toString('hex');
 }
 
 $(document).ready(() => {
