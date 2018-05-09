@@ -1,4 +1,10 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Tom Puckett, 
+ * OBJECTIVE: <What and WHY.>
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
@@ -10,6 +16,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using MapDbContextLib.Context;
 using ContentPublishingLib.JobRunners;
+using TestResourcesLib;
+using Newtonsoft.Json;
 
 namespace ContentPublishingLib.JobMonitors
 {
@@ -63,8 +71,14 @@ namespace ContentPublishingLib.JobMonitors
                 DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
                 ContextBuilder.UseNpgsql(value);
                 ContextOptions = ContextBuilder.Options;
+                _ConnectionString = value;
+            }
+            private get
+            {
+                return _ConnectionString;
             }
         }
+        private string _ConnectionString;
 
         /// <summary>
         /// Starts the worker thread of this object
@@ -87,6 +101,7 @@ namespace ContentPublishingLib.JobMonitors
             while (!Token.IsCancellationRequested)
             {
                 // Remove completed tasks from the RunningTasks collection. 
+                // .ToList() is needed because the body changes the original List. 
                 foreach (PublishJobTrackingItem CompletedPublishRunnerItem in ActivePublicationRunnerItems.Where(t => t.task.IsCompleted).ToList())
                 {
                     UpdateTask(CompletedPublishRunnerItem.task.Result);
@@ -103,26 +118,18 @@ namespace ContentPublishingLib.JobMonitors
                         Task<PublishJobDetail> NewTask = null;
                         CancellationTokenSource cancelSource = new CancellationTokenSource();
 
-                        // TODO Do I need complex logic to decide what to do based on ContentType?  
-                        switch (DbRequest.RootContentItem.ContentType.TypeEnum)
+                        // TODO Do I need a switch on ContentType?  (example in MapDbReductionJobMonitor)
+                        MapDbPublishRunner Runner = new MapDbPublishRunner
                         {
-                            case ContentTypeEnum.Qlikview:
-                                MapDbPublishRunner Runner = new MapDbPublishRunner
-                                {
-                                    JobDetail = (PublishJobDetail)DbRequest,
-                                };
-                                if (MockContext != null)
-                                {
-                                    //Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
-                                }
-
-                                NewTask = Task.Run(() => Runner.Execute(cancelSource.Token), cancelSource.Token);
-                                break;
-
-                            default:
-                                Trace.WriteLine($"Task record discovered for unsupported content type");
-                                break;
+                            JobDetail = (PublishJobDetail)DbRequest,
+                            ConnectionString = ConnectionString,
+                        };
+                        if (MockContext != null)
+                        {
+                            Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
                         }
+
+                        NewTask = Task.Run(() => Runner.Execute(cancelSource.Token), cancelSource.Token);
 
                         if (NewTask != null)
                         {
@@ -148,15 +155,15 @@ namespace ContentPublishingLib.JobMonitors
                 return new List<ContentPublicationRequest>();
             }
 
-            using (ApplicationDbContext Db = /*MockContext != null
+            using (ApplicationDbContext Db = MockContext != null
                                              ? MockContext.Object
-                                             : */new ApplicationDbContext(ContextOptions))
+                                             : new ApplicationDbContext(ContextOptions))
             using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
             {
                 try
                 {
                     List<ContentPublicationRequest> TopItems = Db.ContentPublicationRequest.Where(r => r.RequestStatus == PublicationStatus.Queued)
-                                                                                 .Include(r => r.RootContentItem).ThenInclude(rc => rc.ContentType)
+                                                                                 .Include(r => r.RootContentItem)
                                                                                  .OrderBy(r => r.CreateDateTime)
                                                                                  .Take(ReturnNoMoreThan)
                                                                                  .ToList();
@@ -223,6 +230,9 @@ namespace ContentPublishingLib.JobMonitors
                         default:
                             throw new Exception("Unsupported job result status in MapDbJobMonitor.UpdateTask().");
                     }
+
+                    // temporary
+                    //DbRequest.ContentRelatedFiles = JsonConvert.SerializeObject( new MapDbContextLib.Models.ContentRelatedFile[] { new MapDbContextLib.Models.ContentRelatedFile { FilePurpose = "Master", FileUploadId = Guid.NewGuid() } });
 
                     Db.ContentPublicationRequest.Update(DbRequest);
                     Db.SaveChanges();

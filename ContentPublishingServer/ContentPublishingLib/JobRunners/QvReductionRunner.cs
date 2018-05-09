@@ -19,7 +19,7 @@ using MapCommonLib;
 
 namespace ContentPublishingLib.JobRunners
 {
-    public class QvReductionRunner : ReductionRunnerBase
+    public class QvReductionRunner : RunnerBase
     {
         private string QmsUrl = null;
 
@@ -37,8 +37,6 @@ namespace ContentPublishingLib.JobRunners
         }
 
         #region Member properties
-        internal CancellationToken _CancellationToken { private get; set; }
-
         public ReductionJobDetail JobDetail { get; set; } = new ReductionJobDetail();
 
         private DocumentFolder SourceDocFolder { get; set; } = null;
@@ -54,16 +52,6 @@ namespace ContentPublishingLib.JobRunners
         private DocumentNode MasterDocumentNode { get; set; } = null;
 
         private DocumentNode ReducedDocumentNode { get; set; } = null;
-
-        private IAuditLogger AuditLog = null;
-        #endregion
-
-        #region Testing support
-        public void SetTestAuditLogger(IAuditLogger LoggerArg)
-        {
-            AssertTesting();
-            AuditLog = LoggerArg;
-        }
         #endregion
 
         /// <summary>
@@ -71,7 +59,7 @@ namespace ContentPublishingLib.JobRunners
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async override Task<ReductionJobDetail> Execute(CancellationToken cancellationToken)
+        public async Task<ReductionJobDetail> Execute(CancellationToken cancellationToken)
         {
             if (AuditLog == null)
             {
@@ -79,9 +67,11 @@ namespace ContentPublishingLib.JobRunners
             }
 
             _CancellationToken = cancellationToken;
+
             MethodBase Method = MethodBase.GetCurrentMethod();
             object DetailObj;
             AuditEvent Event;
+
             ReductionJobActionEnum[] SupportedJobActions = new ReductionJobActionEnum[] 
             {
                 ReductionJobActionEnum.HierarchyOnly,
@@ -169,7 +159,7 @@ namespace ContentPublishingLib.JobRunners
         /// <summary>
         /// Validate as many as possible of the member properties
         /// </summary>
-        internal override void ValidateThisInstance()
+        internal void ValidateThisInstance()
         {
             string Msg = null;
 

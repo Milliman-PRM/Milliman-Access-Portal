@@ -9,14 +9,17 @@ using System.Linq;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using AuditLogLib.Services;
 
 namespace ContentPublishingLib.JobRunners
 {
-    public abstract class ReductionRunnerBase
+    public abstract class RunnerBase
     {
-        public abstract Task<ReductionJobDetail> Execute(CancellationToken cancellationToken);
+        #region Member properties
+        protected CancellationToken _CancellationToken { get; set; }
 
-        internal abstract void ValidateThisInstance();
+        protected IAuditLogger AuditLog = null;
+        #endregion
 
         protected void AssertTesting()
         {
@@ -26,6 +29,12 @@ namespace ContentPublishingLib.JobRunners
             {
                 throw new ApplicationException($"Assert testing failed.  Stack trace:{Environment.NewLine}{CallStack.ToString()}");
             }
+        }
+
+        public void SetTestAuditLogger(IAuditLogger LoggerArg)
+        {
+            AssertTesting();
+            AuditLog = LoggerArg;
         }
 
     }

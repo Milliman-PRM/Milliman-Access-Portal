@@ -9,6 +9,9 @@
       "Default": "Warning"
     }
   },
+  "Storage": {
+    "ContentRootPath": ""
+  },
   "QvServerHost": "",
   "IQmsUrl": "",
   "TaskAgeBeforeExecutionSeconds": 20,

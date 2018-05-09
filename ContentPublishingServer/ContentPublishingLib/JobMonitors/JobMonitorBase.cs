@@ -36,6 +36,44 @@ namespace ContentPublishingLib.JobMonitors
             }
         }
 
+        protected TimeSpan StopWaitTimeSeconds
+        {
+            get
+            {
+                int WaitSec;
+                try
+                {
+                    if (!int.TryParse(Configuration.ApplicationConfiguration["StopWaitTimeSeconds"], out WaitSec))
+                    {
+                        throw new Exception();
+                    }
+                }
+                catch
+                {
+                    // Increases the total time based on concurrent tasks, but less than linearly
+                    WaitSec = 3 * 60 * (int)Math.Ceiling(Math.Sqrt(MaxParallelTasks));
+                }
+                return TimeSpan.FromSeconds(WaitSec);
+            }
+        }
+
+        protected int MaxParallelTasks
+        {
+            get
+            {
+                try
+                {
+                    if (int.TryParse(Configuration.ApplicationConfiguration["MaxParallelTasks"], out int MaxTasks))
+                    {
+                        return MaxTasks;
+                    }
+                }
+                catch
+                { }
+                return 1;
+            }
+        }
+
         protected void AssertTesting()
         {
             StackTrace CallStack = new StackTrace();

@@ -61,7 +61,7 @@ namespace MapDbContextLib.Context
         /// May also be accessed through [NotMapped] property PublishRequest
         /// </summary>
         [Column(TypeName = "jsonb")]
-        public string ContentRelatedFiles { get; set; } = "{}";
+        public string ContentRelatedFiles { get; set; } = "[]";
 
         [Required]
         public PublicationStatus RequestStatus { get; set; }
@@ -80,7 +80,9 @@ namespace MapDbContextLib.Context
             set
             {
                 RootContentItemId = value.RootContentItemId;
-                ContentRelatedFiles = JsonConvert.SerializeObject(value.RelatedFiles);
+                ContentRelatedFiles = value.RelatedFiles != null
+                    ? JsonConvert.SerializeObject(value.RelatedFiles)
+                    : "[]";
             }
         }
 

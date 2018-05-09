@@ -12,6 +12,7 @@ namespace ContentPublishingLib.JobRunners
         {
             Unspecified,
             Canceled,
+            Processing,
             Success,
             Error,
         }
@@ -37,6 +38,7 @@ namespace ContentPublishingLib.JobRunners
                             FileUploadId = rf.FileUploadId,
                         }
                     ).ToList(),
+                    RootContentIdString = DbTask.RootContentItem.Id.ToString(),
                 },
                 Result = new PublishJobResult(),
             };
@@ -51,6 +53,7 @@ namespace ContentPublishingLib.JobRunners
         {
             public bool DoesReduce { get; set; }
             public List<ContentRelatedFile> RelatedFiles { get; set; }
+            public string RootContentIdString { get; set; }
         }
 
         public class ContentRelatedFile
