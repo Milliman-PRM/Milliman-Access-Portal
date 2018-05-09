@@ -30,5 +30,8 @@ namespace MapDbContextLib.Context
         // [Required] This causes a problem with migration database update
         public string TypeSpecificDetail { get; set; }
 
+        public string Description { get; set; }
+
+        public string Notes { get; set; }
     }
 }
