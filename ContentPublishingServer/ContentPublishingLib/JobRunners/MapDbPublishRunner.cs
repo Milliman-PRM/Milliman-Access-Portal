@@ -78,30 +78,38 @@ namespace ContentPublishingLib.JobRunners
 
             try
             {
-                if (JobDetail.Request.DoesReduce)
+                string StorageBasePath = Configuration.ApplicationConfiguration.GetSection("Storage")["LiveContentRootPath"];
+                if (!Directory.Exists(StorageBasePath))
                 {
+                    throw new ApplicationException($"Configured LiveContentRootPath folder {StorageBasePath} does not exist");
                 }
-                else
+
+                string RootContentFolder = Path.Combine(StorageBasePath, JobDetail.Request.RootContentId.ToString());
+                DirectoryInfo ContentDirectoryInfo = Directory.CreateDirectory(RootContentFolder);
+
+                // Handle each file related to this PublicationRequest
+                foreach (PublishJobDetail.ContentRelatedFile RelatedFile in JobDetail.Request.RelatedFiles)
                 {
-                    string StorageBasePath = Configuration.ApplicationConfiguration.GetSection("Storage")["LiveContentRootPath"];
-
-                    string RootContentFolder = Path.Combine(StorageBasePath, JobDetail.Request.RootContentIdString);
-                    DirectoryInfo ContentDirectoryInfo = Directory.CreateDirectory(RootContentFolder);
-
-                    foreach (PublishJobDetail.ContentRelatedFile F in JobDetail.Request.RelatedFiles)
+                    if (!File.Exists(RelatedFile.FullPath))
                     {
-                        if (!File.Exists(F.FullPath))
-                        {
-                            throw new ApplicationException($"While publishing request {JobDetail.JobId}, uploaded file not found at path [{F.FullPath}].");
-                        }
-                        string NewFileName = $"{F.FilePurpose}.PubRequest[{JobDetail.Request.RootContentIdString.ToString()}]{Path.GetExtension(F.FullPath).Replace("..", ".")}";
-                        string DestinationFile = Path.Combine(RootContentFolder, NewFileName);
+                        throw new ApplicationException($"While publishing request {JobDetail.JobId.ToString()}, uploaded file not found at path [{RelatedFile.FullPath}].");
+                    }
 
-                        File.Copy(F.FullPath, DestinationFile, true);
+                    switch (RelatedFile.FilePurpose.ToLower())
+                    {
+                        case "mastercontent":
+                            ProcessMasterContentFile(RelatedFile);
+                            break;
 
-                        JobDetail.Result.RelatedFiles.Add(new PublishJobDetail.ContentRelatedFile { FilePurpose = F.FilePurpose, FullPath = DestinationFile });
+                        default:
+                            string DestinationFileName = $"{RelatedFile.FilePurpose}.Pub[{JobDetail.JobId.ToString()}].Content[{JobDetail.Request.RootContentId.ToString()}]{Path.GetExtension(RelatedFile.FullPath).Replace("..", ".")}";
+                            string DestinationFullPath = Path.Combine(RootContentFolder, DestinationFileName);
 
-                        JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
+                            File.Copy(RelatedFile.FullPath, DestinationFullPath, true);
+
+                            JobDetail.Result.RelatedFiles.Add(new PublishJobDetail.ContentRelatedFile { FilePurpose = RelatedFile.FilePurpose, FullPath = DestinationFullPath });
+
+                            break;
                     }
                 }
             }
@@ -113,6 +121,91 @@ namespace ContentPublishingLib.JobRunners
             }
 
             return JobDetail;
+        }
+
+        /// <summary>
+        /// Performs all actions required only in the presence of a master content file in the publication request
+        /// Note that a publication request can be made without a content item to update associated files.
+        /// </summary>
+        /// <param name="MasterFile"></param>
+        private void ProcessMasterContentFile(PublishJobDetail.ContentRelatedFile MasterFile)
+        {
+            // If there is no SelectionGroup for this content item, create a new SelectionGroup with IsMaster = true
+            using (ApplicationDbContext Db = MockContext != null
+                                           ? MockContext.Object
+                                           : new ApplicationDbContext(ContextOptions))
+            {
+                if (!Db.SelectionGroup.Any(sg => sg.RootContentItemId == JobDetail.Request.RootContentId))
+                {
+                    Db.SelectionGroup.Add(new SelectionGroup
+                    {
+                        RootContentItemId = JobDetail.Request.RootContentId,
+                        GroupName = "Master Content Access",
+                        IsMaster = true,
+                    });
+                    Db.SaveChanges();
+                }
+            }
+
+            if (JobDetail.Request.DoesReduce)
+            {
+                using (ApplicationDbContext Db = MockContext != null
+                                               ? MockContext.Object
+                                               : new ApplicationDbContext(ContextOptions))
+                {
+                    bool MasterHierarchyRequested = false;
+
+                    foreach (SelectionGroup SelGrp in Db.SelectionGroup
+                                                        .Where(g => g.RootContentItemId == JobDetail.Request.RootContentId)
+                                                        .ToList())
+                    {
+                        if (SelGrp.IsMaster && MasterHierarchyRequested)
+                        {
+                            // Only handle IsMaster SelectionGroups once
+                            continue;
+                        }
+
+                        ContentReductionTask NewTask = new ContentReductionTask
+                        {
+                            ApplicationUserId = JobDetail.Request.ApplicationUserId,
+                            ContentPublicationRequestId = JobDetail.JobId,
+                            CreateDateTime = DateTime.UtcNow,  // TODO later: Figure out how to avoid delay in starting the reduction task. 
+                            MasterContentChecksum = MasterFile.Checksum,
+                            MasterFilePath = MasterFile.FullPath,
+                            ReductionStatus = ReductionStatusEnum.Queued,
+                            SelectionGroupId = SelGrp.Id,
+                        };
+
+                        if (SelGrp.IsMaster)
+                        {
+                            NewTask.TaskAction = TaskActionEnum.HierarchyOnly;
+
+                            MasterHierarchyRequested = true;
+                        }
+                        else
+                        {
+                            var x = Db.HierarchyFieldValue.Where(v => SelGrp.SelectedHierarchyFieldValueList.Contains(v.Id));
+                            NewTask.SelectionCriteria = "#";
+                            NewTask.TaskAction = TaskActionEnum.HierarchyAndReduction;
+                        }
+
+                        Db.ContentReductionTask.Add(NewTask);
+                        Db.SaveChanges();
+                    }
+                }
+
+            }
+            else
+            {
+                // Do I need to remove any possible files for this publish request ID?  (IDK maybe there will never be any). 
+
+                // Copy all related files to RootContentItem folder
+                foreach (PublishJobDetail.ContentRelatedFile RelatedFile in JobDetail.Request.RelatedFiles)
+                {
+                }
+
+                JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
+            }
         }
     }
 }

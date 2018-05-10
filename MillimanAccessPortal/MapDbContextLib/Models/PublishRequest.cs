@@ -20,6 +20,9 @@ namespace MapDbContextLib.Models
 
     public class ContentRelatedFile
     {
+        /// <summary>
+        /// Standard values: MasterContent, UserGuide, Thumbnail, ReleaseNotes
+        /// </summary>
         public string FilePurpose { get; set; }
 
         public Guid FileUploadId { get; set; }
