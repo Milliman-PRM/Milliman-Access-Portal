@@ -34,4 +34,7 @@ export abstract class FormElement {
     }
     this._bound = true;
   }
+  public unbindFromDOM() {
+    this._bound = false;
+  }
 }

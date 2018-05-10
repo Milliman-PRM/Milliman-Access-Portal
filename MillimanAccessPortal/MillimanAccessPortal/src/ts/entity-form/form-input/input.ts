@@ -11,13 +11,20 @@ export abstract class EntityFormInput extends FormElement {
     return this._$input;
   }
 
+  private shadowValue: string;
   protected abstract getValueFn: (input: JQuery<HTMLElement>) => () => string | number | string[];
   protected get value(): string {
-    return this.getValueFn(this.$input).bind(this.$input)().toString();
+    return this.bound
+      ? this.getValueFn(this.$input).bind(this.$input)().toString()
+      : this.shadowValue;
   }
   protected abstract setValueFn: (input: JQuery<HTMLElement>) => (value: string) => void
   protected set value(value: string) {
-    this.setValueFn(this.$input).bind(this.$input)(value);
+    if (this.bound) {
+      this.setValueFn(this.$input).bind(this.$input)(value);
+    } else {
+      this.shadowValue = value;
+    }
   }
 
   protected abstract disable: (input: JQuery<HTMLElement>) => void;
@@ -39,6 +46,25 @@ export abstract class EntityFormInput extends FormElement {
 
   constructor() {
     super();
+  }
+
+  public bindToDOM(entryPoint: HTMLElement) {
+    // before bind: this.value references shadow value
+    const value = this.value;
+    this.value = undefined;
+    super.bindToDOM(entryPoint);
+    // after bind: this.value references DOM value
+    if (value) {
+      this.value = value;
+    }
+  }
+
+  public unbindFromDOM() {
+    // before unbind: this.value references DOM value
+    const value = this.value;
+    super.unbindFromDOM();
+    // after unbind: this.value references shadow value
+    this.value = value;
   }
 
   recordOriginalValue() {
