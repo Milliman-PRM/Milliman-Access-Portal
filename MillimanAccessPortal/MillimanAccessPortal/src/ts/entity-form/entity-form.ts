@@ -98,18 +98,11 @@ export class EntityForm extends FormElement {
         });
       });
     });
-    this.submissionSection.submissions.forEach((submission) => {
-      submission.onReset(() => {
-        confirmAndContinueForm(() => {
-          this.sections.forEach((section) => {
-            section.inputs.forEach((input) => {
-              input.reset();
-            });
-          });
-          submission.modified = this.modified;
-        });
-      });
-    });
+  }
+
+  public unbindFromDOM() {
+    super.unbindFromDOM();
+    this.sections.forEach((section) => section.unbindFromDOM());
   }
 
   public configure(groups: Array<{group: EntityFormSubmissionGroup<any>, mode: string}>) {

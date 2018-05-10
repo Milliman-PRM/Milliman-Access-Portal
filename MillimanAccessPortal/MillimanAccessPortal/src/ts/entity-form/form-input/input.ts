@@ -21,7 +21,12 @@ export abstract class EntityFormInput extends FormElement {
   protected abstract setValueFn: (input: JQuery<HTMLElement>) => (value: string) => void
   protected set value(value: string) {
     if (this.bound) {
+      const change = this.value !== value;
       this.setValueFn(this.$input).bind(this.$input)(value);
+      // trigger a change event when value is changed programmatically
+      if (change) {
+        this.$input.change();
+      }
     } else {
       this.shadowValue = value;
     }

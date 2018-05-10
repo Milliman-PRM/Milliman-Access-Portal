@@ -49,6 +49,11 @@ export class EntityFormSection extends FormElement {
       .filter((x: EntityFormInput) => x !== undefined);
   }
 
+  public unbindFromDOM() {
+    super.unbindFromDOM();
+    this.inputs.forEach((section) => section.unbindFromDOM());
+  }
+
   get modified() {
     return this.inputs
       .map((input) => input.modified)

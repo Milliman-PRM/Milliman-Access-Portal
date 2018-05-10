@@ -34,7 +34,7 @@ export class EntityFormFileUploadInput extends EntityFormInput {
     this._upload = token && this.component && new PublicationUpload(
       this.$entryPoint[0],
       (a: boolean) => this.uploadInProgress = a, 
-      this.$input.val.bind(this.$input),
+      (guid: string) => this.value = guid,
       token,
       this.component,
     );
@@ -58,5 +58,13 @@ export class EntityFormFileUploadInput extends EntityFormInput {
 
   public configure(token: string) {
     this.createUpload(token);
+  }
+
+  public reset() {
+    super.reset();
+    this.$entryPoint.find('input.file-upload').val('');
+    if (this.upload) {
+      this.upload.reset();
+    }
   }
 }

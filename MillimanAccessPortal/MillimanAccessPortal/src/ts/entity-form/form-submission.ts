@@ -66,18 +66,6 @@ export class EntityFormSubmission extends FormElement {
         this.modified = form.modified;
       }));
   }
-  onReset(callback: () => void) {
-    this.$entryPoint
-      .find('.button-reset')
-      .off('click')
-      .on('click', callback);
-  }
-  onSubmit(callback: () => void) {
-    this.$entryPoint
-      .find('.button-submit')
-      .off('click')
-      .on('click', callback);
-  }
 }
 
 export class EntityFormSubmissionGroup<T> {

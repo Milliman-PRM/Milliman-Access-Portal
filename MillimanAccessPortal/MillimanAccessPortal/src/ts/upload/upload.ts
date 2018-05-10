@@ -152,8 +152,8 @@ export abstract class Upload {
         }).always((response) => {
           this.checksum = undefined;
         });
-    });
       });
+    });
     this.resumable.on('fileSuccess', (file, message) => {
       this.cancelable = false;
       const finalizeInfo: ResumableInfo = {
@@ -201,6 +201,12 @@ export abstract class Upload {
       this.cancelable = false;
       this.checksum = undefined;
     });
+  }
+
+  public reset() {
+    this.cancelable = false;
+    this.checksum = undefined;
+    this.fileGUID = undefined;
   }
 
   private signalRequiresUnloadAlert() {
