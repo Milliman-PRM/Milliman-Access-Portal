@@ -23,7 +23,7 @@ namespace ContentPublishingLib.JobRunners
         public JobStatusEnum Status { get; set; } = JobStatusEnum.Unspecified;
 
         // cast operator to convert a MAP ContentReductionTask to this type
-        public static explicit operator PublishJobDetail(ContentPublicationRequest DbTask)
+        public static PublishJobDetail New(ContentPublicationRequest DbTask, ApplicationDbContext Db)
         {
             return new PublishJobDetail
             {
@@ -35,7 +35,7 @@ namespace ContentPublishingLib.JobRunners
                         new ContentRelatedFile
                         {
                             FilePurpose = rf.FilePurpose,
-                            FileUploadId = rf.FileUploadId,
+                            FullPath = Db.FileUpload.Find(rf.FileUploadId).StoragePath,
                         }
                     ).ToList(),
                     RootContentIdString = DbTask.RootContentItem.Id.ToString(),
@@ -47,6 +47,8 @@ namespace ContentPublishingLib.JobRunners
 
         public class PublishJobResult
         {
+            public string StatusMessage { get; set; } = string.Empty;
+            public List<ContentRelatedFile> RelatedFiles { get; set; } = new List<ContentRelatedFile>();
         }
 
         public class PublishJobRequest
@@ -59,16 +61,7 @@ namespace ContentPublishingLib.JobRunners
         public class ContentRelatedFile
         {
             public string FilePurpose { get; set; }
-            public Guid FileUploadId { get; set; }
-
-            public static explicit operator ContentRelatedFile(MapDbContextLib.Models.ContentRelatedFile Arg)
-            {
-                return new ContentRelatedFile
-                {
-                    FilePurpose = Arg.FilePurpose,
-                    FileUploadId = Arg.FileUploadId,
-                };
-            }
+            public string FullPath { get; set; }
         }
 
     }

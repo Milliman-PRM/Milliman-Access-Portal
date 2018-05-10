@@ -76,38 +76,41 @@ namespace ContentPublishingLib.JobRunners
             object DetailObj;
             AuditEvent Event;
 
-            if (JobDetail.Request.DoesReduce)
+            try
             {
-            }
-            else
-            {
-                string StorageBasePath = Configuration.ApplicationConfiguration.GetSection("Storage")["LiveContentRootPath"];
-
-                string RootContentFolder = Path.Combine(StorageBasePath, JobDetail.Request.RootContentIdString);
-                DirectoryInfo ContentDirectoryInfo = Directory.CreateDirectory(RootContentFolder);
-
-                using (ApplicationDbContext Db = MockContext != null
-                                                 ? MockContext.Object
-                                                 : new ApplicationDbContext(ContextOptions))
+                if (JobDetail.Request.DoesReduce)
                 {
+                }
+                else
+                {
+                    string StorageBasePath = Configuration.ApplicationConfiguration.GetSection("Storage")["LiveContentRootPath"];
+
+                    string RootContentFolder = Path.Combine(StorageBasePath, JobDetail.Request.RootContentIdString);
+                    DirectoryInfo ContentDirectoryInfo = Directory.CreateDirectory(RootContentFolder);
+
                     foreach (PublishJobDetail.ContentRelatedFile F in JobDetail.Request.RelatedFiles)
                     {
-                        FileUpload UploadedFile = Db.FileUpload.Find(F.FileUploadId);
-                        if (UploadedFile == null || !File.Exists(UploadedFile.StoragePath))
+                        if (!File.Exists(F.FullPath))
                         {
-                            throw new ApplicationException($"While publishing request {JobDetail.JobId}");
+                            throw new ApplicationException($"While publishing request {JobDetail.JobId}, uploaded file not found at path [{F.FullPath}].");
                         }
-                        string NewFileName = $"{F.FilePurpose}.PubRequest[{JobDetail.Request.RootContentIdString.ToString()}]{Path.GetExtension(UploadedFile.StoragePath)}";
+                        string NewFileName = $"{F.FilePurpose}.PubRequest[{JobDetail.Request.RootContentIdString.ToString()}]{Path.GetExtension(F.FullPath).Replace("..", ".")}";
                         string DestinationFile = Path.Combine(RootContentFolder, NewFileName);
 
-                        File.Copy(UploadedFile.StoragePath, DestinationFile);
+                        File.Copy(F.FullPath, DestinationFile, true);
+
+                        JobDetail.Result.RelatedFiles.Add(new PublishJobDetail.ContentRelatedFile { FilePurpose = F.FilePurpose, FullPath = DestinationFile });
+
+                        JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
                     }
                 }
             }
-
-            JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
-
-            _CancellationToken.ThrowIfCancellationRequested();
+            catch (Exception e)
+            {
+                JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
+                Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
+                JobDetail.Result.StatusMessage = e.Message;
+            }
 
             return JobDetail;
         }

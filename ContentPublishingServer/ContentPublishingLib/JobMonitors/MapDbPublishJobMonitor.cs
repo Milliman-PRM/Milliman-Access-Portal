@@ -119,11 +119,17 @@ namespace ContentPublishingLib.JobMonitors
                         CancellationTokenSource cancelSource = new CancellationTokenSource();
 
                         // TODO Do I need a switch on ContentType?  (example in MapDbReductionJobMonitor)
-                        MapDbPublishRunner Runner = new MapDbPublishRunner
+                        MapDbPublishRunner Runner;
+                        using (ApplicationDbContext Db = MockContext != null
+                                                         ? MockContext.Object
+                                                         : new ApplicationDbContext(ContextOptions))
                         {
-                            JobDetail = (PublishJobDetail)DbRequest,
-                            ConnectionString = ConnectionString,
-                        };
+                            Runner = new MapDbPublishRunner
+                            {
+                                JobDetail = PublishJobDetail.New(DbRequest, Db),
+                                ConnectionString = ConnectionString,
+                            };
+                        }
                         if (MockContext != null)
                         {
                             Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
