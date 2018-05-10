@@ -7,7 +7,7 @@ import { EntityFormSelectizedInput } from './form-input/selectized';
 import { EntityFormTextInput } from './form-input/text';
 import { EntityFormTextAreaInput } from './form-input/text-area';
 import { EntityFormToggleInput } from './form-input/toggle';
-import { SubmissionMode } from './form-modes';
+import { EntityFormSubmission } from './form-submission';
 
 export class EntityFormSection extends FormElement {
   _cssClasses =  {
@@ -16,12 +16,6 @@ export class EntityFormSection extends FormElement {
     extension: 'form-input-container',
   };
   inputs: Array<EntityFormInput>;
-
-  constructor () {
-    super();
-
-
-  }
 
   public bindToDOM(entryPoint: HTMLElement) {
     super.bindToDOM(entryPoint);
@@ -72,54 +66,27 @@ export class EntityFormSection extends FormElement {
   }
 }
 
-export class EntityFormSubmission extends FormElement {
+export class EntityFormSubmissionSection extends FormElement {
   _cssClasses = {
-    main: 'form-submission',
+    main: 'form-submission-section',
     title: '',
     extension: '',
   };
-
-  private _disabled = false;
-  public mode;
-  private get buttonSelector(): string {
-    return this.mode === SubmissionMode.Create
-      ? '.button-container-new'
-      : '.button-container-edit';
-  }
-
-  constructor() {
-    super();
-  }
+  submissions: Array<EntityFormSubmission>;
 
   public bindToDOM(entryPoint: HTMLElement) {
     super.bindToDOM(entryPoint);
-  }
 
-  get modified() {
-    return false;
-  }
-
-  set modified(value: boolean) {
-    if (value) {
-      this.$entryPoint.find(this.buttonSelector).show();
-    } else {
-      this.$entryPoint.find(this.buttonSelector).hide();
-    }
-    this._disabled = value;
-  }
-
-  onReset(callback: () => void) {
-    this.$entryPoint
-      .find(this.buttonSelector)
-      .find('.button-reset')
-      .off('click')
-      .on('click', callback);
-  }
-  onSubmit(callback: () => void) {
-    this.$entryPoint
-      .find(this.buttonSelector)
-      .find('.button-submit')
-      .off('click')
-      .on('click', callback);
+    const childElements = this.$entryPoint.children().toArray();
+    this.submissions = childElements
+      .map((x: HTMLElement) => ({
+        submission: new EntityFormSubmission(),
+        element: x,
+      }))
+      .filter((x) => $(x.element).is(`.${x.submission.cssClasses.main}`))
+      .map((x) => {
+        x.submission.bindToDOM(x.element);
+        return x.submission;
+      });
   }
 }

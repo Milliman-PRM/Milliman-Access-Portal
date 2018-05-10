@@ -1,18 +1,19 @@
 import * as $ from 'jquery';
 import { randomBytes } from 'crypto';
 import { FormElement } from './form-element';
-import { AccessMode, SubmissionMode } from './form-modes';
-import { EntityFormSection, EntityFormSubmission } from './form-section';
+import { AccessMode } from './form-modes';
+import { EntityFormSection, EntityFormSubmissionSection } from './form-section';
 import { confirmAndContinueForm } from '../shared';
 import { EntityFormFileUploadInput } from './form-input/file-upload';
 import { PublicationComponent } from '../content-publishing/publication-upload';
+import { EntityFormSubmissionGroup } from './form-submission';
 
 export class EntityForm extends FormElement {
-  private _mode: AccessMode;
-  public get mode(): AccessMode {
-    return this._mode;
+  private _accessMode: AccessMode;
+  public get accessMode(): AccessMode {
+    return this._accessMode;
   }
-  public set mode(mode: AccessMode) {
+  public set accessMode(mode: AccessMode) {
     confirmAndContinueForm(() => {
       this.sections.forEach((section) => {
         section.inputs.forEach((input) => {
@@ -20,9 +21,23 @@ export class EntityForm extends FormElement {
           input.setMode(mode);
         });
       });
-      this.submission.modified = this.modified;
+      this.submissionSection.submissions
+        .forEach((submission) => submission.modified = this.modified);
     }, mode === AccessMode.Read && this.modified);
-    this._mode = mode;
+    this._accessMode = mode;
+  }
+  private _submissionModes: Array<string> = [];
+  private _submissionMode: string;
+  public get submissionMode(): string {
+    return this._submissionMode;
+  }
+  public set submissionMode(submissionMode: string) {
+    if (this._submissionModes.indexOf(submissionMode) === -1) {
+      throw new Error(`Error setting mode: mode '${submissionMode}' does not exist for this form.`);
+    }
+    this.submissionSection.submissions
+      .forEach((submission) => submission.submissionMode = submissionMode);
+    this._submissionMode = this.submissionMode;
   }
   private _token: string;
   public get token(): string {
@@ -32,7 +47,7 @@ export class EntityForm extends FormElement {
     return this._token;
   }
   sections: Array<EntityFormSection>;
-  submission: EntityFormSubmission;
+  submissionSection: EntityFormSubmissionSection;
 
   _cssClasses = {
     main: 'admin-panel-content',
@@ -61,15 +76,15 @@ export class EntityForm extends FormElement {
         x.section.bindToDOM(x.element);
         return x.section;
       });
-    this.submission = childElements
+    this.submissionSection = childElements
       .map((x: HTMLElement) => ({
-        submission: new EntityFormSubmission(),
+        section: new EntityFormSubmissionSection(),
         element: x,
       }))
-      .filter((x) => $(x.element).is(`.${x.submission.cssClasses.main}`))
+      .filter((x) => $(x.element).is(`.${x.section.cssClasses.main}`))
       .map((x) => {
-        x.submission.bindToDOM(x.element);
-        return x.submission;
+        x.section.bindToDOM(x.element);
+        return x.section;
       })[0];
 
     // record original input values
@@ -78,23 +93,33 @@ export class EntityForm extends FormElement {
       section.inputs.forEach((input) => {
         input.recordOriginalValue();
         input.onChange(() => {
-          this.submission.modified = this.modified;
+          this.submissionSection.submissions
+            .forEach((submission) => submission.modified = this.modified);
         });
       });
     });
-    this.submission.onReset(() => {
-      confirmAndContinueForm(() => {
-        this.sections.forEach((section) => {
-          section.inputs.forEach((input) => {
-            input.reset();
+    this.submissionSection.submissions.forEach((submission) => {
+      submission.onReset(() => {
+        confirmAndContinueForm(() => {
+          this.sections.forEach((section) => {
+            section.inputs.forEach((input) => {
+              input.reset();
+            });
           });
+          submission.modified = this.modified;
         });
-        this.submission.modified = this.modified;
       });
     });
   }
 
-  public configure(submitGroups: Array<EntityFormSubmissionGroup>, submissionMode: SubmissionMode) {
+  public configure(groups: Array<{group: EntityFormSubmissionGroup<any>, mode: string}>) {
+    this._submissionModes = groups.map((group) => group.mode);
+    
+    // Configure form reset and submission
+    this.submissionSection.submissions
+      .forEach((submission) => submission.setCallbacks(groups, this));
+
+    // Create upload objects
     this.sections.forEach((section) => {
       section.inputs
         .filter((input) => input instanceof EntityFormFileUploadInput)
@@ -103,26 +128,6 @@ export class EntityForm extends FormElement {
           uploadInput.configure(this.token);
         });
     });
-
-    this.submission.onSubmit(() => {
-      let requests: Array<() => void> = [];
-      for (let i = 0; i < submitGroups.length; i += 1) {
-        requests.push(() => $.post({
-          url: submitGroups[i].url,
-          data: this.serialize(submitGroups[i].sections),
-        }).done((response) => {
-          if (i + 1 < submitGroups.length) {
-            requests[i + 1]();
-          } else {
-          }
-        }).fail((response) => {
-        }).always((response) => {
-        }));
-      }
-      requests[0]();
-    });
-
-    this.submission.mode = submissionMode;
   }
 
   get modified() {
@@ -147,16 +152,4 @@ export class EntityForm extends FormElement {
       .map((kvp) => `${kvp.name}=${kvp.value}`)
       .join('&');
   }
-}
-
-export class EntityFormSubmissionGroup {
-  sections: Array<string>;
-  url: string;
-}
-
-enum EntityFormValidationType {
-  Any,
-  Email,
-  Domain,
-  Phone,
 }

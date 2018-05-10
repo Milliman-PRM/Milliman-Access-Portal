@@ -3,10 +3,11 @@ require('tooltipster');
 import * as shared from '../shared';
 import { ClientCard, RootContentItemCard } from '../card';
 import { EntityForm } from '../entity-form/entity-form';
-import { SubmissionMode, AccessMode } from '../entity-form/form-modes';
+import { AccessMode } from '../entity-form/form-modes';
 import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType } from '../view-models/content-publishing';
 import { setUnloadAlert } from '../unload-alerts';
 import { DeleteRootContentItemDialog } from '../dialog';
+import { EntityFormSubmissionGroup } from '../entity-form/form-submission';
 
 
 export namespace ContentPublishingDOMMethods {
@@ -50,25 +51,51 @@ export namespace ContentPublishingDOMMethods {
 
     $contentTypeDropdown.change(); // trigger change event
 
+
+    const createContentGroup = new EntityFormSubmissionGroup<RootContentItemDetail>(
+      [
+        'root-content-item-info',
+        'root-content-item-description',
+      ],
+      'ContentPublishing/CreateRootContentItem',
+      'POST',
+      (response) => { },
+    );
+    const updateContentGroup = new EntityFormSubmissionGroup<RootContentItemDetail>(
+      [
+        'root-content-item-info',
+        'root-content-item-description',
+      ],
+      'ContentPublishing/UpdateRootContentItem',
+      'POST',
+      (response) => { },
+    );
+    const submitPublication = new EntityFormSubmissionGroup<any>(
+      [
+        'publication-files',
+      ],
+      'ContentPublishing/Publish',
+      'POST',
+      (response) => { },
+    );
+
     const form = new EntityForm();
     form.bindToDOM($rootContentItemForm[0]);
     form.configure(
       [
         {
-          url: 'ContentPublishing/CreateRootContentItem',
-          sections: [
-            'root-content-item-info',
-            'root-content-item-description',
-          ],
+          group: createContentGroup.chain(submitPublication),
+          mode: 'new',
         },
         {
-          url: 'ContentPublishing/Publish',
-          sections: [
-            'publication-files',
-          ],
+          group: updateContentGroup,
+          mode: 'edit',
+        },
+        {
+          group: submitPublication,
+          mode: 'republish',
         },
       ],
-      SubmissionMode.Update,
     );
     
     forms.set(item.Id.toString(), form);
@@ -81,18 +108,8 @@ export namespace ContentPublishingDOMMethods {
     event.stopPropagation();
 
     const form = forms.get(rootContentItemId);
-    form.configure(
-      [
-        {
-          url: 'ContentPublishing/Publish',
-          sections: [
-            'publication-files',
-          ],
-        },
-      ],
-      SubmissionMode.Update,
-    );
-    form.mode = AccessMode.Write;
+    form.accessMode = AccessMode.Write;
+    form.submissionMode = 'republish';
     $('#content-publishing-form').show();
   }
   function rootContentItemEditClickHandler() {
@@ -101,19 +118,8 @@ export namespace ContentPublishingDOMMethods {
     event.stopPropagation();
 
     const form = forms.get(rootContentItemId);
-    form.configure(
-      [
-        {
-          url: 'ContentPublishing/UpdateRootContentItem',
-          sections: [
-            'root-content-item-info',
-            'root-content-item-description',
-          ],
-        },
-      ],
-      SubmissionMode.Update,
-    );
-    form.mode = AccessMode.Write;
+    form.accessMode = AccessMode.Write;
+    form.submissionMode = 'edit';
     $('#content-publishing-form').show();
   }
   function deleteRootContentItem(rootContentItemId: string, rootContentItemName: string, password: string, callback: () => void) {
@@ -254,11 +260,11 @@ export namespace ContentPublishingDOMMethods {
 
     $('.action-icon-edit').click(() => {
       const formKey = $('#root-content-items [selected]').attr('data-root-content-item-id');
-      forms.get(formKey).mode = AccessMode.Write;
+      forms.get(formKey).accessMode = AccessMode.Write;
     });
     $('.action-icon-cancel').click(() => {
       const formKey = $('#root-content-items [selected]').attr('data-root-content-item-id');
-      forms.get(formKey).mode = AccessMode.Read;
+      forms.get(formKey).accessMode = AccessMode.Read;
     });
 
     setUnloadAlert(() => {
