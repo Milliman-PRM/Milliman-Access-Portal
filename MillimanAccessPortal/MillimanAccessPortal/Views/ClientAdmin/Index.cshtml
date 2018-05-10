@@ -45,47 +45,47 @@
                 <div class="form-section">
                     <h4 class="form-section-title">Client Information</h4>
                     <div class="form-input-container">
-                        <div style="display: none;">
+                        <div class="form-input form-input-hidden" style="display: none;">
                             <input asp-for="Id" />
                             <input asp-for="ParentClientId" />
                         </div>
-                        <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-9-12">
-                            <label asp-for="Name"></label>
+                        <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-9-12">
+                            <label class="form-input-text-title" asp-for="Name"></label>
                             <div>
                                 <input asp-for="Name" />
                                 <span asp-validation-for="Name" class="text-danger"></span>
                             </div>
                         </div>
-                        <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-3-12">
-                            <label asp-for="ClientCode"></label>
+                        <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-3-12">
+                            <label class="form-input-text-title" asp-for="ClientCode"></label>
                             <div>
                                 <input asp-for="ClientCode" />
                                 <span asp-validation-for="ClientCode" class="text-danger"></span>
                             </div>
                         </div>
-                        <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
-                            <label asp-for="ContactName"></label>
+                        <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                            <label class="form-input-text-title" asp-for="ContactName"></label>
                             <div>
                                 <input asp-for="ContactName" />
                                 <span asp-validation-for="ContactName" class="text-danger"></span>
                             </div>
                         </div>
-                        <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
-                            <label asp-for="ContactTitle"></label>
+                        <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                            <label class="form-input-text-title" asp-for="ContactTitle"></label>
                             <div>
                                 <input asp-for="ContactTitle" />
                                 <span asp-validation-for="ContactTitle" class="text-danger"></span>
                             </div>
                         </div>
-                        <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-9-12">
-                            <label asp-for="ContactEmail"></label>
+                        <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-9-12">
+                            <label class="form-input-text-title" asp-for="ContactEmail"></label>
                             <div>
                                 <input asp-for="ContactEmail" />
                                 <span asp-validation-for="ContactEmail" class="text-danger"></span>
                             </div>
                         </div>
-                        <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-3-12">
-                            <label asp-for="ContactPhone"></label>
+                        <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-3-12">
+                            <label class="form-input-text-title" asp-for="ContactPhone"></label>
                             <div>
                                 <input asp-for="ContactPhone" />
                                 <span asp-validation-for="ContactPhone" class="text-danger"></span>
@@ -96,46 +96,47 @@
                 <div class="form-section">
                     <h4 class="form-section-title">Security Information</h4>
                     <div class="form-input-container">
-                        <div class="form-input flex-item-12-12">
-                            <label asp-for="AcceptedEmailDomainList"></label>
+                        <div class="form-input form-input-selectized flex-item-12-12">
+                            <label class="form-input-selectized-title" asp-for="AcceptedEmailDomainList"></label>
                             <div>
                                 <input asp-for="AcceptedEmailDomainList" class="selectize-custom-input" />
                             </div>
                         </div>
-                        <div class="form-input flex-item-12-12">
-                            <label asp-for="AcceptedEmailAddressExceptionList"></label>
+                        <div class="form-input form-input-selectized flex-item-12-12">
+                            <label class="form-input-selectized-title" asp-for="AcceptedEmailAddressExceptionList"></label>
                             <div>
                                 <input asp-for="AcceptedEmailAddressExceptionList" class="selectize-custom-input" />
                             </div>
                         </div>
+
                     </div>
                 </div>
                 <div class="form-section">
                     <h4 class="form-section-title">Billing Information</h4>
                     <div class="form-input-container">
-                        <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
-                            <label asp-for="ConsultantName"></label>
+                        <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                            <label class="form-input-text-title" asp-for="ConsultantName"></label>
                             <div>
                                 <input asp-for="ConsultantName" />
                                 <span asp-validation-for="ConsultantName" class="text-danger"></span>
                             </div>
                         </div>
-                        <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
-                            <label asp-for="ConsultantEmail"></label>
+                        <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                            <label class="form-input-text-title" asp-for="ConsultantEmail"></label>
                             <div>
                                 <input asp-for="ConsultantEmail" />
                                 <span asp-validation-for="ConsultantEmail" class="text-danger"></span>
                             </div>
                         </div>
-                        <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
-                            <label asp-for="ConsultantOffice"></label>
+                        <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                            <label class="form-input-text-title" asp-for="ConsultantOffice"></label>
                             <div>
                                 <input asp-for="ConsultantOffice" />
                                 <span asp-validation-for="ConsultantOffice" class="text-danger"></span>
                             </div>
                         </div>
-                        <div class="form-input flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
-                            <label asp-for="ProfitCenterId"></label>
+                        <div class="form-input form-input-dropdown flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                            <label class="form-input-dropdown-title" asp-for="ProfitCenterId"></label>
                             <div>
                                 <select asp-for="ProfitCenterId">
                                     <option value="">Make a Selection</option>
@@ -143,13 +144,17 @@
                                 <span asp-validation-for="ProfitCenterId" class="text-danger"></span>
                             </div>
                         </div>
-                        @Html.AntiForgeryToken()
+                        <div class="form-input form-input-hidden">
+                            <div class="form-input-hidden-contents">
+                                @Html.AntiForgeryToken()
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="form-submission">
+                <div class="form-submission-section">
                     <div class="button-container button-container-new" style="display: none;">
                         <button type="button" class="button-reset link-button">Reset Form</button>
-                        <button type="button" class="button-submit green-button">Create Content Item</button>
+                        <button type="button" class="button-submit green-button">Create Client</button>
                     </div>
                     <div class="button-container button-container-edit" style="display: none;">
                         <button type="button" class="button-reset link-button">Discard Changes</button>
