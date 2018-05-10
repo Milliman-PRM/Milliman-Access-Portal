@@ -11,8 +11,9 @@ import { EntityFormSubmissionGroup } from '../entity-form/form-submission';
 
 
 export namespace ContentPublishingDOMMethods {
-  let forms = new Map<string, EntityForm>();
-  let newForm: EntityForm;
+  const forms = new Map<number, EntityForm>();
+  let currentForm: EntityForm;
+  let currentFormId: number;
 
   function mapRootContentItemDetail(item: RootContentItemDetail) {
     const formMap = new Map<string, string | number | boolean>();
@@ -79,32 +80,45 @@ export namespace ContentPublishingDOMMethods {
       (response) => { },
     );
 
-    const form = new EntityForm();
-    form.bindToDOM($rootContentItemForm[0]);
-    form.configure(
-      [
-        {
-          group: createContentGroup.chain(submitPublication),
-          mode: 'new',
-        },
-        {
-          group: updateContentGroup,
-          mode: 'edit',
-        },
-        {
-          group: submitPublication,
-          mode: 'republish',
-        },
-      ],
-    );
+    // First unbind existing form if it exists
+    if (currentForm) {
+      currentForm.unbindFromDOM();
+      forms.set(currentFormId, currentForm);
+    }
+
+    // Create/retrieve and bind the new form
+    if (!forms.has(item.Id)) {
+      currentForm = new EntityForm();
+      currentForm.bindToDOM($rootContentItemForm[0]);
+      currentForm.configure(
+        [
+          {
+            group: createContentGroup.chain(submitPublication),
+            mode: 'new',
+          },
+          {
+            group: updateContentGroup,
+            mode: 'edit',
+          },
+          {
+            group: submitPublication,
+            mode: 'republish',
+          },
+        ],
+      );
+    } else {
+      currentForm = forms.get(item.Id);
+      currentForm.bindToDOM($rootContentItemForm[0]);
+    }
     
-    forms.set(item.Id.toString(), form);
+    currentForm.accessMode = AccessMode.Read;
+    currentFormId = item.Id;
   }
 
 
   function rootContentItemPublishClickHandler() {
     var $clickedCard = $(this).closest('.card-container');
-    var rootContentItemId = $clickedCard.attr('data-root-content-item-id');
+    var rootContentItemId = $clickedCard.data().rootContentItemId;
     event.stopPropagation();
 
     const form = forms.get(rootContentItemId);
@@ -114,7 +128,7 @@ export namespace ContentPublishingDOMMethods {
   }
   function rootContentItemEditClickHandler() {
     var $clickedCard = $(this).closest('.card-container');
-    var rootContentItemId = $clickedCard.attr('data-root-content-item-id');
+    var rootContentItemId = $clickedCard.data().rootContentItemId;
     event.stopPropagation();
 
     const form = forms.get(rootContentItemId);
@@ -127,7 +141,7 @@ export namespace ContentPublishingDOMMethods {
   }
   function rootContentItemDeleteClickHandler() {
     var $clickedCard = $(this).closest('.card-container');
-    var rootContentItemId = $clickedCard.attr('data-root-content-item-id');
+    var rootContentItemId = $clickedCard.data().rootContentItemId;
     var rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
     event.stopPropagation();
     new DeleteRootContentItemDialog(
@@ -258,20 +272,19 @@ export namespace ContentPublishingDOMMethods {
     $('.admin-panel-searchbar-tree').keyup(shared.filterTreeListener);
     $('.admin-panel-searchbar-form').keyup(shared.filterFormListener);
 
-    $('.action-icon-edit').click(() => {
-      const formKey = $('#root-content-items [selected]').attr('data-root-content-item-id');
-      forms.get(formKey).accessMode = AccessMode.Write;
+    $('.admin-panel-toolbar .action-icon-edit').click(() => {
+      currentForm.accessMode = AccessMode.Write;
+      currentForm.submissionMode = 'edit';
     });
-    $('.action-icon-cancel').click(() => {
-      const formKey = $('#root-content-items [selected]').attr('data-root-content-item-id');
-      forms.get(formKey).accessMode = AccessMode.Read;
+    $('.admin-panel-toolbar .action-icon-cancel').click(() => {
+      currentForm.accessMode = AccessMode.Read;
+    });
+    $('.admin-panel-toolbar .action-icon-file-upload').click(() => {
+      currentForm.accessMode = AccessMode.Write;
+      currentForm.submissionMode = 'republish';
     });
 
-    setUnloadAlert(() => {
-      const formKey = $('#root-content-items [selected]').attr('data-root-content-item-id');
-      const form = forms.has(formKey) && forms.get(formKey);
-      return form && form.modified;
-    });
+    setUnloadAlert(() => currentForm && currentForm.modified);
 
     $('.tooltip').tooltipster();
 
