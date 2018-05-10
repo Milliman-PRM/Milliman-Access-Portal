@@ -6,7 +6,7 @@ import { EntityFormSection, EntityFormSubmissionSection } from './form-section';
 import { confirmAndContinueForm } from '../shared';
 import { EntityFormFileUploadInput } from './form-input/file-upload';
 import { PublicationComponent } from '../content-publishing/publication-upload';
-import { EntityFormSubmissionGroup } from './form-submission';
+import { EntityFormSubmissionGroup, SubmissionMode } from './form-submission';
 
 export class EntityForm extends FormElement {
   private _accessMode: AccessMode;
@@ -18,26 +18,27 @@ export class EntityForm extends FormElement {
       this.sections.forEach((section) => {
         section.inputs.forEach((input) => {
           input.reset();
-          input.setMode(mode);
         });
+        section.setMode(mode, this._submissionMode);
       });
       this.submissionSection.submissions
         .forEach((submission) => submission.modified = this.modified);
     }, mode === AccessMode.Read && this.modified);
     this._accessMode = mode;
   }
-  private _submissionModes: Array<string> = [];
-  private _submissionMode: string;
+  private _submissionModes: Array<SubmissionMode> = [];
+  private _submissionMode: SubmissionMode;
   public get submissionMode(): string {
-    return this._submissionMode;
+    return this._submissionMode.name;
   }
   public set submissionMode(submissionMode: string) {
-    if (this._submissionModes.indexOf(submissionMode) === -1) {
+    const filtered = this._submissionModes.filter((mode) => mode.name === submissionMode);
+    if (filtered.length === 0) {
       throw new Error(`Error setting mode: mode '${submissionMode}' does not exist for this form.`);
     }
     this.submissionSection.submissions
-      .forEach((submission) => submission.submissionMode = submissionMode);
-    this._submissionMode = this.submissionMode;
+      .forEach((submission) => submission.submissionMode = filtered[0]);
+    this._submissionMode = filtered[0];
   }
   private _token: string;
   public get token(): string {
@@ -106,7 +107,10 @@ export class EntityForm extends FormElement {
   }
 
   public configure(groups: Array<{group: EntityFormSubmissionGroup<any>, mode: string}>) {
-    this._submissionModes = groups.map((group) => group.mode);
+    this._submissionModes = groups.map((group) => ({
+      name: group.mode,
+      sections: group.group.sections,
+    }));
     
     // Configure form reset and submission
     this.submissionSection.submissions

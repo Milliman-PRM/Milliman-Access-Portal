@@ -10,11 +10,11 @@ export class EntityFormSubmission extends FormElement {
   };
 
   private _disabled = false;
-  private _submissionMode: string;
-  public get submissionMode(): string {
+  private _submissionMode: SubmissionMode;
+  public get submissionMode(): SubmissionMode {
     return this._submissionMode;
   };
-  public set submissionMode(submissionMode: string) {
+  public set submissionMode(submissionMode: SubmissionMode) {
     this._submissionMode = submissionMode;
     if (this.$entryPoint.is(this.activeButtonSelector)) {
       this.$entryPoint.find('button').show();
@@ -23,7 +23,7 @@ export class EntityFormSubmission extends FormElement {
     }
   }
   private get activeButtonSelector(): string {
-    return `.button-container-${this.submissionMode}`;
+    return `.button-container-${this.submissionMode.name}`;
   }
 
   get modified() {
@@ -100,4 +100,9 @@ export class EntityFormSubmissionGroup<T> {
       // TODO: do something on fail
     });
   }
+}
+
+export interface SubmissionMode {
+  name: string,
+  sections: Array<string>,
 }

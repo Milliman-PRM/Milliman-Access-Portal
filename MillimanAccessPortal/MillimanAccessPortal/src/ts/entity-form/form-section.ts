@@ -7,7 +7,8 @@ import { EntityFormSelectizedInput } from './form-input/selectized';
 import { EntityFormTextInput } from './form-input/text';
 import { EntityFormTextAreaInput } from './form-input/text-area';
 import { EntityFormToggleInput } from './form-input/toggle';
-import { EntityFormSubmission } from './form-submission';
+import { EntityFormSubmission, SubmissionMode } from './form-submission';
+import { AccessMode } from './form-modes';
 
 export class EntityFormSection extends FormElement {
   _cssClasses =  {
@@ -62,6 +63,19 @@ export class EntityFormSection extends FormElement {
 
   get section() {
     return this.$entryPoint.data().section;
+  }
+
+  public setMode(accessMode: AccessMode, submissionMode: SubmissionMode) {
+    if (accessMode === AccessMode.Defer) {
+      this.inputs.forEach((input) => {
+        input.setMode(submissionMode.sections.indexOf(this.section) !== -1
+          ? AccessMode.Write
+          : AccessMode.Read
+        );
+      });
+    } else {
+      this.inputs.forEach((input) => input.setMode(accessMode));
+    }
   }
 
   hasInput(inputName: string) {

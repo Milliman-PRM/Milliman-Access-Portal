@@ -273,15 +273,15 @@ export namespace ContentPublishingDOMMethods {
     $('.admin-panel-searchbar-form').keyup(shared.filterFormListener);
 
     $('.admin-panel-toolbar .action-icon-edit').click(() => {
-      currentForm.accessMode = AccessMode.Write;
       currentForm.submissionMode = 'edit';
+      currentForm.accessMode = AccessMode.Defer;
     });
     $('.admin-panel-toolbar .action-icon-cancel').click(() => {
       currentForm.accessMode = AccessMode.Read;
     });
     $('.admin-panel-toolbar .action-icon-file-upload').click(() => {
-      currentForm.accessMode = AccessMode.Write;
       currentForm.submissionMode = 'republish';
+      currentForm.accessMode = AccessMode.Defer;
     });
 
     setUnloadAlert(() => currentForm && currentForm.modified);
