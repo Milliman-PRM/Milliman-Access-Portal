@@ -68,11 +68,6 @@
                 <div class="form-section" data-section="root-content-item-info">
                     <h4 class="form-section-title">Content Item Information</h4>
                     <div class="form-input-container">
-                        <div class="form-input form-input-hidden">
-                            <div class="form-input-hidden-contents">
-                                @Html.AntiForgeryToken()
-                            </div>
-                        </div>
                         <div class="form-input form-input-hidden" style="display: none;">
                             <input asp-for="Id" />
                         </div>
@@ -112,11 +107,6 @@
                 <div class="form-section" data-section="publication-files">
                     <h4 class="form-section-title">Files</h4>
                     <div class="form-input-container">
-                        <div class="form-input form-input-hidden">
-                            <div class="form-input-hidden-contents">
-                                @Html.AntiForgeryToken()
-                            </div>
-                        </div>
                         <div class="form-input-container flex-item-4-12">
                             <div class="form-input form-input-file-upload">
                                 <label for="ThumbnailImage" class="input-with-upload image">
@@ -166,11 +156,6 @@
                 <div class="form-section" data-section="root-content-item-description">
                     <h4 class="form-section-title">Content Description</h4>
                     <div class="form-input-container">
-                        <div class="form-input form-input-hidden">
-                            <div class="form-input-hidden-contents">
-                                @Html.AntiForgeryToken()
-                            </div>
-                        </div>
                         <div class="form-input form-input-text-area flex-item-12-12">
                             <label class="form-input-text-area-title" for="Description">Description</label>
                             <div class="form-input-text-area-contents">
@@ -197,6 +182,9 @@
                     <div class="button-container button-container-republish" style="display: none;">
                         <button type="button" class="button-reset link-button">Cancel</button>
                         <button type="button" class="button-submit blue-button">Republish</button>
+                    </div>
+                    <div class="form-antiforgery-token" style="display: none;">
+                        @Html.AntiForgeryToken()
                     </div>
                 </div>
             </div>

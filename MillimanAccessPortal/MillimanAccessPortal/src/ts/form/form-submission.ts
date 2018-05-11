@@ -92,15 +92,21 @@ export class SubmissionGroup<T> {
   }
 
   public submit(form: FormBase) {
+    // start spinner
     $.ajax({
       method: this.method,
       url: this.url,
       data: form.serialize(this.sections),
+      headers: {
+        RequestVerificationToken: form.antiforgeryToken,
+      },
     }).done((response: T) => {
       this.callback(response, form);
     }).fail((response) => {
       toastr.warning(response.getResponseHeader('warning'));
       // TODO: do something on fail
+    }).always(() => {
+      // stop spinner
     });
   }
 }

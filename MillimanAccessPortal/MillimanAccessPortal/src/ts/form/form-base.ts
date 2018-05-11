@@ -149,4 +149,8 @@ export class FormBase extends FormElement {
       .map((kvp) => `${kvp.name}=${kvp.value}`)
       .join('&');
   }
+
+  public get antiforgeryToken() {
+    return this.$entryPoint.find('.form-antiforgery-token input').val().toString();
+  }
 }
