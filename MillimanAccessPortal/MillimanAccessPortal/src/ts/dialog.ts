@@ -216,6 +216,38 @@ export function DeleteClientDialog(clientName, clientId, submitHandler) {
 DeleteClientDialog.prototype = Object.create(Dialog.prototype);
 DeleteClientDialog.prototype.constructor = DeleteClientDialog;
 
+export function DeleteRootContentItemDialog(rootContentItemName, rootContentItemId, submitHandler) {
+  var title = 'Delete RootContentItem';
+  var buttons = [
+    { type: vex.dialog.buttons.yes, text: 'Delete' },
+    { type: vex.dialog.buttons.no, text: 'Cancel' }
+  ];
+  var color = 'red';
+  Dialog.call(
+    this,
+    title,
+    'Delete <strong>' + rootContentItemName + '</strong>?<br /><br /> This action <strong><u>cannot</u></strong> be undone.',
+    buttons,
+    color,
+    null,
+    function (confirm) {
+      if (confirm) {
+        new PasswordDialog(
+          title,
+          'Please provide your password to delete <strong>' + rootContentItemName + '</strong>.',
+          buttons,
+          color,
+          submitHandler
+        ).open();
+      } else {
+        toastr.info('Deletion was canceled');
+      }
+    }
+  );
+};
+DeleteRootContentItemDialog.prototype = Object.create(Dialog.prototype);
+DeleteRootContentItemDialog.prototype.constructor = DeleteRootContentItemDialog;
+
 export function AddUserDialog(eligibleUsers, submitHandler) {
   Dialog.call(
     this,

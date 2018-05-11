@@ -113,20 +113,20 @@ input:-webkit-autofill {
     -webkit-transition: color 9999s ease-out, background-color 9999s ease-out;
 }
 
-.form-container {
+.form-section-container {
     display: flex;
     flex-flow: column nowrap;
     align-items: stretch;
     align-content: stretch;
 
-    .form-section-header {
+    .form-section-title {
         width: 100%;
         border-bottom: 2px solid $charcoal;
         padding: .5em .5em 0;
         text-transform: uppercase
     }
 
-    .form-section-container {
+    .form-input-container {
         display: flex;
         flex-flow: row wrap;
         padding-left: 1.5em;
@@ -136,6 +136,10 @@ input:-webkit-autofill {
 
         & > [class*="form-input"] {
             padding: .25em .5em;
+        }
+
+        .form-input-file-upload {
+            width: 100%;
         }
 
         .form-input-flex {
@@ -150,7 +154,7 @@ input:-webkit-autofill {
         }
     }
 
-    .form-button-container {
+    .button-container {
         text-align: right;
     }
 }
@@ -159,6 +163,7 @@ label.input-with-upload {
     position: relative;
     padding-left: 2em;
     cursor: pointer;
+    width: 100%;
 
     &.image {
         display: flex;

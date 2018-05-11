@@ -13,6 +13,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
     public class RootContentItemDetail
     {
         public long Id { get; set; }
+        public long ClientId { get; set; }
         public string ContentName { get; set; }
         public ContentType ContentType { get; set; }
         public List<ContentType> AvailableContentTypes { get; set; }
@@ -25,6 +26,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             RootContentItemDetail model = new RootContentItemDetail
             {
                 Id = rootContentItem.Id,
+                ClientId = rootContentItem.ClientId,
                 ContentName = rootContentItem.ContentName,
                 ContentType = dbContext.ContentType.Find(rootContentItem.ContentTypeId),
                 AvailableContentTypes = dbContext.ContentType.ToList(),

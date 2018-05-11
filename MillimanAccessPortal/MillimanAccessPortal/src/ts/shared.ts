@@ -1,5 +1,5 @@
 import $ = require('jquery');
-import dialog = require('./dialog');
+import { Dialog, ResetConfirmationDialog, DiscardConfirmationDialog } from './dialog';
 import toastr = require('toastr');
 
 var SHOW_DURATION = 50;
@@ -171,7 +171,7 @@ export function wrapCardCallback(callback, panels?) {
     };
 
     if ($panel.has('[selected]').length) {
-      confirmAndContinue($formPanels, dialog.DiscardConfirmationDialog, function () {
+      confirmAndContinue($formPanels, DiscardConfirmationDialog, function () {
         if (sameCard) {
           clearSelection();
           hideDetails();
@@ -348,3 +348,11 @@ export function confirmAndContinue($panel, Dialog, onContinue?) {
     onContinue();
   }
 };
+
+export function confirmAndContinueForm(onContinue, condition = true) {
+  if (condition) {
+    new ResetConfirmationDialog(onContinue).open();
+  } else {
+    onContinue();
+  }
+}

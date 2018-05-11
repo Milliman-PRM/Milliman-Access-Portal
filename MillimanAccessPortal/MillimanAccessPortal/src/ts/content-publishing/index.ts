@@ -4,8 +4,8 @@ import shared = require('../shared');
 import toastr = require('toastr');
 import { randomBytes } from 'crypto';
 import { FileUploadCard } from '../card';
-import { PublicationUpload, PublicationComponent, PublicationComponentInfo } from './publication-upload';
-import { setup } from './dom-methods';
+import { PublicationUpload, PublicationComponent } from './publication-upload';
+import { ContentPublishingDOMMethods } from './dom-methods';
 
 require('../navbar');
 import 'bootstrap/scss/bootstrap-reboot.scss';
@@ -14,46 +14,9 @@ import 'tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css'
 import 'toastr/toastr.scss';
 import '../../scss/map.scss';
 
-
-function setUnloadAlert(value: boolean) {
-  window.onbeforeunload = value
-    ? (e) => {
-      // In modern browsers, a generic message is displayed instead.
-      const dialogText = 'Are you sure you want to leave this page? File upload progress will be lost.';
-      e.returnValue = dialogText;
-      return dialogText;
-    }
-    : undefined;
-}
-
-function generateGUID() {
-  return randomBytes(8).toString('hex');
-}
-
 $(document).ready(() => {
-  const publicationGUID = generateGUID();
-  const unloadAlertStates: Array<boolean> = [];
-
-  $('#card-list .admin-panel-content').empty();
-  PublicationComponentInfo.forEach((componentInfo, component) => {
-    const componentCard = new FileUploadCard(componentInfo.displayName).build();
-    $('#card-list .admin-panel-content').append(componentCard);
-    const publicationUpload = new PublicationUpload(
-      componentCard.find('.card-body-container')[0],
-      (a) => {
-        unloadAlertStates[component] = a;
-        setUnloadAlert(unloadAlertStates.reduce((prev, cur) => prev || cur, false));
-      },
-      publicationGUID,
-      component,
-    );
-    unloadAlertStates.push(false);
-  });
-
-  setup();
-
-  // TODO: Remove for production
-  toastr.info('Page loaded');
+  ContentPublishingDOMMethods.setup();
+  toastr.info('Page loaded');  // TODO: Remove for production
 });
 
 if (module.hot) {

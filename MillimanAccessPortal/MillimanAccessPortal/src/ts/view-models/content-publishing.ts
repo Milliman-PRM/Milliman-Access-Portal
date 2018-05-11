@@ -65,6 +65,7 @@ export class ContentType {
 }
 export class RootContentItemDetail {
   Id: number;
+  ClientId: number;
   ContentName: string;
   ContentType: ContentType;
   AvailableContentTypes: Array<ContentType>;
