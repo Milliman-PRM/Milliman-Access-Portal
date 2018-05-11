@@ -175,7 +175,7 @@ namespace ContentPublishingLib.JobRunners
                         string TaskFolder = Path.Combine(QvSourceDocumentsPath, TaskId.ToString());
                         Directory.CreateDirectory(TaskFolder);
 
-                        string DestinationFileName = $"{MasterFile.FilePurpose}.Pub[{JobDetail.JobId.ToString()}].Content[{JobDetail.Request.RootContentId.ToString()}]{Path.GetExtension(MasterFile.FullPath).Replace("..", ".")}";
+                        string DestinationFileName = $"{MasterFile.FilePurpose}.Pub[{JobDetail.JobId.ToString()}].Content[{JobDetail.Request.RootContentId.ToString()}]{Path.GetExtension(MasterFile.FullPath)}";
                         string CopyDestination = Path.Combine(TaskFolder, DestinationFileName);
                         File.Copy(MasterFile.FullPath, CopyDestination, true);
 
