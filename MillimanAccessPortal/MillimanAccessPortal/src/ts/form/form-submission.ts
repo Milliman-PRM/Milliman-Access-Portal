@@ -1,4 +1,5 @@
 import * as toastr from 'toastr';
+import { showButtonSpinner, hideButtonSpinner } from '../shared';
 import { FormBase } from './form-base';
 import { FormElement } from "./form-element";
 import { confirmAndContinueForm } from "../shared";
@@ -92,7 +93,7 @@ export class SubmissionGroup<T> {
   }
 
   public submit(form: FormBase) {
-    // start spinner
+    showButtonSpinner($(`.button-container-${form.submissionMode} .button-submit`));
     $.ajax({
       method: this.method,
       url: this.url,
@@ -106,7 +107,7 @@ export class SubmissionGroup<T> {
       toastr.warning(response.getResponseHeader('warning'));
       // TODO: do something on fail
     }).always(() => {
-      // stop spinner
+      hideButtonSpinner($(`.button-container-${form.submissionMode} .button-submit`));
     });
   }
 }

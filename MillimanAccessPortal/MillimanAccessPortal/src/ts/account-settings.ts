@@ -1,7 +1,7 @@
 import $ = require('jquery');
 import toastr = require('toastr');
 import { FormBase } from './form/form-base';
-import { SubmissionMode } from './form/form-modes';
+import { SubmissionMode, AccessMode } from './form/form-modes';
 import { SubmissionGroup } from './form/form-submission';
 require('./navbar');
 
@@ -47,4 +47,5 @@ $(document).ready(() => {
       name: 'update',
     },
   ]);
+  formObject.submissionMode = 'update';
 });
