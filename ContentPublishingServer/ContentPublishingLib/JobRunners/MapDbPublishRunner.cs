@@ -100,7 +100,7 @@ namespace ContentPublishingLib.JobRunners
                         throw new ApplicationException($"While publishing request {JobDetail.JobId.ToString()}, checksum validation failed for file [{RelatedFile.FullPath}].");
                     }
 
-                    string DestinationFileName = $"{RelatedFile.FilePurpose}.Pub[{JobDetail.JobId.ToString()}].Content[{JobDetail.Request.RootContentId.ToString()}]{Path.GetExtension(RelatedFile.FullPath).Replace("..", ".")}";
+                    string DestinationFileName = $"{RelatedFile.FilePurpose}.Pub[{JobDetail.JobId.ToString()}].Content[{JobDetail.Request.RootContentId.ToString()}]{Path.GetExtension(RelatedFile.FullPath)}";
                     string DestinationFullPath = Path.Combine(RootContentFolder, DestinationFileName);
 
                     File.Copy(RelatedFile.FullPath, DestinationFullPath, true);
