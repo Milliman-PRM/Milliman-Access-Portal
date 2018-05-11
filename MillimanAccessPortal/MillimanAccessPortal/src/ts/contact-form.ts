@@ -9,6 +9,19 @@ require('vex-js/sass/vex.sass');
 require('vex-js/sass/vex-theme-default.sass');
 require('../scss/map.scss');
 
+interface VexDialogMock extends vex.Vex {
+  dialog: {
+    open: (opts: {
+      input: string,
+      buttons: Array<any>,
+      callback: () => boolean,
+    }) => void,
+    buttons: {
+      NO: any,
+    },
+  };
+}
+
 /**
  * Submit the contact form
  * @return {undefined}
@@ -52,7 +65,7 @@ function resetContactForm() {
  * @return {undefined}
  */
 function initializeContactForm() {
-  vex.dialog.open({
+  (vex as VexDialogMock).dialog.open({
     input: [
       '<h2 id="contact-title">Contact Support</h2>',
       '<form id="contact-form" asp-controller="Message" asp-action="SendEmailFromUser" method="post">',
@@ -71,7 +84,7 @@ function initializeContactForm() {
       '</form>'
     ].join(''),
     buttons: [
-      $.extend({}, vex.dialog.buttons.NO, {
+      $.extend({}, (vex as VexDialogMock).dialog.buttons.NO, {
         text: 'SUBMIT',
         className: 'blue-button',
         click: function onClick() {
@@ -84,7 +97,7 @@ function initializeContactForm() {
           return true;
         }
       }),
-      $.extend({}, vex.dialog.buttons.NO, {
+      $.extend({}, (vex as VexDialogMock).dialog.buttons.NO, {
         text: 'Reset',
         className: 'link-button',
         click: function onClick() {

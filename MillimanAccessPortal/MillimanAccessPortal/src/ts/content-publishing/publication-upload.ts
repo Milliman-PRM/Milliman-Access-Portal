@@ -2,69 +2,58 @@ import { Upload } from '../upload/upload';
 import { ProgressSummary } from '../upload/progress-monitor';
 
 export enum PublicationComponent {
-  Content,
-  UserGuide,
-  Image,
+  Content = 'content',
+  UserGuide = 'user_guide',
+  Image = 'image',
+  ReleaseNotes = 'release_notes',
 }
-export const PublicationComponentInfo = [
-  {
-    name: 'content',
-    displayName: 'Content',
-  },
-  {
-    name: 'user_guide',
-    displayName: 'User guide',
-  },
-  {
-    name: 'image',
-    displayName: 'Image',
-  },
-];
 
 export class PublicationUpload extends Upload {
 
   constructor(
     rootElement: HTMLElement,
     unloadAlertCallback: (a: boolean) => void,
-    readonly publicationGUID: string,
+    fileSuccessCallback: (guid: string) => void,
+    readonly formToken: string,
     readonly component: PublicationComponent,
   ) {
-    super(rootElement, unloadAlertCallback);
+    super(rootElement, unloadAlertCallback, fileSuccessCallback);
   }
 
   protected generateUID(file: File, event: Event): string {
-    return `publication-${this.component}-${this.publicationGUID}`;
+    return `publication-${this.component}-${this.formToken}`;
   }
 
   protected selectBrowseElement(rootElement: HTMLElement): HTMLElement {
-    return rootElement;
+    return $(rootElement).find('input.file-upload')[0];
   }
 
-  protected selectFileNameElement(rootElement: HTMLElement): HTMLElement {
-    return $(rootElement).find('.card-body-secondary-text')[0];
+  protected selectFileNameElement(rootElement: HTMLElement): HTMLInputElement {
+    return $(rootElement).find('input.file-upload')[0] as HTMLInputElement;
   }
 
   protected selectChecksumBarElement(rootElement: HTMLElement): HTMLElement {
-    return $(rootElement).find('.card-progress-bar-1')[0];
+    return $(rootElement).find('svg')[0];
   }
 
   protected renderChecksumProgress(summary: ProgressSummary) {
-    $(this.rootElement).find('.card-progress-bar-1').width(summary.percentage);
-    $(this.rootElement)
-      .find('.card-progress-status-text')
-      .html(`${summary.rate}   ${summary.remainingTime}`);
+//    $(this.rootElement).find('.card-progress-bar-1').width(summary.percentage);
+//    $(this.rootElement)
+//      .find('.card-progress-status-text')
+//      .html(`${summary.rate}   ${summary.remainingTime}`);
   }
 
   protected renderUploadProgress(summary: ProgressSummary) {
-    $(this.rootElement).find('.card-progress-bar-2').width(summary.percentage);
-    $(this.rootElement)
-      .find('.card-progress-status-text')
-      .html(`${summary.rate}   ${summary.remainingTime}`);
+//    $(this.rootElement).find('.card-progress-bar-2').width(summary.percentage);
+//    $(this.rootElement)
+//      .find('.card-progress-status-text')
+//      .html(`${summary.rate}   ${summary.remainingTime}`);
+    console.log(summary);
   }
 
   protected setProgressMessage(message: string) {
-    $(this.rootElement)
-      .find('.card-progress-status-text')
-      .html(message);
+//    $(this.rootElement)
+//      .find('.card-progress-status-text')
+//      .html(message);
   }
 }
