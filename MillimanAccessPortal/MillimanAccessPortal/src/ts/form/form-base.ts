@@ -1,21 +1,21 @@
 import * as $ from 'jquery';
 import { randomBytes } from 'crypto';
 import { FormElement } from './form-element';
-import { AccessMode } from './form-modes';
-import { EntityFormSection, EntityFormSubmissionSection } from './form-section';
+import { AccessMode, SubmissionMode } from './form-modes';
+import { FormInputSection, FormSubmissionSection } from './form-section';
 import { confirmAndContinueForm } from '../shared';
-import { EntityFormFileUploadInput } from './form-input/file-upload';
+import { FileUploadInput } from './form-input/file-upload';
 import { PublicationComponent } from '../content-publishing/publication-upload';
-import { EntityFormSubmissionGroup, SubmissionMode } from './form-submission';
+import { SubmissionGroup } from './form-submission';
 
-export class EntityForm extends FormElement {
+export class FormBase extends FormElement {
   private _accessMode: AccessMode;
   public get accessMode(): AccessMode {
     return this._accessMode;
   }
   public set accessMode(mode: AccessMode) {
     confirmAndContinueForm(() => {
-      this.sections.forEach((section) => {
+      this.inputSections.forEach((section) => {
         section.inputs.forEach((input) => {
           input.reset();
         });
@@ -26,6 +26,7 @@ export class EntityForm extends FormElement {
     }, mode === AccessMode.Read && this.modified);
     this._accessMode = mode;
   }
+
   private _submissionModes: Array<SubmissionMode> = [];
   private _submissionMode: SubmissionMode;
   public get submissionMode(): string {
@@ -40,6 +41,7 @@ export class EntityForm extends FormElement {
       .forEach((submission) => submission.submissionMode = filtered[0]);
     this._submissionMode = filtered[0];
   }
+
   private _token: string;
   public get token(): string {
     if (!this._token) {
@@ -47,16 +49,17 @@ export class EntityForm extends FormElement {
     }
     return this._token;
   }
-  sections: Array<EntityFormSection>;
-  submissionSection: EntityFormSubmissionSection;
 
-  _cssClasses = {
+  public inputSections: Array<FormInputSection>;
+  public submissionSection: FormSubmissionSection;
+
+  protected _cssClasses = {
     main: 'admin-panel-content',
     title: '',
     extension: 'form-section-container',
   };
 
-  constructor() {
+  public constructor() {
     super();
   }
 
@@ -67,9 +70,9 @@ export class EntityForm extends FormElement {
       .find(`.${this.cssClasses.extension}`).children().toArray();
 
     // locate and bind to section-level DOM elements
-    this.sections = childElements
+    this.inputSections = childElements
       .map((x: HTMLElement) => ({
-        section: new EntityFormSection(),
+        section: new FormInputSection(),
         element: x,
       }))
       .filter((x) => $(x.element).is(`.${x.section.cssClasses.main}`))
@@ -79,7 +82,7 @@ export class EntityForm extends FormElement {
       });
     this.submissionSection = childElements
       .map((x: HTMLElement) => ({
-        section: new EntityFormSubmissionSection(),
+        section: new FormSubmissionSection(),
         element: x,
       }))
       .filter((x) => $(x.element).is(`.${x.section.cssClasses.main}`))
@@ -90,7 +93,7 @@ export class EntityForm extends FormElement {
 
     // record original input values
     // attach event listeners
-    this.sections.forEach((section) => {
+    this.inputSections.forEach((section) => {
       section.inputs.forEach((input) => {
         input.recordOriginalValue();
         input.onChange(() => {
@@ -103,44 +106,41 @@ export class EntityForm extends FormElement {
 
   public unbindFromDOM() {
     super.unbindFromDOM();
-    this.sections.forEach((section) => section.unbindFromDOM());
+    this.inputSections.forEach((section) => section.unbindFromDOM());
   }
 
-  public configure(groups: Array<{group: EntityFormSubmissionGroup<any>, mode: string}>) {
-    this._submissionModes = groups.map((group) => ({
-      name: group.mode,
-      sections: group.group.sections,
-    }));
+  public configure(modes: Array<SubmissionMode>) {
+    this._submissionModes = modes;
     
     // Configure form reset and submission
     this.submissionSection.submissions
-      .forEach((submission) => submission.setCallbacks(groups, this));
+      .forEach((submission) => submission.setCallbacks(modes, this));
 
     // Create upload objects
-    this.sections.forEach((section) => {
+    this.inputSections.forEach((section) => {
       section.inputs
-        .filter((input) => input instanceof EntityFormFileUploadInput)
+        .filter((input) => input instanceof FileUploadInput)
         .forEach((upload) => {
-          const uploadInput = upload as EntityFormFileUploadInput;
+          const uploadInput = upload as FileUploadInput;
           uploadInput.configure(this.token);
         });
     });
   }
 
-  get modified() {
-    return this.sections
+  public get modified() {
+    return this.inputSections
       .map((section) => section.modified)
       .reduce((cum, cur) => cum || cur, false);
   }
 
-  serialize(sections?: Array<string>): string {
+  public serialize(sectionNames: Array<string>): string {
     const allInputs = this.$entryPoint.serializeArray();
     const filteredInputs = (() => {
-      return sections
+      return sectionNames
         ? allInputs.filter((input) =>
-          this.sections
+          this.inputSections
             .map((section) =>
-              sections.indexOf(section.section) > -1
+              sectionNames.indexOf(section.name) > -1
               && section.hasInput(input.name))
             .reduce((cum, cur) => cum || cur, false))
         : allInputs;

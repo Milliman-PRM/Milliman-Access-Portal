@@ -1,7 +1,7 @@
-import { EntityFormInput } from './input';
+import { FormInput } from './input';
 
-export class EntityFormHiddenInput extends EntityFormInput {
-  _cssClasses = {
+export class HiddenInput extends FormInput {
+  protected _cssClasses = {
     main: 'form-input-hidden',
     title: '',
     extension: 'form-input-hidden-contents',
@@ -16,8 +16,4 @@ export class EntityFormHiddenInput extends EntityFormInput {
   protected enable = ($input: JQuery<HTMLElement>) => $input.removeAttr('disabled');
 
   protected comparator = (a: string, b: string) => a === b;
-
-  constructor() {
-    super();
-  }
 }

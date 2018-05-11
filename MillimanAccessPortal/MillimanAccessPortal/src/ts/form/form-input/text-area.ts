@@ -1,7 +1,7 @@
-import { EntityFormInput } from './input';
+import { FormInput } from './input';
 
-export class EntityFormTextAreaInput extends EntityFormInput {
-  _cssClasses = {
+export class TextAreaInput extends FormInput {
+  protected _cssClasses = {
     main: 'form-input-text-area',
     title: 'form-input-text-area-title',
     extension: 'form-input-text-area-contents',
@@ -16,8 +16,4 @@ export class EntityFormTextAreaInput extends EntityFormInput {
   protected enable = ($input: JQuery<HTMLElement>) => $input.removeAttr('disabled');
 
   protected comparator = (a: string, b: string) => a === b;
-
-  constructor() {
-    super();
-  }
 }

@@ -1,9 +1,9 @@
-import { EntityFormInput } from './input';
+import { FormInput } from './input';
 import { Upload } from '../../upload/upload';
 import { PublicationUpload, PublicationComponent } from '../../content-publishing/publication-upload';
 
-export class EntityFormFileUploadInput extends EntityFormInput {
-  _cssClasses = {
+export class FileUploadInput extends FormInput {
+  protected _cssClasses = {
     main: 'form-input-file-upload',
     title: 'form-input-file-upload-title',
     extension: 'form-input-file-upload-contents',
@@ -24,6 +24,7 @@ export class EntityFormFileUploadInput extends EntityFormInput {
   public get component(): PublicationComponent {
     return this._component;
   }
+
   private uploadInProgress: boolean = false;
   private _upload: PublicationUpload;
   public get upload(): PublicationUpload {
@@ -40,7 +41,7 @@ export class EntityFormFileUploadInput extends EntityFormInput {
     );
   }
 
-  constructor() {
+  public constructor() {
     super();
 
     this.componentMap = new Map<string, PublicationComponent>();

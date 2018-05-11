@@ -1,43 +1,44 @@
 import { FormElement } from './form-element';
-import { EntityFormDropdownInput } from './form-input/dropdown';
-import { EntityFormFileUploadInput } from './form-input/file-upload';
-import { EntityFormHiddenInput } from './form-input/hidden';
-import { EntityFormInput } from './form-input/input';
-import { EntityFormSelectizedInput } from './form-input/selectized';
-import { EntityFormTextInput } from './form-input/text';
-import { EntityFormTextAreaInput } from './form-input/text-area';
-import { EntityFormToggleInput } from './form-input/toggle';
-import { EntityFormSubmission, SubmissionMode } from './form-submission';
-import { AccessMode } from './form-modes';
+import { DropdownInput } from './form-input/dropdown';
+import { FileUploadInput } from './form-input/file-upload';
+import { HiddenInput } from './form-input/hidden';
+import { FormInput } from './form-input/input';
+import { SelectizedInput } from './form-input/selectized';
+import { TextInput } from './form-input/text';
+import { TextAreaInput } from './form-input/text-area';
+import { ToggleInput } from './form-input/toggle';
+import { Submission } from './form-submission';
+import { AccessMode, SubmissionMode } from './form-modes';
 
-export class EntityFormSection extends FormElement {
-  _cssClasses =  {
+export class FormInputSection extends FormElement {
+  protected _cssClasses =  {
     main: 'form-section',
     title: 'form-section-title',
     extension: 'form-input-container',
   };
-  inputs: Array<EntityFormInput>;
+
+  public inputs: Array<FormInput>;
 
   public bindToDOM(entryPoint: HTMLElement) {
     super.bindToDOM(entryPoint);
 
     const childElements = this.$entryPoint
       .find(`.${this.cssClasses.extension}`).children().toArray();
-    const inputConstructors: Array<() => EntityFormInput> = [
-      () => new EntityFormTextInput(),
-      () => new EntityFormTextAreaInput(),
-      () => new EntityFormDropdownInput(),
-      () => new EntityFormToggleInput(),
-      () => new EntityFormSelectizedInput(),
-      () => new EntityFormFileUploadInput(),
-      () => new EntityFormHiddenInput(),
+    const inputConstructors: Array<() => FormInput> = [
+      () => new TextInput(),
+      () => new TextAreaInput(),
+      () => new DropdownInput(),
+      () => new ToggleInput(),
+      () => new SelectizedInput(),
+      () => new FileUploadInput(),
+      () => new HiddenInput(),
     ];
 
     this.inputs = childElements
       .map((x: HTMLElement) => {
         const matchedInputs = inputConstructors
           .map((y) => y())
-          .filter((y: EntityFormInput) => $(x).is(`.${y.cssClasses.main}`));
+          .filter((y: FormInput) => $(x).is(`.${y.cssClasses.main}`));
         if (matchedInputs.length > 1) {
           throw new Error(`Element matches multiple input types.`);
         } else if (matchedInputs.length === 0) {
@@ -47,7 +48,7 @@ export class EntityFormSection extends FormElement {
         singleMatchedInput.bindToDOM(x);
         return singleMatchedInput;
       })
-      .filter((x: EntityFormInput) => x !== undefined);
+      .filter((x: FormInput) => x !== undefined);
   }
 
   public unbindFromDOM() {
@@ -55,20 +56,20 @@ export class EntityFormSection extends FormElement {
     this.inputs.forEach((section) => section.unbindFromDOM());
   }
 
-  get modified() {
+  public get modified() {
     return this.inputs
       .map((input) => input.modified)
       .reduce((cum, cur) => cum || cur, false);
   }
 
-  get section() {
+  public get name() {
     return this.$entryPoint.data().section;
   }
 
   public setMode(accessMode: AccessMode, submissionMode: SubmissionMode) {
     if (accessMode === AccessMode.Defer) {
       this.inputs.forEach((input) => {
-        input.setMode(submissionMode.sections.indexOf(this.section) !== -1
+        input.setMode(submissionMode.group.sections.indexOf(this.name) !== -1
           ? AccessMode.Write
           : AccessMode.Read
         );
@@ -78,20 +79,21 @@ export class EntityFormSection extends FormElement {
     }
   }
 
-  hasInput(inputName: string) {
+  public hasInput(inputName: string) {
     return this.inputs
       .map((input) => input.name === inputName)
       .reduce((cum, cur) => cum || cur);
   }
 }
 
-export class EntityFormSubmissionSection extends FormElement {
-  _cssClasses = {
+export class FormSubmissionSection extends FormElement {
+  protected _cssClasses = {
     main: 'form-submission-section',
     title: '',
     extension: '',
   };
-  submissions: Array<EntityFormSubmission>;
+
+  public submissions: Array<Submission>;
 
   public bindToDOM(entryPoint: HTMLElement) {
     super.bindToDOM(entryPoint);
@@ -99,7 +101,7 @@ export class EntityFormSubmissionSection extends FormElement {
     const childElements = this.$entryPoint.children().toArray();
     this.submissions = childElements
       .map((x: HTMLElement) => ({
-        submission: new EntityFormSubmission(),
+        submission: new Submission(),
         element: x,
       }))
       .filter((x) => $(x.element).is(`.${x.submission.cssClasses.main}`))

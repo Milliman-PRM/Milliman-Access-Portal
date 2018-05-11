@@ -1,10 +1,11 @@
 import * as toastr from 'toastr';
-import { EntityForm } from "./entity-form";
+import { FormBase } from './form-base';
 import { FormElement } from "./form-element";
 import { confirmAndContinueForm } from "../shared";
+import { SubmissionMode } from './form-modes';
 
-export class EntityFormSubmission extends FormElement {
-  _cssClasses = {
+export class Submission extends FormElement {
+  protected _cssClasses = {
     main: 'button-container',
     title: '',
     extension: '',
@@ -27,10 +28,10 @@ export class EntityFormSubmission extends FormElement {
     return `.button-container-${this.submissionMode.name}`;
   }
 
-  get modified() {
+  public get modified() {
     return false;
   }
-  set modified(value: boolean) {
+  public set modified(value: boolean) {
     if (value) {
       this.$entryPoint.show();
     } else {
@@ -39,10 +40,10 @@ export class EntityFormSubmission extends FormElement {
     this._disabled = value;
   }
 
-  setCallbacks(allGroups: Array<{group: EntityFormSubmissionGroup<any>, mode: string}>, form: EntityForm) {
+  public setCallbacks(modes: Array<{group: SubmissionGroup<any>, name: string}>, form: FormBase) {
     // Find the first group (if any) that matches
-    const filteredGroups = allGroups.filter((group) =>
-      this.$entryPoint.is(`.button-container-${group.mode}`));
+    const filteredGroups = modes.filter((group) =>
+      this.$entryPoint.is(`.button-container-${group.name}`));
     if (!filteredGroups.length) {
       return;
     }
@@ -59,7 +60,7 @@ export class EntityFormSubmission extends FormElement {
       .find('.button-reset')
       .off('click')
       .on('click', () => confirmAndContinueForm(() => {
-        form.sections.forEach((section) => {
+        form.inputSections.forEach((section) => {
           section.inputs.forEach((input) => {
             input.reset();
           });
@@ -69,20 +70,20 @@ export class EntityFormSubmission extends FormElement {
   }
 }
 
-export class EntityFormSubmissionGroup<T> {
+export class SubmissionGroup<T> {
   constructor(
     readonly sections: Array<string>,
     readonly url: string,
     readonly method: string,
-    readonly callback: (response: T, form?: EntityForm) => void,
+    readonly callback: (response: T, form?: FormBase) => void,
   ) { }
 
-  public chain<U>(that: EntityFormSubmissionGroup<U>): EntityFormSubmissionGroup<T> {
-    const chainedGroup = new EntityFormSubmissionGroup<T>(
+  public chain<U>(that: SubmissionGroup<U>): SubmissionGroup<T> {
+    const chainedGroup = new SubmissionGroup<T>(
       this.sections,
       this.url,
       this.method,
-      (response: T, form: EntityForm) => {
+      (response: T, form: FormBase) => {
         this.callback(response);
         that.submit(form);
       },
@@ -90,7 +91,7 @@ export class EntityFormSubmissionGroup<T> {
     return chainedGroup;
   }
 
-  public submit(form: EntityForm) {
+  public submit(form: FormBase) {
     $.ajax({
       method: this.method,
       url: this.url,
@@ -102,9 +103,4 @@ export class EntityFormSubmissionGroup<T> {
       // TODO: do something on fail
     });
   }
-}
-
-export interface SubmissionMode {
-  name: string,
-  sections: Array<string>,
 }

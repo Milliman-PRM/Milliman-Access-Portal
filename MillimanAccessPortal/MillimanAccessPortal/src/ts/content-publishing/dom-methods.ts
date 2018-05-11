@@ -2,17 +2,17 @@ import $ = require('jquery');
 require('tooltipster');
 import * as shared from '../shared';
 import { ClientCard, RootContentItemCard } from '../card';
-import { EntityForm } from '../entity-form/entity-form';
-import { AccessMode } from '../entity-form/form-modes';
+import { FormBase } from '../form/form-base';
+import { AccessMode } from '../form/form-modes';
 import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType } from '../view-models/content-publishing';
 import { setUnloadAlert } from '../unload-alerts';
 import { DeleteRootContentItemDialog } from '../dialog';
-import { EntityFormSubmissionGroup } from '../entity-form/form-submission';
+import { SubmissionGroup } from '../form/form-submission';
 
 
 export namespace ContentPublishingDOMMethods {
-  const forms = new Map<number, EntityForm>();
-  let currentForm: EntityForm;
+  const forms = new Map<number, FormBase>();
+  let currentForm: FormBase;
   let currentFormId: number;
 
   function mapRootContentItemDetail(item: RootContentItemDetail) {
@@ -53,7 +53,7 @@ export namespace ContentPublishingDOMMethods {
     $contentTypeDropdown.change(); // trigger change event
 
 
-    const createContentGroup = new EntityFormSubmissionGroup<RootContentItemDetail>(
+    const createContentGroup = new SubmissionGroup<RootContentItemDetail>(
       [
         'root-content-item-info',
         'root-content-item-description',
@@ -62,7 +62,7 @@ export namespace ContentPublishingDOMMethods {
       'POST',
       (response) => { },
     );
-    const updateContentGroup = new EntityFormSubmissionGroup<RootContentItemDetail>(
+    const updateContentGroup = new SubmissionGroup<RootContentItemDetail>(
       [
         'root-content-item-info',
         'root-content-item-description',
@@ -71,7 +71,7 @@ export namespace ContentPublishingDOMMethods {
       'POST',
       (response) => { },
     );
-    const submitPublication = new EntityFormSubmissionGroup<any>(
+    const submitPublication = new SubmissionGroup<any>(
       [
         'publication-files',
       ],
@@ -88,21 +88,21 @@ export namespace ContentPublishingDOMMethods {
 
     // Create/retrieve and bind the new form
     if (!forms.has(item.Id)) {
-      currentForm = new EntityForm();
+      currentForm = new FormBase();
       currentForm.bindToDOM($rootContentItemForm[0]);
       currentForm.configure(
         [
           {
             group: createContentGroup.chain(submitPublication),
-            mode: 'new',
+            name: 'new',
           },
           {
             group: updateContentGroup,
-            mode: 'edit',
+            name: 'edit',
           },
           {
             group: submitPublication,
-            mode: 'republish',
+            name: 'republish',
           },
         ],
       );

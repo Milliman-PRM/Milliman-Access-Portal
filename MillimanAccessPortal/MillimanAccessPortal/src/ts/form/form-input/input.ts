@@ -1,7 +1,7 @@
 import { AccessMode } from '../form-modes';
 import { FormElement } from '../form-element';
 
-export abstract class EntityFormInput extends FormElement {
+export abstract class FormInput extends FormElement {
   protected abstract findInput: ($entryPoint: JQuery<HTMLElement>) => JQuery<HTMLElement>;
   private _$input: JQuery<HTMLElement>;
   protected get $input(): JQuery<HTMLElement> {
@@ -49,10 +49,6 @@ export abstract class EntityFormInput extends FormElement {
 
   protected originalValue: string;
 
-  constructor() {
-    super();
-  }
-
   public bindToDOM(entryPoint: HTMLElement) {
     // before bind: this.value references shadow value
     const value = this.value;
@@ -72,21 +68,21 @@ export abstract class EntityFormInput extends FormElement {
     this.value = value;
   }
 
-  recordOriginalValue() {
+  public recordOriginalValue() {
     this.originalValue = this.value;
   }
 
-  onChange(callback: () => void) {
+  public onChange(callback: () => void) {
     this.$entryPoint
       .off('keyup change')
       .on('keyup change', callback);
   }
 
-  reset() {
+  public reset() {
     this.value = this.originalValue;
   }
 
-  get name(): string {
+  public get name(): string {
     return this.$input.attr('name');
   }
 }

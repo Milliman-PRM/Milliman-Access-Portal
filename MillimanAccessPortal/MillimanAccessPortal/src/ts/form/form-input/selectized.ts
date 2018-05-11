@@ -1,7 +1,7 @@
-import { EntityFormInput } from './input';
+import { FormInput } from './input';
 
-export class EntityFormSelectizedInput extends EntityFormInput {
-  _cssClasses = {
+export class SelectizedInput extends FormInput {
+  protected _cssClasses = {
     main: 'form-input-selectized',
     title: 'form-input-selectized-title',
     extension: 'form-input-selectized-contents',
@@ -16,8 +16,4 @@ export class EntityFormSelectizedInput extends EntityFormInput {
   protected enable = ($input: JQuery<HTMLElement>) => $input[0].selectize.enable();
 
   protected comparator = (a: string, b: string) => a === b;
-
-  constructor() {
-    super();
-  }
 }

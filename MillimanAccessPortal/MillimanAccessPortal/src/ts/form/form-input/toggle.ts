@@ -1,7 +1,7 @@
-import { EntityFormInput } from './input';
+import { FormInput } from './input';
 
-export class EntityFormToggleInput extends EntityFormInput {
-  _cssClasses = {
+export class ToggleInput extends FormInput {
+  protected _cssClasses = {
     main: 'form-input-toggle',
     title: 'form-input-toggle-title',
     extension: 'form-input-toggle-contents',
@@ -16,8 +16,4 @@ export class EntityFormToggleInput extends EntityFormInput {
   protected enable = ($input: JQuery<HTMLElement>) => $input.removeAttr('disabled');
 
   protected comparator = (a: string, b: string) => a === b;
-
-  constructor() {
-    super();
-  }
 }

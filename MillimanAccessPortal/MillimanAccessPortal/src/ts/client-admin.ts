@@ -5,9 +5,9 @@ import dialog = require('./dialog');
 import shared = require('./shared');
 import { globalSettings } from './lib-options';
 import { Dictionary } from 'lodash';
-import { EntityForm } from './entity-form/entity-form';
-import { EntityFormSubmissionGroup } from './entity-form/form-submission';
-import { AccessMode } from './entity-form/form-modes';
+import { FormBase } from './form/form-base';
+import { SubmissionGroup } from './form/form-submission';
+import { AccessMode } from './form/form-modes';
 require('jquery-mask-plugin');
 require('jquery-validation');
 require('jquery-validation-unobtrusive');
@@ -26,7 +26,7 @@ require('../scss/map.scss');
 var ajaxStatus: any = {};
 var eligibleUsers;
 var SHOW_DURATION = 50;
-let formObject: EntityForm;
+let formObject: FormBase;
 
 
 function domainRegex() {
@@ -105,11 +105,11 @@ function populateProfitCenterDropDown(profitCenterList) {
 function bindForm() {
   const $clientForm = $('#client-info form.admin-panel-content');
 
-  formObject = new EntityForm();
+  formObject = new FormBase();
   formObject.bindToDOM($clientForm[0]);
   formObject.configure([
     {
-      group: new EntityFormSubmissionGroup<any>(
+      group: new SubmissionGroup<any>(
         undefined, // all sections
         'ClientAdmin/SaveNewClient',
         'POST',
@@ -118,10 +118,10 @@ function bindForm() {
           toastr.success('Created new client');
         },
       ),
-      mode: 'new'
+      name: 'new'
     },
     {
-      group: new EntityFormSubmissionGroup<any>(
+      group: new SubmissionGroup<any>(
         undefined, // all sections
         'ClientAdmin/EditClient',
         'POST',
@@ -130,7 +130,7 @@ function bindForm() {
           toastr.success('Updated client');
         },
       ),
-      mode: 'edit'
+      name: 'edit'
     },
   ]);
 }

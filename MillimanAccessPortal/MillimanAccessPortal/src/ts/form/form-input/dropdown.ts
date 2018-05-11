@@ -1,13 +1,13 @@
-import { EntityFormInput } from './input';
+import { FormInput } from './input';
 
-export class EntityFormTextInput extends EntityFormInput {
-  _cssClasses = {
-    main: 'form-input-text',
-    title: 'form-input-text-title',
-    extension: 'form-input-text-contents',
+export class DropdownInput extends FormInput {
+  protected _cssClasses = {
+    main: 'form-input-dropdown',
+    title: 'form-input-dropdown-title',
+    extension: 'form-input-dropdown-contents',
   }
 
-  protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('input');
+  protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('select');
 
   protected getValueFn = ($input: JQuery<HTMLElement>) => $input.val;
   protected setValueFn = ($input: JQuery<HTMLElement>) => $input.val;
@@ -16,8 +16,4 @@ export class EntityFormTextInput extends EntityFormInput {
   protected enable = ($input: JQuery<HTMLElement>) => $input.removeAttr('disabled');
 
   protected comparator = (a: string, b: string) => a === b;
-
-  constructor() {
-    super();
-  }
 }
