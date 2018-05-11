@@ -69,22 +69,5 @@ namespace MapTests
             Assert.IsType<ViewResult>(view);
             #endregion
         }
-
-        [Fact]
-        public async Task RequestContentPublication_Ok()
-        {
-            #region Arrange
-            ContentPublishingController controller = await GetControllerForUser("test1");
-            #endregion
-
-            #region Act
-            // TODO Make this test meaningful
-            var view = await controller.Publish(new PublishRequest { RootContentItemId = 1, RelatedFiles= new ContentRelatedFile[] { new ContentRelatedFile{ FilePurpose = "Master", FileUploadId = Guid.Empty } } });
-            #endregion
-
-            #region Assert
-            Assert.IsType<JsonResult>(view);
-            #endregion
-        }
     }
 }
