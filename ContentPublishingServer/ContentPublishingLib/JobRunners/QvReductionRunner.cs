@@ -183,7 +183,8 @@ namespace ContentPublishingLib.JobRunners
                 Msg = "SourceDocFolder is null";
             }
 
-            else if (JobDetail.Request.SelectionCriteria.Count(v => v.Selected) == 0)
+            else if (JobDetail.Request.JobAction != ReductionJobActionEnum.HierarchyOnly 
+                  && JobDetail.Request.SelectionCriteria.Count(v => v.Selected) == 0)
             {
                 Msg = $"No selected field values are included in the reduction request";
             }
@@ -245,7 +246,7 @@ namespace ContentPublishingLib.JobRunners
             }
             catch (System.Exception e)
             {
-                Trace.WriteLine($"QvReductionRunner.PreTaskSetup() failed to create folder {WorkingFolderAbsolute} or copy master file {JobDetail.Request.MasterFilePath} to {MasterFileDestinationPath}, exception message:" + Environment.NewLine + e.Message);
+                Trace.WriteLine($"QvReductionRunner.PreTaskSetup() failed to create folder {WorkingFolderAbsolute} or copy master file {JobDetail.Request.MasterFilePath} to {MasterFileDestinationPath}, {GlobalFunctions.LoggableExceptionString(e)}");
                 throw;
             }
 
@@ -407,7 +408,7 @@ namespace ContentPublishingLib.JobRunners
         private bool Cleanup()
         {
             string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
-            if (Directory.Exists(WorkingFolderAbsolute))
+            if (!string.IsNullOrWhiteSpace(WorkingFolderRelative) && Directory.Exists(WorkingFolderAbsolute))
             {
                 Directory.Delete(WorkingFolderAbsolute, true);
             }
