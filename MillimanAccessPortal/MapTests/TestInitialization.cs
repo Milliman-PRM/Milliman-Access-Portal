@@ -627,6 +627,13 @@ namespace MapTests
                 new ContentPublicationRequest { Id=1, ApplicationUserId=1, PublishRequest = new PublishRequest{ RootContentItemId=1, RelatedFiles=new ContentRelatedFile[]{ /*...*/ } } },
             });
             #endregion
+
+            #region Initialize FileUpload
+            DbContextObject.FileUpload.AddRange(new List<FileUpload>
+            {
+                new FileUpload { Id=new Guid(1,1,1,1,1,1,1,1,1,1,1) },
+            });
+            #endregion
         }
 
     }

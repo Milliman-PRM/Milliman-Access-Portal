@@ -79,7 +79,7 @@ namespace MapTests
 
             #region Act
             // TODO Make this test meaningful
-            var view = await controller.Publish(new PublishRequest { RootContentItemId = 1, RelatedFiles= new ContentRelatedFile[] { new ContentRelatedFile{ FilePurpose = "Master", FileUploadId = Guid.Empty } } });
+            var view = await controller.Publish(new PublishRequest { RootContentItemId = 1, RelatedFiles= new ContentRelatedFile[] { new ContentRelatedFile{ FilePurpose = "MasterContent", FileUploadId = Guid.Empty } } });
             #endregion
 
             #region Assert
