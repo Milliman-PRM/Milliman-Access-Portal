@@ -135,6 +135,16 @@ function bindForm() {
   ]);
 }
 
+function displayActionPanelIcons(canManage: boolean) {
+  $('#client-info .admin-panel-action-icons-container .action-icon').hide();
+  if (canManage) {
+    if (formObject.accessMode === AccessMode.Read) {
+      $('#client-info .admin-panel-action-icons-container .action-icon-edit').show();
+    } else if (formObject.accessMode === AccessMode.Write) {
+      $('#client-info .admin-panel-action-icons-container .action-icon-cancel').show();
+    }
+  }
+}
 
 function elevatedRoles(userRoles) {
   return !!$.grep(userRoles, function isElevatedRole(role: {RoleEnum: number, IsAssigned: boolean}) {
@@ -275,7 +285,7 @@ function clearUserList() {
   $('#client-users .action-icon').hide();
 }
 
-function getClientDetail(clientDiv) {
+function getClientDetail(clientDiv, accessMode?: AccessMode) {
   var clientId = clientDiv.data('client-id');
 
   $('#client-info .loading-wrapper').show();
@@ -294,8 +304,9 @@ function getClientDetail(clientDiv) {
   }).done(function onDone(response) {
     if (ajaxStatus.getClientDetail !== clientId) return;
     populateClientForm(response);
-    bindForm();
     formObject.submissionMode = 'edit';
+    if (accessMode) formObject.accessMode = accessMode;
+    displayActionPanelIcons(response.CanManage);
     $('#client-info .loading-wrapper').hide();
     renderUserList(response);
     $('#client-users .loading-wrapper').hide();
@@ -312,7 +323,7 @@ function openClientCardReadOnly($clientCard) {
   removeClientInserts();
   clearClientSelection();
   $clientCard.find('div.card-body-container').attr('selected', '');
-  getClientDetail($clientCard).done(() => formObject.accessMode = AccessMode.Read);
+  getClientDetail($clientCard, AccessMode.Read);
   showClientDetails();
 }
 
@@ -321,7 +332,7 @@ function openClientCardWriteable($clientCard) {
   removeClientInserts();
   clearClientSelection();
   $clientCard.find('div.card-body-container').attr({ selected: '', editing: '' });
-  getClientDetail($clientCard).done(() => formObject.accessMode = AccessMode.Write);
+  getClientDetail($clientCard, AccessMode.Write);
   showClientDetails();
 }
 
@@ -521,6 +532,7 @@ function cancelIconClickHandler() {
     if ($('#client-tree [selected]').parent().attr('data-client-id')) {
       $('#client-tree [editing]').removeAttr('editing');
       formObject.accessMode = AccessMode.Read;
+      displayActionPanelIcons(true);
     } else {
       clearClientSelection();
       removeClientInserts();
@@ -541,6 +553,7 @@ function renderClientNode(client, level) {
         populateClientForm,
         () => formObject.submissionMode = 'edit',
         () => formObject.accessMode = AccessMode.Read,
+        (response) => displayActionPanelIcons(response.CanManage),
         renderUserList,
       ],
     ), 2),
@@ -623,9 +636,11 @@ function getClientTree(clientId?) {
 $(document).ready(function onReady() {
   getClientTree();
 
-  // TODOx
   $('#client-tree .action-icon-add').click(newClientClickHandler);
-  $('#client-info .action-icon-edit').click(() => formObject.accessMode = AccessMode.Write);
+  $('#client-info .action-icon-edit').click(() => {
+    formObject.accessMode = AccessMode.Write;
+    displayActionPanelIcons(true);
+  });
   $('#client-info .action-icon-cancel').click(cancelIconClickHandler);
   $('.action-icon-expand').click(shared.expandAllListener);
   $('.action-icon-collapse').click(shared.collapseAllListener);
