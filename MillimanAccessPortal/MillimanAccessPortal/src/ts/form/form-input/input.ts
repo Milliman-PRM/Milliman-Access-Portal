@@ -51,8 +51,11 @@ export abstract class FormInput extends FormElement {
 
   public bindToDOM(entryPoint: HTMLElement) {
     // before bind: this.value references shadow value
-    const value = this.value;
-    this.value = undefined;
+    let value: string;
+    if (!this.bound) {
+      value = this.value;
+      this.value = undefined;
+    }
     super.bindToDOM(entryPoint);
     // after bind: this.value references DOM value
     if (value) {
