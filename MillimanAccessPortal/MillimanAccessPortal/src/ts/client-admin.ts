@@ -5,6 +5,9 @@ import dialog = require('./dialog');
 import shared = require('./shared');
 import { globalSettings } from './lib-options';
 import { Dictionary } from 'lodash';
+import { EntityForm } from './entity-form/entity-form';
+import { EntityFormSubmissionGroup } from './entity-form/form-submission';
+import { AccessMode } from './entity-form/form-modes';
 require('jquery-mask-plugin');
 require('jquery-validation');
 require('jquery-validation-unobtrusive');
@@ -23,6 +26,7 @@ require('../scss/map.scss');
 var ajaxStatus: any = {};
 var eligibleUsers;
 var SHOW_DURATION = 50;
+let formObject: EntityForm;
 
 
 function domainRegex() {
@@ -32,28 +36,25 @@ function emailRegex() {
   return new RegExp(globalSettings.emailValidationRegex);
 }
 
-// TODO: move to shared
+
 function removeClientInserts() {
   $('#client-tree .insert-card').remove();
 }
 
-// TODO: move to shared
+
 function clearClientSelection() {
   $('.card-body-container').removeAttr('editing selected');
 }
 
-// TODO: move to shared
 function hideClientDetails() {
   $('#client-info').hide(SHOW_DURATION);
   $('#client-users').hide(SHOW_DURATION);
 }
 
-// TODO: move to shared
 function hideClientUsers() {
   $('#client-users').hide(SHOW_DURATION);
 }
 
-// TODO: move to shared
 function showClientDetails() {
   var $clientPanes = $('#client-info');
   if ($('#client-tree [selected]').attr('data-client-id')) {
@@ -64,35 +65,7 @@ function showClientDetails() {
   });
 }
 
-// TODO: move to shared
-function setClientFormReadOnly() {
-  var $clientForm = $('#client-info form.admin-panel-content');
-  $('#client-info .action-icon-edit').show();
-  $('#client-info .action-icon-cancel').hide();
-  $clientForm.find(':input').attr('readonly', '');
-  $clientForm.find(':input,select').attr('disabled', '');
-  $clientForm.find('.form-button-container').hide();
-  $clientForm.find('.selectized').each(function disable() {
-    this.selectize.disable();
-  });
-}
-
-// TODO: move to shared
-function setClientFormWriteable() {
-  var $clientForm = $('#client-info form.admin-panel-content');
-  $('#client-info .action-icon-edit').hide();
-  $('#client-info .action-icon-cancel').show();
-  $clientForm.find(':input').removeAttr('readonly');
-  $clientForm.find(':input,select').removeAttr('disabled');
-  $clientForm.find('.form-button-container').hide();
-  $clientForm.find('.edit-form-button-container').show();
-  $clientForm.find('.selectized').each(function enable() {
-    this.selectize.enable();
-  });
-  $clientForm.find('#Name').focus();
-}
-
-
+// TODOx
 function populateClientForm(response) {
   var clientEntity = response.ClientEntity;
   var $clientForm = $('#client-info form.admin-panel-content');
@@ -120,12 +93,46 @@ function populateClientForm(response) {
     field.attr('data-original-value', value);
     field.change();
   });
+  bindForm();
 }
 function populateProfitCenterDropDown(profitCenterList) {
   $('#ProfitCenterId option:not(option[value = ""])').remove();
   $.each(profitCenterList, function appendProfitCenter() {
     $('#ProfitCenterId').append($('<option />').val(this.Id).text(this.Name + ' (' + this.Code + ')'));
   });
+}
+
+function bindForm() {
+  const $clientForm = $('#client-info form.admin-panel-content');
+
+  formObject = new EntityForm();
+  formObject.bindToDOM($clientForm[0]);
+  formObject.configure([
+    {
+      group: new EntityFormSubmissionGroup<any>(
+        undefined, // all sections
+        'ClientAdmin/SaveNewClient',
+        'POST',
+        (response) => {
+          renderClientTree(response.ClientTreeList, response.RelevantClientId);
+          toastr.success('Created new client');
+        },
+      ),
+      mode: 'new'
+    },
+    {
+      group: new EntityFormSubmissionGroup<any>(
+        undefined, // all sections
+        'ClientAdmin/EditClient',
+        'POST',
+        (response) => {
+          renderClientTree(response.ClientTreeList, response.RelevantClientId);
+          toastr.success('Updated client');
+        },
+      ),
+      mode: 'edit'
+    },
+  ]);
 }
 
 
@@ -148,7 +155,7 @@ function updateUserRoleIndicator(userId, userRoles) {
     .show();
 }
 
-// TODO: move to shared
+
 function setUserRole(clientId, userId, roleEnum, isAssigned, onResponse) {
   var $cardContainer = $('#client-users ul.admin-panel-content .card-container[data-user-id="' + userId + '"]');
   var postData = {
@@ -185,7 +192,7 @@ function setUserRole(clientId, userId, roleEnum, isAssigned, onResponse) {
   });
 }
 
-// TODO: move to shared
+
 function userCardRoleToggleClickHandler(event) {
   var $clickedInput = $(event.target);
   event.preventDefault();
@@ -233,52 +240,51 @@ function renderUserList(response) {
 }
 
 
+// TODOx
 function setupChildClientForm(parentClientDiv) {
   var parentClientId = parentClientDiv.attr('data-client-id').valueOf();
   var $template = new card.AddChildInsertCard(parentClientDiv.hasClass('card-100') ? 1 : 2).build();
 
   shared.clearForm($('#client-info'));
   $('#client-info form.admin-panel-content #ParentClientId').val(parentClientId);
+  bindForm();
   parentClientDiv.parent().after($template);
   parentClientDiv.parent().next().find('div.card-container')
     .click(function onClick() {
-      // TODO: move this to a function
       shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
         clearClientSelection();
         removeClientInserts();
         hideClientDetails();
       });
     });
-
-  $('#client-info .form-button-container').hide();
-  $('#client-info .new-form-button-container').show();
 }
 
 
+// TODO
 function setupClientForm() {
   var $clientForm = $('#client-info form.admin-panel-content');
   shared.clearForm($('#client-info'));
-  $clientForm.find('.form-button-container').hide();
-  $clientForm.find('.new-form-button-container').show();
+  bindForm();
+  formObject.submissionMode = 'new';
+  formObject.accessMode = AccessMode.Write;
 }
 
-// TODO: move to shared
+
 function clearUserList() {
   $('#client-users ul.admin-panel-content > li').remove();
   $('#client-users .action-icon').hide();
 }
-// TODO: move to shared
+
 function getClientDetail(clientDiv) {
   var clientId = clientDiv.data('client-id');
 
-  shared.clearForm($('#client-info'));
   $('#client-info .loading-wrapper').show();
 
   clearUserList();
   $('#client-users .loading-wrapper').show();
 
   ajaxStatus.getClientDetail = clientId;
-  $.ajax({
+  return $.ajax({
     type: 'GET',
     url: 'ClientAdmin/ClientDetail',
     data: clientDiv.data(),
@@ -288,6 +294,8 @@ function getClientDetail(clientDiv) {
   }).done(function onDone(response) {
     if (ajaxStatus.getClientDetail !== clientId) return;
     populateClientForm(response);
+    bindForm();
+    formObject.submissionMode = 'edit';
     $('#client-info .loading-wrapper').hide();
     renderUserList(response);
     $('#client-users .loading-wrapper').hide();
@@ -299,49 +307,46 @@ function getClientDetail(clientDiv) {
   });
 }
 
-// TODO: move to shared
+
 function openClientCardReadOnly($clientCard) {
   removeClientInserts();
   clearClientSelection();
   $clientCard.find('div.card-body-container').attr('selected', '');
-  setClientFormReadOnly();
-  getClientDetail($clientCard);
+  getClientDetail($clientCard).done(() => formObject.accessMode = AccessMode.Read);
   showClientDetails();
 }
 
-// TODO: move to shared
+
 function openClientCardWriteable($clientCard) {
   removeClientInserts();
   clearClientSelection();
   $clientCard.find('div.card-body-container').attr({ selected: '', editing: '' });
-  getClientDetail($clientCard);
-  setClientFormWriteable();
+  getClientDetail($clientCard).done(() => formObject.accessMode = AccessMode.Write);
   showClientDetails();
 }
 
-// TODO: move to shared
+
 function openNewChildClientForm($parentCard) {
   removeClientInserts();
   clearClientSelection();
-  setClientFormWriteable();
   setupChildClientForm($parentCard);
+  formObject.accessMode = AccessMode.Write;
   $parentCard.parent().next('li').find('div.card-body-container')
     .attr({ selected: '', editing: '' });
   hideClientUsers();
   showClientDetails();
 }
 
-// TODO: move to shared
+
 function openNewClientForm() {
   clearClientSelection();
-  setClientFormWriteable();
   setupClientForm();
   $('#new-client-card').find('div.card-body-container').attr('selected', '');
   hideClientUsers();
   showClientDetails();
 }
 
-// TODO: move to shared
+
 function clientCardDeleteClickHandler(event) {
   var $clickedCard = $(this).closest('.card-container');
   var clientId = $clickedCard.attr('data-client-id');
@@ -366,7 +371,7 @@ function clientCardDeleteClickHandler(event) {
   ).open();
 }
 
-// TODO: move to shared
+
 function clientCardEditClickHandler(event) {
   var $clickedCard = $(this).closest('.card-container');
   var $clientTree = $('#client-tree');
@@ -383,7 +388,7 @@ function clientCardEditClickHandler(event) {
   }
 }
 
-// TODO: move to shared
+
 function clientCardCreateNewChildClickHandler(event) {
   var $clickedCard = $(this).closest('.card-container');
   var $clientTree = $('#client-tree');
@@ -402,7 +407,7 @@ function clientCardCreateNewChildClickHandler(event) {
   }
 }
 
-// TODO: move to shared
+
 function userCardRemoveClickHandler(event) {
   var $clickedCard = $(this).closest('.card-container');
   var userName = $clickedCard.find('.card-body-primary-text').html();
@@ -414,7 +419,7 @@ function userCardRemoveClickHandler(event) {
   }).open();
 }
 
-// TODO: move to shared
+
 function newClientClickHandler() {
   var $clientTree = $('#client-tree');
   var sameCard = ($('#new-client-card')[0] === $clientTree.find('[selected]').closest('.card-container')[0]);
@@ -435,7 +440,7 @@ function newClientClickHandler() {
   }
 }
 
-// TODO: move to shared
+
 function saveNewUser(username, email, callback) {
   var clientId = $('#client-tree [selected]').closest('[data-client-id]').attr('data-client-id');
   $.ajax({
@@ -459,7 +464,7 @@ function saveNewUser(username, email, callback) {
   });
 }
 
-// TODO: move to shared
+
 function addUserClickHandler() {
   new dialog.AddUserDialog(
     eligibleUsers,
@@ -485,7 +490,7 @@ function addUserClickHandler() {
   ).open();
 }
 
-// TODO: move to shared
+
 function removeUserFromClient(clientId, userId, callback) {
   var userName = $('#client-users ul.admin-panel-content [data-user-id="' + userId + '"] .card-body-primary-text').html();
   var clientName = $('#client-tree [data-client-id="' + clientId + '"] .card-body-primary-text').html();
@@ -510,12 +515,12 @@ function removeUserFromClient(clientId, userId, callback) {
   });
 }
 
-// TODO: move to shared
+
 function cancelIconClickHandler() {
   shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
     if ($('#client-tree [selected]').parent().attr('data-client-id')) {
       $('#client-tree [editing]').removeAttr('editing');
-      setClientFormReadOnly();
+      formObject.accessMode = AccessMode.Read;
     } else {
       clearClientSelection();
       removeClientInserts();
@@ -533,13 +538,9 @@ function renderClientNode(client, level) {
     shared.wrapCardCallback(shared.get(
       'ClientAdmin/ClientDetail',
       [
-        setClientFormReadOnly,
         populateClientForm,
-        function () {
-          if ($card.readonly) {
-            $('#client-info .action-icon-edit').hide();
-          }
-        },
+        () => formObject.submissionMode = 'edit',
+        () => formObject.accessMode = AccessMode.Read,
         renderUserList,
       ],
     ), 2),
@@ -574,7 +575,7 @@ function renderClientTree(clientTreeList, clientId) {
   }
 }
 
-// TODO: move to shared
+
 function deleteClient(clientId, clientName, password, callback) {
   $.ajax({
     type: 'DELETE',
@@ -599,7 +600,7 @@ function deleteClient(clientId, clientName, password, callback) {
   });
 }
 
-// TODO: move to shared
+
 function getClientTree(clientId?) {
   $('#client-tree .loading-wrapper').show();
   $.ajax({
@@ -619,78 +620,21 @@ function getClientTree(clientId?) {
   });
 }
 
-// TODO: move to shared
-function submitClientForm() {
-  var $clientForm = $('#client-info form.admin-panel-content');
-  var $button;
-  var clientId;
-  var clientName;
-  var urlAction;
-  var successResponse;
-  if ($clientForm.valid()) {
-    clientId = $clientForm.find('#Id').val();
-    clientName = $clientForm.find('#Name').val();
-    urlAction = 'ClientAdmin/';
-
-    if (clientId) {
-      urlAction += 'EditClient';
-      successResponse = clientName + ' was successfully updated';
-      $button = $('.edit-form-button-container .submit-button');
-    } else {
-      urlAction += 'SaveNewClient';
-      successResponse = clientName + ' was successfully created';
-      $button = $('.new-form-button-container .submit-button');
-    }
-
-    shared.showButtonSpinner($button);
-    $.ajax({
-      type: 'POST',
-      url: urlAction,
-      data: $clientForm.serialize(),
-      headers: {
-        RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
-      }
-    }).done(function onDone(response) {
-      shared.hideButtonSpinner($button);
-      renderClientTree(response.ClientTreeList, response.RelevantClientId);
-      toastr.success(successResponse);
-    }).fail(function onFail(response) {
-      shared.hideButtonSpinner($button);
-      toastr.warning(response.getResponseHeader('Warning'));
-    });
-  }
-}
-
 $(document).ready(function onReady() {
   getClientTree();
 
+  // TODOx
   $('#client-tree .action-icon-add').click(newClientClickHandler);
-  $('#client-info .action-icon-edit').click(setClientFormWriteable);
+  $('#client-info .action-icon-edit').click(() => formObject.accessMode = AccessMode.Write);
   $('#client-info .action-icon-cancel').click(cancelIconClickHandler);
   $('.action-icon-expand').click(shared.expandAllListener);
   $('.action-icon-collapse').click(shared.collapseAllListener);
   $('#client-users .action-icon-add').click(addUserClickHandler);
-  $('.submit-button').click(submitClientForm);
-  $('.new-form-button-container .reset-button').click(function () {
-    shared.confirmAndContinue($('#client-info'), dialog.ResetConfirmationDialog);
-  });
-  $('.edit-form-button-container .reset-button').click(function () {
-    shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog);
-  });
 
   $('.admin-panel-searchbar-tree').keyup(shared.filterTreeListener);
   $('.tooltip').tooltipster();
 
-  // TODO: find a better place for this
-  $('#client-info form.admin-panel-content').find(':input,select')
-    .change(function onChange() {
-      if (shared.modifiedInputs($('#client-info')).length) {
-        $('.form-button-container button').show();
-      } else {
-        $('.form-button-container button').hide();
-      }
-    });
-
+  // TODO
   $('#client-info form.admin-panel-content #AcceptedEmailDomainList').selectize({
     plugins: ['remove_button'],
     persist: false,
@@ -712,6 +656,7 @@ $(document).ready(function onReady() {
     }
   });
 
+  // TODO
   $('#client-info form.admin-panel-content #AcceptedEmailAddressExceptionList').selectize({
     plugins: ['remove_button'],
     delimiter: ',',

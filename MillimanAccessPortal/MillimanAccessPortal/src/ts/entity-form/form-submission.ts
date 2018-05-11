@@ -1,3 +1,4 @@
+import * as toastr from 'toastr';
 import { EntityForm } from "./entity-form";
 import { FormElement } from "./form-element";
 import { confirmAndContinueForm } from "../shared";
@@ -97,6 +98,7 @@ export class EntityFormSubmissionGroup<T> {
     }).done((response: T) => {
       this.callback(response, form);
     }).fail((response) => {
+      toastr.warning(response.getResponseHeader('warning'));
       // TODO: do something on fail
     });
   }
