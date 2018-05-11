@@ -1,4 +1,4 @@
-﻿/**//*
+﻿/*
  * CODE OWNERS: Tom Puckett
  * OBJECTIVE: <What and WHY.>
  * DEVELOPER NOTES: POCO to contain various relevant objects about one runnable JobMonitor
