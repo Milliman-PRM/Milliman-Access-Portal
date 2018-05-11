@@ -204,15 +204,6 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 UploadHelper.FinalizeUpload(resumableInfo);
-
-                DbContext.FileUpload.Add(new FileUpload
-                {
-                    StoragePath = UploadHelper.GetOutputFilePath(),
-                    Checksum = resumableInfo.Checksum,
-                    ClientFileIdentifier = resumableInfo.UID,
-                    CreatedDateTimeUtc = DateTime.UtcNow
-                });
-                DbContext.SaveChanges();
             }
             catch (FileUploadException e)
             {
@@ -220,7 +211,18 @@ namespace MillimanAccessPortal.Controllers
                 return new StatusCodeResult(e.HttpStatus);
             }
 
-            return new JsonResult(UploadHelper.GetOutputFilePath());
+            var fileUpload = new FileUpload
+            {
+                StoragePath = UploadHelper.GetOutputFilePath(),
+                Checksum = resumableInfo.Checksum,
+                ClientFileIdentifier = resumableInfo.UID,
+                CreatedDateTimeUtc = DateTime.UtcNow
+            };
+
+            DbContext.FileUpload.Add(fileUpload);
+            DbContext.SaveChanges();
+
+            return new JsonResult(fileUpload.Id);
         }
     }
 

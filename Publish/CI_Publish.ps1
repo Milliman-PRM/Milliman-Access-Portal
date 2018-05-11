@@ -392,58 +392,6 @@ remove-item env:PGPASSWORD
 
 #endregion
 
-#region Configure database firewall rules
-
-$command = "az login --service-principal -u $deployUser -p $deployPassword --tenant $tenantId"
-Invoke-Expression "&$command"
-if ($? -eq $false)
-{
-    log_statement "Failed to authenticate for creation of firewall rules"
-    exit -9000
-}
-
-log_statement "Defining database firewall rules"
-
-# Retrieve list of IP addresses the web app may use
-$properties = Get-AzureRmResource -ResourceGroupName map-ci -ResourceType Microsoft.Web/sites/slots -ResourceName "map-ci-app/$BranchName" -ApiVersion 2016-08-01
-$outboundList = $properties.Properties.possibleOutboundIpAddresses.Split(',')
-
-# Retrieve the current list of firewall rules
-# Will be compared against the app's IP addresses to see which rules need to be created
-$command = "az postgres server firewall-rule list --server-name `"$dbServerHostname`" --resource-group `"$ResourceGroupName`""
-$firewallRules = invoke-expression "&$command" | out-string | ConvertFrom-Json
-if ($LASTEXITCODE -ne 0)
-{
-    log_statement "Failed retrieving list of existing firewall rules"
-}
-$firewallFailures = 0
-
-foreach ( $ip in $outboundList)
-{
-    if ($ip -notin $firewallRules.startIpAddress -and $ip -notin $firewallRules.endIpAddress)
-    {
-        $ruleName = "Allow_"+$BranchName+"_"+$ip.replace(".","")
-        $command = "az postgres server firewall-rule create --resource-group `"$ResourceGroupName`" --server `"$DbServerHostname`" --name `"$ruleName`" --start-ip-address $ip --end-ip-address $ip"
-        invoke-expression "&$command"
-        if ($LASTEXITCODE -ne 0)
-        {
-            log_statement "Failed to create firewall rule named $ruleName"
-            $firewallFailures = $firewallFailures + 1
-        }
-    }
-}
-
-if ($firewallFailures -gt 0)
-{
-    log_statement "Failed creating one or more firewall rules. Deployment canceled."
-    exit -9000
-}
-else
-{
-    log_statement "Finished creating database firewall rules"
-}
-#endregion
-
 #region Create Windows credential store object for deployment
 
 $command = "$credManagerPath -DelCred -Target `"git:$RemoteUrl`""

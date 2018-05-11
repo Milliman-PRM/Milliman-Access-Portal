@@ -33,12 +33,12 @@ export abstract class Upload {
     this._checksum = checksum;
     this.signalRequiresUnloadAlert();
   }
-  protected _serverFile: string;
-  protected get serverFile(): string {
-    return this._serverFile;
+  protected _fileGUID: string;
+  protected get fileGUID(): string {
+    return this._fileGUID;
   }
-  protected set serverFile(serverFile: string) {
-    this._serverFile = serverFile;
+  protected set fileGUID(fileGUID: string) {
+    this._fileGUID = fileGUID;
     this.signalRequiresUnloadAlert();
   }
   protected _cancelable: boolean;
@@ -74,6 +74,7 @@ export abstract class Upload {
   constructor(
     readonly rootElement: HTMLElement,
     readonly unloadAlertCallback: (a: boolean) => void,
+    readonly fileSuccessCallback: (guid: string) => void,
   ) {
     this.scanner = new FileScanner();
     this.resumable = new Resumable(Object.assign({}, resumableOptions, {
@@ -86,10 +87,15 @@ export abstract class Upload {
       throw new Error('This browser does not support resumable file uploads.');
     }
 
+    // Clone the input to clear any event listeners
+    const input = this.selectBrowseElement(rootElement);
+    $(input).replaceWith($(input.cloneNode(false)));
+
     this.resumable.assignBrowse(this.selectBrowseElement(rootElement), false);
+
     this.resumable.on('fileAdded', async (file) => {
       this.cancelable = true;
-      this.selectFileNameElement(this.rootElement).innerHTML = file.fileName;
+      this.selectFileNameElement(this.rootElement).value = file.fileName;
 
       this.renderUploadProgress({
         percentage: '0%',
@@ -146,8 +152,8 @@ export abstract class Upload {
         }).always((response) => {
           this.checksum = undefined;
         });
-    });
       });
+    });
     this.resumable.on('fileSuccess', (file, message) => {
       this.cancelable = false;
       const finalizeInfo: ResumableInfo = {
@@ -174,7 +180,8 @@ export abstract class Upload {
           rate: 'Upload complete',
           remainingTime: '',
         });
-        this.serverFile = response; // TODO: process response
+        this.fileGUID = response;
+        this.fileSuccessCallback(this.fileGUID);
       }).fail((response) => {
         throw new Error(`Something went wrong. Response: ${response}`);
       }).always((response) => {
@@ -196,11 +203,17 @@ export abstract class Upload {
     });
   }
 
+  public reset() {
+    this.cancelable = false;
+    this.checksum = undefined;
+    this.fileGUID = undefined;
+  }
+
   private signalRequiresUnloadAlert() {
     this.unloadAlertCallback(
       this.cancelable
       || this.checksum !== undefined
-      || this.serverFile !== undefined
+      || this.fileGUID !== undefined
     );
   }
 
@@ -214,7 +227,7 @@ export abstract class Upload {
   
   protected abstract selectBrowseElement(rootElement: HTMLElement): HTMLElement;
 
-  protected abstract selectFileNameElement(rootElement: HTMLElement): HTMLElement;
+  protected abstract selectFileNameElement(rootElement: HTMLElement): HTMLInputElement;
 
   protected abstract selectChecksumBarElement(rootElement: HTMLElement): HTMLElement;
 

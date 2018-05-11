@@ -144,6 +144,13 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CreateRootContentItem(RootContentItem rootContentItem)
+        {
+            return Json(rootContentItem);
+        }
+
+        [HttpPost]
         public async Task<IActionResult> Publish()
         {
             #region Preliminary Validation
