@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using AuditLogLib;
+using MapCommonLib;
 using MapDbContextLib.Context;
 using Moq;
 
@@ -78,7 +79,7 @@ namespace ContentPublishingLib.JobRunners
 
             try
             {
-                string StorageBasePath = Configuration.ApplicationConfiguration.GetSection("Storage")["LiveContentRootPath"];
+                string StorageBasePath = Configuration.ApplicationConfiguration.GetSection("Storage")["ContentItemRootPath"];
                 if (!Directory.Exists(StorageBasePath))
                 {
                     throw new ApplicationException($"Configured LiveContentRootPath folder {StorageBasePath} does not exist");
@@ -94,30 +95,32 @@ namespace ContentPublishingLib.JobRunners
                     {
                         throw new ApplicationException($"While publishing request {JobDetail.JobId.ToString()}, uploaded file not found at path [{RelatedFile.FullPath}].");
                     }
-
-                    switch (RelatedFile.FilePurpose.ToLower())
+                    if (RelatedFile.Checksum != GlobalFunctions.GetFileChecksum(RelatedFile.FullPath))
                     {
-                        case "mastercontent":
-                            ProcessMasterContentFile(RelatedFile);
-                            break;
+                        throw new ApplicationException($"While publishing request {JobDetail.JobId.ToString()}, checksum validation failed for file [{RelatedFile.FullPath}].");
+                    }
 
-                        default:
-                            string DestinationFileName = $"{RelatedFile.FilePurpose}.Pub[{JobDetail.JobId.ToString()}].Content[{JobDetail.Request.RootContentId.ToString()}]{Path.GetExtension(RelatedFile.FullPath).Replace("..", ".")}";
-                            string DestinationFullPath = Path.Combine(RootContentFolder, DestinationFileName);
+                    string DestinationFileName = $"{RelatedFile.FilePurpose}.Pub[{JobDetail.JobId.ToString()}].Content[{JobDetail.Request.RootContentId.ToString()}]{Path.GetExtension(RelatedFile.FullPath).Replace("..", ".")}";
+                    string DestinationFullPath = Path.Combine(RootContentFolder, DestinationFileName);
 
-                            File.Copy(RelatedFile.FullPath, DestinationFullPath, true);
+                    File.Copy(RelatedFile.FullPath, DestinationFullPath, true);
 
-                            JobDetail.Result.RelatedFiles.Add(new PublishJobDetail.ContentRelatedFile { FilePurpose = RelatedFile.FilePurpose, FullPath = DestinationFullPath });
+                    JobDetail.Result.RelatedFiles.Add(new PublishJobDetail.ContentRelatedFile { FilePurpose = RelatedFile.FilePurpose, FullPath = DestinationFullPath });
 
-                            break;
+                    if (RelatedFile.FilePurpose.ToLower() == "mastercontent")
+                    {
+                        ProcessMasterContentFile(RelatedFile);
                     }
                 }
+
+                JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
             }
             catch (Exception e)
             {
                 JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
-                Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
-                JobDetail.Result.StatusMessage = e.Message;
+                string msg = GlobalFunctions.LoggableExceptionString(e);
+                Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {msg}");
+                JobDetail.Result.StatusMessage = msg;
             }
 
             return JobDetail;
@@ -162,16 +165,28 @@ namespace ContentPublishingLib.JobRunners
                         if (SelGrp.IsMaster && MasterHierarchyRequested)
                         {
                             // Only handle IsMaster SelectionGroups once
+                            // TODO During go-live the master file will need to be associated with all IsMaster groups
                             continue;
                         }
 
+                        Guid TaskId = Guid.NewGuid();
+
+                        string QvSourceDocumentsPath = Configuration.ApplicationConfiguration.GetSection("Storage")["QvSourceDocumentsPath"];
+                        string TaskFolder = Path.Combine(QvSourceDocumentsPath, TaskId.ToString());
+                        Directory.CreateDirectory(TaskFolder);
+
+                        string DestinationFileName = $"{MasterFile.FilePurpose}.Pub[{JobDetail.JobId.ToString()}].Content[{JobDetail.Request.RootContentId.ToString()}]{Path.GetExtension(MasterFile.FullPath).Replace("..", ".")}";
+                        string CopyDestination = Path.Combine(TaskFolder, DestinationFileName);
+                        File.Copy(MasterFile.FullPath, CopyDestination, true);
+
                         ContentReductionTask NewTask = new ContentReductionTask
                         {
+                            Id = TaskId,
                             ApplicationUserId = JobDetail.Request.ApplicationUserId,
                             ContentPublicationRequestId = JobDetail.JobId,
                             CreateDateTime = DateTime.UtcNow,  // TODO later: Figure out how to avoid delay in starting the reduction task. 
+                            MasterFilePath = CopyDestination,
                             MasterContentChecksum = MasterFile.Checksum,
-                            MasterFilePath = MasterFile.FullPath,
                             ReductionStatus = ReductionStatusEnum.Queued,
                             SelectionGroupId = SelGrp.Id,
                         };
@@ -185,7 +200,7 @@ namespace ContentPublishingLib.JobRunners
                         else
                         {
                             var x = Db.HierarchyFieldValue.Where(v => SelGrp.SelectedHierarchyFieldValueList.Contains(v.Id));
-                            NewTask.SelectionCriteria = "#";
+                            NewTask.SelectionCriteria = "{}"; // TODO get this right
                             NewTask.TaskAction = TaskActionEnum.HierarchyAndReduction;
                         }
 
@@ -197,14 +212,7 @@ namespace ContentPublishingLib.JobRunners
             }
             else
             {
-                // Do I need to remove any possible files for this publish request ID?  (IDK maybe there will never be any). 
-
-                // Copy all related files to RootContentItem folder
-                foreach (PublishJobDetail.ContentRelatedFile RelatedFile in JobDetail.Request.RelatedFiles)
-                {
-                }
-
-                JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
+                // nothing?
             }
         }
     }
