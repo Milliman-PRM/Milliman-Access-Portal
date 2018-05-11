@@ -173,14 +173,14 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 
-cd $rootpath\ReductionServer
+cd $rootpath\ContentPublishingServer
 
-log_statement "Performing test build of reduction server"
+log_statement "Performing test build of content publishing server"
 
 MSBuild /restore:true /verbosity:quiet /nowarn:CS1998
 
 if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: Test build or package restore failed for reduction server solution"
+    log_statement "ERROR: Test build or package restore failed for content publishing server solution"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
@@ -221,24 +221,24 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-log_statement "Building Reduction Server unit tests"
+log_statement "Building Content Publishing Server unit tests"
 
-cd $rootpath\ReductionServer\ContentReductionServiceTests
+cd $rootpath\ContentPublishingServer\ContentPublishingServiceTests
 
 MSBuild /restore:True /verbosity:quiet
 
 if ( $LASTEXITCODE -ne 0 ) {
-    log_statement "ERROR: Reduction server unit test build failed"
+    log_statement "ERROR: Content publishing server unit test build failed"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
 
-log_statement "Performing Reduction server unit tests"
+log_statement "Performing Content publishing server unit tests"
 
 dotnet test --no-build -v q
 
 if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: One or more Reduction server xUnit tests failed"
+    log_statement "ERROR: One or more Content publishing server xUnit tests failed"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
