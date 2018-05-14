@@ -73,3 +73,9 @@ export class RootContentItemDetail {
   Description: string;
   Notes: string;
 }
+
+export class RootContentItemStatus {
+  Status: {
+    [id: number]: PublicationStatus;
+  }
+}
