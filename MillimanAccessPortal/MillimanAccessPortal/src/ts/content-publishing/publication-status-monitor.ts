@@ -29,13 +29,8 @@ function statusCallback(response: RootContentItemStatus) {
   $('#root-content-items').find('.card-container')
     .toArray().forEach((cardContainer: HTMLElement) => {
       const $cardContainer = $(cardContainer);
-      const rootContentItemId = $cardContainer.data().rootContentItemId;
-      updateCardStatus($cardContainer, {
-        User: {
-          FirstName: '',
-        },
-        StatusEnum: response.Status[rootContentItemId] || 0,
-        RootContentItemId: rootContentItemId,
-      });
+      const status = response.Status.filter((s) =>
+        s && s.RootContentItemId === $cardContainer.data().rootContentItemId)[0];
+      updateCardStatus($cardContainer, status);
     });
 }

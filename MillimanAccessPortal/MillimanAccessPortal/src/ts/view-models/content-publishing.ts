@@ -74,8 +74,12 @@ export class RootContentItemDetail {
   Notes: string;
 }
 
+export class PublicationDetails {
+  User: UserInfo;
+  StatusEnum: PublicationStatus;
+  StatusName: string;
+  RootContentItemId: number;
+}
 export class RootContentItemStatus {
-  Status: {
-    [id: number]: PublicationStatus;
-  }
+  Status: Array<PublicationDetails>;
 }
