@@ -155,6 +155,17 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateRootContentItem(RootContentItem rootContentItem)
         {
+            #region Preliminary validation
+            var client = DbContext.Client
+                .Where(c => c.Id == rootContentItem.ClientId)
+                .SingleOrDefault();
+            if (client == null)
+            {
+                Response.Headers.Add("Warning", "The associated client does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
             #region Authorization
             AuthorizationResult roleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, rootContentItem.ClientId));
             if (!roleInClientResult.Succeeded)
@@ -177,6 +188,20 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
+            var contentType = DbContext.ContentType
+                .Where(c => c.Id == rootContentItem.ContentTypeId)
+                .SingleOrDefault();
+            if (contentType == null)
+            {
+                Response.Headers.Add("Warning", "The associated content type does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (rootContentItem.ContentName == null)
+            {
+                Response.Headers.Add("Warning", "You must supply a name for the root content item.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             try

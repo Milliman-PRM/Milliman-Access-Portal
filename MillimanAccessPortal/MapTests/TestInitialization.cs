@@ -530,8 +530,9 @@ namespace MapTests
             DbContextObject.UserRoleInClient.AddRange(new List<UserRoleInClient>
             {
                 new UserRoleInClient { Id=1, ClientId=1, RoleId=3, UserId=1 },
-                new UserRoleInClient { Id=2, ClientId=1, RoleId=5, UserId=1 },
-                new UserRoleInClient { Id=3, ClientId=1, RoleId=5, UserId=2 },
+                new UserRoleInClient { Id=2, ClientId=1, RoleId=4, UserId=1 },
+                new UserRoleInClient { Id=3, ClientId=1, RoleId=5, UserId=1 },
+                new UserRoleInClient { Id=4, ClientId=1, RoleId=5, UserId=2 },
             });
             MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
             MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
