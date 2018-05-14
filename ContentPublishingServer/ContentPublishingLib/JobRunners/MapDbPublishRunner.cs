@@ -14,9 +14,11 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Newtonsoft.Json;
 using AuditLogLib;
 using MapCommonLib;
 using MapDbContextLib.Context;
+using MapDbContextLib.Models;
 using Moq;
 
 namespace ContentPublishingLib.JobRunners
@@ -199,8 +201,9 @@ namespace ContentPublishingLib.JobRunners
                         }
                         else
                         {
-                            var x = Db.HierarchyFieldValue.Where(v => SelGrp.SelectedHierarchyFieldValueList.Contains(v.Id));
-                            NewTask.SelectionCriteria = "{}"; // TODO get this right
+                            var SelectionHierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, SelGrp.Id);
+
+                            NewTask.SelectionCriteria = SelectionHierarchy.SerializeJson();
                             NewTask.TaskAction = TaskActionEnum.HierarchyAndReduction;
                         }
 

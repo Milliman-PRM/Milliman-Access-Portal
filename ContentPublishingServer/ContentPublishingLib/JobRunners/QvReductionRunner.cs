@@ -549,7 +549,7 @@ namespace ContentPublishingLib.JobRunners
             NewDocumentTask.Reduce.Static.Reductions = new TaskReduction[NumSelectedValues];
 
             int Index = 0;
-            foreach (FieldValueSelection FieldVal in Selections)
+            foreach (FieldValueSelection FieldVal in Selections.Where(v => v.Selected))
             {
                 Trace.WriteLine(string.Format($"Reduction task: assigning selection for field <{FieldVal.FieldName}> with value <{FieldVal.FieldValue}>")); // TODO delete this
                 NewDocumentTask.Reduce.Static.Reductions[Index] = new TaskReduction();
