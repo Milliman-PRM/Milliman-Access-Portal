@@ -18,6 +18,10 @@ namespace MillimanAccessPortal.Models.AccountViewModels
 
         public static explicit operator UserInfoViewModel(ApplicationUser User)
         {
+            if (User == null)
+            {
+                return null;
+            }
             return new UserInfoViewModel
             {
                 Id = User.Id,
