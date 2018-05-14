@@ -66,6 +66,17 @@ namespace ContentPublishingLib.JobRunners
             }
         }
 
+        /// <summary>
+        /// Gets an appropriate ApplicationDbContext object, depending on whether a Mocked context is needed (e.g. for testing)
+        /// </summary>
+        /// <returns></returns>
+        protected ApplicationDbContext GetDbContext()
+        {
+            return MockContext != null
+                 ? MockContext.Object
+                 : new ApplicationDbContext(ContextOptions);
+        }
+
         public async Task<PublishJobDetail> Execute(CancellationToken cancellationToken)
         {
             if (AuditLog == null)
@@ -115,6 +126,25 @@ namespace ContentPublishingLib.JobRunners
                     }
                 }
 
+                // Wait for all related reduction tasks to complete
+                int PendingTaskCount = 0;
+                DateTime WaitStart = DateTime.Now;
+                do
+                {
+                    List<ContentReductionTask> RelatedReductionTasks = null;
+                    using (ApplicationDbContext Db = GetDbContext())
+                    {
+                        RelatedReductionTasks = await Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId).ToListAsync();
+                    }
+                    PendingTaskCount = RelatedReductionTasks.Count(t => t.ReductionStatus == ReductionStatusEnum.Queued
+                                                                     || t.ReductionStatus == ReductionStatusEnum.Reducing);
+
+
+
+                    Thread.Sleep(1000);
+                }
+                while (PendingTaskCount > 0 && DateTime.Now < WaitStart + new TimeSpan(3,0,0));  // TODO Get the timeout from configuration
+
                 JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
             }
             catch (Exception e)
@@ -136,9 +166,7 @@ namespace ContentPublishingLib.JobRunners
         private void ProcessMasterContentFile(PublishJobDetail.ContentRelatedFile MasterFile)
         {
             // If there is no SelectionGroup for this content item, create a new SelectionGroup with IsMaster = true
-            using (ApplicationDbContext Db = MockContext != null
-                                           ? MockContext.Object
-                                           : new ApplicationDbContext(ContextOptions))
+            using (ApplicationDbContext Db = GetDbContext())
             {
                 if (!Db.SelectionGroup.Any(sg => sg.RootContentItemId == JobDetail.Request.RootContentId))
                 {
@@ -154,9 +182,7 @@ namespace ContentPublishingLib.JobRunners
 
             if (JobDetail.Request.DoesReduce)
             {
-                using (ApplicationDbContext Db = MockContext != null
-                                               ? MockContext.Object
-                                               : new ApplicationDbContext(ContextOptions))
+                using (ApplicationDbContext Db = GetDbContext())
                 {
                     bool MasterHierarchyRequested = false;
 
