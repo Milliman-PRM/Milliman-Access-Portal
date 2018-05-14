@@ -232,7 +232,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpGet]
-        [DisableAuthRefresh]
+        [PreventAuthRefreshAttribute]
         public async Task<IActionResult> Status()
         {
             var rootContentItemStatusList = RootContentItemStatus.Build(DbContext, await Queries.GetCurrentApplicationUser(User));
