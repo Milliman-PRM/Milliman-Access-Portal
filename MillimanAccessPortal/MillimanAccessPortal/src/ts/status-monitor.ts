@@ -12,6 +12,8 @@ export class StatusMonitor<T> {
     if (!isNaN(interval)) {
       this.interval = interval;
     }
+    this.stop = this.stop.bind(this);
+    this.monitor = this.monitor.bind(this);
   }
 
   public start() {
@@ -26,13 +28,15 @@ export class StatusMonitor<T> {
   private monitor() {
     if (this.active) {
       this.checkStatus();
-      setTimeout(() => this.monitor(), this.interval);
+      setTimeout(this.monitor, this.interval);
     }
   }
 
   private checkStatus() {
     $.get({
       url: this.url
-    }).done(this.callback);
+    })
+    .done(this.callback)
+    .fail(this.stop);
   }
 }
