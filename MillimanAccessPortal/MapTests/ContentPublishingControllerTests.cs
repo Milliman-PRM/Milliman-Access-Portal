@@ -182,6 +182,83 @@ namespace MapTests
             #endregion
         }
 
+        [Theory]
+        [InlineData(999)]
+        public async Task DeleteRootContentItem_ErrorInvalid(long rootContentItemId)
+        {
+            #region Arrange
+            ContentPublishingController controller = await GetControllerForUser("user1");
+            #endregion
+
+            #region Act
+            int preCount = TestResources.DbContextObject.RootContentItem.Count();
+            var view = await controller.DeleteRootContentItem(rootContentItemId);
+            int postCount = TestResources.DbContextObject.RootContentItem.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(view);
+            StatusCodeResult viewResult = (StatusCodeResult)view;
+            Assert.Equal("422", viewResult.StatusCode.ToString());
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData("user2", 1)]  // User is not content publisher
+        [InlineData("user1", 2)]  // User has no role in the client
+        public async Task DeleteRootContentItem_ErrorUnauthorized(String userName, long rootContentItemId)
+        {
+            #region Arrange
+            ContentPublishingController controller = await GetControllerForUser(userName);
+            #endregion
+
+            #region Act
+            int preCount = TestResources.DbContextObject.RootContentItem.Count();
+            var view = await controller.DeleteRootContentItem(rootContentItemId);
+            int postCount = TestResources.DbContextObject.RootContentItem.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
+        [Fact]
+        public async Task DeleteRootContentItem_ReturnsJson()
+        {
+            #region Arrange
+            ContentPublishingController controller = await GetControllerForUser("user1");
+            #endregion
+
+            #region Act
+            var view = await controller.DeleteRootContentItem(3);
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(view);
+            #endregion
+        }
+
+        [Fact]
+        public async Task DeleteRootContentItem_Success()
+        {
+            #region Arrange
+            ContentPublishingController controller = await GetControllerForUser("user1");
+            #endregion
+
+            #region Act
+            int preCount = TestResources.DbContextObject.RootContentItem.Count();
+            var view = await controller.DeleteRootContentItem(3);
+            int postCount = TestResources.DbContextObject.RootContentItem.Count();
+            #endregion
+
+            #region Assert
+            Assert.Equal(preCount - 1, postCount);
+            #endregion
+        }
+
         /*
         [Fact]
         public async Task RequestContentPublication_Ok()

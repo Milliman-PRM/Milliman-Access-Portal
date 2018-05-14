@@ -614,8 +614,9 @@ namespace MapTests
                 new UserRoleInRootContentItem { Id=1, RoleId=3, UserId=1, RootContentItemId=1 },
                 new UserRoleInRootContentItem { Id=2, RoleId=5, UserId=1, RootContentItemId=1 },
                 new UserRoleInRootContentItem { Id=3, RoleId=3, UserId=1, RootContentItemId=3 },
-                new UserRoleInRootContentItem { Id=4, RoleId=5, UserId=1, RootContentItemId=3 },
-                new UserRoleInRootContentItem { Id=5, RoleId=5, UserId=2, RootContentItemId=1 },
+                new UserRoleInRootContentItem { Id=4, RoleId=4, UserId=1, RootContentItemId=3 },
+                new UserRoleInRootContentItem { Id=5, RoleId=5, UserId=1, RootContentItemId=3 },
+                new UserRoleInRootContentItem { Id=6, RoleId=5, UserId=2, RootContentItemId=1 },
             });
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInRootContentItem, "RoleId", DbContextObject.ApplicationRole);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInRootContentItem, "UserId", DbContextObject.ApplicationUser);
