@@ -7,6 +7,7 @@
 using AuditLogLib.Services;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -16,6 +17,7 @@ using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentPublishing;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -151,33 +153,40 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Publish()
+        public async Task<IActionResult> Publish(PublishRequest Arg)
         {
             #region Preliminary Validation
-            /* TODO: correct this section
-            RootContentItem rootContentItem = DbContext.RootContentItem.SingleOrDefault(rc => rc.Id == resumableInfo.RootContentItemId);
-            if (rootContentItem == null)
-            {
-                Response.Headers.Add("Warning", "Requested content item not found.");
-                return BadRequest();
-            }
-            */
+            // maybe none
             #endregion
 
             #region Authorization
-            /* TODO: correct this section
-            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, resumableInfo.RootContentItemId));
+            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, Arg.RootContentItemId));
             if (!RoleInRootContentItemResult.Succeeded)
             {
                 Response.Headers.Add("Warning", $"You are not authorized to publish this content");
                 return Unauthorized();
             }
-            */
+
             #endregion
 
             #region Validation
-            // TODO: add additional validation
+            // The requested RootContentItem must exist
+            RootContentItem rootContentItem = DbContext.RootContentItem.SingleOrDefault(rc => rc.Id == Arg.RootContentItemId);
+            if (rootContentItem == null)
+            {
+                Response.Headers.Add("Warning", "Requested content item not found.");
+                return BadRequest();
+            }
+
+            // All the provided references to related files must be found in the FileUpload entity.  
+            if (Arg.RelatedFiles.Any(f => DbContext.FileUpload.Find(f.FileUploadId) == null))
+            {
+                Response.Headers.Add("Warning", "A requested related file has not been uploaded.");
+                return BadRequest();
+            }
             #endregion
+
+            // TODO need to know if this is first time publish or replacement. 
 
             // Create the publication request and reduction task(s)
             /* TODO: correct this section

@@ -29,7 +29,6 @@
     <ProjectReference Include="..\MapCommonLib\MapCommonLib.csproj" />
     <ProjectReference Include="..\MapDbContextLib\MapDbContextLib.csproj" />
     <ProjectReference Include="..\MillimanAccessPortal\MillimanAccessPortal.csproj" />
-    <ProjectReference Include="..\QlikviewLib\QlikviewLib.csproj" />
     <ProjectReference Include="..\TestResourcesLib\TestResourcesLib.csproj" />
   </ItemGroup>
 

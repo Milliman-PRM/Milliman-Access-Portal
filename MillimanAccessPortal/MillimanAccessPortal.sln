@@ -13,13 +13,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuditLogLibTest", "AuditLog
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapCommonLib", "MapCommonLib\MapCommonLib.csproj", "{0E2593ED-77F8-4122-81F8-AD0B98DBC3A2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QlikviewLib", "QlikviewLib\QlikviewLib.csproj", "{0940C7FB-2C9B-42A3-BFE5-5DF52A68BC59}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmailQueue", "EmailQueue\EmailQueue.csproj", "{ED4DD9CE-1D7C-41AB-AF3A-C02A624ADCD8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapTests", "MapTests\MapTests.csproj", "{FCC803E1-344B-44DC-98A0-257221A7B892}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestResourcesLib", "TestResourcesLib\TestResourcesLib.csproj", "{3029A47F-C746-4A8F-803E-D5FAC84D000D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestResourcesLib", "TestResourcesLib\TestResourcesLib.csproj", "{3029A47F-C746-4A8F-803E-D5FAC84D000D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QlikviewLib", "QlikviewLib\QlikviewLib.csproj", "{881F681E-648F-40CB-92DD-B1A013AD38F3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,10 +47,6 @@ Global
 		{0E2593ED-77F8-4122-81F8-AD0B98DBC3A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0E2593ED-77F8-4122-81F8-AD0B98DBC3A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0E2593ED-77F8-4122-81F8-AD0B98DBC3A2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0940C7FB-2C9B-42A3-BFE5-5DF52A68BC59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0940C7FB-2C9B-42A3-BFE5-5DF52A68BC59}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0940C7FB-2C9B-42A3-BFE5-5DF52A68BC59}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0940C7FB-2C9B-42A3-BFE5-5DF52A68BC59}.Release|Any CPU.Build.0 = Release|Any CPU
 		{ED4DD9CE-1D7C-41AB-AF3A-C02A624ADCD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{ED4DD9CE-1D7C-41AB-AF3A-C02A624ADCD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ED4DD9CE-1D7C-41AB-AF3A-C02A624ADCD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -63,6 +59,10 @@ Global
 		{3029A47F-C746-4A8F-803E-D5FAC84D000D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3029A47F-C746-4A8F-803E-D5FAC84D000D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3029A47F-C746-4A8F-803E-D5FAC84D000D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{881F681E-648F-40CB-92DD-B1A013AD38F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{881F681E-648F-40CB-92DD-B1A013AD38F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{881F681E-648F-40CB-92DD-B1A013AD38F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{881F681E-648F-40CB-92DD-B1A013AD38F3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
