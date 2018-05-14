@@ -83,6 +83,5 @@ namespace ContentPublishingLib.JobMonitors
                 throw new ApplicationException($"Assert testing failed.  Stack trace:{Environment.NewLine}{CallStack.ToString()}");
             }
         }
-
     }
 }

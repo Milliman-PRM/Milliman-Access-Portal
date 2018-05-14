@@ -314,6 +314,5 @@ namespace ContentPublishingLib.JobMonitors
                 return false;
             }
         }
-
     }
 }
