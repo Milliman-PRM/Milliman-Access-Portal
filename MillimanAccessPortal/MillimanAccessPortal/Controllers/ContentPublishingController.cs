@@ -204,38 +204,28 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            try
+            using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
             {
-                using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
-                {
-                    // Commit the new root content item
-                    DbContext.RootContentItem.Add(rootContentItem);
-                    DbContext.SaveChanges();
+                // Commit the new root content item
+                DbContext.RootContentItem.Add(rootContentItem);
+                DbContext.SaveChanges();
 
-                    // Copy user roles for the new root content item from its client.
-                    // In the future, root content item management and publishing roles may
-                    // be separated in which case this automatic role copy should be removed.
-                    var automaticRoles = DbContext.UserRoleInClient
-                        .Where(r => r.ClientId == rootContentItem.ClientId)
-                        .Where(r => r.RoleId == ((long) RoleEnum.ContentPublisher))
-                        .Select(r => new UserRoleInRootContentItem
-                        {
-                            UserId = r.UserId,
-                            RootContentItemId = rootContentItem.Id,
-                            RoleId = ((long) RoleEnum.ContentPublisher),
-                        });
-                    DbContext.UserRoleInRootContentItem.AddRange(automaticRoles);
-                    DbContext.SaveChanges();
+                // Copy user roles for the new root content item from its client.
+                // In the future, root content item management and publishing roles may
+                // be separated in which case this automatic role copy should be removed.
+                var automaticRoles = DbContext.UserRoleInClient
+                    .Where(r => r.ClientId == rootContentItem.ClientId)
+                    .Where(r => r.RoleId == ((long) RoleEnum.ContentPublisher))
+                    .Select(r => new UserRoleInRootContentItem
+                    {
+                        UserId = r.UserId,
+                        RootContentItemId = rootContentItem.Id,
+                        RoleId = ((long) RoleEnum.ContentPublisher),
+                    });
+                DbContext.UserRoleInRootContentItem.AddRange(automaticRoles);
+                DbContext.SaveChanges();
 
-                    DbTransaction.Commit();
-                }
-            }
-            catch (Exception ex)
-            {
-                string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while creating root content item\"{rootContentItem.Id}\"");
-                Logger.LogError(ErrMsg);
-                Response.Headers.Add("Warning", $"Failed to complete transaction.");
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                DbTransaction.Commit();
             }
 
             #region Log audit event
@@ -295,18 +285,8 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            try
-            {
-                DbContext.RootContentItem.Remove(rootContentItem);
-                DbContext.SaveChanges();
-            }
-            catch (Exception ex)
-            {
-                string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while deleting root content item \"{rootContentItemId}\"");
-                Logger.LogError(ErrMsg);
-                Response.Headers.Add("Warning", $"Failed to complete transaction.");
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+            DbContext.RootContentItem.Remove(rootContentItem);
+            DbContext.SaveChanges();
 
             #region Log audit event(s)
             AuditEvent rootContentItemDeletedEvent = AuditEvent.New(
