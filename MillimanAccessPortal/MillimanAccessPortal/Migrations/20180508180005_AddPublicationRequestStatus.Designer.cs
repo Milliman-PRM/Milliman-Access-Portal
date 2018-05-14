@@ -12,9 +12,10 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180508180005_AddPublicationRequestStatus")]
+    partial class AddPublicationRequestStatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -272,10 +273,6 @@ namespace MillimanAccessPortal.Migrations
                         .IsRequired();
 
                     b.Property<long>("ContentTypeId");
-
-                    b.Property<string>("Description");
-
-                    b.Property<string>("Notes");
 
                     b.Property<bool>("DoesReduce");
 

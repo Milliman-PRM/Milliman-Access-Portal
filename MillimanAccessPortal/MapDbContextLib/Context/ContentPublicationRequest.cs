@@ -11,12 +11,16 @@ using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
+using Newtonsoft.Json;
 
 namespace MapDbContextLib.Context
 {
     public enum PublicationStatus
     {
         Unknown = 0,
+        Canceled = 1,
+        Error = 2,
         Queued = 10,
         Processing = 20,
         Complete = 30,
@@ -27,7 +31,9 @@ namespace MapDbContextLib.Context
         [NotMapped]
         public static Dictionary<PublicationStatus, string> PublicationStatusString = new Dictionary<PublicationStatus, string>
         {
-            { PublicationStatus.Unknown, "Unknown"},
+            { PublicationStatus.Unknown, "Unknown" },
+            { PublicationStatus.Canceled, "Canceled" },
+            { PublicationStatus.Error, "Error" },
             { PublicationStatus.Queued, "Queued"},
             { PublicationStatus.Processing, "Processing"},
             { PublicationStatus.Complete, "Complete"},
@@ -44,15 +50,41 @@ namespace MapDbContextLib.Context
         public long ApplicationUserId { get; set; }
         public ApplicationUser ApplicationUser { get; set; }
 
-        [Required]
-        public string MasterFilePath { get; set; }
-
         [Column(TypeName = "jsonb")]
         public string ResultHierarchy { get; set; }
 
         [Required]
         // Default value is enforced in ApplicationDbContext.OnModelCreating()
         public DateTimeOffset CreateDateTime { get; set; }
+
+        /// <summary>
+        /// May also be accessed through [NotMapped] property PublishRequest
+        /// </summary>
+        [Column(TypeName = "jsonb")]
+        public string ContentRelatedFiles { get; set; } = "[]";
+
+        [Required]
+        public PublicationStatus RequestStatus { get; set; }
+
+        [NotMapped]
+        public PublishRequest PublishRequest
+        {
+            get
+            {
+                return new PublishRequest
+                {
+                    RootContentItemId = RootContentItemId,
+                    RelatedFiles = JsonConvert.DeserializeObject<ContentRelatedFile[]>(ContentRelatedFiles),
+                };
+            }
+            set
+            {
+                RootContentItemId = value.RootContentItemId;
+                ContentRelatedFiles = value.RelatedFiles != null
+                    ? JsonConvert.SerializeObject(value.RelatedFiles)
+                    : "[]";
+            }
+        }
 
         public static PublicationStatus GetPublicationStatus(List<ReductionStatusEnum> TaskStatusList)
         {

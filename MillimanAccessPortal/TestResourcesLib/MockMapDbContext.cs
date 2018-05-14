@@ -47,6 +47,7 @@ namespace TestResourcesLib
             ReturnMockContext.Object.ContentReductionTask = MockDbSet<ContentReductionTask>.New(new List<ContentReductionTask>()).Object;
             ReturnMockContext.Object.Users = ReturnMockContext.Object.ApplicationUser;
             ReturnMockContext.Object.Roles = ReturnMockContext.Object.ApplicationRole;
+            ReturnMockContext.Object.FileUpload = MockDbSet<FileUpload>.New(new List<FileUpload>()).Object; ;
 
             // Give UserRoleInClient an additional Add() callback since it accesses properties of objects from Include()
             List<UserRoleInClient> UserRoleInClientData = new List<UserRoleInClient>();

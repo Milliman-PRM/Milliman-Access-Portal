@@ -31,5 +31,8 @@ namespace MapDbContextLib.Context
         [Required]
         public long[] SelectedHierarchyFieldValueList { get; set; }
 
+        [Required]
+        public bool IsMaster { get; set; }
+
     }
 }
