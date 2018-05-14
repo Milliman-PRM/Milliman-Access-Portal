@@ -5,6 +5,7 @@
  */
 
 using AuditLogLib.Services;
+using MapCommonLib.ActionFilters;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
@@ -16,8 +17,8 @@ using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentPublishing;
-using System.Threading.Tasks;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -228,6 +229,15 @@ namespace MillimanAccessPortal.Controllers
             }
             */
             return Json(new { });
+        }
+
+        [HttpGet]
+        [DisableAuthRefresh]
+        public async Task<IActionResult> Status()
+        {
+            var rootContentItemStatusList = RootContentItemStatus.Build(DbContext, await Queries.GetCurrentApplicationUser(User));
+
+            return new JsonResult(rootContentItemStatusList);
         }
     }
 }
