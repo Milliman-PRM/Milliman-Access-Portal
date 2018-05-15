@@ -6,7 +6,6 @@
 
 using AuditLogLib;
 using AuditLogLib.Services;
-using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
@@ -20,10 +19,8 @@ using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentPublishing;
-using System;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Linq;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -71,6 +68,15 @@ namespace MillimanAccessPortal.Controllers
             return View();
         }
 
+        [HttpGet]
+        public IActionResult AvailableContentTypes()
+        {
+            var model = DbContext.ContentType.ToList();
+
+            return new JsonResult(model);
+        }
+
+        [HttpGet]
         async public Task<IActionResult> Clients()
         {
             #region Authorization

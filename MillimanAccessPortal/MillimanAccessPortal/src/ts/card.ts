@@ -620,6 +620,12 @@ export function AddUserActionCard(callback) {
 AddUserActionCard.prototype = Object.create(ActionCard.prototype);
 AddUserActionCard.prototype.constructor = AddUserActionCard;
 
+export function AddRootContentItemActionCard(callback) {
+  ActionCard.call(this, 'add', 'Add Root Content Item', callback);
+};
+AddRootContentItemActionCard.prototype = Object.create(ActionCard.prototype);
+AddRootContentItemActionCard.prototype.constructor = AddRootContentItemActionCard;
+
 export function AddSelectionGroupActionCard(callback) {
   ActionCard.call(this, 'add', 'Add Selection Group', callback);
 };

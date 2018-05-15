@@ -1,7 +1,7 @@
 import $ = require('jquery');
 require('tooltipster');
 import * as shared from '../shared';
-import { ClientCard, RootContentItemCard } from '../card';
+import { ClientCard, RootContentItemCard, AddRootContentItemActionCard } from '../card';
 import { FormBase } from '../form/form-base';
 import { AccessMode } from '../form/form-modes';
 import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType } from '../view-models/content-publishing';
@@ -21,7 +21,7 @@ export namespace ContentPublishingDOMMethods {
     formMap.set('Id',item.Id);
     formMap.set('ClientId',item.ClientId);
     formMap.set('ContentName',item.ContentName);
-    formMap.set('ContentTypeId',item.ContentType.Id);
+    formMap.set('ContentTypeId',item.ContentTypeId);
     formMap.set('DoesReduce', item.DoesReduce);
     formMap.set('Description',item.Description);
     formMap.set('Notes',item.Notes);
@@ -34,14 +34,6 @@ export namespace ContentPublishingDOMMethods {
     const $rootContentItemForm = $panel.find('form.admin-panel-content');
     shared.clearForm($panel);
 
-    const $contentTypeDropdown = $rootContentItemForm.find('#ContentTypeId');
-    $contentTypeDropdown.children(':not(option[value = ""])').remove();
-    item.AvailableContentTypes.forEach((contentType) => {
-      const option = new Option(contentType.Name, contentType.Id.toString());
-      $(option).data(contentType);
-      $contentTypeDropdown.append(option);
-    });
-
     const formMap = mapRootContentItemDetail(item);
     formMap.forEach((value, key) => {
       $rootContentItemForm.find(`#${key}`).val(value.toString());
@@ -50,7 +42,6 @@ export namespace ContentPublishingDOMMethods {
     const $doesReduceToggle = $rootContentItemForm.find(`#DoesReduce`);
     $doesReduceToggle.prop('checked', item.DoesReduce);
 
-    $contentTypeDropdown.change(); // trigger change event
 
 
     const createContentGroup = new SubmissionGroup<RootContentItemDetail>(
@@ -162,33 +153,19 @@ export namespace ContentPublishingDOMMethods {
       },
     ).open();
   }
-//  function newRootContentItemClickHandler() {
-//    function openNewClientForm() {
-//      clearClientSelection();
-//      setClientFormWriteable();
-//      setupClientForm();
-//      $('#new-client-card').find('div.card-body-container').attr('selected', '');
-//      hideClientUsers();
-//      showClientDetails();
-//    }
-//    var $clientTree = $('#client-tree');
-//    var sameCard = ($('#new-client-card')[0] === $clientTree.find('[selected]').closest('.card-container')[0]);
-//    if ($clientTree.has('[selected]').length) {
-//      shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
-//        if (sameCard) {
-//          clearClientSelection();
-//          hideClientDetails();
-//        } else {
-//          if ($('.insert-card').length) {
-//            removeClientInserts();
-//          }
-//          openNewClientForm();
-//        }
-//      });
-//    } else {
-//      openNewClientForm();
-//    }
-//  }
+  function newRootContentItemClickHandler() {
+    shared.wrapCardCallback(() => {
+      renderRootContentItemForm({
+        ClientId: 1,
+        ContentName: '',
+        ContentTypeId: 0,
+        Description: '',
+        DoesReduce: false,
+        Id: 0,
+        Notes: '',
+      });
+    })();
+  }
 
   function renderRootContentItem(item: RootContentItemSummary) {
     const $card = new RootContentItemCard(
@@ -252,6 +229,22 @@ export namespace ContentPublishingDOMMethods {
     }
   }
 
+  function populateAvailableContentTypes(contentTypes: Array<ContentType>) {
+    const $panel = $('#content-publishing-form');
+    const $rootContentItemForm = $panel.find('form.admin-panel-content');
+
+    const $contentTypeDropdown = $rootContentItemForm.find('#ContentTypeId');
+    $contentTypeDropdown.children(':not(option[value = ""])').remove();
+
+    contentTypes.forEach((contentType) => {
+      const option = new Option(contentType.Name, contentType.Id.toString());
+      $(option).data(contentType);
+      $contentTypeDropdown.append(option);
+    });
+
+    $contentTypeDropdown.change(); // trigger change event
+  }
+
   export function setup() {
     const $contentTypeDropdown = $('#ContentTypeId');
     $contentTypeDropdown.change(() => {
@@ -272,6 +265,9 @@ export namespace ContentPublishingDOMMethods {
     $('.admin-panel-searchbar-tree').keyup(shared.filterTreeListener);
     $('.admin-panel-searchbar-form').keyup(shared.filterFormListener);
 
+    $('#root-content-items ul.admin-panel-content-action')
+      .append(new AddRootContentItemActionCard(newRootContentItemClickHandler).build());
+
     $('.admin-panel-toolbar .action-icon-edit').click(() => {
       currentForm.submissionMode = 'edit';
       currentForm.accessMode = AccessMode.Defer;
@@ -288,6 +284,10 @@ export namespace ContentPublishingDOMMethods {
 
     $('.tooltip').tooltipster();
 
+    shared.get(
+      'ContentPublishing/AvailableContentTypes',
+      [ populateAvailableContentTypes ],
+    )();
     shared.get(
       'ContentPublishing/Clients',
       [ renderClientTree ],

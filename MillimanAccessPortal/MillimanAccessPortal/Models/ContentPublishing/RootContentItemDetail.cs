@@ -15,8 +15,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public long Id { get; set; }
         public long ClientId { get; set; }
         public string ContentName { get; set; }
-        public ContentType ContentType { get; set; }
-        public List<ContentType> AvailableContentTypes { get; set; }
+        public long ContentTypeId { get; set; }
         public bool DoesReduce { get; set; }
         public string Description { get; set; }
         public string Notes { get; set; }
@@ -28,8 +27,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 Id = rootContentItem.Id,
                 ClientId = rootContentItem.ClientId,
                 ContentName = rootContentItem.ContentName,
-                ContentType = dbContext.ContentType.Find(rootContentItem.ContentTypeId),
-                AvailableContentTypes = dbContext.ContentType.ToList(),
+                ContentTypeId = rootContentItem.ContentTypeId,
                 DoesReduce = true,
                 Description = "Sample description",
                 Notes = "Sample notes",
