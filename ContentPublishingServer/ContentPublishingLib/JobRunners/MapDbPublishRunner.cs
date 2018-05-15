@@ -131,15 +131,32 @@ namespace ContentPublishingLib.JobRunners
                 DateTime WaitStart = DateTime.Now;
                 do
                 {
-                    List<ContentReductionTask> RelatedReductionTasks = null;
+                    List<ContentReductionTask> AllRelatedReductionTasks = null;
                     using (ApplicationDbContext Db = GetDbContext())
                     {
-                        RelatedReductionTasks = await Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId).ToListAsync();
+                        AllRelatedReductionTasks = await Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId).ToListAsync();
+
+                        if (AllRelatedReductionTasks.Any(t => t.ReductionStatus == ReductionStatusEnum.Error))
+                        {
+                            string Msg = $"Publication request terminating due to error in related reduction task";
+                            Trace.WriteLine(Msg);
+                            JobDetail.Result.StatusMessage = Msg;
+                            JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
+
+                            // Cancel any task still queued
+                            List<ContentReductionTask> QueuedTasks = AllRelatedReductionTasks.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued).ToList();
+                            QueuedTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
+                            Db.ContentReductionTask.UpdateRange(QueuedTasks);
+                            Db.ContentReductionTask.UpdateRange(QueuedTasks);
+                            await Db.SaveChangesAsync();
+                            // TODO figure out if this can do anything bad to the Qv reduction runner 
+
+                            return JobDetail;
+                        }
                     }
-                    PendingTaskCount = RelatedReductionTasks.Count(t => t.ReductionStatus == ReductionStatusEnum.Queued
-                                                                     || t.ReductionStatus == ReductionStatusEnum.Reducing);
 
-
+                    PendingTaskCount = AllRelatedReductionTasks.Count(t => t.ReductionStatus == ReductionStatusEnum.Queued
+                                                                        || t.ReductionStatus == ReductionStatusEnum.Reducing);
 
                     Thread.Sleep(1000);
                 }
