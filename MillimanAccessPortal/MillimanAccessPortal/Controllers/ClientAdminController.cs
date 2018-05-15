@@ -497,7 +497,8 @@ namespace MillimanAccessPortal.Controllers
                     var existingRolesInRootContentItem = DbContext.UserRoleInRootContentItem
                         .Where(r => r.UserId == RequestedUser.Id)
                         .Where(r => r.RootContentItem.ClientId == ClientUserModel.ClientId)
-                        .Where(r => r.Role.RoleEnum == RequestedRole.RoleEnum);
+                        .Where(r => r.Role.RoleEnum == RequestedRole.RoleEnum)
+                        .ToList();
                     DbContext.UserRoleInRootContentItem.RemoveRange(existingRolesInRootContentItem);
                 }
                 DbContext.UserRoleInClient.RemoveRange(ExistingRecords);

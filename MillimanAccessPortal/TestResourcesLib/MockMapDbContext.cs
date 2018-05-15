@@ -41,7 +41,6 @@ namespace TestResourcesLib
             ReturnMockContext.Object.HierarchyField = MockDbSet<HierarchyField>.New(new List<HierarchyField>()).Object;
             ReturnMockContext.Object.SelectionGroup = MockDbSet<SelectionGroup>.New(new List<SelectionGroup>()).Object;
             ReturnMockContext.Object.UserRoles = MockDbSet<IdentityUserRole<long>>.New(new List<IdentityUserRole<long>>()).Object;
-            ReturnMockContext.Object.UserRoleInRootContentItem = MockDbSet<UserRoleInRootContentItem>.New(new List<UserRoleInRootContentItem>()).Object;
             ReturnMockContext.Object.UserClaims = MockDbSet<IdentityUserClaim<long>>.New(new List<IdentityUserClaim<long>>()).Object;
             ReturnMockContext.Object.ContentPublicationRequest = MockDbSet<ContentPublicationRequest>.New(new List<ContentPublicationRequest>()).Object;
             ReturnMockContext.Object.ContentReductionTask = MockDbSet<ContentReductionTask>.New(new List<ContentReductionTask>()).Object;
@@ -60,6 +59,16 @@ namespace TestResourcesLib
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationRole>(MockUserRoleInClient.Object, "RoleId", ReturnMockContext.Object.ApplicationRole);
             });
             ReturnMockContext.Object.UserRoleInClient = MockUserRoleInClient.Object;
+
+            var userRoleInRootContentItemData = new List<UserRoleInRootContentItem>();
+            var mockUserRoleInRootContentItem = MockDbSet<UserRoleInRootContentItem>.New(userRoleInRootContentItemData);
+            mockUserRoleInRootContentItem.Setup(d => d.Add(It.IsAny<UserRoleInRootContentItem>())).Callback<UserRoleInRootContentItem>(s =>
+            {
+                userRoleInRootContentItemData.Add(s);
+                MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty(mockUserRoleInRootContentItem.Object, "RootContentItemId", ReturnMockContext.Object.RootContentItem);
+                MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty(mockUserRoleInRootContentItem.Object, "RoleId", ReturnMockContext.Object.Roles);
+            });
+            ReturnMockContext.Object.UserRoleInRootContentItem = mockUserRoleInRootContentItem.Object;
 
             List<UserInSelectionGroup> UserInSelectionGroupData = new List<UserInSelectionGroup>();
             Mock<DbSet<UserInSelectionGroup>> MockUserInSelectionGroup = MockDbSet<UserInSelectionGroup>.New(UserInSelectionGroupData);

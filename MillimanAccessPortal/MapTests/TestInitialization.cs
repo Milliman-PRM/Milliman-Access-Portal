@@ -389,6 +389,7 @@ namespace MapTests
                         new UserRoleInClient { Id=8, ClientId=8, RoleId=1, UserId=3 },
                         new UserRoleInClient { Id=9, ClientId=8, RoleId=3, UserId=5 },
                         new UserRoleInClient { Id=10, ClientId=8, RoleId=3, UserId=6 },
+                        new UserRoleInClient { Id=11, ClientId=1, RoleId=2, UserId=2 }, // this record is intentionally without a respective claim
                     });
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
@@ -408,6 +409,7 @@ namespace MapTests
                     new IdentityUserClaim<long>{ Id=8, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="8", UserId=3 },
                     new IdentityUserClaim<long>{ Id=9, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="8", UserId=5 },
                     new IdentityUserClaim<long>{ Id=10, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="8", UserId=6 },
+                    new IdentityUserClaim<long>{ Id=11, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue="1", UserId=5 },
                 });
                 #endregion
             #endregion 
@@ -418,6 +420,8 @@ namespace MapTests
                     new RootContentItem{ Id=1, ClientId=1, ContentName="RootContent 1", ContentTypeId=1 },
                     new RootContentItem{ Id=2, ClientId=2, ContentName="RootContent 2", ContentTypeId=1 },
                     new RootContentItem{ Id=3, ClientId=8, ContentName="RootContent 3", ContentTypeId=1 },
+                    new RootContentItem{ Id=4, ClientId=1, ContentName="RootContent 4", ContentTypeId=1 },
+                    new RootContentItem{ Id=5, ClientId=1, ContentName="RootContent 5", ContentTypeId=1 },
                 });
             MockDbSet<RootContentItem>.AssignNavigationProperty<ContentType>(DbContextObject.RootContentItem, "ContentTypeId", DbContextObject.ContentType);
             MockDbSet<RootContentItem>.AssignNavigationProperty<Client>(DbContextObject.RootContentItem, "ClientId", DbContextObject.Client);
