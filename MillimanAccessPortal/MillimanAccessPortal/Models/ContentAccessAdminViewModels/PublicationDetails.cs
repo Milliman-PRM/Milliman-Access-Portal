@@ -14,8 +14,8 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
     {
         public UserInfoViewModel User { get; set; }
         public PublicationStatus StatusEnum { get; set; }
-        public string StatusName { get; set; }
-        public long? RootContentItemId { get; set; }
+        public string StatusName { get => ContentPublicationRequest.PublicationStatusString[StatusEnum]; }
+        public long RootContentItemId { get; set; }
 
         public static explicit operator PublicationDetails(ContentPublicationRequest contentPublicationRequest)
         {
@@ -27,7 +27,6 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
             {
                 User = (UserInfoViewModel) contentPublicationRequest.ApplicationUser,
                 StatusEnum = contentPublicationRequest.RequestStatus,
-                StatusName = ContentPublicationRequest.PublicationStatusString[contentPublicationRequest.RequestStatus],
                 RootContentItemId = contentPublicationRequest.RootContentItemId,
             };
         }
