@@ -147,6 +147,38 @@ namespace ContentPublishingLib.JobMonitors
                 Thread.Sleep(1000);
             }
 
+            Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} stopping {ActivePublicationRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
+
+            if (ActivePublicationRunnerItems.Count != 0)
+            {
+                ActivePublicationRunnerItems.ForEach(t => t.tokenSource.Cancel());
+
+                DateTime WaitStart = DateTime.Now;
+                while (DateTime.Now - WaitStart < StopWaitTimeSeconds)
+                {
+                    Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} waiting for {ActivePublicationRunnerItems.Count} running tasks to complete");
+
+                    int CompletedTaskIndex = Task.WaitAny(ActivePublicationRunnerItems.Select(t => t.task).ToArray(), new TimeSpan(StopWaitTimeSeconds.Ticks / 100));
+                    if (CompletedTaskIndex > -1)
+                    {
+                        ActivePublicationRunnerItems.RemoveAt(CompletedTaskIndex);
+                    }
+
+                    if (ActivePublicationRunnerItems.Count == 0)
+                    {
+                        Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} all publication runners terminated successfully");
+                        break;
+                    }
+                }
+
+                foreach (var Item in ActivePublicationRunnerItems)
+                {
+                    Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} after timer expired, task {Item.dbRequest.Id.ToString()} not completed");
+                }
+            }
+
+            Token.ThrowIfCancellationRequested();
+            Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} returning");
         }
 
         /// <summary>
