@@ -55,6 +55,13 @@ namespace AuditLogLib
         public static readonly AuditEventId ContentReductionSucceeded = new AuditEventId(5201, "Content reduction completed");
         public static readonly AuditEventId ContentReductionFailed = new AuditEventId(5202, "Content reduction failed");
 
+        // Content Publishing category 6000 - 6999
+        public static readonly AuditEventId RootContentItemCreated = new AuditEventId(4001, "Root content item created");
+        public static readonly AuditEventId RootContentItemDeleted = new AuditEventId(4002, "Root content item deleted");
+        public static readonly AuditEventId RootContentItemUpdated = new AuditEventId(4003, "Root content item updated");
+        public static readonly AuditEventId PublicationQueued = new AuditEventId(4101, "Publication request queued");
+        public static readonly AuditEventId PublicationCanceled = new AuditEventId(4102, "Publication request canceled");
+
         public AuditEventId(int id, string name = "")
         {
             Id = id;

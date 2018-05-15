@@ -22,6 +22,7 @@ namespace MillimanAccessPortal.Models.AccountViewModels
             {
                 return null;
             }
+
             return new UserInfoViewModel
             {
                 Id = User.Id,
