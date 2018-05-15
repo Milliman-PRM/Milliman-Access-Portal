@@ -131,6 +131,12 @@ namespace ContentPublishingLib.JobRunners
                 DateTime WaitStart = DateTime.Now;
                 do
                 {
+                    if (_CancellationToken.IsCancellationRequested)
+                    {
+                        JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
+                        _CancellationToken.ThrowIfCancellationRequested();
+                    }
+
                     List<ContentReductionTask> AllRelatedReductionTasks = null;
                     using (ApplicationDbContext Db = GetDbContext())
                     {
@@ -147,9 +153,7 @@ namespace ContentPublishingLib.JobRunners
                             List<ContentReductionTask> QueuedTasks = AllRelatedReductionTasks.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued).ToList();
                             QueuedTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
                             Db.ContentReductionTask.UpdateRange(QueuedTasks);
-                            Db.ContentReductionTask.UpdateRange(QueuedTasks);
                             await Db.SaveChangesAsync();
-                            // TODO figure out if this can do anything bad to the Qv reduction runner 
 
                             return JobDetail;
                         }
