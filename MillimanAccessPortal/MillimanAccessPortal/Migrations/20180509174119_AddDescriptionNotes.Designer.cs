@@ -12,9 +12,10 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180509174119_AddDescriptionNotes")]
+    partial class AddDescriptionNotes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -70,14 +71,12 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<long>("ApplicationUserId");
 
-                    b.Property<string>("ContentRelatedFiles")
-                        .HasColumnType("jsonb");
-
                     b.Property<DateTimeOffset>("CreateDateTime")
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<int>("RequestStatus");
+                    b.Property<string>("MasterFilePath")
+                        .IsRequired();
 
                     b.Property<string>("ResultHierarchy")
                         .HasColumnType("jsonb");
@@ -277,8 +276,6 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<string>("Notes");
 
-                    b.Property<bool>("DoesReduce");
-
                     b.Property<string>("TypeSpecificDetail")
                         .HasColumnType("jsonb");
 
@@ -301,8 +298,6 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<string>("GroupName")
                         .IsRequired();
-
-                    b.Property<bool>("IsMaster");
 
                     b.Property<long>("RootContentItemId");
 

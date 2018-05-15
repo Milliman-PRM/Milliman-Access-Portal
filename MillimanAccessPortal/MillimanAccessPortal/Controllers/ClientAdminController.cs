@@ -458,10 +458,29 @@ namespace MillimanAccessPortal.Controllers
                     DbContext.UserRoleInClient.Add(new UserRoleInClient { UserId = RequestedUser.Id, RoleId = RequestedRole.Id, ClientId = RequestedClient.Id });
                     if (RequestedRole.RoleEnum == RoleEnum.Admin)
                     {
-                        if (ExistingRecordsQuery.Include(urc => urc.Role).Where(urc => urc.Role.RoleEnum == RoleEnum.UserCreator).Count() == 0)
+                        if (ExistingRecordsQuery.Where(urc => urc.Role.RoleEnum == RoleEnum.UserCreator).Count() == 0)
                         {
                             ApplicationRole UserCreatorRole = await RoleManager.FindByNameAsync(RoleEnum.UserCreator.ToString());
                             DbContext.UserRoleInClient.Add(new UserRoleInClient { UserId = RequestedUser.Id, RoleId = UserCreatorRole.Id, ClientId = RequestedClient.Id });
+                        }
+                    }
+                    if (RequestedRole.RoleEnum == RoleEnum.ContentAccessAdmin || RequestedRole.RoleEnum == RoleEnum.ContentPublisher)
+                    {
+                        foreach (var rootContentItem in DbContext.RootContentItem.Where(i => i.ClientId == ClientUserModel.ClientId))
+                        {
+                            var existingRolesInRootContentItem = DbContext.UserRoleInRootContentItem
+                                .Where(r => r.UserId == RequestedUser.Id)
+                                .Where(r => r.RootContentItemId == rootContentItem.Id)
+                                .Where(r => r.Role.RoleEnum == RequestedRole.RoleEnum);
+                            if (existingRolesInRootContentItem.Count() == 0)
+                            {
+                                DbContext.UserRoleInRootContentItem.Add(new UserRoleInRootContentItem
+                                {
+                                    UserId = RequestedUser.Id,
+                                    RoleId = RequestedRole.Id,
+                                    RootContentItemId = rootContentItem.Id,
+                                });
+                            }
                         }
                     }
                 }
@@ -472,6 +491,15 @@ namespace MillimanAccessPortal.Controllers
                 if (RequestedRole.RoleEnum == RoleEnum.Admin)
                 {
                     ExistingRecords = ExistingRecordsQuery.Where(urc => (urc.RoleId == RequestedRole.Id) || (urc.Role.RoleEnum == RoleEnum.UserCreator)).ToList();
+                }
+                if (RequestedRole.RoleEnum == RoleEnum.ContentAccessAdmin || RequestedRole.RoleEnum == RoleEnum.ContentPublisher)
+                {
+                    var existingRolesInRootContentItem = DbContext.UserRoleInRootContentItem
+                        .Where(r => r.UserId == RequestedUser.Id)
+                        .Where(r => r.RootContentItem.ClientId == ClientUserModel.ClientId)
+                        .Where(r => r.Role.RoleEnum == RequestedRole.RoleEnum)
+                        .ToList();
+                    DbContext.UserRoleInRootContentItem.RemoveRange(existingRolesInRootContentItem);
                 }
                 DbContext.UserRoleInClient.RemoveRange(ExistingRecords);
             }

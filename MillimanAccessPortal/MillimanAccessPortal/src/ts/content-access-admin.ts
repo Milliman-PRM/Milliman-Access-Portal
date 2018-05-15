@@ -220,7 +220,9 @@ function renderClientNode(client, level) {
     level,
     shared.wrapCardCallback(shared.get(
       'ContentAccessAdmin/RootContentItems',
-      renderRootContentItemList
+      [
+        renderRootContentItemList,
+      ],
     ))
   );
   $card.disabled = !client.ClientDetailModel.CanManage;

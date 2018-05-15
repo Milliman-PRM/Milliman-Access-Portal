@@ -1,14 +1,14 @@
-﻿using System;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Text;
+﻿using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Xunit;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.ClientAdminViewModels;
+using System;
 using System.Linq;
-using MapDbContextLib.Context;
+using System.Threading.Tasks;
 using TestResourcesLib;
+using Xunit;
+
 namespace MapTests
 {
     public class ClientAdminControllerTests
@@ -327,6 +327,203 @@ namespace MapTests
             #region Assert
             Assert.IsType<JsonResult>(view);
             Assert.Equal(beforeCount + 1, afterActionCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(1, "test2")]
+        [InlineData(2, "ClientAdmin1")]
+        public async Task SetUserRoleInClient_ErrorWhenUnauthorized(long clientId, string userName)
+        {
+            #region Arrange
+            ClientAdminController controller = await GetControllerForUser(userName);
+            var clientUserModel = new ClientUserAssociationViewModel
+            {
+                ClientId = clientId,
+                UserId = 1,
+            };
+            var roleModel = new AssignedRoleInfo
+            {
+                RoleEnum = RoleEnum.Admin,
+                IsAssigned = true,
+            };
+            #endregion
+
+            #region Act
+            int preCount = TestResources.DbContextObject.UserRoleInClient.Count();
+            var view = await controller.SetUserRoleInClient(clientUserModel, roleModel);
+            int postCount = TestResources.DbContextObject.UserRoleInClient.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(0, 1)]
+        [InlineData(1, 0)]
+        [InlineData(1, 2)]
+        public async Task SetUserRoleInClient_ErrorWhenInvalid(long clientId, long userId)
+        {
+            #region Arrange
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+            var clientUserModel = new ClientUserAssociationViewModel
+            {
+                ClientId = clientId,
+                UserId = userId,
+            };
+            var roleModel = new AssignedRoleInfo
+            {
+                RoleEnum = RoleEnum.Admin,
+                IsAssigned = true,
+            };
+            #endregion
+
+            #region Act
+            int preCount = TestResources.DbContextObject.UserRoleInClient.Count();
+            var view = await controller.SetUserRoleInClient(clientUserModel, roleModel);
+            int postCount = TestResources.DbContextObject.UserRoleInClient.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(view);
+            StatusCodeResult viewResult = (StatusCodeResult) view;
+            Assert.Equal("422", viewResult.StatusCode.ToString());
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(1, 5, RoleEnum.ContentUser)]
+        public async Task SetUserRoleInClient_Success(long clientId, long userId, RoleEnum role)
+        {
+            #region Arrange
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+            var clientUserModel = new ClientUserAssociationViewModel
+            {
+                ClientId = clientId,
+                UserId = userId,
+            };
+            var roleModelAdd = new AssignedRoleInfo
+            {
+                RoleEnum = role,
+                IsAssigned = true,
+            };
+            var roleModelRemove = new AssignedRoleInfo
+            {
+                RoleEnum = role,
+                IsAssigned = false,
+            };
+            #endregion
+
+            #region Act
+            int preAddCount = TestResources.DbContextObject.UserRoleInClient.Count();
+            var viewAdd = await controller.SetUserRoleInClient(clientUserModel, roleModelAdd);
+            int postAddCount = TestResources.DbContextObject.UserRoleInClient.Count();
+
+            int preRemoveCount = postAddCount;
+            var viewRemove = await controller.SetUserRoleInClient(clientUserModel, roleModelRemove);
+            int postRemoveCount = TestResources.DbContextObject.UserRoleInClient.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(viewAdd);
+            Assert.IsType<JsonResult>(viewRemove);
+            Assert.Equal(preAddCount + 1, postAddCount);
+            Assert.Equal(preRemoveCount - 1, postRemoveCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(1, 5, RoleEnum.Admin)]
+        public async Task SetUserRoleInClient_Success_Pair(long clientId, long userId, RoleEnum role)
+        {
+            #region Arrange
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+            var clientUserModel = new ClientUserAssociationViewModel
+            {
+                ClientId = clientId,
+                UserId = userId,
+            };
+            var roleModelAdd = new AssignedRoleInfo
+            {
+                RoleEnum = role,
+                IsAssigned = true,
+            };
+            var roleModelRemove = new AssignedRoleInfo
+            {
+                RoleEnum = role,
+                IsAssigned = false,
+            };
+            #endregion
+
+            #region Act
+            int preAddCount = TestResources.DbContextObject.UserRoleInClient.Count();
+            var viewAdd = await controller.SetUserRoleInClient(clientUserModel, roleModelAdd);
+            int postAddCount = TestResources.DbContextObject.UserRoleInClient.Count();
+
+            int preRemoveCount = postAddCount;
+            var viewRemove = await controller.SetUserRoleInClient(clientUserModel, roleModelRemove);
+            int postRemoveCount = TestResources.DbContextObject.UserRoleInClient.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(viewAdd);
+            Assert.IsType<JsonResult>(viewRemove);
+            Assert.Equal(preAddCount + 2, postAddCount);
+            Assert.Equal(preRemoveCount - 2, postRemoveCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(1, 5, RoleEnum.ContentAccessAdmin)]
+        [InlineData(1, 5, RoleEnum.ContentPublisher)]
+        public async Task SetUserRoleInClient_Success_Content(long clientId, long userId, RoleEnum role)
+        {
+            #region Arrange
+            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+            var clientUserModel = new ClientUserAssociationViewModel
+            {
+                ClientId = clientId,
+                UserId = userId,
+            };
+            var roleModelAdd = new AssignedRoleInfo
+            {
+                RoleEnum = role,
+                IsAssigned = true,
+            };
+            var roleModelRemove = new AssignedRoleInfo
+            {
+                RoleEnum = role,
+                IsAssigned = false,
+            };
+
+            int relatedRootContentItemCount = TestResources.DbContextObject.RootContentItem.Count(i => i.ClientId == clientId);
+            #endregion
+
+            #region Act
+            int preAddCount_Client = TestResources.DbContextObject.UserRoleInClient.Count();
+            int preAddCount_Content = TestResources.DbContextObject.UserRoleInRootContentItem.Count();
+            var viewAdd = await controller.SetUserRoleInClient(clientUserModel, roleModelAdd);
+            int postAddCount_Client = TestResources.DbContextObject.UserRoleInClient.Count();
+            int postAddCount_Content = TestResources.DbContextObject.UserRoleInRootContentItem.Count();
+
+            int preRemoveCount_Client = postAddCount_Client;
+            int preRemoveCount_Content = postAddCount_Content;
+            var viewRemove = await controller.SetUserRoleInClient(clientUserModel, roleModelRemove);
+            int postRemoveCount_Client = TestResources.DbContextObject.UserRoleInClient.Count();
+            int postRemoveCount_Content = TestResources.DbContextObject.UserRoleInRootContentItem.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(viewAdd);
+            Assert.IsType<JsonResult>(viewRemove);
+            Assert.Equal(preAddCount_Client + 1, postAddCount_Client);
+            Assert.Equal(preRemoveCount_Client - 1, postRemoveCount_Client);
+            Assert.Equal(preAddCount_Content + relatedRootContentItemCount, postAddCount_Content);
+            Assert.Equal(preRemoveCount_Content - relatedRootContentItemCount, postRemoveCount_Content);
             #endregion
         }
 
