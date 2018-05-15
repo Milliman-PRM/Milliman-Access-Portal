@@ -20,7 +20,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public string Description { get; set; }
         public string Notes { get; set; }
 
-        internal static RootContentItemDetail Build(ApplicationDbContext dbContext ,RootContentItem rootContentItem)
+        internal static RootContentItemDetail Build(ApplicationDbContext dbContext, RootContentItem rootContentItem)
         {
             RootContentItemDetail model = new RootContentItemDetail
             {
@@ -28,9 +28,9 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 ClientId = rootContentItem.ClientId,
                 ContentName = rootContentItem.ContentName,
                 ContentTypeId = rootContentItem.ContentTypeId,
-                DoesReduce = true,
-                Description = "Sample description",
-                Notes = "Sample notes",
+                DoesReduce = rootContentItem.DoesReduce,
+                Description = rootContentItem.Description,
+                Notes = rootContentItem.Notes,
             };
 
             return model;

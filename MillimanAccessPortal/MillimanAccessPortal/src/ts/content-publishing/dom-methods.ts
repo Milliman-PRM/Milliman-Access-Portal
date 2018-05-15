@@ -36,7 +36,7 @@ export namespace ContentPublishingDOMMethods {
 
     const formMap = mapRootContentItemDetail(item);
     formMap.forEach((value, key) => {
-      $rootContentItemForm.find(`#${key}`).val(value.toString());
+      $rootContentItemForm.find(`#${key}`).val(value ? value.toString() : '');
     });
 
     const $doesReduceToggle = $rootContentItemForm.find(`#DoesReduce`);
@@ -46,24 +46,27 @@ export namespace ContentPublishingDOMMethods {
 
     const createContentGroup = new SubmissionGroup<RootContentItemDetail>(
       [
+        'common',
         'root-content-item-info',
         'root-content-item-description',
       ],
       'ContentPublishing/CreateRootContentItem',
       'POST',
-      (response) => { },
+      (response) => $('#Id').val(response.Id),
     );
     const updateContentGroup = new SubmissionGroup<RootContentItemDetail>(
       [
+        'common',
         'root-content-item-info',
         'root-content-item-description',
       ],
       'ContentPublishing/UpdateRootContentItem',
       'POST',
-      (response) => { },
+      (response) => renderRootContentItemForm(response),
     );
     const submitPublication = new SubmissionGroup<any>(
       [
+        'common',
         'publication-files',
       ],
       'ContentPublishing/Publish',
@@ -84,7 +87,7 @@ export namespace ContentPublishingDOMMethods {
       currentForm.configure(
         [
           {
-            group: createContentGroup.chain(submitPublication),
+            group: createContentGroup/*.chain(submitPublication)*/,
             name: 'new',
           },
           {
@@ -155,8 +158,9 @@ export namespace ContentPublishingDOMMethods {
   }
   function newRootContentItemClickHandler() {
     shared.wrapCardCallback(() => {
+      const clientId = $('#client-tree [selected]').parent().data().clientId;
       renderRootContentItemForm({
-        ClientId: 1,
+        ClientId: clientId,
         ContentName: '',
         ContentTypeId: 0,
         Description: '',
@@ -164,7 +168,9 @@ export namespace ContentPublishingDOMMethods {
         Id: 0,
         Notes: '',
       });
-    })();
+      currentForm.submissionMode = 'new';
+      currentForm.accessMode = AccessMode.Write;
+    }).bind(this)();
   }
 
   function renderRootContentItem(item: RootContentItemSummary) {
@@ -242,7 +248,8 @@ export namespace ContentPublishingDOMMethods {
       $contentTypeDropdown.append(option);
     });
 
-    $contentTypeDropdown.change(); // trigger change event
+    $contentTypeDropdown.val(0);
+    // $contentTypeDropdown.change(); // trigger change event
   }
 
   export function setup() {
