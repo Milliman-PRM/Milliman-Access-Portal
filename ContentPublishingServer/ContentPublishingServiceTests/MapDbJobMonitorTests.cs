@@ -17,7 +17,7 @@ namespace ContentPublishingServiceTests
     public class MapDbJobMonitorTests : ContentReductionServiceTestBase
     {
         [Fact]
-        public void CorrectStatusAfterCancelWhileIdle()
+        public async Task CorrectStatusAfterCancelWhileIdle()
         {
             #region arrange
             MapDbReductionJobMonitor JobMonitor = new MapDbReductionJobMonitor
@@ -42,7 +42,7 @@ namespace ContentPublishingServiceTests
             CancelTokenSource.Cancel();
             try
             {
-                Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 0, 40));
+                await MonitorTask;  // await rethrows anything that is thrown from the task
             }
             catch (AggregateException)  // This is thrown when a task is cancelled
             { }
