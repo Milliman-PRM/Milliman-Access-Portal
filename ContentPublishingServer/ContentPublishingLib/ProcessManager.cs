@@ -155,7 +155,7 @@ namespace ContentPublishingLib
                     throw;
                 }
             }
-            Trace.WriteLine($"WaitAll ran for {DateTime.Now - Start}");
+            Trace.WriteLine($"In ProcessManager.Stop, WaitAll([JobMonitors]) ran for {DateTime.Now - Start}");
 
             if (!AnyMonitorThreadRunning)
             {
