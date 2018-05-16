@@ -188,8 +188,6 @@ export namespace ContentPublishingDOMMethods {
     const $doesReduceToggle = $rootContentItemForm.find(`#DoesReduce`);
     $doesReduceToggle.prop('checked', item.DoesReduce);
 
-
-
     const createContentGroup = new SubmissionGroup<RootContentItemDetail>(
       [
         'common',

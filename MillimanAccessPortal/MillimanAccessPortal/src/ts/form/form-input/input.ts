@@ -52,7 +52,7 @@ export abstract class FormInput extends FormElement {
 
   protected originalValue: string;
 
-  public bindToDOM(entryPoint: HTMLElement) {
+  public bindToDOM(entryPoint?: HTMLElement) {
     // before bind: this.value references shadow value
     let value: string;
     if (!this.bound) {
