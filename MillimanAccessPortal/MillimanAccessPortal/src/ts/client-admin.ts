@@ -249,17 +249,17 @@ function renderUserList(response) {
 }
 
 
-function setupChildClientForm(parentClientDiv) {
-  var parentClientId = parentClientDiv.attr('data-client-id').valueOf();
-  var $template = new card.AddChildInsertCard(parentClientDiv.hasClass('card-100') ? 1 : 2).build();
+function setupChildClientForm($parentClientDiv: JQuery<HTMLElement>) {
+  const parentClientId = $parentClientDiv.parent().data().clientId;
+  const $template = new card.AddChildInsertCard($parentClientDiv.parent().hasClass('card-100') ? 1 : 2).build();
 
   shared.clearForm($('#client-info'));
   $('#client-info form.admin-panel-content #ParentClientId').val(parentClientId);
   bindForm();
-  parentClientDiv.parent().after($template);
-  parentClientDiv.parent().next().find('div.card-container')
-    .click(function onClick() {
-      shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
+  $parentClientDiv.parent().parent().after($template);
+  $parentClientDiv.parent().parent().next().find('div.card-body-container')
+    .click(() => {
+      shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, () => {
         clearClientSelection();
         removeClientInserts();
         hideClientDetails();
@@ -327,18 +327,6 @@ function openClientCardReadOnly($clientCard) {
 }
 
 
-function openNewChildClientForm($parentCard) {
-  removeClientInserts();
-  clearClientSelection();
-  setupChildClientForm($parentCard);
-  formObject.accessMode = AccessMode.Write;
-  $parentCard.parent().next('li').find('div.card-body-container')
-    .attr({ selected: '', editing: '' });
-  hideClientUsers();
-  showClientDetails();
-}
-
-
 function openNewClientForm() {
   clearClientSelection();
   setupClientForm();
@@ -350,7 +338,7 @@ function openNewClientForm() {
 
 function clientCardDeleteClickHandler(event) {
   var $clickedCard = $(this).closest('.card-container');
-  var clientId = $clickedCard.attr('data-client-id');
+  var clientId = $clickedCard.data().clientId;
   var clientName = $clickedCard.find('.card-body-primary-text').first().text();
   event.stopPropagation();
   new dialog.DeleteClientDialog(
@@ -372,24 +360,6 @@ function clientCardDeleteClickHandler(event) {
   ).open();
 }
 
-function clientCardCreateNewChildClickHandler(event) {
-  var $clickedCard = $(this).closest('.card-container');
-  var $clientTree = $('#client-tree');
-
-  var sameCard = ($clientTree.find('[selected]').is('.insert-card') &&
-    $clickedCard[0] === $clientTree.find('[selected]').parent().prev().find('.card-container')[0]);
-  event.stopPropagation();
-  if ($clientTree.has('[editing]').length) {
-    if (!sameCard) {
-      shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
-        openNewChildClientForm($clickedCard);
-      });
-    }
-  } else {
-    openNewChildClientForm($clickedCard);
-  }
-}
-
 
 function userCardRemoveClickHandler(event) {
   var $clickedCard = $(this).closest('.card-container');
@@ -403,26 +373,7 @@ function userCardRemoveClickHandler(event) {
 }
 
 
-function newClientClickHandler() {
-  var $clientTree = $('#client-tree');
-  var sameCard = ($('#new-client-card')[0] === $clientTree.find('[selected]').closest('.card-container')[0]);
-  if ($clientTree.has('[selected]').length) {
-    shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
-      if (sameCard) {
-        clearClientSelection();
-        hideClientDetails();
-      } else {
-        if ($('.insert-card').length) {
-          removeClientInserts();
-        }
-        openNewClientForm();
-      }
-    });
-  } else {
-    openNewClientForm();
-  }
-}
-
+const newClientClickHandler = shared.wrapCardCallback(() => openNewClientForm());
 
 function saveNewUser(username, email, callback) {
   var clientId = $('#client-tree [selected]').closest('[data-client-id]').attr('data-client-id');
@@ -531,7 +482,14 @@ function renderClientNode(client, level) {
     ), 2),
     !client.Children.length && clientCardDeleteClickHandler,
     shared.wrapCardIconCallback(($card) => getClientDetail($card.parent(), AccessMode.Write)),
-    level < 2 && clientCardCreateNewChildClickHandler
+    level < 2 && shared.wrapCardIconCallback(($card) => {
+      setupChildClientForm($card);
+      formObject.accessMode = AccessMode.Write;
+      $card.removeAttr('editing selected');
+      $card.parent().parent().next('li').find('div.card-body-container')
+        .attr({ selected: '', editing: '' });
+      hideClientUsers();
+    }),
   );
   $card.readonly = !client.ClientModel.CanManage;
   $('#client-tree ul.admin-panel-content').append($card.build());
