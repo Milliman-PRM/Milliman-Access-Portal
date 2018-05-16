@@ -6,7 +6,7 @@ import { FormBase } from '../form/form-base';
 import { AccessMode } from '../form/form-modes';
 import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType } from '../view-models/content-publishing';
 import { setUnloadAlert } from '../unload-alerts';
-import { DeleteRootContentItemDialog } from '../dialog';
+import { DeleteRootContentItemDialog, DiscardConfirmationDialog } from '../dialog';
 import { SubmissionGroup } from '../form/form-submission';
 
 
@@ -14,6 +14,22 @@ import { SubmissionGroup } from '../form/form-submission';
 export namespace ContentPublishingDOMMethods {
   // Code within this namespace was heavily copied from old code in client-admin.js
   namespace CardIconMethods {
+    function openFormEdit(sameCard: boolean) {
+      var $rootContentItemList = $('#root-content-items');
+      if ($rootContentItemList.has('[editing]').length) {
+        if (!sameCard) {
+          shared.confirmAndContinue($('#root-content-items'), DiscardConfirmationDialog, function () {
+            currentForm.accessMode = AccessMode.Write;
+            currentForm.submissionMode = 'edit';
+            $('#content-publishing-form').show();
+          });
+        }
+      } else {
+        currentForm.submissionMode = 'edit';
+        currentForm.accessMode = AccessMode.Defer;
+        $('#content-publishing-form').show();
+      }
+    }
     export function rootContentItemPublishClickHandler() {
       var $clickedCard = $(this).closest('.card-container');
       var rootContentItemId = $clickedCard.data().rootContentItemId;
@@ -26,13 +42,26 @@ export namespace ContentPublishingDOMMethods {
     }
     export function rootContentItemEditClickHandler() {
       var $clickedCard = $(this).closest('.card-container');
+      var $rootContentItemList = $('#root-content-items');
+      var sameCard = ($clickedCard[0] === $rootContentItemList.find('[selected]').closest('.card-container')[0]);
       var rootContentItemId = $clickedCard.data().rootContentItemId;
       event.stopPropagation();
 
-      const form = forms.get(rootContentItemId);
-      form.accessMode = AccessMode.Write;
-      form.submissionMode = 'edit';
-      $('#content-publishing-form').show();
+      if (sameCard) {
+        openFormEdit(sameCard);
+      } else {
+        shared.get(
+          'ContentPublishing/RootContentItemDetail',
+          [ 
+            renderRootContentItemForm,
+            () => {
+              openFormEdit(sameCard);
+              $rootContentItemList.find('[selected]').removeAttr('selected');
+              $clickedCard.find('.card-body-container').attr('selected', '');
+            },
+          ],
+        )($clickedCard);
+      }
     }
     function deleteRootContentItem(rootContentItemId: string, rootContentItemName: string, password: string, callback: () => void) {
       $.ajax({
