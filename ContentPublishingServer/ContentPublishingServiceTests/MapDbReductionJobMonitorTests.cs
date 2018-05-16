@@ -14,7 +14,7 @@ using Moq;
 
 namespace ContentPublishingServiceTests
 {
-    public class MapDbJobMonitorTests : ContentReductionServiceTestBase
+    public class MapDbReductionJobMonitorTests : ContentReductionServiceTestBase
     {
         [Fact]
         public async Task CorrectStatusAfterCancelWhileIdle()
