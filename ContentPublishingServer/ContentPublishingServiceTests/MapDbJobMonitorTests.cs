@@ -34,6 +34,7 @@ namespace ContentPublishingServiceTests
             #endregion
 
             #region Assert
+            System.Console.Out.WriteLine($"First assert, MonitorTask.Status is {MonitorTask.Status}");
             Assert.Equal<TaskStatus>(TaskStatus.Running, MonitorTask.Status);
             #endregion
 
@@ -50,8 +51,11 @@ namespace ContentPublishingServiceTests
             #endregion
 
             #region Assert again
+            System.Console.Out.WriteLine($"Second assert, MonitorTask.Status is {MonitorTask.Status}");
             Assert.Equal<TaskStatus>(TaskStatus.Canceled, MonitorTask.Status);
+            System.Console.Out.WriteLine($"Second assert, MonitorTask.IsCanceled is {MonitorTask.IsCanceled}");
             Assert.True(MonitorTask.IsCanceled);
+            System.Console.Out.WriteLine($"Second assert, CancelStart is {CancelStartTime}, CancelEnd is {CancelEndTime}, difference is {CancelEndTime-CancelStartTime}");
             Assert.True(CancelEndTime - CancelStartTime < new TimeSpan(0,0,30), "MapDbJobMonitor took too long to be canceled while idle");
             #endregion
         }
