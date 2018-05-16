@@ -1,6 +1,7 @@
 import $ = require('jquery');
 import { Dialog, ResetConfirmationDialog, DiscardConfirmationDialog } from './dialog';
 import toastr = require('toastr');
+import { FormBase } from './form/form-base';
 
 var SHOW_DURATION = 50;
 var ajaxStatus = [];
@@ -142,12 +143,11 @@ function buildListener(fn) {
 // Functions without associated event listeners
 
 // Wrappers
-export function wrapCardCallback(callback: ($card: JQuery<HTMLElement>) => void, panelCount: number = 1) {
+export function wrapCardCallback(callback: ($card: JQuery<HTMLElement>) => void, form?: () => FormBase, panelCount: number = 1) {
   return function () {
     const $card = $(this);
     const $panel = $card.closest('.admin-panel-container');
     const $nextPanels = $panel.nextAll();
-    const $formPanels = $nextPanels.slice(0, panelCount).filter('form');
     const sameCard = ($card[0] === $panel.find('[selected]')[0]);
 
     const clearSelection = () => {
@@ -162,7 +162,7 @@ export function wrapCardCallback(callback: ($card: JQuery<HTMLElement>) => void,
     };
 
     if ($panel.has('[selected]').length) {
-      confirmAndContinue($formPanels, DiscardConfirmationDialog, () => {
+      confirmAndContinue(DiscardConfirmationDialog, form(), () => {
         if (sameCard) {
           clearSelection();
           $nextPanels.hide(SHOW_DURATION);
@@ -175,7 +175,7 @@ export function wrapCardCallback(callback: ($card: JQuery<HTMLElement>) => void,
     }
   };
 };
-export function wrapCardIconCallback(callback: ($card: JQuery<HTMLElement>) => void, panelCount: number = 1) {
+export function wrapCardIconCallback(callback: ($card: JQuery<HTMLElement>) => void, form?: () => FormBase, panelCount: number = 1) {
   return function () {
     event.stopPropagation();
 
@@ -183,7 +183,6 @@ export function wrapCardIconCallback(callback: ($card: JQuery<HTMLElement>) => v
     const $card = $icon.closest('.card-body-container');
     const $panel = $card.closest('.admin-panel-container');
     const $nextPanels = $panel.nextAll();
-    const $formPanels = $nextPanels.slice(0, panelCount).filter('form');
     const sameCard = ($card[0] === $panel.find('[selected]')[0]);
     const openCard = () => {
       $panel.find('.insert-card').remove();
@@ -194,7 +193,7 @@ export function wrapCardIconCallback(callback: ($card: JQuery<HTMLElement>) => v
     };
 
     if ($panel.has('[editing]').length) {
-      confirmAndContinue($formPanels, DiscardConfirmationDialog, () => {
+      confirmAndContinue(DiscardConfirmationDialog, form(), () => {
         if (!sameCard) {
           openCard();
         }
@@ -360,10 +359,13 @@ export function updateCardStatus($card, reductionDetails) {
 
 // Dialog helpers
 // TODO: consider moving to dialog.js
-export function confirmAndContinue($panel, Dialog, onContinue?) {
-  if ($panel.length && modifiedInputs($panel).length) {
+export function confirmAndContinue(Dialog, form?: FormBase, onContinue?) {
+  if (form && form.modified) {
     new Dialog(function () {
-      resetForm($panel);
+      // Assigning to access mode forces the form to reset
+      // FIXME: this is really unintuitive - use function instead of getters
+      //   and setters since there are side effects
+      form.accessMode = form.accessMode;
       if (onContinue) {
         onContinue();
       }

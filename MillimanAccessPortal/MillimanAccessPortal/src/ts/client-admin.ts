@@ -259,7 +259,7 @@ function setupChildClientForm($parentClientDiv: JQuery<HTMLElement>) {
   $parentClientDiv.parent().parent().after($template);
   $parentClientDiv.parent().parent().next().find('div.card-body-container')
     .click(() => {
-      shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, () => {
+      shared.confirmAndContinue(dialog.DiscardConfirmationDialog, formObject, () => {
         clearClientSelection();
         removeClientInserts();
         hideClientDetails();
@@ -373,7 +373,7 @@ function userCardRemoveClickHandler(event) {
 }
 
 
-const newClientClickHandler = shared.wrapCardCallback(() => openNewClientForm());
+const newClientClickHandler = shared.wrapCardCallback(() => openNewClientForm(), () => formObject);
 
 function saveNewUser(username, email, callback) {
   var clientId = $('#client-tree [selected]').closest('[data-client-id]').attr('data-client-id');
@@ -451,7 +451,7 @@ function removeUserFromClient(clientId, userId, callback) {
 
 
 function cancelIconClickHandler() {
-  shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
+  shared.confirmAndContinue(dialog.DiscardConfirmationDialog, formObject, function () {
     if ($('#client-tree [selected]').parent().attr('data-client-id')) {
       $('#client-tree [editing]').removeAttr('editing');
       formObject.accessMode = AccessMode.Read;
@@ -479,9 +479,9 @@ function renderClientNode(client, level) {
         (response: any) => displayActionPanelIcons(response.CanManage),
         renderUserList,
       ],
-    ), 2),
+    ), () => formObject, 2),
     !client.Children.length && clientCardDeleteClickHandler,
-    shared.wrapCardIconCallback(($card) => getClientDetail($card.parent(), AccessMode.Write)),
+    shared.wrapCardIconCallback(($card) => getClientDetail($card.parent(), AccessMode.Write), () => formObject),
     level < 2 && shared.wrapCardIconCallback(($card) => {
       setupChildClientForm($card);
       formObject.accessMode = AccessMode.Write;
@@ -489,7 +489,7 @@ function renderClientNode(client, level) {
       $card.parent().parent().next('li').find('div.card-body-container')
         .attr({ selected: '', editing: '' });
       hideClientUsers();
-    }),
+    }, () => formObject),
   );
   $card.readonly = !client.ClientModel.CanManage;
   $('#client-tree ul.admin-panel-content').append($card.build());

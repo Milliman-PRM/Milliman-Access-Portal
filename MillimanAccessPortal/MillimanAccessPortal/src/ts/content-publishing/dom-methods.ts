@@ -18,7 +18,7 @@ export namespace ContentPublishingDOMMethods {
       var $rootContentItemList = $('#root-content-items');
       if ($rootContentItemList.has('[editing]').length) {
         if (!sameCard) {
-          shared.confirmAndContinue($('#root-content-items'), DiscardConfirmationDialog, function () {
+          shared.confirmAndContinue(DiscardConfirmationDialog, currentForm, function () {
             currentForm.accessMode = AccessMode.Write;
             currentForm.submissionMode = 'edit';
             $('#content-publishing-form').show();
@@ -34,7 +34,7 @@ export namespace ContentPublishingDOMMethods {
       var $rootContentItemList = $('#root-content-items');
       if ($rootContentItemList.has('[editing]').length) {
         if (!sameCard) {
-          shared.confirmAndContinue($('#root-content-items'), DiscardConfirmationDialog, function () {
+          shared.confirmAndContinue(DiscardConfirmationDialog, currentForm, function () {
             currentForm.accessMode = AccessMode.Write;
             currentForm.submissionMode = 'republish';
             $('#content-publishing-form').show();
