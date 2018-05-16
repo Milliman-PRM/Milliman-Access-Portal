@@ -175,7 +175,7 @@ export function wrapCardCallback(callback: ($card: JQuery<HTMLElement>) => void,
     }
   };
 };
-export function wrapCardIconCallback(callback: ($card: JQuery<HTMLElement>) => void, form?: () => FormBase, panelCount: number = 1) {
+export function wrapCardIconCallback(callback: ($card: JQuery<HTMLElement>) => void, form?: () => FormBase, panelCount: number = 1, sameCard?: ($card: JQuery<HTMLElement>) => boolean) {
   return function () {
     event.stopPropagation();
 
@@ -183,7 +183,9 @@ export function wrapCardIconCallback(callback: ($card: JQuery<HTMLElement>) => v
     const $card = $icon.closest('.card-body-container');
     const $panel = $card.closest('.admin-panel-container');
     const $nextPanels = $panel.nextAll();
-    const sameCard = ($card[0] === $panel.find('[selected]')[0]);
+    const same = sameCard
+      ? sameCard($card)
+      : ($card[0] === $panel.find('[selected]')[0]);
     const openCard = () => {
       $panel.find('.insert-card').remove();
       $panel.find('.card-body-container').removeAttr('editing selected');
@@ -194,7 +196,7 @@ export function wrapCardIconCallback(callback: ($card: JQuery<HTMLElement>) => v
 
     if ($panel.has('[editing]').length) {
       confirmAndContinue(DiscardConfirmationDialog, form(), () => {
-        if (!sameCard) {
+        if (!same) {
           openCard();
         }
       });

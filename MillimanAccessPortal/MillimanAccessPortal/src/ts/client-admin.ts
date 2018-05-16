@@ -489,7 +489,14 @@ function renderClientNode(client, level) {
       $card.parent().parent().next('li').find('div.card-body-container')
         .attr({ selected: '', editing: '' });
       hideClientUsers();
-    }, () => formObject),
+    }, () => formObject, 1, ($card) => {
+      const $selected = $('#client-tree [selected]');
+      const $expected = $card.parent().parent().next('li').find('.card-body-container');
+      return $selected.length
+        && $selected.parent().is('.insert-card')
+        && $expected.length
+        && $selected[0] === $expected[0];
+    }),
   );
   $card.readonly = !client.ClientModel.CanManage;
   $('#client-tree ul.admin-panel-content').append($card.build());
