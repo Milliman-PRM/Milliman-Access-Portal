@@ -8,9 +8,12 @@ import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, Cli
 import { setUnloadAlert } from '../unload-alerts';
 import { DeleteRootContentItemDialog } from '../dialog';
 import { SubmissionGroup } from '../form/form-submission';
+import { PublicationStatusMonitor } from './publication-status-monitor';
 
 
 export namespace ContentPublishingDOMMethods {
+  let statusMonitor: PublicationStatusMonitor;
+
   const forms = new Map<number, FormBase>();
   let currentForm: FormBase;
   let currentFormId: number;
@@ -292,5 +295,8 @@ export namespace ContentPublishingDOMMethods {
       'ContentPublishing/Clients',
       [ renderClientTree ],
     )();
+
+    statusMonitor = new PublicationStatusMonitor();
+    statusMonitor.start();
   }
 }
