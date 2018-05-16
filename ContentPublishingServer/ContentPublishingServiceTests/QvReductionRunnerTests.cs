@@ -19,7 +19,7 @@ namespace ContentPublishingServiceTests
     public class QvReductionRunnerTests : ContentReductionServiceTestBase
     {
         [Fact]
-        public async Task SuccessfulHierarchyOnly()
+        public void SuccessfulHierarchyOnly()
         {
             #region Arrange
             ApplicationDbContext MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus).Object;
@@ -40,9 +40,9 @@ namespace ContentPublishingServiceTests
 
             #region Act
             Task<ReductionJobDetail> MonitorTask = TestRunner.Execute(CancelTokenSource.Token);
-            ReductionJobDetail JobDetail = await MonitorTask;
-            var TaskResult = JobDetail.Result;
-            var TaskRequest = JobDetail.Request;
+            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 5, 0));
+            var TaskResult = MonitorTask.Result.Result;
+            var TaskRequest = MonitorTask.Result.Request;
             #endregion
 
             #region Assert
@@ -71,7 +71,7 @@ namespace ContentPublishingServiceTests
         }
 
         [Fact]
-        public async Task SuccessfulHierarchyAndReduction()
+        public void SuccessfulHierarchyAndReduction()
         {
             #region Arrange
             ApplicationDbContext MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus).Object;
@@ -91,9 +91,9 @@ namespace ContentPublishingServiceTests
 
             #region Act
             Task<ReductionJobDetail> MonitorTask = TestRunner.Execute(CancelTokenSource.Token);
-            ReductionJobDetail JobDetail = await MonitorTask;
-            var TaskResult = JobDetail.Result;
-            var TaskRequest = JobDetail.Request;
+            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 5, 0));
+            var TaskRequest = MonitorTask.Result.Request;
+            var TaskResult = MonitorTask.Result.Result;
             #endregion
 
             #region Assert
@@ -133,7 +133,7 @@ namespace ContentPublishingServiceTests
         }
 
         [Fact]
-        public async Task InvalidSelectionFieldName()
+        public void InvalidSelectionFieldName()
         {
             #region Arrange
             ApplicationDbContext MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus).Object;
@@ -153,9 +153,9 @@ namespace ContentPublishingServiceTests
 
             #region Act
             Task<ReductionJobDetail> MonitorTask = TestRunner.Execute(CancelTokenSource.Token);
-            ReductionJobDetail JobDetail = await MonitorTask;
-            var TaskResult = JobDetail.Result;
-            var TaskRequest = JobDetail.Request;
+            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 5, 0));
+            var TaskRequest = MonitorTask.Result.Request;
+            var TaskResult = MonitorTask.Result.Result;
             #endregion
 
             #region Assert
@@ -184,7 +184,7 @@ namespace ContentPublishingServiceTests
         }
 
         [Fact]
-        public async Task InvalidSelectionValue()
+        public void InvalidSelectionValue()
         {
             #region Arrange
             ApplicationDbContext MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus).Object;
@@ -204,9 +204,9 @@ namespace ContentPublishingServiceTests
 
             #region Act
             Task<ReductionJobDetail> MonitorTask = TestRunner.Execute(CancelTokenSource.Token);
-            ReductionJobDetail JobDetail = await MonitorTask;
-            var TaskResult = JobDetail.Result;
-            var TaskRequest = JobDetail.Request;
+            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 5, 0));
+            var TaskRequest = MonitorTask.Result.Request;
+            var TaskResult = MonitorTask.Result.Result;
             #endregion
 
             #region Assert
@@ -232,7 +232,7 @@ namespace ContentPublishingServiceTests
         }
 
         [Fact]
-        public async Task OneValidOneInvalidSelectionValue()
+        public void OneValidOneInvalidSelectionValue()
         {
             #region Arrange
             ApplicationDbContext MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus).Object;
@@ -252,9 +252,9 @@ namespace ContentPublishingServiceTests
 
             #region Act
             Task<ReductionJobDetail> MonitorTask = TestRunner.Execute(CancelTokenSource.Token);
-            ReductionJobDetail JobDetail = await MonitorTask;
-            var TaskResult = JobDetail.Result;
-            var TaskRequest = JobDetail.Request;
+            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 5, 0));
+            var TaskRequest = MonitorTask.Result.Request;
+            var TaskResult = MonitorTask.Result.Result;
             #endregion
 
             #region Assert
@@ -290,7 +290,7 @@ namespace ContentPublishingServiceTests
         }
 
         [Fact]
-        public async Task MasterFileMissing()
+        public void MasterFileMissing()
         {
             #region Arrange
             ApplicationDbContext MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus).Object;
@@ -311,9 +311,9 @@ namespace ContentPublishingServiceTests
 
             #region Act
             Task<ReductionJobDetail> MonitorTask = TestRunner.Execute(CancelTokenSource.Token);
-            ReductionJobDetail JobDetail = await MonitorTask;
-            var TaskResult = JobDetail.Result;
-            var TaskRequest = JobDetail.Request;
+            Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 5, 0));
+            var TaskRequest = MonitorTask.Result.Request;
+            var TaskResult = MonitorTask.Result.Result;
             #endregion
 
             #region Assert
