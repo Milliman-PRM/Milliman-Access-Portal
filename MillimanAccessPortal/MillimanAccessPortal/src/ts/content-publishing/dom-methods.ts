@@ -30,15 +30,44 @@ export namespace ContentPublishingDOMMethods {
         $('#content-publishing-form').show();
       }
     }
+    function openFormRepublish(sameCard: boolean) {
+      var $rootContentItemList = $('#root-content-items');
+      if ($rootContentItemList.has('[editing]').length) {
+        if (!sameCard) {
+          shared.confirmAndContinue($('#root-content-items'), DiscardConfirmationDialog, function () {
+            currentForm.accessMode = AccessMode.Write;
+            currentForm.submissionMode = 'republish';
+            $('#content-publishing-form').show();
+          });
+        }
+      } else {
+        currentForm.submissionMode = 'republish';
+        currentForm.accessMode = AccessMode.Defer;
+        $('#content-publishing-form').show();
+      }
+    }
     export function rootContentItemPublishClickHandler() {
       var $clickedCard = $(this).closest('.card-container');
+      var $rootContentItemList = $('#root-content-items');
+      var sameCard = ($clickedCard[0] === $rootContentItemList.find('[selected]').closest('.card-container')[0]);
       var rootContentItemId = $clickedCard.data().rootContentItemId;
       event.stopPropagation();
 
-      const form = forms.get(rootContentItemId);
-      form.accessMode = AccessMode.Write;
-      form.submissionMode = 'republish';
-      $('#content-publishing-form').show();
+      if (sameCard) {
+        openFormRepublish(sameCard);
+      } else {
+        shared.get(
+          'ContentPublishing/RootContentItemDetail',
+          [ 
+            renderRootContentItemForm,
+            () => {
+              openFormRepublish(sameCard);
+              $rootContentItemList.find('[selected]').removeAttr('selected');
+              $clickedCard.find('.card-body-container').attr('selected', '');
+            },
+          ],
+        )($clickedCard);
+      }
     }
     export function rootContentItemEditClickHandler() {
       var $clickedCard = $(this).closest('.card-container');
