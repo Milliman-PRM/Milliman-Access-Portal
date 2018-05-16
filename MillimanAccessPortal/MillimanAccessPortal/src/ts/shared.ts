@@ -186,14 +186,14 @@ export function wrapCardCallback(callback, panels?) {
 };
 
 // AJAX
-export function get(url, callbacks) {
-  return function ($clickedCard?) {
-    var $card = $clickedCard && $clickedCard.closest('.card-container');
-    var $panel = $card
+export function get<T>(url: string, callbacks: Array<(response: T) => void>) {
+  return ($clickedCard?: JQuery<HTMLElement>) => {
+    const $card = $clickedCard && $clickedCard.closest('.card-container');
+    const $panel = $card
       ? $card.closest('.admin-panel-container').nextAll().slice(0, callbacks.length)
       : $('.admin-panel-container').first();
-    var $loading = $panel.find('.loading-wrapper');
-    var data = $card && $card.data();
+    const $loading = $panel.find('.loading-wrapper');
+    const data = $card && $card.data();
 
     ajaxStatus[url] = data; // or some hash of the data
     $loading.show();
@@ -201,24 +201,30 @@ export function get(url, callbacks) {
     $.ajax({
       type: 'GET',
       url: url,
-      data: data
-    }).done(function (response) {
-      if (ajaxStatus[url] !== data) return;
-      callbacks.forEach(function (callback, index) {
+      data: data,
+    }).done((response: T) => {
+      // if this was not the most recent AJAX call for its URL, don't process the return data
+      if (ajaxStatus[url] !== data) {
+        return;
+      }
+      callbacks.forEach((callback, index) => {
         callback(response);
         $loading.eq(index).hide();
       });
-    }).fail(function (response) {
-      var warning = response.getResponseHeader('Warning');
-      if (ajaxStatus[url] !== data) return;
+    }).fail((response) => {
+      // if this was not the most recent AJAX call for its URL, don't process the return data
+      if (ajaxStatus[url] !== data) {
+        return;
+      }
+      const warning = response.getResponseHeader('Warning');
       toastr.warning(warning || 'An unknown error has occurred.');
       $loading.hide();
     });
   };
 };
 
-function set(method, url, successMessage, callbacks) {
-  return function (data, onResponse, buttonText) {
+export function set<T>(method: string, url: string, successMessage: string, callbacks: Array<(response: T) => void>) {
+  return (data: any, onResponse: () => void, buttonText: string) => {
     if (ajaxStatus[url]) {
       return; // TODO: do something when a request has already been sent
     }
@@ -230,30 +236,28 @@ function set(method, url, successMessage, callbacks) {
       data: data,
       headers: {
         RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
-      }
-    }).done(function (response) {
+      },
+    }).done((response: T) => {
       ajaxStatus[url] = false;
       onResponse();
-      callbacks.forEach(function (callback) {
-        callback(response);
-      });
+      callbacks.forEach((callback) => callback(response));
       toastr.success(successMessage);
-    }).fail(function (response) {
-      var warning = response.getResponseHeader('Warning');
+    }).fail((response) => {
       ajaxStatus[url] = false;
       onResponse();
+      const warning = response.getResponseHeader('Warning');
       toastr.warning(warning || 'An unknown error has occurred.');
     });
   };
 };
 
-export function post(url, successMessage, callbacks) {
+export function post<T>(url: string, successMessage: string, callbacks: Array<(response: T) => void>) {
   set('POST', url, successMessage, callbacks);
 }
-export function del(url, successMessage, callbacks) {
+export function del<T>(url: string, successMessage: string, callbacks: Array<(response: T) => void>) {
   set('DELETE', url, successMessage, callbacks);
 }
-export function put(url, successMessage, callbacks) {
+export function put<T>(url: string, successMessage: string, callbacks: Array<(response: T) => void>) {
   set('PUT', url, successMessage, callbacks);
 }
 

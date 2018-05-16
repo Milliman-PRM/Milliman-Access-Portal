@@ -65,7 +65,6 @@ function showClientDetails() {
   });
 }
 
-// TODOx
 function populateClientForm(response) {
   var clientEntity = response.ClientEntity;
   var $clientForm = $('#client-info form.admin-panel-content');
@@ -250,7 +249,6 @@ function renderUserList(response) {
 }
 
 
-// TODOx
 function setupChildClientForm(parentClientDiv) {
   var parentClientId = parentClientDiv.attr('data-client-id').valueOf();
   var $template = new card.AddChildInsertCard(parentClientDiv.hasClass('card-100') ? 1 : 2).build();
@@ -553,7 +551,7 @@ function renderClientNode(client, level) {
         populateClientForm,
         () => formObject.submissionMode = 'edit',
         () => formObject.accessMode = AccessMode.Read,
-        (response) => displayActionPanelIcons(response.CanManage),
+        (response: any) => displayActionPanelIcons(response.CanManage),
         renderUserList,
       ],
     ), 2),
