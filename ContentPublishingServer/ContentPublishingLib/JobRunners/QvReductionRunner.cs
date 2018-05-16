@@ -269,14 +269,18 @@ namespace ContentPublishingLib.JobRunners
             File.WriteAllText(AncillaryScriptFilePath, "LET DataExtraction=true();");
 
             // Create Qlikview publisher (QDS) task
-            TaskInfo Info = await CreateHierarchyExtractionQdsTask(DocumentNodeArg);
+            DocumentTask HierarchyTask = await CreateHierarchyExtractionQdsTask(DocumentNodeArg);
 
             // Run Qlikview publisher (QDS) task
-            await RunQdsTask(Info);
-
-            // Clean up
-            await DeleteQdsTask(Info);
-            File.Delete(AncillaryScriptFilePath);
+            try
+            {
+                await RunQdsTask(HierarchyTask);
+            }
+            finally
+            {
+                // Clean up
+                File.Delete(AncillaryScriptFilePath);
+            }
 
             #region Build hierarchy json output
             string ReductionSchemeFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "reduction.scheme.csv");
@@ -313,9 +317,12 @@ namespace ContentPublishingLib.JobRunners
                 AuditEvent Event = AuditEvent.New("Reduction server", "Extraction of hierarchy failed", AuditEventId.HierarchyExtractionFailed, DetailObj);
                 AuditLog.Log(Event);
             }
+            finally
+            {
+                File.Delete(ReductionSchemeFilePath);
+            }
             #endregion
 
-            File.Delete(ReductionSchemeFilePath);
             foreach (string LogFile in Directory.EnumerateFiles(Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative), DocumentNodeArg.Name + "*.log"))
             {
                 try
@@ -366,13 +373,10 @@ namespace ContentPublishingLib.JobRunners
             }
 
             // Create Qlikview publisher (QDS) task
-            TaskInfo Info = await CreateReductionQdsTask(JobDetail.Request.SelectionCriteria);
+            DocumentTask ReductionTask = await CreateReductionQdsTask(JobDetail.Request.SelectionCriteria);
 
             // Run Qlikview publisher (QDS) task
-            await RunQdsTask(Info);
-
-            // Clean up
-            await DeleteQdsTask(Info);
+            await RunQdsTask(ReductionTask);
 
             ReducedDocumentNode = await GetSourceDocumentNode(ReducedFileName, WorkingFolderRelative);
 
@@ -454,7 +458,7 @@ namespace ContentPublishingLib.JobRunners
         /// </summary>
         /// <param name="DocNodeArg"></param>
         /// <returns></returns>
-        private async Task<TaskInfo> CreateHierarchyExtractionQdsTask(DocumentNode DocNodeArg)
+        private async Task<DocumentTask> CreateHierarchyExtractionQdsTask(DocumentNode DocNodeArg)
         {
             string TaskDateTimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
@@ -504,14 +508,7 @@ namespace ContentPublishingLib.JobRunners
             ((ScheduleTrigger)NewDocumentTask.Triggering.Triggers[0]).StartAt = DateTime.Now;
             #endregion
 
-            IQMS QmsClient = QmsClientCreator.New(QmsUrl);
-
-            await QmsClient.SaveDocumentTaskAsync(NewDocumentTask);
-            TaskInfo ReturnTaskInfo = await QmsClient.FindTaskAsync(QdsServiceInfo.ID, TaskType.DocumentTask, NewDocumentTask.General.TaskName);
-
-            Trace.WriteLine($"Hierarchy extraction task with ID '{NewDocumentTask.ID.ToString("N")}' successfully saved");
-
-            return ReturnTaskInfo;
+            return NewDocumentTask;
         }
 
         /// <summary>
@@ -519,7 +516,7 @@ namespace ContentPublishingLib.JobRunners
         /// </summary>
         /// <param name="Selections"></param>
         /// <returns></returns>
-        private async Task<TaskInfo> CreateReductionQdsTask(IEnumerable<FieldValueSelection> Selections)
+        private async Task<DocumentTask> CreateReductionQdsTask(IEnumerable<FieldValueSelection> Selections)
         {
             //TODO debug this function
             string TaskDateTimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
@@ -617,14 +614,7 @@ namespace ContentPublishingLib.JobRunners
             };
             #endregion
 
-            IQMS QmsClient = QmsClientCreator.New(QmsUrl);
-
-            await QmsClient.SaveDocumentTaskAsync(NewDocumentTask);
-            TaskInfo ReturnTaskInfo = await QmsClient.FindTaskAsync(QdsServiceInfo.ID, TaskType.DocumentTask, NewDocumentTask.General.TaskName);
-
-            Trace.WriteLine($"Content reduction task with ID '{NewDocumentTask.ID.ToString("N")}' successfully saved");
-
-            return ReturnTaskInfo;
+            return NewDocumentTask;
         }
 
         /// <summary>
@@ -632,7 +622,7 @@ namespace ContentPublishingLib.JobRunners
         /// </summary>
         /// <param name="TInfo"></param>
         /// <returns></returns>
-        private async Task RunQdsTask(TaskInfo TInfo)
+        private async Task RunQdsTask(DocumentTask DocTask)
         {
             // TODO make these configurable?
             TimeSpan MaxStartDelay = new TimeSpan(0, 5, 0);
@@ -641,60 +631,66 @@ namespace ContentPublishingLib.JobRunners
 
             QlikviewLib.Qms.TaskStatus Status;
 
+            // Save the task to Qlikview server
             IQMS QmsClient = QmsClientCreator.New(QmsUrl);
+            await QmsClient.SaveDocumentTaskAsync(DocTask);
+            TaskInfo TInfo = await QmsClient.FindTaskAsync(QdsServiceInfo.ID, TaskType.DocumentTask, DocTask.General.TaskName);
+            Guid TaskIdGuid = TInfo.ID;
+            Trace.WriteLine($"QDS task with ID '{TaskIdGuid.ToString("D")}' successfully saved");
 
-            // Get the task started, this generally requires more than one call to RunTaskAsync
-            DateTime StartTime = DateTime.Now;
-            do
+            try
             {
-                if (DateTime.Now - StartTime > MaxStartDelay)
+                // Get the task started, this generally requires more than one call to RunTaskAsync
+                DateTime StartTime = DateTime.Now;
+                do
                 {
-                    throw new System.Exception($"Qlikview publisher failed to start task {TInfo.ID} before timeout");
-                }
+                    if (DateTime.Now - StartTime > MaxStartDelay)
+                    {
+                        throw new System.Exception($"Qlikview publisher failed to start task {TaskIdGuid.ToString("D")} before timeout");
+                    }
 
-                await QmsClient.RunTaskAsync(TInfo.ID);
-                Thread.Sleep(PublisherPollingIntervalMs);
+                    QmsClient = QmsClientCreator.New(QmsUrl);
+                    await QmsClient.RunTaskAsync(TaskIdGuid);
+                    Thread.Sleep(PublisherPollingIntervalMs);
 
-                Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.All);
-            } while (Status == null || Status.Extended == null || string.IsNullOrEmpty(Status.Extended.StartTime));
+                    Status = await QmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
+                } while (Status == null || Status.Extended == null || string.IsNullOrEmpty(Status.Extended.StartTime));
 
-            Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TInfo.ID} started running after {DateTime.Now - StartTime}");
+                Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} started running after {DateTime.Now - StartTime}");
 
-            // Wait for started task to finish
-            DateTime RunningStartTime = DateTime.Now;
-            do
-            {
-                if (DateTime.Now - RunningStartTime > MaxElapsedRun)
+                // Wait for started task to finish
+                DateTime RunningStartTime = DateTime.Now;
+                do
                 {
-                    throw new System.Exception($"Qlikview publisher failed to finish task {TInfo.ID} before timeout");
+                    if (DateTime.Now - RunningStartTime > MaxElapsedRun)
+                    {
+                        throw new System.Exception($"Qlikview publisher failed to finish task {TaskIdGuid.ToString("D")} before timeout");
+                    }
+
+                    Thread.Sleep(PublisherPollingIntervalMs);
+
+                    QmsClient = QmsClientCreator.New(QmsUrl);
+                    Status = await QmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
+                } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));
+                Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} finished running after {DateTime.Now - RunningStartTime}");
+
+                if (Status.General.Status == TaskStatusValue.Failed)
+                {
+                    throw new ApplicationException($"Qlikview server error while processing task {TaskIdGuid.ToString("D")}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
                 }
-
-                Thread.Sleep(PublisherPollingIntervalMs);
-
-                Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.All);
-            } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));
-            Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TInfo.ID} finished running after {DateTime.Now - RunningStartTime}");
-
-            if (Status.General.Status == TaskStatusValue.Failed)
-            {
-                throw new ApplicationException($"Qlikview server error while processing task {TInfo.ID}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
             }
-        }
+            finally
+            {
+                // Clean up
+                QmsClient = QmsClientCreator.New(QmsUrl);
+                Status = await QmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
 
-        /// <summary>
-        /// Deletes a Qlikview server task. 
-        /// </summary>
-        /// <param name="TInfo"></param>
-        /// <returns></returns>
-        private async Task<bool> DeleteQdsTask(TaskInfo TInfo)
-        {
-            IQMS QmsClient = QmsClientCreator.New(QmsUrl);
-            QlikviewLib.Qms.TaskStatus Status = await QmsClient.GetTaskStatusAsync(TInfo.ID, TaskStatusScope.All);
-
-            // null should indicate that the task doesn't exist
-            bool Result = (Status == null) || await QmsClient.DeleteTaskAsync(TInfo.ID, TInfo.Type);
-
-            return Result;
+                // null would indicate that the task doesn't exist
+                if (Status != null)
+                {
+                    await QmsClient.DeleteTaskAsync(TaskIdGuid, TInfo.Type);
+                }
+            }
         }
 
     }
