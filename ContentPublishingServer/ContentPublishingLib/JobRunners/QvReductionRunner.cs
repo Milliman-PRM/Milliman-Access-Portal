@@ -269,7 +269,7 @@ namespace ContentPublishingLib.JobRunners
             File.WriteAllText(AncillaryScriptFilePath, "LET DataExtraction=true();");
 
             // Create Qlikview publisher (QDS) task
-            DocumentTask HierarchyTask = await CreateHierarchyExtractionQdsTask(DocumentNodeArg);
+            DocumentTask HierarchyTask = CreateHierarchyExtractionQdsTask(DocumentNodeArg);
 
             // Run Qlikview publisher (QDS) task
             try
@@ -373,7 +373,7 @@ namespace ContentPublishingLib.JobRunners
             }
 
             // Create Qlikview publisher (QDS) task
-            DocumentTask ReductionTask = await CreateReductionQdsTask(JobDetail.Request.SelectionCriteria);
+            DocumentTask ReductionTask = CreateReductionQdsTask(JobDetail.Request.SelectionCriteria);
 
             // Run Qlikview publisher (QDS) task
             await RunQdsTask(ReductionTask);
@@ -458,7 +458,7 @@ namespace ContentPublishingLib.JobRunners
         /// </summary>
         /// <param name="DocNodeArg"></param>
         /// <returns></returns>
-        private async Task<DocumentTask> CreateHierarchyExtractionQdsTask(DocumentNode DocNodeArg)
+        private DocumentTask CreateHierarchyExtractionQdsTask(DocumentNode DocNodeArg)
         {
             string TaskDateTimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
@@ -516,7 +516,7 @@ namespace ContentPublishingLib.JobRunners
         /// </summary>
         /// <param name="Selections"></param>
         /// <returns></returns>
-        private async Task<DocumentTask> CreateReductionQdsTask(IEnumerable<FieldValueSelection> Selections)
+        private DocumentTask CreateReductionQdsTask(IEnumerable<FieldValueSelection> Selections)
         {
             //TODO debug this function
             string TaskDateTimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
