@@ -78,6 +78,25 @@ export namespace ContentPublishingDOMMethods {
         },
       ).open();
     }
+    export function openNewRootContentItemForm() {
+      const clientId = $('#client-tree [selected]').parent().data().clientId;
+      renderRootContentItemForm({
+        ClientId: clientId,
+        ContentName: '',
+        ContentTypeId: 0,
+        Description: '',
+        DoesReduce: false,
+        Id: 0,
+        Notes: '',
+      });
+      currentForm.submissionMode = 'new';
+      currentForm.accessMode = AccessMode.Write;
+    }
+    export function newRootContentItemClickHandler() {
+      shared.wrapCardCallback(() => {
+        openNewRootContentItemForm();
+      }).bind(this)();
+    }
   }
 
   const forms = new Map<number, FormBase>();
@@ -179,23 +198,6 @@ export namespace ContentPublishingDOMMethods {
   }
 
 
-  function newRootContentItemClickHandler() {
-    shared.wrapCardCallback(() => {
-      const clientId = $('#client-tree [selected]').parent().data().clientId;
-      renderRootContentItemForm({
-        ClientId: clientId,
-        ContentName: '',
-        ContentTypeId: 0,
-        Description: '',
-        DoesReduce: false,
-        Id: 0,
-        Notes: '',
-      });
-      currentForm.submissionMode = 'new';
-      currentForm.accessMode = AccessMode.Write;
-    }).bind(this)();
-  }
-
   function renderRootContentItem(item: RootContentItemSummary) {
     const $card = new RootContentItemCard(
       item,
@@ -295,8 +297,14 @@ export namespace ContentPublishingDOMMethods {
     $('.admin-panel-searchbar-tree').keyup(shared.filterTreeListener);
     $('.admin-panel-searchbar-form').keyup(shared.filterFormListener);
 
+    $('#root-content-items .admin-panel-toolbar .action-icon-add').click(function () {
+      CardIconMethods.openNewRootContentItemForm();
+      $('#root-content-items .card-body-container').removeAttr('selected');
+      $('#root-content-items .card-body-container.action-card').attr('selected', '');
+      $('#content-publishing-form').show();
+    })
     $('#root-content-items ul.admin-panel-content-action')
-      .append(new AddRootContentItemActionCard(newRootContentItemClickHandler).build());
+      .append(new AddRootContentItemActionCard(CardIconMethods.newRootContentItemClickHandler).build());
 
     $('.admin-panel-toolbar .action-icon-edit').click(() => {
       currentForm.submissionMode = 'edit';
