@@ -10,17 +10,16 @@ using System.Threading.Tasks;
 using Xunit;
 using ContentPublishingLib.JobMonitors;
 using TestResourcesLib;
-using Moq;
 
 namespace ContentPublishingServiceTests
 {
-    public class MapDbReductionJobMonitorTests : ContentReductionServiceTestBase
+    public class MapDbPublishJobMonitorTests : ContentReductionServiceTestBase
     {
         [Fact]
-        public async Task CorrectStatusAfterCancelWhileIdle()
+        public async Task CorrectRequestStatusAfterCancelWhileIdle()
         {
             #region arrange
-            MapDbReductionJobMonitor JobMonitor = new MapDbReductionJobMonitor
+            MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor
             {
                 MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus),
             };
@@ -52,7 +51,7 @@ namespace ContentPublishingServiceTests
             #region Assert again
             Assert.Equal<TaskStatus>(TaskStatus.Canceled, MonitorTask.Status);
             Assert.True(MonitorTask.IsCanceled);
-            Assert.True(CancelEndTime - CancelStartTime < new TimeSpan(0,0,30), "MapDbReductionJobMonitor took too long to be canceled while idle");
+            Assert.True(CancelEndTime - CancelStartTime < new TimeSpan(0, 0, 30), "MapDbPublishJobMonitor took too long to be canceled while idle");
             #endregion
         }
 

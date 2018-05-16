@@ -21,7 +21,7 @@ using Newtonsoft.Json;
 
 namespace ContentPublishingLib.JobMonitors
 {
-    internal class MapDbPublishJobMonitor : JobMonitorBase
+    public class MapDbPublishJobMonitor : JobMonitorBase
     {
         internal class PublishJobTrackingItem
         {
