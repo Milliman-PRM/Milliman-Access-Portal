@@ -30,7 +30,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
                 .Where(crt => crt.RootContentItemId == RootContentItem.Id)
                 .OrderByDescending(crt => crt.CreateDateTime)
                 .FirstOrDefault();
-            PublicationDetails publicationDetails = PublicationDetails.Build(latestPublication, DbContext);
+            PublicationDetails publicationDetails = (PublicationDetails) latestPublication;
 
             ContentAccessAdminRootContentItemDetailViewModel Model = new ContentAccessAdminRootContentItemDetailViewModel
             {
@@ -56,38 +56,6 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
                 .Single(rci => rci.Id == RootContentId);
 
             return Build(DbContext, Content);
-        }
-    }
-
-    public class PublicationDetails
-    {
-        public ApplicationUser User { get; set; }
-        public PublicationStatus StatusEnum { get; set; }
-        public string StatusName { get; set; }
-        public long SelectionGroupId { get; set; } = -1;
-        public long RootContentItemId { get; set; }
-
-        public static PublicationDetails Build (ContentPublicationRequest contentPublicationRequest, ApplicationDbContext DbContext)
-        {
-            if (contentPublicationRequest == null)
-            {
-                return null;
-            }
-
-            List<ReductionStatusEnum> ReductionStatusList = DbContext.ContentReductionTask
-                                                      .Where(t => t.ContentPublicationRequestId == contentPublicationRequest.Id)
-                                                      .Select(t => t.ReductionStatus)
-                                                      .ToList();
-
-            PublicationStatus Status = ContentPublicationRequest.GetPublicationStatus(ReductionStatusList);
-
-            return new PublicationDetails
-            {
-                User = contentPublicationRequest.ApplicationUser,
-                StatusEnum = Status,
-                StatusName = ContentPublicationRequest.PublicationStatusString[Status],
-                RootContentItemId = contentPublicationRequest.RootContentItemId,
-            };
         }
     }
 }
