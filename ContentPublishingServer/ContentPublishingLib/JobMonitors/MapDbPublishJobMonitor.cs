@@ -132,6 +132,7 @@ namespace ContentPublishingLib.JobMonitors
                         }
                         if (MockContext != null)
                         {
+                            Runner.MockContext = MockContext;
                             Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
                         }
 
