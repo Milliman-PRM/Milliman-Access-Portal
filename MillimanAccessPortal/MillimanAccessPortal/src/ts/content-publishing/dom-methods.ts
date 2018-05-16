@@ -10,7 +10,69 @@ import { DeleteRootContentItemDialog } from '../dialog';
 import { SubmissionGroup } from '../form/form-submission';
 
 
+
 export namespace ContentPublishingDOMMethods {
+  // Code within this namespace was heavily copied from old code in client-admin.js
+  namespace CardIconMethods {
+    export function rootContentItemPublishClickHandler() {
+      var $clickedCard = $(this).closest('.card-container');
+      var rootContentItemId = $clickedCard.data().rootContentItemId;
+      event.stopPropagation();
+
+      const form = forms.get(rootContentItemId);
+      form.accessMode = AccessMode.Write;
+      form.submissionMode = 'republish';
+      $('#content-publishing-form').show();
+    }
+    export function rootContentItemEditClickHandler() {
+      var $clickedCard = $(this).closest('.card-container');
+      var rootContentItemId = $clickedCard.data().rootContentItemId;
+      event.stopPropagation();
+
+      const form = forms.get(rootContentItemId);
+      form.accessMode = AccessMode.Write;
+      form.submissionMode = 'edit';
+      $('#content-publishing-form').show();
+    }
+    function deleteRootContentItem(rootContentItemId: string, rootContentItemName: string, password: string, callback: () => void) {
+      $.ajax({
+        type: 'DELETE',
+        url: 'ContentPublishing/DeleteRootContentItem',
+        data: {
+          rootContentItemId: rootContentItemId,
+        },
+        headers: {
+          RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
+        }
+      }).done(function onDone(response) {
+      }).fail(function onFail(response) {
+      });
+    }
+    export function rootContentItemDeleteClickHandler() {
+      var $clickedCard = $(this).closest('.card-container');
+      var rootContentItemId = $clickedCard.data().rootContentItemId;
+      var rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
+      event.stopPropagation();
+      new DeleteRootContentItemDialog(
+        rootContentItemName,
+        rootContentItemId,
+        function (data, callback) {
+          if (data.password) {
+            shared.showButtonSpinner($('.vex-first'), 'Deleting');
+            $('.vex-dialog-button').attr('disabled', '');
+            deleteRootContentItem(rootContentItemId, rootContentItemName, data.password, callback);
+          } else if (data.password === '') {
+            toastr.warning('Please enter your password to proceed');
+            return false;
+          } else {
+            toastr.info('Deletion was canceled');
+          }
+          return true;
+        },
+      ).open();
+    }
+  }
+
   const forms = new Map<number, FormBase>();
   let currentForm: FormBase;
   let currentFormId: number;
@@ -110,52 +172,6 @@ export namespace ContentPublishingDOMMethods {
   }
 
 
-  function rootContentItemPublishClickHandler() {
-    var $clickedCard = $(this).closest('.card-container');
-    var rootContentItemId = $clickedCard.data().rootContentItemId;
-    event.stopPropagation();
-
-    const form = forms.get(rootContentItemId);
-    form.accessMode = AccessMode.Write;
-    form.submissionMode = 'republish';
-    $('#content-publishing-form').show();
-  }
-  function rootContentItemEditClickHandler() {
-    var $clickedCard = $(this).closest('.card-container');
-    var rootContentItemId = $clickedCard.data().rootContentItemId;
-    event.stopPropagation();
-
-    const form = forms.get(rootContentItemId);
-    form.accessMode = AccessMode.Write;
-    form.submissionMode = 'edit';
-    $('#content-publishing-form').show();
-  }
-  function deleteRootContentItem(rootContentItemId: string, rootContentItemName: string, password: string, callback: () => void) {
-    // TODO: AJAX request to delete root content item
-  }
-  function rootContentItemDeleteClickHandler() {
-    var $clickedCard = $(this).closest('.card-container');
-    var rootContentItemId = $clickedCard.data().rootContentItemId;
-    var rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
-    event.stopPropagation();
-    new DeleteRootContentItemDialog(
-      rootContentItemName,
-      rootContentItemId,
-      function (data, callback) {
-        if (data.password) {
-          shared.showButtonSpinner($('.vex-first'), 'Deleting');
-          $('.vex-dialog-button').attr('disabled', '');
-          deleteRootContentItem(rootContentItemId, rootContentItemName, data.password, callback);
-        } else if (data.password === '') {
-          toastr.warning('Please enter your password to proceed');
-          return false;
-        } else {
-          toastr.info('Deletion was canceled');
-        }
-        return true;
-      },
-    ).open();
-  }
   function newRootContentItemClickHandler() {
     shared.wrapCardCallback(() => {
       const clientId = $('#client-tree [selected]').parent().data().clientId;
@@ -182,9 +198,9 @@ export namespace ContentPublishingDOMMethods {
         'ContentPublishing/RootContentItemDetail',
         [ renderRootContentItemForm ],
       )),
-      rootContentItemPublishClickHandler,
-      rootContentItemEditClickHandler,
-      rootContentItemDeleteClickHandler,
+      CardIconMethods.rootContentItemPublishClickHandler,
+      CardIconMethods.rootContentItemEditClickHandler,
+      CardIconMethods.rootContentItemDeleteClickHandler,
     ).build();
     shared.updateCardStatus($card, item.PublicationDetails);
     $('#root-content-items ul.admin-panel-content').append($card);
