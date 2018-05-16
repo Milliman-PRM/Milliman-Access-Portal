@@ -1,6 +1,6 @@
 import $ = require('jquery');
 require('tooltipster');
-import * as shared from '../shared';
+import { showButtonSpinner, clearForm, wrapCardCallback, get, wrapCardIconCallback, updateCardStatus, expandAllListener, collapseAllListener, filterTreeListener, filterFormListener } from '../shared';
 import { ClientCard, RootContentItemCard, AddRootContentItemActionCard } from '../card';
 import { FormBase } from '../form/form-base';
 import { AccessMode } from '../form/form-modes';
@@ -9,157 +9,97 @@ import { setUnloadAlert } from '../unload-alerts';
 import { DeleteRootContentItemDialog, DiscardConfirmationDialog } from '../dialog';
 import { SubmissionGroup } from '../form/form-submission';
 
-
-
 export namespace ContentPublishingDOMMethods {
-  // Code within this namespace was heavily copied from old code in client-admin.js
-  namespace CardIconMethods {
-    function openFormEdit(sameCard: boolean) {
-      var $rootContentItemList = $('#root-content-items');
-      if ($rootContentItemList.has('[editing]').length) {
-        if (!sameCard) {
-          shared.confirmAndContinue(DiscardConfirmationDialog, currentForm, function () {
-            currentForm.accessMode = AccessMode.Write;
-            currentForm.submissionMode = 'edit';
-            $('#content-publishing-form').show();
-          });
-        }
-      } else {
-        currentForm.submissionMode = 'edit';
-        currentForm.accessMode = AccessMode.Defer;
-        $('#content-publishing-form').show();
-      }
-    }
-    function openFormRepublish(sameCard: boolean) {
-      var $rootContentItemList = $('#root-content-items');
-      if ($rootContentItemList.has('[editing]').length) {
-        if (!sameCard) {
-          shared.confirmAndContinue(DiscardConfirmationDialog, currentForm, function () {
-            currentForm.accessMode = AccessMode.Write;
-            currentForm.submissionMode = 'republish';
-            $('#content-publishing-form').show();
-          });
-        }
-      } else {
-        currentForm.submissionMode = 'republish';
-        currentForm.accessMode = AccessMode.Defer;
-        $('#content-publishing-form').show();
-      }
-    }
-    export function rootContentItemPublishClickHandler() {
-      var $clickedCard = $(this).closest('.card-container');
-      var $rootContentItemList = $('#root-content-items');
-      var sameCard = ($clickedCard[0] === $rootContentItemList.find('[selected]').closest('.card-container')[0]);
-      var rootContentItemId = $clickedCard.data().rootContentItemId;
-      event.stopPropagation();
-
-      if (sameCard) {
-        openFormRepublish(sameCard);
-      } else {
-        shared.get(
-          'ContentPublishing/RootContentItemDetail',
-          [ 
-            renderRootContentItemForm,
-            () => {
-              openFormRepublish(sameCard);
-              $rootContentItemList.find('[selected]').removeAttr('selected');
-              $clickedCard.find('.card-body-container').attr('selected', '');
-            },
-          ],
-        )($clickedCard);
-      }
-    }
-    export function rootContentItemEditClickHandler() {
-      var $clickedCard = $(this).closest('.card-container');
-      var $rootContentItemList = $('#root-content-items');
-      var sameCard = ($clickedCard[0] === $rootContentItemList.find('[selected]').closest('.card-container')[0]);
-      var rootContentItemId = $clickedCard.data().rootContentItemId;
-      event.stopPropagation();
-
-      if (sameCard) {
-        openFormEdit(sameCard);
-      } else {
-        shared.get(
-          'ContentPublishing/RootContentItemDetail',
-          [ 
-            renderRootContentItemForm,
-            () => {
-              openFormEdit(sameCard);
-              $rootContentItemList.find('[selected]').removeAttr('selected');
-              $clickedCard.find('.card-body-container').attr('selected', '');
-            },
-          ],
-        )($clickedCard);
-      }
-    }
-    function deleteRootContentItem(rootContentItemId: string, rootContentItemName: string, password: string, callback: () => void) {
-      $.ajax({
-        type: 'DELETE',
-        url: 'ContentPublishing/DeleteRootContentItem',
-        data: {
-          rootContentItemId: rootContentItemId,
-        },
-        headers: {
-          RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
-        }
-      }).done(function onDone(response) {
-        $('#root-content-items .admin-panel-content').empty();
-        $('#content-publishing-form').hide();
-        renderRootContentItemList(response);
-        callback();
-        toastr.success(rootContentItemName + ' was successfully deleted.');
-      }).fail(function onFail(response) {
-        callback();
-        toastr.warning(response.getResponseHeader('Warning'));
-      });
-    }
-    export function rootContentItemDeleteClickHandler() {
-      var $clickedCard = $(this).closest('.card-container');
-      var rootContentItemId = $clickedCard.data().rootContentItemId;
-      var rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
-      event.stopPropagation();
-      new DeleteRootContentItemDialog(
-        rootContentItemName,
-        rootContentItemId,
-        function (data, callback) {
-          if (data.password) {
-            shared.showButtonSpinner($('.vex-first'), 'Deleting');
-            $('.vex-dialog-button').attr('disabled', '');
-            deleteRootContentItem(rootContentItemId, rootContentItemName, data.password, callback);
-          } else if (data.password === '') {
-            toastr.warning('Please enter your password to proceed');
-            return false;
-          } else {
-            toastr.info('Deletion was canceled');
-          }
-          return true;
-        },
-      ).open();
-    }
-    export function openNewRootContentItemForm() {
-      const clientId = $('#client-tree [selected]').parent().data().clientId;
-      renderRootContentItemForm({
-        ClientId: clientId,
-        ContentName: '',
-        ContentTypeId: 0,
-        Description: '',
-        DoesReduce: false,
-        Id: 0,
-        Notes: '',
-      });
-      currentForm.submissionMode = 'new';
-      currentForm.accessMode = AccessMode.Write;
-    }
-    export function newRootContentItemClickHandler() {
-      shared.wrapCardCallback(() => {
-        openNewRootContentItemForm();
-      }).bind(this)();
-    }
-  }
 
   const forms = new Map<number, FormBase>();
   let currentForm: FormBase;
   let currentFormId: number;
+
+  function deleteRootContentItem(rootContentItemId: string, rootContentItemName: string, password: string, callback: () => void) {
+    $.ajax({
+      type: 'DELETE',
+      url: 'ContentPublishing/DeleteRootContentItem',
+      data: {
+        rootContentItemId: rootContentItemId,
+      },
+      headers: {
+        RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
+      }
+    }).done(function onDone(response) {
+      $('#root-content-items .admin-panel-content').empty();
+      $('#content-publishing-form').hide();
+      renderRootContentItemList(response);
+      callback();
+      toastr.success(rootContentItemName + ' was successfully deleted.');
+    }).fail(function onFail(response) {
+      callback();
+      toastr.warning(response.getResponseHeader('Warning'));
+    });
+  }
+  export function rootContentItemDeleteClickHandler() {
+    var $clickedCard = $(this).closest('.card-container');
+    var rootContentItemId = $clickedCard.data().rootContentItemId;
+    var rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
+    event.stopPropagation();
+    new DeleteRootContentItemDialog(
+      rootContentItemName,
+      rootContentItemId,
+      function (data, callback) {
+        if (data.password) {
+          showButtonSpinner($('.vex-first'), 'Deleting');
+          $('.vex-dialog-button').attr('disabled', '');
+          deleteRootContentItem(rootContentItemId, rootContentItemName, data.password, callback);
+        } else if (data.password === '') {
+          toastr.warning('Please enter your password to proceed');
+          return false;
+        } else {
+          toastr.info('Deletion was canceled');
+        }
+        return true;
+      },
+    ).open();
+  }
+  export function openNewRootContentItemForm() {
+    const clientId = $('#client-tree [selected]').parent().data().clientId;
+    renderRootContentItemForm({
+      ClientId: clientId,
+      ContentName: '',
+      ContentTypeId: 0,
+      Description: '',
+      DoesReduce: false,
+      Id: 0,
+      Notes: '',
+    });
+    setFormNew();
+  }
+
+
+  function setFormReadOnly() {
+    currentForm.accessMode = AccessMode.Read;
+    $('#root-content-items [selected]').removeAttr('editing');
+    $('#content-publishing-form .admin-panel-toolbar .action-icon').show();
+  }
+  function setFormNew() {
+    currentForm.submissionMode = 'new';
+    currentForm.accessMode = AccessMode.Write;
+    $('#root-content-items [selected]').attr('editing', '');
+    $('#content-publishing-form .admin-panel-toolbar .action-icon').hide();
+    $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').show();
+  }
+  function setFormEdit() {
+    currentForm.submissionMode = 'edit';
+    currentForm.accessMode = AccessMode.Defer;
+    $('#root-content-items [selected]').attr('editing', '');
+    $('#content-publishing-form .admin-panel-toolbar .action-icon').show();
+    $('#content-publishing-form .admin-panel-toolbar .action-icon-edit').hide();
+  }
+  function setFormRepublish() {
+    currentForm.submissionMode = 'republish';
+    currentForm.accessMode = AccessMode.Defer;
+    $('#root-content-items [selected]').attr('editing', '');
+    $('#content-publishing-form .admin-panel-toolbar .action-icon').show();
+    $('#content-publishing-form .admin-panel-toolbar .action-icon-file-upload').hide();
+  }
 
   function mapRootContentItemDetail(item: RootContentItemDetail) {
     const formMap = new Map<string, string | number | boolean>();
@@ -178,7 +118,7 @@ export namespace ContentPublishingDOMMethods {
   function renderRootContentItemForm(item: RootContentItemDetail) {
     const $panel = $('#content-publishing-form');
     const $rootContentItemForm = $panel.find('form.admin-panel-content');
-    shared.clearForm($panel);
+    clearForm($panel);
 
     const formMap = mapRootContentItemDetail(item);
     formMap.forEach((value, key) => {
@@ -249,7 +189,7 @@ export namespace ContentPublishingDOMMethods {
       currentForm.bindToDOM($rootContentItemForm[0]);
     }
     
-    currentForm.accessMode = AccessMode.Read;
+    setFormReadOnly();
     currentFormId = item.Id;
   }
 
@@ -259,15 +199,31 @@ export namespace ContentPublishingDOMMethods {
       item,
       item.GroupCount,
       item.EligibleUserCount,
-      shared.wrapCardCallback(shared.get(
+      wrapCardCallback(get(
         'ContentPublishing/RootContentItemDetail',
         [ renderRootContentItemForm ],
-      )),
-      CardIconMethods.rootContentItemPublishClickHandler,
-      CardIconMethods.rootContentItemEditClickHandler,
-      CardIconMethods.rootContentItemDeleteClickHandler,
+      ), () => currentForm),
+      wrapCardIconCallback(($card, whenDone) => get(
+          'ContentPublishing/RootContentItemDetail',
+          [
+            renderRootContentItemForm,
+            whenDone
+          ],
+        )($card), () => currentForm, 1, undefined, () => {
+        setFormRepublish();
+      }),
+      wrapCardIconCallback(($card, whenDone) => get(
+          'ContentPublishing/RootContentItemDetail',
+          [
+            renderRootContentItemForm,
+            whenDone
+          ],
+        )($card), () => currentForm, 1, undefined, () => {
+        setFormEdit();
+      }),
+      rootContentItemDeleteClickHandler,
     ).build();
-    shared.updateCardStatus($card, item.PublicationDetails);
+    updateCardStatus($card, item.PublicationDetails);
     $('#root-content-items ul.admin-panel-content').append($card);
   }
   function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: number) {
@@ -288,7 +244,7 @@ export namespace ContentPublishingDOMMethods {
       client.Value.EligibleUserCount,
       client.Value.RootContentItemCount,
       level,
-      shared.wrapCardCallback(shared.get(
+      wrapCardCallback(get(
         'ContentPublishing/RootContentItems',
         [ renderRootContentItemList ],
       )),
@@ -348,41 +304,45 @@ export namespace ContentPublishingDOMMethods {
       }
     });
 
-    $('.action-icon-expand').click(shared.expandAllListener);
-    $('.action-icon-collapse').click(shared.collapseAllListener);
-    $('.admin-panel-searchbar-tree').keyup(shared.filterTreeListener);
-    $('.admin-panel-searchbar-form').keyup(shared.filterFormListener);
+    $('.action-icon-expand').click(expandAllListener);
+    $('.action-icon-collapse').click(collapseAllListener);
+    $('.admin-panel-searchbar-tree').keyup(filterTreeListener);
+    $('.admin-panel-searchbar-form').keyup(filterFormListener);
 
     $('#root-content-items .admin-panel-toolbar .action-icon-add').click(function () {
-      CardIconMethods.openNewRootContentItemForm();
+      openNewRootContentItemForm();
       $('#root-content-items .card-body-container').removeAttr('selected');
       $('#root-content-items .card-body-container.action-card').attr('selected', '');
       $('#content-publishing-form').show();
     })
     $('#root-content-items ul.admin-panel-content-action')
-      .append(new AddRootContentItemActionCard(CardIconMethods.newRootContentItemClickHandler).build());
+      .append(new AddRootContentItemActionCard(
+        wrapCardCallback(openNewRootContentItemForm, () => currentForm)
+      ).build());
 
     $('.admin-panel-toolbar .action-icon-edit').click(() => {
-      currentForm.submissionMode = 'edit';
-      currentForm.accessMode = AccessMode.Defer;
+      setFormEdit();
     });
     $('.admin-panel-toolbar .action-icon-cancel').click(() => {
-      currentForm.accessMode = AccessMode.Read;
+      if (currentForm.accessMode === AccessMode.Read) {
+        $('#root-content-items [selected]').click();
+      } else {
+        setFormReadOnly();
+      }
     });
     $('.admin-panel-toolbar .action-icon-file-upload').click(() => {
-      currentForm.submissionMode = 'republish';
-      currentForm.accessMode = AccessMode.Defer;
+      setFormRepublish();
     });
 
     setUnloadAlert(() => currentForm && currentForm.modified);
 
     $('.tooltip').tooltipster();
 
-    shared.get(
+    get(
       'ContentPublishing/AvailableContentTypes',
       [ populateAvailableContentTypes ],
     )();
-    shared.get(
+    get(
       'ContentPublishing/Clients',
       [ renderClientTree ],
     )();
