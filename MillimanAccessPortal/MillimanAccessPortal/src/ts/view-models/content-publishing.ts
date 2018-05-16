@@ -73,3 +73,13 @@ export class RootContentItemDetail {
   Description: string;
   Notes: string;
 }
+
+export class PublicationDetails {
+  User: UserInfo;
+  StatusEnum: PublicationStatus;
+  StatusName: string;
+  RootContentItemId: number;
+}
+export class RootContentItemStatus {
+  Status: Array<PublicationDetails>;
+}

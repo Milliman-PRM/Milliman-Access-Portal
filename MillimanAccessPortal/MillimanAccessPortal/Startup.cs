@@ -4,34 +4,35 @@
  * DEVELOPER NOTES: 
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SpaServices.Webpack;
-using Microsoft.AspNetCore.Rewrite;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using MapDbContextLib.Context;
-using MapDbContextLib.Identity;
-using MillimanAccessPortal.Services;
-using MillimanAccessPortal.DataQueries;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Authorization;
-using QlikviewLib;
 using AuditLogLib;
 using AuditLogLib.Services;
 using EmailQueue;
-using MillimanAccessPortal.Authorization;
+using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Rewrite;
+using Microsoft.AspNetCore.SpaServices.Webpack;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
+using Microsoft.Net.Http.Headers;
+using MillimanAccessPortal.Authorization;
+using MillimanAccessPortal.DataQueries;
+using MillimanAccessPortal.Services;
+using QlikviewLib;
+using System;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal
 {
@@ -111,7 +112,8 @@ namespace MillimanAccessPortal
                 {
                     options.LoginPath = "/Account/LogIn";
                     options.LogoutPath = "/Account/LogOut";
-                    options.ExpireTimeSpan = TimeSpan.FromDays(150);
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // TODO: read from configuration
+                    options.SlidingExpiration = true;
                 }
             );
 
@@ -188,6 +190,26 @@ namespace MillimanAccessPortal
             }
 
             app.UseStaticFiles();
+
+            // Conditionally omit auth cookie
+            app.Use(next => context =>
+            {
+                context.Response.OnStarting(state =>
+                {
+                    if (context.Items.ContainsKey("PreventAuthRefresh"))
+                    {
+                        var response = (HttpResponse) state;
+
+                        // Omit Set-Cookie header with the offending cookie name
+                        var cookieHeader = response.Headers[HeaderNames.SetCookie]
+                            .Where(s => !s.Contains(".AspNetCore.Identity.Application"))
+                            .Aggregate(new StringValues(), (current, s) => StringValues.Concat(current, s));
+                        response.Headers[HeaderNames.SetCookie] = cookieHeader;
+                    }
+                    return Task.CompletedTask;
+                }, context.Response);
+                return next(context);
+            });
 
             app.UseAuthentication();
 

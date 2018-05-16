@@ -6,9 +6,10 @@
 
 using AuditLogLib;
 using AuditLogLib.Services;
+using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
-using MapCommonLib;
+using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -19,11 +20,11 @@ using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentAccessAdminViewModels;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -636,7 +637,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            string SelectionCriteriaString = JsonConvert.SerializeObject(Queries.GetFieldSelectionsForSelectionGroup(SelectionGroupId, Selections), Formatting.Indented);
+            string SelectionCriteriaString = JsonConvert.SerializeObject(ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(DbContext, SelectionGroupId, Selections), Formatting.Indented);
 
             var ContentReductionTask = new ContentReductionTask
             {

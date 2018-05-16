@@ -6,6 +6,7 @@
 
 using AuditLogLib;
 using AuditLogLib.Services;
+using MapCommonLib.ActionFilters;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
@@ -387,6 +388,15 @@ namespace MillimanAccessPortal.Controllers
             }
             */
             return Json(new { });
+        }
+
+        [HttpGet]
+        [PreventAuthRefresh]
+        public async Task<IActionResult> Status()
+        {
+            var rootContentItemStatusList = RootContentItemStatus.Build(DbContext, await Queries.GetCurrentApplicationUser(User));
+
+            return new JsonResult(rootContentItemStatusList);
         }
     }
 }

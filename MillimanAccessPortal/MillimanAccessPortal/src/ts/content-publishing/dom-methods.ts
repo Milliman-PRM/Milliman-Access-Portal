@@ -8,12 +8,14 @@ import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, Cli
 import { setUnloadAlert } from '../unload-alerts';
 import { DeleteRootContentItemDialog, DiscardConfirmationDialog } from '../dialog';
 import { SubmissionGroup } from '../form/form-submission';
+import { PublicationStatusMonitor } from './publication-status-monitor';
 
 export namespace ContentPublishingDOMMethods {
 
   const forms = new Map<number, FormBase>();
   let currentForm: FormBase;
   let currentFormId: number;
+  let statusMonitor: PublicationStatusMonitor;
 
   function deleteRootContentItem(rootContentItemId: string, rootContentItemName: string, password: string, callback: () => void) {
     $.ajax({
@@ -346,5 +348,8 @@ export namespace ContentPublishingDOMMethods {
       'ContentPublishing/Clients',
       [ renderClientTree ],
     )();
+
+    statusMonitor = new PublicationStatusMonitor();
+    statusMonitor.start();
   }
 }
