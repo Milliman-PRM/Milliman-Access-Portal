@@ -45,7 +45,14 @@ export namespace ContentPublishingDOMMethods {
           RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
         }
       }).done(function onDone(response) {
+        $('#root-content-items .admin-panel-content').empty();
+        $('#content-publishing-form').hide();
+        renderRootContentItemList(response);
+        callback();
+        toastr.success(rootContentItemName + ' was successfully deleted.');
       }).fail(function onFail(response) {
+        callback();
+        toastr.warning(response.getResponseHeader('Warning'));
       });
     }
     export function rootContentItemDeleteClickHandler() {

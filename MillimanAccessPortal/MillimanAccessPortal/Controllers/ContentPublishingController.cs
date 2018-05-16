@@ -252,7 +252,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpDelete]
-        //[ValidateAntiForgeryToken]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteRootContentItem(long rootContentItemId)
         {
             var rootContentItem = DbContext.RootContentItem
