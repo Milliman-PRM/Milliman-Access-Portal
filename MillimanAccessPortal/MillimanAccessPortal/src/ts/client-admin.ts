@@ -283,8 +283,9 @@ function clearUserList() {
   $('#client-users .action-icon').hide();
 }
 
-function getClientDetail(clientDiv, accessMode?: AccessMode) {
-  var clientId = clientDiv.data('client-id');
+function getClientDetail($clientDiv, accessMode?: AccessMode) {
+  const data = $clientDiv.data();
+  const clientId = data.clientId;
 
   $('#client-info .loading-wrapper').show();
 
@@ -295,11 +296,11 @@ function getClientDetail(clientDiv, accessMode?: AccessMode) {
   return $.ajax({
     type: 'GET',
     url: 'ClientAdmin/ClientDetail',
-    data: clientDiv.data(),
+    data: data,
     headers: {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
-    }
-  }).done(function onDone(response) {
+    },
+  }).done((response) => {
     if (ajaxStatus.getClientDetail !== clientId) return;
     populateClientForm(response);
     formObject.submissionMode = 'edit';
@@ -308,7 +309,7 @@ function getClientDetail(clientDiv, accessMode?: AccessMode) {
     $('#client-info .loading-wrapper').hide();
     renderUserList(response);
     $('#client-users .loading-wrapper').hide();
-  }).fail(function onFail(response) {
+  }).fail((response) => {
     if (ajaxStatus.getClientDetail !== clientId) return;
     $('#client-info .loading-wrapper').hide();
     $('#client-users .loading-wrapper').hide();
@@ -320,17 +321,8 @@ function getClientDetail(clientDiv, accessMode?: AccessMode) {
 function openClientCardReadOnly($clientCard) {
   removeClientInserts();
   clearClientSelection();
-  $clientCard.find('div.card-body-container').attr('selected', '');
+  $clientCard.attr('selected', '');
   getClientDetail($clientCard, AccessMode.Read);
-  showClientDetails();
-}
-
-
-function openClientCardWriteable($clientCard) {
-  removeClientInserts();
-  clearClientSelection();
-  $clientCard.find('div.card-body-container').attr({ selected: '', editing: '' });
-  getClientDetail($clientCard, AccessMode.Write);
   showClientDetails();
 }
 
@@ -379,24 +371,6 @@ function clientCardDeleteClickHandler(event) {
     }
   ).open();
 }
-
-
-function clientCardEditClickHandler(event) {
-  var $clickedCard = $(this).closest('.card-container');
-  var $clientTree = $('#client-tree');
-  var sameCard = ($clickedCard[0] === $clientTree.find('[selected]').closest('.card-container')[0]);
-  event.stopPropagation();
-  if ($clientTree.has('[editing]').length) {
-    if (!sameCard) {
-      shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
-        openClientCardWriteable($clickedCard);
-      });
-    }
-  } else {
-    openClientCardWriteable($clickedCard);
-  }
-}
-
 
 function clientCardCreateNewChildClickHandler(event) {
   var $clickedCard = $(this).closest('.card-container');
@@ -464,7 +438,7 @@ function saveNewUser(username, email, callback) {
       RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
     }
   }).done(function onDone() {
-    openClientCardReadOnly($('#client-tree [data-client-id="' + clientId + '"]'));
+    openClientCardReadOnly($('#client-tree [data-client-id="' + clientId + '"] .card-body-container'));
     if (typeof callback === 'function') callback();
     toastr.success('User successfully added');
   }).fail(function onFail(response) {
@@ -556,7 +530,7 @@ function renderClientNode(client, level) {
       ],
     ), 2),
     !client.Children.length && clientCardDeleteClickHandler,
-    clientCardEditClickHandler,
+    shared.wrapCardIconCallback(($card) => getClientDetail($card.parent(), AccessMode.Write)),
     level < 2 && clientCardCreateNewChildClickHandler
   );
   $card.readonly = !client.ClientModel.CanManage;
