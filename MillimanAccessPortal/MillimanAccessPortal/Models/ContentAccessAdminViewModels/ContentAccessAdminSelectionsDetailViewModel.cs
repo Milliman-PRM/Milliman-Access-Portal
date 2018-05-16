@@ -60,7 +60,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 
             ContentAccessAdminSelectionsDetailViewModel model = new ContentAccessAdminSelectionsDetailViewModel
             {
-                Hierarchy = Queries.GetFieldSelectionsForSelectionGroup(SelectionGroup.Id, SelectedValuesArray),
+                Hierarchy = ContentReductionHierarchy< ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(DbContext, SelectionGroup.Id, SelectedValuesArray),
                 OriginalSelections = DbContext.SelectionGroup
                     .Where(sg => sg.Id == SelectionGroup.Id)
                     .Select(sg => sg.SelectedHierarchyFieldValueList)

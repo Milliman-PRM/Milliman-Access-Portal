@@ -14,9 +14,11 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Newtonsoft.Json;
 using AuditLogLib;
 using MapCommonLib;
 using MapDbContextLib.Context;
+using MapDbContextLib.Models;
 using Moq;
 
 namespace ContentPublishingLib.JobRunners
@@ -62,6 +64,17 @@ namespace ContentPublishingLib.JobRunners
                 AssertTesting();
                 _MockContext = value;
             }
+        }
+
+        /// <summary>
+        /// Gets an appropriate ApplicationDbContext object, depending on whether a Mocked context is needed (e.g. for testing)
+        /// </summary>
+        /// <returns></returns>
+        protected ApplicationDbContext GetDbContext()
+        {
+            return MockContext != null
+                 ? MockContext.Object
+                 : new ApplicationDbContext(ContextOptions);
         }
 
         public async Task<PublishJobDetail> Execute(CancellationToken cancellationToken)
@@ -113,6 +126,46 @@ namespace ContentPublishingLib.JobRunners
                     }
                 }
 
+                // Wait for all related reduction tasks to complete
+                int PendingTaskCount = 0;
+                DateTime WaitStart = DateTime.Now;
+                do
+                {
+                    if (_CancellationToken.IsCancellationRequested)
+                    {
+                        JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
+                        _CancellationToken.ThrowIfCancellationRequested();
+                    }
+
+                    List<ContentReductionTask> AllRelatedReductionTasks = null;
+                    using (ApplicationDbContext Db = GetDbContext())
+                    {
+                        AllRelatedReductionTasks = await Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId).ToListAsync();
+
+                        if (AllRelatedReductionTasks.Any(t => t.ReductionStatus == ReductionStatusEnum.Error))
+                        {
+                            string Msg = $"Publication request terminating due to error in related reduction task";
+                            Trace.WriteLine(Msg);
+                            JobDetail.Result.StatusMessage = Msg;
+                            JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
+
+                            // Cancel any task still queued
+                            List<ContentReductionTask> QueuedTasks = AllRelatedReductionTasks.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued).ToList();
+                            QueuedTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
+                            Db.ContentReductionTask.UpdateRange(QueuedTasks);
+                            await Db.SaveChangesAsync();
+
+                            return JobDetail;
+                        }
+                    }
+
+                    PendingTaskCount = AllRelatedReductionTasks.Count(t => t.ReductionStatus == ReductionStatusEnum.Queued
+                                                                        || t.ReductionStatus == ReductionStatusEnum.Reducing);
+
+                    Thread.Sleep(1000);
+                }
+                while (PendingTaskCount > 0 && DateTime.Now < WaitStart + new TimeSpan(3,0,0));  // TODO Get the timeout from configuration
+
                 JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
             }
             catch (Exception e)
@@ -134,9 +187,7 @@ namespace ContentPublishingLib.JobRunners
         private void ProcessMasterContentFile(PublishJobDetail.ContentRelatedFile MasterFile)
         {
             // If there is no SelectionGroup for this content item, create a new SelectionGroup with IsMaster = true
-            using (ApplicationDbContext Db = MockContext != null
-                                           ? MockContext.Object
-                                           : new ApplicationDbContext(ContextOptions))
+            using (ApplicationDbContext Db = GetDbContext())
             {
                 if (!Db.SelectionGroup.Any(sg => sg.RootContentItemId == JobDetail.Request.RootContentId))
                 {
@@ -152,9 +203,7 @@ namespace ContentPublishingLib.JobRunners
 
             if (JobDetail.Request.DoesReduce)
             {
-                using (ApplicationDbContext Db = MockContext != null
-                                               ? MockContext.Object
-                                               : new ApplicationDbContext(ContextOptions))
+                using (ApplicationDbContext Db = GetDbContext())
                 {
                     bool MasterHierarchyRequested = false;
 
@@ -199,8 +248,9 @@ namespace ContentPublishingLib.JobRunners
                         }
                         else
                         {
-                            var x = Db.HierarchyFieldValue.Where(v => SelGrp.SelectedHierarchyFieldValueList.Contains(v.Id));
-                            NewTask.SelectionCriteria = "{}"; // TODO get this right
+                            var SelectionHierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, SelGrp.Id);
+
+                            NewTask.SelectionCriteria = SelectionHierarchy.SerializeJson();
                             NewTask.TaskAction = TaskActionEnum.HierarchyAndReduction;
                         }
 

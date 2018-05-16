@@ -104,7 +104,7 @@ namespace ContentPublishingLib.JobMonitors
                 // .ToList() is needed because the body changes the original List. 
                 foreach (PublishJobTrackingItem CompletedPublishRunnerItem in ActivePublicationRunnerItems.Where(t => t.task.IsCompleted).ToList())
                 {
-                    UpdateTask(CompletedPublishRunnerItem.task.Result);
+                    UpdateRequest(CompletedPublishRunnerItem.task.Result);
                     ActivePublicationRunnerItems.Remove(CompletedPublishRunnerItem);
                 }
 
@@ -147,6 +147,38 @@ namespace ContentPublishingLib.JobMonitors
                 Thread.Sleep(1000);
             }
 
+            Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} stopping {ActivePublicationRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
+
+            if (ActivePublicationRunnerItems.Count != 0)
+            {
+                ActivePublicationRunnerItems.ForEach(t => t.tokenSource.Cancel());
+
+                DateTime WaitStart = DateTime.Now;
+                while (DateTime.Now - WaitStart < StopWaitTimeSeconds)
+                {
+                    Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} waiting for {ActivePublicationRunnerItems.Count} running tasks to complete");
+
+                    int CompletedTaskIndex = Task.WaitAny(ActivePublicationRunnerItems.Select(t => t.task).ToArray(), new TimeSpan(StopWaitTimeSeconds.Ticks / 100));
+                    if (CompletedTaskIndex > -1)
+                    {
+                        ActivePublicationRunnerItems.RemoveAt(CompletedTaskIndex);
+                    }
+
+                    if (ActivePublicationRunnerItems.Count == 0)
+                    {
+                        Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} all publication runners terminated successfully");
+                        break;
+                    }
+                }
+
+                foreach (var Item in ActivePublicationRunnerItems)
+                {
+                    Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} after timer expired, task {Item.dbRequest.Id.ToString()} not completed");
+                }
+            }
+
+            Token.ThrowIfCancellationRequested();
+            Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} returning");
         }
 
         /// <summary>
@@ -191,11 +223,11 @@ namespace ContentPublishingLib.JobMonitors
         }
 
         /// <summary>
-        /// Updates the MAP database ContentReductionTask record with the outcome of <...>ReductionRunner processing.
+        /// Updates the MAP database ContentPublicationRequest record with the outcome of <...>PublishRunner processing.
         /// </summary>
         /// <param name="Result">Contains the field values to be saved. All field values will be saved.</param>
         /// <returns></returns>
-        private bool UpdateTask(PublishJobDetail JobDetail)
+        private bool UpdateRequest(PublishJobDetail JobDetail)
         {
             if (JobDetail == null || JobDetail.Result == null || JobDetail.JobId == -1)
             {
