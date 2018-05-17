@@ -202,7 +202,7 @@ namespace ContentPublishingLib.JobMonitors
                 {
                     List<ContentPublicationRequest> TopItems = Db.ContentPublicationRequest.Where(r => r.RequestStatus == PublicationStatus.Queued)
                                                                                  .Include(r => r.RootContentItem)
-                                                                                 .OrderBy(r => r.CreateDateTime)
+                                                                                 .OrderBy(r => r.CreateDateTimeUtc)
                                                                                  .Take(ReturnNoMoreThan)
                                                                                  .ToList();
                     if (TopItems.Count > 0)

@@ -55,7 +55,7 @@ namespace MapDbContextLib.Context
 
         [Required]
         // Default value is enforced in ApplicationDbContext.OnModelCreating()
-        public DateTimeOffset CreateDateTime { get; set; }
+        public DateTime CreateDateTimeUtc { get; set; }
 
         /// <summary>
         /// May also be accessed through [NotMapped] property PublishRequest

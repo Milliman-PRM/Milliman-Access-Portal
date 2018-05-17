@@ -30,7 +30,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             {
                 var publicationRequest = dbContext.ContentPublicationRequest
                     .Where(r => r.RootContentItemId == rootContentItem.Id)
-                    .OrderByDescending(r => r.CreateDateTime)
+                    .OrderByDescending(r => r.CreateDateTimeUtc)
                     .FirstOrDefault();
                 model.Status.Add((PublicationDetails) publicationRequest);
             }
