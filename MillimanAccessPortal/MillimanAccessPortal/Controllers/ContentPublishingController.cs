@@ -20,6 +20,8 @@ using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentPublishing;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -306,8 +308,14 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         public async Task<IActionResult> Publish(PublishRequest Arg)
         {
+            ApplicationUser currentApplicationUser = await Queries.GetCurrentApplicationUser(User);
+
             #region Preliminary Validation
-            // maybe none
+            if (currentApplicationUser == null)
+            {
+                Response.Headers.Add("Warning", "Your user identity is unknown.");
+                return BadRequest();
+            }
             #endregion
 
             #region Authorization
@@ -320,65 +328,87 @@ namespace MillimanAccessPortal.Controllers
 
             #endregion
 
+#if false   // not sure what all the implications are of this
+            // Try to cancel all queued (not running) publishing requests and reduction tasks for the content
+            using (IDbContextTransaction Txn = DbContext.Database.BeginTransaction())
+            {
+                List<ContentPublicationRequest> QueuedRequests = DbContext.ContentPublicationRequest
+                                                                          .Where(r => r.RootContentItemId == Arg.RootContentItemId)
+                                                                          .Where(r => r.RequestStatus == PublicationStatus.Queued)
+                                                                          .ToList();
+                List<ContentReductionTask> QueuedTasks = DbContext.ContentReductionTask
+                                                                  .Include(t => t.SelectionGroup)
+                                                          // ?    .Where(t => t.ContentPublicationRequestId == null)
+                                                                  .Where(t => t.SelectionGroup.RootContentItemId == Arg.RootContentItemId)
+                                                                  .Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
+                                                                  .ToList();
+
+                QueuedRequests.ForEach(r => r.RequestStatus = PublicationStatus.Canceled);
+                QueuedTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
+
+                DbContext.ContentPublicationRequest.UpdateRange(QueuedRequests);
+                DbContext.ContentPublicationRequest.UpdateRange(QueuedRequests);
+
+                DbContext.SaveChanges();
+                Txn.Commit();
+            }
+#endif
+
             #region Validation
             // The requested RootContentItem must exist
-            RootContentItem rootContentItem = DbContext.RootContentItem.SingleOrDefault(rc => rc.Id == Arg.RootContentItemId);
-            if (rootContentItem == null)
+            if (DbContext.RootContentItem.Count(rc => rc.Id == Arg.RootContentItemId) != 1)
             {
                 Response.Headers.Add("Warning", "Requested content item not found.");
                 return BadRequest();
             }
 
             // All the provided references to related files must be found in the FileUpload entity.  
-            if (Arg.RelatedFiles.Any(f => DbContext.FileUpload.Find(f.FileUploadId) == null))
+            if (Arg.RelatedFiles.Any(f => DbContext.FileUpload.Count(fu => fu.Id == f.FileUploadId) != 1))
             {
-                Response.Headers.Add("Warning", "A requested related file has not been uploaded.");
+                Response.Headers.Add("Warning", "A specified uploaded file was not found.");
+                return BadRequest();
+            }
+
+            bool Blocked;
+
+            // There must be no unresolved ContentPublicationRequest.
+            List<PublicationStatus> BlockingRequestStatusList = new List<PublicationStatus>
+                                                              { PublicationStatus.Processing, PublicationStatus.Queued };
+            Blocked = DbContext.ContentPublicationRequest
+                               .Where(r => r.RootContentItemId == Arg.RootContentItemId)
+                               .Any(r => BlockingRequestStatusList.Contains(r.RequestStatus));
+            if (Blocked)
+            {
+                Response.Headers.Add("Warning", "Another publication request is pending.");
+                return BadRequest();
+            }
+
+            List<ReductionStatusEnum> BlockingTaskStatusList = new List<ReductionStatusEnum>
+                                                             { ReductionStatusEnum.Reducing, ReductionStatusEnum.Queued };
+            Blocked = DbContext.ContentReductionTask
+                               .Where(t => t.ContentPublicationRequestId == null)
+                               .Include(t => t.SelectionGroup)
+                               .Where(t => t.SelectionGroup.RootContentItemId == Arg.RootContentItemId)
+                               .Any(t => BlockingTaskStatusList.Contains(t.ReductionStatus));
+            if (Blocked)
+            {
+                Response.Headers.Add("Warning", "Another content reduction is pending.");
                 return BadRequest();
             }
             #endregion
 
-            // TODO need to know if this is first time publish or replacement. 
-
             // Create the publication request and reduction task(s)
-            /* TODO: correct this section
-            ContentPublicationRequest contentPublicationRequest;
+            ContentPublicationRequest NewContentPublicationRequest = new ContentPublicationRequest
             {
-                var currentApplicationUser = await Queries.GetCurrentApplicationUser(User);
-                contentPublicationRequest = new ContentPublicationRequest
-                {
-                    ApplicationUserId = currentApplicationUser.Id,
-                    MasterFilePath = UploadHelper.GetOutputFilePath(),
-                    RootContentItemId = resumableInfo.RootContentItemId,
-                };
-                DbContext.ContentPublicationRequest.Add(contentPublicationRequest);
-                DbContext.SaveChanges();
-            }
+                ApplicationUserId = currentApplicationUser.Id,
+                RequestStatus = PublicationStatus.Queued,
+                PublishRequest = Arg,
+                CreateDateTimeUtc = DateTime.UtcNow,
+            };
+            DbContext.ContentPublicationRequest.Add(NewContentPublicationRequest);
+            DbContext.SaveChanges();
 
-            // Master selection group is created when root content item is created, so there must always
-            // be at least one available selection group.
-            // TODO: possibly create master selection group at publication time (here).
-            {
-                var selectionGroups = DbContext.SelectionGroup
-                    .Where(sg => sg.RootContentItemId == resumableInfo.RootContentItemId)
-                    .ToList();
-
-                var contentReductionTasks = selectionGroups
-                    .Select(sg => new ContentReductionTask
-                    {
-                        ApplicationUserId = contentPublicationRequest.ApplicationUserId,
-                        ContentPublicationRequestId = contentPublicationRequest.Id,
-                        SelectionGroupId = sg.Id,
-                        MasterFilePath = contentPublicationRequest.MasterFilePath,
-                        SelectionCriteria = JsonConvert.SerializeObject(
-                            Queries.GetFieldSelectionsForSelectionGroup(sg.Id, sg.SelectedHierarchyFieldValueList)), // TODO: special case when selection group is a master selection group
-                    ReductionStatus = ReductionStatusEnum.Validating,
-                    });
-
-                DbContext.ContentReductionTask.AddRange(contentReductionTasks);
-                DbContext.SaveChanges();
-            }
-            */
-            return Json(new { });
+            return Ok();
         }
 
         [HttpGet]
