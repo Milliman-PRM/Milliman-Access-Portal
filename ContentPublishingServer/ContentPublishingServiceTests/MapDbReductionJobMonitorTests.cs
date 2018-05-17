@@ -17,7 +17,7 @@ namespace ContentPublishingServiceTests
     public class MapDbReductionJobMonitorTests : ContentReductionServiceTestBase
     {
         [Fact]
-        public async Task CorrectStatusAfterCancelWhileIdle()
+        public async Task CorrectTaskStatusAfterCancelWhileIdle()
         {
             #region arrange
             MapDbReductionJobMonitor JobMonitor = new MapDbReductionJobMonitor

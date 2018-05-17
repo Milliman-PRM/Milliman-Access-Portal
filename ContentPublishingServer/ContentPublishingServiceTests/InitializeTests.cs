@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Moq;
 using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using TestResourcesLib;
 using Newtonsoft.Json;
@@ -20,6 +21,28 @@ namespace ContentPublishingServiceTests
                 Name = "Qlikview",
                 CanReduce = true,
                 TypeEnum = ContentTypeEnum.Qlikview,
+            });
+            #endregion
+
+            #region Initialize FileUpload
+            Db.Object.FileUpload.AddRange(new List<FileUpload>
+            {
+                new FileUpload
+                {
+                    Id = Guid.NewGuid(),
+                    Checksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
+                    ClientFileIdentifier = "Uploaded Test File 1",
+                    CreatedDateTimeUtc = DateTime.Now - new TimeSpan(0, 0, 45),
+                    StoragePath = @"\\indy-syn01\prm_test\Uploads\Uploaded Test File 1.qvw",
+                },
+                new FileUpload
+                {
+                    Id = Guid.NewGuid(),
+                    Checksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
+                    ClientFileIdentifier = "Uploaded Test File 2",
+                    CreatedDateTimeUtc = DateTime.Now - new TimeSpan(0, 0, 45),
+                    StoragePath = @"\\indy-syn01\prm_test\Uploads\Uploaded Test File 2.qvw",
+                },
             });
             #endregion
 
@@ -217,6 +240,30 @@ namespace ContentPublishingServiceTests
             });
 
             MockDbSet<ContentReductionTask>.AssignNavigationProperty<SelectionGroup>(Db.Object.ContentReductionTask, "SelectionGroupId", Db.Object.SelectionGroup);
+            #endregion
+
+            #region Initialize ContentPublicationRequest
+
+            // Valid request
+            Db.Object.ContentPublicationRequest.Add(new ContentPublicationRequest
+            {
+                Id = 1,
+                ApplicationUserId = 1,
+                CreateDateTime = DateTime.Now,
+                RequestStatus = PublicationStatus.Unknown,
+                PublishRequest = new PublishRequest
+                {
+                    RootContentItemId = 1,
+                    RelatedFiles = new ContentRelatedFile[]
+                    {
+                        new ContentRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
+                        new ContentRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
+                    }
+                }
+            });
+
+            MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(Db.Object.ContentPublicationRequest, "RootContentItemId", Db.Object.RootContentItem);
+            MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(Db.Object.ContentPublicationRequest, "RootContentItemId", Db.Object.ApplicationUser);
             #endregion
 
             return Db;
