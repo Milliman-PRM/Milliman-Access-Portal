@@ -19,7 +19,7 @@ namespace ContentPublishingServiceTests
     public class MapDbPublishRunnerTests : ContentReductionServiceTestBase
     {
         [Fact]
-        public async Task HappyPathPublishing()
+        public async Task HappyPathDoesNotReduce()
         {
             #region Arrange
             Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
