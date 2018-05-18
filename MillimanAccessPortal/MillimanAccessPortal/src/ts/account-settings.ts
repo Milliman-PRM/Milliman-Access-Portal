@@ -20,6 +20,12 @@ $(document).ready(() => {
     $('#Email').show();
   }
 
+  const nullGroup = new SubmissionGroup(
+    [],
+    null,
+    null,
+    () => {},
+  )
   const accountGroup = new SubmissionGroup(
     [ 'account' ],
     'AccountSettings',
@@ -43,7 +49,7 @@ $(document).ready(() => {
   formObject.bindToDOM($('#account-settings-form')[0]);
   formObject.configure([
     {
-      group: accountGroup.chain(passwordGroup),
+      group: accountGroup.chain(passwordGroup.chain(nullGroup, true), true),
       name: 'update',
     },
   ]);
