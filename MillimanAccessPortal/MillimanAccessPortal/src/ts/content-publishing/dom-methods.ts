@@ -38,7 +38,7 @@ export namespace ContentPublishingDOMMethods {
       toastr.warning(response.getResponseHeader('Warning'));
     });
   }
-  export function rootContentItemDeleteClickHandler() {
+  export function rootContentItemDeleteClickHandler(event) {
     var $clickedCard = $(this).closest('.card-container');
     var rootContentItemId = $clickedCard.data().rootContentItemId;
     var rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
