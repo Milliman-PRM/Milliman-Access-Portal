@@ -80,7 +80,7 @@ namespace ContentPublishingServiceTests
             {
                 Id = new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
-                CreateDateTime = DateTime.UtcNow,
+                CreateDateTimeUtc = DateTime.UtcNow,
                 MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
                 SelectionGroupId = 1,
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
@@ -117,7 +117,7 @@ namespace ContentPublishingServiceTests
             {
                 Id = new Guid(2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
-                CreateDateTime = DateTime.UtcNow,
+                CreateDateTimeUtc = DateTime.UtcNow,
                 MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
                 SelectionGroupId = 1,
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
@@ -171,7 +171,7 @@ namespace ContentPublishingServiceTests
             {
                 Id = new Guid(3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
-                CreateDateTime = DateTime.UtcNow,
+                CreateDateTimeUtc = DateTime.UtcNow,
                 MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
                 SelectionGroupId = 1,
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
@@ -208,7 +208,7 @@ namespace ContentPublishingServiceTests
             {
                 Id = new Guid(4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
-                CreateDateTime = DateTime.UtcNow,
+                CreateDateTimeUtc = DateTime.UtcNow,
                 MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
                 SelectionGroupId = 1,
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",

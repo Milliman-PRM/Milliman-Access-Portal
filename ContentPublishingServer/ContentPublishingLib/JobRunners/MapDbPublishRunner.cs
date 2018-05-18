@@ -233,7 +233,7 @@ namespace ContentPublishingLib.JobRunners
                             Id = TaskId,
                             ApplicationUserId = JobDetail.Request.ApplicationUserId,
                             ContentPublicationRequestId = JobDetail.JobId,
-                            CreateDateTime = DateTime.UtcNow,  // TODO later: Figure out how to avoid delay in starting the reduction task. 
+                            CreateDateTimeUtc = DateTime.UtcNow,  // TODO later: Figure out how to avoid delay in starting the reduction task. 
                             MasterFilePath = CopyDestination,
                             MasterContentChecksum = MasterFile.Checksum,
                             ReductionStatus = ReductionStatusEnum.Queued,
