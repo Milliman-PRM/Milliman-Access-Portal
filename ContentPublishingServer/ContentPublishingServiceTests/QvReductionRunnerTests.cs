@@ -16,7 +16,7 @@ using TestResourcesLib;
 
 namespace ContentPublishingServiceTests
 {
-    public class QvReductionRunnerTests : ContentReductionServiceTestBase
+    public class QvReductionRunnerTests : ContentPublishingServiceTestBase
     {
         [Fact]
         public async Task SuccessfulHierarchyOnly()

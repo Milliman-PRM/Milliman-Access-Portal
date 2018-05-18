@@ -13,7 +13,7 @@ using TestResourcesLib;
 
 namespace ContentPublishingServiceTests
 {
-    public class MapDbPublishJobMonitorTests : ContentReductionServiceTestBase
+    public class MapDbPublishJobMonitorTests : ContentPublishingServiceTestBase
     {
         [Fact]
         public async Task CorrectRequestStatusAfterCancelWhileIdle()

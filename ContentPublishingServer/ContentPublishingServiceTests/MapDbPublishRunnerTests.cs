@@ -16,7 +16,7 @@ using Xunit;
 
 namespace ContentPublishingServiceTests
 {
-    public class MapDbPublishRunnerTests : ContentReductionServiceTestBase
+    public class MapDbPublishRunnerTests : ContentPublishingServiceTestBase
     {
         [Fact]
         public async Task HappyPathDoesNotReduce()
