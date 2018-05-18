@@ -36,17 +36,45 @@ namespace TestResourcesLib
             ReturnMockContext.Object.ProfitCenter = MockDbSet<ProfitCenter>.New(new List<ProfitCenter>()).Object;
             ReturnMockContext.Object.UserRoleInProfitCenter = MockDbSet<UserRoleInProfitCenter>.New(new List<UserRoleInProfitCenter>()).Object;
             ReturnMockContext.Object.Client = MockDbSet<Client>.New(new List<Client>()).Object;
-            ReturnMockContext.Object.RootContentItem = MockDbSet<RootContentItem>.New(new List<RootContentItem>()).Object;
             ReturnMockContext.Object.HierarchyFieldValue = MockDbSet<HierarchyFieldValue>.New(new List<HierarchyFieldValue>()).Object;
             ReturnMockContext.Object.HierarchyField = MockDbSet<HierarchyField>.New(new List<HierarchyField>()).Object;
             ReturnMockContext.Object.SelectionGroup = MockDbSet<SelectionGroup>.New(new List<SelectionGroup>()).Object;
             ReturnMockContext.Object.UserRoles = MockDbSet<IdentityUserRole<long>>.New(new List<IdentityUserRole<long>>()).Object;
             ReturnMockContext.Object.UserClaims = MockDbSet<IdentityUserClaim<long>>.New(new List<IdentityUserClaim<long>>()).Object;
-            ReturnMockContext.Object.ContentPublicationRequest = MockDbSet<ContentPublicationRequest>.New(new List<ContentPublicationRequest>()).Object;
-            ReturnMockContext.Object.ContentReductionTask = MockDbSet<ContentReductionTask>.New(new List<ContentReductionTask>()).Object;
             ReturnMockContext.Object.Users = ReturnMockContext.Object.ApplicationUser;
             ReturnMockContext.Object.Roles = ReturnMockContext.Object.ApplicationRole;
             ReturnMockContext.Object.FileUpload = MockDbSet<FileUpload>.New(new List<FileUpload>()).Object; ;
+
+            List<ContentPublicationRequest> ContentPublicationRequestData = new List<ContentPublicationRequest>();
+            Mock<DbSet<ContentPublicationRequest>> MockContentPublicationRequest = MockDbSet<ContentPublicationRequest>.New(ContentPublicationRequestData);
+            MockContentPublicationRequest.Setup(d => d.Add(It.IsAny<ContentPublicationRequest>())).Callback<ContentPublicationRequest>(s =>
+            {
+                ContentPublicationRequestData.Add(s);
+                MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(MockContentPublicationRequest.Object, "ApplicationUserId", ReturnMockContext.Object.ApplicationUser);
+                MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(MockContentPublicationRequest.Object, "RootContentItemId", ReturnMockContext.Object.RootContentItem);
+            });
+            ReturnMockContext.Object.ContentPublicationRequest = MockContentPublicationRequest.Object;
+
+            List<ContentReductionTask> ContentReductionTaskData = new List<ContentReductionTask>();
+            Mock<DbSet<ContentReductionTask>> MockContentReductionTask = MockDbSet<ContentReductionTask>.New(ContentReductionTaskData);
+            MockContentReductionTask.Setup(d => d.Add(It.IsAny<ContentReductionTask>())).Callback<ContentReductionTask>(s =>
+            {
+                ContentReductionTaskData.Add(s);
+                MockDbSet<ContentReductionTask>.AssignNavigationProperty(MockContentReductionTask.Object, "ApplicationUserId", ReturnMockContext.Object.ApplicationUser);
+                MockDbSet<ContentReductionTask>.AssignNavigationProperty(MockContentReductionTask.Object, "SelectionGroupId", ReturnMockContext.Object.SelectionGroup);
+                MockDbSet<ContentReductionTask>.AssignNavigationProperty(MockContentReductionTask.Object, "ContentPublicationRequestId", ReturnMockContext.Object.ContentPublicationRequest);
+            });
+            ReturnMockContext.Object.ContentReductionTask = MockContentReductionTask.Object;
+
+            List<RootContentItem> RootContentItemData = new List<RootContentItem>();
+            Mock<DbSet<RootContentItem>> MockRootContentItem = MockDbSet<RootContentItem>.New(RootContentItemData);
+            MockRootContentItem.Setup(d => d.Add(It.IsAny<RootContentItem>())).Callback<RootContentItem>(s =>
+            {
+                RootContentItemData.Add(s);
+                MockDbSet<RootContentItem>.AssignNavigationProperty(MockRootContentItem.Object, "ContentTypeId", ReturnMockContext.Object.ContentType);
+                MockDbSet<RootContentItem>.AssignNavigationProperty(MockRootContentItem.Object, "ClientId", ReturnMockContext.Object.Client);
+            });
+            ReturnMockContext.Object.RootContentItem = MockRootContentItem.Object;
 
             // Give UserRoleInClient an additional Add() callback since it accesses properties of objects from Include()
             List<UserRoleInClient> UserRoleInClientData = new List<UserRoleInClient>();
