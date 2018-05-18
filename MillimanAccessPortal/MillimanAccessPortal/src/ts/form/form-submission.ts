@@ -72,6 +72,7 @@ export class Submission extends FormElement {
 }
 
 export class SubmissionGroup<T> {
+  private sparse: boolean = false;
   constructor(
     readonly sections: Array<string>,
     readonly url: string,
@@ -79,21 +80,35 @@ export class SubmissionGroup<T> {
     readonly callback: (response: T, form?: FormBase) => void,
   ) { }
 
-  public chain<U>(that: SubmissionGroup<U>): SubmissionGroup<T> {
+  public chain<U>(that: SubmissionGroup<U>, sparse: boolean = false): SubmissionGroup<T> {
     const chainedGroup = new SubmissionGroup<T>(
       this.sections,
       this.url,
       this.method,
       (response: T, form: FormBase) => {
-        this.callback(response);
+        if (response) {
+          this.callback(response);
+        }
         that.submit(form);
       },
     );
+    chainedGroup.sparse = sparse;
     return chainedGroup;
   }
 
   public submit(form: FormBase) {
     showButtonSpinner($(`.button-container-${form.submissionMode} .button-submit`));
+
+    const modified = form.inputSections
+      .filter((inputSection) => this.sections.indexOf(inputSection.name) !== -1)
+      .map((inputSection) => inputSection.modified)
+      .reduce((cum, cur) => cum || cur, false);
+
+    if (this.sparse && !modified) {
+      // skip this request and go to the next
+      return this.callback(null, form);
+    }
+
     $.ajax({
       method: this.method,
       url: this.url,
