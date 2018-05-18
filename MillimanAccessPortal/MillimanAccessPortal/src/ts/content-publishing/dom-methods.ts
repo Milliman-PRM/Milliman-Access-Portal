@@ -89,7 +89,7 @@ export namespace ContentPublishingDOMMethods {
     $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').show();
   }
   function setFormEditOrRepublish() {
-    currentForm.submissionMode = 'editOrRepublish';
+    currentForm.submissionMode = 'edit-or-republish';
     currentForm.accessMode = AccessMode.Write;
     $('#root-content-items [selected]').attr('editing', '');
     $('#content-publishing-form .admin-panel-toolbar .action-icon').show();
@@ -123,7 +123,7 @@ export namespace ContentPublishingDOMMethods {
     $doesReduceToggle.prop('checked', item.DoesReduce);
 
     const nullGroup = new SubmissionGroup<any>(
-      null,
+      [],
       null,
       null,
       () => {},
@@ -144,18 +144,18 @@ export namespace ContentPublishingDOMMethods {
         'root-content-item-info',
         'root-content-item-description',
       ],
-      'ContentPublishing/UpdateRootContentItem',
-      'POST',
-      (response) => renderRootContentItemForm(response),
+      'ContentPublishing/Status',//'ContentPublishing/UpdateRootContentItem',
+      'GET',//'POST',
+      (response) => console.log('update!'),//renderRootContentItemForm(response),
     );
     const submitPublication = new SubmissionGroup<any>(
       [
         'common',
         'publication-files',
       ],
-      'ContentPublishing/Publish',
-      'POST',
-      (response) => { },
+      'ContentPublishing/Status',//'ContentPublishing/Publish',
+      'GET',//'POST',
+      (response) => console.log('publish!'),//{ },
     );
 
     // First unbind existing form if it exists
@@ -171,18 +171,18 @@ export namespace ContentPublishingDOMMethods {
       currentForm.configure(
         [
           {
-            group: createContentGroup/*.chain(submitPublication)*/,
+            group: createContentGroup.chain(submitPublication),
             name: 'new',
           },
           {
-            group: updateContentGroup/*.chain(submitPublication.chain(nullGroup, true), true)*/,
-            name: 'editOrRepublish',
+            group: updateContentGroup.chain(submitPublication.chain(nullGroup, true), true),
+            name: 'edit-or-republish',
           },
         ],
       );
     } else {
       currentForm = forms.get(item.Id);
-      currentForm.bindToDOM($rootContentItemForm[0]);
+      currentForm.bindToDOM();
     }
     
     setFormReadOnly();

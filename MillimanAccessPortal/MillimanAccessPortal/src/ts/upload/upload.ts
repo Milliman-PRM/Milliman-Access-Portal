@@ -87,11 +87,7 @@ export abstract class Upload {
       throw new Error('This browser does not support resumable file uploads.');
     }
 
-    // Clone the input to clear any event listeners
-    const input = this.selectBrowseElement(rootElement);
-    $(input).replaceWith($(input.cloneNode(false)));
-
-    this.resumable.assignBrowse(this.selectBrowseElement(rootElement), false);
+    this.attachToBrowseElement(rootElement);
 
     this.resumable.on('fileAdded', async (file) => {
       this.cancelable = true;
@@ -201,6 +197,14 @@ export abstract class Upload {
       this.cancelable = false;
       this.checksum = undefined;
     });
+  }
+
+  public attachToBrowseElement(element: HTMLElement) {
+    // Clone the input to clear any event listeners
+    const input = this.selectBrowseElement(element);
+    $(input).replaceWith($(input.cloneNode(false)));
+
+    this.resumable.assignBrowse(this.selectBrowseElement(element), false);
   }
 
   public reset() {

@@ -51,13 +51,13 @@ export class FormInputSection extends FormElement {
         })
         .filter((x: FormInput) => x !== undefined);
     } else {
-      this.inputs.forEach((section) => section.bindToDOM());
+      this.inputs.forEach((input) => input.bindToDOM());
     }
   }
 
   public unbindFromDOM() {
     super.unbindFromDOM();
-    this.inputs.forEach((section) => section.unbindFromDOM());
+    this.inputs.forEach((input) => input.unbindFromDOM());
   }
 
   public get modified() {
