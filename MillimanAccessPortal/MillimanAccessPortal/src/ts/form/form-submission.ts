@@ -80,13 +80,27 @@ export class SubmissionGroup<T> {
     readonly callback: (response: T, form?: FormBase) => void,
   ) { }
 
+  public static FinalGroup<T>(callback: (response: T) => void = () => {}): SubmissionGroup<T> {
+    const group = new SubmissionGroup<T>(
+      [],
+      null,
+      null,
+      callback,
+    );
+    group.sparse = true;
+    return group;
+  }
+
   public chain<U>(that: SubmissionGroup<U>, sparse: boolean = false): SubmissionGroup<T> {
+    if (that === null) {
+      that = SubmissionGroup.FinalGroup();
+    }
     const chainedGroup = new SubmissionGroup<T>(
       this.sections,
       this.url,
       this.method,
       (response: T, form: FormBase) => {
-        if (response) {
+        if (response !== null) {
           this.callback(response);
         }
         that.submit(form);
@@ -106,7 +120,9 @@ export class SubmissionGroup<T> {
 
     if (this.sparse && !modified) {
       // skip this request and go to the next
-      return this.callback(null, form);
+      this.callback(null, form);
+      hideButtonSpinner($(`.button-container-${form.submissionMode} .button-submit`));
+      return;
     }
 
     $.ajax({

@@ -122,12 +122,6 @@ export namespace ContentPublishingDOMMethods {
     const $doesReduceToggle = $rootContentItemForm.find(`#DoesReduce`);
     $doesReduceToggle.prop('checked', item.DoesReduce);
 
-    const nullGroup = new SubmissionGroup<any>(
-      [],
-      null,
-      null,
-      () => {},
-    );
     const createContentGroup = new SubmissionGroup<RootContentItemDetail>(
       [
         'common',
@@ -175,7 +169,7 @@ export namespace ContentPublishingDOMMethods {
             name: 'new',
           },
           {
-            group: updateContentGroup.chain(submitPublication.chain(nullGroup, true), true),
+            group: updateContentGroup.chain(submitPublication, true).chain(null, true),
             name: 'edit-or-republish',
           },
         ],

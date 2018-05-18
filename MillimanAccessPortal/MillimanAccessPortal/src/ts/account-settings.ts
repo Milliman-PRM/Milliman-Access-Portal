@@ -20,18 +20,11 @@ $(document).ready(() => {
     $('#Email').show();
   }
 
-  const nullGroup = new SubmissionGroup(
-    [],
-    null,
-    null,
-    () => {},
-  )
   const accountGroup = new SubmissionGroup(
     [ 'account' ],
     'AccountSettings',
     'POST',
     (response) => {
-      formObject.bindToDOM($('#account-settings-form')[0]);
       toastr.success('Your account has been updated');
     },
   );
@@ -44,12 +37,16 @@ $(document).ready(() => {
       toastr.success('Your password has been updated');
     },
   );
+  const finalGroup = SubmissionGroup.FinalGroup(() => {
+    formObject.bindToDOM();
+    $('#FirstName').change();
+  });
 
   const formObject = new FormBase();
   formObject.bindToDOM($('#account-settings-form')[0]);
   formObject.configure([
     {
-      group: accountGroup.chain(passwordGroup.chain(nullGroup, true), true),
+      group: accountGroup.chain(passwordGroup, true).chain(finalGroup, true),
       name: 'update',
     },
   ]);
