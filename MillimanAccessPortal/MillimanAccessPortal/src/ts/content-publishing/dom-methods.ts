@@ -1,4 +1,5 @@
 import $ = require('jquery');
+import * as toastr from 'toastr';
 require('tooltipster');
 import { showButtonSpinner, clearForm, wrapCardCallback, get, wrapCardIconCallback, updateCardStatus, expandAllListener, collapseAllListener, filterTreeListener, filterFormListener } from '../shared';
 import { ClientCard, RootContentItemCard, AddRootContentItemActionCard } from '../card';
