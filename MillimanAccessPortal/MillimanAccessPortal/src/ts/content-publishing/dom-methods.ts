@@ -88,19 +88,11 @@ export namespace ContentPublishingDOMMethods {
     $('#content-publishing-form .admin-panel-toolbar .action-icon').hide();
     $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').show();
   }
-  function setFormEdit() {
-    currentForm.submissionMode = 'edit';
-    currentForm.accessMode = AccessMode.Defer;
+  function setFormEditOrRepublish() {
+    currentForm.submissionMode = 'editOrRepublish';
+    currentForm.accessMode = AccessMode.Write;
     $('#root-content-items [selected]').attr('editing', '');
     $('#content-publishing-form .admin-panel-toolbar .action-icon').show();
-    $('#content-publishing-form .admin-panel-toolbar .action-icon-edit').hide();
-  }
-  function setFormRepublish() {
-    currentForm.submissionMode = 'republish';
-    currentForm.accessMode = AccessMode.Defer;
-    $('#root-content-items [selected]').attr('editing', '');
-    $('#content-publishing-form .admin-panel-toolbar .action-icon').show();
-    $('#content-publishing-form .admin-panel-toolbar .action-icon-file-upload').hide();
   }
 
   function mapRootContentItemDetail(item: RootContentItemDetail) {
@@ -214,16 +206,7 @@ export namespace ContentPublishingDOMMethods {
             whenDone
           ],
         )($card), () => currentForm, 1, undefined, () => {
-        setFormRepublish();
-      }),
-      wrapCardIconCallback(($card, whenDone) => get(
-          'ContentPublishing/RootContentItemDetail',
-          [
-            renderRootContentItemForm,
-            whenDone
-          ],
-        )($card), () => currentForm, 1, undefined, () => {
-        setFormEdit();
+        setFormEditOrRepublish();
       }),
       rootContentItemDeleteClickHandler,
     ).build();
@@ -324,9 +307,6 @@ export namespace ContentPublishingDOMMethods {
         wrapCardCallback(openNewRootContentItemForm, () => currentForm)
       ).build());
 
-    $('.admin-panel-toolbar .action-icon-edit').click(() => {
-      setFormEdit();
-    });
     $('.admin-panel-toolbar .action-icon-cancel').click(() => {
       if (currentForm.accessMode === AccessMode.Read) {
         $('#root-content-items [selected]').click();
@@ -335,7 +315,7 @@ export namespace ContentPublishingDOMMethods {
       }
     });
     $('.admin-panel-toolbar .action-icon-file-upload').click(() => {
-      setFormRepublish();
+      setFormEditOrRepublish();
     });
 
     setUnloadAlert(() => currentForm && currentForm.modified);
