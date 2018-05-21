@@ -187,13 +187,21 @@ namespace ContentPublishingServiceTests
                 JobDetail = PublishJobDetail.New(DbRequest, MockContext.Object),
                 MockContext = MockContext,
             };
+            int InitialTaskCount = MockContext.Object.ContentReductionTask.Count(t => t.ContentPublicationRequestId == DbRequest.Id);
             TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);
+
+            MapDbReductionJobMonitor ReductionMonitor = new MapDbReductionJobMonitor
+            {
+                MockContext = MockContext,
+            };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
 
             // check before
             Assert.Equal(2, MockContext.Object.SelectionGroup.Count(g => g.RootContentItemId == DbRequest.RootContentItemId));
             Assert.Empty(MockContext.Object.SelectionGroup.Where(g => g.RootContentItemId == DbRequest.RootContentItemId && g.IsMaster));
+
+            Task TaskMonitorTask = ReductionMonitor.Start(CancelTokenSource.Token);
             #endregion
 
             #region Act
@@ -217,6 +225,8 @@ namespace ContentPublishingServiceTests
             Assert.NotNull(TaskResult.RelatedFiles);
             Assert.Equal(2, TaskResult.RelatedFiles.Count);
             Assert.Equal(2, MockContext.Object.SelectionGroup.Count(g => g.RootContentItemId == DbRequest.RootContentItemId));
+            Assert.Equal(InitialTaskCount + 2, MockContext.Object.ContentReductionTask.Count(t => t.ContentPublicationRequestId == DbRequest.Id 
+                                                                                               && t.ReductionStatus == ReductionStatusEnum.Reduced));
             Assert.Empty(MockContext.Object.SelectionGroup.Where(g => g.RootContentItemId == DbRequest.RootContentItemId && g.IsMaster));
             Assert.Equal("MasterContent", TaskResult.RelatedFiles[0].FilePurpose);
             Assert.Equal("UserGuide", TaskResult.RelatedFiles[1].FilePurpose);
