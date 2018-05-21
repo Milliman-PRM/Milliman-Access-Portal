@@ -93,6 +93,8 @@ export abstract class Upload {
       this.cancelable = true;
       this.selectFileNameElement(this.rootElement).value = file.fileName;
 
+      this.onFileAdded(file.file);
+
       this.renderUploadProgress({
         percentage: '0%',
         rate: '',
@@ -240,4 +242,6 @@ export abstract class Upload {
   protected abstract renderUploadProgress(summary: ProgressSummary);
 
   protected abstract setProgressMessage(message: string);
+
+  public abstract onFileAdded(file: File);
 }

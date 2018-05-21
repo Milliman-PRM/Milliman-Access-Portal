@@ -67,6 +67,7 @@ export class FileUploadInput extends FormInput {
   public reset() {
     super.reset();
     this.$entryPoint.find('input.file-upload').val('');
+    this.$entryPoint.find('img').removeAttr('src');
     if (this.upload) {
       this.upload.reset();
     }
