@@ -1,4 +1,5 @@
 import $ = require('jquery');
+import * as toastr from 'toastr';
 require('tooltipster');
 import { showButtonSpinner, clearForm, wrapCardCallback, get, wrapCardIconCallback, updateCardStatus, expandAllListener, collapseAllListener, filterTreeListener, filterFormListener } from '../shared';
 import { ClientCard, RootContentItemCard, AddRootContentItemActionCard } from '../card';
@@ -38,7 +39,7 @@ export namespace ContentPublishingDOMMethods {
       toastr.warning(response.getResponseHeader('Warning'));
     });
   }
-  export function rootContentItemDeleteClickHandler() {
+  export function rootContentItemDeleteClickHandler(event) {
     var $clickedCard = $(this).closest('.card-container');
     var rootContentItemId = $clickedCard.data().rootContentItemId;
     var rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
