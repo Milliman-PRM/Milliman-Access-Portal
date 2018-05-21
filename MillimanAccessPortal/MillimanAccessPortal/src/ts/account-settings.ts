@@ -41,7 +41,7 @@ $(document).ready(() => {
   formObject.bindToDOM($('#account-settings-form')[0]);
   formObject.configure([
     {
-      group: accountGroup.chain(passwordGroup.chain(finalGroup, true), true),
+      group: accountGroup.chain(passwordGroup, true).chain(finalGroup, true),
       name: 'update',
     },
   ]);

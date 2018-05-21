@@ -73,12 +73,21 @@ export class Submission extends FormElement {
 
 export class SubmissionGroup<T> {
   private sparse: boolean = false;
+  private next: SubmissionGroup<any> = null;
+  private get lastChain(): SubmissionGroup<any> {
+    let next = this as SubmissionGroup<any>;
+    while (next.next !== null) next = next.next;
+    return next;
+  }
+  public callback: (response: T, form?: FormBase) => void;
   constructor(
     readonly sections: Array<string>,
     readonly url: string,
     readonly method: string,
-    readonly callback: (response: T, form?: FormBase) => void,
-  ) { }
+    callback: (response: T, form?: FormBase) => void,
+  ) {
+    this.callback = callback;
+  }
 
   public static FinalGroup<T>(callback: (response: T) => void = () => {}): SubmissionGroup<T> {
     const group = new SubmissionGroup<T>(
@@ -92,22 +101,19 @@ export class SubmissionGroup<T> {
   }
 
   public chain<U>(that: SubmissionGroup<U>, sparse: boolean = false): SubmissionGroup<T> {
-    if (that === null) {
-      that = SubmissionGroup.FinalGroup();
-    }
-    const chainedGroup = new SubmissionGroup<T>(
-      this.sections,
-      this.url,
-      this.method,
-      (response: T, form: FormBase) => {
-        if (response !== null) {
-          this.callback(response, form);
-        }
-        that.submit(form);
-      },
-    );
-    chainedGroup.sparse = sparse;
-    return chainedGroup;
+    const lastChain = this.lastChain;
+    lastChain.next = that ? that : SubmissionGroup.FinalGroup();
+
+    const originalCallback = lastChain.callback;
+    lastChain.callback = (response: T, form: FormBase) => {
+      if (response !== null) {
+        originalCallback(response, form);
+      }
+      lastChain.next.submit(form);
+    };
+    lastChain.sparse = sparse;
+
+    return this;
   }
 
   public submit(form: FormBase) {
