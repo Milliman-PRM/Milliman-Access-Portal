@@ -207,6 +207,9 @@ namespace ContentPublishingServiceTests
             #region Act
             Task<PublishJobDetail> MonitorTask = TestRunner.Execute(CancelTokenSource.Token);
             PublishJobDetail JobDetail = await MonitorTask;
+
+            CancelTokenSource.Cancel();  // End the MapDbReductionJobMonitor
+
             var TaskResult = JobDetail.Result;
             var TaskRequest = JobDetail.Request;
             List<SelectionGroup> AllSelGroups = MockContext.Object.SelectionGroup.Where(g => g.RootContentItemId == DbRequest.RootContentItemId).ToList();
