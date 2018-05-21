@@ -92,7 +92,8 @@ export namespace ContentPublishingDOMMethods {
     currentForm.submissionMode = 'edit-or-republish';
     currentForm.accessMode = AccessMode.Write;
     $('#root-content-items [selected]').attr('editing', '');
-    $('#content-publishing-form .admin-panel-toolbar .action-icon').show();
+    $('#content-publishing-form .admin-panel-toolbar .action-icon').hide();
+    $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').show();
   }
 
   function mapRootContentItemDetail(item: RootContentItemDetail) {
