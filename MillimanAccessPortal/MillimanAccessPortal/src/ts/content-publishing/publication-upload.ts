@@ -56,4 +56,18 @@ export class PublicationUpload extends Upload {
 //      .find('.card-progress-status-text')
 //      .html(message);
   }
+
+  public onFileAdded(file: File) {
+    if (this.component === PublicationComponent.Image) {
+      const reader = new FileReader();
+
+      reader.onload = (ev) => {
+        $(this.rootElement)
+          .find('.image-preview')
+          .attr('src', reader.result);
+      };
+
+      reader.readAsDataURL(file);
+    }
+  }
 }

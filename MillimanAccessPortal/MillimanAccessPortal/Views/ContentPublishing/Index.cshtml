@@ -38,10 +38,14 @@
     <div class="admin-panel-toolbar">
         <input class="admin-panel-searchbar-tree" type="search" placeholder="Filter Content" />
         <div class="admin-panel-action-icons-container">
+            <svg class="action-icon-add action-icon tooltip" title="Add root content item">
+                <use xlink:href="#action-icon-add"></use>
+            </svg>
         </div>
     </div>
     <div class="admin-panel-content-container">
         <ul class="admin-panel-content"></ul>
+        <ul class="admin-panel-content-action"></ul>
     </div>
 </div>
 <div id="content-publishing-form" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-6-12" style="display: none;">
@@ -65,12 +69,16 @@
     <div class="admin-panel-content-container">
         <form class="admin-panel-content">
             <div class="form-section-container">
-                <div class="form-section" data-section="root-content-item-info">
-                    <h4 class="form-section-title">Content Item Information</h4>
+                <div class="form-section" data-section="common">
                     <div class="form-input-container">
                         <div class="form-input form-input-hidden" style="display: none;">
                             <input asp-for="Id" />
                         </div>
+                    </div>
+                </div>
+                <div class="form-section" data-section="root-content-item-info">
+                    <h4 class="form-section-title">Content Item Information</h4>
+                    <div class="form-input-container">
                         <div class="form-input form-input-hidden" style="display: none;">
                             <input asp-for="ClientId" />
                         </div>
@@ -116,6 +124,7 @@
                                     <svg class="upload-icon tooltip" title="Upload thumbnail image">
                                         <use xlink:href="#action-icon-file-upload"></use>
                                     </svg>
+                                    <img class="image-preview" />
                                 </label>
                             </div>
                         </div>

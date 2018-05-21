@@ -15,7 +15,10 @@ export abstract class FormInput extends FormElement {
   protected abstract getValueFn: (input: JQuery<HTMLElement>) => () => string | number | string[];
   protected get value(): string {
     return this.bound
-      ? this.getValueFn(this.$input).bind(this.$input)().toString()
+      ? (() => {
+        const val = this.getValueFn(this.$input).bind(this.$input)();
+        return val ? val.toString() : '';
+      })()
       : this.shadowValue;
   }
   protected abstract setValueFn: (input: JQuery<HTMLElement>) => (value: string) => void
@@ -49,7 +52,7 @@ export abstract class FormInput extends FormElement {
 
   protected originalValue: string;
 
-  public bindToDOM(entryPoint: HTMLElement) {
+  public bindToDOM(entryPoint?: HTMLElement) {
     // before bind: this.value references shadow value
     let value: string;
     if (!this.bound) {

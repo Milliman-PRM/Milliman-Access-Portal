@@ -171,10 +171,9 @@ label.input-with-upload {
         height: 100%;
         width: 100%;
 
-        .image-placeholder {
-            flex: 1 0 auto;
-            background-color: $white;
-            border-radius: .25em;
+        .image-preview {
+            width: 100%;
+            height: auto;
         }
     }
 
