@@ -33,7 +33,7 @@ We will utilize multiple Azure products to build the production environment. Mos
 
 * **Availability Sets** - Management layer for VMs to keep them isolated within the data center. Makes the VMs more resilient to power, hardware, and network failures within the data center.
 
-* **Virtual Machines** - 2 for QlikView Server, 2 for QlikView Publisher, 2 for file server clustering, 2 for domain controllers
+* **Virtual Machines** - 1 for QlikView Server, 1 for QlikView Publisher, 2 for file server clustering, 2 for domain controllers
     * An additional virtual machine will be deployed into a VPN-controlled DMZ. This machine will be used as a [jump box](https://en.wikipedia.org/wiki/Jump_server) to access other servers in the infrastructure.
 
 * **Virtual Networks** - Isolate groups of resources and control which portions of the infrastructure they can access.
@@ -73,19 +73,15 @@ Microsoft guarantees a 99.95% availability SLA. This is sufficient for our purpo
 
 ### Virtual Machine Availability
 
-Every virtual machine must be redundant with at least one more providing the same functionality.
+When possible, virtual machines should be redundant with at least one more providing the same functionality.
 
-Virtual Machines will be assigned to Availability Sets, with one Set defined for each distinct group of VMs. Within the set, each VM must be assigned to a different [Fault Domain and Update Domain](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/manage-availability), to reduce risk of downtime from datacenter failures or updates to the underlying infrastructure.
+Redundant Virtual Machines will be assigned to Availability Sets, with one Set defined for each distinct group of VMs. Within the set, each VM must be assigned to a different [Fault Domain and Update Domain](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/manage-availability), to reduce risk of downtime from datacenter failures or updates to the underlying infrastructure.
 
-### QlikView clustering
+### QlikView Server/Publisher availability
 
-QlikView Server and QlikView Publisher both have support for clustering, with multiple available nodes simultaneously using one license.
+Due to high licensing costs, we will utilize only one VM for QlikView Server and one for QlikView Publisher. 
 
-We will leverage this functionality and the load balancers to create a redundant, resilient QlikView environment. If one server becomes unavailable, the load balancer will stop serving requests to that server and route all requests through the remaining server.
-
-Individual users may experience a brief disruption at the time of a server failure (particularly those who were previously being routed to the now-offline server), but the application will remain available as long as any one application server is online.
-
-QlikView Server will serve reports out of a single file share, avoiding duplication of data and any possibility of mis-matched report directories.
+In the case that one of the servers fails, we can restore the most recent backup fairly quickly.
 
 ### Database availability
 
@@ -99,11 +95,11 @@ In the case that we have to stand up a new PostgreSQL instance, the connection s
 
 ## File server redundancy
 
-The File servers in production will be a cluster of two servers, utilizing Windows Server 2016's [Storage Replica feature](https://docs.microsoft.com/en-us/windows-server/storage/storage-replica/storage-replica-overview). This is a block-level replication solution that ensures maximum performance of the replication.
+The File servers in production will be a cluster of two servers, utilizing Windows Server 2016's [Storage Spaces Direct feature](https://docs.microsoft.com/en-us/windows-server/storage/storage-spaces/storage-spaces-direct-overview). 
 
 ## Data backups
 
-All virtual machines and databases will be backed up to geo-redundant storage. This enables fast recovery in the case of a data center outage. It also provides the ability to recover a single VM in the case of a machine failure.
+All virtual machines and databases will be backed up to geo-redundant storage. This enables recovery in the case of a data center outage. It also provides the ability to recover a single VM in the case of a machine failure.
 
 ## Recovery to secondary data center
 
@@ -124,7 +120,7 @@ In the case that the data center becomes unavailable permanently or for a signif
 
 ### Web Application firewall
 
-The Web Application Firewall will guard our infrastructure against common types of attacks and vulnerabilities, as defined by the [OWASP 3.0 Core Rule Set](https://coreruleset.org/). All end-user traffic will flow through the WAF.
+The Web Application Firewall feature of the Application Gateway will guard our infrastructure against common types of attacks and vulnerabilities, as defined by the [OWASP 3.0 Core Rule Set](https://coreruleset.org/). All end-user traffic to MAP and QlikView Server will flow through the WAF/AG.
 
 ### Azure Security Center
 
