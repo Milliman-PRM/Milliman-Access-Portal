@@ -13,7 +13,9 @@ using MapDbContextLib.Context;
 using ContentPublishingLib.JobMonitors;
 using ContentPublishingLib.JobRunners;
 using TestResourcesLib;
+using MapDbContextLib.Models;
 using Moq;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace ContentPublishingServiceTests
@@ -228,8 +230,24 @@ namespace ContentPublishingServiceTests
             Assert.NotNull(TaskResult.RelatedFiles);
             Assert.Equal(2, TaskResult.RelatedFiles.Count);
             Assert.Equal(2, MockContext.Object.SelectionGroup.Count(g => g.RootContentItemId == DbRequest.RootContentItemId));
-            Assert.Equal(InitialTaskCount + 2, MockContext.Object.ContentReductionTask.Count(t => t.ContentPublicationRequestId == DbRequest.Id 
-                                                                                               && t.ReductionStatus == ReductionStatusEnum.Reduced));
+            List<ContentReductionTask> Tasks = MockContext.Object.ContentReductionTask.Where(t => t.ContentPublicationRequestId == DbRequest.Id)
+                                                                                      .ToList();
+            Assert.Equal(InitialTaskCount + 2, Tasks.Count);
+            foreach (ContentReductionTask Task in Tasks)
+            {
+                var Hierarchy = JsonConvert.DeserializeObject<ContentReductionHierarchy<ReductionFieldValue>>(Task.ReducedContentHierarchy);
+                var Field2Values = Hierarchy.Fields[1].Values.Select(v => v.Value);
+                var Field3Values = Hierarchy.Fields[2].Values.Select(v => v.Value);
+                Assert.True(
+                    (Field2Values.Contains("Assigned Provider Clinic (Hier) 0434") 
+                  && Field2Values.Contains("Assigned Provider Clinic (Hier) 0871") 
+                  && Field3Values.Count() == 12)
+                    ||
+                    (Field2Values.Contains("Assigned Provider Clinic (Hier) 7252") 
+                  && Field2Values.Contains("Assigned Provider Clinic (Hier) 7291") 
+                  && Field3Values.Count() == 24)
+                );
+            }
             Assert.Empty(MockContext.Object.SelectionGroup.Where(g => g.RootContentItemId == DbRequest.RootContentItemId && g.IsMaster));
             Assert.Equal("MasterContent", TaskResult.RelatedFiles[0].FilePurpose);
             Assert.Equal("UserGuide", TaskResult.RelatedFiles[1].FilePurpose);
