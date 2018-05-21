@@ -38,13 +38,12 @@ namespace TestResourcesLib
             ReturnMockContext.Object.Client = MockDbSet<Client>.New(new List<Client>()).Object;
             ReturnMockContext.Object.HierarchyFieldValue = MockDbSet<HierarchyFieldValue>.New(new List<HierarchyFieldValue>()).Object;
             ReturnMockContext.Object.HierarchyField = MockDbSet<HierarchyField>.New(new List<HierarchyField>()).Object;
-            ReturnMockContext.Object.SelectionGroup = MockDbSet<SelectionGroup>.New(new List<SelectionGroup>()).Object;
             ReturnMockContext.Object.UserRoles = MockDbSet<IdentityUserRole<long>>.New(new List<IdentityUserRole<long>>()).Object;
             ReturnMockContext.Object.UserClaims = MockDbSet<IdentityUserClaim<long>>.New(new List<IdentityUserClaim<long>>()).Object;
             ReturnMockContext.Object.Users = ReturnMockContext.Object.ApplicationUser;
             ReturnMockContext.Object.Roles = ReturnMockContext.Object.ApplicationRole;
             ReturnMockContext.Object.FileUpload = MockDbSet<FileUpload>.New(new List<FileUpload>()).Object; ;
-
+            
             List<ContentPublicationRequest> ContentPublicationRequestData = new List<ContentPublicationRequest>();
             Mock<DbSet<ContentPublicationRequest>> MockContentPublicationRequest = MockDbSet<ContentPublicationRequest>.New(ContentPublicationRequestData);
             MockContentPublicationRequest.Setup(d => d.Add(It.IsAny<ContentPublicationRequest>())).Callback<ContentPublicationRequest>(s =>
@@ -75,6 +74,15 @@ namespace TestResourcesLib
                 MockDbSet<RootContentItem>.AssignNavigationProperty(MockRootContentItem.Object, "ClientId", ReturnMockContext.Object.Client);
             });
             ReturnMockContext.Object.RootContentItem = MockRootContentItem.Object;
+
+            List<SelectionGroup> SelectionGroupData = new List<SelectionGroup>();
+            Mock<DbSet<SelectionGroup>> MockSelectionGroup = MockDbSet<SelectionGroup>.New(SelectionGroupData);
+            MockSelectionGroup.Setup(d => d.Add(It.IsAny<SelectionGroup>())).Callback<SelectionGroup>(s =>
+            {
+                SelectionGroupData.Add(s);
+                MockDbSet<SelectionGroup>.AssignNavigationProperty(MockSelectionGroup.Object, "RootContentItemId", ReturnMockContext.Object.RootContentItem);
+            });
+            ReturnMockContext.Object.SelectionGroup = MockSelectionGroup.Object;
 
             // Give UserRoleInClient an additional Add() callback since it accesses properties of objects from Include()
             List<UserRoleInClient> UserRoleInClientData = new List<UserRoleInClient>();
