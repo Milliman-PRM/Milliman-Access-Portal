@@ -1,6 +1,7 @@
 import $ = require('jquery');
 import { Dialog, ResetConfirmationDialog, DiscardConfirmationDialog } from './dialog';
 import toastr = require('toastr');
+import { FormBase } from './form/form-base';
 
 var SHOW_DURATION = 50;
 var ajaxStatus = [];
@@ -142,39 +143,29 @@ function buildListener(fn) {
 // Functions without associated event listeners
 
 // Wrappers
-export function wrapCardCallback(callback, panels?) {
+export function wrapCardCallback(callback: ($card: JQuery<HTMLElement>) => void, form?: () => FormBase, panelCount: number = 1) {
   return function () {
-    var $card = $(this);
-    var $panel = $card.closest('.admin-panel-container');
-    var $nextPanels = $panel.nextAll();
-    var $formPanels = $nextPanels.slice(0, panels || 1).filter('form');
-    var sameCard = ($card[0] === $panel.find('[selected]')[0]);
+    const $card = $(this);
+    const $panel = $card.closest('.admin-panel-container');
+    const $nextPanels = $panel.nextAll();
+    const sameCard = ($card[0] === $panel.find('[selected]')[0]);
 
-    var removeInserts = function () {
-      $panel.find('.insert-card').remove();
-    };
-    var clearSelection = function () {
+    const clearSelection = () => {
       $panel.find('.card-body-container').removeAttr('editing selected');
     };
-    var showDetails = function () {
-      $nextPanels.hide().slice(0, panels || 1).show(SHOW_DURATION);
-    };
-    var hideDetails = function () {
-      $panel.nextAll().hide(SHOW_DURATION);
-    };
-    var openCard = function () {
-      removeInserts();
+    const openCard = () => {
+      $panel.find('.insert-card').remove();
       clearSelection();
       $card.attr('selected', '');
       callback($card);
-      showDetails();
+      $nextPanels.hide().slice(0, panelCount).show(SHOW_DURATION);
     };
 
     if ($panel.has('[selected]').length) {
-      confirmAndContinue($formPanels, DiscardConfirmationDialog, function () {
+      confirmAndContinue(DiscardConfirmationDialog, form && form(), () => {
         if (sameCard) {
           clearSelection();
-          hideDetails();
+          $nextPanels.hide(SHOW_DURATION);
         } else {
           openCard();
         }
@@ -184,16 +175,48 @@ export function wrapCardCallback(callback, panels?) {
     }
   };
 };
+export function wrapCardIconCallback(callback: ($card: JQuery<HTMLElement>, whenDone: () => void) => void, form?: () => FormBase, panelCount: number = 1, sameCard?: ($card: JQuery<HTMLElement>) => boolean, always?: () => void) {
+  return function (event) {
+    event.stopPropagation();
+
+    const $icon = $(this);
+    const $card = $icon.closest('.card-body-container');
+    const $panel = $card.closest('.admin-panel-container');
+    const $nextPanels = $panel.nextAll();
+    const same = sameCard
+      ? sameCard($card)
+      : ($card[0] === $panel.find('[selected]')[0]);
+    const openCard = (whenDone: () => void) => {
+      $panel.find('.insert-card').remove();
+      $panel.find('.card-body-container').removeAttr('editing selected');
+      $card.attr({ selected: '', editing: '' });
+      callback($card, whenDone);
+      $nextPanels.hide().slice(0, panelCount).show(SHOW_DURATION);
+    };
+
+    if ($panel.has('[editing]').length) {
+      confirmAndContinue(DiscardConfirmationDialog, form && form(), () => {
+        if (!same) {
+          openCard(always);
+        } else {
+          always();
+        }
+      });
+    } else {
+      openCard(always);
+    }
+  };
+};
 
 // AJAX
-export function get(url, callbacks) {
-  return function ($clickedCard?) {
-    var $card = $clickedCard && $clickedCard.closest('.card-container');
-    var $panel = $card
+export function get<T>(url: string, callbacks: Array<(response: T) => void>) {
+  return ($clickedCard?: JQuery<HTMLElement>) => {
+    const $card = $clickedCard && $clickedCard.closest('.card-container');
+    const $panel = $card
       ? $card.closest('.admin-panel-container').nextAll().slice(0, callbacks.length)
       : $('.admin-panel-container').first();
-    var $loading = $panel.find('.loading-wrapper');
-    var data = $card && $card.data();
+    const $loading = $panel.find('.loading-wrapper');
+    const data = $card && $card.data();
 
     ajaxStatus[url] = data; // or some hash of the data
     $loading.show();
@@ -201,24 +224,30 @@ export function get(url, callbacks) {
     $.ajax({
       type: 'GET',
       url: url,
-      data: data
-    }).done(function (response) {
-      if (ajaxStatus[url] !== data) return;
-      callbacks.forEach(function (callback, index) {
+      data: data,
+    }).done((response: T) => {
+      // if this was not the most recent AJAX call for its URL, don't process the return data
+      if (ajaxStatus[url] !== data) {
+        return;
+      }
+      callbacks.forEach((callback, index) => {
         callback(response);
         $loading.eq(index).hide();
       });
-    }).fail(function (response) {
-      var warning = response.getResponseHeader('Warning');
-      if (ajaxStatus[url] !== data) return;
+    }).fail((response) => {
+      // if this was not the most recent AJAX call for its URL, don't process the return data
+      if (ajaxStatus[url] !== data) {
+        return;
+      }
+      const warning = response.getResponseHeader('Warning');
       toastr.warning(warning || 'An unknown error has occurred.');
       $loading.hide();
     });
   };
 };
 
-function set(method, url, successMessage, callbacks) {
-  return function (data, onResponse, buttonText) {
+export function set<T>(method: string, url: string, successMessage: string, callbacks: Array<(response: T) => void>) {
+  return (data: any, onResponse: () => void, buttonText: string) => {
     if (ajaxStatus[url]) {
       return; // TODO: do something when a request has already been sent
     }
@@ -230,30 +259,28 @@ function set(method, url, successMessage, callbacks) {
       data: data,
       headers: {
         RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
-      }
-    }).done(function (response) {
+      },
+    }).done((response: T) => {
       ajaxStatus[url] = false;
       onResponse();
-      callbacks.forEach(function (callback) {
-        callback(response);
-      });
+      callbacks.forEach((callback) => callback(response));
       toastr.success(successMessage);
-    }).fail(function (response) {
-      var warning = response.getResponseHeader('Warning');
+    }).fail((response) => {
       ajaxStatus[url] = false;
       onResponse();
+      const warning = response.getResponseHeader('Warning');
       toastr.warning(warning || 'An unknown error has occurred.');
     });
   };
 };
 
-export function post(url, successMessage, callbacks) {
+export function post<T>(url: string, successMessage: string, callbacks: Array<(response: T) => void>) {
   set('POST', url, successMessage, callbacks);
 }
-export function del(url, successMessage, callbacks) {
+export function del<T>(url: string, successMessage: string, callbacks: Array<(response: T) => void>) {
   set('DELETE', url, successMessage, callbacks);
 }
-export function put(url, successMessage, callbacks) {
+export function put<T>(url: string, successMessage: string, callbacks: Array<(response: T) => void>) {
   set('PUT', url, successMessage, callbacks);
 }
 
@@ -336,10 +363,13 @@ export function updateCardStatus($card, reductionDetails) {
 
 // Dialog helpers
 // TODO: consider moving to dialog.js
-export function confirmAndContinue($panel, Dialog, onContinue?) {
-  if ($panel.length && modifiedInputs($panel).length) {
+export function confirmAndContinue(Dialog, form?: FormBase, onContinue?) {
+  if (form && form.modified) {
     new Dialog(function () {
-      resetForm($panel);
+      // Assigning to access mode forces the form to reset
+      // FIXME: this is really unintuitive - use function instead of getters
+      //   and setters since there are side effects
+      form.accessMode = form.accessMode;
       if (onContinue) {
         onContinue();
       }

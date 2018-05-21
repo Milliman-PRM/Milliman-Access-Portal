@@ -200,7 +200,7 @@ function renderRootContentItem(rootContentItem) {
   shared.updateCardStatus($card, rootContentItem.PublicationDetails);
   $('#root-content-items ul.admin-panel-content').append($card);
 }
-function renderRootContentItemList(response, rootContentItemId) {
+function renderRootContentItemList(response, rootContentItemId?) {
   var $rootContentItemList = $('#root-content-items ul.admin-panel-content');
   $rootContentItemList.empty();
   response.RootContentItemList.forEach(renderRootContentItem);
@@ -235,7 +235,7 @@ function renderClientNode(client, level) {
     });
   }
 }
-function renderClientTree(response, clientId) {
+function renderClientTree(response, clientId?) {
   var $clientTreeList = $('#client-tree ul.admin-panel-content');
   $clientTreeList.empty();
   response.ClientTreeList.forEach(function render(rootClient) {

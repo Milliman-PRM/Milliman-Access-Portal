@@ -63,12 +63,12 @@ export class ContentType {
   Name: string;
   CanReduce: boolean;
 }
+
 export class RootContentItemDetail {
   Id: number;
   ClientId: number;
   ContentName: string;
-  ContentType: ContentType;
-  AvailableContentTypes: Array<ContentType>;
+  ContentTypeId: number;
   DoesReduce: boolean;
   Description: string;
   Notes: string;

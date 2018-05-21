@@ -15,24 +15,22 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public long Id { get; set; }
         public long ClientId { get; set; }
         public string ContentName { get; set; }
-        public ContentType ContentType { get; set; }
-        public List<ContentType> AvailableContentTypes { get; set; }
+        public long ContentTypeId { get; set; }
         public bool DoesReduce { get; set; }
         public string Description { get; set; }
         public string Notes { get; set; }
 
-        internal static RootContentItemDetail Build(ApplicationDbContext dbContext ,RootContentItem rootContentItem)
+        internal static RootContentItemDetail Build(ApplicationDbContext dbContext, RootContentItem rootContentItem)
         {
             RootContentItemDetail model = new RootContentItemDetail
             {
                 Id = rootContentItem.Id,
                 ClientId = rootContentItem.ClientId,
                 ContentName = rootContentItem.ContentName,
-                ContentType = dbContext.ContentType.Find(rootContentItem.ContentTypeId),
-                AvailableContentTypes = dbContext.ContentType.ToList(),
-                DoesReduce = true,
-                Description = "Sample description",
-                Notes = "Sample notes",
+                ContentTypeId = rootContentItem.ContentTypeId,
+                DoesReduce = rootContentItem.DoesReduce,
+                Description = rootContentItem.Description,
+                Notes = rootContentItem.Notes,
             };
 
             return model;
