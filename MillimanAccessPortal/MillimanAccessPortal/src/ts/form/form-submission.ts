@@ -101,7 +101,7 @@ export class SubmissionGroup<T> {
       this.method,
       (response: T, form: FormBase) => {
         if (response !== null) {
-          this.callback(response);
+          this.callback(response, form);
         }
         that.submit(form);
       },

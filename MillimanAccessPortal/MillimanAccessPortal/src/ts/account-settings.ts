@@ -10,11 +10,6 @@ require('toastr/toastr.scss');
 require('../scss/map.scss');
 
 
-let formObject: FormBase;
-
-var accountSettingsRunning = false;
-var passwordChangeRunning = false;
-
 $(document).ready(() => {
   if ($('#UserName').val() !== $('#Email').val()) {
     $('#Email').show();
@@ -46,7 +41,7 @@ $(document).ready(() => {
   formObject.bindToDOM($('#account-settings-form')[0]);
   formObject.configure([
     {
-      group: accountGroup.chain(passwordGroup, true).chain(finalGroup, true),
+      group: accountGroup.chain(passwordGroup.chain(finalGroup, true), true),
       name: 'update',
     },
   ]);

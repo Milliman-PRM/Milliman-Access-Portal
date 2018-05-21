@@ -171,7 +171,7 @@ export namespace ContentPublishingDOMMethods {
             name: 'new',
           },
           {
-            group: updateContentGroup.chain(submitPublication, true).chain(null, true),
+            group: updateContentGroup.chain(submitPublication.chain(null, true), true),
             name: 'edit-or-republish',
           },
         ],
