@@ -27,7 +27,7 @@ export class ProgressMonitor {
     this.snapshot = new RetainedValue(8);
     this.rate = new RetainedValue(4);
     this.remainingTime = new RetainedValue(1);
-    this.monitorInterval = 1000;
+    this.monitorInterval = 500;
 
     this._monitor = this._monitor.bind(this);
   }

@@ -37,24 +37,35 @@ export class PublicationUpload extends Upload {
   }
 
   protected renderChecksumProgress(summary: ProgressSummary) {
-//    $(this.rootElement).find('.card-progress-bar-1').width(summary.percentage);
-//    $(this.rootElement)
-//      .find('.card-progress-status-text')
-//      .html(`${summary.rate}   ${summary.remainingTime}`);
+    const $progressBar = $(this.rootElement).find('.progress-bar-1');
+    if (summary.percentage === '0%' || summary.percentage === '100%') {
+      $progressBar.removeClass('progress-easing');
+    } else {
+      $progressBar.addClass('progress-easing');
+    }
+    $progressBar.width(summary.percentage);
+//  $(this.rootElement)
+//    .find('.card-progress-status-text')
+//    .html(`${summary.rate}   ${summary.remainingTime}`);
   }
 
   protected renderUploadProgress(summary: ProgressSummary) {
-//    $(this.rootElement).find('.card-progress-bar-2').width(summary.percentage);
-//    $(this.rootElement)
-//      .find('.card-progress-status-text')
-//      .html(`${summary.rate}   ${summary.remainingTime}`);
-    console.log(summary);
+    const $progressBar = $(this.rootElement).find('.progress-bar-2');
+    if (summary.percentage === '0%' || summary.percentage === '100%') {
+      $progressBar.removeClass('progress-easing');
+    } else {
+      $progressBar.addClass('progress-easing');
+    }
+    $progressBar.width(summary.percentage);
+//  $(this.rootElement)
+//    .find('.card-progress-status-text')
+//    .html(`${summary.rate}   ${summary.remainingTime}`);
   }
 
   protected setProgressMessage(message: string) {
-//    $(this.rootElement)
-//      .find('.card-progress-status-text')
-//      .html(message);
+//  $(this.rootElement)
+//    .find('.card-progress-status-text')
+//    .html(message);
   }
 
   public onFileAdded(file: File) {

@@ -184,6 +184,8 @@ label.input-with-upload {
 
     input {
         padding-right: 2.5em;
+        position: relative;
+        z-index: 1;
     }
 
     svg.upload-icon {
@@ -192,7 +194,32 @@ label.input-with-upload {
         width: 2em;
         position: absolute;
         right: .25em;
-        bottom: .1em;
+        top: 1.9em;
+        z-index: 2;
+    }
+
+    .progress-bars {
+        position: relative;
+        display: block;
+        height: 1.5em;
+        margin-top: -0.5em;
+        border: 1px solid $dark-grey;
+        border-radius: 0.25em;
+
+        .progress-bar {
+            position: absolute;
+            width: 0;
+            height: 100%;
+        }
+        .progress-easing {
+            transition: 0.5s linear;
+        }
+        .progress-bar-1 {
+            background-color: rgb(100, 200, 255);
+        }
+        .progress-bar-2 {
+            background-color: rgb(0, 235, 0);
+        }
     }
 
     &:hover svg.upload-icon {
