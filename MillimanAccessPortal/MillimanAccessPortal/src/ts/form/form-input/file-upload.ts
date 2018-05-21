@@ -51,10 +51,13 @@ export class FileUploadInput extends FormInput {
     this.componentMap.set('UserguideFile', PublicationComponent.UserGuide);
   }
 
-  public bindToDOM(entryPoint: HTMLElement) {
+  public bindToDOM(entryPoint?: HTMLElement) {
     super.bindToDOM(entryPoint);
 
     this._component = this.componentMap.get(this.name);
+    if (this.upload) {
+      this.upload.attachToBrowseElement(this.$entryPoint[0])
+    }
   }
 
   public configure(token: string) {

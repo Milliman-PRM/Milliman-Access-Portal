@@ -72,28 +72,65 @@ export class Submission extends FormElement {
 }
 
 export class SubmissionGroup<T> {
+  private sparse: boolean = false;
+  private next: SubmissionGroup<any> = null;
+  private get lastChain(): SubmissionGroup<any> {
+    let next = this as SubmissionGroup<any>;
+    while (next.next !== null) next = next.next;
+    return next;
+  }
+  public callback: (response: T, form?: FormBase) => void;
   constructor(
     readonly sections: Array<string>,
     readonly url: string,
     readonly method: string,
-    readonly callback: (response: T, form?: FormBase) => void,
-  ) { }
+    callback: (response: T, form?: FormBase) => void,
+  ) {
+    this.callback = callback;
+  }
 
-  public chain<U>(that: SubmissionGroup<U>): SubmissionGroup<T> {
-    const chainedGroup = new SubmissionGroup<T>(
-      this.sections,
-      this.url,
-      this.method,
-      (response: T, form: FormBase) => {
-        this.callback(response);
-        that.submit(form);
-      },
+  public static FinalGroup<T>(callback: (response: T) => void = () => {}): SubmissionGroup<T> {
+    const group = new SubmissionGroup<T>(
+      [],
+      null,
+      null,
+      callback,
     );
-    return chainedGroup;
+    group.sparse = true;
+    return group;
+  }
+
+  public chain<U>(that: SubmissionGroup<U>, sparse: boolean = false): SubmissionGroup<T> {
+    const lastChain = this.lastChain;
+    lastChain.next = that ? that : SubmissionGroup.FinalGroup();
+
+    const originalCallback = lastChain.callback;
+    lastChain.callback = (response: T, form: FormBase) => {
+      if (response !== null) {
+        originalCallback(response, form);
+      }
+      lastChain.next.submit(form);
+    };
+    lastChain.sparse = sparse;
+
+    return this;
   }
 
   public submit(form: FormBase) {
     showButtonSpinner($(`.button-container-${form.submissionMode} .button-submit`));
+
+    const modified = form.inputSections
+      .filter((inputSection) => this.sections.indexOf(inputSection.name) !== -1)
+      .map((inputSection) => inputSection.modified)
+      .reduce((cum, cur) => cum || cur, false);
+
+    if (this.sparse && !modified) {
+      // skip this request and go to the next
+      this.callback(null, form);
+      hideButtonSpinner($(`.button-container-${form.submissionMode} .button-submit`));
+      return;
+    }
+
     $.ajax({
       method: this.method,
       url: this.url,

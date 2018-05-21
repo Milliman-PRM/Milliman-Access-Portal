@@ -709,7 +709,7 @@ ClientCard.prototype.constructor = ClientCard;
 
 export function RootContentItemCard(
   rootContentItem, groupCount, userCount,
-  callback, publishCallback?, editCallback?, deleteCallback?
+  callback, publishCallback?, deleteCallback?
 ) {
   Card.call(this);
 
@@ -730,12 +730,6 @@ export function RootContentItemCard(
     color: 'red',
     tooltip: 'Delete root content item',
     callback: deleteCallback,
-  });
-  this.addComponent('button', {
-    icon: 'edit',
-    color: 'blue',
-    tooltip: 'Edit root content item',
-    callback: editCallback,
   });
   this.addComponent('button', {
     icon: 'file-upload',

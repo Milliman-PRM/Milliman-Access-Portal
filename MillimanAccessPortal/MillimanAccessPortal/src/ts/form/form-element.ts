@@ -29,6 +29,7 @@ export abstract class FormElement {
   }
   public bindToDOM(entryPoint?: HTMLElement) {
     this.entryPoint = entryPoint || this.entryPoint;
+    this._$entryPoint = undefined; // force $entryPoint reevaluation
     if (!this.$entryPoint.is(`.${this.cssClasses.main}`)) {
       throw new Error(`Cannot bind to entry point: expected class .${this.cssClasses.main} not found.`);
     }

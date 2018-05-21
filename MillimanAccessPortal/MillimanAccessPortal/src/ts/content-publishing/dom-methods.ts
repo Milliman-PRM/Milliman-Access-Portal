@@ -89,19 +89,12 @@ export namespace ContentPublishingDOMMethods {
     $('#content-publishing-form .admin-panel-toolbar .action-icon').hide();
     $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').show();
   }
-  function setFormEdit() {
-    currentForm.submissionMode = 'edit';
-    currentForm.accessMode = AccessMode.Defer;
+  function setFormEditOrRepublish() {
+    currentForm.submissionMode = 'edit-or-republish';
+    currentForm.accessMode = AccessMode.Write;
     $('#root-content-items [selected]').attr('editing', '');
-    $('#content-publishing-form .admin-panel-toolbar .action-icon').show();
-    $('#content-publishing-form .admin-panel-toolbar .action-icon-edit').hide();
-  }
-  function setFormRepublish() {
-    currentForm.submissionMode = 'republish';
-    currentForm.accessMode = AccessMode.Defer;
-    $('#root-content-items [selected]').attr('editing', '');
-    $('#content-publishing-form .admin-panel-toolbar .action-icon').show();
-    $('#content-publishing-form .admin-panel-toolbar .action-icon-file-upload').hide();
+    $('#content-publishing-form .admin-panel-toolbar .action-icon').hide();
+    $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').show();
   }
 
   function mapRootContentItemDetail(item: RootContentItemDetail) {
@@ -147,18 +140,18 @@ export namespace ContentPublishingDOMMethods {
         'root-content-item-info',
         'root-content-item-description',
       ],
-      'ContentPublishing/UpdateRootContentItem',
-      'POST',
-      (response) => renderRootContentItemForm(response),
+      'ContentPublishing/Status',//'ContentPublishing/UpdateRootContentItem',
+      'GET',//'POST',
+      (response) => console.log('update!'),//renderRootContentItemForm(response),
     );
     const submitPublication = new SubmissionGroup<any>(
       [
         'common',
         'publication-files',
       ],
-      'ContentPublishing/Publish',
-      'POST',
-      (response) => { },
+      'ContentPublishing/Status',//'ContentPublishing/Publish',
+      'GET',//'POST',
+      (response) => console.log('publish!'),//{ },
     );
 
     // First unbind existing form if it exists
@@ -174,22 +167,18 @@ export namespace ContentPublishingDOMMethods {
       currentForm.configure(
         [
           {
-            group: createContentGroup/*.chain(submitPublication)*/,
+            group: createContentGroup.chain(submitPublication),
             name: 'new',
           },
           {
-            group: updateContentGroup,
-            name: 'edit',
-          },
-          {
-            group: submitPublication,
-            name: 'republish',
+            group: updateContentGroup.chain(submitPublication, true).chain(null, true),
+            name: 'edit-or-republish',
           },
         ],
       );
     } else {
       currentForm = forms.get(item.Id);
-      currentForm.bindToDOM($rootContentItemForm[0]);
+      currentForm.bindToDOM();
     }
     
     setFormReadOnly();
@@ -213,16 +202,7 @@ export namespace ContentPublishingDOMMethods {
             whenDone
           ],
         )($card), () => currentForm, 1, undefined, () => {
-        setFormRepublish();
-      }),
-      wrapCardIconCallback(($card, whenDone) => get(
-          'ContentPublishing/RootContentItemDetail',
-          [
-            renderRootContentItemForm,
-            whenDone
-          ],
-        )($card), () => currentForm, 1, undefined, () => {
-        setFormEdit();
+        setFormEditOrRepublish();
       }),
       rootContentItemDeleteClickHandler,
     ).build();
@@ -323,9 +303,6 @@ export namespace ContentPublishingDOMMethods {
         wrapCardCallback(openNewRootContentItemForm, () => currentForm)
       ).build());
 
-    $('.admin-panel-toolbar .action-icon-edit').click(() => {
-      setFormEdit();
-    });
     $('.admin-panel-toolbar .action-icon-cancel').click(() => {
       if (currentForm.accessMode === AccessMode.Read) {
         $('#root-content-items [selected]').click();
@@ -334,7 +311,7 @@ export namespace ContentPublishingDOMMethods {
       }
     });
     $('.admin-panel-toolbar .action-icon-file-upload').click(() => {
-      setFormRepublish();
+      setFormEditOrRepublish();
     });
 
     setUnloadAlert(() => currentForm && currentForm.modified);
