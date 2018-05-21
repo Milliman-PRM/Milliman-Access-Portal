@@ -1,22 +1,101 @@
 import $ = require('jquery');
+import * as toastr from 'toastr';
 require('tooltipster');
-import * as shared from '../shared';
-import { ClientCard, RootContentItemCard } from '../card';
+import { showButtonSpinner, clearForm, wrapCardCallback, get, wrapCardIconCallback, updateCardStatus, expandAllListener, collapseAllListener, filterTreeListener, filterFormListener } from '../shared';
+import { ClientCard, RootContentItemCard, AddRootContentItemActionCard } from '../card';
 import { FormBase } from '../form/form-base';
 import { AccessMode } from '../form/form-modes';
-import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType } from '../view-models/content-publishing';
+import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType, PublishRequest } from '../view-models/content-publishing';
 import { setUnloadAlert } from '../unload-alerts';
-import { DeleteRootContentItemDialog } from '../dialog';
+import { DeleteRootContentItemDialog, DiscardConfirmationDialog } from '../dialog';
 import { SubmissionGroup } from '../form/form-submission';
 import { PublicationStatusMonitor } from './publication-status-monitor';
 
-
 export namespace ContentPublishingDOMMethods {
-  let statusMonitor: PublicationStatusMonitor;
 
   const forms = new Map<number, FormBase>();
   let currentForm: FormBase;
   let currentFormId: number;
+  let statusMonitor: PublicationStatusMonitor;
+
+  function deleteRootContentItem(rootContentItemId: string, rootContentItemName: string, password: string, callback: () => void) {
+    $.ajax({
+      type: 'DELETE',
+      url: 'ContentPublishing/DeleteRootContentItem',
+      data: {
+        rootContentItemId: rootContentItemId,
+      },
+      headers: {
+        RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
+      }
+    }).done(function onDone(response) {
+      $('#root-content-items .admin-panel-content').empty();
+      $('#content-publishing-form').hide();
+      renderRootContentItemList(response);
+      callback();
+      toastr.success(rootContentItemName + ' was successfully deleted.');
+    }).fail(function onFail(response) {
+      callback();
+      toastr.warning(response.getResponseHeader('Warning'));
+    });
+  }
+  export function rootContentItemDeleteClickHandler(event) {
+    var $clickedCard = $(this).closest('.card-container');
+    var rootContentItemId = $clickedCard.data().rootContentItemId;
+    var rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
+    event.stopPropagation();
+    new DeleteRootContentItemDialog(
+      rootContentItemName,
+      rootContentItemId,
+      function (data, callback) {
+        if (data.password) {
+          showButtonSpinner($('.vex-first'), 'Deleting');
+          $('.vex-dialog-button').attr('disabled', '');
+          deleteRootContentItem(rootContentItemId, rootContentItemName, data.password, callback);
+        } else if (data.password === '') {
+          toastr.warning('Please enter your password to proceed');
+          return false;
+        } else {
+          toastr.info('Deletion was canceled');
+        }
+        return true;
+      },
+    ).open();
+  }
+  export function openNewRootContentItemForm() {
+    const clientId = $('#client-tree [selected]').parent().data().clientId;
+    renderRootContentItemForm({
+      ClientId: clientId,
+      ContentName: '',
+      ContentTypeId: 0,
+      Description: '',
+      DoesReduce: false,
+      Id: 0,
+      Notes: '',
+    });
+    setFormNew();
+  }
+
+
+  function setFormReadOnly() {
+    currentForm.accessMode = AccessMode.Read;
+    $('#root-content-items [selected]').removeAttr('editing');
+    $('#content-publishing-form .admin-panel-toolbar .action-icon').show();
+  }
+  function setFormNew() {
+    currentForm.submissionMode = 'new';
+    currentForm.accessMode = AccessMode.Write;
+    $('#root-content-items [selected]').attr('editing', '');
+    $('#content-publishing-form .admin-panel-toolbar .action-icon').hide();
+    $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').show();
+  }
+  function setFormEditOrRepublish() {
+    currentForm.submissionMode = 'edit-or-republish';
+    currentForm.accessMode = AccessMode.Write;
+    $('#root-content-items [selected]').attr('editing', '');
+    $('#content-publishing-form .admin-panel-toolbar .action-icon').hide();
+    $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').show();
+  }
 
   function mapRootContentItemDetail(item: RootContentItemDetail) {
     const formMap = new Map<string, string | number | boolean>();
@@ -24,7 +103,7 @@ export namespace ContentPublishingDOMMethods {
     formMap.set('Id',item.Id);
     formMap.set('ClientId',item.ClientId);
     formMap.set('ContentName',item.ContentName);
-    formMap.set('ContentTypeId',item.ContentType.Id);
+    formMap.set('ContentTypeId',item.ContentTypeId);
     formMap.set('DoesReduce', item.DoesReduce);
     formMap.set('Description',item.Description);
     formMap.set('Notes',item.Notes);
@@ -35,52 +114,60 @@ export namespace ContentPublishingDOMMethods {
   function renderRootContentItemForm(item: RootContentItemDetail) {
     const $panel = $('#content-publishing-form');
     const $rootContentItemForm = $panel.find('form.admin-panel-content');
-    shared.clearForm($panel);
-
-    const $contentTypeDropdown = $rootContentItemForm.find('#ContentTypeId');
-    $contentTypeDropdown.children(':not(option[value = ""])').remove();
-    item.AvailableContentTypes.forEach((contentType) => {
-      const option = new Option(contentType.Name, contentType.Id.toString());
-      $(option).data(contentType);
-      $contentTypeDropdown.append(option);
-    });
+    clearForm($panel);
 
     const formMap = mapRootContentItemDetail(item);
     formMap.forEach((value, key) => {
-      $rootContentItemForm.find(`#${key}`).val(value.toString());
+      $rootContentItemForm.find(`#${key}`).val(value ? value.toString() : '');
     });
 
     const $doesReduceToggle = $rootContentItemForm.find(`#DoesReduce`);
     $doesReduceToggle.prop('checked', item.DoesReduce);
 
-    $contentTypeDropdown.change(); // trigger change event
-
-
     const createContentGroup = new SubmissionGroup<RootContentItemDetail>(
       [
+        'common',
         'root-content-item-info',
         'root-content-item-description',
       ],
       'ContentPublishing/CreateRootContentItem',
       'POST',
-      (response) => { },
+      (response) => $('#Id').val(response.Id),
     );
     const updateContentGroup = new SubmissionGroup<RootContentItemDetail>(
       [
+        'common',
         'root-content-item-info',
         'root-content-item-description',
       ],
-      'ContentPublishing/UpdateRootContentItem',
-      'POST',
-      (response) => { },
+      'ContentPublishing/Status',//'ContentPublishing/UpdateRootContentItem',
+      'GET',//'POST',
+      (response) => console.log('update!'),//renderRootContentItemForm(response),
     );
     const submitPublication = new SubmissionGroup<any>(
       [
+        'common',
         'publication-files',
       ],
       'ContentPublishing/Publish',
       'POST',
       (response) => { },
+      (data) => {
+        let dataArray: { [key: string]: string } = {};
+        data.split('&')
+          .map((kvp) => kvp.split('='))
+          .forEach((kvp) => dataArray[kvp[0]] = kvp[1]);
+        const publishRequest: PublishRequest = {
+          RootContentItemId: parseInt(dataArray['Id']),
+          RelatedFiles: ['MasterContent', 'UserGuide', 'Thumbnail', 'ReleaseNotes']
+            .map((file) => ({
+              FilePurpose: file,
+              FileUploadId: dataArray[file],
+            }))
+            .filter((file) => file.FileUploadId),
+        };
+        return publishRequest;
+      },
     );
 
     // First unbind existing form if it exists
@@ -100,113 +187,42 @@ export namespace ContentPublishingDOMMethods {
             name: 'new',
           },
           {
-            group: updateContentGroup,
-            name: 'edit',
-          },
-          {
-            group: submitPublication,
-            name: 'republish',
+            group: updateContentGroup.chain(submitPublication, true).chain(null, true),
+            name: 'edit-or-republish',
           },
         ],
       );
     } else {
       currentForm = forms.get(item.Id);
-      currentForm.bindToDOM($rootContentItemForm[0]);
+      currentForm.bindToDOM();
     }
     
-    currentForm.accessMode = AccessMode.Read;
+    setFormReadOnly();
     currentFormId = item.Id;
   }
 
-
-  function rootContentItemPublishClickHandler() {
-    var $clickedCard = $(this).closest('.card-container');
-    var rootContentItemId = $clickedCard.data().rootContentItemId;
-    event.stopPropagation();
-
-    const form = forms.get(rootContentItemId);
-    form.accessMode = AccessMode.Write;
-    form.submissionMode = 'republish';
-    $('#content-publishing-form').show();
-  }
-  function rootContentItemEditClickHandler() {
-    var $clickedCard = $(this).closest('.card-container');
-    var rootContentItemId = $clickedCard.data().rootContentItemId;
-    event.stopPropagation();
-
-    const form = forms.get(rootContentItemId);
-    form.accessMode = AccessMode.Write;
-    form.submissionMode = 'edit';
-    $('#content-publishing-form').show();
-  }
-  function deleteRootContentItem(rootContentItemId: string, rootContentItemName: string, password: string, callback: () => void) {
-    // TODO: AJAX request to delete root content item
-  }
-  function rootContentItemDeleteClickHandler() {
-    var $clickedCard = $(this).closest('.card-container');
-    var rootContentItemId = $clickedCard.data().rootContentItemId;
-    var rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
-    event.stopPropagation();
-    new DeleteRootContentItemDialog(
-      rootContentItemName,
-      rootContentItemId,
-      function (data, callback) {
-        if (data.password) {
-          shared.showButtonSpinner($('.vex-first'), 'Deleting');
-          $('.vex-dialog-button').attr('disabled', '');
-          deleteRootContentItem(rootContentItemId, rootContentItemName, data.password, callback);
-        } else if (data.password === '') {
-          toastr.warning('Please enter your password to proceed');
-          return false;
-        } else {
-          toastr.info('Deletion was canceled');
-        }
-        return true;
-      },
-    ).open();
-  }
-//  function newRootContentItemClickHandler() {
-//    function openNewClientForm() {
-//      clearClientSelection();
-//      setClientFormWriteable();
-//      setupClientForm();
-//      $('#new-client-card').find('div.card-body-container').attr('selected', '');
-//      hideClientUsers();
-//      showClientDetails();
-//    }
-//    var $clientTree = $('#client-tree');
-//    var sameCard = ($('#new-client-card')[0] === $clientTree.find('[selected]').closest('.card-container')[0]);
-//    if ($clientTree.has('[selected]').length) {
-//      shared.confirmAndContinue($('#client-info'), dialog.DiscardConfirmationDialog, function () {
-//        if (sameCard) {
-//          clearClientSelection();
-//          hideClientDetails();
-//        } else {
-//          if ($('.insert-card').length) {
-//            removeClientInserts();
-//          }
-//          openNewClientForm();
-//        }
-//      });
-//    } else {
-//      openNewClientForm();
-//    }
-//  }
 
   function renderRootContentItem(item: RootContentItemSummary) {
     const $card = new RootContentItemCard(
       item,
       item.GroupCount,
       item.EligibleUserCount,
-      shared.wrapCardCallback(shared.get(
+      wrapCardCallback(get(
         'ContentPublishing/RootContentItemDetail',
         [ renderRootContentItemForm ],
-      )),
-      rootContentItemPublishClickHandler,
-      rootContentItemEditClickHandler,
+      ), () => currentForm),
+      wrapCardIconCallback(($card, whenDone) => get(
+          'ContentPublishing/RootContentItemDetail',
+          [
+            renderRootContentItemForm,
+            whenDone
+          ],
+        )($card), () => currentForm, 1, undefined, () => {
+        setFormEditOrRepublish();
+      }),
       rootContentItemDeleteClickHandler,
     ).build();
-    shared.updateCardStatus($card, item.PublicationDetails);
+    updateCardStatus($card, item.PublicationDetails);
     $('#root-content-items ul.admin-panel-content').append($card);
   }
   function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: number) {
@@ -227,7 +243,7 @@ export namespace ContentPublishingDOMMethods {
       client.Value.EligibleUserCount,
       client.Value.RootContentItemCount,
       level,
-      shared.wrapCardCallback(shared.get(
+      wrapCardCallback(get(
         'ContentPublishing/RootContentItems',
         [ renderRootContentItemList ],
       )),
@@ -255,6 +271,23 @@ export namespace ContentPublishingDOMMethods {
     }
   }
 
+  function populateAvailableContentTypes(contentTypes: Array<ContentType>) {
+    const $panel = $('#content-publishing-form');
+    const $rootContentItemForm = $panel.find('form.admin-panel-content');
+
+    const $contentTypeDropdown = $rootContentItemForm.find('#ContentTypeId');
+    $contentTypeDropdown.children(':not(option[value = ""])').remove();
+
+    contentTypes.forEach((contentType) => {
+      const option = new Option(contentType.Name, contentType.Id.toString());
+      $(option).data(contentType);
+      $contentTypeDropdown.append(option);
+    });
+
+    $contentTypeDropdown.val(0);
+    // $contentTypeDropdown.change(); // trigger change event
+  }
+
   export function setup() {
     const $contentTypeDropdown = $('#ContentTypeId');
     $contentTypeDropdown.change(() => {
@@ -270,28 +303,42 @@ export namespace ContentPublishingDOMMethods {
       }
     });
 
-    $('.action-icon-expand').click(shared.expandAllListener);
-    $('.action-icon-collapse').click(shared.collapseAllListener);
-    $('.admin-panel-searchbar-tree').keyup(shared.filterTreeListener);
-    $('.admin-panel-searchbar-form').keyup(shared.filterFormListener);
+    $('.action-icon-expand').click(expandAllListener);
+    $('.action-icon-collapse').click(collapseAllListener);
+    $('.admin-panel-searchbar-tree').keyup(filterTreeListener);
+    $('.admin-panel-searchbar-form').keyup(filterFormListener);
 
-    $('.admin-panel-toolbar .action-icon-edit').click(() => {
-      currentForm.submissionMode = 'edit';
-      currentForm.accessMode = AccessMode.Defer;
-    });
+    $('#root-content-items .admin-panel-toolbar .action-icon-add').click(function () {
+      openNewRootContentItemForm();
+      $('#root-content-items .card-body-container').removeAttr('selected');
+      $('#root-content-items .card-body-container.action-card').attr('selected', '');
+      $('#content-publishing-form').show();
+    })
+    $('#root-content-items ul.admin-panel-content-action')
+      .append(new AddRootContentItemActionCard(
+        wrapCardCallback(openNewRootContentItemForm, () => currentForm)
+      ).build());
+
     $('.admin-panel-toolbar .action-icon-cancel').click(() => {
-      currentForm.accessMode = AccessMode.Read;
+      if (currentForm.accessMode === AccessMode.Read) {
+        $('#root-content-items [selected]').click();
+      } else {
+        setFormReadOnly();
+      }
     });
     $('.admin-panel-toolbar .action-icon-file-upload').click(() => {
-      currentForm.submissionMode = 'republish';
-      currentForm.accessMode = AccessMode.Defer;
+      setFormEditOrRepublish();
     });
 
     setUnloadAlert(() => currentForm && currentForm.modified);
 
     $('.tooltip').tooltipster();
 
-    shared.get(
+    get(
+      'ContentPublishing/AvailableContentTypes',
+      [ populateAvailableContentTypes ],
+    )();
+    get(
       'ContentPublishing/Clients',
       [ renderClientTree ],
     )();

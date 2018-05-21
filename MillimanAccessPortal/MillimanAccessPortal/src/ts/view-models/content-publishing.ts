@@ -63,12 +63,12 @@ export class ContentType {
   Name: string;
   CanReduce: boolean;
 }
+
 export class RootContentItemDetail {
   Id: number;
   ClientId: number;
   ContentName: string;
-  ContentType: ContentType;
-  AvailableContentTypes: Array<ContentType>;
+  ContentTypeId: number;
   DoesReduce: boolean;
   Description: string;
   Notes: string;
@@ -82,4 +82,13 @@ export class PublicationDetails {
 }
 export class RootContentItemStatus {
   Status: Array<PublicationDetails>;
+}
+
+export class ContentRelatedFile {
+  FilePurpose: string;
+  FileUploadId: string;
+}
+export class PublishRequest {
+  RootContentItemId: number;
+  RelatedFiles: Array<ContentRelatedFile>;
 }

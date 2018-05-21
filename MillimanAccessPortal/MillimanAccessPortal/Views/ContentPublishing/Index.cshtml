@@ -38,10 +38,14 @@
     <div class="admin-panel-toolbar">
         <input class="admin-panel-searchbar-tree" type="search" placeholder="Filter Content" />
         <div class="admin-panel-action-icons-container">
+            <svg class="action-icon-add action-icon tooltip" title="Add root content item">
+                <use xlink:href="#action-icon-add"></use>
+            </svg>
         </div>
     </div>
     <div class="admin-panel-content-container">
         <ul class="admin-panel-content"></ul>
+        <ul class="admin-panel-content-action"></ul>
     </div>
 </div>
 <div id="content-publishing-form" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-6-12" style="display: none;">
@@ -51,9 +55,6 @@
     <h3 class="admin-panel-header">Content Item</h3>
     <div class="admin-panel-toolbar">
         <div class="admin-panel-action-icons-container">
-            <svg class="action-icon-edit action-icon tooltip" title="Edit Content Item details">
-                <use xlink:href="#action-icon-edit"></use>
-            </svg>
             <svg class="action-icon-file-upload action-icon tooltip" title="Submit new publication">
                 <use xlink:href="#action-icon-file-upload"></use>
             </svg>
@@ -65,12 +66,16 @@
     <div class="admin-panel-content-container">
         <form class="admin-panel-content">
             <div class="form-section-container">
-                <div class="form-section" data-section="root-content-item-info">
-                    <h4 class="form-section-title">Content Item Information</h4>
+                <div class="form-section" data-section="common">
                     <div class="form-input-container">
                         <div class="form-input form-input-hidden" style="display: none;">
                             <input asp-for="Id" />
                         </div>
+                    </div>
+                </div>
+                <div class="form-section" data-section="root-content-item-info">
+                    <h4 class="form-section-title">Content Item Information</h4>
+                    <div class="form-input-container">
                         <div class="form-input form-input-hidden" style="display: none;">
                             <input asp-for="ClientId" />
                         </div>
@@ -109,42 +114,43 @@
                     <div class="form-input-container">
                         <div class="form-input-container flex-item-4-12">
                             <div class="form-input form-input-file-upload">
-                                <label for="ThumbnailImage" class="input-with-upload image">
+                                <label for="Thumbnail" class="input-with-upload image">
                                     Thumbnail Image
                                     <input class="file-upload" type="text" readonly />
-                                    <input class="file-upload-guid" type="text" id="ThumbnailImage" name="ThumbnailImage" style="display: none;" />
+                                    <input class="file-upload-guid" type="text" id="Thumbnail" name="Thumbnail" style="display: none;" />
                                     <svg class="upload-icon tooltip" title="Upload thumbnail image">
                                         <use xlink:href="#action-icon-file-upload"></use>
                                     </svg>
+                                    <img class="image-preview" />
                                 </label>
                             </div>
                         </div>
                         <div class="form-input-container flex-item-8-12 form-input-flex">
                             <div class="form-input form-input-file-upload">
-                                <label for="ContentFile" class="input-with-upload">
+                                <label for="MasterContent" class="input-with-upload">
                                     File
                                     <input class="file-upload" type="text" readonly />
-                                    <input class="file-upload-guid" type="text" id="ContentFile" name="ContentFile" style="display: none;" />
+                                    <input class="file-upload-guid" type="text" id="MasterContent" name="MasterContent" style="display: none;" />
                                     <svg class="upload-icon tooltip" title="Upload thumbnail image">
                                         <use xlink:href="#action-icon-file-upload"></use>
                                     </svg>
                                 </label>
                             </div>
                             <div class="form-input form-input-file-upload">
-                                <label for="UserguideFile" class="input-with-upload">
+                                <label for="UserGuide" class="input-with-upload">
                                     Userguide
                                     <input class="file-upload" type="text" readonly />
-                                    <input class="file-upload-guid" type="text" id="UserguideFile" name="UserguideFile" style="display: none;" />
+                                    <input class="file-upload-guid" type="text" id="UserGuide" name="UserGuide" style="display: none;" />
                                     <svg class="upload-icon tooltip" title="Upload thumbnail image">
                                         <use xlink:href="#action-icon-file-upload"></use>
                                     </svg>
                                 </label>
                             </div>
                             <div class="form-input form-input-file-upload">
-                                <label for="ReleaseNotesFile" class="input-with-upload">
+                                <label for="ReleaseNotes" class="input-with-upload">
                                     Release Notes
                                     <input class="file-upload" type="text" readonly />
-                                    <input class="file-upload-guid" type="text" id="ReleaseNotesFile" name="ReleaseNotesFile" style="display: none;" />
+                                    <input class="file-upload-guid" type="text" id="ReleaseNotes" name="ReleaseNotes" style="display: none;" />
                                     <svg class="upload-icon tooltip" title="Upload thumbnail image">
                                         <use xlink:href="#action-icon-file-upload"></use>
                                     </svg>
@@ -175,11 +181,7 @@
                         <button type="button" class="button-reset link-button">Reset Form</button>
                         <button type="button" class="button-submit green-button">Create Content Item</button>
                     </div>
-                    <div class="button-container button-container-edit" style="display: none;">
-                        <button type="button" class="button-reset link-button">Discard Changes</button>
-                        <button type="button" class="button-submit blue-button">Save Changes</button>
-                    </div>
-                    <div class="button-container button-container-republish" style="display: none;">
+                    <div class="button-container button-container-edit-or-republish" style="display: none;">
                         <button type="button" class="button-reset link-button">Cancel</button>
                         <button type="button" class="button-submit blue-button">Republish</button>
                     </div>

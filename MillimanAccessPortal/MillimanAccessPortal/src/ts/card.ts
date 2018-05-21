@@ -620,6 +620,12 @@ export function AddUserActionCard(callback) {
 AddUserActionCard.prototype = Object.create(ActionCard.prototype);
 AddUserActionCard.prototype.constructor = AddUserActionCard;
 
+export function AddRootContentItemActionCard(callback) {
+  ActionCard.call(this, 'add', 'Add Root Content Item', callback);
+};
+AddRootContentItemActionCard.prototype = Object.create(ActionCard.prototype);
+AddRootContentItemActionCard.prototype.constructor = AddRootContentItemActionCard;
+
 export function AddSelectionGroupActionCard(callback) {
   ActionCard.call(this, 'add', 'Add Selection Group', callback);
 };
@@ -703,7 +709,7 @@ ClientCard.prototype.constructor = ClientCard;
 
 export function RootContentItemCard(
   rootContentItem, groupCount, userCount,
-  callback, publishCallback?, editCallback?, deleteCallback?
+  callback, publishCallback?, deleteCallback?
 ) {
   Card.call(this);
 
@@ -724,12 +730,6 @@ export function RootContentItemCard(
     color: 'red',
     tooltip: 'Delete root content item',
     callback: deleteCallback,
-  });
-  this.addComponent('button', {
-    icon: 'edit',
-    color: 'blue',
-    tooltip: 'Edit root content item',
-    callback: editCallback,
   });
   this.addComponent('button', {
     icon: 'file-upload',

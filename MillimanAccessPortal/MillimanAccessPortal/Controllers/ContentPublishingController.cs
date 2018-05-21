@@ -71,6 +71,15 @@ namespace MillimanAccessPortal.Controllers
             return View();
         }
 
+        [HttpGet]
+        public IActionResult AvailableContentTypes()
+        {
+            var model = DbContext.ContentType.ToList();
+
+            return new JsonResult(model);
+        }
+
+        [HttpGet]
         async public Task<IActionResult> Clients()
         {
             #region Authorization
@@ -246,7 +255,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpDelete]
-        //[ValidateAntiForgeryToken]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteRootContentItem(long rootContentItemId)
         {
             var rootContentItem = DbContext.RootContentItem

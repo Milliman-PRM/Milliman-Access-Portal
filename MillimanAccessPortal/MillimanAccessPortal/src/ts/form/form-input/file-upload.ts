@@ -45,16 +45,19 @@ export class FileUploadInput extends FormInput {
     super();
 
     this.componentMap = new Map<string, PublicationComponent>();
-    this.componentMap.set('ContentFile', PublicationComponent.Content);
-    this.componentMap.set('ThumbnailImage', PublicationComponent.Image);
-    this.componentMap.set('ReleaseNotesFile', PublicationComponent.ReleaseNotes);
-    this.componentMap.set('UserguideFile', PublicationComponent.UserGuide);
+    this.componentMap.set('MasterContent', PublicationComponent.Content);
+    this.componentMap.set('Thumbnail', PublicationComponent.Image);
+    this.componentMap.set('ReleaseNotes', PublicationComponent.ReleaseNotes);
+    this.componentMap.set('UserGuide', PublicationComponent.UserGuide);
   }
 
-  public bindToDOM(entryPoint: HTMLElement) {
+  public bindToDOM(entryPoint?: HTMLElement) {
     super.bindToDOM(entryPoint);
 
     this._component = this.componentMap.get(this.name);
+    if (this.upload) {
+      this.upload.attachToBrowseElement(this.$entryPoint[0])
+    }
   }
 
   public configure(token: string) {
@@ -64,6 +67,7 @@ export class FileUploadInput extends FormInput {
   public reset() {
     super.reset();
     this.$entryPoint.find('input.file-upload').val('');
+    this.$entryPoint.find('img').removeAttr('src');
     if (this.upload) {
       this.upload.reset();
     }
