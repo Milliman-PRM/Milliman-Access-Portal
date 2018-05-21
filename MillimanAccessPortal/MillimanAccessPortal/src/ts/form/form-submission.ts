@@ -85,6 +85,7 @@ export class SubmissionGroup<T> {
     readonly url: string,
     readonly method: string,
     callback: (response: T, form?: FormBase) => void,
+    readonly transform: (data: string) => any = (data) => data,
   ) {
     this.callback = callback;
   }
@@ -134,7 +135,7 @@ export class SubmissionGroup<T> {
     $.ajax({
       method: this.method,
       url: this.url,
-      data: form.serialize(this.sections),
+      data: this.transform(form.serialize(this.sections)),
       headers: {
         RequestVerificationToken: form.antiforgeryToken,
       },

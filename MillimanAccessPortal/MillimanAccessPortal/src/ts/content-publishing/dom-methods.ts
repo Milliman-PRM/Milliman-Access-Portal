@@ -5,7 +5,7 @@ import { showButtonSpinner, clearForm, wrapCardCallback, get, wrapCardIconCallba
 import { ClientCard, RootContentItemCard, AddRootContentItemActionCard } from '../card';
 import { FormBase } from '../form/form-base';
 import { AccessMode } from '../form/form-modes';
-import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType } from '../view-models/content-publishing';
+import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType, PublishRequest } from '../view-models/content-publishing';
 import { setUnloadAlert } from '../unload-alerts';
 import { DeleteRootContentItemDialog, DiscardConfirmationDialog } from '../dialog';
 import { SubmissionGroup } from '../form/form-submission';
@@ -149,9 +149,25 @@ export namespace ContentPublishingDOMMethods {
         'common',
         'publication-files',
       ],
-      'ContentPublishing/Status',//'ContentPublishing/Publish',
-      'GET',//'POST',
-      (response) => console.log('publish!'),//{ },
+      'ContentPublishing/Publish',
+      'POST',
+      (response) => { },
+      (data) => {
+        let dataArray: { [key: string]: string } = {};
+        data.split('&')
+          .map((kvp) => kvp.split('='))
+          .forEach((kvp) => dataArray[kvp[0]] = kvp[1]);
+        const publishRequest: PublishRequest = {
+          RootContentItemId: parseInt(dataArray['Id']),
+          RelatedFiles: ['MasterContent', 'UserGuide', 'Thumbnail', 'ReleaseNotes']
+            .map((file) => ({
+              FilePurpose: file,
+              FileUploadId: dataArray[file],
+            }))
+            .filter((file) => file.FileUploadId),
+        };
+        return publishRequest;
+      },
     );
 
     // First unbind existing form if it exists

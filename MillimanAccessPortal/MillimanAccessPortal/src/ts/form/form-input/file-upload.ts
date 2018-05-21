@@ -45,10 +45,10 @@ export class FileUploadInput extends FormInput {
     super();
 
     this.componentMap = new Map<string, PublicationComponent>();
-    this.componentMap.set('ContentFile', PublicationComponent.Content);
-    this.componentMap.set('ThumbnailImage', PublicationComponent.Image);
-    this.componentMap.set('ReleaseNotesFile', PublicationComponent.ReleaseNotes);
-    this.componentMap.set('UserguideFile', PublicationComponent.UserGuide);
+    this.componentMap.set('MasterContent', PublicationComponent.Content);
+    this.componentMap.set('Thumbnail', PublicationComponent.Image);
+    this.componentMap.set('ReleaseNotes', PublicationComponent.ReleaseNotes);
+    this.componentMap.set('UserGuide', PublicationComponent.UserGuide);
   }
 
   public bindToDOM(entryPoint?: HTMLElement) {
