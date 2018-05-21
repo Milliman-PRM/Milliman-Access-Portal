@@ -92,10 +92,17 @@ namespace TestResourcesLib
             var a = UType.GetMembers().OfType<PropertyInfo>();
             var b = a.Where(m => m.PropertyType == ReferenceKeyPropertyType);
             var c = b.Where(m => m.PropertyType == ReferenceKeyPropertyType).Where(m => m.CustomAttributes.Any(at => at.AttributeType == typeof(KeyAttribute)));
-            PropertyInfo ReferencedPkPropertyInfo = UType.GetMembers().OfType<PropertyInfo>().Single(m => m.PropertyType == ReferenceKeyPropertyType && m.CustomAttributes.Any(at => at.AttributeType == typeof(KeyAttribute)));
+            // Use Type.IsAssignableFrom() here to handle a nullable (non-required) foreign key:
+            PropertyInfo ReferencedPkPropertyInfo = UType.GetMembers().OfType<PropertyInfo>().Single(m => ReferenceKeyPropertyType.IsAssignableFrom(m.PropertyType) && m.CustomAttributes.Any(at => at.AttributeType == typeof(KeyAttribute)));
 
             foreach (T ReferencingRecord in ReferencingDbSet)
             {
+                // To handle null values of nullable foreign keys
+                if (ForeignKeyPropertyInfo.GetValue(ReferencingRecord) == null)
+                {
+                    continue;
+                }
+
                 var ReferencingKeyValue = ForeignKeyPropertyInfo.GetValue(ReferencingRecord).ToString();
 
                 foreach (U UItem in ReferencedDbSet)
