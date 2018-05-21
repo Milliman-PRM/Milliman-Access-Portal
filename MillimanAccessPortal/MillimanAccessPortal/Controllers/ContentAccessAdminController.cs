@@ -600,7 +600,7 @@ namespace MillimanAccessPortal.Controllers
             // There must be no pending reduction task created after the current live reduction
             var PendingStatus = new List<ReductionStatusEnum> { ReductionStatusEnum.Queued, ReductionStatusEnum.Reducing, ReductionStatusEnum.Reduced, };
             if (DbContext.ContentReductionTask
-                         .Where(t => t.CreateDateTime > CurrentLiveReduction.CreateDateTime)
+                         .Where(t => t.CreateDateTimeUtc > CurrentLiveReduction.CreateDateTimeUtc)
                          .Any(t => PendingStatus.Contains(t.ReductionStatus)))
             {
                 Response.Headers.Add("Warning", "An unresolved publication or selection change prevents this action.");
@@ -610,7 +610,7 @@ namespace MillimanAccessPortal.Controllers
             // There must be no reduction task with erroneous or unexpected status created after the current live reduction
             var UnexpectedStatus = new List<ReductionStatusEnum> { ReductionStatusEnum.Unspecified, ReductionStatusEnum.Replaced, };
             if (DbContext.ContentReductionTask
-                         .Where(t => t.CreateDateTime > CurrentLiveReduction.CreateDateTime)
+                         .Where(t => t.CreateDateTimeUtc > CurrentLiveReduction.CreateDateTimeUtc)
                          .Any(t => UnexpectedStatus.Contains(t.ReductionStatus)))
             {
                 Response.Headers.Add("Warning", "An erroneous reduction status prevents this action.");
