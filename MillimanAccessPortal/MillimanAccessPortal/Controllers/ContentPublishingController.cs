@@ -116,7 +116,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult roleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, clientId));
             if (!roleInClientResult.Succeeded)
             {
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
+                Response.Headers.Add("Warning", "You are not authorized to publish content for the specified client.");
                 return Unauthorized();
             }
             #endregion
@@ -124,7 +124,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            RootContentItemList model = RootContentItemList.Build(DbContext, client);
+            RootContentItemList model = RootContentItemList.Build(DbContext, client, await Queries.GetCurrentApplicationUser(User));
 
             return Json(model);
         }
@@ -147,7 +147,7 @@ namespace MillimanAccessPortal.Controllers
                 User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItemId));
             if (!roleInClientResult.Succeeded)
             {
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                Response.Headers.Add("Warning", "You are not authorized to publish content to the specified root content item.");
                 return Unauthorized();
             }
             #endregion
@@ -309,7 +309,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(rootContentItemDeletedEvent);
             #endregion
 
-            RootContentItemList model = RootContentItemList.Build(DbContext, rootContentItem.Client);
+            RootContentItemList model = RootContentItemList.Build(DbContext, rootContentItem.Client, await Queries.GetCurrentApplicationUser(User));
 
             return Json(model);
         }
