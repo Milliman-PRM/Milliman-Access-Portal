@@ -189,14 +189,17 @@ label.input-with-upload {
         z-index: 1;
     }
 
-    svg.upload-icon {
-        color: $charcoal;
-        height: 2em;
-        width: 2em;
-        position: absolute;
-        right: .25em;
-        top: 1.9em;
-        z-index: 2;
+    svg {
+        
+        &.upload-icon,&.cancel-icon {
+            color: $charcoal;
+            height: 2em;
+            width: 2em;
+            position: absolute;
+            right: .25em;
+            top: 1.9em;
+            z-index: 2;
+        }
     }
 
     .progress-bars {
