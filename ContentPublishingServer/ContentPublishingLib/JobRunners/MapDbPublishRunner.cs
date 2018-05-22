@@ -131,7 +131,7 @@ namespace ContentPublishingLib.JobRunners
 
                     if (RelatedFile.FilePurpose.ToLower() == "mastercontent")
                     {
-                        ProcessMasterContentFile(RelatedFile);
+                        ProcessMasterContentFile(DestinationFullPath, RelatedFile.FilePurpose, RelatedFile.Checksum);
                     }
                 }
 
@@ -151,20 +151,23 @@ namespace ContentPublishingLib.JobRunners
                     {
                         AllRelatedReductionTasks = await Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId).ToListAsync();
 
-                        if (AllRelatedReductionTasks.Any(t => t.ReductionStatus == ReductionStatusEnum.Error))
+                        foreach (ContentReductionTask OneTask in AllRelatedReductionTasks)
                         {
-                            string Msg = $"Publication request terminating due to error in related reduction task";
-                            Trace.WriteLine(Msg);
-                            JobDetail.Result.StatusMessage = Msg;
-                            JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
+                            if (OneTask.ReductionStatus == ReductionStatusEnum.Error)
+                            {
+                                string Msg = $"Publication request terminating due to error in related reduction task {OneTask.Id.ToString()}{Environment.NewLine}{OneTask.ReductionStatusMessage}";
+                                Trace.WriteLine(Msg);
+                                JobDetail.Result.StatusMessage = Msg;
+                                JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
 
-                            // Cancel any task still queued
-                            List<ContentReductionTask> QueuedTasks = AllRelatedReductionTasks.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued).ToList();
-                            QueuedTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
-                            Db.ContentReductionTask.UpdateRange(QueuedTasks);
-                            await Db.SaveChangesAsync();
+                                // Cancel any task still queued
+                                List<ContentReductionTask> QueuedTasks = AllRelatedReductionTasks.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued).ToList();
+                                QueuedTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
+                                Db.ContentReductionTask.UpdateRange(QueuedTasks);
+                                await Db.SaveChangesAsync();
 
-                            return JobDetail;
+                                return JobDetail;
+                            }
                         }
                     }
 
@@ -192,8 +195,10 @@ namespace ContentPublishingLib.JobRunners
         /// Performs all actions required only in the presence of a master content file in the publication request
         /// Note that a publication request can be made without a content item to update associated files.
         /// </summary>
-        /// <param name="MasterFile"></param>
-        private void ProcessMasterContentFile(PublishJobDetail.ContentRelatedFile MasterFile)
+        /// <param name="FilePath"></param>
+        /// <param name="FilePurpose"></param>
+        /// <param name="FileChecksum"></param>
+        private void ProcessMasterContentFile(string FilePath, string FilePurpose, string FileChecksum)
         {
             // If there is no SelectionGroup for this content item, create a new SelectionGroup with IsMaster = true
             using (ApplicationDbContext Db = GetDbContext())
@@ -233,9 +238,9 @@ namespace ContentPublishingLib.JobRunners
                         string TaskFolder = Path.Combine(QvSourceDocumentsPath, TaskId.ToString());
                         Directory.CreateDirectory(TaskFolder);
 
-                        string DestinationFileName = $"{MasterFile.FilePurpose}.Pub[{JobDetail.JobId.ToString()}].Content[{JobDetail.Request.RootContentId.ToString()}]{Path.GetExtension(MasterFile.FullPath)}";
+                        string DestinationFileName = $"{FilePurpose}.Pub[{JobDetail.JobId.ToString()}].Content[{JobDetail.Request.RootContentId.ToString()}]{Path.GetExtension(FilePath)}";
                         string CopyDestination = Path.Combine(TaskFolder, DestinationFileName);
-                        File.Copy(MasterFile.FullPath, CopyDestination, true);
+                        File.Copy(FilePath, CopyDestination, true);
 
                         ContentReductionTask NewTask = new ContentReductionTask
                         {
@@ -244,7 +249,7 @@ namespace ContentPublishingLib.JobRunners
                             ContentPublicationRequestId = JobDetail.JobId,
                             CreateDateTimeUtc = DateTime.UtcNow,  // TODO later: Figure out how to avoid delay in starting the reduction task. 
                             MasterFilePath = CopyDestination,
-                            MasterContentChecksum = MasterFile.Checksum,
+                            MasterContentChecksum = FileChecksum,
                             ReductionStatus = ReductionStatusEnum.Queued,
                             SelectionGroupId = SelGrp.Id,
                         };
