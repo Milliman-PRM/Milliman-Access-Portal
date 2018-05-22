@@ -5,8 +5,9 @@ import { AccessMode, SubmissionMode } from './form-modes';
 import { FormInputSection, FormSubmissionSection } from './form-section';
 import { confirmAndContinueForm } from '../shared';
 import { FileUploadInput } from './form-input/file-upload';
-import { PublicationComponent } from '../content-publishing/publication-upload';
+import { UploadComponent } from '../upload/upload';
 import { SubmissionGroup } from './form-submission';
+import { PublicationUpload } from '../content-publishing/publication-upload';
 
 export class FormBase extends FormElement {
   private _accessMode: AccessMode;
@@ -128,7 +129,7 @@ export class FormBase extends FormElement {
       section.inputs
         .filter((input) => input instanceof FileUploadInput)
         .forEach((upload) => {
-          const uploadInput = upload as FileUploadInput;
+          const uploadInput = upload as FileUploadInput<PublicationUpload>;
           uploadInput.configure(this.token);
         });
     });

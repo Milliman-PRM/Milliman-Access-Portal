@@ -8,6 +8,13 @@ import { FileScanner } from './file-scanner';
 import { RetainedValue } from './retained-value';
 
 
+export enum UploadComponent {
+  Content = 'MasterContent',
+  UserGuide = 'Thumbnail',
+  Image = 'ReleaseNotes',
+  ReleaseNotes = 'UserGuide',
+}
+
 interface ResumableInfo {
   ChunkNumber: number;
   TotalChunks: number;

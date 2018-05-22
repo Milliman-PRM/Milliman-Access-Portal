@@ -2,12 +2,13 @@ import { AccessMode } from '../form-modes';
 import { FormElement } from '../form-element';
 
 export abstract class FormInput extends FormElement {
-  protected abstract findInput: ($entryPoint: JQuery<HTMLElement>) => JQuery<HTMLElement>;
-  private _$input: JQuery<HTMLElement>;
+
+  // The DOM element within this form element that holds a form value
+  // private _$input: JQuery<HTMLElement>;
   protected get $input(): JQuery<HTMLElement> {
     // Caching $input was causing problems when the related DOM elements
-    // were cloned and replaced. Leave this off unless there are obvious
-    // performance benefits.
+    // were cloned and replaced. Leave this off unless the performance benefits
+    // are important.
     //
     // if (!this._$input) {
     //   this._$input = this.findInput(this.$entryPoint);
@@ -15,18 +16,17 @@ export abstract class FormInput extends FormElement {
     // return this._$input;
     return this.findInput(this.$entryPoint);
   }
+  protected abstract findInput: ($enryPoint: JQuery<HTMLElement>) => JQuery<HTMLElement>;
 
-  private shadowValue: string;
-  protected abstract getValueFn: (input: JQuery<HTMLElement>) => () => string | number | string[];
+  private storedValue: string;
   protected get value(): string {
     return this.bound
       ? (() => {
         const val = this.getValueFn(this.$input).bind(this.$input)();
         return val ? val.toString() : '';
       })()
-      : this.shadowValue;
+      : this.storedValue;
   }
-  protected abstract setValueFn: (input: JQuery<HTMLElement>) => (value: string) => void
   protected set value(value: string) {
     if (this.bound) {
       const change = this.value !== value;
@@ -36,12 +36,12 @@ export abstract class FormInput extends FormElement {
         this.$input.change();
       }
     } else {
-      this.shadowValue = value;
+      this.storedValue = value;
     }
   }
+  protected abstract getValueFn: (input: JQuery<HTMLElement>) => () => string | number | string[];
+  protected abstract setValueFn: (input: JQuery<HTMLElement>) => (value: string) => void
 
-  protected abstract disable: (input: JQuery<HTMLElement>) => void;
-  protected abstract enable: (input: JQuery<HTMLElement>) => void;
   public setMode(value: AccessMode) {
     if (value === AccessMode.Read) {
       this.disable(this.$input);
@@ -49,11 +49,13 @@ export abstract class FormInput extends FormElement {
       this.enable(this.$input);
     }
   }
+  protected abstract disable: (input: JQuery<HTMLElement>) => void;
+  protected abstract enable: (input: JQuery<HTMLElement>) => void;
 
-  protected abstract comparator: (a: string, b: string) => boolean;
   public get modified(): boolean {
     return !this.comparator(this.originalValue, this.value);
   }
+  protected abstract comparator: (a: string, b: string) => boolean;
 
   protected originalValue: string;
 

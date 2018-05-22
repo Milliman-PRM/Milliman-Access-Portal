@@ -1,14 +1,13 @@
 import { FormInput } from './input';
-import { Upload } from '../../upload/upload';
-import { PublicationUpload, PublicationComponent } from '../../content-publishing/publication-upload';
+import { Upload, UploadComponent } from '../../upload/upload';
+import { PublicationUpload } from '../../content-publishing/publication-upload';
 
-export class FileUploadInput extends FormInput {
+export class FileUploadInput<T extends Upload> extends FormInput {
   protected _cssClasses = {
     main: 'form-input-file-upload',
     title: 'form-input-file-upload-title',
     extension: 'form-input-file-upload-contents',
   }
-  private readonly componentMap: Map<string, PublicationComponent>;
 
   protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('input.file-upload-guid');
 
@@ -20,9 +19,8 @@ export class FileUploadInput extends FormInput {
 
   protected comparator = (a: string, b: string) => (a === b) && !this.uploadInProgress;
 
-  private _component: PublicationComponent;
-  public get component(): PublicationComponent {
-    return this._component;
+  public get component(): UploadComponent {
+    return this.name as UploadComponent;    
   }
 
   private uploadInProgress: boolean = false;
@@ -30,38 +28,23 @@ export class FileUploadInput extends FormInput {
   public get upload(): PublicationUpload {
     return this._upload;
   }
-  protected createUpload(token: string) {
-    // TODO: generalize for other upload types
-    this._upload = token && this.component && new PublicationUpload(
-      this.$entryPoint[0],
-      (a: boolean) => this.uploadInProgress = a, 
-      (guid: string) => this.value = guid,
-      token,
-      this.component,
-    );
-  }
-
-  public constructor() {
-    super();
-
-    this.componentMap = new Map<string, PublicationComponent>();
-    this.componentMap.set('MasterContent', PublicationComponent.Content);
-    this.componentMap.set('Thumbnail', PublicationComponent.Image);
-    this.componentMap.set('ReleaseNotes', PublicationComponent.ReleaseNotes);
-    this.componentMap.set('UserGuide', PublicationComponent.UserGuide);
-  }
 
   public bindToDOM(entryPoint?: HTMLElement) {
     super.bindToDOM(entryPoint);
 
-    this._component = this.componentMap.get(this.name);
     if (this.upload) {
       this.upload.attachToBrowseElement(this.$entryPoint[0]);
     }
   }
 
   public configure(token: string) {
-    this.createUpload(token);
+    this._upload = new PublicationUpload(
+      this.$entryPoint[0],
+      (a: boolean) => this.uploadInProgress = a, 
+      (guid: string) => this.value = guid,
+      token,
+      this.component,
+    );
     this.upload.attachToBrowseElement(this.$entryPoint[0]);
   }
 

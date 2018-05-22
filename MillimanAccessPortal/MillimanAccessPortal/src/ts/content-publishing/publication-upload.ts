@@ -1,12 +1,5 @@
-import { Upload } from '../upload/upload';
+import { Upload, UploadComponent } from '../upload/upload';
 import { ProgressSummary } from '../upload/progress-monitor';
-
-export enum PublicationComponent {
-  Content = 'content',
-  UserGuide = 'user_guide',
-  Image = 'image',
-  ReleaseNotes = 'release_notes',
-}
 
 export class PublicationUpload extends Upload {
 
@@ -15,7 +8,7 @@ export class PublicationUpload extends Upload {
     unloadAlertCallback: (alertOnCallback: boolean, cancelable?: boolean) => void,
     fileSuccessCallback: (guid: string) => void,
     readonly formToken: string,
-    readonly component: PublicationComponent,
+    readonly component: UploadComponent,
   ) {
     super(rootElement, unloadAlertCallback, fileSuccessCallback);
   }
@@ -69,7 +62,7 @@ export class PublicationUpload extends Upload {
   }
 
   public onFileAdded(file: File) {
-    if (this.component === PublicationComponent.Image) {
+    if (this.component === UploadComponent.Image) {
       const reader = new FileReader();
 
       reader.onload = (ev) => {
