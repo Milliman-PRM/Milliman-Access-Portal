@@ -62,7 +62,7 @@ export abstract class Upload {
 
   constructor(
     readonly rootElement: HTMLElement,
-    readonly unloadAlertCallback: (a: boolean) => void,
+    readonly unloadAlertCallback: (alertOnUnload: boolean, status?: boolean) => void,
     readonly fileSuccessCallback: (guid: string) => void,
   ) {
     this.scanner = new FileScanner();
@@ -216,10 +216,12 @@ export abstract class Upload {
   }
 
   private signalRequiresUnloadAlert() {
-    this.unloadAlertCallback(
-      this.cancelable
+    const alertUnload = this.cancelable
       || this.checksum !== undefined
-      || this.fileGUID !== undefined
+      || this.fileGUID !== undefined;
+    this.unloadAlertCallback(
+      alertUnload,
+      this.cancelable,
     );
   }
 

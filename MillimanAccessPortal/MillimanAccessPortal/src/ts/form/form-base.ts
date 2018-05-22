@@ -102,8 +102,9 @@ export class FormBase extends FormElement {
       section.inputs.forEach((input) => {
         input.recordOriginalValue();
         input.onChange(() => {
+          const modified = this.modified;
           this.submissionSection.submissions
-            .forEach((submission) => submission.modified = this.modified);
+            .forEach((submission) => submission.modified = modified);
         });
       });
     });

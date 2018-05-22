@@ -12,7 +12,7 @@ export class PublicationUpload extends Upload {
 
   constructor(
     rootElement: HTMLElement,
-    unloadAlertCallback: (a: boolean) => void,
+    unloadAlertCallback: (alertOnCallback: boolean, cancelable?: boolean) => void,
     fileSuccessCallback: (guid: string) => void,
     readonly formToken: string,
     readonly component: PublicationComponent,
