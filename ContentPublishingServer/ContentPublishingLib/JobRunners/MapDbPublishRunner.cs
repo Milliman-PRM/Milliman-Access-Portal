@@ -108,7 +108,7 @@ namespace ContentPublishingLib.JobRunners
                     {
                         throw new ApplicationException($"While publishing request {JobDetail.JobId.ToString()}, uploaded file not found at path [{RelatedFile.FullPath}].");
                     }
-                    if (RelatedFile.Checksum != GlobalFunctions.GetFileChecksum(RelatedFile.FullPath))
+                    if (RelatedFile.Checksum.ToLower() != GlobalFunctions.GetFileChecksum(RelatedFile.FullPath).ToLower())
                     {
                         throw new ApplicationException($"While publishing request {JobDetail.JobId.ToString()}, checksum validation failed for file [{RelatedFile.FullPath}].");
                     }
@@ -117,6 +117,15 @@ namespace ContentPublishingLib.JobRunners
                     string DestinationFullPath = Path.Combine(RootContentFolder, DestinationFileName);
 
                     File.Copy(RelatedFile.FullPath, DestinationFullPath, true);
+
+                    // Clean up FileUpload entity and uploaded file
+                    using (ApplicationDbContext Db = GetDbContext())
+                    {
+                        List<FileUpload> Uploads = Db.FileUpload.Where(f => f.StoragePath == RelatedFile.FullPath).ToList();
+                        Uploads.ForEach(u => Db.FileUpload.Remove(u));
+                        Db.SaveChanges();
+                        File.Delete(RelatedFile.FullPath);
+                    }
 
                     JobDetail.Result.RelatedFiles.Add(new PublishJobDetail.ContentRelatedFile { FilePurpose = RelatedFile.FilePurpose, FullPath = DestinationFullPath });
 
