@@ -428,5 +428,13 @@ namespace MillimanAccessPortal.Controllers
 
             return new JsonResult(rootContentItemStatusList);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> PreLiveSummary(long RootContentItemId)
+        {
+            // Return a model summarizing the publication summary
+
+            return new JsonResult(new object());
+        }
     }
 }
