@@ -5,10 +5,15 @@ export abstract class FormInput extends FormElement {
   protected abstract findInput: ($entryPoint: JQuery<HTMLElement>) => JQuery<HTMLElement>;
   private _$input: JQuery<HTMLElement>;
   protected get $input(): JQuery<HTMLElement> {
-    if (!this._$input) {
-      this._$input = this.findInput(this.$entryPoint);
-    }
-    return this._$input;
+    // Caching $input was causing problems when the related DOM elements
+    // were cloned and replaced. Leave this off unless there are obvious
+    // performance benefits.
+    //
+    // if (!this._$input) {
+    //   this._$input = this.findInput(this.$entryPoint);
+    // }
+    // return this._$input;
+    return this.findInput(this.$entryPoint);
   }
 
   private shadowValue: string;

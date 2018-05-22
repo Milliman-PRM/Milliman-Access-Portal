@@ -49,17 +49,6 @@ export abstract class Upload {
     return this._cancelable;
   }
   protected set cancelable(cancelable: boolean) {
-    const $resumableInput = $(this.selectBrowseElement(this.rootElement))
-      .children('input');
-    const $cancelButton = $(this.selectBrowseElement(this.rootElement))
-      .find('.btn-cancel');
-    if (cancelable) {
-      $resumableInput.attr('disabled', '');
-      $cancelButton.css('visibility', 'visible');
-    } else {
-      $resumableInput.removeAttr('disabled');
-      $cancelButton.css('visibility', 'hidden');
-    }
     this._cancelable = cancelable;
     this.signalRequiresUnloadAlert();
   }
@@ -86,8 +75,6 @@ export abstract class Upload {
     if (!this.resumable.support) {
       throw new Error('This browser does not support resumable file uploads.');
     }
-
-    this.attachToBrowseElement(rootElement);
 
     this.resumable.on('fileAdded', async (file) => {
       this.cancelable = true;
@@ -189,30 +176,43 @@ export abstract class Upload {
     $(rootElement).find('.btn-cancel').click((event) => {
       event.preventDefault();
       event.stopPropagation();
-      if (this.checksum) {
-        this.resumable.cancel();
-      } else {
-        this.scanner.cancel();
-      }
-      this.monitor.monitorEnd();
-      this.setProgressMessage('Upload canceled');
-      this.cancelable = false;
-      this.checksum = undefined;
+      this.cancel();
     });
   }
 
-  public attachToBrowseElement(element: HTMLElement) {
+  private cancel() {
+    if (this.resumable) this.resumable.cancel();
+    if (this.scanner) this.scanner.cancel();
+    if (this.monitor) this.monitor.monitorEnd();
+    this.setProgressMessage('Upload canceled');
+    this.cancelable = false;
+    this.checksum = undefined;
+  }
+
+  public attachToBrowseElement(element: HTMLElement): Node {
     // Clone the input to clear any event listeners
     const input = this.selectBrowseElement(element);
-    $(input).replaceWith($(input.cloneNode(false)));
+    const clonedInput = input.cloneNode(true);
+    $(clonedInput).find('input[type="file"]').remove();
+    $(input).replaceWith($(clonedInput));
 
     this.resumable.assignBrowse(this.selectBrowseElement(element), false);
+    return clonedInput;
   }
 
   public reset() {
-    this.cancelable = false;
-    this.checksum = undefined;
+    this.cancel();
     this.fileGUID = undefined;
+    this.renderChecksumProgress({
+      percentage: '0%',
+      rate: null,
+      remainingTime: null,
+    });
+    this.renderUploadProgress({
+      percentage: '0%',
+      rate: null,
+      remainingTime: null,
+    });
   }
 
   private signalRequiresUnloadAlert() {

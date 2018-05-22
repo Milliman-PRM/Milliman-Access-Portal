@@ -25,7 +25,7 @@ export class PublicationUpload extends Upload {
   }
 
   protected selectBrowseElement(rootElement: HTMLElement): HTMLElement {
-    return $(rootElement).find('input.file-upload')[0];
+    return $(rootElement).find('label.input-with-upload')[0];
   }
 
   protected selectFileNameElement(rootElement: HTMLElement): HTMLInputElement {

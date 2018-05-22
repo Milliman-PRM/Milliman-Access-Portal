@@ -15,8 +15,8 @@ export class FileUploadInput extends FormInput {
   protected getValueFn = ($input: JQuery<HTMLElement>) => $input.val;
   protected setValueFn = ($input: JQuery<HTMLElement>) => $input.val;
 
-  protected disable = ($input: JQuery<HTMLElement>) => $input.attr('disabled', '').prev().attr('disabled', '');
-  protected enable = ($input: JQuery<HTMLElement>) => $input.removeAttr('disabled').prev().removeAttr('disabled');
+  protected disable = ($input: JQuery<HTMLElement>) => $input.parent().attr('disabled', '').children().attr('disabled', '');
+  protected enable = ($input: JQuery<HTMLElement>) => $input.parent().removeAttr('disabled').children().removeAttr('disabled');
 
   protected comparator = (a: string, b: string) => (a === b) && !this.uploadInProgress;
 
@@ -56,12 +56,13 @@ export class FileUploadInput extends FormInput {
 
     this._component = this.componentMap.get(this.name);
     if (this.upload) {
-      this.upload.attachToBrowseElement(this.$entryPoint[0])
+      this.upload.attachToBrowseElement(this.$entryPoint[0]);
     }
   }
 
   public configure(token: string) {
     this.createUpload(token);
+    this.upload.attachToBrowseElement(this.$entryPoint[0]);
   }
 
   public reset() {
