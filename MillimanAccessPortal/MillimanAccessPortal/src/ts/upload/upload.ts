@@ -36,7 +36,7 @@ export class Upload {
   public onUploadProgress: (progress: ProgressSummary) => void = () => {};
   public onProgressMessage: (message: string) => void = () => {};
 
-  public onFileAdded: (file: File) => void = () => {};
+  public onFileAdded: (resumableFile: any) => void = () => {};
   public onFileSuccess: (fileGUID: string) => void = () => {};
   public onStateChange: (alertUnload: boolean, cancelable: boolean) => void = () => {};
 
@@ -99,7 +99,7 @@ export class Upload {
     this.resumable.on('fileAdded', async (resumableFile) => {
       const file: File = resumableFile.file;
       this.setCancelable(true);
-      this.onFileAdded(file);
+      this.onFileAdded(resumableFile);
 
       this.onChecksumProgress(ProgressSummary.Empty());
       this.onUploadProgress(ProgressSummary.Empty());
@@ -202,12 +202,6 @@ export class Upload {
   }
 
   public assignBrowse(element: HTMLElement) {
-   // // Clone the input to clear any event listeners
-   // const input = this.selectBrowseElement(element);
-   // const clonedInput = input.cloneNode(true);
-   // $(clonedInput).find('input[type="file"]').remove();
-   // $(input).replaceWith($(clonedInput));
-
     this.resumable.assignBrowse(element, false);
   }
 

@@ -14,8 +14,8 @@ export class FileUploadInput extends FormInput {
   protected getValueFn = ($input: JQuery<HTMLElement>) => $input.val;
   protected setValueFn = ($input: JQuery<HTMLElement>) => $input.val;
 
-  protected disable = ($input: JQuery<HTMLElement>) => $input.parent().attr('disabled', '').children().attr('disabled', '');
-  protected enable = ($input: JQuery<HTMLElement>) => $input.parent().removeAttr('disabled').children().removeAttr('disabled');
+  protected disable = ($input: JQuery<HTMLElement>) => $input.parent().find('*').attr('disabled', '');
+  protected enable = ($input: JQuery<HTMLElement>) => $input.parent().find('*').removeAttr('disabled');
 
   protected comparator = (a: string, b: string) => (a === b) && !this.uploadInProgress;
 
@@ -38,25 +38,37 @@ export class FileUploadInput extends FormInput {
       return `publication-${this.component}-${token}`;
     };
     this.upload.onChecksumProgress = (progress: ProgressSummary) => {
+      this.$entryPoint.find('div.progress-bar-1').width(progress.percentage);
     };
     this.upload.onUploadProgress = (progress: ProgressSummary) => {
+      this.$entryPoint.find('div.progress-bar-2').width(progress.percentage);
     };
     this.upload.onProgressMessage = (message: string) => {
     };
 
-<<<<<<< HEAD
-    this.upload.onFileAdded = (file: File) => {
+    this.upload.onFileAdded = (resumableFile: any) => {
+      this.$entryPoint.find('input.file-upload').val(resumableFile.fileName);
     };
     this.upload.onFileSuccess = (fileGUID: string) => {
       this.value = fileGUID;
     };
     this.upload.onStateChange = (alertUnload: boolean, cancelable: boolean) => {
       this.uploadInProgress = alertUnload;
+
+      if (cancelable) {
+        this.$entryPoint.find('upload-icon').hide();
+        this.$entryPoint.find('cancel-icon').show();
+      } else {
+        this.$entryPoint.find('cancel-icon').hide();
+        this.$entryPoint.find('upload-icon').show();
+      }
     };
-=======
-  public bindToDOM(entryPoint: HTMLElement) {
-    super.bindToDOM(entryPoint);
->>>>>>> 00ff2eea... Remove unbind and rebind features
+
+    // Clone the input to clear any event listeners
+    const clickableElement = this.$entryPoint.find('label')[0];
+    const $clonedInput = $(clickableElement.cloneNode(true));
+    $clonedInput.find('input[type="file"]').remove();
+    $(clickableElement).replaceWith($clonedInput);
 
     this.upload.assignBrowse(this.$entryPoint.find('label')[0]);
   }
