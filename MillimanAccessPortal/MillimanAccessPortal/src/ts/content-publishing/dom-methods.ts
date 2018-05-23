@@ -1,7 +1,7 @@
 import $ = require('jquery');
 import * as toastr from 'toastr';
 require('tooltipster');
-import { showButtonSpinner, clearForm, wrapCardCallback, get, wrapCardIconCallback, updateCardStatus, expandAllListener, collapseAllListener, filterTreeListener, filterFormListener } from '../shared';
+import { showButtonSpinner, clearForm, wrapCardCallback, get, wrapCardIconCallback, updateCardStatus, expandAllListener, collapseAllListener, filterTreeListener, filterFormListener, updateCardStatusButtons } from '../shared';
 import { ClientCard, RootContentItemCard, AddRootContentItemActionCard } from '../card';
 import { FormBase } from '../form/form-base';
 import { AccessMode } from '../form/form-modes';
@@ -60,6 +60,20 @@ export namespace ContentPublishingDOMMethods {
         return true;
       },
     ).open();
+  }
+  export function rootContentItemCancelClickHandler(event) {
+    var $clickedCard = $(this).closest('.card-container');
+    var rootContentItemId = $clickedCard.data().rootContentItemId;
+    var rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
+    event.stopPropagation();
+    //new CancelRootContentItemDialog().open();
+  }
+  export function rootContentItemGoLiveClickHandler(event) {
+    var $clickedCard = $(this).closest('.card-container');
+    var rootContentItemId = $clickedCard.data().rootContentItemId;
+    var rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
+    event.stopPropagation();
+    // do something
   }
   export function openNewRootContentItemForm() {
     const clientId = $('#client-tree [selected]').parent().data().clientId;
@@ -199,18 +213,21 @@ export namespace ContentPublishingDOMMethods {
         'ContentPublishing/RootContentItemDetail',
         [ renderRootContentItemForm ],
       ), () => formObject),
-      wrapCardIconCallback(($card, whenDone) => get(
+      wrapCardIconCallback(($card, always) => get(
           'ContentPublishing/RootContentItemDetail',
           [
             renderRootContentItemForm,
-            whenDone
+            always,
           ],
         )($card), () => formObject, 1, undefined, () => {
         setFormEditOrRepublish();
       }),
       rootContentItemDeleteClickHandler,
+      rootContentItemCancelClickHandler,
+      rootContentItemGoLiveClickHandler,
     ).build();
     updateCardStatus($card, item.PublicationDetails);
+    updateCardStatusButtons($card, item.PublicationDetails && item.PublicationDetails.StatusEnum);
     $('#root-content-items ul.admin-panel-content').append($card);
   }
   function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: number) {

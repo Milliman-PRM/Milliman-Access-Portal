@@ -1,6 +1,6 @@
 import { StatusMonitor } from '../status-monitor';
 import { RootContentItemStatus } from '../view-models/content-publishing';
-import { updateCardStatus } from '../shared';
+import { updateCardStatus, updateCardStatusButtons } from '../shared';
 
 export class PublicationStatusMonitor {
   private readonly monitor: StatusMonitor<RootContentItemStatus>;
@@ -32,5 +32,6 @@ function statusCallback(response: RootContentItemStatus) {
       const status = response.Status.filter((s) =>
         s && s.RootContentItemId === $cardContainer.data().rootContentItemId)[0];
       updateCardStatus($cardContainer, status);
+      updateCardStatusButtons($cardContainer, status && status.StatusEnum);
     });
 }

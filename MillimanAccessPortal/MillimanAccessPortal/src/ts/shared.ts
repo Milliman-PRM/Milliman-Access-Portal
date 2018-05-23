@@ -2,6 +2,7 @@ import $ = require('jquery');
 import { Dialog, ResetConfirmationDialog, DiscardConfirmationDialog } from './dialog';
 import toastr = require('toastr');
 import { FormBase } from './form/form-base';
+import { PublicationStatus } from './view-models/content-publishing';
 
 var SHOW_DURATION = 50;
 var ajaxStatus = [];
@@ -360,6 +361,17 @@ export function updateCardStatus($card, reductionDetails) {
   $statusName.html(details.StatusName);
   $statusUser.html(details.User.FirstName);
 };
+export function updateCardStatusButtons($card: JQuery<HTMLElement>, publishingStatusEnum: PublicationStatus) {
+  $card.find('.card-button-dynamic').hide();
+  if (publishingStatusEnum === PublicationStatus.Queued) {
+    $card.find('.card-button-cancel').show();
+  } else if (publishingStatusEnum === PublicationStatus.Processing) {
+  } else if (publishingStatusEnum === PublicationStatus.Complete) {
+    $card.find('.card-button-add').show();
+  } else {
+    $card.find('.card-button-file-upload').show();
+  }
+}
 
 // Dialog helpers
 // TODO: consider moving to dialog.js

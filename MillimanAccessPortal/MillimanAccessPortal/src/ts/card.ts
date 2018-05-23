@@ -146,8 +146,12 @@ var components = Object.assign(
           this.add(component);
           this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
           this.addClass(component, 'card-button-' + properties.color);
+          this.addClass(component, 'card-button-' + properties.icon);
           this.tooltip(component, properties.tooltip);
           this.click(component, properties.callback);
+          if (properties.dynamic) {
+            this.addClass(component, 'card-button-dynamic');
+          }
         };
       }
     },
@@ -709,7 +713,7 @@ ClientCard.prototype.constructor = ClientCard;
 
 export function RootContentItemCard(
   rootContentItem, groupCount, userCount,
-  callback, publishCallback?, deleteCallback?
+  callback, publishCallback?, deleteCallback?, cancelCallback?, goLiveCallback?
 ) {
   Card.call(this);
 
@@ -736,6 +740,21 @@ export function RootContentItemCard(
     color: 'green',
     tooltip: 'Republish',
     callback: publishCallback,
+    dynamic: true,
+  });
+  this.addComponent('button', {
+    icon: 'cancel',
+    color: 'red',
+    tooltip: 'Cancel Request',
+    callback: cancelCallback,
+    dynamic: true,
+  });
+  this.addComponent('button', {
+    icon: 'add',
+    color: 'blue',
+    tooltip: 'Go Live',
+    callback: goLiveCallback,
+    dynamic: true,
   });
   this.addComponent('status', {});
 
