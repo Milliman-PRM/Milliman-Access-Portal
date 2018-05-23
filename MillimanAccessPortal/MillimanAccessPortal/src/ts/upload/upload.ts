@@ -162,6 +162,7 @@ export class Upload {
 
     this.resumable.on('fileSuccess', (file, message) => {
       this.setCancelable(false);
+      this.onUploadProgress(ProgressSummary.Full());
       const finalizeInfo: ResumableInfo = {
         ChunkNumber: 0,
         TotalChunks: file.chunks.length,
@@ -192,7 +193,7 @@ export class Upload {
     });
   }
 
-  private cancel() {
+  public cancel() {
     if (this.resumable) this.resumable.cancel();
     if (this.scanner) this.scanner.cancel();
     if (this.monitor) this.monitor.deactivate();

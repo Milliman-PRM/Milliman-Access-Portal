@@ -1,6 +1,7 @@
 import { FormInput } from './input';
 import { Upload, UploadComponent } from '../../upload/upload';
 import { ProgressSummary } from '../../upload/progress-monitor';
+import { AccessMode } from '../form-modes';
 
 export class FileUploadInput extends FormInput {
   protected _cssClasses = {
@@ -14,8 +15,8 @@ export class FileUploadInput extends FormInput {
   protected getValueFn = ($input: JQuery<HTMLElement>) => $input.val;
   protected setValueFn = ($input: JQuery<HTMLElement>) => $input.val;
 
-  protected disable = ($input: JQuery<HTMLElement>) => $input.parent().find('*').attr('disabled', '');
-  protected enable = ($input: JQuery<HTMLElement>) => $input.parent().find('*').removeAttr('disabled');
+  protected disable = ($input: JQuery<HTMLElement>) => $input.parent().find('*').not('.cancel-icon').attr('disabled', '');
+  protected enable = ($input: JQuery<HTMLElement>) => $input.parent().find('*').not('.cancel-icon').removeAttr('disabled');
 
   protected comparator = (a: string, b: string) => (a === b) && !this.uploadInProgress;
 
@@ -60,14 +61,7 @@ export class FileUploadInput extends FormInput {
     };
     this.upload.onStateChange = (alertUnload: boolean, cancelable: boolean) => {
       this.uploadInProgress = alertUnload;
-
-      if (cancelable) {
-        this.$entryPoint.find('upload-icon').hide();
-        this.$entryPoint.find('cancel-icon').show();
-      } else {
-        this.$entryPoint.find('cancel-icon').hide();
-        this.$entryPoint.find('upload-icon').show();
-      }
+      this.setCancelable(cancelable);
     };
 
     // Clone the input to clear any event listeners
@@ -77,6 +71,10 @@ export class FileUploadInput extends FormInput {
     $(clickableElement).replaceWith($clonedInput);
 
     this.upload.assignBrowse(this.$entryPoint.find('label')[0]);
+    this.$entryPoint.find('.cancel-icon').click((event) => {
+      event.stopPropagation();
+      this.upload.cancel();
+    });
   }
 
   public reset() {
@@ -85,6 +83,18 @@ export class FileUploadInput extends FormInput {
     this.$entryPoint.find('img').removeAttr('src');
     if (this.upload) {
       this.upload.reset();
+    }
+  }
+
+  private setCancelable(cancelable: boolean) {
+    if (cancelable) {
+      this.setMode(AccessMode.Read);
+      this.$entryPoint.find('.upload-icon').hide();
+      this.$entryPoint.find('.cancel-icon').show();
+    } else {
+      this.setMode(AccessMode.Write);
+      this.$entryPoint.find('.cancel-icon').hide();
+      this.$entryPoint.find('.upload-icon').show();
     }
   }
 }
