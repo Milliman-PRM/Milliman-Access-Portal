@@ -1,6 +1,6 @@
 import { StatusMonitor } from '../status-monitor';
 import { RootContentItemStatus } from '../view-models/content-publishing';
-import { updateCardStatus, updateCardStatusButtons } from '../shared';
+import { updateCardStatus, updateCardStatusButtons, updateFormStatusButtons } from '../shared';
 
 export class PublicationStatusMonitor {
   private readonly monitor: StatusMonitor<RootContentItemStatus>;
@@ -26,6 +26,7 @@ export class PublicationStatusMonitor {
 }
 
 function statusCallback(response: RootContentItemStatus) {
+  const $panel = $('#content-publishing-form');
   $('#root-content-items').find('.card-container')
     .toArray().forEach((cardContainer: HTMLElement) => {
       const $cardContainer = $(cardContainer);
@@ -33,5 +34,6 @@ function statusCallback(response: RootContentItemStatus) {
         s && s.RootContentItemId === $cardContainer.data().rootContentItemId)[0];
       updateCardStatus($cardContainer, status);
       updateCardStatusButtons($cardContainer, status && status.StatusEnum);
+      $cardContainer.data('statusEnum', status && status.StatusEnum);
     });
 }

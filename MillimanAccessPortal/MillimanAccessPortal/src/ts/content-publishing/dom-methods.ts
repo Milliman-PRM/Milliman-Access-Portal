@@ -1,7 +1,7 @@
 import $ = require('jquery');
 import * as toastr from 'toastr';
 require('tooltipster');
-import { showButtonSpinner, clearForm, wrapCardCallback, get, wrapCardIconCallback, updateCardStatus, expandAllListener, collapseAllListener, filterTreeListener, filterFormListener, updateCardStatusButtons } from '../shared';
+import { showButtonSpinner, clearForm, wrapCardCallback, get, wrapCardIconCallback, updateCardStatus, expandAllListener, collapseAllListener, filterTreeListener, filterFormListener, updateCardStatusButtons, updateFormStatusButtons } from '../shared';
 import { ClientCard, RootContentItemCard, AddRootContentItemActionCard } from '../card';
 import { FormBase } from '../form/form-base';
 import { AccessMode } from '../form/form-modes';
@@ -216,6 +216,7 @@ export namespace ContentPublishingDOMMethods {
 
 
   function renderRootContentItem(item: RootContentItemSummary) {
+    const $panel = $('#content-publishing-form');
     const $card = new RootContentItemCard(
       item,
       item.GroupCount,
@@ -223,10 +224,8 @@ export namespace ContentPublishingDOMMethods {
       wrapCardCallback(get(
         'ContentPublishing/RootContentItemDetail',
         [
+          updateFormStatusButtons,
           renderRootContentItemForm,
-          () => {
-            
-          },
         ],
       ), () => formObject),
       wrapCardIconCallback(($card, always) => get(
@@ -244,6 +243,7 @@ export namespace ContentPublishingDOMMethods {
     ).build();
     updateCardStatus($card, item.PublicationDetails);
     updateCardStatusButtons($card, item.PublicationDetails && item.PublicationDetails.StatusEnum);
+    $card.data('statusEnum', item.PublicationDetails && item.PublicationDetails.StatusEnum);
     $('#root-content-items ul.admin-panel-content').append($card);
   }
   function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: number) {

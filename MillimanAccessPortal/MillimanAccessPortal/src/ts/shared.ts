@@ -372,6 +372,17 @@ export function updateCardStatusButtons($card: JQuery<HTMLElement>, publishingSt
     $card.find('.card-button-file-upload').show();
   }
 }
+export function updateFormStatusButtons() {
+  var selectedData = $('#root-content-items [selected]').parent().data();
+  var $statusFormContainer = $('#content-publishing-form').find('.form-status-container');
+  $statusFormContainer.hide();
+
+  if (selectedData.statusEnum === PublicationStatus.Unknown) {
+    $statusFormContainer.filter('.form-status-edit-or-republish').show();
+  } else {
+    $statusFormContainer.filter('.form-status-edit').show();
+  }
+}
 
 // Dialog helpers
 // TODO: consider moving to dialog.js
