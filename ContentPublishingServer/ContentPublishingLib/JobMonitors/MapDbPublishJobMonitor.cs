@@ -269,8 +269,7 @@ namespace ContentPublishingLib.JobMonitors
                             throw new Exception("Unsupported job result status in MapDbJobMonitor.UpdateTask().");
                     }
 
-                    // temporary
-                    //DbRequest.ContentRelatedFiles = JsonConvert.SerializeObject( new MapDbContextLib.Models.ContentRelatedFile[] { new MapDbContextLib.Models.ContentRelatedFile { FilePurpose = "Master", FileUploadId = Guid.NewGuid() } });
+                    DbRequest.StatusMessage = JobDetail.Result.StatusMessage;
 
                     Db.ContentPublicationRequest.Update(DbRequest);
                     Db.SaveChanges();

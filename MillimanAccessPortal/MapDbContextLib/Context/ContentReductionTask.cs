@@ -75,7 +75,7 @@ namespace MapDbContextLib.Context
 
         [Required]
         // Default value is enforced in ApplicationDbContext.OnModelCreating()
-        public DateTimeOffset CreateDateTimeUtc { get; set; }
+        public DateTime CreateDateTimeUtc { get; set; }
 
         [Required]
         public ReductionStatusEnum ReductionStatus { get; set; }

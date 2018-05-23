@@ -26,6 +26,12 @@ namespace ContentPublishingLib.JobRunners
     public class MapDbPublishRunner : RunnerBase
     {
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
+        private string _ThisRootContentFolder = string.Empty;
+        string _ContentItemRootPath = string.Empty;
+
+        private object AuditLogDetailObj;
+        private AuditEvent AuditLogEvent;
+
         public PublishJobDetail JobDetail { get; set; } = new PublishJobDetail();
 
         /// <summary>
@@ -38,6 +44,8 @@ namespace ContentPublishingLib.JobRunners
                 ConnectionString = Configuration.GetConnectionString(value);
             }
         }
+
+        internal TimeSpan TimeLimit { get; set; } = new TimeSpan(6, 0, 0);  // TODO Get the timeout from configuration)
 
         /// <summary>
         /// Initializes data used to construct database context instances.
@@ -67,7 +75,19 @@ namespace ContentPublishingLib.JobRunners
         }
 
         /// <summary>
-        /// Gets an appropriate ApplicationDbContext object, depending on whether a Mocked context is needed (e.g. for testing)
+        /// ctor
+        /// </summary>
+        public MapDbPublishRunner()
+        {
+            _ContentItemRootPath = Configuration.ApplicationConfiguration.GetSection("Storage")["ContentItemRootPath"];
+            if (!Directory.Exists(_ContentItemRootPath))
+            {
+                throw new ApplicationException($"Configured Storage:ContentItemRootPath folder <{_ContentItemRootPath}> does not exist");
+            }
+        }
+
+        /// <summary>
+        /// Gets an appropriate ApplicationDbContext object, depending on whether a Mocked context is assigned (test run)
         /// </summary>
         /// <returns></returns>
         protected ApplicationDbContext GetDbContext()
@@ -77,118 +97,154 @@ namespace ContentPublishingLib.JobRunners
                  : new ApplicationDbContext(ContextOptions);
         }
 
+        /// <summary>
+        /// Main functional entry point for the runner, 
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<PublishJobDetail> Execute(CancellationToken cancellationToken)
         {
+            MethodBase Method = MethodBase.GetCurrentMethod();
+            DateTime WaitEndUtc = DateTime.UtcNow + TimeLimit;
+
+            _CancellationToken = cancellationToken;
+            // AuditLog would not be null during a test run where it may be initialized earlier
             if (AuditLog == null)
             {
                 AuditLog = new AuditLogger();
             }
 
-            _CancellationToken = cancellationToken;
-
-            MethodBase Method = MethodBase.GetCurrentMethod();
-            object DetailObj;
-            AuditEvent Event;
+            _ThisRootContentFolder = Path.Combine(_ContentItemRootPath, JobDetail.Request.RootContentId.ToString());
+            DirectoryInfo ContentDirectoryInfo = Directory.CreateDirectory(_ThisRootContentFolder);
 
             try
             {
-                string StorageBasePath = Configuration.ApplicationConfiguration.GetSection("Storage")["ContentItemRootPath"];
-                if (!Directory.Exists(StorageBasePath))
-                {
-                    throw new ApplicationException($"Configured LiveContentRootPath folder {StorageBasePath} does not exist");
-                }
-
-                string RootContentFolder = Path.Combine(StorageBasePath, JobDetail.Request.RootContentId.ToString());
-                DirectoryInfo ContentDirectoryInfo = Directory.CreateDirectory(RootContentFolder);
-
                 // Handle each file related to this PublicationRequest
                 foreach (PublishJobDetail.ContentRelatedFile RelatedFile in JobDetail.Request.RelatedFiles)
                 {
-                    if (!File.Exists(RelatedFile.FullPath))
-                    {
-                        throw new ApplicationException($"While publishing request {JobDetail.JobId.ToString()}, uploaded file not found at path [{RelatedFile.FullPath}].");
-                    }
-                    if (RelatedFile.Checksum.ToLower() != GlobalFunctions.GetFileChecksum(RelatedFile.FullPath).ToLower())
-                    {
-                        throw new ApplicationException($"While publishing request {JobDetail.JobId.ToString()}, checksum validation failed for file [{RelatedFile.FullPath}].");
-                    }
-
-                    string DestinationFileName = $"{RelatedFile.FilePurpose}.Pub[{JobDetail.JobId.ToString()}].Content[{JobDetail.Request.RootContentId.ToString()}]{Path.GetExtension(RelatedFile.FullPath)}";
-                    string DestinationFullPath = Path.Combine(RootContentFolder, DestinationFileName);
-
-                    File.Copy(RelatedFile.FullPath, DestinationFullPath, true);
-
-                    // Clean up FileUpload entity and uploaded file
-                    using (ApplicationDbContext Db = GetDbContext())
-                    {
-                        List<FileUpload> Uploads = Db.FileUpload.Where(f => f.StoragePath == RelatedFile.FullPath).ToList();
-                        Uploads.ForEach(u => Db.FileUpload.Remove(u));
-                        Db.SaveChanges();
-                        File.Delete(RelatedFile.FullPath);
-                    }
-
-                    JobDetail.Result.RelatedFiles.Add(new PublishJobDetail.ContentRelatedFile { FilePurpose = RelatedFile.FilePurpose, FullPath = DestinationFullPath });
-
-                    if (RelatedFile.FilePurpose.ToLower() == "mastercontent")
-                    {
-                        ProcessMasterContentFile(DestinationFullPath, RelatedFile.FilePurpose, RelatedFile.Checksum);
-                    }
+                    HandleRelatedFile(RelatedFile);
                 }
 
-                // Wait for all related reduction tasks to complete
+                // Wait for any/all related reduction tasks to complete
                 int PendingTaskCount = 0;
-                DateTime WaitStart = DateTime.Now;
                 do
                 {
-                    if (_CancellationToken.IsCancellationRequested)
-                    {
-                        JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
-                        _CancellationToken.ThrowIfCancellationRequested();
-                    }
-
-                    List<ContentReductionTask> AllRelatedReductionTasks = null;
-                    using (ApplicationDbContext Db = GetDbContext())
-                    {
-                        AllRelatedReductionTasks = await Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId).ToListAsync();
-
-                        foreach (ContentReductionTask OneTask in AllRelatedReductionTasks)
-                        {
-                            if (OneTask.ReductionStatus == ReductionStatusEnum.Error)
-                            {
-                                string Msg = $"Publication request terminating due to error in related reduction task {OneTask.Id.ToString()}{Environment.NewLine}{OneTask.ReductionStatusMessage}";
-                                Trace.WriteLine(Msg);
-                                JobDetail.Result.StatusMessage = Msg;
-                                JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
-
-                                // Cancel any task still queued
-                                List<ContentReductionTask> QueuedTasks = AllRelatedReductionTasks.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued).ToList();
-                                QueuedTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
-                                Db.ContentReductionTask.UpdateRange(QueuedTasks);
-                                await Db.SaveChangesAsync();
-
-                                return JobDetail;
-                            }
-                        }
-                    }
-
-                    PendingTaskCount = AllRelatedReductionTasks.Count(t => t.ReductionStatus == ReductionStatusEnum.Queued
-                                                                        || t.ReductionStatus == ReductionStatusEnum.Reducing);
+                    PendingTaskCount = await CheckRelatedReductionTasks();
 
                     Thread.Sleep(1000);
+
+                    if (DateTime.UtcNow > WaitEndUtc)
+                    {
+                        throw new ApplicationException($"{Method.DeclaringType.Name}.{Method.Name} timed out waiting for {PendingTaskCount} pending reduction tasks");
+                    }
                 }
-                while (PendingTaskCount > 0 && DateTime.Now < WaitStart + new TimeSpan(3,0,0));  // TODO Get the timeout from configuration
+                while (PendingTaskCount > 0); 
 
                 JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
             }
-            catch (Exception e)
+            catch (OperationCanceledException e)
             {
-                JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
                 string msg = GlobalFunctions.LoggableExceptionString(e);
                 Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {msg}");
+                JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
+                JobDetail.Result.StatusMessage = msg;
+            }
+            catch (Exception e)
+            {
+                string msg = GlobalFunctions.LoggableExceptionString(e);
+                Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {msg}");
+                JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
                 JobDetail.Result.StatusMessage = msg;
             }
 
             return JobDetail;
+        }
+
+        private void HandleRelatedFile(PublishJobDetail.ContentRelatedFile RelatedFile)
+        {
+            if (!File.Exists(RelatedFile.FullPath))
+            {
+                throw new ApplicationException($"While publishing request {JobDetail.JobId.ToString()}, uploaded file not found at path [{RelatedFile.FullPath}].");
+            }
+            if (RelatedFile.Checksum.ToLower() != GlobalFunctions.GetFileChecksum(RelatedFile.FullPath).ToLower())
+            {
+                throw new ApplicationException($"While publishing request {JobDetail.JobId.ToString()}, checksum validation failed for file [{RelatedFile.FullPath}].");
+            }
+
+            string DestinationFileName = $"{RelatedFile.FilePurpose}.Pub[{JobDetail.JobId.ToString()}].Content[{JobDetail.Request.RootContentId.ToString()}]{Path.GetExtension(RelatedFile.FullPath)}";
+            string DestinationFullPath = Path.Combine(_ThisRootContentFolder, DestinationFileName);
+
+            File.Copy(RelatedFile.FullPath, DestinationFullPath, true);
+
+            // Clean up FileUpload entity and uploaded file
+            using (ApplicationDbContext Db = GetDbContext())
+            {
+                List<FileUpload> Uploads = Db.FileUpload.Where(f => f.StoragePath == RelatedFile.FullPath).ToList();
+                Uploads.ForEach(u => Db.FileUpload.Remove(u));
+                Db.SaveChanges();
+                File.Delete(RelatedFile.FullPath);
+            }
+
+            JobDetail.Result.RelatedFiles.Add(new PublishJobDetail.ContentRelatedFile { FilePurpose = RelatedFile.FilePurpose, FullPath = DestinationFullPath });
+
+            if (RelatedFile.FilePurpose.ToLower() == "mastercontent")
+            {
+                ProcessMasterContentFile(DestinationFullPath, RelatedFile.FilePurpose, RelatedFile.Checksum);
+            }
+        }
+
+        private async Task<int> CheckRelatedReductionTasks()
+        {
+            using (ApplicationDbContext Db = GetDbContext())
+            {
+                List<ContentReductionTask> AllRelatedReductionTasks = await Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId).ToListAsync();
+
+                if (_CancellationToken.IsCancellationRequested)
+                {
+                    List<ContentReductionTask> QueuedTasks = AllRelatedReductionTasks.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued).ToList();
+                    await CancelReductionTasks(QueuedTasks);
+                    _CancellationToken.ThrowIfCancellationRequested();
+                }
+
+                List<ContentReductionTask> FailedTasks = AllRelatedReductionTasks.Where(t => t.ReductionStatus == ReductionStatusEnum.Error).ToList(); 
+                if (FailedTasks.Any())
+                {
+                    // Cancel any task still queued
+                    List<ContentReductionTask> QueuedTasks = AllRelatedReductionTasks.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued).ToList();
+                    await CancelReductionTasks(QueuedTasks);
+
+                    string Msg = $"Publication request terminating due to error in related reduction task(s):{Environment.NewLine}  {string.Join("  " + Environment.NewLine, FailedTasks.Select(t => t.Id.ToString() + " : " + t.ReductionStatusMessage))}";
+                    Trace.WriteLine(Msg);
+
+                    throw new ApplicationException(Msg);
+                }
+
+                return AllRelatedReductionTasks.Count(t => t.ReductionStatus == ReductionStatusEnum.Queued
+                                                        || t.ReductionStatus == ReductionStatusEnum.Reducing);
+            }
+        }
+
+        /// <summary>
+        /// Changes the status of ReductionTask records in the database to Canceled
+        /// </summary>
+        /// <param name="TasksToCancel"></param>
+        /// <returns></returns>
+        private async Task<bool> CancelReductionTasks(List<ContentReductionTask> TasksToCancel)
+        {
+            using (ApplicationDbContext Db = GetDbContext())
+            {
+                try
+                {
+                    TasksToCancel.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
+                    Db.ContentReductionTask.UpdateRange(TasksToCancel);
+                    await Db.SaveChangesAsync();
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
         }
 
         /// <summary>
