@@ -38,10 +38,16 @@ export class FileUploadInput extends FormInput {
       return `publication-${this.component}-${token}`;
     };
     this.upload.onChecksumProgress = (progress: ProgressSummary) => {
-      this.$entryPoint.find('div.progress-bar-1').width(progress.percentage);
+      const progressBar = this.$entryPoint.find('div.progress-bar-1');
+      const isEndpoint = progress.percentage === '0%' || progress.percentage === '100%';
+      progressBar.toggleClass('progress-easing', !isEndpoint);
+      progressBar.width(progress.percentage);
     };
     this.upload.onUploadProgress = (progress: ProgressSummary) => {
-      this.$entryPoint.find('div.progress-bar-2').width(progress.percentage);
+      const progressBar = this.$entryPoint.find('div.progress-bar-2');
+      const isEndpoint = progress.percentage === '0%' || progress.percentage === '100%';
+      progressBar.toggleClass('progress-easing', !isEndpoint);
+      progressBar.width(progress.percentage);
     };
     this.upload.onProgressMessage = (message: string) => {
     };
