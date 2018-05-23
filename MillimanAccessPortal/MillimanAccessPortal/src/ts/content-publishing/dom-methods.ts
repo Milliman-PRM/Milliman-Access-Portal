@@ -13,8 +13,7 @@ import { PublicationStatusMonitor } from './publication-status-monitor';
 
 export namespace ContentPublishingDOMMethods {
 
-  const forms = new Map<number, FormBase>();
-  let currentForm: FormBase;
+  let formObject: FormBase;
   let currentFormId: number;
   let statusMonitor: PublicationStatusMonitor;
 
@@ -78,20 +77,20 @@ export namespace ContentPublishingDOMMethods {
 
 
   function setFormReadOnly() {
-    currentForm.accessMode = AccessMode.Read;
+    formObject.accessMode = AccessMode.Read;
     $('#root-content-items [selected]').removeAttr('editing');
     $('#content-publishing-form .admin-panel-toolbar .action-icon').show();
   }
   function setFormNew() {
-    currentForm.submissionMode = 'new';
-    currentForm.accessMode = AccessMode.Write;
+    formObject.submissionMode = 'new';
+    formObject.accessMode = AccessMode.Write;
     $('#root-content-items [selected]').attr('editing', '');
     $('#content-publishing-form .admin-panel-toolbar .action-icon').hide();
     $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').show();
   }
   function setFormEditOrRepublish() {
-    currentForm.submissionMode = 'edit-or-republish';
-    currentForm.accessMode = AccessMode.Write;
+    formObject.submissionMode = 'edit-or-republish';
+    formObject.accessMode = AccessMode.Write;
     $('#root-content-items [selected]').attr('editing', '');
     $('#content-publishing-form .admin-panel-toolbar .action-icon').hide();
     $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').show();
@@ -154,32 +153,21 @@ export namespace ContentPublishingDOMMethods {
       (response) => console.log('publish!'),//{ },
     );
 
-    // First unbind existing form if it exists
-    if (currentForm) {
-      currentForm.unbindFromDOM();
-      forms.set(currentFormId, currentForm);
-    }
-
     // Create/retrieve and bind the new form
-    if (!forms.has(item.Id)) {
-      currentForm = new FormBase();
-      currentForm.bindToDOM($rootContentItemForm[0]);
-      currentForm.configure(
-        [
-          {
-            group: createContentGroup.chain(submitPublication),
-            name: 'new',
-          },
-          {
-            group: updateContentGroup.chain(submitPublication, true).chain(null, true),
-            name: 'edit-or-republish',
-          },
-        ],
-      );
-    } else {
-      currentForm = forms.get(item.Id);
-      currentForm.bindToDOM();
-    }
+    formObject = new FormBase();
+    formObject.bindToDOM($rootContentItemForm[0]);
+    formObject.configure(
+      [
+        {
+          group: createContentGroup.chain(submitPublication),
+          name: 'new',
+        },
+        {
+          group: updateContentGroup.chain(submitPublication, true).chain(null, true),
+          name: 'edit-or-republish',
+        },
+      ],
+    );
     
     setFormReadOnly();
     currentFormId = item.Id;
@@ -194,14 +182,14 @@ export namespace ContentPublishingDOMMethods {
       wrapCardCallback(get(
         'ContentPublishing/RootContentItemDetail',
         [ renderRootContentItemForm ],
-      ), () => currentForm),
+      ), () => formObject),
       wrapCardIconCallback(($card, whenDone) => get(
           'ContentPublishing/RootContentItemDetail',
           [
             renderRootContentItemForm,
             whenDone
           ],
-        )($card), () => currentForm, 1, undefined, () => {
+        )($card), () => formObject, 1, undefined, () => {
         setFormEditOrRepublish();
       }),
       rootContentItemDeleteClickHandler,
@@ -300,11 +288,11 @@ export namespace ContentPublishingDOMMethods {
     })
     $('#root-content-items ul.admin-panel-content-action')
       .append(new AddRootContentItemActionCard(
-        wrapCardCallback(openNewRootContentItemForm, () => currentForm)
+        wrapCardCallback(openNewRootContentItemForm, () => formObject)
       ).build());
 
     $('.admin-panel-toolbar .action-icon-cancel').click(() => {
-      if (currentForm.accessMode === AccessMode.Read) {
+      if (formObject.accessMode === AccessMode.Read) {
         $('#root-content-items [selected]').click();
       } else {
         setFormReadOnly();
@@ -314,7 +302,7 @@ export namespace ContentPublishingDOMMethods {
       setFormEditOrRepublish();
     });
 
-    setUnloadAlert(() => currentForm && currentForm.modified);
+    setUnloadAlert(() => formObject && formObject.modified);
 
     $('.tooltip').tooltipster();
 
