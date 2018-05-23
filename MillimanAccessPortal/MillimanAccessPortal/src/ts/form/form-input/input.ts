@@ -33,12 +33,17 @@ export abstract class FormInput extends FormElement {
   protected abstract getValueFn: (input: JQuery<HTMLElement>) => () => string | number | string[];
   protected abstract setValueFn: (input: JQuery<HTMLElement>) => (value: string) => void
 
-  public setMode(value: AccessMode) {
-    if (value === AccessMode.Read) {
+  private _accessMode: AccessMode = AccessMode.Read;
+  public get accessMode(): AccessMode {
+    return this._accessMode;
+  }
+  public setAccessMode(accessMode: AccessMode) {
+    if (accessMode === AccessMode.Read || accessMode === AccessMode.WriteDisabled) {
       this.disable(this.$input);
-    } else if (value === AccessMode.Write) {
+    } else if (accessMode === AccessMode.Write) {
       this.enable(this.$input);
     }
+    this._accessMode = accessMode;
   }
   protected abstract disable: (input: JQuery<HTMLElement>) => void;
   protected abstract enable: (input: JQuery<HTMLElement>) => void;

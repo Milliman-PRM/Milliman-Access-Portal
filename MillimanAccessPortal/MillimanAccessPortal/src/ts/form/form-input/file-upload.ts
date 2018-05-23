@@ -88,11 +88,13 @@ export class FileUploadInput extends FormInput {
 
   private setCancelable(cancelable: boolean) {
     if (cancelable) {
-      this.setMode(AccessMode.Read);
+      this.setAccessMode(AccessMode.WriteDisabled);
       this.$entryPoint.find('.upload-icon').hide();
       this.$entryPoint.find('.cancel-icon').show();
     } else {
-      this.setMode(AccessMode.Write);
+      if (this.accessMode === AccessMode.WriteDisabled) {
+        this.setAccessMode(AccessMode.Write);
+      }
       this.$entryPoint.find('.cancel-icon').hide();
       this.$entryPoint.find('.upload-icon').show();
     }

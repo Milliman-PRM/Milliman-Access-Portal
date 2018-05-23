@@ -8,5 +8,6 @@ export interface SubmissionMode {
 export enum AccessMode {
   Read,
   Write,
+  WriteDisabled,
   Defer,
 }
