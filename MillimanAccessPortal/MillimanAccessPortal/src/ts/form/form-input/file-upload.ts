@@ -44,6 +44,7 @@ export class FileUploadInput extends FormInput {
     this.upload.onProgressMessage = (message: string) => {
     };
 
+<<<<<<< HEAD
     this.upload.onFileAdded = (file: File) => {
     };
     this.upload.onFileSuccess = (fileGUID: string) => {
@@ -52,6 +53,10 @@ export class FileUploadInput extends FormInput {
     this.upload.onStateChange = (alertUnload: boolean, cancelable: boolean) => {
       this.uploadInProgress = alertUnload;
     };
+=======
+  public bindToDOM(entryPoint: HTMLElement) {
+    super.bindToDOM(entryPoint);
+>>>>>>> 00ff2eea... Remove unbind and rebind features
 
     this.upload.assignBrowse(this.$entryPoint.find('label')[0]);
   }

@@ -18,25 +18,16 @@ export abstract class FormInput extends FormElement {
   }
   protected abstract findInput: ($enryPoint: JQuery<HTMLElement>) => JQuery<HTMLElement>;
 
-  private storedValue: string;
   protected get value(): string {
-    return this.bound
-      ? (() => {
-        const val = this.getValueFn(this.$input).bind(this.$input)();
-        return val ? val.toString() : '';
-      })()
-      : this.storedValue;
+    const val = this.getValueFn(this.$input).bind(this.$input)();
+    return val ? val.toString() : '';
   }
   protected set value(value: string) {
-    if (this.bound) {
-      const change = this.value !== value;
-      this.setValueFn(this.$input).bind(this.$input)(value);
-      // trigger a change event when value is changed programmatically
-      if (change) {
-        this.$input.change();
-      }
-    } else {
-      this.storedValue = value;
+    const change = this.value !== value;
+    this.setValueFn(this.$input).bind(this.$input)(value);
+    // trigger a change event when value is changed programmatically
+    if (change) {
+      this.$input.change();
     }
   }
   protected abstract getValueFn: (input: JQuery<HTMLElement>) => () => string | number | string[];
@@ -58,28 +49,6 @@ export abstract class FormInput extends FormElement {
   protected abstract comparator: (a: string, b: string) => boolean;
 
   protected originalValue: string;
-
-  public bindToDOM(entryPoint?: HTMLElement) {
-    // before bind: this.value references shadow value
-    let value: string;
-    if (!this.bound) {
-      value = this.value;
-      this.value = undefined;
-    }
-    super.bindToDOM(entryPoint);
-    // after bind: this.value references DOM value
-    if (value) {
-      this.value = value;
-    }
-  }
-
-  public unbindFromDOM() {
-    // before unbind: this.value references DOM value
-    const value = this.value;
-    super.unbindFromDOM();
-    // after unbind: this.value references shadow value
-    this.value = value;
-  }
 
   public recordOriginalValue() {
     this.originalValue = this.value;
