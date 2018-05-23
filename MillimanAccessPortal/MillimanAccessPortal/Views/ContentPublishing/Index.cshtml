@@ -55,6 +55,9 @@
     <h3 class="admin-panel-header">Content Item</h3>
     <div class="admin-panel-toolbar">
         <div class="admin-panel-action-icons-container">
+            <svg class="action-icon-edit action-icon tooltip" title="Edit root content item">
+                <use xlink:href="#action-icon-edit"></use>
+            </svg>
             <svg class="action-icon-file-upload action-icon tooltip" title="Submit new publication">
                 <use xlink:href="#action-icon-file-upload"></use>
             </svg>
@@ -208,6 +211,10 @@
                     <div class="button-container button-container-new" style="display: none;">
                         <button type="button" class="button-reset link-button">Reset Form</button>
                         <button type="button" class="button-submit green-button">Create Content Item</button>
+                    </div>
+                    <div class="button-container button-container-edit" style="display: none;">
+                        <button type="button" class="button-reset link-button">Cancel</button>
+                        <button type="button" class="button-submit blue-button">Update</button>
                     </div>
                     <div class="button-container button-container-edit-or-republish" style="display: none;">
                         <button type="button" class="button-reset link-button">Cancel</button>

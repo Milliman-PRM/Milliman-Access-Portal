@@ -102,7 +102,17 @@ export class SubmissionGroup<T> {
   }
 
   public chain<U>(that: SubmissionGroup<U>, sparse: boolean = false): SubmissionGroup<T> {
-    const lastChain = this.lastChain;
+    const copy = new SubmissionGroup<T>(
+      this.sections,
+      this.url,
+      this.method,
+      this.callback,
+      this.transform,
+    );
+    copy.sparse = this.sparse;
+    copy.next = this.next;
+
+    const lastChain = copy.lastChain;
     lastChain.next = that ? that : SubmissionGroup.FinalGroup();
 
     const originalCallback = lastChain.callback;
@@ -114,7 +124,7 @@ export class SubmissionGroup<T> {
     };
     lastChain.sparse = sparse;
 
-    return this;
+    return copy;
   }
 
   public submit(form: FormBase) {

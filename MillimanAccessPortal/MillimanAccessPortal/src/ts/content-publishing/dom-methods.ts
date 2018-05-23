@@ -102,6 +102,13 @@ export namespace ContentPublishingDOMMethods {
     $('#content-publishing-form .admin-panel-toolbar .action-icon').hide();
     $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').show();
   }
+  function setFormEdit() {
+    formObject.submissionMode = 'edit';
+    formObject.accessMode = AccessMode.Defer;
+    $('#root-content-items [selected]').attr('editing', '');
+    $('#content-publishing-form .admin-panel-toolbar .action-icon').hide();
+    $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').show();
+  }
   function setFormEditOrRepublish() {
     formObject.submissionMode = 'edit-or-republish';
     formObject.accessMode = AccessMode.Write;
@@ -196,6 +203,10 @@ export namespace ContentPublishingDOMMethods {
           group: updateContentGroup.chain(submitPublication, true).chain(null, true),
           name: 'edit-or-republish',
         },
+        {
+          group: updateContentGroup,
+          name: 'edit',
+        },
       ],
     );
     
@@ -211,7 +222,12 @@ export namespace ContentPublishingDOMMethods {
       item.EligibleUserCount,
       wrapCardCallback(get(
         'ContentPublishing/RootContentItemDetail',
-        [ renderRootContentItemForm ],
+        [
+          renderRootContentItemForm,
+          () => {
+            
+          },
+        ],
       ), () => formObject),
       wrapCardIconCallback(($card, always) => get(
           'ContentPublishing/RootContentItemDetail',
@@ -330,6 +346,9 @@ export namespace ContentPublishingDOMMethods {
       } else {
         setFormReadOnly();
       }
+    });
+    $('.admin-panel-toolbar .action-icon-edit').click(() => {
+      setFormEdit();
     });
     $('.admin-panel-toolbar .action-icon-file-upload').click(() => {
       setFormEditOrRepublish();
