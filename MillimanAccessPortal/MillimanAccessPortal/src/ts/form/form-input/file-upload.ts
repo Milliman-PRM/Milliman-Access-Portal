@@ -55,6 +55,13 @@ export class FileUploadInput extends FormInput {
 
     this.upload.onFileAdded = (resumableFile: any) => {
       this.$entryPoint.find('input.file-upload').val(resumableFile.fileName);
+      if (this.component === UploadComponent.Image) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          this.$entryPoint.find('img.image-preview').attr('src', reader.result);
+        }
+        reader.readAsDataURL(resumableFile.file);
+      }
     };
     this.upload.onFileSuccess = (fileGUID: string) => {
       this.value = fileGUID;
@@ -80,7 +87,7 @@ export class FileUploadInput extends FormInput {
   public reset() {
     super.reset();
     this.$entryPoint.find('input.file-upload').val('');
-    this.$entryPoint.find('img').removeAttr('src');
+    this.$entryPoint.find('img.image-preview').removeAttr('src');
     if (this.upload) {
       this.upload.reset();
     }
