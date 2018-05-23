@@ -55,6 +55,9 @@ export class FileUploadInput extends FormInput {
     super.bindToDOM(entryPoint);
 
     this._component = this.componentMap.get(this.name);
+    if (this.upload) {
+      this.upload.attachToBrowseElement(this.$entryPoint[0])
+    }
   }
 
   public configure(token: string) {

@@ -10,11 +10,6 @@ require('toastr/toastr.scss');
 require('../scss/map.scss');
 
 
-let formObject: FormBase;
-
-var accountSettingsRunning = false;
-var passwordChangeRunning = false;
-
 $(document).ready(() => {
   if ($('#UserName').val() !== $('#Email').val()) {
     $('#Email').show();
@@ -25,7 +20,6 @@ $(document).ready(() => {
     'AccountSettings',
     'POST',
     (response) => {
-      formObject.bindToDOM($('#account-settings-form')[0]);
       toastr.success('Your account has been updated');
     },
   );
@@ -38,12 +32,16 @@ $(document).ready(() => {
       toastr.success('Your password has been updated');
     },
   );
+  const finalGroup = SubmissionGroup.FinalGroup(() => {
+    formObject.bindToDOM();
+    $('#FirstName').change();
+  });
 
   const formObject = new FormBase();
   formObject.bindToDOM($('#account-settings-form')[0]);
   formObject.configure([
     {
-      group: accountGroup.chain(passwordGroup),
+      group: accountGroup.chain(passwordGroup, true).chain(finalGroup, true),
       name: 'update',
     },
   ]);
