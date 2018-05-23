@@ -27,15 +27,14 @@ export abstract class FormElement {
   protected get bound(): boolean {
     return this._bound;
   }
-  public bindToDOM(entryPoint?: HTMLElement) {
-    this.entryPoint = entryPoint || this.entryPoint;
-    this._$entryPoint = undefined; // force $entryPoint reevaluation
+  public bindToDOM(entryPoint: HTMLElement) {
+    if (this.bound) {
+      throw new Error('Form element is already bound');
+    }
+    this.entryPoint = entryPoint;
     if (!this.$entryPoint.is(`.${this.cssClasses.main}`)) {
       throw new Error(`Cannot bind to entry point: expected class .${this.cssClasses.main} not found.`);
     }
     this._bound = true;
-  }
-  public unbindFromDOM() {
-    this._bound = false;
   }
 }
