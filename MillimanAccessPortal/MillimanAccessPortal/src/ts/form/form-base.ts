@@ -63,38 +63,33 @@ export class FormBase extends FormElement {
     super();
   }
 
-  public bindToDOM(entryPoint?: HTMLElement) {
+  public bindToDOM(entryPoint: HTMLElement) {
     super.bindToDOM(entryPoint);
 
-    if (entryPoint) {
-      const childElements = this.$entryPoint
-        .find(`.${this.cssClasses.extension}`).children().toArray();
+    const childElements = this.$entryPoint
+      .find(`.${this.cssClasses.extension}`).children().toArray();
 
-      // locate and bind to section-level DOM elements
-      this.inputSections = childElements
-        .map((x: HTMLElement) => ({
-          section: new FormInputSection(),
-          element: x,
-        }))
-        .filter((x) => $(x.element).is(`.${x.section.cssClasses.main}`))
-        .map((x) => {
-          x.section.bindToDOM(x.element);
-          return x.section;
-        });
-      this.submissionSection = this.submissionSection || childElements
-        .map((x: HTMLElement) => ({
-          section: new FormSubmissionSection(),
-          element: x,
-        }))
-        .filter((x) => $(x.element).is(`.${x.section.cssClasses.main}`))
-        .map((x) => {
-          x.section.bindToDOM(x.element);
-          return x.section;
-        })[0];
-    } else {
-      this.inputSections.forEach((section) => section.bindToDOM());
-      this.submissionSection.bindToDOM();
-    }
+    // locate and bind to section-level DOM elements
+    this.inputSections = childElements
+      .map((x: HTMLElement) => ({
+        section: new FormInputSection(),
+        element: x,
+      }))
+      .filter((x) => $(x.element).is(`.${x.section.cssClasses.main}`))
+      .map((x) => {
+        x.section.bindToDOM(x.element);
+        return x.section;
+      });
+    this.submissionSection = this.submissionSection || childElements
+      .map((x: HTMLElement) => ({
+        section: new FormSubmissionSection(),
+        element: x,
+      }))
+      .filter((x) => $(x.element).is(`.${x.section.cssClasses.main}`))
+      .map((x) => {
+        x.section.bindToDOM(x.element);
+        return x.section;
+      })[0];
 
     // record original input values
     // attach event listeners
@@ -107,12 +102,6 @@ export class FormBase extends FormElement {
         });
       });
     });
-  }
-
-  public unbindFromDOM() {
-    super.unbindFromDOM();
-    this.inputSections.forEach((section) => section.unbindFromDOM());
-    this.submissionSection.unbindFromDOM();
   }
 
   public configure(modes: Array<SubmissionMode>) {

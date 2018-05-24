@@ -51,7 +51,7 @@ export class FileUploadInput extends FormInput {
     this.componentMap.set('UserGuide', PublicationComponent.UserGuide);
   }
 
-  public bindToDOM(entryPoint?: HTMLElement) {
+  public bindToDOM(entryPoint: HTMLElement) {
     super.bindToDOM(entryPoint);
 
     this._component = this.componentMap.get(this.name);

@@ -19,45 +19,36 @@ export class FormInputSection extends FormElement {
 
   public inputs: Array<FormInput>;
 
-  public bindToDOM(entryPoint?: HTMLElement) {
+  public bindToDOM(entryPoint: HTMLElement) {
     super.bindToDOM(entryPoint);
 
-    if (entryPoint) {
-      const childElements = this.$entryPoint
-        .find(`.${this.cssClasses.extension}`).children().toArray();
-      const inputConstructors: Array<() => FormInput> = [
-        () => new TextInput(),
-        () => new TextAreaInput(),
-        () => new DropdownInput(),
-        () => new ToggleInput(),
-        () => new SelectizedInput(),
-        () => new FileUploadInput(),
-        () => new HiddenInput(),
-      ];
+    const childElements = this.$entryPoint
+      .find(`.${this.cssClasses.extension}`).children().toArray();
+    const inputConstructors: Array<() => FormInput> = [
+      () => new TextInput(),
+      () => new TextAreaInput(),
+      () => new DropdownInput(),
+      () => new ToggleInput(),
+      () => new SelectizedInput(),
+      () => new FileUploadInput(),
+      () => new HiddenInput(),
+    ];
 
-      this.inputs = childElements
-        .map((x: HTMLElement) => {
-          const matchedInputs = inputConstructors
-            .map((y) => y())
-            .filter((y: FormInput) => $(x).is(`.${y.cssClasses.main}`));
-          if (matchedInputs.length > 1) {
-            throw new Error(`Element matches multiple input types.`);
-          } else if (matchedInputs.length === 0) {
-            return undefined;
-          }
-          const singleMatchedInput = matchedInputs[0];
-          singleMatchedInput.bindToDOM(x);
-          return singleMatchedInput;
-        })
-        .filter((x: FormInput) => x !== undefined);
-    } else {
-      this.inputs.forEach((input) => input.bindToDOM());
-    }
-  }
-
-  public unbindFromDOM() {
-    super.unbindFromDOM();
-    this.inputs.forEach((input) => input.unbindFromDOM());
+    this.inputs = childElements
+      .map((x: HTMLElement) => {
+        const matchedInputs = inputConstructors
+          .map((y) => y())
+          .filter((y: FormInput) => $(x).is(`.${y.cssClasses.main}`));
+        if (matchedInputs.length > 1) {
+          throw new Error(`Element matches multiple input types.`);
+        } else if (matchedInputs.length === 0) {
+          return undefined;
+        }
+        const singleMatchedInput = matchedInputs[0];
+        singleMatchedInput.bindToDOM(x);
+        return singleMatchedInput;
+      })
+      .filter((x: FormInput) => x !== undefined);
   }
 
   public get modified() {
@@ -99,27 +90,19 @@ export class FormSubmissionSection extends FormElement {
 
   public submissions: Array<Submission>;
 
-  public bindToDOM(entryPoint?: HTMLElement) {
+  public bindToDOM(entryPoint: HTMLElement) {
     super.bindToDOM(entryPoint);
 
-    if (entryPoint) {
-      const childElements = this.$entryPoint.children().toArray();
-      this.submissions = childElements
-        .map((x: HTMLElement) => ({
-          submission: new Submission(),
-          element: x,
-        }))
-        .filter((x) => $(x.element).is(`.${x.submission.cssClasses.main}`))
-        .map((x) => {
-          x.submission.bindToDOM(x.element);
-          return x.submission;
-        });
-    } else {
-      this.submissions.forEach((submission) => submission.bindToDOM());
-    }
-  }
-
-  public unbindFromDOM() {
-    this.submissions.forEach((submission) => submission.unbindFromDOM());
+    const childElements = this.$entryPoint.children().toArray();
+    this.submissions = childElements
+      .map((x: HTMLElement) => ({
+        submission: new Submission(),
+        element: x,
+      }))
+      .filter((x) => $(x.element).is(`.${x.submission.cssClasses.main}`))
+      .map((x) => {
+        x.submission.bindToDOM(x.element);
+        return x.submission;
+      });
   }
 }

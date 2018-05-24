@@ -9,11 +9,11 @@ using ContentPublishingLib;
 
 namespace ContentPublishingServiceTests
 {
-    public class ContentReductionServiceTestBase
+    public class ContentPublishingServiceTestBase
     {
         public DateTime StartTime = DateTime.MaxValue;
 
-        public ContentReductionServiceTestBase()
+        public ContentPublishingServiceTestBase()
         {
             Configuration.LoadConfiguration();
             StartTime = DateTime.UtcNow;

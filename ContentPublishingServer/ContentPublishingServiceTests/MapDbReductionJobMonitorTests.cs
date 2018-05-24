@@ -14,10 +14,10 @@ using Moq;
 
 namespace ContentPublishingServiceTests
 {
-    public class MapDbJobMonitorTests : ContentReductionServiceTestBase
+    public class MapDbReductionJobMonitorTests : ContentPublishingServiceTestBase
     {
         [Fact]
-        public void CorrectStatusAfterCancelWhileIdle()
+        public async Task CorrectTaskStatusAfterCancelWhileIdle()
         {
             #region arrange
             MapDbReductionJobMonitor JobMonitor = new MapDbReductionJobMonitor
@@ -42,9 +42,9 @@ namespace ContentPublishingServiceTests
             CancelTokenSource.Cancel();
             try
             {
-                Task.WaitAll(new Task[] { MonitorTask }, new TimeSpan(0, 0, 40));
+                await MonitorTask;  // await rethrows anything that is thrown from the task
             }
-            catch (AggregateException)  // This is thrown when a task is cancelled
+            catch (OperationCanceledException)  // This is thrown when a task is cancelled
             { }
             DateTime CancelEndTime = DateTime.UtcNow;
             #endregion
@@ -52,7 +52,7 @@ namespace ContentPublishingServiceTests
             #region Assert again
             Assert.Equal<TaskStatus>(TaskStatus.Canceled, MonitorTask.Status);
             Assert.True(MonitorTask.IsCanceled);
-            Assert.True(CancelEndTime - CancelStartTime < new TimeSpan(0,0,30), "MapDbJobMonitor took too long to be canceled while idle");
+            Assert.True(CancelEndTime - CancelStartTime < new TimeSpan(0,0,30), "MapDbReductionJobMonitor took too long to be canceled while idle");
             #endregion
         }
 
