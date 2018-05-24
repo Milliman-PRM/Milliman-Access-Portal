@@ -254,6 +254,88 @@ namespace MillimanAccessPortal.Controllers
             return Json(model);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateRootContentItem(RootContentItem rootContentItem)
+        {
+            #region Preliminary validation
+            var currentRootContentItem = DbContext.RootContentItem
+                .Where(i => i.Id == rootContentItem.Id)
+                .SingleOrDefault();
+            if (currentRootContentItem == null)
+            {
+                Response.Headers.Add("Warning", "The specified root content item does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItem.Id));
+            if (!roleInRootContentItemResult.Succeeded)
+            {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    $"Request to update root content item without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in item",
+                    AuditEventId.Unauthorized,
+                    new { RootContentItemId = rootContentItem.Id },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
+                Response.Headers.Add("Warning", "You are not authorized to update this root content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            var contentType = DbContext.ContentType
+                .Where(c => c.Id == rootContentItem.ContentTypeId)
+                .SingleOrDefault();
+            if (contentType == null)
+            {
+                Response.Headers.Add("Warning", "The associated content type does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (rootContentItem.ContentName == null)
+            {
+                Response.Headers.Add("Warning", "You must supply a name for the root content item.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            // Update the current item so that it can be updated
+            // See ClientAdminController.cs
+            currentRootContentItem.ContentName = rootContentItem.ContentName;
+            currentRootContentItem.ContentTypeId = rootContentItem.ContentTypeId;
+            currentRootContentItem.Description = rootContentItem.Description;
+            currentRootContentItem.DoesReduce = rootContentItem.DoesReduce;
+            currentRootContentItem.Notes = rootContentItem.Notes;
+            currentRootContentItem.TypeSpecificDetail = rootContentItem.TypeSpecificDetail;
+
+            DbContext.RootContentItem.Update(currentRootContentItem);
+            DbContext.SaveChanges();
+
+            #region Log audit event
+            AuditEvent rootContentItemUpdatedEvent = AuditEvent.New(
+                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                "Root content item updated",
+                AuditEventId.RootContentItemUpdated,
+                new { ClientId = rootContentItem.ClientId, RootContentItemId = rootContentItem.Id },
+                User.Identity.Name,
+                HttpContext.Session.Id
+                );
+            AuditLogger.Log(rootContentItemUpdatedEvent);
+            #endregion
+
+            RootContentItemSummary model = RootContentItemSummary.Build(DbContext, currentRootContentItem);
+
+            return Json(model);
+        }
+
         [HttpDelete]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteRootContentItem(long rootContentItemId)
