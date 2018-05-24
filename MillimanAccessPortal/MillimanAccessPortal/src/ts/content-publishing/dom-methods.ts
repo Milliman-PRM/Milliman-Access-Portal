@@ -1,13 +1,13 @@
 import $ = require('jquery');
 import * as toastr from 'toastr';
 require('tooltipster');
-import { showButtonSpinner, clearForm, wrapCardCallback, get, wrapCardIconCallback, updateCardStatus, expandAllListener, collapseAllListener, filterTreeListener, filterFormListener, updateCardStatusButtons, updateFormStatusButtons } from '../shared';
+import { showButtonSpinner, clearForm, wrapCardCallback, get, wrapCardIconCallback, updateCardStatus, expandAllListener, collapseAllListener, filterTreeListener, filterFormListener, updateCardStatusButtons, updateFormStatusButtons, post } from '../shared';
 import { ClientCard, RootContentItemCard, AddRootContentItemActionCard } from '../card';
 import { FormBase } from '../form/form-base';
 import { AccessMode } from '../form/form-modes';
 import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType, PublishRequest } from '../view-models/content-publishing';
 import { setUnloadAlert } from '../unload-alerts';
-import { DeleteRootContentItemDialog, DiscardConfirmationDialog } from '../dialog';
+import { DeleteRootContentItemDialog, DiscardConfirmationDialog, CancelContentPublicationRequestDialog } from '../dialog';
 import { SubmissionGroup } from '../form/form-submission';
 import { PublicationStatusMonitor } from './publication-status-monitor';
 
@@ -61,12 +61,31 @@ export namespace ContentPublishingDOMMethods {
       },
     ).open();
   }
+  function cancelContentPublication(data, callback) {
+    $.ajax({
+      type: 'POST',
+      url: 'ContentPublishing/CancelContentPublicationRequest',
+      data: {
+        RootContentItemId: data.RootContentItemId,
+      },
+      headers: {
+        RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
+      }
+    }).done(() => {
+      if (typeof callback === 'function') callback();
+      toastr.success('Content publication request canceled');
+    }).fail((response) => {
+      if (typeof callback === 'function') callback();
+      toastr.warning(response.getResponseHeader('Warning'));
+    });
+  }
+
   export function rootContentItemCancelClickHandler(event) {
     var $clickedCard = $(this).closest('.card-container');
     var rootContentItemId = $clickedCard.data().rootContentItemId;
     var rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
     event.stopPropagation();
-    //new CancelRootContentItemDialog().open();
+    new CancelContentPublicationRequestDialog(rootContentItemId, rootContentItemName, cancelContentPublication).open();
   }
   export function rootContentItemGoLiveClickHandler(event) {
     var $clickedCard = $(this).closest('.card-container');
