@@ -153,6 +153,13 @@ export namespace ContentPublishingDOMMethods {
       'ContentPublishing/CreateRootContentItem',
       'POST',
       (response) => $('#Id').val(response.Id),
+      (data) => {
+        if (data.indexOf('DoesReduce=') === -1) {
+          return data + '&DoesReduce=False';
+        } else {
+          return data.replace('DoesReduce=', '') + '&DoesReduce=True';
+        }
+      },
     );
     const updateContentGroup = new SubmissionGroup<RootContentItemDetail>(
       [
@@ -160,9 +167,16 @@ export namespace ContentPublishingDOMMethods {
         'root-content-item-info',
         'root-content-item-description',
       ],
-      'ContentPublishing/Status',//'ContentPublishing/UpdateRootContentItem',
-      'GET',//'POST',
-      (response) => console.log('update!'),//renderRootContentItemForm(response),
+      'ContentPublishing/UpdateRootContentItem',
+      'POST',
+      renderRootContentItemForm,
+      (data) => {
+        if (data.indexOf('DoesReduce=') === -1) {
+          return data + '&DoesReduce=False';
+        } else {
+          return data.replace('DoesReduce=', '') + '&DoesReduce=True';
+        }
+      },
     );
     const submitPublication = new SubmissionGroup<any>(
       [
