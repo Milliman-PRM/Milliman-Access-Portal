@@ -317,6 +317,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         public async Task<IActionResult> Publish(PublishRequest Arg)
         {
+            AuditEvent AuditLogEvent;
             ApplicationUser currentApplicationUser = await Queries.GetCurrentApplicationUser(User);
 
             #region Preliminary Validation
@@ -331,13 +332,25 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, Arg.RootContentItemId));
             if (!RoleInRootContentItemResult.Succeeded)
             {
+                #region Log audit event
+                AuditLogEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    $"Request to queue a publication request without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in content item",
+                    AuditEventId.Unauthorized,
+                    new { UserId = currentApplicationUser.Id, RequestedContentItem = Arg.RootContentItemId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuditLogEvent);
+                #endregion
+
                 Response.Headers.Add("Warning", $"You are not authorized to publish this content");
                 return Unauthorized();
             }
 
             #endregion
 
-#if false   // not sure what all the implications are of this
+#if false   // not sure what all the implications are of this. For now this issue is covered in validation below.
             // Try to cancel all queued (not running) publishing requests and reduction tasks for the content
             using (IDbContextTransaction Txn = DbContext.Database.BeginTransaction())
             {
@@ -388,7 +401,7 @@ namespace MillimanAccessPortal.Controllers
                                .Any(r => BlockingRequestStatusList.Contains(r.RequestStatus));
             if (Blocked)
             {
-                Response.Headers.Add("Warning", "Another publication request is pending.");
+                Response.Headers.Add("Warning", "A previous publication is pending for this content.");
                 return BadRequest();
             }
 
@@ -401,7 +414,7 @@ namespace MillimanAccessPortal.Controllers
                                .Any(t => BlockingTaskStatusList.Contains(t.ReductionStatus));
             if (Blocked)
             {
-                Response.Headers.Add("Warning", "Another content reduction is pending.");
+                Response.Headers.Add("Warning", "A previous reduction task is pending for this content.");
                 return BadRequest();
             }
             #endregion
@@ -414,8 +427,29 @@ namespace MillimanAccessPortal.Controllers
                 PublishRequest = Arg,
                 CreateDateTimeUtc = DateTime.UtcNow,
             };
-            DbContext.ContentPublicationRequest.Add(NewContentPublicationRequest);
-            DbContext.SaveChanges();
+            try
+            {
+                DbContext.ContentPublicationRequest.Add(NewContentPublicationRequest);
+                DbContext.SaveChanges();
+            }
+            catch
+            {
+                Response.Headers.Add("Warning", "Failed to store publication request");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            // Log the queued publication request
+            #region Log audit event
+            AuditLogEvent = AuditEvent.New(
+                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                $"New publication request successfully stored",
+                AuditEventId.PublicationQueued,
+                new { UserId = currentApplicationUser.Id, RequestId = NewContentPublicationRequest.Id, RootContentItem = NewContentPublicationRequest.RootContentItemId },
+                User.Identity.Name,
+                HttpContext.Session.Id
+                );
+            AuditLogger.Log(AuditLogEvent);
+            #endregion
 
             return Ok();
         }
@@ -429,6 +463,11 @@ namespace MillimanAccessPortal.Controllers
             return new JsonResult(rootContentItemStatusList);
         }
 
+        /// <summary>
+        /// Action to return a summary of publication summary information for user confirmation
+        /// </summary>
+        /// <param name="RootContentItemId"></param>
+        /// <returns></returns>
         [HttpGet]
         public async Task<IActionResult> PreLiveSummary(long RootContentItemId)
         {
