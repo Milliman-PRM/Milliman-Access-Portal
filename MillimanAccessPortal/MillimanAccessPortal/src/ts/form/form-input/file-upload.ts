@@ -100,12 +100,14 @@ export class FileUploadInput extends FormInput {
       this.setAccessMode(AccessMode.WriteDisabled);
       this.$entryPoint.find('.upload-icon').hide();
       this.$entryPoint.find('.cancel-icon').show();
+      this.$entryPoint.find('.progress-bars').css('visibility', 'visible');
     } else {
       if (this.accessMode === AccessMode.WriteDisabled) {
         this.setAccessMode(AccessMode.Write);
       }
       this.$entryPoint.find('.cancel-icon').hide();
       this.$entryPoint.find('.upload-icon').show();
+      this.$entryPoint.find('.progress-bars').css('visibility', 'hidden');
     }
   }
 }
