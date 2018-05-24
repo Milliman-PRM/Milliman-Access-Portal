@@ -193,6 +193,7 @@ namespace ContentPublishingLib.JobRunners
                 {
                     Db.SelectionGroup.Add(new SelectionGroup
                     {
+                        Id = Db.SelectionGroup.Max(sg => sg.Id) + 1,
                         RootContentItemId = JobDetail.Request.RootContentId,
                         GroupName = "Master Content Access",
                         IsMaster = true,
