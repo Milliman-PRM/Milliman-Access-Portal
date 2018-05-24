@@ -364,12 +364,12 @@ export function updateCardStatus($card, reductionDetails) {
 export function updateCardStatusButtons($card: JQuery<HTMLElement>, publishingStatusEnum: PublicationStatus) {
   $card.find('.card-button-dynamic').hide();
   if (publishingStatusEnum === PublicationStatus.Queued) {
-    $card.find('.card-button-cancel').show();
+    $card.find('.card-button-cancel').css('display', 'flex');
   } else if (publishingStatusEnum === PublicationStatus.Processing) {
   } else if (publishingStatusEnum === PublicationStatus.Complete) {
-    $card.find('.card-button-add').show();
+    $card.find('.card-button-add').css('display', 'flex');
   } else {
-    $card.find('.card-button-file-upload').show();
+    $card.find('.card-button-file-upload').css('display', 'flex');
   }
 }
 export function updateFormStatusButtons() {
