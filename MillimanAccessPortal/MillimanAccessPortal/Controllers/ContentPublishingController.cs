@@ -20,6 +20,8 @@ using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentPublishing;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -114,7 +116,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult roleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, clientId));
             if (!roleInClientResult.Succeeded)
             {
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified client.");
+                Response.Headers.Add("Warning", "You are not authorized to publish content for the specified client.");
                 return Unauthorized();
             }
             #endregion
@@ -122,7 +124,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            RootContentItemList model = RootContentItemList.Build(DbContext, client);
+            RootContentItemList model = RootContentItemList.Build(DbContext, client, await Queries.GetCurrentApplicationUser(User));
 
             return Json(model);
         }
@@ -145,7 +147,7 @@ namespace MillimanAccessPortal.Controllers
                 User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItemId));
             if (!roleInClientResult.Succeeded)
             {
-                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                Response.Headers.Add("Warning", "You are not authorized to publish content to the specified root content item.");
                 return Unauthorized();
             }
             #endregion
@@ -307,7 +309,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(rootContentItemDeletedEvent);
             #endregion
 
-            RootContentItemList model = RootContentItemList.Build(DbContext, rootContentItem.Client);
+            RootContentItemList model = RootContentItemList.Build(DbContext, rootContentItem.Client, await Queries.GetCurrentApplicationUser(User));
 
             return Json(model);
         }
@@ -315,79 +317,141 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         public async Task<IActionResult> Publish(PublishRequest Arg)
         {
+            AuditEvent AuditLogEvent;
+            ApplicationUser currentApplicationUser = await Queries.GetCurrentApplicationUser(User);
+
             #region Preliminary Validation
-            // maybe none
+            if (currentApplicationUser == null)
+            {
+                Response.Headers.Add("Warning", "Your user identity is unknown.");
+                return BadRequest();
+            }
             #endregion
 
             #region Authorization
             AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, Arg.RootContentItemId));
             if (!RoleInRootContentItemResult.Succeeded)
             {
+                #region Log audit event
+                AuditLogEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    $"Request to queue a publication request without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in content item",
+                    AuditEventId.Unauthorized,
+                    new { UserId = currentApplicationUser.Id, RequestedContentItem = Arg.RootContentItemId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuditLogEvent);
+                #endregion
+
                 Response.Headers.Add("Warning", $"You are not authorized to publish this content");
                 return Unauthorized();
             }
 
             #endregion
 
+#if false   // not sure what all the implications are of this. For now this issue is covered in validation below.
+            // Try to cancel all queued (not running) publishing requests and reduction tasks for the content
+            using (IDbContextTransaction Txn = DbContext.Database.BeginTransaction())
+            {
+                List<ContentPublicationRequest> QueuedRequests = DbContext.ContentPublicationRequest
+                                                                          .Where(r => r.RootContentItemId == Arg.RootContentItemId)
+                                                                          .Where(r => r.RequestStatus == PublicationStatus.Queued)
+                                                                          .ToList();
+                List<ContentReductionTask> QueuedTasks = DbContext.ContentReductionTask
+                                                                  .Include(t => t.SelectionGroup)
+                                                          // ?    .Where(t => t.ContentPublicationRequestId == null)
+                                                                  .Where(t => t.SelectionGroup.RootContentItemId == Arg.RootContentItemId)
+                                                                  .Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
+                                                                  .ToList();
+
+                QueuedRequests.ForEach(r => r.RequestStatus = PublicationStatus.Canceled);
+                QueuedTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
+
+                DbContext.ContentPublicationRequest.UpdateRange(QueuedRequests);
+                DbContext.ContentPublicationRequest.UpdateRange(QueuedRequests);
+
+                DbContext.SaveChanges();
+                Txn.Commit();
+            }
+#endif
+
             #region Validation
             // The requested RootContentItem must exist
-            RootContentItem rootContentItem = DbContext.RootContentItem.SingleOrDefault(rc => rc.Id == Arg.RootContentItemId);
-            if (rootContentItem == null)
+            if (DbContext.RootContentItem.Count(rc => rc.Id == Arg.RootContentItemId) != 1)
             {
                 Response.Headers.Add("Warning", "Requested content item not found.");
                 return BadRequest();
             }
 
             // All the provided references to related files must be found in the FileUpload entity.  
-            if (Arg.RelatedFiles.Any(f => DbContext.FileUpload.Find(f.FileUploadId) == null))
+            if (Arg.RelatedFiles.Any(f => DbContext.FileUpload.Count(fu => fu.Id == f.FileUploadId) != 1))
             {
-                Response.Headers.Add("Warning", "A requested related file has not been uploaded.");
+                Response.Headers.Add("Warning", "A specified uploaded file was not found.");
+                return BadRequest();
+            }
+
+            bool Blocked;
+
+            // There must be no unresolved ContentPublicationRequest.
+            List<PublicationStatus> BlockingRequestStatusList = new List<PublicationStatus>
+                                                              { PublicationStatus.Processing, PublicationStatus.Queued };
+            Blocked = DbContext.ContentPublicationRequest
+                               .Where(r => r.RootContentItemId == Arg.RootContentItemId)
+                               .Any(r => BlockingRequestStatusList.Contains(r.RequestStatus));
+            if (Blocked)
+            {
+                Response.Headers.Add("Warning", "A previous publication is pending for this content.");
+                return BadRequest();
+            }
+
+            List<ReductionStatusEnum> BlockingTaskStatusList = new List<ReductionStatusEnum>
+                                                             { ReductionStatusEnum.Reducing, ReductionStatusEnum.Queued };
+            Blocked = DbContext.ContentReductionTask
+                               .Where(t => t.ContentPublicationRequestId == null)
+                               .Include(t => t.SelectionGroup)
+                               .Where(t => t.SelectionGroup.RootContentItemId == Arg.RootContentItemId)
+                               .Any(t => BlockingTaskStatusList.Contains(t.ReductionStatus));
+            if (Blocked)
+            {
+                Response.Headers.Add("Warning", "A previous reduction task is pending for this content.");
                 return BadRequest();
             }
             #endregion
 
-            // TODO need to know if this is first time publish or replacement. 
-
             // Create the publication request and reduction task(s)
-            /* TODO: correct this section
-            ContentPublicationRequest contentPublicationRequest;
+            ContentPublicationRequest NewContentPublicationRequest = new ContentPublicationRequest
             {
-                var currentApplicationUser = await Queries.GetCurrentApplicationUser(User);
-                contentPublicationRequest = new ContentPublicationRequest
-                {
-                    ApplicationUserId = currentApplicationUser.Id,
-                    MasterFilePath = UploadHelper.GetOutputFilePath(),
-                    RootContentItemId = resumableInfo.RootContentItemId,
-                };
-                DbContext.ContentPublicationRequest.Add(contentPublicationRequest);
+                ApplicationUserId = currentApplicationUser.Id,
+                RequestStatus = PublicationStatus.Queued,
+                PublishRequest = Arg,
+                CreateDateTimeUtc = DateTime.UtcNow,
+            };
+            try
+            {
+                DbContext.ContentPublicationRequest.Add(NewContentPublicationRequest);
                 DbContext.SaveChanges();
             }
-
-            // Master selection group is created when root content item is created, so there must always
-            // be at least one available selection group.
-            // TODO: possibly create master selection group at publication time (here).
+            catch
             {
-                var selectionGroups = DbContext.SelectionGroup
-                    .Where(sg => sg.RootContentItemId == resumableInfo.RootContentItemId)
-                    .ToList();
-
-                var contentReductionTasks = selectionGroups
-                    .Select(sg => new ContentReductionTask
-                    {
-                        ApplicationUserId = contentPublicationRequest.ApplicationUserId,
-                        ContentPublicationRequestId = contentPublicationRequest.Id,
-                        SelectionGroupId = sg.Id,
-                        MasterFilePath = contentPublicationRequest.MasterFilePath,
-                        SelectionCriteria = JsonConvert.SerializeObject(
-                            Queries.GetFieldSelectionsForSelectionGroup(sg.Id, sg.SelectedHierarchyFieldValueList)), // TODO: special case when selection group is a master selection group
-                    ReductionStatus = ReductionStatusEnum.Validating,
-                    });
-
-                DbContext.ContentReductionTask.AddRange(contentReductionTasks);
-                DbContext.SaveChanges();
+                Response.Headers.Add("Warning", "Failed to store publication request");
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
-            */
-            return Json(new { });
+
+            // Log the queued publication request
+            #region Log audit event
+            AuditLogEvent = AuditEvent.New(
+                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                $"New publication request successfully stored",
+                AuditEventId.PublicationQueued,
+                new { UserId = currentApplicationUser.Id, RequestId = NewContentPublicationRequest.Id, RootContentItem = NewContentPublicationRequest.RootContentItemId },
+                User.Identity.Name,
+                HttpContext.Session.Id
+                );
+            AuditLogger.Log(AuditLogEvent);
+            #endregion
+
+            return Ok();
         }
 
         [HttpGet]
@@ -397,6 +461,19 @@ namespace MillimanAccessPortal.Controllers
             var rootContentItemStatusList = RootContentItemStatus.Build(DbContext, await Queries.GetCurrentApplicationUser(User));
 
             return new JsonResult(rootContentItemStatusList);
+        }
+
+        /// <summary>
+        /// Action to return a summary of publication summary information for user confirmation
+        /// </summary>
+        /// <param name="RootContentItemId"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> PreLiveSummary(long RootContentItemId)
+        {
+            // Return a model summarizing the publication summary
+
+            return new JsonResult(new object());
         }
     }
 }

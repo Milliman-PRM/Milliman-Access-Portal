@@ -16,6 +16,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
     {
         public List<PublicationDetails> Status = new List<PublicationDetails>();
 
+        public string StatusMessage = string.Empty;
+
         internal static RootContentItemStatus Build(ApplicationDbContext dbContext, ApplicationUser user)
         {
             RootContentItemStatus model = new RootContentItemStatus();
@@ -30,7 +32,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             {
                 var publicationRequest = dbContext.ContentPublicationRequest
                     .Where(r => r.RootContentItemId == rootContentItem.Id)
-                    .OrderByDescending(r => r.CreateDateTime)
+                    .OrderByDescending(r => r.CreateDateTimeUtc)
                     .FirstOrDefault();
                 model.Status.Add((PublicationDetails) publicationRequest);
             }

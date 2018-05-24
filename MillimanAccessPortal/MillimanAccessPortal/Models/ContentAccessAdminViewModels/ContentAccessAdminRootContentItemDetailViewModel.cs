@@ -28,7 +28,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 
             var latestPublication = DbContext.ContentPublicationRequest
                 .Where(crt => crt.RootContentItemId == RootContentItem.Id)
-                .OrderByDescending(crt => crt.CreateDateTime)
+                .OrderByDescending(crt => crt.CreateDateTimeUtc)
                 .FirstOrDefault();
             PublicationDetails publicationDetails = (PublicationDetails) latestPublication;
 

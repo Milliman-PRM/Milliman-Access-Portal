@@ -133,6 +133,14 @@ namespace MillimanAccessPortal.DataQueries
             return ReturnVal;
         }
 
+        /// <summary>
+        /// Returns an ApplicationUser entity associated with the provided ClaimsPrincipal, using an injected UserManager
+        /// TODO: If this method is only called from controllers where injected services are available, consider removing 
+        /// this and calling the UserManager directly from all referring code.  This was intended to help make the user 
+        /// object available from places where the UserManager was not easily accessible (injected services not available).  
+        /// </summary>
+        /// <param name="User"></param>
+        /// <returns></returns>
         internal async Task<ApplicationUser> GetCurrentApplicationUser(ClaimsPrincipal User)
         {
             return await UserManager.GetUserAsync(User);

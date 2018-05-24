@@ -83,3 +83,12 @@ export class PublicationDetails {
 export class RootContentItemStatus {
   Status: Array<PublicationDetails>;
 }
+
+export class ContentRelatedFile {
+  FilePurpose: string;
+  FileUploadId: string;
+}
+export class PublishRequest {
+  RootContentItemId: number;
+  RelatedFiles: Array<ContentRelatedFile>;
+}

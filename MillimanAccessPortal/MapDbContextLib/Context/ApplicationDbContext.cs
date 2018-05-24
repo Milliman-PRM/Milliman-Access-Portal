@@ -49,15 +49,7 @@ namespace MapDbContextLib.Context
             // Add your customizations after calling base.OnModelCreating(builder);
 
             builder.Entity<ContentPublicationRequest>()
-                .Property(b => b.CreateDateTime)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-            builder.Entity<ContentPublicationRequest>()
                 .ForNpgsqlUseXminAsConcurrencyToken();
-
-            builder.Entity<ContentReductionTask>()
-                .Property(b => b.CreateDateTime)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             builder.Entity<ContentReductionTask>()
                 .Property(b => b.Id)

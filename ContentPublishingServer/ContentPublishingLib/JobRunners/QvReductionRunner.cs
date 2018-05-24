@@ -237,7 +237,7 @@ namespace ContentPublishingLib.JobRunners
                 Directory.CreateDirectory(WorkingFolderAbsolute);
                 File.Copy(JobDetail.Request.MasterFilePath, MasterFileDestinationPath);
 
-                if (GlobalFunctions.GetFileChecksum(MasterFileDestinationPath) != JobDetail.Request.MasterContentChecksum)
+                if (GlobalFunctions.GetFileChecksum(MasterFileDestinationPath).ToLower() != JobDetail.Request.MasterContentChecksum.ToLower())
                 {
                     throw new ApplicationException("Master content file integrity check failed, mismatch of file hash");
                 }

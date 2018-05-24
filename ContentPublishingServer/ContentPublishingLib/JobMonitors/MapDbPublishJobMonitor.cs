@@ -203,7 +203,7 @@ namespace ContentPublishingLib.JobMonitors
                 {
                     List<ContentPublicationRequest> TopItems = Db.ContentPublicationRequest.Where(r => r.RequestStatus == PublicationStatus.Queued)
                                                                                  .Include(r => r.RootContentItem)
-                                                                                 .OrderBy(r => r.CreateDateTime)
+                                                                                 .OrderBy(r => r.CreateDateTimeUtc)
                                                                                  .Take(ReturnNoMoreThan)
                                                                                  .ToList();
                     if (TopItems.Count > 0)
@@ -270,8 +270,7 @@ namespace ContentPublishingLib.JobMonitors
                             throw new Exception("Unsupported job result status in MapDbJobMonitor.UpdateTask().");
                     }
 
-                    // temporary
-                    //DbRequest.ContentRelatedFiles = JsonConvert.SerializeObject( new MapDbContextLib.Models.ContentRelatedFile[] { new MapDbContextLib.Models.ContentRelatedFile { FilePurpose = "Master", FileUploadId = Guid.NewGuid() } });
+                    DbRequest.StatusMessage = JobDetail.Result.StatusMessage;
 
                     Db.ContentPublicationRequest.Update(DbRequest);
                     Db.SaveChanges();

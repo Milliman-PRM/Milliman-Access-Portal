@@ -217,10 +217,10 @@ namespace ContentPublishingLib.JobMonitors
             {
                 try
                 {
-                    List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => DateTimeOffset.UtcNow - t.CreateDateTime > TaskAgeBeforeExecution)
+                    List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => DateTime.UtcNow - t.CreateDateTimeUtc > TaskAgeBeforeExecution)
                                                                                  .Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
                                                                                  .Include(t => t.SelectionGroup).ThenInclude(sg => sg.RootContentItem).ThenInclude(rc => rc.ContentType)
-                                                                                 .OrderBy(t => t.CreateDateTime)
+                                                                                 .OrderBy(t => t.CreateDateTimeUtc)
                                                                                  .Take(ReturnNoMoreThan)
                                                                                  .ToList();
                     if (TopItems.Count > 0)
