@@ -206,6 +206,10 @@ export class Upload {
     this.resumable.assignBrowse(element, false);
   }
 
+  public setFileTypes(fileTypes: Array<string>) {
+    this.resumable.opts.fileType = fileTypes;
+  }
+
   public reset() {
     this.cancel();
     this.setFileGUID(null);

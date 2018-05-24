@@ -35,6 +35,8 @@ export class FileUploadInput extends FormInput {
 
 
   public configure(token: string) {
+    this.upload.setFileTypes(FileTypes.get(this.component));
+
     this.upload.getUID = (file: File, event: Event) => {
       return `publication-${this.component}-${token}`;
     };
@@ -111,3 +113,10 @@ export class FileUploadInput extends FormInput {
     }
   }
 }
+
+const FileTypes = new Map<UploadComponent, Array<string>>([
+  [UploadComponent.Image, ['.jpg', '.jpeg', '.png']],
+  [UploadComponent.Content, []],
+  [UploadComponent.UserGuide, ['.pdf']],
+  [UploadComponent.ReleaseNotes, ['.pdf']],
+]);
