@@ -68,7 +68,7 @@ export class FileUploadInput extends FormInput {
     };
     this.upload.onStateChange = (alertUnload: boolean, cancelable: boolean) => {
       this.uploadInProgress = alertUnload;
-      this.setCancelable(cancelable);
+      this.setCancelable(alertUnload);
     };
 
     // Clone the input to clear any event listeners
@@ -81,6 +81,7 @@ export class FileUploadInput extends FormInput {
     this.$entryPoint.find('.cancel-icon').click((event) => {
       event.stopPropagation();
       this.upload.cancel();
+      this.reset();
     });
   }
 
@@ -91,6 +92,7 @@ export class FileUploadInput extends FormInput {
     if (this.upload) {
       this.upload.reset();
     }
+    this.$entryPoint.change(); // trigger a change event
   }
 
   private setCancelable(cancelable: boolean) {
