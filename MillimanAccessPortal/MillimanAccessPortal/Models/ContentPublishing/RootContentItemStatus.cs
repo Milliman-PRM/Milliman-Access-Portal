@@ -16,6 +16,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
     {
         public List<PublicationDetails> Status = new List<PublicationDetails>();
 
+        public string StatusMessage = string.Empty;
+
         internal static RootContentItemStatus Build(ApplicationDbContext dbContext, ApplicationUser user)
         {
             RootContentItemStatus model = new RootContentItemStatus();

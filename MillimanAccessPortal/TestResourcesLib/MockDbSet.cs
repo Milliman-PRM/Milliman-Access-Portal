@@ -1,12 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Moq;
-using Newtonsoft.Json;
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace TestResourcesLib
 {
@@ -17,10 +19,11 @@ namespace TestResourcesLib
             var data = Data.AsQueryable();
 
             Mock<DbSet<T>> Set = new Mock<DbSet<T>>();
-            Set.As<IQueryable<T>>().Setup(m => m.Provider).Returns(data.Provider);
+            Set.As<IQueryable<T>>().Setup(m => m.Provider).Returns(new DbSetAsyncQueryProvider<T>(data.Provider));
             Set.As<IQueryable<T>>().Setup(m => m.Expression).Returns(data.Expression);
             Set.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(data.ElementType);
             Set.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(() => data.GetEnumerator());
+            Set.As<IAsyncEnumerable<T>>().Setup(m => m.GetEnumerator()).Returns(() => new DbSetAsyncEnumerator<T>(data.GetEnumerator()));
 
             // Setup mocked object methods to interact with persisted data
             Set.Setup(d => d.Add(It.IsAny<T>())).Callback<T>((s) => Data.Add(s));
@@ -89,10 +92,17 @@ namespace TestResourcesLib
             var a = UType.GetMembers().OfType<PropertyInfo>();
             var b = a.Where(m => m.PropertyType == ReferenceKeyPropertyType);
             var c = b.Where(m => m.PropertyType == ReferenceKeyPropertyType).Where(m => m.CustomAttributes.Any(at => at.AttributeType == typeof(KeyAttribute)));
-            PropertyInfo ReferencedPkPropertyInfo = UType.GetMembers().OfType<PropertyInfo>().Single(m => m.PropertyType == ReferenceKeyPropertyType && m.CustomAttributes.Any(at => at.AttributeType == typeof(KeyAttribute)));
+            // Use Type.IsAssignableFrom() here to handle a nullable (non-required) foreign key:
+            PropertyInfo ReferencedPkPropertyInfo = UType.GetMembers().OfType<PropertyInfo>().Single(m => ReferenceKeyPropertyType.IsAssignableFrom(m.PropertyType) && m.CustomAttributes.Any(at => at.AttributeType == typeof(KeyAttribute)));
 
             foreach (T ReferencingRecord in ReferencingDbSet)
             {
+                // To handle null values of nullable foreign keys
+                if (ForeignKeyPropertyInfo.GetValue(ReferencingRecord) == null)
+                {
+                    continue;
+                }
+
                 var ReferencingKeyValue = ForeignKeyPropertyInfo.GetValue(ReferencingRecord).ToString();
 
                 foreach (U UItem in ReferencedDbSet)
@@ -164,6 +174,79 @@ namespace TestResourcesLib
         //    }
 
         //}
+    }
 
+    // Reference: https://msdn.microsoft.com/en-us/library/dn314429.aspx
+    internal class DbSetAsyncQueryProvider<TEntity> : IAsyncQueryProvider
+    {
+        private readonly IQueryProvider _inner;
+
+        internal DbSetAsyncQueryProvider(IQueryProvider inner)
+        {
+            _inner = inner;
+        }
+
+        public IQueryable CreateQuery(Expression expression)
+        {
+            return new DbSetAsyncEnumerable<TEntity>(expression);
+        }
+
+        public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
+        {
+            return new DbSetAsyncEnumerable<TElement>(expression);
+        }
+
+        public object Execute(Expression expression)
+        {
+            return _inner.Execute(expression);
+        }
+
+        public TResult Execute<TResult>(Expression expression)
+        {
+            return _inner.Execute<TResult>(expression);
+        }
+
+        public IAsyncEnumerable<TResult> ExecuteAsync<TResult>(Expression expression)
+        {
+            return new DbSetAsyncEnumerable<TResult>(expression);
+        }
+
+        public Task<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(Execute<TResult>(expression));
+        }
+    }
+
+    internal class DbSetAsyncEnumerable<T> : EnumerableQuery<T>, IAsyncEnumerable<T>, IQueryable<T>
+    {
+        public DbSetAsyncEnumerable(IEnumerable<T> enumerable) : base(enumerable) { }
+        public DbSetAsyncEnumerable(Expression expression) : base(expression) { }
+
+        public IAsyncEnumerator<T> GetEnumerator()
+        {
+            return new DbSetAsyncEnumerator<T>(this.AsEnumerable().GetEnumerator());
+        }
+    }
+
+    internal class DbSetAsyncEnumerator<T> : IAsyncEnumerator<T>
+    {
+        private readonly IEnumerator<T> _inner;
+
+        public DbSetAsyncEnumerator(IEnumerator<T> inner)
+        {
+            _inner = inner;
+        }
+
+        public T Current => _inner.Current;
+
+        public void Dispose()
+        {
+            _inner.Dispose();
+        }
+
+        public Task<bool> MoveNext(CancellationToken cancellationToken)
+        {
+            return Task.FromResult(_inner.MoveNext());
+        }
     }
 }

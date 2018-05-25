@@ -12,9 +12,10 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180521201820_DateTimeFieldsToUtc")]
+    partial class DateTimeFieldsToUtc
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -82,8 +83,6 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<long>("RootContentItemId");
 
-                    b.Property<string>("StatusMessage");
-
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -108,7 +107,7 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<long?>("ContentPublicationRequestId");
 
-                    b.Property<DateTime>("CreateDateTimeUtc");
+                    b.Property<DateTimeOffset>("CreateDateTimeUtc");
 
                     b.Property<string>("MasterContentChecksum");
 

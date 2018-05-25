@@ -12,8 +12,8 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20180521184229_Temp")]
-    partial class Temp
+    [Migration("20180523173226_AllDateTimeFieldsSameDbType")]
+    partial class AllDateTimeFieldsSameDbType
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -83,6 +83,8 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<long>("RootContentItemId");
 
+                    b.Property<string>("StatusMessage");
+
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -107,9 +109,7 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<long?>("ContentPublicationRequestId");
 
-                    b.Property<DateTimeOffset>("CreateDateTime")
-                        .ValueGeneratedOnAdd()
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                    b.Property<DateTime>("CreateDateTimeUtc");
 
                     b.Property<string>("MasterContentChecksum");
 

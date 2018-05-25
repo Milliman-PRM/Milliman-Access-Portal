@@ -21,7 +21,7 @@ using Newtonsoft.Json;
 
 namespace ContentPublishingLib.JobMonitors
 {
-    internal class MapDbPublishJobMonitor : JobMonitorBase
+    public class MapDbPublishJobMonitor : JobMonitorBase
     {
         internal class PublishJobTrackingItem
         {
@@ -87,7 +87,7 @@ namespace ContentPublishingLib.JobMonitors
         /// <returns></returns>
         public override Task Start(CancellationToken Token)
         {
-            if (ContextOptions == null)
+            if (ContextOptions == null && MockContext == null)
             {
                 throw new NullReferenceException("Attempting to construct new ApplicationDbContext but connection string not initialized");
             }
@@ -132,6 +132,7 @@ namespace ContentPublishingLib.JobMonitors
                         }
                         if (MockContext != null)
                         {
+                            Runner.MockContext = MockContext;
                             Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
                         }
 
@@ -269,8 +270,7 @@ namespace ContentPublishingLib.JobMonitors
                             throw new Exception("Unsupported job result status in MapDbJobMonitor.UpdateTask().");
                     }
 
-                    // temporary
-                    //DbRequest.ContentRelatedFiles = JsonConvert.SerializeObject( new MapDbContextLib.Models.ContentRelatedFile[] { new MapDbContextLib.Models.ContentRelatedFile { FilePurpose = "Master", FileUploadId = Guid.NewGuid() } });
+                    DbRequest.StatusMessage = JobDetail.Result.StatusMessage;
 
                     Db.ContentPublicationRequest.Update(DbRequest);
                     Db.SaveChanges();
