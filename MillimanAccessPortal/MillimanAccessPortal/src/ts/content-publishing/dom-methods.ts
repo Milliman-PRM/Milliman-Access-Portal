@@ -1,7 +1,7 @@
 import $ = require('jquery');
 import * as toastr from 'toastr';
 require('tooltipster');
-import { showButtonSpinner, clearForm, wrapCardCallback, get, wrapCardIconCallback, updateCardStatus, expandAllListener, collapseAllListener, filterTreeListener, filterFormListener } from '../shared';
+import { showButtonSpinner, clearForm, wrapCardCallback, get, wrapCardIconCallback, updateCardStatus, expandAllListener, collapseAllListener, filterTreeListener, filterFormListener, updateCardStatusButtons, updateFormStatusButtons } from '../shared';
 import { ClientCard, RootContentItemCard, AddRootContentItemActionCard } from '../card';
 import { FormBase } from '../form/form-base';
 import { AccessMode } from '../form/form-modes';
@@ -61,6 +61,20 @@ export namespace ContentPublishingDOMMethods {
       },
     ).open();
   }
+  export function rootContentItemCancelClickHandler(event) {
+    var $clickedCard = $(this).closest('.card-container');
+    var rootContentItemId = $clickedCard.data().rootContentItemId;
+    var rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
+    event.stopPropagation();
+    //new CancelRootContentItemDialog().open();
+  }
+  export function rootContentItemGoLiveClickHandler(event) {
+    var $clickedCard = $(this).closest('.card-container');
+    var rootContentItemId = $clickedCard.data().rootContentItemId;
+    var rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
+    event.stopPropagation();
+    // do something
+  }
   export function openNewRootContentItemForm() {
     const clientId = $('#client-tree [selected]').parent().data().clientId;
     renderRootContentItemForm({
@@ -84,6 +98,13 @@ export namespace ContentPublishingDOMMethods {
   function setFormNew() {
     formObject.submissionMode = 'new';
     formObject.accessMode = AccessMode.Write;
+    $('#root-content-items [selected]').attr('editing', '');
+    $('#content-publishing-form .admin-panel-toolbar .action-icon').hide();
+    $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').show();
+  }
+  function setFormEdit() {
+    formObject.submissionMode = 'edit';
+    formObject.accessMode = AccessMode.Defer;
     $('#root-content-items [selected]').attr('editing', '');
     $('#content-publishing-form .admin-panel-toolbar .action-icon').hide();
     $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').show();
@@ -182,6 +203,10 @@ export namespace ContentPublishingDOMMethods {
           group: updateContentGroup.chain(submitPublication, true).chain(null, true),
           name: 'edit-or-republish',
         },
+        {
+          group: updateContentGroup,
+          name: 'edit',
+        },
       ],
     );
     
@@ -191,26 +216,34 @@ export namespace ContentPublishingDOMMethods {
 
 
   function renderRootContentItem(item: RootContentItemSummary) {
+    const $panel = $('#content-publishing-form');
     const $card = new RootContentItemCard(
       item,
       item.GroupCount,
       item.EligibleUserCount,
       wrapCardCallback(get(
         'ContentPublishing/RootContentItemDetail',
-        [ renderRootContentItemForm ],
+        [
+          updateFormStatusButtons,
+          renderRootContentItemForm,
+        ],
       ), () => formObject),
-      wrapCardIconCallback(($card, whenDone) => get(
+      wrapCardIconCallback(($card, always) => get(
           'ContentPublishing/RootContentItemDetail',
           [
             renderRootContentItemForm,
-            whenDone
+            always,
           ],
         )($card), () => formObject, 1, undefined, () => {
         setFormEditOrRepublish();
       }),
       rootContentItemDeleteClickHandler,
+      rootContentItemCancelClickHandler,
+      rootContentItemGoLiveClickHandler,
     ).build();
     updateCardStatus($card, item.PublicationDetails);
+    updateCardStatusButtons($card, item.PublicationDetails && item.PublicationDetails.StatusEnum);
+    $card.data('statusEnum', item.PublicationDetails && item.PublicationDetails.StatusEnum);
     $('#root-content-items ul.admin-panel-content').append($card);
   }
   function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: number) {
@@ -313,6 +346,9 @@ export namespace ContentPublishingDOMMethods {
       } else {
         setFormReadOnly();
       }
+    });
+    $('.admin-panel-toolbar .action-icon-edit').click(() => {
+      setFormEdit();
     });
     $('.admin-panel-toolbar .action-icon-file-upload').click(() => {
       setFormEditOrRepublish();
