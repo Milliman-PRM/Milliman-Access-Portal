@@ -1,5 +1,5 @@
 ﻿/*
- * CODE OWNERS: Joseph Sweeney
+ * CODE OWNERS: Joseph Sweeney, Tom Puckett
  * OBJECTIVE:
  * DEVELOPER NOTES:
  */
@@ -15,6 +15,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
         public UserInfoViewModel User { get; set; }
         public PublicationStatus StatusEnum { get; set; }
         public string StatusName { get => ContentPublicationRequest.PublicationStatusString[StatusEnum]; }
+        public string StatusMessage { get; set; } = string.Empty;
         public long RootContentItemId { get; set; }
 
         public static explicit operator PublicationDetails(ContentPublicationRequest contentPublicationRequest)
@@ -28,6 +29,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
                 User = (UserInfoViewModel) contentPublicationRequest.ApplicationUser,
                 StatusEnum = contentPublicationRequest.RequestStatus,
                 RootContentItemId = contentPublicationRequest.RootContentItemId,
+                StatusMessage = contentPublicationRequest.StatusMessage,
             };
         }
     }

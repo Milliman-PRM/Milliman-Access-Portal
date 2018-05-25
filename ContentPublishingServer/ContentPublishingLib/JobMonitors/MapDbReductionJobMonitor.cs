@@ -217,10 +217,10 @@ namespace ContentPublishingLib.JobMonitors
             {
                 try
                 {
-                    List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => DateTimeOffset.UtcNow - t.CreateDateTime > TaskAgeBeforeExecution)
+                    List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => DateTime.UtcNow - t.CreateDateTimeUtc > TaskAgeBeforeExecution)
                                                                                  .Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
                                                                                  .Include(t => t.SelectionGroup).ThenInclude(sg => sg.RootContentItem).ThenInclude(rc => rc.ContentType)
-                                                                                 .OrderBy(t => t.CreateDateTime)
+                                                                                 .OrderBy(t => t.CreateDateTimeUtc)
                                                                                  .Take(ReturnNoMoreThan)
                                                                                  .ToList();
                     if (TopItems.Count > 0)
@@ -258,7 +258,9 @@ namespace ContentPublishingLib.JobMonitors
             try
             {
                 // Use a transaction so that there is no concurrency issue after we get the current db record
-                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+                using (ApplicationDbContext Db = MockContext != null
+                                               ? MockContext.Object
+                                               : new ApplicationDbContext(ContextOptions))
                 using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
                 {
                     ContentReductionTask DbTask = Db.ContentReductionTask.Find(JobDetail.TaskId);

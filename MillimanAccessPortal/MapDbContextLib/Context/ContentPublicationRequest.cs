@@ -66,6 +66,8 @@ namespace MapDbContextLib.Context
         [Required]
         public PublicationStatus RequestStatus { get; set; }
 
+        public string StatusMessage { get; set; } = string.Empty;
+
         [NotMapped]
         public PublishRequest PublishRequest
         {

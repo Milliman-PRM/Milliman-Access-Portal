@@ -142,9 +142,9 @@ namespace MillimanAccessPortal
             });
 
             string fileUploadPath = Path.GetTempPath();
-            if (!string.IsNullOrWhiteSpace(Configuration.GetValue<string>("FileSystem:FileUploadPath")))
+            if (!string.IsNullOrWhiteSpace(Configuration.GetValue<string>("Storage:FileUploadPath")))
             {
-                fileUploadPath = Configuration.GetValue<string>("FileSystem:FileUploadPath");
+                fileUploadPath = Configuration.GetValue<string>("Storage:FileUploadPath");
             }
             services.AddSingleton<IFileProvider>(new PhysicalFileProvider(fileUploadPath));
 
