@@ -22,7 +22,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
         {
             var latestTask = DbContext.ContentReductionTask
                     .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
-                    .OrderByDescending(crt => crt.CreateDateTime)
+                    .OrderByDescending(crt => crt.CreateDateTimeUtc)
                     .FirstOrDefault();
             ReductionDetails reductionDetails = ((ReductionDetails) latestTask);
 
