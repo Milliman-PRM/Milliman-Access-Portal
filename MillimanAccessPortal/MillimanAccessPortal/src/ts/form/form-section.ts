@@ -64,13 +64,13 @@ export class FormInputSection extends FormElement {
   public setMode(accessMode: AccessMode, submissionMode: SubmissionMode) {
     if (accessMode === AccessMode.Defer) {
       this.inputs.forEach((input) => {
-        input.setMode(submissionMode.group.sections.indexOf(this.name) !== -1
+        input.setAccessMode(submissionMode.group.sections.indexOf(this.name) !== -1
           ? AccessMode.Write
           : AccessMode.Read
         );
       });
     } else {
-      this.inputs.forEach((input) => input.setMode(accessMode));
+      this.inputs.forEach((input) => input.setAccessMode(accessMode));
     }
   }
 

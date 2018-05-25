@@ -66,9 +66,9 @@
     <div class="admin-panel-content-container">
         <form class="admin-panel-content">
             <div class="form-section-container">
-                <div class="form-section" data-section="common">
+                <div class="form-section" data-section="common" style="display: none;">
                     <div class="form-input-container">
-                        <div class="form-input form-input-hidden" style="display: none;">
+                        <div class="form-input form-input-hidden">
                             <input asp-for="Id" />
                         </div>
                     </div>
@@ -117,12 +117,19 @@
                                 <label for="Thumbnail" class="input-with-upload image">
                                     Thumbnail Image
                                     <input class="file-upload" type="text" readonly />
-                                    <input class="file-upload-guid" type="text" id="Thumbnail" name="Thumbnail" style="display: none;" />
                                     <svg class="upload-icon tooltip" title="Upload thumbnail image">
                                         <use xlink:href="#action-icon-file-upload"></use>
                                     </svg>
+                                    <svg class="cancel-icon tooltip" title="Cancel upload" style="display: none;">
+                                        <use xlink:href="#action-icon-cancel"></use>
+                                    </svg>
+                                    <div class="progress-bars" style="visibility: hidden;">
+                                        <div class="progress-bar progress-bar-1"></div>
+                                        <div class="progress-bar progress-bar-2"></div>
+                                    </div>
                                     <img class="image-preview" />
                                 </label>
+                                <input class="file-upload-guid" type="text" id="Thumbnail" name="Thumbnail" style="display: none;" />
                             </div>
                         </div>
                         <div class="form-input-container flex-item-8-12 form-input-flex">
@@ -130,31 +137,52 @@
                                 <label for="MasterContent" class="input-with-upload">
                                     File
                                     <input class="file-upload" type="text" readonly />
-                                    <input class="file-upload-guid" type="text" id="MasterContent" name="MasterContent" style="display: none;" />
-                                    <svg class="upload-icon tooltip" title="Upload thumbnail image">
+                                    <svg class="upload-icon tooltip" title="Upload master content">
                                         <use xlink:href="#action-icon-file-upload"></use>
                                     </svg>
+                                    <svg class="cancel-icon tooltip" title="Cancel upload" style="display: none;">
+                                        <use xlink:href="#action-icon-cancel"></use>
+                                    </svg>
+                                    <div class="progress-bars" style="visibility: hidden;">
+                                        <div class="progress-bar progress-bar-1"></div>
+                                        <div class="progress-bar progress-bar-2"></div>
+                                    </div>
                                 </label>
+                                <input class="file-upload-guid" type="text" id="MasterContent" name="MasterContent" style="display: none;" />
                             </div>
                             <div class="form-input form-input-file-upload">
                                 <label for="UserGuide" class="input-with-upload">
                                     Userguide
                                     <input class="file-upload" type="text" readonly />
-                                    <input class="file-upload-guid" type="text" id="UserGuide" name="UserGuide" style="display: none;" />
-                                    <svg class="upload-icon tooltip" title="Upload thumbnail image">
+                                    <svg class="upload-icon tooltip" title="Upload user guide">
                                         <use xlink:href="#action-icon-file-upload"></use>
                                     </svg>
+                                    <svg class="cancel-icon tooltip" title="Cancel upload" style="display: none;">
+                                        <use xlink:href="#action-icon-cancel"></use>
+                                    </svg>
+                                    <div class="progress-bars" style="visibility: hidden;">
+                                        <div class="progress-bar progress-bar-1"></div>
+                                        <div class="progress-bar progress-bar-2"></div>
+                                    </div>
                                 </label>
+                                <input class="file-upload-guid" type="text" id="UserGuide" name="UserGuide" style="display: none;" />
                             </div>
                             <div class="form-input form-input-file-upload">
                                 <label for="ReleaseNotes" class="input-with-upload">
                                     Release Notes
                                     <input class="file-upload" type="text" readonly />
-                                    <input class="file-upload-guid" type="text" id="ReleaseNotes" name="ReleaseNotes" style="display: none;" />
-                                    <svg class="upload-icon tooltip" title="Upload thumbnail image">
+                                    <svg class="upload-icon tooltip" title="Upload release notes">
                                         <use xlink:href="#action-icon-file-upload"></use>
                                     </svg>
+                                    <svg class="cancel-icon tooltip" title="Cancel upload" style="display: none;">
+                                        <use xlink:href="#action-icon-cancel"></use>
+                                    </svg>
+                                    <div class="progress-bars" style="visibility: hidden;">
+                                        <div class="progress-bar progress-bar-1"></div>
+                                        <div class="progress-bar progress-bar-2"></div>
+                                    </div>
                                 </label>
+                                <input class="file-upload-guid" type="text" id="ReleaseNotes" name="ReleaseNotes" style="display: none;" />
                             </div>
                         </div>
                     </div>

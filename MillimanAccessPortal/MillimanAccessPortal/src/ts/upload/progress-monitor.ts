@@ -5,10 +5,22 @@ interface ProgressSnapshot {
   time: number; // absolute time at which this snapshot was taken
 }
 
-export interface ProgressSummary {
+export class ProgressSummary {
   percentage: string;
   rate: string;
   remainingTime: string;
+
+  public static Empty: () => ProgressSummary = () => ({
+    percentage: '0%',
+    rate: '',
+    remainingTime: '',
+  });
+
+  public static Full: () => ProgressSummary = () => ({
+    percentage: '100%',
+    rate: '',
+    remainingTime: '',
+  });
 }
 
 export class ProgressMonitor {
@@ -27,17 +39,17 @@ export class ProgressMonitor {
     this.snapshot = new RetainedValue(8);
     this.rate = new RetainedValue(4);
     this.remainingTime = new RetainedValue(1);
-    this.monitorInterval = 1000;
+    this.monitorInterval = 500;
 
     this._monitor = this._monitor.bind(this);
   }
 
-  public monitor() {
+  public activate() {
     this.active = true;
     this._monitor();
   }
 
-  public monitorEnd() {
+  public deactivate() {
     this.active = false;
   }
 

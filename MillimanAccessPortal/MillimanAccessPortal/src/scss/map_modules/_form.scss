@@ -174,6 +174,7 @@ label.input-with-upload {
         .image-preview {
             width: 100%;
             height: auto;
+            padding-top: 0.5em;
         }
     }
 
@@ -184,18 +185,51 @@ label.input-with-upload {
 
     input {
         padding-right: 2.5em;
+        position: relative;
+        z-index: 1;
     }
 
-    svg.upload-icon {
-        color: $charcoal;
-        height: 2em;
-        width: 2em;
-        position: absolute;
-        right: .25em;
-        bottom: .1em;
+    svg {
+        
+        &.upload-icon,&.cancel-icon {
+            color: $charcoal;
+            height: 2em;
+            width: 2em;
+            position: absolute;
+            right: .25em;
+            top: 1.9em;
+            z-index: 2;
+        }
     }
 
-    &:hover svg.upload-icon {
+    .progress-bars {
+        position: relative;
+        display: block;
+        height: 1.5em;
+        margin-top: -0.5em;
+        border: 1px solid $dark-grey;
+        border-radius: 0.25em;
+
+        .progress-bar {
+            position: absolute;
+            width: 0;
+            height: 100%;
+        }
+        .progress-easing {
+            transition: 1.0s linear;
+        }
+        .progress-bar-1 {
+            background-color: rgb(100, 200, 255);
+        }
+        .progress-bar-2 {
+            background-color: rgb(0, 235, 0);
+        }
+    }
+
+    &:hover:not([disabled]) svg.upload-icon {
+        color: $green;
+    }
+    &[disabled] svg.cancel-icon:hover {
         color: $green;
     }
 }

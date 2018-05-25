@@ -34,7 +34,7 @@ describe('progress monitor', () => {
   it('reads progress from callback', () => {
     const monitor = new ProgressMonitor(
       progressCallback, renderCallback, 1000000);
-    monitor.monitor();
+    monitor.activate();
 
     expect(progressCallback.mock.calls.length).toBe(1);
     expect(progressCallback.mock.calls[0].length).toBe(0);
@@ -42,7 +42,7 @@ describe('progress monitor', () => {
   it('renders progress', () => {
     const monitor = new ProgressMonitor(
       progressCallback, renderCallback, 1000000);
-    monitor.monitor();
+    monitor.activate();
     jest.runOnlyPendingTimers();
 
     expect(renderCallback.mock.calls.length).toBe(2);
@@ -53,11 +53,11 @@ describe('progress monitor', () => {
     const monitor = new ProgressMonitor(
       progressCallback, renderCallback, 1000000);
 
-    monitor.monitor();
+    monitor.activate();
 
     jest.runOnlyPendingTimers();
     jest.runOnlyPendingTimers();
-    monitor.monitorEnd();
+    monitor.deactivate();
     jest.runOnlyPendingTimers();
     jest.runOnlyPendingTimers();
 
@@ -69,7 +69,7 @@ describe('progress monitor', () => {
   it('stops monitoring when complete', () => {
     const monitor = new ProgressMonitor(
       progressCallback, renderCallback, 1000000);
-    monitor.monitor();
+    monitor.activate();
 
     jest.runOnlyPendingTimers();
     jest.runOnlyPendingTimers();

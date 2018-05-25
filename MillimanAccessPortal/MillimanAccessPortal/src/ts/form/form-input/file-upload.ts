@@ -1,6 +1,7 @@
 import { FormInput } from './input';
-import { Upload } from '../../upload/upload';
-import { PublicationUpload, PublicationComponent } from '../../content-publishing/publication-upload';
+import { Upload, UploadComponent } from '../../upload/upload';
+import { ProgressSummary } from '../../upload/progress-monitor';
+import { AccessMode } from '../form-modes';
 
 export class FileUploadInput extends FormInput {
   protected _cssClasses = {
@@ -8,68 +9,114 @@ export class FileUploadInput extends FormInput {
     title: 'form-input-file-upload-title',
     extension: 'form-input-file-upload-contents',
   }
-  private readonly componentMap: Map<string, PublicationComponent>;
 
   protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('input.file-upload-guid');
 
   protected getValueFn = ($input: JQuery<HTMLElement>) => $input.val;
   protected setValueFn = ($input: JQuery<HTMLElement>) => $input.val;
 
-  protected disable = ($input: JQuery<HTMLElement>) => $input.attr('disabled', '').prev().attr('disabled', '');
-  protected enable = ($input: JQuery<HTMLElement>) => $input.removeAttr('disabled').prev().removeAttr('disabled');
+  protected disable = ($input: JQuery<HTMLElement>) => $input.parent().find('*').not('.cancel-icon').attr('disabled', '');
+  protected enable = ($input: JQuery<HTMLElement>) => $input.parent().find('*').not('.cancel-icon').removeAttr('disabled');
 
   protected comparator = (a: string, b: string) => (a === b) && !this.uploadInProgress;
 
-  private _component: PublicationComponent;
-  public get component(): PublicationComponent {
-    return this._component;
+  public get component(): UploadComponent {
+    return this.name as UploadComponent;    
   }
 
   private uploadInProgress: boolean = false;
-  private _upload: PublicationUpload;
-  public get upload(): PublicationUpload {
+  private _upload: Upload;
+  public get upload(): Upload {
+    if (!this._upload) {
+      this._upload = new Upload();
+    }
     return this._upload;
   }
-  protected createUpload(token: string) {
-    // TODO: generalize for other upload types
-    this._upload = token && this.component && new PublicationUpload(
-      this.$entryPoint[0],
-      (a: boolean) => this.uploadInProgress = a, 
-      (guid: string) => this.value = guid,
-      token,
-      this.component,
-    );
-  }
 
-  public constructor() {
-    super();
-
-    this.componentMap = new Map<string, PublicationComponent>();
-    this.componentMap.set('MasterContent', PublicationComponent.Content);
-    this.componentMap.set('Thumbnail', PublicationComponent.Image);
-    this.componentMap.set('ReleaseNotes', PublicationComponent.ReleaseNotes);
-    this.componentMap.set('UserGuide', PublicationComponent.UserGuide);
-  }
-
-  public bindToDOM(entryPoint: HTMLElement) {
-    super.bindToDOM(entryPoint);
-
-    this._component = this.componentMap.get(this.name);
-    if (this.upload) {
-      this.upload.attachToBrowseElement(this.$entryPoint[0])
-    }
-  }
 
   public configure(token: string) {
-    this.createUpload(token);
+    this.upload.setFileTypes(FileTypes.get(this.component));
+
+    this.upload.getUID = (file: File, event: Event) => {
+      return `publication-${this.component}-${token}`;
+    };
+    this.upload.onChecksumProgress = (progress: ProgressSummary) => {
+      const progressBar = this.$entryPoint.find('div.progress-bar-1');
+      const isEndpoint = progress.percentage === '0%' || progress.percentage === '100%';
+      progressBar.toggleClass('progress-easing', !isEndpoint);
+      progressBar.width(progress.percentage);
+    };
+    this.upload.onUploadProgress = (progress: ProgressSummary) => {
+      const progressBar = this.$entryPoint.find('div.progress-bar-2');
+      const isEndpoint = progress.percentage === '0%' || progress.percentage === '100%';
+      progressBar.toggleClass('progress-easing', !isEndpoint);
+      progressBar.width(progress.percentage);
+    };
+    this.upload.onProgressMessage = (message: string) => {
+    };
+
+    this.upload.onFileAdded = (resumableFile: any) => {
+      this.$entryPoint.find('input.file-upload').val(resumableFile.fileName);
+      if (this.component === UploadComponent.Image) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          this.$entryPoint.find('img.image-preview').attr('src', reader.result);
+        }
+        reader.readAsDataURL(resumableFile.file);
+      }
+    };
+    this.upload.onFileSuccess = (fileGUID: string) => {
+      this.value = fileGUID;
+    };
+    this.upload.onStateChange = (alertUnload: boolean, cancelable: boolean) => {
+      this.uploadInProgress = alertUnload;
+      this.setCancelable(alertUnload);
+    };
+
+    // Clone the input to clear any event listeners
+    const clickableElement = this.$entryPoint.find('label')[0];
+    const $clonedInput = $(clickableElement.cloneNode(true));
+    $clonedInput.find('input[type="file"]').remove();
+    $(clickableElement).replaceWith($clonedInput);
+
+    this.upload.assignBrowse(this.$entryPoint.find('label')[0]);
+    this.$entryPoint.find('.cancel-icon').click((event) => {
+      event.stopPropagation();
+      this.upload.cancel();
+      this.reset();
+    });
   }
 
   public reset() {
     super.reset();
     this.$entryPoint.find('input.file-upload').val('');
-    this.$entryPoint.find('img').removeAttr('src');
+    this.$entryPoint.find('img.image-preview').removeAttr('src');
     if (this.upload) {
       this.upload.reset();
     }
+    this.$entryPoint.change(); // trigger a change event
+  }
+
+  private setCancelable(cancelable: boolean) {
+    if (cancelable) {
+      this.setAccessMode(AccessMode.WriteDisabled);
+      this.$entryPoint.find('.upload-icon').hide();
+      this.$entryPoint.find('.cancel-icon').show();
+      this.$entryPoint.find('.progress-bars').css('visibility', 'visible');
+    } else {
+      if (this.accessMode === AccessMode.WriteDisabled) {
+        this.setAccessMode(AccessMode.Write);
+      }
+      this.$entryPoint.find('.cancel-icon').hide();
+      this.$entryPoint.find('.upload-icon').show();
+      this.$entryPoint.find('.progress-bars').css('visibility', 'hidden');
+    }
   }
 }
+
+const FileTypes = new Map<UploadComponent, Array<string>>([
+  [UploadComponent.Image, ['jpg', 'jpeg', 'png', 'gif']],
+  [UploadComponent.Content, []],
+  [UploadComponent.UserGuide, ['pdf']],
+  [UploadComponent.ReleaseNotes, ['pdf']],
+]);

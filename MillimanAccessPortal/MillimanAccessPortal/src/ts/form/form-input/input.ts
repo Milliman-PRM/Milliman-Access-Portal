@@ -2,21 +2,26 @@ import { AccessMode } from '../form-modes';
 import { FormElement } from '../form-element';
 
 export abstract class FormInput extends FormElement {
-  protected abstract findInput: ($entryPoint: JQuery<HTMLElement>) => JQuery<HTMLElement>;
-  private _$input: JQuery<HTMLElement>;
-  protected get $input(): JQuery<HTMLElement> {
-    if (!this._$input) {
-      this._$input = this.findInput(this.$entryPoint);
-    }
-    return this._$input;
-  }
 
-  protected abstract getValueFn: (input: JQuery<HTMLElement>) => () => string | number | string[];
+  // The DOM element within this form element that holds a form value
+  // private _$input: JQuery<HTMLElement>;
+  protected get $input(): JQuery<HTMLElement> {
+    // Caching $input was causing problems when the related DOM elements
+    // were cloned and replaced. Leave this off unless the performance benefits
+    // are important.
+    //
+    // if (!this._$input) {
+    //   this._$input = this.findInput(this.$entryPoint);
+    // }
+    // return this._$input;
+    return this.findInput(this.$entryPoint);
+  }
+  protected abstract findInput: ($enryPoint: JQuery<HTMLElement>) => JQuery<HTMLElement>;
+
   protected get value(): string {
     const val = this.getValueFn(this.$input).bind(this.$input)();
     return val ? val.toString() : '';
   }
-  protected abstract setValueFn: (input: JQuery<HTMLElement>) => (value: string) => void
   protected set value(value: string) {
     const change = this.value !== value;
     this.setValueFn(this.$input).bind(this.$input)(value);
@@ -25,21 +30,28 @@ export abstract class FormInput extends FormElement {
       this.$input.change();
     }
   }
+  protected abstract getValueFn: (input: JQuery<HTMLElement>) => () => string | number | string[];
+  protected abstract setValueFn: (input: JQuery<HTMLElement>) => (value: string) => void
 
-  protected abstract disable: (input: JQuery<HTMLElement>) => void;
-  protected abstract enable: (input: JQuery<HTMLElement>) => void;
-  public setMode(value: AccessMode) {
-    if (value === AccessMode.Read) {
+  private _accessMode: AccessMode = AccessMode.Read;
+  public get accessMode(): AccessMode {
+    return this._accessMode;
+  }
+  public setAccessMode(accessMode: AccessMode) {
+    if (accessMode === AccessMode.Read || accessMode === AccessMode.WriteDisabled) {
       this.disable(this.$input);
-    } else if (value === AccessMode.Write) {
+    } else if (accessMode === AccessMode.Write) {
       this.enable(this.$input);
     }
+    this._accessMode = accessMode;
   }
+  protected abstract disable: (input: JQuery<HTMLElement>) => void;
+  protected abstract enable: (input: JQuery<HTMLElement>) => void;
 
-  protected abstract comparator: (a: string, b: string) => boolean;
   public get modified(): boolean {
     return !this.comparator(this.originalValue, this.value);
   }
+  protected abstract comparator: (a: string, b: string) => boolean;
 
   protected originalValue: string;
 

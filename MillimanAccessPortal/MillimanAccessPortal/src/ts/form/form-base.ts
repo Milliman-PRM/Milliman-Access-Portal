@@ -5,7 +5,7 @@ import { AccessMode, SubmissionMode } from './form-modes';
 import { FormInputSection, FormSubmissionSection } from './form-section';
 import { confirmAndContinueForm } from '../shared';
 import { FileUploadInput } from './form-input/file-upload';
-import { PublicationComponent } from '../content-publishing/publication-upload';
+import { UploadComponent } from '../upload/upload';
 import { SubmissionGroup } from './form-submission';
 
 export class FormBase extends FormElement {
@@ -97,8 +97,9 @@ export class FormBase extends FormElement {
       section.inputs.forEach((input) => {
         input.recordOriginalValue();
         input.onChange(() => {
+          const modified = this.modified;
           this.submissionSection.submissions
-            .forEach((submission) => submission.modified = this.modified);
+            .forEach((submission) => submission.modified = modified);
         });
       });
     });

@@ -11,6 +11,8 @@ export abstract class FormElement {
   public get cssClasses(): FormClassRegistry {
     return this._cssClasses;
   }
+
+  // The uppermost DOM element that is part of this form element
   private _$entryPoint;
   private entryPoint;
   protected get $entryPoint(): JQuery<HTMLElement> {

@@ -1,10 +1,6 @@
 import $ = require('jquery');
 require('tooltipster');
-import shared = require('../shared');
 import toastr = require('toastr');
-import { randomBytes } from 'crypto';
-import { FileUploadCard } from '../card';
-import { PublicationUpload, PublicationComponent } from './publication-upload';
 import { ContentPublishingDOMMethods } from './dom-methods';
 
 require('../navbar');

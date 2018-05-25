@@ -8,6 +8,13 @@ import { FileScanner } from './file-scanner';
 import { RetainedValue } from './retained-value';
 
 
+export enum UploadComponent {
+  Content = 'MasterContent',
+  UserGuide = 'UserGuide',
+  Image = 'Thumbnail',
+  ReleaseNotes = 'ReleaseNotes',
+}
+
 interface ResumableInfo {
   ChunkNumber: number;
   TotalChunks: number;
@@ -19,112 +26,112 @@ interface ResumableInfo {
   Type: string;
 }
 
-export abstract class Upload {
-  protected scanner: FileScanner;
+export class Upload {
   protected resumable: any;
+  protected scanner: FileScanner;
   protected monitor: ProgressMonitor;
 
-  // attributes that indicate the upload state
-  protected _checksum: string;
+  public getUID: (file: File, event: Event) => string = () => '';
+  public onChecksumProgress: (progress: ProgressSummary) => void = () => {};
+  public onUploadProgress: (progress: ProgressSummary) => void = () => {};
+  public onProgressMessage: (message: string) => void = () => {};
+
+  public onFileAdded: (resumableFile: any) => void = () => {};
+  public onFileSuccess: (fileGUID: string) => void = () => {};
+  public onStateChange: (alertUnload: boolean, cancelable: boolean) => void = () => {};
+
+  // Cancelable, checksum, and file GUID indicate the upload state.
+  // Whether the current ongoing process can be canceled
+  protected _cancelable: boolean = false;
+  protected get cancelable(): boolean {
+    return this._cancelable;
+  }
+  protected setCancelable(cancelable: boolean) {
+    this._cancelable = cancelable;
+    this.onStateChange(this.alertUnload, this.cancelable);
+  }
+  // The checksum of the file in progress
+  protected _checksum: string = null;
   protected get checksum(): string {
     return this._checksum;
   }
-  protected set checksum(checksum: string) {
+  protected setChecksum(checksum: string) {
     this._checksum = checksum;
-    this.signalRequiresUnloadAlert();
+    this.onStateChange(this.alertUnload, this.cancelable);
   }
-  protected _fileGUID: string;
+  // The GUID of a successful file upload provided by the server
+  protected _fileGUID: string = null;
   protected get fileGUID(): string {
     return this._fileGUID;
   }
-  protected set fileGUID(fileGUID: string) {
+  protected setFileGUID(fileGUID: string) {
     this._fileGUID = fileGUID;
-    this.signalRequiresUnloadAlert();
-  }
-  protected _cancelable: boolean;
-  protected get cancelable(): boolean {
-    if (this._cancelable === undefined) {
-      this._cancelable = false;
-    }
-    return this._cancelable;
-  }
-  protected set cancelable(cancelable: boolean) {
-    const $resumableInput = $(this.selectBrowseElement(this.rootElement))
-      .children('input');
-    const $cancelButton = $(this.selectBrowseElement(this.rootElement))
-      .find('.btn-cancel');
-    if (cancelable) {
-      $resumableInput.attr('disabled', '');
-      $cancelButton.css('visibility', 'visible');
-    } else {
-      $resumableInput.removeAttr('disabled');
-      $cancelButton.css('visibility', 'hidden');
-    }
-    this._cancelable = cancelable;
-    this.signalRequiresUnloadAlert();
+    this.onStateChange(this.alertUnload, this.cancelable);
   }
 
-  protected headers = {
+  // If any of cancelable, checksum, and file GUID are set, then an alert
+  // should appear before unloading the page.
+  protected get alertUnload(): boolean {
+    return this.checksum !== null || this.fileGUID !== null || this.cancelable;
+  }
+
+  // Additional headers to send with each resumable chunk
+  protected resumableHeaders = {
     RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString(),
   };
-  protected formData = {
+  // Additional form data to send with each resumable chunk
+  protected resumableFormData = {
     Checksum: this.checksum,
   }
 
-  constructor(
-    readonly rootElement: HTMLElement,
-    readonly unloadAlertCallback: (a: boolean) => void,
-    readonly fileSuccessCallback: (guid: string) => void,
-  ) {
-    this.scanner = new FileScanner();
+  constructor() {
     this.resumable = new Resumable(Object.assign({}, resumableOptions, {
       target: '/FileUpload/UploadChunk',
-      headers: () => this.headers,
-      query: () => this.formData,
-      generateUniqueIdentifier: (file: File, event: Event) => this.generateUID(file, event),
+      headers: () => this.resumableHeaders,
+      query: () => this.resumableFormData,
+      generateUniqueIdentifier: (file: File, event: Event) => this.getUID(file, event),
     }));
     if (!this.resumable.support) {
       throw new Error('This browser does not support resumable file uploads.');
     }
+    this.scanner = new FileScanner();
 
-    this.attachToBrowseElement(rootElement);
+    this.resumable.on('fileAdded', async (resumableFile) => {
+      const file: File = resumableFile.file;
+      this.setCancelable(true);
+      this.onFileAdded(resumableFile);
 
-    this.resumable.on('fileAdded', async (file) => {
-      this.cancelable = true;
-      this.selectFileNameElement(this.rootElement).value = file.fileName;
+      this.onChecksumProgress(ProgressSummary.Empty());
+      this.onUploadProgress(ProgressSummary.Empty());
 
-      this.onFileAdded(file.file);
-
-      this.renderUploadProgress({
-        percentage: '0%',
-        rate: '',
-        remainingTime: '',
-      });
-      const message = forge.md.sha1.create();
-      this.scanner.open(file.file);
+      const messageDigest = forge.md.sha1.create();
+      this.scanner.open(file);
       this.monitor = new ProgressMonitor(
         () => this.scanner.progress,
-        this.renderChecksumProgress.bind(this),
-        file.file.size,
+        this.onChecksumProgress,
+        file.size,
       );
-      this.monitor.monitor();
+      this.monitor.activate();
+
       try {
-        await this.scanner.scan(message.update);
+        await this.scanner.scan(messageDigest.update);
       } catch {
         // Upload was canceled
         return
       }
-      this.checksum = message.digest().toHex();
+      this.setChecksum(messageDigest.digest().toHex());
 
       this.monitor = new ProgressMonitor(
         () => this.resumable.progress(),
-        this.renderUploadProgress.bind(this),
-        file.file.size,
+        this.onUploadProgress,
+        file.size,
       );
-      this.monitor.monitor();
+      this.monitor.activate();
+    
       this.getChunkStatus();
       this.resumable.upload();
     });
+
     this.resumable.on('beforeCancel', () => {
       this.resumable.files.forEach((file) => {
         const cancelInfo: ResumableInfo = {
@@ -146,14 +153,16 @@ export abstract class Upload {
           }
         }).done((response) => {
         }).fail((response) => {
-          throw new Error(`Something went wrong. Response: ${response}`);
+          throw new Error(`Something went wrong. Response: ${JSON.stringify(response)}`);
         }).always((response) => {
-          this.checksum = undefined;
+          this.setChecksum(null);
         });
       });
     });
+
     this.resumable.on('fileSuccess', (file, message) => {
-      this.cancelable = false;
+      this.setCancelable(false);
+      this.onUploadProgress(ProgressSummary.Full());
       const finalizeInfo: ResumableInfo = {
         ChunkNumber: 0,
         TotalChunks: file.chunks.length,
@@ -171,56 +180,41 @@ export abstract class Upload {
         headers: {
           RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
         }
-      }).done((response) => {
-        this.monitor.monitorEnd();
-        this.renderUploadProgress({
-          percentage: '100%',
-          rate: 'Upload complete',
-          remainingTime: '',
-        });
-        this.fileGUID = response;
-        this.fileSuccessCallback(this.fileGUID);
+      }).done((response: string) => {
+        this.monitor.deactivate();
+        this.onUploadProgress(ProgressSummary.Full());
+        this.setFileGUID(response);
+        this.onFileSuccess(this.fileGUID);
       }).fail((response) => {
         throw new Error(`Something went wrong. Response: ${response}`);
       }).always((response) => {
-        this.checksum = undefined;
+        this.setChecksum(null);
       });
-    });
-    $(rootElement).find('.btn-cancel').click((event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      if (this.checksum) {
-        this.resumable.cancel();
-      } else {
-        this.scanner.cancel();
-      }
-      this.monitor.monitorEnd();
-      this.setProgressMessage('Upload canceled');
-      this.cancelable = false;
-      this.checksum = undefined;
     });
   }
 
-  public attachToBrowseElement(element: HTMLElement) {
-    // Clone the input to clear any event listeners
-    const input = this.selectBrowseElement(element);
-    $(input).replaceWith($(input.cloneNode(false)));
+  public cancel() {
+    if (this.resumable) this.resumable.cancel();
+    if (this.scanner) this.scanner.cancel();
+    if (this.monitor) this.monitor.deactivate();
+    this.onProgressMessage('Upload canceled');
+    this.setCancelable(false);
+    this.setChecksum(null);
+  }
 
-    this.resumable.assignBrowse(this.selectBrowseElement(element), false);
+  public assignBrowse(element: HTMLElement) {
+    this.resumable.assignBrowse(element, false);
+  }
+
+  public setFileTypes(fileTypes: Array<string>) {
+    this.resumable.opts.fileType = fileTypes;
   }
 
   public reset() {
-    this.cancelable = false;
-    this.checksum = undefined;
-    this.fileGUID = undefined;
-  }
-
-  private signalRequiresUnloadAlert() {
-    this.unloadAlertCallback(
-      this.cancelable
-      || this.checksum !== undefined
-      || this.fileGUID !== undefined
-    );
+    this.cancel();
+    this.setFileGUID(null);
+    this.onChecksumProgress(ProgressSummary.Empty());
+    this.onUploadProgress(ProgressSummary.Empty());
   }
 
   private getChunkStatus() {
@@ -229,19 +223,4 @@ export abstract class Upload {
     // TODO: set `this.resumable.files[0].chunks[n].tested = true;` for already received
   }
 
-  protected abstract generateUID(file: File, event: Event): string;
-  
-  protected abstract selectBrowseElement(rootElement: HTMLElement): HTMLElement;
-
-  protected abstract selectFileNameElement(rootElement: HTMLElement): HTMLInputElement;
-
-  protected abstract selectChecksumBarElement(rootElement: HTMLElement): HTMLElement;
-
-  protected abstract renderChecksumProgress(summary: ProgressSummary);
-
-  protected abstract renderUploadProgress(summary: ProgressSummary);
-
-  protected abstract setProgressMessage(message: string);
-
-  public abstract onFileAdded(file: File);
 }

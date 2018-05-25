@@ -33,7 +33,7 @@ $(document).ready(() => {
     },
   );
   const finalGroup = SubmissionGroup.FinalGroup(() => {
-    formObject.bindToDOM();
+    formObject.bindToDOM($('#account-settings-form')[0]);
     $('#FirstName').change();
   });
 
