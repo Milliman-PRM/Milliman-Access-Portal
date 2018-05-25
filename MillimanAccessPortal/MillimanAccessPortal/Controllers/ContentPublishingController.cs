@@ -260,6 +260,7 @@ namespace MillimanAccessPortal.Controllers
         {
             #region Preliminary validation
             var currentRootContentItem = DbContext.RootContentItem
+                .Include(c => c.ContentType)
                 .Where(i => i.Id == rootContentItem.Id)
                 .SingleOrDefault();
             if (currentRootContentItem == null)
@@ -291,10 +292,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var contentType = DbContext.ContentType
-                .Where(c => c.Id == rootContentItem.ContentTypeId)
-                .SingleOrDefault();
-            if (contentType == null)
+            if (currentRootContentItem.ContentType == null)
             {
                 Response.Headers.Add("Warning", "The associated content type does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
@@ -541,9 +539,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> CancelContentPublicationRequest(long rootContentItemId)
         {
             #region Preliminary validation
-            var rootContentItem = DbContext.RootContentItem
-                .Where(r => r.Id == rootContentItemId)
-                .SingleOrDefault();
+            var rootContentItem = DbContext.RootContentItem.Find(rootContentItemId);
             if (rootContentItem == null)
             {
                 Response.Headers.Add("Warning", "The specified root content item does not exist.");
@@ -586,7 +582,16 @@ namespace MillimanAccessPortal.Controllers
 
             contentPublicationRequest.RequestStatus = PublicationStatus.Canceled;
             DbContext.ContentPublicationRequest.Update(contentPublicationRequest);
-            DbContext.SaveChanges();
+            try
+            {
+                DbContext.SaveChanges();
+            }
+            catch
+            {
+                Response.Headers.Add("Warning", "The publication request failed to be canceled.  Processing may have started.");
+                Response.Headers.Add("Warning", "The publication request failed to be canceled.  Processing may have started.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
 
             var rootContentItemStatusList = RootContentItemStatus.Build(DbContext, await Queries.GetCurrentApplicationUser(User));
 
