@@ -68,6 +68,9 @@ namespace MapTests
         public Mock<IUploadHelper> MockUploadHelper { get; set; }
         public IUploadHelper UploadHelperObject { get => MockUploadHelper.Object; }
 
+        public Mock<IConfiguration> MockConfiguration { get; set; }
+        public IConfiguration ConfigurationObject { get => MockConfiguration.Object; }
+
         public IOptions<QlikviewConfig> QvConfig { get { return BuildQvConfig(); } }
 
         public DefaultAuthorizationService AuthorizationService { get; set; }
@@ -145,6 +148,7 @@ namespace MapTests
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject);
             MockAuditLogger = TestResourcesLib.MockAuditLogger.New();
+            MockConfiguration = GenerateMockConfiguration();
         }
 
         private IOptions<QlikviewConfig> BuildQvConfig()
@@ -257,6 +261,12 @@ namespace MapTests
                 return Path.Combine(TestDataPath, $"{resumableInfo.UID}{resumableInfo.FileExt}");
             });
 
+            return mock;
+        }
+
+        private Mock<IConfiguration> GenerateMockConfiguration()
+        {
+            Mock<IConfiguration> mock = new Mock<IConfiguration>();
             return mock;
         }
 
