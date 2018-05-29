@@ -24,7 +24,7 @@ namespace MapDbContextLib.Models
         /// <summary>
         /// Instance of this could also be type child class ReductionFieldValueSelection
         /// </summary>
-        public T[] Values { get; set; } = new T[0];
+        public List<T> Values { get; set; } = new List<T>();
     }
 }
 

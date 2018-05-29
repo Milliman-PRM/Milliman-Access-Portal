@@ -650,6 +650,8 @@ namespace MillimanAccessPortal.Controllers
 
             PreLiveContentValidationSummary ReturnObj = PreLiveContentValidationSummary.Build(DbContext, RootContentItemId);
 
+            // if the following is removed, the above constructor can be modified to remove 
+            // the IConfiguration argument and associated member variable ApplicationConfig.
             string Attestation = ApplicationConfig.GetValue<string>("Publishing:AttestationLanguage");
             if (!string.IsNullOrWhiteSpace(Attestation))
             {

@@ -407,9 +407,10 @@ export namespace ContentPublishingDOMMethods {
     // TODO: delete this. for testing only.
     $('#client-tree > input').click(() => {
       $.ajax({
-        method: 'POST',
-        url: 'ContentPublishing/',
+        method: 'GET',
+        url: 'ContentPublishing/PreLiveSummary',
         data: {
+            RootContentItemId: 1,
         }
       }).done((response) => {
         toastr.success('Success');

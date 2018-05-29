@@ -288,7 +288,7 @@ namespace ContentPublishingServiceTests
                         StructureType = FieldStructureType.Tree,
                         ValueDelimiter = "|",
                         Id = 1,
-                        Values = new ReductionFieldValueSelection[]
+                        Values = new List<ReductionFieldValueSelection>
                         {
                             new ReductionFieldValueSelection
                             {
@@ -331,7 +331,7 @@ namespace ContentPublishingServiceTests
                         StructureType = FieldStructureType.Tree,
                         ValueDelimiter = "|",
                         Id = 1,
-                        Values = new ReductionFieldValueSelection[]
+                        Values = new List<ReductionFieldValueSelection>
                         {
                             new ReductionFieldValueSelection
                             {
@@ -368,7 +368,7 @@ namespace ContentPublishingServiceTests
                         StructureType = FieldStructureType.Tree,
                         ValueDelimiter = "|",
                         Id = 1,
-                        Values = new ReductionFieldValueSelection[]
+                        Values = new List<ReductionFieldValueSelection>
                         {
                             new ReductionFieldValueSelection
                             {
@@ -385,7 +385,7 @@ namespace ContentPublishingServiceTests
                         StructureType = FieldStructureType.Tree,
                         ValueDelimiter = "|",
                         Id = 1,
-                        Values = new ReductionFieldValueSelection[]
+                        Values = new List<ReductionFieldValueSelection>
                         {
                             new ReductionFieldValueSelection
                             {
@@ -422,7 +422,7 @@ namespace ContentPublishingServiceTests
                         StructureType = FieldStructureType.Tree,
                         ValueDelimiter = "|",
                         Id = 1,
-                        Values = new ReductionFieldValueSelection[]
+                        Values = new List<ReductionFieldValueSelection>
                         {
                             new ReductionFieldValueSelection
                             {
@@ -459,7 +459,7 @@ namespace ContentPublishingServiceTests
                     {
                         Id = 1,
                         ApplicationUserId = 1,
-                        CreateDateTime = DateTime.Now,
+                        CreateDateTimeUtc = DateTime.Now,
                         RequestStatus = PublicationStatus.Unknown,
                         PublishRequest = new PublishRequest
                         {
@@ -475,7 +475,7 @@ namespace ContentPublishingServiceTests
                     {
                         Id = 2,
                         ApplicationUserId = 1,
-                        CreateDateTime = DateTime.Now,
+                        CreateDateTimeUtc = DateTime.Now,
                         RequestStatus = PublicationStatus.Unknown,
                         PublishRequest = new PublishRequest
                         {
@@ -491,7 +491,7 @@ namespace ContentPublishingServiceTests
                     {
                         Id = 3,
                         ApplicationUserId = 1,
-                        CreateDateTime = DateTime.Now,
+                        CreateDateTimeUtc = DateTime.Now,
                         RequestStatus = PublicationStatus.Unknown,
                         PublishRequest = new PublishRequest
                         {
@@ -507,7 +507,7 @@ namespace ContentPublishingServiceTests
                     {
                         Id = 4,
                         ApplicationUserId = 1,
-                        CreateDateTime = DateTime.Now,
+                        CreateDateTimeUtc = DateTime.Now,
                         RequestStatus = PublicationStatus.Unknown,
                         PublishRequest = new PublishRequest
                         {

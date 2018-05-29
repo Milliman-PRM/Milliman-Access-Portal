@@ -23,7 +23,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public string ThumbnailLink { get; set; }
         public ContentReductionHierarchy<ReductionFieldValue> OldHierarchy { get; set; }
         public ContentReductionHierarchy<ReductionFieldValue> NewHierarchy { get; set; }
-        public SelectionGroupSummary[] SelectionGroups { get; set; }
+        public List<SelectionGroupSummary> SelectionGroups { get; set; }
 
         public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, long RootContentItemId)
         {
@@ -31,6 +31,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             ContentPublicationRequest PubRequest = Db.ContentPublicationRequest
                                                      .Include(r => r.RootContentItem).ThenInclude(c => c.ContentType)
                                                      .Include(r => r.RootContentItem).ThenInclude(c => c.Client)
+                                                     .Where(r => r.RequestStatus == PublicationStatus.Complete)
                                                      .SingleOrDefault(r => r.RootContentItemId == RootContentItemId);
             #region Validation of PubRequest and related nav properties from db
             if (PubRequest == null
@@ -57,8 +58,6 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             }
             #endregion
 
-
-
             PreLiveContentValidationSummary ReturnObj = new PreLiveContentValidationSummary
             {
                 RootContentName = PubRequest.RootContentItem.ContentName,
@@ -72,12 +71,12 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 UserGuideLink = string.Empty,
                 ReleaseNotesLink = string.Empty,
                 ThumbnailLink = string.Empty,
-                OldHierarchy = new ContentReductionHierarchy<ReductionFieldValue>(),
-                NewHierarchy = new ContentReductionHierarchy<ReductionFieldValue>(),
-                SelectionGroups = new SelectionGroupSummary[0],
+                OldHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(Db, RootContentItemId),
+                NewHierarchy = ContentReductionHierarchy<ReductionFieldValue>.DeserializeJson(AllTasks[0].MasterContentHierarchy),
+                SelectionGroups = AllTasks.Select(t => new SelectionGroupSummary(Db, t.SelectionGroup)).ToList(),
             };
 
-            // TODO populate the link and object members
+            // TODO populate the links
 
             return ReturnObj;
         }
@@ -86,7 +85,13 @@ namespace MillimanAccessPortal.Models.ContentPublishing
     public class SelectionGroupSummary
     {
         public string Name { get; set; }
-        public int UserCount { get; set; }
+        public int UserCount { get; set; } = 0;
         public bool IsMaster { get; set; }
+        public SelectionGroupSummary(ApplicationDbContext Db, SelectionGroup entity)
+        {
+            Name = entity.GroupName;
+            IsMaster = entity.IsMaster;
+            UserCount = Db.UserInSelectionGroup.Count(usg => usg.SelectionGroupId == entity.Id);
+        }
     }
 }
