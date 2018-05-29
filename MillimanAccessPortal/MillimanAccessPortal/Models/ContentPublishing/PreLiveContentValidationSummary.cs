@@ -32,7 +32,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                                      .Include(r => r.RootContentItem).ThenInclude(c => c.ContentType)
                                                      .Include(r => r.RootContentItem).ThenInclude(c => c.Client)
                                                      .SingleOrDefault(r => r.RootContentItemId == RootContentItemId);
-            #region Validation of PubRequest and nav properties from db
+            #region Validation of PubRequest and related nav properties from db
             if (PubRequest == null
              || PubRequest.RootContentItem == null
              || PubRequest.RootContentItem.ContentType == null
@@ -47,8 +47,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                                     .Include(t => t.SelectionGroup)
                                                     .Where(t => t.ContentPublicationRequestId == PubRequest.Id)
                                                     .ToList();
-
-            #region Validation of reduction tasks and nav properties from db
+            #region Validation of reduction tasks and related nav properties from db
             if (AllTasks.Count == 0 
              || AllTasks.Any(t => t.SelectionGroup == null)
              || AllTasks.Any(t => t.SelectionGroup.RootContentItemId != PubRequest.RootContentItemId)
@@ -57,6 +56,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 throw new ApplicationException($"While building content validation summary, reduction task query failed");
             }
             #endregion
+
+
 
             PreLiveContentValidationSummary ReturnObj = new PreLiveContentValidationSummary
             {
