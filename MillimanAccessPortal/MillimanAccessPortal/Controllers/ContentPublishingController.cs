@@ -615,9 +615,11 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> PreLiveSummary(long RootContentItemId)
         {
-            // Return a model summarizing the publication summary
+            // TODO authorization, validation
 
-            return new JsonResult(new object());
+            PreLiveContentValidationSummary ReturnObj = PreLiveContentValidationSummary.Build(DbContext, RootContentItemId);
+
+            return new JsonResult(ReturnObj);
         }
     }
 }
