@@ -402,5 +402,21 @@ export namespace ContentPublishingDOMMethods {
 
     statusMonitor = new PublicationStatusMonitor();
     statusMonitor.start();
+
+
+    // TODO: delete this. for testing only.
+    $('#client-tree > input').click(() => {
+      $.ajax({
+        method: 'POST',
+        url: 'ContentPublishing/',
+        data: {
+        }
+      }).done((response) => {
+        toastr.success('Success');
+      }).fail((response) => {
+        toastr.error('Error');
+      }).always((response) => {
+      });
+    });
   }
 }
