@@ -25,30 +25,36 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public ContentReductionHierarchy<ReductionFieldValue> NewHierarchy { get; set; }
         public SelectionGroupSummary[] SelectionGroups { get; set; }
 
-        public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, long PublicationRequestId)
+        public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, long RootContentItemId)
         {
             // Two separate queries because PubRequest and its navigation properties are single records, Tasks and SelectionGroups are multiple
             ContentPublicationRequest PubRequest = Db.ContentPublicationRequest
                                                      .Include(r => r.RootContentItem).ThenInclude(c => c.ContentType)
                                                      .Include(r => r.RootContentItem).ThenInclude(c => c.Client)
-                                                     .SingleOrDefault(r => r.Id == PublicationRequestId);
-
-            List<ContentReductionTask> AllTasks = Db.ContentReductionTask
-                                                    .Include(t => t.SelectionGroup)
-                                                    .Where(t => t.ContentPublicationRequestId == PublicationRequestId)
-                                                    .ToList();
-
-            #region Validation
+                                                     .SingleOrDefault(r => r.RootContentItemId == RootContentItemId);
+            #region Validation of PubRequest and nav properties from db
             if (PubRequest == null
              || PubRequest.RootContentItem == null
              || PubRequest.RootContentItem.ContentType == null
              || PubRequest.RootContentItem.Client == null
-             || AllTasks.Count == 0 
+             )  // if any of this happens it probably means db corruption or connection failed
+            {
+                throw new ApplicationException($"While building content validation summary, publication request query failed");
+            }
+            #endregion
+
+            List<ContentReductionTask> AllTasks = Db.ContentReductionTask
+                                                    .Include(t => t.SelectionGroup)
+                                                    .Where(t => t.ContentPublicationRequestId == PubRequest.Id)
+                                                    .ToList();
+
+            #region Validation of reduction tasks and nav properties from db
+            if (AllTasks.Count == 0 
              || AllTasks.Any(t => t.SelectionGroup == null)
              || AllTasks.Any(t => t.SelectionGroup.RootContentItemId != PubRequest.RootContentItemId)
              )  // if any of this happens it probably means db corruption or connection failed
             {
-                throw new ApplicationException($"While building content validation summary, database query failed to return required navigation propert(ies)");
+                throw new ApplicationException($"While building content validation summary, reduction task query failed");
             }
             #endregion
 
