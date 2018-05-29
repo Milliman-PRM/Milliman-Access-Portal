@@ -276,13 +276,13 @@ export function set<T>(method: string, url: string, successMessage: string, call
 };
 
 export function post<T>(url: string, successMessage: string, callbacks: Array<(response: T) => void>) {
-  set('POST', url, successMessage, callbacks);
+  return set('POST', url, successMessage, callbacks);
 }
 export function del<T>(url: string, successMessage: string, callbacks: Array<(response: T) => void>) {
-  set('DELETE', url, successMessage, callbacks);
+  return set('DELETE', url, successMessage, callbacks);
 }
 export function put<T>(url: string, successMessage: string, callbacks: Array<(response: T) => void>) {
-  set('PUT', url, successMessage, callbacks);
+  return set('PUT', url, successMessage, callbacks);
 }
 
 export function showButtonSpinner($buttons, text?) {
