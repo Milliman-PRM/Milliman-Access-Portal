@@ -102,29 +102,22 @@ export class SubmissionGroup<T> {
   }
 
   public chain<U>(that: SubmissionGroup<U>, sparse: boolean = false): SubmissionGroup<T> {
-    const copy = new SubmissionGroup<T>(
+    const root = new SubmissionGroup<T>(
       this.sections,
       this.url,
       this.method,
       this.callback,
       this.transform,
     );
-    copy.sparse = this.sparse;
-    copy.next = this.next;
+    root.sparse = this.sparse;
+    root.next = this.next;
 
-    const lastChain = copy.lastChain;
+    const lastChain = root.lastChain;
     lastChain.next = that ? that : SubmissionGroup.FinalGroup();
 
-    const originalCallback = lastChain.callback;
-    lastChain.callback = (response: T, form: FormBase) => {
-      if (response !== null) {
-        originalCallback(response, form);
-      }
-      lastChain.next.submit(form);
-    };
     lastChain.sparse = sparse;
 
-    return copy;
+    return root;
   }
 
   public submit(form: FormBase) {
@@ -137,7 +130,9 @@ export class SubmissionGroup<T> {
 
     if (this.sparse && !modified) {
       // skip this request and go to the next
-      this.callback(null, form);
+      if (this.next !== null) {
+        this.next.submit(form);
+      }
       hideButtonSpinner($(`.button-container-${form.submissionMode} .button-submit`));
       return;
     }
@@ -150,7 +145,10 @@ export class SubmissionGroup<T> {
         RequestVerificationToken: form.antiforgeryToken,
       },
     }).done((response: T) => {
-      this.callback(response, form);
+      this.callback(response);
+      if (this.next !== null) {
+        this.next.submit(form);
+      }
     }).fail((response) => {
       toastr.warning(response.getResponseHeader('warning'));
       // TODO: do something on fail
