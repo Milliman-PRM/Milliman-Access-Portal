@@ -171,7 +171,10 @@ export namespace ContentPublishingDOMMethods {
       ],
       'ContentPublishing/CreateRootContentItem',
       'POST',
-      (response) => $('#Id').val(response.Id),
+      (response) => {
+        $('#Id').val(response.Id);
+        toastr.success('Response received.');
+      },
       (data) => {
         if (data.indexOf('DoesReduce=') === -1) {
           return data + '&DoesReduce=False';
@@ -188,7 +191,10 @@ export namespace ContentPublishingDOMMethods {
       ],
       'ContentPublishing/UpdateRootContentItem',
       'POST',
-      renderRootContentItemForm,
+      (response) => {
+        renderRootContentItemForm(response);
+        toastr.success('Response received.');
+      },
       (data) => {
         if (data.indexOf('DoesReduce=') === -1) {
           return data + '&DoesReduce=False';
@@ -204,7 +210,9 @@ export namespace ContentPublishingDOMMethods {
       ],
       'ContentPublishing/Publish',
       'POST',
-      (response) => { },
+      (response) => {
+        toastr.success('Response received.');
+      },
       (data) => {
         let dataArray: { [key: string]: string } = {};
         data.split('&')

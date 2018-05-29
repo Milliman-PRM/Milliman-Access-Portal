@@ -131,7 +131,7 @@ export class SubmissionGroup<T> {
     showButtonSpinner($(`.button-container-${form.submissionMode} .button-submit`));
 
     const modified = form.inputSections
-      .filter((inputSection) => this.sections.indexOf(inputSection.name) !== -1)
+      .filter((inputSection) => this.sections === undefined || this.sections.indexOf(inputSection.name) !== -1)
       .map((inputSection) => inputSection.modified)
       .reduce((cum, cur) => cum || cur, false);
 
