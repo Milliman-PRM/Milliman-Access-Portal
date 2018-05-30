@@ -261,7 +261,7 @@ namespace ContentPublishingLib.JobMonitors
                             DbRequest.RequestStatus = PublicationStatus.Error;
                             break;
                         case PublishJobDetail.JobStatusEnum.Success:
-                            DbRequest.RequestStatus = PublicationStatus.Complete;
+                            DbRequest.RequestStatus = PublicationStatus.Processed;
                             break;
                         case PublishJobDetail.JobStatusEnum.Canceled:
                             DbRequest.RequestStatus = PublicationStatus.Canceled;
