@@ -217,7 +217,7 @@ export namespace ContentPublishingDOMMethods {
         if (data.indexOf('DoesReduce=') === -1) {
           return data + '&DoesReduce=False';
         } else {
-          return data.replace('DoesReduce=', '') + '&DoesReduce=True';
+          return data.replace('DoesReduce=', '').replace('&&', '&') + '&DoesReduce=True';
         }
       },
     );
