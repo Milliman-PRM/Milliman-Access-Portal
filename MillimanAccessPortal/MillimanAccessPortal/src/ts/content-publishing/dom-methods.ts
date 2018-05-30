@@ -237,16 +237,19 @@ export namespace ContentPublishingDOMMethods {
     formObject.configure(
       [
         {
-          group: createContentGroup.chain(submitPublication),
+          groups: [ createContentGroup, submitPublication ],
           name: 'new',
+          sparse: false,
         },
         {
-          group: updateContentGroup.chain(submitPublication, true).chain(null, true),
+          groups: [ updateContentGroup, submitPublication ],
           name: 'edit-or-republish',
+          sparse: true,
         },
         {
-          group: updateContentGroup,
+          groups: [ updateContentGroup ],
           name: 'edit',
+          sparse: false,
         },
       ],
     );

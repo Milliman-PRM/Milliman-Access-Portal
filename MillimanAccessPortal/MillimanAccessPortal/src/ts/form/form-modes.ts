@@ -2,7 +2,8 @@ import { SubmissionGroup } from "./form-submission";
 
 export interface SubmissionMode {
   name: string,
-  group: SubmissionGroup<any>,
+  groups: Array<SubmissionGroup<any>>,
+  sparse: boolean,
 }
 
 export enum AccessMode {
