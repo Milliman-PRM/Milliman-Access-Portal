@@ -171,8 +171,20 @@ export namespace ContentPublishingDOMMethods {
       'ContentPublishing/CreateRootContentItem',
       'POST',
       (response) => {
+        // Rerender the form to set Id and reset original values
         renderRootContentItemForm(response.detail);
-        toastr.success('Response received.');
+        // Add the new content item as a card and select it
+        renderRootContentItem(response.summary);
+        $('#root-content-items .card-container')
+          .filter((i, card) => $(card).data().rootContentItemId === response.detail.Id)
+          .children().click();
+        // Update the root content item count stat on the client card
+        const itemCount = $('#client-tree .card-container')
+          .filter((i, card) => $(card).data().clientId === response.detail.ClientId)
+          .find('use[href="#action-icon-reports"]').closest('div').find('h4');
+        itemCount.html(`${parseInt(itemCount.html()) + 1}`);
+
+        toastr.success('Root content item created');
       },
       (data) => {
         if (data.indexOf('DoesReduce=') === -1) {
@@ -192,7 +204,7 @@ export namespace ContentPublishingDOMMethods {
       'POST',
       (response) => {
         renderRootContentItemForm(response.detail);
-        toastr.success('Response received.');
+        toastr.success('Root content item updated');
       },
       (data) => {
         if (data.indexOf('DoesReduce=') === -1) {
@@ -210,7 +222,7 @@ export namespace ContentPublishingDOMMethods {
       'ContentPublishing/Publish',
       'POST',
       (response) => {
-        toastr.success('Response received.');
+        toastr.success('Publication request submitted');
       },
       (data) => {
         let dataArray: { [key: string]: string } = {};
