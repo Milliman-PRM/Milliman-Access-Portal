@@ -376,6 +376,8 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
+            RootContentItemDetail model = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, rootContentItem);
+
             DbContext.RootContentItem.Remove(rootContentItem);
             DbContext.SaveChanges();
 
@@ -390,8 +392,6 @@ namespace MillimanAccessPortal.Controllers
                 );
             AuditLogger.Log(rootContentItemDeletedEvent);
             #endregion
-
-            RootContentItemList model = RootContentItemList.Build(DbContext, rootContentItem.Client, await Queries.GetCurrentApplicationUser(User));
 
             return Json(model);
         }

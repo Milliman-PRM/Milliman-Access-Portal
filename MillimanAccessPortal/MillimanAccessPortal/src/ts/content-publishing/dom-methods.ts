@@ -26,10 +26,12 @@ export namespace ContentPublishingDOMMethods {
       headers: {
         RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
       }
-    }).done(function onDone(response) {
-      $('#root-content-items .admin-panel-content').empty();
+    }).done(function onDone(response: RootContentItemDetail) {
       $('#content-publishing-form').hide();
-      renderRootContentItemList(response);
+        $('#root-content-items .card-container')
+          .filter((i, card) => $(card).data().rootContentItemId === response.Id)
+          .remove();
+      addToDocumentCount(response.ClientId, -1);
       callback();
       toastr.success(rootContentItemName + ' was successfully deleted.');
     }).fail(function onFail(response) {
@@ -149,6 +151,13 @@ export namespace ContentPublishingDOMMethods {
     return formMap;
   }
 
+  function addToDocumentCount(clientId: number, offset: number) {
+    const itemCount = $('#client-tree .card-container')
+      .filter((i, card) => $(card).data().clientId === clientId)
+      .find('use[href="#action-icon-reports"]').closest('div').find('h4');
+    itemCount.html(`${parseInt(itemCount.html()) + offset}`);
+  }
+
   function renderRootContentItemForm(item?: RootContentItemDetail) {
     const $panel = $('#content-publishing-form');
     const $rootContentItemForm = $panel.find('form.admin-panel-content');
@@ -180,10 +189,7 @@ export namespace ContentPublishingDOMMethods {
           .filter((i, card) => $(card).data().rootContentItemId === response.detail.Id)
           .children().click();
         // Update the root content item count stat on the client card
-        const itemCount = $('#client-tree .card-container')
-          .filter((i, card) => $(card).data().clientId === response.detail.ClientId)
-          .find('use[href="#action-icon-reports"]').closest('div').find('h4');
-        itemCount.html(`${parseInt(itemCount.html()) + 1}`);
+        addToDocumentCount(response.detail.ClientId, 1);
 
         toastr.success('Root content item created');
       },
