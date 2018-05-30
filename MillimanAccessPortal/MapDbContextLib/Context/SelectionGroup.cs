@@ -18,7 +18,6 @@ namespace MapDbContextLib.Context
         [Required]
         public string GroupName { get; set; }
 
-        [Required]
         public string ContentInstanceUrl { get; set; }
 
         [ForeignKey("RootContentItem")]
