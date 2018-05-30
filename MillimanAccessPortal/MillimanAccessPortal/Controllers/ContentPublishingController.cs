@@ -652,10 +652,13 @@ namespace MillimanAccessPortal.Controllers
 
             // if the following is removed, the above constructor can be modified to remove 
             // the IConfiguration argument and associated member variable ApplicationConfig.
-            string Attestation = ApplicationConfig.GetValue<string>("Publishing:AttestationLanguage");
-            if (!string.IsNullOrWhiteSpace(Attestation))
+            if (string.IsNullOrWhiteSpace(ReturnObj.AttestationLanguage))
             {
-                ReturnObj.AttestationLanguage = Attestation;
+                string Attestation = ApplicationConfig.GetValue<string>("Publishing:AttestationLanguage");
+                if (!string.IsNullOrWhiteSpace(Attestation))
+                {
+                    ReturnObj.AttestationLanguage = Attestation;
+                }
             }
 
             return new JsonResult(ReturnObj);

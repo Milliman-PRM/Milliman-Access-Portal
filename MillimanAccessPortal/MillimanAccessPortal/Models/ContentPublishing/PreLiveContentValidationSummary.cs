@@ -21,17 +21,16 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public string UserGuideLink { get; set; }
         public string ReleaseNotesLink { get; set; }
         public string ThumbnailLink { get; set; }
-        public ContentReductionHierarchy<ReductionFieldValue> OldHierarchy { get; set; }
+        public ContentReductionHierarchy<ReductionFieldValue> LiveHierarchy { get; set; }
         public ContentReductionHierarchy<ReductionFieldValue> NewHierarchy { get; set; }
         public List<SelectionGroupSummary> SelectionGroups { get; set; }
 
         public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, long RootContentItemId)
         {
-            // Two separate queries because PubRequest and its navigation properties are single records, Tasks and SelectionGroups are multiple
             ContentPublicationRequest PubRequest = Db.ContentPublicationRequest
                                                      .Include(r => r.RootContentItem).ThenInclude(c => c.ContentType)
                                                      .Include(r => r.RootContentItem).ThenInclude(c => c.Client)
-                                                     .Where(r => r.RequestStatus == PublicationStatus.Complete)
+                                                     .Where(r => r.RequestStatus == PublicationStatus.Processed)
                                                      .SingleOrDefault(r => r.RootContentItemId == RootContentItemId);
             #region Validation of PubRequest and related nav properties from db
             if (PubRequest == null
@@ -44,20 +43,6 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             }
             #endregion
 
-            List<ContentReductionTask> AllTasks = Db.ContentReductionTask
-                                                    .Include(t => t.SelectionGroup)
-                                                    .Where(t => t.ContentPublicationRequestId == PubRequest.Id)
-                                                    .ToList();
-            #region Validation of reduction tasks and related nav properties from db
-            if (AllTasks.Count == 0 
-             || AllTasks.Any(t => t.SelectionGroup == null)
-             || AllTasks.Any(t => t.SelectionGroup.RootContentItemId != PubRequest.RootContentItemId)
-             )  // if any of this happens it probably means db corruption or connection failed
-            {
-                throw new ApplicationException($"While building content validation summary, reduction task query failed");
-            }
-            #endregion
-
             PreLiveContentValidationSummary ReturnObj = new PreLiveContentValidationSummary
             {
                 RootContentName = PubRequest.RootContentItem.ContentName,
@@ -66,15 +51,45 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 DoesReduce = PubRequest.RootContentItem.DoesReduce,
                 ClientName = PubRequest.RootContentItem.Client.Name,
                 ClientCode = PubRequest.RootContentItem.Client.ClientCode,
-                AttestationLanguage = string.Empty,
-                MasterContentLink = string.Empty,
-                UserGuideLink = string.Empty,
-                ReleaseNotesLink = string.Empty,
-                ThumbnailLink = string.Empty,
-                OldHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(Db, RootContentItemId),
-                NewHierarchy = ContentReductionHierarchy<ReductionFieldValue>.DeserializeJson(AllTasks[0].MasterContentHierarchy),
-                SelectionGroups = AllTasks.Select(t => new SelectionGroupSummary(Db, t.SelectionGroup)).ToList(),
+                AttestationLanguage = null,
+                MasterContentLink = null,
+                UserGuideLink = null,
+                ReleaseNotesLink = null,
+                ThumbnailLink = null,
             };
+
+            if (PubRequest.RootContentItem.DoesReduce)
+            {
+                List<ContentReductionTask> AllTasks = Db.ContentReductionTask
+                                                        .Include(t => t.SelectionGroup)
+                                                        .Where(t => t.ContentPublicationRequestId == PubRequest.Id)
+                                                        .ToList();
+                #region Validation of reduction tasks and related nav properties from db
+                if (AllTasks.Count == 0
+                 || AllTasks.Any(t => t.SelectionGroup == null)
+                 || AllTasks.Any(t => t.SelectionGroup.RootContentItemId != PubRequest.RootContentItemId)
+                 )  // if any of this happens it probably means db corruption or connection failed
+                {
+                    throw new ApplicationException($"While building content validation summary, reduction task query failed");
+                }
+                #endregion
+
+                ReturnObj.LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(Db, RootContentItemId);
+                ReturnObj.NewHierarchy = ContentReductionHierarchy<ReductionFieldValue>.DeserializeJson(AllTasks[0].MasterContentHierarchy);
+                ReturnObj.SelectionGroups = AllTasks.Select(t => new SelectionGroupSummary
+                    {
+                        Name = t.SelectionGroup.GroupName,
+                        IsMaster = t.SelectionGroup.IsMaster,
+                        UserCount = Db.UserInSelectionGroup.Count(usg => usg.SelectionGroupId == t.SelectionGroup.Id),
+                    }
+                ).ToList();
+            }
+            else
+            {
+                ReturnObj.LiveHierarchy = null;
+                ReturnObj.NewHierarchy = null;
+                ReturnObj.SelectionGroups = null;
+            }
 
             // TODO populate the links
 
@@ -84,14 +99,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
     public class SelectionGroupSummary
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         public int UserCount { get; set; } = 0;
         public bool IsMaster { get; set; }
-        public SelectionGroupSummary(ApplicationDbContext Db, SelectionGroup entity)
-        {
-            Name = entity.GroupName;
-            IsMaster = entity.IsMaster;
-            UserCount = Db.UserInSelectionGroup.Count(usg => usg.SelectionGroupId == entity.Id);
-        }
     }
 }
