@@ -14,7 +14,6 @@ import { PublicationStatusMonitor } from './publication-status-monitor';
 export namespace ContentPublishingDOMMethods {
 
   let formObject: FormBase;
-  let currentFormId: number;
   let statusMonitor: PublicationStatusMonitor;
 
   function deleteRootContentItem(rootContentItemId: string, rootContentItemName: string, password: string, callback: () => void) {
@@ -150,17 +149,19 @@ export namespace ContentPublishingDOMMethods {
     return formMap;
   }
 
-  function renderRootContentItemForm(item: RootContentItemDetail) {
+  function renderRootContentItemForm(item?: RootContentItemDetail) {
     const $panel = $('#content-publishing-form');
     const $rootContentItemForm = $panel.find('form.admin-panel-content');
 
-    const formMap = mapRootContentItemDetail(item);
-    formMap.forEach((value, key) => {
-      $rootContentItemForm.find(`#${key}`).val(value ? value.toString() : '');
-    });
+    if (item) {
+      const formMap = mapRootContentItemDetail(item);
+      formMap.forEach((value, key) => {
+        $rootContentItemForm.find(`#${key}`).val(value ? value.toString() : '');
+      });
 
-    const $doesReduceToggle = $rootContentItemForm.find(`#DoesReduce`);
-    $doesReduceToggle.prop('checked', item.DoesReduce);
+      const $doesReduceToggle = $rootContentItemForm.find(`#DoesReduce`);
+      $doesReduceToggle.prop('checked', item.DoesReduce);
+    }
 
     const createContentGroup = new SubmissionGroup<RootContentItemSummaryAndDetail>(
       [
@@ -222,6 +223,8 @@ export namespace ContentPublishingDOMMethods {
       'ContentPublishing/Publish',
       'POST',
       (response) => {
+        renderRootContentItemForm();
+        setFormReadOnly();
         toastr.success('Publication request submitted');
       },
       (data) => {
@@ -264,8 +267,6 @@ export namespace ContentPublishingDOMMethods {
         },
       ],
     );
-    
-    currentFormId = item.Id;
   }
 
 
