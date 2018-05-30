@@ -176,13 +176,15 @@ namespace ContentPublishingLib.JobRunners
 
             File.Copy(RelatedFile.FullPath, DestinationFullPath, true);
 
-            // Clean up FileUpload entity and uploaded file
+            // Clean up FileUpload entity and uploaded file(s)
             using (ApplicationDbContext Db = GetDbContext())
+            using (var Txn = Db.Database.BeginTransaction())  // transactional in case anything throws
             {
                 List<FileUpload> Uploads = Db.FileUpload.Where(f => f.StoragePath == RelatedFile.FullPath).ToList();
                 Uploads.ForEach(u => Db.FileUpload.Remove(u));
-                Db.SaveChanges();
                 File.Delete(RelatedFile.FullPath);
+                Db.SaveChanges();
+                Txn.Commit();
             }
 
             JobDetail.Result.RelatedFiles.Add(new PublishJobDetail.ContentRelatedFile { FilePurpose = RelatedFile.FilePurpose, FullPath = DestinationFullPath });
