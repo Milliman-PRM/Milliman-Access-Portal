@@ -377,7 +377,7 @@ export function updateFormStatusButtons() {
   var $statusFormContainer = $('#content-publishing-form').find('.form-status-container');
   $statusFormContainer.hide();
 
-  if (selectedData.statusEnum === PublicationStatus.Unknown) {
+  if (selectedData.statusEnum === undefined || selectedData.statusEnum === PublicationStatus.Unknown) {
     $statusFormContainer.filter('.form-status-edit-or-republish').show();
   } else {
     $statusFormContainer.filter('.form-status-edit').show();

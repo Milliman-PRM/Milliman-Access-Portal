@@ -153,7 +153,6 @@ export namespace ContentPublishingDOMMethods {
   function renderRootContentItemForm(item: RootContentItemDetail) {
     const $panel = $('#content-publishing-form');
     const $rootContentItemForm = $panel.find('form.admin-panel-content');
-    clearForm($panel);
 
     const formMap = mapRootContentItemDetail(item);
     formMap.forEach((value, key) => {
@@ -172,7 +171,7 @@ export namespace ContentPublishingDOMMethods {
       'ContentPublishing/CreateRootContentItem',
       'POST',
       (response) => {
-        $('#Id').val(response.detail.Id);
+        renderRootContentItemForm(response.detail);
         toastr.success('Response received.');
       },
       (data) => {
@@ -254,7 +253,6 @@ export namespace ContentPublishingDOMMethods {
       ],
     );
     
-    setFormReadOnly();
     currentFormId = item.Id;
   }
 
@@ -270,6 +268,7 @@ export namespace ContentPublishingDOMMethods {
         [
           updateFormStatusButtons,
           renderRootContentItemForm,
+          setFormReadOnly,
         ],
       ), () => formObject),
       wrapCardIconCallback(($card, always) => get(
