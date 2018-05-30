@@ -5,7 +5,7 @@ import { showButtonSpinner, clearForm, wrapCardCallback, get, wrapCardIconCallba
 import { ClientCard, RootContentItemCard, AddRootContentItemActionCard } from '../card';
 import { FormBase } from '../form/form-base';
 import { AccessMode } from '../form/form-modes';
-import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType, PublishRequest } from '../view-models/content-publishing';
+import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType, PublishRequest, RootContentItemSummaryAndDetail } from '../view-models/content-publishing';
 import { setUnloadAlert } from '../unload-alerts';
 import { DeleteRootContentItemDialog, DiscardConfirmationDialog, CancelContentPublicationRequestDialog } from '../dialog';
 import { SubmissionGroup } from '../form/form-submission';
@@ -163,7 +163,7 @@ export namespace ContentPublishingDOMMethods {
     const $doesReduceToggle = $rootContentItemForm.find(`#DoesReduce`);
     $doesReduceToggle.prop('checked', item.DoesReduce);
 
-    const createContentGroup = new SubmissionGroup<RootContentItemDetail>(
+    const createContentGroup = new SubmissionGroup<RootContentItemSummaryAndDetail>(
       [
         'common',
         'root-content-item-info',
@@ -172,7 +172,7 @@ export namespace ContentPublishingDOMMethods {
       'ContentPublishing/CreateRootContentItem',
       'POST',
       (response) => {
-        $('#Id').val(response.Id);
+        $('#Id').val(response.detail.Id);
         toastr.success('Response received.');
       },
       (data) => {
@@ -183,7 +183,7 @@ export namespace ContentPublishingDOMMethods {
         }
       },
     );
-    const updateContentGroup = new SubmissionGroup<RootContentItemDetail>(
+    const updateContentGroup = new SubmissionGroup<RootContentItemSummaryAndDetail>(
       [
         'common',
         'root-content-item-info',
@@ -192,7 +192,7 @@ export namespace ContentPublishingDOMMethods {
       'ContentPublishing/UpdateRootContentItem',
       'POST',
       (response) => {
-        renderRootContentItemForm(response);
+        renderRootContentItemForm(response.detail);
         toastr.success('Response received.');
       },
       (data) => {
