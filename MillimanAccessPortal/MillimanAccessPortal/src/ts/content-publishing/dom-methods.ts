@@ -88,13 +88,6 @@ export namespace ContentPublishingDOMMethods {
     event.stopPropagation();
     new CancelContentPublicationRequestDialog(rootContentItemId, rootContentItemName, cancelContentPublication).open();
   }
-  export function rootContentItemGoLiveClickHandler(event) {
-    var $clickedCard = $(this).closest('.card-container');
-    var rootContentItemId = $clickedCard.data().rootContentItemId;
-    var rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
-    event.stopPropagation();
-    // do something
-  }
   export function openNewRootContentItemForm() {
     const clientId = $('#client-tree [selected]').parent().data().clientId;
     renderRootContentItemForm({
@@ -156,6 +149,15 @@ export namespace ContentPublishingDOMMethods {
       .filter((i, card) => $(card).data().clientId === clientId)
       .find('use[href="#action-icon-reports"]').closest('div').find('h4');
     itemCount.html(`${parseInt(itemCount.html()) + offset}`);
+  }
+
+
+  function renderConfirmationPane() {
+    // set src for iframes
+    // conditionally mark iframes as unchanged
+    // populate (after calculating, if need be) hierarchy diff
+    // populate hierarchy stats
+    // populate attestation
   }
 
   function renderRootContentItemForm(item?: RootContentItemDetail) {
@@ -304,12 +306,17 @@ export namespace ContentPublishingDOMMethods {
             renderRootContentItemForm,
             always,
           ],
-        )($card), () => formObject, 1, undefined, () => {
+        )($card), () => formObject, {count: 1, offset: 0}, undefined, () => {
         setFormEditOrRepublish();
       }),
       rootContentItemDeleteClickHandler,
       rootContentItemCancelClickHandler,
-      rootContentItemGoLiveClickHandler,
+      wrapCardIconCallback(get(
+          'ContentPublishing/Status',
+          [
+            renderConfirmationPane,
+          ],
+        ), () => formObject, {count: 1, offset: 1}),
     ).build();
     updateCardStatus($card, item.PublicationDetails);
     updateCardStatusButtons($card, item.PublicationDetails && item.PublicationDetails.StatusEnum);
@@ -410,12 +417,15 @@ export namespace ContentPublishingDOMMethods {
         wrapCardCallback(openNewRootContentItemForm, () => formObject)
       ).build());
 
-    $('.admin-panel-toolbar .action-icon-cancel').click(() => {
+    $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').click(() => {
       if (formObject.accessMode === AccessMode.Read) {
         $('#root-content-items [selected]').click();
       } else {
         setFormReadOnly();
       }
+    });
+    $('#report-confirmation .admin-panel-toolbar .action-icon-cancel').click(() => {
+      $('#root-content-items [selected]').click();
     });
     $('.admin-panel-toolbar .action-icon-edit').click(() => {
       setFormEdit();
