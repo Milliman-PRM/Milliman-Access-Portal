@@ -157,6 +157,7 @@ export namespace ContentPublishingDOMMethods {
     $('#report-confirmation label')
       .show()
       .find('input[type="checkbox"]')
+      .removeAttr('disabled')
       .prop('checked', false);
     // set src for iframes, conditionally marking iframes as unchanged
     const linkPairs: Array<{sectionName: string, link: string}> = [
@@ -174,7 +175,9 @@ export namespace ContentPublishingDOMMethods {
         .siblings('iframe')
         .attr('srcdoc', 'This file has not changed.')
         .closest('.confirmation-section').find('label')
-        .hide();
+        .hide()
+        .find('input')
+        .attr('disabled', '');
     });
     // populate (after calculating, if need be) hierarchy diff
     // populate hierarchy stats
@@ -446,9 +449,19 @@ export namespace ContentPublishingDOMMethods {
         setFormReadOnly();
       }
     });
+
     $('#report-confirmation .admin-panel-toolbar .action-icon-cancel').click(() => {
       $('#root-content-items [selected]').click();
     });
+    $('#report-confirmation input[type="checkbox"]').change(() =>
+      $('#confirmation-section-attestation .button-approve')
+        .attr('disabled', '')
+        .filter(() =>
+          $('#report-confirmation input[type="checkbox"]').not('[disabled]').toArray()
+            .map((checkbox: HTMLInputElement) => checkbox.checked)
+            .reduce((cum, cur) => cum && cur, true))
+        .removeAttr('disabled'));
+
     $('.admin-panel-toolbar .action-icon-edit').click(() => {
       setFormEdit();
     });
