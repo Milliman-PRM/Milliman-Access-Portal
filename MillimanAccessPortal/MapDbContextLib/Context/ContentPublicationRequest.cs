@@ -61,14 +61,34 @@ namespace MapDbContextLib.Context
 
         /// <summary>
         /// May also be accessed through [NotMapped] property PublishRequest
+        /// Intended to be serialization of type MapDbContextLib.Models.UploadedContentRelatedFile[]
         /// </summary>
         [Column(TypeName = "jsonb")]
         public string ContentRelatedFiles { get; set; } = "[]";
+
+        /// <summary>
+        /// Intended to be serialization of type MapDbContextLib.Models.ContentRelatedFile[]
+        /// </summary>
+        [Column(TypeName = "jsonb")]
+        public string ResultingContentFiles { get; set; } = "[]";
 
         [Required]
         public PublicationStatus RequestStatus { get; set; }
 
         public string StatusMessage { get; set; } = string.Empty;
+
+        [NotMapped]
+        public List<ContentRelatedFile> ResultingFiles
+        {
+            get
+            {
+                return JsonConvert.DeserializeObject<List<ContentRelatedFile>>(ResultingContentFiles);
+            }
+            set
+            {
+                ContentRelatedFiles = JsonConvert.SerializeObject(value);
+            }
+        }
 
         [NotMapped]
         public PublishRequest PublishRequest
@@ -78,7 +98,7 @@ namespace MapDbContextLib.Context
                 return new PublishRequest
                 {
                     RootContentItemId = RootContentItemId,
-                    RelatedFiles = JsonConvert.DeserializeObject<ContentRelatedFile[]>(ContentRelatedFiles),
+                    RelatedFiles = JsonConvert.DeserializeObject<UploadedRelatedFile[]>(ContentRelatedFiles),
                 };
             }
             set

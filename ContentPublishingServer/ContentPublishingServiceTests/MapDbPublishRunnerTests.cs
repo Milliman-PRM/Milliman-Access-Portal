@@ -60,11 +60,11 @@ namespace ContentPublishingServiceTests
             Assert.Equal(PublishJobDetail.JobStatusEnum.Success, MonitorTask.Result.Status);
 
             Assert.Equal(string.Empty, TaskResult.StatusMessage);
-            Assert.NotNull(TaskResult.RelatedFiles);
-            Assert.Equal(2, TaskResult.RelatedFiles.Count);
+            Assert.NotNull(TaskResult.ResultingRelatedFiles);
+            Assert.Equal(2, TaskResult.ResultingRelatedFiles.Count);
             Assert.Equal(1, MockContext.Object.SelectionGroup.Count(g => g.RootContentItemId == 1));  // check after
-            Assert.Equal("MasterContent", TaskResult.RelatedFiles[0].FilePurpose);
-            Assert.Equal("UserGuide", TaskResult.RelatedFiles[1].FilePurpose);
+            Assert.Equal("MasterContent", TaskResult.ResultingRelatedFiles[0].FilePurpose);
+            Assert.Equal("UserGuide", TaskResult.ResultingRelatedFiles[1].FilePurpose);
             #endregion
         }
 
@@ -107,12 +107,12 @@ namespace ContentPublishingServiceTests
             Assert.Equal(PublishJobDetail.JobStatusEnum.Success, MonitorTask.Result.Status);
 
             Assert.Equal(string.Empty, TaskResult.StatusMessage);
-            Assert.NotNull(TaskResult.RelatedFiles);
-            Assert.Equal(2, TaskResult.RelatedFiles.Count);
+            Assert.NotNull(TaskResult.ResultingRelatedFiles);
+            Assert.Equal(2, TaskResult.ResultingRelatedFiles.Count);
             Assert.Single(AllSelGroups);
             Assert.True(AllSelGroups.Single().IsMaster);
-            Assert.Equal("MasterContent", TaskResult.RelatedFiles[0].FilePurpose);
-            Assert.Equal("UserGuide", TaskResult.RelatedFiles[1].FilePurpose);
+            Assert.Equal("MasterContent", TaskResult.ResultingRelatedFiles[0].FilePurpose);
+            Assert.Equal("UserGuide", TaskResult.ResultingRelatedFiles[1].FilePurpose);
             #endregion
         }
 
@@ -165,12 +165,12 @@ namespace ContentPublishingServiceTests
             Assert.Equal(PublishJobDetail.JobStatusEnum.Success, RequestRunnerTask.Result.Status);
 
             Assert.Equal(string.Empty, TaskResult.StatusMessage);
-            Assert.NotNull(TaskResult.RelatedFiles);
-            Assert.Equal(2, TaskResult.RelatedFiles.Count);
+            Assert.NotNull(TaskResult.ResultingRelatedFiles);
+            Assert.Equal(2, TaskResult.ResultingRelatedFiles.Count);
             Assert.Single(AllSelGroups);
             Assert.True(AllSelGroups.Single().IsMaster);
-            Assert.Equal("MasterContent", TaskResult.RelatedFiles[0].FilePurpose);
-            Assert.Equal("UserGuide", TaskResult.RelatedFiles[1].FilePurpose);
+            Assert.Equal("MasterContent", TaskResult.ResultingRelatedFiles[0].FilePurpose);
+            Assert.Equal("UserGuide", TaskResult.ResultingRelatedFiles[1].FilePurpose);
             #endregion
         }
 
@@ -227,8 +227,8 @@ namespace ContentPublishingServiceTests
             Assert.Equal(PublishJobDetail.JobStatusEnum.Success, MonitorTask.Result.Status);
 
             Assert.Equal(string.Empty, TaskResult.StatusMessage);
-            Assert.NotNull(TaskResult.RelatedFiles);
-            Assert.Equal(2, TaskResult.RelatedFiles.Count);
+            Assert.NotNull(TaskResult.ResultingRelatedFiles);
+            Assert.Equal(2, TaskResult.ResultingRelatedFiles.Count);
             Assert.Equal(2, MockContext.Object.SelectionGroup.Count(g => g.RootContentItemId == DbRequest.RootContentItemId));
             List<ContentReductionTask> Tasks = MockContext.Object.ContentReductionTask.Where(t => t.ContentPublicationRequestId == DbRequest.Id)
                                                                                       .ToList();
@@ -249,8 +249,8 @@ namespace ContentPublishingServiceTests
                 );
             }
             Assert.Empty(MockContext.Object.SelectionGroup.Where(g => g.RootContentItemId == DbRequest.RootContentItemId && g.IsMaster));
-            Assert.Equal("MasterContent", TaskResult.RelatedFiles[0].FilePurpose);
-            Assert.Equal("UserGuide", TaskResult.RelatedFiles[1].FilePurpose);
+            Assert.Equal("MasterContent", TaskResult.ResultingRelatedFiles[0].FilePurpose);
+            Assert.Equal("UserGuide", TaskResult.ResultingRelatedFiles[1].FilePurpose);
             #endregion
         }
     }

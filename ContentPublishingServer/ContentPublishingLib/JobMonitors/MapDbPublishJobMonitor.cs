@@ -8,13 +8,13 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Threading;
 using System.Threading.Tasks;
 using MapDbContextLib.Context;
+using MapDbContextLib.Models;
 using ContentPublishingLib.JobRunners;
 using TestResourcesLib;
 using Newtonsoft.Json;
@@ -262,6 +262,7 @@ namespace ContentPublishingLib.JobMonitors
                             break;
                         case PublishJobDetail.JobStatusEnum.Success:
                             DbRequest.RequestStatus = PublicationStatus.Processed;
+                            DbRequest.ResultingFiles = JobDetail.Result.ResultingRelatedFiles;
                             break;
                         case PublishJobDetail.JobStatusEnum.Canceled:
                             DbRequest.RequestStatus = PublicationStatus.Canceled;

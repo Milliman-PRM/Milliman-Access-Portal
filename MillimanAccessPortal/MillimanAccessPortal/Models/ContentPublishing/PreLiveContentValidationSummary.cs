@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -92,7 +93,29 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 ReturnObj.SelectionGroups = null;
             }
 
-            // TODO populate the links
+            string ContentRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");            
+            foreach (ContentRelatedFile RelatedFile in PubRequest.ResultingFiles)
+            {
+                string Link = Path.GetRelativePath(ContentRootPath, RelatedFile.FullPath);
+                switch (RelatedFile.FilePurpose.ToLower())
+                {
+                    case "mastercontent":
+                        ReturnObj.MasterContentLink = Link;
+                        break;
+
+                    case "thumbnail":
+                        ReturnObj.ThumbnailLink = Link;
+                        break;
+
+                    case "userguide":
+                        ReturnObj.UserGuideLink = Link;
+                        break;
+
+                    case "releasenotes":
+                        ReturnObj.ReleaseNotesLink = Link;
+                        break;
+                }
+            }
 
             return ReturnObj;
         }

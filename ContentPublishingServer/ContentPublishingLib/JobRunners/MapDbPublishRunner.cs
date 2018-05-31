@@ -120,7 +120,7 @@ namespace ContentPublishingLib.JobRunners
             try
             {
                 // Handle each file related to this PublicationRequest
-                foreach (PublishJobDetail.ContentRelatedFile RelatedFile in JobDetail.Request.RelatedFiles)
+                foreach (ContentRelatedFile RelatedFile in JobDetail.Request.RelatedFiles)
                 {
                     HandleRelatedFile(RelatedFile);
                 }
@@ -160,7 +160,7 @@ namespace ContentPublishingLib.JobRunners
             return JobDetail;
         }
 
-        private void HandleRelatedFile(PublishJobDetail.ContentRelatedFile RelatedFile)
+        private void HandleRelatedFile(ContentRelatedFile RelatedFile)
         {
             if (!File.Exists(RelatedFile.FullPath))
             {
@@ -186,7 +186,7 @@ namespace ContentPublishingLib.JobRunners
                 Txn.Commit();
             }
 
-            JobDetail.Result.RelatedFiles.Add(new PublishJobDetail.ContentRelatedFile { FilePurpose = RelatedFile.FilePurpose, FullPath = DestinationFullPath });
+            JobDetail.Result.ResultingRelatedFiles.Add(new ContentRelatedFile { FilePurpose = RelatedFile.FilePurpose, FullPath = DestinationFullPath });
 
             if (RelatedFile.FilePurpose.ToLower() == "mastercontent")
             {

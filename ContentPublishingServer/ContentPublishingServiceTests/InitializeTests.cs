@@ -464,10 +464,10 @@ namespace ContentPublishingServiceTests
                         PublishRequest = new PublishRequest
                         {
                             RootContentItemId = 1,
-                            RelatedFiles = new ContentRelatedFile[]
+                            RelatedFiles = new UploadedRelatedFile[]
                             {
-                                new ContentRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
-                                new ContentRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
+                                new UploadedRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
+                                new UploadedRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
                             }
                         }
                     },
@@ -480,10 +480,10 @@ namespace ContentPublishingServiceTests
                         PublishRequest = new PublishRequest
                         {
                             RootContentItemId = 2,
-                            RelatedFiles = new ContentRelatedFile[]
+                            RelatedFiles = new UploadedRelatedFile[]
                             {
-                                new ContentRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
-                                new ContentRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
+                                new UploadedRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
+                                new UploadedRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
                             }
                         }
                     },
@@ -496,10 +496,10 @@ namespace ContentPublishingServiceTests
                         PublishRequest = new PublishRequest
                         {
                             RootContentItemId = 3,
-                            RelatedFiles = new ContentRelatedFile[]
+                            RelatedFiles = new UploadedRelatedFile[]
                             {
-                                new ContentRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
-                                new ContentRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
+                                new UploadedRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
+                                new UploadedRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
                             }
                         }
                     },
@@ -512,10 +512,10 @@ namespace ContentPublishingServiceTests
                         PublishRequest = new PublishRequest
                         {
                             RootContentItemId = 4,
-                            RelatedFiles = new ContentRelatedFile[]
+                            RelatedFiles = new UploadedRelatedFile[]
                             {
-                                new ContentRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
-                                new ContentRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
+                                new UploadedRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
+                                new UploadedRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
                             }
                         }
                     },
