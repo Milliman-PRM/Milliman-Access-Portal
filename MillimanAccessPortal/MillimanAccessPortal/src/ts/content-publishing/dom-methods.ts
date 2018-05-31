@@ -237,6 +237,8 @@ export namespace ContentPublishingDOMMethods {
       (response) => {
         renderRootContentItemForm();
         setFormReadOnly();
+        // Update root content item card status immediately
+        statusMonitor.checkStatus();
         toastr.success('Publication request submitted');
       },
       (data) => {
