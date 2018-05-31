@@ -204,6 +204,7 @@ namespace ContentPublishingLib.JobRunners
                 {
                     List<ContentReductionTask> QueuedTasks = AllRelatedReductionTasks.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued).ToList();
                     await CancelReductionTasks(QueuedTasks);
+                    JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
                     _CancellationToken.ThrowIfCancellationRequested();
                 }
 
