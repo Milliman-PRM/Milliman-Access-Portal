@@ -74,6 +74,11 @@ export class RootContentItemDetail {
   Notes: string;
 }
 
+export class RootContentItemSummaryAndDetail {
+  summary: RootContentItemSummary;
+  detail: RootContentItemDetail;
+}
+
 export class PublicationDetails {
   User: UserInfo;
   StatusEnum: PublicationStatus;

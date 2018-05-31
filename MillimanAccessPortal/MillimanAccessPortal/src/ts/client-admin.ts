@@ -104,32 +104,37 @@ function populateProfitCenterDropDown(profitCenterList) {
 function bindForm() {
   const $clientForm = $('#client-info form.admin-panel-content');
 
+  const createClientGroup = new SubmissionGroup<any>(
+    undefined, // all sections
+    'ClientAdmin/SaveNewClient',
+    'POST',
+    (response) => {
+      renderClientTree(response.ClientTreeList, response.RelevantClientId);
+      toastr.success('Created new client');
+    },
+  );
+  const updateClientGroup = new SubmissionGroup<any>(
+    undefined, // all sections
+    'ClientAdmin/EditClient',
+    'POST',
+    (response) => {
+      renderClientTree(response.ClientTreeList, response.RelevantClientId);
+      toastr.success('Updated client');
+    },
+  );
+
   formObject = new FormBase();
   formObject.bindToDOM($clientForm[0]);
   formObject.configure([
     {
-      group: new SubmissionGroup<any>(
-        undefined, // all sections
-        'ClientAdmin/SaveNewClient',
-        'POST',
-        (response) => {
-          renderClientTree(response.ClientTreeList, response.RelevantClientId);
-          toastr.success('Created new client');
-        },
-      ),
-      name: 'new'
+      groups: [ createClientGroup ],
+      name: 'new',
+      sparse: false,
     },
     {
-      group: new SubmissionGroup<any>(
-        undefined, // all sections
-        'ClientAdmin/EditClient',
-        'POST',
-        (response) => {
-          renderClientTree(response.ClientTreeList, response.RelevantClientId);
-          toastr.success('Updated client');
-        },
-      ),
-      name: 'edit'
+      groups: [ updateClientGroup ],
+      name: 'edit',
+      sparse: false,
     },
   ]);
 }

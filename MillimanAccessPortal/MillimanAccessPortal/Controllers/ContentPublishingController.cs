@@ -249,9 +249,91 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(rootContentItemCreatedEvent);
             #endregion
 
-            RootContentItemSummary model = RootContentItemSummary.Build(DbContext, rootContentItem);
+            RootContentItemSummary summary = RootContentItemSummary.Build(DbContext, rootContentItem);
+            RootContentItemDetail detail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, rootContentItem);
 
-            return Json(model);
+            return Json(new { summary, detail });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateRootContentItem(RootContentItem rootContentItem)
+        {
+            #region Preliminary validation
+            var currentRootContentItem = DbContext.RootContentItem
+                .Include(c => c.ContentType)
+                .Where(i => i.Id == rootContentItem.Id)
+                .SingleOrDefault();
+            if (currentRootContentItem == null)
+            {
+                Response.Headers.Add("Warning", "The specified root content item does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItem.Id));
+            if (!roleInRootContentItemResult.Succeeded)
+            {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    $"Request to update root content item without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in item",
+                    AuditEventId.Unauthorized,
+                    new { RootContentItemId = rootContentItem.Id },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
+                Response.Headers.Add("Warning", "You are not authorized to update this root content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            if (currentRootContentItem.ContentType == null)
+            {
+                Response.Headers.Add("Warning", "The associated content type does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (rootContentItem.ContentName == null)
+            {
+                Response.Headers.Add("Warning", "You must supply a name for the root content item.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            // Update the current item so that it can be updated
+            // See ClientAdminController.cs
+            currentRootContentItem.ContentName = rootContentItem.ContentName;
+            currentRootContentItem.ContentTypeId = rootContentItem.ContentTypeId;
+            currentRootContentItem.Description = rootContentItem.Description;
+            currentRootContentItem.DoesReduce = rootContentItem.DoesReduce;
+            currentRootContentItem.Notes = rootContentItem.Notes;
+            currentRootContentItem.TypeSpecificDetail = rootContentItem.TypeSpecificDetail;
+
+            DbContext.RootContentItem.Update(currentRootContentItem);
+            DbContext.SaveChanges();
+
+            #region Log audit event
+            AuditEvent rootContentItemUpdatedEvent = AuditEvent.New(
+                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                "Root content item updated",
+                AuditEventId.RootContentItemUpdated,
+                new { ClientId = rootContentItem.ClientId, RootContentItemId = rootContentItem.Id },
+                User.Identity.Name,
+                HttpContext.Session.Id
+                );
+            AuditLogger.Log(rootContentItemUpdatedEvent);
+            #endregion
+
+            RootContentItemSummary summary = RootContentItemSummary.Build(DbContext, currentRootContentItem);
+            RootContentItemDetail detail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, currentRootContentItem);
+
+            return Json(new { summary, detail });
         }
 
         [HttpDelete]
@@ -294,6 +376,8 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
+            RootContentItemDetail model = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, rootContentItem);
+
             DbContext.RootContentItem.Remove(rootContentItem);
             DbContext.SaveChanges();
 
@@ -308,8 +392,6 @@ namespace MillimanAccessPortal.Controllers
                 );
             AuditLogger.Log(rootContentItemDeletedEvent);
             #endregion
-
-            RootContentItemList model = RootContentItemList.Build(DbContext, rootContentItem.Client, await Queries.GetCurrentApplicationUser(User));
 
             return Json(model);
         }
@@ -452,6 +534,70 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             return Ok();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelContentPublicationRequest(long rootContentItemId)
+        {
+            #region Preliminary validation
+            var rootContentItem = DbContext.RootContentItem.Find(rootContentItemId);
+            if (rootContentItem == null)
+            {
+                Response.Headers.Add("Warning", "The specified root content item does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult roleInRootContentItem = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItem.Id));
+            if (!roleInRootContentItem.Succeeded)
+            {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    $"Request to cancel content publication request without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in root content item",
+                    AuditEventId.Unauthorized,
+                    new { RootContentItemId = rootContentItem.Id },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
+                Response.Headers.Add("Warning", "You are not authorized to cancel content publication requests for this root content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            var contentPublicationRequest = DbContext.ContentPublicationRequest
+                .Where(r => r.RootContentItemId == rootContentItem.Id)
+                .Where(r => r.RequestStatus == PublicationStatus.Queued)
+                .SingleOrDefault();
+            if (contentPublicationRequest == null)
+            {
+                Response.Headers.Add("Warning", "No cancelable requests for this root content item exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            contentPublicationRequest.RequestStatus = PublicationStatus.Canceled;
+            DbContext.ContentPublicationRequest.Update(contentPublicationRequest);
+            try
+            {
+                DbContext.SaveChanges();
+            }
+            catch
+            {
+                Response.Headers.Add("Warning", "The publication request failed to be canceled.  Processing may have started.");
+                Response.Headers.Add("Warning", "The publication request failed to be canceled.  Processing may have started.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            var rootContentItemStatusList = RootContentItemStatus.Build(DbContext, await Queries.GetCurrentApplicationUser(User));
+
+            return new JsonResult(rootContentItemStatusList);
         }
 
         [HttpGet]

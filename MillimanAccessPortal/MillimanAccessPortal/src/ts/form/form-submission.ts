@@ -41,20 +41,25 @@ export class Submission extends FormElement {
     this._disabled = value;
   }
 
-  public setCallbacks(modes: Array<{group: SubmissionGroup<any>, name: string}>, form: FormBase) {
+  public setCallbacks(modes: Array<SubmissionMode>, form: FormBase) {
     // Find the first group (if any) that matches
-    const filteredGroups = modes.filter((group) =>
+    const singleMode = modes.filter((group) =>
       this.$entryPoint.is(`.button-container-${group.name}`));
-    if (!filteredGroups.length) {
+    if (!singleMode.length) {
       return;
     }
-    const group = filteredGroups[0];
+    const mode = singleMode[0];
 
     // Set submit callback
     this.$entryPoint
       .find('.button-submit')
       .off('click')
-      .on('click', () => group.group.submit(form));
+      .on('click', async () => {
+        for (let i = 0; i < mode.groups.length; i += 1) {
+          const group = mode.groups[i];
+          await group.submit(form, mode.sparse);
+        }
+      });
 
     // Set reset callback
     this.$entryPoint
@@ -72,13 +77,6 @@ export class Submission extends FormElement {
 }
 
 export class SubmissionGroup<T> {
-  private sparse: boolean = false;
-  private next: SubmissionGroup<any> = null;
-  private get lastChain(): SubmissionGroup<any> {
-    let next = this as SubmissionGroup<any>;
-    while (next.next !== null) next = next.next;
-    return next;
-  }
   public callback: (response: T, form?: FormBase) => void;
   constructor(
     readonly sections: Array<string>,
@@ -97,65 +95,38 @@ export class SubmissionGroup<T> {
       null,
       callback,
     );
-    group.sparse = true;
     return group;
   }
 
-  public chain<U>(that: SubmissionGroup<U>, sparse: boolean = false): SubmissionGroup<T> {
-    const copy = new SubmissionGroup<T>(
-      this.sections,
-      this.url,
-      this.method,
-      this.callback,
-      this.transform,
-    );
-    copy.sparse = this.sparse;
-    copy.next = this.next;
+  public submit(form: FormBase, sparse: boolean = false): Promise<any> {
+  //showButtonSpinner($(`.button-container-${form.submissionMode} .button-submit`));
+  //hideButtonSpinner($(`.button-container-${form.submissionMode} .button-submit`));
 
-    const lastChain = copy.lastChain;
-    lastChain.next = that ? that : SubmissionGroup.FinalGroup();
-
-    const originalCallback = lastChain.callback;
-    lastChain.callback = (response: T, form: FormBase) => {
-      if (response !== null) {
-        originalCallback(response, form);
-      }
-      lastChain.next.submit(form);
-    };
-    lastChain.sparse = sparse;
-
-    return copy;
-  }
-
-  public submit(form: FormBase) {
-    showButtonSpinner($(`.button-container-${form.submissionMode} .button-submit`));
-
-    const modified = form.inputSections
-      .filter((inputSection) => this.sections.indexOf(inputSection.name) !== -1)
-      .map((inputSection) => inputSection.modified)
-      .reduce((cum, cur) => cum || cur, false);
-
-    if (this.sparse && !modified) {
-      // skip this request and go to the next
-      this.callback(null, form);
-      hideButtonSpinner($(`.button-container-${form.submissionMode} .button-submit`));
-      return;
+    if (sparse) {
+      const modified = form.inputSections
+        .filter((inputSection) => this.sections === undefined || this.sections.indexOf(inputSection.name) !== -1)
+        .map((inputSection) => inputSection.modified)
+        .reduce((cum, cur) => cum || cur, false);
+        if (!modified) {
+          return;
+        }
     }
 
-    $.ajax({
-      method: this.method,
-      url: this.url,
-      data: this.transform(form.serialize(this.sections)),
-      headers: {
-        RequestVerificationToken: form.antiforgeryToken,
-      },
-    }).done((response: T) => {
-      this.callback(response, form);
-    }).fail((response) => {
-      toastr.warning(response.getResponseHeader('warning'));
-      // TODO: do something on fail
-    }).always(() => {
-      hideButtonSpinner($(`.button-container-${form.submissionMode} .button-submit`));
+    return new Promise((resolve, reject) => {
+      $.ajax({
+        method: this.method,
+        url: this.url,
+        data: this.transform(form.serialize(this.sections)),
+        headers: {
+          RequestVerificationToken: form.antiforgeryToken,
+        },
+      }).done(async (response: T) => {
+        await this.callback(response);
+        resolve();
+      }).fail((response) => {
+        toastr.warning(response.getResponseHeader('warning'));
+        reject();
+      });
     });
   }
 }

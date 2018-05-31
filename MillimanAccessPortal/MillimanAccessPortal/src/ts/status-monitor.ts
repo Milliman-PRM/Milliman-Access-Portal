@@ -32,7 +32,7 @@ export class StatusMonitor<T> {
     }
   }
 
-  private checkStatus() {
+  public checkStatus() {
     $.get({
       url: this.url
     })

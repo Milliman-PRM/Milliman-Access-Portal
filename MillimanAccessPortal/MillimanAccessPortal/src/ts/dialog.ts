@@ -317,3 +317,22 @@ export function AddSelectionGroupDialog(submitHandler) {
 };
 AddSelectionGroupDialog.prototype = Object.create(Dialog.prototype);
 AddSelectionGroupDialog.prototype.constructor = AddSelectionGroupDialog;
+
+export function CancelContentPublicationRequestDialog(rootContentItemId, rootContentItemName, submitHandler) {
+  Dialog.call(
+    this,
+    'Cancel content publication request',
+    `Cancel publication for <strong>${rootContentItemName}</strong>?`,
+    [
+      { type: vex.dialog.buttons.yes, text: 'Yes' },
+      { type: vex.dialog.buttons.no, text: 'No' }
+    ],
+    'red',
+    '<input name="RootContentItemId" type="hidden" value="' + rootContentItemId + '">',
+    null,
+    submitHandler,
+  );
+  this.buttonText = 'Canceling';
+};
+CancelContentPublicationRequestDialog.prototype = Object.create(Dialog.prototype);
+CancelContentPublicationRequestDialog.prototype.constructor = CancelContentPublicationRequestDialog;

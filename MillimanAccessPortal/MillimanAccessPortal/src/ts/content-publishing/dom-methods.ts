@@ -1,20 +1,19 @@
 import $ = require('jquery');
 import * as toastr from 'toastr';
 require('tooltipster');
-import { showButtonSpinner, clearForm, wrapCardCallback, get, wrapCardIconCallback, updateCardStatus, expandAllListener, collapseAllListener, filterTreeListener, filterFormListener, updateCardStatusButtons, updateFormStatusButtons } from '../shared';
+import { showButtonSpinner, clearForm, wrapCardCallback, get, wrapCardIconCallback, updateCardStatus, expandAllListener, collapseAllListener, filterTreeListener, filterFormListener, updateCardStatusButtons, updateFormStatusButtons, post } from '../shared';
 import { ClientCard, RootContentItemCard, AddRootContentItemActionCard } from '../card';
 import { FormBase } from '../form/form-base';
 import { AccessMode } from '../form/form-modes';
-import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType, PublishRequest } from '../view-models/content-publishing';
+import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType, PublishRequest, RootContentItemSummaryAndDetail } from '../view-models/content-publishing';
 import { setUnloadAlert } from '../unload-alerts';
-import { DeleteRootContentItemDialog, DiscardConfirmationDialog } from '../dialog';
+import { DeleteRootContentItemDialog, DiscardConfirmationDialog, CancelContentPublicationRequestDialog } from '../dialog';
 import { SubmissionGroup } from '../form/form-submission';
 import { PublicationStatusMonitor } from './publication-status-monitor';
 
 export namespace ContentPublishingDOMMethods {
 
   let formObject: FormBase;
-  let currentFormId: number;
   let statusMonitor: PublicationStatusMonitor;
 
   function deleteRootContentItem(rootContentItemId: string, rootContentItemName: string, password: string, callback: () => void) {
@@ -27,10 +26,12 @@ export namespace ContentPublishingDOMMethods {
       headers: {
         RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
       }
-    }).done(function onDone(response) {
-      $('#root-content-items .admin-panel-content').empty();
+    }).done(function onDone(response: RootContentItemDetail) {
       $('#content-publishing-form').hide();
-      renderRootContentItemList(response);
+        $('#root-content-items .card-container')
+          .filter((i, card) => $(card).data().rootContentItemId === response.Id)
+          .remove();
+      addToDocumentCount(response.ClientId, -1);
       callback();
       toastr.success(rootContentItemName + ' was successfully deleted.');
     }).fail(function onFail(response) {
@@ -61,12 +62,31 @@ export namespace ContentPublishingDOMMethods {
       },
     ).open();
   }
+  function cancelContentPublication(data, callback) {
+    $.ajax({
+      type: 'POST',
+      url: 'ContentPublishing/CancelContentPublicationRequest',
+      data: {
+        RootContentItemId: data.RootContentItemId,
+      },
+      headers: {
+        RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
+      }
+    }).done(() => {
+      if (typeof callback === 'function') callback();
+      toastr.success('Content publication request canceled');
+    }).fail((response) => {
+      if (typeof callback === 'function') callback();
+      toastr.warning(response.getResponseHeader('Warning'));
+    });
+  }
+
   export function rootContentItemCancelClickHandler(event) {
     var $clickedCard = $(this).closest('.card-container');
     var rootContentItemId = $clickedCard.data().rootContentItemId;
     var rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
     event.stopPropagation();
-    //new CancelRootContentItemDialog().open();
+    new CancelContentPublicationRequestDialog(rootContentItemId, rootContentItemName, cancelContentPublication).open();
   }
   export function rootContentItemGoLiveClickHandler(event) {
     var $clickedCard = $(this).closest('.card-container');
@@ -131,20 +151,28 @@ export namespace ContentPublishingDOMMethods {
     return formMap;
   }
 
-  function renderRootContentItemForm(item: RootContentItemDetail) {
+  function addToDocumentCount(clientId: number, offset: number) {
+    const itemCount = $('#client-tree .card-container')
+      .filter((i, card) => $(card).data().clientId === clientId)
+      .find('use[href="#action-icon-reports"]').closest('div').find('h4');
+    itemCount.html(`${parseInt(itemCount.html()) + offset}`);
+  }
+
+  function renderRootContentItemForm(item?: RootContentItemDetail) {
     const $panel = $('#content-publishing-form');
     const $rootContentItemForm = $panel.find('form.admin-panel-content');
-    clearForm($panel);
 
-    const formMap = mapRootContentItemDetail(item);
-    formMap.forEach((value, key) => {
-      $rootContentItemForm.find(`#${key}`).val(value ? value.toString() : '');
-    });
+    if (item) {
+      const formMap = mapRootContentItemDetail(item);
+      formMap.forEach((value, key) => {
+        $rootContentItemForm.find(`#${key}`).val(value ? value.toString() : '');
+      });
 
-    const $doesReduceToggle = $rootContentItemForm.find(`#DoesReduce`);
-    $doesReduceToggle.prop('checked', item.DoesReduce);
+      const $doesReduceToggle = $rootContentItemForm.find(`#DoesReduce`);
+      $doesReduceToggle.prop('checked', item.DoesReduce);
+    }
 
-    const createContentGroup = new SubmissionGroup<RootContentItemDetail>(
+    const createContentGroup = new SubmissionGroup<RootContentItemSummaryAndDetail>(
       [
         'common',
         'root-content-item-info',
@@ -152,17 +180,52 @@ export namespace ContentPublishingDOMMethods {
       ],
       'ContentPublishing/CreateRootContentItem',
       'POST',
-      (response) => $('#Id').val(response.Id),
+      (response) => {
+        // Rerender the form to set Id and reset original values
+        renderRootContentItemForm(response.detail);
+        // Add the new content item as a card and select it
+        renderRootContentItem(response.summary);
+        $('#root-content-items .card-container')
+          .filter((i, card) => $(card).data().rootContentItemId === response.detail.Id)
+          .children().click();
+        // Update the root content item count stat on the client card
+        addToDocumentCount(response.detail.ClientId, 1);
+
+        toastr.success('Root content item created');
+      },
+      (data) => {
+        if (data.indexOf('DoesReduce=') === -1) {
+          return data + '&DoesReduce=False';
+        } else {
+          return data.replace('DoesReduce=', '').replace('&&', '&') + '&DoesReduce=True';
+        }
+      },
     );
-    const updateContentGroup = new SubmissionGroup<RootContentItemDetail>(
+    const updateContentGroup = new SubmissionGroup<RootContentItemSummaryAndDetail>(
       [
         'common',
         'root-content-item-info',
         'root-content-item-description',
       ],
-      'ContentPublishing/Status',//'ContentPublishing/UpdateRootContentItem',
-      'GET',//'POST',
-      (response) => console.log('update!'),//renderRootContentItemForm(response),
+      'ContentPublishing/UpdateRootContentItem',
+      'POST',
+      (response) => {
+        renderRootContentItemForm(response.detail);
+        setFormReadOnly();
+        // Update related root content item card
+        const $card = $('#root-content-items .card-container')
+          .filter((i, card) => $(card).data().rootContentItemId === response.detail.Id);
+        $card.find('.card-body-primary-text').html(response.summary.ContentName);
+        $card.find('.card-body-secondary-text').html(response.summary.ContentTypeName);
+        toastr.success('Root content item updated');
+      },
+      (data) => {
+        if (data.indexOf('DoesReduce=') === -1) {
+          return data + '&DoesReduce=False';
+        } else {
+          return data.replace('DoesReduce=', '').replace('&&', '&') + '&DoesReduce=True';
+        }
+      },
     );
     const submitPublication = new SubmissionGroup<any>(
       [
@@ -171,7 +234,13 @@ export namespace ContentPublishingDOMMethods {
       ],
       'ContentPublishing/Publish',
       'POST',
-      (response) => { },
+      (response) => {
+        renderRootContentItemForm();
+        setFormReadOnly();
+        // Update root content item card status immediately
+        statusMonitor.checkStatus();
+        toastr.success('Publication request submitted');
+      },
       (data) => {
         let dataArray: { [key: string]: string } = {};
         data.split('&')
@@ -196,22 +265,22 @@ export namespace ContentPublishingDOMMethods {
     formObject.configure(
       [
         {
-          group: createContentGroup.chain(submitPublication),
+          groups: [ createContentGroup, submitPublication ],
           name: 'new',
+          sparse: false,
         },
         {
-          group: updateContentGroup.chain(submitPublication, true).chain(null, true),
+          groups: [ updateContentGroup, submitPublication ],
           name: 'edit-or-republish',
+          sparse: true,
         },
         {
-          group: updateContentGroup,
+          groups: [ updateContentGroup ],
           name: 'edit',
+          sparse: false,
         },
       ],
     );
-    
-    setFormReadOnly();
-    currentFormId = item.Id;
   }
 
 
@@ -226,6 +295,7 @@ export namespace ContentPublishingDOMMethods {
         [
           updateFormStatusButtons,
           renderRootContentItemForm,
+          setFormReadOnly,
         ],
       ), () => formObject),
       wrapCardIconCallback(($card, always) => get(
