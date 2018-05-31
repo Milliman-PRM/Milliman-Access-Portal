@@ -211,6 +211,12 @@ export namespace ContentPublishingDOMMethods {
       'POST',
       (response) => {
         renderRootContentItemForm(response.detail);
+        setFormReadOnly();
+        // Update related root content item card
+        const $card = $('#root-content-items .card-container')
+          .filter((i, card) => $(card).data().rootContentItemId === response.detail.Id);
+        $card.find('.card-body-primary-text').html(response.summary.ContentName);
+        $card.find('.card-body-secondary-text').html(response.summary.ContentTypeName);
         toastr.success('Root content item updated');
       },
       (data) => {
