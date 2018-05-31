@@ -15,8 +15,8 @@ export class FileUploadInput extends FormInput {
   protected getValueFn = ($input: JQuery<HTMLElement>) => $input.val;
   protected setValueFn = ($input: JQuery<HTMLElement>) => $input.val;
 
-  protected disable = ($input: JQuery<HTMLElement>) => $input.parent().find('*').not('.cancel-icon').attr('disabled', '');
-  protected enable = ($input: JQuery<HTMLElement>) => $input.parent().find('*').not('.cancel-icon').removeAttr('disabled');
+  protected disable = ($input: JQuery<HTMLElement>) => $input.parent().find('*').not('.cancel-icon,input.file-upload-guid').attr('disabled', '');
+  protected enable = ($input: JQuery<HTMLElement>) => $input.parent().find('*').not('.cancel-icon,input.file-upload-guid').removeAttr('disabled');
 
   protected comparator = (a: string, b: string) => (a === b) && !this.uploadInProgress;
 

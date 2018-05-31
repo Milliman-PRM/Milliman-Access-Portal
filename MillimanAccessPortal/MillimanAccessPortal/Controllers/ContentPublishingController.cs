@@ -253,9 +253,10 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(rootContentItemCreatedEvent);
             #endregion
 
-            RootContentItemSummary model = RootContentItemSummary.Build(DbContext, rootContentItem);
+            RootContentItemSummary summary = RootContentItemSummary.Build(DbContext, rootContentItem);
+            RootContentItemDetail detail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, rootContentItem);
 
-            return Json(model);
+            return Json(new { summary, detail });
         }
 
         [HttpPost]
@@ -333,9 +334,10 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(rootContentItemUpdatedEvent);
             #endregion
 
-            RootContentItemSummary model = RootContentItemSummary.Build(DbContext, currentRootContentItem);
+            RootContentItemSummary summary = RootContentItemSummary.Build(DbContext, currentRootContentItem);
+            RootContentItemDetail detail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, currentRootContentItem);
 
-            return Json(model);
+            return Json(new { summary, detail });
         }
 
         [HttpDelete]
@@ -378,6 +380,8 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
+            RootContentItemDetail model = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, rootContentItem);
+
             DbContext.RootContentItem.Remove(rootContentItem);
             DbContext.SaveChanges();
 
@@ -392,8 +396,6 @@ namespace MillimanAccessPortal.Controllers
                 );
             AuditLogger.Log(rootContentItemDeletedEvent);
             #endregion
-
-            RootContentItemList model = RootContentItemList.Build(DbContext, rootContentItem.Client, await Queries.GetCurrentApplicationUser(User));
 
             return Json(model);
         }

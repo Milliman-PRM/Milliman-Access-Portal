@@ -23,6 +23,10 @@ export class PublicationStatusMonitor {
   public stop() {
     this.monitor.stop();
   }
+
+  public checkStatus() {
+    this.monitor.checkStatus();
+  }
 }
 
 function statusCallback(response: RootContentItemStatus) {
@@ -36,4 +40,5 @@ function statusCallback(response: RootContentItemStatus) {
       updateCardStatusButtons($cardContainer, status && status.StatusEnum);
       $cardContainer.data('statusEnum', status && status.StatusEnum);
     });
+  updateFormStatusButtons();
 }

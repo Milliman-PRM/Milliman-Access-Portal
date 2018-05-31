@@ -64,9 +64,10 @@ export class FormInputSection extends FormElement {
   public setMode(accessMode: AccessMode, submissionMode: SubmissionMode) {
     if (accessMode === AccessMode.Defer) {
       this.inputs.forEach((input) => {
-        input.setAccessMode(submissionMode.group.sections.indexOf(this.name) !== -1
-          ? AccessMode.Write
-          : AccessMode.Read
+        input.setAccessMode(submissionMode.groups
+          .filter((group) => group.sections.indexOf(this.name) !== -1).length
+            ? AccessMode.Write
+            : AccessMode.Read
         );
       });
     } else {

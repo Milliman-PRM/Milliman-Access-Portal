@@ -41,8 +41,9 @@ $(document).ready(() => {
   formObject.bindToDOM($('#account-settings-form')[0]);
   formObject.configure([
     {
-      group: accountGroup.chain(passwordGroup, true).chain(finalGroup, true),
+      groups: [ accountGroup, passwordGroup, finalGroup ],
       name: 'update',
+      sparse: true,
     },
   ]);
   formObject.submissionMode = 'update';
