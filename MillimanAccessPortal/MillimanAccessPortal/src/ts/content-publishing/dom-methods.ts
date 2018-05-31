@@ -167,7 +167,11 @@ export namespace ContentPublishingDOMMethods {
     linkPairs.forEach((pair) => {
       $(`#confirmation-section-${pair.sectionName} iframe`)
         .attr('src', pair.link)
+        .siblings('a')
+        .attr('href', pair.link)
         .filter(() => pair.link === undefined)
+        .hide()
+        .siblings('iframe')
         .attr('srcdoc', 'This file has not changed.')
         .closest('.confirmation-section').find('label')
         .hide();

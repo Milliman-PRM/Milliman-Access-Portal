@@ -2,9 +2,19 @@
 
   .content-preview {
     width: 100%;
+    position: relative;
 
     iframe {
       width: 100%;
+    }
+
+    svg {
+      position: absolute;
+      top: 0.2em;
+      right: 0.2em;
+      width: 2em;
+      height: 2em;
+      z-index: 1;
     }
   }
 
