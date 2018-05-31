@@ -648,18 +648,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            PreLiveContentValidationSummary ReturnObj = PreLiveContentValidationSummary.Build(DbContext, RootContentItemId);
-
-            // if the following is removed, the above constructor can be modified to remove 
-            // the IConfiguration argument and associated member variable ApplicationConfig.
-            if (string.IsNullOrWhiteSpace(ReturnObj.AttestationLanguage))
-            {
-                string Attestation = ApplicationConfig.GetValue<string>("Publishing:AttestationLanguage");
-                if (!string.IsNullOrWhiteSpace(Attestation))
-                {
-                    ReturnObj.AttestationLanguage = Attestation;
-                }
-            }
+            PreLiveContentValidationSummary ReturnObj = PreLiveContentValidationSummary.Build(DbContext, RootContentItemId, ApplicationConfig);
 
             return new JsonResult(ReturnObj);
         }

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using MapDbContextLib.Models;
 using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
 {
@@ -25,13 +26,13 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public ContentReductionHierarchy<ReductionFieldValue> NewHierarchy { get; set; }
         public List<SelectionGroupSummary> SelectionGroups { get; set; }
 
-        public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, long RootContentItemId)
+        public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, long RootContentItemId, IConfiguration ApplicationConfig)
         {
             ContentPublicationRequest PubRequest = Db.ContentPublicationRequest
                                                      .Include(r => r.RootContentItem).ThenInclude(c => c.ContentType)
                                                      .Include(r => r.RootContentItem).ThenInclude(c => c.Client)
-                                                     .Where(r => r.RequestStatus == PublicationStatus.Processed)
-                                                     .SingleOrDefault(r => r.RootContentItemId == RootContentItemId);
+                                                     .Where(r => r.RootContentItemId == RootContentItemId)
+                                                     .SingleOrDefault(r => r.RequestStatus == PublicationStatus.Processed);
             #region Validation of PubRequest and related nav properties from db
             if (PubRequest == null
              || PubRequest.RootContentItem == null
@@ -51,7 +52,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 DoesReduce = PubRequest.RootContentItem.DoesReduce,
                 ClientName = PubRequest.RootContentItem.Client.Name,
                 ClientCode = PubRequest.RootContentItem.Client.ClientCode,
-                AttestationLanguage = null,
+                AttestationLanguage = ApplicationConfig.GetValue<string>("Publishing:AttestationLanguage"),
                 MasterContentLink = null,
                 UserGuideLink = null,
                 ReleaseNotesLink = null,
