@@ -21,4 +21,6 @@ require('tooltipster/src/css/tooltipster.css');
 require('vex-js/sass/vex.sass');
 require('../scss/map.scss');
 
-ReactDOM.render(<HostedContentApp />, document.getElementById('content-container'));
+document.addEventListener("DOMContentLoaded", (event) => {
+  ReactDOM.render(<HostedContentApp />, document.getElementById('content-container'));
+});
