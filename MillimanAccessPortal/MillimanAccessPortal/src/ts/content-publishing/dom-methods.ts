@@ -159,6 +159,8 @@ export namespace ContentPublishingDOMMethods {
       .find('input[type="checkbox"]')
       .removeAttr('disabled')
       .prop('checked', false);
+    $('#confirmation-section-attestation .button-approve')
+      .attr('disabled', '');
     // set src for iframes, conditionally marking iframes as unchanged
     const linkPairs: Array<{sectionName: string, link: string}> = [
       { sectionName: 'master-content', link: response.MasterContentLink },
@@ -180,6 +182,14 @@ export namespace ContentPublishingDOMMethods {
         .attr('disabled', '');
     });
     // populate (after calculating, if need be) hierarchy diff
+    response.LiveHierarchy.Fields.forEach((field) =>
+      field.Values.forEach((value) => 
+        $('#confirmation-section-hierarchy-diff .hierarchy-left ul')
+          .append(`<li>${value.Value}</li>`)));
+    response.NewHierarchy.Fields.forEach((field) =>
+      field.Values.forEach((value) => 
+        $('#confirmation-section-hierarchy-diff .hierarchy-right ul')
+          .append(`<li>${value.Value}</li>`)));
     // populate hierarchy stats
     // populate attestation
     $('#confirmation-section-attestation p').html(response.AttestationLanguage);
