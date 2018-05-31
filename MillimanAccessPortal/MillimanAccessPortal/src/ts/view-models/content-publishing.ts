@@ -97,3 +97,25 @@ export class PublishRequest {
   RootContentItemId: number;
   RelatedFiles: Array<ContentRelatedFile>;
 }
+
+export class PreLiveContentValidationSummary {
+  RootContentName: string;
+  ContentTypeName: string;
+  ContentDescription: string;
+  DoesReduce: boolean;
+  ClientName: string;
+  ClientCode: string;
+  AttestationLanguage: string;
+  MasterContentLink: string;
+  UserGuideLink: string;
+  ReleaseNotesLink: string;
+  ThumbnailLink: string;
+  LiveHierarchy: any;
+  NewHierarchy: any;
+  SelectionGroups: Array<SelectionGroupSummary>;
+}
+export class SelectionGroupSummary {
+  Name: string;
+  UserCount: number;
+  IsMaster: boolean;
+}

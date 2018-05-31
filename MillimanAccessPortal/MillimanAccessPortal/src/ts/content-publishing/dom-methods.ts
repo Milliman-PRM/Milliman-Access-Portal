@@ -5,7 +5,7 @@ import { showButtonSpinner, clearForm, wrapCardCallback, get, wrapCardIconCallba
 import { ClientCard, RootContentItemCard, AddRootContentItemActionCard } from '../card';
 import { FormBase } from '../form/form-base';
 import { AccessMode } from '../form/form-modes';
-import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType, PublishRequest, RootContentItemSummaryAndDetail } from '../view-models/content-publishing';
+import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType, PublishRequest, RootContentItemSummaryAndDetail, PreLiveContentValidationSummary } from '../view-models/content-publishing';
 import { setUnloadAlert } from '../unload-alerts';
 import { DeleteRootContentItemDialog, DiscardConfirmationDialog, CancelContentPublicationRequestDialog } from '../dialog';
 import { SubmissionGroup } from '../form/form-submission';
@@ -152,12 +152,30 @@ export namespace ContentPublishingDOMMethods {
   }
 
 
-  function renderConfirmationPane() {
-    // set src for iframes
-    // conditionally mark iframes as unchanged
+  function renderConfirmationPane(response: PreLiveContentValidationSummary) {
+    // Show and clear all confirmation checkboxes
+    $('#report-confirmation label')
+      .show()
+      .find('input[type="checkbox"]')
+      .prop('checked', false);
+    // set src for iframes, conditionally marking iframes as unchanged
+    const linkPairs: Array<{sectionName: string, link: string}> = [
+      { sectionName: 'master-content', link: response.MasterContentLink },
+      { sectionName: 'user-guide', link: response.UserGuideLink },
+      { sectionName: 'release-notes', link: response.ReleaseNotesLink },
+    ]
+    linkPairs.forEach((pair) => {
+      $(`#confirmation-section-${pair.sectionName} iframe`)
+        .attr('src', pair.link)
+        .filter(() => pair.link === undefined)
+        .attr('srcdoc', 'This file has not changed.')
+        .closest('.confirmation-section').find('label')
+        .hide();
+    });
     // populate (after calculating, if need be) hierarchy diff
     // populate hierarchy stats
     // populate attestation
+    $('#confirmation-section-attestation p').html(response.AttestationLanguage);
   }
 
   function renderRootContentItemForm(item?: RootContentItemDetail) {
