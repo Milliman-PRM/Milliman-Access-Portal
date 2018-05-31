@@ -1,7 +1,15 @@
-.content-preview {
-  width: 100%;
+.confirmation-section-container {
 
-  iframe {
+  .content-preview {
     width: 100%;
+
+    iframe {
+      width: 100%;
+    }
+  }
+
+  input[type="button"] {
+    display: inline-block;
+    width: 6em;
   }
 }
