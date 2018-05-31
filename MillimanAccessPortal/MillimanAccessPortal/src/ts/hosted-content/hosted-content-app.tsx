@@ -1,6 +1,6 @@
 ﻿import * as React from 'react';
 import { Component } from 'react';
-//import ContentCard from './content-card';
+import ContentCard from '../react-components/content-card';
 
 interface ContentItem {
   Id: number,
@@ -83,11 +83,15 @@ class HostedContentApp extends Component<{}, HostedContentState> {
       <div>
         {
           this.state.contentItems.map((contentItem: ContentItem, index: number) => (
-            <div key={contentItem.Id}>
-              <img src={contentItem.ImageURL} style={{ float: 'left', height: '100%', width: 'auto' }} />
-              <h2>{contentItem.Name}</h2>
-              <p>{contentItem.Description}</p>
-            </div>
+            <ContentCard
+              key={contentItem.Id.toString()}
+              name={contentItem.Name}
+              contentURL={contentItem.ContentURL}
+              description={contentItem.Description}
+              thumbnailURL={contentItem.ImageURL}
+              userguideURL={contentItem.UserguideURL}
+              releasenNotesURL={contentItem.ReleaseNotesURL}
+            />
           ))
         }
       </div>
