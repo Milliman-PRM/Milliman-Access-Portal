@@ -373,11 +373,14 @@ export function updateCardStatusButtons($card: JQuery<HTMLElement>, publishingSt
   }
 }
 export function updateFormStatusButtons() {
-  var selectedData = $('#root-content-items [selected]').parent().data();
+  // get the selected card's status by parsing its status container class.
+  var selectedCard = $('#root-content-items [selected]').parent().find('.card-status-container')[0];
+  var statusClass = selectedCard && selectedCard.className.split(' ').filter((className) => className.startsWith('status-'))[0];
+  var statusEnum = statusClass && parseInt(statusClass.split('-')[1]);
   var $statusFormContainer = $('#content-publishing-form').find('.form-status-container');
   $statusFormContainer.hide();
 
-  if (selectedData.statusEnum === PublicationStatus.Unknown) {
+  if (statusEnum === undefined || statusEnum === PublicationStatus.Unknown) {
     $statusFormContainer.filter('.form-status-edit-or-republish').show();
   } else {
     $statusFormContainer.filter('.form-status-edit').show();
