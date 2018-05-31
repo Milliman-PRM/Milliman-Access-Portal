@@ -1,6 +1,9 @@
 ﻿import * as React from 'react';
 import { Component } from 'react';
 
+require('tooltipster');
+require('tooltipster/src/css/tooltipster.css');
+
 interface ContentCardProps {
   key: string,
   name: string,
@@ -17,18 +20,18 @@ class ContentCard extends Component<ContentCardProps, {}> {
   }
 
   render() {
-    let userguideIcon = this.props.userguideURL ?
+    let releasenNotesIcon = this.props.releasenNotesURL ?
       (
-        <a href={this.props.userguideURL}>
-          <svg className="content-card-userguide-icon">
+        <a href={this.props.releasenNotesURL} className="tooltip" title="View Release Notes">
+          <svg className="content-card-releasenotes-icon">
             <use xlinkHref="#navbar-user-guide" />
           </svg>
         </a>
       ) : null;
-    let releasenNotesIcon = this.props.releasenNotesURL ?
+    let userguideIcon = this.props.userguideURL ?
       (
-        <a href={this.props.releasenNotesURL}>
-          <svg className="content-card-releasenotes-icon">
+        <a href={this.props.userguideURL} className="tooltip" title="View Userguide">
+          <svg className="content-card-userguide-icon">
             <use xlinkHref="#navbar-user-guide" />
           </svg>
         </a>
@@ -44,8 +47,8 @@ class ContentCard extends Component<ContentCardProps, {}> {
           <div className="content-card-header">
             <h2 className="content-card-title">{this.props.name}</h2>
             <div className="content-card-icons">
-              {userguideIcon}
               {releasenNotesIcon}
+              {userguideIcon}
             </div>
           </div>
           <div className="content-card-body">
