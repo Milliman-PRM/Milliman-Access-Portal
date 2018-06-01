@@ -62,7 +62,6 @@ namespace MillimanAccessPortal
             switch (EnvironmentName)
             {
                 case "AzureCI":
-                case "Production":
                     // Modify connection strings in Azure CI to point to the correct database name
                     string branchName = Environment.GetEnvironmentVariable("BranchName");
                     string appDbName = $"appdb_{branchName}";
@@ -71,6 +70,7 @@ namespace MillimanAccessPortal
                     appConnectionString = appConnBuilder.ConnectionString;
                     break;
 
+                case "Production":
                 case "Development":
                     break;
 
@@ -239,7 +239,6 @@ namespace MillimanAccessPortal
             switch (EnvironmentName)
             {
                 case "AzureCI":
-                case "Production":
                     string branchName = Environment.GetEnvironmentVariable("BranchName");
                     string logDbName = $"auditlogdb_{branchName}";
                     Npgsql.NpgsqlConnectionStringBuilder logConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString);
@@ -247,6 +246,8 @@ namespace MillimanAccessPortal
                     auditLogConnectionString = logConnBuilder.ConnectionString;
                     break;
 
+                
+                case "Production":
                 case "Development":
                     // nothing
                     break;
