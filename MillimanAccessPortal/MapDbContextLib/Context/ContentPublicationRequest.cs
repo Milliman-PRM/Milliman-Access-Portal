@@ -86,7 +86,7 @@ namespace MapDbContextLib.Context
             }
             set
             {
-                ContentRelatedFiles = JsonConvert.SerializeObject(value);
+                ResultingContentFiles = JsonConvert.SerializeObject(value);
             }
         }
 
