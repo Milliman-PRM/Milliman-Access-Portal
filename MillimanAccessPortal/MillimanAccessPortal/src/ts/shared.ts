@@ -4,19 +4,19 @@ import toastr = require('toastr');
 import { FormBase } from './form/form-base';
 import { PublicationStatus } from './view-models/content-publishing';
 
-var SHOW_DURATION = 50;
-var ajaxStatus = [];
+const SHOW_DURATION = 50;
+const ajaxStatus = [];
 
-var updateToolbarIcons;
+let updateToolbarIcons;
 
 // Functions with associated event listeners
 
 // Filtering
 export function filterTree($panel, $this) {
-  var $content = $panel.find('ul.admin-panel-content');
+  const $content = $panel.find('ul.admin-panel-content');
   $content.children('.hr').hide();
-  $content.find('[data-filter-string]').each(function(index, element) {
-    var $element = $(element);
+  $content.find('[data-filter-string]').each((index, element) => {
+    const $element = $(element);
     if ($element.data('filter-string').indexOf($this.val().toUpperCase()) > -1) {
       $element.show();
       $element.closest('li').nextAll('li.hr').first()
@@ -30,9 +30,9 @@ export function filterTreeListener(event) {
   buildListener(filterTree).bind(this)(event);
 }
 export function filterForm($panel, $this) {
-  var $content = $panel.find('form.admin-panel-content');
-  $content.find('[data-selection-value]').each(function(index, element) {
-    var $element = $(element);
+  const $content = $panel.find('form.admin-panel-content');
+  $content.find('[data-selection-value]').each((index, element) => {
+    const $element = $(element);
     if ($element.data('selection-value').indexOf($this.val().toUpperCase()) > -1) {
       $element.show();
     } else {
@@ -45,7 +45,7 @@ export function filterFormListener(event) {
 }
 
 // Card expansion
-updateToolbarIcons = function($panel) {
+updateToolbarIcons = ($panel) => {
   $panel.find('.action-icon-collapse').hide().filter(function anyMaximized() {
     return $panel.find('.card-expansion-container[maximized]').length;
   }).show();
@@ -56,8 +56,8 @@ updateToolbarIcons = function($panel) {
 export function toggleExpanded($panel, $this) {
   $this.closest('.card-container')
     .find('.card-expansion-container')
-    .attr('maximized', function(index, attr) {
-      var data = (attr === '')
+    .attr('maximized', (index, attr) => {
+      const data = (attr === '')
         ? { text: 'Expand card', rv: null }
         : { text: 'Collapse card', rv: '' };
       $this.find('.tooltip').tooltipster('content', data.text);
@@ -89,7 +89,7 @@ export function modifiedInputs($panel) {
     .find('input[name!="__RequestVerificationToken"][type!="hidden"],select')
     .not('.selectize-input input')
     .filter(function() {
-      var $element = $(this);
+      const $element = $(this);
       return ($element.val() !== ($element.attr('data-original-value') || ''));
     });
 }
@@ -105,7 +105,7 @@ export function resetValidationListener(event) {
 }
 export function resetForm($panel) {
   modifiedInputs($panel).each(function() {
-    var $input = $(this);
+    const $input = $(this);
     if ($input.is('.selectized')) {
       this.selectize.setValue($input.attr('data-original-value').split(','));
     } else {
@@ -133,7 +133,7 @@ export function clearFormListener(event) {
 }
 
 function buildListener(fn) {
-  return (function(event) {
+  return ((event) => {
     const $this = $(this);
     const $panel = $this.closest('.admin-panel-container');
     event.stopPropagation();
@@ -177,7 +177,7 @@ export function wrapCardCallback(callback: ($card: JQuery<HTMLElement>) => void,
   };
 }
 export function wrapCardIconCallback(callback: ($card: JQuery<HTMLElement>, whenDone: () => void) => void, form?: () => FormBase, panelCount: {count: number, offset: number} = {count: 1, offset: 0}, sameCard?: ($card: JQuery<HTMLElement>) => boolean, always?: () => void) {
-  return function(event) {
+  return (event) => {
     event.stopPropagation();
 
     const $icon = $(this);
@@ -224,8 +224,8 @@ export function get<T>(url: string, callbacks: Array<(response: T) => void>) {
 
     $.ajax({
       type: 'GET',
-      url: url,
-      data: data,
+      url,
+      data,
     }).done((response: T) => {
       // if this was not the most recent AJAX call for its URL, don't process the return data
       if (ajaxStatus[url] !== data) {
@@ -256,8 +256,8 @@ export function set<T>(method: string, url: string, successMessage: string, call
     ajaxStatus[url] = true;
     $.ajax({
       type: method,
-      url: url,
-      data: data,
+      url,
+      data,
       headers: {
         RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
       },
@@ -286,8 +286,8 @@ export function put<T>(url: string, successMessage: string, callbacks: Array<(re
 }
 
 export function showButtonSpinner($buttons, text?) {
-  $buttons.each(function(i) {
-    var $button = $buttons.eq(i);
+  $buttons.each((i) => {
+    const $button = $buttons.eq(i);
     if ($buttons.find('.spinner-small').length) { return; }
     $button.data('originalText', $button.html());
     $button.html(text || 'Submitting');
@@ -296,29 +296,17 @@ export function showButtonSpinner($buttons, text?) {
 }
 
 export function hideButtonSpinner($buttons) {
-  $buttons.each(function(i) {
-    var $button = $buttons.eq(i);
+  $buttons.each((i) => {
+    const $button = $buttons.eq(i);
     $button.html($button.data().originalText);
   });
 }
 
-export function xhrWithProgress(onProgress: Function) {
-  return function() {
-    var xhr = new XMLHttpRequest();
-    xhr.upload.addEventListener('progress', function(event: ProgressEvent) {
-      if (event.lengthComputable) {
-        onProgress(event.loaded / event.total);
-      }
-    }, false);
-    return xhr;
-  };
-}
-
 // Typeahead
 export function userSubstringMatcher(users: any) {
-  return function findMatches(query: string, callback: Function) {
-    var matches: any[] = [];
-    var regex = new RegExp(query, 'i');
+  return function findMatches(query: string, callback: (matches: any) => void) {
+    const matches: any[] = [];
+    const regex = new RegExp(query, 'i');
 
     $.each(users, function check(i, user) {
       if (regex.test(user.Email) ||
@@ -335,10 +323,10 @@ export function userSubstringMatcher(users: any) {
 // Card helpers
 // TODO: consider moving to card.js
 export function updateCardStatus($card, reductionDetails) {
-  var $statusContainer = $card.find('.card-status-container');
-  var $statusName = $statusContainer.find('strong');
-  var $statusUser = $statusContainer.find('em');
-  var details = $.extend({
+  const $statusContainer = $card.find('.card-status-container');
+  const $statusName = $statusContainer.find('strong');
+  const $statusUser = $statusContainer.find('em');
+  const details = $.extend({
     User: {
       FirstName: '',
     },
@@ -349,10 +337,10 @@ export function updateCardStatus($card, reductionDetails) {
   }, reductionDetails);
 
   $statusContainer
-    .removeClass(function(i, classString) {
-      var classNames = classString.split(' ');
+    .removeClass((i, classString) => {
+      const classNames = classString.split(' ');
       return classNames
-        .filter(function(className) {
+        .filter((className) => {
           return className.startsWith('status-');
         })
         .join(' ');
@@ -373,10 +361,10 @@ export function updateCardStatusButtons($card: JQuery<HTMLElement>, publishingSt
 }
 export function updateFormStatusButtons() {
   // get the selected card's status by parsing its status container class.
-  var selectedCard = $('#root-content-items [selected]').parent().find('.card-status-container')[0];
-  var statusClass = selectedCard && selectedCard.className.split(' ').filter((className) => className.startsWith('status-'))[0];
-  var statusEnum = statusClass && parseInt(statusClass.split('-')[1], 10);
-  var $statusFormContainer = $('#content-publishing-form').find('.form-status-container');
+  const selectedCard = $('#root-content-items [selected]').parent().find('.card-status-container')[0];
+  const statusClass = selectedCard && selectedCard.className.split(' ').filter((className) => className.startsWith('status-'))[0];
+  const statusEnum = statusClass && parseInt(statusClass.split('-')[1], 10);
+  const $statusFormContainer = $('#content-publishing-form').find('.form-status-container');
   $statusFormContainer.hide();
 
   if (statusEnum === undefined || statusEnum === PublicationStatus.Unknown) {
@@ -388,9 +376,9 @@ export function updateFormStatusButtons() {
 
 // Dialog helpers
 // TODO: consider moving to dialog.js
-export function confirmAndContinue(Dialog, form?: FormBase, onContinue?) {
+export function confirmAndContinue(DialogConstructor, form?: FormBase, onContinue?) {
   if (form && form.modified) {
-    new Dialog(function() {
+    new DialogConstructor(() => {
       // Assigning to access mode forces the form to reset
       // FIXME: this is really unintuitive - use function instead of getters
       //   and setters since there are side effects

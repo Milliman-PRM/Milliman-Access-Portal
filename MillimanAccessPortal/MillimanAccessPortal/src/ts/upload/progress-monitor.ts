@@ -71,8 +71,8 @@ export class ProgressMonitor {
 
   private update(progress: number, time: number) {
     this.snapshot.insert({
-      progress: progress,
-      time: time,
+      progress,
+      time,
     });
     this.rate.insert((() => {
       // Compute rate

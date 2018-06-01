@@ -1,8 +1,8 @@
 import shared = require('./shared');
 
-var card = {};
+const card = {};
 
-var cardLayout = {
+const cardLayout = {
   card: {
     body: {
       main: {
@@ -33,7 +33,7 @@ var cardLayout = {
   },
 };
 
-var components = Object.assign(
+const components = Object.assign(
   {},
   {
     action: {
@@ -47,7 +47,7 @@ var components = Object.assign(
         '  <span></span>',
         '</h2>',
       ].join(''),
-      render: function(component) {
+      render(component) {
         return function(properties) {
           this.verify(component);
           this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
@@ -70,7 +70,7 @@ var components = Object.assign(
         '  </div>',
         '</div>',
       ].join(''),
-      render: function(component) {
+      render(component) {
         return function(properties) {
           this.verify(component);
           this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
@@ -85,7 +85,7 @@ var components = Object.assign(
         '<h2 class="card-body-primary-text"></h2>',
         '<stub />',
       ].join(''),
-      render: function(component) {
+      render(component) {
         return function(properties) {
           this.verify(component);
           this.html(component, properties.text);
@@ -99,7 +99,7 @@ var components = Object.assign(
         '<p class="card-body-secondary-text"></p>',
         '<stub />',
       ].join(''),
-      render: function(component) {
+      render(component) {
         return function(properties) {
           this.add(component);
           this.html(component, properties.text);
@@ -118,7 +118,7 @@ var components = Object.assign(
         '</div>',
         '<stub />',
       ].join(''),
-      render: function(component) {
+      render(component) {
         return function(properties) {
           this.add(component);
           this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
@@ -138,7 +138,7 @@ var components = Object.assign(
         '</div>',
         '<stub />',
       ].join(''),
-      render: function(component) {
+      render(component) {
         return function(properties) {
           if (this.readonly || this.disabled) {
             return;
@@ -164,7 +164,7 @@ var components = Object.assign(
         '</svg>',
         '<stub />',
       ].join(''),
-      render: function(component) {
+      render(component) {
         return function(properties) {
           this.add(component);
           this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
@@ -179,7 +179,7 @@ var components = Object.assign(
         '<h4 class="card-expansion-category-label"></h4>',
         '<stub />',
       ].join(''),
-      render: function(component) {
+      render(component) {
         return function(properties) {
           this.verify(component);
           this.html(component, properties.text);
@@ -202,7 +202,7 @@ var components = Object.assign(
         '</div>',
         '<stub />',
       ].join(''),
-      render: function(component) {
+      render(component) {
         return function(properties) {
           this.add(component);
           this.attr(
@@ -230,7 +230,7 @@ var components = Object.assign(
         '<h4 class="detail-item"></h4>',
         '<stub />',
       ].join(''),
-      render: function(component) {
+      render(component) {
         return function(properties) {
           this.add(component);
           this.html(component, properties.text);
@@ -248,7 +248,7 @@ var components = Object.assign(
         '  </span>',
         '</div>',
       ].join(''),
-      render: function(component) {
+      render(component) {
         return function() {
           this.verify(component);
         };
@@ -266,7 +266,7 @@ var components = Object.assign(
         '  </div>',
         '</li>',
       ].join(''),
-      render: function(component) {
+      render(component) {
         return function(properties) {
           this.verify(component);
           if (Object.hasOwnProperty.call(properties, 'id')) {
@@ -290,7 +290,7 @@ var components = Object.assign(
         '</div>',
         '<stub />',
       ].join(''),
-      render: function(component) {
+      render(component) {
         return function(properties) {
           this.verify(component);
           if (Object.hasOwnProperty.call(properties, 'id')) {
@@ -308,7 +308,7 @@ var components = Object.assign(
         '</div>',
         '<stub />',
       ].join(''),
-      render: function(component) {
+      render(component) {
         return function() {
           this.verify(component);
         };
@@ -323,7 +323,7 @@ var components = Object.assign(
         '</div>',
         '<stub />',
       ].join(''),
-      render: function(component) {
+      render(component) {
         return function() {
           this.verify(component);
         };
@@ -338,7 +338,7 @@ var components = Object.assign(
         '</div>',
         '<stub />',
       ].join(''),
-      render: function(component) {
+      render(component) {
         return function() {
           this.verify(component);
         };
@@ -353,7 +353,7 @@ var components = Object.assign(
         '</div>',
         '<stub />',
       ].join(''),
-      render: function(component) {
+      render(component) {
         return function(properties) {
           this.verify(component);
           this.click(component, properties.click);
@@ -369,7 +369,7 @@ var components = Object.assign(
         '</div>',
         '<stub />',
       ].join(''),
-      render: function(component) {
+      render(component) {
         return function() {
           this.verify(component);
         };
@@ -390,7 +390,7 @@ var components = Object.assign(
         '  </div>',
         '</div>',
       ].join(''),
-      render: function(component) {
+      render(component) {
         return function() {
           this.verify(component);
           this.click(component, shared.toggleExpandedListener, '.card-button-background');
@@ -417,7 +417,7 @@ var components = Object.assign(
         '  </div>',
         '</div>',
       ].join(''),
-      render: function(component) {
+      render(component) {
         return function() {
           this.verify(component);
         };
@@ -427,27 +427,26 @@ var components = Object.assign(
 );
 
 // Compute select properties
-(function() {
-  var setParents = function(layout, parent) {
-    var keys = Object.keys(layout);
-    var i;
-    for (i = 0; i < keys.length; i += 1) {
-      if (Object.hasOwnProperty.call(layout, keys[i])) {
-        components[keys[i]].parent = parent;
-        setParents(layout[keys[i]], keys[i]);
+(() => {
+  const setParents = (layout, parent) => {
+    const keys = Object.keys(layout);
+    for (const key of keys) {
+      if (Object.hasOwnProperty.call(layout, key)) {
+        components[key].parent = parent;
+        setParents(layout[key], key);
       }
     }
   };
   setParents(cardLayout, '');
-  Object.keys(components).forEach(function(key) {
+  Object.keys(components).forEach((key) => {
     components[key].render = components[key].render(key);
   });
-}());
+})();
 
 // Helper function definitions
 function toAttr(data) {
-  var attrs = {};
-  Object.keys(data).forEach(function(key) {
+  const attrs = {};
+  Object.keys(data).forEach((key) => {
     if (Object.hasOwnProperty.call(data, key)) {
       attrs['data-' + key] = data[key];
     }
@@ -492,12 +491,11 @@ Card.prototype.addComponent = function(name, properties) {
 };
 
 Card.prototype.renderComponent = function(component, properties) {
-  var parent;
   if (!Object.hasOwnProperty.call(components, component)) {
     // invalid component
     return;
   }
-  parent = components[component].parent;
+  const parent = components[component].parent;
   if (Object.hasOwnProperty.call(properties, parent) || !this.exists(parent)) {
     this.renderComponent(parent, (properties && properties.parent) || properties);
   }
@@ -505,11 +503,11 @@ Card.prototype.renderComponent = function(component, properties) {
 };
 
 Card.prototype.build = function() {
-  var self = this;
+  const self = this;
   this.$representation = $('<stub />'); // own function
-  Object.keys(this.components).forEach(function(key) {
+  Object.keys(this.components).forEach((key) => {
     if (Object.hasOwnProperty.call(self.components, key)) {
-      self.components[key].forEach(function(properties) {
+      self.components[key].forEach((properties) => {
         self.renderComponent(key, properties);
       });
     }
@@ -531,35 +529,35 @@ Card.prototype.build = function() {
 });
 
 Card.prototype.click = function(component, value, selector) {
-  var $component = this.findComponent(component, selector);
+  const $component = this.findComponent(component, selector);
   $component.click(component !== 'body' && (this.readonly || this.disabled)
-    ? function(event) {
+    ? (event) => {
       event.preventDefault();
     }
     : value);
-  $component.mousedown(function(event) {
+  $component.mousedown((event) => {
     event.preventDefault();
   });
 };
 
 Card.prototype.tooltip = function(component, value, selector) {
-  var $component = this.findComponent(component, selector);
+  const $component = this.findComponent(component, selector);
   $component.addClass('tooltip');
   $component.attr('title', value);
 };
 
 Card.prototype.findComponent = function(component, selector) {
-  var $component = components[component]
+  const $component = components[component]
     ? this.$representation
       .find(components[component].selector)
       .last()
     : this.$representation;
-  var $subcomponent = $component.find(selector);
+  const $subcomponent = $component.find(selector);
   return $subcomponent.length ? $subcomponent : $component;
 };
 
 Card.prototype.componentPath = function(component) {
-  var parent = components[component].parent;
+  const parent = components[component].parent;
   if (Object.hasOwnProperty.call(components, parent)) {
     return this.componentPath(parent).concat([component]);
   }
@@ -567,12 +565,12 @@ Card.prototype.componentPath = function(component) {
 };
 
 Card.prototype.verify = function(component, partialPath) {
-  var self = this;
-  var path = partialPath || this.componentPath(component);
-  var prevSelector = '';
+  const self = this;
+  const path = partialPath || this.componentPath(component);
+  let prevSelector = '';
   $.each(path, function() {
-    var nextSelector = prevSelector + components[this].selector;
-    var element = self.$representation.find(nextSelector);
+    const nextSelector = prevSelector + components[this].selector;
+    const element = self.$representation.find(nextSelector);
     if (!element.length) {
       if (prevSelector) {
         self.$representation
@@ -588,9 +586,9 @@ Card.prototype.verify = function(component, partialPath) {
 };
 
 Card.prototype.add = function(component, partialPath) {
-  var path = partialPath || this.componentPath(component);
-  var newElement = path.pop();
-  var prevSelector = this.verify(component, path);
+  const path = partialPath || this.componentPath(component);
+  const newElement = path.pop();
+  const prevSelector = this.verify(component, path);
   this.$representation
     .find(prevSelector + 'stub')
     .replaceWith(components[newElement].html);
@@ -604,8 +602,8 @@ export function ActionCard(icon, text, callback) {
     id: text.toLowerCase().split(' ').join('-') + '-card',
   });
   this.addComponent('action', {
-    icon: icon,
-    text: text,
+    icon,
+    text,
   });
   this.callback = callback;
 }
@@ -650,8 +648,8 @@ export function InsertCard(icon, text, level, callback) {
     ].join(' '),
   });
   this.addComponent('insert', {
-    icon: icon,
-    text: text,
+    icon,
+    text,
   });
   this.callback = callback;
 }
@@ -786,10 +784,9 @@ export function SelectionGroupCard(
   selectionGroup, members,
   callback, deleteCallback, userCallback,
 ) {
-  var memberInfo;
   Card.call(this);
 
-  memberInfo = $.map(members, function toString(member) {
+  const memberInfo = $.map(members, function toString(member) {
     return [member.FirstName + ' ' + member.LastName, member.Email, member.UserName];
   }).reduce(function concat(acc, cur) {
     return acc.concat(cur);
@@ -836,7 +833,7 @@ export function UserCard(
   user, client,
   roleCallback, removeCallback,
 ) {
-  var names = [];
+  const names = [];
 
   Card.call(this);
 

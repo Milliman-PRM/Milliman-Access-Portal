@@ -34,7 +34,7 @@ function selectionGroupDeleteClickHandler() {
     'ContentAccessAdmin/DeleteSelectionGroup',
     'Selection group successfully deleted.',
     [
-      function(response) {
+      (response) => {
         $('#selection-groups ul.admin-panel-content').empty();
         renderSelectionGroupList(response);
       },
@@ -44,10 +44,10 @@ function selectionGroupDeleteClickHandler() {
 }
 
 function cancelSelectionForm() {
-  var $selectionInfo = $('#selection-info form.admin-panel-content');
-  var $selectionGroups = $('#selection-groups ul.admin-panel-content');
-  var $button = $selectionInfo.find('button');
-  var data = {
+  const $selectionInfo = $('#selection-info form.admin-panel-content');
+  const $selectionGroups = $('#selection-groups ul.admin-panel-content');
+  const $button = $selectionInfo.find('button');
+  const data = {
     SelectionGroupId: $selectionGroups.find('[selected]').closest('.card-container').attr('data-selection-group-id'),
   };
 
@@ -55,7 +55,7 @@ function cancelSelectionForm() {
   $.ajax({
     type: 'POST',
     url: 'ContentAccessAdmin/CancelReduction',
-    data: data,
+    data,
     headers: {
       RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
     },
@@ -69,12 +69,12 @@ function cancelSelectionForm() {
   });
 }
 function submitSelectionForm() {
-  var $selectionInfo = $('#selection-info form.admin-panel-content');
-  var $selectionGroups = $('#selection-groups ul.admin-panel-content');
-  var $button = $selectionInfo.find('button');
-  var data = {
+  const $selectionInfo = $('#selection-info form.admin-panel-content');
+  const $selectionGroups = $('#selection-groups ul.admin-panel-content');
+  const $button = $selectionInfo.find('button');
+  const data = {
     SelectionGroupId: $selectionGroups.find('[selected]').closest('.card-container').attr('data-selection-group-id'),
-    Selections: $selectionInfo.serializeArray().reduce(function(acc, cur) {
+    Selections: $selectionInfo.serializeArray().reduce((acc, cur) => {
       return (cur.value === 'on')
         ? acc.concat(cur.name)
         : undefined;
@@ -85,7 +85,7 @@ function submitSelectionForm() {
   $.ajax({
     type: 'POST',
     url: 'ContentAccessAdmin/SingleReduction',
-    data: data,
+    data,
     headers: {
       RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
     },
@@ -100,10 +100,9 @@ function submitSelectionForm() {
 }
 
 function renderValue(value, $fieldset, originalSelections) {
-  var $div;
-  var $checkbox = $('<label class="selection-option-label">' + value.Value + '<input type="checkbox" id="selection-value-' + value.Id + '" name="' + value.Id + '" class="selection-option-value"><span class="selection-option-checkmark"></span></label>');
+  const $checkbox = $('<label class="selection-option-label">' + value.Value + '<input type="checkbox" id="selection-value-' + value.Id + '" name="' + value.Id + '" class="selection-option-value"><span class="selection-option-checkmark"></span></label>');
   $fieldset.append('<div class="selection-option-container" data-selection-value="' + value.Value.toUpperCase() + '"></div>');
-  $div = $fieldset.find('div.selection-option-container').last();
+  const $div = $fieldset.find('div.selection-option-container').last();
   $div.append($checkbox);
   $checkbox.find('input[type="checkbox"]').prop('checked', value.SelectionStatus);
   if (originalSelections.includes(value.Id) !== value.SelectionStatus) {
@@ -112,20 +111,19 @@ function renderValue(value, $fieldset, originalSelections) {
 }
 
 function renderField(field, $parent, originalSelections) {
-  var $fieldset;
   $parent.append('<fieldset></fieldset>');
-  $fieldset = $parent.find('fieldset').last();
+  const $fieldset = $parent.find('fieldset').last();
   $fieldset.append('<legend>' + field.DisplayName + '</legend>');
-  field.Values.forEach(function(value) {
+  field.Values.forEach((value) => {
     renderValue(value, $fieldset, originalSelections);
   });
 }
 
 function renderSelections(response) {
-  var $selectionInfo = $('#selection-info form.admin-panel-content');
-  var $fieldsetDiv = $selectionInfo.find('.fieldset-container');
-  var $relatedCard = $('#selection-groups [selected]').closest('.card-container');
-  var details = $.extend({
+  const $selectionInfo = $('#selection-info form.admin-panel-content');
+  const $fieldsetDiv = $selectionInfo.find('.fieldset-container');
+  const $relatedCard = $('#selection-groups [selected]').closest('.card-container');
+  const details = $.extend({
     User: {
       FirstName: '',
     },
@@ -136,7 +134,7 @@ function renderSelections(response) {
   }, response.ReductionDetails);
 
   $fieldsetDiv.empty();
-  response.Hierarchy.Fields.forEach(function(field) {
+  response.Hierarchy.Fields.forEach((field) => {
     renderField(field, $fieldsetDiv, response.OriginalSelections);
   });
   shared.updateCardStatus($relatedCard, response.ReductionDetails);
@@ -147,14 +145,14 @@ function renderSelections(response) {
   $fieldsetDiv
     .find('input[type="checkbox"]')
     .click([10, 20, 30].includes(details.StatusEnum)
-      ? function(event) {
+      ? (event) => {
         event.preventDefault();
       }
       : $.noop);
 }
 
 function renderSelectionGroup(selectionGroup) {
-  var $card = new card.SelectionGroupCard(
+  const $card = new card.SelectionGroupCard(
     selectionGroup.SelectionGroupEntity,
     selectionGroup.MemberList,
     shared.wrapCardCallback(shared.get(
@@ -164,13 +162,13 @@ function renderSelectionGroup(selectionGroup) {
       ],
     )),
     selectionGroupDeleteClickHandler,
-    function() { console.log('Add/remove user button clicked.'); },
+    () => { console.log('Add/remove user button clicked.'); },
   ).build();
   shared.updateCardStatus($card, selectionGroup.ReductionDetails);
   $('#selection-groups ul.admin-panel-content').append($card);
 }
 function renderSelectionGroupList(response, selectionGroupId?) {
-  var $selectionGroupList = $('#selection-groups ul.admin-panel-content');
+  const $selectionGroupList = $('#selection-groups ul.admin-panel-content');
   $selectionGroupList.empty();
   response.SelectionGroupList.forEach(renderSelectionGroup);
   $selectionGroupList.find('.tooltip').tooltipster();
@@ -184,7 +182,7 @@ function renderSelectionGroupList(response, selectionGroupId?) {
 }
 
 function renderRootContentItem(rootContentItem) {
-  var $card = new card.RootContentItemCard(
+  const $card = new card.RootContentItemCard(
     rootContentItem.RootContentItemEntity,
     rootContentItem.GroupCount,
     rootContentItem.EligibleUserCount,
@@ -199,7 +197,7 @@ function renderRootContentItem(rootContentItem) {
   $('#root-content-items ul.admin-panel-content').append($card);
 }
 function renderRootContentItemList(response, rootContentItemId?) {
-  var $rootContentItemList = $('#root-content-items ul.admin-panel-content');
+  const $rootContentItemList = $('#root-content-items ul.admin-panel-content');
   $rootContentItemList.empty();
   response.RootContentItemList.forEach(renderRootContentItem);
   $rootContentItemList.find('.tooltip').tooltipster();
@@ -210,7 +208,7 @@ function renderRootContentItemList(response, rootContentItemId?) {
 }
 
 function renderClientNode(client, level) {
-  var $card = new card.ClientCard(
+  const $card = new card.ClientCard(
     client.ClientDetailModel.ClientEntity,
     client.ClientDetailModel.EligibleUserCount,
     client.ClientDetailModel.RootContentItemCount,
@@ -233,7 +231,7 @@ function renderClientNode(client, level) {
   }
 }
 function renderClientTree(response, clientId?) {
-  var $clientTreeList = $('#client-tree ul.admin-panel-content');
+  const $clientTreeList = $('#client-tree ul.admin-panel-content');
   $clientTreeList.empty();
   response.ClientTreeList.forEach(function render(rootClient) {
     renderClientNode(rootClient, 0);
@@ -247,7 +245,7 @@ function renderClientTree(response, clientId?) {
   }
 }
 
-$(document).ready(function() {
+$(document).ready(() => {
   (shared.get(
     'ContentAccessAdmin/ClientFamilyList',
     [

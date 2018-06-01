@@ -19,7 +19,7 @@ function deleteRootContentItem(rootContentItemId: string, rootContentItemName: s
     type: 'DELETE',
     url: 'ContentPublishing/DeleteRootContentItem',
     data: {
-      rootContentItemId: rootContentItemId,
+      rootContentItemId,
     },
     headers: {
       RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
@@ -38,14 +38,14 @@ function deleteRootContentItem(rootContentItemId: string, rootContentItemName: s
   });
 }
 export function rootContentItemDeleteClickHandler(event) {
-  var $clickedCard = $(this).closest('.card-container');
-  var rootContentItemId = $clickedCard.data().rootContentItemId;
-  var rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
+  const $clickedCard = $(this).closest('.card-container');
+  const rootContentItemId = $clickedCard.data().rootContentItemId;
+  const rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
   event.stopPropagation();
   new DeleteRootContentItemDialog(
     rootContentItemName,
     rootContentItemId,
-    function(data, callback) {
+    (data, callback) => {
       if (data.password) {
         showButtonSpinner($('.vex-first'), 'Deleting');
         $('.vex-dialog-button').attr('disabled', '');
@@ -80,9 +80,9 @@ function cancelContentPublication(data, callback) {
 }
 
 export function rootContentItemCancelClickHandler(event) {
-  var $clickedCard = $(this).closest('.card-container');
-  var rootContentItemId = $clickedCard.data().rootContentItemId;
-  var rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
+  const $clickedCard = $(this).closest('.card-container');
+  const rootContentItemId = $clickedCard.data().rootContentItemId;
+  const rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
   event.stopPropagation();
   new CancelContentPublicationRequestDialog(rootContentItemId, rootContentItemName, cancelContentPublication).open();
 }
@@ -275,7 +275,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
       toastr.success('Publication request submitted');
     },
     (data) => {
-      let dataArray: { [key: string]: string } = {};
+      const dataArray: { [key: string]: string } = {};
       data.split('&')
         .map((kvp) => kvp.split('='))
         .forEach((kvp) => dataArray[kvp[0]] = kvp[1]);
@@ -318,7 +318,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
 
 function renderRootContentItem(item: RootContentItemSummary) {
   const $panel = $('#content-publishing-form');
-  const $card = new RootContentItemCard(
+  const $rootContentItemCard = new RootContentItemCard(
     item,
     item.GroupCount,
     item.EligibleUserCount,
@@ -348,10 +348,10 @@ function renderRootContentItem(item: RootContentItemSummary) {
         ],
       ), () => formObject, {count: 1, offset: 1}, () => false),
   ).build();
-  updateCardStatus($card, item.PublicationDetails);
-  updateCardStatusButtons($card, item.PublicationDetails && item.PublicationDetails.StatusEnum);
-  $card.data('statusEnum', item.PublicationDetails && item.PublicationDetails.StatusEnum);
-  $('#root-content-items ul.admin-panel-content').append($card);
+  updateCardStatus($rootContentItemCard, item.PublicationDetails);
+  updateCardStatusButtons($rootContentItemCard, item.PublicationDetails && item.PublicationDetails.StatusEnum);
+  $rootContentItemCard.data('statusEnum', item.PublicationDetails && item.PublicationDetails.StatusEnum);
+  $('#root-content-items ul.admin-panel-content').append($rootContentItemCard);
 }
 function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: number) {
   const $rootContentItemList = $('#root-content-items ul.admin-panel-content');
@@ -435,7 +435,7 @@ export function setup() {
   $('.admin-panel-searchbar-tree').keyup(filterTreeListener);
   $('.admin-panel-searchbar-form').keyup(filterFormListener);
 
-  $('#root-content-items .admin-panel-toolbar .action-icon-add').click(function() {
+  $('#root-content-items .admin-panel-toolbar .action-icon-add').click(() => {
     openNewRootContentItemForm();
     $('#root-content-items .card-body-container').removeAttr('selected');
     $('#root-content-items .card-body-container.action-card').attr('selected', '');

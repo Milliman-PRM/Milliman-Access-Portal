@@ -18,11 +18,11 @@ interface User {
 // This is a duplicate of the function in shared
 // Better separation of functionality would allow this to exist in one place
 // This is a temporary solution only.
-var userSubstringMatcher = function(users) {
+const userSubstringMatcher = (users) => {
   console.warn('You are using a duplicate of shared.userSubstringMatcher. Refactor shared.js to require this function in only one place.');
   return function findMatches(query, callback) {
-    var matches = [];
-    var regex = new RegExp(query, 'i');
+    const matches = [];
+    const regex = new RegExp(query, 'i');
 
     $.each(users, function check(i, user) {
       if (regex.test(user.Email) ||
@@ -40,12 +40,12 @@ export function Dialog(
   title, message, buttons, color, input,
   callback, submitHandler,
 ) {
-  var self = this;
+  const self = this;
   this.title = title;
   this.color = color;
   this.options = {
     unsafeMessage: '<span class="vex-custom-message">' + message + '</span>',
-    buttons: $.map(buttons, function(element) {
+    buttons: $.map(buttons, (element) => {
       return element.type(element.text, color);
     }),
     input: input || '',
@@ -53,17 +53,16 @@ export function Dialog(
   };
   if (submitHandler) {
     this.options = $.extend(this.options, {
-      onSubmit: function(event) {
-        var vexObject = this;
-        var data;
+      onSubmit(event) {
+        const vexObject = this;
         event.preventDefault();
+        const data = {};
         if (self.options.input) {
-          data = {};
-          $.each($('.vex-dialog-input input').serializeArray(), function(i, obj) {
+          $.each($('.vex-dialog-input input').serializeArray(), (i, obj) => {
             data[obj.name] = obj.value;
           });
         }
-        return submitHandler(data, function() {
+        return submitHandler(data, () => {
           vexObject.close();
         }, self.buttonText);
       },
@@ -95,7 +94,7 @@ export function ConfirmationDialog(title, message, buttonText, callback) {
     ],
     'blue',
     null,
-    function(result) {
+    (result) => {
       if (result) {
         callback();
       }
@@ -183,12 +182,12 @@ PasswordDialog.prototype = Object.create(Dialog.prototype);
 PasswordDialog.prototype.constructor = PasswordDialog;
 
 export function DeleteClientDialog(clientName, clientId, submitHandler) {
-  var title = 'Delete Client';
-  var buttons = [
+  const title = 'Delete Client';
+  const buttons = [
     { type: vex.dialog.buttons.yes, text: 'Delete' },
     { type: vex.dialog.buttons.no, text: 'Cancel' },
   ];
-  var color = 'red';
+  const color = 'red';
   Dialog.call(
     this,
     title,
@@ -196,7 +195,7 @@ export function DeleteClientDialog(clientName, clientId, submitHandler) {
     buttons,
     color,
     null,
-    function(confirm) {
+    (confirm) => {
       if (confirm) {
         new PasswordDialog(
           title,
@@ -215,12 +214,12 @@ DeleteClientDialog.prototype = Object.create(Dialog.prototype);
 DeleteClientDialog.prototype.constructor = DeleteClientDialog;
 
 export function DeleteRootContentItemDialog(rootContentItemName, rootContentItemId, submitHandler) {
-  var title = 'Delete RootContentItem';
-  var buttons = [
+  const title = 'Delete RootContentItem';
+  const buttons = [
     { type: vex.dialog.buttons.yes, text: 'Delete' },
     { type: vex.dialog.buttons.no, text: 'Cancel' },
   ];
-  var color = 'red';
+  const color = 'red';
   Dialog.call(
     this,
     title,
@@ -228,7 +227,7 @@ export function DeleteRootContentItemDialog(rootContentItemName, rootContentItem
     buttons,
     color,
     null,
-    function(confirm) {
+    (confirm) => {
       if (confirm) {
         new PasswordDialog(
           title,
@@ -260,7 +259,7 @@ export function AddUserDialog(eligibleUsers, submitHandler) {
     null,
     submitHandler,
   );
-  this.afterOpen = function() {
+  this.afterOpen = () => {
     $('.vex-dialog-input .typeahead').typeahead(
       {
         hint: true,
@@ -270,11 +269,11 @@ export function AddUserDialog(eligibleUsers, submitHandler) {
       {
         name: 'eligibleUsers',
         source: userSubstringMatcher(eligibleUsers),
-        display: function(data: User) {
+        display(data: User) {
           return data.UserName;
         },
         templates: {
-          suggestion: function(data: User) {
+          suggestion(data: User) {
             return [
               '<div>',
               data.UserName + '',

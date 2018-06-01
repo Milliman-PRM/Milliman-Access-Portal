@@ -27,10 +27,10 @@ interface VexDialogMock extends vex.Vex {
  * @return {undefined}
  */
 function submitForm() {
-  var $contactForm = $('#contact-form');
-  var formRecipient = $contactForm.find('#recipient').val();
-  var formSubject = $contactForm.find('#subject').val();
-  var formMessage = $contactForm.find('#message').val();
+  const $contactForm = $('#contact-form');
+  const formRecipient = $contactForm.find('#recipient').val();
+  const formSubject = $contactForm.find('#subject').val();
+  const formMessage = $contactForm.find('#message').val();
 
   $.ajax({
     type: 'POST',
