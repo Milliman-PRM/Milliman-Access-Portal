@@ -55,5 +55,47 @@ namespace ContentPublishingServiceTests
             #endregion
         }
 
+        [Fact]
+        public async Task CorrectResultsAfterSuccessfulRun()
+        {
+            #region arrange
+            MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor
+            {
+                MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus),
+            };
+
+            CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
+            #endregion
+
+            throw new ApplicationException("Make this test right");
+
+            #region Act
+            Task MonitorTask = JobMonitor.Start(CancelTokenSource.Token);
+            Thread.Sleep(new TimeSpan(0, 0, 5));
+            #endregion
+
+            #region Assert
+            Assert.Equal<TaskStatus>(TaskStatus.Running, MonitorTask.Status);
+            #endregion
+
+            #region Act again
+            DateTime CancelStartTime = DateTime.UtcNow;
+            CancelTokenSource.Cancel();
+            try
+            {
+                await MonitorTask;  // await rethrows anything that is thrown from the task
+            }
+            catch (OperationCanceledException)  // This is thrown when a task is cancelled
+            { }
+            DateTime CancelEndTime = DateTime.UtcNow;
+            #endregion
+
+            #region Assert again
+            Assert.Equal<TaskStatus>(TaskStatus.Canceled, MonitorTask.Status);
+            Assert.True(MonitorTask.IsCanceled);
+            Assert.True(CancelEndTime - CancelStartTime < new TimeSpan(0, 0, 30), "MapDbPublishJobMonitor took too long to be canceled while idle");
+            #endregion
+        }
+
     }
 }
