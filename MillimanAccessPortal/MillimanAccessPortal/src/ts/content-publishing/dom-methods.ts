@@ -183,11 +183,11 @@ export namespace ContentPublishingDOMMethods {
     });
     // populate (after calculating, if need be) hierarchy diff
     response.LiveHierarchy.Fields.forEach((field) =>
-      field.Values.forEach((value) => 
+      field.Values.forEach((value) =>
         $('#confirmation-section-hierarchy-diff .hierarchy-left ul')
           .append(`<li>${value.Value}</li>`)));
     response.NewHierarchy.Fields.forEach((field) =>
-      field.Values.forEach((value) => 
+      field.Values.forEach((value) =>
         $('#confirmation-section-hierarchy-diff .hierarchy-right ul')
           .append(`<li>${value.Value}</li>`)));
     // populate hierarchy stats
@@ -347,7 +347,7 @@ export namespace ContentPublishingDOMMethods {
       rootContentItemDeleteClickHandler,
       rootContentItemCancelClickHandler,
       wrapCardIconCallback(get(
-          'ContentPublishing/Status',
+          'ContentPublishing/PreLiveSummary',
           [
             renderConfirmationPane,
           ],
