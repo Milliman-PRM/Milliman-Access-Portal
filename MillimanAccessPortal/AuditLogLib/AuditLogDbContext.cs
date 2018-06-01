@@ -53,7 +53,7 @@ namespace AuditLogLib
             switch (EnvironmentName)
             {
                 case "AzureCI":
-                case "AzureProduction":
+                case "Production":
                     Database.Migrate(); // Run migrations when the logger is instantiated
                     break;
 
@@ -104,7 +104,7 @@ namespace AuditLogLib
             switch (environmentName)
             {
                 case "AzureCI":
-                case "AzureProduction":
+                case "Production":
                     configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
                     built = configurationBuilder.Build();
                     var store = new X509Store(StoreLocation.LocalMachine);

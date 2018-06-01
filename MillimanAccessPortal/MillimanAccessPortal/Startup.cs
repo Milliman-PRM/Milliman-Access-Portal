@@ -62,7 +62,7 @@ namespace MillimanAccessPortal
             switch (EnvironmentName)
             {
                 case "AzureCI":
-                case "AzureProduction":
+                case "Production":
                     // Modify connection strings in Azure CI to point to the correct database name
                     string branchName = Environment.GetEnvironmentVariable("BranchName");
                     string appDbName = $"appdb_{branchName}";
@@ -161,7 +161,7 @@ namespace MillimanAccessPortal
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, ApplicationDbContext db)
         {
-            if (env.EnvironmentName == "AzureCI" || env.EnvironmentName == "AzureProduction")
+            if (env.EnvironmentName == "AzureCI" || env.EnvironmentName == "Production")
             {
                 db.Database.Migrate(); // Perform any unapplied migrations
             }
@@ -239,7 +239,7 @@ namespace MillimanAccessPortal
             switch (EnvironmentName)
             {
                 case "AzureCI":
-                case "AzureProduction":
+                case "Production":
                     string branchName = Environment.GetEnvironmentVariable("BranchName");
                     string logDbName = $"auditlogdb_{branchName}";
                     Npgsql.NpgsqlConnectionStringBuilder logConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString);

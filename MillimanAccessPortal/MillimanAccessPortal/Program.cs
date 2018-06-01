@@ -62,7 +62,7 @@ namespace MillimanAccessPortal
                     switch (EnvironmentName)
                     {
                         case "AzureCI":
-                        case "AzureProduction":
+                        case "Production":
                             config.AddJsonFile($"AzureKeyVault.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true);
 
                             var builtConfig = config.Build();
