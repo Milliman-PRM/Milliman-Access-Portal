@@ -9,7 +9,6 @@ require('bootstrap/scss/bootstrap-reboot.scss');
 require('toastr/toastr.scss');
 require('../scss/map.scss');
 
-
 $(document).ready(() => {
   if ($('#UserName').val() !== $('#Email').val()) {
     $('#Email').show();

@@ -28,7 +28,6 @@ var eligibleUsers;
 var SHOW_DURATION = 50;
 let formObject: FormBase;
 
-
 function domainRegex() {
   return new RegExp(globalSettings.domainValidationRegex);
 }
@@ -36,11 +35,9 @@ function emailRegex() {
   return new RegExp(globalSettings.emailValidationRegex);
 }
 
-
 function removeClientInserts() {
   $('#client-tree .insert-card').remove();
 }
-
 
 function clearClientSelection() {
   $('.card-body-container').removeAttr('editing selected');
@@ -169,7 +166,6 @@ function updateUserRoleIndicator(userId, userRoles) {
     .show();
 }
 
-
 function setUserRole(clientId, userId, roleEnum, isAssigned, onResponse) {
   var $cardContainer = $('#client-users ul.admin-panel-content .card-container[data-user-id="' + userId + '"]');
   var postData = {
@@ -206,7 +202,6 @@ function setUserRole(clientId, userId, roleEnum, isAssigned, onResponse) {
   });
 }
 
-
 function userCardRoleToggleClickHandler(event) {
   var $clickedInput = $(event.target);
   event.preventDefault();
@@ -223,7 +218,6 @@ function userCardRoleToggleClickHandler(event) {
   $('#client-users ul.admin-panel-content .toggle-switch-checkbox').attr('disabled', '');
 }
 
-
 function renderUserNode(client, user) {
   var $card = new card.UserCard(
     user,
@@ -235,7 +229,6 @@ function renderUserNode(client, user) {
   $('#client-users ul.admin-panel-content').append($card.build());
   updateUserRoleIndicator(user.Id, user.UserRoles);
 }
-
 
 function renderUserList(response) {
   var client = response;
@@ -252,7 +245,6 @@ function renderUserList(response) {
     $('#client-users ul.admin-panel-content').append(new card.AddUserActionCard(addUserClickHandler).build());
   }
 }
-
 
 function setupChildClientForm($parentClientDiv: JQuery<HTMLElement>) {
   const parentClientId = $parentClientDiv.parent().data().clientId;
@@ -272,7 +264,6 @@ function setupChildClientForm($parentClientDiv: JQuery<HTMLElement>) {
     });
 }
 
-
 // TODO
 function setupClientForm() {
   var $clientForm = $('#client-info form.admin-panel-content');
@@ -281,7 +272,6 @@ function setupClientForm() {
   formObject.submissionMode = 'new';
   formObject.accessMode = AccessMode.Write;
 }
-
 
 function clearUserList() {
   $('#client-users ul.admin-panel-content > li').remove();
@@ -322,7 +312,6 @@ function getClientDetail($clientDiv, accessMode?: AccessMode) {
   });
 }
 
-
 function openClientCardReadOnly($clientCard) {
   removeClientInserts();
   clearClientSelection();
@@ -331,7 +320,6 @@ function openClientCardReadOnly($clientCard) {
   showClientDetails();
 }
 
-
 function openNewClientForm() {
   clearClientSelection();
   setupClientForm();
@@ -339,7 +327,6 @@ function openNewClientForm() {
   hideClientUsers();
   showClientDetails();
 }
-
 
 function clientCardDeleteClickHandler(event) {
   var $clickedCard = $(this).closest('.card-container');
@@ -365,7 +352,6 @@ function clientCardDeleteClickHandler(event) {
   ).open();
 }
 
-
 function userCardRemoveClickHandler(event) {
   var $clickedCard = $(this).closest('.card-container');
   var userName = $clickedCard.find('.card-body-primary-text').html();
@@ -376,7 +362,6 @@ function userCardRemoveClickHandler(event) {
     removeUserFromClient(clientId, userId, callback);
   }).open();
 }
-
 
 const newClientClickHandler = shared.wrapCardCallback(() => openNewClientForm(), () => formObject);
 
@@ -403,7 +388,6 @@ function saveNewUser(username, email, callback) {
   });
 }
 
-
 function addUserClickHandler() {
   new dialog.AddUserDialog(
     eligibleUsers,
@@ -429,7 +413,6 @@ function addUserClickHandler() {
   ).open();
 }
 
-
 function removeUserFromClient(clientId, userId, callback) {
   var userName = $('#client-users ul.admin-panel-content [data-user-id="' + userId + '"] .card-body-primary-text').html();
   var clientName = $('#client-tree [data-client-id="' + clientId + '"] .card-body-primary-text').html();
@@ -453,7 +436,6 @@ function removeUserFromClient(clientId, userId, callback) {
     toastr.warning(response.getResponseHeader('Warning'));
   });
 }
-
 
 function cancelIconClickHandler() {
   shared.confirmAndContinue(dialog.DiscardConfirmationDialog, formObject, function () {
@@ -512,7 +494,6 @@ function renderClientNode(client, level) {
   });
 }
 
-
 function renderClientTree(clientTreeList, clientId) {
   var $clientTreeList = $('#client-tree ul.admin-panel-content');
   $clientTreeList.empty();
@@ -529,7 +510,6 @@ function renderClientTree(clientTreeList, clientId) {
     $clientTreeList.append(new card.AddClientActionCard(newClientClickHandler).build());
   }
 }
-
 
 function deleteClient(clientId, clientName, password, callback) {
   $.ajax({
@@ -554,7 +534,6 @@ function deleteClient(clientId, clientName, password, callback) {
     toastr.warning(response.getResponseHeader('Warning'));
   });
 }
-
 
 function getClientTree(clientId?) {
   $('#client-tree .loading-wrapper').show();

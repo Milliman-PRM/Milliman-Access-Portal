@@ -6,7 +6,6 @@ vex.registerPlugin(require('vex-dialog'));
 const resumable = require('resumablejs');
 const initialAppSettings = require('../../appsettings.json');
 
-
 interface GlobalSettings {
   domainValidationRegex: string;
   emailValidationRegex: string;
@@ -22,7 +21,6 @@ $(document).on('ready', () => {
   globalSettings = $('#global-settings').data() as GlobalSettings;
   console.log('Updated global settings');
 });
-
 
 // Configure jQuery validation overrides
 // See https://jqueryvalidation.org/jQuery.validator.methods/

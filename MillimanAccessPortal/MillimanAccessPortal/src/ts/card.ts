@@ -444,7 +444,6 @@ var components = Object.assign(
   });
 }());
 
-
 // Helper function definitions
 function toAttr(data) {
   var attrs = {};
@@ -596,7 +595,6 @@ Card.prototype.add = function (component, partialPath) {
   return prevSelector + components[newElement].selector;
 };
 
-
 export function ActionCard(icon, text, callback) {
   Card.call(this);
 
@@ -663,7 +661,6 @@ export function AddChildInsertCard(level, callback?) {
 };
 AddChildInsertCard.prototype = Object.create(InsertCard.prototype);
 AddChildInsertCard.prototype.constructor = AddChildInsertCard;
-
 
 export function ClientCard(
   client, userCount, reportCount, level,

@@ -33,7 +33,6 @@ export class FileUploadInput extends FormInput {
     return this._upload;
   }
 
-
   public configure(token: string) {
     this.upload.setFileTypes(FileTypes.get(this.component));
 

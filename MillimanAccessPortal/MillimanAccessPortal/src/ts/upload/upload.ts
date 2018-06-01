@@ -7,7 +7,6 @@ import { ProgressMonitor, ProgressSummary } from './progress-monitor';
 import { FileScanner } from './file-scanner';
 import { RetainedValue } from './retained-value';
 
-
 export enum UploadComponent {
   Content = 'MasterContent',
   UserGuide = 'UserGuide',

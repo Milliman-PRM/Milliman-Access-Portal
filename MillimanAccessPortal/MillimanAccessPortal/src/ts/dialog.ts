@@ -15,7 +15,6 @@ interface User {
   LastName: string,
 };
 
-
 // This is a duplicate of the function in shared
 // Better separation of functionality would allow this to exist in one place
 // This is a temporary solution only.
@@ -36,7 +35,6 @@ var userSubstringMatcher = function (users) {
     callback(matches);
   };
 };
-
 
 export function Dialog(
   title, message, buttons, color, input,

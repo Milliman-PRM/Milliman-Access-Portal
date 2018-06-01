@@ -14,7 +14,6 @@ require('tooltipster/src/css/tooltipster.css');
 require('tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css');
 require('../scss/map.scss');
 
-
 function updateSelectionGroupCount() {
   $('#root-content-items [selected] [href="#action-icon-users"]').parent().next().html($('#selection-groups ul.admin-panel-content li').length.toString());
 }
@@ -184,7 +183,6 @@ function renderSelectionGroupList(response, selectionGroupId?) {
   }
 }
 
-
 function renderRootContentItem(rootContentItem) {
   var $card = new card.RootContentItemCard(
     rootContentItem.RootContentItemEntity,
@@ -210,7 +208,6 @@ function renderRootContentItemList(response, rootContentItemId?) {
     $('[data-root-content-item-id="' + rootContentItemId + '"]').click();
   }
 }
-
 
 function renderClientNode(client, level) {
   var $card = new card.ClientCard(
@@ -249,7 +246,6 @@ function renderClientTree(response, clientId?) {
     $('[data-client-id="' + clientId + '"]').click();
   }
 }
-
 
 $(document).ready(function () {
   (shared.get(
