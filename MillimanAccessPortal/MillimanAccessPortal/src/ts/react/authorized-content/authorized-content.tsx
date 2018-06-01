@@ -16,7 +16,7 @@ interface AuthorizedContentState {
   contentItems: Array<ContentItem>;
 }
 
-class AuthorizedContentApp extends Component<{}, AuthorizedContentState> {
+class AuthorizedContent extends Component<{}, AuthorizedContentState> {
   constructor(props) {
     super(props);
     this.state = {
@@ -100,4 +100,4 @@ class AuthorizedContentApp extends Component<{}, AuthorizedContentState> {
   
 }
 
-export default AuthorizedContentApp;
+export default AuthorizedContent;

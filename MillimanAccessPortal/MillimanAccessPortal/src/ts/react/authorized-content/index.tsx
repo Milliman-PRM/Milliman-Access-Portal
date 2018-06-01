@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import AuthorizedContentApp from './authorized-content-app';
+import AuthorizedContent from './authorized-content';
 
 require('jquery');
 require('jquery-validation');
@@ -17,5 +17,5 @@ require('../../../scss/map.scss');
 //# sourceMappingURL=authorized-content.js.map
 
 document.addEventListener("DOMContentLoaded", (event) => {
-  ReactDOM.render(<AuthorizedContentApp />, document.getElementById('content-container'));
+  ReactDOM.render(<AuthorizedContent />, document.getElementById('content-container'));
 });
