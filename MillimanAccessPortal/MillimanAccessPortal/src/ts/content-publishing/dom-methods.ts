@@ -471,6 +471,12 @@ export namespace ContentPublishingDOMMethods {
             .map((checkbox: HTMLInputElement) => checkbox.checked)
             .reduce((cum, cur) => cum && cur, true))
         .removeAttr('disabled'));
+    $('#confirmation-section-attestation .button-reject').click(() => {
+      alert('\'Reject\' not implemented.');
+    });
+    $('#confirmation-section-attestation .button-approve').click(() => {
+      alert('\'Approve\' not implemented.');
+    });
 
     $('.admin-panel-toolbar .action-icon-edit').click(() => {
       setFormEdit();
