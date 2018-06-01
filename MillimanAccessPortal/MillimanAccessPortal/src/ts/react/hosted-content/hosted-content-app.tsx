@@ -1,6 +1,6 @@
 ﻿import * as React from 'react';
 import { Component } from 'react';
-import ContentCard from '../react-components/content-card';
+import ContentCard from './content-card';
 
 interface ContentItem {
   Id: number,
