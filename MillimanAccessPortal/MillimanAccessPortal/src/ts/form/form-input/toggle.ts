@@ -5,7 +5,7 @@ export class ToggleInput extends FormInput {
     main: 'form-input-toggle',
     title: 'form-input-toggle-title',
     extension: 'form-input-toggle-contents',
-  }
+  };
 
   protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('input');
 

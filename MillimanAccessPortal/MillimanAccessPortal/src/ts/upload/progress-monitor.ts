@@ -14,13 +14,13 @@ export class ProgressSummary {
     percentage: '0%',
     rate: '',
     remainingTime: '',
-  });
+  })
 
   public static Full: () => ProgressSummary = () => ({
     percentage: '100%',
     rate: '',
     remainingTime: '',
-  });
+  })
 }
 
 export class ProgressMonitor {
@@ -100,7 +100,7 @@ export class ProgressMonitor {
         const _ = Math.floor(progress * 100 * precisionFactor) / precisionFactor;
         return `${_}%`;
       })(1),
-      rate: ((precision: number, unitThreshold: [number, number], weights: Array<number>): string => {
+      rate: ((precision: number, unitThreshold: [number, number], weights: number[]): string => {
         const units = ['', 'K', 'M', 'G'];
         const upperThreshold = unitThreshold[0];
         const lowerThreshold = unitThreshold[1];

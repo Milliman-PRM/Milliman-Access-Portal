@@ -5,7 +5,7 @@ export class TextAreaInput extends FormInput {
     main: 'form-input-text-area',
     title: 'form-input-text-area-title',
     extension: 'form-input-text-area-contents',
-  }
+  };
 
   protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('textarea');
 

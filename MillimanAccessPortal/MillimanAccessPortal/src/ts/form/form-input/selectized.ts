@@ -5,7 +5,7 @@ export class SelectizedInput extends FormInput {
     main: 'form-input-selectized',
     title: 'form-input-selectized-title',
     extension: 'form-input-selectized-contents',
-  }
+  };
 
   protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('input.selectized');
 

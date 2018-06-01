@@ -13,7 +13,7 @@ interface VexDialogMock extends vex.Vex {
   dialog: {
     open: (opts: {
       input: string,
-      buttons: Array<any>,
+      buttons: any[],
       callback: () => boolean,
     }) => void,
     buttons: {
@@ -38,11 +38,11 @@ function submitForm() {
     data: {
       recipient: formRecipient,
       subject: formSubject,
-      message: formMessage
+      message: formMessage,
     },
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
-    }
+      RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
+    },
   }).done(function onDone() {
     toastr.success('Your message has been sent');
     vex.closeAll();
@@ -81,7 +81,7 @@ function initializeContactForm() {
       '<div>',
       '<textarea id="message" name="message" placeholder="Message" required></textarea>',
       '</div>',
-      '</form>'
+      '</form>',
     ].join(''),
     buttons: [
       $.extend({}, (vex as VexDialogMock).dialog.buttons.NO, {
@@ -95,7 +95,7 @@ function initializeContactForm() {
             return false;
           }
           return true;
-        }
+        },
       }),
       $.extend({}, (vex as VexDialogMock).dialog.buttons.NO, {
         text: 'Reset',
@@ -103,12 +103,12 @@ function initializeContactForm() {
         click: function onClick() {
           resetContactForm();
           return false;
-        }
-      })
+        },
+      }),
     ],
     callback: function callback() {
       return false;
-    }
+    },
   });
 }
 

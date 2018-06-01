@@ -5,7 +5,7 @@ export class HiddenInput extends FormInput {
     main: 'form-input-hidden',
     title: '',
     extension: 'form-input-hidden-contents',
-  }
+  };
 
   protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('input');
 

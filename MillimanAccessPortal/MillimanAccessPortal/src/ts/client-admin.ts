@@ -172,7 +172,7 @@ function setUserRole(clientId, userId, roleEnum, isAssigned, onResponse) {
     ClientId: clientId,
     UserId: userId,
     RoleEnum: roleEnum,
-    IsAssigned: isAssigned
+    IsAssigned: isAssigned,
   };
 
   $.ajax({
@@ -180,8 +180,8 @@ function setUserRole(clientId, userId, roleEnum, isAssigned, onResponse) {
     url: 'ClientAdmin/SetUserRoleInClient',
     data: postData,
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
-    }
+      RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
+    },
   }).done(function onDone(response) {
     var modifiedRole;
     // Set checkbox states to match the response
@@ -213,7 +213,7 @@ function userCardRoleToggleClickHandler(event) {
     $clickedInput.prop('checked'),
     function onDone() {
       $('#client-users ul.admin-panel-content .toggle-switch-checkbox').removeAttr('disabled');
-    }
+    },
   );
   $('#client-users ul.admin-panel-content .toggle-switch-checkbox').attr('disabled', '');
 }
@@ -223,7 +223,7 @@ function renderUserNode(client, user) {
     user,
     client.ClientEntity,
     userCardRoleToggleClickHandler,
-    userCardRemoveClickHandler
+    userCardRemoveClickHandler,
   );
   $card.readonly = !client.CanManage;
   $('#client-users ul.admin-panel-content').append($card.build());
@@ -293,19 +293,19 @@ function getClientDetail($clientDiv, accessMode?: AccessMode) {
     url: 'ClientAdmin/ClientDetail',
     data: data,
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
+      RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
     },
   }).done((response) => {
-    if (ajaxStatus.getClientDetail !== clientId) return;
+    if (ajaxStatus.getClientDetail !== clientId) { return; }
     populateClientForm(response);
     formObject.submissionMode = 'edit';
-    if (accessMode) formObject.accessMode = accessMode;
+    if (accessMode) { formObject.accessMode = accessMode; }
     displayActionPanelIcons(response.CanManage);
     $('#client-info .loading-wrapper').hide();
     renderUserList(response);
     $('#client-users .loading-wrapper').hide();
   }).fail((response) => {
-    if (ajaxStatus.getClientDetail !== clientId) return;
+    if (ajaxStatus.getClientDetail !== clientId) { return; }
     $('#client-info .loading-wrapper').hide();
     $('#client-users .loading-wrapper').hide();
     toastr.warning(response.getResponseHeader('Warning'));
@@ -336,7 +336,7 @@ function clientCardDeleteClickHandler(event) {
   new dialog.DeleteClientDialog(
     clientName,
     clientId,
-    function (data, callback) {
+    function(data, callback) {
       if (data.password) {
         shared.showButtonSpinner($('.vex-first'), 'Deleting');
         $('.vex-dialog-button').attr('disabled', '');
@@ -348,7 +348,7 @@ function clientCardDeleteClickHandler(event) {
         toastr.info('Deletion was canceled');
       }
       return true;
-    }
+    },
   ).open();
 }
 
@@ -373,17 +373,17 @@ function saveNewUser(username, email, callback) {
     data: {
       UserName: username || email,
       Email: email,
-      MemberOfClientIdArray: [clientId]
+      MemberOfClientIdArray: [clientId],
     },
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
-    }
+      RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
+    },
   }).done(function onDone() {
     openClientCardReadOnly($('#client-tree [data-client-id="' + clientId + '"] .card-body-container'));
-    if (typeof callback === 'function') callback();
+    if (typeof callback === 'function') { callback(); }
     toastr.success('User successfully added');
   }).fail(function onFail(response) {
-    if (typeof callback === 'function') callback();
+    if (typeof callback === 'function') { callback(); }
     toastr.warning(response.getResponseHeader('Warning'));
   });
 }
@@ -391,9 +391,9 @@ function saveNewUser(username, email, callback) {
 function addUserClickHandler() {
   new dialog.AddUserDialog(
     eligibleUsers,
-    function (data, callback) {
+    function(data, callback) {
       var singleMatch = 0;
-      shared.userSubstringMatcher(eligibleUsers)(data.username, function (matches) {
+      shared.userSubstringMatcher(eligibleUsers)(data.username, function(matches) {
         singleMatch = matches.length;
       });
       if (singleMatch) {
@@ -409,7 +409,7 @@ function addUserClickHandler() {
         return false;
       }
       return true;
-    }
+    },
   ).open();
 }
 
@@ -422,11 +422,11 @@ function removeUserFromClient(clientId, userId, callback) {
     url: 'ClientAdmin/RemoveUserFromClient',
     data: {
       ClientId: clientId,
-      userId: userId
+      userId: userId,
     },
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
-    }
+      RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
+    },
   }).done(function onDone(response) {
     renderUserList(response);
     callback();
@@ -438,7 +438,7 @@ function removeUserFromClient(clientId, userId, callback) {
 }
 
 function cancelIconClickHandler() {
-  shared.confirmAndContinue(dialog.DiscardConfirmationDialog, formObject, function () {
+  shared.confirmAndContinue(dialog.DiscardConfirmationDialog, formObject, function() {
     if ($('#client-tree [selected]').parent().attr('data-client-id')) {
       $('#client-tree [editing]').removeAttr('editing');
       formObject.accessMode = AccessMode.Read;
@@ -489,7 +489,7 @@ function renderClientNode(client, level) {
   $('#client-tree ul.admin-panel-content').append($card.build());
 
   // Render child nodes
-  client.Children.forEach(function (child) {
+  client.Children.forEach(function(child) {
     renderClientNode(child, level + 1);
   });
 }
@@ -517,11 +517,11 @@ function deleteClient(clientId, clientName, password, callback) {
     url: 'ClientAdmin/DeleteClient',
     data: {
       Id: clientId,
-      Password: password
+      Password: password,
     },
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
-    }
+      RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
+    },
   }).done(function onDone(response) {
     shared.clearForm($('#client-info'));
     $('#client-users .admin-panel-content').empty();
@@ -539,7 +539,7 @@ function getClientTree(clientId?) {
   $('#client-tree .loading-wrapper').show();
   $.ajax({
     type: 'GET',
-    url: 'ClientAdmin/ClientFamilyList/'
+    url: 'ClientAdmin/ClientFamilyList/',
   }).done(function onDone(response) {
     populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
     renderClientTree(response.ClientTreeList, clientId || response.RelevantClientId);
@@ -578,7 +578,7 @@ $(document).ready(function onReady() {
       if (input.match(domainRegex())) {
         return {
           value: input,
-          text: input
+          text: input,
         };
       }
 
@@ -589,7 +589,7 @@ $(document).ready(function onReady() {
       $('#client-info form.admin-panel-content #AcceptedEmailDomainList')[0].selectize.focus();
 
       return {};
-    }
+    },
   });
 
   // TODO
@@ -601,11 +601,11 @@ $(document).ready(function onReady() {
       if (input.match(emailRegex())) {
         return {
           value: input,
-          text: input
+          text: input,
         };
       }
       toastr.warning('Please enter a valid email address (e.g. username@domain.com)');
       return {};
-    }
+    },
   });
 });

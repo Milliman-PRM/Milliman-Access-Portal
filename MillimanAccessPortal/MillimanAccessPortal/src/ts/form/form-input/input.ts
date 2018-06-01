@@ -31,7 +31,7 @@ export abstract class FormInput extends FormElement {
     }
   }
   protected abstract getValueFn: (input: JQuery<HTMLElement>) => () => string | number | string[];
-  protected abstract setValueFn: (input: JQuery<HTMLElement>) => (value: string) => void
+  protected abstract setValueFn: (input: JQuery<HTMLElement>) => (value: string) => void;
 
   private _accessMode: AccessMode = AccessMode.Read;
   public get accessMode(): AccessMode {

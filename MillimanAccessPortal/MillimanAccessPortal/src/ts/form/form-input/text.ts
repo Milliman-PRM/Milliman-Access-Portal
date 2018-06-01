@@ -5,7 +5,7 @@ export class TextInput extends FormInput {
     main: 'form-input-text',
     title: 'form-input-text-title',
     extension: 'form-input-text-contents',
-  }
+  };
 
   protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('input');
 

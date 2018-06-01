@@ -34,7 +34,7 @@ export class StatusMonitor<T> {
 
   public checkStatus() {
     $.get({
-      url: this.url
+      url: this.url,
     })
     .done(this.callback)
     .fail(this.stop);

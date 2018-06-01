@@ -27,14 +27,14 @@ $(document).on('ready', () => {
 $.validator.methods.email = function(value: string, element: any) {
   return this.optional(element)
     || new RegExp(globalSettings.emailValidationRegex).test(value);
-}
+};
 // Configure default vex options
 vex.defaultOptions = $.extend(
   {}, vex.defaultOptions,
   {
     className: 'vex-theme-default screen-center',
-    closeAllOnPopState: false
-  }
+    closeAllOnPopState: false,
+  },
 );
 
 vex.dialog.buttons.yes = (text: string, color: string) => {
@@ -61,7 +61,7 @@ toastr.options = {
   showEasing: 'swing',
   hideEasing: 'swing',
   showMethod: 'show',
-  hideMethod: 'hide'
+  hideMethod: 'hide',
 };
 
 export const resumableOptions = {

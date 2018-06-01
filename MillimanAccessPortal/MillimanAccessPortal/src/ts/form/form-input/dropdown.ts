@@ -5,7 +5,7 @@ export class DropdownInput extends FormInput {
     main: 'form-input-dropdown',
     title: 'form-input-dropdown-title',
     extension: 'form-input-dropdown-contents',
-  }
+  };
 
   protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('select');
 

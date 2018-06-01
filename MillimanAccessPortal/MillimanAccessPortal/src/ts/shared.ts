@@ -15,7 +15,7 @@ var updateToolbarIcons;
 export function filterTree($panel, $this) {
   var $content = $panel.find('ul.admin-panel-content');
   $content.children('.hr').hide();
-  $content.find('[data-filter-string]').each(function (index, element) {
+  $content.find('[data-filter-string]').each(function(index, element) {
     var $element = $(element);
     if ($element.data('filter-string').indexOf($this.val().toUpperCase()) > -1) {
       $element.show();
@@ -25,13 +25,13 @@ export function filterTree($panel, $this) {
       $element.hide();
     }
   });
-};
+}
 export function filterTreeListener(event) {
   buildListener(filterTree).bind(this)(event);
-};
+}
 export function filterForm($panel, $this) {
   var $content = $panel.find('form.admin-panel-content');
-  $content.find('[data-selection-value]').each(function (index, element) {
+  $content.find('[data-selection-value]').each(function(index, element) {
     var $element = $(element);
     if ($element.data('selection-value').indexOf($this.val().toUpperCase()) > -1) {
       $element.show();
@@ -39,13 +39,13 @@ export function filterForm($panel, $this) {
       $element.hide();
     }
   });
-};
+}
 export function filterFormListener(event) {
   buildListener(filterForm).bind(this)(event);
-};
+}
 
 // Card expansion
-updateToolbarIcons = function ($panel) {
+updateToolbarIcons = function($panel) {
   $panel.find('.action-icon-collapse').hide().filter(function anyMaximized() {
     return $panel.find('.card-expansion-container[maximized]').length;
   }).show();
@@ -56,7 +56,7 @@ updateToolbarIcons = function ($panel) {
 export function toggleExpanded($panel, $this) {
   $this.closest('.card-container')
     .find('.card-expansion-container')
-    .attr('maximized', function (index, attr) {
+    .attr('maximized', function(index, attr) {
       var data = (attr === '')
         ? { text: 'Expand card', rv: null }
         : { text: 'Collapse card', rv: '' };
@@ -64,47 +64,47 @@ export function toggleExpanded($panel, $this) {
       return data.rv;
     });
   updateToolbarIcons($panel);
-};
+}
 export function toggleExpandedListener(event) {
   buildListener(toggleExpanded).bind(this)(event);
-};
+}
 export function expandAll($panel) {
   $panel.find('.card-expansion-container').attr('maximized', '');
   updateToolbarIcons($panel);
-};
+}
 export function expandAllListener(event) {
   buildListener(expandAll).bind(this)(event);
-};
+}
 export function collapseAll($panel) {
   $panel.find('.card-expansion-container[maximized]').removeAttr('maximized');
   updateToolbarIcons($panel);
-};
+}
 export function collapseAllListener(event) {
   buildListener(collapseAll).bind(this)(event);
-};
+}
 
 // Form control
 export function modifiedInputs($panel) {
   return $panel.find('form.admin-panel-content')
     .find('input[name!="__RequestVerificationToken"][type!="hidden"],select')
     .not('.selectize-input input')
-    .filter(function () {
+    .filter(function() {
       var $element = $(this);
       return ($element.val() !== ($element.attr('data-original-value') || ''));
     });
-};
+}
 export function modifiedInputsListener(event) {
   buildListener(modifiedInputs).bind(this)(event);
-};
+}
 export function resetValidation($panel) {
   $panel.find('form.admin-panel-content').validate().resetForm();
   $panel.find('.field-validation-error > span').remove();
-};
+}
 export function resetValidationListener(event) {
   buildListener(resetValidation).bind(this)(event);
-};
+}
 export function resetForm($panel) {
-  modifiedInputs($panel).each(function () {
+  modifiedInputs($panel).each(function() {
     var $input = $(this);
     if ($input.is('.selectized')) {
       this.selectize.setValue($input.attr('data-original-value').split(','));
@@ -114,12 +114,12 @@ export function resetForm($panel) {
   });
   resetValidation($panel);
   $panel.find('.form-button-container button').hide();
-};
+}
 export function resetFormListener(event) {
   buildListener(resetForm).bind(this)(event);
-};
+}
 export function clearForm($panel) {
-  $panel.find('.selectized').each(function () {
+  $panel.find('.selectized').each(function() {
     this.selectize.clear();
     this.selectize.clearOptions();
   });
@@ -127,13 +127,13 @@ export function clearForm($panel) {
     .not('.selectize-input input')
     .attr('data-original-value', '').val('');
   resetValidation($panel);
-};
+}
 export function clearFormListener(event) {
   buildListener(clearForm).bind(this)(event);
-};
+}
 
 function buildListener(fn) {
-  return (function (event) {
+  return (function(event) {
     const $this = $(this);
     const $panel = $this.closest('.admin-panel-container');
     event.stopPropagation();
@@ -145,7 +145,7 @@ function buildListener(fn) {
 
 // Wrappers
 export function wrapCardCallback(callback: ($card: JQuery<HTMLElement>) => void, form?: () => FormBase, panelCount: number = 1) {
-  return function () {
+  return function() {
     const $card = $(this);
     const $panel = $card.closest('.admin-panel-container');
     const $nextPanels = $panel.nextAll();
@@ -175,9 +175,9 @@ export function wrapCardCallback(callback: ($card: JQuery<HTMLElement>) => void,
       openCard();
     }
   };
-};
+}
 export function wrapCardIconCallback(callback: ($card: JQuery<HTMLElement>, whenDone: () => void) => void, form?: () => FormBase, panelCount: {count: number, offset: number} = {count: 1, offset: 0}, sameCard?: ($card: JQuery<HTMLElement>) => boolean, always?: () => void) {
-  return function (event) {
+  return function(event) {
     event.stopPropagation();
 
     const $icon = $(this);
@@ -207,7 +207,7 @@ export function wrapCardIconCallback(callback: ($card: JQuery<HTMLElement>, when
       openCard(always);
     }
   };
-};
+}
 
 // AJAX
 export function get<T>(url: string, callbacks: Array<(response: T) => void>) {
@@ -245,7 +245,7 @@ export function get<T>(url: string, callbacks: Array<(response: T) => void>) {
       $loading.hide();
     });
   };
-};
+}
 
 export function set<T>(method: string, url: string, successMessage: string, callbacks: Array<(response: T) => void>) {
   return (data: any, onResponse: () => void, buttonText: string) => {
@@ -259,7 +259,7 @@ export function set<T>(method: string, url: string, successMessage: string, call
       url: url,
       data: data,
       headers: {
-        RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
+        RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
       },
     }).done((response: T) => {
       ajaxStatus[url] = false;
@@ -273,7 +273,7 @@ export function set<T>(method: string, url: string, successMessage: string, call
       toastr.warning(warning || 'An unknown error has occurred.');
     });
   };
-};
+}
 
 export function post<T>(url: string, successMessage: string, callbacks: Array<(response: T) => void>) {
   return set('POST', url, successMessage, callbacks);
@@ -286,38 +286,38 @@ export function put<T>(url: string, successMessage: string, callbacks: Array<(re
 }
 
 export function showButtonSpinner($buttons, text?) {
-  $buttons.each(function (i) {
+  $buttons.each(function(i) {
     var $button = $buttons.eq(i);
-    if ($buttons.find('.spinner-small').length) return;
+    if ($buttons.find('.spinner-small').length) { return; }
     $button.data('originalText', $button.html());
     $button.html(text || 'Submitting');
     $button.append('<div class="spinner-small"></div>');
   });
-};
+}
 
 export function hideButtonSpinner($buttons) {
-  $buttons.each(function (i) {
+  $buttons.each(function(i) {
     var $button = $buttons.eq(i);
     $button.html($button.data().originalText);
   });
-};
+}
 
 export function xhrWithProgress(onProgress: Function) {
-  return function () {
+  return function() {
     var xhr = new XMLHttpRequest();
-    xhr.upload.addEventListener('progress', function (event: ProgressEvent) {
+    xhr.upload.addEventListener('progress', function(event: ProgressEvent) {
       if (event.lengthComputable) {
         onProgress(event.loaded / event.total);
       }
     }, false);
     return xhr;
   };
-};
+}
 
 // Typeahead
 export function userSubstringMatcher(users: any) {
   return function findMatches(query: string, callback: Function) {
-    var matches: Array<any> = [];
+    var matches: any[] = [];
     var regex = new RegExp(query, 'i');
 
     $.each(users, function check(i, user) {
@@ -330,7 +330,7 @@ export function userSubstringMatcher(users: any) {
 
     callback(matches);
   };
-};
+}
 
 // Card helpers
 // TODO: consider moving to card.js
@@ -340,19 +340,19 @@ export function updateCardStatus($card, reductionDetails) {
   var $statusUser = $statusContainer.find('em');
   var details = $.extend({
     User: {
-      FirstName: ''
+      FirstName: '',
     },
     StatusEnum: 0,
     StatusName: '',
     SelectionGroupId: 0,
-    RootContentItemId: 0
+    RootContentItemId: 0,
   }, reductionDetails);
 
   $statusContainer
-    .removeClass(function (i, classString) {
+    .removeClass(function(i, classString) {
       var classNames = classString.split(' ');
       return classNames
-        .filter(function (className) {
+        .filter(function(className) {
           return className.startsWith('status-');
         })
         .join(' ');
@@ -360,12 +360,11 @@ export function updateCardStatus($card, reductionDetails) {
     .addClass('status-' + details.StatusEnum);
   $statusName.html(details.StatusName);
   $statusUser.html(details.User.FirstName);
-};
+}
 export function updateCardStatusButtons($card: JQuery<HTMLElement>, publishingStatusEnum: PublicationStatus) {
   $card.find('.card-button-dynamic').hide();
   if (publishingStatusEnum === PublicationStatus.Queued) {
     $card.find('.card-button-cancel').css('display', 'flex');
-  } else if (publishingStatusEnum === PublicationStatus.Processing) {
   } else if (publishingStatusEnum === PublicationStatus.Complete) {
     $card.find('.card-button-add').css('display', 'flex');
   } else {
@@ -376,7 +375,7 @@ export function updateFormStatusButtons() {
   // get the selected card's status by parsing its status container class.
   var selectedCard = $('#root-content-items [selected]').parent().find('.card-status-container')[0];
   var statusClass = selectedCard && selectedCard.className.split(' ').filter((className) => className.startsWith('status-'))[0];
-  var statusEnum = statusClass && parseInt(statusClass.split('-')[1]);
+  var statusEnum = statusClass && parseInt(statusClass.split('-')[1], 10);
   var $statusFormContainer = $('#content-publishing-form').find('.form-status-container');
   $statusFormContainer.hide();
 
@@ -391,7 +390,7 @@ export function updateFormStatusButtons() {
 // TODO: consider moving to dialog.js
 export function confirmAndContinue(Dialog, form?: FormBase, onContinue?) {
   if (form && form.modified) {
-    new Dialog(function () {
+    new Dialog(function() {
       // Assigning to access mode forces the form to reset
       // FIXME: this is really unintuitive - use function instead of getters
       //   and setters since there are side effects
@@ -403,7 +402,7 @@ export function confirmAndContinue(Dialog, form?: FormBase, onContinue?) {
   } else if (onContinue) {
     onContinue();
   }
-};
+}
 
 export function confirmAndContinueForm(onContinue, condition = true) {
   if (condition) {

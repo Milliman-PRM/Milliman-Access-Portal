@@ -9,17 +9,17 @@ require('vex-js/sass/vex-theme-default.sass');
 
 // TODO: move to types file
 interface User {
-  UserName: string,
-  Email: string,
-  FirstName: string,
-  LastName: string,
-};
+  UserName: string;
+  Email: string;
+  FirstName: string;
+  LastName: string;
+}
 
 // This is a duplicate of the function in shared
 // Better separation of functionality would allow this to exist in one place
 // This is a temporary solution only.
-var userSubstringMatcher = function (users) {
-  console.warn('You are using a duplicate of shared.userSubstringMatcher. Refactor shared.js to require this function in only one place.')
+var userSubstringMatcher = function(users) {
+  console.warn('You are using a duplicate of shared.userSubstringMatcher. Refactor shared.js to require this function in only one place.');
   return function findMatches(query, callback) {
     var matches = [];
     var regex = new RegExp(query, 'i');
@@ -38,40 +38,40 @@ var userSubstringMatcher = function (users) {
 
 export function Dialog(
   title, message, buttons, color, input,
-  callback, submitHandler
+  callback, submitHandler,
 ) {
   var self = this;
   this.title = title;
   this.color = color;
   this.options = {
     unsafeMessage: '<span class="vex-custom-message">' + message + '</span>',
-    buttons: $.map(buttons, function (element) {
+    buttons: $.map(buttons, function(element) {
       return element.type(element.text, color);
     }),
     input: input || '',
-    callback: callback || $.noop
+    callback: callback || $.noop,
   };
   if (submitHandler) {
     this.options = $.extend(this.options, {
-      onSubmit: function (event) {
+      onSubmit: function(event) {
         var vexObject = this;
         var data;
         event.preventDefault();
         if (self.options.input) {
           data = {};
-          $.each($('.vex-dialog-input input').serializeArray(), function (i, obj) {
+          $.each($('.vex-dialog-input input').serializeArray(), function(i, obj) {
             data[obj.name] = obj.value;
           });
         }
-        return submitHandler(data, function () {
+        return submitHandler(data, function() {
           vexObject.close();
         }, self.buttonText);
-      }
+      },
     });
   }
-};
+}
 
-Dialog.prototype.open = function () {
+Dialog.prototype.open = function() {
   vex.dialog.open(this.options);
   $('.vex-content')
     .prepend([
@@ -79,9 +79,9 @@ Dialog.prototype.open = function () {
       '  <h3 class="vex-custom-title ' + this.color + '">',
       '' + this.title,
       '  </h3>',
-      '</div>'
+      '</div>',
     ].join(''));
-  if (this.afterOpen) this.afterOpen();
+  if (this.afterOpen) { this.afterOpen(); }
 };
 
 export function ConfirmationDialog(title, message, buttonText, callback) {
@@ -91,17 +91,17 @@ export function ConfirmationDialog(title, message, buttonText, callback) {
     message,
     [
       { type: vex.dialog.buttons.yes, text: buttonText },
-      { type: vex.dialog.buttons.no, text: 'Continue Editing' }
+      { type: vex.dialog.buttons.no, text: 'Continue Editing' },
     ],
     'blue',
     null,
-    function (result) {
+    function(result) {
       if (result) {
         callback();
       }
-    }
+    },
   );
-};
+}
 ConfirmationDialog.prototype = Object.create(Dialog.prototype);
 ConfirmationDialog.prototype.constructor = ConfirmationDialog;
 
@@ -111,9 +111,9 @@ export function DiscardConfirmationDialog(callback) {
     'Discard Changes',
     'Would you like to discard unsaved changes?',
     'Discard',
-    callback
+    callback,
   );
-};
+}
 DiscardConfirmationDialog.prototype = Object.create(ConfirmationDialog.prototype);
 DiscardConfirmationDialog.prototype.constructor = DiscardConfirmationDialog;
 
@@ -123,9 +123,9 @@ export function ResetConfirmationDialog(callback) {
     'Reset Form',
     'Would you like to reset the form?',
     'Reset',
-    callback
+    callback,
   );
-};
+}
 ResetConfirmationDialog.prototype = Object.create(ConfirmationDialog.prototype);
 ResetConfirmationDialog.prototype.constructor = ResetConfirmationDialog;
 
@@ -137,14 +137,14 @@ export function RemoveUserDialog(username, submitHandler) {
     'Remove <strong>' + username + '</strong> from the selected client?',
     [
       { type: vex.dialog.buttons.yes, text: 'Remove' },
-      { type: vex.dialog.buttons.no, text: 'Cancel' }
+      { type: vex.dialog.buttons.no, text: 'Cancel' },
     ],
     'red',
     null,
     null,
-    submitHandler
+    submitHandler,
   );
-};
+}
 RemoveUserDialog.prototype = Object.create(Dialog.prototype);
 RemoveUserDialog.prototype.constructor = RemoveUserDialog;
 
@@ -155,15 +155,15 @@ export function DeleteSelectionGroupDialog($selectionGroup, submitHandler) {
     'Delete <strong>' + $selectionGroup.find('.card-body-primary-text').html() + '</strong>?',
     [
       { type: vex.dialog.buttons.yes, text: 'Delete' },
-      { type: vex.dialog.buttons.no, text: 'Cancel' }
+      { type: vex.dialog.buttons.no, text: 'Cancel' },
     ],
     'red',
     '<input name="SelectionGroupId" type="hidden" value="' + $selectionGroup.closest('.card-container').data('selection-group-id') + '">',
     null,
-    submitHandler
+    submitHandler,
   );
   this.buttonText = 'Deleting';
-};
+}
 DeleteSelectionGroupDialog.prototype = Object.create(Dialog.prototype);
 DeleteSelectionGroupDialog.prototype.constructor = DeleteSelectionGroupDialog;
 
@@ -176,9 +176,9 @@ export function PasswordDialog(title, message, buttons, color, submitHandler) {
     color,
     '<input name="password" type="password" placeholder="Password" required />',
     null,
-    submitHandler
+    submitHandler,
   );
-};
+}
 PasswordDialog.prototype = Object.create(Dialog.prototype);
 PasswordDialog.prototype.constructor = PasswordDialog;
 
@@ -186,7 +186,7 @@ export function DeleteClientDialog(clientName, clientId, submitHandler) {
   var title = 'Delete Client';
   var buttons = [
     { type: vex.dialog.buttons.yes, text: 'Delete' },
-    { type: vex.dialog.buttons.no, text: 'Cancel' }
+    { type: vex.dialog.buttons.no, text: 'Cancel' },
   ];
   var color = 'red';
   Dialog.call(
@@ -196,21 +196,21 @@ export function DeleteClientDialog(clientName, clientId, submitHandler) {
     buttons,
     color,
     null,
-    function (confirm) {
+    function(confirm) {
       if (confirm) {
         new PasswordDialog(
           title,
           'Please provide your password to delete <strong>' + clientName + '</strong>.',
           buttons,
           color,
-          submitHandler
+          submitHandler,
         ).open();
       } else {
         toastr.info('Deletion was canceled');
       }
-    }
+    },
   );
-};
+}
 DeleteClientDialog.prototype = Object.create(Dialog.prototype);
 DeleteClientDialog.prototype.constructor = DeleteClientDialog;
 
@@ -218,7 +218,7 @@ export function DeleteRootContentItemDialog(rootContentItemName, rootContentItem
   var title = 'Delete RootContentItem';
   var buttons = [
     { type: vex.dialog.buttons.yes, text: 'Delete' },
-    { type: vex.dialog.buttons.no, text: 'Cancel' }
+    { type: vex.dialog.buttons.no, text: 'Cancel' },
   ];
   var color = 'red';
   Dialog.call(
@@ -228,21 +228,21 @@ export function DeleteRootContentItemDialog(rootContentItemName, rootContentItem
     buttons,
     color,
     null,
-    function (confirm) {
+    function(confirm) {
       if (confirm) {
         new PasswordDialog(
           title,
           'Please provide your password to delete <strong>' + rootContentItemName + '</strong>.',
           buttons,
           color,
-          submitHandler
+          submitHandler,
         ).open();
       } else {
         toastr.info('Deletion was canceled');
       }
-    }
+    },
   );
-};
+}
 DeleteRootContentItemDialog.prototype = Object.create(Dialog.prototype);
 DeleteRootContentItemDialog.prototype.constructor = DeleteRootContentItemDialog;
 
@@ -253,28 +253,28 @@ export function AddUserDialog(eligibleUsers, submitHandler) {
     'Please provide a valid email address',
     [
       { type: vex.dialog.buttons.yes, text: 'Add User' },
-      { type: vex.dialog.buttons.no, text: 'Cancel' }
+      { type: vex.dialog.buttons.no, text: 'Cancel' },
     ],
     'blue',
     '<input class="typeahead" name="username" placeholder="Email" required />',
     null,
-    submitHandler
+    submitHandler,
   );
-  this.afterOpen = function () {
+  this.afterOpen = function() {
     $('.vex-dialog-input .typeahead').typeahead(
       {
         hint: true,
         highlight: true,
-        minLength: 1
+        minLength: 1,
       },
       {
         name: 'eligibleUsers',
         source: userSubstringMatcher(eligibleUsers),
-        display: function (data: User) {
+        display: function(data: User) {
           return data.UserName;
         },
         templates: {
-          suggestion: function (data: User) {
+          suggestion: function(data: User) {
             return [
               '<div>',
               data.UserName + '',
@@ -284,14 +284,14 @@ export function AddUserDialog(eligibleUsers, submitHandler) {
               (data.FirstName && data.LastName)
                 ? '<br /><span class="secondary-text">' + data.FirstName + ' ' + data.LastName + '</span>'
                 : '',
-              '</div>'
+              '</div>',
             ].join('');
-          }
-        }
-      }
+          },
+        },
+      },
     ).focus();
   };
-};
+}
 AddUserDialog.prototype = Object.create(Dialog.prototype);
 AddUserDialog.prototype.constructor = AddUserDialog;
 
@@ -302,17 +302,17 @@ export function AddSelectionGroupDialog(submitHandler) {
     'Please enter the selection group name',
     [
       { type: vex.dialog.buttons.yes, text: 'Add Group' },
-      { type: vex.dialog.buttons.no, text: 'Cancel' }
+      { type: vex.dialog.buttons.no, text: 'Cancel' },
     ],
     'blue',
     [
       '<input name="RootContentItemId" type="hidden" value="' + $('#root-content-items [selected]').closest('.card-container').data('root-content-item-id') + '">',
-      '<input name="SelectionGroupName" required />'
+      '<input name="SelectionGroupName" required />',
     ].join(''),
     null,
-    submitHandler
+    submitHandler,
   );
-};
+}
 AddSelectionGroupDialog.prototype = Object.create(Dialog.prototype);
 AddSelectionGroupDialog.prototype.constructor = AddSelectionGroupDialog;
 
@@ -323,7 +323,7 @@ export function CancelContentPublicationRequestDialog(rootContentItemId, rootCon
     `Cancel publication for <strong>${rootContentItemName}</strong>?`,
     [
       { type: vex.dialog.buttons.yes, text: 'Yes' },
-      { type: vex.dialog.buttons.no, text: 'No' }
+      { type: vex.dialog.buttons.no, text: 'No' },
     ],
     'red',
     '<input name="RootContentItemId" type="hidden" value="' + rootContentItemId + '">',
@@ -331,6 +331,6 @@ export function CancelContentPublicationRequestDialog(rootContentItemId, rootCon
     submitHandler,
   );
   this.buttonText = 'Canceling';
-};
+}
 CancelContentPublicationRequestDialog.prototype = Object.create(Dialog.prototype);
 CancelContentPublicationRequestDialog.prototype.constructor = CancelContentPublicationRequestDialog;

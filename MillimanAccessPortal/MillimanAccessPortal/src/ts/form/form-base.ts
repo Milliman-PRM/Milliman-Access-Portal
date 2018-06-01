@@ -27,7 +27,7 @@ export class FormBase extends FormElement {
     this._accessMode = mode;
   }
 
-  private _submissionModes: Array<SubmissionMode> = [];
+  private _submissionModes: SubmissionMode[] = [];
   private _submissionMode: SubmissionMode;
   public get submissionMode(): string {
     return this._submissionMode.name;
@@ -50,7 +50,7 @@ export class FormBase extends FormElement {
     return this._token;
   }
 
-  public inputSections: Array<FormInputSection>;
+  public inputSections: FormInputSection[];
   public submissionSection: FormSubmissionSection;
 
   protected _cssClasses = {
@@ -105,10 +105,10 @@ export class FormBase extends FormElement {
     });
   }
 
-  public configure(modes: Array<SubmissionMode>) {
+  public configure(modes: SubmissionMode[]) {
     this._submissionModes = modes;
-    
     // Configure form reset and submission
+
     this.submissionSection.submissions
       .forEach((submission) => submission.setCallbacks(modes, this));
 
@@ -129,7 +129,7 @@ export class FormBase extends FormElement {
       .reduce((cum, cur) => cum || cur, false);
   }
 
-  public serialize(sectionNames: Array<string>): string {
+  public serialize(sectionNames: string[]): string {
     const allInputs = this.$entryPoint.serializeArray();
     const filteredInputs = (() => {
       return sectionNames

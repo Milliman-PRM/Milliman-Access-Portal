@@ -8,7 +8,7 @@ export class FileUploadInput extends FormInput {
     main: 'form-input-file-upload',
     title: 'form-input-file-upload-title',
     extension: 'form-input-file-upload-contents',
-  }
+  };
 
   protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('input.file-upload-guid');
 
@@ -21,7 +21,7 @@ export class FileUploadInput extends FormInput {
   protected comparator = (a: string, b: string) => (a === b) && !this.uploadInProgress;
 
   public get component(): UploadComponent {
-    return this.name as UploadComponent;    
+    return this.name as UploadComponent;
   }
 
   private uploadInProgress: boolean = false;
@@ -51,8 +51,7 @@ export class FileUploadInput extends FormInput {
       progressBar.toggleClass('progress-easing', !isEndpoint);
       progressBar.width(progress.percentage);
     };
-    this.upload.onProgressMessage = (message: string) => {
-    };
+    this.upload.onProgressMessage = (message: string) => undefined;
 
     this.upload.onFileAdded = (resumableFile: any) => {
       this.$entryPoint.find('input.file-upload').val(resumableFile.fileName);
@@ -60,7 +59,7 @@ export class FileUploadInput extends FormInput {
         const reader = new FileReader();
         reader.onload = (event) => {
           this.$entryPoint.find('img.image-preview').attr('src', reader.result);
-        }
+        };
         reader.readAsDataURL(resumableFile.file);
       }
     };
@@ -113,7 +112,7 @@ export class FileUploadInput extends FormInput {
   }
 }
 
-const FileTypes = new Map<UploadComponent, Array<string>>([
+const FileTypes = new Map<UploadComponent, string[]>([
   [UploadComponent.Image, ['jpg', 'jpeg', 'png', 'gif']],
   [UploadComponent.Content, []],
   [UploadComponent.UserGuide, ['pdf']],

@@ -31,13 +31,13 @@ export class Upload {
   protected monitor: ProgressMonitor;
 
   public getUID: (file: File, event: Event) => string = () => '';
-  public onChecksumProgress: (progress: ProgressSummary) => void = () => {};
-  public onUploadProgress: (progress: ProgressSummary) => void = () => {};
-  public onProgressMessage: (message: string) => void = () => {};
+  public onChecksumProgress: (progress: ProgressSummary) => void = () => undefined;
+  public onUploadProgress: (progress: ProgressSummary) => void = () => undefined;
+  public onProgressMessage: (message: string) => void = () => undefined;
 
-  public onFileAdded: (resumableFile: any) => void = () => {};
-  public onFileSuccess: (fileGUID: string) => void = () => {};
-  public onStateChange: (alertUnload: boolean, cancelable: boolean) => void = () => {};
+  public onFileAdded: (resumableFile: any) => void = () => undefined;
+  public onFileSuccess: (fileGUID: string) => void = () => undefined;
+  public onStateChange: (alertUnload: boolean, cancelable: boolean) => void = () => undefined;
 
   // Cancelable, checksum, and file GUID indicate the upload state.
   // Whether the current ongoing process can be canceled
@@ -76,12 +76,12 @@ export class Upload {
 
   // Additional headers to send with each resumable chunk
   protected resumableHeaders = {
-    RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString(),
+    RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
   };
   // Additional form data to send with each resumable chunk
   protected resumableFormData = {
     Checksum: this.checksum,
-  }
+  };
 
   constructor() {
     this.resumable = new Resumable(Object.assign({}, resumableOptions, {
@@ -116,7 +116,7 @@ export class Upload {
         await this.scanner.scan(messageDigest.update);
       } catch {
         // Upload was canceled
-        return
+        return;
       }
       this.setChecksum(messageDigest.digest().toHex());
 
@@ -126,7 +126,7 @@ export class Upload {
         file.size,
       );
       this.monitor.activate();
-    
+
       this.getChunkStatus();
       this.resumable.upload();
     });
@@ -148,9 +148,8 @@ export class Upload {
           url: 'FileUpload/CancelUpload',
           data: cancelInfo,
           headers: {
-            RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
-          }
-        }).done((response) => {
+            RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
+          },
         }).fail((response) => {
           throw new Error(`Something went wrong. Response: ${JSON.stringify(response)}`);
         }).always((response) => {
@@ -177,8 +176,8 @@ export class Upload {
         url: 'FileUpload/FinalizeUpload',
         data: finalizeInfo,
         headers: {
-          RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
-        }
+          RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
+        },
       }).done((response: string) => {
         this.monitor.deactivate();
         this.onUploadProgress(ProgressSummary.Full());
@@ -193,9 +192,9 @@ export class Upload {
   }
 
   public cancel() {
-    if (this.resumable) this.resumable.cancel();
-    if (this.scanner) this.scanner.cancel();
-    if (this.monitor) this.monitor.deactivate();
+    if (this.resumable) { this.resumable.cancel(); }
+    if (this.scanner) { this.scanner.cancel(); }
+    if (this.monitor) { this.monitor.deactivate(); }
     this.onProgressMessage('Upload canceled');
     this.setCancelable(false);
     this.setChecksum(null);
@@ -205,7 +204,7 @@ export class Upload {
     this.resumable.assignBrowse(element, false);
   }
 
-  public setFileTypes(fileTypes: Array<string>) {
+  public setFileTypes(fileTypes: string[]) {
     this.resumable.opts.fileType = fileTypes;
   }
 

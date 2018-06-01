@@ -22,13 +22,13 @@ function deleteRootContentItem(rootContentItemId: string, rootContentItemName: s
       rootContentItemId: rootContentItemId,
     },
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
-    }
+      RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
+    },
   }).done(function onDone(response: RootContentItemDetail) {
     $('#content-publishing-form').hide();
-      $('#root-content-items .card-container')
-        .filter((i, card) => $(card).data().rootContentItemId === response.Id)
-        .remove();
+    $('#root-content-items .card-container')
+      .filter((i, card) => $(card).data().rootContentItemId === response.Id)
+      .remove();
     addToDocumentCount(response.ClientId, -1);
     callback();
     toastr.success(rootContentItemName + ' was successfully deleted.');
@@ -45,7 +45,7 @@ export function rootContentItemDeleteClickHandler(event) {
   new DeleteRootContentItemDialog(
     rootContentItemName,
     rootContentItemId,
-    function (data, callback) {
+    function(data, callback) {
       if (data.password) {
         showButtonSpinner($('.vex-first'), 'Deleting');
         $('.vex-dialog-button').attr('disabled', '');
@@ -68,13 +68,13 @@ function cancelContentPublication(data, callback) {
       RootContentItemId: data.RootContentItemId,
     },
     headers: {
-      RequestVerificationToken: $("input[name='__RequestVerificationToken']").val().toString()
-    }
+      RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
+    },
   }).done(() => {
-    if (typeof callback === 'function') callback();
+    if (typeof callback === 'function') { callback(); }
     toastr.success('Content publication request canceled');
   }).fail((response) => {
-    if (typeof callback === 'function') callback();
+    if (typeof callback === 'function') { callback(); }
     toastr.warning(response.getResponseHeader('Warning'));
   });
 }
@@ -130,13 +130,13 @@ function setFormEditOrRepublish() {
 function mapRootContentItemDetail(item: RootContentItemDetail) {
   const formMap = new Map<string, string | number | boolean>();
 
-  formMap.set('Id',item.Id);
-  formMap.set('ClientId',item.ClientId);
-  formMap.set('ContentName',item.ContentName);
-  formMap.set('ContentTypeId',item.ContentTypeId);
-  formMap.set('DoesReduce', item.DoesReduce);
-  formMap.set('Description',item.Description);
-  formMap.set('Notes',item.Notes);
+  formMap.set('Id', item.Id);
+  formMap.set('ClientId', item.ClientId);
+  formMap.set('ContentName', item.ContentName);
+  formMap.set('ContentTypeId', item.ContentTypeId);
+  formMap.set('DoesReduce',  item.DoesReduce);
+  formMap.set('Description', item.Description);
+  formMap.set('Notes', item.Notes);
 
   return formMap;
 }
@@ -145,7 +145,7 @@ function addToDocumentCount(clientId: number, offset: number) {
   const itemCount = $('#client-tree .card-container')
     .filter((i, card) => $(card).data().clientId === clientId)
     .find('use[href="#action-icon-reports"]').closest('div').find('h4');
-  itemCount.html(`${parseInt(itemCount.html()) + offset}`);
+  itemCount.html(`${parseInt(itemCount.html(), 10) + offset}`);
 }
 
 function renderConfirmationPane(response: PreLiveContentValidationSummary) {
@@ -162,7 +162,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
     { sectionName: 'master-content', link: response.MasterContentLink },
     { sectionName: 'user-guide', link: response.UserGuideLink },
     { sectionName: 'release-notes', link: response.ReleaseNotesLink },
-  ]
+  ];
   linkPairs.forEach((pair) => {
     $(`#confirmation-section-${pair.sectionName} iframe`)
       .attr('src', pair.link)
@@ -201,7 +201,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
       $rootContentItemForm.find(`#${key}`).val(value ? value.toString() : '');
     });
 
-    const $doesReduceToggle = $rootContentItemForm.find(`#DoesReduce`);
+    const $doesReduceToggle = $rootContentItemForm.find('#DoesReduce');
     $doesReduceToggle.prop('checked', item.DoesReduce);
   }
 
@@ -280,7 +280,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
         .map((kvp) => kvp.split('='))
         .forEach((kvp) => dataArray[kvp[0]] = kvp[1]);
       const publishRequest: PublishRequest = {
-        RootContentItemId: parseInt(dataArray['Id']),
+        RootContentItemId: parseInt(dataArray['Id'], 10),
         RelatedFiles: ['MasterContent', 'UserGuide', 'Thumbnail', 'ReleaseNotes']
           .map((file) => ({
             FilePurpose: file,
@@ -398,7 +398,7 @@ function renderClientTree(response: ClientTree, clientId?: number) {
   }
 }
 
-function populateAvailableContentTypes(contentTypes: Array<ContentType>) {
+function populateAvailableContentTypes(contentTypes: ContentType[]) {
   const $panel = $('#content-publishing-form');
   const $rootContentItemForm = $panel.find('form.admin-panel-content');
 
@@ -435,15 +435,15 @@ export function setup() {
   $('.admin-panel-searchbar-tree').keyup(filterTreeListener);
   $('.admin-panel-searchbar-form').keyup(filterFormListener);
 
-  $('#root-content-items .admin-panel-toolbar .action-icon-add').click(function () {
+  $('#root-content-items .admin-panel-toolbar .action-icon-add').click(function() {
     openNewRootContentItemForm();
     $('#root-content-items .card-body-container').removeAttr('selected');
     $('#root-content-items .card-body-container.action-card').attr('selected', '');
     $('#content-publishing-form').show();
-  })
+  });
   $('#root-content-items ul.admin-panel-content-action')
     .append(new AddRootContentItemActionCard(
-      wrapCardCallback(openNewRootContentItemForm, () => formObject)
+      wrapCardCallback(openNewRootContentItemForm, () => formObject),
     ).build());
 
   $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').click(() => {

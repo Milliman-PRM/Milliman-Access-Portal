@@ -17,7 +17,7 @@ export class FormInputSection extends FormElement {
     extension: 'form-input-container',
   };
 
-  public inputs: Array<FormInput>;
+  public inputs: FormInput[];
 
   public bindToDOM(entryPoint: HTMLElement) {
     super.bindToDOM(entryPoint);
@@ -40,7 +40,7 @@ export class FormInputSection extends FormElement {
           .map((y) => y())
           .filter((y: FormInput) => $(x).is(`.${y.cssClasses.main}`));
         if (matchedInputs.length > 1) {
-          throw new Error(`Element matches multiple input types.`);
+          throw new Error('Element matches multiple input types.');
         } else if (matchedInputs.length === 0) {
           return undefined;
         }
@@ -67,7 +67,7 @@ export class FormInputSection extends FormElement {
         input.setAccessMode(submissionMode.groups
           .filter((group) => group.sections.indexOf(this.name) !== -1).length
             ? AccessMode.Write
-            : AccessMode.Read
+            : AccessMode.Read,
         );
       });
     } else {
@@ -89,7 +89,7 @@ export class FormSubmissionSection extends FormElement {
     extension: '',
   };
 
-  public submissions: Array<Submission>;
+  public submissions: Submission[];
 
   public bindToDOM(entryPoint: HTMLElement) {
     super.bindToDOM(entryPoint);

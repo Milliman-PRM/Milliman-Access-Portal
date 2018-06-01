@@ -23,7 +23,7 @@ export class ClientSummary extends Nestable {
   Code: string;
 
   CanManage: boolean;
-  AssignedUsers: Array<UserInfo>;
+  AssignedUsers: UserInfo[];
   EligibleUserCount: number;
   RootContentItemCount: number;
 }
@@ -53,7 +53,7 @@ export class RootContentItemSummary {
   PublicationDetails: PublicationSummary;
 }
 export class RootContentItemList {
-  DetailList: Array<RootContentItemSummary>;
+  DetailList: RootContentItemSummary[];
   SelectedRootContentItemId: number;
 }
 
@@ -86,7 +86,7 @@ export class PublicationDetails {
   RootContentItemId: number;
 }
 export class RootContentItemStatus {
-  Status: Array<PublicationDetails>;
+  Status: PublicationDetails[];
 }
 
 export class ContentRelatedFile {
@@ -95,7 +95,7 @@ export class ContentRelatedFile {
 }
 export class PublishRequest {
   RootContentItemId: number;
-  RelatedFiles: Array<ContentRelatedFile>;
+  RelatedFiles: ContentRelatedFile[];
 }
 
 export class PreLiveContentValidationSummary {
@@ -112,7 +112,7 @@ export class PreLiveContentValidationSummary {
   ThumbnailLink: string;
   LiveHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
   NewHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
-  SelectionGroups: Array<SelectionGroupSummary>;
+  SelectionGroups: SelectionGroupSummary[];
 }
 export class SelectionGroupSummary {
   Name: string;
@@ -129,7 +129,7 @@ export class ReductionField<T extends ReductionFieldValue> {
   FieldName: string;
   DisplayName: string;
   ValueDelimiter: string;
-  Values: Array<T>;
+  Values: T[];
 }
 export class ReductionFieldValue {
   Id: number;
@@ -138,7 +138,7 @@ export class ReductionFieldValue {
     return false;
   }
 }
-export class ReductionFieldValueSelection extends ReductionFieldValue{
+export class ReductionFieldValueSelection extends ReductionFieldValue {
   get HasSelectionStatus() {
     return true;
   }

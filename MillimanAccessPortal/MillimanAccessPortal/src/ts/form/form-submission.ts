@@ -1,8 +1,8 @@
 import * as toastr from 'toastr';
 import { showButtonSpinner, hideButtonSpinner } from '../shared';
 import { FormBase } from './form-base';
-import { FormElement } from "./form-element";
-import { confirmAndContinueForm } from "../shared";
+import { FormElement } from './form-element';
+import { confirmAndContinueForm } from '../shared';
 import { SubmissionMode } from './form-modes';
 
 export class Submission extends FormElement {
@@ -16,7 +16,7 @@ export class Submission extends FormElement {
   private _submissionMode: SubmissionMode;
   public get submissionMode(): SubmissionMode {
     return this._submissionMode;
-  };
+  }
   public set submissionMode(submissionMode: SubmissionMode) {
     this._submissionMode = submissionMode;
     if (this.$entryPoint.is(this.activeButtonSelector)) {
@@ -41,7 +41,7 @@ export class Submission extends FormElement {
     this._disabled = value;
   }
 
-  public setCallbacks(modes: Array<SubmissionMode>, form: FormBase) {
+  public setCallbacks(modes: SubmissionMode[], form: FormBase) {
     // Find the first group (if any) that matches
     const singleMode = modes.filter((group) =>
       this.$entryPoint.is(`.button-container-${group.name}`));
@@ -55,8 +55,7 @@ export class Submission extends FormElement {
       .find('.button-submit')
       .off('click')
       .on('click', async () => {
-        for (let i = 0; i < mode.groups.length; i += 1) {
-          const group = mode.groups[i];
+        for (const group of mode.groups) {
           await group.submit(form, mode.sparse);
         }
       });
@@ -79,7 +78,7 @@ export class Submission extends FormElement {
 export class SubmissionGroup<T> {
   public callback: (response: T, form?: FormBase) => void;
   constructor(
-    readonly sections: Array<string>,
+    readonly sections: string[],
     readonly url: string,
     readonly method: string,
     callback: (response: T, form?: FormBase) => void,
@@ -88,7 +87,7 @@ export class SubmissionGroup<T> {
     this.callback = callback;
   }
 
-  public static FinalGroup<T>(callback: (response: T) => void = () => {}): SubmissionGroup<T> {
+  public static FinalGroup<T>(callback: (response: T) => void = () => undefined): SubmissionGroup<T> {
     const group = new SubmissionGroup<T>(
       [],
       null,
@@ -99,17 +98,17 @@ export class SubmissionGroup<T> {
   }
 
   public submit(form: FormBase, sparse: boolean = false): Promise<any> {
-  //showButtonSpinner($(`.button-container-${form.submissionMode} .button-submit`));
-  //hideButtonSpinner($(`.button-container-${form.submissionMode} .button-submit`));
+  // showButtonSpinner($(`.button-container-${form.submissionMode} .button-submit`));
+  // hideButtonSpinner($(`.button-container-${form.submissionMode} .button-submit`));
 
     if (sparse) {
       const modified = form.inputSections
         .filter((inputSection) => this.sections === undefined || this.sections.indexOf(inputSection.name) !== -1)
         .map((inputSection) => inputSection.modified)
         .reduce((cum, cur) => cum || cur, false);
-        if (!modified) {
-          return;
-        }
+      if (!modified) {
+        return;
+      }
     }
 
     return new Promise((resolve, reject) => {
