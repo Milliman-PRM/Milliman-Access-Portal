@@ -58,16 +58,16 @@ namespace MillimanAccessPortal
                     ;
 
                     #region Configure Azure Key Vault for CI & Production
-                    string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                    string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
                     switch (EnvironmentName)
                     {
-                        case "AzureCI":
-                        case "Production":
-                            config.AddJsonFile($"AzureKeyVault.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true);
+                        case "AZURECI":
+                        case "PRODUCTION":
+                            config.AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true);
 
                             var builtConfig = config.Build();
                         
-                            var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+                            var store = new X509Store(StoreName.My, (EnvironmentName == "PRODUCTION" ? StoreLocation.LocalMachine : StoreLocation.CurrentUser));
                             store.Open(OpenFlags.ReadOnly);
                             var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
 
@@ -77,7 +77,7 @@ namespace MillimanAccessPortal
                                 cert.OfType<X509Certificate2>().Single()
                                 );
                             break;
-                        case "Development":
+                        case "DEVELOPMENT":
                             config.AddUserSecrets<Startup>();
                             break;
 
