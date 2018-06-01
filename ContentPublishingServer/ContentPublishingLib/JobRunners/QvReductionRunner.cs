@@ -654,7 +654,7 @@ namespace ContentPublishingLib.JobRunners
                     Thread.Sleep(PublisherPollingIntervalMs);
 
                     Status = await QmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
-                } while (Status == null || Status.Extended == null || (!DateTime.TryParse(Status.Extended.StartTime, out _) && !DateTime.TryParse(Status.Extended.FinishedTime, out _)));
+                } while (Status == null || Status.Extended == null || !(DateTime.TryParse(Status.Extended.StartTime, out _) || DateTime.TryParse(Status.Extended.FinishedTime, out _)));
 
                 Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} started running after {DateTime.Now - StartTime}");
 
