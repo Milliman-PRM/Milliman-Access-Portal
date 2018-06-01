@@ -1,5 +1,6 @@
 ﻿import * as React from 'react';
 import { Component } from 'react';
+import '../../scss/react-components/content-card.scss';
 
 require('tooltipster');
 require('tooltipster/src/css/tooltipster.css');
@@ -23,7 +24,7 @@ class ContentCard extends Component<ContentCardProps, {}> {
     let releasenNotesIcon = this.props.releasenNotesURL ?
       (
         <a href={this.props.releasenNotesURL} className="tooltip" title="View Release Notes">
-          <svg className="content-card-releasenotes-icon">
+          <svg className="content-card-icon">
             <use xlinkHref="#navbar-user-guide" />
           </svg>
         </a>
@@ -31,21 +32,21 @@ class ContentCard extends Component<ContentCardProps, {}> {
     let userguideIcon = this.props.userguideURL ?
       (
         <a href={this.props.userguideURL} className="tooltip" title="View Userguide">
-          <svg className="content-card-userguide-icon">
+          <svg className="content-card-icon">
             <use xlinkHref="#navbar-user-guide" />
           </svg>
         </a>
       ) : null;
     let thumbnailImage = this.props.thumbnailURL ?
       (
-        <img src={this.props.thumbnailURL} alt={this.props.name} />
+        <img className="content-card-image" src={this.props.thumbnailURL} alt={this.props.name} />
       ) : null;
 
     return (
-      <div className="content-card">
-        <a href={this.props.contentURL}>
+      <a href={this.props.contentURL}>
+        <div className="content-card">
           <div className="content-card-header">
-            <h2 className="content-card-title">{this.props.name}</h2>
+            <h1 className="content-card-title">{this.props.name}</h1>
             <div className="content-card-icons">
               {releasenNotesIcon}
               {userguideIcon}
@@ -53,10 +54,10 @@ class ContentCard extends Component<ContentCardProps, {}> {
           </div>
           <div className="content-card-body">
             {thumbnailImage}
-            <p className="content-description">{this.props.description}</p>
+            <p className="content-card-description">{this.props.description}</p>
           </div>
-        </a>
-      </div>
+        </div>
+      </a>
     );
   }
 
