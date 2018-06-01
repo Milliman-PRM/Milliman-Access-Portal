@@ -351,7 +351,7 @@ export namespace ContentPublishingDOMMethods {
           [
             renderConfirmationPane,
           ],
-        ), () => formObject, {count: 1, offset: 1}),
+        ), () => formObject, {count: 1, offset: 1}, () => false),
     ).build();
     updateCardStatus($card, item.PublicationDetails);
     updateCardStatusButtons($card, item.PublicationDetails && item.PublicationDetails.StatusEnum);
