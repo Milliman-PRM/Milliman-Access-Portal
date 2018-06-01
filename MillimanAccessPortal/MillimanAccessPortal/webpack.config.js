@@ -9,7 +9,7 @@ module.exports = {
     'client-admin': './src/js/client-admin.js',
     'content-access-admin': './src/js/content-access-admin.js',
     'content-publishing': './src/js/content-publishing/index.js',
-    'hosted-content': './src/js/react/hosted-content/index.js',
+    'authorized-content': './src/js/react/authorized-content/index.js',
     'login': './src/js/login.js',
     'system-admin': './src/js/system-admin.js',
   },

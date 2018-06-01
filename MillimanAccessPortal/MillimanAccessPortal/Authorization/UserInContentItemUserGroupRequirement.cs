@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: MVC controller implementing handlers related to accessing hosted content
+ * OBJECTIVE: MVC controller implementing handlers related to accessing authorized content
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 

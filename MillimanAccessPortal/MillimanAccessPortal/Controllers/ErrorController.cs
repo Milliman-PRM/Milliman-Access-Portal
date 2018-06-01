@@ -31,10 +31,10 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>
-        /// Populates a general model for the error views from TempData. If the TempData variables are not found, default route is "HostedContent/Index"
+        /// Populates a general model for the error views from TempData. If the TempData variables are not found, default route is "AuthorizedContent/Index"
         /// </summary>
         /// <param name="MessageVarNameArg">Name of a TempData variable containing error message, default "Message"</param>
-        /// <param name="ReturnToControllerArg">Name of a TempData variable containing the controller to return to, default "HostedContent"</param>
+        /// <param name="ReturnToControllerArg">Name of a TempData variable containing the controller to return to, default "AuthorizedContent"</param>
         /// <param name="ReturnToActionArg">Name of a TempData variable containing the action to return to, default "Index"</param>
         /// <returns></returns>
         [NonAction]
@@ -42,7 +42,7 @@ namespace MillimanAccessPortal.Controllers
         {
             // Defaults here are in case the TempData variables don't exist
             string[] LocalMessage = new string[] { "Error message not found" } ;
-            string LocalReturnToController = "HostedContent";
+            string LocalReturnToController = "AuthorizedContent";
             string LocalReturnToAction = "Index";
 
             if (TempData.Keys.Contains(MessageVarNameArg))

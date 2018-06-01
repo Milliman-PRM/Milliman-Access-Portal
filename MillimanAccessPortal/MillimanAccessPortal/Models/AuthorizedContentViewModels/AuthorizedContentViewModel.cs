@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MillimanAccessPortal.Models.HostedContentViewModels
+namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
 {
     /// <summary>
     /// A POCO class representing each authorized content item to be presented in the content index page
     /// Anything that gets altered about this class must be reflected in StandardQueries.GetAuthorizedUserGroupsAndRoles() and other places
     /// </summary>
-    public class HostedContentViewModel
+    public class AuthorizedContentViewModel
     {
         public class ParentClientTree
         {

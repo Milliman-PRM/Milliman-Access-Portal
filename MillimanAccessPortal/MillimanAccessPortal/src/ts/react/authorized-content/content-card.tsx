@@ -1,6 +1,6 @@
 ﻿import * as React from 'react';
 import { Component } from 'react';
-import '../../../scss/react/hosted-content/content-card.scss';
+import '../../../scss/react/authorized-content/content-card.scss';
 
 require('tooltipster');
 require('tooltipster/src/css/tooltipster.css');

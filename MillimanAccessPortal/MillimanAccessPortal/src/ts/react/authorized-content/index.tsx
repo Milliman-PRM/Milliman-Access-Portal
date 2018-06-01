@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import HostedContentApp from './hosted-content-app';
+import AuthorizedContentApp from './authorized-content-app';
 
 require('jquery');
 require('jquery-validation');
@@ -14,8 +14,8 @@ require('toastr/toastr.scss');
 require('tooltipster/src/css/tooltipster.css');
 require('vex-js/sass/vex.sass');
 require('../../../scss/map.scss');
-//# sourceMappingURL=hosted-content.js.map
+//# sourceMappingURL=authorized-content.js.map
 
 document.addEventListener("DOMContentLoaded", (event) => {
-  ReactDOM.render(<HostedContentApp />, document.getElementById('content-container'));
+  ReactDOM.render(<AuthorizedContentApp />, document.getElementById('content-container'));
 });

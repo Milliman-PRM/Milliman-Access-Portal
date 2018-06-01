@@ -12,11 +12,11 @@ interface ContentItem {
   ReleaseNotesURL?: string
 }
 
-interface HostedContentState {
+interface AuthorizedContentState {
   contentItems: Array<ContentItem>;
 }
 
-class HostedContentApp extends Component<{}, HostedContentState> {
+class AuthorizedContentApp extends Component<{}, AuthorizedContentState> {
   constructor(props) {
     super(props);
     this.state = {
@@ -100,4 +100,4 @@ class HostedContentApp extends Component<{}, HostedContentState> {
   
 }
 
-export default HostedContentApp;
+export default AuthorizedContentApp;
