@@ -1,6 +1,7 @@
 ﻿import * as React from 'react';
 import { Component } from 'react';
 import ContentCard from './content-card';
+import '../../../scss/react/authorized-content/authorized-content.scss';
 
 interface ContentItem {
   Id: number,
@@ -80,7 +81,7 @@ class AuthorizedContent extends Component<{}, AuthorizedContentState> {
   render() {
 
     return (
-      <div>
+      <div id="authorized-content-container">
         {
           this.state.contentItems.map((contentItem: ContentItem, index: number) => (
             <ContentCard
