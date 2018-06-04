@@ -127,13 +127,16 @@ namespace ContentPublishingLib.JobMonitors
                             Runner = new MapDbPublishRunner
                             {
                                 JobDetail = PublishJobDetail.New(DbRequest, Db),
-                                ConnectionString = ConnectionString,
                             };
                         }
                         if (MockContext != null)
                         {
                             Runner.MockContext = MockContext;
                             Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
+                        }
+                        else
+                        {
+                            Runner.ConnectionString = ConnectionString;
                         }
 
                         NewTask = Task.Run(() => Runner.Execute(cancelSource.Token), cancelSource.Token);
@@ -241,7 +244,9 @@ namespace ContentPublishingLib.JobMonitors
             try
             {
                 // Use a transaction so that there is no concurrency issue after we get the current db record
-                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+                using (ApplicationDbContext Db = MockContext != null
+                                                 ? MockContext.Object
+                                                 : new ApplicationDbContext(ContextOptions))
                 using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
                 {
                     ContentPublicationRequest DbRequest = Db.ContentPublicationRequest.Find(JobDetail.JobId);

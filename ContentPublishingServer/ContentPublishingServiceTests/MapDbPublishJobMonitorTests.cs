@@ -5,11 +5,15 @@
  */
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using ContentPublishingLib.JobMonitors;
 using TestResourcesLib;
+using MapDbContextLib.Context;
+using MapDbContextLib.Models;
+using Moq;
 
 namespace ContentPublishingServiceTests
 {
@@ -59,41 +63,45 @@ namespace ContentPublishingServiceTests
         public async Task CorrectResultsAfterSuccessfulRun()
         {
             #region arrange
+            Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
+
+            // Modify the request to be tested
+            ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == 1);
+            DbRequest.PublishRequest = new PublishRequest
+            {
+                RootContentItemId = 1,
+                RelatedFiles = new UploadedRelatedFile[]
+                {
+                    new UploadedRelatedFile{FilePurpose="MasterContent", FileUploadId = MockContext.Object.FileUpload.ElementAt(1).Id },
+                    new UploadedRelatedFile{FilePurpose="Thumbnail", FileUploadId = MockContext.Object.FileUpload.ElementAt(2).Id },
+                }
+            };
+            DbRequest.RequestStatus = PublicationStatus.Queued;
+
             MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor
             {
-                MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus),
+                MockContext = MockContext,
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
             #endregion
 
-            throw new ApplicationException("Make this test right");
-
             #region Act
             Task MonitorTask = JobMonitor.Start(CancelTokenSource.Token);
-            Thread.Sleep(new TimeSpan(0, 0, 5));
-            #endregion
+            Thread.Sleep(1000);
+            Assert.Equal(TaskStatus.Running, MonitorTask.Status);
+            Assert.Equal(PublicationStatus.Processing, DbRequest.RequestStatus);
 
-            #region Assert
-            Assert.Equal<TaskStatus>(TaskStatus.Running, MonitorTask.Status);
-            #endregion
-
-            #region Act again
-            DateTime CancelStartTime = DateTime.UtcNow;
-            CancelTokenSource.Cancel();
-            try
+            while (DbRequest.RequestStatus == PublicationStatus.Processing)
             {
-                await MonitorTask;  // await rethrows anything that is thrown from the task
+                Thread.Sleep(500);
             }
-            catch (OperationCanceledException)  // This is thrown when a task is cancelled
-            { }
-            DateTime CancelEndTime = DateTime.UtcNow;
             #endregion
 
             #region Assert again
-            Assert.Equal<TaskStatus>(TaskStatus.Canceled, MonitorTask.Status);
-            Assert.True(MonitorTask.IsCanceled);
-            Assert.True(CancelEndTime - CancelStartTime < new TimeSpan(0, 0, 30), "MapDbPublishJobMonitor took too long to be canceled while idle");
+            Assert.Equal(TaskStatus.Running, MonitorTask.Status);
+            Assert.Equal(PublicationStatus.Processed, DbRequest.RequestStatus);
+            Assert.Equal(string.Empty, DbRequest.StatusMessage);
             #endregion
         }
 
