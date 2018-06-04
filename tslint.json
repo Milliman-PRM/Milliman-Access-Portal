@@ -5,6 +5,7 @@
     ],
     "jsRules": {},
     "rules": {
+        "no-var-requires": false,
         "quotemark": [true, "single", "avoid-template"]
     },
     "rulesDirectory": []

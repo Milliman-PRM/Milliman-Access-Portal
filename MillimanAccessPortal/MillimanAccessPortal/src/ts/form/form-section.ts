@@ -1,21 +1,46 @@
-import { FormElement } from './form-element';
-import { DropdownInput } from './form-input/dropdown';
-import { FileUploadInput } from './form-input/file-upload';
-import { HiddenInput } from './form-input/hidden';
-import { FormInput } from './form-input/input';
-import { SelectizedInput } from './form-input/selectized';
-import { TextInput } from './form-input/text';
-import { TextAreaInput } from './form-input/text-area';
-import { ToggleInput } from './form-input/toggle';
-import { Submission } from './form-submission';
-import { AccessMode, SubmissionMode } from './form-modes';
+import {
+  FormElement,
+} from './form-element';
+import {
+  DropdownInput,
+} from './form-input/dropdown';
+import {
+  FileUploadInput,
+} from './form-input/file-upload';
+import {
+  HiddenInput,
+} from './form-input/hidden';
+import {
+  FormInput,
+} from './form-input/input';
+import {
+  SelectizedInput,
+} from './form-input/selectized';
+import {
+  TextInput,
+} from './form-input/text';
+import {
+  TextAreaInput,
+} from './form-input/text-area';
+import {
+  ToggleInput,
+} from './form-input/toggle';
+import {
+  AccessMode,
+  SubmissionMode,
+} from './form-modes';
+import {
+  Submission,
+} from './form-submission';
 
 export class FormInputSection extends FormElement {
+  // tslint:disable:object-literal-sort-keys
   protected _cssClasses =  {
     main: 'form-section',
     title: 'form-section-title',
     extension: 'form-input-container',
   };
+  // tslint:enable:object-literal-sort-keys
 
   public inputs: FormInput[];
 
@@ -83,11 +108,13 @@ export class FormInputSection extends FormElement {
 }
 
 export class FormSubmissionSection extends FormElement {
+  // tslint:disable:object-literal-sort-keys
   protected _cssClasses = {
     main: 'form-submission-section',
     title: '',
     extension: '',
   };
+  // tslint:enable:object-literal-sort-keys
 
   public submissions: Submission[];
 
@@ -97,8 +124,8 @@ export class FormSubmissionSection extends FormElement {
     const childElements = this.$entryPoint.children().toArray();
     this.submissions = childElements
       .map((x: HTMLElement) => ({
-        submission: new Submission(),
         element: x,
+        submission: new Submission(),
       }))
       .filter((x) => $(x.element).is(`.${x.submission.cssClasses.main}`))
       .map((x) => {

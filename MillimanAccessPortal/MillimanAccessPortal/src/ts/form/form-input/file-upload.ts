@@ -1,22 +1,35 @@
-import { FormInput } from './input';
-import { Upload, UploadComponent } from '../../upload/upload';
-import { ProgressSummary } from '../../upload/progress-monitor';
-import { AccessMode } from '../form-modes';
+import {
+  ProgressSummary,
+} from '../../upload/progress-monitor';
+import {
+  Upload,
+  UploadComponent,
+} from '../../upload/upload';
+import {
+  AccessMode,
+} from '../form-modes';
+import {
+  FormInput,
+} from './input';
 
 export class FileUploadInput extends FormInput {
+  // tslint:disable:object-literal-sort-keys
   protected _cssClasses = {
     main: 'form-input-file-upload',
     title: 'form-input-file-upload-title',
     extension: 'form-input-file-upload-contents',
   };
+  // tslint:enable:object-literal-sort-keys
 
   protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('input.file-upload-guid');
 
   protected getValueFn = ($input: JQuery<HTMLElement>) => $input.val;
   protected setValueFn = ($input: JQuery<HTMLElement>) => $input.val;
 
-  protected disable = ($input: JQuery<HTMLElement>) => $input.parent().find('*').not('.cancel-icon,input.file-upload-guid').attr('disabled', '');
-  protected enable = ($input: JQuery<HTMLElement>) => $input.parent().find('*').not('.cancel-icon,input.file-upload-guid').removeAttr('disabled');
+  protected disable = ($input: JQuery<HTMLElement>) => $input
+    .parent().find('*').not('.cancel-icon,input.file-upload-guid').attr('disabled', '')
+  protected enable = ($input: JQuery<HTMLElement>) => $input
+    .parent().find('*').not('.cancel-icon,input.file-upload-guid').removeAttr('disabled')
 
   protected comparator = (a: string, b: string) => (a === b) && !this.uploadInProgress;
 

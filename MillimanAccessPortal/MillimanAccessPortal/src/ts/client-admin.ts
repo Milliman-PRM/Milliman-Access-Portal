@@ -1,13 +1,26 @@
+import {
+  Dictionary,
+} from 'lodash';
+
+import {
+  FormBase,
+} from './form/form-base';
+import {
+  AccessMode,
+} from './form/form-modes';
+import {
+  SubmissionGroup,
+} from './form/form-submission';
+import {
+  globalSettings,
+} from './lib-options';
+
 import $ = require('jquery');
 import toastr = require('toastr');
 import card = require('./card');
 import dialog = require('./dialog');
 import shared = require('./shared');
-import { globalSettings } from './lib-options';
-import { Dictionary } from 'lodash';
-import { FormBase } from './form/form-base';
-import { SubmissionGroup } from './form/form-submission';
-import { AccessMode } from './form/form-modes';
+
 require('jquery-mask-plugin');
 require('jquery-validation');
 require('jquery-validation-unobtrusive');
@@ -170,18 +183,18 @@ function setUserRole(clientId, userId, roleEnum, isAssigned, onResponse) {
   const $cardContainer = $('#client-users ul.admin-panel-content .card-container[data-user-id="' + userId + '"]');
   const postData = {
     ClientId: clientId,
-    UserId: userId,
-    RoleEnum: roleEnum,
     IsAssigned: isAssigned,
+    RoleEnum: roleEnum,
+    UserId: userId,
   };
 
   $.ajax({
-    type: 'POST',
-    url: 'ClientAdmin/SetUserRoleInClient',
     data: postData,
     headers: {
       RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
     },
+    type: 'POST',
+    url: 'ClientAdmin/SetUserRoleInClient',
   }).done(function onDone(response) {
     // Set checkbox states to match the response
     $.each(response, function setToggle(index, roleAssignment) {
@@ -193,7 +206,10 @@ function setUserRole(clientId, userId, roleEnum, isAssigned, onResponse) {
     const modifiedRole = response.filter(function filter(responseRole) {
       return responseRole.RoleEnum.toString() === postData.RoleEnum;
     })[0];
-    toastr.success($cardContainer.find('.card-body-primary-text').html() + ' was ' + (modifiedRole.IsAssigned ? 'set' : 'unset') + ' as ' + modifiedRole.RoleDisplayValue);
+
+    const primaryText = $cardContainer.find('.card-body-primary-text').html();
+    const setUnset = modifiedRole.IsAssigned ? 'set' : 'unset';
+    toastr.success(`${primaryText} was ${setUnset} as ${modifiedRole.RoleDisplayValue}`);
     onResponse();
   }).fail(function onFail(response) {
     toastr.warning(response.getResponseHeader('Warning'));
@@ -288,12 +304,12 @@ function getClientDetail($clientDiv, accessMode?: AccessMode) {
 
   ajaxStatus.getClientDetail = clientId;
   return $.ajax({
-    type: 'GET',
-    url: 'ClientAdmin/ClientDetail',
     data,
     headers: {
       RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
     },
+    type: 'GET',
+    url: 'ClientAdmin/ClientDetail',
   }).done((response) => {
     if (ajaxStatus.getClientDetail !== clientId) { return; }
     populateClientForm(response);
@@ -367,16 +383,16 @@ const newClientClickHandler = shared.wrapCardCallback(() => openNewClientForm(),
 function saveNewUser(username, email, callback) {
   const clientId = $('#client-tree [selected]').closest('[data-client-id]').attr('data-client-id');
   $.ajax({
-    type: 'POST',
-    url: 'ClientAdmin/SaveNewUser',
     data: {
-      UserName: username || email,
       Email: email,
       MemberOfClientIdArray: [clientId],
+      UserName: username || email,
     },
     headers: {
       RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
     },
+    type: 'POST',
+    url: 'ClientAdmin/SaveNewUser',
   }).done(function onDone() {
     openClientCardReadOnly($('#client-tree [data-client-id="' + clientId + '"] .card-body-container'));
     if (typeof callback === 'function') { callback(); }
@@ -413,19 +429,19 @@ function addUserClickHandler() {
 }
 
 function removeUserFromClient(clientId, userId, callback) {
-  const userName = $('#client-users ul.admin-panel-content [data-user-id="' + userId + '"] .card-body-primary-text').html();
+  const userName = $(`#client-users ul.admin-panel-content [data-user-id="${userId}"] .card-body-primary-text`).html();
   const clientName = $('#client-tree [data-client-id="' + clientId + '"] .card-body-primary-text').html();
   shared.showButtonSpinner($('.vex-first'), 'Removing');
   $.ajax({
-    type: 'POST',
-    url: 'ClientAdmin/RemoveUserFromClient',
     data: {
-      ClientId: clientId,
+      clientId,
       userId,
     },
     headers: {
       RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
     },
+    type: 'POST',
+    url: 'ClientAdmin/RemoveUserFromClient',
   }).done(function onDone(response) {
     renderUserList(response);
     callback();
@@ -512,8 +528,6 @@ function renderClientTree(clientTreeList, clientId) {
 
 function deleteClient(clientId, clientName, password, callback) {
   $.ajax({
-    type: 'DELETE',
-    url: 'ClientAdmin/DeleteClient',
     data: {
       Id: clientId,
       Password: password,
@@ -521,6 +535,8 @@ function deleteClient(clientId, clientName, password, callback) {
     headers: {
       RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
     },
+    type: 'DELETE',
+    url: 'ClientAdmin/DeleteClient',
   }).done(function onDone(response) {
     shared.clearForm($('#client-info'));
     $('#client-users .admin-panel-content').empty();
@@ -571,13 +587,11 @@ $(document).ready(function onReady() {
 
   // TODO
   $('#client-info form.admin-panel-content #AcceptedEmailDomainList').selectize({
-    plugins: ['remove_button'],
-    persist: false,
     create: function onCreate(input) {
       if (input.match(domainRegex())) {
         return {
-          value: input,
           text: input,
+          value: input,
         };
       }
 
@@ -589,22 +603,24 @@ $(document).ready(function onReady() {
 
       return {};
     },
+    persist: false,
+    plugins: ['remove_button'],
   });
 
   // TODO
   $('#client-info form.admin-panel-content #AcceptedEmailAddressExceptionList').selectize({
-    plugins: ['remove_button'],
-    delimiter: ',',
-    persist: false,
     create: function onCreate(input) {
       if (input.match(emailRegex())) {
         return {
-          value: input,
           text: input,
+          value: input,
         };
       }
       toastr.warning('Please enter a valid email address (e.g. username@domain.com)');
       return {};
     },
+    delimiter: ',',
+    persist: false,
+    plugins: ['remove_button'],
   });
 });

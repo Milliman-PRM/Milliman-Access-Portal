@@ -1,12 +1,31 @@
+import {
+  randomBytes,
+} from 'crypto';
 import * as $ from 'jquery';
-import { randomBytes } from 'crypto';
-import { FormElement } from './form-element';
-import { AccessMode, SubmissionMode } from './form-modes';
-import { FormInputSection, FormSubmissionSection } from './form-section';
-import { confirmAndContinueForm } from '../shared';
-import { FileUploadInput } from './form-input/file-upload';
-import { UploadComponent } from '../upload/upload';
-import { SubmissionGroup } from './form-submission';
+
+import {
+  confirmAndContinueForm,
+} from '../shared';
+import {
+  UploadComponent,
+} from '../upload/upload';
+import {
+  FormElement,
+} from './form-element';
+import {
+  FileUploadInput,
+} from './form-input/file-upload';
+import {
+  AccessMode,
+  SubmissionMode,
+} from './form-modes';
+import {
+  FormInputSection,
+  FormSubmissionSection,
+} from './form-section';
+import {
+  SubmissionGroup,
+} from './form-submission';
 
 export class FormBase extends FormElement {
   private _accessMode: AccessMode;
@@ -53,11 +72,13 @@ export class FormBase extends FormElement {
   public inputSections: FormInputSection[];
   public submissionSection: FormSubmissionSection;
 
+  // tslint:disable:object-literal-sort-keys
   protected _cssClasses = {
     main: 'admin-panel-content',
     title: '',
     extension: 'form-section-container',
   };
+  // tslint:enable:object-literal-sort-keys
 
   public constructor() {
     super();
@@ -72,8 +93,8 @@ export class FormBase extends FormElement {
     // locate and bind to section-level DOM elements
     this.inputSections = childElements
       .map((x: HTMLElement) => ({
-        section: new FormInputSection(),
         element: x,
+        section: new FormInputSection(),
       }))
       .filter((x) => $(x.element).is(`.${x.section.cssClasses.main}`))
       .map((x) => {
@@ -82,8 +103,8 @@ export class FormBase extends FormElement {
       });
     this.submissionSection = this.submissionSection || childElements
       .map((x: HTMLElement) => ({
-        section: new FormSubmissionSection(),
         element: x,
+        section: new FormSubmissionSection(),
       }))
       .filter((x) => $(x.element).is(`.${x.section.cssClasses.main}`))
       .map((x) => {

@@ -19,7 +19,7 @@ interface User {
 // Better separation of functionality would allow this to exist in one place
 // This is a temporary solution only.
 const userSubstringMatcher = (users) => {
-  console.warn('You are using a duplicate of shared.userSubstringMatcher. Refactor shared.js to require this function in only one place.');
+  // TODO: this is a duplicate, refactor so there is only one substring matcher
   return function findMatches(query, callback) {
     const matches = [];
     const regex = new RegExp(query, 'i');
@@ -44,12 +44,12 @@ export function Dialog(
   this.title = title;
   this.color = color;
   this.options = {
-    unsafeMessage: '<span class="vex-custom-message">' + message + '</span>',
     buttons: $.map(buttons, (element) => {
       return element.type(element.text, color);
     }),
-    input: input || '',
     callback: callback || $.noop,
+    input: input || '',
+    unsafeMessage: '<span class="vex-custom-message">' + message + '</span>',
   };
   if (submitHandler) {
     this.options = $.extend(this.options, {
@@ -157,7 +157,8 @@ export function DeleteSelectionGroupDialog($selectionGroup, submitHandler) {
       { type: vex.dialog.buttons.no, text: 'Cancel' },
     ],
     'red',
-    '<input name="SelectionGroupId" type="hidden" value="' + $selectionGroup.closest('.card-container').data('selection-group-id') + '">',
+    `<input name="SelectionGroupId" type="hidden"
+      value="${$selectionGroup.closest('.card-container').data('selection-group-id')}">`,
     null,
     submitHandler,
   );
@@ -223,7 +224,7 @@ export function DeleteRootContentItemDialog(rootContentItemName, rootContentItem
   Dialog.call(
     this,
     title,
-    'Delete <strong>' + rootContentItemName + '</strong>?<br /><br /> This action <strong><u>cannot</u></strong> be undone.',
+    `Delete <strong>${rootContentItemName}</strong>?<br /><br /> This action <strong><u>cannot</u></strong> be undone.`,
     buttons,
     color,
     null,
@@ -262,8 +263,8 @@ export function AddUserDialog(eligibleUsers, submitHandler) {
   this.afterOpen = () => {
     $('.vex-dialog-input .typeahead').typeahead(
       {
-        hint: true,
         highlight: true,
+        hint: true,
         minLength: 1,
       },
       {
@@ -305,7 +306,8 @@ export function AddSelectionGroupDialog(submitHandler) {
     ],
     'blue',
     [
-      '<input name="RootContentItemId" type="hidden" value="' + $('#root-content-items [selected]').closest('.card-container').data('root-content-item-id') + '">',
+      `<input name="RootContentItemId" type="hidden"
+        value="${$('#root-content-items [selected]').closest('.card-container').data('root-content-item-id')}">`,
       '<input name="SelectionGroupName" required />',
     ].join(''),
     null,

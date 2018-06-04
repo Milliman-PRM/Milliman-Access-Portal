@@ -1,16 +1,28 @@
 import * as toastr from 'toastr';
-import { showButtonSpinner, hideButtonSpinner } from '../shared';
-import { FormBase } from './form-base';
-import { FormElement } from './form-element';
-import { confirmAndContinueForm } from '../shared';
-import { SubmissionMode } from './form-modes';
+
+import {
+  confirmAndContinueForm,
+  hideButtonSpinner,
+  showButtonSpinner,
+} from '../shared';
+import {
+  FormBase,
+} from './form-base';
+import {
+  FormElement,
+} from './form-element';
+import {
+  SubmissionMode,
+} from './form-modes';
 
 export class Submission extends FormElement {
+  // tslint:disable:object-literal-sort-keys
   protected _cssClasses = {
     main: 'button-container',
     title: '',
     extension: '',
   };
+  // tslint:enable:object-literal-sort-keys
 
   private _disabled = false;
   private _submissionMode: SubmissionMode;
@@ -113,12 +125,12 @@ export class SubmissionGroup<T> {
 
     return new Promise((resolve, reject) => {
       $.ajax({
-        method: this.method,
-        url: this.url,
         data: this.transform(form.serialize(this.sections)),
         headers: {
           RequestVerificationToken: form.antiforgeryToken,
         },
+        method: this.method,
+        url: this.url,
       }).done(async (response: T) => {
         await this.callback(response);
         resolve();

@@ -38,45 +38,45 @@ vex.defaultOptions = $.extend(
 );
 
 vex.dialog.buttons.yes = (text: string, color: string) => {
-  return $.extend({}, vex.dialog.buttons.YES, { text: text, className: color + '-button' });
+  return $.extend({}, vex.dialog.buttons.YES, { text, className: color + '-button' });
 };
 
 vex.dialog.buttons.no = (text: string) => {
-  return $.extend({}, vex.dialog.buttons.NO, { text: text, className: 'link-button' });
+  return $.extend({}, vex.dialog.buttons.NO, { text, className: 'link-button' });
 };
 
 // Configure toastr options
 toastr.options = {
   closeButton: false,
   debug: false,
+  extendedTimeOut: 1000,
+  hideDuration: 1000,
+  hideEasing: 'swing',
+  hideMethod: 'hide',
   newestOnTop: false,
-  progressBar: false,
+  onclick: null,
   positionClass: 'toast-bottom-right',
   preventDuplicates: false,
-  onclick: null,
+  progressBar: false,
   showDuration: 300,
-  hideDuration: 1000,
-  timeOut: 5000,
-  extendedTimeOut: 1000,
   showEasing: 'swing',
-  hideEasing: 'swing',
   showMethod: 'show',
-  hideMethod: 'hide',
+  timeOut: 5000,
 };
 
 export const resumableOptions = {
-  testChunks: false,
-  simultaneousUploads: 3,
-  maxFiles: 1,
-  maxFileSize: globalSettings.maxFileUploadSize,
-  permanentErrors: [400, 401, 404, 409, 415, 500, 501],
   chunkNumberParameterName: 'chunkNumber',
-  totalChunksParameterName: 'totalChunks',
-  identifierParameterName: 'uid',
-  typeParameterName: 'type',
   chunkSizeParameterName: 'chunkSize',
-  totalSizeParameterName: 'totalSize',
-  fileNameParameterName: 'fileName',
-  relativePathParameterName: '',
   currentChunkSizeParameterName: '',
+  fileNameParameterName: 'fileName',
+  identifierParameterName: 'uid',
+  maxFileSize: globalSettings.maxFileUploadSize,
+  maxFiles: 1,
+  permanentErrors: [400, 401, 404, 409, 415, 500, 501],
+  relativePathParameterName: '',
+  simultaneousUploads: 3,
+  testChunks: false,
+  totalChunksParameterName: 'totalChunks',
+  totalSizeParameterName: 'totalSize',
+  typeParameterName: 'type',
 };

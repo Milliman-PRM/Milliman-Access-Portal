@@ -1,5 +1,9 @@
-import { AccessMode } from '../form-modes';
-import { FormElement } from '../form-element';
+import {
+  FormElement,
+} from '../form-element';
+import {
+  AccessMode,
+} from '../form-modes';
 
 export abstract class FormInput extends FormElement {
 

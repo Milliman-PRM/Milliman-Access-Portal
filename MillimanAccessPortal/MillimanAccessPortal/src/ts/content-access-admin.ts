@@ -15,7 +15,8 @@ require('tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css
 require('../scss/map.scss');
 
 function updateSelectionGroupCount() {
-  $('#root-content-items [selected] [href="#action-icon-users"]').parent().next().html($('#selection-groups ul.admin-panel-content li').length.toString());
+  $('#root-content-items [selected] [href="#action-icon-users"]')
+    .parent().next().html($('#selection-groups ul.admin-panel-content li').length.toString());
 }
 
 function selectionGroupAddClickHandler() {
@@ -53,12 +54,12 @@ function cancelSelectionForm() {
 
   shared.showButtonSpinner($button, 'Canceling');
   $.ajax({
-    type: 'POST',
-    url: 'ContentAccessAdmin/CancelReduction',
     data,
     headers: {
       RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
     },
+    type: 'POST',
+    url: 'ContentAccessAdmin/CancelReduction',
   }).done(function onDone(response) {
     shared.hideButtonSpinner($button);
     renderSelections(response);
@@ -83,12 +84,12 @@ function submitSelectionForm() {
 
   shared.showButtonSpinner($button);
   $.ajax({
-    type: 'POST',
-    url: 'ContentAccessAdmin/SingleReduction',
     data,
     headers: {
       RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
     },
+    type: 'POST',
+    url: 'ContentAccessAdmin/SingleReduction',
   }).done(function onDone(response) {
     shared.hideButtonSpinner($button);
     renderSelections(response);
@@ -100,8 +101,13 @@ function submitSelectionForm() {
 }
 
 function renderValue(value, $fieldset, originalSelections) {
-  const $checkbox = $('<label class="selection-option-label">' + value.Value + '<input type="checkbox" id="selection-value-' + value.Id + '" name="' + value.Id + '" class="selection-option-value"><span class="selection-option-checkmark"></span></label>');
-  $fieldset.append('<div class="selection-option-container" data-selection-value="' + value.Value.toUpperCase() + '"></div>');
+  const $checkbox = $(`<label class="selection-option-label">
+    ${value.Value}
+      <input type="checkbox" id="selection-value-${value.Id}" name="${value.Id}" class="selection-option-value">
+        <span class="selection-option-checkmark"></span>
+    </label>`);
+  $fieldset.append(
+    `<div class="selection-option-container" data-selection-value="${value.Value.toUpperCase()}"></div>`);
   const $div = $fieldset.find('div.selection-option-container').last();
   $div.append($checkbox);
   $checkbox.find('input[type="checkbox"]').prop('checked', value.SelectionStatus);
@@ -123,6 +129,7 @@ function renderSelections(response) {
   const $selectionInfo = $('#selection-info form.admin-panel-content');
   const $fieldsetDiv = $selectionInfo.find('.fieldset-container');
   const $relatedCard = $('#selection-groups [selected]').closest('.card-container');
+  // tslint:disable:object-literal-sort-keys
   const details = $.extend({
     User: {
       FirstName: '',
@@ -132,6 +139,7 @@ function renderSelections(response) {
     SelectionGroupId: 0,
     RootContentItemId: 0,
   }, response.ReductionDetails);
+  // tslint:enable:object-literal-sort-keys
 
   $fieldsetDiv.empty();
   response.Hierarchy.Fields.forEach((field) => {
@@ -258,7 +266,8 @@ $(document).ready(() => {
   $('.admin-panel-searchbar-tree').keyup(shared.filterTreeListener);
   $('.admin-panel-searchbar-form').keyup(shared.filterFormListener);
 
-  $('#selection-groups ul.admin-panel-content-action').append(new card.AddSelectionGroupActionCard(selectionGroupAddClickHandler).build());
+  $('#selection-groups ul.admin-panel-content-action')
+    .append(new card.AddSelectionGroupActionCard(selectionGroupAddClickHandler).build());
   // TODO: select by ID or better classes
   $('#selection-info .blue-button').click(submitSelectionForm);
   $('#selection-info .red-button').click(cancelSelectionForm);

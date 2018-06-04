@@ -1,11 +1,15 @@
-import { FormInput } from './input';
+import {
+  FormInput,
+} from './input';
 
 export class HiddenInput extends FormInput {
+  // tslint:disable:object-literal-sort-keys
   protected _cssClasses = {
     main: 'form-input-hidden',
     title: '',
     extension: 'form-input-hidden-contents',
   };
+  // tslint:enable:object-literal-sort-keys
 
   protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('input');
 

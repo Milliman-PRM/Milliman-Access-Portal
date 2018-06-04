@@ -2,6 +2,7 @@ import shared = require('./shared');
 
 const card = {};
 
+// tslint:disable:object-literal-sort-keys
 const cardLayout = {
   card: {
     body: {
@@ -425,6 +426,7 @@ const components = Object.assign(
     },
   },
 );
+// tslint:enable:object-literal-sort-keys
 
 // Compute select properties
 (() => {
@@ -520,13 +522,20 @@ Card.prototype.build = function() {
   }
   this.$representation.find('stub').remove();
   return this.$representation;
-}
+};
 
-['html', 'attr', 'prop', 'addClass'].forEach((func) => {
-  Card.prototype[func] = function(component, value, selector) {
-    this.findComponent(component, selector)[func](value);
-  };
-});
+Card.prototype.html = function(component, value, selector) {
+  this.findComponent(component, selector).html(value);
+};
+Card.prototype.attr = function(component, value, selector) {
+  this.findComponent(component, selector).attr(value);
+};
+Card.prototype.prop = function(component, value, selector) {
+  this.findComponent(component, selector).prop(value);
+};
+Card.prototype.addClass = function(component, value, selector) {
+  this.findComponent(component, selector).addClass(value);
+};
 
 Card.prototype.click = function(component, value, selector) {
   const $component = this.findComponent(component, selector);
@@ -673,35 +682,35 @@ export function ClientCard(
   this.addComponent('secondaryText', { text: client.ClientCode });
   this.addComponent('statistic', {
     icon: 'users',
-    value: userCount,
     tooltip: 'Assigned users',
+    value: userCount,
   });
   this.addComponent('statistic', {
     icon: 'reports',
-    value: reportCount,
     tooltip: 'Reports',
+    value: reportCount,
   });
   this.addComponent('button', {
-    icon: 'delete',
-    color: 'red',
-    tooltip: 'Delete client',
     callback: deleteCallback,
+    color: 'red',
+    icon: 'delete',
+    tooltip: 'Delete client',
   });
   this.addComponent('button', {
-    icon: 'edit',
-    color: 'blue',
-    tooltip: 'Edit client',
     callback: editCallback,
+    color: 'blue',
+    icon: 'edit',
+    tooltip: 'Edit client',
   });
   this.addComponent('button', {
-    icon: 'add',
-    color: 'green',
-    tooltip: 'Add sub-client',
     callback: newChildCallback,
+    color: 'green',
+    icon: 'add',
+    tooltip: 'Add sub-client',
   });
   this.data = {
-    'filter-string': [client.Name, client.ClientCode].join('|').toUpperCase(),
     'client-id': client.Id,
+    'filter-string': [client.Name, client.ClientCode].join('|').toUpperCase(),
   };
   this.callback = callback;
 }
@@ -718,40 +727,40 @@ export function RootContentItemCard(
   this.addComponent('secondaryText', { text: rootContentItem.ContentTypeName });
   this.addComponent('statistic', {
     icon: 'users',
-    value: groupCount,
     tooltip: 'Selection groups',
+    value: groupCount,
   });
   this.addComponent('statistic', {
     icon: 'user',
-    value: userCount,
     tooltip: 'Eligible users',
+    value: userCount,
   });
   this.addComponent('button', {
-    icon: 'delete',
-    color: 'red',
-    tooltip: 'Delete root content item',
     callback: deleteCallback,
-  });
-  this.addComponent('button', {
-    icon: 'file-upload',
-    color: 'green',
-    tooltip: 'Republish',
-    callback: publishCallback,
-    dynamic: true,
-  });
-  this.addComponent('button', {
-    icon: 'cancel',
     color: 'red',
-    tooltip: 'Cancel Request',
-    callback: cancelCallback,
-    dynamic: true,
+    icon: 'delete',
+    tooltip: 'Delete root content item',
   });
   this.addComponent('button', {
-    icon: 'add',
-    color: 'blue',
-    tooltip: 'Go Live',
-    callback: goLiveCallback,
+    callback: publishCallback,
+    color: 'green',
     dynamic: true,
+    icon: 'file-upload',
+    tooltip: 'Republish',
+  });
+  this.addComponent('button', {
+    callback: cancelCallback,
+    color: 'red',
+    dynamic: true,
+    icon: 'cancel',
+    tooltip: 'Cancel Request',
+  });
+  this.addComponent('button', {
+    callback: goLiveCallback,
+    color: 'blue',
+    dynamic: true,
+    icon: 'add',
+    tooltip: 'Go Live',
   });
   this.addComponent('status', {});
 
@@ -795,20 +804,20 @@ export function SelectionGroupCard(
   this.addComponent('primaryText', { text: selectionGroup.GroupName });
   this.addComponent('statistic', {
     icon: 'users',
-    value: members.length,
     tooltip: 'Members',
+    value: members.length,
   });
   this.addComponent('button', {
-    icon: 'delete',
-    color: 'red',
-    tooltip: 'Delete selection group',
     callback: deleteCallback,
+    color: 'red',
+    icon: 'delete',
+    tooltip: 'Delete selection group',
   });
   this.addComponent('button', {
-    icon: 'edit',
-    color: 'blue',
-    tooltip: 'Add/remove users',
     callback: userCallback,
+    color: 'blue',
+    icon: 'edit',
+    tooltip: 'Add/remove users',
   });
   this.addComponent('statistics', { click: shared.toggleExpandedListener });
   if (members.length) {
@@ -852,27 +861,27 @@ export function UserCard(
     this.addComponent('secondaryText', { text: name });
   }, this);
   this.addComponent('button', {
-    icon: 'remove',
-    color: 'red',
-    tooltip: 'Remove user',
     callback: removeCallback,
+    color: 'red',
+    icon: 'remove',
+    tooltip: 'Remove user',
   });
   this.addComponent('detailText', { text: 'User roles' });
   user.UserRoles.forEach(function(role) {
     this.addComponent('toggle', {
-      text: role.RoleDisplayValue,
-      id: 'user-role-' + user.Id + '-' + role.RoleEnum,
+      callback: roleCallback,
+      checked: role.IsAssigned,
       data: {
         'role-enum': role.RoleEnum,
       },
-      checked: role.IsAssigned,
-      callback: roleCallback,
+      id: 'user-role-' + user.Id + '-' + role.RoleEnum,
+      text: role.RoleDisplayValue,
     });
   }, this);
   this.data = {
+    'client-id': client.Id,
     'filter-string': names.join('|').toUpperCase(),
     'user-id': user.Id,
-    'client-id': client.Id,
   };
   this.callback = shared.toggleExpandedListener;
 }

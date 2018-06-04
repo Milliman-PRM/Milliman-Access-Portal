@@ -1,8 +1,17 @@
+import {
+  Dialog,
+  DiscardConfirmationDialog,
+  ResetConfirmationDialog,
+} from './dialog';
+import {
+  FormBase,
+} from './form/form-base';
+import {
+  PublicationStatus,
+} from './view-models/content-publishing';
+
 import $ = require('jquery');
-import { Dialog, ResetConfirmationDialog, DiscardConfirmationDialog } from './dialog';
 import toastr = require('toastr');
-import { FormBase } from './form/form-base';
-import { PublicationStatus } from './view-models/content-publishing';
 
 const SHOW_DURATION = 50;
 const ajaxStatus = [];
@@ -144,7 +153,11 @@ function buildListener(fn) {
 // Functions without associated event listeners
 
 // Wrappers
-export function wrapCardCallback(callback: ($card: JQuery<HTMLElement>) => void, form?: () => FormBase, panelCount: number = 1) {
+export function wrapCardCallback(
+  callback: ($card: JQuery<HTMLElement>) => void,
+  form?: () => FormBase,
+  panelCount: number = 1,
+) {
   return function() {
     const $card = $(this);
     const $panel = $card.closest('.admin-panel-container');
@@ -176,7 +189,13 @@ export function wrapCardCallback(callback: ($card: JQuery<HTMLElement>) => void,
     }
   };
 }
-export function wrapCardIconCallback(callback: ($card: JQuery<HTMLElement>, whenDone: () => void) => void, form?: () => FormBase, panelCount: {count: number, offset: number} = {count: 1, offset: 0}, sameCard?: ($card: JQuery<HTMLElement>) => boolean, always?: () => void) {
+export function wrapCardIconCallback(
+  callback: ($card: JQuery<HTMLElement>, whenDone: () => void) => void,
+  form?: () => FormBase,
+  panelCount: {count: number, offset: number} = {count: 1, offset: 0},
+  sameCard?: ($card: JQuery<HTMLElement>) => boolean,
+  always?: () => void,
+) {
   return (event) => {
     event.stopPropagation();
 
@@ -223,9 +242,9 @@ export function get<T>(url: string, callbacks: Array<(response: T) => void>) {
     $loading.show();
 
     $.ajax({
+      data,
       type: 'GET',
       url,
-      data,
     }).done((response: T) => {
       // if this was not the most recent AJAX call for its URL, don't process the return data
       if (ajaxStatus[url] !== data) {
@@ -255,12 +274,12 @@ export function set<T>(method: string, url: string, successMessage: string, call
     showButtonSpinner($('.vex-first').attr('disabled', ''), buttonText);
     ajaxStatus[url] = true;
     $.ajax({
-      type: method,
-      url,
       data,
       headers: {
         RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
       },
+      type: method,
+      url,
     }).done((response: T) => {
       ajaxStatus[url] = false;
       onResponse();
@@ -326,6 +345,7 @@ export function updateCardStatus($card, reductionDetails) {
   const $statusContainer = $card.find('.card-status-container');
   const $statusName = $statusContainer.find('strong');
   const $statusUser = $statusContainer.find('em');
+  // tslint:disable:object-literal-sort-keys
   const details = $.extend({
     User: {
       FirstName: '',
@@ -335,6 +355,7 @@ export function updateCardStatus($card, reductionDetails) {
     SelectionGroupId: 0,
     RootContentItemId: 0,
   }, reductionDetails);
+  // tslint:enable:object-literal-sort-keys
 
   $statusContainer
     .removeClass((i, classString) => {
@@ -362,7 +383,8 @@ export function updateCardStatusButtons($card: JQuery<HTMLElement>, publishingSt
 export function updateFormStatusButtons() {
   // get the selected card's status by parsing its status container class.
   const selectedCard = $('#root-content-items [selected]').parent().find('.card-status-container')[0];
-  const statusClass = selectedCard && selectedCard.className.split(' ').filter((className) => className.startsWith('status-'))[0];
+  const statusClass = selectedCard
+    && selectedCard.className.split(' ').filter((className) => className.startsWith('status-'))[0];
   const statusEnum = statusClass && parseInt(statusClass.split('-')[1], 10);
   const $statusFormContainer = $('#content-publishing-form').find('.form-status-container');
   $statusFormContainer.hide();

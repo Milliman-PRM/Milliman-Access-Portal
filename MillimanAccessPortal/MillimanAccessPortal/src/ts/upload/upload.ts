@@ -1,11 +1,20 @@
+import {
+  resumableOptions,
+} from '../lib-options';
+import {
+  FileScanner,
+} from './file-scanner';
+import {
+  ProgressMonitor,
+  ProgressSummary,
+} from './progress-monitor';
+import {
+  RetainedValue,
+} from './retained-value';
+
 import $ = require('jquery');
 import forge = require('node-forge');
 const Resumable = require('resumablejs');
-
-import { resumableOptions } from '../lib-options';
-import { ProgressMonitor, ProgressSummary } from './progress-monitor';
-import { FileScanner } from './file-scanner';
-import { RetainedValue } from './retained-value';
 
 export enum UploadComponent {
   Content = 'MasterContent',
@@ -85,10 +94,10 @@ export class Upload {
 
   constructor() {
     this.resumable = new Resumable(Object.assign({}, resumableOptions, {
-      target: '/FileUpload/UploadChunk',
+      generateUniqueIdentifier: (file: File, event: Event) => this.getUID(file, event),
       headers: () => this.resumableHeaders,
       query: () => this.resumableFormData,
-      generateUniqueIdentifier: (file: File, event: Event) => this.getUID(file, event),
+      target: '/FileUpload/UploadChunk',
     }));
     if (!this.resumable.support) {
       throw new Error('This browser does not support resumable file uploads.');
@@ -134,22 +143,22 @@ export class Upload {
     this.resumable.on('beforeCancel', () => {
       this.resumable.files.forEach((file) => {
         const cancelInfo: ResumableInfo = {
-          ChunkNumber: 0,
-          TotalChunks: -1,
-          ChunkSize: this.resumable.opts.chunkSize,
-          TotalSize: file.size,
-          FileName: file.fileName,
-          UID: file.uniqueIdentifier,
           Checksum: this.checksum,
+          ChunkNumber: 0,
+          ChunkSize: this.resumable.opts.chunkSize,
+          FileName: file.fileName,
+          TotalChunks: -1,
+          TotalSize: file.size,
           Type: '',
+          UID: file.uniqueIdentifier,
         };
         $.ajax({
-          type: 'POST',
-          url: 'FileUpload/CancelUpload',
           data: cancelInfo,
           headers: {
             RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
           },
+          type: 'POST',
+          url: 'FileUpload/CancelUpload',
         }).fail((response) => {
           throw new Error(`Something went wrong. Response: ${JSON.stringify(response)}`);
         }).always((response) => {
@@ -162,22 +171,22 @@ export class Upload {
       this.setCancelable(false);
       this.onUploadProgress(ProgressSummary.Full());
       const finalizeInfo: ResumableInfo = {
-        ChunkNumber: 0,
-        TotalChunks: file.chunks.length,
-        ChunkSize: this.resumable.opts.chunkSize,
-        TotalSize: file.size,
-        FileName: file.fileName,
-        UID: file.uniqueIdentifier,
         Checksum: this.checksum,
+        ChunkNumber: 0,
+        ChunkSize: this.resumable.opts.chunkSize,
+        FileName: file.fileName,
+        TotalChunks: file.chunks.length,
+        TotalSize: file.size,
         Type: '',
+        UID: file.uniqueIdentifier,
       };
       $.ajax({
-        type: 'POST',
-        url: 'FileUpload/FinalizeUpload',
         data: finalizeInfo,
         headers: {
           RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
         },
+        type: 'POST',
+        url: 'FileUpload/FinalizeUpload',
       }).done((response: string) => {
         this.monitor.deactivate();
         this.onUploadProgress(ProgressSummary.Full());

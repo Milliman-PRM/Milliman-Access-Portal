@@ -9,19 +9,6 @@ require('vex-js/sass/vex.sass');
 require('vex-js/sass/vex-theme-default.sass');
 require('../scss/map.scss');
 
-interface VexDialogMock extends vex.Vex {
-  dialog: {
-    open: (opts: {
-      input: string,
-      buttons: any[],
-      callback: () => boolean,
-    }) => void,
-    buttons: {
-      NO: any,
-    },
-  };
-}
-
 /**
  * Submit the contact form
  * @return {undefined}
@@ -33,16 +20,16 @@ function submitForm() {
   const formMessage = $contactForm.find('#message').val();
 
   $.ajax({
-    type: 'POST',
-    url: 'Message/SendEmailFromUser',
     data: {
+      message: formMessage,
       recipient: formRecipient,
       subject: formSubject,
-      message: formMessage,
     },
     headers: {
       RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
     },
+    type: 'POST',
+    url: 'Message/SendEmailFromUser',
   }).done(function onDone() {
     toastr.success('Your message has been sent');
     vex.closeAll();
@@ -65,7 +52,33 @@ function resetContactForm() {
  * @return {undefined}
  */
 function initializeContactForm() {
-  (vex as VexDialogMock).dialog.open({
+  (vex as any).dialog.open({
+    buttons: [
+      $.extend({}, (vex as any).dialog.buttons.NO, {
+        className: 'blue-button',
+        click: function onClick() {
+          if ($('#subject').val() && $('#message').val()) {
+            submitForm();
+          } else {
+            toastr.warning('Please provide a subject and message');
+            return false;
+          }
+          return true;
+        },
+        text: 'SUBMIT',
+      }),
+      $.extend({}, (vex as any).dialog.buttons.NO, {
+        className: 'link-button',
+        click: function onClick() {
+          resetContactForm();
+          return false;
+        },
+        text: 'Reset',
+      }),
+    ],
+    callback: function callback() {
+      return false;
+    },
     input: [
       '<h2 id="contact-title">Contact Support</h2>',
       '<form id="contact-form" asp-controller="Message" asp-action="SendEmailFromUser" method="post">',
@@ -83,32 +96,6 @@ function initializeContactForm() {
       '</div>',
       '</form>',
     ].join(''),
-    buttons: [
-      $.extend({}, (vex as VexDialogMock).dialog.buttons.NO, {
-        text: 'SUBMIT',
-        className: 'blue-button',
-        click: function onClick() {
-          if ($('#subject').val() && $('#message').val()) {
-            submitForm();
-          } else {
-            toastr.warning('Please provide a subject and message');
-            return false;
-          }
-          return true;
-        },
-      }),
-      $.extend({}, (vex as VexDialogMock).dialog.buttons.NO, {
-        text: 'Reset',
-        className: 'link-button',
-        click: function onClick() {
-          resetContactForm();
-          return false;
-        },
-      }),
-    ],
-    callback: function callback() {
-      return false;
-    },
   });
 }
 

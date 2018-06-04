@@ -1,29 +1,79 @@
-import $ = require('jquery');
+import * as $ from 'jquery';
 import * as toastr from 'toastr';
+
+import {
+  AddRootContentItemActionCard,
+  ClientCard,
+  RootContentItemCard,
+} from '../card';
+import {
+  CancelContentPublicationRequestDialog,
+  DeleteRootContentItemDialog,
+  DiscardConfirmationDialog,
+} from '../dialog';
+import {
+  FormBase,
+} from '../form/form-base';
+import {
+  AccessMode,
+} from '../form/form-modes';
+import {
+  SubmissionGroup,
+} from '../form/form-submission';
+import {
+  clearForm,
+  collapseAllListener,
+  expandAllListener,
+  filterFormListener,
+  filterTreeListener,
+  get,
+  post,
+  showButtonSpinner,
+  updateCardStatus,
+  updateCardStatusButtons,
+  updateFormStatusButtons,
+  wrapCardCallback,
+  wrapCardIconCallback,
+} from '../shared';
+import {
+  setUnloadAlert,
+} from '../unload-alerts';
+import {
+  BasicNode,
+  ClientSummary,
+  ClientTree,
+  ContentType,
+  PreLiveContentValidationSummary,
+  PublishRequest,
+  RootContentItemDetail,
+  RootContentItemList,
+  RootContentItemSummary,
+  RootContentItemSummaryAndDetail,
+} from '../view-models/content-publishing';
+import {
+  PublicationStatusMonitor,
+} from './publication-status-monitor';
+
 require('tooltipster');
-import { showButtonSpinner, clearForm, wrapCardCallback, get, wrapCardIconCallback, updateCardStatus, expandAllListener, collapseAllListener, filterTreeListener, filterFormListener, updateCardStatusButtons, updateFormStatusButtons, post } from '../shared';
-import { ClientCard, RootContentItemCard, AddRootContentItemActionCard } from '../card';
-import { FormBase } from '../form/form-base';
-import { AccessMode } from '../form/form-modes';
-import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType, PublishRequest, RootContentItemSummaryAndDetail, PreLiveContentValidationSummary } from '../view-models/content-publishing';
-import { setUnloadAlert } from '../unload-alerts';
-import { DeleteRootContentItemDialog, DiscardConfirmationDialog, CancelContentPublicationRequestDialog } from '../dialog';
-import { SubmissionGroup } from '../form/form-submission';
-import { PublicationStatusMonitor } from './publication-status-monitor';
 
 let formObject: FormBase;
 let statusMonitor: PublicationStatusMonitor;
 
-function deleteRootContentItem(rootContentItemId: string, rootContentItemName: string, password: string, callback: () => void) {
+function deleteRootContentItem(
+  rootContentItemId: string,
+  rootContentItemName: string,
+  password: string,
+  callback: () => void,
+) {
   $.ajax({
-    type: 'DELETE',
-    url: 'ContentPublishing/DeleteRootContentItem',
     data: {
       rootContentItemId,
     },
     headers: {
       RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
     },
+    type: 'DELETE',
+    url: 'ContentPublishing/DeleteRootContentItem',
   }).done(function onDone(response: RootContentItemDetail) {
     $('#content-publishing-form').hide();
     $('#root-content-items .card-container')
@@ -62,14 +112,14 @@ export function rootContentItemDeleteClickHandler(event) {
 }
 function cancelContentPublication(data, callback) {
   $.ajax({
-    type: 'POST',
-    url: 'ContentPublishing/CancelContentPublicationRequest',
     data: {
       RootContentItemId: data.RootContentItemId,
     },
     headers: {
       RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
     },
+    type: 'POST',
+    url: 'ContentPublishing/CancelContentPublicationRequest',
   }).done(() => {
     if (typeof callback === 'function') { callback(); }
     toastr.success('Content publication request canceled');
@@ -280,13 +330,13 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
         .map((kvp) => kvp.split('='))
         .forEach((kvp) => dataArray[kvp[0]] = kvp[1]);
       const publishRequest: PublishRequest = {
-        RootContentItemId: parseInt(dataArray['Id'], 10),
         RelatedFiles: ['MasterContent', 'UserGuide', 'Thumbnail', 'ReleaseNotes']
           .map((file) => ({
             FilePurpose: file,
             FileUploadId: dataArray[file],
           }))
           .filter((file) => file.FileUploadId),
+        RootContentItemId: parseInt(dataArray.Id, 10),
       };
       return publishRequest;
     },
