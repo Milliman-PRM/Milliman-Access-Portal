@@ -19,7 +19,6 @@ export let globalSettings: GlobalSettings = {
 };
 $(document).on('ready', () => {
   globalSettings = $('#global-settings').data() as GlobalSettings;
-  console.log('Updated global settings');
 });
 
 // Configure jQuery validation overrides

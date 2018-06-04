@@ -170,7 +170,7 @@ function renderSelectionGroup(selectionGroup) {
       ],
     )),
     selectionGroupDeleteClickHandler,
-    () => { console.log('Add/remove user button clicked.'); },
+    () => undefined,
   ).build();
   shared.updateCardStatus($card, selectionGroup.ReductionDetails);
   $('#selection-groups ul.admin-panel-content').append($card);
