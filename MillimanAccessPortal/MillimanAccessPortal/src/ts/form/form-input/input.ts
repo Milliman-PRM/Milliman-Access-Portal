@@ -37,6 +37,16 @@ export abstract class FormInput extends FormElement {
   protected abstract getValueFn: (input: JQuery<HTMLElement>) => () => string | number | string[];
   protected abstract setValueFn: (input: JQuery<HTMLElement>) => (value: string) => void;
 
+  protected abstract disable: (input: JQuery<HTMLElement>) => void;
+  protected abstract enable: (input: JQuery<HTMLElement>) => void;
+
+  public get modified(): boolean {
+    return !this.comparator(this.originalValue, this.value);
+  }
+  protected abstract comparator: (a: string, b: string) => boolean;
+
+  protected originalValue: string;
+
   private _accessMode: AccessMode = AccessMode.Read;
   public get accessMode(): AccessMode {
     return this._accessMode;
@@ -49,15 +59,6 @@ export abstract class FormInput extends FormElement {
     }
     this._accessMode = accessMode;
   }
-  protected abstract disable: (input: JQuery<HTMLElement>) => void;
-  protected abstract enable: (input: JQuery<HTMLElement>) => void;
-
-  public get modified(): boolean {
-    return !this.comparator(this.originalValue, this.value);
-  }
-  protected abstract comparator: (a: string, b: string) => boolean;
-
-  protected originalValue: string;
 
   public recordOriginalValue() {
     this.originalValue = this.value;

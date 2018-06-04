@@ -6,7 +6,9 @@
     "jsRules": {},
     "rules": {
         "no-var-requires": false,
-        "quotemark": [true, "single", "avoid-template"]
+        "interface-name": [true, "never-prefix"],
+        "quotemark": [true, "single", "avoid-template"],
+        "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"]
     },
     "rulesDirectory": []
 }

@@ -21,14 +21,15 @@ export abstract class FormElement {
     }
     return this._$entryPoint;
   }
-  protected constructor() {
-    this._bound = false;
-  }
-
   private _bound: boolean;
   protected get bound(): boolean {
     return this._bound;
   }
+
+  protected constructor() {
+    this._bound = false;
+  }
+
   public bindToDOM(entryPoint: HTMLElement) {
     if (this.bound) {
       throw new Error('Form element is already bound');

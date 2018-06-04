@@ -88,6 +88,16 @@ export class Submission extends FormElement {
 }
 
 export class SubmissionGroup<T> {
+  public static FinalGroup<T>(callback: (response: T) => void = () => undefined): SubmissionGroup<T> {
+    const group = new SubmissionGroup<T>(
+      [],
+      null,
+      null,
+      callback,
+    );
+    return group;
+  }
+
   public callback: (response: T, form?: FormBase) => void;
   constructor(
     readonly sections: string[],
@@ -97,16 +107,6 @@ export class SubmissionGroup<T> {
     readonly transform: (data: string) => any = (data) => data,
   ) {
     this.callback = callback;
-  }
-
-  public static FinalGroup<T>(callback: (response: T) => void = () => undefined): SubmissionGroup<T> {
-    const group = new SubmissionGroup<T>(
-      [],
-      null,
-      null,
-      callback,
-    );
-    return group;
   }
 
   public submit(form: FormBase, sparse: boolean = false): Promise<any> {

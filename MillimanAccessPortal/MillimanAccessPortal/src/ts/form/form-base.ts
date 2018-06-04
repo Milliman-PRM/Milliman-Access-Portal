@@ -28,6 +28,17 @@ import {
 } from './form-submission';
 
 export class FormBase extends FormElement {
+  public inputSections: FormInputSection[];
+  public submissionSection: FormSubmissionSection;
+
+  // tslint:disable:object-literal-sort-keys
+  protected _cssClasses = {
+    main: 'admin-panel-content',
+    title: '',
+    extension: 'form-section-container',
+  };
+  // tslint:enable:object-literal-sort-keys
+
   private _accessMode: AccessMode;
   public get accessMode(): AccessMode {
     return this._accessMode;
@@ -68,17 +79,6 @@ export class FormBase extends FormElement {
     }
     return this._token;
   }
-
-  public inputSections: FormInputSection[];
-  public submissionSection: FormSubmissionSection;
-
-  // tslint:disable:object-literal-sort-keys
-  protected _cssClasses = {
-    main: 'admin-panel-content',
-    title: '',
-    extension: 'form-section-container',
-  };
-  // tslint:enable:object-literal-sort-keys
 
   public constructor() {
     super();

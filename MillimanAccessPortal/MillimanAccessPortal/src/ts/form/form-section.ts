@@ -34,6 +34,8 @@ import {
 } from './form-submission';
 
 export class FormInputSection extends FormElement {
+  public inputs: FormInput[];
+
   // tslint:disable:object-literal-sort-keys
   protected _cssClasses =  {
     main: 'form-section',
@@ -41,8 +43,6 @@ export class FormInputSection extends FormElement {
     extension: 'form-input-container',
   };
   // tslint:enable:object-literal-sort-keys
-
-  public inputs: FormInput[];
 
   public bindToDOM(entryPoint: HTMLElement) {
     super.bindToDOM(entryPoint);
@@ -108,6 +108,8 @@ export class FormInputSection extends FormElement {
 }
 
 export class FormSubmissionSection extends FormElement {
+  public submissions: Submission[];
+
   // tslint:disable:object-literal-sort-keys
   protected _cssClasses = {
     main: 'form-submission-section',
@@ -115,8 +117,6 @@ export class FormSubmissionSection extends FormElement {
     extension: '',
   };
   // tslint:enable:object-literal-sort-keys
-
-  public submissions: Submission[];
 
   public bindToDOM(entryPoint: HTMLElement) {
     super.bindToDOM(entryPoint);

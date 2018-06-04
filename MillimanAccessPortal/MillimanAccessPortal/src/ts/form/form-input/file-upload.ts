@@ -21,22 +21,6 @@ export class FileUploadInput extends FormInput {
   };
   // tslint:enable:object-literal-sort-keys
 
-  protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('input.file-upload-guid');
-
-  protected getValueFn = ($input: JQuery<HTMLElement>) => $input.val;
-  protected setValueFn = ($input: JQuery<HTMLElement>) => $input.val;
-
-  protected disable = ($input: JQuery<HTMLElement>) => $input
-    .parent().find('*').not('.cancel-icon,input.file-upload-guid').attr('disabled', '')
-  protected enable = ($input: JQuery<HTMLElement>) => $input
-    .parent().find('*').not('.cancel-icon,input.file-upload-guid').removeAttr('disabled')
-
-  protected comparator = (a: string, b: string) => (a === b) && !this.uploadInProgress;
-
-  public get component(): UploadComponent {
-    return this.name as UploadComponent;
-  }
-
   private uploadInProgress: boolean = false;
   private _upload: Upload;
   public get upload(): Upload {
@@ -47,7 +31,7 @@ export class FileUploadInput extends FormInput {
   }
 
   public configure(token: string) {
-    this.upload.setFileTypes(FileTypes.get(this.component));
+    this.upload.setFileTypes(fileTypes.get(this.component));
 
     this.upload.getUID = (file: File, event: Event) => {
       return `publication-${this.component}-${token}`;
@@ -108,6 +92,22 @@ export class FileUploadInput extends FormInput {
     this.$entryPoint.change(); // trigger a change event
   }
 
+  protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('input.file-upload-guid');
+
+  protected getValueFn = ($input: JQuery<HTMLElement>) => $input.val;
+  protected setValueFn = ($input: JQuery<HTMLElement>) => $input.val;
+
+  protected disable = ($input: JQuery<HTMLElement>) => $input
+    .parent().find('*').not('.cancel-icon,input.file-upload-guid').attr('disabled', '')
+  protected enable = ($input: JQuery<HTMLElement>) => $input
+    .parent().find('*').not('.cancel-icon,input.file-upload-guid').removeAttr('disabled')
+
+  protected comparator = (a: string, b: string) => (a === b) && !this.uploadInProgress;
+
+  public get component(): UploadComponent {
+    return this.name as UploadComponent;
+  }
+
   private setCancelable(cancelable: boolean) {
     if (cancelable) {
       this.setAccessMode(AccessMode.WriteDisabled);
@@ -125,7 +125,7 @@ export class FileUploadInput extends FormInput {
   }
 }
 
-const FileTypes = new Map<UploadComponent, string[]>([
+const fileTypes = new Map<UploadComponent, string[]>([
   [UploadComponent.Image, ['jpg', 'jpeg', 'png', 'gif']],
   [UploadComponent.Content, []],
   [UploadComponent.UserGuide, ['pdf']],

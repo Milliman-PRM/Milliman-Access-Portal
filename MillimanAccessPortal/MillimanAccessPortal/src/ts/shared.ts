@@ -398,9 +398,9 @@ export function updateFormStatusButtons() {
 
 // Dialog helpers
 // TODO: consider moving to dialog.js
-export function confirmAndContinue(DialogConstructor, form?: FormBase, onContinue?) {
+export function confirmAndContinue(dialogConstructor, form?: FormBase, onContinue?) {
   if (form && form.modified) {
-    new DialogConstructor(() => {
+    new dialogConstructor(() => {
       // Assigning to access mode forces the form to reset
       // FIXME: this is really unintuitive - use function instead of getters
       //   and setters since there are side effects

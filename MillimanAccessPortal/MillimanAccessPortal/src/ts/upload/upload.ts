@@ -14,7 +14,7 @@ import {
 
 import $ = require('jquery');
 import forge = require('node-forge');
-const Resumable = require('resumablejs');
+const resumable = require('resumablejs');
 
 export enum UploadComponent {
   Content = 'MasterContent',
@@ -39,50 +39,6 @@ export class Upload {
   protected scanner: FileScanner;
   protected monitor: ProgressMonitor;
 
-  public getUID: (file: File, event: Event) => string = () => '';
-  public onChecksumProgress: (progress: ProgressSummary) => void = () => undefined;
-  public onUploadProgress: (progress: ProgressSummary) => void = () => undefined;
-  public onProgressMessage: (message: string) => void = () => undefined;
-
-  public onFileAdded: (resumableFile: any) => void = () => undefined;
-  public onFileSuccess: (fileGUID: string) => void = () => undefined;
-  public onStateChange: (alertUnload: boolean, cancelable: boolean) => void = () => undefined;
-
-  // Cancelable, checksum, and file GUID indicate the upload state.
-  // Whether the current ongoing process can be canceled
-  protected _cancelable: boolean = false;
-  protected get cancelable(): boolean {
-    return this._cancelable;
-  }
-  protected setCancelable(cancelable: boolean) {
-    this._cancelable = cancelable;
-    this.onStateChange(this.alertUnload, this.cancelable);
-  }
-  // The checksum of the file in progress
-  protected _checksum: string = null;
-  protected get checksum(): string {
-    return this._checksum;
-  }
-  protected setChecksum(checksum: string) {
-    this._checksum = checksum;
-    this.onStateChange(this.alertUnload, this.cancelable);
-  }
-  // The GUID of a successful file upload provided by the server
-  protected _fileGUID: string = null;
-  protected get fileGUID(): string {
-    return this._fileGUID;
-  }
-  protected setFileGUID(fileGUID: string) {
-    this._fileGUID = fileGUID;
-    this.onStateChange(this.alertUnload, this.cancelable);
-  }
-
-  // If any of cancelable, checksum, and file GUID are set, then an alert
-  // should appear before unloading the page.
-  protected get alertUnload(): boolean {
-    return this.checksum !== null || this.fileGUID !== null || this.cancelable;
-  }
-
   // Additional headers to send with each resumable chunk
   protected resumableHeaders = {
     RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
@@ -92,8 +48,16 @@ export class Upload {
     Checksum: this.checksum,
   };
 
+  // Cancelable, checksum, and file GUID indicate the upload state.
+  // Whether the current ongoing process can be canceled
+  private _cancelable: boolean = false;
+  // The checksum of the file in progress
+  private _checksum: string = null;
+  // The GUID of a successful file upload provided by the server
+  private _fileGUID: string = null;
+
   constructor() {
-    this.resumable = new Resumable(Object.assign({}, resumableOptions, {
+    this.resumable = new resumable(Object.assign({}, resumableOptions, {
       generateUniqueIdentifier: (file: File, event: Event) => this.getUID(file, event),
       headers: () => this.resumableHeaders,
       query: () => this.resumableFormData,
@@ -109,8 +73,8 @@ export class Upload {
       this.setCancelable(true);
       this.onFileAdded(resumableFile);
 
-      this.onChecksumProgress(ProgressSummary.Empty());
-      this.onUploadProgress(ProgressSummary.Empty());
+      this.onChecksumProgress(ProgressSummary.empty());
+      this.onUploadProgress(ProgressSummary.empty());
 
       const messageDigest = forge.md.sha1.create();
       this.scanner.open(file);
@@ -169,7 +133,7 @@ export class Upload {
 
     this.resumable.on('fileSuccess', (file, message) => {
       this.setCancelable(false);
-      this.onUploadProgress(ProgressSummary.Full());
+      this.onUploadProgress(ProgressSummary.full());
       const finalizeInfo: ResumableInfo = {
         Checksum: this.checksum,
         ChunkNumber: 0,
@@ -189,7 +153,7 @@ export class Upload {
         url: 'FileUpload/FinalizeUpload',
       }).done((response: string) => {
         this.monitor.deactivate();
-        this.onUploadProgress(ProgressSummary.Full());
+        this.onUploadProgress(ProgressSummary.full());
         this.setFileGUID(response);
         this.onFileSuccess(this.fileGUID);
       }).fail((response) => {
@@ -199,6 +163,15 @@ export class Upload {
       });
     });
   }
+
+  public getUID: (file: File, event: Event) => string = () => '';
+  public onChecksumProgress: (progress: ProgressSummary) => void = () => undefined;
+  public onUploadProgress: (progress: ProgressSummary) => void = () => undefined;
+  public onProgressMessage: (message: string) => void = () => undefined;
+
+  public onFileAdded: (resumableFile: any) => void = () => undefined;
+  public onFileSuccess: (fileGUID: string) => void = () => undefined;
+  public onStateChange: (alertUnload: boolean, cancelable: boolean) => void = () => undefined;
 
   public cancel() {
     if (this.resumable) { this.resumable.cancel(); }
@@ -220,8 +193,38 @@ export class Upload {
   public reset() {
     this.cancel();
     this.setFileGUID(null);
-    this.onChecksumProgress(ProgressSummary.Empty());
-    this.onUploadProgress(ProgressSummary.Empty());
+    this.onChecksumProgress(ProgressSummary.empty());
+    this.onUploadProgress(ProgressSummary.empty());
+  }
+
+  protected get cancelable(): boolean {
+    return this._cancelable;
+  }
+  protected setCancelable(cancelable: boolean) {
+    this._cancelable = cancelable;
+    this.onStateChange(this.alertUnload, this.cancelable);
+  }
+
+  protected get checksum(): string {
+    return this._checksum;
+  }
+  protected setChecksum(checksum: string) {
+    this._checksum = checksum;
+    this.onStateChange(this.alertUnload, this.cancelable);
+  }
+
+  protected get fileGUID(): string {
+    return this._fileGUID;
+  }
+  protected setFileGUID(fileGUID: string) {
+    this._fileGUID = fileGUID;
+    this.onStateChange(this.alertUnload, this.cancelable);
+  }
+
+  // If any of cancelable, checksum, and file GUID are set, then an alert
+  // should appear before unloading the page.
+  protected get alertUnload(): boolean {
+    return this.checksum !== null || this.fileGUID !== null || this.cancelable;
   }
 
   private getChunkStatus() {
