@@ -1,16 +1,7 @@
-import {
-  ProgressSummary,
-} from '../../upload/progress-monitor';
-import {
-  Upload,
-  UploadComponent,
-} from '../../upload/upload';
-import {
-  AccessMode,
-} from '../form-modes';
-import {
-  FormInput,
-} from './input';
+import { ProgressSummary } from '../../upload/progress-monitor';
+import { Upload, UploadComponent } from '../../upload/upload';
+import { AccessMode } from '../form-modes';
+import { FormInput } from './input';
 
 export class FileUploadInput extends FormInput {
   // tslint:disable:object-literal-sort-keys

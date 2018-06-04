@@ -1,6 +1,4 @@
-import {
-  FormInput,
-} from './input';
+import { FormInput } from './input';
 
 export class TextInput extends FormInput {
   // tslint:disable:object-literal-sort-keys

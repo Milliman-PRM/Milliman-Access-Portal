@@ -1,13 +1,6 @@
-import {
-  FormBase,
-} from './form/form-base';
-import {
-  AccessMode,
-  SubmissionMode,
-} from './form/form-modes';
-import {
-  SubmissionGroup,
-} from './form/form-submission';
+import { FormBase } from './form/form-base';
+import { AccessMode, SubmissionMode } from './form/form-modes';
+import { SubmissionGroup } from './form/form-submission';
 
 import $ = require('jquery');
 import toastr = require('toastr');

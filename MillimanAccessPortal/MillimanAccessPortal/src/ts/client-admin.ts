@@ -1,19 +1,9 @@
-import {
-  Dictionary,
-} from 'lodash';
+import { Dictionary } from 'lodash';
 
-import {
-  FormBase,
-} from './form/form-base';
-import {
-  AccessMode,
-} from './form/form-modes';
-import {
-  SubmissionGroup,
-} from './form/form-submission';
-import {
-  globalSettings,
-} from './lib-options';
+import { FormBase } from './form/form-base';
+import { AccessMode } from './form/form-modes';
+import { SubmissionGroup } from './form/form-submission';
+import { globalSettings } from './lib-options';
 
 import $ = require('jquery');
 import toastr = require('toastr');

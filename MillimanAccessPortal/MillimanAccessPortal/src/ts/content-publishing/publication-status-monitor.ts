@@ -1,14 +1,6 @@
-import {
-  updateCardStatus,
-  updateCardStatusButtons,
-  updateFormStatusButtons,
-} from '../shared';
-import {
-  StatusMonitor,
-} from '../status-monitor';
-import {
-  RootContentItemStatus,
-} from '../view-models/content-publishing';
+import { updateCardStatus, updateCardStatusButtons, updateFormStatusButtons } from '../shared';
+import { StatusMonitor } from '../status-monitor';
+import { RootContentItemStatus } from '../view-models/content-publishing';
 
 export class PublicationStatusMonitor {
   private readonly monitor: StatusMonitor<RootContentItemStatus>;

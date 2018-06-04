@@ -1,37 +1,14 @@
-import {
-  FormElement,
-} from './form-element';
-import {
-  DropdownInput,
-} from './form-input/dropdown';
-import {
-  FileUploadInput,
-} from './form-input/file-upload';
-import {
-  HiddenInput,
-} from './form-input/hidden';
-import {
-  FormInput,
-} from './form-input/input';
-import {
-  SelectizedInput,
-} from './form-input/selectized';
-import {
-  TextInput,
-} from './form-input/text';
-import {
-  TextAreaInput,
-} from './form-input/text-area';
-import {
-  ToggleInput,
-} from './form-input/toggle';
-import {
-  AccessMode,
-  SubmissionMode,
-} from './form-modes';
-import {
-  Submission,
-} from './form-submission';
+import { FormElement } from './form-element';
+import { DropdownInput } from './form-input/dropdown';
+import { FileUploadInput } from './form-input/file-upload';
+import { HiddenInput } from './form-input/hidden';
+import { FormInput } from './form-input/input';
+import { SelectizedInput } from './form-input/selectized';
+import { TextInput } from './form-input/text';
+import { TextAreaInput } from './form-input/text-area';
+import { ToggleInput } from './form-input/toggle';
+import { AccessMode, SubmissionMode } from './form-modes';
+import { Submission } from './form-submission';
 
 export class FormInputSection extends FormElement {
   public inputs: FormInput[];

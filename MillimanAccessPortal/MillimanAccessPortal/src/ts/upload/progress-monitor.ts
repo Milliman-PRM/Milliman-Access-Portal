@@ -1,6 +1,4 @@
-import {
-  RetainedValue,
-} from './retained-value';
+import { RetainedValue } from './retained-value';
 
 interface ProgressSnapshot {
   progress: number; // uploaded / total

@@ -1,14 +1,6 @@
-import {
-  Dialog,
-  DiscardConfirmationDialog,
-  ResetConfirmationDialog,
-} from './dialog';
-import {
-  FormBase,
-} from './form/form-base';
-import {
-  PublicationStatus,
-} from './view-models/content-publishing';
+import { Dialog, DiscardConfirmationDialog, ResetConfirmationDialog } from './dialog';
+import { FormBase } from './form/form-base';
+import { PublicationStatus } from './view-models/content-publishing';
 
 import $ = require('jquery');
 import toastr = require('toastr');

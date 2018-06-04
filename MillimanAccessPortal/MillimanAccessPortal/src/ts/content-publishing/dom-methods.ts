@@ -1,58 +1,25 @@
 import * as $ from 'jquery';
 import * as toastr from 'toastr';
 
+import { AddRootContentItemActionCard, ClientCard, RootContentItemCard } from '../card';
 import {
-  AddRootContentItemActionCard,
-  ClientCard,
-  RootContentItemCard,
-} from '../card';
-import {
-  CancelContentPublicationRequestDialog,
-  DeleteRootContentItemDialog,
-  DiscardConfirmationDialog,
+  CancelContentPublicationRequestDialog, DeleteRootContentItemDialog, DiscardConfirmationDialog,
 } from '../dialog';
+import { FormBase } from '../form/form-base';
+import { AccessMode } from '../form/form-modes';
+import { SubmissionGroup } from '../form/form-submission';
 import {
-  FormBase,
-} from '../form/form-base';
-import {
-  AccessMode,
-} from '../form/form-modes';
-import {
-  SubmissionGroup,
-} from '../form/form-submission';
-import {
-  clearForm,
-  collapseAllListener,
-  expandAllListener,
-  filterFormListener,
-  filterTreeListener,
-  get,
-  post,
-  showButtonSpinner,
-  updateCardStatus,
-  updateCardStatusButtons,
-  updateFormStatusButtons,
-  wrapCardCallback,
-  wrapCardIconCallback,
+  clearForm, collapseAllListener, expandAllListener, filterFormListener, filterTreeListener, get,
+  post, showButtonSpinner, updateCardStatus, updateCardStatusButtons, updateFormStatusButtons,
+  wrapCardCallback, wrapCardIconCallback,
 } from '../shared';
+import { setUnloadAlert } from '../unload-alerts';
 import {
-  setUnloadAlert,
-} from '../unload-alerts';
-import {
-  BasicNode,
-  ClientSummary,
-  ClientTree,
-  ContentType,
-  PreLiveContentValidationSummary,
-  PublishRequest,
-  RootContentItemDetail,
-  RootContentItemList,
-  RootContentItemSummary,
+  BasicNode, ClientSummary, ClientTree, ContentType, PreLiveContentValidationSummary,
+  PublishRequest, RootContentItemDetail, RootContentItemList, RootContentItemSummary,
   RootContentItemSummaryAndDetail,
 } from '../view-models/content-publishing';
-import {
-  PublicationStatusMonitor,
-} from './publication-status-monitor';
+import { PublicationStatusMonitor } from './publication-status-monitor';
 
 require('tooltipster');
 

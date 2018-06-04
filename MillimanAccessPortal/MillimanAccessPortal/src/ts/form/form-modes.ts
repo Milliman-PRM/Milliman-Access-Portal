@@ -1,6 +1,4 @@
-import {
-  SubmissionGroup,
-} from './form-submission';
+import { SubmissionGroup } from './form-submission';
 
 export interface SubmissionMode {
   name: string;

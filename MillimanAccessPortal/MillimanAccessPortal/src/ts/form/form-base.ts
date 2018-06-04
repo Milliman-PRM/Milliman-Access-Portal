@@ -1,31 +1,13 @@
-import {
-  randomBytes,
-} from 'crypto';
+import { randomBytes } from 'crypto';
 import * as $ from 'jquery';
 
-import {
-  confirmAndContinueForm,
-} from '../shared';
-import {
-  UploadComponent,
-} from '../upload/upload';
-import {
-  FormElement,
-} from './form-element';
-import {
-  FileUploadInput,
-} from './form-input/file-upload';
-import {
-  AccessMode,
-  SubmissionMode,
-} from './form-modes';
-import {
-  FormInputSection,
-  FormSubmissionSection,
-} from './form-section';
-import {
-  SubmissionGroup,
-} from './form-submission';
+import { confirmAndContinueForm } from '../shared';
+import { UploadComponent } from '../upload/upload';
+import { FormElement } from './form-element';
+import { FileUploadInput } from './form-input/file-upload';
+import { AccessMode, SubmissionMode } from './form-modes';
+import { FormInputSection, FormSubmissionSection } from './form-section';
+import { SubmissionGroup } from './form-submission';
 
 export class FormBase extends FormElement {
   public inputSections: FormInputSection[];

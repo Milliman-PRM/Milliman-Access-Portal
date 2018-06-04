@@ -4,9 +4,7 @@ import 'tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css'
 import 'tooltipster/src/css/tooltipster.css';
 import '../../scss/map.scss';
 
-import {
-  setup,
-} from './dom-methods';
+import { setup } from './dom-methods';
 
 import $ = require('jquery');
 require('tooltipster');
