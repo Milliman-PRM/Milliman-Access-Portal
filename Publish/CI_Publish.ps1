@@ -1,4 +1,4 @@
-﻿# Code Owners: Ben Wyatt, Steve Gredell
+# Code Owners: Ben Wyatt, Steve Gredell
 
 ### OBJECTIVE:
 #  Deploy Milliman Access Portal CI builds to Azure
@@ -200,7 +200,7 @@ if ( $LASTEXITCODE -ne 0 ) {
 
 log_statement "Performing MAP unit tests"
 
-dotnet test --no-build -v q
+dotnet test --no-build
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: One or more xUnit tests failed"
@@ -235,7 +235,7 @@ if ( $LASTEXITCODE -ne 0 ) {
 
 log_statement "Performing Content publishing server unit tests"
 
-dotnet test --no-build -v q
+dotnet test --no-build
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: One or more Content publishing server xUnit tests failed"
