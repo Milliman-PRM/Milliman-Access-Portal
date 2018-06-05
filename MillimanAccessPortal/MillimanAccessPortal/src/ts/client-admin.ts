@@ -70,28 +70,31 @@ function populateClientForm(response) {
   const $clientForm = $('#client-info form.admin-panel-content');
   $clientForm.find(':input,select').removeAttr('data-original-value');
   $clientForm.find('#ProfitCenterId option[temporary-profitcenter]').remove();
-  $.each(clientEntity, function populate(key, value) {
-    const field = $clientForm.find('#' + key);
-    if (field.is('#ProfitCenterId')) {
-      if (!field.find('option[value="' + value + '"]').length) {
-        field.append($('<option temporary-profitcenter />')
-          .val(clientEntity.ProfitCenterId)
-          .text(clientEntity.ProfitCenter.Name + ' (' + clientEntity.ProfitCenter.ProfitCenterCode + ')'));
+  for (const key in clientEntity) {
+    if (clientEntity.hasOwnProperty(key)) {
+      const value = clientEntity[key];
+      const field = $clientForm.find(`#${key}`);
+      if (field.is('#ProfitCenterId')) {
+        if (!field.find('option[value="' + value + '"]').length) {
+          field.append($('<option temporary-profitcenter />')
+            .val(clientEntity.ProfitCenterId)
+            .text(clientEntity.ProfitCenter.Name + ' (' + clientEntity.ProfitCenter.ProfitCenterCode + ')'));
+        }
+        field.val(value).change();
+      } else if (field.hasClass('selectize-custom-input')) {
+        field[0].selectize.clear();
+        field[0].selectize.clearOptions();
+        $.each(value, function addItem(index, item) {
+          field[0].selectize.addOption({ value: item, text: item });
+          field[0].selectize.addItem(item);
+        });
+      } else {
+        field.val(value);
       }
-      field.val(value).change();
-    } else if (field.hasClass('selectize-custom-input')) {
-      field[0].selectize.clear();
-      field[0].selectize.clearOptions();
-      $.each(value, function addItem(index, item) {
-        field[0].selectize.addOption({ value: item, text: item });
-        field[0].selectize.addItem(item);
-      });
-    } else {
-      field.val(value);
+      field.attr('data-original-value', value);
+      field.change();
     }
-    field.attr('data-original-value', value);
-    field.change();
-  });
+  }
   bindForm();
 }
 function populateProfitCenterDropDown(profitCenterList) {

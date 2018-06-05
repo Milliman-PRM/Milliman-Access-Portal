@@ -1,4 +1,4 @@
-abstract interface Nestable {
+interface Nestable {
   Id: number;
   ParentId?: number;
 }
