@@ -25,6 +25,7 @@ namespace ContentPublishingServiceTests
             #endregion
 
             #region Initialize FileUpload
+            Directory.CreateDirectory($@"\\indy-syn01\prm_test\Uploads");
             try
             {
                 File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw", @"\\indy-syn01\prm_test\Uploads\Uploaded Test File 1.qvw");
@@ -119,6 +120,10 @@ namespace ContentPublishingServiceTests
                     },
                 });
             MockDbSet<RootContentItem>.AssignNavigationProperty(Db.Object.RootContentItem, "ContentTypeId", Db.Object.ContentType);
+            foreach(RootContentItem Rci in Db.Object.RootContentItem)
+            {
+                Directory.CreateDirectory($@"\\indy-syn01\prm_test\ContentRoot\{Rci.Id}");
+            }
             #endregion
 
             #region Initialize HierarchyField
