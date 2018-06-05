@@ -15,14 +15,17 @@ interface ContentItem {
 
 interface AuthorizedContentState {
   contentItems: Array<ContentItem>;
+  filterString?: string
 }
 
 class AuthorizedContent extends Component<{}, AuthorizedContentState> {
   constructor(props) {
     super(props);
     this.state = {
-      contentItems: []
+      contentItems: [],
+      filterString: null
     };
+    this.filter = this.filter.bind(this);
   }
 
   componentDidMount() {
@@ -123,17 +126,32 @@ class AuthorizedContent extends Component<{}, AuthorizedContentState> {
     );
   }
 
+  filteredArray = () => {
+    let filterString = this.state.filterString;
+    if (filterString) {
+      return this.state.contentItems.filter((contentItem: ContentItem) => {
+        return contentItem.Name.toLowerCase().indexOf(filterString.toLowerCase()) > -1 || contentItem.Description.toLowerCase().indexOf(filterString.toLowerCase()) > -1;
+      });
+    } else {
+      return this.state.contentItems;
+    }
+  }
+
+  filter = ({ target }) => {
+    this.setState({ filterString: target.value });
+  }
+
   render() {
+
 
     return (
       <div id="authorized-content-container">
         <div id="authorized-content-header">
-          <input id="authorized-content-filter" type="text" placeholder="Filter content" />
+          <input id="authorized-content-filter" name="authorizedContentFilter" type="text" placeholder="Filter content" onKeyUp={ this.filter } />
         </div>
         <div id="authorized-content-items">
-
           {
-            this.state.contentItems.map((contentItem: ContentItem, index: number) => (
+            this.filteredArray().map((contentItem: ContentItem, index: number) => (
               <ContentCard
                 key={contentItem.Id.toString()}
                 name={contentItem.Name}
