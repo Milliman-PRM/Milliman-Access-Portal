@@ -43,8 +43,8 @@ class ContentCard extends Component<ContentCardProps, {}> {
       ) : null;
 
     return (
-      <div className="content-card">
-        <a href={this.props.contentURL}>
+      <div className="content-card-container">
+        <div className="content-card" onClick={() => window.location.href = this.props.contentURL}>
           <div className="content-card-header">
             <h1 className="content-card-title">{this.props.name}</h1>
             <div className="content-card-icons">
@@ -56,7 +56,7 @@ class ContentCard extends Component<ContentCardProps, {}> {
             {thumbnailImage}
             <p className="content-card-description">{this.props.description}</p>
           </div>
-        </a>
+        </div>
       </div>
     );
   }

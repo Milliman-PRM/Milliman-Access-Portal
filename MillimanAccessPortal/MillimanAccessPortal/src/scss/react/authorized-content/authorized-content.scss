@@ -1,6 +1,23 @@
-﻿#authorized-content-container {
+﻿@import "../../map_modules/variables";
+@import "../../map_modules/mixins";
+
+#authorized-content-container {
     display: flex;
     flex-flow: row wrap;
     justify-content: space-between;
-    align-content: stretch;
+    align-content: flex-start;
+    align-items: flex-start;
+    padding: 1em 5em;
+
+    @include for-phone-only() {
+        padding: 1em;
+    }
+
+    @include for-tablet-up() {
+        padding: 1em 3em;
+    }
+
+    @include for-desktop-up() {
+        padding: 1em 5em;
+    }
 }
