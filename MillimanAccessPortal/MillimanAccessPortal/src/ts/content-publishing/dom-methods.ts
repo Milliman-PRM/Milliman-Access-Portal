@@ -185,24 +185,32 @@ export namespace ContentPublishingDOMMethods {
     // populate (after calculating, if need be) hierarchy diff
     $('#confirmation-section-hierarchy-diff .hierarchy > ul').children().remove();
     response.LiveHierarchy.Fields.forEach((field) => {
-      const subList = $('<li><ul></ul></ul>');
+      const subList = $(`<li><h6>${field.DisplayName}</h6><ul></ul></ul>`);
       field.Values.forEach((value) =>
           subList.find('ul').append(`<li>${value.Value}</li>`));
       $('#confirmation-section-hierarchy-diff .hierarchy-left > ul')
         .append(subList);
     });
     response.NewHierarchy.Fields.forEach((field) => {
-      const subList = $('<li><ul></ul></ul>');
+      const subList = $(`<li><h6>${field.DisplayName}</h6><ul></ul></ul>`);
       field.Values.forEach((value) =>
           subList.find('ul').append(`<li>${value.Value}</li>`));
       $('#confirmation-section-hierarchy-diff .hierarchy-right > ul')
         .append(subList);
     });
     // populate hierarchy stats
+    $('#confirmation-section-hierarchy-stats > div > ul').children().remove();
     response.SelectionGroups.forEach((selectionGroup) => {
-      $('#confirmation-section-hierarchy-stats ul')
-        .append(`<li><div><p>Selection group ${selectionGroup.Name} with ${selectionGroup.UserCount} users
-                 was reduced and is ${selectionGroup.IsMaster ? '' : 'not'} master.</p></div></li>`)
+      $('#confirmation-section-hierarchy-stats > div > ul')
+        .append(`<li><div class="selection-group-summary">
+          <h5>${selectionGroup.Name}${selectionGroup.IsMaster ? ' (Master)' : ''}</h5>
+          <ul>
+            <li><div class="selection-group-stat">
+              <span class="selection-group-stat-label">Users:</span>
+              <span class="selection-group-stat-value">${selectionGroup.UserCount}</span>
+            </div></li>
+          </ul>
+        </div></li>`);
     });
     // populate attestation
     $('#confirmation-section-attestation p').html(response.AttestationLanguage);
