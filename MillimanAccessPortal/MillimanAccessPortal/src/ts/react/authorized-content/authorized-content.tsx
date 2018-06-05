@@ -127,19 +127,25 @@ class AuthorizedContent extends Component<{}, AuthorizedContentState> {
 
     return (
       <div id="authorized-content-container">
-        {
-          this.state.contentItems.map((contentItem: ContentItem, index: number) => (
-            <ContentCard
-              key={contentItem.Id.toString()}
-              name={contentItem.Name}
-              contentURL={contentItem.ContentURL}
-              description={contentItem.Description}
-              thumbnailURL={contentItem.ImageURL}
-              userguideURL={contentItem.UserguideURL}
-              releasenNotesURL={contentItem.ReleaseNotesURL}
-            />
-          ))
-        }
+        <div id="authorized-content-header">
+          <input id="authorized-content-filter" type="text" placeholder="Filter content" />
+        </div>
+        <div id="authorized-content-items">
+
+          {
+            this.state.contentItems.map((contentItem: ContentItem, index: number) => (
+              <ContentCard
+                key={contentItem.Id.toString()}
+                name={contentItem.Name}
+                contentURL={contentItem.ContentURL}
+                description={contentItem.Description}
+                thumbnailURL={contentItem.ImageURL}
+                userguideURL={contentItem.UserguideURL}
+                releasenNotesURL={contentItem.ReleaseNotesURL}
+              />
+            ))
+          }
+        </div>
       </div>
     );
   }

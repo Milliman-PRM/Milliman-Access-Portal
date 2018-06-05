@@ -3,11 +3,7 @@
 
 #authorized-content-container {
     display: flex;
-    flex-flow: row wrap;
-    justify-content: space-between;
-    align-content: flex-start;
-    align-items: flex-start;
-    padding: 1em 5em;
+    flex-flow: column nowrap;
 
     @include for-phone-only() {
         padding: 1em;
@@ -19,5 +15,31 @@
 
     @include for-desktop-up() {
         padding: 1em 5em;
+    }
+
+    #authorized-content-header {
+        display: flex;
+        flex: none;
+        justify-content: flex-end;
+        padding: 1em 1em 2em;
+
+        #authorized-content-filter {
+            @include for-phone-only() {
+                width: 100%;
+            }
+
+            @include for-tablet-up() {
+                width: 25em;
+            }
+        }
+    }
+
+    #authorized-content-items {
+        flex: 1;
+        display: flex;
+        flex-flow: row wrap;
+        justify-content: space-between;
+        align-content: flex-start;
+        align-items: flex-start;
     }
 }
