@@ -181,16 +181,29 @@ export namespace ContentPublishingDOMMethods {
         .find('input')
         .attr('disabled', '');
     });
+
     // populate (after calculating, if need be) hierarchy diff
-    response.LiveHierarchy.Fields.forEach((field) =>
+    $('#confirmation-section-hierarchy-diff .hierarchy > ul').children().remove();
+    response.LiveHierarchy.Fields.forEach((field) => {
+      const subList = $('<li><ul></ul></ul>');
       field.Values.forEach((value) =>
-        $('#confirmation-section-hierarchy-diff .hierarchy-left ul')
-          .append(`<li>${value.Value}</li>`)));
-    response.NewHierarchy.Fields.forEach((field) =>
+          subList.find('ul').append(`<li>${value.Value}</li>`));
+      $('#confirmation-section-hierarchy-diff .hierarchy-left > ul')
+        .append(subList);
+    });
+    response.NewHierarchy.Fields.forEach((field) => {
+      const subList = $('<li><ul></ul></ul>');
       field.Values.forEach((value) =>
-        $('#confirmation-section-hierarchy-diff .hierarchy-right ul')
-          .append(`<li>${value.Value}</li>`)));
+          subList.find('ul').append(`<li>${value.Value}</li>`));
+      $('#confirmation-section-hierarchy-diff .hierarchy-right > ul')
+        .append(subList);
+    });
     // populate hierarchy stats
+    response.SelectionGroups.forEach((selectionGroup) => {
+      $('#confirmation-section-hierarchy-stats ul')
+        .append(`<li><div><p>Selection group ${selectionGroup.Name} with ${selectionGroup.UserCount} users
+                 was reduced and is ${selectionGroup.IsMaster ? '' : 'not'} master.</p></div></li>`)
+    });
     // populate attestation
     $('#confirmation-section-attestation p').html(response.AttestationLanguage);
   }

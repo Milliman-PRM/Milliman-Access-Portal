@@ -17,4 +17,12 @@
       z-index: 1;
     }
   }
+
+  .hierarchy {
+    display: inline-block;
+
+    &.hierarchy-left {
+      width: 50%;
+    }
+  }
 }
