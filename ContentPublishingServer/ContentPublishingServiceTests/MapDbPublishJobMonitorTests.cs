@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,7 +61,7 @@ namespace ContentPublishingServiceTests
         }
 
         [Fact]
-        public async Task CorrectResultsAfterSuccessfulRun()
+        public void CorrectResultsAfterSuccessfulRun()
         {
             #region arrange
             Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
@@ -69,7 +70,7 @@ namespace ContentPublishingServiceTests
             ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == 1);
             DbRequest.PublishRequest = new PublishRequest
             {
-                RootContentItemId = 1,
+                RootContentItemId = 1,  // This has DoesReduce = false
                 RelatedFiles = new UploadedRelatedFile[]
                 {
                     new UploadedRelatedFile{FilePurpose="MasterContent", FileUploadId = MockContext.Object.FileUpload.ElementAt(1).Id },
@@ -84,9 +85,17 @@ namespace ContentPublishingServiceTests
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
+
+            string ContentPath = $@"\\indy-syn01\prm_test\ContentRoot\{DbRequest.PublishRequest.RootContentItemId}";
+            foreach (var f in Directory.EnumerateFiles(ContentPath))
+            {
+                //if (f.Contains("Thumbs.db")) continue;
+                File.Delete(f);
+            }
             #endregion
 
             #region Act
+            Assert.Empty(Directory.EnumerateFiles(ContentPath));
             DateTime TestStart = DateTime.UtcNow;
             Task MonitorTask = JobMonitor.Start(CancelTokenSource.Token);
             Thread.Sleep(1000);
@@ -104,6 +113,8 @@ namespace ContentPublishingServiceTests
             Assert.Equal(TaskStatus.Running, MonitorTask.Status);
             Assert.Equal(PublicationStatus.Processed, DbRequest.RequestStatus);
             Assert.Equal(string.Empty, DbRequest.StatusMessage);
+            Assert.True(File.Exists(Path.Combine(ContentPath, "MasterContent.Pub[1].Content[1].qvw")));
+            Assert.True(File.Exists(Path.Combine(ContentPath, "Thumbnail.Pub[1].Content[1].jpg")));
             #endregion
         }
 
