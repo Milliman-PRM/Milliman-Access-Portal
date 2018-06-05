@@ -37,7 +37,7 @@
     .hierarchy {
       display: inline-block;
       background-color: $white;
-      width: 48%;
+      width: calc(50% - 0.25em);
       padding: 1.0em;
       box-sizing: border-box;
 
