@@ -51,7 +51,8 @@ function deleteRootContentItem(
     toastr.success(rootContentItemName + ' was successfully deleted.');
   }).fail(function onFail(response) {
     callback();
-    toastr.warning(response.getResponseHeader('Warning'));
+    toastr.warning(response.getResponseHeader('Warning')
+      || 'An unknown error has occurred.');
   });
 }
 export function rootContentItemDeleteClickHandler(event) {
@@ -92,7 +93,8 @@ function cancelContentPublication(data, callback) {
     toastr.success('Content publication request canceled');
   }).fail((response) => {
     if (typeof callback === 'function') { callback(); }
-    toastr.warning(response.getResponseHeader('Warning'));
+    toastr.warning(response.getResponseHeader('Warning')
+      || 'An unknown error has occurred.');
   });
 }
 

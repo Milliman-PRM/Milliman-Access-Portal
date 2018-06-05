@@ -251,8 +251,8 @@ export function get<T>(url: string, callbacks: Array<(response: T) => void>) {
       if (ajaxStatus[url] !== data) {
         return;
       }
-      const warning = response.getResponseHeader('Warning');
-      toastr.warning(warning || 'An unknown error has occurred.');
+      toastr.warning(response.getResponseHeader('Warning')
+        || 'An unknown error has occurred.');
       $loading.hide();
     });
   };
@@ -280,8 +280,8 @@ export function set<T>(method: string, url: string, successMessage: string, call
     }).fail((response) => {
       ajaxStatus[url] = false;
       onResponse();
-      const warning = response.getResponseHeader('Warning');
-      toastr.warning(warning || 'An unknown error has occurred.');
+      toastr.warning(response.getResponseHeader('Warning')
+        || 'An unknown error has occurred.');
     });
   };
 }

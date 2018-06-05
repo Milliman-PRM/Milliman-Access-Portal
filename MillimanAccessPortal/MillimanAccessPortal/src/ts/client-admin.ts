@@ -202,7 +202,8 @@ function setUserRole(clientId, userId, roleEnum, isAssigned, onResponse) {
     toastr.success(`${primaryText} was ${setUnset} as ${modifiedRole.RoleDisplayValue}`);
     onResponse();
   }).fail(function onFail(response) {
-    toastr.warning(response.getResponseHeader('Warning'));
+    toastr.warning(response.getResponseHeader('Warning')
+      || 'An unknown error has occurred.');
     onResponse();
   });
 }
@@ -313,7 +314,8 @@ function getClientDetail($clientDiv, accessMode?: AccessMode) {
     if (ajaxStatus.getClientDetail !== clientId) { return; }
     $('#client-info .loading-wrapper').hide();
     $('#client-users .loading-wrapper').hide();
-    toastr.warning(response.getResponseHeader('Warning'));
+    toastr.warning(response.getResponseHeader('Warning')
+      || 'An unknown error has occurred.');
   });
 }
 
@@ -389,7 +391,8 @@ function saveNewUser(username, email, callback) {
     toastr.success('User successfully added');
   }).fail(function onFail(response) {
     if (typeof callback === 'function') { callback(); }
-    toastr.warning(response.getResponseHeader('Warning'));
+    toastr.warning(response.getResponseHeader('Warning')
+      || 'An unknown error has occurred.');
   });
 }
 
@@ -438,7 +441,8 @@ function removeUserFromClient(clientId, userId, callback) {
     toastr.success('Successfully removed ' + userName + ' from ' + clientName);
   }).fail(function onFail(response) {
     callback();
-    toastr.warning(response.getResponseHeader('Warning'));
+    toastr.warning(response.getResponseHeader('Warning')
+      || 'An unknown error has occurred.');
   });
 }
 
@@ -536,7 +540,8 @@ function deleteClient(clientId, clientName, password, callback) {
     toastr.success(clientName + ' was successfully deleted.');
   }).fail(function onFail(response) {
     callback();
-    toastr.warning(response.getResponseHeader('Warning'));
+    toastr.warning(response.getResponseHeader('Warning')
+      || 'An unknown error has occurred.');
   });
 }
 
@@ -551,11 +556,8 @@ function getClientTree(clientId?) {
     $('#client-tree .loading-wrapper').hide();
   }).fail(function onFail(response) {
     $('#client-tree .loading-wrapper').hide();
-    if (response.getResponseHeader('Warning')) {
-      toastr.warning(response.getResponseHeader('Warning'));
-    } else {
-      toastr.error('An error has occurred');
-    }
+    toastr.warning(response.getResponseHeader('Warning')
+      || 'An unknown error has occurred.');
   });
 }
 

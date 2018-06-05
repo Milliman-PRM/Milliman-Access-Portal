@@ -125,7 +125,8 @@ export class SubmissionGroup<T> {
         await this.callback(response);
         resolve();
       }).fail((response) => {
-        toastr.warning(response.getResponseHeader('warning'));
+        toastr.warning(response.getResponseHeader('Warning')
+          || 'An unknown error has occurred.');
         reject();
       });
     });

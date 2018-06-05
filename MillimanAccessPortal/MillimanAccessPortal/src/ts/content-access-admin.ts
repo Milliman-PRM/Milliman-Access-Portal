@@ -66,7 +66,8 @@ function cancelSelectionForm() {
     toastr.success('Reduction tasks canceled.');
   }).fail(function onFail(response) {
     shared.hideButtonSpinner($button);
-    toastr.warning(response.getResponseHeader('Warning'));
+    toastr.warning(response.getResponseHeader('Warning')
+      || 'An unknown error has occurred.');
   });
 }
 function submitSelectionForm() {
@@ -96,7 +97,8 @@ function submitSelectionForm() {
     toastr.success('A reduction task has been queued.');
   }).fail(function onFail(response) {
     shared.hideButtonSpinner($button);
-    toastr.warning(response.getResponseHeader('Warning'));
+    toastr.warning(response.getResponseHeader('Warning')
+      || 'An unknown error has occurred.');
   });
 }
 
