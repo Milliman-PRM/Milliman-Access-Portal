@@ -107,7 +107,7 @@ namespace AuditLogLib
                 case "PRODUCTION":
                     configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
                     built = configurationBuilder.Build();
-                    var store = new X509Store(StoreLocation.LocalMachine);
+                    var store = new X509Store(StoreName.My, (environmentName == "PRODUCTION" ? StoreLocation.LocalMachine : StoreLocation.CurrentUser));
                     store.Open(OpenFlags.ReadOnly);
                     var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
 
@@ -119,8 +119,8 @@ namespace AuditLogLib
                     built = configurationBuilder.Build();
 
                     string branchName = Environment.GetEnvironmentVariable("BranchName");
-                    string logDbName = $"auditlogdb_{branchName}";
                     Npgsql.NpgsqlConnectionStringBuilder logConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(built.GetConnectionString(ConnectionStringName));
+                    string logDbName = (environmentName == "PRODUCTION" ? logConnBuilder.Database : $"auditlogdb_{branchName}");
                     logConnBuilder.Database = logDbName;
                     auditLogConnectionString = logConnBuilder.ConnectionString;
                     break;
