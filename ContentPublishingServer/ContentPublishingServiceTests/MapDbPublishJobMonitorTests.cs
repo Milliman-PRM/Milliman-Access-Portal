@@ -89,10 +89,12 @@ namespace ContentPublishingServiceTests
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
 
             string ContentPath = $@"\\indy-syn01\prm_test\ContentRoot\{DbRequest.PublishRequest.RootContentItemId}";
-            foreach (var f in Directory.EnumerateFiles(ContentPath))
+            if (Directory.Exists(ContentPath))
             {
-                //if (f.Contains("Thumbs.db")) continue;
-                File.Delete(f);
+                foreach (var f in Directory.EnumerateFiles(ContentPath))
+                {
+                    File.Delete(f);
+                }
             }
             #endregion
 

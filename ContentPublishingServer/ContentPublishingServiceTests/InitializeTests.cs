@@ -120,10 +120,7 @@ namespace ContentPublishingServiceTests
                     },
                 });
             MockDbSet<RootContentItem>.AssignNavigationProperty(Db.Object.RootContentItem, "ContentTypeId", Db.Object.ContentType);
-            foreach(RootContentItem Rci in Db.Object.RootContentItem)
-            {
-                Directory.CreateDirectory($@"\\indy-syn01\prm_test\ContentRoot\{Rci.Id}");
-            }
+            Directory.CreateDirectory(@"\\indy-syn01\prm_test\ContentRoot");
             #endregion
 
             #region Initialize HierarchyField
