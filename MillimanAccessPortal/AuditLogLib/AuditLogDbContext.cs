@@ -48,16 +48,16 @@ namespace AuditLogLib
         protected AuditLogDbContext(DbContextOptions<AuditLogDbContext> options)
             : base(options)
         {
-            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
 
             switch (EnvironmentName)
             {
-                case "AzureCI":
-                case "Production":
+                case "AZURECI":
+                case "PRODUCTION":
                     Database.Migrate(); // Run migrations when the logger is instantiated
                     break;
 
-                case "Development":
+                case "DEVELOPMENT":
                 default:
                     // nothing
                     break;
@@ -96,15 +96,15 @@ namespace AuditLogLib
         internal static string GetConfiguredConnectionString(string ConnectionStringName = "AuditLogConnectionString")
         {
             var configurationBuilder = new ConfigurationBuilder();
-            string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
             string auditLogConnectionString;
 
             var built = configurationBuilder.Build();
 
             switch (environmentName)
             {
-                case "AzureCI":
-                case "Production":
+                case "AZURECI":
+                case "PRODUCTION":
                     configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
                     built = configurationBuilder.Build();
                     var store = new X509Store(StoreLocation.LocalMachine);
@@ -125,7 +125,7 @@ namespace AuditLogLib
                     auditLogConnectionString = logConnBuilder.ConnectionString;
                     break;
 
-                case "Development":
+                case "DEVELOPMENT":
                     configurationBuilder.AddUserSecrets<AuditLogDbContext>();
                     built = configurationBuilder.Build();
 
