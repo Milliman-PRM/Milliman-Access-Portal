@@ -46,7 +46,7 @@ class ContentCard extends Component<ContentCardProps, {}> {
       <div className="content-card-container">
         <div className="content-card" onClick={() => window.location.href = this.props.contentURL}>
           <div className="content-card-header">
-            <h1 className="content-card-title">{this.props.name}</h1>
+            <h2 className="content-card-title">{this.props.name}</h2>
             <div className="content-card-icons">
               {releasenNotesIcon}
               {userguideIcon}

@@ -151,12 +151,18 @@ class AuthorizedContent extends Component<{}, AuthorizedContentState> {
     );
   }
 
+
   filteredArray = () => {
-    let filterString = this.state.filterString;
+    const filterString = this.state.filterString;
     if (filterString) {
-      return this.state.clientContentItems.filter((contentItem: ContentItem) => {
-        return contentItem.Name.toLowerCase().indexOf(filterString.toLowerCase()) > -1 || contentItem.Description.toLowerCase().indexOf(filterString.toLowerCase()) > -1;
-      });
+      this.state.clientContentItems.map((clientContent) => {
+        clientContent.ContentItems = clientContent.ContentItems.filter((contentItem) => {
+          return contentItem.Name.toLowerCase().indexOf(filterString.toLowerCase()) > -1 || contentItem.Description.toLowerCase().indexOf(filterString.toLowerCase()) > -1;
+        })
+        return clientContent;
+      }).filter((clientContent) => {
+        return clientContent.ContentItems.length || clientContent.ClientName.toLowerCase().indexOf(filterString.toLowerCase()) > -1;
+      })
     } else {
       return this.state.clientContentItems;
     }
@@ -167,8 +173,6 @@ class AuthorizedContent extends Component<{}, AuthorizedContentState> {
   }
 
   render() {
-
-
     return (
       <div id="authorized-content-container">
         <div id="authorized-content-header">
@@ -176,8 +180,9 @@ class AuthorizedContent extends Component<{}, AuthorizedContentState> {
         </div>
         <div id="authorized-content-items">
           {
-            this.filteredArray().map((client: ClientContentItem, index: number) => (
-              <h2 className="client-name">{client.ClientName}</h2>
+            this.filteredArray().map((client: ClientContentItem) => (
+              <div className="client-content-container">
+                <h1 className="client-name">{client.ClientName}</h1>
                 {
                   client.ContentItems.map((contentItem: ContentItem, index: number) => (
                     <ContentCard
@@ -190,7 +195,9 @@ class AuthorizedContent extends Component<{}, AuthorizedContentState> {
                       releasenNotesURL={contentItem.ReleaseNotesURL}
                     />
                   ))
-                })
+                }
+              </div>
+            ))
           }
         </div>
       </div>

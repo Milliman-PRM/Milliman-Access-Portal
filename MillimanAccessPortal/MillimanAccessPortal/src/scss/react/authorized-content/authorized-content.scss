@@ -38,11 +38,21 @@
 
     #authorized-content-items {
         flex: 1;
-        display: flex;
-        flex-flow: row wrap;
-        justify-content: space-between;
-        align-content: flex-start;
-        align-items: flex-start;
         overflow: auto;
+
+        .client-content-container {
+            display: flex;
+            flex-flow: row wrap;
+            align-content: flex-start;
+            align-items: flex-start;
+            margin-bottom: 2em;
+
+            .client-name {
+                width: 100%;
+                margin-bottom: 1em;
+                padding-right: 1em;
+                border-bottom: 2px solid $charcoal;
+            }
+        }
     }
 }
