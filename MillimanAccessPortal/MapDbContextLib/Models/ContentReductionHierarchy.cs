@@ -89,7 +89,7 @@ namespace MapDbContextLib.Models
                         Value = hfv.Value,
                         SelectionStatus = SelectedHierarchyFieldValues.Contains(hfv.Id),
                     })
-                    .ToArray();
+                    .ToList();
 
                 // TODO: Create ReductionFieldBase and extend for each content type
                 ReductionField<ReductionFieldValueSelection> ReductionField;
@@ -115,6 +115,59 @@ namespace MapDbContextLib.Models
             }
 
             return ContentReductionHierarchy;
+        }
+
+        /// <summary>Build hierarchy of a currently live RootContentItem</summary>
+        /// <param name="DbContext"></param>
+        /// <param name="RootContentItemId">The </param>
+        /// <returns>ContentReductionHierarchy</returns>
+        public static ContentReductionHierarchy<ReductionFieldValue> GetHierarchyForRootContentItem(ApplicationDbContext DbContext, long RootContentItemId)
+        {
+            RootContentItem ContentItem = DbContext.RootContentItem
+                                                     .Include(rc => rc.ContentType)
+                                                     .SingleOrDefault(rc => rc.Id == RootContentItemId);
+            if (ContentItem == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                ContentReductionHierarchy<ReductionFieldValue> ReturnObject = new ContentReductionHierarchy<ReductionFieldValue> { RootContentItemId = RootContentItemId };
+
+                foreach (HierarchyField Field in DbContext.HierarchyField
+                                                            .Where(hf => hf.RootContentItemId == RootContentItemId)
+                                                            .ToList())
+                {
+                    // There may be different handling required for some future content type. If so, move
+                    // the characteristics specific to Qlikview into a class derived from ReductionFieldBase
+                    switch (ContentItem.ContentType.TypeEnum)
+                    {
+                        case ContentTypeEnum.Qlikview:
+                            ReturnObject.Fields.Add(new ReductionField<ReductionFieldValue>
+                            {
+                                FieldName = Field.FieldName,
+                                DisplayName = Field.FieldDisplayName,
+                                ValueDelimiter = Field.FieldDelimiter,
+                                StructureType = Field.StructureType,
+                                Values = DbContext.HierarchyFieldValue
+                                                         .Where(fv => fv.HierarchyFieldId == Field.Id)
+                                                         .Select(fv => new ReductionFieldValue { Value = fv.Value })
+                                                         .ToList(),
+                            });
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+
+                return ReturnObject;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
     }
 }
