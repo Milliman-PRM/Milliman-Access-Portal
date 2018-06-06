@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import AuthorizedContent from './authorized-content';
+import { AuthorizedContent } from './authorized-content';
 
 require('jquery');
 require('jquery-validation');
