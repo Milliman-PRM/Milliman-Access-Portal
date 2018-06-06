@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
@@ -30,6 +31,7 @@ namespace MillimanAccessPortal.Controllers
     public class ContentPublishingController : Controller
     {
         private readonly IAuditLogger AuditLogger;
+        private readonly IConfiguration ApplicationConfig;
         private readonly IAuthorizationService AuthorizationService;
         private readonly ApplicationDbContext DbContext;
         private readonly ILogger Logger;
@@ -51,7 +53,8 @@ namespace MillimanAccessPortal.Controllers
             ApplicationDbContext ContextArg,
             ILoggerFactory LoggerFactoryArg,
             StandardQueries QueriesArg,
-            UserManager<ApplicationUser> UserManagerArg
+            UserManager<ApplicationUser> UserManagerArg,
+            IConfiguration ApplicationConfigArg
             )
         {
             AuditLogger = AuditLoggerArg;
@@ -60,6 +63,7 @@ namespace MillimanAccessPortal.Controllers
             Logger = LoggerFactoryArg.CreateLogger<ContentPublishingController>(); ;
             Queries = QueriesArg;
             UserManager = UserManagerArg;
+            ApplicationConfig = ApplicationConfigArg;
         }
 
         /// <summary>
@@ -617,9 +621,38 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> PreLiveSummary(long RootContentItemId)
         {
-            // Return a model summarizing the publication summary
+            #region Authorization
+            AuthorizationResult roleInRootContentItem = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, RootContentItemId));
+            if (!roleInRootContentItem.Succeeded)
+            {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    $"Request for publication summary without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in root content item",
+                    AuditEventId.Unauthorized,
+                    new { RootContentItemId = RootContentItemId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
 
-            return new JsonResult(new object());
+                Response.Headers.Add("Warning", "You are not authorized to view the publication certification summary for this root content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            if (!DbContext.RootContentItem.Any(c => c.Id == RootContentItemId))
+            {
+                Response.Headers.Add("Warning", "The requested root content item was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            PreLiveContentValidationSummary ReturnObj = PreLiveContentValidationSummary.Build(DbContext, RootContentItemId, ApplicationConfig);
+
+            return new JsonResult(ReturnObj);
         }
     }
 }
