@@ -146,24 +146,26 @@ class AuthorizedContent extends Component<{}, AuthorizedContentState> {
         ]
       }
     ];
-    this.setState({ clientContentItems: newContentItems },
-      () => { console.log(this.state.clientContentItems) }
-    );
+    this.setState({ clientContentItems: newContentItems });
   }
 
 
   filteredArray = () => {
-    const filterString = this.state.filterString;
-    if (filterString) {
-      this.state.clientContentItems.map((clientContent) => {
+    if (this.state.filterString) {
+      const filterString = this.state.filterString.toLowerCase();
+      const filteredClientContent = JSON.parse(JSON.stringify(this.state.clientContentItems));
+      return filteredClientContent.map((clientContent) => {
         clientContent.ContentItems = clientContent.ContentItems.filter((contentItem) => {
-          return contentItem.Name.toLowerCase().indexOf(filterString.toLowerCase()) > -1 || contentItem.Description.toLowerCase().indexOf(filterString.toLowerCase()) > -1;
+          return clientContent.ClientName.toLowerCase().indexOf(filterString) > -1
+              || contentItem.Name.toLowerCase().indexOf(filterString) > -1
+              || contentItem.Description.toLowerCase().indexOf(filterString) > -1;
         })
         return clientContent;
       }).filter((clientContent) => {
-        return clientContent.ContentItems.length || clientContent.ClientName.toLowerCase().indexOf(filterString.toLowerCase()) > -1;
+        return clientContent.ContentItems.length;
       })
     } else {
+      console.log(this.state.clientContentItems);
       return this.state.clientContentItems;
     }
   }
@@ -180,8 +182,8 @@ class AuthorizedContent extends Component<{}, AuthorizedContentState> {
         </div>
         <div id="authorized-content-items">
           {
-            this.filteredArray().map((client: ClientContentItem) => (
-              <div className="client-content-container">
+            this.filteredArray().map((client: ClientContentItem, index: number) => (
+              <div key={"client-" + index} className="client-content-container">
                 <h1 className="client-name">{client.ClientName}</h1>
                 {
                   client.ContentItems.map((contentItem: ContentItem, index: number) => (
