@@ -35,7 +35,7 @@ namespace ContentPublishingLib.JobRunners
                 ValueDelimiter = ExtractedField.Delimiter,
                 Values = ExtractedField.FieldValues
                                        .Select(v => new ReductionFieldValue { Value = v })
-                                       .ToArray()
+                                       .ToList()
             };
 
             switch (ExtractedField.ValueStructure.ToLower())

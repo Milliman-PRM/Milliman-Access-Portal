@@ -15,10 +15,10 @@ namespace MapDbContextLib.Models
     {
         public long RootContentItemId { get; set; }
 
-        public ContentRelatedFile[] RelatedFiles { get; set; }
+        public UploadedRelatedFile[] RelatedFiles { get; set; }
     }
 
-    public class ContentRelatedFile
+    public class UploadedRelatedFile
     {
         /// <summary>
         /// Standard values: MasterContent, UserGuide, Thumbnail, ReleaseNotes

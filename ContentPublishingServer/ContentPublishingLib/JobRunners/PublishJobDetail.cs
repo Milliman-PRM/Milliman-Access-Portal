@@ -9,6 +9,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using MapDbContextLib.Context;
+using MapDbContextLib.Models;
 
 namespace ContentPublishingLib.JobRunners
 {
@@ -59,7 +60,7 @@ namespace ContentPublishingLib.JobRunners
         public class PublishJobResult
         {
             public string StatusMessage { get; set; } = string.Empty;
-            public List<ContentRelatedFile> RelatedFiles { get; set; } = new List<ContentRelatedFile>();
+            public List<ContentRelatedFile> ResultingRelatedFiles { get; set; } = new List<ContentRelatedFile>();
         }
 
         public class PublishJobRequest
@@ -68,13 +69,6 @@ namespace ContentPublishingLib.JobRunners
             public List<ContentRelatedFile> RelatedFiles { get; set; }
             public long RootContentId { get; set; }
             public long ApplicationUserId { get; set; }
-        }
-
-        public class ContentRelatedFile
-        {
-            public string FilePurpose { get; set; }
-            public string FullPath { get; set; }
-            public string Checksum { get; set; }
         }
 
     }

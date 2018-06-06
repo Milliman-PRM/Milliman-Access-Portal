@@ -120,7 +120,7 @@ namespace ContentPublishingLib.JobRunners
             try
             {
                 // Handle each file related to this PublicationRequest
-                foreach (PublishJobDetail.ContentRelatedFile RelatedFile in JobDetail.Request.RelatedFiles)
+                foreach (ContentRelatedFile RelatedFile in JobDetail.Request.RelatedFiles)
                 {
                     HandleRelatedFile(RelatedFile);
                 }
@@ -160,7 +160,7 @@ namespace ContentPublishingLib.JobRunners
             return JobDetail;
         }
 
-        private void HandleRelatedFile(PublishJobDetail.ContentRelatedFile RelatedFile)
+        private void HandleRelatedFile(ContentRelatedFile RelatedFile)
         {
             if (!File.Exists(RelatedFile.FullPath))
             {
@@ -174,18 +174,19 @@ namespace ContentPublishingLib.JobRunners
             string DestinationFileName = $"{RelatedFile.FilePurpose}.Pub[{JobDetail.JobId.ToString()}].Content[{JobDetail.Request.RootContentId.ToString()}]{Path.GetExtension(RelatedFile.FullPath)}";
             string DestinationFullPath = Path.Combine(_ThisRootContentFolder, DestinationFileName);
 
-            File.Copy(RelatedFile.FullPath, DestinationFullPath, true);
-
-            // Clean up FileUpload entity and uploaded file
+            // Copy and clean up FileUpload entity and uploaded file(s)
             using (ApplicationDbContext Db = GetDbContext())
+            using (var Txn = Db.Database.BeginTransaction())  // transactional in case anything throws
             {
+                File.Copy(RelatedFile.FullPath, DestinationFullPath, true);
                 List<FileUpload> Uploads = Db.FileUpload.Where(f => f.StoragePath == RelatedFile.FullPath).ToList();
                 Uploads.ForEach(u => Db.FileUpload.Remove(u));
-                Db.SaveChanges();
                 File.Delete(RelatedFile.FullPath);
+                Db.SaveChanges();
+                Txn.Commit();
             }
 
-            JobDetail.Result.RelatedFiles.Add(new PublishJobDetail.ContentRelatedFile { FilePurpose = RelatedFile.FilePurpose, FullPath = DestinationFullPath });
+            JobDetail.Result.ResultingRelatedFiles.Add(new ContentRelatedFile { FilePurpose = RelatedFile.FilePurpose, FullPath = DestinationFullPath });
 
             if (RelatedFile.FilePurpose.ToLower() == "mastercontent")
             {
@@ -203,6 +204,7 @@ namespace ContentPublishingLib.JobRunners
                 {
                     List<ContentReductionTask> QueuedTasks = AllRelatedReductionTasks.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued).ToList();
                     await CancelReductionTasks(QueuedTasks);
+                    JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
                     _CancellationToken.ThrowIfCancellationRequested();
                 }
 
