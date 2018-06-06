@@ -33,7 +33,22 @@ namespace ContentPublishingLib.JobRunners
 
             IQMS Client = QmsClientCreator.New(QmsUrl);
             QdsServiceInfo = Client.GetServicesAsync(ServiceTypes.QlikViewDistributionService).Result[0];
-            SourceDocFolder = Client.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All).Result[1];  // TODO Get this index right for production
+
+            // Qv can have 0 or more configured source document folders, need to find the right one. 
+            var GetDocFolderTask = Client.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All);
+            while (!GetDocFolderTask.IsCompleted)  // instead of using await in a constructor (that feels wrong)
+            {
+                Thread.Sleep(20);
+            }
+            foreach (DocumentFolder DocFolder in GetDocFolderTask.Result)
+            {
+                // eliminate any trailing slash issue
+                if (Path.GetFullPath(Configuration.ApplicationConfiguration["Storage:QvSourceDocumentsPath"]) == Path.GetFullPath(DocFolder.General.Path))
+                {
+                    SourceDocFolder = DocFolder;
+                    return;
+                }
+            }
         }
 
         #region Member properties
