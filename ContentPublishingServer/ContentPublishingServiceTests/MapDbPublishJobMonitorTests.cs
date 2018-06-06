@@ -16,6 +16,8 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Moq;
 
+// Turn off all parallelization for the entire assembly
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 namespace ContentPublishingServiceTests
 {
     public class MapDbPublishJobMonitorTests : ContentPublishingServiceTestBase
