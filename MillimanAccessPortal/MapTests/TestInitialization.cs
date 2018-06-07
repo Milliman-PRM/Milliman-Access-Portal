@@ -640,7 +640,7 @@ namespace MapTests
             #region Initialize ContentPublicationRequest
             DbContextObject.ContentPublicationRequest.AddRange(new List<ContentPublicationRequest>
             {
-                new ContentPublicationRequest { Id=1, ApplicationUserId=1, PublishRequest = new PublishRequest{ RootContentItemId=1, RelatedFiles=new UploadedRelatedFile[]{ /*...*/ } } },
+                new ContentPublicationRequest { Id=1, ApplicationUserId=1, RelatedInputFiles = new PublishRequest{ RootContentItemId=1, RelatedFiles=new UploadedRelatedFile[]{ /*...*/ } } },
             });
             #endregion
 

@@ -91,21 +91,16 @@ namespace MapDbContextLib.Context
         }
 
         [NotMapped]
-        public PublishRequest PublishRequest
+        public List<ContentRelatedFile> RelatedInputFiles
         {
             get
             {
-                return new PublishRequest
-                {
-                    RootContentItemId = RootContentItemId,
-                    RelatedFiles = JsonConvert.DeserializeObject<UploadedRelatedFile[]>(ContentRelatedFiles),
-                };
+                return JsonConvert.DeserializeObject<List<ContentRelatedFile>>(ContentRelatedFiles);
             }
             set
             {
-                RootContentItemId = value.RootContentItemId;
-                ContentRelatedFiles = value.RelatedFiles != null
-                    ? JsonConvert.SerializeObject(value.RelatedFiles)
+                ContentRelatedFiles = value != null
+                    ? JsonConvert.SerializeObject(value)
                     : "[]";
             }
         }

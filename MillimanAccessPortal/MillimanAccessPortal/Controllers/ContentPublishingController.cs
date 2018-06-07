@@ -6,6 +6,7 @@
 
 using AuditLogLib;
 using AuditLogLib.Services;
+using MapCommonLib;
 using MapCommonLib.ActionFilters;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
@@ -23,6 +24,7 @@ using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentPublishing;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -505,12 +507,11 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            // Create the publication request and reduction task(s)
+            // Insert the publication request (not queued yet)
             ContentPublicationRequest NewContentPublicationRequest = new ContentPublicationRequest
             {
                 ApplicationUserId = currentApplicationUser.Id,
-                RequestStatus = PublicationStatus.Queued,
-                PublishRequest = Arg,
+                RequestStatus = PublicationStatus.Unknown,
                 CreateDateTimeUtc = DateTime.UtcNow,
             };
             try
@@ -523,6 +524,19 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "Failed to store publication request");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
+
+            Guid ThisRequestGuid = Guid.NewGuid();
+
+            foreach (UploadedRelatedFile UploadedFileRef in Arg.RelatedFiles)
+            {
+                NewContentPublicationRequest.RelatedInputFiles.Add
+                (
+                    HandleRelatedFile(UploadedFileRef, UploadedFileRef.FilePurpose, Arg.RootContentItemId, ThisRequestGuid, NewContentPublicationRequest.Id)
+                );
+            }
+
+            DbContext.ContentPublicationRequest.Update(NewContentPublicationRequest);
+            DbContext.SaveChanges();
 
             // Log the queued publication request
             #region Log audit event
@@ -654,5 +668,61 @@ namespace MillimanAccessPortal.Controllers
 
             return new JsonResult(ReturnObj);
         }
+
+        [NonAction]
+        private ContentRelatedFile HandleRelatedFile(UploadedRelatedFile RelatedFile, string Purpose, long RootContentId, Guid RequestGuid, long PubRequestId)
+        {
+            ContentRelatedFile ReturnObj = new ContentRelatedFile();
+
+            using (IDbContextTransaction Txn = DbContext.Database.BeginTransaction())
+            {
+                FileUpload FileUploadRecord = DbContext.FileUpload.Find(RelatedFile.FileUploadId);
+
+                #region Validate the file referenced by the FileUpload record
+                if (!System.IO.File.Exists(FileUploadRecord.StoragePath))
+                {
+                    throw new ApplicationException($"While publishing for content {RootContentId}, uploaded file not found at path [{FileUploadRecord.StoragePath}].");
+                }
+                if (FileUploadRecord.Checksum.ToLower() != GlobalFunctions.GetFileChecksum(FileUploadRecord.StoragePath).ToLower())
+                {
+                    throw new ApplicationException($"While publishing for content {RootContentId}, checksum validation failed for file [{FileUploadRecord.StoragePath}].");
+                }
+                #endregion
+
+                string RootContentFolder = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"], RootContentId.ToString());
+
+                // Copy upload file to root content folder
+                string DestinationFileName = $"{Purpose}.Pub[{PubRequestId.ToString()}].Content[{RootContentId.ToString()}]{Path.GetExtension(FileUploadRecord.StoragePath)}";
+                string DestinationFullPath = Path.Combine(RootContentFolder, DestinationFileName);
+                System.IO.File.Copy(FileUploadRecord.StoragePath, DestinationFullPath, true);
+
+                if (Purpose.ToLower() == "mastercontent")
+                {
+                    ProcessMasterContentFile(DestinationFullPath, RelatedFile.FilePurpose, RelatedFile.Checksum);
+                }
+
+                // Remove FileUpload record(s) for this file path
+                List<FileUpload> Uploads = DbContext.FileUpload.Where(f => f.StoragePath == FileUploadRecord.StoragePath).ToList();
+                Uploads.ForEach(u => DbContext.FileUpload.Remove(u));
+                System.IO.File.Delete(FileUploadRecord.StoragePath);
+
+                DbContext.SaveChanges();
+                Txn.Commit();
+            }
+
+            return something;
+        }
+
+        private void ProcessMasterContentFile()
+        {
+            if (true /*DoesReduce*/)
+            {
+                string MapPublishingServerExchangeFolder = Path.Combine(ApplicationConfig.GetSection("Storage")["MapPublishingServerExchangePath"], RequestGuid.ToString("D"));
+                Directory.CreateDirectory(MapPublishingServerExchangeFolder);
+                DestinationFullPath = Path.Combine(MapPublishingServerExchangeFolder, DestinationFileName);
+                System.IO.File.Copy(FileUploadRecord.StoragePath, DestinationFullPath, true);
+            }
+        }
+
     }
 }
