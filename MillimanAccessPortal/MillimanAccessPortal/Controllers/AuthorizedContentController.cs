@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using MillimanAccessPortal.Models.HostedContentViewModels;
+using MillimanAccessPortal.Models.AuthorizedContentViewModels;
 using MapCommonLib.ContentTypeSpecific;
 using QlikviewLib;
 using MapDbContextLib.Context;
@@ -31,7 +31,7 @@ using MillimanAccessPortal.Authorization;
 
 namespace MillimanAccessPortal.Controllers
 {
-    public class HostedContentController : Controller
+    public class AuthorizedContentController : Controller
     {
         // Things provided by the application that this controller should need to use
         private QlikviewConfig QlikviewConfig { get; }  // do not allow set
@@ -49,7 +49,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="LoggerFactoryArg"></param>
         /// <param name="DataContextArg"></param>
         /// <param name="QlikviewOptionsAccessorArg"></param>
-        public HostedContentController(
+        public AuthorizedContentController(
             IOptions<QlikviewConfig> QlikviewOptionsAccessorArg,
             UserManager<ApplicationUser> UserManagerArg,
             ILoggerFactory LoggerFactoryArg,
@@ -60,7 +60,7 @@ namespace MillimanAccessPortal.Controllers
         {
             QlikviewConfig = QlikviewOptionsAccessorArg.Value;
             UserManager = UserManagerArg;
-            Logger = LoggerFactoryArg.CreateLogger<HostedContentController>();
+            Logger = LoggerFactoryArg.CreateLogger<AuthorizedContentController>();
             DataContext = DataContextArg;
             Queries = QueryArg;
             AuthorizationService = AuthorizationServiceArg;
@@ -74,7 +74,7 @@ namespace MillimanAccessPortal.Controllers
         [Authorize]
         public IActionResult Index()
         {
-            List<HostedContentViewModel> ModelForView = Queries.GetAssignedUserGroups(UserManager.GetUserName(HttpContext.User));
+            List<AuthorizedContentViewModel> ModelForView = Queries.GetAssignedUserGroups(UserManager.GetUserName(HttpContext.User));
 
             return View(ModelForView);
         }
@@ -136,14 +136,14 @@ namespace MillimanAccessPortal.Controllers
 
                     default:
                         TempData["Message"] = $"Display of an unsupported ContentType was requested: {SelGroup.RootContentItem.ContentType.Name}";
-                        TempData["ReturnToController"] = "HostedContent";
+                        TempData["ReturnToController"] = "AuthorizedContent";
                         TempData["ReturnToAction"] = "Index";
                         return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
                 }
 
                 UriBuilder ContentUri = await ContentSpecificHandler.GetContentUri(SelGroup, HttpContext, QlikviewConfig);
 
-                HostedContentViewModel ResponseModel = new HostedContentViewModel
+                AuthorizedContentViewModel ResponseModel = new AuthorizedContentViewModel
                 {
                     Url = ContentUri.Uri.AbsoluteUri,  // must be absolute because it is used in iframe element
                     UserGroupId = SelGroup.Id,
@@ -162,7 +162,7 @@ namespace MillimanAccessPortal.Controllers
                     default:
                         // Perhaps this can't happen since this case is handled above
                         TempData["Message"] = $"An unsupported ContentType was requested: {SelGroup.RootContentItem.ContentType.Name}";
-                        TempData["ReturnToController"] = "HostedContent";
+                        TempData["ReturnToController"] = "AuthorizedContent";
                         TempData["ReturnToAction"] = "Index";
                         return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
                 }
@@ -170,7 +170,7 @@ namespace MillimanAccessPortal.Controllers
             catch (MapException e)
             {
                 TempData["Message"] = $"{e.Message}<br>{e.StackTrace}";
-                TempData["ReturnToController"] = "HostedContent";
+                TempData["ReturnToController"] = "AuthorizedContent";
                 TempData["ReturnToAction"] = "Index";
                 return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
             }

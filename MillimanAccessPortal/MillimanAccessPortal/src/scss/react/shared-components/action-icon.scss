@@ -1,0 +1,15 @@
+﻿@import "../../map_modules/variables";
+
+
+.action-icon-container {
+    display: inline;
+
+    .action-icon {
+        height: 1.5em;
+        width: 1.5em;
+
+        &:hover {
+            color: darken($charcoal, 15%);
+        }
+    }
+}
