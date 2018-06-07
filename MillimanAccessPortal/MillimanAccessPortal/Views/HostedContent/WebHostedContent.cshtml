@@ -6,6 +6,10 @@
     ViewData["NavIcon"] = "HostedContent";
 }
 
+@section Scripts {
+    <script src="/js/hosted-content.bundle.js"></script>
+}
+
 <div id="iframe-container">
     <iframe id="content-iframe" src=@(Model.Url)></iframe>
 </div>
