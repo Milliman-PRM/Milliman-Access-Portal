@@ -146,7 +146,7 @@ export class ContentCollection extends Component<{}, ContentCollectionState> {
         <div id="authorized-content-items">
           {
             this.state.groups.map((group) => 
-              <ClientSection {...group} filterString={this.state.filterString} />
+              <ClientSection {...group} key={group.id.toString()} filterString={this.state.filterString} />
             )
           }
         </div>
