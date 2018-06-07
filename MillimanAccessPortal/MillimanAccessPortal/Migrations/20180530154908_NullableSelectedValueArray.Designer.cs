@@ -12,9 +12,10 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180530154908_NullableSelectedValueArray")]
+    partial class NullableSelectedValueArray
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -78,9 +79,6 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<int>("RequestStatus");
 
                     b.Property<string>("ResultHierarchy")
-                        .HasColumnType("jsonb");
-
-                    b.Property<string>("ResultingContentFiles")
                         .HasColumnType("jsonb");
 
                     b.Property<long>("RootContentItemId");

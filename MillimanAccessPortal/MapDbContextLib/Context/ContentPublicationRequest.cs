@@ -23,7 +23,8 @@ namespace MapDbContextLib.Context
         Error = 2,
         Queued = 10,
         Processing = 20,
-        Complete = 30,
+        Processed = 30,
+        Confirmed = 40,
     }
 
     public class ContentPublicationRequest
@@ -36,7 +37,8 @@ namespace MapDbContextLib.Context
             { PublicationStatus.Error, "Error" },
             { PublicationStatus.Queued, "Queued"},
             { PublicationStatus.Processing, "Processing"},
-            { PublicationStatus.Complete, "Complete"},
+            { PublicationStatus.Processed, "Processed"},
+            { PublicationStatus.Confirmed, "Confirmed"},
         };
 
         [Key]
@@ -59,14 +61,34 @@ namespace MapDbContextLib.Context
 
         /// <summary>
         /// May also be accessed through [NotMapped] property PublishRequest
+        /// Intended to be serialization of type MapDbContextLib.Models.UploadedContentRelatedFile[]
         /// </summary>
         [Column(TypeName = "jsonb")]
         public string ContentRelatedFiles { get; set; } = "[]";
+
+        /// <summary>
+        /// Intended to be serialization of type MapDbContextLib.Models.ContentRelatedFile[]
+        /// </summary>
+        [Column(TypeName = "jsonb")]
+        public string ResultingContentFiles { get; set; } = "[]";
 
         [Required]
         public PublicationStatus RequestStatus { get; set; }
 
         public string StatusMessage { get; set; } = string.Empty;
+
+        [NotMapped]
+        public List<ContentRelatedFile> ResultingFiles
+        {
+            get
+            {
+                return JsonConvert.DeserializeObject<List<ContentRelatedFile>>(ResultingContentFiles);
+            }
+            set
+            {
+                ResultingContentFiles = JsonConvert.SerializeObject(value);
+            }
+        }
 
         [NotMapped]
         public PublishRequest PublishRequest
@@ -76,7 +98,7 @@ namespace MapDbContextLib.Context
                 return new PublishRequest
                 {
                     RootContentItemId = RootContentItemId,
-                    RelatedFiles = JsonConvert.DeserializeObject<ContentRelatedFile[]>(ContentRelatedFiles),
+                    RelatedFiles = JsonConvert.DeserializeObject<UploadedRelatedFile[]>(ContentRelatedFiles),
                 };
             }
             set
@@ -95,7 +117,7 @@ namespace MapDbContextLib.Context
 
             if (TaskStatusList.TrueForAll(s => CompleteList.Contains(s)))
             {
-                return PublicationStatus.Complete;
+                return PublicationStatus.Processed;
             }
 
             else if (TaskStatusList.TrueForAll(s => s == ReductionStatusEnum.Queued))

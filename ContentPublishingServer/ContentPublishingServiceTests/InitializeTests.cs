@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using Moq;
@@ -24,6 +25,22 @@ namespace ContentPublishingServiceTests
             #endregion
 
             #region Initialize FileUpload
+            Directory.CreateDirectory($@"\\indy-syn01\prm_test\Uploads");
+            try
+            {
+                File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw", @"\\indy-syn01\prm_test\Uploads\Uploaded Test File 1.qvw");
+            }
+            catch (System.IO.IOException) { }
+            try
+            {
+                File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw", @"\\indy-syn01\prm_test\Uploads\Uploaded Test File 2.qvw");
+            }
+            catch (System.IO.IOException) { }
+            try
+            {
+                File.Copy(@"\\indy-syn01\prm_test\Sample Data\Italy.jpg", @"\\indy-syn01\prm_test\Uploads\Italy.jpg");
+            }
+            catch (System.IO.IOException) { }
             Db.Object.FileUpload.AddRange(new List<FileUpload>
             {
                 new FileUpload
@@ -31,7 +48,7 @@ namespace ContentPublishingServiceTests
                     Id = Guid.NewGuid(),
                     Checksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                     ClientFileIdentifier = "Uploaded Test File 1",
-                    CreatedDateTimeUtc = DateTime.Now - new TimeSpan(0, 0, 45),
+                    CreatedDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 0, 45),
                     StoragePath = @"\\indy-syn01\prm_test\Uploads\Uploaded Test File 1.qvw",
                 },
                 new FileUpload
@@ -39,8 +56,16 @@ namespace ContentPublishingServiceTests
                     Id = Guid.NewGuid(),
                     Checksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                     ClientFileIdentifier = "Uploaded Test File 2",
-                    CreatedDateTimeUtc = DateTime.Now - new TimeSpan(0, 0, 45),
+                    CreatedDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 0, 45),
                     StoragePath = @"\\indy-syn01\prm_test\Uploads\Uploaded Test File 2.qvw",
+                },
+                new FileUpload
+                {
+                    Id = Guid.NewGuid(),
+                    Checksum = "fd23523b3dbaf1625a15d58119a0f1f1cbb01a02",
+                    ClientFileIdentifier = "Uploaded Image File",
+                    CreatedDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 0, 45),
+                    StoragePath = @"\\indy-syn01\prm_test\Uploads\Italy.jpg",
                 },
             });
             #endregion
@@ -95,6 +120,7 @@ namespace ContentPublishingServiceTests
                     },
                 });
             MockDbSet<RootContentItem>.AssignNavigationProperty(Db.Object.RootContentItem, "ContentTypeId", Db.Object.ContentType);
+            Directory.CreateDirectory(@"\\indy-syn01\prm_test\ContentRoot");
             #endregion
 
             #region Initialize HierarchyField
@@ -288,7 +314,7 @@ namespace ContentPublishingServiceTests
                         StructureType = FieldStructureType.Tree,
                         ValueDelimiter = "|",
                         Id = 1,
-                        Values = new ReductionFieldValueSelection[]
+                        Values = new List<ReductionFieldValueSelection>
                         {
                             new ReductionFieldValueSelection
                             {
@@ -331,7 +357,7 @@ namespace ContentPublishingServiceTests
                         StructureType = FieldStructureType.Tree,
                         ValueDelimiter = "|",
                         Id = 1,
-                        Values = new ReductionFieldValueSelection[]
+                        Values = new List<ReductionFieldValueSelection>
                         {
                             new ReductionFieldValueSelection
                             {
@@ -368,7 +394,7 @@ namespace ContentPublishingServiceTests
                         StructureType = FieldStructureType.Tree,
                         ValueDelimiter = "|",
                         Id = 1,
-                        Values = new ReductionFieldValueSelection[]
+                        Values = new List<ReductionFieldValueSelection>
                         {
                             new ReductionFieldValueSelection
                             {
@@ -385,7 +411,7 @@ namespace ContentPublishingServiceTests
                         StructureType = FieldStructureType.Tree,
                         ValueDelimiter = "|",
                         Id = 1,
-                        Values = new ReductionFieldValueSelection[]
+                        Values = new List<ReductionFieldValueSelection>
                         {
                             new ReductionFieldValueSelection
                             {
@@ -422,7 +448,7 @@ namespace ContentPublishingServiceTests
                         StructureType = FieldStructureType.Tree,
                         ValueDelimiter = "|",
                         Id = 1,
-                        Values = new ReductionFieldValueSelection[]
+                        Values = new List<ReductionFieldValueSelection>
                         {
                             new ReductionFieldValueSelection
                             {
@@ -459,15 +485,15 @@ namespace ContentPublishingServiceTests
                     {
                         Id = 1,
                         ApplicationUserId = 1,
-                        CreateDateTimeUtc = DateTime.Now,
+                        CreateDateTimeUtc = DateTime.UtcNow,
                         RequestStatus = PublicationStatus.Unknown,
                         PublishRequest = new PublishRequest
                         {
                             RootContentItemId = 1,
-                            RelatedFiles = new ContentRelatedFile[]
+                            RelatedFiles = new UploadedRelatedFile[]
                             {
-                                new ContentRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
-                                new ContentRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
+                                new UploadedRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
+                                new UploadedRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
                             }
                         }
                     },
@@ -475,15 +501,15 @@ namespace ContentPublishingServiceTests
                     {
                         Id = 2,
                         ApplicationUserId = 1,
-                        CreateDateTimeUtc = DateTime.Now,
+                        CreateDateTimeUtc = DateTime.UtcNow,
                         RequestStatus = PublicationStatus.Unknown,
                         PublishRequest = new PublishRequest
                         {
                             RootContentItemId = 2,
-                            RelatedFiles = new ContentRelatedFile[]
+                            RelatedFiles = new UploadedRelatedFile[]
                             {
-                                new ContentRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
-                                new ContentRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
+                                new UploadedRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
+                                new UploadedRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
                             }
                         }
                     },
@@ -491,15 +517,15 @@ namespace ContentPublishingServiceTests
                     {
                         Id = 3,
                         ApplicationUserId = 1,
-                        CreateDateTimeUtc = DateTime.Now,
+                        CreateDateTimeUtc = DateTime.UtcNow,
                         RequestStatus = PublicationStatus.Unknown,
                         PublishRequest = new PublishRequest
                         {
                             RootContentItemId = 3,
-                            RelatedFiles = new ContentRelatedFile[]
+                            RelatedFiles = new UploadedRelatedFile[]
                             {
-                                new ContentRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
-                                new ContentRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
+                                new UploadedRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
+                                new UploadedRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
                             }
                         }
                     },
@@ -507,15 +533,15 @@ namespace ContentPublishingServiceTests
                     {
                         Id = 4,
                         ApplicationUserId = 1,
-                        CreateDateTimeUtc = DateTime.Now,
+                        CreateDateTimeUtc = DateTime.UtcNow,
                         RequestStatus = PublicationStatus.Unknown,
                         PublishRequest = new PublishRequest
                         {
                             RootContentItemId = 4,
-                            RelatedFiles = new ContentRelatedFile[]
+                            RelatedFiles = new UploadedRelatedFile[]
                             {
-                                new ContentRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
-                                new ContentRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
+                                new UploadedRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
+                                new UploadedRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
                             }
                         }
                     },

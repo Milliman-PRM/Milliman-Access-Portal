@@ -439,5 +439,22 @@ export namespace ContentPublishingDOMMethods {
 
     statusMonitor = new PublicationStatusMonitor();
     statusMonitor.start();
+
+
+    // TODO: delete this. for testing only.
+    $('#client-tree > input').click(() => {
+      $.ajax({
+        method: 'GET',
+        url: 'ContentPublishing/PreLiveSummary',
+        data: {
+            RootContentItemId: 1,
+        }
+      }).done((response) => {
+        toastr.success('Success');
+      }).fail((response) => {
+        toastr.error('Error');
+      }).always((response) => {
+      });
+    });
   }
 }

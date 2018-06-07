@@ -146,54 +146,5 @@ namespace MillimanAccessPortal.DataQueries
             return await UserManager.GetUserAsync(User);
         }
 
-        public ContentReductionHierarchy<ReductionFieldValue> GetReductionFieldsForRootContent(long ContentId)
-        {
-            RootContentItem ContentItem = DbContext.RootContentItem
-                                                     .Include(rc => rc.ContentType)
-                                                     .SingleOrDefault(rc => rc.Id == ContentId);
-            if (ContentItem == null)
-            {
-                return null;
-            }
-
-            try
-            {
-                ContentReductionHierarchy<ReductionFieldValue> ReturnObject = new ContentReductionHierarchy<ReductionFieldValue> { RootContentItemId = ContentId };
-
-                foreach (HierarchyField Field in DbContext.HierarchyField
-                                                            .Where(hf => hf.RootContentItemId == ContentId)
-                                                            .ToList())
-                {
-                    // There may be different handling required for some future content type. If so, move
-                    // the characteristics specific to Qlikview into a class derived from ReductionFieldBase
-                    switch (ContentItem.ContentType.TypeEnum)
-                    {
-                        case ContentTypeEnum.Qlikview:
-                            ReturnObject.Fields.Add(new ReductionField<ReductionFieldValue>
-                            {
-                                FieldName = Field.FieldName,
-                                DisplayName = Field.FieldDisplayName,
-                                ValueDelimiter = Field.FieldDelimiter,
-                                StructureType = Field.StructureType,
-                                Values = DbContext.HierarchyFieldValue
-                                                         .Where(fv => fv.HierarchyFieldId == Field.Id)
-                                                         .Select(fv => new ReductionFieldValue { Value = fv.Value })
-                                                         .ToArray(),
-                            });
-                            break;
-
-                        default:
-                            break;
-                    }
-                }
-
-                return ReturnObject;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-
     }
 }
