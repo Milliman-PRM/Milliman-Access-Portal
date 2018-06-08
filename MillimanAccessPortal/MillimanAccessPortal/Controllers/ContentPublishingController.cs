@@ -529,10 +529,12 @@ namespace MillimanAccessPortal.Controllers
 
             foreach (UploadedRelatedFile UploadedFileRef in Arg.RelatedFiles)
             {
-                NewContentPublicationRequest.RelatedInputFiles.Add
-                (
-                    HandleRelatedFile(UploadedFileRef, UploadedFileRef.FilePurpose, Arg.RootContentItemId, ThisRequestGuid, NewContentPublicationRequest.Id)
-                );
+                ContentRelatedFile Crf = HandleRelatedFile(UploadedFileRef, UploadedFileRef.FilePurpose, Arg.RootContentItemId, ThisRequestGuid, NewContentPublicationRequest.Id);
+
+                if (Crf != null)
+                {
+                    NewContentPublicationRequest.RelatedInputFiles.Add(Crf);
+                }
             }
 
             DbContext.ContentPublicationRequest.Update(NewContentPublicationRequest);
@@ -696,6 +698,13 @@ namespace MillimanAccessPortal.Controllers
                 string DestinationFullPath = Path.Combine(RootContentFolder, DestinationFileName);
                 System.IO.File.Copy(FileUploadRecord.StoragePath, DestinationFullPath, true);
 
+                ContentRelatedFile ReturnVal = new ContentRelatedFile
+                {
+                    FilePurpose = Purpose,
+                    FullPath = DestinationFullPath,
+                    Checksum = FileUploadRecord.Checksum,
+                };
+
                 if (Purpose.ToLower() == "mastercontent")
                 {
                     ProcessMasterContentFile(DestinationFullPath, RelatedFile.FilePurpose, RelatedFile.Checksum);
@@ -710,10 +719,10 @@ namespace MillimanAccessPortal.Controllers
                 Txn.Commit();
             }
 
-            return something;
+            return ReturnObj;
         }
 
-        private void ProcessMasterContentFile()
+        private void ProcessMasterContentFile(ContentRelatedFile FileDetails, )
         {
             if (true /*DoesReduce*/)
             {
