@@ -1,0 +1,15 @@
+@model MillimanAccessPortal.Models.AuthorizedContentViewModels.AuthorizedContentViewModel
+
+@{
+    ViewData["Title"] = Model.ContentName;
+    Layout = "_Layout_w_NB";
+    ViewData["NavIcon"] = "AuthorizedContent";
+}
+
+@section Scripts {
+    <script src="/js/hosted-content.bundle.js"></script>
+}
+
+<div id="iframe-container">
+    <iframe id="content-iframe" src=@(Model.Url)></iframe>
+</div>

@@ -48,16 +48,16 @@ namespace AuditLogLib
         protected AuditLogDbContext(DbContextOptions<AuditLogDbContext> options)
             : base(options)
         {
-            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
 
             switch (EnvironmentName)
             {
-                case "AzureCI":
-                case "AzureProduction":
+                case "AZURECI":
+                case "PRODUCTION":
                     Database.Migrate(); // Run migrations when the logger is instantiated
                     break;
 
-                case "Development":
+                case "DEVELOPMENT":
                 default:
                     // nothing
                     break;
@@ -96,18 +96,18 @@ namespace AuditLogLib
         internal static string GetConfiguredConnectionString(string ConnectionStringName = "AuditLogConnectionString")
         {
             var configurationBuilder = new ConfigurationBuilder();
-            string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
             string auditLogConnectionString;
 
             var built = configurationBuilder.Build();
 
             switch (environmentName)
             {
-                case "AzureCI":
-                case "AzureProduction":
+                case "AZURECI":
+                case "PRODUCTION":
                     configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
                     built = configurationBuilder.Build();
-                    var store = new X509Store(StoreLocation.LocalMachine);
+                    var store = new X509Store(StoreName.My, (environmentName == "PRODUCTION" ? StoreLocation.LocalMachine : StoreLocation.CurrentUser));
                     store.Open(OpenFlags.ReadOnly);
                     var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
 
@@ -119,13 +119,16 @@ namespace AuditLogLib
                     built = configurationBuilder.Build();
 
                     string branchName = Environment.GetEnvironmentVariable("BranchName");
-                    string logDbName = $"auditlogdb_{branchName}";
                     Npgsql.NpgsqlConnectionStringBuilder logConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(built.GetConnectionString(ConnectionStringName));
-                    logConnBuilder.Database = logDbName;
+
+                    if (environmentName == "AZURECI")
+                    {
+                        logConnBuilder.Database = $"auditlogdb_{branchName}";
+                    }
                     auditLogConnectionString = logConnBuilder.ConnectionString;
                     break;
 
-                case "Development":
+                case "DEVELOPMENT":
                     configurationBuilder.AddUserSecrets<AuditLogDbContext>();
                     built = configurationBuilder.Build();
 

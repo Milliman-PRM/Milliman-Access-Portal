@@ -57,12 +57,11 @@ namespace MillimanAccessPortal
             #region Configure application connection string (environment-dependent)
 
             string appConnectionString = Configuration.GetConnectionString("DefaultConnection");
-            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
 
             switch (EnvironmentName)
             {
-                case "AzureCI":
-                case "AzureProduction":
+                case "AZURECI":
                     // Modify connection strings in Azure CI to point to the correct database name
                     string branchName = Environment.GetEnvironmentVariable("BranchName");
                     string appDbName = $"appdb_{branchName}";
@@ -71,7 +70,8 @@ namespace MillimanAccessPortal
                     appConnectionString = appConnBuilder.ConnectionString;
                     break;
 
-                case "Development":
+                case "PRODUCTION":
+                case "DEVELOPMENT":
                     break;
 
                 default: // Unsupported environment name	
@@ -161,7 +161,7 @@ namespace MillimanAccessPortal
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, ApplicationDbContext db)
         {
-            if (env.EnvironmentName == "AzureCI" || env.EnvironmentName == "AzureProduction")
+            if (env.EnvironmentName.ToUpper() == "AZURECI" || env.EnvironmentName.ToUpper() == "PRODUCTION")
             {
                 db.Database.Migrate(); // Perform any unapplied migrations
             }
@@ -221,7 +221,7 @@ namespace MillimanAccessPortal
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=HostedContent}/{action=Index}/{id?}");
+                    template: "{controller=AuthorizedContent}/{action=Index}/{id?}");
             });
 
             MailSender.ConfigureMailSender(new SmtpConfig
@@ -234,12 +234,11 @@ namespace MillimanAccessPortal
 
             #region Configure Audit Logger connection string (environment-dependent)
             string auditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString");
-            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
 
             switch (EnvironmentName)
             {
-                case "AzureCI":
-                case "AzureProduction":
+                case "AZURECI":
                     string branchName = Environment.GetEnvironmentVariable("BranchName");
                     string logDbName = $"auditlogdb_{branchName}";
                     Npgsql.NpgsqlConnectionStringBuilder logConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString);
@@ -247,7 +246,9 @@ namespace MillimanAccessPortal
                     auditLogConnectionString = logConnBuilder.ConnectionString;
                     break;
 
-                case "Development":
+                
+                case "PRODUCTION":
+                case "DEVELOPMENT":
                     // nothing
                     break;
 

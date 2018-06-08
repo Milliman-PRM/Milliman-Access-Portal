@@ -1,13 +1,13 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: Wrapper for database queries used by HostedContentController.  
+ * OBJECTIVE: Wrapper for database queries used by AuthorizedContentController.  
  * DEVELOPER NOTES: 
  */
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MillimanAccessPortal.Models.HostedContentViewModels;
+using MillimanAccessPortal.Models.AuthorizedContentViewModels;
 using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
@@ -18,17 +18,17 @@ namespace MillimanAccessPortal.DataQueries
     public partial class StandardQueries
     {
         /// <summary>
-        /// Returns a collection of HostedContentViewModel representing SelectionGroup instances assigned to the specified user
+        /// Returns a collection of AuthorizedContentViewModel representing SelectionGroup instances assigned to the specified user
         /// </summary>
         /// <param name="UserName"></param>
         /// <returns></returns>
-        public virtual List<HostedContentViewModel> GetAssignedUserGroups(string UserName)
+        public virtual List<AuthorizedContentViewModel> GetAssignedUserGroups(string UserName)
         {
-            List<HostedContentViewModel> ReturnList = new List<HostedContentViewModel>();
-            Dictionary<long, HostedContentViewModel> ResultBuilder = new Dictionary<long, HostedContentViewModel>();
+            List<AuthorizedContentViewModel> ReturnList = new List<AuthorizedContentViewModel>();
+            Dictionary<long, AuthorizedContentViewModel> ResultBuilder = new Dictionary<long, AuthorizedContentViewModel>();
 
-            // Get a list of all content item groups authorized for user, converted to type HostedContentViewModel plus content related properties
-            List<HostedContentViewModel> query = DbContext.UserInSelectionGroup
+            // Get a list of all content item groups authorized for user, converted to type AuthorizedContentViewModel plus content related properties
+            List<AuthorizedContentViewModel> query = DbContext.UserInSelectionGroup
                 .Include(usg => usg.User)
                 .Include(usg => usg.SelectionGroup)
                     .ThenInclude(sg => sg.RootContentItem)
@@ -36,14 +36,14 @@ namespace MillimanAccessPortal.DataQueries
                 .Where(usg => usg.User.UserName == UserName)
                 .Distinct()
                 .Select(usg =>
-                    new HostedContentViewModel
+                    new AuthorizedContentViewModel
                     {
                         UserGroupId = usg.SelectionGroup.Id,
                         ContentName = usg.SelectionGroup.RootContentItem.ContentName,
                         Url = usg.SelectionGroup.ContentInstanceUrl,
-                        ClientList = new List<HostedContentViewModel.ParentClientTree>
+                        ClientList = new List<AuthorizedContentViewModel.ParentClientTree>
                         {
-                            new HostedContentViewModel.ParentClientTree
+                            new AuthorizedContentViewModel.ParentClientTree
                             {
                                 Id = usg.SelectionGroup.RootContentItem.ClientId,
                                 Name = usg.SelectionGroup.RootContentItem.Client.Name,
@@ -73,7 +73,7 @@ namespace MillimanAccessPortal.DataQueries
 
                     // The required order is root down to 
                     Finding.ClientList.Insert(0,
-                        new HostedContentViewModel.ParentClientTree
+                        new AuthorizedContentViewModel.ParentClientTree
                         {
                             Id = Parent.Id,
                             Name = Parent.Name,
