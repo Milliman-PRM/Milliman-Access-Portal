@@ -92,14 +92,14 @@ namespace MillimanAccessPortal.Controllers
                     AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User login successful", AuditEventId.LoginSuccess, null, model.Email, HttpContext.Session.Id);
                     _auditLogger.Log(LogObject);
 
-                    // The default route is /HostedContent/Index as configured in startup.cs
+                    // The default route is /AuthorizedContent/Index as configured in startup.cs
                     if (!string.IsNullOrEmpty(returnUrl))
                     {
                         return RedirectToLocal(returnUrl);
                     }
                     else
                     {
-                        return RedirectToAction(nameof(HostedContentController.Index), nameof(HostedContentController).Replace("Controller", ""));
+                        return RedirectToAction(nameof(AuthorizedContentController.Index), nameof(AuthorizedContentController).Replace("Controller", ""));
                     }
                 }
                 if (result.RequiresTwoFactor)

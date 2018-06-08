@@ -187,7 +187,7 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       .attr('src', pair.link)
       .siblings('a')
       .attr('href', pair.link)
-      .filter(() => pair.link === undefined)
+      .filter(() => pair.link === null)
       .hide()
       .siblings('iframe')
       .attr('srcdoc', 'This file has not changed.')
@@ -196,16 +196,56 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
       .find('input')
       .attr('disabled', '');
   });
-  // populate (after calculating, if need be) hierarchy diff
-  response.LiveHierarchy.Fields.forEach((field) =>
-    field.Values.forEach((value) =>
-      $('#confirmation-section-hierarchy-diff .hierarchy-left ul')
-        .append(`<li>${value.Value}</li>`)));
-  response.NewHierarchy.Fields.forEach((field) =>
-    field.Values.forEach((value) =>
-      $('#confirmation-section-hierarchy-diff .hierarchy-right ul')
-        .append(`<li>${value.Value}</li>`)));
-  // populate hierarchy stats
+
+  if (!response.DoesReduce) {
+    $('#confirmation-section-hierarchy-diff')
+      .hide()
+      .find('input[type="checkbox"]')
+      .attr('disabled', '');
+    $('#confirmation-section-hierarchy-stats')
+      .hide()
+      .find('input[type="checkbox"]')
+      .attr('disabled', '');
+  } else {
+    $('#confirmation-section-hierarchy-diff')
+      .show();
+    $('#confirmation-section-hierarchy-stats')
+      .show();
+    // populate (after calculating, if need be) hierarchy diff
+    $('#confirmation-section-hierarchy-diff .hierarchy > ul').children().remove();
+    if (!response.LiveHierarchy) {
+      $('#confirmation-section-hierarchy-diff .hierarchy-left > ul').append('<div>None</div>');
+    } else {
+      response.LiveHierarchy.Fields.forEach((field) => {
+        const subList = $(`<li><h6>${field.DisplayName}</h6><ul></ul></ul>`);
+        field.Values.forEach((value) =>
+            subList.find('ul').append(`<li>${value.Value}</li>`));
+        $('#confirmation-section-hierarchy-diff .hierarchy-left > ul')
+          .append(subList);
+      });
+    }
+    response.NewHierarchy.Fields.forEach((field) => {
+      const subList = $(`<li><h6>${field.DisplayName}</h6><ul></ul></ul>`);
+      field.Values.forEach((value) =>
+          subList.find('ul').append(`<li>${value.Value}</li>`));
+      $('#confirmation-section-hierarchy-diff .hierarchy-right > ul')
+        .append(subList);
+    });
+    // populate hierarchy stats
+    $('#confirmation-section-hierarchy-stats > div > ul').children().remove();
+    response.SelectionGroups.forEach((selectionGroup) => {
+      $('#confirmation-section-hierarchy-stats > div > ul')
+        .append(`<li><div class="selection-group-summary">
+          <h5>${selectionGroup.Name}${selectionGroup.IsMaster ? ' (Master)' : ''}</h5>
+          <ul>
+            <li><div class="selection-group-stat">
+              <span class="selection-group-stat-label">Users:</span>
+              <span class="selection-group-stat-value">${selectionGroup.UserCount}</span>
+            </div></li>
+          </ul>
+        </div></li>`);
+    });
+  }
   // populate attestation
   $('#confirmation-section-attestation p').html(response.AttestationLanguage);
 }

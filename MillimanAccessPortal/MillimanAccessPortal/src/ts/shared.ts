@@ -1,9 +1,9 @@
+import * as $ from 'jquery';
+import * as toastr from 'toastr';
+
 import { Dialog, DiscardConfirmationDialog, ResetConfirmationDialog } from './dialog';
 import { FormBase } from './form/form-base';
 import { PublicationStatus } from './view-models/content-publishing';
-
-import $ = require('jquery');
-import toastr = require('toastr');
 
 const SHOW_DURATION = 50;
 const ajaxStatus = [];

@@ -1,4 +1,4 @@
-import shared = require('../shared');
+import * as shared from '../shared';
 
 interface User {
   Email: string;

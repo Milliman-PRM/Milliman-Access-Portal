@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Ben Wyatt, Tom Puckett
- * OBJECTIVE: Perform unit tests against HostedContentController
+ * OBJECTIVE: Perform unit tests against AuthorizedContentController
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 using System;
@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
 using MillimanAccessPortal.Controllers;
-using MillimanAccessPortal.Models.HostedContentViewModels;
+using MillimanAccessPortal.Models.AuthorizedContentViewModels;
 using TestResourcesLib;
 
 namespace MapTests
 {
-    public class HostedContentControllerTests
+    public class AuthorizedControllerTests
     {
         /// <summary>
         /// Test that the Index returns a view containing a list of content items the test user can access.
@@ -32,7 +32,7 @@ namespace MapTests
             TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
 
             // Create the system under test (sut)
-            HostedContentController sut = new HostedContentController(TestResources.QvConfig,
+            AuthorizedContentController sut = new AuthorizedContentController(TestResources.QvConfig,
                                                                       TestResources.UserManagerObject,
                                                                       TestResources.LoggerFactory,
                                                                       TestResources.DbContextObject,
@@ -56,9 +56,9 @@ namespace MapTests
             Assert.IsType<ViewResult>(view);
 
             ViewResult viewResult = view as ViewResult;
-            Assert.IsType<List<HostedContentViewModel>>(viewResult.Model);
+            Assert.IsType<List<AuthorizedContentViewModel>>(viewResult.Model);
 
-            List<HostedContentViewModel> ModelReturned = (List<HostedContentViewModel>)viewResult.Model;
+            List<AuthorizedContentViewModel> ModelReturned = (List<AuthorizedContentViewModel>)viewResult.Model;
             Assert.Single(ModelReturned);
 
             Assert.Equal(TestResources.DbContextObject.RootContentItem.FirstOrDefault().ContentName, ModelReturned[0].ContentName);
@@ -82,7 +82,7 @@ namespace MapTests
             TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
 
             // Create the system under test (sut)
-            HostedContentController sut = new HostedContentController(TestResources.QvConfig,
+            AuthorizedContentController sut = new AuthorizedContentController(TestResources.QvConfig,
                                                                       TestResources.UserManagerObject,
                                                                       TestResources.LoggerFactory,
                                                                       TestResources.DbContextObject,
@@ -126,7 +126,7 @@ namespace MapTests
             TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
 
             // Create the system under test (sut)
-            HostedContentController sut = new HostedContentController(TestResources.QvConfig,
+            AuthorizedContentController sut = new AuthorizedContentController(TestResources.QvConfig,
                                                                       TestResources.UserManagerObject,
                                                                       TestResources.LoggerFactory,
                                                                       TestResources.DbContextObject,
@@ -152,7 +152,7 @@ namespace MapTests
 
             // Test that the expected content item was returned
             ViewResult viewResult = view as ViewResult;
-            HostedContentViewModel ModelReturned = (HostedContentViewModel)viewResult.Model;
+            AuthorizedContentViewModel ModelReturned = (AuthorizedContentViewModel)viewResult.Model;
             Assert.Equal("RootContent 1", ModelReturned.ContentName);
             Assert.Equal(1, ModelReturned.UserGroupId);
             #endregion

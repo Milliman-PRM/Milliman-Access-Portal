@@ -245,95 +245,85 @@
         </div>
     </div>
     <div class="admin-panel-content-container">
-        <div class="confirmation-section-container requires-confirmation" id="confirmation-section-master-content">
-            <div class="confirmation-section">
-                <h4>Master Content</h4>
-                <div class="content-preview">
-                    <iframe src="about:blank"></iframe>
-                    <a href="about:blank" target="_blank">
-                        <svg class="action-icon-external action-icon tooltip" title="Open document in new tab">
-                            <use xlink:href="#action-icon-file-upload"></use>
-                        </svg>
-                    </a>
-                </div>
-                <label for="confirmation-master-content">
-                    <input type="checkbox" name="master-content" value="confirmation-master-content" id="confirmation-master-content">
-                    Content is as expected
-                </label>
+        <div class="confirmation-section requires-confirmation" id="confirmation-section-master-content">
+            <h4>Master Content</h4>
+            <div class="content-preview">
+                <iframe src="about:blank"></iframe>
+                <a href="about:blank" target="_blank">
+                    <svg class="action-icon-external action-icon tooltip" title="Open document in new tab">
+                        <use xlink:href="#action-icon-file-upload"></use>
+                    </svg>
+                </a>
             </div>
+            <label for="confirmation-master-content">
+                <input type="checkbox" name="master-content" value="confirmation-master-content" id="confirmation-master-content">
+                Content is as expected
+            </label>
         </div>
-        <div class="confirmation-section-container requires-confirmation" id="confirmation-section-user-guide">
-            <div class="confirmation-section">
-                <h4>User Guide</h4>
-                <div class="content-preview">
-                    <iframe src="about:blank"></iframe>
-                    <a href="about:blank" target="_blank">
-                        <svg class="action-icon-external action-icon tooltip" title="Open document in new tab">
-                            <use xlink:href="#action-icon-file-upload"></use>
-                        </svg>
-                    </a>
-                </div>
-                <label for="confirmation-user-guide">
-                    <input type="checkbox" name="user-guide" value="confirmation-user-guide" id="confirmation-user-guide">
-                    User guide is as expected
-                </label>
+        <div class="confirmation-section requires-confirmation" id="confirmation-section-user-guide">
+            <h4>User Guide</h4>
+            <div class="content-preview">
+                <iframe src="about:blank"></iframe>
+                <a href="about:blank" target="_blank">
+                    <svg class="action-icon-external action-icon tooltip" title="Open document in new tab">
+                        <use xlink:href="#action-icon-file-upload"></use>
+                    </svg>
+                </a>
             </div>
+            <label for="confirmation-user-guide">
+                <input type="checkbox" name="user-guide" value="confirmation-user-guide" id="confirmation-user-guide">
+                User guide is as expected
+            </label>
         </div>
-        <div class="confirmation-section-container requires-confirmation" id="confirmation-section-release-notes">
-            <div class="confirmation-section">
-                <h4>Release Notes</h4>
-                <div class="content-preview">
-                    <iframe src="about:blank"></iframe>
-                    <a href="about:blank" target="_blank">
-                        <svg class="action-icon-external action-icon tooltip" title="Open document in new tab">
-                            <use xlink:href="#action-icon-file-upload"></use>
-                        </svg>
-                    </a>
-                </div>
-                <label for="confirmation-release-notes">
-                    <input type="checkbox" name="release-notes" value="confirmation-release-notes" id="confirmation-release-notes">
-                    Release notes are as expected
-                </label>
+        <div class="confirmation-section requires-confirmation" id="confirmation-section-release-notes">
+            <h4>Release Notes</h4>
+            <div class="content-preview">
+                <iframe src="about:blank"></iframe>
+                <a href="about:blank" target="_blank">
+                    <svg class="action-icon-external action-icon tooltip" title="Open document in new tab">
+                        <use xlink:href="#action-icon-file-upload"></use>
+                    </svg>
+                </a>
             </div>
+            <label for="confirmation-release-notes">
+                <input type="checkbox" name="release-notes" value="confirmation-release-notes" id="confirmation-release-notes">
+                Release notes are as expected
+            </label>
         </div>
-        <div class="confirmation-section-container requires-confirmation" id="confirmation-section-hierarchy-diff">
-            <div class="confirmation-section">
-                <h4>Hierarchy Changes</h4>
-                <div>
-                    <div class="hierarchy-left">
-                        <ul></ul>
-                    </div>
-                    <div class="hierarchy-right">
-                        <ul></ul>
-                    </div>
-                </div>
-                <label for="confirmation-hierarchy-diff">
-                    <input type="checkbox" name="hierarchy-diff" value="confirmation-hierarchy-diff" id="confirmation-hierarchy-diff">
-                    Hierarchy changes are as expected
-                </label>
-            </div>
-        </div>
-        <div class="confirmation-section-container requires-confirmation" id="confirmation-section-hierarchy-stats">
-            <div class="confirmation-section">
-                <h4>Reduction Results</h4>
-                <div>
+        <div class="confirmation-section requires-confirmation" id="confirmation-section-hierarchy-diff">
+            <h4>Hierarchy Changes</h4>
+            <div class="hierarchy-container">
+                <div class="hierarchy hierarchy-left">
+                    <h5>Old Hierarchy Values</h5>
                     <ul></ul>
                 </div>
-                <label for="confirmation-hierarchy-stats">
-                    <input type="checkbox" name="hierarchy-stats" value="confirmation-hierarchy-stats" id="confirmation-hierarchy-stats">
-                    Reduction results are as expected
-                </label>
-            </div>
-        </div>
-        <div class="confirmation-section-container" id="confirmation-section-attestation">
-            <div class="confirmation-section">
-                <h4>Report Confirmation</h4>
-                <div>
-                    <p></p>
+                <div class="hierarchy hierarchy-right">
+                    <h5>New Hierarchy Values</h5>
+                    <ul></ul>
                 </div>
-                <button type="button" class="button-reject red-button">Reject</button>
-                <button type="button" class="button-approve green-button" disabled>Approve</button>
             </div>
+            <label for="confirmation-hierarchy-diff">
+                <input type="checkbox" name="hierarchy-diff" value="confirmation-hierarchy-diff" id="confirmation-hierarchy-diff">
+                Hierarchy changes are as expected
+            </label>
+        </div>
+        <div class="confirmation-section requires-confirmation" id="confirmation-section-hierarchy-stats">
+            <h4>Reduction Results</h4>
+            <div>
+                <ul></ul>
+            </div>
+            <label for="confirmation-hierarchy-stats">
+                <input type="checkbox" name="hierarchy-stats" value="confirmation-hierarchy-stats" id="confirmation-hierarchy-stats">
+                Reduction results are as expected
+            </label>
+        </div>
+        <div class="confirmation-section" id="confirmation-section-attestation">
+            <h4>Report Confirmation</h4>
+            <div>
+                <p></p>
+            </div>
+            <button type="button" class="button-reject red-button">Reject</button>
+            <button type="button" class="button-approve green-button" disabled>Approve</button>
         </div>
     </div>
 </div>

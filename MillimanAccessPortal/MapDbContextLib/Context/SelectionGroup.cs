@@ -18,7 +18,6 @@ namespace MapDbContextLib.Context
         [Required]
         public string GroupName { get; set; }
 
-        [Required]
         public string ContentInstanceUrl { get; set; }
 
         [ForeignKey("RootContentItem")]
@@ -28,7 +27,6 @@ namespace MapDbContextLib.Context
         /// <summary>
         /// This can't be a foreign key due to use of collection type
         /// </summary>
-        [Required]
         public long[] SelectedHierarchyFieldValueList { get; set; }
 
         [Required]

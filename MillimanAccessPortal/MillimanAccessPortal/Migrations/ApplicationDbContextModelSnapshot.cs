@@ -80,6 +80,9 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("ResultHierarchy")
                         .HasColumnType("jsonb");
 
+                    b.Property<string>("ResultingContentFiles")
+                        .HasColumnType("jsonb");
+
                     b.Property<long>("RootContentItemId");
 
                     b.Property<string>("StatusMessage");
@@ -294,8 +297,7 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("ContentInstanceUrl")
-                        .IsRequired();
+                    b.Property<string>("ContentInstanceUrl");
 
                     b.Property<string>("GroupName")
                         .IsRequired();
@@ -304,8 +306,7 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<long>("RootContentItemId");
 
-                    b.Property<long[]>("SelectedHierarchyFieldValueList")
-                        .IsRequired();
+                    b.Property<long[]>("SelectedHierarchyFieldValueList");
 
                     b.HasKey("Id");
 

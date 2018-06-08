@@ -8,13 +8,13 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Threading;
 using System.Threading.Tasks;
 using MapDbContextLib.Context;
+using MapDbContextLib.Models;
 using ContentPublishingLib.JobRunners;
 using TestResourcesLib;
 using Newtonsoft.Json;
@@ -127,13 +127,16 @@ namespace ContentPublishingLib.JobMonitors
                             Runner = new MapDbPublishRunner
                             {
                                 JobDetail = PublishJobDetail.New(DbRequest, Db),
-                                ConnectionString = ConnectionString,
                             };
                         }
                         if (MockContext != null)
                         {
                             Runner.MockContext = MockContext;
                             Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
+                        }
+                        else
+                        {
+                            Runner.ConnectionString = ConnectionString;
                         }
 
                         NewTask = Task.Run(() => Runner.Execute(cancelSource.Token), cancelSource.Token);
@@ -241,7 +244,9 @@ namespace ContentPublishingLib.JobMonitors
             try
             {
                 // Use a transaction so that there is no concurrency issue after we get the current db record
-                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+                using (ApplicationDbContext Db = MockContext != null
+                                                 ? MockContext.Object
+                                                 : new ApplicationDbContext(ContextOptions))
                 using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
                 {
                     ContentPublicationRequest DbRequest = Db.ContentPublicationRequest.Find(JobDetail.JobId);
@@ -261,7 +266,8 @@ namespace ContentPublishingLib.JobMonitors
                             DbRequest.RequestStatus = PublicationStatus.Error;
                             break;
                         case PublishJobDetail.JobStatusEnum.Success:
-                            DbRequest.RequestStatus = PublicationStatus.Complete;
+                            DbRequest.RequestStatus = PublicationStatus.Processed;
+                            DbRequest.ResultingFiles = JobDetail.Result.ResultingRelatedFiles;
                             break;
                         case PublishJobDetail.JobStatusEnum.Canceled:
                             DbRequest.RequestStatus = PublicationStatus.Canceled;
