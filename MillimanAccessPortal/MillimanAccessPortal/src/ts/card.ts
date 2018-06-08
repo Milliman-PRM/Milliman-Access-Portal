@@ -241,7 +241,7 @@ var components = Object.assign(
       count: '?',
       selector: '.card-status-container',
       html: [
-        '<div class="card-status-container status-default">',
+        '<div class="card-status-container status-0">',
         '  <span>',
         '    <strong></strong>',
         '    <em>Name</em>',

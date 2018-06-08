@@ -494,7 +494,7 @@ function renderClientNode(client, level) {
       $card.parent().parent().next('li').find('div.card-body-container')
         .attr({ selected: '', editing: '' });
       hideClientUsers();
-    }, () => formObject, 1, ($card) => {
+    }, () => formObject, {count: 1, offset: 0}, ($card) => {
       const $selected = $('#client-tree [selected]');
       const $expected = $card.parent().parent().next('li').find('.card-body-container');
       return $selected.length

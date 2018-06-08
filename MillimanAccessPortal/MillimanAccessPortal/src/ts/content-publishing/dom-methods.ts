@@ -5,7 +5,7 @@ import { showButtonSpinner, clearForm, wrapCardCallback, get, wrapCardIconCallba
 import { ClientCard, RootContentItemCard, AddRootContentItemActionCard } from '../card';
 import { FormBase } from '../form/form-base';
 import { AccessMode } from '../form/form-modes';
-import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType, PublishRequest, RootContentItemSummaryAndDetail } from '../view-models/content-publishing';
+import { ClientTree, RootContentItemList, RootContentItemSummary, BasicNode, ClientSummary, RootContentItemDetail, ContentType, PublishRequest, RootContentItemSummaryAndDetail, PreLiveContentValidationSummary } from '../view-models/content-publishing';
 import { setUnloadAlert } from '../unload-alerts';
 import { DeleteRootContentItemDialog, DiscardConfirmationDialog, CancelContentPublicationRequestDialog } from '../dialog';
 import { SubmissionGroup } from '../form/form-submission';
@@ -88,13 +88,6 @@ export namespace ContentPublishingDOMMethods {
     event.stopPropagation();
     new CancelContentPublicationRequestDialog(rootContentItemId, rootContentItemName, cancelContentPublication).open();
   }
-  export function rootContentItemGoLiveClickHandler(event) {
-    var $clickedCard = $(this).closest('.card-container');
-    var rootContentItemId = $clickedCard.data().rootContentItemId;
-    var rootContentItemName = $clickedCard.find('.card-body-primary-text').first().text();
-    event.stopPropagation();
-    // do something
-  }
   export function openNewRootContentItemForm() {
     const clientId = $('#client-tree [selected]').parent().data().clientId;
     renderRootContentItemForm({
@@ -156,6 +149,90 @@ export namespace ContentPublishingDOMMethods {
       .filter((i, card) => $(card).data().clientId === clientId)
       .find('use[href="#action-icon-reports"]').closest('div').find('h4');
     itemCount.html(`${parseInt(itemCount.html()) + offset}`);
+  }
+
+
+  function renderConfirmationPane(response: PreLiveContentValidationSummary) {
+    // Show and clear all confirmation checkboxes
+    $('#report-confirmation label')
+      .show()
+      .find('input[type="checkbox"]')
+      .removeAttr('disabled')
+      .prop('checked', false);
+    $('#confirmation-section-attestation .button-approve')
+      .attr('disabled', '');
+    // set src for iframes, conditionally marking iframes as unchanged
+    const linkPairs: Array<{sectionName: string, link: string}> = [
+      { sectionName: 'master-content', link: response.MasterContentLink },
+      { sectionName: 'user-guide', link: response.UserGuideLink },
+      { sectionName: 'release-notes', link: response.ReleaseNotesLink },
+    ]
+    linkPairs.forEach((pair) => {
+      $(`#confirmation-section-${pair.sectionName} iframe`)
+        .attr('src', pair.link)
+        .siblings('a')
+        .attr('href', pair.link)
+        .filter(() => pair.link === null)
+        .hide()
+        .siblings('iframe')
+        .attr('srcdoc', 'This file has not changed.')
+        .closest('.confirmation-section').find('label')
+        .hide()
+        .find('input')
+        .attr('disabled', '');
+    });
+
+    if (!response.DoesReduce) {
+      $('#confirmation-section-hierarchy-diff')
+        .hide()
+        .find('input[type="checkbox"]')
+        .attr('disabled', '');
+      $('#confirmation-section-hierarchy-stats')
+        .hide()
+        .find('input[type="checkbox"]')
+        .attr('disabled', '');
+    } else {
+      $('#confirmation-section-hierarchy-diff')
+        .show();
+      $('#confirmation-section-hierarchy-stats')
+        .show();
+      // populate (after calculating, if need be) hierarchy diff
+      $('#confirmation-section-hierarchy-diff .hierarchy > ul').children().remove();
+      if (!response.LiveHierarchy) {
+        $('#confirmation-section-hierarchy-diff .hierarchy-left > ul').append('<div>None</div>');
+      } else {
+        response.LiveHierarchy.Fields.forEach((field) => {
+          const subList = $(`<li><h6>${field.DisplayName}</h6><ul></ul></ul>`);
+          field.Values.forEach((value) =>
+              subList.find('ul').append(`<li>${value.Value}</li>`));
+          $('#confirmation-section-hierarchy-diff .hierarchy-left > ul')
+            .append(subList);
+        });
+      }
+      response.NewHierarchy.Fields.forEach((field) => {
+        const subList = $(`<li><h6>${field.DisplayName}</h6><ul></ul></ul>`);
+        field.Values.forEach((value) =>
+            subList.find('ul').append(`<li>${value.Value}</li>`));
+        $('#confirmation-section-hierarchy-diff .hierarchy-right > ul')
+          .append(subList);
+      });
+      // populate hierarchy stats
+      $('#confirmation-section-hierarchy-stats > div > ul').children().remove();
+      response.SelectionGroups.forEach((selectionGroup) => {
+        $('#confirmation-section-hierarchy-stats > div > ul')
+          .append(`<li><div class="selection-group-summary">
+            <h5>${selectionGroup.Name}${selectionGroup.IsMaster ? ' (Master)' : ''}</h5>
+            <ul>
+              <li><div class="selection-group-stat">
+                <span class="selection-group-stat-label">Users:</span>
+                <span class="selection-group-stat-value">${selectionGroup.UserCount}</span>
+              </div></li>
+            </ul>
+          </div></li>`);
+      });
+    }
+    // populate attestation
+    $('#confirmation-section-attestation p').html(response.AttestationLanguage);
   }
 
   function renderRootContentItemForm(item?: RootContentItemDetail) {
@@ -304,12 +381,17 @@ export namespace ContentPublishingDOMMethods {
             renderRootContentItemForm,
             always,
           ],
-        )($card), () => formObject, 1, undefined, () => {
+        )($card), () => formObject, {count: 1, offset: 0}, undefined, () => {
         setFormEditOrRepublish();
       }),
       rootContentItemDeleteClickHandler,
       rootContentItemCancelClickHandler,
-      rootContentItemGoLiveClickHandler,
+      wrapCardIconCallback(get(
+          'ContentPublishing/PreLiveSummary',
+          [
+            renderConfirmationPane,
+          ],
+        ), () => formObject, {count: 1, offset: 1}, () => false),
     ).build();
     updateCardStatus($card, item.PublicationDetails);
     updateCardStatusButtons($card, item.PublicationDetails && item.PublicationDetails.StatusEnum);
@@ -410,13 +492,32 @@ export namespace ContentPublishingDOMMethods {
         wrapCardCallback(openNewRootContentItemForm, () => formObject)
       ).build());
 
-    $('.admin-panel-toolbar .action-icon-cancel').click(() => {
+    $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').click(() => {
       if (formObject.accessMode === AccessMode.Read) {
         $('#root-content-items [selected]').click();
       } else {
         setFormReadOnly();
       }
     });
+
+    $('#report-confirmation .admin-panel-toolbar .action-icon-cancel').click(() => {
+      $('#root-content-items [selected]').click();
+    });
+    $('#report-confirmation input[type="checkbox"]').change(() =>
+      $('#confirmation-section-attestation .button-approve')
+        .attr('disabled', '')
+        .filter(() =>
+          $('#report-confirmation input[type="checkbox"]').not('[disabled]').toArray()
+            .map((checkbox: HTMLInputElement) => checkbox.checked)
+            .reduce((cum, cur) => cum && cur, true))
+        .removeAttr('disabled'));
+    $('#confirmation-section-attestation .button-reject').click(() => {
+      alert('\'Reject\' not implemented.');
+    });
+    $('#confirmation-section-attestation .button-approve').click(() => {
+      alert('\'Approve\' not implemented.');
+    });
+
     $('.admin-panel-toolbar .action-icon-edit').click(() => {
       setFormEdit();
     });
@@ -439,22 +540,5 @@ export namespace ContentPublishingDOMMethods {
 
     statusMonitor = new PublicationStatusMonitor();
     statusMonitor.start();
-
-
-    // TODO: delete this. for testing only.
-    $('#client-tree > input').click(() => {
-      $.ajax({
-        method: 'GET',
-        url: 'ContentPublishing/PreLiveSummary',
-        data: {
-            RootContentItemId: 1,
-        }
-      }).done((response) => {
-        toastr.success('Success');
-      }).fail((response) => {
-        toastr.error('Error');
-      }).always((response) => {
-      });
-    });
   }
 }
