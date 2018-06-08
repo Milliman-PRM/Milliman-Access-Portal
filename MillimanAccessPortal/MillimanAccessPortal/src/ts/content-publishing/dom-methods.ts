@@ -172,7 +172,7 @@ export namespace ContentPublishingDOMMethods {
         .attr('src', pair.link)
         .siblings('a')
         .attr('href', pair.link)
-        .filter(() => pair.link === undefined)
+        .filter(() => pair.link === null)
         .hide()
         .siblings('iframe')
         .attr('srcdoc', 'This file has not changed.')
