@@ -326,7 +326,7 @@ function openClientCardReadOnly($clientCard) {
   removeClientInserts();
   clearClientSelection();
   $clientCard.attr('selected', '');
-  getClientDetail($clientCard, AccessMode.Read);
+  getClientDetail($clientCard.parent(), AccessMode.Read);
   showClientDetails();
 }
 
