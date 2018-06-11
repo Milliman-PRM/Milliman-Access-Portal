@@ -17,6 +17,6 @@ require('vex-js/sass/vex.sass');
 require('../../../scss/map.scss');
 //# sourceMappingURL=authorized-content.js.map
 
-document.addEventListener("DOMContentLoaded", (event) => {
+document.addEventListener('DOMContentLoaded', (event) => {
   ReactDOM.render(<AuthorizedContent />, document.getElementById('content-container'));
 });
