@@ -6,12 +6,13 @@
 
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MillimanAccessPortal.Models.AccountViewModels;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
     public class ReductionDetails
     {
-        public ApplicationUser User { get; set; }
+        public UserInfoViewModel User { get; set; }
         public ReductionStatusEnum StatusEnum { get; set; }
         public string StatusName { get; set; }
         public long SelectionGroupId { get; set; }
@@ -25,7 +26,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
             }
             return new ReductionDetails
             {
-                User = contentReductionTask.ApplicationUser,
+                User = ((UserInfoViewModel) contentReductionTask.ApplicationUser),
                 StatusEnum = contentReductionTask.ReductionStatus,
                 StatusName = ContentReductionTask.ReductionStatusDisplayNames[contentReductionTask.ReductionStatus],
                 SelectionGroupId = contentReductionTask.SelectionGroupId,

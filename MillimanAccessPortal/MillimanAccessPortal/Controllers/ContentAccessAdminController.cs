@@ -128,9 +128,9 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            ContentAccessAdminRootContentItemListViewModel Model = ContentAccessAdminRootContentItemListViewModel.Build(DbContext, await Queries.GetCurrentApplicationUser(User), Client);
+            RootContentItemList model = RootContentItemList.Build(DbContext, Client, await Queries.GetCurrentApplicationUser(User));
 
-            return Json(Model);
+            return Json(model);
         }
 
         /// <summary>Returns the selection groups associated with a root content item.</summary>

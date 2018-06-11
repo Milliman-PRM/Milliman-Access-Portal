@@ -19,8 +19,10 @@ import {
   collapseAllListener, del, expandAllListener, filterFormListener, filterTreeListener, get,
   hideButtonSpinner, post, showButtonSpinner, updateCardStatus, wrapCardCallback,
 } from '../shared';
+import { SelectionDetail } from '../view-models/content-access-admin';
 import {
-  BasicNode, ClientSummary, ClientTree, RootContentItemList, RootContentItemSummary,
+  BasicNode, ClientSummary, ClientTree, ReductionField, ReductionFieldValueSelection,
+  RootContentItemList, RootContentItemSummary,
 } from '../view-models/content-publishing';
 
 function updateSelectionGroupCount() {
@@ -111,7 +113,11 @@ function submitSelectionForm() {
   });
 }
 
-function renderValue(value, $fieldset, originalSelections) {
+function renderValue(
+  value: ReductionFieldValueSelection,
+  $fieldset: JQuery<HTMLElement>,
+  originalSelections: number[],
+) {
   const $checkbox = $(`<label class="selection-option-label">
     ${value.Value}
       <input type="checkbox" id="selection-value-${value.Id}" name="${value.Id}" class="selection-option-value">
@@ -127,7 +133,11 @@ function renderValue(value, $fieldset, originalSelections) {
   }
 }
 
-function renderField(field, $parent, originalSelections) {
+function renderField(
+  field: ReductionField<ReductionFieldValueSelection>,
+  $parent: JQuery<HTMLElement>,
+  originalSelections: number[],
+) {
   $parent.append('<fieldset></fieldset>');
   const $fieldset = $parent.find('fieldset').last();
   $fieldset.append(`<legend>${field.DisplayName}</legend>`);
@@ -136,7 +146,7 @@ function renderField(field, $parent, originalSelections) {
   });
 }
 
-function renderSelections(response) {
+function renderSelections(response: SelectionDetail) {
   const $selectionInfo = $('#selection-info form.admin-panel-content');
   const $fieldsetDiv = $selectionInfo.find('.fieldset-container');
   const $relatedCard = $('#selection-groups [selected]').closest('.card-container');
@@ -153,9 +163,8 @@ function renderSelections(response) {
   // tslint:enable:object-literal-sort-keys
 
   $fieldsetDiv.empty();
-  response.Hierarchy.Fields.forEach((field) => {
-    renderField(field, $fieldsetDiv, response.OriginalSelections);
-  });
+  response.Hierarchy.Fields.forEach((field) =>
+    renderField(field, $fieldsetDiv, response.OriginalSelections));
   updateCardStatus($relatedCard, response.ReductionDetails);
   $selectionInfo
     .find('button').hide()
@@ -167,7 +176,7 @@ function renderSelections(response) {
       ? (event) => {
         event.preventDefault();
       }
-      : $.noop);
+      : () => undefined);
 }
 
 function renderSelectionGroup(selectionGroup) {
@@ -206,7 +215,7 @@ function renderRootContentItem(item: RootContentItemSummary) {
     item.GroupCount,
     item.EligibleUserCount,
     wrapCardCallback(get(
-      'ContentPublishing/RootContentItemDetail',
+      'ContentAccessAdmin/SelectionGroups',
       [
         renderSelectionGroupList,
       ],
@@ -233,7 +242,7 @@ function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
     client.Value.RootContentItemCount,
     level,
     wrapCardCallback(get(
-      'ContentPublishing/RootContentItems',
+      'ContentAccessAdmin/RootContentItems',
       [ renderRootContentItemList ],
     )),
   );
