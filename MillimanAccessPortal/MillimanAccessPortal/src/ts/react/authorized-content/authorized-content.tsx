@@ -7,12 +7,12 @@ import { FilterBar } from './filter-bar';
 import { ContentItem, ContentItemGroup, ContentItemGroupList, Filterable } from './interfaces';
 
 interface AuthorizedContentState extends ContentItemGroupList, Filterable { }
-export class AuthorizedContent extends Component<{}, AuthorizedContentState> {
+export class AuthorizedContent extends React.Component<{}, AuthorizedContentState> {
   public constructor(props) {
     super(props);
     this.state = {
-      groups: [],
       filterString: '',
+      groups: [],
     };
   }
 
@@ -138,27 +138,7 @@ export class AuthorizedContent extends Component<{}, AuthorizedContentState> {
     this.setState({ groups: placeholderContentItems });
   }
 
-
-  filteredArray = () => {
-    if (this.state.filterString) {
-      const filterString = this.state.filterString.toLowerCase();
-      const filteredClientContent = JSON.parse(JSON.stringify(this.state.groups));
-      return filteredClientContent.map((clientContent: ContentItemGroup) => {
-        clientContent.items = clientContent.items.filter((contentItem) => {
-          return clientContent.name.toLowerCase().indexOf(filterString) > -1
-              || contentItem.name.toLowerCase().indexOf(filterString) > -1
-              || contentItem.description.toLowerCase().indexOf(filterString) > -1;
-        })
-        return clientContent;
-      }).filter((clientContent) => {
-        return clientContent.items.length;
-      })
-    } else {
-      return this.state.groups;
-    }
-  }
-
-  render() {
+  public render() {
     return (
       <div id='authorized-content-container'>
         <div id='authorized-content-header'>
@@ -184,7 +164,23 @@ export class AuthorizedContent extends Component<{}, AuthorizedContentState> {
       </div>
     );
   }
-  
-}
 
-export default AuthorizedContent;
+  private filteredArray = () => {
+    if (this.state.filterString) {
+      const filterString = this.state.filterString.toLowerCase();
+      const filteredClientContent = JSON.parse(JSON.stringify(this.state.groups));
+      return filteredClientContent.map((clientContent: ContentItemGroup) => {
+        clientContent.items = clientContent.items.filter((contentItem) => {
+          return clientContent.name.toLowerCase().indexOf(filterString) > -1
+              || contentItem.name.toLowerCase().indexOf(filterString) > -1
+              || contentItem.description.toLowerCase().indexOf(filterString) > -1;
+        });
+        return clientContent;
+      }).filter((clientContent) => {
+        return clientContent.items.length;
+      });
+    } else {
+      return this.state.groups;
+    }
+  }
+}

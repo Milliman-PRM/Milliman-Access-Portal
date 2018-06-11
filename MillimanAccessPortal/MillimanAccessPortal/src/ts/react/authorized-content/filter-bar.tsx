@@ -9,7 +9,7 @@ interface FilterBarProps {
   onFilterStringChanged: (filterString: string) => void;
 }
 
-export class FilterBar extends Component<FilterBarProps, {}> {
+export class FilterBar extends React.Component<FilterBarProps, {}> {
   public constructor(props) {
     super(props);
     this.handleFilterStringChange = this.handleFilterStringChange.bind(this);
@@ -24,7 +24,7 @@ export class FilterBar extends Component<FilterBarProps, {}> {
         placeholder='Filter content'
         onKeyUp={this.handleFilterStringChange}
         />
-    )
+    );
   }
 
   private handleFilterStringChange(event: React.SyntheticEvent<EventTarget>) {

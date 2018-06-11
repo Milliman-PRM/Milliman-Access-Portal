@@ -6,10 +6,16 @@ import * as React from 'react';
 
 import { ActionIconProps } from './interfaces';
 
-export class ActionIcon extends Component<ActionIconProps, {}> {
+export class ActionIcon extends React.Component<ActionIconProps, {}> {
   public render() {
     return this.props.action && (
-      <div className='action-icon-container tooltip' title={this.props.title} onClick={(event) => { event.stopPropagation(); this.props.action() }}>
+      <div
+        className='action-icon-container tooltip'
+        title={this.props.title}
+        onClick={(event) => {
+          event.stopPropagation();
+          this.props.action();
+        }}>
         <svg className='action-icon'>
           <use xlinkHref={`#${this.props.icon}`} />
         </svg>
