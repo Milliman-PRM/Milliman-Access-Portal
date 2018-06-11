@@ -165,22 +165,14 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
     );
   }
 
-  private filteredArray = () => {
-    if (this.state.filterString) {
-      const filterString = this.state.filterString.toLowerCase();
-      const filteredClientContent = JSON.parse(JSON.stringify(this.state.groups));
-      return filteredClientContent.map((clientContent: ContentItemGroup) => {
-        clientContent.items = clientContent.items.filter((contentItem) => {
-          return clientContent.name.toLowerCase().indexOf(filterString) > -1
-              || contentItem.name.toLowerCase().indexOf(filterString) > -1
-              || contentItem.description.toLowerCase().indexOf(filterString) > -1;
-        });
-        return clientContent;
-      }).filter((clientContent) => {
-        return clientContent.items.length;
-      });
-    } else {
-      return this.state.groups;
-    }
+  private filteredArray() {
+    // Deep copy state
+    const groups = JSON.parse(JSON.stringify(this.state.groups));
+    return groups.map((itemGroup: ContentItemGroup) => {
+      itemGroup.items = itemGroup.items.filter((item) =>
+        [itemGroup.name, item.name, item.description].filter((text) =>
+          text.toLowerCase().indexOf(this.state.filterString.toLowerCase()) > -1).length);
+      return itemGroup;
+    }).filter((itemGroup) => itemGroup.items.length);
   }
 }
