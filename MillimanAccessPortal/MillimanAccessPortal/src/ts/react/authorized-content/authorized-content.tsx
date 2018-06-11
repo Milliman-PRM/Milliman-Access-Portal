@@ -1,10 +1,10 @@
-﻿import * as React from 'react';
-import { Component } from 'react';
-import '../../../scss/react/authorized-content/authorized-content.scss';
-import { ContentItemGroupList, Filterable, ContentItemGroup, ContentItem } from './interfaces';
-import { FilterBar } from './filter-bar';
-import { ContentCard } from './content-card';
+﻿import '../../../scss/react/authorized-content/authorized-content.scss';
 
+import * as React from 'react';
+
+import { ContentCard } from './content-card';
+import { FilterBar } from './filter-bar';
+import { ContentItem, ContentItemGroup, ContentItemGroupList, Filterable } from './interfaces';
 
 interface AuthorizedContentState extends ContentItemGroupList, Filterable { }
 export class AuthorizedContent extends Component<{}, AuthorizedContentState> {

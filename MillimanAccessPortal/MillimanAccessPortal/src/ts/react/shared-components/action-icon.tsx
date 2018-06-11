@@ -1,11 +1,10 @@
-﻿import * as React from 'react';
-import { Component } from 'react';
-import '../../../scss/react/shared-components/action-icon.scss';
-import { ActionIconProps } from './interfaces';
-import 'tooltipster';
-
+﻿import 'tooltipster';
 import 'tooltipster/src/css/tooltipster.css';
+import '../../../scss/react/shared-components/action-icon.scss';
 
+import * as React from 'react';
+
+import { ActionIconProps } from './interfaces';
 
 export class ActionIcon extends Component<ActionIconProps, {}> {
   public render() {

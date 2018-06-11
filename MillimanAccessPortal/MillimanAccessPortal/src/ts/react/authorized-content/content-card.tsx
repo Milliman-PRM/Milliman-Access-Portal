@@ -1,12 +1,12 @@
-﻿import * as React from 'react';
-import { Component } from 'react';
-import '../../../scss/react/authorized-content/content-card.scss';
-import { ContentItem, Filterable } from './interfaces';
+﻿import '../../../scss/react/authorized-content/content-card.scss';
+
+import * as React from 'react';
+
 import { ActionIcon } from '../shared-components/action-icon';
+import { ContentItem, Filterable } from './interfaces';
 
 require('tooltipster');
 require('tooltipster/src/css/tooltipster.css');
-
 
 interface ContentCardProps extends ContentItem { }
 export class ContentCard extends Component<ContentCardProps, {}> {
