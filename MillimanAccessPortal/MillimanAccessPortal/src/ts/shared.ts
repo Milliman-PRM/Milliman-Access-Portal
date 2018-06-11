@@ -188,7 +188,7 @@ export function wrapCardIconCallback(
   sameCard?: ($card: JQuery<HTMLElement>) => boolean,
   always?: () => void,
 ) {
-  return (event) => {
+  return function(event) {
     event.stopPropagation();
 
     const $icon = $(this);
