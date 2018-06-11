@@ -20,6 +20,7 @@ using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentAccessAdminViewModels;
+using MillimanAccessPortal.Models.ContentPublishing;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -93,9 +94,9 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            ContentAccessAdminClientListViewModel Model = await ContentAccessAdminClientListViewModel.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
+            ClientTree model = await ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
 
-            return Json(Model);
+            return Json(model);
         }
 
         /// <summary>Returns the root content items available to a client.</summary>

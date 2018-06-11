@@ -11,9 +11,17 @@ import '../navbar';
 import * as $ from 'jquery';
 import * as toastr from 'toastr';
 
-import * as card from '../card';
-import * as dialog from '../dialog';
-import * as shared from '../shared';
+import {
+  AddSelectionGroupActionCard, ClientCard, RootContentItemCard, SelectionGroupCard,
+} from '../card';
+import { AddSelectionGroupDialog, DeleteSelectionGroupDialog } from '../dialog';
+import {
+  collapseAllListener, del, expandAllListener, filterFormListener, filterTreeListener, get,
+  hideButtonSpinner, post, showButtonSpinner, updateCardStatus, wrapCardCallback,
+} from '../shared';
+import {
+  BasicNode, ClientSummary, ClientTree, RootContentItemList, RootContentItemSummary,
+} from '../view-models/content-publishing';
 
 function updateSelectionGroupCount() {
   $('#root-content-items [selected] [href="#action-icon-users"]')
@@ -21,7 +29,7 @@ function updateSelectionGroupCount() {
 }
 
 function selectionGroupAddClickHandler() {
-  new dialog.AddSelectionGroupDialog(shared.post(
+  new AddSelectionGroupDialog(post(
     'ContentAccessAdmin/CreateSelectionGroup',
     'Selection group successfully created.',
     [
@@ -32,7 +40,7 @@ function selectionGroupAddClickHandler() {
 }
 
 function selectionGroupDeleteClickHandler() {
-  new dialog.DeleteSelectionGroupDialog($(this).closest('.card-container'), shared.del(
+  new DeleteSelectionGroupDialog($(this).closest('.card-container'), del(
     'ContentAccessAdmin/DeleteSelectionGroup',
     'Selection group successfully deleted.',
     [
@@ -53,7 +61,7 @@ function cancelSelectionForm() {
     SelectionGroupId: $selectionGroups.find('[selected]').closest('.card-container').attr('data-selection-group-id'),
   };
 
-  shared.showButtonSpinner($button, 'Canceling');
+  showButtonSpinner($button, 'Canceling');
   $.ajax({
     data,
     headers: {
@@ -62,11 +70,11 @@ function cancelSelectionForm() {
     type: 'POST',
     url: 'ContentAccessAdmin/CancelReduction',
   }).done(function onDone(response) {
-    shared.hideButtonSpinner($button);
+    hideButtonSpinner($button);
     renderSelections(response);
     toastr.success('Reduction tasks canceled.');
   }).fail(function onFail(response) {
-    shared.hideButtonSpinner($button);
+    hideButtonSpinner($button);
     toastr.warning(response.getResponseHeader('Warning')
       || 'An unknown error has occurred.');
   });
@@ -84,7 +92,7 @@ function submitSelectionForm() {
     }, []),
   };
 
-  shared.showButtonSpinner($button);
+  showButtonSpinner($button);
   $.ajax({
     data,
     headers: {
@@ -93,11 +101,11 @@ function submitSelectionForm() {
     type: 'POST',
     url: 'ContentAccessAdmin/SingleReduction',
   }).done(function onDone(response) {
-    shared.hideButtonSpinner($button);
+    hideButtonSpinner($button);
     renderSelections(response);
     toastr.success('A reduction task has been queued.');
   }).fail(function onFail(response) {
-    shared.hideButtonSpinner($button);
+    hideButtonSpinner($button);
     toastr.warning(response.getResponseHeader('Warning')
       || 'An unknown error has occurred.');
   });
@@ -148,7 +156,7 @@ function renderSelections(response) {
   response.Hierarchy.Fields.forEach((field) => {
     renderField(field, $fieldsetDiv, response.OriginalSelections);
   });
-  shared.updateCardStatus($relatedCard, response.ReductionDetails);
+  updateCardStatus($relatedCard, response.ReductionDetails);
   $selectionInfo
     .find('button').hide()
     .filter(`.button-status-${details.StatusEnum}`).show();
@@ -163,10 +171,10 @@ function renderSelections(response) {
 }
 
 function renderSelectionGroup(selectionGroup) {
-  const $card = new card.SelectionGroupCard(
+  const $card = new SelectionGroupCard(
     selectionGroup.SelectionGroupEntity,
     selectionGroup.MemberList,
-    shared.wrapCardCallback(shared.get(
+    wrapCardCallback(get(
       'ContentAccessAdmin/Selections',
       [
         renderSelections,
@@ -175,7 +183,7 @@ function renderSelectionGroup(selectionGroup) {
     selectionGroupDeleteClickHandler,
     () => undefined,
   ).build();
-  shared.updateCardStatus($card, selectionGroup.ReductionDetails);
+  updateCardStatus($card, selectionGroup.ReductionDetails);
   $('#selection-groups ul.admin-panel-content').append($card);
 }
 function renderSelectionGroupList(response, selectionGroupId?) {
@@ -192,85 +200,81 @@ function renderSelectionGroupList(response, selectionGroupId?) {
   }
 }
 
-function renderRootContentItem(rootContentItem) {
-  const $card = new card.RootContentItemCard(
-    rootContentItem.RootContentItemEntity,
-    rootContentItem.GroupCount,
-    rootContentItem.EligibleUserCount,
-    shared.wrapCardCallback(shared.get(
-      'ContentAccessAdmin/SelectionGroups',
+function renderRootContentItem(item: RootContentItemSummary) {
+  const $rootContentItemCard = new RootContentItemCard(
+    item,
+    item.GroupCount,
+    item.EligibleUserCount,
+    wrapCardCallback(get(
+      'ContentPublishing/RootContentItemDetail',
       [
         renderSelectionGroupList,
       ],
     )),
   ).build();
-  shared.updateCardStatus($card, rootContentItem.PublicationDetails);
-  $('#root-content-items ul.admin-panel-content').append($card);
+  updateCardStatus($rootContentItemCard, item.PublicationDetails);
+  $('#root-content-items ul.admin-panel-content').append($rootContentItemCard);
 }
-function renderRootContentItemList(response, rootContentItemId?) {
+function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: number) {
   const $rootContentItemList = $('#root-content-items ul.admin-panel-content');
   $rootContentItemList.empty();
-  response.RootContentItemList.forEach(renderRootContentItem);
+  response.DetailList.forEach(renderRootContentItem);
   $rootContentItemList.find('.tooltip').tooltipster();
 
-  if (rootContentItemId) {
-    $(`[data-root-content-item-id="${rootContentItemId}"]`).click();
+  if (!isNaN(rootContentItemId)) {
+    $(`[data-root-content-item-id=${rootContentItemId}]`).click();
   }
 }
 
-function renderClientNode(client, level) {
-  const $card = new card.ClientCard(
-    client.ClientDetailModel.ClientEntity,
-    client.ClientDetailModel.EligibleUserCount,
-    client.ClientDetailModel.RootContentItemCount,
+function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
+  const $card = new ClientCard(
+    client.Value,
+    client.Value.EligibleUserCount,
+    client.Value.RootContentItemCount,
     level,
-    shared.wrapCardCallback(shared.get(
-      'ContentAccessAdmin/RootContentItems',
-      [
-        renderRootContentItemList,
-      ],
+    wrapCardCallback(get(
+      'ContentPublishing/RootContentItems',
+      [ renderRootContentItemList ],
     )),
   );
-  $card.disabled = !client.ClientDetailModel.CanManage;
+  $card.disabled = !client.Value.CanManage;
   $('#client-tree ul.admin-panel-content').append($card.build());
 
   // Render child nodes
-  if (client.ChildClientModels.length) {
-    client.ChildClientModels.forEach(function forEach(childNode) {
-      renderClientNode(childNode, level + 1);
-    });
-  }
+  client.Children.forEach((childNode) => {
+    renderClientNode(childNode, level + 1);
+  });
 }
-function renderClientTree(response, clientId?) {
+function renderClientTree(response: ClientTree, clientId?: number) {
   const $clientTreeList = $('#client-tree ul.admin-panel-content');
   $clientTreeList.empty();
-  response.ClientTreeList.forEach(function render(rootClient) {
-    renderClientNode(rootClient, 0);
+  response.Root.Children.forEach((rootClient) => {
+    renderClientNode(rootClient);
     $clientTreeList.append('<li class="hr width-100pct"></li>');
   });
   $clientTreeList.find('.hr').last().remove();
   $clientTreeList.find('.tooltip').tooltipster();
 
-  if (clientId) {
-    $(`[data-client-id="${clientId}"]`).click();
+  if (!isNaN(clientId)) {
+    $(`[data-client-id=${clientId}]`).click();
   }
 }
 
 export function setup() {
-  (shared.get(
+  (get(
     'ContentAccessAdmin/ClientFamilyList',
     [
       renderClientTree,
     ],
   )());
 
-  $('.action-icon-expand').click(shared.expandAllListener);
-  $('.action-icon-collapse').click(shared.collapseAllListener);
-  $('.admin-panel-searchbar-tree').keyup(shared.filterTreeListener);
-  $('.admin-panel-searchbar-form').keyup(shared.filterFormListener);
+  $('.action-icon-expand').click(expandAllListener);
+  $('.action-icon-collapse').click(collapseAllListener);
+  $('.admin-panel-searchbar-tree').keyup(filterTreeListener);
+  $('.admin-panel-searchbar-form').keyup(filterFormListener);
 
   $('#selection-groups ul.admin-panel-content-action')
-    .append(new card.AddSelectionGroupActionCard(selectionGroupAddClickHandler).build());
+    .append(new AddSelectionGroupActionCard(selectionGroupAddClickHandler).build());
   // TODO: select by ID or better classes
   $('#selection-info .blue-button').click(submitSelectionForm);
   $('#selection-info .red-button').click(cancelSelectionForm);
