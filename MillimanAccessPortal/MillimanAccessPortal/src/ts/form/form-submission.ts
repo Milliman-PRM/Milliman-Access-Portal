@@ -80,7 +80,7 @@ export class Submission extends FormElement {
 export class SubmissionGroup<T> {
   public static FinalGroup<T>(callback: (response: T) => void = () => undefined): SubmissionGroup<T> {
     const group = new SubmissionGroup<T>(
-      [],
+      undefined,
       null,
       null,
       callback,

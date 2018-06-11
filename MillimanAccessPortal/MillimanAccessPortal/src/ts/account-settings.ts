@@ -34,11 +34,20 @@ $(document).ready(() => {
     },
   );
   const finalGroup = SubmissionGroup.FinalGroup(() => {
+    formObject = new FormBase();
     formObject.bindToDOM($('#account-settings-form')[0]);
+    formObject.configure([
+      {
+        groups: [ accountGroup, passwordGroup, finalGroup ],
+        name: 'update',
+        sparse: true,
+      },
+    ]);
+    formObject.submissionMode = 'update';
     $('#FirstName').change();
   });
 
-  const formObject = new FormBase();
+  let formObject = new FormBase();
   formObject.bindToDOM($('#account-settings-form')[0]);
   formObject.configure([
     {
