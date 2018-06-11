@@ -1,18 +1,19 @@
-import $ = require('jquery');
-import toastr = require('toastr');
-import card = require('./card');
-import dialog = require('./dialog');
-import shared = require('./shared');
-require('tooltipster');
-require('vex-js');
-require('./navbar');
-require('./lib-options');
+import * as $ from 'jquery';
+import * as toastr from 'toastr';
 
-require('bootstrap/scss/bootstrap-reboot.scss');
-require('toastr/toastr.scss');
-require('tooltipster/src/css/tooltipster.css');
-require('tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css');
-require('../scss/map.scss');
+import * as card from './card';
+import * as dialog from './dialog';
+import * as shared from './shared';
+
+import 'bootstrap/scss/bootstrap-reboot.scss';
+import 'toastr/toastr.scss';
+import 'tooltipster';
+import 'tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css';
+import 'tooltipster/src/css/tooltipster.css';
+import 'vex-js';
+import '../scss/map.scss';
+import './lib-options';
+import './navbar';
 
 function updateSelectionGroupCount() {
   $('#root-content-items [selected] [href="#action-icon-users"]')
@@ -121,7 +122,7 @@ function renderValue(value, $fieldset, originalSelections) {
 function renderField(field, $parent, originalSelections) {
   $parent.append('<fieldset></fieldset>');
   const $fieldset = $parent.find('fieldset').last();
-  $fieldset.append('<legend>' + field.DisplayName + '</legend>');
+  $fieldset.append(`<legend>${field.DisplayName}</legend>`);
   field.Values.forEach((value) => {
     renderValue(value, $fieldset, originalSelections);
   });
@@ -150,7 +151,7 @@ function renderSelections(response) {
   shared.updateCardStatus($relatedCard, response.ReductionDetails);
   $selectionInfo
     .find('button').hide()
-    .filter('.button-status-' + details.StatusEnum).show();
+    .filter(`.button-status-${details.StatusEnum}`).show();
   // TODO: rely on some flag in the response to disable checkboxes
   $fieldsetDiv
     .find('input[type="checkbox"]')
@@ -187,7 +188,7 @@ function renderSelectionGroupList(response, selectionGroupId?) {
     .click(selectionGroupAddClickHandler);
 
   if (selectionGroupId) {
-    $('[data-selection-group-id="' + selectionGroupId + '"]').click();
+    $(`[data-selection-group-id="${selectionGroupId}"]`).click();
   }
 }
 
@@ -213,7 +214,7 @@ function renderRootContentItemList(response, rootContentItemId?) {
   $rootContentItemList.find('.tooltip').tooltipster();
 
   if (rootContentItemId) {
-    $('[data-root-content-item-id="' + rootContentItemId + '"]').click();
+    $(`[data-root-content-item-id="${rootContentItemId}"]`).click();
   }
 }
 
@@ -251,7 +252,7 @@ function renderClientTree(response, clientId?) {
   $clientTreeList.find('.tooltip').tooltipster();
 
   if (clientId) {
-    $('[data-client-id="' + clientId + '"]').click();
+    $(`[data-client-id="${clientId}"]`).click();
   }
 }
 
