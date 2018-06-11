@@ -7,7 +7,7 @@ module.exports = {
   entry: {
     'account-settings': './src/js/account-settings.js',
     'client-admin': './src/js/client-admin.js',
-    'content-access-admin': './src/js/content-access-admin.js',
+    'content-access-admin': './src/js/content-access-admin/index.js',
     'content-publishing': './src/js/content-publishing/index.js',
     'authorized-content': './src/js/react/authorized-content/index.js',
     'login': './src/js/login.js',

@@ -1,19 +1,19 @@
-import * as $ from 'jquery';
-import * as toastr from 'toastr';
-
-import * as card from './card';
-import * as dialog from './dialog';
-import * as shared from './shared';
-
 import 'bootstrap/scss/bootstrap-reboot.scss';
 import 'toastr/toastr.scss';
 import 'tooltipster';
 import 'tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css';
 import 'tooltipster/src/css/tooltipster.css';
 import 'vex-js';
-import '../scss/map.scss';
-import './lib-options';
-import './navbar';
+import '../../scss/map.scss';
+import '../lib-options';
+import '../navbar';
+
+import * as $ from 'jquery';
+import * as toastr from 'toastr';
+
+import * as card from '../card';
+import * as dialog from '../dialog';
+import * as shared from '../shared';
 
 function updateSelectionGroupCount() {
   $('#root-content-items [selected] [href="#action-icon-users"]')
@@ -256,7 +256,7 @@ function renderClientTree(response, clientId?) {
   }
 }
 
-$(document).ready(() => {
+export function setup() {
   (shared.get(
     'ContentAccessAdmin/ClientFamilyList',
     [
@@ -276,4 +276,4 @@ $(document).ready(() => {
   $('#selection-info .red-button').click(cancelSelectionForm);
 
   $('.tooltip').tooltipster();
-});
+}
