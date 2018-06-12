@@ -1,11 +1,13 @@
 import { FormInput } from './input';
 
 export class ToggleInput extends FormInput {
+  // tslint:disable:object-literal-sort-keys
   protected _cssClasses = {
     main: 'form-input-toggle',
     title: 'form-input-toggle-title',
     extension: 'form-input-toggle-contents',
-  }
+  };
+  // tslint:enable:object-literal-sort-keys
 
   protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('input');
 

@@ -25,18 +25,18 @@ export class StatusMonitor<T> {
     this.active = false;
   }
 
+  public checkStatus() {
+    $.get({
+      url: this.url,
+    })
+    .done(this.callback)
+    .fail(this.stop);
+  }
+
   private monitor() {
     if (this.active) {
       this.checkStatus();
       setTimeout(this.monitor, this.interval);
     }
-  }
-
-  public checkStatus() {
-    $.get({
-      url: this.url
-    })
-    .done(this.callback)
-    .fail(this.stop);
   }
 }

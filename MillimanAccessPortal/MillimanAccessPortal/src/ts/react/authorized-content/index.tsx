@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import AuthorizedContent from './authorized-content';
+
+import { AuthorizedContent } from './authorized-content';
 
 require('jquery');
 require('jquery-validation');
@@ -14,8 +15,8 @@ require('toastr/toastr.scss');
 require('tooltipster/src/css/tooltipster.css');
 require('vex-js/sass/vex.sass');
 require('../../../scss/map.scss');
-//# sourceMappingURL=authorized-content.js.map
+// # sourceMappingURL=authorized-content.js.map
 
-document.addEventListener("DOMContentLoaded", (event) => {
+document.addEventListener('DOMContentLoaded', (event) => {
   ReactDOM.render(<AuthorizedContent />, document.getElementById('content-container'));
 });

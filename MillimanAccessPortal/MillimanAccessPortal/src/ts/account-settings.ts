@@ -1,14 +1,15 @@
+import { FormBase } from './form/form-base';
+import { AccessMode, SubmissionMode } from './form/form-modes';
+import { SubmissionGroup } from './form/form-submission';
+
 import $ = require('jquery');
 import toastr = require('toastr');
-import { FormBase } from './form/form-base';
-import { SubmissionMode, AccessMode } from './form/form-modes';
-import { SubmissionGroup } from './form/form-submission';
+
 require('./navbar');
 
 require('bootstrap/scss/bootstrap-reboot.scss');
 require('toastr/toastr.scss');
 require('../scss/map.scss');
-
 
 $(document).ready(() => {
   if ($('#UserName').val() !== $('#Email').val()) {
@@ -33,11 +34,20 @@ $(document).ready(() => {
     },
   );
   const finalGroup = SubmissionGroup.FinalGroup(() => {
+    formObject = new FormBase();
     formObject.bindToDOM($('#account-settings-form')[0]);
+    formObject.configure([
+      {
+        groups: [ accountGroup, passwordGroup, finalGroup ],
+        name: 'update',
+        sparse: true,
+      },
+    ]);
+    formObject.submissionMode = 'update';
     $('#FirstName').change();
   });
 
-  const formObject = new FormBase();
+  let formObject = new FormBase();
   formObject.bindToDOM($('#account-settings-form')[0]);
   formObject.configure([
     {
