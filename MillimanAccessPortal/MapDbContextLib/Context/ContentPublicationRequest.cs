@@ -61,16 +61,16 @@ namespace MapDbContextLib.Context
 
         /// <summary>
         /// May also be accessed through [NotMapped] property PublishRequest
-        /// Intended to be serialization of type MapDbContextLib.Models.UploadedContentRelatedFile[]
+        /// Intended to be serialization of type List<ContentRelatedFile>
         /// </summary>
         [Column(TypeName = "jsonb")]
-        public string ContentRelatedFiles { get; set; } = "[]";
+        public string LiveReadyFiles { get; set; } = "[]";
 
         /// <summary>
-        /// Intended to be serialization of type MapDbContextLib.Models.ContentRelatedFile[]
+        /// Intended to be serialization of type List<ReductionRelatedFiles>
         /// </summary>
         [Column(TypeName = "jsonb")]
-        public string ResultingContentFiles { get; set; } = "[]";
+        public string ReductionRelatedFiles { get; set; } = "[]";
 
         [Required]
         public PublicationStatus RequestStatus { get; set; }
@@ -78,28 +78,28 @@ namespace MapDbContextLib.Context
         public string StatusMessage { get; set; } = string.Empty;
 
         [NotMapped]
-        public List<ContentRelatedFile> ResultingFiles
+        public List<ReductionRelatedFiles> ReductionRelatedFilesObj
         {
             get
             {
-                return JsonConvert.DeserializeObject<List<ContentRelatedFile>>(ResultingContentFiles);
+                return JsonConvert.DeserializeObject<List<ReductionRelatedFiles>>(ReductionRelatedFiles);
             }
             set
             {
-                ResultingContentFiles = JsonConvert.SerializeObject(value);
+                ReductionRelatedFiles = JsonConvert.SerializeObject(value);
             }
         }
 
         [NotMapped]
-        public List<ContentRelatedFile> RelatedInputFiles
+        public List<ContentRelatedFile> LiveReadyFilesObj
         {
             get
             {
-                return JsonConvert.DeserializeObject<List<ContentRelatedFile>>(ContentRelatedFiles);
+                return JsonConvert.DeserializeObject<List<ContentRelatedFile>>(LiveReadyFiles);
             }
             set
             {
-                ContentRelatedFiles = value != null
+                LiveReadyFiles = value != null
                     ? JsonConvert.SerializeObject(value)
                     : "[]";
             }

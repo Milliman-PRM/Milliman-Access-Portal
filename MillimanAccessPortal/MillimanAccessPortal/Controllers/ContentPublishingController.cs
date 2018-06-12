@@ -464,9 +464,11 @@ namespace MillimanAccessPortal.Controllers
             }
 #endif
 
+            RootContentItem ContentItem = DbContext.RootContentItem.SingleOrDefault(rc => rc.Id == Arg.RootContentItemId);
+
             #region Validation
             // The requested RootContentItem must exist
-            if (DbContext.RootContentItem.Count(rc => rc.Id == Arg.RootContentItemId) != 1)
+            if (ContentItem == null)
             {
                 Response.Headers.Add("Warning", "Requested content item not found.");
                 return BadRequest();
@@ -507,12 +509,16 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            // Insert the publication request (not queued yet)
+            // Insert the initial publication request (not queued yet)
             ContentPublicationRequest NewContentPublicationRequest = new ContentPublicationRequest
             {
                 ApplicationUserId = currentApplicationUser.Id,
                 RequestStatus = PublicationStatus.Unknown,
                 CreateDateTimeUtc = DateTime.UtcNow,
+                RootContentItemId = ContentItem.Id,
+                LiveReadyFilesObj = new List<ContentRelatedFile>(),
+                ReductionRelatedFilesObj = new List<ReductionRelatedFiles>(),
+                
             };
             try
             {
@@ -529,14 +535,23 @@ namespace MillimanAccessPortal.Controllers
 
             foreach (UploadedRelatedFile UploadedFileRef in Arg.RelatedFiles)
             {
-                ContentRelatedFile Crf = HandleRelatedFile(UploadedFileRef, UploadedFileRef.FilePurpose, Arg.RootContentItemId, ThisRequestGuid, NewContentPublicationRequest.Id);
+                ContentRelatedFile Crf = HandleRelatedFile(UploadedFileRef, ContentItem, ThisRequestGuid, NewContentPublicationRequest.Id);
 
                 if (Crf != null)
                 {
-                    NewContentPublicationRequest.RelatedInputFiles.Add(Crf);
+                    NewContentPublicationRequest.LiveReadyFilesObj = NewContentPublicationRequest.LiveReadyFilesObj.Append(Crf).ToList();
+
+                    if (Crf.FilePurpose.ToLower() == "mastercontent" && ContentItem.DoesReduce)
+                    {
+                        ContentRelatedFile MasterCrf = ProcessMasterContentFile(Crf, ThisRequestGuid, ContentItem.DoesReduce);
+                        NewContentPublicationRequest.ReductionRelatedFilesObj = NewContentPublicationRequest.ReductionRelatedFilesObj.Append(new ReductionRelatedFiles { MasterContentFile = MasterCrf }).ToList();
+                    }
                 }
             }
 
+            NewContentPublicationRequest.RequestStatus = PublicationStatus.Queued;
+
+            // Update the request record with file info and Queued status
             DbContext.ContentPublicationRequest.Update(NewContentPublicationRequest);
             DbContext.SaveChanges();
 
@@ -672,9 +687,9 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [NonAction]
-        private ContentRelatedFile HandleRelatedFile(UploadedRelatedFile RelatedFile, string Purpose, long RootContentId, Guid RequestGuid, long PubRequestId)
+        private ContentRelatedFile HandleRelatedFile(UploadedRelatedFile RelatedFile, RootContentItem ContentItem, Guid RequestGuid, long PubRequestId)
         {
-            ContentRelatedFile ReturnObj = new ContentRelatedFile();
+            ContentRelatedFile ReturnObj = null;
 
             using (IDbContextTransaction Txn = DbContext.Database.BeginTransaction())
             {
@@ -683,37 +698,33 @@ namespace MillimanAccessPortal.Controllers
                 #region Validate the file referenced by the FileUpload record
                 if (!System.IO.File.Exists(FileUploadRecord.StoragePath))
                 {
-                    throw new ApplicationException($"While publishing for content {RootContentId}, uploaded file not found at path [{FileUploadRecord.StoragePath}].");
+                    throw new ApplicationException($"While publishing for content {ContentItem.Id}, uploaded file not found at path [{FileUploadRecord.StoragePath}].");
                 }
                 if (FileUploadRecord.Checksum.ToLower() != GlobalFunctions.GetFileChecksum(FileUploadRecord.StoragePath).ToLower())
                 {
-                    throw new ApplicationException($"While publishing for content {RootContentId}, checksum validation failed for file [{FileUploadRecord.StoragePath}].");
+                    throw new ApplicationException($"While publishing for content {ContentItem.Id}, checksum validation failed for file [{FileUploadRecord.StoragePath}].");
                 }
                 #endregion
 
-                string RootContentFolder = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"], RootContentId.ToString());
+                string RootContentFolder = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"], ContentItem.Id.ToString());
 
-                // Copy upload file to root content folder
-                string DestinationFileName = $"{Purpose}.Pub[{PubRequestId.ToString()}].Content[{RootContentId.ToString()}]{Path.GetExtension(FileUploadRecord.StoragePath)}";
+                // Copy uploaded file to root content folder
+                string DestinationFileName = $"{RelatedFile.FilePurpose}.Pub[{PubRequestId.ToString()}].Content[{ContentItem.Id.ToString()}]{Path.GetExtension(FileUploadRecord.StoragePath)}";
                 string DestinationFullPath = Path.Combine(RootContentFolder, DestinationFileName);
                 System.IO.File.Copy(FileUploadRecord.StoragePath, DestinationFullPath, true);
 
-                ContentRelatedFile ReturnVal = new ContentRelatedFile
+                ReturnObj = new ContentRelatedFile
                 {
-                    FilePurpose = Purpose,
+                    FilePurpose = RelatedFile.FilePurpose,
                     FullPath = DestinationFullPath,
                     Checksum = FileUploadRecord.Checksum,
                 };
 
-                if (Purpose.ToLower() == "mastercontent")
-                {
-                    ProcessMasterContentFile(DestinationFullPath, RelatedFile.FilePurpose, RelatedFile.Checksum);
-                }
-
                 // Remove FileUpload record(s) for this file path
                 List<FileUpload> Uploads = DbContext.FileUpload.Where(f => f.StoragePath == FileUploadRecord.StoragePath).ToList();
-                Uploads.ForEach(u => DbContext.FileUpload.Remove(u));
                 System.IO.File.Delete(FileUploadRecord.StoragePath);
+                DbContext.FileUpload.RemoveRange(Uploads);
+                //Uploads.ForEach(u => DbContext.FileUpload.r.Remove(u));
 
                 DbContext.SaveChanges();
                 Txn.Commit();
@@ -722,15 +733,24 @@ namespace MillimanAccessPortal.Controllers
             return ReturnObj;
         }
 
-        private void ProcessMasterContentFile(ContentRelatedFile FileDetails, )
+        private ContentRelatedFile ProcessMasterContentFile(ContentRelatedFile FileDetails, Guid RequestGuid, bool DoesReduce)
         {
-            if (true /*DoesReduce*/)
+            if (DoesReduce)
             {
-                string MapPublishingServerExchangeFolder = Path.Combine(ApplicationConfig.GetSection("Storage")["MapPublishingServerExchangePath"], RequestGuid.ToString("D"));
-                Directory.CreateDirectory(MapPublishingServerExchangeFolder);
-                DestinationFullPath = Path.Combine(MapPublishingServerExchangeFolder, DestinationFileName);
-                System.IO.File.Copy(FileUploadRecord.StoragePath, DestinationFullPath, true);
+                string MapPublishingServerExchangeRequestFolder = Path.Combine(ApplicationConfig.GetSection("Storage")["MapPublishingServerExchangePath"], RequestGuid.ToString("D"));
+                Directory.CreateDirectory(MapPublishingServerExchangeRequestFolder);
+                string DestinationFullPath = Path.Combine(MapPublishingServerExchangeRequestFolder, Path.GetFileName(FileDetails.FullPath));
+                System.IO.File.Copy(FileDetails.FullPath, DestinationFullPath, true);
+
+                return new ContentRelatedFile
+                {
+                    FullPath = DestinationFullPath,
+                    FilePurpose = FileDetails.FilePurpose,
+                    Checksum = FileDetails.Checksum,
+                };
             }
+
+            return null;
         }
 
     }
