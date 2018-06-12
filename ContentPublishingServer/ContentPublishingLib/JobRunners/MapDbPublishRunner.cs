@@ -120,7 +120,7 @@ namespace ContentPublishingLib.JobRunners
             try
             {
                 // Handle each file related to this PublicationRequest
-                foreach (ContentRelatedFile RelatedFile in JobDetail.Request.RelatedFiles)
+                foreach (ContentRelatedFile RelatedFile in JobDetail.Request.MasterContentFile)
                 {
                     HandleRelatedFile(RelatedFile);
                 }
