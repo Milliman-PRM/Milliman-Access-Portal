@@ -90,6 +90,11 @@ namespace MapDbContextLib.Context
             }
             set
             {
+                if (value.Count > 1)
+                {
+                    // Support for multiple master files will require some refactoring in publication server
+                    throw new NotSupportedException("Not currently supported: assignment of multiple ReductionRelatedFiles objects to ContentPublicationRequest entity");
+                }
                 ReductionRelatedFiles = JsonConvert.SerializeObject(value);
             }
         }
