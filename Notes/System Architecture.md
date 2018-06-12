@@ -174,7 +174,7 @@ Zabbix monitoring will be allowed for all virtual machines (TCP & UDP ports 1005
 |-----|-----|-----|-----|-----|
 |Domain Controllers|---|---|Active Directory & DNS traffic only|Active Directory & DNS traffic only|
 |QlikView Server|HTTPS|HTTPS, RDP, Zabbix|Domain Controllers (Active Directory & DNS), File Servers|QlikView qvajaxzfc web app|
-|QlikView Publisher|---|RDP, Zabbix|Domain Controllers (Active Directory & DNS), PostgreSQL, File Servers|QlikView QMSAPI|
+|QlikView Publisher|---|RDP, Zabbix|Domain Controllers (Active Directory & DNS), PostgreSQL, File Servers|---|
 |File Server|---|RDP, Zabbix|Domain Controllers (Active Directory & DNS)|File access (SMB3)|
 |Remote Administration VMs|---|RDP|QlikView Servers, Domain Controllers (Active Directory & DNS), QlikView Publishers, File Servers|---|
 
