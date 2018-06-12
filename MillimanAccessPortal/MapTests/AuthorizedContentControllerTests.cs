@@ -55,15 +55,6 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<ViewResult>(view);
-
-            ViewResult viewResult = view as ViewResult;
-            Assert.IsType<List<AuthorizedContentViewModel>>(viewResult.Model);
-
-            List<AuthorizedContentViewModel> ModelReturned = (List<AuthorizedContentViewModel>)viewResult.Model;
-            Assert.Single(ModelReturned);
-
-            // Assert.Equal(TestResources.DbContextObject.RootContentItem.FirstOrDefault().ContentName, ModelReturned[0].ContentName);
-
             #endregion
         }
 
