@@ -164,7 +164,7 @@ Zabbix monitoring will be allowed for all virtual machines (TCP & UDP ports 1005
 |Server Type|Public (external) allowed protocols|Internal (From Milliman) connections allowed|Outbound (within Azure) connections allowed|Inbound (within Azure) connections allowed|
 |-----|-----|-----|-----|-----|
 |Domain Controllers|---|---|Active Directory & DNS traffic only|Active Directory & DNS traffic only|
-|QlikView Server|HTTPS|HTTPS, RDP, Zabbix|Domain Controllers (Active Directory & DNS), File Servers|QlikView API|
+|QlikView Server|HTTPS|HTTPS, RDP, Zabbix|Domain Controllers (Active Directory & DNS), File Servers|QlikView qvajaxzfc web app|
 |QlikView Publisher|---|RDP, Zabbix|Domain Controllers (Active Directory & DNS), PostgreSQL, File Servers|---|
 |Web Server|HTTPS, through Application Gateway|---|Domain Controllers (Active Directory & DNS), File Servers|---|
 |File Server|---|RDP, Zabbix|Domain Controllers (Active Directory & DNS)|File access (SMB3)|
@@ -201,8 +201,7 @@ We will utilize multiple file shares throughout the content publication pipeline
 |Quarantine|Landing place for user content uploads. Virus scanning will be performed here before any other actions are taken on the file.|MAP application|
 |Waiting for Reduction|Holding area for files waiting to be reduced by the Publishers|MAP, QlikView Publishers|
 |Reducing (non-shared)|Local storage on QlikView Publishers. Publishers will copy files locally for reduction. Reduced files will undergo a verification process before being promoted for publishing.|Local only|
-|User verification & validation|Holding area for pending content publications. End users with appropriate rights must verify the content before it is published into production.|QlikView Publishers, MAP|
-|Live content|Holds content currently being served by MAP.|MAP, QlikView Servers|
+|Live content|Holds content currently being served by MAP and content ready for user verification.|MAP, QlikView Servers|
 
 ### Malware Protection
 
