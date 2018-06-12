@@ -1,28 +1,16 @@
-import { FormInput } from './input';
-import { Upload, UploadComponent } from '../../upload/upload';
 import { ProgressSummary } from '../../upload/progress-monitor';
+import { Upload, UploadComponent } from '../../upload/upload';
 import { AccessMode } from '../form-modes';
+import { FormInput } from './input';
 
 export class FileUploadInput extends FormInput {
+  // tslint:disable:object-literal-sort-keys
   protected _cssClasses = {
     main: 'form-input-file-upload',
     title: 'form-input-file-upload-title',
     extension: 'form-input-file-upload-contents',
-  }
-
-  protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('input.file-upload-guid');
-
-  protected getValueFn = ($input: JQuery<HTMLElement>) => $input.val;
-  protected setValueFn = ($input: JQuery<HTMLElement>) => $input.val;
-
-  protected disable = ($input: JQuery<HTMLElement>) => $input.parent().find('*').not('.cancel-icon,input.file-upload-guid').attr('disabled', '');
-  protected enable = ($input: JQuery<HTMLElement>) => $input.parent().find('*').not('.cancel-icon,input.file-upload-guid').removeAttr('disabled');
-
-  protected comparator = (a: string, b: string) => (a === b) && !this.uploadInProgress;
-
-  public get component(): UploadComponent {
-    return this.name as UploadComponent;    
-  }
+  };
+  // tslint:enable:object-literal-sort-keys
 
   private uploadInProgress: boolean = false;
   private _upload: Upload;
@@ -33,9 +21,8 @@ export class FileUploadInput extends FormInput {
     return this._upload;
   }
 
-
   public configure(token: string) {
-    this.upload.setFileTypes(FileTypes.get(this.component));
+    this.upload.setFileTypes(fileTypes.get(this.component));
 
     this.upload.getUID = (file: File, event: Event) => {
       return `publication-${this.component}-${token}`;
@@ -52,8 +39,7 @@ export class FileUploadInput extends FormInput {
       progressBar.toggleClass('progress-easing', !isEndpoint);
       progressBar.width(progress.percentage);
     };
-    this.upload.onProgressMessage = (message: string) => {
-    };
+    this.upload.onProgressMessage = (message: string) => undefined;
 
     this.upload.onFileAdded = (resumableFile: any) => {
       this.$entryPoint.find('input.file-upload').val(resumableFile.fileName);
@@ -61,7 +47,7 @@ export class FileUploadInput extends FormInput {
         const reader = new FileReader();
         reader.onload = (event) => {
           this.$entryPoint.find('img.image-preview').attr('src', reader.result);
-        }
+        };
         reader.readAsDataURL(resumableFile.file);
       }
     };
@@ -97,6 +83,22 @@ export class FileUploadInput extends FormInput {
     this.$entryPoint.change(); // trigger a change event
   }
 
+  protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('input.file-upload-guid');
+
+  protected getValueFn = ($input: JQuery<HTMLElement>) => $input.val;
+  protected setValueFn = ($input: JQuery<HTMLElement>) => $input.val;
+
+  protected disable = ($input: JQuery<HTMLElement>) => $input
+    .parent().find('*').not('.cancel-icon,input.file-upload-guid').attr('disabled', '')
+  protected enable = ($input: JQuery<HTMLElement>) => $input
+    .parent().find('*').not('.cancel-icon,input.file-upload-guid').removeAttr('disabled')
+
+  protected comparator = (a: string, b: string) => (a === b) && !this.uploadInProgress;
+
+  public get component(): UploadComponent {
+    return this.name as UploadComponent;
+  }
+
   private setCancelable(cancelable: boolean) {
     if (cancelable) {
       this.setAccessMode(AccessMode.WriteDisabled);
@@ -114,7 +116,7 @@ export class FileUploadInput extends FormInput {
   }
 }
 
-const FileTypes = new Map<UploadComponent, Array<string>>([
+const fileTypes = new Map<UploadComponent, string[]>([
   [UploadComponent.Image, ['jpg', 'jpeg', 'png', 'gif']],
   [UploadComponent.Content, []],
   [UploadComponent.UserGuide, ['pdf']],

@@ -6,21 +6,21 @@ interface ProgressSnapshot {
 }
 
 export class ProgressSummary {
-  percentage: string;
-  rate: string;
-  remainingTime: string;
-
-  public static Empty: () => ProgressSummary = () => ({
+  public static empty: () => ProgressSummary = () => ({
     percentage: '0%',
     rate: '',
     remainingTime: '',
-  });
+  })
 
-  public static Full: () => ProgressSummary = () => ({
+  public static full: () => ProgressSummary = () => ({
     percentage: '100%',
     rate: '',
     remainingTime: '',
-  });
+  })
+
+  public percentage: string;
+  public rate: string;
+  public remainingTime: string;
 }
 
 export class ProgressMonitor {
@@ -71,8 +71,8 @@ export class ProgressMonitor {
 
   private update(progress: number, time: number) {
     this.snapshot.insert({
-      progress: progress,
-      time: time,
+      progress,
+      time,
     });
     this.rate.insert((() => {
       // Compute rate
@@ -85,9 +85,9 @@ export class ProgressMonitor {
     this.remainingTime.insert((() => {
       // Estimate remaining time
       const bytes = this.fileSize * (1 - this.snapshot.now.progress);
-      const bytes_p_second = this.rate.now;
-      return bytes_p_second
-        ? bytes / bytes_p_second
+      const bytesPerSecond = this.rate.now;
+      return bytesPerSecond
+        ? bytes / bytesPerSecond
         : 0; // return 0 instead of NaN when denominator is 0
     })());
   }
@@ -100,7 +100,7 @@ export class ProgressMonitor {
         const _ = Math.floor(progress * 100 * precisionFactor) / precisionFactor;
         return `${_}%`;
       })(1),
-      rate: ((precision: number, unitThreshold: [number, number], weights: Array<number>): string => {
+      rate: ((precision: number, unitThreshold: [number, number], weights: number[]): string => {
         const units = ['', 'K', 'M', 'G'];
         const upperThreshold = unitThreshold[0];
         const lowerThreshold = unitThreshold[1];

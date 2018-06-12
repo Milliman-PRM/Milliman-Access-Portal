@@ -1,14 +1,26 @@
-import * as $ from 'jquery';
 import { randomBytes } from 'crypto';
+import * as $ from 'jquery';
+
+import { confirmAndContinueForm } from '../shared';
+import { UploadComponent } from '../upload/upload';
 import { FormElement } from './form-element';
+import { FileUploadInput } from './form-input/file-upload';
 import { AccessMode, SubmissionMode } from './form-modes';
 import { FormInputSection, FormSubmissionSection } from './form-section';
-import { confirmAndContinueForm } from '../shared';
-import { FileUploadInput } from './form-input/file-upload';
-import { UploadComponent } from '../upload/upload';
 import { SubmissionGroup } from './form-submission';
 
 export class FormBase extends FormElement {
+  public inputSections: FormInputSection[];
+  public submissionSection: FormSubmissionSection;
+
+  // tslint:disable:object-literal-sort-keys
+  protected _cssClasses = {
+    main: 'admin-panel-content',
+    title: '',
+    extension: 'form-section-container',
+  };
+  // tslint:enable:object-literal-sort-keys
+
   private _accessMode: AccessMode;
   public get accessMode(): AccessMode {
     return this._accessMode;
@@ -27,7 +39,7 @@ export class FormBase extends FormElement {
     this._accessMode = mode;
   }
 
-  private _submissionModes: Array<SubmissionMode> = [];
+  private _submissionModes: SubmissionMode[] = [];
   private _submissionMode: SubmissionMode;
   public get submissionMode(): string {
     return this._submissionMode.name;
@@ -50,15 +62,6 @@ export class FormBase extends FormElement {
     return this._token;
   }
 
-  public inputSections: Array<FormInputSection>;
-  public submissionSection: FormSubmissionSection;
-
-  protected _cssClasses = {
-    main: 'admin-panel-content',
-    title: '',
-    extension: 'form-section-container',
-  };
-
   public constructor() {
     super();
   }
@@ -72,8 +75,8 @@ export class FormBase extends FormElement {
     // locate and bind to section-level DOM elements
     this.inputSections = childElements
       .map((x: HTMLElement) => ({
-        section: new FormInputSection(),
         element: x,
+        section: new FormInputSection(),
       }))
       .filter((x) => $(x.element).is(`.${x.section.cssClasses.main}`))
       .map((x) => {
@@ -82,8 +85,8 @@ export class FormBase extends FormElement {
       });
     this.submissionSection = this.submissionSection || childElements
       .map((x: HTMLElement) => ({
-        section: new FormSubmissionSection(),
         element: x,
+        section: new FormSubmissionSection(),
       }))
       .filter((x) => $(x.element).is(`.${x.section.cssClasses.main}`))
       .map((x) => {
@@ -105,10 +108,10 @@ export class FormBase extends FormElement {
     });
   }
 
-  public configure(modes: Array<SubmissionMode>) {
+  public configure(modes: SubmissionMode[]) {
     this._submissionModes = modes;
-    
     // Configure form reset and submission
+
     this.submissionSection.submissions
       .forEach((submission) => submission.setCallbacks(modes, this));
 
@@ -129,7 +132,7 @@ export class FormBase extends FormElement {
       .reduce((cum, cur) => cum || cur, false);
   }
 
-  public serialize(sectionNames: Array<string>): string {
+  public serialize(sectionNames: string[]): string {
     const allInputs = this.$entryPoint.serializeArray();
     const filteredInputs = (() => {
       return sectionNames

@@ -1,7 +1,7 @@
 // A value that retains a configurable number of past values
 export class RetainedValue<T> {
-  private _values: Array<T>;
-  get values(): Array<T> {
+  private _values: T[];
+  get values(): T[] {
     return this._values;
   }
   get now(): T {
