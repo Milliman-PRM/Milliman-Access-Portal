@@ -104,7 +104,7 @@ export class SubmissionGroup<T> {
   // hideButtonSpinner($(`.button-container-${form.submissionMode} .button-submit`));
 
     if (sparse) {
-      const modified = form.inputSections
+      const modified = this.url === null || form.inputSections
         .filter((inputSection) => this.sections === undefined || this.sections.indexOf(inputSection.name) !== -1)
         .map((inputSection) => inputSection.modified)
         .reduce((cum, cur) => cum || cur, false);
