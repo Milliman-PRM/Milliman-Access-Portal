@@ -60,13 +60,14 @@ namespace MapDbContextLib.Context
         public DateTime CreateDateTimeUtc { get; set; }
 
         /// <summary>
-        /// May also be accessed through [NotMapped] property PublishRequest
+        /// May also be accessed through [NotMapped] property LiveReadyFilesObj
         /// Intended to be serialization of type List<ContentRelatedFile>
         /// </summary>
         [Column(TypeName = "jsonb")]
         public string LiveReadyFiles { get; set; } = "[]";
 
         /// <summary>
+        /// May also be accessed through [NotMapped] property ReductionRelatedFilesObj
         /// Intended to be serialization of type List<ReductionRelatedFiles>
         /// </summary>
         [Column(TypeName = "jsonb")]
@@ -77,6 +78,9 @@ namespace MapDbContextLib.Context
 
         public string StatusMessage { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Identifies files associated with work of the publishing server (input and output)
+        /// </summary>
         [NotMapped]
         public List<ReductionRelatedFiles> ReductionRelatedFilesObj
         {
@@ -90,6 +94,9 @@ namespace MapDbContextLib.Context
             }
         }
 
+        /// <summary>
+        /// Identifies files NOT associated with work of the publishing server, rather that are ready to switch to live status.
+        /// </summary>
         [NotMapped]
         public List<ContentRelatedFile> LiveReadyFilesObj
         {
