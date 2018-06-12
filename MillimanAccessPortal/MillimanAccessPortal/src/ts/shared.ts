@@ -1,6 +1,6 @@
-import $ = require('jquery');
+import * as $ from 'jquery';
+import * as toastr from 'toastr';
 import { Dialog, ResetConfirmationDialog, DiscardConfirmationDialog } from './dialog';
-import toastr = require('toastr');
 import { FormBase } from './form/form-base';
 import { PublicationStatus } from './view-models/content-publishing';
 
@@ -176,7 +176,7 @@ export function wrapCardCallback(callback: ($card: JQuery<HTMLElement>) => void,
     }
   };
 };
-export function wrapCardIconCallback(callback: ($card: JQuery<HTMLElement>, whenDone: () => void) => void, form?: () => FormBase, panelCount: number = 1, sameCard?: ($card: JQuery<HTMLElement>) => boolean, always?: () => void) {
+export function wrapCardIconCallback(callback: ($card: JQuery<HTMLElement>, whenDone: () => void) => void, form?: () => FormBase, panelCount: {count: number, offset: number} = {count: 1, offset: 0}, sameCard?: ($card: JQuery<HTMLElement>) => boolean, always?: () => void) {
   return function (event) {
     event.stopPropagation();
 
@@ -192,14 +192,14 @@ export function wrapCardIconCallback(callback: ($card: JQuery<HTMLElement>, when
       $panel.find('.card-body-container').removeAttr('editing selected');
       $card.attr({ selected: '', editing: '' });
       callback($card, whenDone);
-      $nextPanels.hide().slice(0, panelCount).show(SHOW_DURATION);
+      $nextPanels.hide().slice(panelCount.offset, panelCount.offset + panelCount.count).show(SHOW_DURATION);
     };
 
     if ($panel.has('[editing]').length) {
       confirmAndContinue(DiscardConfirmationDialog, form && form(), () => {
         if (!same) {
           openCard(always);
-        } else {
+        } else if (always) {
           always();
         }
       });

@@ -97,3 +97,50 @@ export class PublishRequest {
   RootContentItemId: number;
   RelatedFiles: Array<ContentRelatedFile>;
 }
+
+export class PreLiveContentValidationSummary {
+  RootContentName: string;
+  ContentTypeName: string;
+  ContentDescription: string;
+  DoesReduce: boolean;
+  ClientName: string;
+  ClientCode: string;
+  AttestationLanguage: string;
+  MasterContentLink: string;
+  UserGuideLink: string;
+  ReleaseNotesLink: string;
+  ThumbnailLink: string;
+  LiveHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
+  NewHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
+  SelectionGroups: Array<SelectionGroupSummary>;
+}
+export class SelectionGroupSummary {
+  Name: string;
+  UserCount: number;
+  IsMaster: boolean;
+}
+
+export class ContentReductionHierarchy<T extends ReductionFieldValue> {
+  Fields: Array<ReductionField<T>>;
+  RootContentItemId: number;
+}
+export class ReductionField<T extends ReductionFieldValue> {
+  Id: number;
+  FieldName: string;
+  DisplayName: string;
+  ValueDelimiter: string;
+  Values: Array<T>;
+}
+export class ReductionFieldValue {
+  Id: number;
+  Value: string;
+  get HasSelectionStatus() {
+    return false;
+  }
+}
+export class ReductionFieldValueSelection extends ReductionFieldValue{
+  get HasSelectionStatus() {
+    return true;
+  }
+  SelectionStatus: boolean;
+}

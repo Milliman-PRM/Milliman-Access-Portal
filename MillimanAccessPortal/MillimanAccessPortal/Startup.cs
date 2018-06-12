@@ -221,7 +221,7 @@ namespace MillimanAccessPortal
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=HostedContent}/{action=Index}/{id?}");
+                    template: "{controller=AuthorizedContent}/{action=Index}/{id?}");
             });
 
             MailSender.ConfigureMailSender(new SmtpConfig

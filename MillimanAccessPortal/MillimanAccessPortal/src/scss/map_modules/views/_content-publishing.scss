@@ -1,0 +1,92 @@
+.confirmation-section {
+  margin-bottom: 1em;
+
+  ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  label {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
+
+  .content-preview {
+    width: 100%;
+    position: relative;
+
+    iframe {
+      width: 100%;
+    }
+
+    svg {
+      position: absolute;
+      top: 0.2em;
+      right: 0.2em;
+      width: 2em;
+      height: 2em;
+      z-index: 1;
+    }
+  }
+
+  .hierarchy-container {
+    display: inline-block;
+    width: 100%;
+    white-space: nowrap;
+
+    .hierarchy {
+      display: inline-block;
+      background-color: $white;
+      width: calc(50% - 0.25em);
+      padding: 1.0em;
+      box-sizing: border-box;
+
+      &.hierarchy-left {
+        float: left;
+      }
+      &.hierarchy-right {
+        float: right;
+      }
+
+      &> ul {
+        margin-left: 0.5em;
+
+        h6 {
+          margin: 0;
+        }
+
+        &> li+li {
+          margin-top: 0.5em;
+        }
+
+        ul {
+          margin-left: 0.5em;
+        }
+      }
+    }
+  }
+
+  &#confirmation-section-hierarchy-stats {
+    li+li {
+      margin-top: 0.5em;
+    }
+  } 
+
+  .selection-group-summary {
+    display: block;
+    background-color: $white;
+    padding: 1.0em;
+
+    .selection-group-stat {
+      .selection-group-stat-label {
+        width: 20%;
+        display: inline-block;
+      }
+
+      .selection-group-stat-value {
+        color: red;
+      }
+    }
+  }
+}
