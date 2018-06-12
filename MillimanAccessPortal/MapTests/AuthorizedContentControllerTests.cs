@@ -32,13 +32,14 @@ namespace MapTests
             TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
 
             // Create the system under test (sut)
-            AuthorizedContentController sut = new AuthorizedContentController(TestResources.QvConfig,
-                                                                      TestResources.UserManagerObject,
-                                                                      TestResources.LoggerFactory,
-                                                                      TestResources.DbContextObject,
-                                                                      TestResources.QueriesObj,
-                                                                      TestResources.AuthorizationService,
-                                                                      TestResources.AuditLoggerObject);
+            AuthorizedContentController sut = new AuthorizedContentController(
+                TestResources.AuditLoggerObject,
+                TestResources.AuthorizationService,
+                TestResources.DbContextObject,
+                TestResources.LoggerFactory,
+                TestResources.QvConfig,
+                TestResources.QueriesObj,
+                TestResources.UserManagerObject);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
@@ -82,13 +83,14 @@ namespace MapTests
             TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
 
             // Create the system under test (sut)
-            AuthorizedContentController sut = new AuthorizedContentController(TestResources.QvConfig,
-                                                                      TestResources.UserManagerObject,
-                                                                      TestResources.LoggerFactory,
-                                                                      TestResources.DbContextObject,
-                                                                      TestResources.QueriesObj,
-                                                                      TestResources.AuthorizationService,
-                                                                      TestResources.AuditLoggerObject);
+            AuthorizedContentController sut = new AuthorizedContentController(
+                TestResources.AuditLoggerObject,
+                TestResources.AuthorizationService,
+                TestResources.DbContextObject,
+                TestResources.LoggerFactory,
+                TestResources.QvConfig,
+                TestResources.QueriesObj,
+                TestResources.UserManagerObject);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
@@ -126,13 +128,14 @@ namespace MapTests
             TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
 
             // Create the system under test (sut)
-            AuthorizedContentController sut = new AuthorizedContentController(TestResources.QvConfig,
-                                                                      TestResources.UserManagerObject,
-                                                                      TestResources.LoggerFactory,
-                                                                      TestResources.DbContextObject,
-                                                                      TestResources.QueriesObj,
-                                                                      TestResources.AuthorizationService,
-                                                                      TestResources.AuditLoggerObject);
+            AuthorizedContentController sut = new AuthorizedContentController(
+                TestResources.AuditLoggerObject,
+                TestResources.AuthorizationService,
+                TestResources.DbContextObject,
+                TestResources.LoggerFactory,
+                TestResources.QvConfig,
+                TestResources.QueriesObj,
+                TestResources.UserManagerObject);
 
             // For illustration only, the same result comes from either of the following techniques:
             // This one should never throw even if the user name is not in the context data
