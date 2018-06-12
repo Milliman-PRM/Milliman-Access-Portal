@@ -17,6 +17,7 @@ namespace MillimanAccessPortal.DataQueries
 {
     public partial class StandardQueries
     {
+        /*
         /// <summary>
         /// Returns a collection of AuthorizedContentViewModel representing SelectionGroup instances assigned to the specified user
         /// </summary>
@@ -89,6 +90,7 @@ namespace MillimanAccessPortal.DataQueries
 
             return ReturnList.ToList();
         }
+        */
 
     }
 }

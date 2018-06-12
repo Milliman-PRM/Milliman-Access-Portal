@@ -71,9 +71,14 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>The view</returns>
         public IActionResult Index()
         {
-            List<AuthorizedContentViewModel> model = Queries.GetAssignedUserGroups(UserManager.GetUserName(HttpContext.User));
+            return View();
+        }
 
-            return View(model);
+        public async Task<IActionResult> Content()
+        {
+            var model = AuthorizedContentViewModel.Build(DataContext, await Queries.GetCurrentApplicationUser(User));
+
+            return Json(model);
         }
 
         /// <summary>
@@ -142,9 +147,9 @@ namespace MillimanAccessPortal.Controllers
 
                 AuthorizedContentViewModel ResponseModel = new AuthorizedContentViewModel
                 {
-                    Url = ContentUri.Uri.AbsoluteUri,  // must be absolute because it is used in iframe element
-                    UserGroupId = SelGroup.Id,
-                    ContentName = SelGroup.RootContentItem.ContentName,
+                    // Url = ContentUri.Uri.AbsoluteUri,  // must be absolute because it is used in iframe element
+                    // UserGroupId = SelGroup.Id,
+                    // ContentName = SelGroup.RootContentItem.ContentName,
                 };
 
                 // Now return the appropriate view for the requested content
