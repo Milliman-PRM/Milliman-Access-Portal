@@ -1,10 +1,11 @@
+import '../navbar';
+
 import 'bootstrap/scss/bootstrap-reboot.scss';
 import 'toastr/toastr.scss';
 import 'tooltipster';
 import 'tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css';
 import 'tooltipster/src/css/tooltipster.css';
 import '../../scss/map.scss';
-import '../navbar';
 
 import * as $ from 'jquery';
 import * as toastr from 'toastr';
