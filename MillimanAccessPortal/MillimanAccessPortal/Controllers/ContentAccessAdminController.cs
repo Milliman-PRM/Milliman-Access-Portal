@@ -648,6 +648,7 @@ namespace MillimanAccessPortal.Controllers
                 ContentPublicationRequest = null,
                 SelectionCriteria = SelectionCriteriaString,
                 ReductionStatus = ReductionStatusEnum.Queued,
+                CreateDateTimeUtc = DateTime.UtcNow,
             };
             DbContext.ContentReductionTask.Add(ContentReductionTask);
 
