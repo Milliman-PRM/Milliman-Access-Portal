@@ -41,26 +41,5 @@ test('accepts updates', async (t) => {
     .expect(container().childElementCount).eql(1)
     .expect(container().find('.toast-success .toast-message').innerText)
       .eql('Your account has been updated')
-    .expect(buttons.visible).notOk()
-
-    .wait(5000)
-    .typeText('#CurrentPassword', 'Password!0')
-    .typeText('#NewPassword', 'Password!1')
-    .typeText('#ConfirmNewPassword', 'Password!1')
-    .click('button.button-submit')
-    .expect(container().childElementCount).eql(1)
-    .expect(container().find('.toast-success .toast-message').innerText)
-      .eql('Your password has been updated')
-    .expect(buttons.visible).notOk()
-
-    .wait(5000)
-    .selectText('#LastName')
-    .pressKey('backspace')
-    .typeText('#LastName', 'User')
-    .typeText('#CurrentPassword', 'Password!1')
-    .typeText('#NewPassword', 'Password!0')
-    .typeText('#ConfirmNewPassword', 'Password!0')
-    .click('button.button-submit')
-    .expect(container().childElementCount).eql(2)
     .expect(buttons.visible).notOk();
 });
