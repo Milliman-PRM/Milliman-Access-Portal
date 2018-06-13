@@ -349,15 +349,28 @@
                 margin-bottom: .25rem;
             }
 
-            .card-expansion-option-label {
-            }
-
             .detail-item {
                 padding: 0 .25em;
                 margin-left: .75em;
                 border: 1px solid $charcoal;
                 color: $charcoal;
                 background-color: $light-grey;
+
+                &:last-of-type {
+                    margin-bottom: 1.25em;
+                }
+            }
+
+            .detail-item-user {
+                display: block;
+
+                .detail-item-user-remove {
+                    display: inline-block;
+                }
+                .detail-item-user-name {
+                    display: inline-block;
+                    padding: 0 .25em;
+                }
 
                 &:last-of-type {
                     margin-bottom: 1.25em;

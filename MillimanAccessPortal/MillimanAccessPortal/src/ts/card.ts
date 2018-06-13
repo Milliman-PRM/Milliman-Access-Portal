@@ -26,6 +26,7 @@ const cardLayout = {
         detailText: {},
         toggle: {},
         detailItem: {},
+        user: {},
       },
       action: {},
       insert: {},
@@ -221,6 +222,40 @@ const components = Object.assign(
           this.click(component, properties.callback, '.toggle-switch-checkbox');
           this.attr(component, { for: properties.id }, '.toggle-switch-label');
           this.html(component, properties.text, '.switch-label');
+        };
+      },
+    },
+    user: {
+      count: '*',
+      selector: '.detail-item-user',
+      html: [
+        '<span class="detail-item-user">',
+        '  <div class="detail-item-user-remove">',
+        '    <div class="card-button-background card-button-delete">',
+        '      <svg class="card-button-icon">',
+        '        <use href="#action-icon-delete"></use>',
+        '      </svg>',
+        '    </div>',
+        '  </div>',
+        '  <div class="detail-item-user-name"></div>',
+        '</span>',
+        '<stub />',
+      ].join(''),
+      render(component) {
+        return function(properties) {
+          this.add(component);
+          this.attr(
+            component,
+            Object.assign(
+              {
+                id: properties.id,
+              },
+              toAttr(properties.data),
+            ),
+            '.detail-item-user',
+          );
+          this.click(component, properties.callback, '.detail-item-user-remove');
+          this.html(component, properties.text, '.detail-item-user-name');
         };
       },
     },
@@ -824,7 +859,15 @@ export function SelectionGroupCard(
     this.addComponent('detailText', { text: 'Members' });
   }
   members.forEach(function(member) {
-    this.addComponent('detailItem', { text: member.Email });
+    this.addComponent('user', {
+      callback: (event: Event) => {
+        event.stopPropagation();
+        console.log(`Clicked user with ID "${member.Id}"`);
+      },
+      data: {},
+      id: member.Id,
+      text: member.Email,
+    });
   }, this);
   this.addComponent('status', {});
 
