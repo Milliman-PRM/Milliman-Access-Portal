@@ -26,7 +26,6 @@ namespace ContentPublishingLib.JobRunners
     public class MapDbPublishRunner : RunnerBase
     {
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
-        private string _ThisRootContentFolder = string.Empty;
         string _ContentItemRootPath = string.Empty;
 
         private object AuditLogDetailObj;
@@ -114,32 +113,22 @@ namespace ContentPublishingLib.JobRunners
                 AuditLog = new AuditLogger();
             }
 
-            _ThisRootContentFolder = Path.Combine(_ContentItemRootPath, JobDetail.Request.RootContentId.ToString());
-            DirectoryInfo ContentDirectoryInfo = Directory.CreateDirectory(_ThisRootContentFolder);
-
             try
             {
-                // Handle each file related to this PublicationRequest
-                foreach (ContentRelatedFile RelatedFile in JobDetail.Request.MasterContentFile)
-                {
-                    HandleRelatedFile(RelatedFile);
-                }
+                QueueReductionActivity(JobDetail.Request.MasterContentFile);
 
                 // Wait for any/all related reduction tasks to complete
-                int PendingTaskCount = 0;
-                do
+                for (int PendingTaskCount = await CountPendingReductionTasks(); PendingTaskCount > 0; PendingTaskCount = await CountPendingReductionTasks())
                 {
-                    PendingTaskCount = await CheckRelatedReductionTasks();
-
-                    Thread.Sleep(1000);
-
                     if (DateTime.UtcNow > WaitEndUtc)
                     {
                         throw new ApplicationException($"{Method.DeclaringType.Name}.{Method.Name} timed out waiting for {PendingTaskCount} pending reduction tasks");
                     }
-                }
-                while (PendingTaskCount > 0); 
 
+                    Thread.Sleep(1000);
+                }
+
+                // Check the actual status of reduction tasks to make sure publication status is assigned correctly
                 JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
             }
             catch (OperationCanceledException e)
@@ -160,41 +149,7 @@ namespace ContentPublishingLib.JobRunners
             return JobDetail;
         }
 
-        private void HandleRelatedFile(ContentRelatedFile RelatedFile)
-        {
-            if (!File.Exists(RelatedFile.FullPath))
-            {
-                throw new ApplicationException($"While publishing request {JobDetail.JobId.ToString()}, uploaded file not found at path [{RelatedFile.FullPath}].");
-            }
-            if (RelatedFile.Checksum.ToLower() != GlobalFunctions.GetFileChecksum(RelatedFile.FullPath).ToLower())
-            {
-                throw new ApplicationException($"While publishing request {JobDetail.JobId.ToString()}, checksum validation failed for file [{RelatedFile.FullPath}].");
-            }
-
-            string DestinationFileName = $"{RelatedFile.FilePurpose}.Pub[{JobDetail.JobId.ToString()}].Content[{JobDetail.Request.RootContentId.ToString()}]{Path.GetExtension(RelatedFile.FullPath)}";
-            string DestinationFullPath = Path.Combine(_ThisRootContentFolder, DestinationFileName);
-
-            // Copy and clean up FileUpload entity and uploaded file(s)
-            using (ApplicationDbContext Db = GetDbContext())
-            using (var Txn = Db.Database.BeginTransaction())  // transactional in case anything throws
-            {
-                File.Copy(RelatedFile.FullPath, DestinationFullPath, true);
-                List<FileUpload> Uploads = Db.FileUpload.Where(f => f.StoragePath == RelatedFile.FullPath).ToList();
-                Uploads.ForEach(u => Db.FileUpload.Remove(u));
-                File.Delete(RelatedFile.FullPath);
-                Db.SaveChanges();
-                Txn.Commit();
-            }
-
-            JobDetail.Result.ResultingRelatedFiles.Add(new ContentRelatedFile { FilePurpose = RelatedFile.FilePurpose, FullPath = DestinationFullPath });
-
-            if (RelatedFile.FilePurpose.ToLower() == "mastercontent")
-            {
-                ProcessMasterContentFile(DestinationFullPath, RelatedFile.FilePurpose, RelatedFile.Checksum);
-            }
-        }
-
-        private async Task<int> CheckRelatedReductionTasks()
+        private async Task<int> CountPendingReductionTasks()
         {
             using (ApplicationDbContext Db = GetDbContext())
             {
@@ -251,12 +206,10 @@ namespace ContentPublishingLib.JobRunners
 
         /// <summary>
         /// Performs all actions required only in the presence of a master content file in the publication request
-        /// Note that a publication request can be made without a content item to update associated files.
+        /// Note that a publication request can be made without a mast content file to update associated files.
         /// </summary>
-        /// <param name="FilePath"></param>
-        /// <param name="FilePurpose"></param>
-        /// <param name="FileChecksum"></param>
-        private void ProcessMasterContentFile(string FilePath, string FilePurpose, string FileChecksum)
+        /// <param name="contentRelatedFile"></param>
+        private void QueueReductionActivity(ContentRelatedFile contentRelatedFile)
         {
             // If there is no SelectionGroup for this content item, create a new SelectionGroup with IsMaster = true
             using (ApplicationDbContext Db = GetDbContext())
@@ -297,9 +250,9 @@ namespace ContentPublishingLib.JobRunners
                         string TaskFolder = Path.Combine(QvSourceDocumentsPath, TaskId.ToString());
                         Directory.CreateDirectory(TaskFolder);
 
-                        string DestinationFileName = $"{FilePurpose}.Pub[{JobDetail.JobId.ToString()}].Content[{JobDetail.Request.RootContentId.ToString()}]{Path.GetExtension(FilePath)}";
+                        string DestinationFileName = $"{contentRelatedFile.FilePurpose}.Pub[{JobDetail.JobId.ToString()}].Content[{JobDetail.Request.RootContentId.ToString()}]{Path.GetExtension(contentRelatedFile.FullPath)}";
                         string CopyDestination = Path.Combine(TaskFolder, DestinationFileName);
-                        File.Copy(FilePath, CopyDestination, true);
+                        File.Copy(contentRelatedFile.FullPath, CopyDestination, true);
 
                         ContentReductionTask NewTask = new ContentReductionTask
                         {
@@ -308,7 +261,7 @@ namespace ContentPublishingLib.JobRunners
                             ContentPublicationRequestId = JobDetail.JobId,
                             CreateDateTimeUtc = DateTime.UtcNow,  // TODO later: Figure out how to avoid delay in starting the reduction task. 
                             MasterFilePath = CopyDestination,
-                            MasterContentChecksum = FileChecksum,
+                            MasterContentChecksum = contentRelatedFile.Checksum,
                             ReductionStatus = ReductionStatusEnum.Queued,
                             SelectionGroupId = SelGrp.Id,
                         };
@@ -335,7 +288,7 @@ namespace ContentPublishingLib.JobRunners
             }
             else
             {
-                // nothing?
+                // TODO Set request status to completed?
             }
         }
     }
