@@ -464,7 +464,9 @@ namespace MillimanAccessPortal.Controllers
             }
 #endif
 
-            RootContentItem ContentItem = DbContext.RootContentItem.SingleOrDefault(rc => rc.Id == Arg.RootContentItemId);
+            RootContentItem ContentItem = DbContext.RootContentItem
+                                                   .Include(rc => rc.ContentType)
+                                                   .SingleOrDefault(rc => rc.Id == Arg.RootContentItemId);
 
             #region Validation
             // The requested RootContentItem must exist
@@ -533,20 +535,34 @@ namespace MillimanAccessPortal.Controllers
 
             Guid ThisRequestGuid = Guid.NewGuid();
 
-            foreach (UploadedRelatedFile UploadedFileRef in Arg.RelatedFiles)
+            switch (ContentItem.ContentType.TypeEnum)
             {
-                ContentRelatedFile Crf = HandleRelatedFile(UploadedFileRef, ContentItem, ThisRequestGuid, NewContentPublicationRequest.Id);
-
-                if (Crf != null)
-                {
-                    NewContentPublicationRequest.LiveReadyFilesObj = NewContentPublicationRequest.LiveReadyFilesObj.Append(Crf).ToList();
-
-                    if (Crf.FilePurpose.ToLower() == "mastercontent" && ContentItem.DoesReduce)
+                case ContentTypeEnum.Qlikview:
+                    // TODO move this logic to a class in project QlikviewLib, derived from Interface or base class in MapCommonLib
+                    if (Arg.RelatedFiles.Select(f => f.FilePurpose).Count(p => p.ToLower() == "mastercontent") > 1)
                     {
-                        ContentRelatedFile MasterCrf = ProcessMasterContentFile(Crf, ThisRequestGuid, ContentItem.DoesReduce);
-                        NewContentPublicationRequest.ReductionRelatedFilesObj = NewContentPublicationRequest.ReductionRelatedFilesObj.Append(new ReductionRelatedFiles { MasterContentFile = MasterCrf }).ToList();
+                        throw new ApplicationException("Qlikview publication request cannot contain multiple MasterContent files");
                     }
-                }
+
+                    foreach (UploadedRelatedFile UploadedFileRef in Arg.RelatedFiles)
+                    {
+                        ContentRelatedFile Crf = HandleRelatedFile(UploadedFileRef, ContentItem, ThisRequestGuid, NewContentPublicationRequest.Id);
+
+                        if (Crf != null)
+                        {
+                            NewContentPublicationRequest.LiveReadyFilesObj = NewContentPublicationRequest.LiveReadyFilesObj.Append(Crf).ToList();
+
+                            if (Crf.FilePurpose.ToLower() == "mastercontent" && ContentItem.DoesReduce)
+                            {
+                                ContentRelatedFile MasterCrf = ProcessMasterContentFile(Crf, ThisRequestGuid, ContentItem.DoesReduce);
+                                NewContentPublicationRequest.ReductionRelatedFilesObj = NewContentPublicationRequest.ReductionRelatedFilesObj.Append(new ReductionRelatedFiles { MasterContentFile = MasterCrf }).ToList();
+                            }
+                        }
+                    }
+                    break;
+
+                default:
+                    throw new NotSupportedException($"Publication request cannot be created for unsupported ContentType {ContentItem.ContentType.TypeEnum.ToString()}");
             }
 
             NewContentPublicationRequest.RequestStatus = PublicationStatus.Queued;
