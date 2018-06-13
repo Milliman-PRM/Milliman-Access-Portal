@@ -7,10 +7,11 @@
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
+using MillimanAccessPortal.Models.ContentPublishing;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MillimanAccessPortal.Models.ContentPublishing
+namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
     public class RootContentItemList
     {
@@ -21,10 +22,15 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         {
             RootContentItemList model = new RootContentItemList();
 
-            List<RootContentItem> rootContentItems = dbContext.UserRoleInRootContentItem
+            var rootContentItems = dbContext.UserRoleInRootContentItem
                 .Include(urc => urc.RootContentItem)
                 .Where(urc => urc.RootContentItem.ClientId == client.Id)
                 .Where(urc => urc.UserId == User.Id)
+                .Where(urc => urc.Role.RoleEnum == RoleEnum.ContentAccessAdmin)
+                .Where(urc => dbContext.ContentReductionTask
+                    .Where(crt => crt.SelectionGroup.RootContentItemId == urc.RootContentItemId)
+                    .Where(crt => crt.ReductionStatus == ReductionStatusEnum.Live)
+                    .Count() >= 1)
                 .Select(urc => urc.RootContentItem)
                 .Distinct()
                 .ToList();

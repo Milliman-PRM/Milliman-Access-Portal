@@ -227,7 +227,7 @@ function renderRootContentItem(item: RootContentItemSummary) {
 function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: number) {
   const $rootContentItemList = $('#root-content-items ul.admin-panel-content');
   $rootContentItemList.empty();
-  response.DetailList.forEach(renderRootContentItem);
+  response.SummaryList.forEach(renderRootContentItem);
   $rootContentItemList.find('.tooltip').tooltipster();
 
   if (!isNaN(rootContentItemId)) {

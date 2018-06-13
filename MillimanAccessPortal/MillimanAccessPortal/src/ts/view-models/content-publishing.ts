@@ -53,7 +53,7 @@ export interface RootContentItemSummary {
   PublicationDetails: PublicationSummary;
 }
 export interface RootContentItemList {
-  DetailList: RootContentItemSummary[];
+  SummaryList: RootContentItemSummary[];
   SelectedRootContentItemId: number;
 }
 
