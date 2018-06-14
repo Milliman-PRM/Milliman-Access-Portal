@@ -122,6 +122,15 @@ namespace ContentPublishingLib.JobRunners
                 {
                     if (DateTime.UtcNow > WaitEndUtc)
                     {
+                        using (ApplicationDbContext Db = GetDbContext())
+                        {
+                            var QueuedTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId)
+                                                                     .Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
+                                                                     .ToList();
+                            await CancelReductionTasks(QueuedTasks);
+                        }
+
+                        // throw so that the exception message gets recorded in the ContentPublicationRequest.StatusMessage field
                         throw new ApplicationException($"{Method.DeclaringType.Name}.{Method.Name} timed out waiting for {PendingTaskCount} pending reduction tasks");
                     }
 
@@ -216,47 +225,50 @@ namespace ContentPublishingLib.JobRunners
             {
                 if (!Db.SelectionGroup.Any(sg => sg.RootContentItemId == JobDetail.Request.RootContentId))
                 {
-                    Db.SelectionGroup.Add(new SelectionGroup
+                    SelectionGroup NewMasterSelectionGroup = new SelectionGroup
                     {
-                        Id = Db.SelectionGroup.Max(sg => sg.Id) + 1,
                         RootContentItemId = JobDetail.Request.RootContentId,
                         GroupName = "Master Content Access",
                         IsMaster = true,
-                    });
+                    };
+                    // for Mocked DbSet (unit testing) there is no default expression for Id 
+                    if (MockContext != null)  
+                    {
+                        NewMasterSelectionGroup.Id = Db.SelectionGroup.Max(sg => sg.Id) + 1;
+                    }
+                    Db.SelectionGroup.Add(NewMasterSelectionGroup);
                     Db.SaveChanges();
                 }
             }
 
             if (JobDetail.Request.DoesReduce)
             {
+                string QvSourceDocumentsPath = Configuration.ApplicationConfiguration.GetSection("Storage")["QvSourceDocumentsPath"];
+
                 using (ApplicationDbContext Db = GetDbContext())
                 {
-                    bool MasterHierarchyRequested = false;
+                    bool MasterHierarchyHasBeenRequested = false;
 
                     foreach (SelectionGroup SelGrp in Db.SelectionGroup
                                                         .Where(g => g.RootContentItemId == JobDetail.Request.RootContentId)
                                                         .ToList())
                     {
-                        if (SelGrp.IsMaster && MasterHierarchyRequested)
+                        if (SelGrp.IsMaster && MasterHierarchyHasBeenRequested)
                         {
                             // Only handle IsMaster SelectionGroups once
-                            // TODO During go-live the master file will need to be associated with all IsMaster groups
                             continue;
                         }
 
-                        Guid TaskId = Guid.NewGuid();
-
-                        string QvSourceDocumentsPath = Configuration.ApplicationConfiguration.GetSection("Storage")["QvSourceDocumentsPath"];
-                        string TaskFolder = Path.Combine(QvSourceDocumentsPath, TaskId.ToString());
+                        Guid ReductionTaskId = Guid.NewGuid();
+                        string TaskFolder = Path.Combine(QvSourceDocumentsPath, ReductionTaskId.ToString());
                         Directory.CreateDirectory(TaskFolder);
 
-                        string DestinationFileName = $"{contentRelatedFile.FilePurpose}.Pub[{JobDetail.JobId.ToString()}].Content[{JobDetail.Request.RootContentId.ToString()}]{Path.GetExtension(contentRelatedFile.FullPath)}";
-                        string CopyDestination = Path.Combine(TaskFolder, DestinationFileName);
+                        string CopyDestination = Path.Combine(TaskFolder, Path.GetFileName(contentRelatedFile.FullPath));
                         File.Copy(contentRelatedFile.FullPath, CopyDestination, true);
 
                         ContentReductionTask NewTask = new ContentReductionTask
                         {
-                            Id = TaskId,
+                            Id = ReductionTaskId,
                             ApplicationUserId = JobDetail.Request.ApplicationUserId,
                             ContentPublicationRequestId = JobDetail.JobId,
                             CreateDateTimeUtc = DateTime.UtcNow,  // TODO later: Figure out how to avoid delay in starting the reduction task. 
@@ -269,13 +281,11 @@ namespace ContentPublishingLib.JobRunners
                         if (SelGrp.IsMaster)
                         {
                             NewTask.TaskAction = TaskActionEnum.HierarchyOnly;
-
-                            MasterHierarchyRequested = true;
+                            MasterHierarchyHasBeenRequested = true;
                         }
                         else
                         {
                             var SelectionHierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, SelGrp.Id);
-
                             NewTask.SelectionCriteria = SelectionHierarchy.SerializeJson();
                             NewTask.TaskAction = TaskActionEnum.HierarchyAndReduction;
                         }
@@ -284,11 +294,10 @@ namespace ContentPublishingLib.JobRunners
                         Db.SaveChanges();
                     }
                 }
-
             }
             else
             {
-                // TODO Set request status to completed?
+                // nothing to queue, but do not resolve publication request status here
             }
         }
     }
