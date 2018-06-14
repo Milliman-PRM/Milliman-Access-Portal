@@ -27,6 +27,7 @@ const cardLayout = {
         toggle: {},
         detailItem: {},
         user: {},
+        userCreate: {},
       },
       action: {},
       insert: {},
@@ -256,6 +257,32 @@ const components = Object.assign(
           );
           this.click(component, properties.callback, '.detail-item-user-remove');
           this.html(component, properties.text, '.detail-item-user-name');
+        };
+      },
+    },
+    userCreate: {
+      count: '1',
+      selector: '.detail-item-user-create',
+      html: [
+        '<span class="detail-item-user-create">',
+        '  <div class="detail-item-user-add">',
+        '    <div class="card-button-background card-button-add">',
+        '      <svg class="card-button-icon">',
+        '        <use href="#action-icon-add"></use>',
+        '      </svg>',
+        '    </div>',
+        '  </div>',
+        '  <div class="detail-item-user-input">',
+        '    <input />',
+        '  </div>',
+        '</span>',
+        '<stub />',
+      ].join(''),
+      render(component) {
+        return function(properties) {
+          this.add(component);
+          this.click(component, properties.addCallback, '.detail-item-user-add');
+          this.click(component, properties.inputCallback, '.detail-item-user-input');
         };
       },
     },
@@ -579,9 +606,6 @@ Card.prototype.click = function(component, value, selector) {
       event.preventDefault();
     }
     : value);
-  $component.mousedown((event) => {
-    event.preventDefault();
-  });
 };
 
 Card.prototype.tooltip = function(component, value, selector) {
@@ -862,13 +886,20 @@ export function SelectionGroupCard(
     this.addComponent('user', {
       callback: (event: Event) => {
         event.stopPropagation();
-        console.log(`Clicked user with ID "${member.Id}"`);
       },
       data: {},
       id: member.Id,
       text: member.Email,
     });
   }, this);
+  this.addComponent('userCreate', {
+    addCallback: (event: Event) => {
+      event.stopPropagation();
+    },
+    inputCallback: (event: Event) => {
+      event.stopPropagation();
+    },
+  });
   this.addComponent('status', {});
 
   this.data = {

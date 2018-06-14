@@ -68,9 +68,6 @@
           background-color: $blue;
         }
 
-        &[editing] {
-        }
-
         .card-body-main-container {
             position: relative;
             padding: .25em;
@@ -296,6 +293,7 @@
             }
 
             &.card-button-green,
+            &.card-button-add,
             &.card-button-new-child {
                 background-color: $green;
 
@@ -361,13 +359,16 @@
                 }
             }
 
-            .detail-item-user {
+            .detail-item-user,
+            .detail-item-user-create {
                 display: block;
 
-                .detail-item-user-remove {
+                .detail-item-user-remove,
+                .detail-item-user-add {
                     display: inline-block;
                 }
-                .detail-item-user-name {
+                .detail-item-user-name,
+                .detail-item-user-input {
                     display: inline-block;
                     padding: 0 .25em;
                 }
