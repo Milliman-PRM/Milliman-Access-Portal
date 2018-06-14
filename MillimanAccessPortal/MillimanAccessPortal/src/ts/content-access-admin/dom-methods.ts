@@ -19,10 +19,12 @@ import {
   collapseAllListener, del, expandAllListener, filterFormListener, filterTreeListener, get,
   hideButtonSpinner, post, showButtonSpinner, updateCardStatus, wrapCardCallback,
 } from '../shared';
-import { SelectionDetail } from '../view-models/content-access-admin';
+import {
+  RootContentItemDetail, RootContentItems, SelectionDetail, SelectionGroupDetail, SelectionGroups,
+} from '../view-models/content-access-admin';
 import {
   BasicNode, ClientSummary, ClientTree, ReductionField, ReductionFieldValueSelection,
-  RootContentItemList, RootContentItemSummary,
+  RootContentItemList, RootContentItemSummary, UserInfo,
 } from '../view-models/content-publishing';
 
 function updateSelectionGroupCount() {
@@ -42,7 +44,7 @@ function selectionGroupAddClickHandler() {
 }
 
 function selectionGroupDeleteClickHandler() {
-  new DeleteSelectionGroupDialog($(this).closest('.card-container'), del(
+  new DeleteSelectionGroupDialog($(this).closest('.card-container'), del<SelectionGroups>(
     'ContentAccessAdmin/DeleteSelectionGroup',
     'Selection group successfully deleted.',
     [
@@ -179,10 +181,10 @@ function renderSelections(response: SelectionDetail) {
       : () => undefined);
 }
 
-function renderSelectionGroup(selectionGroup) {
+function renderSelectionGroup(selectionGroup: SelectionGroupDetail) {
+  $('#root-content-items [selected]').parent().data('eligibleMembers', selectionGroup.MemberList);
   const $card = new SelectionGroupCard(
-    selectionGroup.SelectionGroupEntity,
-    selectionGroup.MemberList,
+    selectionGroup,
     wrapCardCallback(get(
       'ContentAccessAdmin/Selections',
       [
@@ -195,10 +197,11 @@ function renderSelectionGroup(selectionGroup) {
   updateCardStatus($card, selectionGroup.ReductionDetails);
   $('#selection-groups ul.admin-panel-content').append($card);
 }
-function renderSelectionGroupList(response, selectionGroupId?) {
+function renderSelectionGroupList(response: SelectionGroups, selectionGroupId?) {
   const $selectionGroupList = $('#selection-groups ul.admin-panel-content');
   $selectionGroupList.empty();
-  response.SelectionGroupList.forEach(renderSelectionGroup);
+  response.SelectionGroupList.forEach((selectionGroup) =>
+    renderSelectionGroup(selectionGroup));
   $selectionGroupList.find('.tooltip').tooltipster();
 
   $('#selection-groups .admin-panel-action-icons-container .action-icon-add')
@@ -209,11 +212,9 @@ function renderSelectionGroupList(response, selectionGroupId?) {
   }
 }
 
-function renderRootContentItem(item: RootContentItemSummary) {
+function renderRootContentItem(item: RootContentItemDetail) {
   const $rootContentItemCard = new RootContentItemCard(
     item,
-    item.GroupCount,
-    item.EligibleUserCount,
     wrapCardCallback(get(
       'ContentAccessAdmin/SelectionGroups',
       [
@@ -224,10 +225,10 @@ function renderRootContentItem(item: RootContentItemSummary) {
   updateCardStatus($rootContentItemCard, item.PublicationDetails);
   $('#root-content-items ul.admin-panel-content').append($rootContentItemCard);
 }
-function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: number) {
+function renderRootContentItemList(response: RootContentItems, rootContentItemId?: number) {
   const $rootContentItemList = $('#root-content-items ul.admin-panel-content');
   $rootContentItemList.empty();
-  response.SummaryList.forEach(renderRootContentItem);
+  response.RootContentItemList.forEach(renderRootContentItem);
   $rootContentItemList.find('.tooltip').tooltipster();
 
   if (!isNaN(rootContentItemId)) {

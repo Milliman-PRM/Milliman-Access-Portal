@@ -128,7 +128,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            Models.ContentAccessAdminViewModels.RootContentItemList model = Models.ContentAccessAdminViewModels.RootContentItemList.Build(DbContext, Client, await Queries.GetCurrentApplicationUser(User));
+            var model = ContentAccessAdminRootContentItemListViewModel.Build(DbContext, await Queries.GetCurrentApplicationUser(User), Client);
 
             return Json(model);
         }

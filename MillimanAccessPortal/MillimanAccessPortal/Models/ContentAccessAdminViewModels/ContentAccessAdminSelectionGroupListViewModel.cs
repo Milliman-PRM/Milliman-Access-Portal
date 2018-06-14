@@ -4,9 +4,12 @@
  * DEVELOPER NOTES:
  */
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
+using MillimanAccessPortal.Models.AccountViewModels;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
@@ -15,22 +18,22 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
         public List<ContentAccessAdminSelectionGroupDetailViewModel> SelectionGroupList = new List<ContentAccessAdminSelectionGroupDetailViewModel>();
         public long RelevantRootContentItemId { get; set; } = -1;
 
-        internal static ContentAccessAdminSelectionGroupListViewModel Build(ApplicationDbContext DbContext, RootContentItem RootContentItem)
+        internal static ContentAccessAdminSelectionGroupListViewModel Build(ApplicationDbContext dbContext, RootContentItem rootContentItem)
         {
-            ContentAccessAdminSelectionGroupListViewModel Model = new ContentAccessAdminSelectionGroupListViewModel();
+            var model = new ContentAccessAdminSelectionGroupListViewModel();
 
-            List<SelectionGroup> SelectionGroups = DbContext.SelectionGroup
-                .Where(sg => sg.RootContentItemId == RootContentItem.Id)
+            var selectionGroups = dbContext.SelectionGroup
+                .Where(sg => sg.RootContentItemId == rootContentItem.Id)
                 .ToList();
 
-            foreach (var SelectionGroup in SelectionGroups)
+            foreach (var selectionGroup in selectionGroups)
             {
-                Model.SelectionGroupList.Add(
-                    ContentAccessAdminSelectionGroupDetailViewModel.Build(DbContext, SelectionGroup)
+                model.SelectionGroupList.Add(
+                    ContentAccessAdminSelectionGroupDetailViewModel.Build(dbContext, selectionGroup)
                     );
             }
 
-            return Model;
+            return model;
         }
     }
 }

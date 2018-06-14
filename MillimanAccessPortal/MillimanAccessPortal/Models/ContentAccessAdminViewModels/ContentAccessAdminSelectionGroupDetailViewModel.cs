@@ -14,45 +14,47 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
     public class ContentAccessAdminSelectionGroupDetailViewModel
     {
-        public SelectionGroup SelectionGroupEntity { get; set; }
+        public long Id { get; set; }
+        public string Name { get; set; }
         public List<UserInfoViewModel> MemberList { get; set; } = new List<UserInfoViewModel>();
         public ReductionDetails ReductionDetails { get; set; }
 
-        internal static ContentAccessAdminSelectionGroupDetailViewModel Build(ApplicationDbContext DbContext, SelectionGroup SelectionGroup)
+        internal static ContentAccessAdminSelectionGroupDetailViewModel Build(ApplicationDbContext dbContext, SelectionGroup selectionGroup)
         {
-            var latestTask = DbContext.ContentReductionTask
-                    .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
+            var latestTask = dbContext.ContentReductionTask
+                    .Where(crt => crt.SelectionGroupId == selectionGroup.Id)
                     .OrderByDescending(crt => crt.CreateDateTimeUtc)
                     .FirstOrDefault();
-            ReductionDetails reductionDetails = ((ReductionDetails) latestTask);
+            var reductionDetails = ((ReductionDetails) latestTask);
 
-            ContentAccessAdminSelectionGroupDetailViewModel Model = new ContentAccessAdminSelectionGroupDetailViewModel
+            var model = new ContentAccessAdminSelectionGroupDetailViewModel
             {
-                SelectionGroupEntity = SelectionGroup,
+                Id = selectionGroup.Id,
+                Name = selectionGroup.GroupName,
                 ReductionDetails = reductionDetails,
             };
 
             // Retrieve users that are members of the specified selection group
-            List<ApplicationUser> MemberClients = DbContext.UserInSelectionGroup
-                .Where(usg => usg.SelectionGroupId == SelectionGroup.Id)
+            List<ApplicationUser> memberClients = dbContext.UserInSelectionGroup
+                .Where(usg => usg.SelectionGroupId == selectionGroup.Id)
                 .Select(usg => usg.User)
                 .ToList();
 
-            foreach (var MemberClient in MemberClients)
+            foreach (var memberClient in memberClients)
             {
-                UserInfoViewModel MemberModel = (UserInfoViewModel) MemberClient;
-                Model.MemberList.Add(MemberModel);
+                UserInfoViewModel memberModel = (UserInfoViewModel) memberClient;
+                model.MemberList.Add(memberModel);
             }
 
-            return Model;
+            return model;
         }
 
-        internal static ContentAccessAdminSelectionGroupDetailViewModel Build(long SelectionGroupId, ApplicationDbContext DbContext)
+        internal static ContentAccessAdminSelectionGroupDetailViewModel Build(long selectionGroupId, ApplicationDbContext dbContext)
         {
-            SelectionGroup SelectionGroup = DbContext.SelectionGroup
-                .Single(rci => rci.Id == SelectionGroupId);
+            SelectionGroup selectionGroup = dbContext.SelectionGroup
+                .Single(rci => rci.Id == selectionGroupId);
 
-            return Build(DbContext, SelectionGroup);
+            return Build(dbContext, selectionGroup);
         }
     }
 }

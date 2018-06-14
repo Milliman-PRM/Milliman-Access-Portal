@@ -379,8 +379,6 @@ function renderRootContentItem(item: RootContentItemSummary) {
   const $panel = $('#content-publishing-form');
   const $rootContentItemCard = new RootContentItemCard(
     item,
-    item.GroupCount,
-    item.EligibleUserCount,
     wrapCardCallback(get(
       'ContentPublishing/RootContentItemDetail',
       [

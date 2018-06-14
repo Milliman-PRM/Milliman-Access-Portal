@@ -313,6 +313,10 @@ export function hideButtonSpinner($buttons) {
   });
 }
 
+export function updateMemberList($memberCard: JQuery<HTMLElement>, $eligibleCard: JQuery<HTMLElement>) {
+  const $memberList = $memberCard.find('');
+}
+
 // Typeahead
 export function userSubstringMatcher(users: any) {
   return function findMatches(query: string, callback: (matches: any) => void) {

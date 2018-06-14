@@ -9,44 +9,55 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MillimanAccessPortal.Models.AccountViewModels;
 
 namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
 {
     public class ContentAccessAdminRootContentItemDetailViewModel
     {
-        public RootContentItem RootContentItemEntity { get; set; }
+        public long Id { get; set; }
+        public string ContentName { get; set; }
+        public string ContentTypeName { get; set; }
         public int GroupCount { get; set; }
-        public int EligibleUserCount { get; set; }
+        public List<UserInfoViewModel> EligibleUserList = new List<UserInfoViewModel>();
         public PublicationDetails PublicationDetails { get; set; }
 
-        internal static ContentAccessAdminRootContentItemDetailViewModel Build(ApplicationDbContext DbContext, RootContentItem RootContentItem)
+        internal static ContentAccessAdminRootContentItemDetailViewModel Build(ApplicationDbContext dbContext, RootContentItem rootContentItem)
         {
-            if (RootContentItem.ContentType == null)
+            if (rootContentItem.ContentType == null)
             {
-                RootContentItem.ContentType = DbContext.ContentType.Find(RootContentItem.ContentTypeId);
+                rootContentItem.ContentType = dbContext.ContentType.Find(rootContentItem.ContentTypeId);
             }
 
-            var latestPublication = DbContext.ContentPublicationRequest
-                .Where(crt => crt.RootContentItemId == RootContentItem.Id)
+            var latestPublication = dbContext.ContentPublicationRequest
+                .Where(crt => crt.RootContentItemId == rootContentItem.Id)
                 .OrderByDescending(crt => crt.CreateDateTimeUtc)
                 .FirstOrDefault();
             PublicationDetails publicationDetails = (PublicationDetails) latestPublication;
 
-            ContentAccessAdminRootContentItemDetailViewModel Model = new ContentAccessAdminRootContentItemDetailViewModel
+            var model = new ContentAccessAdminRootContentItemDetailViewModel
             {
-                RootContentItemEntity = RootContentItem,
-                GroupCount = DbContext.SelectionGroup
-                    .Where(sg => sg.RootContentItemId == RootContentItem.Id)
-                    .Count(),
-                EligibleUserCount = DbContext.UserRoleInRootContentItem
-                    // TODO: Qualify with required role/membership in client
-                    .Where(ur => ur.RootContentItemId == RootContentItem.Id)
-                    .Where(ur => ur.RoleId == ((long)RoleEnum.ContentUser))
+                Id = rootContentItem.Id,
+                ContentName = rootContentItem.ContentName,
+                ContentTypeName = rootContentItem.ContentType.Name,
+                GroupCount = dbContext.SelectionGroup
+                    .Where(sg => sg.RootContentItemId == rootContentItem.Id)
                     .Count(),
                 PublicationDetails = publicationDetails,
             };
 
-            return Model;
+            var eligibleUsers = dbContext.UserRoleInRootContentItem
+                .Where(role => role.RootContentItemId == rootContentItem.Id)
+                .Where(role => role.Role.RoleEnum == RoleEnum.ContentUser)
+                .Select(role => role.User)
+                .ToList();
+            foreach (var eligibleUser in eligibleUsers)
+            {
+                var user = ((UserInfoViewModel) eligibleUser);
+                model.EligibleUserList.Add(user);
+            }
+
+            return model;
         }
 
         internal static ContentAccessAdminRootContentItemDetailViewModel Build(long RootContentId, ApplicationDbContext DbContext)

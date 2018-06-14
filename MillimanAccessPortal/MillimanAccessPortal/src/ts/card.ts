@@ -1,4 +1,6 @@
-import shared = require('./shared');
+import * as shared from './shared';
+import { RootContentItemDetail, SelectionGroupDetail } from './view-models/content-access-admin';
+import { RootContentItemSummary, UserInfo } from './view-models/content-publishing';
 
 const card = {};
 
@@ -777,22 +779,22 @@ ClientCard.prototype = Object.create(Card.prototype);
 ClientCard.prototype.constructor = ClientCard;
 
 export function RootContentItemCard(
-  rootContentItem, groupCount, userCount,
+  rootContentItemDetail: any,
   callback, publishCallback?, deleteCallback?, cancelCallback?, goLiveCallback?,
 ) {
   Card.call(this);
 
-  this.addComponent('primaryText', { text: rootContentItem.ContentName });
-  this.addComponent('secondaryText', { text: rootContentItem.ContentTypeName });
+  this.addComponent('primaryText', { text: rootContentItemDetail.ContentName });
+  this.addComponent('secondaryText', { text: rootContentItemDetail.ContentTypeName });
   this.addComponent('statistic', {
     icon: 'users',
     tooltip: 'Selection groups',
-    value: groupCount,
+    value: rootContentItemDetail.GroupCount,
   });
   this.addComponent('statistic', {
     icon: 'user',
     tooltip: 'Eligible users',
-    value: userCount,
+    value: rootContentItemDetail.EligibleUserList.length,
   });
   this.addComponent('button', {
     callback: deleteCallback,
@@ -824,11 +826,12 @@ export function RootContentItemCard(
   this.addComponent('status', {});
 
   this.data = {
+    'eligible-list': JSON.stringify(rootContentItemDetail.EligibleUserList),
     'filter-string': [
-      rootContentItem.ContentName,
-      rootContentItem.ContentTypeName,
+      rootContentItemDetail.ContentName,
+      rootContentItemDetail.ContentTypeName,
     ].join('|').toUpperCase(),
-    'root-content-item-id': rootContentItem.Id,
+    'root-content-item-id': rootContentItemDetail.Id,
   };
 
   this.callback = callback;
@@ -849,22 +852,23 @@ FileUploadCard.prototype = Object.create(Card.prototype);
 FileUploadCard.prototype.constructor = FileUploadCard;
 
 export function SelectionGroupCard(
-  selectionGroup, members,
+  selectionGroup: SelectionGroupDetail,
   callback, deleteCallback, userCallback,
 ) {
   Card.call(this);
 
-  const memberInfo = $.map(members, function toString(member) {
+  const self = this;
+  const memberInfo = $.map(selectionGroup.MemberList, function toString(member) {
     return [member.FirstName + ' ' + member.LastName, member.Email, member.UserName];
   }).reduce(function concat(acc, cur) {
     return acc.concat(cur);
   }, []);
 
-  this.addComponent('primaryText', { text: selectionGroup.GroupName });
+  this.addComponent('primaryText', { text: selectionGroup.Name });
   this.addComponent('statistic', {
     icon: 'users',
     tooltip: 'Members',
-    value: members.length,
+    value: selectionGroup.MemberList.length,
   });
   this.addComponent('button', {
     callback: deleteCallback,
@@ -879,13 +883,33 @@ export function SelectionGroupCard(
     tooltip: 'Add/remove users',
   });
   this.addComponent('statistics', { click: shared.toggleExpandedListener });
-  if (members.length) {
+  if (selectionGroup.MemberList.length) {
     this.addComponent('detailText', { text: 'Members' });
   }
-  members.forEach(function(member) {
+  selectionGroup.MemberList.forEach(function(member) {
     this.addComponent('user', {
       callback: (event: Event) => {
         event.stopPropagation();
+        const assignment = {};
+        assignment[member.Id] = false;
+        shared.put<SelectionGroupDetail>(
+          'ContentAccessAdmin/UpdateSelectionGroupUserAssignments/',
+          `Removed ${member.Email} from selection group ${selectionGroup.Name}.`,
+          [
+            (response) => {
+              self.attr('card', toAttr({
+                'member-list': JSON.stringify(response.MemberList),
+              }));
+            },
+          ],
+        )(
+          {
+            SelectionGroupId: selectionGroup.Id,
+            UserAssignments: assignment,
+          },
+          () => undefined,
+          'Removing',
+        );
       },
       data: {},
       id: member.Id,
@@ -903,7 +927,8 @@ export function SelectionGroupCard(
   this.addComponent('status', {});
 
   this.data = {
-    'filter-string': memberInfo.concat([selectionGroup.GroupName]).join('|').toUpperCase(),
+    'filter-string': memberInfo.concat([selectionGroup.Name]).join('|').toUpperCase(),
+    'member-list': JSON.stringify(selectionGroup.MemberList),
     'selection-group-id': selectionGroup.Id,
   };
 
