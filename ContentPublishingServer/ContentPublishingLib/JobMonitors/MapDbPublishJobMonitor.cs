@@ -266,8 +266,11 @@ namespace ContentPublishingLib.JobMonitors
                             DbRequest.RequestStatus = PublicationStatus.Error;
                             break;
                         case PublishJobDetail.JobStatusEnum.Success:
-                            DbRequest.RequestStatus = PublicationStat us.Processed;
-                            DbRequest.ResultingFiles = JobDetail.Resu lt.ResultingRelatedFiles;
+                            DbRequest.RequestStatus = PublicationStatus.Processed;
+                            DbRequest.ReductionRelatedFilesObj = new List<ReductionRelatedFiles>
+                            {
+                                new ReductionRelatedFiles{ MasterContentFile = JobDetail.Request.MasterContentFile, ReducedContentFileList = JobDetail.Result.ResultingRelatedFiles }
+                            };
                             break;
                         case PublishJobDetail.JobStatusEnum.Canceled:
                             DbRequest.RequestStatus = PublicationStatus.Canceled;

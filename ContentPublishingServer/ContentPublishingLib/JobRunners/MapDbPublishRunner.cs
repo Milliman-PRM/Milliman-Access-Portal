@@ -259,20 +259,13 @@ namespace ContentPublishingLib.JobRunners
                             continue;
                         }
 
-                        Guid ReductionTaskId = Guid.NewGuid();
-                        string TaskFolder = Path.Combine(QvSourceDocumentsPath, ReductionTaskId.ToString());
-                        Directory.CreateDirectory(TaskFolder);
-
-                        string CopyDestination = Path.Combine(TaskFolder, Path.GetFileName(contentRelatedFile.FullPath));
-                        File.Copy(contentRelatedFile.FullPath, CopyDestination, true);
-
                         ContentReductionTask NewTask = new ContentReductionTask
                         {
-                            Id = ReductionTaskId,
+                            //Id = Guid.NewGuid(),
                             ApplicationUserId = JobDetail.Request.ApplicationUserId,
                             ContentPublicationRequestId = JobDetail.JobId,
                             CreateDateTimeUtc = DateTime.UtcNow,  // TODO later: Figure out how to avoid delay in starting the reduction task. 
-                            MasterFilePath = CopyDestination,
+                            MasterFilePath = contentRelatedFile.FullPath,
                             MasterContentChecksum = contentRelatedFile.Checksum,
                             ReductionStatus = ReductionStatusEnum.Queued,
                             SelectionGroupId = SelGrp.Id,
