@@ -396,6 +396,20 @@ export function userSubstringMatcher(users: any) {
   };
 }
 
+export function eligibleUserMatcher(query: string, callback: (matches: any) => void) {
+  const allEligibleUsers = $('#root-content-items [selected]').parent().data().eligibleList as UserInfo[];
+  const assignedUsers = $('#selection-groups .admin-panel-content .card-container').toArray()
+    .map((card) => $(card).data().memberList)
+    .reduce((cum: UserInfo[], cur: UserInfo[]) => cum.concat(cur), []) as UserInfo[];
+  const eligibleUsers = allEligibleUsers.filter((eligibleUser) =>
+    assignedUsers.filter((assignedUser) => eligibleUser.Id === assignedUser.Id).length === 0);
+
+  const regex = new RegExp(query, 'i');
+  callback(eligibleUsers.filter((user) =>
+    [user.Email, user.UserName, `${user.FirstName} ${user.LastName}`].filter((text) =>
+      regex.test(text)).length > 0));
+}
+
 // Card helpers
 // TODO: consider moving to card.js
 export function updateCardStatus($card, reductionDetails) {

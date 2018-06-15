@@ -915,7 +915,10 @@ export function SelectionGroupCard(
   }, this);
   this.addComponent('userCreate', {
     addCallback: (event: Event) => {
-      event.stopPropagation();
+      const data = $(event.target)
+        .closest('.detail-item-user-create').find('.tt-input')
+        .val();
+      console.log(`Creating user ${data}...`);
     },
     inputCallback: (event: Event) => {
       event.stopPropagation();
@@ -940,7 +943,7 @@ export function SelectionGroupCard(
       },
       {
         name: 'eligibleUsers',
-        source: shared.userSubstringMatcher(eligibleUsers),
+        source: shared.eligibleUserMatcher,
         display(data: UserInfo) {
           return data.UserName;
         },
