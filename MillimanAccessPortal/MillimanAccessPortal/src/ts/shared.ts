@@ -314,7 +314,11 @@ export function hideButtonSpinner($buttons) {
   });
 }
 
-export function updateMemberList($memberCard: JQuery<HTMLElement>, $eligibleCard: JQuery<HTMLElement>) {
+export function updateMemberList(
+  $memberCard: JQuery<HTMLElement>,
+  $eligibleCard: JQuery<HTMLElement>,
+  selectionGroup: SelectionGroupSummary,
+) {
   const $memberList = $memberCard.find('.detail-item-user-list');
 
   $memberList.empty();
@@ -322,7 +326,8 @@ export function updateMemberList($memberCard: JQuery<HTMLElement>, $eligibleCard
   const eligibleList = $eligibleCard.data().eligibleList as UserInfo[];
 
   eligibleList.filter((eligible) =>
-      memberList.filter((member) => eligible.Id === member.Id).length === 0)
+      memberList.filter((member) => eligible.Id === member.Id).length === 0);
+  memberList
     .forEach((user) => {
       const $li = $([
         '<li>',
@@ -338,9 +343,11 @@ export function updateMemberList($memberCard: JQuery<HTMLElement>, $eligibleCard
         '  </span>',
         '</li>',
       ].join(''));
+      $li.find('.detail-item-user-remove').click((event) =>
+        removeUserFromSelectionGroup(event, user, selectionGroup));
       $memberList.append($li);
     });
-  $memberList.find('.detail-item-user-remove').click(removeUserFromSelectionGroup);
+  $memberCard.find('.card-stat-value').html(memberList.length.toString());
 }
 
 export function removeUserFromSelectionGroup(event, member: UserInfo, selectionGroup: SelectionGroupSummary) {
@@ -353,10 +360,11 @@ export function removeUserFromSelectionGroup(event, member: UserInfo, selectionG
     `Removed ${member.Email} from selection group ${selectionGroup.Name}.`,
     [
       (response) => {
-        $selectionGroup.attr('data-member-list', JSON.stringify(response.MemberList));
+        $selectionGroup.data('memberList', response.MemberList);
         updateMemberList(
           $selectionGroup,
           $('#root-content-items [selected]').parent(),
+          selectionGroup,
         );
       },
     ],

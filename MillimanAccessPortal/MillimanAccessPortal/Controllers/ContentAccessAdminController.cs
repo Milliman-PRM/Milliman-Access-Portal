@@ -397,7 +397,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            SelectionGroupList Model = SelectionGroupList.Build(DbContext, SelectionGroup.RootContentItem);
+            var Model = Models.ContentAccessAdmin.SelectionGroupSummary.Build(DbContext, SelectionGroup);
 
             return Json(Model);
         }
