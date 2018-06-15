@@ -289,7 +289,7 @@ const components = Object.assign(
         '    </div>',
         '  </div>',
         '  <div class="detail-item-user-input">',
-        '    <input />',
+        '    <input class="typeahead" name="username" placeholder="Add user" required />',
         '  </div>',
         '</span>',
         '<stub />',
@@ -599,6 +599,9 @@ Card.prototype.build = function() {
     this.click('body', this.callback);
   }
   this.$representation.find('stub').remove();
+  if (Object.hasOwnProperty.call(this, 'afterBuild')) {
+    this.afterBuild();
+  }
   return this.$representation;
 };
 
@@ -867,6 +870,7 @@ FileUploadCard.prototype.constructor = FileUploadCard;
 
 export function SelectionGroupCard(
   selectionGroup: SelectionGroupSummary,
+  eligibleUsers: UserInfo[],
   callback, deleteCallback, userCallback,
 ) {
   Card.call(this);
@@ -926,6 +930,38 @@ export function SelectionGroupCard(
   };
 
   this.callback = callback;
+
+  this.afterBuild = () => {
+    this.$representation.find('.typeahead').typeahead(
+      {
+        highlight: true,
+        hint: true,
+        minLength: 1,
+      },
+      {
+        name: 'eligibleUsers',
+        source: shared.userSubstringMatcher(eligibleUsers),
+        display(data: UserInfo) {
+          return data.UserName;
+        },
+        templates: {
+          suggestion(data: UserInfo) {
+            return [
+              '<div>',
+              data.UserName + '',
+              (data.UserName !== data.Email)
+                ? '<br /> ' + data.Email
+                : '',
+              (data.FirstName && data.LastName)
+                ? '<br /><span class="secondary-text">' + data.FirstName + ' ' + data.LastName + '</span>'
+                : '',
+              '</div>',
+            ].join('');
+          },
+        },
+      },
+    ).focus();
+  };
 }
 SelectionGroupCard.prototype = Object.create(Card.prototype);
 SelectionGroupCard.prototype.constructor = SelectionGroupCard;

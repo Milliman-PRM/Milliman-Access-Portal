@@ -329,7 +329,8 @@
             cursor: default;
 
             &[maximized] {
-                max-height: 15.5em;
+                max-height: 150em;
+                overflow: visible;
                 transition: .25s all linear;
 
                 .card-button-expansion {
@@ -378,8 +379,9 @@
             }
 
             .detail-item-user-create {
-                display: block;
+                display: inline-block;
                 margin-bottom: 1.25em;
+                white-space: nowrap;
 
                 .detail-item-user-add {
                     display: inline-block;
@@ -387,6 +389,7 @@
                 .detail-item-user-input {
                     display: inline-block;
                     padding: 0 .25em;
+                    width: 100%;
                 }
             }
         }

@@ -4,9 +4,10 @@ import 'tooltipster';
 import 'tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css';
 import 'tooltipster/src/css/tooltipster.css';
 import 'vex-js';
-import '../../scss/map.scss';
 import '../lib-options';
 import '../navbar';
+
+import '../../scss/map.scss';
 
 import * as $ from 'jquery';
 import * as toastr from 'toastr';
@@ -185,6 +186,7 @@ function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
   $('#root-content-items [selected]').parent().data('eligibleMembers', selectionGroup.MemberList);
   const $card = new SelectionGroupCard(
     selectionGroup,
+    $('#root-content-items [selected]').parent().data().eligibleList,
     wrapCardCallback(get(
       'ContentAccessAdmin/Selections',
       [
