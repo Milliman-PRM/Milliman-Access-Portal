@@ -10,24 +10,24 @@ using MillimanAccessPortal.Models.AccountViewModels;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
+namespace MillimanAccessPortal.Models.ContentAccessAdmin
 {
-    public class ContentAccessAdminSelectionGroupDetailViewModel
+    public class SelectionGroupSummary
     {
         public long Id { get; set; }
         public string Name { get; set; }
         public List<UserInfoViewModel> MemberList { get; set; } = new List<UserInfoViewModel>();
-        public ReductionDetails ReductionDetails { get; set; }
+        public ReductionSummary ReductionDetails { get; set; }
 
-        internal static ContentAccessAdminSelectionGroupDetailViewModel Build(ApplicationDbContext dbContext, SelectionGroup selectionGroup)
+        internal static SelectionGroupSummary Build(ApplicationDbContext dbContext, SelectionGroup selectionGroup)
         {
             var latestTask = dbContext.ContentReductionTask
                     .Where(crt => crt.SelectionGroupId == selectionGroup.Id)
                     .OrderByDescending(crt => crt.CreateDateTimeUtc)
                     .FirstOrDefault();
-            var reductionDetails = ((ReductionDetails) latestTask);
+            var reductionDetails = ((ReductionSummary) latestTask);
 
-            var model = new ContentAccessAdminSelectionGroupDetailViewModel
+            var model = new SelectionGroupSummary
             {
                 Id = selectionGroup.Id,
                 Name = selectionGroup.GroupName,
@@ -49,7 +49,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
             return model;
         }
 
-        internal static ContentAccessAdminSelectionGroupDetailViewModel Build(long selectionGroupId, ApplicationDbContext dbContext)
+        internal static SelectionGroupSummary Build(long selectionGroupId, ApplicationDbContext dbContext)
         {
             SelectionGroup selectionGroup = dbContext.SelectionGroup
                 .Single(rci => rci.Id == selectionGroupId);

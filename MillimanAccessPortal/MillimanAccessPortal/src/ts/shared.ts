@@ -3,7 +3,8 @@ import * as toastr from 'toastr';
 
 import { Dialog, DiscardConfirmationDialog, ResetConfirmationDialog } from './dialog';
 import { FormBase } from './form/form-base';
-import { PublicationStatus } from './view-models/content-publishing';
+import { SelectionGroupSummary } from './view-models/content-access-admin';
+import { PublicationStatus, UserInfo } from './view-models/content-publishing';
 
 const SHOW_DURATION = 50;
 const ajaxStatus = [];
@@ -314,7 +315,59 @@ export function hideButtonSpinner($buttons) {
 }
 
 export function updateMemberList($memberCard: JQuery<HTMLElement>, $eligibleCard: JQuery<HTMLElement>) {
-  const $memberList = $memberCard.find('');
+  const $memberList = $memberCard.find('.detail-item-user-list');
+
+  $memberList.empty();
+  const memberList = $memberCard.data().memberList as UserInfo[];
+  const eligibleList = $eligibleCard.data().eligibleList as UserInfo[];
+
+  eligibleList.filter((eligible) =>
+      memberList.filter((member) => eligible.Id === member.Id).length === 0)
+    .forEach((user) => {
+      const $li = $([
+        '<li>',
+        `  <span class="detail-item-user" data-user-id="${user.Id}">`,
+        '    <div class="detail-item-user-remove">',
+        '      <div class="card-button-background card-button-delete">',
+        '        <svg class="card-button-icon">',
+        '          <use href="#action-icon-delete"></use>',
+        '        </svg>',
+        '      </div>',
+        '    </div>',
+        `    <div class="detail-item-user-name">${user.Email}</div>`,
+        '  </span>',
+        '</li>',
+      ].join(''));
+      $memberList.append($li);
+    });
+  $memberList.find('.detail-item-user-remove').click(removeUserFromSelectionGroup);
+}
+
+export function removeUserFromSelectionGroup(event, member: UserInfo, selectionGroup: SelectionGroupSummary) {
+  event.stopPropagation();
+  const assignment = {};
+  assignment[member.Id] = false;
+  const $selectionGroup = $(`#selection-groups [data-selection-group-id="${selectionGroup.Id}"]`);
+  put<SelectionGroupSummary>(
+    'ContentAccessAdmin/UpdateSelectionGroupUserAssignments/',
+    `Removed ${member.Email} from selection group ${selectionGroup.Name}.`,
+    [
+      (response) => {
+        $selectionGroup.attr('data-member-list', JSON.stringify(response.MemberList));
+        updateMemberList(
+          $selectionGroup,
+          $('#root-content-items [selected]').parent(),
+        );
+      },
+    ],
+  )(
+    {
+      SelectionGroupId: selectionGroup.Id,
+      UserAssignments: assignment,
+    },
+    () => undefined,
+    'Removing',
+  );
 }
 
 // Typeahead

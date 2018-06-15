@@ -19,7 +19,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
-using MillimanAccessPortal.Models.ContentAccessAdminViewModels;
+using MillimanAccessPortal.Models.ContentAccessAdmin;
 using MillimanAccessPortal.Models.ContentPublishing;
 using Newtonsoft.Json;
 using System;
@@ -94,7 +94,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            ClientTree model = await ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
+            ClientTree model = await ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, RoleEnum.ContentAccessAdmin);
 
             return Json(model);
         }
@@ -128,7 +128,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            var model = ContentAccessAdminRootContentItemListViewModel.Build(DbContext, await Queries.GetCurrentApplicationUser(User), Client);
+            var model = RootContentItemList.Build(DbContext, Client, await Queries.GetCurrentApplicationUser(User), RoleEnum.ContentAccessAdmin);
 
             return Json(model);
         }
@@ -162,7 +162,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            ContentAccessAdminSelectionGroupListViewModel Model = ContentAccessAdminSelectionGroupListViewModel.Build(DbContext, RootContentItem);
+            SelectionGroupList Model = SelectionGroupList.Build(DbContext, RootContentItem);
 
             return Json(Model);
         }
@@ -243,7 +243,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(SelectionGroupCreatedEvent);
             #endregion
 
-            ContentAccessAdminSelectionGroupDetailViewModel Model = ContentAccessAdminSelectionGroupDetailViewModel.Build(DbContext, SelectionGroup);
+            Models.ContentAccessAdmin.SelectionGroupSummary Model = Models.ContentAccessAdmin.SelectionGroupSummary.Build(DbContext, SelectionGroup);
 
             return Json(Model);
         }
@@ -397,7 +397,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ContentAccessAdminSelectionGroupListViewModel Model = ContentAccessAdminSelectionGroupListViewModel.Build(DbContext, SelectionGroup.RootContentItem);
+            SelectionGroupList Model = SelectionGroupList.Build(DbContext, SelectionGroup.RootContentItem);
 
             return Json(Model);
         }
@@ -505,7 +505,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(SelectionGroupDeletedEvent);
             #endregion
 
-            ContentAccessAdminSelectionGroupListViewModel Model = ContentAccessAdminSelectionGroupListViewModel.Build(DbContext, SelectionGroup.RootContentItem);
+            SelectionGroupList Model = SelectionGroupList.Build(DbContext, SelectionGroup.RootContentItem);
 
             return Json(Model);
         }
@@ -539,7 +539,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            ContentAccessAdminSelectionsDetailViewModel Model = ContentAccessAdminSelectionsDetailViewModel.Build(DbContext, Queries, SelectionGroup);
+            SelectionsDetail Model = SelectionsDetail.Build(DbContext, Queries, SelectionGroup);
 
             return Json(Model);
         }
@@ -676,7 +676,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(selectionChangeReductionQueuedEvent);
             #endregion
 
-            ContentAccessAdminSelectionsDetailViewModel model = ContentAccessAdminSelectionsDetailViewModel.Build(DbContext, Queries, selectionGroup);
+            SelectionsDetail model = SelectionsDetail.Build(DbContext, Queries, selectionGroup);
 
             return Json(model);
         }
@@ -762,7 +762,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(SelectionChangeReductionCanceledEvent);
             #endregion
 
-            ContentAccessAdminSelectionsDetailViewModel Model = ContentAccessAdminSelectionsDetailViewModel.Build(DbContext, Queries, SelectionGroup);
+            SelectionsDetail Model = SelectionsDetail.Build(DbContext, Queries, SelectionGroup);
 
             return Json(Model);
         }

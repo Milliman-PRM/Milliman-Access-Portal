@@ -1,5 +1,5 @@
 import * as shared from './shared';
-import { RootContentItemDetail, SelectionGroupDetail } from './view-models/content-access-admin';
+import { SelectionGroupSummary } from './view-models/content-access-admin';
 import { RootContentItemSummary, UserInfo } from './view-models/content-publishing';
 
 const card = {};
@@ -28,7 +28,9 @@ const cardLayout = {
         detailText: {},
         toggle: {},
         detailItem: {},
-        user: {},
+        userList: {
+          user: {},
+        },
         userCreate: {},
       },
       action: {},
@@ -228,20 +230,37 @@ const components = Object.assign(
         };
       },
     },
+    userList: {
+      count: '1',
+      selector: '.detail-item-user-list',
+      html: [
+        '<ul class="detail-item-user-list">',
+        '  <stub />',
+        '</ul>',
+        '<stub />',
+      ].join(''),
+      render(component) {
+        return function(properties) {
+          this.verify(component);
+        };
+      },
+    },
     user: {
       count: '*',
       selector: '.detail-item-user',
       html: [
-        '<span class="detail-item-user">',
-        '  <div class="detail-item-user-remove">',
-        '    <div class="card-button-background card-button-delete">',
-        '      <svg class="card-button-icon">',
-        '        <use href="#action-icon-delete"></use>',
-        '      </svg>',
+        '<li>',
+        '  <span class="detail-item-user">',
+        '    <div class="detail-item-user-remove">',
+        '      <div class="card-button-background card-button-delete">',
+        '        <svg class="card-button-icon">',
+        '          <use href="#action-icon-delete"></use>',
+        '        </svg>',
+        '      </div>',
         '    </div>',
-        '  </div>',
-        '  <div class="detail-item-user-name"></div>',
-        '</span>',
+        '    <div class="detail-item-user-name"></div>',
+        '  </span>',
+        '</li>',
         '<stub />',
       ].join(''),
       render(component) {
@@ -249,12 +268,7 @@ const components = Object.assign(
           this.add(component);
           this.attr(
             component,
-            Object.assign(
-              {
-                id: properties.id,
-              },
-              toAttr(properties.data),
-            ),
+            toAttr(properties.data),
             '.detail-item-user',
           );
           this.click(component, properties.callback, '.detail-item-user-remove');
@@ -852,7 +866,7 @@ FileUploadCard.prototype = Object.create(Card.prototype);
 FileUploadCard.prototype.constructor = FileUploadCard;
 
 export function SelectionGroupCard(
-  selectionGroup: SelectionGroupDetail,
+  selectionGroup: SelectionGroupSummary,
   callback, deleteCallback, userCallback,
 ) {
   Card.call(this);
@@ -888,31 +902,10 @@ export function SelectionGroupCard(
   }
   selectionGroup.MemberList.forEach(function(member) {
     this.addComponent('user', {
-      callback: (event: Event) => {
-        event.stopPropagation();
-        const assignment = {};
-        assignment[member.Id] = false;
-        shared.put<SelectionGroupDetail>(
-          'ContentAccessAdmin/UpdateSelectionGroupUserAssignments/',
-          `Removed ${member.Email} from selection group ${selectionGroup.Name}.`,
-          [
-            (response) => {
-              self.attr('card', toAttr({
-                'member-list': JSON.stringify(response.MemberList),
-              }));
-            },
-          ],
-        )(
-          {
-            SelectionGroupId: selectionGroup.Id,
-            UserAssignments: assignment,
-          },
-          () => undefined,
-          'Removing',
-        );
+      callback: (event) => shared.removeUserFromSelectionGroup(event, member, selectionGroup),
+      data: {
+        'user-id': member.Id,
       },
-      data: {},
-      id: member.Id,
       text: member.Email,
     });
   }, this);

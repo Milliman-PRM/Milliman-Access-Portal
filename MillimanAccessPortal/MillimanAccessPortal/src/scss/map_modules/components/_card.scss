@@ -359,22 +359,34 @@
                 }
             }
 
-            .detail-item-user,
+            ul {
+                list-style-type: none;
+                margin: 0;
+                padding: 0;
+
+                .detail-item-user {
+                    display: block;
+
+                    .detail-item-user-remove {
+                        display: inline-block;
+                    }
+                    .detail-item-user-name {
+                        display: inline-block;
+                        padding: 0 .25em;
+                    }
+                }
+            }
+
             .detail-item-user-create {
                 display: block;
+                margin-bottom: 1.25em;
 
-                .detail-item-user-remove,
                 .detail-item-user-add {
                     display: inline-block;
                 }
-                .detail-item-user-name,
                 .detail-item-user-input {
                     display: inline-block;
                     padding: 0 .25em;
-                }
-
-                &:last-of-type {
-                    margin-bottom: 1.25em;
                 }
             }
         }

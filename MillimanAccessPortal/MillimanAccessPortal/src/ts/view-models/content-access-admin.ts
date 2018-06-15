@@ -14,39 +14,26 @@ export enum ReductionStatus {
   Live = 40,
   Error = 90,
 }
-export interface ReductionDetails {
+export interface ReductionSummary {
   User: UserInfo;
   StatusEnum: ReductionStatus;
   StatusName: string;
   SelectionGroupId: number;
   RootContentItemId?: number;
 }
-export interface SelectionDetail {
+export interface SelectionsDetail {
   Hierarchy: ContentReductionHierarchy<ReductionFieldValueSelection>;
   OriginalSelections: number[];
-  ReductionDetails: ReductionDetails;
+  ReductionDetails: ReductionSummary;
 }
 
-export interface SelectionGroupDetail {
+export interface SelectionGroupSummary {
   Id: number;
   Name: string;
   MemberList: UserInfo[];
-  ReductionDetails: ReductionDetails;
+  ReductionDetails: ReductionSummary;
 }
-export interface SelectionGroups {
-  SelectionGroupList: SelectionGroupDetail[];
+export interface SelectionGroupList {
+  SelectionGroups: SelectionGroupSummary[];
   RelevantRootContentItemId: number;
-}
-
-export interface RootContentItems {
-  RootContentItemList: RootContentItemDetail[];
-  RelevantRootContentItemId: number;
-}
-export interface RootContentItemDetail {
-  Id: number;
-  Name: string;
-  TypeName: string;
-  GroupCount: number;
-  EligibleUserList: UserInfo[];
-  PublicationDetails: PublicationDetails;
 }
