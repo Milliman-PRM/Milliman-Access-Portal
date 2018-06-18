@@ -1,3 +1,5 @@
+import * as toastr from 'toastr';
+
 import * as shared from './shared';
 import { SelectionGroupSummary } from './view-models/content-access-admin';
 import { RootContentItemSummary, UserInfo } from './view-models/content-publishing';
@@ -915,10 +917,28 @@ export function SelectionGroupCard(
   }, this);
   this.addComponent('userCreate', {
     addCallback: (event: Event) => {
-      const data = $(event.target)
-        .closest('.detail-item-user-create').find('.tt-input')
-        .val();
-      console.log(`Creating user ${data}...`);
+      event.stopPropagation();
+      const $ttInput = $(event.target)
+        .closest('.detail-item-user-create').find('.tt-input');
+      const data = $ttInput.val();
+      $.post({
+        data: {
+          SelectionGroupId: $ttInput.closest('.card-container').data().selectionGroupId,
+          email: data,
+        },
+        headers: {
+          RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
+        },
+        url: 'ContentAccessAdmin/AddUserToSelectionGroup/',
+      }).done((response) => {
+        shared.addUserToSelectionGroup(response);
+        $ttInput.typeahead('val', '');
+        $ttInput.focus();
+        toastr.success(`Added ${data} to selection group ${selectionGroup.Name}.`);
+      }).fail((response) => {
+        toastr.warning(response.getResponseHeader('Warning')
+          || 'An unknown error has occurred.');
+      });
     },
     inputCallback: (event: Event) => {
       event.stopPropagation();

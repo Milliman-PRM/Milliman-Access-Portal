@@ -377,6 +377,16 @@ export function removeUserFromSelectionGroup(event, member: UserInfo, selectionG
     'Removing',
   );
 }
+export function addUserToSelectionGroup(selectionGroup: SelectionGroupSummary) {
+  event.stopPropagation();
+  const $selectionGroup = $(`#selection-groups [data-selection-group-id="${selectionGroup.Id}"]`);
+  $selectionGroup.data('memberList', selectionGroup.MemberList);
+  updateMemberList(
+    $selectionGroup,
+    $('#root-content-items [selected]').parent(),
+    selectionGroup,
+  );
+}
 
 // Typeahead
 export function userSubstringMatcher(users: any) {

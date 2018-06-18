@@ -248,6 +248,29 @@ namespace MillimanAccessPortal.Controllers
             return Json(Model);
         }
 
+        /// <summary>
+        /// Adds a single user by email to a selection group.
+        /// </summary>
+        /// <remarks>This is a temporary helper action to be used until content access admin is rewritten in React.</remarks>
+        /// <param name="SelectionGroupId">The selection group to be updated.</param>
+        /// <param name="email">The email of the user to add.</param>
+        /// <returns>Ok, or UnprocessableEntity if a user with the provided email does not exist.</returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddUserToSelectionGroup(long SelectionGroupId, string email)
+        {
+            var user = DbContext.ApplicationUser
+                .Where(u => u.Email == email)
+                .SingleOrDefault();
+            if (user == null)
+            {
+                Response.Headers.Add("Warning", "One or more requested users do not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            return await UpdateSelectionGroupUserAssignments(SelectionGroupId, new Dictionary<long, bool> { { user.Id, true } });
+        }
+
         /// <summary>Updates the users assigned to a selection group.</summary>
         /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the specified root content item.</remarks>
         /// <param name="SelectionGroupId">The selection group to be updated.</param>
