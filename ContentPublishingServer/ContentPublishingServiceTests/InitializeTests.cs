@@ -24,52 +24,6 @@ namespace ContentPublishingServiceTests
             });
             #endregion
 
-            #region Initialize FileUpload
-            Directory.CreateDirectory($@"\\indy-syn01\prm_test\Uploads");
-            try
-            {
-                File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw", @"\\indy-syn01\prm_test\Uploads\Uploaded Test File 1.qvw");
-            }
-            catch (System.IO.IOException) { }
-            try
-            {
-                File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw", @"\\indy-syn01\prm_test\Uploads\Uploaded Test File 2.qvw");
-            }
-            catch (System.IO.IOException) { }
-            try
-            {
-                File.Copy(@"\\indy-syn01\prm_test\Sample Data\Italy.jpg", @"\\indy-syn01\prm_test\Uploads\Italy.jpg");
-            }
-            catch (System.IO.IOException) { }
-            Db.Object.FileUpload.AddRange(new List<FileUpload>
-            {
-                new FileUpload
-                {
-                    Id = Guid.NewGuid(),
-                    Checksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
-                    ClientFileIdentifier = "Uploaded Test File 1",
-                    CreatedDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 0, 45),
-                    StoragePath = @"\\indy-syn01\prm_test\Uploads\Uploaded Test File 1.qvw",
-                },
-                new FileUpload
-                {
-                    Id = Guid.NewGuid(),
-                    Checksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
-                    ClientFileIdentifier = "Uploaded Test File 2",
-                    CreatedDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 0, 45),
-                    StoragePath = @"\\indy-syn01\prm_test\Uploads\Uploaded Test File 2.qvw",
-                },
-                new FileUpload
-                {
-                    Id = Guid.NewGuid(),
-                    Checksum = "fd23523b3dbaf1625a15d58119a0f1f1cbb01a02",
-                    ClientFileIdentifier = "Uploaded Image File",
-                    CreatedDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 0, 45),
-                    StoragePath = @"\\indy-syn01\prm_test\Uploads\Italy.jpg",
-                },
-            });
-            #endregion
-
             #region Initialize RootContentItem
             Db.Object.RootContentItem.AddRange(
                 new List<RootContentItem>
@@ -477,75 +431,158 @@ namespace ContentPublishingServiceTests
             #endregion
 
             #region Initialize ContentPublicationRequest
+            Guid[] RequestGuids = { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
+            string[] ProposedRequestExchangeFolders =
+            {
+                $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{RequestGuids[0]}\",
+                $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{RequestGuids[1]}\",
+                $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{RequestGuids[2]}\",
+                $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{RequestGuids[3]}\",
+            };
+
             // Valid request
-            Db.Object.ContentPublicationRequest.AddRange(
-                new List<ContentPublicationRequest>
+            Db.Object.ContentPublicationRequest.Add(
+                new ContentPublicationRequest
                 {
-                    new ContentPublicationRequest
+                    Id = 1,
+                    ApplicationUserId = 1,
+                    RootContentItemId = 1,
+                    CreateDateTimeUtc = DateTime.UtcNow,
+                    RequestStatus = PublicationStatus.Unknown,
+                    ReductionRelatedFilesObj = new List<ReductionRelatedFiles>
                     {
-                        Id = 1,
-                        ApplicationUserId = 1,
-                        CreateDateTimeUtc = DateTime.UtcNow,
-                        RequestStatus = PublicationStatus.Unknown,
-                        PublishRequest = new PublishRequest
+                        new ReductionRelatedFiles
                         {
-                            RootContentItemId = 1,
-                            RelatedFiles = new UploadedRelatedFile[]
+                            MasterContentFile = new ContentRelatedFile
                             {
-                                new UploadedRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
-                                new UploadedRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
-                            }
+                                FilePurpose = "MasterContent",
+                                FullPath = Path.Combine(ProposedRequestExchangeFolders[0], "MasterContent.Pub[1].Content[1].qvw"),
+                                Checksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
+                            },
+                            ReducedContentFileList = new List<ContentRelatedFile>(),
                         }
                     },
-                    new ContentPublicationRequest
+                    LiveReadyFilesObj = new List<ContentRelatedFile>
                     {
-                        Id = 2,
-                        ApplicationUserId = 1,
-                        CreateDateTimeUtc = DateTime.UtcNow,
-                        RequestStatus = PublicationStatus.Unknown,
-                        PublishRequest = new PublishRequest
+                        new ContentRelatedFile
                         {
-                            RootContentItemId = 2,
-                            RelatedFiles = new UploadedRelatedFile[]
-                            {
-                                new UploadedRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
-                                new UploadedRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
-                            }
+                            FilePurpose = "UserGuide",
+                            FullPath = Path.Combine(ProposedRequestExchangeFolders[0], "UserGuide.Pub[1].Content[1].qvw"),
+                            Checksum = ""
                         }
-                    },
-                    new ContentPublicationRequest
-                    {
-                        Id = 3,
-                        ApplicationUserId = 1,
-                        CreateDateTimeUtc = DateTime.UtcNow,
-                        RequestStatus = PublicationStatus.Unknown,
-                        PublishRequest = new PublishRequest
-                        {
-                            RootContentItemId = 3,
-                            RelatedFiles = new UploadedRelatedFile[]
-                            {
-                                new UploadedRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
-                                new UploadedRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
-                            }
-                        }
-                    },
-                    new ContentPublicationRequest
-                    {
-                        Id = 4,
-                        ApplicationUserId = 1,
-                        CreateDateTimeUtc = DateTime.UtcNow,
-                        RequestStatus = PublicationStatus.Unknown,
-                        PublishRequest = new PublishRequest
-                        {
-                            RootContentItemId = 4,
-                            RelatedFiles = new UploadedRelatedFile[]
-                            {
-                                new UploadedRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
-                                new UploadedRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
-                            }
-                        }
-                    },
+                    }
                 });
+            string ContentFolder1 = @"\\indy-syn01\prm_test\ContentRoot\1";
+            Directory.CreateDirectory(ContentFolder1);
+            Directory.CreateDirectory(ProposedRequestExchangeFolders[0]);
+            // Copy master content to exchange and content folders
+            File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
+                      Db.Object.ContentPublicationRequest.ElementAt(0).ReductionRelatedFilesObj.ElementAt(0).MasterContentFile.FullPath, 
+                      true);
+            File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
+                      Path.Combine(ContentFolder1, Path.GetFileName(Db.Object.ContentPublicationRequest.ElementAt(0).ReductionRelatedFilesObj.ElementAt(0).MasterContentFile.FullPath)),
+                      true);
+            // Copy related file to content folder
+            File.Copy(@"\\indy-syn01\prm_test\Sample Data\IHopeSo.pdf",
+                      Path.Combine(ContentFolder1, "UserGuide.Pub[1].Content[1].pdf"),
+                      true);
+
+            Db.Object.ContentPublicationRequest.Add(
+                new ContentPublicationRequest
+                {
+                    Id = 2,
+                    ApplicationUserId = 1,
+                    RootContentItemId = 2,
+                    CreateDateTimeUtc = DateTime.UtcNow,
+                    RequestStatus = PublicationStatus.Unknown,
+                    ReductionRelatedFilesObj = new List<ReductionRelatedFiles>
+                    {/*
+                        new ReductionRelatedFiles
+                        {
+                            MasterContentFile = new ContentRelatedFile
+                            {
+                                FilePurpose = "MasterContent",
+                                FullPath = Db.Object.FileUpload.ElementAt(0).StoragePath,
+                                Checksum = Db.Object.FileUpload.ElementAt(0).Checksum
+                            },
+                            ReducedContentFileList = new List<ContentRelatedFile>(),
+                        }*/
+                    },
+                    LiveReadyFilesObj = new List<ContentRelatedFile>
+                    {/*
+                        new ContentRelatedFile
+                        {
+                            FilePurpose = "UserGuide",
+                            FullPath = Db.Object.FileUpload.ElementAt(1).StoragePath,
+                            Checksum = Db.Object.FileUpload.ElementAt(1).Checksum
+                        }*/
+                        //new UploadedRelatedFile {FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
+                    }
+                });
+            Db.Object.ContentPublicationRequest.Add(
+                new ContentPublicationRequest
+                {
+                    Id = 3,
+                    ApplicationUserId = 1,
+                    RootContentItemId = 3,
+                    CreateDateTimeUtc = DateTime.UtcNow,
+                    RequestStatus = PublicationStatus.Unknown,
+                    ReductionRelatedFilesObj = new List<ReductionRelatedFiles>
+                    {/*
+                        new ReductionRelatedFiles
+                        {
+                            MasterContentFile = new ContentRelatedFile
+                            {
+                                FilePurpose = "MasterContent",
+                                FullPath = Db.Object.FileUpload.ElementAt(0).StoragePath,
+                                Checksum = Db.Object.FileUpload.ElementAt(0).Checksum
+                            },
+                            ReducedContentFileList = new List<ContentRelatedFile>(),
+                        }*/
+                    },
+                    LiveReadyFilesObj = new List<ContentRelatedFile>
+                    {/*
+                        new ContentRelatedFile
+                        {
+                            FilePurpose = "UserGuide",
+                            FullPath = Db.Object.FileUpload.ElementAt(1).StoragePath,
+                            Checksum = Db.Object.FileUpload.ElementAt(1).Checksum
+                        }*/
+                        //new UploadedRelatedFile {FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
+                    }
+                });
+            Db.Object.ContentPublicationRequest.Add(
+                new ContentPublicationRequest
+                {
+                    Id = 4,
+                    ApplicationUserId = 1,
+                    RootContentItemId = 4,
+                    CreateDateTimeUtc = DateTime.UtcNow,
+                    RequestStatus = PublicationStatus.Unknown,
+                    ReductionRelatedFilesObj = new List<ReductionRelatedFiles>
+                    {
+                        new ReductionRelatedFiles
+                        {
+                            MasterContentFile = new ContentRelatedFile
+                            {
+                                FilePurpose = "MasterContent",
+                                FullPath = Path.Combine(ProposedRequestExchangeFolders[3], "MasterContent.Pub[4].Content[4].qvw"),
+                                Checksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
+                            },
+                            ReducedContentFileList = new List<ContentRelatedFile>(),
+                        }
+                    },
+                    LiveReadyFilesObj = new List<ContentRelatedFile>(),
+                });
+            string ContentFolder4 = @"\\indy-syn01\prm_test\ContentRoot\4";
+            Directory.CreateDirectory(ProposedRequestExchangeFolders[3]);
+            // Copy master content to exchange and content folders
+            File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
+                      Db.Object.ContentPublicationRequest.ElementAt(3).ReductionRelatedFilesObj.ElementAt(0).MasterContentFile.FullPath,
+                      true);
+            File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
+                      Path.Combine(ContentFolder4, Path.GetFileName(Db.Object.ContentPublicationRequest.ElementAt(3).ReductionRelatedFilesObj.ElementAt(0).MasterContentFile.FullPath)),
+                      true);
 
             MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(Db.Object.ContentPublicationRequest, "RootContentItemId", Db.Object.RootContentItem);
             MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(Db.Object.ContentPublicationRequest, "RootContentItemId", Db.Object.ApplicationUser);
