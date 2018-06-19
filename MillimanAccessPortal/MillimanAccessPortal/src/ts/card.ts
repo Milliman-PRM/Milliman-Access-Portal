@@ -16,6 +16,7 @@ const cardLayout = {
         },
         text: {
           primaryText: {},
+          primaryTextBox: {},
           secondaryText: {},
           progressInfo: {},
         },
@@ -98,6 +99,23 @@ const components = Object.assign(
         return function(properties) {
           this.verify(component);
           this.html(component, properties.text);
+        };
+      },
+    },
+    primaryTextBox: {
+      count: '1',
+      selector: '.card-body-primary-text-box',
+      html: [
+        '<h2><input class="card-body-primary-text-box" placeholder="Untitled" disabled/></h2>',
+        '<stub />',
+      ].join(''),
+      render(component) {
+        return function(properties) {
+          this.verify(component);
+          this.val(component, properties.text);
+          this.click(component, (event) => {
+            event.stopPropagation();
+          });
         };
       },
     },
@@ -619,6 +637,9 @@ Card.prototype.prop = function(component, value, selector) {
 Card.prototype.addClass = function(component, value, selector) {
   this.findComponent(component, selector).addClass(value);
 };
+Card.prototype.val = function(component, value, selector) {
+  this.findComponent(component, selector).val(value);
+};
 
 Card.prototype.click = function(component, value, selector) {
   const $component = this.findComponent(component, selector);
@@ -884,7 +905,7 @@ export function SelectionGroupCard(
     return acc.concat(cur);
   }, []);
 
-  this.addComponent('primaryText', { text: selectionGroup.Name });
+  this.addComponent('primaryTextBox', { text: selectionGroup.Name });
   this.addComponent('statistic', {
     icon: 'users',
     tooltip: 'Members',

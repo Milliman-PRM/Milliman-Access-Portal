@@ -92,8 +92,14 @@
                 margin: auto;
                 overflow: hidden;
 
-                .card-body-primary-text {
+                .card-body-primary-text,
+                .card-body-primary-text-box {
                     margin: 0;
+
+                    &:disabled {
+                        background-color: transparent;
+                        border-color: transparent;
+                    }
                 }
 
                 .card-body-secondary-text {
@@ -103,7 +109,8 @@
                 }
             }
 
-            .card-body-primary-text {
+            .card-body-primary-text,
+            .card-body-primary-text-box {
 
                 &.indent-level-0 {
                     font-size: 2rem;
@@ -329,7 +336,7 @@
             cursor: default;
 
             &[maximized] {
-                max-height: 150em;
+                max-height: 15.5em;
                 overflow: visible;
                 transition: .25s all linear;
 

@@ -56,15 +56,23 @@ updateToolbarIcons = ($panel) => {
   }).show();
 };
 export function toggleExpanded($panel, $this) {
-  $this.closest('.card-container')
+  const $cardContainer = $this.closest('.card-container');
+  let disabled: string;
+  $cardContainer
     .find('.card-expansion-container')
     .attr('maximized', (index, attr) => {
       const data = (attr === '')
         ? { text: 'Expand card', rv: null }
         : { text: 'Collapse card', rv: '' };
+      disabled = (data.rv === '')
+        ? null
+        : '';
       $this.find('.tooltip').tooltipster('content', data.text);
       return data.rv;
     });
+  $cardContainer
+    .find('.card-body-primary-text-box')
+    .attr('disabled', disabled);
   updateToolbarIcons($panel);
 }
 export function toggleExpandedListener(event) {
