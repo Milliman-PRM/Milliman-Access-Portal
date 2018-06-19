@@ -261,7 +261,7 @@ namespace ContentPublishingLib.JobRunners
 
                         ContentReductionTask NewTask = new ContentReductionTask
                         {
-                            //Id = Guid.NewGuid(),
+                            Id = Guid.NewGuid(),  // In normal operation db could generate a value; this is done for unit tests
                             ApplicationUserId = JobDetail.Request.ApplicationUserId,
                             ContentPublicationRequestId = JobDetail.JobId,
                             CreateDateTimeUtc = DateTime.UtcNow,  // TODO later: Figure out how to avoid delay in starting the reduction task. 

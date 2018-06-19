@@ -519,6 +519,7 @@ namespace ContentPublishingServiceTests
                         //new UploadedRelatedFile {FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
                     }
                 });
+
             Db.Object.ContentPublicationRequest.Add(
                 new ContentPublicationRequest
                 {
@@ -551,6 +552,7 @@ namespace ContentPublishingServiceTests
                         //new UploadedRelatedFile {FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
                     }
                 });
+
             Db.Object.ContentPublicationRequest.Add(
                 new ContentPublicationRequest
                 {

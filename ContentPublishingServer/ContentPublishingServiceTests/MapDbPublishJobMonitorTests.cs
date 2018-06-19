@@ -113,7 +113,11 @@ namespace ContentPublishingServiceTests
             ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == 4);
             DbRequest.RequestStatus = PublicationStatus.Queued;
 
-            MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor
+            MapDbPublishJobMonitor PublishJobMonitor = new MapDbPublishJobMonitor
+            {
+                MockContext = MockContext,
+            };
+            MapDbReductionJobMonitor ReductionJobMonitor = new MapDbReductionJobMonitor
             {
                 MockContext = MockContext,
             };
@@ -123,23 +127,37 @@ namespace ContentPublishingServiceTests
 
             #region Act
             DateTime TestStart = DateTime.UtcNow;
-            Task MonitorTask = JobMonitor.Start(CancelTokenSource.Token);
-            Thread.Sleep(1000);
-            Assert.Equal(TaskStatus.Running, MonitorTask.Status);
+            Task PublishMonitorTask = PublishJobMonitor.Start(CancelTokenSource.Token);
+            Task ReductionMonitorTask = ReductionJobMonitor.Start(CancelTokenSource.Token);
+            Thread.Sleep(2000);
+            Assert.Equal(TaskStatus.Running, PublishMonitorTask.Status);
             Assert.Equal(PublicationStatus.Processing, DbRequest.RequestStatus);
 
             while (DbRequest.RequestStatus == PublicationStatus.Processing &&
-                   DateTime.UtcNow - TestStart < new TimeSpan(0, 6, 0))
+                   DateTime.UtcNow - TestStart < new TimeSpan(0, 10, 0))
             {
                 Thread.Sleep(500);
             }
             #endregion
 
             #region Assert again
-            Assert.Equal(TaskStatus.Running, MonitorTask.Status);
-            Assert.Equal(PublicationStatus.Processed, DbRequest.RequestStatus);
-            Assert.Equal(string.Empty, DbRequest.StatusMessage);
-            Assert.Equal(2, MockContext.Object.ContentReductionTask.Where(t => t.ContentPublicationRequestId == 4).Count());
+            var Tasks = MockContext.Object.ContentReductionTask
+                                          .Where(t => t.ContentPublicationRequestId == 4
+                                                   && t.ReductionStatus == ReductionStatusEnum.Reduced)
+                                          .ToList();
+            try
+            {
+                Assert.Equal(TaskStatus.Running, PublishMonitorTask.Status);
+                Assert.Equal(PublicationStatus.Processed, DbRequest.RequestStatus);
+                Assert.Equal(string.Empty, DbRequest.StatusMessage);
+                Assert.Equal(2, Tasks.Count);
+                Assert.True(File.Exists(Tasks.ElementAt(0).ResultFilePath));
+                Assert.True(File.Exists(Tasks.ElementAt(1).ResultFilePath));
+            }
+            finally
+            {
+                Directory.Delete(Path.GetDirectoryName(Tasks.ElementAt(0).ResultFilePath), true);
+            }
             #endregion
         }
 
