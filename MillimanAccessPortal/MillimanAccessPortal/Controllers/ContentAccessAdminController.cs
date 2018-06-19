@@ -248,6 +248,52 @@ namespace MillimanAccessPortal.Controllers
             return Json(Model);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RenameSelectionGroup(long selectionGroupId, string name)
+        {
+            var selectionGroup = DbContext.SelectionGroup
+                .Where(sg => sg.Id == selectionGroupId)
+                .SingleOrDefault();
+
+            #region Preliminary validation
+            if (selectionGroup == null)
+            {
+                Response.Headers.Add("Warning", "The requested selection group does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, selectionGroup.RootContentItemId));
+            if (!roleInRootContentItemResult.Succeeded)
+            {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    $"Request to update selection group without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentAccessAdmin]} role in root content item",
+                    AuditEventId.Unauthorized,
+                    new { selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, selectionGroupId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            selectionGroup.GroupName = name;
+            DbContext.SelectionGroup.Update(selectionGroup);
+            DbContext.SaveChanges();
+
+            var model = Models.ContentAccessAdmin.SelectionGroupSummary.Build(DbContext, selectionGroup);
+
+            return Json(model);
+        }
+
         /// <summary>
         /// Adds a single user by email to a selection group.
         /// </summary>
@@ -262,11 +308,14 @@ namespace MillimanAccessPortal.Controllers
             var user = DbContext.ApplicationUser
                 .Where(u => u.Email == email)
                 .SingleOrDefault();
+
+            #region Preliminary Validation
             if (user == null)
             {
                 Response.Headers.Add("Warning", "One or more requested users do not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+            #endregion
 
             return await UpdateSelectionGroupUserAssignments(SelectionGroupId, new Dictionary<long, bool> { { user.Id, true } });
         }
