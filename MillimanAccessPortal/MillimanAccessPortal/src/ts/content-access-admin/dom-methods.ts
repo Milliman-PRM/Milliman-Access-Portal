@@ -131,7 +131,7 @@ function renderValue(
   const $div = $fieldset.find('div.selection-option-container').last();
   $div.append($checkbox);
   $checkbox.find('input[type="checkbox"]').prop('checked', value.SelectionStatus);
-  if (originalSelections.includes(value.Id) !== value.SelectionStatus) {
+  if ((originalSelections.indexOf(value.Id) !== -1) !== value.SelectionStatus) {
     $div.attr('style', 'background: yellow;');
   }
 }
@@ -175,7 +175,7 @@ function renderSelections(response: SelectionsDetail) {
   // TODO: rely on some flag in the response to disable checkboxes
   $fieldsetDiv
     .find('input[type="checkbox"]')
-    .click([10, 20, 30].includes(details.StatusEnum)
+    .click([10, 20, 30].indexOf(details.StatusEnum) !== -1
       ? (event) => {
         event.preventDefault();
       }

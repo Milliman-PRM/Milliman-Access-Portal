@@ -388,7 +388,6 @@ export function removeUserFromSelectionGroup(event, member: UserInfo, selectionG
   );
 }
 export function addUserToSelectionGroup(selectionGroup: SelectionGroupSummary) {
-  event.stopPropagation();
   const $selectionGroup = $(`#selection-groups [data-selection-group-id="${selectionGroup.Id}"]`);
   $selectionGroup.data('memberList', selectionGroup.MemberList);
   updateMemberList(
@@ -453,7 +452,7 @@ export function updateCardStatus($card, reductionDetails) {
       const classNames = classString.split(' ');
       return classNames
         .filter((className) => {
-          return className.startsWith('status-');
+          return className.indexOf('status-') === 0;
         })
         .join(' ');
     })
@@ -475,7 +474,7 @@ export function updateFormStatusButtons() {
   // get the selected card's status by parsing its status container class.
   const selectedCard = $('#root-content-items [selected]').parent().find('.card-status-container')[0];
   const statusClass = selectedCard
-    && selectedCard.className.split(' ').filter((className) => className.startsWith('status-'))[0];
+    && selectedCard.className.split(' ').filter((className) => className.indexOf('status-') === 0)[0];
   const statusEnum = statusClass && parseInt(statusClass.split('-')[1], 10);
   const $statusFormContainer = $('#content-publishing-form').find('.form-status-container');
   $statusFormContainer.hide();
