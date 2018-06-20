@@ -319,6 +319,7 @@ const components = Object.assign(
           this.add(component);
           this.click(component, properties.addCallback, '.detail-item-user-add');
           this.click(component, properties.inputCallback, '.detail-item-user-input');
+          this.key(component, properties.keyCallback, '.detail-item-user-input');
         };
       },
     },
@@ -649,6 +650,10 @@ Card.prototype.click = function(component, value, selector) {
     }
     : value);
 };
+Card.prototype.key = function(component, value, selector) {
+  const $component = this.findComponent(component, selector);
+  $component.on('keydown', value);
+};
 
 Card.prototype.tooltip = function(component, value, selector) {
   const $component = this.findComponent(component, selector);
@@ -963,6 +968,13 @@ export function SelectionGroupCard(
     },
     inputCallback: (event: Event) => {
       event.stopPropagation();
+    },
+    keyCallback: (event) => {
+      // Using keyCode is deprecated but has the best support across browsers
+      // Key code 13 is Enter
+      if (event.keyCode === 13) {
+        $(event.target).closest('.detail-item-user-create').find('.detail-item-user-add').click();
+      }
     },
   });
   this.addComponent('status', {});
