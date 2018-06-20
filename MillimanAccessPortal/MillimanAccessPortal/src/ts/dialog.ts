@@ -151,7 +151,7 @@ export function DeleteSelectionGroupDialog($selectionGroup, submitHandler) {
   Dialog.call(
     this,
     'Delete Selection Group',
-    'Delete <strong>' + $selectionGroup.find('.card-body-primary-text').html() + '</strong>?',
+    'Delete <strong>' + $selectionGroup.find('.card-body-primary-text-box').val() + '</strong>?',
     [
       { type: vex.dialog.buttons.yes, text: 'Delete' },
       { type: vex.dialog.buttons.no, text: 'Cancel' },
