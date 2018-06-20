@@ -67,10 +67,45 @@ namespace ContentPublishingServiceTests
         public void CorrectResultsAfterSuccessfulRunDoesReduceFalse()
         {
             #region arrange
+            long ContentItemIdOfThisTest = 1;
+            long PubRequestIdOfThisTest = 1;
+            Guid RequestGuid = Guid.NewGuid();
+
+            string ProposedRequestExchangeFolder = $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{RequestGuid}\";
+            string ContentFolder = $@"\\indy-syn01\prm_test\ContentRoot\{ContentItemIdOfThisTest}";
+            string MasterContentFileName = $"MasterContent.Pub[{ContentItemIdOfThisTest}].Content[{PubRequestIdOfThisTest}].qvw";
+
+            Directory.CreateDirectory(ProposedRequestExchangeFolder);
+            Directory.CreateDirectory(ContentFolder);
+
+            // Copy master content to content folder
+            File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
+                      Path.Combine(ContentFolder, MasterContentFileName),
+                      true);
+            // Copy related file to content folder
+            File.Copy(@"\\indy-syn01\prm_test\Sample Data\IHopeSo.pdf",
+                      Path.Combine(ContentFolder, $"UserGuide.Pub[{PubRequestIdOfThisTest}].Content[{ContentItemIdOfThisTest}].pdf"),
+                      true);
+
             Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
 
             // Modify the request to be tested
             ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == 1);
+            DbRequest.LiveReadyFilesObj = new List<ContentRelatedFile>
+            {
+                new ContentRelatedFile
+                {
+                    FullPath = Path.Combine(ContentFolder, MasterContentFileName),
+                    FilePurpose = "MasterContent",
+                    Checksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
+                },
+                new ContentRelatedFile
+                {
+                    FullPath = Path.Combine(ContentFolder, $"UserGuide.Pub[{PubRequestIdOfThisTest}].Content[{ContentItemIdOfThisTest}].pdf"),
+                    FilePurpose = "UserGuide",
+                    Checksum = "e3d450391704b574f010012111af718cf630e444",
+                }
+            };
             DbRequest.RequestStatus = PublicationStatus.Queued;
 
             MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor
@@ -95,22 +130,83 @@ namespace ContentPublishingServiceTests
             }
             #endregion
 
-            #region Assert again
-            Assert.Equal(TaskStatus.Running, MonitorTask.Status);
-            Assert.Equal(PublicationStatus.Processed, DbRequest.RequestStatus);
-            Assert.Equal(string.Empty, DbRequest.StatusMessage);
-            Assert.Equal(0, MockContext.Object.ContentReductionTask.Where(t => t.ContentPublicationRequestId == 1).Count());
+            #region Assert
+            try
+            {
+                Assert.Equal(TaskStatus.Running, MonitorTask.Status);
+                Assert.Equal(PublicationStatus.Processed, DbRequest.RequestStatus);
+                Assert.Equal(string.Empty, DbRequest.StatusMessage);
+                Assert.Equal(0, MockContext.Object.ContentReductionTask.Where(t => t.ContentPublicationRequestId == 1).Count());
+            }
+            finally
+            {
+                Directory.Delete(ProposedRequestExchangeFolder, true);
+            }
             #endregion
         }
 
+        /// <summary>
+        /// This test represents end to end publication for an existing content item (ID=4) that has 2 reducing selection groups
+        /// </summary>
         [Fact]
         public void CorrectResultsAfterSuccessfulRunDoesReduceTrue()
         {
             #region arrange
+            long ContentItemIdOfThisTest = 4;
+            long PubRequestIdOfThisTest = 4;
+            Guid RequestGuid = Guid.NewGuid();
+
+            string ProposedRequestExchangeFolder = $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{RequestGuid}\";
+            string ContentFolder = $@"\\indy-syn01\prm_test\ContentRoot\{ContentItemIdOfThisTest}";
+            string MasterContentFileName = $"MasterContent.Pub[{ContentItemIdOfThisTest}].Content[{PubRequestIdOfThisTest}].qvw";
+
+            Directory.CreateDirectory(ProposedRequestExchangeFolder);
+            Directory.CreateDirectory(ContentFolder);
+            
+            // Copy master content to exchange and content folders
+            File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
+                      Path.Combine(ProposedRequestExchangeFolder, MasterContentFileName),
+                      true);
+            File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
+                      Path.Combine(ContentFolder, MasterContentFileName),
+                      true);
+            // Copy related file to content folder
+            File.Copy(@"\\indy-syn01\prm_test\Sample Data\IHopeSo.pdf",
+                      Path.Combine(ContentFolder, $"UserGuide.Pub[{PubRequestIdOfThisTest}].Content[{ContentItemIdOfThisTest}].pdf"),
+                      true);
+
             Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
 
             // Modify the request to be tested
             ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == 4);
+            DbRequest.ReductionRelatedFilesObj = new List<ReductionRelatedFiles>
+            {
+                new ReductionRelatedFiles
+                {
+                    MasterContentFile = new ContentRelatedFile
+                    {
+                        FullPath = Path.Combine(ProposedRequestExchangeFolder, MasterContentFileName),
+                        FilePurpose = "MasterContent",
+                        Checksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
+                    },
+                    ReducedContentFileList = new List<ContentRelatedFile>(),
+                }
+            };
+            DbRequest.LiveReadyFilesObj = new List<ContentRelatedFile>
+            {
+                new ContentRelatedFile
+                {
+                    FullPath = Path.Combine(ContentFolder, MasterContentFileName),
+                    FilePurpose = "MasterContent",
+                    Checksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
+                },
+                new ContentRelatedFile
+                {
+                    FullPath = Path.Combine(ContentFolder, $"UserGuide.Pub[{PubRequestIdOfThisTest}].Content[{ContentItemIdOfThisTest}].pdf"),
+                    FilePurpose = "UserGuide",
+                    Checksum = "e3d450391704b574f010012111af718cf630e444",
+                }
+            };
             DbRequest.RequestStatus = PublicationStatus.Queued;
 
             MapDbPublishJobMonitor PublishJobMonitor = new MapDbPublishJobMonitor
@@ -140,7 +236,7 @@ namespace ContentPublishingServiceTests
             }
             #endregion
 
-            #region Assert again
+            #region Assert
             var Tasks = MockContext.Object.ContentReductionTask
                                           .Where(t => t.ContentPublicationRequestId == 4
                                                    && t.ReductionStatus == ReductionStatusEnum.Reduced)
@@ -156,7 +252,7 @@ namespace ContentPublishingServiceTests
             }
             finally
             {
-                Directory.Delete(Path.GetDirectoryName(Tasks.ElementAt(0).ResultFilePath), true);
+                Directory.Delete(ProposedRequestExchangeFolder, true);
             }
             #endregion
         }
