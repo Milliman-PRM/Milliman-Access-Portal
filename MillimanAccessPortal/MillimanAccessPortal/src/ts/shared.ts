@@ -80,6 +80,7 @@ export function toggleExpandedListener(event) {
 }
 export function expandAll($panel) {
   $panel.find('.card-expansion-container').attr('maximized', '');
+  $panel.find('.card-body-primary-text-box').removeAttr('disabled');
   updateToolbarIcons($panel);
 }
 export function expandAllListener(event) {
@@ -87,6 +88,7 @@ export function expandAllListener(event) {
 }
 export function collapseAll($panel) {
   $panel.find('.card-expansion-container[maximized]').removeAttr('maximized');
+  $panel.find('.card-body-primary-text-box').attr('disabled', '');
   updateToolbarIcons($panel);
 }
 export function collapseAllListener(event) {
