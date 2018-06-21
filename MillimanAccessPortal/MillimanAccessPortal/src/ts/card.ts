@@ -265,6 +265,7 @@ const components = Object.assign(
         };
       },
     },
+    // If you make and changes to this component, also change updateMemberList in shared.ts
     user: {
       count: '*',
       selector: '.detail-item-user',
@@ -947,6 +948,7 @@ export function SelectionGroupCard(
   });
   this.addComponent('statistics', { click: shared.toggleExpandedListener });
   this.addComponent('detailText', { text: 'Members' });
+  this.addComponent('userList', {});
   selectionGroup.MemberList.forEach(function(member) {
     this.addComponent('user', {
       callback: (event) => shared.removeUserFromSelectionGroup(event, member, selectionGroup),

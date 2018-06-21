@@ -302,6 +302,7 @@ export function updateMemberList(
   memberList
     .forEach((user) => {
       const $li = $([
+        // If you make any changes to this component, also change the user component in card.ts
         '<li>',
         `  <span class="detail-item-user" data-user-id="${user.Id}">`,
         '    <div class="detail-item-user-icon">',
@@ -316,7 +317,10 @@ export function updateMemberList(
         '        </svg>',
         '      </div>',
         '    </div>',
-        `    <div class="detail-item-user-name">${user.Email}</div>`,
+        '    <div class="detail-item-user-name">',
+        `      <h5 class="user-name">${user.UserName}</h5>`,
+        `      <h6 class="first-last">${user.FirstName} ${user.LastName}</h6>`,
+        '    </div>',
         '  </span>',
         '</li>',
       ].join(''));
