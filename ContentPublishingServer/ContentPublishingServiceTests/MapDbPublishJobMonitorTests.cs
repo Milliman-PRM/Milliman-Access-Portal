@@ -74,6 +74,7 @@ namespace ContentPublishingServiceTests
             string ProposedRequestExchangeFolder = $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{RequestGuid}\";
             string ContentFolder = $@"\\indy-syn01\prm_test\ContentRoot\{ContentItemIdOfThisTest}";
             string MasterContentFileName = $"MasterContent.Pub[{ContentItemIdOfThisTest}].Content[{PubRequestIdOfThisTest}].qvw";
+            string UserGuideFileName = $"UserGuide.Pub[{PubRequestIdOfThisTest}].Content[{ContentItemIdOfThisTest}].pdf";
 
             Directory.CreateDirectory(ProposedRequestExchangeFolder);
             Directory.CreateDirectory(ContentFolder);
@@ -84,7 +85,7 @@ namespace ContentPublishingServiceTests
                       true);
             // Copy related file to content folder
             File.Copy(@"\\indy-syn01\prm_test\Sample Data\IHopeSo.pdf",
-                      Path.Combine(ContentFolder, $"UserGuide.Pub[{PubRequestIdOfThisTest}].Content[{ContentItemIdOfThisTest}].pdf"),
+                      Path.Combine(ContentFolder, UserGuideFileName),
                       true);
 
             Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
@@ -101,7 +102,7 @@ namespace ContentPublishingServiceTests
                 },
                 new ContentRelatedFile
                 {
-                    FullPath = Path.Combine(ContentFolder, $"UserGuide.Pub[{PubRequestIdOfThisTest}].Content[{ContentItemIdOfThisTest}].pdf"),
+                    FullPath = Path.Combine(ContentFolder, UserGuideFileName),
                     FilePurpose = "UserGuide",
                     Checksum = "e3d450391704b574f010012111af718cf630e444",
                 }
@@ -159,6 +160,7 @@ namespace ContentPublishingServiceTests
             string ProposedRequestExchangeFolder = $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{RequestGuid}\";
             string ContentFolder = $@"\\indy-syn01\prm_test\ContentRoot\{ContentItemIdOfThisTest}";
             string MasterContentFileName = $"MasterContent.Pub[{ContentItemIdOfThisTest}].Content[{PubRequestIdOfThisTest}].qvw";
+            string UserGuideFileName = $"UserGuide.Pub[{PubRequestIdOfThisTest}].Content[{ContentItemIdOfThisTest}].pdf";
 
             Directory.CreateDirectory(ProposedRequestExchangeFolder);
             Directory.CreateDirectory(ContentFolder);
@@ -172,7 +174,7 @@ namespace ContentPublishingServiceTests
                       true);
             // Copy related file to content folder
             File.Copy(@"\\indy-syn01\prm_test\Sample Data\IHopeSo.pdf",
-                      Path.Combine(ContentFolder, $"UserGuide.Pub[{PubRequestIdOfThisTest}].Content[{ContentItemIdOfThisTest}].pdf"),
+                      Path.Combine(ContentFolder, UserGuideFileName),
                       true);
 
             Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
@@ -202,7 +204,7 @@ namespace ContentPublishingServiceTests
                 },
                 new ContentRelatedFile
                 {
-                    FullPath = Path.Combine(ContentFolder, $"UserGuide.Pub[{PubRequestIdOfThisTest}].Content[{ContentItemIdOfThisTest}].pdf"),
+                    FullPath = Path.Combine(ContentFolder, UserGuideFileName),
                     FilePurpose = "UserGuide",
                     Checksum = "e3d450391704b574f010012111af718cf630e444",
                 }

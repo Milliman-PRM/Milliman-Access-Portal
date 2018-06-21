@@ -23,10 +23,22 @@ namespace ContentPublishingServiceTests
         {
             #region Arrange
             ApplicationDbContext MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus).Object;
+            Guid TaskGuid = Guid.NewGuid();
+            ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1));
+
+            string ExchangeFolder = $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{TaskGuid}\";
+            string MasterContentFileName = $"MasterContent.Pub[{DbTask.SelectionGroup.RootContentItemId}].Content[999].qvw";
+
+            Directory.CreateDirectory(ExchangeFolder);
+            File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
+                      Path.Combine(ExchangeFolder, MasterContentFileName),
+                      true);
 
             // Modify the task to be tested
-            ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1));
+            DbTask.Id = TaskGuid;
             DbTask.TaskAction = MapDbContextLib.Context.TaskActionEnum.HierarchyOnly;
+            DbTask.MasterFilePath = Path.Combine(ExchangeFolder, MasterContentFileName);
+            DbTask.MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B";
             DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
 
             QvReductionRunner TestRunner = new QvReductionRunner
@@ -46,27 +58,34 @@ namespace ContentPublishingServiceTests
             #endregion
 
             #region Assert
-            Assert.NotNull(TaskRequest);
-            Assert.NotNull(TaskResult);
-            Assert.IsType<ReductionJobDetail.ReductionJobResult>(TaskResult);
-            Assert.Equal<TaskStatus>(TaskStatus.RanToCompletion, MonitorTask.Status);
-            Assert.False(MonitorTask.IsCanceled);
-            Assert.False(MonitorTask.IsFaulted);
-            if (!string.IsNullOrEmpty(TaskResult.StatusMessage))
+            try
             {
-                System.Console.WriteLine($"TaskResult.StatusMessage is {TaskResult.StatusMessage}");
+                Assert.NotNull(TaskRequest);
+                Assert.NotNull(TaskResult);
+                Assert.IsType<ReductionJobDetail.ReductionJobResult>(TaskResult);
+                Assert.Equal<TaskStatus>(TaskStatus.RanToCompletion, MonitorTask.Status);
+                Assert.False(MonitorTask.IsCanceled);
+                Assert.False(MonitorTask.IsFaulted);
+                if (!string.IsNullOrEmpty(TaskResult.StatusMessage))
+                {
+                    System.Console.WriteLine($"TaskResult.StatusMessage is {TaskResult.StatusMessage}");
+                }
+                Assert.Equal(ReductionJobDetail.JobStatusEnum.Success, MonitorTask.Result.Status);
+
+                Assert.NotNull(TaskResult.MasterContentHierarchy);
+                Assert.Equal(3, TaskResult.MasterContentHierarchy.Fields.Count);
+                Assert.Single(TaskResult.MasterContentHierarchy.Fields[0].FieldValues); // using .Equal for expected value 1 gives compiler warning
+                Assert.Equal(7, TaskResult.MasterContentHierarchy.Fields[1].FieldValues.Count);
+                Assert.Equal(54, TaskResult.MasterContentHierarchy.Fields[2].FieldValues.Count);
+
+                Assert.Null(TaskResult.ReducedContentHierarchy);
+                Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFilePath));
+                Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFileChecksum));
             }
-            Assert.Equal(ReductionJobDetail.JobStatusEnum.Success, MonitorTask.Result.Status);
-
-            Assert.NotNull(TaskResult.MasterContentHierarchy);
-            Assert.Equal(3, TaskResult.MasterContentHierarchy.Fields.Count);
-            Assert.Single(TaskResult.MasterContentHierarchy.Fields[0].FieldValues); // using .Equal for expected value 1 gives compiler warning
-            Assert.Equal(7, TaskResult.MasterContentHierarchy.Fields[1].FieldValues.Count);
-            Assert.Equal(54, TaskResult.MasterContentHierarchy.Fields[2].FieldValues.Count);
-
-            Assert.Null(TaskResult.ReducedContentHierarchy);
-            Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFilePath));
-            Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFileChecksum));
+            finally
+            {
+                Directory.Delete(ExchangeFolder);
+            }
             #endregion
         }
 
