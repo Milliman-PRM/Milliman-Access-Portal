@@ -201,7 +201,8 @@ function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
       $target.find('.detail-item-user-icon').hide();
       $target.find('.detail-item-user-create').show();
       $target.find('.detail-item-user-remove').show();
-      $target.find('.card-body-primary-text-box').removeAttr('disabled');
+      $target.find('.card-body-primary-text-box h2').hide();
+      $target.find('.card-body-primary-text-box input').show();
       $target
         .find('.card-button-dynamic').hide()
         .filter('.card-button-green').show();
@@ -213,10 +214,14 @@ function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
       $target.find('.detail-item-user-icon').show();
       $target.find('.detail-item-user-create').hide();
       $target.find('.detail-item-user-remove').hide();
-      $target.find('.card-body-primary-text-box').attr('disabled', '');
+      const $h2 = $target.find('.card-body-primary-text-box h2');
+      const $input = $target.find('.card-body-primary-text-box input');
+      $h2.html($input.val().toString());
+      $h2.show();
+      $input.hide();
       $.post({
         data: {
-          name: $target.find('.card-body-primary-text-box').val() || 'Untitled',
+          name: $target.find('.card-body-primary-text-box input').val() || 'Untitled',
           selectionGroupId: $target.parent().data().selectionGroupId,
         },
         headers: {

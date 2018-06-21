@@ -106,16 +106,20 @@ const components = Object.assign(
       count: '1',
       selector: '.card-body-primary-text-box',
       html: [
-        '<h2><input class="card-body-primary-text-box" placeholder="Untitled" disabled/></h2>',
+        '<div class="card-body-primary-text-box">',
+        '  <h2></h2>',
+        '  <input placeholder="Untitled" />',
+        '</div>',
         '<stub />',
       ].join(''),
       render(component) {
         return function(properties) {
           this.verify(component);
-          this.val(component, properties.text);
+          this.html(component, properties.text, 'h2');
+          this.val(component, properties.text, 'input');
           this.click(component, (event) => {
             event.stopPropagation();
-          });
+          }, 'input');
         };
       },
     },
@@ -1009,7 +1013,7 @@ export function SelectionGroupCard(
     this.$representation.find('.card-button-side-container .card-button-green').hide();
     this.$representation.find('.detail-item-user-create').hide();
     this.$representation.find('.detail-item-user-remove').hide();
-    this.$representation.find('.card-body-primary-text-box').attr('disabled', '');
+    this.$representation.find('.card-body-primary-text-box input').hide();
     this.$representation.find('.typeahead').typeahead(
       {
         highlight: true,
