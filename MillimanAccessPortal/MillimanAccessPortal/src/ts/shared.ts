@@ -96,39 +96,9 @@ export function collapseAllListener(event) {
 }
 
 // Form control
-export function modifiedInputs($panel) {
-  return $panel.find('form.admin-panel-content')
-    .find('input[name!="__RequestVerificationToken"][type!="hidden"],select')
-    .not('.selectize-input input')
-    .filter(function() {
-      const $element = $(this);
-      return ($element.val() !== ($element.attr('data-original-value') || ''));
-    });
-}
-export function modifiedInputsListener(event) {
-  buildListener.call(this, modifiedInputs).bind(this)(event);
-}
 export function resetValidation($panel) {
   $panel.find('form.admin-panel-content').validate().resetForm();
   $panel.find('.field-validation-error > span').remove();
-}
-export function resetValidationListener(event) {
-  buildListener.call(this, resetValidation).bind(this)(event);
-}
-export function resetForm($panel) {
-  modifiedInputs($panel).each(function() {
-    const $input = $(this);
-    if ($input.is('.selectized')) {
-      this.selectize.setValue($input.attr('data-original-value').split(','));
-    } else {
-      $input.val($input.attr('data-original-value'));
-    }
-  });
-  resetValidation($panel);
-  $panel.find('.form-button-container button').hide();
-}
-export function resetFormListener(event) {
-  buildListener.call(this, resetForm).bind(this)(event);
 }
 export function clearForm($panel) {
   $panel.find('.selectized').each(function() {
@@ -139,9 +109,6 @@ export function clearForm($panel) {
     .not('.selectize-input input')
     .attr('data-original-value', '').val('');
   resetValidation($panel);
-}
-export function clearFormListener(event) {
-  buildListener.call(this, clearForm).bind(this)(event);
 }
 
 function buildListener(fn) {

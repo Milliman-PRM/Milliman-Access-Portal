@@ -9,7 +9,7 @@ import { FormBase } from '../form/form-base';
 import { AccessMode } from '../form/form-modes';
 import { SubmissionGroup } from '../form/form-submission';
 import {
-  clearForm, collapseAllListener, expandAllListener, filterFormListener, filterTreeListener, get,
+  collapseAllListener, expandAllListener, filterFormListener, filterTreeListener, get,
   post, showButtonSpinner, updateCardStatus, updateCardStatusButtons, updateFormStatusButtons,
   wrapCardCallback, wrapCardIconCallback,
 } from '../shared';
