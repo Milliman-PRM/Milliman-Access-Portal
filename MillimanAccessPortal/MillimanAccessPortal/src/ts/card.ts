@@ -283,7 +283,10 @@ const components = Object.assign(
         '        </svg>',
         '      </div>',
         '    </div>',
-        '    <div class="detail-item-user-name"></div>',
+        '    <div class="detail-item-user-name">',
+        '      <h5 class="user-name"></h5>',
+        '      <h6 class="first-last"></h6>',
+        '    </div>',
         '  </span>',
         '</li>',
         '<stub />',
@@ -297,7 +300,8 @@ const components = Object.assign(
             '.detail-item-user',
           );
           this.click(component, properties.callback, '.detail-item-user-remove');
-          this.html(component, properties.text, '.detail-item-user-name');
+          this.html(component, properties.username, '.user-name');
+          this.html(component, properties.firstlast, '.first-last');
         };
       },
     },
@@ -949,7 +953,8 @@ export function SelectionGroupCard(
       data: {
         'user-id': member.Id,
       },
-      text: member.Email,
+      firstlast: `${member.FirstName} ${member.LastName}`,
+      username: member.UserName,
     });
   }, this);
   this.addComponent('userCreate', {
