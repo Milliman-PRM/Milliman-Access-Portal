@@ -194,7 +194,44 @@ function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
       ],
     )),
     selectionGroupDeleteClickHandler,
-    () => undefined,
+    (event: Event) => {
+      event.stopPropagation();
+      const $target = $(event.target).closest('.card-body-container');
+      $target.find('.card-button-side-container .card-button-green').show();
+      $target.find('.detail-item-user-icon').hide();
+      $target.find('.detail-item-user-create').show();
+      $target.find('.detail-item-user-remove').show();
+      $target.find('.card-body-primary-text-box').removeAttr('disabled');
+      $target
+        .find('.card-button-dynamic').hide()
+        .filter('.card-button-green').show();
+    },
+    (event: Event) => {
+      event.stopPropagation();
+      const $target = $(event.target).closest('.card-body-container');
+      $target.find('.card-button-side-container .card-button-green').hide();
+      $target.find('.detail-item-user-icon').show();
+      $target.find('.detail-item-user-create').hide();
+      $target.find('.detail-item-user-remove').hide();
+      $target.find('.card-body-primary-text-box').attr('disabled', '');
+      $.post({
+        data: {
+          name: $target.find('.card-body-primary-text-box').val(),
+          selectionGroupId: $target.parent().data().selectionGroupId,
+        },
+        headers: {
+          RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
+        },
+        url: 'ContentAccessAdmin/RenameSelectionGroup/',
+      }).done((response) => {
+        $target
+          .find('.card-button-dynamic').hide()
+          .filter('.card-button-blue').show();
+      }).fail((response) => {
+        toastr.warning(response.getResponseHeader('Warning')
+          || 'An unknown error has occurred.');
+      });
+    },
   ).build();
   updateCardStatus($card, selectionGroup.ReductionDetails);
   $('#selection-groups ul.admin-panel-content').append($card);

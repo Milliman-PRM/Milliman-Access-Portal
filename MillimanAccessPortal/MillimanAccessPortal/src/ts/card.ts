@@ -271,10 +271,15 @@ const components = Object.assign(
       html: [
         '<li>',
         '  <span class="detail-item-user">',
+        '    <div class="detail-item-user-icon">',
+        '      <svg class="card-user-icon">',
+        '        <use href="#action-icon-user"></use>',
+        '      </svg>',
+        '    </div>',
         '    <div class="detail-item-user-remove">',
         '      <div class="card-button-background card-button-delete">',
         '        <svg class="card-button-icon">',
-        '          <use href="#action-icon-delete"></use>',
+        '          <use href="#action-icon-remove-circle"></use>',
         '        </svg>',
         '      </div>',
         '    </div>',
@@ -304,7 +309,7 @@ const components = Object.assign(
         '  <div class="detail-item-user-add">',
         '    <div class="card-button-background card-button-add">',
         '      <svg class="card-button-icon">',
-        '        <use href="#action-icon-add"></use>',
+        '        <use href="#action-icon-add-circle"></use>',
         '      </svg>',
         '    </div>',
         '  </div>',
@@ -899,7 +904,7 @@ FileUploadCard.prototype.constructor = FileUploadCard;
 export function SelectionGroupCard(
   selectionGroup: SelectionGroupSummary,
   eligibleUsers: UserInfo[],
-  callback, deleteCallback, userCallback,
+  callback, deleteCallback, editCallback, confirmCallback,
 ) {
   Card.call(this);
 
@@ -923,15 +928,21 @@ export function SelectionGroupCard(
     tooltip: 'Delete selection group',
   });
   this.addComponent('button', {
-    callback: userCallback,
+    callback: editCallback,
     color: 'blue',
+    dynamic: true,
     icon: 'edit',
-    tooltip: 'Add/remove users',
+    tooltip: 'Edit selection group',
+  });
+  this.addComponent('button', {
+    callback: confirmCallback,
+    color: 'green',
+    dynamic: true,
+    icon: 'checkmark',
+    tooltip: 'Save changes',
   });
   this.addComponent('statistics', { click: shared.toggleExpandedListener });
-  if (selectionGroup.MemberList.length) {
-    this.addComponent('detailText', { text: 'Members' });
-  }
+  this.addComponent('detailText', { text: 'Members' });
   selectionGroup.MemberList.forEach(function(member) {
     this.addComponent('user', {
       callback: (event) => shared.removeUserFromSelectionGroup(event, member, selectionGroup),
@@ -988,6 +999,10 @@ export function SelectionGroupCard(
   this.callback = callback;
 
   this.afterBuild = () => {
+    this.$representation.find('.card-button-side-container .card-button-green').hide();
+    this.$representation.find('.detail-item-user-create').hide();
+    this.$representation.find('.detail-item-user-remove').hide();
+    this.$representation.find('.card-body-primary-text-box').attr('disabled', '');
     this.$representation.find('.typeahead').typeahead(
       {
         highlight: true,

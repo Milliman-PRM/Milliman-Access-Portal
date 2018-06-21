@@ -70,9 +70,6 @@ export function toggleExpanded($panel, $this) {
       $this.find('.tooltip').tooltipster('content', data.text);
       return data.rv;
     });
-  $cardContainer
-    .find('.card-body-primary-text-box')
-    .attr('disabled', disabled);
   updateToolbarIcons($panel);
 }
 export function toggleExpandedListener(event) {
@@ -80,7 +77,6 @@ export function toggleExpandedListener(event) {
 }
 export function expandAll($panel) {
   $panel.find('.card-expansion-container').attr('maximized', '');
-  $panel.find('.card-body-primary-text-box').removeAttr('disabled');
   updateToolbarIcons($panel);
 }
 export function expandAllListener(event) {
@@ -88,7 +84,6 @@ export function expandAllListener(event) {
 }
 export function collapseAll($panel) {
   $panel.find('.card-expansion-container[maximized]').removeAttr('maximized');
-  $panel.find('.card-body-primary-text-box').attr('disabled', '');
   updateToolbarIcons($panel);
 }
 export function collapseAllListener(event) {
@@ -309,10 +304,15 @@ export function updateMemberList(
       const $li = $([
         '<li>',
         `  <span class="detail-item-user" data-user-id="${user.Id}">`,
+        '    <div class="detail-item-user-icon">',
+        '      <svg class="card-user-icon">',
+        '        <use href="#action-icon-user"></use>',
+        '      </svg>',
+        '    </div>',
         '    <div class="detail-item-user-remove">',
-        '      <div class="card-button-background card-button-delete">',
+        '      <div class="card-button-background card-button-red">',
         '        <svg class="card-button-icon">',
-        '          <use href="#action-icon-delete"></use>',
+        '          <use href="#action-icon-remove-circle"></use>',
         '        </svg>',
         '      </div>',
         '    </div>',
@@ -322,6 +322,7 @@ export function updateMemberList(
       ].join(''));
       $li.find('.detail-item-user-remove').click((event) =>
         removeUserFromSelectionGroup(event, user, selectionGroup));
+      $li.find('.detail-item-user-icon').hide();
       $memberList.append($li);
     });
   $memberCard.find('.card-stat-value').html(memberList.length.toString());
