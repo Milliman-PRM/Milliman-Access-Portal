@@ -216,7 +216,7 @@ function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
       $target.find('.card-body-primary-text-box').attr('disabled', '');
       $.post({
         data: {
-          name: $target.find('.card-body-primary-text-box').val(),
+          name: $target.find('.card-body-primary-text-box').val() || 'Untitled',
           selectionGroupId: $target.parent().data().selectionGroupId,
         },
         headers: {
