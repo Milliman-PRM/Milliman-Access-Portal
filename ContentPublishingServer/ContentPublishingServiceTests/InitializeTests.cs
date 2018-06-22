@@ -94,7 +94,7 @@ namespace ContentPublishingServiceTests
             MockDbSet<HierarchyField>.AssignNavigationProperty(Db.Object.HierarchyField, "RootContentItemId", Db.Object.RootContentItem);
             #endregion
 
-            #region Initialize HierarchyField
+            #region Initialize HierarchyFieldValue
             Db.Object.HierarchyFieldValue.AddRange(
                 new List<HierarchyFieldValue>
                 {

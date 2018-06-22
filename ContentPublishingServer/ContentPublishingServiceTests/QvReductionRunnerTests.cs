@@ -27,7 +27,7 @@ namespace ContentPublishingServiceTests
             ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1));
 
             string ExchangeFolder = $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{TaskGuid}\";
-            string MasterContentFileName = $"MasterContent.Pub[{DbTask.SelectionGroup.RootContentItemId}].Content[999].qvw";
+            string MasterContentFileName = $"MasterContent.Content[{DbTask.SelectionGroup.RootContentItemId}].qvw";
 
             Directory.CreateDirectory(ExchangeFolder);
             File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
@@ -84,70 +84,8 @@ namespace ContentPublishingServiceTests
             }
             finally
             {
-                Directory.Delete(ExchangeFolder);
+                Directory.Delete(ExchangeFolder, true);
             }
-            #endregion
-        }
-
-        [Fact]
-        public async Task SuccessfulHierarchyAndReduction()
-        {
-            #region Arrange
-            ApplicationDbContext MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus).Object;
-
-            // Modify the task to be tested
-            ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1));
-            DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
-
-            QvReductionRunner TestRunner = new QvReductionRunner
-            {
-                JobDetail = (ReductionJobDetail)DbTask,
-            };
-            TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);
-
-            CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
-            #endregion
-
-            #region Act
-            Task<ReductionJobDetail> MonitorTask = TestRunner.Execute(CancelTokenSource.Token);
-            ReductionJobDetail JobDetail = await MonitorTask;
-            var TaskResult = JobDetail.Result;
-            var TaskRequest = JobDetail.Request;
-            #endregion
-
-            #region Assert
-            Assert.NotNull(TaskRequest);
-            Assert.NotNull(TaskResult);
-            Assert.IsType<ReductionJobDetail.ReductionJobResult>(TaskResult);
-            Assert.IsType<ReductionJobDetail.ReductionJobRequest>(TaskRequest);
-            Assert.Equal<TaskStatus>(TaskStatus.RanToCompletion, MonitorTask.Status);
-            Assert.False(MonitorTask.IsCanceled);
-            Assert.False(MonitorTask.IsFaulted);
-            if (!string.IsNullOrEmpty(TaskResult.StatusMessage))
-            {
-                System.Console.WriteLine($"TaskResult.StatusMessage is {TaskResult.StatusMessage}");
-            }
-            Assert.Equal(ReductionJobDetail.JobStatusEnum.Success, MonitorTask.Result.Status);
-
-            Assert.NotNull(TaskResult.MasterContentHierarchy);
-            Assert.Equal(3, TaskResult.MasterContentHierarchy.Fields.Count);
-            Assert.Single(TaskResult.MasterContentHierarchy.Fields[0].FieldValues); // using .Equal for expected value 1 gives compiler warning
-            Assert.Equal(7, TaskResult.MasterContentHierarchy.Fields[1].FieldValues.Count);
-            Assert.Equal(54, TaskResult.MasterContentHierarchy.Fields[2].FieldValues.Count);
-
-            Assert.NotNull(TaskResult.ReducedContentHierarchy);
-            Assert.Equal(3, TaskResult.ReducedContentHierarchy.Fields.Count);
-            Assert.Single(TaskResult.ReducedContentHierarchy.Fields[0].FieldValues); // using .Equal for expected value 1 gives compiler warning
-            Assert.Equal(2, TaskResult.ReducedContentHierarchy.Fields[1].FieldValues.Count);
-            Assert.Equal(15, TaskResult.ReducedContentHierarchy.Fields[2].FieldValues.Count);
-
-            Assert.False(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFilePath));
-            Assert.Equal(TaskRequest.MasterFilePath.Replace(".qvw", ".reduced.qvw"), TaskResult.ReducedContentFilePath);
-            Assert.True(File.Exists(TaskResult.ReducedContentFilePath));
-
-            Assert.False(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFileChecksum));
-            Assert.Equal(40, TaskResult.ReducedContentFileChecksum.Length);  
-            // Can't know an expected checksum value because it's different every time. 
             #endregion
         }
 
