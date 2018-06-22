@@ -2,6 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const SpriteLoaderPlugin = require('svg-sprite-loader/plugin');
 
 module.exports = {
   entry: {
@@ -15,6 +16,27 @@ module.exports = {
   },
   module: {
     rules: [
+      {
+        test: /\.svg$/,
+        use: [
+          {
+            loader: 'svg-sprite-loader',
+            options: {
+              extract: false
+            }
+          },
+          {
+            loader: 'svgo-loader',
+            options: {
+              plugins: [
+                { removeTitle: true },
+                { convertColors: { currentColor: true } },
+                { convertPathData: false }
+              ]
+            }
+          }
+        ]
+      },
       {
         test: /\.css$/,
         use: [
@@ -48,10 +70,6 @@ module.exports = {
   plugins: [
     new CopyWebpackPlugin([
       {
-        from: 'src/images',
-        to: '../images',
-      },
-      {
         from: 'src/favicon.ico',
         to: '../favicon.ico',
       },
@@ -61,6 +79,9 @@ module.exports = {
       jQuery: 'jquery',
     }),
     new webpack.NamedModulesPlugin(),
+    new SpriteLoaderPlugin({
+      plainSprite: true
+    }),
   ],
   resolve: {
     extensions: [
