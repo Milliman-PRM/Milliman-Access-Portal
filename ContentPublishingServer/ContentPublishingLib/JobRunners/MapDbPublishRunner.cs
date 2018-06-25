@@ -26,7 +26,6 @@ namespace ContentPublishingLib.JobRunners
     public class MapDbPublishRunner : RunnerBase
     {
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
-        private string _ThisRootContentFolder = string.Empty;
         string _ContentItemRootPath = string.Empty;
 
         private object AuditLogDetailObj;
@@ -114,32 +113,31 @@ namespace ContentPublishingLib.JobRunners
                 AuditLog = new AuditLogger();
             }
 
-            _ThisRootContentFolder = Path.Combine(_ContentItemRootPath, JobDetail.Request.RootContentId.ToString());
-            DirectoryInfo ContentDirectoryInfo = Directory.CreateDirectory(_ThisRootContentFolder);
-
             try
             {
-                // Handle each file related to this PublicationRequest
-                foreach (ContentRelatedFile RelatedFile in JobDetail.Request.RelatedFiles)
-                {
-                    HandleRelatedFile(RelatedFile);
-                }
+                QueueReductionActivity(JobDetail.Request.MasterContentFile);
 
                 // Wait for any/all related reduction tasks to complete
-                int PendingTaskCount = 0;
-                do
+                for (int PendingTaskCount = await CountPendingReductionTasks(); PendingTaskCount > 0; PendingTaskCount = await CountPendingReductionTasks())
                 {
-                    PendingTaskCount = await CheckRelatedReductionTasks();
-
-                    Thread.Sleep(1000);
-
                     if (DateTime.UtcNow > WaitEndUtc)
                     {
+                        using (ApplicationDbContext Db = GetDbContext())
+                        {
+                            var QueuedTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId)
+                                                                     .Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
+                                                                     .ToList();
+                            await CancelReductionTasks(QueuedTasks);
+                        }
+
+                        // throw so that the exception message gets recorded in the ContentPublicationRequest.StatusMessage field
                         throw new ApplicationException($"{Method.DeclaringType.Name}.{Method.Name} timed out waiting for {PendingTaskCount} pending reduction tasks");
                     }
-                }
-                while (PendingTaskCount > 0); 
 
+                    Thread.Sleep(1000);
+                }
+
+                // Check the actual status of reduction tasks to make sure publication status is assigned correctly
                 JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
             }
             catch (OperationCanceledException e)
@@ -160,41 +158,7 @@ namespace ContentPublishingLib.JobRunners
             return JobDetail;
         }
 
-        private void HandleRelatedFile(ContentRelatedFile RelatedFile)
-        {
-            if (!File.Exists(RelatedFile.FullPath))
-            {
-                throw new ApplicationException($"While publishing request {JobDetail.JobId.ToString()}, uploaded file not found at path [{RelatedFile.FullPath}].");
-            }
-            if (RelatedFile.Checksum.ToLower() != GlobalFunctions.GetFileChecksum(RelatedFile.FullPath).ToLower())
-            {
-                throw new ApplicationException($"While publishing request {JobDetail.JobId.ToString()}, checksum validation failed for file [{RelatedFile.FullPath}].");
-            }
-
-            string DestinationFileName = $"{RelatedFile.FilePurpose}.Pub[{JobDetail.JobId.ToString()}].Content[{JobDetail.Request.RootContentId.ToString()}]{Path.GetExtension(RelatedFile.FullPath)}";
-            string DestinationFullPath = Path.Combine(_ThisRootContentFolder, DestinationFileName);
-
-            // Copy and clean up FileUpload entity and uploaded file(s)
-            using (ApplicationDbContext Db = GetDbContext())
-            using (var Txn = Db.Database.BeginTransaction())  // transactional in case anything throws
-            {
-                File.Copy(RelatedFile.FullPath, DestinationFullPath, true);
-                List<FileUpload> Uploads = Db.FileUpload.Where(f => f.StoragePath == RelatedFile.FullPath).ToList();
-                Uploads.ForEach(u => Db.FileUpload.Remove(u));
-                File.Delete(RelatedFile.FullPath);
-                Db.SaveChanges();
-                Txn.Commit();
-            }
-
-            JobDetail.Result.ResultingRelatedFiles.Add(new ContentRelatedFile { FilePurpose = RelatedFile.FilePurpose, FullPath = DestinationFullPath });
-
-            if (RelatedFile.FilePurpose.ToLower() == "mastercontent")
-            {
-                ProcessMasterContentFile(DestinationFullPath, RelatedFile.FilePurpose, RelatedFile.Checksum);
-            }
-        }
-
-        private async Task<int> CheckRelatedReductionTasks()
+        private async Task<int> CountPendingReductionTasks()
         {
             using (ApplicationDbContext Db = GetDbContext())
             {
@@ -251,64 +215,58 @@ namespace ContentPublishingLib.JobRunners
 
         /// <summary>
         /// Performs all actions required only in the presence of a master content file in the publication request
-        /// Note that a publication request can be made without a content item to update associated files.
+        /// Note that a publication request can be made without a mast content file to update associated files.
         /// </summary>
-        /// <param name="FilePath"></param>
-        /// <param name="FilePurpose"></param>
-        /// <param name="FileChecksum"></param>
-        private void ProcessMasterContentFile(string FilePath, string FilePurpose, string FileChecksum)
+        /// <param name="contentRelatedFile"></param>
+        private void QueueReductionActivity(ContentRelatedFile contentRelatedFile)
         {
             // If there is no SelectionGroup for this content item, create a new SelectionGroup with IsMaster = true
             using (ApplicationDbContext Db = GetDbContext())
             {
                 if (!Db.SelectionGroup.Any(sg => sg.RootContentItemId == JobDetail.Request.RootContentId))
                 {
-                    Db.SelectionGroup.Add(new SelectionGroup
+                    SelectionGroup NewMasterSelectionGroup = new SelectionGroup
                     {
-                        Id = Db.SelectionGroup.Max(sg => sg.Id) + 1,
                         RootContentItemId = JobDetail.Request.RootContentId,
                         GroupName = "Master Content Access",
                         IsMaster = true,
-                    });
+                    };
+                    // for Mocked DbSet (unit testing) there is no default expression for Id 
+                    if (MockContext != null)  
+                    {
+                        NewMasterSelectionGroup.Id = Db.SelectionGroup.Max(sg => sg.Id) + 1;
+                    }
+                    Db.SelectionGroup.Add(NewMasterSelectionGroup);
                     Db.SaveChanges();
                 }
             }
 
             if (JobDetail.Request.DoesReduce)
             {
+                string QvSourceDocumentsPath = Configuration.ApplicationConfiguration.GetSection("Storage")["QvSourceDocumentsPath"];
+
                 using (ApplicationDbContext Db = GetDbContext())
                 {
-                    bool MasterHierarchyRequested = false;
+                    bool MasterHierarchyHasBeenRequested = false;
 
                     foreach (SelectionGroup SelGrp in Db.SelectionGroup
                                                         .Where(g => g.RootContentItemId == JobDetail.Request.RootContentId)
                                                         .ToList())
                     {
-                        if (SelGrp.IsMaster && MasterHierarchyRequested)
+                        if (SelGrp.IsMaster && MasterHierarchyHasBeenRequested)
                         {
                             // Only handle IsMaster SelectionGroups once
-                            // TODO During go-live the master file will need to be associated with all IsMaster groups
                             continue;
                         }
 
-                        Guid TaskId = Guid.NewGuid();
-
-                        string QvSourceDocumentsPath = Configuration.ApplicationConfiguration.GetSection("Storage")["QvSourceDocumentsPath"];
-                        string TaskFolder = Path.Combine(QvSourceDocumentsPath, TaskId.ToString());
-                        Directory.CreateDirectory(TaskFolder);
-
-                        string DestinationFileName = $"{FilePurpose}.Pub[{JobDetail.JobId.ToString()}].Content[{JobDetail.Request.RootContentId.ToString()}]{Path.GetExtension(FilePath)}";
-                        string CopyDestination = Path.Combine(TaskFolder, DestinationFileName);
-                        File.Copy(FilePath, CopyDestination, true);
-
                         ContentReductionTask NewTask = new ContentReductionTask
                         {
-                            Id = TaskId,
+                            Id = Guid.NewGuid(),  // In normal operation db could generate a value; this is done for unit tests
                             ApplicationUserId = JobDetail.Request.ApplicationUserId,
                             ContentPublicationRequestId = JobDetail.JobId,
                             CreateDateTimeUtc = DateTime.UtcNow,  // TODO later: Figure out how to avoid delay in starting the reduction task. 
-                            MasterFilePath = CopyDestination,
-                            MasterContentChecksum = FileChecksum,
+                            MasterFilePath = contentRelatedFile.FullPath,
+                            MasterContentChecksum = contentRelatedFile.Checksum,
                             ReductionStatus = ReductionStatusEnum.Queued,
                             SelectionGroupId = SelGrp.Id,
                         };
@@ -316,13 +274,11 @@ namespace ContentPublishingLib.JobRunners
                         if (SelGrp.IsMaster)
                         {
                             NewTask.TaskAction = TaskActionEnum.HierarchyOnly;
-
-                            MasterHierarchyRequested = true;
+                            MasterHierarchyHasBeenRequested = true;
                         }
                         else
                         {
                             var SelectionHierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, SelGrp.Id);
-
                             NewTask.SelectionCriteria = SelectionHierarchy.SerializeJson();
                             NewTask.TaskAction = TaskActionEnum.HierarchyAndReduction;
                         }
@@ -331,11 +287,10 @@ namespace ContentPublishingLib.JobRunners
                         Db.SaveChanges();
                     }
                 }
-
             }
             else
             {
-                // nothing?
+                // nothing to queue, but do not resolve publication request status here
             }
         }
     }

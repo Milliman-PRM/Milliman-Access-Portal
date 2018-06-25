@@ -38,17 +38,7 @@ namespace ContentPublishingLib.JobRunners
                 Request = new PublishJobRequest
                 {
                     DoesReduce = DbTask.RootContentItem.DoesReduce,
-                    RelatedFiles = DbTask.PublishRequest.RelatedFiles.Select(rf =>
-                        {
-                            var UploadRecord = Db.FileUpload.Find(rf.FileUploadId);
-                            return new ContentRelatedFile
-                            {
-                                FilePurpose = rf.FilePurpose,
-                                FullPath = UploadRecord.StoragePath,
-                                Checksum = UploadRecord.Checksum,
-                            };
-                        }
-                    ).ToList(),
+                    MasterContentFile = DbTask.ReductionRelatedFilesObj.Select(rrf => rrf.MasterContentFile).SingleOrDefault(),
                     RootContentId = DbTask.RootContentItemId,
                     ApplicationUserId = DbTask.ApplicationUserId,
                 },
@@ -66,7 +56,7 @@ namespace ContentPublishingLib.JobRunners
         public class PublishJobRequest
         {
             public bool DoesReduce { get; set; }
-            public List<ContentRelatedFile> RelatedFiles { get; set; }
+            public ContentRelatedFile MasterContentFile { get; set; }
             public long RootContentId { get; set; }
             public long ApplicationUserId { get; set; }
         }

@@ -24,52 +24,6 @@ namespace ContentPublishingServiceTests
             });
             #endregion
 
-            #region Initialize FileUpload
-            Directory.CreateDirectory($@"\\indy-syn01\prm_test\Uploads");
-            try
-            {
-                File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw", @"\\indy-syn01\prm_test\Uploads\Uploaded Test File 1.qvw");
-            }
-            catch (System.IO.IOException) { }
-            try
-            {
-                File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw", @"\\indy-syn01\prm_test\Uploads\Uploaded Test File 2.qvw");
-            }
-            catch (System.IO.IOException) { }
-            try
-            {
-                File.Copy(@"\\indy-syn01\prm_test\Sample Data\Italy.jpg", @"\\indy-syn01\prm_test\Uploads\Italy.jpg");
-            }
-            catch (System.IO.IOException) { }
-            Db.Object.FileUpload.AddRange(new List<FileUpload>
-            {
-                new FileUpload
-                {
-                    Id = Guid.NewGuid(),
-                    Checksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
-                    ClientFileIdentifier = "Uploaded Test File 1",
-                    CreatedDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 0, 45),
-                    StoragePath = @"\\indy-syn01\prm_test\Uploads\Uploaded Test File 1.qvw",
-                },
-                new FileUpload
-                {
-                    Id = Guid.NewGuid(),
-                    Checksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
-                    ClientFileIdentifier = "Uploaded Test File 2",
-                    CreatedDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 0, 45),
-                    StoragePath = @"\\indy-syn01\prm_test\Uploads\Uploaded Test File 2.qvw",
-                },
-                new FileUpload
-                {
-                    Id = Guid.NewGuid(),
-                    Checksum = "fd23523b3dbaf1625a15d58119a0f1f1cbb01a02",
-                    ClientFileIdentifier = "Uploaded Image File",
-                    CreatedDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 0, 45),
-                    StoragePath = @"\\indy-syn01\prm_test\Uploads\Italy.jpg",
-                },
-            });
-            #endregion
-
             #region Initialize RootContentItem
             Db.Object.RootContentItem.AddRange(
                 new List<RootContentItem>
@@ -140,7 +94,7 @@ namespace ContentPublishingServiceTests
             MockDbSet<HierarchyField>.AssignNavigationProperty(Db.Object.HierarchyField, "RootContentItemId", Db.Object.RootContentItem);
             #endregion
 
-            #region Initialize HierarchyField
+            #region Initialize HierarchyFieldValue
             Db.Object.HierarchyFieldValue.AddRange(
                 new List<HierarchyFieldValue>
                 {
@@ -478,73 +432,52 @@ namespace ContentPublishingServiceTests
 
             #region Initialize ContentPublicationRequest
             // Valid request
-            Db.Object.ContentPublicationRequest.AddRange(
-                new List<ContentPublicationRequest>
+            Db.Object.ContentPublicationRequest.Add(
+                new ContentPublicationRequest
                 {
-                    new ContentPublicationRequest
-                    {
-                        Id = 1,
-                        ApplicationUserId = 1,
-                        CreateDateTimeUtc = DateTime.UtcNow,
-                        RequestStatus = PublicationStatus.Unknown,
-                        PublishRequest = new PublishRequest
-                        {
-                            RootContentItemId = 1,
-                            RelatedFiles = new UploadedRelatedFile[]
-                            {
-                                new UploadedRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
-                                new UploadedRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
-                            }
-                        }
-                    },
-                    new ContentPublicationRequest
-                    {
-                        Id = 2,
-                        ApplicationUserId = 1,
-                        CreateDateTimeUtc = DateTime.UtcNow,
-                        RequestStatus = PublicationStatus.Unknown,
-                        PublishRequest = new PublishRequest
-                        {
-                            RootContentItemId = 2,
-                            RelatedFiles = new UploadedRelatedFile[]
-                            {
-                                new UploadedRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
-                                new UploadedRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
-                            }
-                        }
-                    },
-                    new ContentPublicationRequest
-                    {
-                        Id = 3,
-                        ApplicationUserId = 1,
-                        CreateDateTimeUtc = DateTime.UtcNow,
-                        RequestStatus = PublicationStatus.Unknown,
-                        PublishRequest = new PublishRequest
-                        {
-                            RootContentItemId = 3,
-                            RelatedFiles = new UploadedRelatedFile[]
-                            {
-                                new UploadedRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
-                                new UploadedRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
-                            }
-                        }
-                    },
-                    new ContentPublicationRequest
-                    {
-                        Id = 4,
-                        ApplicationUserId = 1,
-                        CreateDateTimeUtc = DateTime.UtcNow,
-                        RequestStatus = PublicationStatus.Unknown,
-                        PublishRequest = new PublishRequest
-                        {
-                            RootContentItemId = 4,
-                            RelatedFiles = new UploadedRelatedFile[]
-                            {
-                                new UploadedRelatedFile {FilePurpose = "MasterContent", FileUploadId = Db.Object.FileUpload.ElementAt(0).Id},
-                                new UploadedRelatedFile {FilePurpose = "UserGuide", FileUploadId = Db.Object.FileUpload.ElementAt(1).Id},
-                            }
-                        }
-                    },
+                    Id = 1,
+                    ApplicationUserId = 1,
+                    RootContentItemId = 1,
+                    CreateDateTimeUtc = DateTime.UtcNow,
+                    RequestStatus = PublicationStatus.Unknown,
+                    ReductionRelatedFilesObj = new List<ReductionRelatedFiles>(),
+                    LiveReadyFilesObj = new List<ContentRelatedFile>(),
+                });
+
+            Db.Object.ContentPublicationRequest.Add(
+                new ContentPublicationRequest
+                {
+                    Id = 2,
+                    ApplicationUserId = 1,
+                    RootContentItemId = 2,
+                    CreateDateTimeUtc = DateTime.UtcNow,
+                    RequestStatus = PublicationStatus.Unknown,
+                    ReductionRelatedFilesObj = new List<ReductionRelatedFiles>(),
+                    LiveReadyFilesObj = new List<ContentRelatedFile>(),
+                });
+
+            Db.Object.ContentPublicationRequest.Add(
+                new ContentPublicationRequest
+                {
+                    Id = 3,
+                    ApplicationUserId = 1,
+                    RootContentItemId = 3,
+                    CreateDateTimeUtc = DateTime.UtcNow,
+                    RequestStatus = PublicationStatus.Unknown,
+                    ReductionRelatedFilesObj = new List<ReductionRelatedFiles>(),
+                    LiveReadyFilesObj = new List<ContentRelatedFile>(),
+                });
+
+            Db.Object.ContentPublicationRequest.Add(
+                new ContentPublicationRequest
+                {
+                    Id = 4,
+                    ApplicationUserId = 1,
+                    RootContentItemId = 4,
+                    CreateDateTimeUtc = DateTime.UtcNow,
+                    RequestStatus = PublicationStatus.Unknown,
+                    ReductionRelatedFilesObj = new List<ReductionRelatedFiles>(),
+                    LiveReadyFilesObj = new List<ContentRelatedFile>(),
                 });
 
             MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(Db.Object.ContentPublicationRequest, "RootContentItemId", Db.Object.RootContentItem);

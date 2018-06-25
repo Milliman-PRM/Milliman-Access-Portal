@@ -6,6 +6,7 @@
 
 using AuditLogLib;
 using AuditLogLib.Services;
+using MapCommonLib;
 using MapCommonLib.ActionFilters;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
@@ -23,6 +24,7 @@ using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentPublishing;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -462,9 +464,13 @@ namespace MillimanAccessPortal.Controllers
             }
 #endif
 
+            RootContentItem ContentItem = DbContext.RootContentItem
+                                                   .Include(rc => rc.ContentType)
+                                                   .SingleOrDefault(rc => rc.Id == Arg.RootContentItemId);
+
             #region Validation
             // The requested RootContentItem must exist
-            if (DbContext.RootContentItem.Count(rc => rc.Id == Arg.RootContentItemId) != 1)
+            if (ContentItem == null)
             {
                 Response.Headers.Add("Warning", "Requested content item not found.");
                 return BadRequest();
@@ -505,13 +511,16 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            // Create the publication request and reduction task(s)
+            // Insert the initial publication request (not queued yet)
             ContentPublicationRequest NewContentPublicationRequest = new ContentPublicationRequest
             {
                 ApplicationUserId = currentApplicationUser.Id,
-                RequestStatus = PublicationStatus.Queued,
-                PublishRequest = Arg,
+                RequestStatus = PublicationStatus.Unknown,
                 CreateDateTimeUtc = DateTime.UtcNow,
+                RootContentItemId = ContentItem.Id,
+                LiveReadyFilesObj = new List<ContentRelatedFile>(),
+                ReductionRelatedFilesObj = new List<ReductionRelatedFiles>(),
+                
             };
             try
             {
@@ -523,6 +532,44 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "Failed to store publication request");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
+
+            Guid ThisRequestGuid = Guid.NewGuid();
+
+            switch (ContentItem.ContentType.TypeEnum)
+            {
+                case ContentTypeEnum.Qlikview:
+                    // TODO move this logic to a class in project QlikviewLib, derived from Interface or base class in MapCommonLib
+                    if (Arg.RelatedFiles.Select(f => f.FilePurpose).Count(p => p.ToLower() == "mastercontent") > 1)
+                    {
+                        throw new ApplicationException("Qlikview publication request cannot contain multiple MasterContent files");
+                    }
+
+                    foreach (UploadedRelatedFile UploadedFileRef in Arg.RelatedFiles)
+                    {
+                        ContentRelatedFile Crf = HandleRelatedFile(UploadedFileRef, ContentItem, ThisRequestGuid, NewContentPublicationRequest.Id);
+
+                        if (Crf != null)
+                        {
+                            NewContentPublicationRequest.LiveReadyFilesObj = NewContentPublicationRequest.LiveReadyFilesObj.Append(Crf).ToList();
+
+                            if (Crf.FilePurpose.ToLower() == "mastercontent" && ContentItem.DoesReduce)
+                            {
+                                ContentRelatedFile MasterCrf = ProcessMasterContentFile(Crf, ThisRequestGuid, ContentItem.DoesReduce);
+                                NewContentPublicationRequest.ReductionRelatedFilesObj = NewContentPublicationRequest.ReductionRelatedFilesObj.Append(new ReductionRelatedFiles { MasterContentFile = MasterCrf }).ToList();
+                            }
+                        }
+                    }
+                    break;
+
+                default:
+                    throw new NotSupportedException($"Publication request cannot be created for unsupported ContentType {ContentItem.ContentType.TypeEnum.ToString()}");
+            }
+
+            NewContentPublicationRequest.RequestStatus = PublicationStatus.Queued;
+
+            // Update the request record with file info and Queued status
+            DbContext.ContentPublicationRequest.Update(NewContentPublicationRequest);
+            DbContext.SaveChanges();
 
             // Log the queued publication request
             #region Log audit event
@@ -654,5 +701,73 @@ namespace MillimanAccessPortal.Controllers
 
             return new JsonResult(ReturnObj);
         }
+
+        [NonAction]
+        private ContentRelatedFile HandleRelatedFile(UploadedRelatedFile RelatedFile, RootContentItem ContentItem, Guid RequestGuid, long PubRequestId)
+        {
+            ContentRelatedFile ReturnObj = null;
+
+            using (IDbContextTransaction Txn = DbContext.Database.BeginTransaction())
+            {
+                FileUpload FileUploadRecord = DbContext.FileUpload.Find(RelatedFile.FileUploadId);
+
+                #region Validate the file referenced by the FileUpload record
+                if (!System.IO.File.Exists(FileUploadRecord.StoragePath))
+                {
+                    throw new ApplicationException($"While publishing for content {ContentItem.Id}, uploaded file not found at path [{FileUploadRecord.StoragePath}].");
+                }
+                if (FileUploadRecord.Checksum.ToLower() != GlobalFunctions.GetFileChecksum(FileUploadRecord.StoragePath).ToLower())
+                {
+                    throw new ApplicationException($"While publishing for content {ContentItem.Id}, checksum validation failed for file [{FileUploadRecord.StoragePath}].");
+                }
+                #endregion
+
+                string RootContentFolder = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"], ContentItem.Id.ToString());
+
+                // Copy uploaded file to root content folder
+                string DestinationFileName = $"{RelatedFile.FilePurpose}.Pub[{PubRequestId.ToString()}].Content[{ContentItem.Id.ToString()}]{Path.GetExtension(FileUploadRecord.StoragePath)}";
+                string DestinationFullPath = Path.Combine(RootContentFolder, DestinationFileName);
+                System.IO.File.Copy(FileUploadRecord.StoragePath, DestinationFullPath, true);
+
+                ReturnObj = new ContentRelatedFile
+                {
+                    FilePurpose = RelatedFile.FilePurpose,
+                    FullPath = DestinationFullPath,
+                    Checksum = FileUploadRecord.Checksum,
+                };
+
+                // Remove FileUpload record(s) for this file path
+                List<FileUpload> Uploads = DbContext.FileUpload.Where(f => f.StoragePath == FileUploadRecord.StoragePath).ToList();
+                System.IO.File.Delete(FileUploadRecord.StoragePath);
+                DbContext.FileUpload.RemoveRange(Uploads);
+                //Uploads.ForEach(u => DbContext.FileUpload.r.Remove(u));
+
+                DbContext.SaveChanges();
+                Txn.Commit();
+            }
+
+            return ReturnObj;
+        }
+
+        private ContentRelatedFile ProcessMasterContentFile(ContentRelatedFile FileDetails, Guid RequestGuid, bool DoesReduce)
+        {
+            if (DoesReduce)
+            {
+                string MapPublishingServerExchangeRequestFolder = Path.Combine(ApplicationConfig.GetSection("Storage")["MapPublishingServerExchangePath"], RequestGuid.ToString("D"));
+                Directory.CreateDirectory(MapPublishingServerExchangeRequestFolder);
+                string DestinationFullPath = Path.Combine(MapPublishingServerExchangeRequestFolder, Path.GetFileName(FileDetails.FullPath));
+                System.IO.File.Copy(FileDetails.FullPath, DestinationFullPath, true);
+
+                return new ContentRelatedFile
+                {
+                    FullPath = DestinationFullPath,
+                    FilePurpose = FileDetails.FilePurpose,
+                    Checksum = FileDetails.Checksum,
+                };
+            }
+
+            return null;
+        }
+
     }
 }
