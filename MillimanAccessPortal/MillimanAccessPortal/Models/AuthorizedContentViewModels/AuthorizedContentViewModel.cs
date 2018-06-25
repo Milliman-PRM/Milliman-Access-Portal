@@ -28,11 +28,11 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
 
             return new AuthorizedContentViewModel
             {
-                ItemGroups = clients.Select(c => new ItemGroup
+                ItemGroups = clients.Select(c => new ContentItemGroup
                 {
                     Id = c.Id,
                     Name = c.Name,
-                    Items = selectionGroups.Where(sg => sg.RootContentItem.ClientId == c.Id).Select(sg => new Item
+                    Items = selectionGroups.Where(sg => sg.RootContentItem.ClientId == c.Id).Select(sg => new ContentItem
                     {
                         Id = sg.Id,
                         Name = sg.RootContentItem.ContentName,
@@ -46,17 +46,17 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
             };
         }
 
-        public List<ItemGroup> ItemGroups { get; set; }
+        public List<ContentItemGroup> ItemGroups { get; set; }
     }
 
-    public class ItemGroup
+    public class ContentItemGroup
     {
         public long Id { get; set; }
         public string Name { get; set; }
-        public List<Item> Items { get; set; }
+        public List<ContentItem> Items { get; set; }
     }
 
-    public class Item
+    public class ContentItem
     {
         public long Id { get; set; }
         public string Name { get; set; }
