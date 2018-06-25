@@ -94,7 +94,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             }
 
             string ContentRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");            
-            foreach (ContentRelatedFile RelatedFile in PubRequest.ResultingFiles)
+            foreach (ContentRelatedFile RelatedFile in PubRequest.LiveReadyFilesObj)
             {
                 string Link = Path.GetRelativePath(ContentRootPath, RelatedFile.FullPath);
                 switch (RelatedFile.FilePurpose.ToLower())
