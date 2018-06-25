@@ -1,33 +1,33 @@
-abstract class Nestable {
+interface Nestable {
   Id: number;
   ParentId?: number;
 }
 
-class BasicTree<T extends Nestable> {
+interface BasicTree<T extends Nestable> {
   Root: BasicNode<T>;
 }
-export class BasicNode<T extends Nestable> {
+export interface BasicNode<T extends Nestable> {
   Value: T;
   Children: Array<BasicNode<T>>;
 }
 
-export class UserInfo {
+export interface UserInfo {
   Id: number;
   LastName: string;
   FirstName: string;
   Email: string;
   UserName: string;
 }
-export class ClientSummary extends Nestable {
+export interface ClientSummary extends Nestable {
   Name: string;
   Code: string;
 
   CanManage: boolean;
-  AssignedUsers: Array<UserInfo>;
+  AssignedUsers: UserInfo[];
   EligibleUserCount: number;
   RootContentItemCount: number;
 }
-export class ClientTree extends BasicTree<ClientSummary> {
+export interface ClientTree extends BasicTree<ClientSummary> {
   SelectedClientId: number;
 }
 
@@ -37,14 +37,14 @@ export enum PublicationStatus {
   Processing = 20,
   Complete = 30,
 }
-export class PublicationSummary {
+export interface PublicationSummary {
   User: UserInfo;
   StatusEnum: PublicationStatus;
   StatusName: string;
   SelectionGroupId: number;
   RootContentItemId: number;
 }
-export class RootContentItemSummary {
+export interface RootContentItemSummary {
   Id: number;
   ContentName: string;
   ContentTypeName: string;
@@ -52,19 +52,19 @@ export class RootContentItemSummary {
   EligibleUserCount: number;
   PublicationDetails: PublicationSummary;
 }
-export class RootContentItemList {
-  DetailList: Array<RootContentItemSummary>;
+export interface RootContentItemList {
+  DetailList: RootContentItemSummary[];
   SelectedRootContentItemId: number;
 }
 
-export class ContentType {
+export interface ContentType {
   Id: number;
   TypeEnum: number;
   Name: string;
   CanReduce: boolean;
 }
 
-export class RootContentItemDetail {
+export interface RootContentItemDetail {
   Id: number;
   ClientId: number;
   ContentName: string;
@@ -74,31 +74,31 @@ export class RootContentItemDetail {
   Notes: string;
 }
 
-export class RootContentItemSummaryAndDetail {
+export interface RootContentItemSummaryAndDetail {
   summary: RootContentItemSummary;
   detail: RootContentItemDetail;
 }
 
-export class PublicationDetails {
+export interface PublicationDetails {
   User: UserInfo;
   StatusEnum: PublicationStatus;
   StatusName: string;
   RootContentItemId: number;
 }
-export class RootContentItemStatus {
-  Status: Array<PublicationDetails>;
+export interface RootContentItemStatus {
+  Status: PublicationDetails[];
 }
 
-export class ContentRelatedFile {
+export interface ContentRelatedFile {
   FilePurpose: string;
   FileUploadId: string;
 }
-export class PublishRequest {
+export interface PublishRequest {
   RootContentItemId: number;
-  RelatedFiles: Array<ContentRelatedFile>;
+  RelatedFiles: ContentRelatedFile[];
 }
 
-export class PreLiveContentValidationSummary {
+export interface PreLiveContentValidationSummary {
   RootContentName: string;
   ContentTypeName: string;
   ContentDescription: string;
@@ -112,35 +112,30 @@ export class PreLiveContentValidationSummary {
   ThumbnailLink: string;
   LiveHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
   NewHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
-  SelectionGroups: Array<SelectionGroupSummary>;
+  SelectionGroups: SelectionGroupSummary[];
 }
-export class SelectionGroupSummary {
+export interface SelectionGroupSummary {
   Name: string;
   UserCount: number;
   IsMaster: boolean;
 }
 
-export class ContentReductionHierarchy<T extends ReductionFieldValue> {
+export interface ContentReductionHierarchy<T extends ReductionFieldValue> {
   Fields: Array<ReductionField<T>>;
   RootContentItemId: number;
 }
-export class ReductionField<T extends ReductionFieldValue> {
+export interface ReductionField<T extends ReductionFieldValue> {
   Id: number;
   FieldName: string;
   DisplayName: string;
   ValueDelimiter: string;
-  Values: Array<T>;
+  Values: T[];
 }
-export class ReductionFieldValue {
+export interface ReductionFieldValue {
   Id: number;
   Value: string;
-  get HasSelectionStatus() {
-    return false;
-  }
+  HasSelectionStatus: boolean;
 }
-export class ReductionFieldValueSelection extends ReductionFieldValue{
-  get HasSelectionStatus() {
-    return true;
-  }
+export interface ReductionFieldValueSelection extends ReductionFieldValue {
   SelectionStatus: boolean;
 }

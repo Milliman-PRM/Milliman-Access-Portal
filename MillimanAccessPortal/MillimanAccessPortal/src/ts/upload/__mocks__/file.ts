@@ -26,14 +26,14 @@ export class MockFileReader {
   public onerror: (ev: any) => void;
 
   constructor() {
-    this.onload = () => {};
-    this.onerror = () => {};
+    this.onload = () => undefined;
+    this.onerror = () => undefined;
   }
 
   public readAsArrayBuffer(blob: MockBlob) {
     const event = {
       target: {
-        result: blob.contents
+        result: blob.contents,
       }
     };
     this.onload(event);

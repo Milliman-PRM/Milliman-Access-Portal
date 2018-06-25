@@ -1,11 +1,13 @@
 import { FormInput } from './input';
 
 export class DropdownInput extends FormInput {
+  // tslint:disable:object-literal-sort-keys
   protected _cssClasses = {
     main: 'form-input-dropdown',
     title: 'form-input-dropdown-title',
     extension: 'form-input-dropdown-contents',
-  }
+  };
+  // tslint:enable:object-literal-sort-keys
 
   protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('select');
 

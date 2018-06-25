@@ -1,14 +1,13 @@
-import { ProgressMonitor, ProgressSummary } from '../progress-monitor';
 import { MockDate } from '../__mocks__/date';
-
+import { ProgressMonitor, ProgressSummary } from '../progress-monitor';
 
 describe('progress monitor', () => {
+  // tslint:disable-next-line:variable-name
   const RealDate = Date;
-  
+
   const progressCallback = jest.fn();
   const renderCallback = jest.fn();
 
-  
   beforeEach(() => {
     jest.useFakeTimers();
 
@@ -29,7 +28,7 @@ describe('progress monitor', () => {
 
     jest.clearAllMocks();
     progressCallback.mockReset();
-  })
+  });
 
   it('reads progress from callback', () => {
     const monitor = new ProgressMonitor(
@@ -63,7 +62,7 @@ describe('progress monitor', () => {
 
     expect(setTimeout).toHaveBeenCalledTimes(3);
     expect(renderCallback.mock.calls.map(
-      (call) => (call[0] as ProgressSummary).percentage
+      (call) => (call[0] as ProgressSummary).percentage,
     )).toEqual(['0%', '20%', '40%']);
   });
   it('stops monitoring when complete', () => {
@@ -81,7 +80,7 @@ describe('progress monitor', () => {
 
     expect(setTimeout).toHaveBeenCalledTimes(6);
     expect(renderCallback.mock.calls.map(
-      (call) => (call[0] as ProgressSummary).percentage
+      (call) => (call[0] as ProgressSummary).percentage,
     )).toEqual(['0%', '20%', '40%', '60%', '80%', '100%']);
   });
 });

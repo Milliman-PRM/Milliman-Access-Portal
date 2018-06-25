@@ -7,17 +7,19 @@ import { SelectizedInput } from './form-input/selectized';
 import { TextInput } from './form-input/text';
 import { TextAreaInput } from './form-input/text-area';
 import { ToggleInput } from './form-input/toggle';
-import { Submission } from './form-submission';
 import { AccessMode, SubmissionMode } from './form-modes';
+import { Submission } from './form-submission';
 
 export class FormInputSection extends FormElement {
+  public inputs: FormInput[];
+
+  // tslint:disable:object-literal-sort-keys
   protected _cssClasses =  {
     main: 'form-section',
     title: 'form-section-title',
     extension: 'form-input-container',
   };
-
-  public inputs: Array<FormInput>;
+  // tslint:enable:object-literal-sort-keys
 
   public bindToDOM(entryPoint: HTMLElement) {
     super.bindToDOM(entryPoint);
@@ -40,7 +42,7 @@ export class FormInputSection extends FormElement {
           .map((y) => y())
           .filter((y: FormInput) => $(x).is(`.${y.cssClasses.main}`));
         if (matchedInputs.length > 1) {
-          throw new Error(`Element matches multiple input types.`);
+          throw new Error('Element matches multiple input types.');
         } else if (matchedInputs.length === 0) {
           return undefined;
         }
@@ -67,7 +69,7 @@ export class FormInputSection extends FormElement {
         input.setAccessMode(submissionMode.groups
           .filter((group) => group.sections.indexOf(this.name) !== -1).length
             ? AccessMode.Write
-            : AccessMode.Read
+            : AccessMode.Read,
         );
       });
     } else {
@@ -83,13 +85,15 @@ export class FormInputSection extends FormElement {
 }
 
 export class FormSubmissionSection extends FormElement {
+  public submissions: Submission[];
+
+  // tslint:disable:object-literal-sort-keys
   protected _cssClasses = {
     main: 'form-submission-section',
     title: '',
     extension: '',
   };
-
-  public submissions: Array<Submission>;
+  // tslint:enable:object-literal-sort-keys
 
   public bindToDOM(entryPoint: HTMLElement) {
     super.bindToDOM(entryPoint);
@@ -97,8 +101,8 @@ export class FormSubmissionSection extends FormElement {
     const childElements = this.$entryPoint.children().toArray();
     this.submissions = childElements
       .map((x: HTMLElement) => ({
-        submission: new Submission(),
         element: x,
+        submission: new Submission(),
       }))
       .filter((x) => $(x.element).is(`.${x.submission.cssClasses.main}`))
       .map((x) => {

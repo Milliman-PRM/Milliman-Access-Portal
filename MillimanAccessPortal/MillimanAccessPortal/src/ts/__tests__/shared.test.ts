@@ -5,25 +5,26 @@ interface User {
   UserName: string;
   FirstName: string;
   LastName: string;
-};
+}
 
 test('matches user substring', () => {
-  const users: Array<User> = [
+  const users: User[] = [
     {
       Email: 'email1@client.zxc',
-      UserName: 'username1',
       FirstName: 'John',
       LastName: 'Smith',
+      UserName: 'username1',
     },
     {
       Email: 'email2@client.zxc',
-      UserName: 'username2',
       FirstName: 'Mike',
       LastName: 'Adams',
+      UserName: 'username2',
     },
   ];
-  const matcher: Function = shared.userSubstringMatcher(users);
-  let matches: Array<User>;
+  const matcher: (query: string, callback: (matches: any) => void) => void
+    = shared.userSubstringMatcher(users);
+  let matches: User[];
 
   matcher('query', (m) => { matches = m; });
   expect(matches.length).toBe(0);

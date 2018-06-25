@@ -1,10 +1,10 @@
+import { MockBlob, MockFile, MockFileReader } from '../__mocks__/file';
 import { FileScanner } from '../file-scanner';
-import { MockFile, MockBlob, MockFileReader } from '../__mocks__/file';
-
 
 jest.useFakeTimers();
 
 describe('file scanner', () => {
+  // tslint:disable-next-line:variable-name
   const RealFileReader = FileReader;
   const scanCallback = jest.fn();
 

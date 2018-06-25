@@ -1,11 +1,13 @@
 import { FormInput } from './input';
 
 export class TextInput extends FormInput {
+  // tslint:disable:object-literal-sort-keys
   protected _cssClasses = {
     main: 'form-input-text',
     title: 'form-input-text-title',
     extension: 'form-input-text-contents',
-  }
+  };
+  // tslint:enable:object-literal-sort-keys
 
   protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('input');
 
