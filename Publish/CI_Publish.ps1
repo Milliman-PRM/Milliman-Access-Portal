@@ -233,16 +233,15 @@ if ( $LASTEXITCODE -ne 0 ) {
     exit $LASTEXITCODE
 }
 
-log_statement "SKIPPING Content publishing server unit tests"
-# log_statement "Performing Content publishing server unit tests"
-# 
-# dotnet test --no-build
-# 
-# if ($LASTEXITCODE -ne 0) {
-#     log_statement "ERROR: One or more Content publishing server xUnit tests failed"
-#     log_statement "errorlevel was $LASTEXITCODE"
-#     exit $LASTEXITCODE
-# }
+log_statement "Performing Content publishing server unit tests"
+ 
+ dotnet test --no-build
+ 
+ if ($LASTEXITCODE -ne 0) {
+     log_statement "ERROR: One or more Content publishing server xUnit tests failed"
+     log_statement "errorlevel was $LASTEXITCODE"
+     exit $LASTEXITCODE
+}
 
 cd $rootPath
 
