@@ -49,6 +49,10 @@ namespace ContentPublishingLib.JobRunners
                     return;
                 }
             }
+            if (SourceDocFolder == null)
+            {
+                throw new ApplicationException($"Qlikview Source Document folder {Configuration.ApplicationConfiguration["Storage:QvSourceDocumentsPath"]} not found by Qlikview server");
+            }
         }
 
         #region Member properties
