@@ -235,7 +235,7 @@ if ( $LASTEXITCODE -ne 0 ) {
 
 log_statement "Performing Content publishing server unit tests"
  
- dotnet test --no-build --verbosity diag
+ dotnet test --no-build
  
  if ($LASTEXITCODE -ne 0) {
      log_statement "ERROR: One or more Content publishing server xUnit tests failed"
