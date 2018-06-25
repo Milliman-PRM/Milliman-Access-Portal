@@ -184,7 +184,7 @@ namespace ContentPublishingServiceTests
             Assert.Null(TaskResult.ReducedContentHierarchy);
             Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFilePath));
             Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFileChecksum));
-            //Assert.Matches("^(The requested reduction field).*(is not found in the reduction hierarchy)$", TaskResult.StatusMessage);
+            Assert.Equal("No requested selections exist in the master hierarchy", TaskResult.StatusMessage);
             #endregion
         }
 
@@ -240,7 +240,7 @@ namespace ContentPublishingServiceTests
             Assert.Single(TaskResult.ReducedContentHierarchy.Fields[1].FieldValues);
             Assert.Equal(7, TaskResult.ReducedContentHierarchy.Fields[2].FieldValues.Count);
 
-            Assert.Equal(TaskRequest.MasterFilePath.Replace(".qvw", ".reduced.qvw"), TaskResult.ReducedContentFilePath);
+            Assert.Equal($@"\\indy-syn01\prm_test\Sample Data\Test1\ReducedContent.SelGrp[{DbTask.SelectionGroupId}].Content[{DbTask.SelectionGroup.RootContentItemId}].qvw" , TaskResult.ReducedContentFilePath);
             Assert.Equal(40, TaskResult.ReducedContentFileChecksum.Length);
             Assert.True(File.Exists(TaskResult.ReducedContentFilePath));
             #endregion
