@@ -269,9 +269,6 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<long>("ClientId");
 
-                    b.Property<string>("ContentFiles")
-                        .HasColumnType("jsonb");
-
                     b.Property<string>("ContentName")
                         .IsRequired();
 
