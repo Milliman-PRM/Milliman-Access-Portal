@@ -4,26 +4,29 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-using AuditLogLib;
-using AuditLogLib.Services;
-using MapCommonLib;
+using System;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
+using MillimanAccessPortal.Models.AuthorizedContentViewModels;
 using MapCommonLib.ContentTypeSpecific;
+using QlikviewLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+using MapCommonLib;
+using AuditLogLib;
+using AuditLogLib.Services;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MillimanAccessPortal.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using MillimanAccessPortal.DataQueries;
-using MillimanAccessPortal.Models.AuthorizedContentViewModels;
-using QlikviewLib;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
+using MillimanAccessPortal.Authorization;
 
 
 namespace MillimanAccessPortal.Controllers
@@ -31,13 +34,13 @@ namespace MillimanAccessPortal.Controllers
     public class AuthorizedContentController : Controller
     {
         // Things provided by the application that this controller should need to use
-        private readonly IAuditLogger AuditLogger;
-        private readonly IAuthorizationService AuthorizationService;
-        private readonly ApplicationDbContext DataContext;
-        private readonly ILogger Logger;
-        private readonly QlikviewConfig QlikviewConfig;
-        private readonly StandardQueries Queries;
+        private QlikviewConfig QlikviewConfig { get; }  // do not allow set
+        private ApplicationDbContext DataContext = null;
         private readonly UserManager<ApplicationUser> UserManager;
+        private readonly ILogger Logger;
+        private readonly StandardQueries Queries;
+        private readonly IAuthorizationService AuthorizationService;
+        private readonly IAuditLogger AuditLogger;
 
         /// <summary>
         /// Constructor.  Makes instance copies of injected resources from the application. 
@@ -47,37 +50,33 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="DataContextArg"></param>
         /// <param name="QlikviewOptionsAccessorArg"></param>
         public AuthorizedContentController(
-            IAuditLogger AuditLoggerArg,
-            IAuthorizationService AuthorizationServiceArg,
-            ApplicationDbContext DataContextArg,
-            ILoggerFactory LoggerFactoryArg,
             IOptions<QlikviewConfig> QlikviewOptionsAccessorArg,
+            UserManager<ApplicationUser> UserManagerArg,
+            ILoggerFactory LoggerFactoryArg,
+            ApplicationDbContext DataContextArg,
             StandardQueries QueryArg,
-            UserManager<ApplicationUser> UserManagerArg)
+            IAuthorizationService AuthorizationServiceArg,
+            IAuditLogger AuditLoggerArg)
         {
-            AuditLogger = AuditLoggerArg;
-            AuthorizationService = AuthorizationServiceArg;
-            DataContext = DataContextArg;
-            Logger = LoggerFactoryArg.CreateLogger<AuthorizedContentController>();
             QlikviewConfig = QlikviewOptionsAccessorArg.Value;
-            Queries = QueryArg;
             UserManager = UserManagerArg;
+            Logger = LoggerFactoryArg.CreateLogger<AuthorizedContentController>();
+            DataContext = DataContextArg;
+            Queries = QueryArg;
+            AuthorizationService = AuthorizationServiceArg;
+            AuditLogger = AuditLoggerArg;
         }
 
         /// <summary>
-        /// Presents the user with links to all authorized content. This is the application landing page.
+        /// Presents the user with links to all authorized content.  This is the application landing page.
         /// </summary>
         /// <returns>The view</returns>
+        [Authorize]
         public IActionResult Index()
         {
-            return View();
-        }
+            List<AuthorizedContentViewModel> ModelForView = Queries.GetAssignedUserGroups(UserManager.GetUserName(HttpContext.User));
 
-        public async Task<IActionResult> Content()
-        {
-            var model = AuthorizedContentViewModel.Build(DataContext, await Queries.GetCurrentApplicationUser(User));
-
-            return Json(model);
+            return View(ModelForView);
         }
 
         /// <summary>
@@ -88,7 +87,7 @@ namespace MillimanAccessPortal.Controllers
         [Authorize]
         public async Task<IActionResult> WebHostedContent(long Id)
         {
-            #region Validation
+#region Validation
             SelectionGroup SelGroup = DataContext.SelectionGroup
                                                         .Include(sg => sg.RootContentItem)
                                                             .ThenInclude(rc => rc.ContentType)
@@ -119,7 +118,7 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
                 return Unauthorized();
             }
-            #endregion
+#endregion
 
             try
             {
@@ -146,9 +145,9 @@ namespace MillimanAccessPortal.Controllers
 
                 AuthorizedContentViewModel ResponseModel = new AuthorizedContentViewModel
                 {
-                    // Url = ContentUri.Uri.AbsoluteUri,  // must be absolute because it is used in iframe element
-                    // UserGroupId = SelGroup.Id,
-                    // ContentName = SelGroup.RootContentItem.ContentName,
+                    Url = ContentUri.Uri.AbsoluteUri,  // must be absolute because it is used in iframe element
+                    UserGroupId = SelGroup.Id,
+                    ContentName = SelGroup.RootContentItem.ContentName,
                 };
 
                 // Now return the appropriate view for the requested content
@@ -175,6 +174,8 @@ namespace MillimanAccessPortal.Controllers
                 TempData["ReturnToAction"] = "Index";
                 return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
             }
+
         }
+
     }
 }

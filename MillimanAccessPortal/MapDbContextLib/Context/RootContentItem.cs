@@ -7,8 +7,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Collections.Generic;
-using MapDbContextLib.Models;
-using Newtonsoft.Json;
 
 namespace MapDbContextLib.Context
 {
@@ -38,21 +36,5 @@ namespace MapDbContextLib.Context
         public string Description { get; set; }
 
         public string Notes { get; set; }
-
-        [Column(TypeName = "jsonb")]
-        public string ContentFiles { get; set; } = "[]";
-
-        [NotMapped]
-        public List<ContentRelatedFile> ContentFilesList
-        {
-            get
-            {
-                return JsonConvert.DeserializeObject<List<ContentRelatedFile>>(ContentFiles);
-            }
-            set
-            {
-                ContentFiles = JsonConvert.SerializeObject(value);
-            }
-        }
     }
 }
