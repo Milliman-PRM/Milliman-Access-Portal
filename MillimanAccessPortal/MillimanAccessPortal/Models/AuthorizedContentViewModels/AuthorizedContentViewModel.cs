@@ -41,8 +41,8 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                         ContentURL = sg.ContentInstanceUrl,
                         UserguideURL = sg.RootContentItem.ContentFilesList?.SingleOrDefault(f => f.FilePurpose == "UserGuide")?.FullPath,
                         ReleaseNotesURL = sg.RootContentItem.ContentFilesList?.SingleOrDefault(f => f.FilePurpose == "ReleaseNotes")?.FullPath,
-                    }).ToList(),
-                }).ToList(),
+                    }).OrderBy(item => item.Name).ToList(),
+                }).OrderBy(group => group.Name).ToList(),
             };
         }
 
