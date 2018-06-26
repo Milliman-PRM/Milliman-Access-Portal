@@ -47,7 +47,22 @@ namespace AuditLogLib
 
         protected AuditLogDbContext(DbContextOptions<AuditLogDbContext> options)
             : base(options)
-        {}
+        {
+            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
+
+            switch (EnvironmentName)
+            {
+                case "AZURECI":
+                case "PRODUCTION":
+                    Database.Migrate(); // Run migrations when the logger is instantiated
+                    break;
+
+                case "DEVELOPMENT":
+                default:
+                    // nothing
+                    break;
+            }
+        }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
