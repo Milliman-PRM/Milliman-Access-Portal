@@ -58,6 +58,9 @@ namespace TestResourcesLib
             Mock<DbSet<ContentReductionTask>> MockContentReductionTask = MockDbSet<ContentReductionTask>.New(ContentReductionTaskData);
             MockContentReductionTask.Setup(d => d.Add(It.IsAny<ContentReductionTask>())).Callback<ContentReductionTask>(s =>
             {
+                s.CreateDateTimeUtc = s.ReductionStatus == ReductionStatusEnum.Replaced
+                    ? DateTime.FromFileTimeUtc(50)
+                    : DateTime.FromFileTimeUtc(200);
                 ContentReductionTaskData.Add(s);
                 MockDbSet<ContentReductionTask>.AssignNavigationProperty(MockContentReductionTask.Object, "ApplicationUserId", ReturnMockContext.Object.ApplicationUser);
                 MockDbSet<ContentReductionTask>.AssignNavigationProperty(MockContentReductionTask.Object, "SelectionGroupId", ReturnMockContext.Object.SelectionGroup);

@@ -640,7 +640,13 @@ namespace MapTests
             #region Initialize ContentPublicationRequest
             DbContextObject.ContentPublicationRequest.AddRange(new List<ContentPublicationRequest>
             {
-                new ContentPublicationRequest { Id=1, ApplicationUserId=1, RootContentItemId = 1, RequestStatus = PublicationStatus.Confirmed, ReductionRelatedFilesObj = new List<ReductionRelatedFiles>{ } },
+                new ContentPublicationRequest
+                {
+                    Id =1, ApplicationUserId=1, RootContentItemId = 1,
+                    RequestStatus = PublicationStatus.Confirmed,
+                    ReductionRelatedFilesObj = new List<ReductionRelatedFiles>{ },
+                    CreateDateTimeUtc = DateTime.FromFileTimeUtc(100),
+                },
             });
             #endregion
 
