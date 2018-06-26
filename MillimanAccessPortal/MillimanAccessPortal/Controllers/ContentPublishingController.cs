@@ -752,6 +752,7 @@ namespace MillimanAccessPortal.Controllers
             return ReturnObj;
         }
 
+        [NonAction]
         private ContentRelatedFile ProcessMasterContentFile(ContentRelatedFile FileDetails, Guid RequestGuid, bool DoesReduce)
         {
             if (DoesReduce)
