@@ -47,11 +47,15 @@ namespace MapDbContextLib.Context
         {
             get
             {
-                return JsonConvert.DeserializeObject<List<ContentRelatedFile>>(ContentFiles);
+                return ContentFiles == null
+                    ? null
+                    : JsonConvert.DeserializeObject<List<ContentRelatedFile>>(ContentFiles);
             }
             set
             {
-                ContentFiles = JsonConvert.SerializeObject(value);
+                ContentFiles = value == null
+                    ? null
+                    : JsonConvert.SerializeObject(value);
             }
         }
     }

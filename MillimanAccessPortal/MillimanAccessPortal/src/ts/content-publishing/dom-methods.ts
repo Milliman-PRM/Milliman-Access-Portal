@@ -285,13 +285,9 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
 
       toastr.success('Root content item created');
     },
-    (data) => {
-      if (data.indexOf('DoesReduce=') === -1) {
-        return data + '&DoesReduce=False';
-      } else {
-        return data.replace('DoesReduce=', '').replace('&&', '&') + '&DoesReduce=True';
-      }
-    },
+    (data) => data.indexOf('DoesReduce=') === -1
+      ? data + '&DoesReduce=False'
+      : data,
   );
   const updateContentGroup = new SubmissionGroup<RootContentItemSummaryAndDetail>(
     [
@@ -311,13 +307,9 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
       $card.find('.card-body-secondary-text').html(response.summary.ContentTypeName);
       toastr.success('Root content item updated');
     },
-    (data) => {
-      if (data.indexOf('DoesReduce=') === -1) {
-        return data + '&DoesReduce=False';
-      } else {
-        return data.replace('DoesReduce=', '').replace('&&', '&') + '&DoesReduce=True';
-      }
-    },
+    (data) => data.indexOf('DoesReduce=') === -1
+      ? data + '&DoesReduce=False'
+      : data,
   );
   const submitPublication = new SubmissionGroup<any>(
     [
