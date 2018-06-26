@@ -55,6 +55,15 @@ updateToolbarIcons = ($panel) => {
     return $panel.find('.card-expansion-container:not([maximized])').length;
   }).show();
 };
+export function setExpanded($panel: JQuery<HTMLElement>, $this: JQuery<HTMLElement>) {
+  const $cardContainer = $this.closest('.card-container');
+  $cardContainer
+    .find('.card-expansion-container')
+      .attr('maximized', '')
+    .find('.card-button-expansion .tooltip')
+      .tooltipster('content', 'Collapse card');
+  updateToolbarIcons($panel);
+}
 export function toggleExpanded($panel, $this) {
   const $cardContainer = $this.closest('.card-container');
   let disabled: string;

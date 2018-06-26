@@ -18,7 +18,7 @@ import {
 import { AddSelectionGroupDialog, DeleteSelectionGroupDialog } from '../dialog';
 import {
   collapseAllListener, del, expandAllListener, filterFormListener, filterTreeListener, get,
-  hideButtonSpinner, post, showButtonSpinner, updateCardStatus, wrapCardCallback,
+  hideButtonSpinner, post, showButtonSpinner, updateCardStatus, wrapCardCallback, toggleExpanded, setExpanded,
 } from '../shared';
 import {
   SelectionGroupList, SelectionGroupSummary, SelectionsDetail,
@@ -207,6 +207,7 @@ function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
       $target
         .find('.card-button-dynamic').hide()
         .filter('.card-button-green').show();
+      setExpanded($('#selection-groups'), $target);
     },
     (event: Event) => {
       event.stopPropagation();
