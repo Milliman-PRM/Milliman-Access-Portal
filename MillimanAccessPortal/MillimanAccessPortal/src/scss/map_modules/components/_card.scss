@@ -271,11 +271,7 @@
             transform-origin: center center;
             color: $white;
             transition: .2s all linear;
-
-            .card-button-icon {
-                height: 1.25em;
-                width: 1.25em;
-            }
+            position: relative;
 
             &.card-button-red,
             &.card-button-delete,
@@ -319,6 +315,14 @@
                 width: 1.3em;
                 color: white;
                 line-height: inherit;
+            }
+
+            .card-button-clickable {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 0;
+                bottom: 0;
             }
         }
 

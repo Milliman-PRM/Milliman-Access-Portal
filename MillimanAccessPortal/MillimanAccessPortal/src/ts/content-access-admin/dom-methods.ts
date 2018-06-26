@@ -44,7 +44,8 @@ function selectionGroupAddClickHandler() {
   )).open();
 }
 
-function selectionGroupDeleteClickHandler() {
+function selectionGroupDeleteClickHandler(event: Event) {
+  event.stopPropagation();
   new DeleteSelectionGroupDialog($(this).closest('.card-container'), del<SelectionGroupList>(
     'ContentAccessAdmin/DeleteSelectionGroup',
     'Selection group successfully deleted.',

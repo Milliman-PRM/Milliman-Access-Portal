@@ -166,6 +166,7 @@ const components = Object.assign(
         '  <svg class="card-button-icon">',
         '    <use href=""></use>',
         '  </svg>',
+        '  <div class="card-button-clickable"></div>',
         '</div>',
         '<stub />',
       ].join(''),
@@ -179,7 +180,7 @@ const components = Object.assign(
           this.addClass(component, 'card-button-' + properties.color);
           this.addClass(component, 'card-button-' + properties.icon);
           this.tooltip(component, properties.tooltip);
-          this.click(component, properties.callback);
+          this.click(component, properties.callback, '.card-button-clickable');
           if (properties.dynamic) {
             this.addClass(component, 'card-button-dynamic');
           }
