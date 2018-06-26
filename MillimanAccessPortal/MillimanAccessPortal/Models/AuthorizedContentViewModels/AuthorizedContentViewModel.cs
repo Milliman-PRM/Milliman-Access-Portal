@@ -37,10 +37,10 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                         Id = sg.Id,
                         Name = sg.RootContentItem.ContentName,
                         Description = sg.RootContentItem.Description,
-                        ImageURL = sg.RootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose == "Thumbnail")?.FullPath,
+                        ImageURL = sg.RootContentItem.ContentFilesList?.SingleOrDefault(f => f.FilePurpose == "Thumbnail")?.FullPath,
                         ContentURL = sg.ContentInstanceUrl,
-                        UserguideURL = sg.RootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose == "UserGuide")?.FullPath,
-                        ReleaseNotesURL = sg.RootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose == "ReleaseNotes")?.FullPath,
+                        UserguideURL = sg.RootContentItem.ContentFilesList?.SingleOrDefault(f => f.FilePurpose == "UserGuide")?.FullPath,
+                        ReleaseNotesURL = sg.RootContentItem.ContentFilesList?.SingleOrDefault(f => f.FilePurpose == "ReleaseNotes")?.FullPath,
                     }).ToList(),
                 }).ToList(),
             };
