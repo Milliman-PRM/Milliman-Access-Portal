@@ -18,9 +18,15 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
         public string Name { get; set; }
         public List<UserInfoViewModel> MemberList { get; set; } = new List<UserInfoViewModel>();
         public ReductionSummary ReductionDetails { get; set; }
+        public string RootContentItemName { get; set; }
 
         internal static SelectionGroupSummary Build(ApplicationDbContext dbContext, SelectionGroup selectionGroup)
         {
+            if (selectionGroup.RootContentItem == null)
+            {
+                selectionGroup.RootContentItem = dbContext.RootContentItem.Find(selectionGroup.RootContentItemId);
+            }
+
             var latestTask = dbContext.ContentReductionTask
                     .Where(crt => crt.SelectionGroupId == selectionGroup.Id)
                     .OrderByDescending(crt => crt.CreateDateTimeUtc)
@@ -32,6 +38,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                 Id = selectionGroup.Id,
                 Name = selectionGroup.GroupName,
                 ReductionDetails = reductionDetails,
+                RootContentItemName = selectionGroup.RootContentItem.ContentName,
             };
 
             // Retrieve users that are members of the specified selection group

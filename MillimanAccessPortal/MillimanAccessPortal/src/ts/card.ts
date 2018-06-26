@@ -926,6 +926,7 @@ export function SelectionGroupCard(
   }, []);
 
   this.addComponent('primaryTextBox', { text: selectionGroup.Name });
+  this.addComponent('secondaryText', { text: selectionGroup.RootContentItemName });
   this.addComponent('statistic', {
     icon: 'users',
     tooltip: 'Members',

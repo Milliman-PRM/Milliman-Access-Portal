@@ -32,6 +32,7 @@ export interface SelectionGroupSummary {
   Name: string;
   MemberList: UserInfo[];
   ReductionDetails: ReductionSummary;
+  RootContentItemName: string;
 }
 export interface SelectionGroupList {
   SelectionGroups: SelectionGroupSummary[];
