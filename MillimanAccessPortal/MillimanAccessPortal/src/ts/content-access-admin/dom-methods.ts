@@ -208,6 +208,7 @@ function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
         .find('.card-button-dynamic').hide()
         .filter('.card-button-green').show();
       setExpanded($('#selection-groups'), $target);
+      $target.find('.tt-input').focus();
     },
     (event: Event) => {
       event.stopPropagation();
