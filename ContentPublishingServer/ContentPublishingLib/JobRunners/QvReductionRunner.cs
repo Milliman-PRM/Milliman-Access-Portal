@@ -49,6 +49,10 @@ namespace ContentPublishingLib.JobRunners
                     return;
                 }
             }
+            if (SourceDocFolder == null)
+            {
+                throw new ApplicationException($"Qlikview Source Document folder {Configuration.ApplicationConfiguration["Storage:QvSourceDocumentsPath"]} not found by Qlikview server");
+            }
         }
 
         #region Member properties
@@ -61,8 +65,6 @@ namespace ContentPublishingLib.JobRunners
         private ServiceInfo QdsServiceInfo { get; set; } = null;
 
         private string MasterFileName { get { return Path.GetFileName(JobDetail.Request.MasterFilePath); } }
-
-        private string ReducedFileName { get { return Path.ChangeExtension(MasterFileName, $".reduced{Path.GetExtension(MasterFileName)}"); } }
 
         private DocumentNode MasterDocumentNode { get; set; } = null;
 
@@ -148,19 +150,19 @@ namespace ContentPublishingLib.JobRunners
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Canceled;
                 Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
-                JobDetail.Result.StatusMessage = e.Message;
+                JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
             }
             catch (ApplicationException e)
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Error;
                 Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
-                JobDetail.Result.StatusMessage = e.Message;
+                JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
             }
             catch (System.Exception e)
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Error;
                 Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
-                JobDetail.Result.StatusMessage = e.Message;
+                JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
             }
             finally
             {
@@ -376,6 +378,7 @@ namespace ContentPublishingLib.JobRunners
             }
 
             // Validate that there is at least one selected value that exists in the hierarchy. 
+            // TODO Is this right?  It might be legit to request no selections for some content
             if (!JobDetail.Request.SelectionCriteria.Any(s => s.Selected &&
                                                               JobDetail.Result.MasterContentHierarchy.Fields.Any(f => f.FieldName == s.FieldName && f.FieldValues.Contains(s.FieldValue))))
             {
@@ -393,11 +396,11 @@ namespace ContentPublishingLib.JobRunners
             // Run Qlikview publisher (QDS) task
             await RunQdsTask(ReductionTask);
 
-            ReducedDocumentNode = await GetSourceDocumentNode(ReducedFileName, WorkingFolderRelative);
+            ReducedDocumentNode = await GetSourceDocumentNode(JobDetail.Request.RequestedOutputFileName, WorkingFolderRelative);
 
             if (ReducedDocumentNode == null)
             {
-                Trace.WriteLine($"Failed to get DocumentNode for file {ReducedFileName} in folder {SourceDocFolder.General.Path}\\{WorkingFolderRelative}");
+                Trace.WriteLine($"Failed to get DocumentNode for file {JobDetail.Request.RequestedOutputFileName} in folder {SourceDocFolder.General.Path}\\{WorkingFolderRelative}");
             }
 
             Trace.WriteLine($"Task {JobDetail.TaskId.ToString()} completed CreateReducedContent");
@@ -411,7 +414,7 @@ namespace ContentPublishingLib.JobRunners
             string ApplicationDataExchangeFolder = Path.GetDirectoryName(JobDetail.Request.MasterFilePath);
             string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
 
-            string ReducedFile = Directory.GetFiles(WorkingFolderAbsolute, ReducedFileName).Single();
+            string ReducedFile = Directory.GetFiles(WorkingFolderAbsolute, JobDetail.Request.RequestedOutputFileName).Single();
             string CopyDestinationPath = Path.Combine(ApplicationDataExchangeFolder, Path.GetFileName(ReducedFile));
 
             File.Copy(ReducedFile, CopyDestinationPath, true);
@@ -556,7 +559,7 @@ namespace ContentPublishingLib.JobRunners
 
             NewDocumentTask.Scope |= DocumentTaskScope.Reduce;
             NewDocumentTask.Reduce = new DocumentTask.TaskReduce();
-            NewDocumentTask.Reduce.DocumentNameTemplate = Path.GetFileNameWithoutExtension(ReducedFileName);
+            NewDocumentTask.Reduce.DocumentNameTemplate = Path.GetFileNameWithoutExtension(JobDetail.Request.RequestedOutputFileName);
             NewDocumentTask.Reduce.Static = new DocumentTask.TaskReduce.TaskReduceStatic();
             NewDocumentTask.Reduce.Static.Reductions = new TaskReduction[NumSelectedValues];
 

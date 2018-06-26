@@ -12,9 +12,10 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180612170151_AddContentFilesToRootContentItem")]
+    partial class AddContentFilesToRootContentItem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -70,17 +71,17 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<long>("ApplicationUserId");
 
+                    b.Property<string>("ContentRelatedFiles")
+                        .HasColumnType("jsonb");
+
                     b.Property<DateTime>("CreateDateTimeUtc");
-
-                    b.Property<string>("LiveReadyFiles")
-                        .HasColumnType("jsonb");
-
-                    b.Property<string>("ReductionRelatedFiles")
-                        .HasColumnType("jsonb");
 
                     b.Property<int>("RequestStatus");
 
                     b.Property<string>("ResultHierarchy")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("ResultingContentFiles")
                         .HasColumnType("jsonb");
 
                     b.Property<long>("RootContentItemId");

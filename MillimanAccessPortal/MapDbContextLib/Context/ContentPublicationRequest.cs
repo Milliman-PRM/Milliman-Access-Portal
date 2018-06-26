@@ -60,52 +60,54 @@ namespace MapDbContextLib.Context
         public DateTime CreateDateTimeUtc { get; set; }
 
         /// <summary>
-        /// May also be accessed through [NotMapped] property PublishRequest
-        /// Intended to be serialization of type MapDbContextLib.Models.UploadedContentRelatedFile[]
+        /// May also be accessed through [NotMapped] property LiveReadyFilesObj
+        /// Intended to be serialization of type List<ContentRelatedFile>
         /// </summary>
         [Column(TypeName = "jsonb")]
-        public string ContentRelatedFiles { get; set; } = "[]";
+        public string LiveReadyFiles { get; set; } = "[]";
 
         /// <summary>
-        /// Intended to be serialization of type MapDbContextLib.Models.ContentRelatedFile[]
+        /// May also be accessed through [NotMapped] property ReductionRelatedFilesObj
+        /// Intended to be serialization of type List<ReductionRelatedFiles>
         /// </summary>
         [Column(TypeName = "jsonb")]
-        public string ResultingContentFiles { get; set; } = "[]";
+        public string ReductionRelatedFiles { get; set; } = "[]";
 
         [Required]
         public PublicationStatus RequestStatus { get; set; }
 
         public string StatusMessage { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Identifies files associated with work of the publishing server (input and output)
+        /// </summary>
         [NotMapped]
-        public List<ContentRelatedFile> ResultingFiles
+        public List<ReductionRelatedFiles> ReductionRelatedFilesObj
         {
             get
             {
-                return JsonConvert.DeserializeObject<List<ContentRelatedFile>>(ResultingContentFiles);
+                return JsonConvert.DeserializeObject<List<ReductionRelatedFiles>>(ReductionRelatedFiles);
             }
             set
             {
-                ResultingContentFiles = JsonConvert.SerializeObject(value);
+                ReductionRelatedFiles = JsonConvert.SerializeObject(value);
             }
         }
 
+        /// <summary>
+        /// Identifies files NOT associated with work of the publishing server, rather that are ready to switch to live status.
+        /// </summary>
         [NotMapped]
-        public PublishRequest PublishRequest
+        public List<ContentRelatedFile> LiveReadyFilesObj
         {
             get
             {
-                return new PublishRequest
-                {
-                    RootContentItemId = RootContentItemId,
-                    RelatedFiles = JsonConvert.DeserializeObject<UploadedRelatedFile[]>(ContentRelatedFiles),
-                };
+                return JsonConvert.DeserializeObject<List<ContentRelatedFile>>(LiveReadyFiles);
             }
             set
             {
-                RootContentItemId = value.RootContentItemId;
-                ContentRelatedFiles = value.RelatedFiles != null
-                    ? JsonConvert.SerializeObject(value.RelatedFiles)
+                LiveReadyFiles = value != null
+                    ? JsonConvert.SerializeObject(value)
                     : "[]";
             }
         }
