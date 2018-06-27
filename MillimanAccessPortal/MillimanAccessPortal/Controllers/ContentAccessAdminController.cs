@@ -701,7 +701,15 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            if (!isMaster)
+            if (isMaster)
+            {
+                if (selectionGroup.IsMaster)
+                {
+                    Response.Headers.Add("Warning", "The specified selection group already has master content access.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+            }
+            else
             {
                 // The requested selections must be valid for the content item
                 int validSelectionCount = DbContext.HierarchyFieldValue
@@ -714,11 +722,14 @@ namespace MillimanAccessPortal.Controllers
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
 
-                // The requested selections must be modified from the live selections for this SelectionGroup
-                if (selections.ToHashSet().SetEquals(selectionGroup.SelectedHierarchyFieldValueList))
+                if (!selectionGroup.IsMaster)
                 {
-                    Response.Headers.Add("Warning", "The requested selections are not different from the active document.");
-                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    // The requested selections must be modified from the live selections for this SelectionGroup
+                    if (selections.ToHashSet().SetEquals(selectionGroup.SelectedHierarchyFieldValueList))
+                    {
+                        Response.Headers.Add("Warning", "The requested selections are not different from the active document.");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
                 }
             }
             #endregion
