@@ -6,7 +6,7 @@
 
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
-using MillimanAccessPortal.Models.ContentAccessAdminViewModels;
+using MillimanAccessPortal.Models.ContentAccessAdmin;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,7 +14,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 {
     public class RootContentItemStatus
     {
-        public List<PublicationDetails> Status = new List<PublicationDetails>();
+        public List<PublicationSummary> Status = new List<PublicationSummary>();
 
         public string StatusMessage = string.Empty;
 
@@ -34,7 +34,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                     .Where(r => r.RootContentItemId == rootContentItem.Id)
                     .OrderByDescending(r => r.CreateDateTimeUtc)
                     .FirstOrDefault();
-                model.Status.Add((PublicationDetails) publicationRequest);
+                model.Status.Add((PublicationSummary) publicationRequest);
             }
 
             return model;

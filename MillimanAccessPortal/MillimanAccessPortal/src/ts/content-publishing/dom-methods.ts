@@ -9,7 +9,7 @@ import { FormBase } from '../form/form-base';
 import { AccessMode } from '../form/form-modes';
 import { SubmissionGroup } from '../form/form-submission';
 import {
-  clearForm, collapseAllListener, expandAllListener, filterFormListener, filterTreeListener, get,
+  collapseAllListener, expandAllListener, filterFormListener, filterTreeListener, get,
   post, showButtonSpinner, updateCardStatus, updateCardStatusButtons, updateFormStatusButtons,
   wrapCardCallback, wrapCardIconCallback,
 } from '../shared';
@@ -371,8 +371,6 @@ function renderRootContentItem(item: RootContentItemSummary) {
   const $panel = $('#content-publishing-form');
   const $rootContentItemCard = new RootContentItemCard(
     item,
-    item.GroupCount,
-    item.EligibleUserCount,
     wrapCardCallback(get(
       'ContentPublishing/RootContentItemDetail',
       [
@@ -407,7 +405,7 @@ function renderRootContentItem(item: RootContentItemSummary) {
 function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: number) {
   const $rootContentItemList = $('#root-content-items ul.admin-panel-content');
   $rootContentItemList.empty();
-  response.DetailList.forEach(renderRootContentItem);
+  response.SummaryList.forEach(renderRootContentItem);
   $rootContentItemList.find('.tooltip').tooltipster();
 
   if (!isNaN(rootContentItemId)) {

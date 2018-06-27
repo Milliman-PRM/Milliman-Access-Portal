@@ -159,4 +159,26 @@
         </g>
     </symbol>
 
+    <!-- Checkmark Icon -->
+    <symbol id="action-icon-checkmark" viewBox="0 0 24 24">
+        <path fill="currentColor" d="M11.084,17.811L6.158,12.884L7.925,11.116L10.999,14.19L20.117,4.159L21.966,5.841L11.084,17.811Z" />
+    </symbol>
+
+    <!-- Circle Add Icon -->
+    <symbol id="action-icon-add-circle" viewBox="0 0 24 24">
+        <g fill="currentColor">
+            <path d="M12 0C5.383 0 0 5.383 0 12s5.383 12 12 12 12-5.383 12-12S18.617 0 12 0zm0 21.6c-5.293 0-9.6-4.307-9.6-9.6 0-5.293 4.307-9.6 9.6-9.6 5.293 0 9.6 4.307 9.6 9.6 0 5.293-4.307 9.6-9.6 9.6z" />
+            <path d="M13.2 6h-2.4v4.8H6v2.4h4.8V18h2.4v-4.8H18v-2.4h-4.8V6z" />
+        </g>
+    </symbol>
+
+
+    <!-- Circle Remove Icon -->
+    <symbol id="action-icon-remove-circle" viewBox="0 0 24 24">
+        <g fill="currentColor">
+            <path d="M12 24C5.383 24 0 18.617 0 12S5.383 0 12 0s12 5.383 12 12-5.383 12-12 12zm0-21.6c-5.293 0-9.6 4.307-9.6 9.6 0 5.293 4.307 9.6 9.6 9.6 5.293 0 9.6-4.307 9.6-9.6 0-5.293-4.307-9.6-9.6-9.6z" fill-rule="nonzero" />
+            <path d="M6 10.8h12v2.4H6z" />
+        </g>
+    </symbol>
+
 </svg>
