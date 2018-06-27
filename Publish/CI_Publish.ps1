@@ -137,8 +137,6 @@ if ($codeChangeFound -eq $false)
 
 #region Run unit tests and exit if any fail
 
-cd MillimanAccessPortal\
-
 log_statement "Restoring packages and building MAP"
 
 $command = "npm install -g yarn@1.5.1"
@@ -150,6 +148,8 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+cd $rootpath\MillimanAccessPortal\MillimanAccessPortal
+
 $command = "yarn install --frozen-lockfile"
 invoke-expression "&$command"
 
@@ -158,6 +158,8 @@ if ($LASTEXITCODE -ne 0) {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
+
+cd $rootpath\MillimanAccessPortal\
 
 MSBuild /restore:true /verbosity:quiet
 
