@@ -179,19 +179,21 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-log_statement "Performing MAP unit tests"
+log_statement "Performing content publishing unit tests"
+
+cd ContentPublishingServiceTests
 
 dotnet test --no-build
 
 if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: One or more xUnit tests failed"
+    log_statement "ERROR: One or more contetn publishing xUnit tests failed"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
 
-cd $rootPath\MillimanAccessPortal\MillimanAccessPortal
-
 log_statement "Peforming Jest tests"
+
+cd $rootPath\MillimanAccessPortal\MillimanAccessPortal
 
 $env:JEST_JUNIT_OUTPUT = $jUnitOutputJest
 
@@ -204,12 +206,14 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-log_statement "Performing Content publishing server unit tests"
+log_statement "Performing MAP unit tests"
  
+ cd $rootPath\MillimanAccessPortal\MapTests
+
  dotnet test --no-build
  
  if ($LASTEXITCODE -ne 0) {
-     log_statement "ERROR: One or more Content publishing server xUnit tests failed"
+     log_statement "ERROR: One or more MAP xUnit tests failed"
      log_statement "errorlevel was $LASTEXITCODE"
      exit $LASTEXITCODE
 }
