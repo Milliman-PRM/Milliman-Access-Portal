@@ -242,31 +242,6 @@ cd $rootPath
 
 #endregion
 
-
-$env:PSModulePath = $env:PSModulePath+';C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager'
-
-#Load required PowerShell modules
-$silent = import-module AzureRM.Profile, AzureRM.Resources, AzureRM.Websites, Microsoft.PowerShell.Security
-
-if ($? -eq $false)
-{
-    log_statement "Failed to load modules"
-    exit -1000
-}
-
-#region Authenticate to Azure with a service principal
-
-$DeployCredential = new-object -typename System.Management.Automation.PSCredential -argumentlist $deployUser,($deployPassword | ConvertTo-SecureString -AsPlainText -Force)
-$silent = Add-AzureRmAccount -ServicePrincipal -Credential $DeployCredential -TenantId $TenantId  -Subscription $SubscriptionId
-
-if ($? -eq $false)
-{
-    log_statement "Failed to authenticate to Azure. Unable to deploy."
-    exit -1000
-}
-
-#endregion
-
 #region Clone databases
 
 log_statement "Preparing branch databases"
