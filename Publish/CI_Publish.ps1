@@ -169,6 +169,11 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+
+cd $rootpath\MillimanAccessPortal\MillimanAccessPortal
+
+log_statement "Building yarn packages"
+
 yarn build
 
 if ($LASTEXITCODE -ne 0) {
