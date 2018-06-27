@@ -101,6 +101,13 @@
                         margin-bottom: 0;
                     }
 
+                    input {
+                        padding: 0;
+                        border: 1px solid $blue;
+                        font-size: 1.5em;
+                        font-weight: bold;
+                    }
+
                     &:disabled {
                         background-color: transparent;
                         border-color: transparent;
