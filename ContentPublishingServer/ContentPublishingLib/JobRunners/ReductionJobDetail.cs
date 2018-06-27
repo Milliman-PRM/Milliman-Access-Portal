@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using MapDbContextLib.Context;
@@ -62,6 +63,7 @@ namespace ContentPublishingLib.JobRunners
                                 : DbTask.TaskAction == TaskActionEnum.HierarchyAndReduction 
                                 ? ReductionJobActionEnum.HierarchyAndReduction
                                 : ReductionJobActionEnum.Unspecified,
+                    RequestedOutputFileName = $"ReducedContent.SelGrp[{DbTask.SelectionGroup.Id}].Content[{DbTask.SelectionGroup.RootContentItemId}]{Path.GetExtension(DbTask.MasterFilePath)}",
                 },
                 Result = new ReductionJobResult(),
             };
@@ -82,6 +84,7 @@ namespace ContentPublishingLib.JobRunners
             public string MasterFilePath { get; set; }
             public List<FieldValueSelection> SelectionCriteria { get; set; }
             public string MasterContentChecksum { get; set; } = string.Empty;
+            public string RequestedOutputFileName { get; set; } = string.Empty;
             public ReductionJobActionEnum JobAction { get; set; } = ReductionJobActionEnum.Unspecified;
         }
     }
