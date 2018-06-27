@@ -94,6 +94,9 @@ $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 
 $env:PATH = $env:PATH+";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin\;$env:appdata\npm\"
 $rootPath = (get-location).Path
+$webBuildTarget = "$rootPath\WebDeploy"
+$servicBuildTarget = "$rootPath\ServiceDeploy"
+$nugetDestination = "$rootPath\nugetPackages"
 
 #endregion
 
@@ -281,5 +284,35 @@ if ($logDbFound -eq $false)
 }
 
 remove-item env:PGPASSWORD
+
+#endregion
+
+log_statement "Publishing and packaging web application"
+
+#region Publish web application to a folder
+
+cd $rootpath\MillimanAccessPortal\MillimanAccessPortal
+
+msbuild /t:publish /p:PublishDir=$webBuildTarget /verbosity:quiet
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to publish web application"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+#endregion
+
+#region package the web application for nuget
+
+octo pack -id MillimanAccessPortal -version 1.0.0.$BranchName --basepath $webBuildTarget --outfolder $nugetDestination
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to package web application for nuget"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
 
 #endregion
