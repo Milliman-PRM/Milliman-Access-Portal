@@ -61,6 +61,7 @@ namespace AuditLogLib
         public static readonly AuditEventId RootContentItemUpdated = new AuditEventId(4003, "Root content item updated");
         public static readonly AuditEventId PublicationQueued = new AuditEventId(4101, "Publication request queued");
         public static readonly AuditEventId PublicationCanceled = new AuditEventId(4102, "Publication request canceled");
+        public static readonly AuditEventId GoLiveValidationFailed = new AuditEventId(4103, "GoLive Validation Failed");
 
         public AuditEventId(int id, string name = "")
         {

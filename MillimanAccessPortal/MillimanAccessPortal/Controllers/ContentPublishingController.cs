@@ -704,8 +704,93 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> GoLive(long rootContentItemId)
+        public async Task<IActionResult> GoLive(long rootContentItemId, PreLiveContentValidationSummary ValidationSummaryRequestArg)
         {
+            #region Authorization
+            AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItemId));
+            if (!authorization.Succeeded)
+            {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    $"Request for content go-live without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in root content item",
+                    AuditEventId.Unauthorized,
+                    new { RootContentItemId = rootContentItemId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
+                Response.Headers.Add("Warning", "You are not authorized to publish content for this root content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            // The requested pub request should have appropriate status for GoLive
+            ContentPublicationRequest PubRequest = DbContext.ContentPublicationRequest.Where(r => r.Id == ValidationSummaryRequestArg.PublicationRequestId)
+                                                                                      .Where(r => r.RootContentItemId == rootContentItemId)
+                                                                                      .Include(r => r.RootContentItem)
+                                                                                      .Include(r => r.ApplicationUser)
+                                                                                      .SingleOrDefault(r => r.RequestStatus == PublicationStatus.Processed);
+            if (PubRequest == null)
+            {
+                Response.Headers.Add("Warning", "Go-Live request references a publication request that is not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            // The request's ValidationSummary should match the one taken directly from the database.
+            PreLiveContentValidationSummary ValidationSummaryFromDb = PreLiveContentValidationSummary.Build(DbContext, rootContentItemId, ApplicationConfig);
+            bool ValidSummary = ValidationSummaryFromDb.GoLiveValidation(ValidationSummaryRequestArg);
+            if (!ValidSummary)
+            {
+                #region Log audit event
+                AuditEvent ValidationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    $"Request for content go-live with invalid Validation Summary",
+                    AuditEventId.GoLiveValidationFailed,
+                    new { RootContentId = rootContentItemId, RequestSummary = ValidationSummaryRequestArg, ExpectedSummary = ValidationSummaryFromDb },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(ValidationFailedEvent);
+                #endregion
+
+                Response.Headers.Add("Warning", "Validation of the content Go-Live request failed.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            List<ContentReductionTask> RelatedReductionTasks = DbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == PubRequest.Id)
+                                                                                             .Include(t => t.SelectionGroup)
+                                                                                             .ToList();
+
+            /*
+             * At this point, available variables include:
+             * PubRequest - validated to be the relevant ContentPublicationRequest instance, with navigation properties
+             * RelatedReductionTasks - List of ContentReductionTask instances referring to PubRequest
+             */
+
+
+            //1 Rename all current live files to temporary names (including reduced)
+
+            //2 Rename new Files To Live names
+            //3 Remove temporary folder of publication job
+            //4 Update db in 1 transaction:
+            using (IDbContextTransaction Txn = DbContext.Database.BeginTransaction())
+            {
+                //4.1  RootContentItem  .GoLiveDateTimeUtc, .ContentFiles
+                PubRequest.RootContentItem.GoLiveDateTimeUtc = DateTime.UtcNow;
+                foreach (ContentRelatedFile Crf in PubRequest.LiveReadyFilesObj)
+                {
+                    PubRequest.RootContentItem.ContentFilesList = PubRequest.RootContentItem.ContentFilesList.Append(new ContentRelatedFile { }).ToList();
+                }
+                //4.2  ContentPublicationRequest.Status
+                //4.3  ContentReductionTask.Status ???
+                //4.4  HierarchyField due to hierarhchy changes
+                //4.5  HierarchyFieldValue due to hierarhchy changes
+            }
             return NoContent();
         }
 
@@ -714,6 +799,31 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Reject(long rootContentItemId)
         {
             // TODO Could/should this be handled in the Cancel action?
+            #region Authorization
+            AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItemId));
+            if (!authorization.Succeeded)
+            {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    $"Request to reject content without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in root content item",
+                    AuditEventId.Unauthorized,
+                    new { RootContentItemId = rootContentItemId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
+                Response.Headers.Add("Warning", "You are not authorized to publish content for this root content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+
+            #endregion
+
             return NoContent();
         }
 
