@@ -169,6 +169,14 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+yarn build
+
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: yarn build failed"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
 cd $rootpath\ContentPublishingServer
 
 log_statement "Building content publishing server"
