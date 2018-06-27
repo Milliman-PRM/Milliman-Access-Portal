@@ -704,14 +704,14 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> GoLive(long PublicationRequestId)
+        public async Task<IActionResult> GoLive(long rootContentItemId)
         {
             return NoContent();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Reject(long PublicationRequestId)
+        public async Task<IActionResult> Reject(long rootContentItemId)
         {
             // TODO Could/should this be handled in the Cancel action?
             return NoContent();

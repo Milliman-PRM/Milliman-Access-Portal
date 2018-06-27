@@ -517,10 +517,36 @@ export function setup() {
           .reduce((cum, cur) => cum && cur, true))
       .removeAttr('disabled'));
   $('#confirmation-section-attestation .button-reject').click(() => {
-    alert('\'Reject\' not implemented.');
+    const rootContentItemId = $('#root-content-items [selected]').closest('.card-container').data().rootContentItemId;
+    $.post({
+      data: {
+        rootContentItemId,
+      },
+      headers: {
+        RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
+      },
+      url: 'ContentPublishing/Reject/',
+    }).done((response) => {
+      toastr.success('Successful Reject');
+    }).fail((response) => {
+      toastr.error('Failed Reject');
+    });
   });
   $('#confirmation-section-attestation .button-approve').click(() => {
-    alert('\'Approve\' not implemented.');
+    const rootContentItemId = $('#root-content-items [selected]').closest('.card-container').data().rootContentItemId;
+    $.post({
+      data: {
+        rootContentItemId,
+      },
+      headers: {
+        RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
+      },
+      url: 'ContentPublishing/GoLive/',
+    }).done((response) => {
+      toastr.success('Successful GoLive');
+    }).fail((response) => {
+      toastr.error('Failed GoLive');
+    });
   });
 
   $('.admin-panel-toolbar .action-icon-edit').click(() => {
