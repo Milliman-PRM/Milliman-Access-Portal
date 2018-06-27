@@ -171,6 +171,7 @@ function renderSelections(response: SelectionsDetail) {
   // tslint:enable:object-literal-sort-keys
 
   $('#IsMaster').prop('checked', response.IsMaster);
+  $fieldsetDiv.hide().filter(() => !response.IsMaster).show();
 
   $fieldsetDiv.empty();
   response.Hierarchy.Fields.forEach((field) =>
@@ -341,6 +342,11 @@ export function setup() {
   // TODO: select by ID or better classes
   $('#selection-info .blue-button').click(submitSelectionForm);
   $('#selection-info .red-button').click(cancelSelectionForm);
+
+  $('#IsMaster').click(() => {
+    $('#selection-info form.admin-panel-content .fieldset-container')
+      .hide().filter(() => !$('#IsMaster').prop('checked')).show();
+  });
 
   $('.tooltip').tooltipster();
 }
