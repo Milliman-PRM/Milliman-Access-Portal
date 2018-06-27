@@ -49,11 +49,11 @@ export interface RootContentItemSummary {
   ContentName: string;
   ContentTypeName: string;
   GroupCount: number;
-  EligibleUserCount: number;
+  EligibleUserList: UserInfo[];
   PublicationDetails: PublicationSummary;
 }
 export interface RootContentItemList {
-  DetailList: RootContentItemSummary[];
+  SummaryList: RootContentItemSummary[];
   SelectedRootContentItemId: number;
 }
 

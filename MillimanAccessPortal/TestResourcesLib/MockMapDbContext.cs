@@ -58,6 +58,9 @@ namespace TestResourcesLib
             Mock<DbSet<ContentReductionTask>> MockContentReductionTask = MockDbSet<ContentReductionTask>.New(ContentReductionTaskData);
             MockContentReductionTask.Setup(d => d.Add(It.IsAny<ContentReductionTask>())).Callback<ContentReductionTask>(s =>
             {
+                s.CreateDateTimeUtc = s.ReductionStatus == ReductionStatusEnum.Replaced
+                    ? DateTime.FromFileTimeUtc(50)
+                    : DateTime.FromFileTimeUtc(200);
                 ContentReductionTaskData.Add(s);
                 MockDbSet<ContentReductionTask>.AssignNavigationProperty(MockContentReductionTask.Object, "ApplicationUserId", ReturnMockContext.Object.ApplicationUser);
                 MockDbSet<ContentReductionTask>.AssignNavigationProperty(MockContentReductionTask.Object, "SelectionGroupId", ReturnMockContext.Object.SelectionGroup);
@@ -103,6 +106,14 @@ namespace TestResourcesLib
                 userRoleInRootContentItemData.Add(s);
                 MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty(mockUserRoleInRootContentItem.Object, "RootContentItemId", ReturnMockContext.Object.RootContentItem);
                 MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty(mockUserRoleInRootContentItem.Object, "RoleId", ReturnMockContext.Object.Roles);
+                MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty(mockUserRoleInRootContentItem.Object, "UserId", ReturnMockContext.Object.ApplicationUser);
+            });
+            mockUserRoleInRootContentItem.Setup(d => d.AddRange(It.IsAny<IEnumerable<UserRoleInRootContentItem>>())).Callback<IEnumerable<UserRoleInRootContentItem>>(s =>
+            {
+                userRoleInRootContentItemData.AddRange(s);
+                MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty(mockUserRoleInRootContentItem.Object, "RootContentItemId", ReturnMockContext.Object.RootContentItem);
+                MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty(mockUserRoleInRootContentItem.Object, "RoleId", ReturnMockContext.Object.Roles);
+                MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty(mockUserRoleInRootContentItem.Object, "UserId", ReturnMockContext.Object.ApplicationUser);
             });
             ReturnMockContext.Object.UserRoleInRootContentItem = mockUserRoleInRootContentItem.Object;
 

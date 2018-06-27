@@ -8,9 +8,9 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MillimanAccessPortal.Models.AccountViewModels;
 
-namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
+namespace MillimanAccessPortal.Models.ContentAccessAdmin
 {
-    public class PublicationDetails
+    public class PublicationSummary
     {
         public UserInfoViewModel User { get; set; }
         public PublicationStatus StatusEnum { get; set; }
@@ -18,13 +18,13 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
         public string StatusMessage { get; set; } = string.Empty;
         public long RootContentItemId { get; set; }
 
-        public static explicit operator PublicationDetails(ContentPublicationRequest contentPublicationRequest)
+        public static explicit operator PublicationSummary(ContentPublicationRequest contentPublicationRequest)
         {
             if (contentPublicationRequest == null)
             {
                 return null;
             }
-            return new PublicationDetails
+            return new PublicationSummary
             {
                 User = (UserInfoViewModel) contentPublicationRequest.ApplicationUser,
                 StatusEnum = contentPublicationRequest.RequestStatus,

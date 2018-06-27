@@ -68,9 +68,6 @@
           background-color: $blue;
         }
 
-        &[editing] {
-        }
-
         .card-body-main-container {
             position: relative;
             padding: .25em;
@@ -95,8 +92,14 @@
                 margin: auto;
                 overflow: hidden;
 
-                .card-body-primary-text {
+                .card-body-primary-text,
+                .card-body-primary-text-box {
                     margin: 0;
+
+                    &:disabled {
+                        background-color: transparent;
+                        border-color: transparent;
+                    }
                 }
 
                 .card-body-secondary-text {
@@ -106,7 +109,8 @@
                 }
             }
 
-            .card-body-primary-text {
+            .card-body-primary-text,
+            .card-body-primary-text-box {
 
                 &.indent-level-0 {
                     font-size: 2rem;
@@ -267,11 +271,7 @@
             transform-origin: center center;
             color: $white;
             transition: .2s all linear;
-
-            .card-button-icon {
-                height: 1.25em;
-                width: 1.25em;
-            }
+            position: relative;
 
             &.card-button-red,
             &.card-button-delete,
@@ -296,6 +296,7 @@
             }
 
             &.card-button-green,
+            &.card-button-add,
             &.card-button-new-child {
                 background-color: $green;
 
@@ -315,6 +316,14 @@
                 color: white;
                 line-height: inherit;
             }
+
+            .card-button-clickable {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 0;
+                bottom: 0;
+            }
         }
 
 
@@ -332,6 +341,7 @@
 
             &[maximized] {
                 max-height: 15.5em;
+                overflow: visible;
                 transition: .25s all linear;
 
                 .card-button-expansion {
@@ -349,9 +359,6 @@
                 margin-bottom: .25rem;
             }
 
-            .card-expansion-option-label {
-            }
-
             .detail-item {
                 padding: 0 .25em;
                 margin-left: .75em;
@@ -361,6 +368,47 @@
 
                 &:last-of-type {
                     margin-bottom: 1.25em;
+                }
+            }
+
+            ul {
+                list-style-type: none;
+                margin: 0;
+                padding: 0;
+
+                .detail-item-user {
+                    display: block;
+
+                    .detail-item-user-icon {
+                        display: inline-block;
+
+                        .card-user-icon {
+                            height: 1.5em;
+                            width: 1.5em;
+                        }
+                    }
+                    .detail-item-user-remove {
+                        display: inline-block;
+                    }
+                    .detail-item-user-name {
+                        display: inline-block;
+                        padding: 0 .25em;
+                    }
+                }
+            }
+
+            .detail-item-user-create {
+                display: inline-block;
+                margin-bottom: 1.25em;
+                white-space: nowrap;
+
+                .detail-item-user-add {
+                    display: inline-block;
+                }
+                .detail-item-user-input {
+                    display: inline-block;
+                    padding: 0 .25em;
+                    width: 100%;
                 }
             }
         }

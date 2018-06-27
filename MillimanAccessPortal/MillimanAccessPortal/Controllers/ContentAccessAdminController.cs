@@ -19,7 +19,8 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
-using MillimanAccessPortal.Models.ContentAccessAdminViewModels;
+using MillimanAccessPortal.Models.ContentAccessAdmin;
+using MillimanAccessPortal.Models.ContentPublishing;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -93,9 +94,9 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            ContentAccessAdminClientListViewModel Model = await ContentAccessAdminClientListViewModel.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
+            ClientTree model = await ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, RoleEnum.ContentAccessAdmin);
 
-            return Json(Model);
+            return Json(model);
         }
 
         /// <summary>Returns the root content items available to a client.</summary>
@@ -127,9 +128,9 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            ContentAccessAdminRootContentItemListViewModel Model = ContentAccessAdminRootContentItemListViewModel.Build(DbContext, await Queries.GetCurrentApplicationUser(User), Client);
+            var model = RootContentItemList.Build(DbContext, Client, await Queries.GetCurrentApplicationUser(User), RoleEnum.ContentAccessAdmin);
 
-            return Json(Model);
+            return Json(model);
         }
 
         /// <summary>Returns the selection groups associated with a root content item.</summary>
@@ -161,7 +162,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            ContentAccessAdminSelectionGroupListViewModel Model = ContentAccessAdminSelectionGroupListViewModel.Build(DbContext, RootContentItem);
+            SelectionGroupList Model = SelectionGroupList.Build(DbContext, RootContentItem);
 
             return Json(Model);
         }
@@ -242,9 +243,81 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(SelectionGroupCreatedEvent);
             #endregion
 
-            ContentAccessAdminSelectionGroupDetailViewModel Model = ContentAccessAdminSelectionGroupDetailViewModel.Build(DbContext, SelectionGroup);
+            Models.ContentAccessAdmin.SelectionGroupSummary Model = Models.ContentAccessAdmin.SelectionGroupSummary.Build(DbContext, SelectionGroup);
 
             return Json(Model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RenameSelectionGroup(long selectionGroupId, string name)
+        {
+            var selectionGroup = DbContext.SelectionGroup
+                .Where(sg => sg.Id == selectionGroupId)
+                .SingleOrDefault();
+
+            #region Preliminary validation
+            if (selectionGroup == null)
+            {
+                Response.Headers.Add("Warning", "The requested selection group does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, selectionGroup.RootContentItemId));
+            if (!roleInRootContentItemResult.Succeeded)
+            {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    $"Request to update selection group without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentAccessAdmin]} role in root content item",
+                    AuditEventId.Unauthorized,
+                    new { selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, selectionGroupId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            selectionGroup.GroupName = name;
+            DbContext.SelectionGroup.Update(selectionGroup);
+            DbContext.SaveChanges();
+
+            var model = Models.ContentAccessAdmin.SelectionGroupSummary.Build(DbContext, selectionGroup);
+
+            return Json(model);
+        }
+
+        /// <summary>
+        /// Adds a single user by email to a selection group.
+        /// </summary>
+        /// <remarks>This is a temporary helper action to be used until content access admin is rewritten in React.</remarks>
+        /// <param name="SelectionGroupId">The selection group to be updated.</param>
+        /// <param name="email">The email of the user to add.</param>
+        /// <returns>Ok, or UnprocessableEntity if a user with the provided email does not exist.</returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddUserToSelectionGroup(long SelectionGroupId, string email)
+        {
+            var user = DbContext.ApplicationUser
+                .Where(u => u.Email == email)
+                .SingleOrDefault();
+
+            #region Preliminary Validation
+            if (user == null)
+            {
+                Response.Headers.Add("Warning", "One or more requested users do not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            return await UpdateSelectionGroupUserAssignments(SelectionGroupId, new Dictionary<long, bool> { { user.Id, true } });
         }
 
         /// <summary>Updates the users assigned to a selection group.</summary>
@@ -396,7 +469,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ContentAccessAdminSelectionGroupListViewModel Model = ContentAccessAdminSelectionGroupListViewModel.Build(DbContext, SelectionGroup.RootContentItem);
+            var Model = Models.ContentAccessAdmin.SelectionGroupSummary.Build(DbContext, SelectionGroup);
 
             return Json(Model);
         }
@@ -504,7 +577,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(SelectionGroupDeletedEvent);
             #endregion
 
-            ContentAccessAdminSelectionGroupListViewModel Model = ContentAccessAdminSelectionGroupListViewModel.Build(DbContext, SelectionGroup.RootContentItem);
+            SelectionGroupList Model = SelectionGroupList.Build(DbContext, SelectionGroup.RootContentItem);
 
             return Json(Model);
         }
@@ -538,53 +611,43 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            ContentAccessAdminSelectionsDetailViewModel Model = ContentAccessAdminSelectionsDetailViewModel.Build(DbContext, Queries, SelectionGroup);
+            SelectionsDetail Model = SelectionsDetail.Build(DbContext, Queries, SelectionGroup);
 
             return Json(Model);
         }
 
         /// <summary>Submits a new reduction task.</summary>
         /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the related root content item.</remarks>
-        /// <param name="SelectionGroupId">The selection group to reduce.</param>
-        /// <param name="Selections">A list of selected selection IDs</param>
+        /// <param name="selectionGroupId">The selection group to reduce.</param>
+        /// <param name="selections">A list of selected selection IDs</param>
         /// <returns>JsonResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SingleReduction(long SelectionGroupId, long[] Selections)
+        public async Task<IActionResult> SingleReduction(long selectionGroupId, long[] selections)
         {
-            SelectionGroup RequestedSelectionGroup = DbContext.SelectionGroup
-                                                              .Include(sg => sg.RootContentItem)
-                                                              .Where(sg => sg.Id == SelectionGroupId)
-                                                              .SingleOrDefault();
-
-            ContentReductionTask CurrentLiveReduction = DbContext.ContentReductionTask
-                                                                 .SingleOrDefault(t => t.ReductionStatus == ReductionStatusEnum.Live
-                                                                                    && t.SelectionGroupId == SelectionGroupId);
+            var selectionGroup = DbContext.SelectionGroup
+                .Include(sg => sg.RootContentItem)
+                .Where(sg => sg.Id == selectionGroupId)
+                .SingleOrDefault();
 
             #region Preliminary validation
-            if (RequestedSelectionGroup == null)
+            if (selectionGroup == null)
             {
                 Response.Headers.Add("Warning", "The requested selection group does not exist.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-
-            if (CurrentLiveReduction == null)
-            {
-                Response.Headers.Add("Warning", "There is no live content for the requested selection group.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
             #region Authorization
-            AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, RequestedSelectionGroup.RootContentItemId));
-            if (!RoleInRootContentItemResult.Succeeded)
+            AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, selectionGroup.RootContentItemId));
+            if (!roleInRootContentItemResult.Succeeded)
             {
                 #region Log audit event
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     $"Request to update selections without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentAccessAdmin]} role in root content item",
                     AuditEventId.Unauthorized,
-                    new { RequestedSelectionGroup.RootContentItem.ClientId, RequestedSelectionGroup.RootContentItemId, SelectionGroupId, Selections },
+                    new { selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, selectionGroupId, selections },
                     User.Identity.Name,
                     HttpContext.Session.Id
                     );
@@ -597,76 +660,97 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            // There must be no pending reduction task created after the current live reduction
-            var PendingStatus = new List<ReductionStatusEnum> { ReductionStatusEnum.Queued, ReductionStatusEnum.Reducing, ReductionStatusEnum.Reduced, };
+            var currentLivePublication = DbContext.ContentPublicationRequest
+                .Where(request => request.RootContentItemId == selectionGroup.RootContentItemId)
+                .Where(request => request.RequestStatus == PublicationStatus.Confirmed)
+                .SingleOrDefault();
+            if (currentLivePublication == null)
+            {
+                Response.Headers.Add("Warning", "There is no live content for the requested selection group.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            // There must be no pending reduction task for this selection group
+            var pendingStatus = new List<ReductionStatusEnum>
+            {
+                ReductionStatusEnum.Queued,
+                ReductionStatusEnum.Reducing,
+                ReductionStatusEnum.Reduced,
+            };
             if (DbContext.ContentReductionTask
-                         .Where(t => t.CreateDateTimeUtc > CurrentLiveReduction.CreateDateTimeUtc)
-                         .Any(t => PendingStatus.Contains(t.ReductionStatus)))
+                .Where(task => task.SelectionGroupId == selectionGroup.Id)
+                .Where(task => task.CreateDateTimeUtc > currentLivePublication.CreateDateTimeUtc)
+                .Any(task => pendingStatus.Contains(task.ReductionStatus)))
             {
                 Response.Headers.Add("Warning", "An unresolved publication or selection change prevents this action.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            // There must be no reduction task with erroneous or unexpected status created after the current live reduction
-            var UnexpectedStatus = new List<ReductionStatusEnum> { ReductionStatusEnum.Unspecified, ReductionStatusEnum.Replaced, };
+            // There must be no reduction task with erroneous or unexpected status for this selection group
+            var unexpectedStatus = new List<ReductionStatusEnum>
+            {
+                ReductionStatusEnum.Unspecified,
+                ReductionStatusEnum.Replaced,
+            };
             if (DbContext.ContentReductionTask
-                         .Where(t => t.CreateDateTimeUtc > CurrentLiveReduction.CreateDateTimeUtc)
-                         .Any(t => UnexpectedStatus.Contains(t.ReductionStatus)))
+                .Where(task => task.SelectionGroupId == selectionGroup.Id)
+                .Where(task => task.CreateDateTimeUtc > currentLivePublication.CreateDateTimeUtc)
+                .Any(task => unexpectedStatus.Contains(task.ReductionStatus)))
             {
                 Response.Headers.Add("Warning", "An erroneous reduction status prevents this action.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
             // The requested selections must be valid for the content item
-            int ValidSelectionCount = DbContext.HierarchyFieldValue
-                                               .Include(hfv => hfv.HierarchyField)
-                                               .Where(hfv => hfv.HierarchyField.RootContentItemId == RequestedSelectionGroup.RootContentItemId)
-                                               .Where(hfv => Selections.Contains(hfv.Id))
+            int validSelectionCount = DbContext.HierarchyFieldValue
+                                               .Where(hfv => hfv.HierarchyField.RootContentItemId == selectionGroup.RootContentItemId)
+                                               .Where(hfv => selections.Contains(hfv.Id))
                                                .Count();
-            if (ValidSelectionCount < Selections.Count())
+            if (validSelectionCount < selections.Count())
             {
                 Response.Headers.Add("Warning", "One or more requested selections do not exist or do not belong to the specified content item.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             // The requested selections must be modified from the live selections for this SelectionGroup
-            if (Selections.ToHashSet().SetEquals(RequestedSelectionGroup.SelectedHierarchyFieldValueList))
+            if (selections.ToHashSet().SetEquals(selectionGroup.SelectedHierarchyFieldValueList))
             {
                 Response.Headers.Add("Warning", "The requested selections are not different from the active document.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
-            string SelectionCriteriaString = JsonConvert.SerializeObject(ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(DbContext, SelectionGroupId, Selections), Formatting.Indented);
+            string selectionCriteriaString = JsonConvert.SerializeObject(ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(DbContext, selectionGroupId, selections), Formatting.Indented);
 
-            var ContentReductionTask = new ContentReductionTask
+            var contentReductionTask = new ContentReductionTask
             {
                 ApplicationUser = await Queries.GetCurrentApplicationUser(User),
-                SelectionGroupId = RequestedSelectionGroup.Id,
+                SelectionGroupId = selectionGroup.Id,
                 MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",  // TODO Fix this
                 ContentPublicationRequest = null,
-                SelectionCriteria = SelectionCriteriaString,
+                SelectionCriteria = selectionCriteriaString,
                 ReductionStatus = ReductionStatusEnum.Queued,
+                CreateDateTimeUtc = DateTime.UtcNow,
             };
-            DbContext.ContentReductionTask.Add(ContentReductionTask);
+            DbContext.ContentReductionTask.Add(contentReductionTask);
 
             DbContext.SaveChanges();
 
             #region Log audit event
-            AuditEvent SelectionChangeReductionQueuedEvent = AuditEvent.New(
+            AuditEvent selectionChangeReductionQueuedEvent = AuditEvent.New(
                 $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                 "Selection change reduction task queued",
                 AuditEventId.SelectionChangeReductionQueued,
-                new { RequestedSelectionGroup.RootContentItem.ClientId, RequestedSelectionGroup.RootContentItemId, SelectionGroupId, Selections },
+                new { selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, selectionGroupId, selections },
                 User.Identity.Name,
                 HttpContext.Session.Id
                 );
-            AuditLogger.Log(SelectionChangeReductionQueuedEvent);
+            AuditLogger.Log(selectionChangeReductionQueuedEvent);
             #endregion
 
-            ContentAccessAdminSelectionsDetailViewModel Model = ContentAccessAdminSelectionsDetailViewModel.Build(DbContext, Queries, RequestedSelectionGroup);
+            SelectionsDetail model = SelectionsDetail.Build(DbContext, Queries, selectionGroup);
 
-            return Json(Model);
+            return Json(model);
         }
 
         /// <summary>Cancel a pending or completed reduction task.</summary>
@@ -750,7 +834,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(SelectionChangeReductionCanceledEvent);
             #endregion
 
-            ContentAccessAdminSelectionsDetailViewModel Model = ContentAccessAdminSelectionsDetailViewModel.Build(DbContext, Queries, SelectionGroup);
+            SelectionsDetail Model = SelectionsDetail.Build(DbContext, Queries, SelectionGroup);
 
             return Json(Model);
         }
