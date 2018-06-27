@@ -92,7 +92,7 @@ $dbCreationRetries = 5 # The number of times the script will attempt to create a
 
 $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 
-$env:PATH = $env:PATH+";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin\;$env:appdata\npm\"
+$env:PATH = $env:PATH+";C:\Program Files (x86)\OctopusCLI\;$env:appdata\npm\"
 $rootPath = (get-location).Path
 $webBuildTarget = "$rootPath\WebDeploy"
 $servicBuildTarget = "$rootPath\ServiceDeploy"
