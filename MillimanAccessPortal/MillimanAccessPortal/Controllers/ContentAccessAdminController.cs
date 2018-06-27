@@ -623,7 +623,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>JsonResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SingleReduction(long selectionGroupId, bool isMaster, long[] selections)
+        public async Task<IActionResult> UpdateSelections(long selectionGroupId, bool isMaster, long[] selections)
         {
             var selectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)

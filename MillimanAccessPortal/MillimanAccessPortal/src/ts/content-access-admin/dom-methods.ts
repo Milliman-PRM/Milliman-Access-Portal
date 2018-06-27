@@ -105,7 +105,7 @@ function submitSelectionForm() {
       RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
     },
     type: 'POST',
-    url: 'ContentAccessAdmin/SingleReduction',
+    url: 'ContentAccessAdmin/UpdateSelections',
   }).done(function onDone(response) {
     hideButtonSpinner($button);
     renderSelections(response);
