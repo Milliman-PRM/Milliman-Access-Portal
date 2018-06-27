@@ -137,17 +137,9 @@ if ($codeChangeFound -eq $false)
 
 #region Run unit tests and exit if any fail
 
-cd MillimanAccessPortal\MillimanAccessPortal
+cd MillimanAccessPortal\
 
 log_statement "Restoring packages and building MAP"
-
-MSBuild /t:Restore /verbosity:quiet
-
-if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: Initial nuget package restore failed for MAP solution"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
-}
 
 $command = "npm install -g yarn@1.5.1"
 invoke-expression $command
@@ -167,28 +159,22 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+MSBuild /restore:true /verbosity:quiet
+
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: Initial build of MAP solution failed"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
 
 cd $rootpath\ContentPublishingServer
 
-log_statement "Performing test build of content publishing server"
+log_statement "Building content publishing server"
 
 MSBuild /restore:true /verbosity:quiet /nowarn:CS1998
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Test build or package restore failed for content publishing server solution"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
-}
-
-
-log_statement "Building MAP unit tests"
-
-cd $rootPath\MillimanAccessPortal\MapTests
-
-MSBuild /restore:True /verbosity:quiet /nowarn:CS1998
-
-if ( $LASTEXITCODE -ne 0 ) {
-    log_statement "ERROR: Unit test build failed"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
@@ -205,6 +191,8 @@ if ($LASTEXITCODE -ne 0) {
 
 cd $rootPath\MillimanAccessPortal\MillimanAccessPortal
 
+log_statement "Peforming Jest tests"
+
 $env:JEST_JUNIT_OUTPUT = $jUnitOutputJest
 
 $command = "yarn test --testResultsProcessor='jest-junit'"
@@ -212,18 +200,6 @@ invoke-expression "&$command"
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: One or more Jest tests failed"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
-}
-
-log_statement "Building Content Publishing Server unit tests"
-
-cd $rootpath\ContentPublishingServer\ContentPublishingServiceTests
-
-MSBuild /restore:True /verbosity:quiet
-
-if ( $LASTEXITCODE -ne 0 ) {
-    log_statement "ERROR: Content publishing server unit test build failed"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
