@@ -956,13 +956,19 @@ export function SelectionGroupCard(
   this.addComponent('detailText', { text: 'Members' });
   this.addComponent('userList', {});
   selectionGroup.MemberList.forEach(function(member) {
+    const firstlast = member.FirstName || member.LastName
+      ? `${member.FirstName || ''} ${member.LastName || ''}`
+      : member.UserName;
+    const username = firstlast === member.UserName
+      ? ''
+      : member.UserName;
     this.addComponent('user', {
       callback: (event) => shared.removeUserFromSelectionGroup(event, member, selectionGroup),
       data: {
         'user-id': member.Id,
       },
-      firstlast: `${member.FirstName} ${member.LastName}`,
-      username: member.UserName,
+      firstlast,
+      username,
     });
   }, this);
   this.addComponent('userCreate', {

@@ -310,6 +310,12 @@ export function updateMemberList(
       memberList.filter((member) => eligible.Id === member.Id).length === 0);
   memberList
     .forEach((user) => {
+      const firstLast = user.FirstName || user.LastName
+        ? `${user.FirstName || ''} ${user.LastName || ''}`
+        : user.UserName;
+      const userName = firstLast === user.UserName
+        ? ''
+        : user.UserName;
       const $li = $([
         // If you make any changes to this component, also change the user component in card.ts
         '<li>',
@@ -327,8 +333,8 @@ export function updateMemberList(
         '      </div>',
         '    </div>',
         '    <div class="detail-item-user-name">',
-        `      <h5 class="user-name">${user.UserName}</h5>`,
-        `      <h6 class="first-last">${user.FirstName} ${user.LastName}</h6>`,
+        `      <h4 class="first-last">${firstLast}</h4>`,
+        `      <span class="user-name">${userName}</span>`,
         '    </div>',
         '  </span>',
         '</li>',
