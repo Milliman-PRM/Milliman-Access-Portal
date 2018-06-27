@@ -702,6 +702,21 @@ namespace MillimanAccessPortal.Controllers
             return new JsonResult(ReturnObj);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GoLive(long PublicationRequestId)
+        {
+            return NoContent();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reject(long PublicationRequestId)
+        {
+            // TODO Could/should this be handled in the Cancel action?
+            return NoContent();
+        }
+
         [NonAction]
         private ContentRelatedFile HandleRelatedFile(UploadedRelatedFile RelatedFile, RootContentItem ContentItem, Guid RequestGuid, long PubRequestId)
         {
