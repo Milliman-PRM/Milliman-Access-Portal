@@ -304,7 +304,7 @@ if ($LASTEXITCODE -ne 0) {
 
 #region package the web application for nuget
 
-octo pack --id MillimanAccessPortal --version 1.0.0.$BranchName --basepath $webBuildTarget --outfolder $nugetDestination
+octo pack --id MillimanAccessPortal --version 1.0.0-$BranchName --basepath $webBuildTarget --outfolder $nugetDestination
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
