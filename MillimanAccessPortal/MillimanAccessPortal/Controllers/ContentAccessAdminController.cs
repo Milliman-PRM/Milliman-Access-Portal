@@ -623,7 +623,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>JsonResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SingleReduction(long selectionGroupId, long[] selections)
+        public async Task<IActionResult> SingleReduction(long selectionGroupId, bool isMaster, long[] selections)
         {
             var selectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
@@ -701,40 +701,53 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            // The requested selections must be valid for the content item
-            int validSelectionCount = DbContext.HierarchyFieldValue
-                                               .Where(hfv => hfv.HierarchyField.RootContentItemId == selectionGroup.RootContentItemId)
-                                               .Where(hfv => selections.Contains(hfv.Id))
-                                               .Count();
-            if (validSelectionCount < selections.Count())
+            if (!isMaster)
             {
-                Response.Headers.Add("Warning", "One or more requested selections do not exist or do not belong to the specified content item.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
+                // The requested selections must be valid for the content item
+                int validSelectionCount = DbContext.HierarchyFieldValue
+                                                   .Where(hfv => hfv.HierarchyField.RootContentItemId == selectionGroup.RootContentItemId)
+                                                   .Where(hfv => selections.Contains(hfv.Id))
+                                                   .Count();
+                if (validSelectionCount < selections.Count())
+                {
+                    Response.Headers.Add("Warning", "One or more requested selections do not exist or do not belong to the specified content item.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
 
-            // The requested selections must be modified from the live selections for this SelectionGroup
-            if (selections.ToHashSet().SetEquals(selectionGroup.SelectedHierarchyFieldValueList))
-            {
-                Response.Headers.Add("Warning", "The requested selections are not different from the active document.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                // The requested selections must be modified from the live selections for this SelectionGroup
+                if (selections.ToHashSet().SetEquals(selectionGroup.SelectedHierarchyFieldValueList))
+                {
+                    Response.Headers.Add("Warning", "The requested selections are not different from the active document.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
             }
             #endregion
 
-            string selectionCriteriaString = JsonConvert.SerializeObject(ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(DbContext, selectionGroupId, selections), Formatting.Indented);
-
-            var contentReductionTask = new ContentReductionTask
+            if (isMaster)
             {
-                ApplicationUser = await Queries.GetCurrentApplicationUser(User),
-                SelectionGroupId = selectionGroup.Id,
-                MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",  // TODO Fix this
-                ContentPublicationRequest = null,
-                SelectionCriteria = selectionCriteriaString,
-                ReductionStatus = ReductionStatusEnum.Queued,
-                CreateDateTimeUtc = DateTime.UtcNow,
-            };
-            DbContext.ContentReductionTask.Add(contentReductionTask);
+                selectionGroup.IsMaster = true;
+                DbContext.SelectionGroup.Update(selectionGroup);
+                DbContext.SaveChanges();
+            }
+            else
+            {
+                string selectionCriteriaString = JsonConvert.SerializeObject(ContentReductionHierarchy<ReductionFieldValueSelection>
+                    .GetFieldSelectionsForSelectionGroup(DbContext, selectionGroupId, selections), Formatting.Indented);
 
-            DbContext.SaveChanges();
+                var contentReductionTask = new ContentReductionTask
+                {
+                    ApplicationUser = await Queries.GetCurrentApplicationUser(User),
+                    SelectionGroupId = selectionGroup.Id,
+                    MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",  // TODO Fix this
+                    ContentPublicationRequest = null,
+                    SelectionCriteria = selectionCriteriaString,
+                    ReductionStatus = ReductionStatusEnum.Queued,
+                    CreateDateTimeUtc = DateTime.UtcNow,
+                };
+                DbContext.ContentReductionTask.Add(contentReductionTask);
+
+                DbContext.SaveChanges();
+            }
 
             #region Log audit event
             AuditEvent selectionChangeReductionQueuedEvent = AuditEvent.New(

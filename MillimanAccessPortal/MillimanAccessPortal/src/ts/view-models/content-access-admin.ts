@@ -23,6 +23,7 @@ export interface ReductionSummary {
 }
 export interface SelectionsDetail {
   Hierarchy: ContentReductionHierarchy<ReductionFieldValueSelection>;
+  IsMaster: boolean;
   OriginalSelections: number[];
   ReductionDetails: ReductionSummary;
 }

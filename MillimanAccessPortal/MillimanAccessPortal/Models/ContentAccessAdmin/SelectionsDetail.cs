@@ -16,6 +16,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
     public class SelectionsDetail
     {
         public ContentReductionHierarchy<ReductionFieldValueSelection> Hierarchy { get; set; }
+        public bool IsMaster { get; set; }
         public long[] OriginalSelections { get; set; } = { };
         public ReductionSummary ReductionDetails { get; set; }
 
@@ -60,7 +61,9 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
 
             SelectionsDetail model = new SelectionsDetail
             {
-                Hierarchy = ContentReductionHierarchy< ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(DbContext, SelectionGroup.Id, SelectedValuesArray),
+                Hierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>
+                    .GetFieldSelectionsForSelectionGroup(DbContext, SelectionGroup.Id, SelectedValuesArray),
+                IsMaster = ContentReductionTask == null && SelectionGroup.IsMaster,
                 OriginalSelections = DbContext.SelectionGroup
                     .Where(sg => sg.Id == SelectionGroup.Id)
                     .Select(sg => sg.SelectedHierarchyFieldValueList)
