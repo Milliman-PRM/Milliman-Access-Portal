@@ -305,11 +305,45 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddUserToSelectionGroup(long SelectionGroupId, string email)
         {
+            SelectionGroup selectionGroup = DbContext.SelectionGroup
+                .Include(sg => sg.RootContentItem)
+                    .ThenInclude(rci => rci.Client)
+                .SingleOrDefault(sg => sg.Id == SelectionGroupId);
+
+            #region Preliminary Validation
+            if (selectionGroup == null)
+            {
+                Response.Headers.Add("Warning", "The requested selection group does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, selectionGroup.RootContentItemId));
+            if (!roleInRootContentItemResult.Succeeded)
+            {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    $"Request to update selection group without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentAccessAdmin]} role in root content item",
+                    AuditEventId.Unauthorized,
+                    new { selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, SelectionGroupId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                return Unauthorized();
+            }
+            #endregion
+
             var user = DbContext.ApplicationUser
                 .Where(u => u.Email == email)
                 .SingleOrDefault();
 
-            #region Preliminary Validation
+            #region Validation
             if (user == null)
             {
                 Response.Headers.Add("Warning", "One or more requested users do not exist.");
