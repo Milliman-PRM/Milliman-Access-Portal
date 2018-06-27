@@ -18,7 +18,8 @@ import {
 import { AddSelectionGroupDialog, DeleteSelectionGroupDialog } from '../dialog';
 import {
   collapseAllListener, del, expandAllListener, filterFormListener, filterTreeListener, get,
-  hideButtonSpinner, post, showButtonSpinner, updateCardStatus, wrapCardCallback, toggleExpanded, setExpanded,
+  hideButtonSpinner, post, setExpanded, showButtonSpinner, toggleExpanded, updateCardStatus,
+  wrapCardCallback,
 } from '../shared';
 import {
   SelectionGroupList, SelectionGroupSummary, SelectionsDetail,
@@ -90,6 +91,7 @@ function submitSelectionForm() {
   const $selectionGroups = $('#selection-groups ul.admin-panel-content');
   const $button = $selectionInfo.find('button');
   const data = {
+    IsMaster: $selectionInfo.find('#IsMaster').prop('checked'),
     SelectionGroupId: $selectionGroups.find('[selected]').closest('.card-container').attr('data-selection-group-id'),
     Selections: $selectionInfo.serializeArray().reduce((acc, cur) => {
       return (cur.value === 'on')
@@ -109,7 +111,9 @@ function submitSelectionForm() {
   }).done(function onDone(response) {
     hideButtonSpinner($button);
     renderSelections(response);
-    toastr.success('A reduction task has been queued.');
+    toastr.success(data.IsMaster
+      ? 'Master content access granted.'
+      : 'A reduction task has been queued.');
   }).fail(function onFail(response) {
     hideButtonSpinner($button);
     toastr.warning(response.getResponseHeader('Warning')
@@ -165,6 +169,8 @@ function renderSelections(response: SelectionsDetail) {
     RootContentItemId: 0,
   }, response.ReductionDetails);
   // tslint:enable:object-literal-sort-keys
+
+  $('#IsMaster').prop('checked', response.IsMaster);
 
   $fieldsetDiv.empty();
   response.Hierarchy.Fields.forEach((field) =>
