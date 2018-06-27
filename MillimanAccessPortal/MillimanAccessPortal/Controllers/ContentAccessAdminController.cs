@@ -728,6 +728,18 @@ namespace MillimanAccessPortal.Controllers
                 selectionGroup.IsMaster = true;
                 DbContext.SelectionGroup.Update(selectionGroup);
                 DbContext.SaveChanges();
+
+                #region Log audit event
+                AuditEvent selectionGroupMasterAccessEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    "Selection group given master access",
+                    AuditEventId.SelectionChangeMasterAccessGranted,
+                    new { selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, selectionGroupId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(selectionGroupMasterAccessEvent);
+                #endregion
             }
             else
             {
@@ -745,21 +757,20 @@ namespace MillimanAccessPortal.Controllers
                     CreateDateTimeUtc = DateTime.UtcNow,
                 };
                 DbContext.ContentReductionTask.Add(contentReductionTask);
-
                 DbContext.SaveChanges();
-            }
 
-            #region Log audit event
-            AuditEvent selectionChangeReductionQueuedEvent = AuditEvent.New(
-                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                "Selection change reduction task queued",
-                AuditEventId.SelectionChangeReductionQueued,
-                new { selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, selectionGroupId, selections },
-                User.Identity.Name,
-                HttpContext.Session.Id
-                );
-            AuditLogger.Log(selectionChangeReductionQueuedEvent);
-            #endregion
+                #region Log audit event
+                AuditEvent selectionChangeReductionQueuedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    "Selection change reduction task queued",
+                    AuditEventId.SelectionChangeReductionQueued,
+                    new { selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, selectionGroupId, selections },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(selectionChangeReductionQueuedEvent);
+                #endregion
+            }
 
             SelectionsDetail model = SelectionsDetail.Build(DbContext, Queries, selectionGroup);
 
