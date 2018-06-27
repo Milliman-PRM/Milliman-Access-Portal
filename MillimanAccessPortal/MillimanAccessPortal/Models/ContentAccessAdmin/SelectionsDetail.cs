@@ -15,6 +15,8 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
 {
     public class SelectionsDetail
     {
+        public string SelectionGroupName { get; set; }
+        public string RootContentItemName { get; set; }
         public ContentReductionHierarchy<ReductionFieldValueSelection> Hierarchy { get; set; }
         public bool IsMaster { get; set; }
         public long[] OriginalSelections { get; set; } = { };
@@ -22,6 +24,11 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
 
         internal static SelectionsDetail Build(ApplicationDbContext DbContext, StandardQueries Queries, SelectionGroup SelectionGroup)
         {
+            if (SelectionGroup.RootContentItem == null)
+            {
+                SelectionGroup.RootContentItem = DbContext.RootContentItem.Find(SelectionGroup.RootContentItemId);
+            }
+
             var OutstandingStatus = new List<ReductionStatusEnum>
             {
                 ReductionStatusEnum.Queued,
@@ -61,6 +68,8 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
 
             SelectionsDetail model = new SelectionsDetail
             {
+                SelectionGroupName = SelectionGroup.GroupName,
+                RootContentItemName = SelectionGroup.RootContentItem.ContentName,
                 Hierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>
                     .GetFieldSelectionsForSelectionGroup(DbContext, SelectionGroup.Id, SelectedValuesArray),
                 IsMaster = ContentReductionTask == null && SelectionGroup.IsMaster,

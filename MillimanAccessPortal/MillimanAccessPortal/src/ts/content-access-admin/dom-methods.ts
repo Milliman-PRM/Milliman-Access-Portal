@@ -158,6 +158,10 @@ function renderSelections(response: SelectionsDetail) {
   const $selectionInfo = $('#selection-info form.admin-panel-content');
   const $fieldsetDiv = $selectionInfo.find('.fieldset-container');
   const $relatedCard = $('#selection-groups [selected]').closest('.card-container');
+
+  $selectionInfo.children('h2').html(response.SelectionGroupName);
+  $selectionInfo.children('h3').html(response.RootContentItemName);
+
   // tslint:disable:object-literal-sort-keys
   const details = $.extend({
     User: {

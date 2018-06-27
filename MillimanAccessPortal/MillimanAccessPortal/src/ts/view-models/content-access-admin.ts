@@ -22,6 +22,8 @@ export interface ReductionSummary {
   RootContentItemId?: number;
 }
 export interface SelectionsDetail {
+  SelectionGroupName: string;
+  RootContentItemName: string;
   Hierarchy: ContentReductionHierarchy<ReductionFieldValueSelection>;
   IsMaster: boolean;
   OriginalSelections: number[];
