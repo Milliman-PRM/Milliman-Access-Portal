@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="100%" height="100%" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:1.41421;">
-    <g id="Line_Icons" transform="matrix(1.25,0,0,1,2,-1.33227e-15)">
-        <g transform="matrix(-1,1.53081e-16,-9.79717e-17,-1,16,39.0225)">
-            <path d="M8.814,15.418C8.437,14.892 7.562,14.892 7.185,15.418L2.185,22.418C1.968,22.723 1.939,23.124 2.111,23.456C2.282,23.79 2.625,23.999 3,23.999L13,23.999C13.375,23.999 13.718,23.79 13.889,23.456C14.061,23.124 14.032,22.723 13.815,22.418L8.814,15.418ZM4.943,21.999L8,17.72L11.057,21.999L4.943,21.999Z" style="fill:rgb(117,117,117);fill-rule:nonzero;"/>
+    <rect id="Frame_-_24px" x="0" y="0.001" width="24" height="24" style="fill:none;"/>
+    <g transform="matrix(1.42619,0,0,1.42619,-5.11433,-8.68053)">
+        <g id="Line_Icons">
+            <path d="M12,19.415L3.586,11L5,9.586L12,16.586L19,9.586L20.414,11L12,19.415Z" style="fill:rgb(117,117,117);fill-rule:nonzero;"/>
         </g>
-        <g transform="matrix(-1,1.53081e-16,-9.79717e-17,-1,15.9994,8.998)">
-            <path d="M7.186,8.58C7.374,8.843 7.678,8.999 8,8.999C8.322,8.999 8.626,8.843 8.814,8.58L13.814,1.58C14.031,1.275 14.06,0.874 13.888,0.542C13.718,0.208 13.375,-0.001 13,-0.001L3,-0.001C2.625,-0.001 2.282,0.208 2.111,0.542C1.939,0.874 1.969,1.275 2.186,1.58L7.186,8.58ZM11.057,1.999L8,6.278L4.943,1.999L11.057,1.999Z" style="fill:rgb(117,117,117);fill-rule:nonzero;"/>
-        </g>
-        <rect x="0" y="10.999" width="16" height="2" style="fill:rgb(117,117,117);"/>
     </g>
 </svg>
