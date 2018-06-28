@@ -17,6 +17,7 @@ require('../../images/add.svg');
 require('../../images/edit.svg');
 require('../../images/upload.svg');
 require('../../images/cancel.svg');
+require('../../images/checkmark.svg')
 
 $(document).ready(() => {
   setup();

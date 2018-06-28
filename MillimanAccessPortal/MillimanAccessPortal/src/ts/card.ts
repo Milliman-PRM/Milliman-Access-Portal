@@ -893,7 +893,7 @@ export function RootContentItemCard(
     callback: goLiveCallback,
     color: 'blue',
     dynamic: true,
-    icon: 'add',
+    icon: 'checkmark',
     tooltip: 'Go Live',
   });
   this.addComponent('status', {});

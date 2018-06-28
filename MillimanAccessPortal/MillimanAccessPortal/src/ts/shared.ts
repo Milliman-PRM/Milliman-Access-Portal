@@ -452,9 +452,9 @@ export function updateCardStatusButtons($card: JQuery<HTMLElement>, publishingSt
   if (publishingStatusEnum === PublicationStatus.Queued) {
     $card.find('.card-button-cancel').css('display', 'flex');
   } else if (publishingStatusEnum === PublicationStatus.Complete) {
-    $card.find('.card-button-add').css('display', 'flex');
+    $card.find('.card-button-checkmark').css('display', 'flex');
   } else {
-    $card.find('.card-button-file-upload').css('display', 'flex');
+    $card.find('.card-button-upload').css('display', 'flex');
   }
 }
 export function updateFormStatusButtons() {
