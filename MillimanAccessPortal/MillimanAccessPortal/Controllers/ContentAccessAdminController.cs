@@ -827,6 +827,7 @@ namespace MillimanAccessPortal.Controllers
             if (isMaster)
             {
                 selectionGroup.IsMaster = true;
+                selectionGroup.SelectedHierarchyFieldValueList = new long[0];
                 DbContext.SelectionGroup.Update(selectionGroup);
                 DbContext.SaveChanges();
 
