@@ -22,7 +22,7 @@ import {
   wrapCardCallback,
 } from '../shared';
 import {
-  SelectionGroupList, SelectionGroupSummary, SelectionsDetail,
+  SelectionDetails, SelectionGroupList, SelectionGroupSummary, SelectionsDetail,
 } from '../view-models/content-access-admin';
 import {
   BasicNode, ClientSummary, ClientTree, ReductionField, ReductionFieldValueSelection,
@@ -124,7 +124,8 @@ function submitSelectionForm() {
 function renderValue(
   value: ReductionFieldValueSelection,
   $fieldset: JQuery<HTMLElement>,
-  originalSelections: number[],
+  liveSelections: SelectionDetails[],
+  pendingSelections: SelectionDetails[],
 ) {
   const $checkbox = $(`<label class="selection-option-label">
     ${value.Value}
@@ -135,22 +136,30 @@ function renderValue(
     `<div class="selection-option-container" data-selection-value="${value.Value.toUpperCase()}"></div>`);
   const $div = $fieldset.find('div.selection-option-container').last();
   $div.append($checkbox);
-  $checkbox.find('input[type="checkbox"]').prop('checked', value.SelectionStatus);
-  if ((originalSelections.indexOf(value.Id) !== -1) !== value.SelectionStatus) {
-    $div.attr('style', 'background: yellow;');
+
+  const live = liveSelections.filter((s) => s.Id === value.Id);
+  const pending = pendingSelections && pendingSelections.filter((s) => s.Id === value.Id);
+  $checkbox.find('input[type="checkbox"]')
+    .prop('checked', pending ? pending.length > 0 : live.length > 0);
+  if (pending && live.length && live[0].Marked) {
+    $div.attr('style', 'color: red;');
+  }
+  if (pending && pending.length && pending[0].Marked) {
+    $div.attr('style', 'color: green;');
   }
 }
 
 function renderField(
   field: ReductionField<ReductionFieldValueSelection>,
   $parent: JQuery<HTMLElement>,
-  originalSelections: number[],
+  liveSelections: SelectionDetails[],
+  pendingSelections: SelectionDetails[],
 ) {
   $parent.append('<fieldset></fieldset>');
   const $fieldset = $parent.find('fieldset').last();
   $fieldset.append(`<legend>${field.DisplayName}</legend>`);
   field.Values.forEach((value) => {
-    renderValue(value, $fieldset, originalSelections);
+    renderValue(value, $fieldset, liveSelections, pendingSelections);
   });
 }
 
@@ -183,19 +192,21 @@ function renderSelections(response: SelectionsDetail) {
 
   $fieldsetDiv.empty();
   comparison.Hierarchy.Fields.forEach((field) =>
-    renderField(field, $fieldsetDiv, comparison.LiveSelections.map((s) => s.Id)));
+    renderField(field, $fieldsetDiv, comparison.LiveSelections, comparison.PendingSelections));
   updateCardStatus($relatedCard, response.ReductionSummary);
   $selectionInfo
     .find('button').hide()
     .filter(`.button-status-${details.StatusEnum}`).show();
   // TODO: rely on some flag in the response to disable checkboxes
+  const readonly = [10, 20, 30].indexOf(details.StatusEnum) !== -1;
   $fieldsetDiv
     .find('input[type="checkbox"]')
-    .click([10, 20, 30].indexOf(details.StatusEnum) !== -1
+    .click(readonly
       ? (event) => {
         event.preventDefault();
       }
       : () => undefined);
+  $('#IsMaster').attr('disabled', () => readonly ? '' : null);
 }
 
 function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
