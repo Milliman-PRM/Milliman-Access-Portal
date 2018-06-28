@@ -728,12 +728,18 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            // The requested pub request should have appropriate status for GoLive
             ContentPublicationRequest PubRequest = DbContext.ContentPublicationRequest.Where(r => r.Id == ValidationSummaryRequestArg.PublicationRequestId)
                                                                                       .Where(r => r.RootContentItemId == rootContentItemId)
                                                                                       .Include(r => r.RootContentItem)
                                                                                       .Include(r => r.ApplicationUser)
                                                                                       .SingleOrDefault(r => r.RequestStatus == PublicationStatus.Processed);
+
+            List<ContentReductionTask> RelatedReductionTasks = DbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == PubRequest.Id)
+                                                                                             .Include(t => t.SelectionGroup)
+                                                                                             .ToList();
+
+            // The requested pub request should have appropriate status for GoLive
+
             if (PubRequest == null)
             {
                 Response.Headers.Add("Warning", "Go-Live request references a publication request that is not found.");
@@ -760,37 +766,116 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "Validation of the content Go-Live request failed.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            #endregion
 
-            List<ContentReductionTask> RelatedReductionTasks = DbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == PubRequest.Id)
-                                                                                             .Include(t => t.SelectionGroup)
-                                                                                             .ToList();
+            // For each reducing SelectionGroup related to the RootContentItem:
+            foreach (SelectionGroup ContentRelatedSelectionGroup in DbContext.SelectionGroup.Where(g => g.RootContentItemId == rootContentItemId)
+                                                                                            .Where(g => !g.IsMaster))
+            {
+                // RelatedReductionTasks should have one ContentReductionTask related to the SelectionGroup
+                if (RelatedReductionTasks.Count(t => t.SelectionGroupId == ContentRelatedSelectionGroup.Id) != 1)
+                {
+                    Response.Headers.Add("Warning", $"Expected 1 reduction task related to SelectionGroup {ContentRelatedSelectionGroup.Id}, cannot complete this go-live request.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+
+                ContentReductionTask ThisTask = RelatedReductionTasks.Single(t => t.SelectionGroupId == ContentRelatedSelectionGroup.Id);
+
+                // This ContentReductionTask must be a reducing task
+                if (ThisTask.TaskAction != TaskActionEnum.HierarchyAndReduction)
+                {
+                    Response.Headers.Add("Warning", $"Go live request failed to verify related content reduction task {ThisTask.Id}.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+                // The reduced content file identified in the ContentReductionTask must exist
+                if (!System.IO.File.Exists(ThisTask.ResultFilePath))
+                {
+                    Response.Headers.Add("Warning", $"Reduced content file {ThisTask.ResultFilePath} does not exist, cannot complete the go-live request.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+            }
+
+            #endregion
 
             /*
              * At this point, available variables include:
-             * PubRequest - validated to be the relevant ContentPublicationRequest instance, with navigation properties
-             * RelatedReductionTasks - List of ContentReductionTask instances referring to PubRequest
+             * - PubRequest - validated to be the relevant ContentPublicationRequest instance, with RootContentItem and ApplicationUser navigation properties
+             * - RelatedReductionTasks - List of ContentReductionTask instances referring to PubRequest, with SelectionGroup navigation properties
              */
 
+            List<string> FilesToDelete = new List<string>();
 
-            //1 Rename all current live files to temporary names (including reduced)
-
-            //2 Rename new Files To Live names
-            //3 Remove temporary folder of publication job
-            //4 Update db in 1 transaction:
             using (IDbContextTransaction Txn = DbContext.Database.BeginTransaction())
             {
-                //4.1  RootContentItem  .GoLiveDateTimeUtc, .ContentFiles
-                PubRequest.RootContentItem.GoLiveDateTimeUtc = DateTime.UtcNow;
+                // 1 Rename new Master content and related files (not reduced content) to live names
                 foreach (ContentRelatedFile Crf in PubRequest.LiveReadyFilesObj)
                 {
-                    PubRequest.RootContentItem.ContentFilesList = PubRequest.RootContentItem.ContentFilesList.Append(new ContentRelatedFile { }).ToList();
+                    // This assignment defines the live file name for every file that is not reduced content
+                    string TargetFilePath = $"{Crf.FilePurpose}.Content[{rootContentItemId}]{Path.GetExtension(Crf.FullPath)}";
+
+                    // Move the existing file to backed up name if exists
+                    if (System.IO.File.Exists(TargetFilePath))
+                    {
+                        System.IO.File.Move(TargetFilePath, TargetFilePath + ".bak");
+                        FilesToDelete.Add(TargetFilePath + ".bak");
+                    }
+
+                    // TODO test Checksum
+                    System.IO.File.Copy(Crf.FullPath, TargetFilePath);
+                    FilesToDelete.Add(Crf.FullPath);
+
+                    // if file with this FilePurpose does not already exist for the Content Item
+                    if (!PubRequest.RootContentItem.ContentFilesList.Select(cf => cf.FilePurpose).Contains(Crf.FilePurpose))
+                    {
+                        // Can't just .add() to this List property
+                        PubRequest.RootContentItem.ContentFilesList = PubRequest.RootContentItem.ContentFilesList.Append(
+                            new ContentRelatedFile { FilePurpose = Crf.FilePurpose, FullPath = TargetFilePath, Checksum = Crf.Checksum }
+                        ).ToList();
+                    }
                 }
+
+                // 2 Rename reduced content files to live names
+                foreach (var ThisTask in RelatedReductionTasks.Where(t => t.TaskAction == TaskActionEnum.HierarchyAndReduction))
+                {
+                    // This assignment defines the live file name for any reduced content file
+                    string TargetFilePath = $"ReducedContent.SelGrp[{ThisTask.SelectionGroupId}].Content[{PubRequest.RootContentItemId}]{Path.GetExtension(ThisTask.ResultFilePath)}";
+                    // ReducedContent.SelGrp[1].Content[1].qvw
+
+                    // Move the existing file to backed up name if exists
+                    if (System.IO.File.Exists(TargetFilePath))
+                    {
+                        System.IO.File.Move(TargetFilePath, TargetFilePath + ".bak");
+                        FilesToDelete.Add(TargetFilePath + ".bak");
+                    }
+
+                    // TODO test Checksum
+                    System.IO.File.Move(ThisTask.ResultFilePath, TargetFilePath);
+                    FilesToDelete.Add(ThisTask.ResultFilePath);
+                }
+
+                //3 Remove temporary folder of publication job
+                string PubJobTempFolder = ;
+                System.IO.Directory.Delete(PubJobTempFolder, true);
+
+                //4 Update db in 1 transaction:
+
+                //4.1  RootContentItem  .GoLiveDateTimeUtc, .ContentFiles
+                PubRequest.RootContentItem.GoLiveDateTimeUtc = DateTime.UtcNow;
                 //4.2  ContentPublicationRequest.Status
                 //4.3  ContentReductionTask.Status ???
                 //4.4  HierarchyField due to hierarhchy changes
                 //4.5  HierarchyFieldValue due to hierarhchy changes
+
+                DbContext.SaveChanges();
+                Txn.Commit();
             }
+
+            // Delete all .bak files
+            foreach (string FileToDelete in FilesToDelete)
+            {
+                System.IO.File.Delete(FileToDelete);
+                // TODO Does this throw if the path is invalid?
+            }
+
             return NoContent();
         }
 
