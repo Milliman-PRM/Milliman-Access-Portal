@@ -31,7 +31,8 @@ module.exports = {
               plugins: [
                 { removeTitle: true },
                 { convertColors: { currentColor: true } },
-                { convertPathData: false }
+                { convertPathData: false },
+                { cleanupIDs: { remove: false }}
               ]
             }
           }
