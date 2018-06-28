@@ -317,8 +317,17 @@ if ($LASTEXITCODE -ne 0) {
 
 #region Package publication server for nuget
 
+log_statement "Packaging publication server"
+
 cd $rootPath\ContentPublishingServer\ContentPublishingService\bin\debug
 
 octo pack --id ContentPublishingServer --version 1.0.0-$BranchName --outfolder $nugetDestination
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to package publication server for nuget"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
 
 #endregion
