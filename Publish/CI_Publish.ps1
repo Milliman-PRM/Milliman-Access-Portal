@@ -338,7 +338,7 @@ log_statement "Deploying packages to Octopus"
 
 cd $nugetDestination
 
-octo create-release --project "Milliman Access Portal" --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --server "https://indy-prmdeploy" --packagesFolder="web" --waitfordeployment --cancelontimeout --progress
+octo create-release --project "Milliman Access Portal" --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --channel "Development" --server "https://indy-prmdeploy" --packagesFolder="web" --waitfordeployment --cancelontimeout --progress
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application deployed successfully"
