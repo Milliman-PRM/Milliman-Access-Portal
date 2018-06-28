@@ -6,6 +6,9 @@ import * as React from 'react';
 
 import { ActionIconProps } from './interfaces';
 
+require('../../../images/userguide.svg');
+require('../../../images/release-notes.svg');
+
 export class ActionIcon extends React.Component<ActionIconProps, {}> {
   public render() {
     return this.props.action && (

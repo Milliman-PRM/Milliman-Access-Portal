@@ -19,12 +19,12 @@ export class ContentCard extends React.Component<ContentItem, {}> {
                 <ActionIcon
                   action={() => window.location.href = this.props.ReleaseNotesURL}
                   title='View Release Notes'
-                  icon='navbar-user-guide'
+                  icon='release-notes'
                   />
                 <ActionIcon
                   action={() => window.location.href = this.props.UserguideURL}
                   title='View Userguide'
-                  icon='navbar-user-guide'
+                  icon='userguide'
                   />
               </div>
             </div>
