@@ -331,3 +331,24 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 #endregion
+
+#region Deploy releases to Octopus
+
+log_statement "Deploying packages to Octopus"
+
+cd $nugetDestination
+
+octo create-release --project "Milliman Access Portal" --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --server "https://indy-prmdeploy.milliman.com" --package="MillimanAccessPortal.1.0.0-$BranchName.nupkg" --waitfordeployment --cancelontimeout --progress
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Web application deployed successfully"
+    # TODO: Output deployed URL
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for the web application"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+#endregion
