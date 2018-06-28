@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="100%" height="100%" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:1.41421;">
-    <g id="Line_Icons">
+    <g id="Line_Icons" transform="matrix(0.916665,0,0,0.916665,1.0001,1.00002)">
         <g transform="matrix(1,0,0,1.04348,0,-1.16496e-12)">
             <path d="M12.001,23C2.115,23 2.001,6.694 2.001,6C2.001,5.637 2.198,5.303 2.515,5.126L11.515,0.126C11.818,-0.042 12.184,-0.042 12.487,0.126L21.487,5.126C21.804,5.302 22.001,5.636 22.001,6C22.001,6.694 21.887,23 12.001,23ZM4.017,6.58C4.126,9.341 5.004,21 12.001,21C18.998,21 19.876,9.342 19.985,6.58L12.001,2.143L4.017,6.58Z" style="fill:rgb(117,117,117);fill-rule:nonzero;"/>
         </g>
