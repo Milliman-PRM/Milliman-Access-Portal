@@ -54,7 +54,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
 
             // Convert the serialized content reduction hierarchy into a list of selected values
             HashSet<long> pendingSelectionSet = null;
-            if (outstandingStatus.Contains(latestTask.ReductionStatus))
+            if (latestTask != null && outstandingStatus.Contains(latestTask.ReductionStatus))
             {
                 pendingSelectionSet = new HashSet<long>();
                 var hierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>
