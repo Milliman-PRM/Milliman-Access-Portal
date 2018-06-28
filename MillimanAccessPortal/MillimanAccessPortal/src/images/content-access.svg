@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:1.41421;">
+    <g id="Line_Icons" transform="matrix(1.33333,0,0,1.2,-4.16667,-2.4002)">
+        <path d="M20,16.001L20,14.001L19,14.001L19,12.001C19,11.264 18.595,10.626 18,10.279L18,8.001C18,4.692 15.309,2.001 12,2.001C8.691,2.001 6,4.692 6,8.001L8,8.001C8,5.796 9.795,4.001 12,4.001C14.205,4.001 16,5.796 16,8.001L16,10.001L7,10.001C5.896,10.001 5,10.897 5,12.001L5,20.001C5,21.104 5.896,22.001 7,22.001L17,22.001C18.104,22.001 19,21.104 19,20.001L19,19.001L20,19.001L20,17.001L19,17.001L19,16.001L20,16.001ZM16.998,17.001L15,17.001L15,19.001L16.998,19.001L16.997,20.001L7,20.001L7,12.001L17,12.001L16.999,14.001L15,14.001L15,16.001L16.998,16.001L16.998,17.001Z" style="fill:rgb(117,117,117);fill-rule:nonzero;"/>
+    </g>
+</svg>
