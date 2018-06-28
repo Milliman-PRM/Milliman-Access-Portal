@@ -387,12 +387,12 @@ export function setup() {
         RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
       },
       url: 'ContentAccessAdmin/SetSuspendedSelectionGroup',
-    }).done((response) => {
+    }).done((response: SelectionsDetail) => {
       // Set checkbox states to match the response
       $('#IsSuspended').prop('checked', response.IsSuspended);
 
       const setUnset = response.IsSuspended ? '' : 'un';
-      toastr.success(`${response.GroupName} was ${setUnset}suspended.`);
+      toastr.success(`${response.SelectionGroupName} was ${setUnset}suspended.`);
       onResponse();
     }).fail((response) => {
       toastr.warning(response.getResponseHeader('Warning')

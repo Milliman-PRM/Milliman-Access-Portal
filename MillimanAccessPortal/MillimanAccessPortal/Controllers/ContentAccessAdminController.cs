@@ -248,6 +248,12 @@ namespace MillimanAccessPortal.Controllers
             return Json(Model);
         }
 
+        /// <summary>
+        /// Rename a selection group
+        /// </summary>
+        /// <param name="selectionGroupId">The selection group to be updated.</param>
+        /// <param name="name">The new name for the selection group.</param>
+        /// <returns>JsonResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RenameSelectionGroup(long selectionGroupId, string name)
@@ -508,6 +514,12 @@ namespace MillimanAccessPortal.Controllers
             return Json(Model);
         }
 
+        /// <summary>
+        /// Set suspended status for a selection group
+        /// </summary>
+        /// <param name="selectionGroupId">The selection group to be updated.</param>
+        /// <param name="isSuspended">The suspended state to which the selection group is to be set.</param>
+        /// <returns>JsonResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SetSuspendedSelectionGroup(long selectionGroupId, bool isSuspended)
@@ -561,7 +573,9 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(selectionGroupSuspensionEvent);
             #endregion
 
-            return Json(selectionGroup);
+            var model = SelectionsDetail.Build(DbContext, Queries, selectionGroup);
+
+            return Json(model);
         }
 
         /// <summary>Deletes a selection group.</summary>
