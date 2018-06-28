@@ -508,6 +508,62 @@ namespace MillimanAccessPortal.Controllers
             return Json(Model);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetSuspendedSelectionGroup(long selectionGroupId, bool isSuspended)
+        {
+            SelectionGroup selectionGroup = DbContext.SelectionGroup
+                .Include(sg => sg.RootContentItem)
+                .SingleOrDefault(sg => sg.Id == selectionGroupId);
+
+            #region Preliminary Validation
+            if (selectionGroup == null)
+            {
+                Response.Headers.Add("Warning", "The requested selection group does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentAccessAdmin, selectionGroup.RootContentItemId));
+            if (!roleInRootContentItemResult.Succeeded)
+            {
+                #region Log audit event
+                AuditEvent authorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    $"Request to delete selection group without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentAccessAdmin]} role in root content item",
+                    AuditEventId.Unauthorized,
+                    new { selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, selectionGroupId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(authorizationFailedEvent);
+                #endregion
+
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified root content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            selectionGroup.IsSuspended = isSuspended;
+            DbContext.SelectionGroup.Update(selectionGroup);
+            DbContext.SaveChanges();
+
+            #region Log audit event
+            AuditEvent selectionGroupSuspensionEvent = AuditEvent.New(
+                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                "Selection group suspension status updated",
+                AuditEventId.SelectionGroupSuspensionUpdate,
+                new { selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, selectionGroupId, isSuspended },
+                User.Identity.Name,
+                HttpContext.Session.Id
+                );
+            AuditLogger.Log(selectionGroupSuspensionEvent);
+            #endregion
+
+            return Json(selectionGroup);
+        }
+
         /// <summary>Deletes a selection group.</summary>
         /// <remarks>This action is only authorized to users with ContentAccessAdmin role in the specified root content item.</remarks>
         /// <param name="SelectionGroupId">The selection group to be deleted.</param>
