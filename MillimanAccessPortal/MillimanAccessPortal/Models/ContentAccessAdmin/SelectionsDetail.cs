@@ -19,6 +19,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
         public string RootContentItemName { get; set; }
         public ReductionSummary ReductionSummary { get; set; }
         public SelectionComparison SelectionComparison { get; set; }
+        public bool IsSuspended { get; set; }
 
         internal static SelectionsDetail Build(ApplicationDbContext dbContext, StandardQueries queries, SelectionGroup selectionGroup)
         {
@@ -120,7 +121,8 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                     LiveSelections = liveSelections,
                     PendingSelections = pendingSelections,
                     IsLiveMaster = selectionGroup.IsMaster,
-                }
+                },
+                IsSuspended = selectionGroup.IsSuspended,
             };
 
             return model;

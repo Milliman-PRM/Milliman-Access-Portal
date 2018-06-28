@@ -37,6 +37,7 @@ export interface SelectionsDetail {
   RootContentItemName: string;
   ReductionSummary: ReductionSummary;
   SelectionComparison: SelectionComparison;
+  IsSuspended: boolean;
 }
 
 export interface SelectionGroupSummary {

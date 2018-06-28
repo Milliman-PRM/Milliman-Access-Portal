@@ -178,6 +178,8 @@ function renderSelections(response: SelectionsDetail) {
   const isMaster = comparison.PendingSelections === null && comparison.IsLiveMaster;
   $('#IsMaster').prop('checked', isMaster);
   $fieldsetDiv.hide().filter(() => !isMaster).show();
+  $('#IsSuspended').prop('checked', response.IsSuspended);
+  $selectionInfo.find('.selection-content').hide().filter(() => !response.IsSuspended).show();
 
   $fieldsetDiv.empty();
   comparison.Hierarchy.Fields.forEach((field) =>
@@ -352,6 +354,40 @@ export function setup() {
   $('#IsMaster').click(() => {
     $('#selection-info form.admin-panel-content .fieldset-container')
       .hide().filter(() => !$('#IsMaster').prop('checked')).show();
+  });
+  $('#IsSuspended').click((event) => {
+    event.preventDefault();
+    $('#IsSuspended').attr('disabled', '');
+
+    const data = {
+      isSuspended: $('#IsSuspended').prop('checked'),
+      selectionGroupId: $('#selection-groups [selected]').parent().data().selectionGroupId,
+    };
+
+    function onResponse() {
+      $('#IsSuspended').removeAttr('disabled');
+      $('#selection-info form.admin-panel-content .selection-content')
+        .hide().filter(() => !$('#IsSuspended').prop('checked')).show();
+    }
+
+    $.post({
+      data,
+      headers: {
+        RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
+      },
+      url: 'ContentAccessAdmin/SetSuspendedSelectionGroup',
+    }).done((response) => {
+      // Set checkbox states to match the response
+      $('#IsSuspended').prop('checked', response.IsSuspended);
+
+      const setUnset = response.IsSuspended ? '' : 'un';
+      toastr.success(`${response.GroupName} was ${setUnset}suspended.`);
+      onResponse();
+    }).fail((response) => {
+      toastr.warning(response.getResponseHeader('Warning')
+        || 'An unknown error has occurred.');
+      onResponse();
+    });
   });
 
   $('.tooltip').tooltipster();
