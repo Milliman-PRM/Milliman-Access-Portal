@@ -314,3 +314,11 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 #endregion
+
+#region Package publication server for nuget
+
+cd $rootPath\ContentPublishingServer\ContentPublishingService\bin\debug
+
+octo pack --id ContentPublishingServer --version 1.0.0-$BranchName --outfolder $nugetDestination
+
+#endregion
