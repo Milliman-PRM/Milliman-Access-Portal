@@ -71,17 +71,17 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<long>("ApplicationUserId");
 
-                    b.Property<string>("ContentRelatedFiles")
+                    b.Property<DateTime>("CreateDateTimeUtc");
+
+                    b.Property<string>("LiveReadyFiles")
                         .HasColumnType("jsonb");
 
-                    b.Property<DateTime>("CreateDateTimeUtc");
+                    b.Property<string>("ReductionRelatedFiles")
+                        .HasColumnType("jsonb");
 
                     b.Property<int>("RequestStatus");
 
                     b.Property<string>("ResultHierarchy")
-                        .HasColumnType("jsonb");
-
-                    b.Property<string>("ResultingContentFiles")
                         .HasColumnType("jsonb");
 
                     b.Property<long>("RootContentItemId");
