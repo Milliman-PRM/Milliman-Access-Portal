@@ -4,22 +4,22 @@
  * DEVELOPER NOTES:
  */
 
+using MapDbContextLib.Context;
+using MapDbContextLib.Models;
+using Microsoft.EntityFrameworkCore;
+using MillimanAccessPortal.DataQueries;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using MapDbContextLib.Context;
-using MillimanAccessPortal.DataQueries;
-using MapDbContextLib.Models;
 
-namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
+namespace MillimanAccessPortal.Models.ContentAccessAdmin
 {
-    public class ContentAccessAdminSelectionsDetailViewModel
+    public class SelectionsDetail
     {
         public ContentReductionHierarchy<ReductionFieldValueSelection> Hierarchy { get; set; }
         public long[] OriginalSelections { get; set; } = { };
-        public ReductionDetails ReductionDetails { get; set; }
+        public ReductionSummary ReductionDetails { get; set; }
 
-        internal static ContentAccessAdminSelectionsDetailViewModel Build(ApplicationDbContext DbContext, StandardQueries Queries, SelectionGroup SelectionGroup)
+        internal static SelectionsDetail Build(ApplicationDbContext DbContext, StandardQueries Queries, SelectionGroup SelectionGroup)
         {
             var OutstandingStatus = new List<ReductionStatusEnum>
             {
@@ -56,9 +56,9 @@ namespace MillimanAccessPortal.Models.ContentAccessAdminViewModels
                 .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
                 .OrderByDescending(crt => crt.CreateDateTimeUtc)
                 .FirstOrDefault();
-            ReductionDetails reductionDetails = ((ReductionDetails) latestTask);
+            ReductionSummary reductionDetails = ((ReductionSummary) latestTask);
 
-            ContentAccessAdminSelectionsDetailViewModel model = new ContentAccessAdminSelectionsDetailViewModel
+            SelectionsDetail model = new SelectionsDetail
             {
                 Hierarchy = ContentReductionHierarchy< ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(DbContext, SelectionGroup.Id, SelectedValuesArray),
                 OriginalSelections = DbContext.SelectionGroup

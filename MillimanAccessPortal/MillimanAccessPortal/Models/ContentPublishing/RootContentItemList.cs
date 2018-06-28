@@ -14,10 +14,10 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 {
     public class RootContentItemList
     {
-        public List<RootContentItemSummary> DetailList = new List<RootContentItemSummary>();
+        public List<RootContentItemSummary> SummaryList = new List<RootContentItemSummary>();
         public long SelectedRootContentItemId { get; set; } = -1;
 
-        internal static RootContentItemList Build(ApplicationDbContext dbContext, Client client, ApplicationUser User)
+        internal static RootContentItemList Build(ApplicationDbContext dbContext, Client client, ApplicationUser User, RoleEnum roleInRootContentItem)
         {
             RootContentItemList model = new RootContentItemList();
 
@@ -25,13 +25,14 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 .Include(urc => urc.RootContentItem)
                 .Where(urc => urc.RootContentItem.ClientId == client.Id)
                 .Where(urc => urc.UserId == User.Id)
+                .Where(urc => urc.Role.RoleEnum == roleInRootContentItem)
                 .Select(urc => urc.RootContentItem)
                 .Distinct()
                 .ToList();
 
             foreach (var rootContentItem in rootContentItems)
             {
-                model.DetailList.Add(RootContentItemSummary.Build(dbContext, rootContentItem));
+                model.SummaryList.Add(RootContentItemSummary.Build(dbContext, rootContentItem));
             }
 
             return model;

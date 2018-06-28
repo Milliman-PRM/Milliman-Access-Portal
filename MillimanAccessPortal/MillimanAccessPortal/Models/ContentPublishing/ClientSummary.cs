@@ -27,7 +27,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public long EligibleUserCount { get; set; }
         public long RootContentItemCount { get; set; }
         
-        async public static Task<ClientSummary> Build(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager, ApplicationUser currentUser, Client client)
+        async public static Task<ClientSummary> Build(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager, ApplicationUser currentUser, Client client, RoleEnum roleInClient)
         {
             var clientDetail = new ClientSummary
             {
@@ -56,7 +56,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 .ToList();
 
             clientDetail.EligibleUserCount = dbContext.UserRoleInClient
-                .Where(urc => urc.Role.RoleEnum == RoleEnum.ContentUser)
+                .Where(urc => urc.Role.RoleEnum == roleInClient)
                 .Where(urc => urc.ClientId == clientDetail.Id)
                 .ToHashSet()
                 .Count();

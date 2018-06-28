@@ -100,7 +100,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            var model = await ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
+            var model = await ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, RoleEnum.ContentPublisher);
 
             return new JsonResult(model);
         }
@@ -130,7 +130,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            RootContentItemList model = RootContentItemList.Build(DbContext, client, await Queries.GetCurrentApplicationUser(User));
+            RootContentItemList model = RootContentItemList.Build(DbContext, client, await Queries.GetCurrentApplicationUser(User), RoleEnum.ContentPublisher);
 
             return Json(model);
         }

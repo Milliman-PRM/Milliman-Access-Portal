@@ -262,6 +262,8 @@ function setupChildClientForm($parentClientDiv: JQuery<HTMLElement>) {
   shared.clearForm($('#client-info'));
   $('#client-info form.admin-panel-content #ParentClientId').val(parentClientId);
   bindForm();
+  formObject.submissionMode = 'new';
+  formObject.accessMode = AccessMode.Write;
   $parentClientDiv.parent().parent().after($template);
   $parentClientDiv.parent().parent().next().find('div.card-body-container')
     .click(() => {
