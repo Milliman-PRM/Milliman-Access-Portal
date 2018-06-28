@@ -21,13 +21,22 @@ export interface ReductionSummary {
   SelectionGroupId: number;
   RootContentItemId?: number;
 }
+export interface SelectionDetails {
+  Id: number;
+  Marked: boolean;
+}
+export interface SelectionComparison {
+  Hierarchy: ContentReductionHierarchy<ReductionFieldValueSelection>;
+  LiveSelections: SelectionDetails[];
+  PendingSelections: SelectionDetails[];
+  IsLiveMaster: boolean;
+  IsPendingMaster: boolean;
+}
 export interface SelectionsDetail {
   SelectionGroupName: string;
   RootContentItemName: string;
-  Hierarchy: ContentReductionHierarchy<ReductionFieldValueSelection>;
-  IsMaster: boolean;
-  OriginalSelections: number[];
-  ReductionDetails: ReductionSummary;
+  ReductionSummary: ReductionSummary;
+  SelectionComparison: SelectionComparison;
 }
 
 export interface SelectionGroupSummary {

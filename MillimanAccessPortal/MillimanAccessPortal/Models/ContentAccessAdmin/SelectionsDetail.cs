@@ -17,70 +17,128 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
     {
         public string SelectionGroupName { get; set; }
         public string RootContentItemName { get; set; }
-        public ContentReductionHierarchy<ReductionFieldValueSelection> Hierarchy { get; set; }
-        public bool IsMaster { get; set; }
-        public long[] OriginalSelections { get; set; } = { };
-        public ReductionSummary ReductionDetails { get; set; }
+        public ReductionSummary ReductionSummary { get; set; }
+        public SelectionComparison SelectionComparison { get; set; }
 
-        internal static SelectionsDetail Build(ApplicationDbContext DbContext, StandardQueries Queries, SelectionGroup SelectionGroup)
+        internal static SelectionsDetail Build(ApplicationDbContext dbContext, StandardQueries queries, SelectionGroup selectionGroup)
         {
-            if (SelectionGroup.RootContentItem == null)
+            if (selectionGroup.RootContentItem == null)
             {
-                SelectionGroup.RootContentItem = DbContext.RootContentItem.Find(SelectionGroup.RootContentItemId);
+                selectionGroup.RootContentItem = dbContext.RootContentItem.Find(selectionGroup.RootContentItemId);
             }
 
-            var OutstandingStatus = new List<ReductionStatusEnum>
+            // Query for the most recent reduction task for this selection group.
+            var latestTask = dbContext.ContentReductionTask
+                .Include(crt => crt.ContentPublicationRequest)
+                .Where(crt => crt.SelectionGroupId == selectionGroup.Id)
+                .OrderByDescending(crt => crt.CreateDateTimeUtc)
+                .FirstOrDefault();
+
+            #region Build selection comparison
+
+            // Define status that qualify the latest task as an outstanding task.
+            // An outstanding task blocks other reductions for its selection group.
+            var outstandingStatus = new List<ReductionStatusEnum>
             {
                 ReductionStatusEnum.Queued,
                 ReductionStatusEnum.Reducing,
                 ReductionStatusEnum.Reduced,
             };
-            var ContentReductionTask = DbContext.ContentReductionTask
-                .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
-                .Where(crt => OutstandingStatus.Contains(crt.ReductionStatus))
-                .SingleOrDefault();
+
+            // Build the live hierarchy and list of live selections
+            var liveHierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>
+                .GetFieldSelectionsForSelectionGroup(dbContext, selectionGroup.Id);
+
+            var liveSelectionSet = selectionGroup.SelectedHierarchyFieldValueList.ToHashSet();
 
             // Convert the serialized content reduction hierarchy into a list of selected values
-            long[] SelectedValuesArray = null;
-            if (ContentReductionTask != null)
+            HashSet<long> pendingSelectionSet = null;
+            if (outstandingStatus.Contains(latestTask.ReductionStatus))
             {
-                var SelectedValues = new List<long>();
-                var Hierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>.DeserializeJson(ContentReductionTask.SelectionCriteria);
-                foreach (var field in Hierarchy.Fields)
+                pendingSelectionSet = new HashSet<long>();
+                var hierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>
+                    .DeserializeJson(latestTask.SelectionCriteria);
+                foreach (var field in hierarchy.Fields)
                 {
                     foreach (var value in field.Values)
                     {
                         if (value.SelectionStatus)
                         {
-                            SelectedValues.Add(value.Id);
+                            pendingSelectionSet.Add(value.Id);
                         }
                     }
                 }
-                SelectedValuesArray = SelectedValues.ToArray();
             }
 
-            var latestTask = DbContext.ContentReductionTask
-                .Include(crt => crt.ContentPublicationRequest)
-                .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
-                .OrderByDescending(crt => crt.CreateDateTimeUtc)
-                .FirstOrDefault();
-            ReductionSummary reductionDetails = ((ReductionSummary) latestTask);
+            #region Diff live and pending selections
+
+            var liveSelections = new List<SelectionDetails>();
+            var pendingSelections = pendingSelectionSet == null
+                ? null
+                : new List<SelectionDetails>();
+
+            foreach (var field in liveHierarchy.Fields)
+            {
+                foreach (var value in field.Values)
+                {
+                    var inLive = liveSelectionSet.Contains(value.Id);
+                    var inPending = pendingSelectionSet == null
+                        ? false
+                        : pendingSelectionSet.Contains(value.Id);
+
+                    if (inLive)
+                    {
+                        liveSelections.Add(new SelectionDetails
+                        {
+                            Id = value.Id,
+                            Marked = !inPending,
+                        });
+                    }
+                    if (inPending)
+                    {
+                        pendingSelections.Add(new SelectionDetails
+                        {
+                            Id = value.Id,
+                            Marked = !inLive,
+                        });
+                    }
+                }
+            }
+
+            #endregion
+
+            #endregion
 
             SelectionsDetail model = new SelectionsDetail
             {
-                SelectionGroupName = SelectionGroup.GroupName,
-                RootContentItemName = SelectionGroup.RootContentItem.ContentName,
-                Hierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>
-                    .GetFieldSelectionsForSelectionGroup(DbContext, SelectionGroup.Id, SelectedValuesArray),
-                IsMaster = ContentReductionTask == null && SelectionGroup.IsMaster,
-                OriginalSelections = DbContext.SelectionGroup
-                    .Where(sg => sg.Id == SelectionGroup.Id)
-                    .Select(sg => sg.SelectedHierarchyFieldValueList)
-                    .Single(),
-                ReductionDetails = reductionDetails,
+                SelectionGroupName = selectionGroup.GroupName,
+                RootContentItemName = selectionGroup.RootContentItem.ContentName,
+                ReductionSummary = ((ReductionSummary) latestTask),
+                SelectionComparison = new SelectionComparison
+                {
+                    Hierarchy = liveHierarchy,
+                    LiveSelections = liveSelections,
+                    PendingSelections = pendingSelections,
+                    IsLiveMaster = selectionGroup.IsMaster,
+                }
             };
 
             return model;
         }
+    }
+
+    public class SelectionComparison
+    {
+        public ContentReductionHierarchy<ReductionFieldValueSelection> Hierarchy { get; set; }
+        public List<SelectionDetails> LiveSelections { get; set; }
+        public List<SelectionDetails> PendingSelections { get; set; } = null;
+        public bool IsLiveMaster { get; set; }
+        public bool IsPendingMaster { get => false; }
+    }
+
+    public class SelectionDetails
+    {
+        public long Id { get; set; }
+        public bool Marked { get; set; }
     }
 }

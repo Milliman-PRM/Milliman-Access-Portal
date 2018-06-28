@@ -171,16 +171,18 @@ function renderSelections(response: SelectionsDetail) {
     StatusName: '',
     SelectionGroupId: 0,
     RootContentItemId: 0,
-  }, response.ReductionDetails);
+  }, response.ReductionSummary);
   // tslint:enable:object-literal-sort-keys
 
-  $('#IsMaster').prop('checked', response.IsMaster);
-  $fieldsetDiv.hide().filter(() => !response.IsMaster).show();
+  const comparison = response.SelectionComparison;
+  const isMaster = comparison.PendingSelections === null && comparison.IsLiveMaster;
+  $('#IsMaster').prop('checked', isMaster);
+  $fieldsetDiv.hide().filter(() => !isMaster).show();
 
   $fieldsetDiv.empty();
-  response.Hierarchy.Fields.forEach((field) =>
-    renderField(field, $fieldsetDiv, response.OriginalSelections));
-  updateCardStatus($relatedCard, response.ReductionDetails);
+  comparison.Hierarchy.Fields.forEach((field) =>
+    renderField(field, $fieldsetDiv, comparison.LiveSelections.map((s) => s.Id)));
+  updateCardStatus($relatedCard, response.ReductionSummary);
   $selectionInfo
     .find('button').hide()
     .filter(`.button-status-${details.StatusEnum}`).show();
