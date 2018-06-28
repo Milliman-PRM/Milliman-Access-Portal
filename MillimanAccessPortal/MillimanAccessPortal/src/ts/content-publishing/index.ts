@@ -12,6 +12,12 @@ import $ = require('jquery');
 require('tooltipster');
 import toastr = require('toastr');
 
+require('../../images/map-logo.svg');
+require('../../images/add.svg');
+require('../../images/edit.svg');
+require('../../images/upload.svg');
+require('../../images/cancel.svg');
+
 $(document).ready(() => {
   setup();
   toastr.info('Page loaded');  // TODO: Remove for production
