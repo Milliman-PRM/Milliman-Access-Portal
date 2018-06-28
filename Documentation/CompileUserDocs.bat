@@ -9,7 +9,7 @@ REM   	* PanDoc+MikTex is installed and usable.
 SETLOCAL ENABLEDELAYEDEXPANSION
 
 REM Compile Release Notes
-pandoc --self-contained --metadata=pagetitle:"Milliman Access Portal - Release Notes" -o "ReleaseNotes.html" "ReleaseNotes.md"
+pandoc --self-contained --metadata=pagetitle:"Milliman Access Portal - Release Notes" -o "../MillimanAccessPortal/MillimanAccessPortal/wwwroot/Documentation/ReleaseNotes.html" "ReleaseNotes.md"
 
 REM Compile all user guides
 for %%x in (
@@ -28,6 +28,6 @@ for %%x in (
 
 		echo Compiling PDF version
 		pandoc -o "%%x_Header.tex" "%%x_Header.md"
-		pandoc -s -V geometry:margin=1in --variable mainfont="Arial" --variable linkcolor="Blue" --pdf-engine=xelatex -B "%%x_Header.tex" --toc -o "%%x.pdf" "%%x.md"
+		pandoc -s -V geometry:margin=1in --variable mainfont="Arial" --variable linkcolor="Blue" --pdf-engine=xelatex -B "%%x_Header.tex" --toc -o "../MillimanAccessPortal/MillimanAccessPortal/wwwroot/Documentation/%%x.pdf" "%%x.md"
 		DEL "%%x_Header.tex"
 	)
