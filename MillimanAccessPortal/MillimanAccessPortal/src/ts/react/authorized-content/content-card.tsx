@@ -8,6 +8,9 @@ import { ContentItem, Filterable } from './interfaces';
 require('tooltipster');
 require('tooltipster/src/css/tooltipster.css');
 
+require('../../../images/userguide.svg');
+require('../../../images/release-notes.svg');
+
 export class ContentCard extends React.Component<ContentItem, {}> {
   public render() {
     return (
