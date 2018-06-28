@@ -304,7 +304,7 @@ if ($LASTEXITCODE -ne 0) {
 
 #region package the web application for nuget
 
-octo pack --id MillimanAccessPortal --version 1.0.0-$BranchName --basepath $webBuildTarget --outfolder $nugetDestination
+octo pack --id MillimanAccessPortal --version 1.0.0-$BranchName --basepath $webBuildTarget --outfolder $nugetDestination\web
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
@@ -321,7 +321,7 @@ log_statement "Packaging publication server"
 
 cd $rootPath\ContentPublishingServer\ContentPublishingService\bin\debug
 
-octo pack --id ContentPublishingServer --version 1.0.0-$BranchName --outfolder $nugetDestination
+octo pack --id ContentPublishingServer --version 1.0.0-$BranchName --outfolder $nugetDestination\service
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
@@ -338,7 +338,7 @@ log_statement "Deploying packages to Octopus"
 
 cd $nugetDestination
 
-octo create-release --project "Milliman Access Portal" --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --server "https://indy-prmdeploy.milliman.com" --package="MillimanAccessPortal.1.0.0-$BranchName.nupkg" --waitfordeployment --cancelontimeout --progress
+octo create-release --project "Milliman Access Portal" --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --server "https://indy-prmdeploy.milliman.com" --packagesFolder="web" --waitfordeployment --cancelontimeout --progress
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application deployed successfully"
