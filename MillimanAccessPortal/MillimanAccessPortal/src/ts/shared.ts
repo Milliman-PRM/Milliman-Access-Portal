@@ -322,13 +322,13 @@ export function updateMemberList(
         `  <span class="detail-item-user" data-user-id="${user.Id}">`,
         '    <div class="detail-item-user-icon">',
         '      <svg class="card-user-icon">',
-        '        <use href="#action-icon-user"></use>',
+        '        <use href="#user"></use>',
         '      </svg>',
         '    </div>',
         '    <div class="detail-item-user-remove">',
         '      <div class="card-button-background card-button-red">',
         '        <svg class="card-button-icon">',
-        '          <use href="#action-icon-remove-circle"></use>',
+        '          <use href="#remove-circle"></use>',
         '        </svg>',
         '      </div>',
         '    </div>',
@@ -452,9 +452,9 @@ export function updateCardStatusButtons($card: JQuery<HTMLElement>, publishingSt
   if (publishingStatusEnum === PublicationStatus.Queued) {
     $card.find('.card-button-cancel').css('display', 'flex');
   } else if (publishingStatusEnum === PublicationStatus.Complete) {
-    $card.find('.card-button-add').css('display', 'flex');
+    $card.find('.card-button-checkmark').css('display', 'flex');
   } else {
-    $card.find('.card-button-file-upload').css('display', 'flex');
+    $card.find('.card-button-upload').css('display', 'flex');
   }
 }
 export function updateFormStatusButtons() {

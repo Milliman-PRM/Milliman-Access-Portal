@@ -29,7 +29,7 @@ import {
 } from '../view-models/content-publishing';
 
 function updateSelectionGroupCount() {
-  $('#root-content-items [selected] [href="#action-icon-users"]')
+  $('#root-content-items [selected] [href="#group"]')
     .parent().next().html($('#selection-groups ul.admin-panel-content li').length.toString());
 }
 
