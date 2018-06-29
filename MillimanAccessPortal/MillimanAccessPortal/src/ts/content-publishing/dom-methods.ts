@@ -26,6 +26,8 @@ require('tooltipster');
 let formObject: FormBase;
 let statusMonitor: PublicationStatusMonitor;
 
+let preLiveObject: PreLiveContentValidationSummary;
+
 function deleteRootContentItem(
   rootContentItemId: string,
   rootContentItemName: string,
@@ -248,6 +250,8 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
   }
   // populate attestation
   $('#confirmation-section-attestation p').html(response.AttestationLanguage);
+
+  preLiveObject = response;
 }
 
 function renderRootContentItemForm(item?: RootContentItemDetail) {
@@ -534,7 +538,9 @@ export function setup() {
     const rootContentItemId = $('#root-content-items [selected]').closest('.card-container').data().rootContentItemId;
     $.post({
       data: {
+        publicationRequestId: preLiveObject && preLiveObject.PublicationRequestId,
         rootContentItemId,
+        validationSummaryId: preLiveObject && preLiveObject.ValidationSummaryId,
       },
       headers: {
         RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
