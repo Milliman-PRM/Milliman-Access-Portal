@@ -347,15 +347,32 @@ if ($LASTEXITCODE -ne 0) {
     exit $error_code
 }
 
-octo create-release --project "Milliman Access Portal" --version "1.0.0-$branchname" --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --channel "Development" --server "https://indy-prmdeploy" --packagesFolder="web" --waitfordeployment --cancelontimeout --progress
+log_statement "Creating web app release"
+
+octo create-release --project "Milliman Access Portal" --version "1.0.0-$branchname" --ignoreexisting --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --channel "Development" --server "https://indy-prmdeploy" 
 
 if ($LASTEXITCODE -eq 0) {
-    log_statement "Web application deployed successfully"
+    log_statement "Web application release created successfully"
     # TODO: Output deployed URL
 }
 else {
     $error_code = $LASTEXITCODE
     log_statement "ERROR: Failed to create Octopus release for the web application"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+log_statement "Deploying web app release"
+
+octo deploy-release --project "Milliman Access Portal" --version "1.0.0-$branchname" --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --channel "Development" --server "https://indy-prmdeploy" --waitfordeployment --cancelontimeout --progress
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Web application release deployed successfully"
+    # TODO: Output deployed URL
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to deploy the web application"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
