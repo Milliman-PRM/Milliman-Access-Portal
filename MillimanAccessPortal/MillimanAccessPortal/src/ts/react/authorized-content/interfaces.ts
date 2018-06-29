@@ -3,21 +3,21 @@
 }
 
 export interface ContentItem {
-  id: number;
-  name: string;
-  description: string;
-  contentURL: string;
-  imageURL?: string;
-  userguideURL?: string;
-  releaseNotesURL?: string;
+  Id: number;
+  Name: string;
+  Description: string;
+  ContentURL: string;
+  ImageURL?: string;
+  UserguideURL?: string;
+  ReleaseNotesURL?: string;
 }
 
 export interface ContentItemGroup {
-  id: number;
-  name: string;
-  items: ContentItem[];
+  Id: number;
+  Name: string;
+  Items: ContentItem[];
 }
 
 export interface ContentItemGroupList {
-  groups: ContentItemGroup[];
+  ItemGroups: ContentItemGroup[];
 }

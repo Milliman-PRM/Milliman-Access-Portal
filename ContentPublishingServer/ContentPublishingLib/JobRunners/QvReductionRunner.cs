@@ -150,19 +150,19 @@ namespace ContentPublishingLib.JobRunners
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Canceled;
                 Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
-                JobDetail.Result.StatusMessage = e.Message;
+                JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
             }
             catch (ApplicationException e)
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Error;
                 Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
-                JobDetail.Result.StatusMessage = e.Message;
+                JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
             }
             catch (System.Exception e)
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Error;
                 Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
-                JobDetail.Result.StatusMessage = e.Message;
+                JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
             }
             finally
             {

@@ -136,7 +136,7 @@ namespace ContentPublishingServiceTests
             Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFilePath));
 
             Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFileChecksum));
-            Assert.Matches("^(The requested reduction field).*(is not found in the reduction hierarchy)$", TaskResult.StatusMessage);
+            Assert.Matches("(The requested reduction field).*(is not found in the reduction hierarchy)", TaskResult.StatusMessage);
             #endregion
         }
 
@@ -184,7 +184,7 @@ namespace ContentPublishingServiceTests
             Assert.Null(TaskResult.ReducedContentHierarchy);
             Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFilePath));
             Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFileChecksum));
-            Assert.Equal("No requested selections exist in the master hierarchy", TaskResult.StatusMessage);
+            Assert.True(TaskResult.StatusMessage.Contains("No requested selections exist in the master hierarchy"));
             #endregion
         }
 
@@ -286,7 +286,7 @@ namespace ContentPublishingServiceTests
             Assert.Null(TaskResult.ReducedContentHierarchy);
             Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFilePath));
             Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFileChecksum));
-            Assert.Matches("^(Master file).*(does not exist)$", TaskResult.StatusMessage);
+            Assert.Matches("(Master file).*(does not exist)", TaskResult.StatusMessage);
             #endregion
         }
     }

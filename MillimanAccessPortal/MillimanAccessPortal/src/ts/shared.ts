@@ -3,7 +3,8 @@ import * as toastr from 'toastr';
 
 import { Dialog, DiscardConfirmationDialog, ResetConfirmationDialog } from './dialog';
 import { FormBase } from './form/form-base';
-import { PublicationStatus } from './view-models/content-publishing';
+import { SelectionGroupSummary } from './view-models/content-access-admin';
+import { PublicationStatus, UserInfo } from './view-models/content-publishing';
 
 const SHOW_DURATION = 50;
 const ajaxStatus = [];
@@ -54,13 +55,27 @@ updateToolbarIcons = ($panel) => {
     return $panel.find('.card-expansion-container:not([maximized])').length;
   }).show();
 };
+export function setExpanded($panel: JQuery<HTMLElement>, $this: JQuery<HTMLElement>) {
+  const $cardContainer = $this.closest('.card-container');
+  $cardContainer
+    .find('.card-expansion-container')
+      .attr('maximized', '')
+    .find('.card-button-expansion .tooltip')
+      .tooltipster('content', 'Collapse card');
+  updateToolbarIcons($panel);
+}
 export function toggleExpanded($panel, $this) {
-  $this.closest('.card-container')
+  const $cardContainer = $this.closest('.card-container');
+  let disabled: string;
+  $cardContainer
     .find('.card-expansion-container')
     .attr('maximized', (index, attr) => {
       const data = (attr === '')
         ? { text: 'Expand card', rv: null }
         : { text: 'Collapse card', rv: '' };
+      disabled = (data.rv === '')
+        ? null
+        : '';
       $this.find('.tooltip').tooltipster('content', data.text);
       return data.rv;
     });
@@ -85,39 +100,9 @@ export function collapseAllListener(event) {
 }
 
 // Form control
-export function modifiedInputs($panel) {
-  return $panel.find('form.admin-panel-content')
-    .find('input[name!="__RequestVerificationToken"][type!="hidden"],select')
-    .not('.selectize-input input')
-    .filter(function() {
-      const $element = $(this);
-      return ($element.val() !== ($element.attr('data-original-value') || ''));
-    });
-}
-export function modifiedInputsListener(event) {
-  buildListener.call(this, modifiedInputs).bind(this)(event);
-}
 export function resetValidation($panel) {
   $panel.find('form.admin-panel-content').validate().resetForm();
   $panel.find('.field-validation-error > span').remove();
-}
-export function resetValidationListener(event) {
-  buildListener.call(this, resetValidation).bind(this)(event);
-}
-export function resetForm($panel) {
-  modifiedInputs($panel).each(function() {
-    const $input = $(this);
-    if ($input.is('.selectized')) {
-      this.selectize.setValue($input.attr('data-original-value').split(','));
-    } else {
-      $input.val($input.attr('data-original-value'));
-    }
-  });
-  resetValidation($panel);
-  $panel.find('.form-button-container button').hide();
-}
-export function resetFormListener(event) {
-  buildListener.call(this, resetForm).bind(this)(event);
 }
 export function clearForm($panel) {
   $panel.find('.selectized').each(function() {
@@ -128,9 +113,6 @@ export function clearForm($panel) {
     .not('.selectize-input input')
     .attr('data-original-value', '').val('');
   resetValidation($panel);
-}
-export function clearFormListener(event) {
-  buildListener.call(this, clearForm).bind(this)(event);
 }
 
 function buildListener(fn) {
@@ -313,6 +295,95 @@ export function hideButtonSpinner($buttons) {
   });
 }
 
+export function updateMemberList(
+  $memberCard: JQuery<HTMLElement>,
+  $eligibleCard: JQuery<HTMLElement>,
+  selectionGroup: SelectionGroupSummary,
+) {
+  const $memberList = $memberCard.find('.detail-item-user-list');
+
+  $memberList.empty();
+  const memberList = $memberCard.data().memberList as UserInfo[];
+  const eligibleList = $eligibleCard.data().eligibleList as UserInfo[];
+
+  eligibleList.filter((eligible) =>
+      memberList.filter((member) => eligible.Id === member.Id).length === 0);
+  memberList
+    .forEach((user) => {
+      const firstLast = user.FirstName || user.LastName
+        ? `${user.FirstName || ''} ${user.LastName || ''}`
+        : user.UserName;
+      const userName = firstLast === user.UserName
+        ? ''
+        : user.UserName;
+      const $li = $([
+        // If you make any changes to this component, also change the user component in card.ts
+        '<li>',
+        `  <span class="detail-item-user" data-user-id="${user.Id}">`,
+        '    <div class="detail-item-user-icon">',
+        '      <svg class="card-user-icon">',
+        '        <use href="#user"></use>',
+        '      </svg>',
+        '    </div>',
+        '    <div class="detail-item-user-remove">',
+        '      <div class="card-button-background card-button-red">',
+        '        <svg class="card-button-icon">',
+        '          <use href="#remove-circle"></use>',
+        '        </svg>',
+        '      </div>',
+        '    </div>',
+        '    <div class="detail-item-user-name">',
+        `      <h4 class="first-last">${firstLast}</h4>`,
+        `      <span class="user-name">${userName}</span>`,
+        '    </div>',
+        '  </span>',
+        '</li>',
+      ].join(''));
+      $li.find('.detail-item-user-remove').click((event) =>
+        removeUserFromSelectionGroup(event, user, selectionGroup));
+      $li.find('.detail-item-user-icon').hide();
+      $memberList.append($li);
+    });
+  $memberCard.find('.card-stat-value').html(memberList.length.toString());
+}
+
+export function removeUserFromSelectionGroup(event, member: UserInfo, selectionGroup: SelectionGroupSummary) {
+  event.stopPropagation();
+  const assignment = {};
+  assignment[member.Id] = false;
+  const $selectionGroup = $(`#selection-groups [data-selection-group-id="${selectionGroup.Id}"]`);
+  put<SelectionGroupSummary>(
+    'ContentAccessAdmin/UpdateSelectionGroupUserAssignments/',
+    `Removed ${member.Email} from selection group ${selectionGroup.Name}.`,
+    [
+      (response) => {
+        $selectionGroup.data('memberList', response.MemberList);
+        updateMemberList(
+          $selectionGroup,
+          $('#root-content-items [selected]').parent(),
+          selectionGroup,
+        );
+      },
+    ],
+  )(
+    {
+      SelectionGroupId: selectionGroup.Id,
+      UserAssignments: assignment,
+    },
+    () => undefined,
+    'Removing',
+  );
+}
+export function addUserToSelectionGroup(selectionGroup: SelectionGroupSummary) {
+  const $selectionGroup = $(`#selection-groups [data-selection-group-id="${selectionGroup.Id}"]`);
+  $selectionGroup.data('memberList', selectionGroup.MemberList);
+  updateMemberList(
+    $selectionGroup,
+    $('#root-content-items [selected]').parent(),
+    selectionGroup,
+  );
+}
+
 // Typeahead
 export function userSubstringMatcher(users: any) {
   return function findMatches(query: string, callback: (matches: any) => void) {
@@ -329,6 +400,20 @@ export function userSubstringMatcher(users: any) {
 
     callback(matches);
   };
+}
+
+export function eligibleUserMatcher(query: string, callback: (matches: any) => void) {
+  const allEligibleUsers = $('#root-content-items [selected]').parent().data().eligibleList as UserInfo[];
+  const assignedUsers = $('#selection-groups .admin-panel-content .card-container').toArray()
+    .map((card) => $(card).data().memberList)
+    .reduce((cum: UserInfo[], cur: UserInfo[]) => cum.concat(cur), []) as UserInfo[];
+  const eligibleUsers = allEligibleUsers.filter((eligibleUser) =>
+    assignedUsers.filter((assignedUser) => eligibleUser.Id === assignedUser.Id).length === 0);
+
+  const regex = new RegExp(query, 'i');
+  callback(eligibleUsers.filter((user) =>
+    [user.Email, user.UserName, `${user.FirstName} ${user.LastName}`].filter((text) =>
+      regex.test(text)).length > 0));
 }
 
 // Card helpers
@@ -354,7 +439,7 @@ export function updateCardStatus($card, reductionDetails) {
       const classNames = classString.split(' ');
       return classNames
         .filter((className) => {
-          return className.startsWith('status-');
+          return className.indexOf('status-') === 0;
         })
         .join(' ');
     })
@@ -367,16 +452,16 @@ export function updateCardStatusButtons($card: JQuery<HTMLElement>, publishingSt
   if (publishingStatusEnum === PublicationStatus.Queued) {
     $card.find('.card-button-cancel').css('display', 'flex');
   } else if (publishingStatusEnum === PublicationStatus.Complete) {
-    $card.find('.card-button-add').css('display', 'flex');
+    $card.find('.card-button-checkmark').css('display', 'flex');
   } else {
-    $card.find('.card-button-file-upload').css('display', 'flex');
+    $card.find('.card-button-upload').css('display', 'flex');
   }
 }
 export function updateFormStatusButtons() {
   // get the selected card's status by parsing its status container class.
   const selectedCard = $('#root-content-items [selected]').parent().find('.card-status-container')[0];
   const statusClass = selectedCard
-    && selectedCard.className.split(' ').filter((className) => className.startsWith('status-'))[0];
+    && selectedCard.className.split(' ').filter((className) => className.indexOf('status-') === 0)[0];
   const statusEnum = statusClass && parseInt(statusClass.split('-')[1], 10);
   const $statusFormContainer = $('#content-publishing-form').find('.form-status-container');
   $statusFormContainer.hide();

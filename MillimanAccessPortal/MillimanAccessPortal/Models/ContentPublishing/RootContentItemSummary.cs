@@ -6,7 +6,9 @@
 
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
-using MillimanAccessPortal.Models.ContentAccessAdminViewModels;
+using MillimanAccessPortal.Models.AccountViewModels;
+using MillimanAccessPortal.Models.ContentAccessAdmin;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
@@ -17,8 +19,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public string ContentName { get; set; }
         public string ContentTypeName { get; set; }
         public int GroupCount { get; set; }
-        public int EligibleUserCount { get; set; }
-        public PublicationDetails PublicationDetails { get; set; }
+        public List<UserInfoViewModel> EligibleUserList = new List<UserInfoViewModel>();
+        public PublicationSummary PublicationDetails { get; set; }
 
         internal static RootContentItemSummary Build(ApplicationDbContext dbContext, RootContentItem rootContentItem)
         {
@@ -31,9 +33,9 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 .Where(crt => crt.RootContentItemId == rootContentItem.Id)
                 .OrderByDescending(crt => crt.CreateDateTimeUtc)
                 .FirstOrDefault();
-            PublicationDetails publicationDetails = (PublicationDetails) latestPublication;
+            PublicationSummary publicationDetails = (PublicationSummary) latestPublication;
 
-            RootContentItemSummary model = new RootContentItemSummary
+            var model = new RootContentItemSummary
             {
                 Id = rootContentItem.Id,
                 ContentName = rootContentItem.ContentName,
@@ -41,13 +43,19 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 GroupCount = dbContext.SelectionGroup
                     .Where(sg => sg.RootContentItemId == rootContentItem.Id)
                     .Count(),
-                EligibleUserCount = dbContext.UserRoleInRootContentItem
-                    // TODO: Qualify with required role/membership in client
-                    .Where(ur => ur.RootContentItemId == rootContentItem.Id)
-                    .Where(ur => ur.RoleId == ((long)RoleEnum.ContentUser))
-                    .Count(),
                 PublicationDetails = publicationDetails,
             };
+
+            var eligibleUsers = dbContext.UserRoleInRootContentItem
+                .Where(role => role.RootContentItemId == rootContentItem.Id)
+                .Where(role => role.Role.RoleEnum == RoleEnum.ContentUser)
+                .Select(role => role.User)
+                .ToList();
+            foreach (var eligibleUser in eligibleUsers)
+            {
+                var user = ((UserInfoViewModel) eligibleUser);
+                model.EligibleUserList.Add(user);
+            }
 
             return model;
         }

@@ -1,4 +1,21 @@
-import shared = require('./shared');
+import * as toastr from 'toastr';
+
+import * as shared from './shared';
+import { SelectionGroupSummary } from './view-models/content-access-admin';
+import { RootContentItemSummary, UserInfo } from './view-models/content-publishing';
+
+require('../images/user.svg');
+require('../images/remove-circle.svg');
+require('../images/add-circle.svg');
+require('../images/expand-card.svg');
+require('../images/cancel.svg');
+require('../images/group.svg');
+require('../images/reports.svg');
+require('../images/delete.svg');
+require('../images/edit.svg');
+require('../images/add.svg');
+require('../images/upload.svg');
+require('../images/checkmark.svg');
 
 const card = {};
 
@@ -12,6 +29,7 @@ const cardLayout = {
         },
         text: {
           primaryText: {},
+          primaryTextBox: {},
           secondaryText: {},
           progressInfo: {},
         },
@@ -26,6 +44,10 @@ const cardLayout = {
         detailText: {},
         toggle: {},
         detailItem: {},
+        userList: {
+          user: {},
+        },
+        userCreate: {},
       },
       action: {},
       insert: {},
@@ -51,7 +73,7 @@ const components = Object.assign(
       render(component) {
         return function(properties) {
           this.verify(component);
-          this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
+          this.attr(component, { href: '#' + properties.icon }, '[href]');
           this.html(component, properties.text, 'span');
         };
       },
@@ -74,7 +96,7 @@ const components = Object.assign(
       render(component) {
         return function(properties) {
           this.verify(component);
-          this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
+          this.attr(component, { href: '#' + properties.icon }, '[href]');
           this.html(component, properties.text, 'span');
         };
       },
@@ -90,6 +112,27 @@ const components = Object.assign(
         return function(properties) {
           this.verify(component);
           this.html(component, properties.text);
+        };
+      },
+    },
+    primaryTextBox: {
+      count: '1',
+      selector: '.card-body-primary-text-box',
+      html: [
+        '<div class="card-body-primary-text-box">',
+        '  <h2></h2>',
+        '  <input placeholder="Untitled" />',
+        '</div>',
+        '<stub />',
+      ].join(''),
+      render(component) {
+        return function(properties) {
+          this.verify(component);
+          this.html(component, properties.text, 'h2');
+          this.val(component, properties.text, 'input');
+          this.click(component, (event) => {
+            event.stopPropagation();
+          }, 'input');
         };
       },
     },
@@ -122,7 +165,7 @@ const components = Object.assign(
       render(component) {
         return function(properties) {
           this.add(component);
-          this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
+          this.attr(component, { href: '#' + properties.icon }, '[href]');
           this.html(component, properties.value, '.card-stat-value');
           this.tooltip(component, properties.tooltip);
         };
@@ -136,6 +179,7 @@ const components = Object.assign(
         '  <svg class="card-button-icon">',
         '    <use href=""></use>',
         '  </svg>',
+        '  <div class="card-button-clickable"></div>',
         '</div>',
         '<stub />',
       ].join(''),
@@ -145,11 +189,11 @@ const components = Object.assign(
             return;
           }
           this.add(component);
-          this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
+          this.attr(component, { href: '#' + properties.icon }, '[href]');
           this.addClass(component, 'card-button-' + properties.color);
           this.addClass(component, 'card-button-' + properties.icon);
           this.tooltip(component, properties.tooltip);
-          this.click(component, properties.callback);
+          this.click(component, properties.callback, '.card-button-clickable');
           if (properties.dynamic) {
             this.addClass(component, 'card-button-dynamic');
           }
@@ -168,7 +212,7 @@ const components = Object.assign(
       render(component) {
         return function(properties) {
           this.add(component);
-          this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
+          this.attr(component, { href: '#' + properties.icon }, '[href]');
           this.addClass(component, properties.class);
         };
       },
@@ -221,6 +265,89 @@ const components = Object.assign(
           this.click(component, properties.callback, '.toggle-switch-checkbox');
           this.attr(component, { for: properties.id }, '.toggle-switch-label');
           this.html(component, properties.text, '.switch-label');
+        };
+      },
+    },
+    userList: {
+      count: '1',
+      selector: '.detail-item-user-list',
+      html: [
+        '<ul class="detail-item-user-list">',
+        '  <stub />',
+        '</ul>',
+        '<stub />',
+      ].join(''),
+      render(component) {
+        return function(properties) {
+          this.verify(component);
+        };
+      },
+    },
+    // If you make and changes to this component, also change updateMemberList in shared.ts
+    user: {
+      count: '*',
+      selector: '.detail-item-user',
+      html: [
+        '<li>',
+        '  <span class="detail-item-user">',
+        '    <div class="detail-item-user-icon">',
+        '      <svg class="card-user-icon">',
+        '        <use href="#user"></use>',
+        '      </svg>',
+        '    </div>',
+        '    <div class="detail-item-user-remove">',
+        '      <div class="card-button-background card-button-delete">',
+        '        <svg class="card-button-icon">',
+        '          <use href="#remove-circle"></use>',
+        '        </svg>',
+        '      </div>',
+        '    </div>',
+        '    <div class="detail-item-user-name">',
+        '      <h4 class="first-last"></h4>',
+        '      <span class="user-name"></span>',
+        '    </div>',
+        '  </span>',
+        '</li>',
+        '<stub />',
+      ].join(''),
+      render(component) {
+        return function(properties) {
+          this.add(component);
+          this.attr(
+            component,
+            toAttr(properties.data),
+            '.detail-item-user',
+          );
+          this.click(component, properties.callback, '.detail-item-user-remove');
+          this.html(component, properties.username, '.user-name');
+          this.html(component, properties.firstlast, '.first-last');
+        };
+      },
+    },
+    userCreate: {
+      count: '1',
+      selector: '.detail-item-user-create',
+      html: [
+        '<span class="detail-item-user-create">',
+        '  <div class="detail-item-user-add">',
+        '    <div class="card-button-background card-button-add">',
+        '      <svg class="card-button-icon">',
+        '        <use href="#add-circle"></use>',
+        '      </svg>',
+        '    </div>',
+        '  </div>',
+        '  <div class="detail-item-user-input">',
+        '    <input class="typeahead" name="username" placeholder="Add user" required />',
+        '  </div>',
+        '</span>',
+        '<stub />',
+      ].join(''),
+      render(component) {
+        return function(properties) {
+          this.add(component);
+          this.click(component, properties.addCallback, '.detail-item-user-add');
+          this.click(component, properties.inputCallback, '.detail-item-user-input');
+          this.key(component, properties.keyCallback, '.detail-item-user-input');
         };
       },
     },
@@ -385,7 +512,7 @@ const components = Object.assign(
         '  <div class="card-button-bottom-container">',
         '    <div class="card-button-background card-button-expansion">',
         '      <svg class="card-button-icon">',
-        '        <use href="#action-icon-expand-card"></use>',
+        '        <use href="#expand-card"></use>',
         '      </svg>',
         '    </div>',
         '  </div>',
@@ -408,7 +535,7 @@ const components = Object.assign(
         '    <p class="card-progress-status-text"></p>',
         '    <div class="card-progress-status-btn btn-cancel">',
         '      <svg class="card-button-icon">',
-        '        <use href="#action-icon-cancel"></use>',
+        '        <use href="#cancel"></use>',
         '      </svg>',
         '    </div>',
         '  </div>',
@@ -521,6 +648,9 @@ Card.prototype.build = function() {
     this.click('body', this.callback);
   }
   this.$representation.find('stub').remove();
+  if (Object.hasOwnProperty.call(this, 'afterBuild')) {
+    this.afterBuild();
+  }
   return this.$representation;
 };
 
@@ -536,6 +666,9 @@ Card.prototype.prop = function(component, value, selector) {
 Card.prototype.addClass = function(component, value, selector) {
   this.findComponent(component, selector).addClass(value);
 };
+Card.prototype.val = function(component, value, selector) {
+  this.findComponent(component, selector).val(value);
+};
 
 Card.prototype.click = function(component, value, selector) {
   const $component = this.findComponent(component, selector);
@@ -544,9 +677,10 @@ Card.prototype.click = function(component, value, selector) {
       event.preventDefault();
     }
     : value);
-  $component.mousedown((event) => {
-    event.preventDefault();
-  });
+};
+Card.prototype.key = function(component, value, selector) {
+  const $component = this.findComponent(component, selector);
+  $component.on('keydown', value);
 };
 
 Card.prototype.tooltip = function(component, value, selector) {
@@ -681,7 +815,7 @@ export function ClientCard(
   this.addComponent('primaryText', { text: client.Name });
   this.addComponent('secondaryText', { text: client.ClientCode });
   this.addComponent('statistic', {
-    icon: 'users',
+    icon: 'group',
     tooltip: 'Assigned users',
     value: userCount,
   });
@@ -718,22 +852,22 @@ ClientCard.prototype = Object.create(Card.prototype);
 ClientCard.prototype.constructor = ClientCard;
 
 export function RootContentItemCard(
-  rootContentItem, groupCount, userCount,
+  rootContentItemDetail: any,
   callback, publishCallback?, deleteCallback?, cancelCallback?, goLiveCallback?,
 ) {
   Card.call(this);
 
-  this.addComponent('primaryText', { text: rootContentItem.ContentName });
-  this.addComponent('secondaryText', { text: rootContentItem.ContentTypeName });
+  this.addComponent('primaryText', { text: rootContentItemDetail.ContentName });
+  this.addComponent('secondaryText', { text: rootContentItemDetail.ContentTypeName });
   this.addComponent('statistic', {
-    icon: 'users',
+    icon: 'group',
     tooltip: 'Selection groups',
-    value: groupCount,
+    value: rootContentItemDetail.GroupCount,
   });
   this.addComponent('statistic', {
     icon: 'user',
     tooltip: 'Eligible users',
-    value: userCount,
+    value: rootContentItemDetail.EligibleUserList.length,
   });
   this.addComponent('button', {
     callback: deleteCallback,
@@ -745,7 +879,7 @@ export function RootContentItemCard(
     callback: publishCallback,
     color: 'green',
     dynamic: true,
-    icon: 'file-upload',
+    icon: 'upload',
     tooltip: 'Republish',
   });
   this.addComponent('button', {
@@ -759,17 +893,18 @@ export function RootContentItemCard(
     callback: goLiveCallback,
     color: 'blue',
     dynamic: true,
-    icon: 'add',
+    icon: 'checkmark',
     tooltip: 'Go Live',
   });
   this.addComponent('status', {});
 
   this.data = {
+    'eligible-list': JSON.stringify(rootContentItemDetail.EligibleUserList),
     'filter-string': [
-      rootContentItem.ContentName,
-      rootContentItem.ContentTypeName,
+      rootContentItemDetail.ContentName,
+      rootContentItemDetail.ContentTypeName,
     ].join('|').toUpperCase(),
-    'root-content-item-id': rootContentItem.Id,
+    'root-content-item-id': rootContentItemDetail.Id,
   };
 
   this.callback = callback;
@@ -790,22 +925,25 @@ FileUploadCard.prototype = Object.create(Card.prototype);
 FileUploadCard.prototype.constructor = FileUploadCard;
 
 export function SelectionGroupCard(
-  selectionGroup, members,
-  callback, deleteCallback, userCallback,
+  selectionGroup: SelectionGroupSummary,
+  eligibleUsers: UserInfo[],
+  callback, deleteCallback, editCallback, confirmCallback,
 ) {
   Card.call(this);
 
-  const memberInfo = $.map(members, function toString(member) {
+  const self = this;
+  const memberInfo = $.map(selectionGroup.MemberList, function toString(member) {
     return [member.FirstName + ' ' + member.LastName, member.Email, member.UserName];
   }).reduce(function concat(acc, cur) {
     return acc.concat(cur);
   }, []);
 
-  this.addComponent('primaryText', { text: selectionGroup.GroupName });
+  this.addComponent('primaryTextBox', { text: selectionGroup.Name });
+  this.addComponent('secondaryText', { text: selectionGroup.RootContentItemName });
   this.addComponent('statistic', {
-    icon: 'users',
+    icon: 'group',
     tooltip: 'Members',
-    value: members.length,
+    value: selectionGroup.MemberList.length,
   });
   this.addComponent('button', {
     callback: deleteCallback,
@@ -814,26 +952,119 @@ export function SelectionGroupCard(
     tooltip: 'Delete selection group',
   });
   this.addComponent('button', {
-    callback: userCallback,
+    callback: editCallback,
     color: 'blue',
+    dynamic: true,
     icon: 'edit',
-    tooltip: 'Add/remove users',
+    tooltip: 'Edit selection group',
+  });
+  this.addComponent('button', {
+    callback: confirmCallback,
+    color: 'green',
+    dynamic: true,
+    icon: 'checkmark',
+    tooltip: 'Save changes',
   });
   this.addComponent('statistics', { click: shared.toggleExpandedListener });
-  if (members.length) {
-    this.addComponent('detailText', { text: 'Members' });
-  }
-  members.forEach(function(member) {
-    this.addComponent('detailItem', { text: member.Email });
+  this.addComponent('detailText', { text: 'Members' });
+  this.addComponent('userList', {});
+  selectionGroup.MemberList.forEach(function(member) {
+    const firstlast = member.FirstName || member.LastName
+      ? `${member.FirstName || ''} ${member.LastName || ''}`
+      : member.UserName;
+    const username = firstlast === member.UserName
+      ? ''
+      : member.UserName;
+    this.addComponent('user', {
+      callback: (event) => shared.removeUserFromSelectionGroup(event, member, selectionGroup),
+      data: {
+        'user-id': member.Id,
+      },
+      firstlast,
+      username,
+    });
   }, this);
+  this.addComponent('userCreate', {
+    addCallback: (event: Event) => {
+      event.stopPropagation();
+      const $ttInput = $(event.target)
+        .closest('.detail-item-user-create').find('.tt-input');
+      const data = $ttInput.val();
+      $.post({
+        data: {
+          SelectionGroupId: $ttInput.closest('.card-container').data().selectionGroupId,
+          email: data,
+        },
+        headers: {
+          RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
+        },
+        url: 'ContentAccessAdmin/AddUserToSelectionGroup/',
+      }).done((response) => {
+        shared.addUserToSelectionGroup(response);
+        $ttInput.typeahead('val', '');
+        $ttInput.focus();
+        toastr.success(`Added ${data} to selection group ${selectionGroup.Name}.`);
+      }).fail((response) => {
+        toastr.warning(response.getResponseHeader('Warning')
+          || 'An unknown error has occurred.');
+      });
+    },
+    inputCallback: (event: Event) => {
+      event.stopPropagation();
+    },
+    keyCallback: (event) => {
+      // Using keyCode is deprecated but has the best support across browsers
+      // Key code 13 is Enter
+      if (event.keyCode === 13) {
+        $(event.target).closest('.detail-item-user-create').find('.detail-item-user-add').click();
+      }
+    },
+  });
   this.addComponent('status', {});
 
   this.data = {
-    'filter-string': memberInfo.concat([selectionGroup.GroupName]).join('|').toUpperCase(),
+    'filter-string': memberInfo.concat([selectionGroup.Name]).join('|').toUpperCase(),
+    'member-list': JSON.stringify(selectionGroup.MemberList),
     'selection-group-id': selectionGroup.Id,
   };
 
   this.callback = callback;
+
+  this.afterBuild = () => {
+    this.$representation.find('.card-button-side-container .card-button-green').hide();
+    this.$representation.find('.detail-item-user-create').hide();
+    this.$representation.find('.detail-item-user-remove').hide();
+    this.$representation.find('.card-body-primary-text-box input').hide();
+    this.$representation.find('.typeahead').typeahead(
+      {
+        highlight: true,
+        hint: true,
+        minLength: 1,
+      },
+      {
+        name: 'eligibleUsers',
+        source: shared.eligibleUserMatcher,
+        display(data: UserInfo) {
+          return data.UserName;
+        },
+        templates: {
+          suggestion(data: UserInfo) {
+            return [
+              '<div>',
+              data.UserName + '',
+              (data.UserName !== data.Email)
+                ? '<br /> ' + data.Email
+                : '',
+              (data.FirstName && data.LastName)
+                ? '<br /><span class="secondary-text">' + data.FirstName + ' ' + data.LastName + '</span>'
+                : '',
+              '</div>',
+            ].join('');
+          },
+        },
+      },
+    ).focus();
+  };
 }
 SelectionGroupCard.prototype = Object.create(Card.prototype);
 SelectionGroupCard.prototype.constructor = SelectionGroupCard;
@@ -863,7 +1094,7 @@ export function UserCard(
   this.addComponent('button', {
     callback: removeCallback,
     color: 'red',
-    icon: 'remove',
+    icon: 'remove-circle',
     tooltip: 'Remove user',
   });
   this.addComponent('detailText', { text: 'User roles' });

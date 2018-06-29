@@ -9,7 +9,7 @@ import { FormBase } from '../form/form-base';
 import { AccessMode } from '../form/form-modes';
 import { SubmissionGroup } from '../form/form-submission';
 import {
-  clearForm, collapseAllListener, expandAllListener, filterFormListener, filterTreeListener, get,
+  collapseAllListener, expandAllListener, filterFormListener, filterTreeListener, get,
   post, showButtonSpinner, updateCardStatus, updateCardStatusButtons, updateFormStatusButtons,
   wrapCardCallback, wrapCardIconCallback,
 } from '../shared';
@@ -163,7 +163,7 @@ function mapRootContentItemDetail(item: RootContentItemDetail) {
 function addToDocumentCount(clientId: number, offset: number) {
   const itemCount = $('#client-tree .card-container')
     .filter((i, card) => $(card).data().clientId === clientId)
-    .find('use[href="#action-icon-reports"]').closest('div').find('h4');
+    .find('use[href="#reports"]').closest('div').find('h4');
   itemCount.html(`${parseInt(itemCount.html(), 10) + offset}`);
 }
 
@@ -285,13 +285,9 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
 
       toastr.success('Root content item created');
     },
-    (data) => {
-      if (data.indexOf('DoesReduce=') === -1) {
-        return data + '&DoesReduce=False';
-      } else {
-        return data.replace('DoesReduce=', '').replace('&&', '&') + '&DoesReduce=True';
-      }
-    },
+    (data) => data.indexOf('DoesReduce=') === -1
+      ? data + '&DoesReduce=False'
+      : data,
   );
   const updateContentGroup = new SubmissionGroup<RootContentItemSummaryAndDetail>(
     [
@@ -311,13 +307,9 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
       $card.find('.card-body-secondary-text').html(response.summary.ContentTypeName);
       toastr.success('Root content item updated');
     },
-    (data) => {
-      if (data.indexOf('DoesReduce=') === -1) {
-        return data + '&DoesReduce=False';
-      } else {
-        return data.replace('DoesReduce=', '').replace('&&', '&') + '&DoesReduce=True';
-      }
-    },
+    (data) => data.indexOf('DoesReduce=') === -1
+      ? data + '&DoesReduce=False'
+      : data,
   );
   const submitPublication = new SubmissionGroup<any>(
     [
@@ -379,8 +371,6 @@ function renderRootContentItem(item: RootContentItemSummary) {
   const $panel = $('#content-publishing-form');
   const $rootContentItemCard = new RootContentItemCard(
     item,
-    item.GroupCount,
-    item.EligibleUserCount,
     wrapCardCallback(get(
       'ContentPublishing/RootContentItemDetail',
       [
@@ -415,7 +405,7 @@ function renderRootContentItem(item: RootContentItemSummary) {
 function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: number) {
   const $rootContentItemList = $('#root-content-items ul.admin-panel-content');
   $rootContentItemList.empty();
-  response.DetailList.forEach(renderRootContentItem);
+  response.SummaryList.forEach(renderRootContentItem);
   $rootContentItemList.find('.tooltip').tooltipster();
 
   if (!isNaN(rootContentItemId)) {

@@ -26,6 +26,13 @@ require('tooltipster/src/css/tooltipster.css');
 require('tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css');
 require('../scss/map.scss');
 
+require('../images/map-logo.svg');
+require('../images/add.svg');
+require('../images/expand-cards.svg');
+require('../images/collapse-cards.svg');
+require('../images/edit.svg');
+require('../images/cancel.svg');
+
 const ajaxStatus: any = {};
 const SHOW_DURATION = 50;
 let eligibleUsers;
@@ -262,6 +269,8 @@ function setupChildClientForm($parentClientDiv: JQuery<HTMLElement>) {
   shared.clearForm($('#client-info'));
   $('#client-info form.admin-panel-content #ParentClientId').val(parentClientId);
   bindForm();
+  formObject.submissionMode = 'new';
+  formObject.accessMode = AccessMode.Write;
   $parentClientDiv.parent().parent().after($template);
   $parentClientDiv.parent().parent().next().find('div.card-body-container')
     .click(() => {

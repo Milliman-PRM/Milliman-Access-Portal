@@ -100,7 +100,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            var model = await ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
+            var model = await ClientTree.Build(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, RoleEnum.ContentPublisher);
 
             return new JsonResult(model);
         }
@@ -130,7 +130,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            RootContentItemList model = RootContentItemList.Build(DbContext, client, await Queries.GetCurrentApplicationUser(User));
+            RootContentItemList model = RootContentItemList.Build(DbContext, client, await Queries.GetCurrentApplicationUser(User), RoleEnum.ContentPublisher);
 
             return Json(model);
         }
@@ -727,6 +727,9 @@ namespace MillimanAccessPortal.Controllers
                 // Copy uploaded file to root content folder
                 string DestinationFileName = $"{RelatedFile.FilePurpose}.Pub[{PubRequestId.ToString()}].Content[{ContentItem.Id.ToString()}]{Path.GetExtension(FileUploadRecord.StoragePath)}";
                 string DestinationFullPath = Path.Combine(RootContentFolder, DestinationFileName);
+
+                // Create the root content folder if it does not already exist
+                Directory.CreateDirectory(RootContentFolder);
                 System.IO.File.Copy(FileUploadRecord.StoragePath, DestinationFullPath, true);
 
                 ReturnObj = new ContentRelatedFile
@@ -749,6 +752,7 @@ namespace MillimanAccessPortal.Controllers
             return ReturnObj;
         }
 
+        [NonAction]
         private ContentRelatedFile ProcessMasterContentFile(ContentRelatedFile FileDetails, Guid RequestGuid, bool DoesReduce)
         {
             if (DoesReduce)

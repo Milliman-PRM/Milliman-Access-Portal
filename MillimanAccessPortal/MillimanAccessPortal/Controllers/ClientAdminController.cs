@@ -27,7 +27,7 @@ using AuditLogLib;
 using AuditLogLib.Services;
 using MillimanAccessPortal.Models.ClientAdminViewModels;
 using MillimanAccessPortal.Authorization;
-using MillimanAccessPortal.Models.ContentAccessAdminViewModels;
+using MillimanAccessPortal.Models.ContentAccessAdmin;
 using MillimanAccessPortal.Services;
 
 namespace MillimanAccessPortal.Controllers
