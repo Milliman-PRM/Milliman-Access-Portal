@@ -9,6 +9,7 @@ REM   	* PanDoc+MikTex is installed and usable.
 SETLOCAL ENABLEDELAYEDEXPANSION
 
 REM Create the documentation directory in the wwwroot folder (if it doesn't exist)
+echo Compiling Release Notes
 if not exist "../MillimanAccessPortal/MillimanAccessPortal/wwwroot/Documentation/" mkdir "../MillimanAccessPortal/MillimanAccessPortal/wwwroot/Documentation/"
 
 REM Compile Release Notes
