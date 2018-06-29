@@ -14,7 +14,7 @@ if not exist "../MillimanAccessPortal/MillimanAccessPortal/wwwroot/Documentation
 REM Compile Release Notes
 pandoc --self-contained --metadata=pagetitle:"Milliman Access Portal - Release Notes" -o "../MillimanAccessPortal/MillimanAccessPortal/wwwroot/Documentation/ReleaseNotes.html" "ReleaseNotes.md"
 
-Compile all user guides
+REM Compile all user guides
 for %%x in (
 	AuthorizedContent
 	AccountSettings
