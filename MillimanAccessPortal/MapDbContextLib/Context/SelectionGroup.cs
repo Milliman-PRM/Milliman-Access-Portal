@@ -32,5 +32,8 @@ namespace MapDbContextLib.Context
         [Required]
         public bool IsMaster { get; set; }
 
+        [Required]
+        public bool IsSuspended { get; set; }
+
     }
 }

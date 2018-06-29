@@ -18,10 +18,11 @@ import {
 import { AddSelectionGroupDialog, DeleteSelectionGroupDialog } from '../dialog';
 import {
   collapseAllListener, del, expandAllListener, filterFormListener, filterTreeListener, get,
-  hideButtonSpinner, post, showButtonSpinner, updateCardStatus, wrapCardCallback, toggleExpanded, setExpanded,
+  hideButtonSpinner, post, setExpanded, showButtonSpinner, toggleExpanded, updateCardStatus,
+  wrapCardCallback,
 } from '../shared';
 import {
-  SelectionGroupList, SelectionGroupSummary, SelectionsDetail,
+  SelectionDetails, SelectionGroupList, SelectionGroupSummary, SelectionsDetail,
 } from '../view-models/content-access-admin';
 import {
   BasicNode, ClientSummary, ClientTree, ReductionField, ReductionFieldValueSelection,
@@ -90,6 +91,7 @@ function submitSelectionForm() {
   const $selectionGroups = $('#selection-groups ul.admin-panel-content');
   const $button = $selectionInfo.find('button');
   const data = {
+    IsMaster: $selectionInfo.find('#IsMaster').prop('checked'),
     SelectionGroupId: $selectionGroups.find('[selected]').closest('.card-container').attr('data-selection-group-id'),
     Selections: $selectionInfo.serializeArray().reduce((acc, cur) => {
       return (cur.value === 'on')
@@ -105,11 +107,13 @@ function submitSelectionForm() {
       RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
     },
     type: 'POST',
-    url: 'ContentAccessAdmin/SingleReduction',
+    url: 'ContentAccessAdmin/UpdateSelections',
   }).done(function onDone(response) {
     hideButtonSpinner($button);
     renderSelections(response);
-    toastr.success('A reduction task has been queued.');
+    toastr.success(data.IsMaster
+      ? 'Master content access granted.'
+      : 'A reduction task has been queued.');
   }).fail(function onFail(response) {
     hideButtonSpinner($button);
     toastr.warning(response.getResponseHeader('Warning')
@@ -120,7 +124,8 @@ function submitSelectionForm() {
 function renderValue(
   value: ReductionFieldValueSelection,
   $fieldset: JQuery<HTMLElement>,
-  originalSelections: number[],
+  liveSelections: SelectionDetails[],
+  pendingSelections: SelectionDetails[],
 ) {
   const $checkbox = $(`<label class="selection-option-label">
     ${value.Value}
@@ -131,22 +136,30 @@ function renderValue(
     `<div class="selection-option-container" data-selection-value="${value.Value.toUpperCase()}"></div>`);
   const $div = $fieldset.find('div.selection-option-container').last();
   $div.append($checkbox);
-  $checkbox.find('input[type="checkbox"]').prop('checked', value.SelectionStatus);
-  if ((originalSelections.indexOf(value.Id) !== -1) !== value.SelectionStatus) {
-    $div.attr('style', 'background: yellow;');
+
+  const live = liveSelections.filter((s) => s.Id === value.Id);
+  const pending = pendingSelections && pendingSelections.filter((s) => s.Id === value.Id);
+  $checkbox.find('input[type="checkbox"]')
+    .prop('checked', pending ? pending.length > 0 : live.length > 0);
+  if (pending && live.length && live[0].Marked) {
+    $div.attr('style', 'color: red;');
+  }
+  if (pending && pending.length && pending[0].Marked) {
+    $div.attr('style', 'color: green;');
   }
 }
 
 function renderField(
   field: ReductionField<ReductionFieldValueSelection>,
   $parent: JQuery<HTMLElement>,
-  originalSelections: number[],
+  liveSelections: SelectionDetails[],
+  pendingSelections: SelectionDetails[],
 ) {
   $parent.append('<fieldset></fieldset>');
   const $fieldset = $parent.find('fieldset').last();
   $fieldset.append(`<legend>${field.DisplayName}</legend>`);
   field.Values.forEach((value) => {
-    renderValue(value, $fieldset, originalSelections);
+    renderValue(value, $fieldset, liveSelections, pendingSelections);
   });
 }
 
@@ -154,6 +167,10 @@ function renderSelections(response: SelectionsDetail) {
   const $selectionInfo = $('#selection-info form.admin-panel-content');
   const $fieldsetDiv = $selectionInfo.find('.fieldset-container');
   const $relatedCard = $('#selection-groups [selected]').closest('.card-container');
+
+  $selectionInfo.children('h2').html(response.SelectionGroupName);
+  $selectionInfo.children('h3').html(response.RootContentItemName);
+
   // tslint:disable:object-literal-sort-keys
   const details = $.extend({
     User: {
@@ -163,24 +180,34 @@ function renderSelections(response: SelectionsDetail) {
     StatusName: '',
     SelectionGroupId: 0,
     RootContentItemId: 0,
-  }, response.ReductionDetails);
+  }, response.ReductionSummary);
   // tslint:enable:object-literal-sort-keys
 
+  const comparison = response.SelectionComparison;
+  const isMaster = comparison.PendingSelections === null && comparison.IsLiveMaster;
+  $('#IsMaster').prop('checked', isMaster);
+  $fieldsetDiv.hide().filter(() => !isMaster).show();
+  $('#IsSuspended').prop('checked', response.IsSuspended);
+  $('#selection-info form.admin-panel-content .selection-content')
+    .hide().filter(() => response.DoesReduce).show();
+
   $fieldsetDiv.empty();
-  response.Hierarchy.Fields.forEach((field) =>
-    renderField(field, $fieldsetDiv, response.OriginalSelections));
-  updateCardStatus($relatedCard, response.ReductionDetails);
+  comparison.Hierarchy.Fields.forEach((field) =>
+    renderField(field, $fieldsetDiv, comparison.LiveSelections, comparison.PendingSelections));
+  updateCardStatus($relatedCard, response.ReductionSummary);
   $selectionInfo
     .find('button').hide()
     .filter(`.button-status-${details.StatusEnum}`).show();
   // TODO: rely on some flag in the response to disable checkboxes
+  const readonly = [10, 20, 30].indexOf(details.StatusEnum) !== -1;
   $fieldsetDiv
     .find('input[type="checkbox"]')
-    .click([10, 20, 30].indexOf(details.StatusEnum) !== -1
+    .click(readonly
       ? (event) => {
         event.preventDefault();
       }
       : () => undefined);
+  $('#IsMaster').attr('disabled', () => readonly ? '' : null);
 }
 
 function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
@@ -335,6 +362,43 @@ export function setup() {
   // TODO: select by ID or better classes
   $('#selection-info .blue-button').click(submitSelectionForm);
   $('#selection-info .red-button').click(cancelSelectionForm);
+
+  $('#IsMaster').click(() => {
+    $('#selection-info form.admin-panel-content .fieldset-container')
+      .hide().filter(() => !$('#IsMaster').prop('checked')).show();
+  });
+  $('#IsSuspended').click((event) => {
+    event.preventDefault();
+    $('#IsSuspended').attr('disabled', '');
+
+    const data = {
+      isSuspended: $('#IsSuspended').prop('checked'),
+      selectionGroupId: $('#selection-groups [selected]').parent().data().selectionGroupId,
+    };
+
+    function onResponse() {
+      $('#IsSuspended').removeAttr('disabled');
+    }
+
+    $.post({
+      data,
+      headers: {
+        RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
+      },
+      url: 'ContentAccessAdmin/SetSuspendedSelectionGroup',
+    }).done((response: SelectionsDetail) => {
+      // Set checkbox states to match the response
+      $('#IsSuspended').prop('checked', response.IsSuspended);
+
+      const setUnset = response.IsSuspended ? '' : 'un';
+      toastr.success(`${response.SelectionGroupName} was ${setUnset}suspended.`);
+      onResponse();
+    }).fail((response) => {
+      toastr.warning(response.getResponseHeader('Warning')
+        || 'An unknown error has occurred.');
+      onResponse();
+    });
+  });
 
   $('.tooltip').tooltipster();
 }

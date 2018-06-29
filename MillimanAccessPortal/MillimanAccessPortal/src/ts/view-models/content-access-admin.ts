@@ -21,10 +21,24 @@ export interface ReductionSummary {
   SelectionGroupId: number;
   RootContentItemId?: number;
 }
-export interface SelectionsDetail {
+export interface SelectionDetails {
+  Id: number;
+  Marked: boolean;
+}
+export interface SelectionComparison {
   Hierarchy: ContentReductionHierarchy<ReductionFieldValueSelection>;
-  OriginalSelections: number[];
-  ReductionDetails: ReductionSummary;
+  LiveSelections: SelectionDetails[];
+  PendingSelections: SelectionDetails[];
+  IsLiveMaster: boolean;
+  IsPendingMaster: boolean;
+}
+export interface SelectionsDetail {
+  SelectionGroupName: string;
+  RootContentItemName: string;
+  ReductionSummary: ReductionSummary;
+  SelectionComparison: SelectionComparison;
+  IsSuspended: boolean;
+  DoesReduce: boolean;
 }
 
 export interface SelectionGroupSummary {
