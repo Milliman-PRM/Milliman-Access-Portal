@@ -188,6 +188,8 @@ function renderSelections(response: SelectionsDetail) {
   $('#IsMaster').prop('checked', isMaster);
   $fieldsetDiv.hide().filter(() => !isMaster).show();
   $('#IsSuspended').prop('checked', response.IsSuspended);
+  $('#selection-info form.admin-panel-content .selection-content')
+    .hide().filter(() => response.DoesReduce).show();
 
   $fieldsetDiv.empty();
   comparison.Hierarchy.Fields.forEach((field) =>

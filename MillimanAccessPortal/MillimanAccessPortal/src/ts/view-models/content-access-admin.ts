@@ -38,6 +38,7 @@ export interface SelectionsDetail {
   ReductionSummary: ReductionSummary;
   SelectionComparison: SelectionComparison;
   IsSuspended: boolean;
+  DoesReduce: boolean;
 }
 
 export interface SelectionGroupSummary {
