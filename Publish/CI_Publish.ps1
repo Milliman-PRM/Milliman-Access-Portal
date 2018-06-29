@@ -338,6 +338,15 @@ log_statement "Deploying packages to Octopus"
 
 cd $nugetDestination
 
+octo push --package "web\MillimanAccessPortal.1.0.0-$branchName.nupkg" --package "service\ContentPublishingServer.1.0.0-$branchName.nupkg" --replace-existing --server "https://indy-prmdeploy" --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW"
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to push packages to Octopus"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
 octo create-release --project "Milliman Access Portal" --version "1.0.0-$branchname" --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --channel "Development" --server "https://indy-prmdeploy" --packagesFolder="web" --waitfordeployment --cancelontimeout --progress
 
 if ($LASTEXITCODE -eq 0) {
