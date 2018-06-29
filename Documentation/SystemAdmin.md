@@ -1,5 +1,3 @@
-# System Administration
-
 ## Creating a New User
 
 ## Managing User Roles

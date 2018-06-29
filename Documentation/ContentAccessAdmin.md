@@ -1,5 +1,3 @@
-# Content Access Administration
-
 ## Creating a Selection Group
 
 ## Managing Users in Selection Groups

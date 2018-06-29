@@ -1,5 +1,3 @@
-# Client Administration
-
 ## Creating a New Client
 
 ## Editing Client Information

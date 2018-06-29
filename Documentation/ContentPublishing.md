@@ -1,5 +1,3 @@
-# Content Publishing
-
 ## Creating a New Content Item
 
 ## Updating Existing Content
