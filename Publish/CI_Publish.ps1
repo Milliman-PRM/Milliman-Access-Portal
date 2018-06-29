@@ -364,7 +364,7 @@ else {
 
 log_statement "Deploying web app release"
 
-octo deploy-release --project "Milliman Access Portal" --version "1.0.0-$branchname" --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --channel "Development" --server "https://indy-prmdeploy" --waitfordeployment --cancelontimeout --progress
+octo deploy-release --project "Milliman Access Portal" --deployto "Development" --channel "Development" --version "1.0.0-$branchname" --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --channel "Development" --server "https://indy-prmdeploy" --waitfordeployment --cancelontimeout --progress
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release deployed successfully"
