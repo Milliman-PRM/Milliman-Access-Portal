@@ -26,6 +26,13 @@ require('tooltipster/src/css/tooltipster.css');
 require('tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css');
 require('../scss/map.scss');
 
+require('../images/map-logo.svg');
+require('../images/add.svg');
+require('../images/expand-cards.svg');
+require('../images/collapse-cards.svg');
+require('../images/edit.svg');
+require('../images/cancel.svg');
+
 const ajaxStatus: any = {};
 const SHOW_DURATION = 50;
 let eligibleUsers;
