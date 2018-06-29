@@ -349,7 +349,7 @@ if ($LASTEXITCODE -ne 0) {
 
 log_statement "Creating web app release"
 
-octo create-release --project "Milliman Access Portal" --version "1.0.0-$branchname" --ignoreexisting --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --channel "Development" --server "https://indy-prmdeploy" 
+octo create-release --project "Milliman Access Portal" --version "1.0.0-$branchname" --packageVersion "1.0.0-$branchName" --ignoreexisting --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --channel "Development" --server "https://indy-prmdeploy" 
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release created successfully"
