@@ -18,6 +18,7 @@ for %%x in (
 	ContentAccessAdmin
 	ContentPublishing
 	ClientAdmin
+	SystemAdmin
 	) do (
 		echo Compiling documentation for %%x
 		
