@@ -24,8 +24,6 @@ for %%x in (
 	SystemAdmin
 	) do (
 		echo Compiling documentation for %%x
-		
-		echo Compiling HTML version
 		pandoc -o "%%x_Header.html" "%%x_Header.md" 
 		pandoc --self-contained --css=".\CSS\style.css" -B "%%x_Header.html" --toc -o "../MillimanAccessPortal/MillimanAccessPortal/wwwroot/Documentation/%%x.html" "%%x.yaml" "%%x.md"
 		DEL "%%x_Header.html"
