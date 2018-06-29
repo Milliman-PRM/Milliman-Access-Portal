@@ -704,7 +704,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> GoLive(long rootContentItemId, PreLiveContentValidationSummary ValidationSummaryRequestArg)
+        public async Task<IActionResult> GoLive(long rootContentItemId, long publicationRequestId, string validationSummaryId)
         {
             #region Authorization
             AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItemId));
@@ -715,7 +715,7 @@ namespace MillimanAccessPortal.Controllers
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     $"Request for content go-live without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in root content item",
                     AuditEventId.Unauthorized,
-                    new { RootContentItemId = rootContentItemId },
+                    new { RootContentItemId = rootContentItemId, ValidationSummaryId = validationSummaryId },
                     User.Identity.Name,
                     HttpContext.Session.Id
                     );
@@ -728,7 +728,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            ContentPublicationRequest PubRequest = DbContext.ContentPublicationRequest.Where(r => r.Id == ValidationSummaryRequestArg.PublicationRequestId)
+            ContentPublicationRequest PubRequest = DbContext.ContentPublicationRequest.Where(r => r.Id == publicationRequestId)
                                                                                       .Where(r => r.RootContentItemId == rootContentItemId)
                                                                                       .Include(r => r.RootContentItem)
                                                                                       .Include(r => r.ApplicationUser)
@@ -743,27 +743,6 @@ namespace MillimanAccessPortal.Controllers
             if (PubRequest == null)
             {
                 Response.Headers.Add("Warning", "Go-Live request references a publication request that is not found.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-
-            // The request's ValidationSummary should match the one taken directly from the database.
-            PreLiveContentValidationSummary ValidationSummaryFromDb = PreLiveContentValidationSummary.Build(DbContext, rootContentItemId, ApplicationConfig);
-            bool ValidSummary = ValidationSummaryFromDb.GoLiveValidation(ValidationSummaryRequestArg);
-            if (!ValidSummary)
-            {
-                #region Log audit event
-                AuditEvent ValidationFailedEvent = AuditEvent.New(
-                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                    $"Request for content go-live with invalid Validation Summary",
-                    AuditEventId.GoLiveValidationFailed,
-                    new { RootContentId = rootContentItemId, RequestSummary = ValidationSummaryRequestArg, ExpectedSummary = ValidationSummaryFromDb },
-                    User.Identity.Name,
-                    HttpContext.Session.Id
-                    );
-                AuditLogger.Log(ValidationFailedEvent);
-                #endregion
-
-                Response.Headers.Add("Warning", "Validation of the content Go-Live request failed.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
@@ -792,34 +771,72 @@ namespace MillimanAccessPortal.Controllers
                     Response.Headers.Add("Warning", $"Reduced content file {ThisTask.ResultFilePath} does not exist, cannot complete the go-live request.");
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
+                // Validate file checksum for reduced content
+                if (GlobalFunctions.GetFileChecksum(ThisTask.ResultFilePath).ToLower() != ThisTask.ReducedContentChecksum)
+                {
+                    #region Log audit event
+                    AuditEvent ChecksumFailedEvent = AuditEvent.New(
+                        $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                        "Checksum validation failed for reduced content file before copying to live path",
+                        AuditEventId.GoLiveValidationFailed,
+                        new { File = ThisTask.ResultFilePath, ValidationSummaryId = validationSummaryId },
+                        User.Identity.Name,
+                        HttpContext.Session.Id
+                        );
+                    AuditLogger.Log(ChecksumFailedEvent);
+                    #endregion
+
+                    Response.Headers.Add("Warning", $"Reduced content file failed integrity check, cannot complete the go-live request.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
             }
 
+            // Validate Checksums of LiveReady files
+            foreach (ContentRelatedFile Crf in PubRequest.LiveReadyFilesObj)
+            {
+                if (GlobalFunctions.GetFileChecksum(Crf.FullPath).ToLower() != Crf.Checksum.ToLower())
+                {
+                    #region Log audit event
+                    AuditEvent ChecksumFailedEvent = AuditEvent.New(
+                        $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                        "Checksum validation failed for live-ready file before copying to live path",
+                        AuditEventId.GoLiveValidationFailed,
+                        new { File = Crf.FullPath, ValidationSummaryId = validationSummaryId },
+                        User.Identity.Name,
+                        HttpContext.Session.Id
+                        );
+                    AuditLogger.Log(ChecksumFailedEvent);
+                    #endregion
+
+                    Response.Headers.Add("Warning", "File integrity validation failed");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+            }
             #endregion
 
             /*
-             * At this point, available variables include:
-             * - PubRequest - validated to be the relevant ContentPublicationRequest instance, with RootContentItem and ApplicationUser navigation properties
-             * - RelatedReductionTasks - List of ContentReductionTask instances referring to PubRequest, with SelectionGroup navigation properties
-             */
+                * At this point, available variables include:
+                * - PubRequest - validated to be the relevant ContentPublicationRequest instance, with RootContentItem and ApplicationUser navigation properties
+                * - RelatedReductionTasks - List of ContentReductionTask instances referring to PubRequest, with SelectionGroup navigation properties
+                */
 
             List<string> FilesToDelete = new List<string>();
 
             using (IDbContextTransaction Txn = DbContext.Database.BeginTransaction())
             {
-                // 1 Rename new Master content and related files (not reduced content) to live names
+                // 1 Move new master content and related files (not reduced content) into live file names, removing any existing copies of previous version
                 foreach (ContentRelatedFile Crf in PubRequest.LiveReadyFilesObj)
                 {
-                    // This assignment defines the live file name for every file that is not reduced content
+                    // This assignment defines the live file name
                     string TargetFilePath = $"{Crf.FilePurpose}.Content[{rootContentItemId}]{Path.GetExtension(Crf.FullPath)}";
 
-                    // Move the existing file to backed up name if exists
+                    // Move any existing file to backed up name
                     if (System.IO.File.Exists(TargetFilePath))
                     {
                         System.IO.File.Move(TargetFilePath, TargetFilePath + ".bak");
                         FilesToDelete.Add(TargetFilePath + ".bak");
                     }
 
-                    // TODO test Checksum
                     System.IO.File.Copy(Crf.FullPath, TargetFilePath);
                     FilesToDelete.Add(Crf.FullPath);
 
@@ -852,29 +869,40 @@ namespace MillimanAccessPortal.Controllers
                     FilesToDelete.Add(ThisTask.ResultFilePath);
                 }
 
-                //3 Remove temporary folder of publication job
-                string PubJobTempFolder = ;
-                System.IO.Directory.Delete(PubJobTempFolder, true);
+                //3 Update db in 1 transaction:
 
-                //4 Update db in 1 transaction:
+                //3.1  RootContentItem
+                // TODO implement this new field in a migration: PubRequest.RootContentItem.GoLiveDateTimeUtc = DateTime.UtcNow;
+                //3.2  ContentPublicationRequest.Status
+                PubRequest.RequestStatus = PublicationStatus.Confirmed;
+                //3.3  ContentReductionTask.Status ???
+                RelatedReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Live);
+                //3.4  HierarchyFieldValue due to hierarchy changes
+//ValidationSummaryFromDb.LiveHierarchy;
 
-                //4.1  RootContentItem  .GoLiveDateTimeUtc, .ContentFiles
-                PubRequest.RootContentItem.GoLiveDateTimeUtc = DateTime.UtcNow;
-                //4.2  ContentPublicationRequest.Status
-                //4.3  ContentReductionTask.Status ???
-                //4.4  HierarchyField due to hierarhchy changes
-                //4.5  HierarchyFieldValue due to hierarhchy changes
+                //3.5  SelectionGroup due to hierarchy changes
 
                 DbContext.SaveChanges();
                 Txn.Commit();
             }
 
-            // Delete all .bak files
+            // 4 Delete all temporary files
             foreach (string FileToDelete in FilesToDelete)
             {
-                System.IO.File.Delete(FileToDelete);
-                // TODO Does this throw if the path is invalid?
+                try
+                {
+                    System.IO.File.Delete(FileToDelete);
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    continue;
+                }
             }
+            //Delete temporary folder of publication job (contains temporary reduced content files)
+            /*
+            string PubJobTempFolder = ;
+            System.IO.Directory.Delete(PubJobTempFolder, true);
+            */
 
             return NoContent();
         }

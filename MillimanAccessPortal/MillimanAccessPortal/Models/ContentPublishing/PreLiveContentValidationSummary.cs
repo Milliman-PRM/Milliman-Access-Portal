@@ -12,6 +12,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 {
     public class PreLiveContentValidationSummary
     {
+        public string ValidationSummaryId { get; set; }
         public long PublicationRequestId { get; set; }
         public string RootContentName { get; set; }
         public string ContentTypeName { get; set; }
@@ -48,6 +49,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
             PreLiveContentValidationSummary ReturnObj = new PreLiveContentValidationSummary
             {
+                ValidationSummaryId = Guid.NewGuid().ToString("D"),
                 PublicationRequestId = PubRequest.Id,
                 RootContentName = PubRequest.RootContentItem.ContentName,
                 ContentTypeName = PubRequest.RootContentItem.ContentType.Name,
@@ -120,18 +122,6 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             }
 
             return ReturnObj;
-        }
-
-        /// <summary>
-        /// Validates that the proposed summary model affirmed/submitted in a user request is a satisfactory match with the required summary (this)
-        /// </summary>
-        /// <param name="RootContentId"></param>
-        /// <param name="ProposedSummary">The model submitted in the GoLive action request</param>
-        /// <returns></returns>
-        public bool GoLiveValidation(PreLiveContentValidationSummary ProposedSummary)
-        {
-            // TODO complete this
-            return true;
         }
     }
 
