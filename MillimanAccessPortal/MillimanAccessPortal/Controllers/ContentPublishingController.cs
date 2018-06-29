@@ -772,7 +772,7 @@ namespace MillimanAccessPortal.Controllers
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
                 // Validate file checksum for reduced content
-                if (GlobalFunctions.GetFileChecksum(ThisTask.ResultFilePath).ToLower() != ThisTask.ReducedContentChecksum)
+                if (GlobalFunctions.GetFileChecksum(ThisTask.ResultFilePath).ToLower() != ThisTask.ReducedContentChecksum.ToLower())
                 {
                     #region Log audit event
                     AuditEvent ChecksumFailedEvent = AuditEvent.New(
@@ -828,7 +828,8 @@ namespace MillimanAccessPortal.Controllers
                 foreach (ContentRelatedFile Crf in PubRequest.LiveReadyFilesObj)
                 {
                     // This assignment defines the live file name
-                    string TargetFilePath = $"{Crf.FilePurpose}.Content[{rootContentItemId}]{Path.GetExtension(Crf.FullPath)}";
+                    string TargetFileName = $"{Crf.FilePurpose}.Content[{rootContentItemId}]{Path.GetExtension(Crf.FullPath)}";
+                    string TargetFilePath = Path.Combine(Path.GetDirectoryName(Crf.FullPath), TargetFileName);
 
                     // Move any existing file to backed up name
                     if (System.IO.File.Exists(TargetFilePath))
@@ -854,8 +855,8 @@ namespace MillimanAccessPortal.Controllers
                 foreach (var ThisTask in RelatedReductionTasks.Where(t => t.TaskAction == TaskActionEnum.HierarchyAndReduction))
                 {
                     // This assignment defines the live file name for any reduced content file
-                    string TargetFilePath = $"ReducedContent.SelGrp[{ThisTask.SelectionGroupId}].Content[{PubRequest.RootContentItemId}]{Path.GetExtension(ThisTask.ResultFilePath)}";
-                    // ReducedContent.SelGrp[1].Content[1].qvw
+                    string TargetFileName = $"ReducedContent.SelGrp[{ThisTask.SelectionGroupId}].Content[{PubRequest.RootContentItemId}]{Path.GetExtension(ThisTask.ResultFilePath)}";
+                    string TargetFilePath = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"], PubRequest.RootContentItemId.ToString(), TargetFileName);
 
                     // Move the existing file to backed up name if exists
                     if (System.IO.File.Exists(TargetFilePath))
@@ -865,12 +866,11 @@ namespace MillimanAccessPortal.Controllers
                     }
 
                     // TODO test Checksum
-                    System.IO.File.Move(ThisTask.ResultFilePath, TargetFilePath);
+                    System.IO.File.Copy(ThisTask.ResultFilePath, TargetFilePath);
                     FilesToDelete.Add(ThisTask.ResultFilePath);
                 }
 
-                //3 Update db in 1 transaction:
-
+                //3 Update db:
                 //3.1  RootContentItem
                 // TODO implement this new field in a migration: PubRequest.RootContentItem.GoLiveDateTimeUtc = DateTime.UtcNow;
                 //3.2  ContentPublicationRequest.Status
@@ -880,7 +880,19 @@ namespace MillimanAccessPortal.Controllers
                 //3.4  HierarchyFieldValue due to hierarchy changes
 //ValidationSummaryFromDb.LiveHierarchy;
 
-                //3.5  SelectionGroup due to hierarchy changes
+                //3.5  SelectionGroup.SelectedHierarchyFieldValueList due to hierarchy changes
+                foreach (SelectionGroup Group in DbContext.SelectionGroup.Where(g => g.RootContentItemId == PubRequest.RootContentItemId))
+                {
+                    var SelectedValueList = Group.SelectedHierarchyFieldValueList.ToList();
+                    for (int Index = SelectedValueList.Count; Index >= 0; Index--)
+                    {
+                        if (!DbContext.HierarchyFieldValue.Any(v => v.Id == SelectedValueList.ElementAt(Index)))
+                        {
+                            // TODO this is not tested yet. 
+                            SelectedValueList.RemoveAt(Index);
+                        }
+                    }
+                }
 
                 DbContext.SaveChanges();
                 Txn.Commit();
