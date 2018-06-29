@@ -188,7 +188,6 @@ function renderSelections(response: SelectionsDetail) {
   $('#IsMaster').prop('checked', isMaster);
   $fieldsetDiv.hide().filter(() => !isMaster).show();
   $('#IsSuspended').prop('checked', response.IsSuspended);
-  $selectionInfo.find('.selection-content').hide().filter(() => !response.IsSuspended).show();
 
   $fieldsetDiv.empty();
   comparison.Hierarchy.Fields.forEach((field) =>
@@ -377,8 +376,6 @@ export function setup() {
 
     function onResponse() {
       $('#IsSuspended').removeAttr('disabled');
-      $('#selection-info form.admin-panel-content .selection-content')
-        .hide().filter(() => !$('#IsSuspended').prop('checked')).show();
     }
 
     $.post({
