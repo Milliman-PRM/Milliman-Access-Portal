@@ -81,7 +81,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 #endregion
 
                 ReturnObj.LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(Db, RootContentItemId);
-                ReturnObj.NewHierarchy = ContentReductionHierarchy<ReductionFieldValue>.DeserializeJson(AllTasks[0].MasterContentHierarchy);
+                ReturnObj.NewHierarchy = AllTasks[0].MasterContentHierarchyObj;
                 ReturnObj.SelectionGroups = AllTasks.Select(t => new SelectionGroupSummary
                     {
                         Name = t.SelectionGroup.GroupName,

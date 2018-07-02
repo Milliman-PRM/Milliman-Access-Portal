@@ -10,6 +10,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using MapDbContextLib.Models;
 using MapDbContextLib.Identity;
+using Newtonsoft.Json;
 
 namespace MapDbContextLib.Context
 {
@@ -103,11 +104,25 @@ namespace MapDbContextLib.Context
         [Column(TypeName = "jsonb")]
         public string MasterContentHierarchy { get; set; }
 
+        [NotMapped]
+        public ContentReductionHierarchy<ReductionFieldValue> MasterContentHierarchyObj
+        {
+            get { return JsonConvert.DeserializeObject<ContentReductionHierarchy<ReductionFieldValue>>(MasterContentHierarchy); }
+            set { MasterContentHierarchy = JsonConvert.SerializeObject(value, Formatting.Indented); }
+        }
+
         /// <summary>
         /// From reduction server. json is intended to deserialize to an instance of ContentReductionHierarchy
         /// </summary>
         [Column(TypeName = "jsonb")]
         public string ReducedContentHierarchy { get; set; }
+
+        [NotMapped]
+        public ContentReductionHierarchy<ReductionFieldValue> ReducedContentHierarchyObj
+        {
+            get { return JsonConvert.DeserializeObject<ContentReductionHierarchy<ReductionFieldValue>>(ReducedContentHierarchy); }
+            set { ReducedContentHierarchy = JsonConvert.SerializeObject(value, Formatting.Indented); }
+        }
 
         [Column(TypeName ="jsonb")]
         public string SelectionCriteria { get; set; }

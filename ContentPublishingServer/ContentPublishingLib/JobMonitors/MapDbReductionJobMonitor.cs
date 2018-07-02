@@ -289,13 +289,9 @@ namespace ContentPublishingLib.JobMonitors
                             throw new Exception("Unsupported job result status in MapDbJobMonitor.UpdateTask().");
                     }
 
-                    DbTask.MasterContentHierarchy = JobDetail.Result.MasterContentHierarchy != null 
-                                                ? JsonConvert.SerializeObject((ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.MasterContentHierarchy, Formatting.Indented)
-                                                : null;
+                    DbTask.MasterContentHierarchyObj = (ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.MasterContentHierarchy;
 
-                    DbTask.ReducedContentHierarchy = JobDetail.Result.ReducedContentHierarchy != null
-                                                ? JsonConvert.SerializeObject((ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.ReducedContentHierarchy, Formatting.Indented)
-                                                : null;
+                    DbTask.ReducedContentHierarchyObj = (ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.ReducedContentHierarchy;
 
                     DbTask.ResultFilePath = JobDetail.Result.ReducedContentFilePath;
 
