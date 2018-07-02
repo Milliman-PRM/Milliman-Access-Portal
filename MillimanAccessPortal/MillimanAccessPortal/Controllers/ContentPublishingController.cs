@@ -812,12 +812,24 @@ namespace MillimanAccessPortal.Controllers
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
             }
+
+            ContentReductionHierarchy<ReductionFieldValue> LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(DbContext, PubRequest.RootContentItemId);
+            ContentReductionHierarchy<ReductionFieldValue> NewHierarchy = RelatedReductionTasks[0].MasterContentHierarchyObj;
+
+            // No change in field list (e.g. names) should occur
+            if (!LiveHierarchy.Fields.Select(f=>f.FieldName).ToHashSet().SetEquals(NewHierarchy.Fields.Select(f => f.FieldName)))
+            {
+                Response.Headers.Add("Warning", "New hierarchy field list does not match the live hierarchy");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             /*
                 * At this point, available variables include:
                 * - PubRequest - validated to be the relevant ContentPublicationRequest instance, with RootContentItem and ApplicationUser navigation properties
                 * - RelatedReductionTasks - List of ContentReductionTask instances referring to PubRequest, with SelectionGroup navigation properties
+                * - LiveHierarchy - Reflects the hierarchy of the currently live content
+                * - NewHierarchy - Reflects the new hierarchy of the content being requested to go live
                 */
 
             List<string> FilesToDelete = new List<string>();
@@ -834,10 +846,16 @@ namespace MillimanAccessPortal.Controllers
                     // Move any existing file to backed up name
                     if (System.IO.File.Exists(TargetFilePath))
                     {
-                        System.IO.File.Move(TargetFilePath, TargetFilePath + ".bak");
-                        FilesToDelete.Add(TargetFilePath + ".bak");
+                        string BackupFilePath = TargetFilePath + ".bak";
+                        if (System.IO.File.Exists(BackupFilePath))
+                        {
+                            System.IO.File.Delete(BackupFilePath);
+                        }
+                        System.IO.File.Move(TargetFilePath, BackupFilePath);
+                        FilesToDelete.Add(BackupFilePath);
                     }
 
+                    // Can't move between different volumes
                     System.IO.File.Copy(Crf.FullPath, TargetFilePath);
                     FilesToDelete.Add(Crf.FullPath);
 
@@ -861,8 +879,13 @@ namespace MillimanAccessPortal.Controllers
                     // Move the existing file to backed up name if exists
                     if (System.IO.File.Exists(TargetFilePath))
                     {
-                        System.IO.File.Move(TargetFilePath, TargetFilePath + ".bak");
-                        FilesToDelete.Add(TargetFilePath + ".bak");
+                        string BackupFilePath = TargetFilePath + ".bak";
+                        if (System.IO.File.Exists(BackupFilePath))
+                        {
+                            System.IO.File.Delete(BackupFilePath);
+                        }
+                        System.IO.File.Move(TargetFilePath, BackupFilePath);
+                        FilesToDelete.Add(BackupFilePath);
                     }
 
                     // TODO test Checksum
@@ -878,20 +901,43 @@ namespace MillimanAccessPortal.Controllers
                 //3.3  ContentReductionTask.Status ???
                 RelatedReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Live);
                 //3.4  HierarchyFieldValue due to hierarchy changes
-//ValidationSummaryFromDb.LiveHierarchy;
+                foreach (var NewHierarchyField in NewHierarchy.Fields)
+                {
+                    ReductionField<ReductionFieldValue> MatchingLiveField = LiveHierarchy.Fields.Single(f => f.FieldName == NewHierarchyField.FieldName);
+
+                    List<string> NewHierarchyFieldValueList = NewHierarchyField.Values.Select(v => v.Value).ToList();
+                    List<string> LiveHierarchyFieldValueList = MatchingLiveField.Values.Select(v => v.Value).ToList();
+
+                    // Insert new values
+                    foreach (string NewValue in NewHierarchyFieldValueList.Except(LiveHierarchyFieldValueList))
+                    {
+                        DbContext.HierarchyFieldValue.Add(new HierarchyFieldValue { HierarchyFieldId = MatchingLiveField.Id, Value = NewValue });
+                    }
+
+                    // Delete removed values
+                    foreach (string RemovedValue in LiveHierarchyFieldValueList.Except(NewHierarchyFieldValueList))
+                    {
+                        HierarchyFieldValue ObsoleteRecord = DbContext.HierarchyFieldValue.Single(v => v.HierarchyField.RootContentItemId == PubRequest.RootContentItemId
+                                                                                                    && v.Value == RemovedValue);
+                        DbContext.HierarchyFieldValue.Remove(ObsoleteRecord);
+                    }
+                }
+                try
+                {
+                    DbContext.SaveChanges();
+                }
+                catch (Exception e)
+                {
+                    string msg = e.Message;
+                }
 
                 //3.5  SelectionGroup.SelectedHierarchyFieldValueList due to hierarchy changes
-                foreach (SelectionGroup Group in DbContext.SelectionGroup.Where(g => g.RootContentItemId == PubRequest.RootContentItemId))
+                List<long> AllRemainingFieldValues = DbContext.HierarchyFieldValue.Where(v => v.HierarchyField.RootContentItemId == PubRequest.RootContentItemId)
+                                                                                  .Select(v => v.Id)
+                                                                                  .ToList();
+                foreach (SelectionGroup Group in DbContext.SelectionGroup.Where(g => g.RootContentItemId == PubRequest.RootContentItemId && !g.IsMaster))
                 {
-                    var SelectedValueList = Group.SelectedHierarchyFieldValueList.ToList();
-                    for (int Index = SelectedValueList.Count; Index >= 0; Index--)
-                    {
-                        if (!DbContext.HierarchyFieldValue.Any(v => v.Id == SelectedValueList.ElementAt(Index)))
-                        {
-                            // TODO this is not tested yet. 
-                            SelectedValueList.RemoveAt(Index);
-                        }
-                    }
+                    Group.SelectedHierarchyFieldValueList = Group.SelectedHierarchyFieldValueList.Intersect(AllRemainingFieldValues).ToArray();
                 }
 
                 DbContext.SaveChanges();
@@ -910,11 +956,13 @@ namespace MillimanAccessPortal.Controllers
                     continue;
                 }
             }
-            //Delete temporary folder of publication job (contains temporary reduced content files)
-            /*
-            string PubJobTempFolder = ;
-            System.IO.Directory.Delete(PubJobTempFolder, true);
-            */
+
+            if (PubRequest.RootContentItem.DoesReduce)
+            {
+                //Delete temporary folder of publication job (contains temporary reduced content files)
+                string PubJobTempFolder = Path.GetDirectoryName(RelatedReductionTasks[0].MasterFilePath);
+                Directory.Delete(PubJobTempFolder, true);
+            }
 
             return NoContent();
         }
