@@ -103,14 +103,8 @@ namespace AuditLogLib
 
                     built = configurationBuilder.Build();
 
-                    string branchName = Environment.GetEnvironmentVariable("BranchName");
-                    Npgsql.NpgsqlConnectionStringBuilder logConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(built.GetConnectionString(ConnectionStringName));
+                    auditLogConnectionString = built.GetConnectionString(ConnectionStringName);
 
-                    if (environmentName == "AZURECI")
-                    {
-                        logConnBuilder.Database = $"auditlogdb_{branchName}";
-                    }
-                    auditLogConnectionString = logConnBuilder.ConnectionString;
                     break;
 
                 case "DEVELOPMENT":
