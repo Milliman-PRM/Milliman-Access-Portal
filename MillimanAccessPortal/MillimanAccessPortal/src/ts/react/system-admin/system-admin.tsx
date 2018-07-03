@@ -20,8 +20,21 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
   public render() {
     return (
-      <div>
-        <h1>System Admin</h1>
+      <div id="master-content-container">
+        <div id="primary-content-panel" className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12">
+          <div className="admin-panel-toolbar">
+            <input className="admin-panel-searchbar-tree" type="search" placeholder="Filter Clients" />
+            <div className="admin-panel-action-icons-container">
+              <svg className="action-icon-add action-icon tooltip">
+                <use xlinkHref="#add"></use>
+              </svg>
+            </div>
+          </div>
+          <div className="admin-panel-content-container">
+            <ul className="admin-panel-content">
+            </ul>
+          </div>
+        </div>
       </div>
     );
   }
