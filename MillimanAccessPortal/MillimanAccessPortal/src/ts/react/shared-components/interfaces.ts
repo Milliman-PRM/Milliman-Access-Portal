@@ -4,8 +4,9 @@
   icon: string;
 }
 
-export interface columnSelectorProps {
-  colContentSelection: () => void;
-  colContentOptions: Array<string>;
+export interface ColumnSelectorProps {
+  colContentSelection: any;
+  colContentOptions: string[];
   colContent: string;
+  primaryColumn: boolean;
 }

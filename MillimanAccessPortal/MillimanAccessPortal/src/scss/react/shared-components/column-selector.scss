@@ -6,15 +6,20 @@
     justify-content: center;
     align-items: center;
     width: 100%;
+    margin-bottom: 1em;
 
     .content-option {
         flex: 1;
         align-content: center;
         margin: 0;
         font-weight: bold;
-        height: 1.5em;
+        height: 2.5em;
+        line-height: 2.5em;
         background-color: $light-grey;
         color: $charcoal;
+        text-align: center;
+        cursor: pointer;
+
 
         &.selected {
             background-color: $blue;
