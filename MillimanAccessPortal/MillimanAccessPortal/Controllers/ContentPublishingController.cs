@@ -546,7 +546,7 @@ namespace MillimanAccessPortal.Controllers
 
                     foreach (UploadedRelatedFile UploadedFileRef in Arg.RelatedFiles)
                     {
-                        ContentRelatedFile Crf = HandleRelatedFile(UploadedFileRef, ContentItem, ThisRequestGuid, NewContentPublicationRequest.Id);
+                        ContentRelatedFile Crf = HandleRelatedFile(UploadedFileRef, ContentItem, NewContentPublicationRequest.Id);
 
                         if (Crf != null)
                         {
@@ -813,14 +813,20 @@ namespace MillimanAccessPortal.Controllers
                 }
             }
 
-            ContentReductionHierarchy<ReductionFieldValue> LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(DbContext, PubRequest.RootContentItemId);
-            ContentReductionHierarchy<ReductionFieldValue> NewHierarchy = RelatedReductionTasks[0].MasterContentHierarchyObj;
-
-            // No change in field list (e.g. names) should occur
-            if (!LiveHierarchy.Fields.Select(f=>f.FieldName).ToHashSet().SetEquals(NewHierarchy.Fields.Select(f => f.FieldName)))
+            if (PubRequest.RootContentItem.DoesReduce)
             {
-                Response.Headers.Add("Warning", "New hierarchy field list does not match the live hierarchy");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                ContentReductionHierarchy<ReductionFieldValue> LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(DbContext, PubRequest.RootContentItemId);
+                ContentReductionHierarchy<ReductionFieldValue> NewHierarchy = RelatedReductionTasks[0].MasterContentHierarchyObj;
+
+                if (LiveHierarchy.Fields.Count != 0)
+                {
+                    // No change in field list (e.g. names) should occur
+                    if (!LiveHierarchy.Fields.Select(f => f.FieldName).ToHashSet().SetEquals(NewHierarchy.Fields.Select(f => f.FieldName)))
+                    {
+                        Response.Headers.Add("Warning", "New hierarchy field list does not match the live hierarchy");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
+                }
             }
             #endregion
 
@@ -862,7 +868,7 @@ namespace MillimanAccessPortal.Controllers
                     // if file with this FilePurpose does not already exist for the Content Item
                     if (!PubRequest.RootContentItem.ContentFilesList.Select(cf => cf.FilePurpose).Contains(Crf.FilePurpose))
                     {
-                        // Can't just .add() to this List property
+                        // Can't just .Add() to this List property because it's not actually a persistent List object
                         PubRequest.RootContentItem.ContentFilesList = PubRequest.RootContentItem.ContentFilesList.Append(
                             new ContentRelatedFile { FilePurpose = Crf.FilePurpose, FullPath = TargetFilePath, Checksum = Crf.Checksum }
                         ).ToList();
@@ -894,13 +900,26 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 //3 Update db:
-                //3.1  RootContentItem
-                // TODO implement this new field in a migration: PubRequest.RootContentItem.GoLiveDateTimeUtc = DateTime.UtcNow;
-                //3.2  ContentPublicationRequest.Status
+                //3.1  ContentPublicationRequest.Status
                 PubRequest.RequestStatus = PublicationStatus.Confirmed;
-                //3.3  ContentReductionTask.Status ???
+                //3.2  ContentReductionTask.Status
                 RelatedReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Live);
-                //3.4  HierarchyFieldValue due to hierarchy changes
+                //3.3  HierarchyFieldValue due to hierarchy changes
+                //3.3.1  If this is first publication for this root content item, add the fields
+                if (LiveHierarchy.Fields.Count == 0)
+                {  // This must be first time publication, need to insert the fields
+                    NewHierarchy.Fields.ForEach(f => DbContext.HierarchyField.Add(new HierarchyField
+                        {
+                            FieldName = f.FieldName,
+                            FieldDisplayName = f.DisplayName,
+                            RootContentItemId = PubRequest.RootContentItemId,
+                            FieldDelimiter = f.ValueDelimiter,
+                            StructureType = f.StructureType,
+                        }
+                    ));
+                    DbContext.SaveChanges();
+                }
+                //3.3.2  Add/Remove field values based on value list differences between new/old
                 foreach (var NewHierarchyField in NewHierarchy.Fields)
                 {
                     ReductionField<ReductionFieldValue> MatchingLiveField = LiveHierarchy.Fields.Single(f => f.FieldName == NewHierarchyField.FieldName);
@@ -922,16 +941,9 @@ namespace MillimanAccessPortal.Controllers
                         DbContext.HierarchyFieldValue.Remove(ObsoleteRecord);
                     }
                 }
-                try
-                {
-                    DbContext.SaveChanges();
-                }
-                catch (Exception e)
-                {
-                    string msg = e.Message;
-                }
+                DbContext.SaveChanges();
 
-                //3.5  SelectionGroup.SelectedHierarchyFieldValueList due to hierarchy changes
+                //3.4  SelectionGroup.SelectedHierarchyFieldValueList due to hierarchy changes
                 List<long> AllRemainingFieldValues = DbContext.HierarchyFieldValue.Where(v => v.HierarchyField.RootContentItemId == PubRequest.RootContentItemId)
                                                                                   .Select(v => v.Id)
                                                                                   .ToList();
@@ -943,6 +955,18 @@ namespace MillimanAccessPortal.Controllers
                 DbContext.SaveChanges();
                 Txn.Commit();
             }
+
+            #region Log audit event
+            AuditEvent GoLiveLogEvent = AuditEvent.New(
+                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                "Content publication go-live was successful",
+                AuditEventId.ContentPublicationGoLive,
+                new { UserAttestedSummaryId = validationSummaryId, PublicationRequestId = PubRequest.Id },
+                User.Identity.Name,
+                HttpContext.Session.Id
+                );
+            AuditLogger.Log(GoLiveLogEvent);
+            #endregion
 
             // 4 Delete all temporary files
             foreach (string FileToDelete in FilesToDelete)
@@ -964,7 +988,7 @@ namespace MillimanAccessPortal.Controllers
                 Directory.Delete(PubJobTempFolder, true);
             }
 
-            return NoContent();
+            return Ok();
         }
 
         [HttpPost]
@@ -1001,7 +1025,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [NonAction]
-        private ContentRelatedFile HandleRelatedFile(UploadedRelatedFile RelatedFile, RootContentItem ContentItem, Guid RequestGuid, long PubRequestId)
+        private ContentRelatedFile HandleRelatedFile(UploadedRelatedFile RelatedFile, RootContentItem ContentItem, long PubRequestId)
         {
             ContentRelatedFile ReturnObj = null;
 
