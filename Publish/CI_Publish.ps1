@@ -300,6 +300,11 @@ if ($LASTEXITCODE -ne 0) {
     exit $error_code
 }
 
+log_statement "Copying Deployment scripts to target folder"
+
+Copy-Item "$rootPath\Publish\ManageVars.ps1" -Destination "$nugetDestination\web\ManageVars.ps1"
+Copy-Item "$rootPath\Publish\OctopusSetBranch.ps1" -Destination "$nugetDestination\web\OctopusSetBranch.ps1"
+
 #endregion
 
 #region package the web application for nuget
