@@ -35,6 +35,7 @@ export class FormBase extends FormElement {
       });
       this.submissionSection.submissions
         .forEach((submission) => submission.modified = this.modified);
+      this.resetValidation();
     }, mode === AccessMode.Read && this.modified);
     this._accessMode = mode;
   }
@@ -130,6 +131,13 @@ export class FormBase extends FormElement {
     return this.inputSections
       .map((section) => section.modified)
       .reduce((cum, cur) => cum || cur, false);
+  }
+
+  public resetValidation() {
+    this.$entryPoint
+      .find('.input-validation-error').removeClass('input-validation-error');
+    this.$entryPoint
+      .find('span.field-validation-error > span').remove();
   }
 
   public serialize(sectionNames: string[]): string {

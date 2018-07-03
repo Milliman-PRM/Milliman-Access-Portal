@@ -68,6 +68,14 @@ export abstract class FormInput extends FormElement {
 
   public reset() {
     this.value = this.originalValue;
+    this.resetValidation();
+  }
+
+  public resetValidation() {
+    this.$entryPoint
+      .find('.input-validation-error').removeClass('input-validation-error');
+    this.$entryPoint
+      .find('span.field-validation-error > span').remove();
   }
 
   public get name(): string {
