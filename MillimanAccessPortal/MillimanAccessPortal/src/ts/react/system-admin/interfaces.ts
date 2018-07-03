@@ -1,3 +1,9 @@
 ﻿export interface SystemAdminState {
-  primaryColumnSelection: string;
+  primaryColContent: string,
+  primaryColSelection?: string,
+  primaryColFilter?: string,
+  secondaryColContent?: string,
+  secondaryColSelection?: string,
+  secondaryColFilter?: string,
+  addUserDialog: boolean
 }

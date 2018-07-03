@@ -8,7 +8,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   public constructor(props) {
     super(props);
     this.state = {
-      primaryColumnSelection: 'Users',
+      primaryColContent: 'User',
+      primaryColSelection: null,
+      primaryColFilter: null,
+      secondaryColContent: null,
+      secondaryColSelection: null,
+      secondaryColFilter: null,
+      addUserDialog: false
     };
   }
 
