@@ -33,6 +33,26 @@ namespace ContentPublishingLib.JobMonitors
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
         private List<PublishJobTrackingItem> ActivePublicationRunnerItems = new List<PublishJobTrackingItem>();
 
+        private TimeSpan TaskAgeBeforeExecution
+        {
+            get
+            {
+                int TaskAgeSec;
+                try
+                {
+                    if (!int.TryParse(Configuration.ApplicationConfiguration["TaskAgeBeforeExecutionSeconds"], out TaskAgeSec))
+                    {
+                        throw new Exception();
+                    }
+                }
+                catch
+                {
+                    TaskAgeSec = 30;
+                }
+                return TimeSpan.FromSeconds(TaskAgeSec);
+            }
+        }
+
         private int MaxParallelRequests
         {
             get
@@ -204,7 +224,8 @@ namespace ContentPublishingLib.JobMonitors
             {
                 try
                 {
-                    List<ContentPublicationRequest> TopItems = Db.ContentPublicationRequest.Where(r => r.RequestStatus == PublicationStatus.Queued)
+                    List<ContentPublicationRequest> TopItems = Db.ContentPublicationRequest.Where(r => DateTime.UtcNow - r.CreateDateTimeUtc > TaskAgeBeforeExecution)
+                                                                                 .Where(r => r.RequestStatus == PublicationStatus.Queued)
                                                                                  .Include(r => r.RootContentItem)
                                                                                  .OrderBy(r => r.CreateDateTimeUtc)
                                                                                  .Take(ReturnNoMoreThan)

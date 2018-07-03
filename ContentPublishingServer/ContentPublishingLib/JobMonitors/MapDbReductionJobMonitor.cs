@@ -36,26 +36,6 @@ namespace ContentPublishingLib.JobMonitors
         private List<ReductionJobTrackingItem> ActiveReductionRunnerItems = new List<ReductionJobTrackingItem>();
 
         // Settable operating parameters
-        private TimeSpan TaskAgeBeforeExecution
-        {
-            get
-            {
-                int TaskAgeSec;
-                try
-                {
-                    if (!int.TryParse(Configuration.ApplicationConfiguration["TaskAgeBeforeExecutionSeconds"], out TaskAgeSec))
-                    {
-                        throw new Exception();
-                    }
-                }
-                catch
-                {
-                    TaskAgeSec = 30;
-                }
-                return TimeSpan.FromSeconds(TaskAgeSec);
-            }
-        }
-
         /// <summary>
         /// Initializes data used to construct database context instances using a named configuration parameter.
         /// </summary>
@@ -217,8 +197,7 @@ namespace ContentPublishingLib.JobMonitors
             {
                 try
                 {
-                    List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => DateTime.UtcNow - t.CreateDateTimeUtc > TaskAgeBeforeExecution)
-                                                                                 .Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
+                    List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
                                                                                  .Include(t => t.SelectionGroup).ThenInclude(sg => sg.RootContentItem).ThenInclude(rc => rc.ContentType)
                                                                                  .OrderBy(t => t.CreateDateTimeUtc)
                                                                                  .Take(ReturnNoMoreThan)
