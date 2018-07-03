@@ -1,0 +1,24 @@
+﻿@import "../../map_modules/variables";
+
+.content-options {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+
+    .content-option {
+        flex: 1;
+        align-content: center;
+        margin: 0;
+        font-weight: bold;
+        height: 1.5em;
+        background-color: $light-grey;
+        color: $charcoal;
+
+        &.selected {
+            background-color: $blue;
+            color: $white;
+        }
+    }
+}
