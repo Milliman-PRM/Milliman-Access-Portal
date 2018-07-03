@@ -47,17 +47,6 @@ namespace ContentPublishingLib.JobMonitors
             }
         }
 
-        #region Unit testing support
-        public TimeSpan TaskAgeBeforeExecution_TestAssert
-        {
-            get
-            {
-                AssertTesting();
-                return TaskAgeBeforeExecution;
-            }
-        }
-        #endregion
-
         /// <summary>
         /// Initializes data used to construct database context instances.
         /// </summary>
