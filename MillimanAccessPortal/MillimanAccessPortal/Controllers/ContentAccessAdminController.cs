@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
@@ -23,6 +24,7 @@ using MillimanAccessPortal.Models.ContentAccessAdmin;
 using MillimanAccessPortal.Models.ContentPublishing;
 using Newtonsoft.Json;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -33,6 +35,7 @@ namespace MillimanAccessPortal.Controllers
     {
         private readonly IAuditLogger AuditLogger;
         private readonly IAuthorizationService AuthorizationService;
+        private readonly IConfiguration ApplicationConfig;
         private readonly ApplicationDbContext DbContext;
         private readonly ILogger Logger;
         private readonly StandardQueries Queries;
@@ -44,7 +47,8 @@ namespace MillimanAccessPortal.Controllers
             ApplicationDbContext DbContextArg,
             ILoggerFactory LoggerFactoryArg,
             StandardQueries QueriesArg,
-            UserManager<ApplicationUser> UserManagerArg
+            UserManager<ApplicationUser> UserManagerArg,
+            IConfiguration ApplicationConfigArg
             )
         {
             AuditLogger = AuditLoggerArg;
@@ -53,6 +57,7 @@ namespace MillimanAccessPortal.Controllers
             Logger = LoggerFactoryArg.CreateLogger<ContentAccessAdminController>();
             Queries = QueriesArg;
             UserManager = UserManagerArg;
+            ApplicationConfig = ApplicationConfigArg;
         }
 
         /// <summary>Action for content access administration index.</summary>
@@ -752,23 +757,43 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The requested selections are not different from the active document.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+
+            ContentRelatedFile MasterFile = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
+
+            // A mastercontent file must be referenced by the RootContentItem
+            if (MasterFile == null || !System.IO.File.Exists(MasterFile.FullPath))
+            {
+                Response.Headers.Add("Warning", "The requested root content item does not refer to a valid master content file.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             string selectionCriteriaString = JsonConvert.SerializeObject(ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(DbContext, selectionGroupId, selections), Formatting.Indented);
+
+            // Copy master file to a dedicated task folder in the server exchange share
+            Guid RequestGuid = Guid.NewGuid();
+            string MapPublishingServerExchangeRequestFolder = Path.Combine(ApplicationConfig.GetSection("Storage")["MapPublishingServerExchangePath"], RequestGuid.ToString("D"));
+            Directory.CreateDirectory(MapPublishingServerExchangeRequestFolder);
+            string DestinationFullPath = Path.Combine(MapPublishingServerExchangeRequestFolder, Path.GetFileName(MasterFile.FullPath));
+            System.IO.File.Copy(MasterFile.FullPath, DestinationFullPath, true);
 
             var contentReductionTask = new ContentReductionTask
             {
                 ApplicationUser = await Queries.GetCurrentApplicationUser(User),
                 SelectionGroupId = selectionGroup.Id,
-                MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",  // TODO Fix this
+                MasterFilePath = DestinationFullPath,
                 ContentPublicationRequest = null,
                 SelectionCriteria = selectionCriteriaString,
                 ReductionStatus = ReductionStatusEnum.Queued,
                 CreateDateTimeUtc = DateTime.UtcNow,
+                TaskAction = TaskActionEnum.HierarchyAndReduction,
+                MasterContentChecksum = MasterFile.Checksum,
             };
             DbContext.ContentReductionTask.Add(contentReductionTask);
 
             DbContext.SaveChanges();
+
+            // TODO launch an async monitor object to handle the result of the reduction and make it live
 
             #region Log audit event
             AuditEvent selectionChangeReductionQueuedEvent = AuditEvent.New(
