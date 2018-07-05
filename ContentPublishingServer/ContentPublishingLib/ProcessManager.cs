@@ -55,10 +55,10 @@ namespace ContentPublishingLib
                 if (MonitorInfo.AwaitableTask.IsCompleted)
                 {
                     JobMonitorDict.Remove(DownCounter);
-                    Trace.WriteLine($"From ProcessManager, JobMonitor of type {MonitorInfo.Monitor.GetType().Name} ended with task status {MonitorInfo.AwaitableTask.Status.ToString()}.  There are {JobMonitorDict.Count} JobMonitor instances still running");
+                    GlobalFunctions.TraceWriteLine($"From ProcessManager, JobMonitor of type {MonitorInfo.Monitor.GetType().Name} ended with task status {MonitorInfo.AwaitableTask.Status.ToString()}.  There are {JobMonitorDict.Count} JobMonitor instances still running");
                     if (MonitorInfo.AwaitableTask.Status == TaskStatus.Faulted)
                     {
-                        Trace.WriteLine(GlobalFunctions.LoggableExceptionString(MonitorInfo.AwaitableTask.Exception, "Exception was", true, true));
+                        GlobalFunctions.TraceWriteLine(GlobalFunctions.LoggableExceptionString(MonitorInfo.AwaitableTask.Exception, "Exception was", true, true));
                         Thread.Sleep(1000);
                     }
                     if (MonitorInfo.AwaitableTask.Status != TaskStatus.Canceled)
@@ -108,7 +108,7 @@ namespace ContentPublishingLib
                 JobMonitorInfo MonitorInfo = MonitorKvp.Value;
                 MonitorInfo.AwaitableTask = MonitorInfo.Monitor.Start(MonitorInfo.TokenSource.Token);
 
-                Trace.WriteLine($"JobMonitor of type {MonitorInfo.Monitor.GetType().Name} started");
+                GlobalFunctions.TraceWriteLine($"JobMonitor of type {MonitorInfo.Monitor.GetType().Name} started");
             }
 
             // Initiate periodic checking of the Task status of each JobMonitor
@@ -138,7 +138,7 @@ namespace ContentPublishingLib
                 JobMonitorInfo MonitorInfo = MonitorKvp.Value;
                 MonitorInfo.TokenSource.Cancel();
 
-                Trace.WriteLine($"Token {MonitorKvp.Key} cancellation requested");
+                GlobalFunctions.TraceWriteLine($"JobMonitor type {MonitorKvp.Value.Monitor.GetType().Name} cancellation requested");
             }
 
             // Wait for all the running job monitors to complete
@@ -155,7 +155,7 @@ namespace ContentPublishingLib
                     throw;
                 }
             }
-            Trace.WriteLine($"In ProcessManager.Stop, WaitAll([JobMonitors]) ran for {DateTime.Now - Start}");
+            GlobalFunctions.TraceWriteLine($"In ProcessManager.Stop, WaitAll([JobMonitors]) ran for {DateTime.Now - Start}");
 
             if (!AnyMonitorThreadRunning)
             {

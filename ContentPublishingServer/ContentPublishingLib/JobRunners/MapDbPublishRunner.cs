@@ -143,14 +143,14 @@ namespace ContentPublishingLib.JobRunners
             catch (OperationCanceledException e)
             {
                 string msg = GlobalFunctions.LoggableExceptionString(e);
-                Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {msg}");
+                GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {msg}");
                 JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
                 JobDetail.Result.StatusMessage = msg;
             }
             catch (Exception e)
             {
                 string msg = GlobalFunctions.LoggableExceptionString(e);
-                Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {msg}");
+                GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {msg}");
                 JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
                 JobDetail.Result.StatusMessage = msg;
             }
@@ -180,7 +180,7 @@ namespace ContentPublishingLib.JobRunners
                     await CancelReductionTasks(QueuedTasks);
 
                     string Msg = $"Publication request terminating due to error in related reduction task(s):{Environment.NewLine}  {string.Join("  " + Environment.NewLine, FailedTasks.Select(t => t.Id.ToString() + " : " + t.ReductionStatusMessage))}";
-                    Trace.WriteLine(Msg);
+                    GlobalFunctions.TraceWriteLine(Msg);
 
                     throw new ApplicationException(Msg);
                 }
