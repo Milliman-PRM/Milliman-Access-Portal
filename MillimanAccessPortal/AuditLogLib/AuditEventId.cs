@@ -54,6 +54,7 @@ namespace AuditLogLib
         public static readonly AuditEventId HierarchyExtractionFailed = new AuditEventId(5102, "Content hierarchy extraction failed");
         public static readonly AuditEventId ContentReductionSucceeded = new AuditEventId(5201, "Content reduction completed");
         public static readonly AuditEventId ContentReductionFailed = new AuditEventId(5202, "Content reduction failed");
+        public static readonly AuditEventId PublicationRequestProcessingSuccess = new AuditEventId(5301, "Content PublicationRequest Succeeded");
 
         // Content Publishing category 6000 - 6999
         public static readonly AuditEventId RootContentItemCreated = new AuditEventId(4001, "Root content item created");
@@ -64,6 +65,7 @@ namespace AuditLogLib
         public static readonly AuditEventId GoLiveValidationFailed = new AuditEventId(4103, "GoLive Validation Failed");
         public static readonly AuditEventId ChecksumInvalid = new AuditEventId(4104, "Checksum Invalid");
         public static readonly AuditEventId ContentPublicationGoLive = new AuditEventId(4105, "Content publication golive");
+        public static readonly AuditEventId PreGoLiveSummary = new AuditEventId(4106, "Content publication pre-golive summary");
 
         public AuditEventId(int id, string name = "")
         {

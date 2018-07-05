@@ -699,6 +699,30 @@ namespace MillimanAccessPortal.Controllers
 
             PreLiveContentValidationSummary ReturnObj = PreLiveContentValidationSummary.Build(DbContext, RootContentItemId, ApplicationConfig);
 
+            #region Log audit event
+            AuditEvent PreLiveSummaryEvent = AuditEvent.New(
+                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                "Pre-live publication summary returned for user validation",
+                AuditEventId.PreGoLiveSummary,
+                new
+                {
+                    ReturnObj.ValidationSummaryId,
+                    ReturnObj.PublicationRequestId,
+                    ReturnObj.AttestationLanguage,
+                    ReturnObj.ContentDescription,
+                    ReturnObj.RootContentName,
+                    ReturnObj.ContentTypeName,
+                    ReturnObj.LiveHierarchy,
+                    ReturnObj.NewHierarchy,
+                    ReturnObj.DoesReduce,
+                    ReturnObj.ClientName,
+                },
+                User.Identity.Name,
+                HttpContext.Session.Id
+                );
+            AuditLogger.Log(PreLiveSummaryEvent);
+            #endregion
+
             return new JsonResult(ReturnObj);
         }
 
@@ -733,6 +757,9 @@ namespace MillimanAccessPortal.Controllers
                                                                                       .Include(r => r.RootContentItem)
                                                                                       .Include(r => r.ApplicationUser)
                                                                                       .SingleOrDefault(r => r.RequestStatus == PublicationStatus.Processed);
+
+            ContentReductionHierarchy<ReductionFieldValue> LiveHierarchy = new ContentReductionHierarchy<ReductionFieldValue> { RootContentItemId = PubRequest.RootContentItemId };
+            ContentReductionHierarchy<ReductionFieldValue> NewHierarchy = new ContentReductionHierarchy<ReductionFieldValue> { RootContentItemId = PubRequest.RootContentItemId };
 
             List<ContentReductionTask> RelatedReductionTasks = DbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == PubRequest.Id)
                                                                                              .Include(t => t.SelectionGroup)
@@ -815,8 +842,8 @@ namespace MillimanAccessPortal.Controllers
 
             if (PubRequest.RootContentItem.DoesReduce)
             {
-                ContentReductionHierarchy<ReductionFieldValue> LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(DbContext, PubRequest.RootContentItemId);
-                ContentReductionHierarchy<ReductionFieldValue> NewHierarchy = RelatedReductionTasks[0].MasterContentHierarchyObj;
+                LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(DbContext, PubRequest.RootContentItemId);
+                NewHierarchy = RelatedReductionTasks[0].MasterContentHierarchyObj;
 
                 if (LiveHierarchy.Fields.Count != 0)
                 {
@@ -907,7 +934,7 @@ namespace MillimanAccessPortal.Controllers
                 //3.3  HierarchyFieldValue due to hierarchy changes
                 //3.3.1  If this is first publication for this root content item, add the fields
                 if (LiveHierarchy.Fields.Count == 0)
-                {  // This must be first time publication, need to insert the fields
+                {  // This must be first time publication, need to insert the fields.  Values are handled below
                     NewHierarchy.Fields.ForEach(f => DbContext.HierarchyField.Add(new HierarchyField
                         {
                             FieldName = f.FieldName,
