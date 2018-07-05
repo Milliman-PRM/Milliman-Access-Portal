@@ -387,6 +387,9 @@ namespace MillimanAccessPortal.Controllers
             DbContext.RootContentItem.Remove(rootContentItem);
             DbContext.SaveChanges();
 
+            string ContentFolderPath = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"], rootContentItem.Id.ToString());
+            Directory.Delete(ContentFolderPath, true);
+
             #region Log audit event(s)
             AuditEvent rootContentItemDeletedEvent = AuditEvent.New(
                 $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
