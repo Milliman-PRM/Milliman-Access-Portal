@@ -860,13 +860,12 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            /*
-                * At this point, available variables include:
-                * - PubRequest - validated to be the relevant ContentPublicationRequest instance, with RootContentItem and ApplicationUser navigation properties
-                * - RelatedReductionTasks - List of ContentReductionTask instances referring to PubRequest, with SelectionGroup navigation properties
-                * - LiveHierarchy - Reflects the hierarchy of the currently live content
-                * - NewHierarchy - Reflects the new hierarchy of the content being requested to go live
-                */
+            /* At this point, available variables include:
+             * - PubRequest - validated to be the relevant ContentPublicationRequest instance, with RootContentItem and ApplicationUser navigation properties
+             * - RelatedReductionTasks - List of ContentReductionTask instances referring to PubRequest, with SelectionGroup navigation properties
+             * - LiveHierarchy - Reflects the hierarchy of the currently live content
+             * - NewHierarchy - Reflects the new hierarchy of the content being requested to go live
+             */
 
             List<string> FilesToDelete = new List<string>();
 
@@ -935,19 +934,32 @@ namespace MillimanAccessPortal.Controllers
                 //3.2  ContentReductionTask.Status
                 RelatedReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Live);
                 //3.3  HierarchyFieldValue due to hierarchy changes
-                //3.3.1  If this is first publication for this root content item, add the fields
+                //3.3.1  If this is first publication for this root content item, add the fields to db and to LiveHierarchy to help identify all values as new
                 if (LiveHierarchy.Fields.Count == 0)
                 {  // This must be first time publication, need to insert the fields.  Values are handled below
-                    NewHierarchy.Fields.ForEach(f => DbContext.HierarchyField.Add(new HierarchyField
+                    NewHierarchy.Fields.ForEach(f =>
+                    {
+                        HierarchyField NewField = new HierarchyField
                         {
                             FieldName = f.FieldName,
                             FieldDisplayName = f.DisplayName,
                             RootContentItemId = PubRequest.RootContentItemId,
                             FieldDelimiter = f.ValueDelimiter,
                             StructureType = f.StructureType,
-                        }
-                    ));
-                    DbContext.SaveChanges();
+                        };
+                        DbContext.HierarchyField.Add(NewField);
+                        DbContext.SaveChanges();
+
+                        LiveHierarchy.Fields.Add(new ReductionField<ReductionFieldValue>
+                        {
+                            Id = NewField.Id,  // Id is assigned during DbContext.SaveChanges() above
+                            FieldName = NewField.FieldName,
+                            DisplayName = NewField.FieldDisplayName,
+                            StructureType = NewField.StructureType,
+                            ValueDelimiter = NewField.FieldDelimiter,
+                            Values = new List<ReductionFieldValue>(),
+                        });
+                    });
                 }
                 //3.3.2  Add/Remove field values based on value list differences between new/old
                 foreach (var NewHierarchyField in NewHierarchy.Fields)
