@@ -92,7 +92,7 @@ namespace AuditLogLib
                 case "PRODUCTION":
                     configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
                     built = configurationBuilder.Build();
-                    var store = new X509Store(StoreName.My, (environmentName == "PRODUCTION" ? StoreLocation.LocalMachine : StoreLocation.CurrentUser));
+                    var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
                     store.Open(OpenFlags.ReadOnly);
                     var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
 
