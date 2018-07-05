@@ -149,7 +149,7 @@ namespace MillimanAccessPortal
 
             app.UseRewriter(options);
 
-            if (env.IsDevelopment() || env.EnvironmentName == "CI")
+            if (env.IsDevelopment() || env.EnvironmentName.ToUpper() == "AZURECI")
             {
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
