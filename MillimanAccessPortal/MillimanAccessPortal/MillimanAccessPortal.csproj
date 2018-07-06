@@ -49,12 +49,6 @@
     <None Include="node_modules\**" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="webpack.config.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="webpack.config.js" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\AuditLogLib\AuditLogLib.csproj" />
     <ProjectReference Include="..\EmailQueue\EmailQueue.csproj" />
     <ProjectReference Include="..\MapCommonLib\MapCommonLib.csproj" />
