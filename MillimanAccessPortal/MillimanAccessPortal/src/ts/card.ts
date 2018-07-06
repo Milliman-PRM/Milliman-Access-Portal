@@ -4,6 +4,19 @@ import * as shared from './shared';
 import { SelectionGroupSummary } from './view-models/content-access-admin';
 import { RootContentItemSummary, UserInfo } from './view-models/content-publishing';
 
+require('../images/user.svg');
+require('../images/remove-circle.svg');
+require('../images/add-circle.svg');
+require('../images/expand-card.svg');
+require('../images/cancel.svg');
+require('../images/group.svg');
+require('../images/reports.svg');
+require('../images/delete.svg');
+require('../images/edit.svg');
+require('../images/add.svg');
+require('../images/upload.svg');
+require('../images/checkmark.svg');
+
 const card = {};
 
 // tslint:disable:object-literal-sort-keys
@@ -60,7 +73,7 @@ const components = Object.assign(
       render(component) {
         return function(properties) {
           this.verify(component);
-          this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
+          this.attr(component, { href: '#' + properties.icon }, '[href]');
           this.html(component, properties.text, 'span');
         };
       },
@@ -83,7 +96,7 @@ const components = Object.assign(
       render(component) {
         return function(properties) {
           this.verify(component);
-          this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
+          this.attr(component, { href: '#' + properties.icon }, '[href]');
           this.html(component, properties.text, 'span');
         };
       },
@@ -152,7 +165,7 @@ const components = Object.assign(
       render(component) {
         return function(properties) {
           this.add(component);
-          this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
+          this.attr(component, { href: '#' + properties.icon }, '[href]');
           this.html(component, properties.value, '.card-stat-value');
           this.tooltip(component, properties.tooltip);
         };
@@ -176,7 +189,7 @@ const components = Object.assign(
             return;
           }
           this.add(component);
-          this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
+          this.attr(component, { href: '#' + properties.icon }, '[href]');
           this.addClass(component, 'card-button-' + properties.color);
           this.addClass(component, 'card-button-' + properties.icon);
           this.tooltip(component, properties.tooltip);
@@ -199,7 +212,7 @@ const components = Object.assign(
       render(component) {
         return function(properties) {
           this.add(component);
-          this.attr(component, { href: '#action-icon-' + properties.icon }, '[href]');
+          this.attr(component, { href: '#' + properties.icon }, '[href]');
           this.addClass(component, properties.class);
         };
       },
@@ -279,13 +292,13 @@ const components = Object.assign(
         '  <span class="detail-item-user">',
         '    <div class="detail-item-user-icon">',
         '      <svg class="card-user-icon">',
-        '        <use href="#action-icon-user"></use>',
+        '        <use href="#user"></use>',
         '      </svg>',
         '    </div>',
         '    <div class="detail-item-user-remove">',
         '      <div class="card-button-background card-button-delete">',
         '        <svg class="card-button-icon">',
-        '          <use href="#action-icon-remove-circle"></use>',
+        '          <use href="#remove-circle"></use>',
         '        </svg>',
         '      </div>',
         '    </div>',
@@ -319,7 +332,7 @@ const components = Object.assign(
         '  <div class="detail-item-user-add">',
         '    <div class="card-button-background card-button-add">',
         '      <svg class="card-button-icon">',
-        '        <use href="#action-icon-add-circle"></use>',
+        '        <use href="#add-circle"></use>',
         '      </svg>',
         '    </div>',
         '  </div>',
@@ -499,7 +512,7 @@ const components = Object.assign(
         '  <div class="card-button-bottom-container">',
         '    <div class="card-button-background card-button-expansion">',
         '      <svg class="card-button-icon">',
-        '        <use href="#action-icon-expand-card"></use>',
+        '        <use href="#expand-card"></use>',
         '      </svg>',
         '    </div>',
         '  </div>',
@@ -522,7 +535,7 @@ const components = Object.assign(
         '    <p class="card-progress-status-text"></p>',
         '    <div class="card-progress-status-btn btn-cancel">',
         '      <svg class="card-button-icon">',
-        '        <use href="#action-icon-cancel"></use>',
+        '        <use href="#cancel"></use>',
         '      </svg>',
         '    </div>',
         '  </div>',
@@ -802,7 +815,7 @@ export function ClientCard(
   this.addComponent('primaryText', { text: client.Name });
   this.addComponent('secondaryText', { text: client.ClientCode });
   this.addComponent('statistic', {
-    icon: 'users',
+    icon: 'group',
     tooltip: 'Assigned users',
     value: userCount,
   });
@@ -847,7 +860,7 @@ export function RootContentItemCard(
   this.addComponent('primaryText', { text: rootContentItemDetail.ContentName });
   this.addComponent('secondaryText', { text: rootContentItemDetail.ContentTypeName });
   this.addComponent('statistic', {
-    icon: 'users',
+    icon: 'group',
     tooltip: 'Selection groups',
     value: rootContentItemDetail.GroupCount,
   });
@@ -866,7 +879,7 @@ export function RootContentItemCard(
     callback: publishCallback,
     color: 'green',
     dynamic: true,
-    icon: 'file-upload',
+    icon: 'upload',
     tooltip: 'Republish',
   });
   this.addComponent('button', {
@@ -880,7 +893,7 @@ export function RootContentItemCard(
     callback: goLiveCallback,
     color: 'blue',
     dynamic: true,
-    icon: 'add',
+    icon: 'checkmark',
     tooltip: 'Go Live',
   });
   this.addComponent('status', {});
@@ -928,7 +941,7 @@ export function SelectionGroupCard(
   this.addComponent('primaryTextBox', { text: selectionGroup.Name });
   this.addComponent('secondaryText', { text: selectionGroup.RootContentItemName });
   this.addComponent('statistic', {
-    icon: 'users',
+    icon: 'group',
     tooltip: 'Members',
     value: selectionGroup.MemberList.length,
   });
@@ -1081,7 +1094,7 @@ export function UserCard(
   this.addComponent('button', {
     callback: removeCallback,
     color: 'red',
-    icon: 'remove',
+    icon: 'remove-circle',
     tooltip: 'Remove user',
   });
   this.addComponent('detailText', { text: 'User roles' });

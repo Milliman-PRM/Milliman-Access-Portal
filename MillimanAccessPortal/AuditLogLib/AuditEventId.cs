@@ -47,6 +47,8 @@ namespace AuditLogLib
         public static readonly AuditEventId SelectionGroupUserRemoved = new AuditEventId(4004, "User removed from selection group");
         public static readonly AuditEventId SelectionChangeReductionQueued = new AuditEventId(4005, "Selection change reduction task queued");
         public static readonly AuditEventId SelectionChangeReductionCanceled = new AuditEventId(4006, "Selection change reduction task canceled");
+        public static readonly AuditEventId SelectionChangeMasterAccessGranted = new AuditEventId(4007, "Selection group given master access");
+        public static readonly AuditEventId SelectionGroupSuspensionUpdate = new AuditEventId(4008, "Selection group suspension status updated");
 
         // Reduction Server category 5000 - 5999
         public static readonly AuditEventId ReductionValidationFailed = new AuditEventId(5001, "Reduction Validation Failed");

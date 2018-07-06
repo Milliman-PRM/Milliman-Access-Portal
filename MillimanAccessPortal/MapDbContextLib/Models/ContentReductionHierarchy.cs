@@ -78,11 +78,13 @@ namespace MapDbContextLib.Models
             };
 
             var RelatedHierarchyFields = DbContext.HierarchyField
-                .Where(hf => hf.RootContentItemId == SelectionGroup.RootContentItemId);
+                .Where(hf => hf.RootContentItemId == SelectionGroup.RootContentItemId)
+                .OrderBy(hf => hf.FieldDisplayName);
             foreach (var HierarchyField in RelatedHierarchyFields)
             {
                 var HierarchyFieldValues = DbContext.HierarchyFieldValue
                     .Where(hfv => hfv.HierarchyFieldId == HierarchyField.Id)
+                    .OrderBy(hfv => hfv.Value)
                     .Select(hfv => new ReductionFieldValueSelection
                     {
                         Id = hfv.Id,

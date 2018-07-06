@@ -53,13 +53,13 @@
         <input class="admin-panel-searchbar-tree" type="search" placeholder="Filter Users" />
         <div class="admin-panel-action-icons-container">
             <svg class="action-icon-collapse action-icon tooltip" title="Collapse all user cards" style="display: none;">
-                <use xlink:href="#action-icon-collapse"></use>
+                <use xlink:href="#collapse-cards"></use>
             </svg>
             <svg class="action-icon-expand action-icon tooltip" title="Expand all user cards">
-                <use xlink:href="#action-icon-expand"></use>
+                <use xlink:href="#expand-cards"></use>
             </svg>
             <svg class="action-icon-add action-icon tooltip" title="Add selection group">
-                <use xlink:href="#action-icon-add"></use>
+                <use xlink:href="#add"></use>
             </svg>
         </div>
     </div>
@@ -80,9 +80,34 @@
     </div>
     <div class="admin-panel-content-container">
         <form class="admin-panel-content">
-            <div class="fieldset-container"></div>
-            <button type="button" class="blue-button button-status-0 button-status-1 button-status-40">Submit</button>
-            <button type="button" class="red-button button-status-10">Cancel</button>
+            <h2></h2>
+            <h3></h3>
+            <div class="switch-container">
+                <div class="toggle-switch">
+                    <input type="checkbox" class="toggle-switch-checkbox" name="IsSuspended" id="IsSuspended">
+                    <label class="toggle-switch-label" for="IsSuspended">
+                        <span class="toggle-switch-inner"></span>
+                        <span class="toggle-switch-switch"></span>
+                    </label>
+                </div>
+                <label class="switch-label">Suspend Access</label>
+            </div>
+            <div class="selection-content">
+                <hr>
+                <div class="switch-container">
+                    <div class="toggle-switch">
+                        <input type="checkbox" class="toggle-switch-checkbox" name="IsMaster" id="IsMaster">
+                        <label class="toggle-switch-label" for="IsMaster">
+                            <span class="toggle-switch-inner"></span>
+                            <span class="toggle-switch-switch"></span>
+                        </label>
+                    </div>
+                    <label class="switch-label">Unrestricted Access</label>
+                </div>
+                <div class="fieldset-container"></div>
+                <button type="button" class="blue-button button-status-0 button-status-1 button-status-40">Submit</button>
+                <button type="button" class="red-button button-status-10">Cancel</button>
+            </div>
         </form>
     </div>
 </div>

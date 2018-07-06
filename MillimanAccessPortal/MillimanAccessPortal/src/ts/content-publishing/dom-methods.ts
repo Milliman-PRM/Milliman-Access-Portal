@@ -165,7 +165,7 @@ function mapRootContentItemDetail(item: RootContentItemDetail) {
 function addToDocumentCount(clientId: number, offset: number) {
   const itemCount = $('#client-tree .card-container')
     .filter((i, card) => $(card).data().clientId === clientId)
-    .find('use[href="#action-icon-reports"]').closest('div').find('h4');
+    .find('use[href="#reports"]').closest('div').find('h4');
   itemCount.html(`${parseInt(itemCount.html(), 10) + offset}`);
 }
 

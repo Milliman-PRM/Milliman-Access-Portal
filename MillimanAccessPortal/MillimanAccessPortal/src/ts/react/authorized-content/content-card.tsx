@@ -8,6 +8,9 @@ import { ContentItem, Filterable } from './interfaces';
 require('tooltipster');
 require('tooltipster/src/css/tooltipster.css');
 
+require('../../../images/userguide.svg');
+require('../../../images/release-notes.svg');
+
 export class ContentCard extends React.Component<ContentItem, {}> {
   public render() {
     return (
@@ -19,12 +22,12 @@ export class ContentCard extends React.Component<ContentItem, {}> {
                 <ActionIcon
                   action={() => window.location.href = this.props.ReleaseNotesURL}
                   title='View Release Notes'
-                  icon='navbar-user-guide'
+                  icon='release-notes'
                   />
                 <ActionIcon
                   action={() => window.location.href = this.props.UserguideURL}
                   title='View Userguide'
-                  icon='navbar-user-guide'
+                  icon='userguide'
                   />
               </div>
             </div>

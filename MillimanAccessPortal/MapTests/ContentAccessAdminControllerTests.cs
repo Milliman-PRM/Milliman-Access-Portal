@@ -582,7 +582,7 @@ namespace MapTests
             #region Act
             int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
             
-            var view = await controller.SingleReduction(SelectionGroupId, Selections);
+            var view = await controller.UpdateSelections(SelectionGroupId, false, Selections);
 
             int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
             #endregion
@@ -618,7 +618,7 @@ namespace MapTests
             #region Act
             int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
 
-            var view = await controller.SingleReduction(SelectionGroupId, Selections);
+            var view = await controller.UpdateSelections(SelectionGroupId, false, Selections);
 
             int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
             #endregion
@@ -641,7 +641,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = controller.SingleReduction(1, Selections);
+            var view = controller.UpdateSelections(1, false, Selections);
             #endregion
 
             #region Assert
@@ -676,7 +676,7 @@ namespace MapTests
             #region Act
             int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
 
-            var view = await controller.SingleReduction(SelectionGroupId, Selections);
+            var view = await controller.UpdateSelections(SelectionGroupId, false, Selections);
 
             int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
             #endregion

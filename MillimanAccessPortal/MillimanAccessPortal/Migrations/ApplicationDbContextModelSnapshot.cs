@@ -307,6 +307,8 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<bool>("IsMaster");
 
+                    b.Property<bool>("IsSuspended");
+
                     b.Property<long>("RootContentItemId");
 
                     b.Property<long[]>("SelectedHierarchyFieldValueList");

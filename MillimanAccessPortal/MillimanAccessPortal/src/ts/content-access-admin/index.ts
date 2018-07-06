@@ -12,6 +12,11 @@ import * as toastr from 'toastr';
 
 import { setup } from './dom-methods';
 
+require('../../images/map-logo.svg');
+require('../../images/add.svg');
+require('../../images/collapse-cards.svg');
+require('../../images/expand-cards.svg');
+
 $(document).ready(() => {
   setup();
   toastr.info('Page loaded');  // TODO: Remove for production

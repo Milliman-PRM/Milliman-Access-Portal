@@ -11,6 +11,8 @@ require('bootstrap/scss/bootstrap-reboot.scss');
 require('toastr/toastr.scss');
 require('../scss/map.scss');
 
+require('../images/map-logo.svg');
+
 $(document).ready(() => {
   if ($('#UserName').val() !== $('#Email').val()) {
     $('#Email').show();
