@@ -107,7 +107,12 @@ namespace MapDbContextLib.Context
         [NotMapped]
         public ContentReductionHierarchy<ReductionFieldValue> MasterContentHierarchyObj
         {
-            get { return JsonConvert.DeserializeObject<ContentReductionHierarchy<ReductionFieldValue>>(MasterContentHierarchy); }
+            get
+            {
+                return MasterContentHierarchy == null
+                    ? null
+                    : JsonConvert.DeserializeObject<ContentReductionHierarchy<ReductionFieldValue>>(MasterContentHierarchy);
+            }
             set { MasterContentHierarchy = JsonConvert.SerializeObject(value, Formatting.Indented); }
         }
 
@@ -120,7 +125,12 @@ namespace MapDbContextLib.Context
         [NotMapped]
         public ContentReductionHierarchy<ReductionFieldValue> ReducedContentHierarchyObj
         {
-            get { return JsonConvert.DeserializeObject<ContentReductionHierarchy<ReductionFieldValue>>(ReducedContentHierarchy); }
+            get
+            {
+                return ReducedContentHierarchy == null
+                    ? null
+                    : JsonConvert.DeserializeObject<ContentReductionHierarchy<ReductionFieldValue>>(ReducedContentHierarchy);
+            }
             set { ReducedContentHierarchy = JsonConvert.SerializeObject(value, Formatting.Indented); }
         }
 
