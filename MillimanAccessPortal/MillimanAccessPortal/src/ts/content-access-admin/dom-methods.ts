@@ -112,7 +112,7 @@ function submitSelectionForm() {
     hideButtonSpinner($button);
     renderSelections(response);
     toastr.success(data.IsMaster
-      ? 'Master content access granted.'
+      ? 'Unrestricted access granted.'
       : 'A reduction task has been queued.');
   }).fail(function onFail(response) {
     hideButtonSpinner($button);
