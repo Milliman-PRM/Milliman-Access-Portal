@@ -503,7 +503,7 @@ export function setup() {
     ).build());
 
   $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').click(() => {
-    if (formObject.accessMode === AccessMode.Read) {
+    if (formObject.accessMode === AccessMode.Read || formObject.submissionMode === 'new') {
       $('#root-content-items [selected]').click();
     } else {
       setFormReadOnly();
