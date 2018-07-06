@@ -73,6 +73,7 @@ export interface RootContentItemDetail {
   ContentName: string;
   ContentTypeId: number | string;
   DoesReduce: boolean;
+  RelatedFiles: string[];
   Description: string;
   Notes: string;
 }

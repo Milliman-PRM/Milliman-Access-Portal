@@ -117,6 +117,7 @@ export function openNewRootContentItemForm() {
     DoesReduce: false,
     Id: 0,
     Notes: '',
+    RelatedFiles: [],
   });
   setFormNew();
 }

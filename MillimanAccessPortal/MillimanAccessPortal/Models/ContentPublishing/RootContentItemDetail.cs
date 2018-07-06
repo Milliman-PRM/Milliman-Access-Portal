@@ -6,9 +6,10 @@
 
 using MapDbContextLib.Context;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
 {
@@ -30,6 +31,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         [Display(Name = "Does Reduce")]
         public bool DoesReduce { get; set; }
 
+        public List<string> RelatedFiles { get; set; }
+
         public string Description { get; set; }
 
         public string Notes { get; set; }
@@ -43,6 +46,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 ContentName = rootContentItem.ContentName,
                 ContentTypeId = rootContentItem.ContentTypeId,
                 DoesReduce = rootContentItem.DoesReduce,
+                RelatedFiles = rootContentItem.ContentFilesList.Select(file => file.FilePurpose).ToList(),
                 Description = rootContentItem.Description,
                 Notes = rootContentItem.Notes,
             };
