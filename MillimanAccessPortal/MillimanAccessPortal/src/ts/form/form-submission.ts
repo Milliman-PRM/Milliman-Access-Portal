@@ -14,7 +14,6 @@ export class Submission extends FormElement {
   };
   // tslint:enable:object-literal-sort-keys
 
-  private _disabled = false;
   private _submissionMode: SubmissionMode;
   public get submissionMode(): SubmissionMode {
     return this._submissionMode;
@@ -31,16 +30,30 @@ export class Submission extends FormElement {
     return `.button-container-${this.submissionMode.name}`;
   }
 
+  private _modified: boolean;
   public get modified() {
-    return false;
+    return this._modified;
   }
   public set modified(value: boolean) {
-    if (value) {
+    this._modified = value;
+    if (this.modified && this.valid) {
       this.$entryPoint.show();
     } else {
       this.$entryPoint.hide();
     }
-    this._disabled = value;
+  }
+
+  private _valid: boolean;
+  public get valid() {
+    return this._valid;
+  }
+  public set valid(value: boolean) {
+    this._valid = value;
+    if (this.modified && this.valid) {
+      this.$entryPoint.show();
+    } else {
+      this.$entryPoint.hide();
+    }
   }
 
   public setCallbacks(modes: SubmissionMode[], form: FormBase) {
@@ -112,6 +125,8 @@ export class SubmissionGroup<T> {
         return;
       }
     }
+
+    form.validate();
 
     return new Promise((resolve, reject) => {
       $.ajax({

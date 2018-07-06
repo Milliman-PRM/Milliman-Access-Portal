@@ -1,4 +1,4 @@
-﻿@model MapDbContextLib.Context.RootContentItem;
+﻿@model MillimanAccessPortal.Models.ContentPublishing.RootContentItemDetail;
 
 @{
     /*
@@ -97,7 +97,7 @@
                             <label asp-for="ContentTypeId"></label>
                             <div>
                                 <select asp-for="ContentTypeId">
-                                    <option value="">Make a Selection</option>
+                                    <option value="0">Make a Selection</option>
                                 </select>
                                 <span asp-validation-for="ContentTypeId" class="text-danger"></span>
                             </div>
@@ -116,7 +116,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="form-section" data-section="publication-files">
+                <div class="form-section form-section-valid-files" data-section="publication-files">
                     <h4 class="form-section-title">Files</h4>
                     <div class="form-input-container">
                         <div class="form-input-container flex-item-4-12">

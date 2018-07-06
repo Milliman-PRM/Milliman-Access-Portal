@@ -41,6 +41,11 @@ export abstract class FormInput extends FormElement {
   }
   protected abstract comparator: (a: string, b: string) => boolean;
 
+  public get valid(): boolean {
+    return this.validFn(this.$input);
+  }
+  protected abstract validFn: (input: JQuery<HTMLElement>) => boolean;
+
   protected originalValue: string;
 
   private _accessMode: AccessMode = AccessMode.Read;
