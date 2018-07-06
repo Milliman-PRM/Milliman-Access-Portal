@@ -154,10 +154,14 @@ namespace MillimanAccessPortal
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
                 app.UseBrowserLink();
-                app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
+
+                if (env.IsDevelopment())
                 {
-                    HotModuleReplacement = true,
-                });
+                    app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
+                    {
+                        HotModuleReplacement = true,
+                    });
+                }
             }
             else
             {
