@@ -97,6 +97,7 @@ $rootPath = (get-location).Path
 $webBuildTarget = "$rootPath\WebDeploy"
 $servicBuildTarget = "$rootPath\ServiceDeploy"
 $nugetDestination = "$rootPath\nugetPackages"
+$octopusURL = "https://indy-prmdeploy.milliman.com"
 
 #endregion
 
@@ -343,7 +344,7 @@ log_statement "Deploying packages to Octopus"
 
 cd $nugetDestination
 
-octo push --package "web\MillimanAccessPortal.1.0.0-$branchName.nupkg" --package "service\ContentPublishingServer.1.0.0-$branchName.nupkg" --replace-existing --server "https://indy-prmdeploy" --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW"
+octo push --package "web\MillimanAccessPortal.1.0.0-$branchName.nupkg" --package "service\ContentPublishingServer.1.0.0-$branchName.nupkg" --replace-existing --server $octopusURL --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW"
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
@@ -354,7 +355,7 @@ if ($LASTEXITCODE -ne 0) {
 
 log_statement "Creating web app release"
 
-octo create-release --project "Milliman Access Portal" --version "1.0.0-$branchname" --packageVersion "1.0.0-$branchName" --ignoreexisting --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --channel "Development" --server "https://indy-prmdeploy" 
+octo create-release --project "Milliman Access Portal" --version "1.0.0-$branchname" --packageVersion "1.0.0-$branchName" --ignoreexisting --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --channel "Development" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release created successfully"
@@ -369,7 +370,7 @@ else {
 
 log_statement "Deploying web app release"
 
-octo deploy-release --project "Milliman Access Portal" --deployto "Development" --channel "Development" --version "1.0.0-$branchname" --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --channel "Development" --server "https://indy-prmdeploy" --waitfordeployment --cancelontimeout --progress
+octo deploy-release --project "Milliman Access Portal" --deployto "Development" --channel "Development" --version "1.0.0-$branchname" --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --channel "Development" --server $octopusURL --waitfordeployment --cancelontimeout --progress
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release deployed successfully"
