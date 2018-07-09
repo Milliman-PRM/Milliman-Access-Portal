@@ -6,7 +6,9 @@
 
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
+using MillimanAccessPortal.Models.ContentPublishing;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 using TestResourcesLib;
@@ -101,7 +103,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-            StatusCodeResult viewResult = (StatusCodeResult) view;
+            StatusCodeResult viewResult = (StatusCodeResult)view;
             Assert.Equal("422", viewResult.StatusCode.ToString());
             Assert.Equal(preCount, postCount);
             #endregion
@@ -260,23 +262,120 @@ namespace MapTests
             #endregion
         }
 
-        /*
         [Fact]
-        public async Task RequestContentPublication_Ok()
+        public async Task Publish_UnauthorizedUser()
         {
             #region Arrange
-            ContentPublishingController controller = await GetControllerForUser("test1");
+            ContentPublishingController controller = await GetControllerForUser("user3");
+            PublishRequest RequestArg = new PublishRequest();
             #endregion
 
             #region Act
-            // TODO Make this test work
-            var view = await controller.Publish(new PublishRequest { RootContentItemId = 1, RelatedFiles= new ContentRelatedFile[] { new ContentRelatedFile{ FilePurpose = "MasterContent", FileUploadId = Guid.Empty } } });
+            var view = await controller.Publish(RequestArg);
             #endregion
 
             #region Assert
-            Assert.IsType<JsonResult>(view);
+            Assert.IsType<UnauthorizedResult>(view);
+            Assert.Contains(controller.Response.Headers, h => h.Value == "You are not authorized to publish this content");
             #endregion
         }
-        */
+
+        [Fact]
+        public async Task Publish_MissingFileUploadRecord()
+        {
+            // user1 is authorized with role 4 (ContentPublisher) to RootContentItem 3
+            #region Arrange
+            ContentPublishingController controller = await GetControllerForUser("user1");
+            PublishRequest RequestArg = new PublishRequest
+            {
+                RootContentItemId = 3,
+                RelatedFiles = new UploadedRelatedFile[]
+                {
+                    new UploadedRelatedFile
+                    {  // does not exist in initialized FileUpload entity. 
+                        FilePurpose = "MasterContent",
+                        FileUploadId = new Guid(99,99,99,99,99,99,99,99,99,99,99),
+                    }
+                }
+            };
+            #endregion
+
+            #region Act
+            var view = await controller.Publish(RequestArg);
+            #endregion
+
+            #region Assert
+            Assert.IsType<BadRequestResult>(view);
+            Assert.Contains(controller.Response.Headers, h => h.Value == "A specified uploaded file was not found.");
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(PublicationStatus.Queued)]
+        [InlineData(PublicationStatus.Processing)]
+        public async Task Publish_PreviousPublishingPending(PublicationStatus ExistingRequestStatus)
+        {
+            // user1 is authorized with role 4 (ContentPublisher) to RootContentItem 3
+            #region Arrange
+            ContentPublishingController controller = await GetControllerForUser("user1");
+            PublishRequest RequestArg = new PublishRequest
+            {
+                RootContentItemId = 3,
+                RelatedFiles = new UploadedRelatedFile[0],
+            };
+            // Create a new publicationrequest record with blocking status
+            TestResources.DbContextObject.ContentPublicationRequest.Add(new ContentPublicationRequest
+            {
+                Id = 999, ApplicationUserId=1, RootContentItemId = 3,
+                RequestStatus = ExistingRequestStatus,
+                ReductionRelatedFilesObj = new List<ReductionRelatedFiles>{ },
+                CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0,1,0),
+            });
+            #endregion
+
+            #region Act
+            var view = await controller.Publish(RequestArg);
+            #endregion
+
+            #region Assert
+            Assert.IsType<BadRequestResult>(view);
+            Assert.Contains(controller.Response.Headers, h => h.Value == "A previous publication is pending for this content.");
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(ReductionStatusEnum.Queued)]
+        [InlineData(ReductionStatusEnum.Reducing)]
+        public async Task Publish_PreviousReductionPending(ReductionStatusEnum ExistingTaskStatus)
+        {
+            // user1 is authorized with role 4 (ContentPublisher) to RootContentItem 3
+            #region Arrange
+            ContentPublishingController controller = await GetControllerForUser("user1");
+            PublishRequest RequestArg = new PublishRequest
+            {
+                RootContentItemId = 3,
+                RelatedFiles = new UploadedRelatedFile[0],
+            };
+            // Create a new publicationrequest record with blocking status
+            TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
+            {
+                Id = Guid.NewGuid(),
+                SelectionGroup = TestResources.DbContextObject.SelectionGroup.Single(g => g.RootContentItemId == 3),
+                ApplicationUserId = 1,
+                ReductionStatus = ExistingTaskStatus,
+                CreateDateTimeUtc = DateTime.UtcNow,
+            });
+            #endregion
+
+            #region Act
+            var view = await controller.Publish(RequestArg);
+            #endregion
+
+            #region Assert
+            Assert.IsType<BadRequestResult>(view);
+            Assert.Contains(controller.Response.Headers, h => h.Value == "A previous reduction task is pending for this content.");
+            #endregion
+        }
+
     }
 }
