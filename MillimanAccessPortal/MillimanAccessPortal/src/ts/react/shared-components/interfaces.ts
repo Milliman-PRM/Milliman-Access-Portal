@@ -5,8 +5,14 @@
 }
 
 export interface ColumnSelectorProps {
-  colContentSelection: any;
+  colContentSelection: (string, boolean) => void;
   colContentOptions: string[];
   colContent: string;
+  primaryColumn: boolean;
+}
+
+export interface FilterProps {
+  updateFilterString: (string, boolean) => void;
+  placeholderText: string;
   primaryColumn: boolean;
 }
