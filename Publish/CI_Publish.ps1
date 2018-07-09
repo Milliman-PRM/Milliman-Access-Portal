@@ -69,16 +69,11 @@ function create_db { # Attempt to create a database by copying another one; retr
 #endregion
 
 #region Configure environment properties
-$ResourceGroupName = "map-ci"
-$SubscriptionId = "8f047950-269e-43c7-94e0-ff90d22bf013"
-$TenantId = "15dfebdf-8eb6-49ea-b9c7-f4b275f6b4b4"
 $BranchName = $env:git_branch.Replace("_","").Replace("-","").ToLower() # Will be used as the name of the deployment slot & appended to database names
 
 $gitExePath = "git"
-$credManagerPath = "L:\Hotware\Powershell_Plugins\CredMan.ps1"
 $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
 
-$dbServerHostname = "map-ci-db"
 $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
 $dbPassword = $env:db_deploy_password
