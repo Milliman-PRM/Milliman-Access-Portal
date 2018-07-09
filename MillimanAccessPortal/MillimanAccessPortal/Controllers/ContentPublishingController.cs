@@ -772,20 +772,18 @@ namespace MillimanAccessPortal.Controllers
                                                                                       .Include(r => r.ApplicationUser)
                                                                                       .SingleOrDefault(r => r.RequestStatus == PublicationStatus.Processed);
 
+            if (PubRequest == null)
+            {
+                Response.Headers.Add("Warning", "Go-Live request references an invalid publication request.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
             ContentReductionHierarchy<ReductionFieldValue> LiveHierarchy = new ContentReductionHierarchy<ReductionFieldValue> { RootContentItemId = PubRequest.RootContentItemId };
             ContentReductionHierarchy<ReductionFieldValue> NewHierarchy = new ContentReductionHierarchy<ReductionFieldValue> { RootContentItemId = PubRequest.RootContentItemId };
 
             List<ContentReductionTask> RelatedReductionTasks = DbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == PubRequest.Id)
                                                                                              .Include(t => t.SelectionGroup)
                                                                                              .ToList();
-
-            // The requested pub request should have appropriate status for GoLive
-
-            if (PubRequest == null)
-            {
-                Response.Headers.Add("Warning", "Go-Live request references a publication request that is not found.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
 
             // For each reducing SelectionGroup related to the RootContentItem:
             foreach (SelectionGroup ContentRelatedSelectionGroup in DbContext.SelectionGroup.Where(g => g.RootContentItemId == rootContentItemId)

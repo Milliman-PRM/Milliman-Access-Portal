@@ -377,5 +377,50 @@ namespace MapTests
             #endregion
         }
 
+        [Fact]
+        public async Task GoLive_UnauthorizedUser()
+        {
+            #region Arrange
+            ContentPublishingController controller = await GetControllerForUser("user3");
+            #endregion
+
+            #region Act
+            var view = await controller.GoLive(1, 1, "");
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            Assert.Contains(controller.Response.Headers, h => h.Value == "You are not authorized to publish content for this root content item.");
+            #endregion
+        }
+
+        [Fact]
+        public async Task GoLive_InvalidRequestStatus()
+        {
+            #region Arrange
+            ContentPublishingController controller = await GetControllerForUser("user1");
+            // Create a new publicationrequest record with blocking status
+            TestResources.DbContextObject.ContentPublicationRequest.Add(new ContentPublicationRequest
+            {
+                Id = 999,
+                ApplicationUserId = 1,
+                RootContentItemId = 3,
+                RequestStatus = PublicationStatus.Processing,
+                ReductionRelatedFilesObj = new List<ReductionRelatedFiles> { },
+                CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0),
+            });
+            #endregion
+
+            #region Act
+            var view = await controller.GoLive(3, 999, "");
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(view);
+            Assert.Equal(422, ((StatusCodeResult)view).StatusCode);
+            Assert.Contains(controller.Response.Headers, h => h.Value == "Go-Live request references an invalid publication request.");
+            #endregion
+        }
+
     }
 }
