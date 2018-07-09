@@ -285,7 +285,7 @@ cd $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
 (Get-Content "appsettings.AzureCI.json").replace("((branch_name))", "$branchName") | Set-Content "appsettings.AzureCI.json"
 
-dotnet ef database update --project "MapDbContextLib" --startup-project "MillimanAccessPortal"
+dotnet ef database update
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
@@ -294,7 +294,9 @@ if ($LASTEXITCODE -ne 0) {
     exit $error_code
 }
 
-dotnet ef database update --project "AuditLogLib" --startup-project "MillimanAccessPortal"
+cd $rootPath\MillimanAccessPortal\AuditLogLib
+
+dotnet ef database update
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
