@@ -234,7 +234,7 @@ if ($LASTEXITCODE -ne 0) {
 
 #endregion
 
-#region Clone databases
+#region Create and update databases
 
 log_statement "Preparing branch databases"
 
@@ -279,13 +279,35 @@ if ($logDbFound -eq $false)
 
 remove-item env:PGPASSWORD
 
+log_statement "Performing database migrations"
+
+cd $rootpath\MillimanAccessPortal\MillimanAccessPortal
+
+(Get-Content "appsettings.AzureCI.json").replace("((branch_name))", "$branchName") | Set-Content "appsettings.AzureCI.json"
+
+dotnet ef database update --project "MapDbContextLib" --startup-project "MillimanAccessPortal"
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to apply application database migrations"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+dotnet ef database update --project "AuditLogLib" --startup-project "MillimanAccessPortal"
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to apply audit log database migrations"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
 #endregion
 
 log_statement "Publishing and packaging web application"
 
 #region Publish web application to a folder
-
-cd $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
 msbuild /t:publish /p:PublishDir=$webBuildTarget /verbosity:quiet
 
