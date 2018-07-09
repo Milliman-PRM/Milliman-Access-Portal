@@ -656,7 +656,6 @@ namespace MillimanAccessPortal.Controllers
             catch
             {
                 Response.Headers.Add("Warning", "The publication request failed to be canceled.  Processing may have started.");
-                Response.Headers.Add("Warning", "The publication request failed to be canceled.  Processing may have started.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
@@ -1044,7 +1043,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Reject(long rootContentItemId)
+        public async Task<IActionResult> Reject(long rootContentItemId, long contentPublicationRequestId)
         {
             // TODO Could/should this be handled in the Cancel action?
             #region Authorization
@@ -1068,9 +1067,50 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            #region Validation
+            // the content item exists if the authorization check passes
+            RootContentItem rootContentItem = DbContext.RootContentItem.Find(rootContentItemId);
 
+            #region Validation
+            ContentPublicationRequest pubRequest = DbContext.ContentPublicationRequest.Find(contentPublicationRequestId);
+            if (pubRequest == null || pubRequest.RootContentItemId != rootContentItemId)
+            {
+                Response.Headers.Add("Warning", "The requested publication request does not exist.");
+                return BadRequest();
+            }
+
+            if (pubRequest.RequestStatus != PublicationStatus.Queued)
+            {
+                Response.Headers.Add("Warning", "The specified publication request is not currently queued.");
+                return BadRequest();
+            }
             #endregion
+
+            using (var Txn = DbContext.Database.BeginTransaction())
+            {
+                pubRequest.RequestStatus = PublicationStatus.Canceled;
+                DbContext.ContentPublicationRequest.Update(pubRequest);
+
+                List<ContentReductionTask> RelatedTasks = DbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == contentPublicationRequestId).ToList();
+                foreach (ContentReductionTask relatedTask in RelatedTasks)
+                {
+                    relatedTask.ReductionStatus = ReductionStatusEnum.Discarded;
+                    DbContext.ContentReductionTask.Update(relatedTask);
+                }
+                DbContext.SaveChanges();
+
+                // Delete all staged prelive files
+                foreach (ContentRelatedFile PreliveFile in pubRequest.LiveReadyFilesObj)
+                {
+                    System.IO.File.Delete(PreliveFile.FullPath);
+                }
+                // Delete any FileExchange folder
+                if (RelatedTasks.Any())
+                {
+                    Directory.Delete(Path.GetDirectoryName(RelatedTasks[0].MasterFilePath), true);
+                }
+
+                Txn.Commit();
+            }
 
             return NoContent();
         }

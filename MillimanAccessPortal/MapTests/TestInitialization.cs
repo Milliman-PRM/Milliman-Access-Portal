@@ -642,12 +642,34 @@ namespace MapTests
             {
                 new ContentPublicationRequest
                 {
-                    Id =1, ApplicationUserId=1, RootContentItemId = 1,
+                    Id = 1,
+                    ApplicationUserId =1,
+                    RootContentItemId = 1,
                     RequestStatus = PublicationStatus.Confirmed,
                     ReductionRelatedFilesObj = new List<ReductionRelatedFiles>{ },
                     CreateDateTimeUtc = DateTime.FromFileTimeUtc(100),
                 },
+                new ContentPublicationRequest
+                {
+                    Id = 2,
+                    ApplicationUserId = 1,
+                    RootContentItemId = 2,
+                    RequestStatus = PublicationStatus.Unknown,
+                    ReductionRelatedFilesObj = new List<ReductionRelatedFiles> { },
+                    CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0),
+                },
+                new ContentPublicationRequest
+                {
+                    Id = 3,
+                    ApplicationUserId = 1,
+                    RootContentItemId = 3,
+                    RequestStatus = PublicationStatus.Unknown,
+                    ReductionRelatedFilesObj = new List<ReductionRelatedFiles> { },
+                    CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0),
+                },
             });
+            MockDbSet<ContentPublicationRequest>.AssignNavigationProperty<ApplicationUser>(DbContextObject.ContentPublicationRequest, "ApplicationUserId", DbContextObject.ApplicationUser);
+            MockDbSet<ContentPublicationRequest>.AssignNavigationProperty<RootContentItem>(DbContextObject.ContentPublicationRequest, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
 
             #region Initialize FileUpload
@@ -662,9 +684,9 @@ namespace MapTests
         {
             #region Initialize Users
             DbContextObject.ApplicationUser.AddRange(new List<ApplicationUser>
-                {
-                    new ApplicationUser { Id=1, UserName="user1", Email="user1@example.com" },
-                    new ApplicationUser { Id=2, UserName="user2", Email="user2@example.com" },
+            {
+                new ApplicationUser { Id=1, UserName="user1", Email="user1@example.com" },
+                new ApplicationUser { Id=2, UserName="user2", Email="user2@example.com" },
             });
             #endregion
 
