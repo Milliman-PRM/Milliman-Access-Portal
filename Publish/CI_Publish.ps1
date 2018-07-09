@@ -362,7 +362,6 @@ octo create-release --project "Milliman Access Portal" --version $webVersion --p
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release created successfully"
-    # TODO: Output deployed URL
 }
 else {
     $error_code = $LASTEXITCODE
@@ -377,7 +376,6 @@ octo deploy-release --project "Milliman Access Portal" --deployto "Development" 
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release deployed successfully"
-    # TODO: Output deployed URL
 }
 else {
     $error_code = $LASTEXITCODE
