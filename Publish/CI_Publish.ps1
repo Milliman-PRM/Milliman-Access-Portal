@@ -87,6 +87,7 @@ $dbCreationRetries = 5 # The number of times the script will attempt to create a
 
 $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 
+$env:ASPNETCORE_ENVIRONMENT="AzureCI"
 $env:PATH = $env:PATH+";C:\Program Files (x86)\OctopusCLI\;$env:appdata\npm\"
 $rootPath = (get-location).Path
 $webBuildTarget = "$rootPath\WebDeploy"
