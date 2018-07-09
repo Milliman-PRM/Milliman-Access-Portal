@@ -736,6 +736,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     FilePurpose = RelatedFile.FilePurpose,
                     FullPath = DestinationFullPath,
+                    FileOriginalName = RelatedFile.FileOriginalName,
                     Checksum = FileUploadRecord.Checksum,
                 };
 

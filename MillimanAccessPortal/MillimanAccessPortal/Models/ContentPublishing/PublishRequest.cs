@@ -19,6 +19,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
     public class UploadedRelatedFile
     {
+        public string FileOriginalName { get; set; }
+
         /// <summary>
         /// Standard values: MasterContent, UserGuide, Thumbnail, ReleaseNotes
         /// </summary>

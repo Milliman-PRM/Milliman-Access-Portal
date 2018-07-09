@@ -73,7 +73,7 @@ export interface RootContentItemDetail {
   ContentName: string;
   ContentTypeId: number | string;
   DoesReduce: boolean;
-  RelatedFiles: string[];
+  RelatedFiles: ContentRelatedFile[];
   Description: string;
   Notes: string;
 }
@@ -94,6 +94,7 @@ export interface RootContentItemStatus {
 }
 
 export interface ContentRelatedFile {
+  FileOriginalName: string;
   FilePurpose: string;
   FileUploadId: string;
 }

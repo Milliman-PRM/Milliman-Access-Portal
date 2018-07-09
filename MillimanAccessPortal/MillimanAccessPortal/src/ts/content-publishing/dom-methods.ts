@@ -262,6 +262,14 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
     formMap.forEach((value, key) => {
       $rootContentItemForm.find(`#${key}`).val(value ? value.toString() : '');
     });
+    $rootContentItemForm.find('.file-upload').data('originalName', '');
+    if (item.RelatedFiles) {
+      item.RelatedFiles.forEach((relatedFile) => {
+        $rootContentItemForm.find(`#${relatedFile.FilePurpose}`)
+          .siblings('label').find('.file-upload')
+          .data('originalName', relatedFile.FileOriginalName);
+      });
+    }
 
     const $doesReduceToggle = $rootContentItemForm.find('#DoesReduce');
     $doesReduceToggle.prop('checked', item.DoesReduce);
@@ -335,10 +343,14 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
         .forEach((kvp) => dataArray[kvp[0]] = kvp[1]);
       const publishRequest: PublishRequest = {
         RelatedFiles: ['MasterContent', 'UserGuide', 'Thumbnail', 'ReleaseNotes']
-          .map((file) => ({
-            FilePurpose: file,
-            FileUploadId: dataArray[file],
-          }))
+          .map((file) => {
+            const fileData = dataArray[file].split('|');
+            return {
+              FileOriginalName: fileData[0],
+              FilePurpose: file,
+              FileUploadId: fileData[1],
+            };
+          })
           .filter((file) => file.FileUploadId),
         RootContentItemId: parseInt(dataArray.Id, 10),
       };
