@@ -10,12 +10,64 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     super(props);
     this.state = {
       primaryColContent: 'Users',
-      primaryColSelection: null,
       primaryColFilter: null,
       secondaryColContent: null,
-      secondaryColSelection: null,
       secondaryColFilter: null,
-      addUserDialog: false
+      addUserDialog: false,
+      structure: {
+        Users: {
+          displayValue: 'Users',
+          panel: 'UserPanel',
+          selectedInstance: null,
+          secColElements: {
+            Clients: {
+              displayValue: 'Clients',
+              panel: 'ClientsPanel',
+              selectedInstance: null
+            },
+            AuthContent: {
+              displayValue: 'Authorized Content',
+              panel: 'AuthContentPanel',
+              selectedInstance: null
+            }
+          }
+        },
+        Clients: {
+          displayValue: 'Users',
+          panel: 'UserPanel',
+          selectedInstance: null,
+          secColElements: {
+            Users: {
+              displayValue: 'Users',
+              panel: 'UsersPanel',
+              selectedInstance: null
+            },
+            Content: {
+              displayValue: 'Content Items',
+              panel: 'ContentPanel',
+              selectedInstance: null
+            }
+          }
+        },
+        PC: {
+          displayValue: 'Profit Centers',
+          panel: 'ProfitCentersPanel',
+          selectedInstance: null,
+          secColElements: {
+            AuthUsers: {
+              displayValue: 'Authorized Users',
+              panel: 'AuthUsersPanel',
+              selectedInstance: null
+            },
+            Clients: {
+              displayValue: 'Clients',
+              panel: 'ClientsPanel',
+              selectedInstance: null
+            }
+          }
+        }
+      }
+      
     };
   }
 
