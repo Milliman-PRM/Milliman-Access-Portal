@@ -62,7 +62,7 @@ namespace AuditLogLib
         public static readonly AuditEventId UserAccountDeleted = new AuditEventId(3004, "User account deleted");
 
         // Content Access Admin category 4000 - 4999
-        public static readonly AuditEventId SelectionGroupCreated = new AuditEventId<SelectionGroup>(4001, "Selection group created");
+        public static readonly AuditEventId<SelectionGroup> SelectionGroupCreated = new AuditEventId<SelectionGroup>(4001, "Selection group created");
         public static readonly AuditEventId SelectionGroupDeleted = new AuditEventId(4002, "Selection group deleted");
         public static readonly AuditEventId SelectionGroupUserAssigned = new AuditEventId(4003, "User assigned to selection group");
         public static readonly AuditEventId SelectionGroupUserRemoved = new AuditEventId(4004, "User removed from selection group");

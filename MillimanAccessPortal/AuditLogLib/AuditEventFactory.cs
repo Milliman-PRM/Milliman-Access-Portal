@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MapDbContextLib.Context;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -6,9 +7,22 @@ using System.Text;
 
 namespace AuditLogLib
 {
-    class AuditEventFactory
+    public class AuditEventFactory
     {
+        public static AuditEventFactory Instance { get; } = new AuditEventFactory();
+
+
         private readonly Dictionary<AuditEventId, Object> _registeredEvents = new Dictionary<AuditEventId, Object>();
+
+        private AuditEventFactory()
+        {
+            Register(AuditEventId.SelectionGroupCreated, (s) => new
+            {
+                ClientId = s?.RootContentItem?.Client?.Id,
+                RootContentItemId = s?.RootContentItem?.Id,
+                SelectionGroupId = s?.Id,
+            });
+        }
 
         public void Register(AuditEventId auditEventId)
         {
@@ -41,7 +55,7 @@ namespace AuditLogLib
             return new AuditEvent
             {
                 TimeStamp = DateTime.Now,
-                EventId = registration.Key,
+                EventType = registration.Key.Name,
                 EventDetailObject = loggableObject,
                 User = userName,
                 SessionId = sessionId,

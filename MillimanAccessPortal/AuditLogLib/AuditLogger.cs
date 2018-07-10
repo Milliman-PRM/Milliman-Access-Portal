@@ -93,13 +93,13 @@ namespace AuditLogLib
             if (ParamObject.GetType() == typeof(AuditEvent))
             {
                 NewEvent = ParamObject as AuditEvent;
-                NewEvent.EventId = EventId.Name;
+                NewEvent.EventType = EventId.Name;
             }
             else
             {
                 NewEvent = new AuditEvent
                 {
-                    EventId = EventId.Name,
+                    EventType = EventId.Name,
                     TimeStamp = DateTime.Now,
                 };
 

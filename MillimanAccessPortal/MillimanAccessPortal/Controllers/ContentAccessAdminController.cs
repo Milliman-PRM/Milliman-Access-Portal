@@ -232,15 +232,16 @@ namespace MillimanAccessPortal.Controllers
             }
 
             #region Log audit event
-            AuditEvent SelectionGroupCreatedEvent = AuditEvent.New(
-                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                "Selection group created",
-                AuditEventId.SelectionGroupCreated,
-                new { RootContentItem.ClientId, RootContentItemId, SelectionGroupId = SelectionGroup.Id },
-                User.Identity.Name,
-                HttpContext.Session.Id
-                );
-            AuditLogger.Log(SelectionGroupCreatedEvent);
+            AuditLogger.Log(AuditEventFactory.Instance.Create(AuditEventId.SelectionGroupCreated, SelectionGroup));
+            //AuditEvent SelectionGroupCreatedEvent = AuditEvent.New(
+                //$"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                //"Selection group created",
+                //AuditEventId.SelectionGroupCreated,
+                //new { RootContentItem.ClientId, RootContentItemId, SelectionGroupId = SelectionGroup.Id },
+                //User.Identity.Name,
+                //HttpContext.Session.Id
+                //);
+            //AuditLogger.Log(SelectionGroupCreatedEvent);
             #endregion
 
             Models.ContentAccessAdmin.SelectionGroupSummary Model = Models.ContentAccessAdmin.SelectionGroupSummary.Build(DbContext, SelectionGroup);
