@@ -27,6 +27,13 @@ write-output "Configuration file path: $($configPath.FullName)"
 
 $ExistingVars = Get-WebConfiguration -filter 'system.webserver/aspnetcore/environmentvariables/EnvironmentVariable' -PSPath $IISPath | where {$_.name -eq $VarName}
 
+if ($ExistingVars.value -eq $NewValue)
+{
+    # Notify that no change is needed
+    write-output "The target value is the same as the current value. No change will be made."
+    exit
+}
+
 if ($ExistingVars -eq $null)
 {
     # Create a new environment variable
@@ -37,16 +44,6 @@ if ($ExistingVars -eq $null)
     cd $AppCmdFolder
     .\appcmd set config "$SiteName/$AppName" /section:"system.webserver/aspnetcore" /+environmentvariables."[name='$VarName',value='$NewValue']"
     
-    $ExistingVars = Get-WebConfiguration -filter 'system.webserver/aspnetcore/environmentvariables/EnvironmentVariable' -PSPath $IISPath | where {$_.name -eq $VarName}
-
-    $ExistingValue = $ExistingVars.value
-    write-output "The final value of $VarName is $ExistingValue"
-
-}
-elseif ($ExistingVars.value -eq $NewValue)
-{
-    # Notify that no change is needed
-    write-output "The target value is the same as the current value. No change will be made."
 }
 else
 {
@@ -54,10 +51,10 @@ else
     $ExistingValue = $ExistingVars.value
     write-output "The current value of $VarName is $ExistingValue. Changing to $NewValue"
     Set-WebConfigurationProperty -Name "Value" -Value $NewValue -PSPath $IISPath -Filter "system.webserver/aspnetcore/environmentvariables/EnvironmentVariable[@name='$VarName' and @value='$ExistingValue']"
-
-    $ExistingVars = Get-WebConfiguration -filter 'system.webserver/aspnetcore/environmentvariables/EnvironmentVariable' -PSPath $IISPath | where {$_.name -eq $VarName}
-
-    $ExistingValue = $ExistingVars.value
-    write-output "The final value of $VarName is $ExistingValue"
 }
+
+$ExistingVars = Get-WebConfiguration -filter 'system.webserver/aspnetcore/environmentvariables/EnvironmentVariable' -PSPath $IISPath | where {$_.name -eq $VarName}
+
+$ExistingValue = $ExistingVars.value
+write-output "The final value of $VarName is $ExistingValue"
 
