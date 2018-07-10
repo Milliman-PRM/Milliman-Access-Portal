@@ -5,8 +5,8 @@
 		Set environment variables for .net core applications deployed via Octopus Deploy
 
     ### DEVELOPER NOTES:
-    
-#> 
+
+#>
 
 Param(
     [Parameter(Mandatory=$true)]
@@ -22,7 +22,7 @@ Param(
 $IISPath = "IIS:\Sites\$SiteName\$AppName"
 $AppCmdFolder = "C:/Windows/system32/inetsrv/"
 
-$configPath = Get-WebConfigFile -PSPath $IISPath | select FullName 
+$configPath = Get-WebConfigFile -PSPath $IISPath | select FullName
 write-output "Configuration file path: $($configPath.FullName)"
 
 $ExistingVars = Get-WebConfiguration -filter 'system.webserver/aspnetcore/environmentvariables/EnvironmentVariable' -PSPath $IISPath | where {$_.name -eq $VarName}
@@ -38,12 +38,11 @@ if ($ExistingVars -eq $null)
 {
     # Create a new environment variable
     write-output "Setting $VarName for the first time. The value will be $NewValue"
-    
+ 
     $config = Get-WebConfiguration 'system.webserver/aspnetcore/environmentvariables' -PSPath $IISPath
 
     cd $AppCmdFolder
     .\appcmd set config "$SiteName/$AppName" /section:"system.webserver/aspnetcore" /+environmentvariables."[name='$VarName',value='$NewValue']"
-    
 }
 else
 {
