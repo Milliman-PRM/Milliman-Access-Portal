@@ -58,6 +58,14 @@ namespace MillimanAccessPortal
 
             string appConnectionString = Configuration.GetConnectionString("DefaultConnection");
             
+            // If the database name is defined in the environment, update the connection string
+            if (Environment.GetEnvironmentVariable("APP_DATABASE_NAME") != null)
+            {
+                Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(appConnectionString);
+                stringBuilder.Database = Environment.GetEnvironmentVariable("APP_DATABASE_NAME");
+                appConnectionString = stringBuilder.ConnectionString;
+            }
+
             // Add framework services.
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(appConnectionString, b => b.MigrationsAssembly("MillimanAccessPortal")));
@@ -213,6 +221,14 @@ namespace MillimanAccessPortal
 
             #region Configure Audit Logger connection string
             string auditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString");
+
+            // If the database name is defined in the environment, update the connection string
+            if (Environment.GetEnvironmentVariable("LOG_DATABASE_NAME") != null)
+            {
+                Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString);
+                stringBuilder.Database = Environment.GetEnvironmentVariable("LOG_DATABASE_NAME");
+                auditLogConnectionString = stringBuilder.ConnectionString;
+            }
 
             AuditLogger.Config = new AuditLoggerConfiguration
             {
