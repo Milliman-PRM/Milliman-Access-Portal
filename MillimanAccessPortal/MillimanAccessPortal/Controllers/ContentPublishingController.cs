@@ -944,8 +944,15 @@ namespace MillimanAccessPortal.Controllers
                     DbContext.ContentPublicationRequest.Update(PreviousLiveRequest);
                 }
                 PubRequest.RequestStatus = PublicationStatus.Confirmed;
+
                 //3.2  ContentReductionTask.Status
+                foreach (ContentReductionTask PreviousLiveTask in DbContext.ContentReductionTask.Where(r => r.ReductionStatus == ReductionStatusEnum.Live))
+                {
+                    PreviousLiveTask.ReductionStatus = ReductionStatusEnum.Replaced;
+                    DbContext.ContentReductionTask.Update(PreviousLiveTask);
+                }
                 RelatedReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Live);
+
                 //3.3  HierarchyFieldValue due to hierarchy changes
                 //3.3.1  If this is first publication for this root content item, add the fields to db and to LiveHierarchy to help identify all values as new
                 if (LiveHierarchy.Fields.Count == 0)
@@ -1098,7 +1105,7 @@ namespace MillimanAccessPortal.Controllers
                 List<ContentReductionTask> RelatedTasks = DbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == publicationRequestId).ToList();
                 foreach (ContentReductionTask relatedTask in RelatedTasks)
                 {
-                    relatedTask.ReductionStatus = ReductionStatusEnum.Discarded;
+                    relatedTask.ReductionStatus = ReductionStatusEnum.Rejected;
                     DbContext.ContentReductionTask.Update(relatedTask);
                 }
                 DbContext.SaveChanges();

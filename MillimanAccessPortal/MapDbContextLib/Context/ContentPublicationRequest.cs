@@ -20,13 +20,13 @@ namespace MapDbContextLib.Context
     {
         Unknown = 0,
         Canceled = 1,
-        Error = 2,
-        Rejected = 3,
+        Rejected = 2,
         Queued = 10,
         Processing = 20,
         Processed = 30,
         Confirmed = 40,
         Replaced = 50,
+        Error = 90,         // An error has occured
     }
 
     public class ContentPublicationRequest
@@ -36,11 +36,13 @@ namespace MapDbContextLib.Context
         {
             { PublicationStatus.Unknown, "Unknown" },
             { PublicationStatus.Canceled, "Canceled" },
-            { PublicationStatus.Error, "Error" },
+            { PublicationStatus.Rejected, "Rejected"},
             { PublicationStatus.Queued, "Queued"},
             { PublicationStatus.Processing, "Processing"},
             { PublicationStatus.Processed, "Processed"},
             { PublicationStatus.Confirmed, "Confirmed"},
+            { PublicationStatus.Replaced, "Replaced" },
+            { PublicationStatus.Error, "Error" },
         };
 
         [Key]
@@ -134,7 +136,7 @@ namespace MapDbContextLib.Context
                                           || s == ReductionStatusEnum.Reduced
                                           || s == ReductionStatusEnum.Replaced
                                           || s == ReductionStatusEnum.Canceled
-                                          || s == ReductionStatusEnum.Discarded
+                                          || s == ReductionStatusEnum.Rejected
                                           || s == ReductionStatusEnum.Live)
                   && TaskStatusList.Count(s => s == ReductionStatusEnum.Queued || s == ReductionStatusEnum.Reducing) > 0)
             {
