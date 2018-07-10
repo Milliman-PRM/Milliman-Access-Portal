@@ -241,7 +241,7 @@ namespace ContentPublishingLib.JobRunners
 
             try
             {
-                if (Directory.Exists(WorkingFolderAbsolute))
+                if (Directory.Exists(WorkingFolderAbsolute) && !string.IsNullOrWhiteSpace(WorkingFolderRelative))
                 {
                     Directory.Delete(WorkingFolderAbsolute, true);
                 }
