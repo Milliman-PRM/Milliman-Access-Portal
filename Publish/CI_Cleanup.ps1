@@ -105,6 +105,8 @@ else
 
 #region Prepare nuget package for Octopus cleanup tasks
 
+mkdir $nugetDestination
+
 copy-item "$rootPath\Publish\OctopusSetBranch.ps1" -Destination "$nugetDestination\OctopusSetBranch.ps1"
 copy-item "$rootPath\Publish\OctopusCleanup.ps1" -Destination "$nugetDestination\OctopusCleanup.ps1"
 
