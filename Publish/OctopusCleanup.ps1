@@ -4,7 +4,8 @@
 #  Deploy Milliman Access Portal CI builds to Azure
 
 ### DEVELOPER NOTES:
-#
+#  The version number in this package could be derived from MAP's version number, but that would require a build. 
+#       I (BW) decided to leave that out of the first version, to keep the script as fast as possible.
 
 Param(
     [Parameter(Mandatory=$true)]
