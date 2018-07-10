@@ -1,4 +1,5 @@
 ﻿using System;
+using MapDbContextLib.Context;
 using Microsoft.Extensions.Logging;
 
 namespace AuditLogLib
@@ -8,6 +9,26 @@ namespace AuditLogLib
     /// </summary>
     public class AuditEventId
     {
+        public AuditEventId(int id, string name = "")
+        {
+            Id = id;
+            Name = name;
+        }
+
+        public readonly int Id;
+        public readonly string Name;
+
+        public override string ToString()
+        {
+            return Name;
+        }
+
+        public static implicit operator AuditEventId(int i)
+        {
+            return new AuditEventId(i);
+        }
+
+
         internal static readonly int AuditEventBaseId = 1000;
         internal static readonly int AuditEventMaxId = AuditEventBaseId + 99999;
 
@@ -41,7 +62,7 @@ namespace AuditLogLib
         public static readonly AuditEventId UserAccountDeleted = new AuditEventId(3004, "User account deleted");
 
         // Content Access Admin category 4000 - 4999
-        public static readonly AuditEventId SelectionGroupCreated = new AuditEventId(4001, "Selection group created");
+        public static readonly AuditEventId SelectionGroupCreated = new AuditEventId<SelectionGroup>(4001, "Selection group created");
         public static readonly AuditEventId SelectionGroupDeleted = new AuditEventId(4002, "Selection group deleted");
         public static readonly AuditEventId SelectionGroupUserAssigned = new AuditEventId(4003, "User assigned to selection group");
         public static readonly AuditEventId SelectionGroupUserRemoved = new AuditEventId(4004, "User removed from selection group");
@@ -69,26 +90,16 @@ namespace AuditLogLib
         public static readonly AuditEventId ContentPublicationGoLive = new AuditEventId(6105, "Content publication golive");
         public static readonly AuditEventId PreGoLiveSummary = new AuditEventId(6106, "Content publication pre-golive summary");
         public static readonly AuditEventId ContentPublicationRejected = new AuditEventId(6107, "Content publication rejected");
+    }
 
-        public AuditEventId(int id, string name = "")
-        {
-            Id = id;
-            Name = name;
-        }
+    // Generics represent what entities are required to log this event
+    public class AuditEventId<T> : AuditEventId
+    {
+        public AuditEventId(int id, string name = "") : base(id, name) { }
+    }
 
-        public int Id { get; }
-        public string Name { get; }
-
-        public override string ToString()
-        {
-            return Name;
-        }
-
-        public static implicit operator AuditEventId(int i)
-        {
-            return new AuditEventId(i);
-        }
-
-
+    public class AuditEventId<T, U> : AuditEventId
+    {
+        public AuditEventId(int id, string name = "") : base(id, name) { }
     }
 }

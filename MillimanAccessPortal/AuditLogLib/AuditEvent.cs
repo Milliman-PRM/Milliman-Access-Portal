@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Logging;
+using System.Runtime.CompilerServices;
 
 namespace AuditLogLib
 {
@@ -22,17 +23,17 @@ namespace AuditLogLib
         /// <param name="DetailObjectArg"></param>
         /// <param name="UserNameArg"></param>
         /// <returns></returns>
-        public static AuditEvent New(string SourceArg, string SummaryArg, AuditEventId EventIdArg, object DetailObjectArg = null, string UserNameArg = "System", string SessionIdArg = "")
+        public static AuditEvent New(AuditEventId EventIdArg, object DetailObjectArg = null, [CallerMemberName] string source = "", string UserNameArg = "System", string SessionIdArg = "")
         {
             return new AuditEvent
             {
                 TimeStamp = DateTime.Now,
                 User = UserNameArg,
-                Source = SourceArg,
+                Source = source,
                 EventDetailObject = DetailObjectArg,
-                Summary = SummaryArg,
+                Summary = EventIdArg.Name,
                 SessionId = SessionIdArg,
-                EventType = EventIdArg.Name,
+                EventId = EventIdArg.Name,
             };
         }
 
@@ -42,13 +43,11 @@ namespace AuditLogLib
 
         public string SessionId { get; set; }
 
-        public string Summary { get; set; }
-
         public string User { get; set; }
 
         public string Source { get; set; }
 
-        public string EventType { get; set; }
+        public AuditEventId EventId { get; set; }
 
         [Column(TypeName = "jsonb")]
         public string EventDetailJsonb { get; set; }

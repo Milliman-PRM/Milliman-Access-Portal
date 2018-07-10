@@ -284,7 +284,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 #region Log audit event
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
-                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    $"{this.GetType().Name}.{this.ControllerContext.ActionDescriptor.ActionName}",
                     $"Request to update root content item without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in item",
                     AuditEventId.Unauthorized,
                     new { RootContentItemId = rootContentItem.Id },
