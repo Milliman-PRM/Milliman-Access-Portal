@@ -298,7 +298,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 
-dotnet ef database update --project "..\AuditLogLib\AuditLogLib.csproj" --startup-project ".\MillimanAccessPortal.csproj"
+dotnet ef database update --project "..\AuditLogLib\AuditLogLib.csproj" --startup-project ".\MillimanAccessPortal.csproj"  --context "AuditLogDbContext"
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
