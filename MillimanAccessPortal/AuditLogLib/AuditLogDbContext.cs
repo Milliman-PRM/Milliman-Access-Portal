@@ -118,6 +118,13 @@ namespace AuditLogLib
                     throw new InvalidOperationException($"Current environment name ({environmentName}) is not supported for AuditLogLib migrations");
             }
 
+            if (Environment.GetEnvironmentVariable("LOG_DATABASE_NAME") != null)
+            {
+                Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString);
+                stringBuilder.Database = Environment.GetEnvironmentVariable("LOG_DATABASE_NAME");
+                auditLogConnectionString = stringBuilder.ConnectionString;
+            }
+
             return auditLogConnectionString;
         }
 
