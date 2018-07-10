@@ -522,6 +522,7 @@ export function setup() {
     const rootContentItemId = $('#root-content-items [selected]').closest('.card-container').data().rootContentItemId;
     $.post({
       data: {
+        publicationRequestId: preLiveObject && preLiveObject.PublicationRequestId,
         rootContentItemId,
       },
       headers: {
