@@ -114,7 +114,7 @@ cd $nugetDestination
 
 log_statement "Packaging cleanup scripts for deployment"
 
-octo pack --id MAPCleanup --version $cleanupPackageVersion $nugetDestination --outfolder $nugetDestination\web
+octo pack --id MAPCleanup --version $cleanupPackageVersion $nugetDestination --outfolder $nugetDestination
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
