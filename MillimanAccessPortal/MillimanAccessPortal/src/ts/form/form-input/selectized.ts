@@ -19,4 +19,6 @@ export class SelectizedInput extends FormInput {
   protected enable = ($input: JQuery<HTMLElement>) => $input[0].selectize.enable();
 
   protected comparator = (a: string, b: string) => a === b;
+
+  protected validFn = ($input: JQuery<HTMLElement>) => true;
 }

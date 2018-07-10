@@ -188,6 +188,15 @@ export class Upload {
     this.onUploadProgress(ProgressSummary.empty());
   }
 
+  public valid() {
+    if (this.cancelable || this.checksum !== null) {
+      return false;
+    } else if (this.fileGUID !== null) {
+      return true;
+    }
+    return undefined;
+  }
+
   protected get cancelable(): boolean {
     return this._cancelable;
   }

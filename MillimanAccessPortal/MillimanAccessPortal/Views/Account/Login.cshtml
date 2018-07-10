@@ -24,9 +24,9 @@
         <form id="login-form" asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
             <div asp-validation-summary="All" class="text-danger"></div>
             <div class="login-form-input-container">
-                <label asp-for="Email">Email</label>
-                <input asp-for="Email" id="email" placeholder="Email" autofocus>
-                <span asp-validation-for="Email" class="text-danger"></span>
+                <label asp-for="Username">Username</label>
+                <input asp-for="Username" id="username" placeholder="Username" autofocus>
+                <span asp-validation-for="Username" class="text-danger"></span>
             </div>
             <div class="login-form-input-container">
                 <label asp-for="Password">Password</label>

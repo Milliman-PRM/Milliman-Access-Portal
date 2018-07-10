@@ -33,9 +33,12 @@ export interface ClientTree extends BasicTree<ClientSummary> {
 
 export enum PublicationStatus {
   Unknown = 0,
+  Canceled = 1,
+  Error = 2,
   Queued = 10,
   Processing = 20,
-  Complete = 30,
+  Processed = 30,
+  Confirmed = 40,
 }
 export interface PublicationSummary {
   User: UserInfo;
@@ -68,7 +71,7 @@ export interface RootContentItemDetail {
   Id: number;
   ClientId: number;
   ContentName: string;
-  ContentTypeId: number;
+  ContentTypeId: number | string;
   DoesReduce: boolean;
   Description: string;
   Notes: string;

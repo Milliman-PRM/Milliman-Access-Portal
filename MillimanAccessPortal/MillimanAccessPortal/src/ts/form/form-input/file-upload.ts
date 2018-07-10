@@ -57,6 +57,7 @@ export class FileUploadInput extends FormInput {
     this.upload.onStateChange = (alertUnload: boolean, cancelable: boolean) => {
       this.uploadInProgress = alertUnload;
       this.setCancelable(alertUnload);
+      this.$entryPoint.change(); // trigger a change event
     };
 
     // Clone the input to clear any event listeners
@@ -94,6 +95,8 @@ export class FileUploadInput extends FormInput {
     .parent().find('*').not('.cancel-icon,input.file-upload-guid').removeAttr('disabled')
 
   protected comparator = (a: string, b: string) => (a === b) && !this.uploadInProgress;
+
+  protected validFn = ($input: JQuery<HTMLElement>) => this.upload && this.upload.valid();
 
   public get component(): UploadComponent {
     return this.name as UploadComponent;
