@@ -1043,7 +1043,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Reject(long rootContentItemId, long contentPublicationRequestId)
+        public async Task<IActionResult> Reject(long rootContentItemId, long publicationRequestId)
         {
             // TODO Could/should this be handled in the Cancel action?
             #region Authorization
@@ -1071,7 +1071,7 @@ namespace MillimanAccessPortal.Controllers
             RootContentItem rootContentItem = DbContext.RootContentItem.Find(rootContentItemId);
 
             #region Validation
-            ContentPublicationRequest pubRequest = DbContext.ContentPublicationRequest.Find(contentPublicationRequestId);
+            ContentPublicationRequest pubRequest = DbContext.ContentPublicationRequest.Find(publicationRequestId);
             if (pubRequest == null || pubRequest.RootContentItemId != rootContentItemId)
             {
                 Response.Headers.Add("Warning", "The requested publication request does not exist.");
@@ -1090,7 +1090,7 @@ namespace MillimanAccessPortal.Controllers
                 pubRequest.RequestStatus = PublicationStatus.Canceled;
                 DbContext.ContentPublicationRequest.Update(pubRequest);
 
-                List<ContentReductionTask> RelatedTasks = DbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == contentPublicationRequestId).ToList();
+                List<ContentReductionTask> RelatedTasks = DbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == publicationRequestId).ToList();
                 foreach (ContentReductionTask relatedTask in RelatedTasks)
                 {
                     relatedTask.ReductionStatus = ReductionStatusEnum.Discarded;
