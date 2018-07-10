@@ -59,15 +59,16 @@ namespace AuditLogLib
         public static readonly AuditEventId PublicationRequestProcessingSuccess = new AuditEventId(5301, "Content PublicationRequest Succeeded");
 
         // Content Publishing category 6000 - 6999
-        public static readonly AuditEventId RootContentItemCreated = new AuditEventId(4001, "Root content item created");
-        public static readonly AuditEventId RootContentItemDeleted = new AuditEventId(4002, "Root content item deleted");
-        public static readonly AuditEventId RootContentItemUpdated = new AuditEventId(4003, "Root content item updated");
-        public static readonly AuditEventId PublicationQueued = new AuditEventId(4101, "Publication request queued");
-        public static readonly AuditEventId PublicationCanceled = new AuditEventId(4102, "Publication request canceled");
-        public static readonly AuditEventId GoLiveValidationFailed = new AuditEventId(4103, "GoLive Validation Failed");
-        public static readonly AuditEventId ChecksumInvalid = new AuditEventId(4104, "Checksum Invalid");
-        public static readonly AuditEventId ContentPublicationGoLive = new AuditEventId(4105, "Content publication golive");
-        public static readonly AuditEventId PreGoLiveSummary = new AuditEventId(4106, "Content publication pre-golive summary");
+        public static readonly AuditEventId RootContentItemCreated = new AuditEventId(6001, "Root content item created");
+        public static readonly AuditEventId RootContentItemDeleted = new AuditEventId(6002, "Root content item deleted");
+        public static readonly AuditEventId RootContentItemUpdated = new AuditEventId(6003, "Root content item updated");
+        public static readonly AuditEventId PublicationQueued = new AuditEventId(6101, "Publication request queued");
+        public static readonly AuditEventId PublicationCanceled = new AuditEventId(6102, "Publication request canceled");
+        public static readonly AuditEventId GoLiveValidationFailed = new AuditEventId(6103, "GoLive Validation Failed");
+        public static readonly AuditEventId ChecksumInvalid = new AuditEventId(6104, "Checksum Invalid");
+        public static readonly AuditEventId ContentPublicationGoLive = new AuditEventId(6105, "Content publication golive");
+        public static readonly AuditEventId PreGoLiveSummary = new AuditEventId(6106, "Content publication pre-golive summary");
+        public static readonly AuditEventId ContentPublicationRejected = new AuditEventId(6107, "Content publication rejected");
 
         public AuditEventId(int id, string name = "")
         {

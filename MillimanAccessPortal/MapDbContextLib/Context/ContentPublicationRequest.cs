@@ -21,10 +21,12 @@ namespace MapDbContextLib.Context
         Unknown = 0,
         Canceled = 1,
         Error = 2,
+        Rejected = 3,
         Queued = 10,
         Processing = 20,
         Processed = 30,
         Confirmed = 40,
+        Replaced = 50,
     }
 
     public class ContentPublicationRequest

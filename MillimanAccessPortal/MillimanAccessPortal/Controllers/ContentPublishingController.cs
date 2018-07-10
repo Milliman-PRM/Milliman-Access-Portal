@@ -501,7 +501,7 @@ namespace MillimanAccessPortal.Controllers
 
             // There must be no unresolved ContentPublicationRequest.
             List<PublicationStatus> BlockingRequestStatusList = new List<PublicationStatus>
-                                                              { PublicationStatus.Processing, PublicationStatus.Queued };
+                                                              { PublicationStatus.Processing, PublicationStatus.Processed, PublicationStatus.Queued };
             Blocked = DbContext.ContentPublicationRequest
                                .Where(r => r.RootContentItemId == Arg.RootContentItemId)
                                .Any(r => BlockingRequestStatusList.Contains(r.RequestStatus));
@@ -512,7 +512,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             List<ReductionStatusEnum> BlockingTaskStatusList = new List<ReductionStatusEnum>
-                                                             { ReductionStatusEnum.Reducing, ReductionStatusEnum.Queued };
+                                                             { ReductionStatusEnum.Reducing, ReductionStatusEnum.Reduced, ReductionStatusEnum.Queued };
             Blocked = DbContext.ContentReductionTask
                                .Where(t => t.ContentPublicationRequestId == null)
                                .Include(t => t.SelectionGroup)
@@ -938,6 +938,11 @@ namespace MillimanAccessPortal.Controllers
 
                 //3 Update db:
                 //3.1  ContentPublicationRequest.Status
+                foreach (ContentPublicationRequest PreviousLiveRequest in DbContext.ContentPublicationRequest.Where(r => r.RequestStatus == PublicationStatus.Confirmed))
+                {
+                    PreviousLiveRequest.RequestStatus = PublicationStatus.Replaced;
+                    DbContext.ContentPublicationRequest.Update(PreviousLiveRequest);
+                }
                 PubRequest.RequestStatus = PublicationStatus.Confirmed;
                 //3.2  ContentReductionTask.Status
                 RelatedReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Live);
@@ -1078,7 +1083,7 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest();
             }
 
-            if (pubRequest.RequestStatus != PublicationStatus.Queued)
+            if (pubRequest.RequestStatus != PublicationStatus.Processed)
             {
                 Response.Headers.Add("Warning", "The specified publication request is not currently queued.");
                 return BadRequest();
@@ -1087,7 +1092,7 @@ namespace MillimanAccessPortal.Controllers
 
             using (var Txn = DbContext.Database.BeginTransaction())
             {
-                pubRequest.RequestStatus = PublicationStatus.Canceled;
+                pubRequest.RequestStatus = PublicationStatus.Rejected;
                 DbContext.ContentPublicationRequest.Update(pubRequest);
 
                 List<ContentReductionTask> RelatedTasks = DbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == publicationRequestId).ToList();
@@ -1098,21 +1103,40 @@ namespace MillimanAccessPortal.Controllers
                 }
                 DbContext.SaveChanges();
 
-                // Delete all staged prelive files
+                // Delete each staged prelive file
                 foreach (ContentRelatedFile PreliveFile in pubRequest.LiveReadyFilesObj)
                 {
-                    System.IO.File.Delete(PreliveFile.FullPath);
+                    if (System.IO.File.Exists(PreliveFile.FullPath))
+                    {
+                        System.IO.File.Delete(PreliveFile.FullPath);
+                    }
                 }
                 // Delete any FileExchange folder
                 if (RelatedTasks.Any())
                 {
-                    Directory.Delete(Path.GetDirectoryName(RelatedTasks[0].MasterFilePath), true);
+                    string ExchangeFolder = Path.GetDirectoryName(RelatedTasks[0].MasterFilePath);
+                    if (Directory.Exists(ExchangeFolder))
+                    {
+                        Directory.Delete(ExchangeFolder, true);
+                    }
                 }
 
                 Txn.Commit();
             }
 
-            return NoContent();
+            #region Log audit event
+            AuditEvent PublicationRejectedEvent = AuditEvent.New(
+                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                $"User rejected a publication request",
+                AuditEventId.ContentPublicationRejected,
+                new { RootContentItemId = rootContentItemId, ContentPublicationRequestId = publicationRequestId },
+                User.Identity.Name,
+                HttpContext.Session.Id
+                );
+            AuditLogger.Log(PublicationRejectedEvent);
+            #endregion
+
+            return Ok();
         }
 
         [NonAction]
