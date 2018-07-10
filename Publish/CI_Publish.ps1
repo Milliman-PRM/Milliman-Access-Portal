@@ -96,6 +96,7 @@ $webBuildTarget = "$rootPath\WebDeploy"
 $serviceBuildTarget = "$rootPath\ContentPublishingServer\ContentPublishingService\bin\debug"
 $nugetDestination = "$rootPath\nugetPackages"
 $octopusURL = "https://indy-prmdeploy.milliman.com"
+$octopusAPIKey = $env:octopus_api_key
 
 #endregion
 
@@ -373,7 +374,7 @@ log_statement "Deploying packages to Octopus"
 
 cd $nugetDestination
 
-octo push --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --replace-existing --server $octopusURL --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW"
+octo push --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
@@ -384,7 +385,7 @@ if ($LASTEXITCODE -ne 0) {
 
 log_statement "Creating web app release"
 
-octo create-release --project "Milliman Access Portal" --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --channel "Development" --server $octopusURL
+octo create-release --project "Milliman Access Portal" --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release created successfully"
@@ -398,7 +399,7 @@ else {
 
 log_statement "Deploying web app release"
 
-octo deploy-release --project "Milliman Access Portal" --deployto "Development" --channel "Development" --version $webVersion --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --channel "Development" --server $octopusURL --waitfordeployment --cancelontimeout --progress
+octo deploy-release --project "Milliman Access Portal" --deployto "Development" --channel "Development" --version $webVersion --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL --waitfordeployment --cancelontimeout --progress
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release deployed successfully"

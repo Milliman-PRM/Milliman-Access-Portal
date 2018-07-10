@@ -33,7 +33,7 @@ $nugetDestination = "$rootPath\nugetPackages"
 $cleanupVersion = "1.0.0"
 $cleanupPackageVersion = "$cleanupVersion-$branchName"
 $octopusURL = "https://indy-prmdeploy.milliman.com"
-
+$octopusAPIKey = $env:octopus_api_key
 
 $env:PATH = $env:PATH+";C:\Program Files (x86)\OctopusCLI\;"
 
@@ -121,7 +121,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $error_code
 }
 
-octo push --package "MAPCleanup.$cleanupPackageVersion.nupkg" --replace-existing --server $octopusURL --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW"
+octo push --package "MAPCleanup.$cleanupPackageVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
@@ -132,7 +132,7 @@ if ($LASTEXITCODE -ne 0) {
 
 log_statement "Creating release"
 
-octo create-release --project "Test Branch Cleanup" --version $cleanupPackageVersion --packageVersion $cleanupPackageVersion --ignoreexisting --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --channel "Development" --server $octopusURL
+octo create-release --project "Test Branch Cleanup" --version $cleanupPackageVersion --packageVersion $cleanupPackageVersion --ignoreexisting --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Cleanup release created successfully"
@@ -146,7 +146,7 @@ else {
 
 log_statement "Deploying and executing cleanup package"
 
-octo deploy-release --project "Test Branch Cleanup" --deployto "Development" --channel "Development" --version $cleanupPackageVersion --apiKey "API-ZUC8Y6MXCF4ZNGZML0NTJK7XAJW" --channel "Development" --server $octopusURL --waitfordeployment --cancelontimeout --progress
+octo deploy-release --project "Test Branch Cleanup" --deployto "Development" --channel "Development" --version $cleanupPackageVersion --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL --waitfordeployment --cancelontimeout --progress
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Cleanup release deployed successfully"
