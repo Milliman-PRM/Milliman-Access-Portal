@@ -422,5 +422,48 @@ namespace MapTests
             #endregion
         }
 
+        [Fact]
+        public async Task Reject_Unauthorized()
+        {
+            #region Arrange
+            ContentPublishingController controller = await GetControllerForUser("user3");
+            #endregion
+
+            #region Act
+            var view = await controller.Reject(1, 1);
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
+            Assert.Contains(controller.Response.Headers, h => h.Value == "You are not authorized to publish content for this root content item.");
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(3, 999, PublicationStatus.Queued, "user1", "The requested publication request does not exist.")]
+        [InlineData(3, 3, PublicationStatus.Processing, "user1", "The specified publication request is not currently queued.")]
+        public async Task Reject_BadRequest(long rootContentItemId, long pubRequestId, PublicationStatus initialPubRequestStatus, string UserName, string ExpectedHeaderString)
+        {
+            #region Arrange
+            ContentPublishingController controller = await GetControllerForUser(UserName);
+            ContentPublicationRequest pubRequest = TestResources.DbContextObject.ContentPublicationRequest.SingleOrDefault(r => r.RootContentItemId == rootContentItemId);
+            if (pubRequest != null)
+            {
+                pubRequest.RootContentItemId = rootContentItemId;
+                pubRequest.RootContentItem = TestResources.DbContextObject.RootContentItem.SingleOrDefault(rc => rc.Id == rootContentItemId);
+                pubRequest.RequestStatus = initialPubRequestStatus;
+            }
+            #endregion
+
+            #region Act
+            var view = await controller.Reject(rootContentItemId, pubRequestId);
+            #endregion
+
+            #region Assert
+            Assert.IsType<BadRequestResult>(view);
+            Assert.Contains(controller.Response.Headers, h => h.Value == ExpectedHeaderString);
+            #endregion
+        }
+
     }
 }

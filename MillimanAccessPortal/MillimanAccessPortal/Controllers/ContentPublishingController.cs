@@ -501,7 +501,7 @@ namespace MillimanAccessPortal.Controllers
 
             // There must be no unresolved ContentPublicationRequest.
             List<PublicationStatus> BlockingRequestStatusList = new List<PublicationStatus>
-                                                              { PublicationStatus.Processing, PublicationStatus.Queued };
+                                                              { PublicationStatus.Processing, PublicationStatus.Processed, PublicationStatus.Queued };
             Blocked = DbContext.ContentPublicationRequest
                                .Where(r => r.RootContentItemId == Arg.RootContentItemId)
                                .Any(r => BlockingRequestStatusList.Contains(r.RequestStatus));
@@ -512,7 +512,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             List<ReductionStatusEnum> BlockingTaskStatusList = new List<ReductionStatusEnum>
-                                                             { ReductionStatusEnum.Reducing, ReductionStatusEnum.Queued };
+                                                             { ReductionStatusEnum.Reducing, ReductionStatusEnum.Reduced, ReductionStatusEnum.Queued };
             Blocked = DbContext.ContentReductionTask
                                .Where(t => t.ContentPublicationRequestId == null)
                                .Include(t => t.SelectionGroup)
@@ -655,7 +655,6 @@ namespace MillimanAccessPortal.Controllers
             }
             catch
             {
-                Response.Headers.Add("Warning", "The publication request failed to be canceled.  Processing may have started.");
                 Response.Headers.Add("Warning", "The publication request failed to be canceled.  Processing may have started.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -911,14 +910,27 @@ namespace MillimanAccessPortal.Controllers
                             new ContentRelatedFile { FilePurpose = Crf.FilePurpose, FullPath = TargetFilePath, Checksum = Crf.Checksum }
                         ).ToList();
                     }
+
+                    if (Crf.FilePurpose.ToLower() == "mastercontent")
+                    {
+                        foreach (SelectionGroup MasterContentGroup in RelatedReductionTasks.Select(t => t.SelectionGroup).Where(g => g.IsMaster))
+                        {
+                            MasterContentGroup.ContentInstanceUrl = Path.Combine($"{rootContentItemId}", TargetFileName);
+                            DbContext.SelectionGroup.Update(MasterContentGroup);
+                        }
+                    }
                 }
 
                 // 2 Rename reduced content files to live names
-                foreach (var ThisTask in RelatedReductionTasks.Where(t => t.TaskAction == TaskActionEnum.HierarchyAndReduction))
+                foreach (var ThisTask in RelatedReductionTasks.Where(t => !t.SelectionGroup.IsMaster))
                 {
                     // This assignment defines the live file name for any reduced content file
                     string TargetFileName = $"ReducedContent.SelGrp[{ThisTask.SelectionGroupId}].Content[{PubRequest.RootContentItemId}]{Path.GetExtension(ThisTask.ResultFilePath)}";
                     string TargetFilePath = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"], PubRequest.RootContentItemId.ToString(), TargetFileName);
+
+                    // Set url in SelectionGroup
+                    ThisTask.SelectionGroup.ContentInstanceUrl = Path.Combine($"{rootContentItemId}", TargetFileName);
+                    DbContext.SelectionGroup.Update(ThisTask.SelectionGroup);
 
                     // Move the existing file to backed up name if exists
                     if (System.IO.File.Exists(TargetFilePath))
@@ -932,16 +944,27 @@ namespace MillimanAccessPortal.Controllers
                         FilesToDelete.Add(BackupFilePath);
                     }
 
-                    // TODO test Checksum
                     System.IO.File.Copy(ThisTask.ResultFilePath, TargetFilePath);
                     FilesToDelete.Add(ThisTask.ResultFilePath);
                 }
 
                 //3 Update db:
                 //3.1  ContentPublicationRequest.Status
+                foreach (ContentPublicationRequest PreviousLiveRequest in DbContext.ContentPublicationRequest.Where(r => r.RequestStatus == PublicationStatus.Confirmed))
+                {
+                    PreviousLiveRequest.RequestStatus = PublicationStatus.Replaced;
+                    DbContext.ContentPublicationRequest.Update(PreviousLiveRequest);
+                }
                 PubRequest.RequestStatus = PublicationStatus.Confirmed;
+
                 //3.2  ContentReductionTask.Status
+                foreach (ContentReductionTask PreviousLiveTask in DbContext.ContentReductionTask.Where(r => r.ReductionStatus == ReductionStatusEnum.Live))
+                {
+                    PreviousLiveTask.ReductionStatus = ReductionStatusEnum.Replaced;
+                    DbContext.ContentReductionTask.Update(PreviousLiveTask);
+                }
                 RelatedReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Live);
+
                 //3.3  HierarchyFieldValue due to hierarchy changes
                 //3.3.1  If this is first publication for this root content item, add the fields to db and to LiveHierarchy to help identify all values as new
                 if (LiveHierarchy.Fields.Count == 0)
@@ -994,7 +1017,7 @@ namespace MillimanAccessPortal.Controllers
                 }
                 DbContext.SaveChanges();
 
-                //3.4  SelectionGroup.SelectedHierarchyFieldValueList due to hierarchy changes
+                //3.4  SelectionGroup 1) URL and 2) SelectedHierarchyFieldValueList due to hierarchy changes
                 List<long> AllRemainingFieldValues = DbContext.HierarchyFieldValue.Where(v => v.HierarchyField.RootContentItemId == PubRequest.RootContentItemId)
                                                                                   .Select(v => v.Id)
                                                                                   .ToList();
@@ -1044,7 +1067,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Reject(long rootContentItemId)
+        public async Task<IActionResult> Reject(long rootContentItemId, long publicationRequestId)
         {
             // TODO Could/should this be handled in the Cancel action?
             #region Authorization
@@ -1068,11 +1091,71 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            #region Validation
+            // the content item exists if the authorization check passes
+            RootContentItem rootContentItem = DbContext.RootContentItem.Find(rootContentItemId);
 
+            #region Validation
+            ContentPublicationRequest pubRequest = DbContext.ContentPublicationRequest.Find(publicationRequestId);
+            if (pubRequest == null || pubRequest.RootContentItemId != rootContentItemId)
+            {
+                Response.Headers.Add("Warning", "The requested publication request does not exist.");
+                return BadRequest();
+            }
+
+            if (pubRequest.RequestStatus != PublicationStatus.Processed)
+            {
+                Response.Headers.Add("Warning", "The specified publication request is not currently queued.");
+                return BadRequest();
+            }
             #endregion
 
-            return NoContent();
+            using (var Txn = DbContext.Database.BeginTransaction())
+            {
+                pubRequest.RequestStatus = PublicationStatus.Rejected;
+                DbContext.ContentPublicationRequest.Update(pubRequest);
+
+                List<ContentReductionTask> RelatedTasks = DbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == publicationRequestId).ToList();
+                foreach (ContentReductionTask relatedTask in RelatedTasks)
+                {
+                    relatedTask.ReductionStatus = ReductionStatusEnum.Rejected;
+                    DbContext.ContentReductionTask.Update(relatedTask);
+                }
+                DbContext.SaveChanges();
+
+                // Delete each staged prelive file
+                foreach (ContentRelatedFile PreliveFile in pubRequest.LiveReadyFilesObj)
+                {
+                    if (System.IO.File.Exists(PreliveFile.FullPath))
+                    {
+                        System.IO.File.Delete(PreliveFile.FullPath);
+                    }
+                }
+                // Delete any FileExchange folder
+                if (RelatedTasks.Any())
+                {
+                    string ExchangeFolder = Path.GetDirectoryName(RelatedTasks[0].MasterFilePath);
+                    if (Directory.Exists(ExchangeFolder))
+                    {
+                        Directory.Delete(ExchangeFolder, true);
+                    }
+                }
+
+                Txn.Commit();
+            }
+
+            #region Log audit event
+            AuditEvent PublicationRejectedEvent = AuditEvent.New(
+                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                $"User rejected a publication request",
+                AuditEventId.ContentPublicationRejected,
+                new { RootContentItemId = rootContentItemId, ContentPublicationRequestId = publicationRequestId },
+                User.Identity.Name,
+                HttpContext.Session.Id
+                );
+            AuditLogger.Log(PublicationRejectedEvent);
+            #endregion
+
+            return Ok();
         }
 
         [NonAction]
