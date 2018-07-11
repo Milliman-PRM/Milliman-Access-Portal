@@ -18,10 +18,10 @@ export class Filter extends React.Component<FilterProps, {}> {
   public render() {
     return (
       <div className="filter-container">
+        <input type="text" key={this.props.placeholderText} className="filter-input" placeholder={this.props.placeholderText} onChange={this.handleChange.bind(this)} />
         <svg className="filter-icon">
           <use xlinkHref="#filter"></use>
         </svg>
-        <input type="text" key={this.props.placeholderText} className="filter-input" placeholder={this.props.placeholderText} onChange={this.handleChange.bind(this)} />
       </div>
     );
   }
