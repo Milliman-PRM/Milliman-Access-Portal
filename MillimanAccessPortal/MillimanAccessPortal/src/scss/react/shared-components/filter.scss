@@ -1,1 +1,25 @@
-﻿
+﻿@import "../../map_modules/variables";
+
+.filter-container {
+    position: relative;
+    width: 100%;
+    align-self: flex-start;
+
+    .filter-icon {
+        position: absolute;
+        height: 2em;
+        width: 2em;
+        z-index: 100;
+        top: 0;
+        left: 0;
+        padding: .25em;
+        color: $grey;
+    }
+
+    .filter-input {
+        position: absolute;
+        height: 2em;
+        width: 100%;
+        padding: .25em .25em .25em 2em;
+    }
+}
