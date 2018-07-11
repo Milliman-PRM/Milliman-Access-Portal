@@ -381,6 +381,16 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
+            List<PublicationStatus> blockingRequestStatusList = new List<PublicationStatus>
+                                                              { PublicationStatus.Processing, PublicationStatus.Processed, PublicationStatus.Queued };
+            var blocked = DbContext.ContentPublicationRequest
+                .Where(r => r.RootContentItemId == rootContentItemId)
+                .Any(r => blockingRequestStatusList.Contains(r.RequestStatus));
+            if (blocked)
+            {
+                Response.Headers.Add("Warning", "The specified root content item cannot be deleted at this time.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             RootContentItemDetail model = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, rootContentItem);
