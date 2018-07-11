@@ -5,9 +5,14 @@
 }
 
 export interface ColumnSelectorProps {
-  colContentSelection: (string) => void;
-  colContentOptions: string[];
+  colContentSelection: (SelectionOption) => void;
+  colContentOptions: SelectionOption[];
   colContent: string;
+}
+
+export interface SelectionOption {
+  label: string;
+  value: string;
 }
 
 export interface FilterProps {

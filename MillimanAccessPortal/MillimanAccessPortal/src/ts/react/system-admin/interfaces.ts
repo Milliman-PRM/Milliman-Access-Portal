@@ -1,7 +1,9 @@
 ﻿export interface SystemAdminState {
   primaryColContent: string;
+  primaryColContentLabel: string;
   primaryColFilter?: string;
   secondaryColContent?: string;
+  secondaryColContentLabel?: string;
   secondaryColFilter?: string;
   addUserDialog: boolean;
   structure: SystemAdminStructure;

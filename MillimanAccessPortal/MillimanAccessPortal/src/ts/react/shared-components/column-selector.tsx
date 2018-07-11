@@ -13,12 +13,12 @@ export class ColumnSelector extends React.Component<ColumnSelectorProps, {}> {
     return (
       <div className="content-options">
         {this.props.colContentOptions.map((option, index) => {
-          let selectorClass = (option === this.props.colContent) ? 'selected' : null;
+          let selectorClass = (option.value === this.props.colContent) ? 'selected' : null;
           return (
             <div key={index}
               className={`content-option ${selectorClass}`}
               onClick={() => this.props.colContentSelection(option)}>
-              {option}
+              {option.label}
             </div>
            );
           }
