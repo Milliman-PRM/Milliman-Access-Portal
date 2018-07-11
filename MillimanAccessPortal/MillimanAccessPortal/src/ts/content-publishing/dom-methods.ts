@@ -310,7 +310,6 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
     'POST',
     (response) => {
       renderRootContentItemForm(response.detail);
-      setFormReadOnly();
       // Update related root content item card
       const $card = $('#root-content-items .card-container')
         .filter((i, card) => $(card).data().rootContentItemId === response.detail.Id);
@@ -357,6 +356,9 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
       return publishRequest;
     },
   );
+  const readOnlyGroup = SubmissionGroup.FinalGroup(() => {
+    setFormReadOnly();
+  });
 
   // Create/retrieve and bind the new form
   formObject = new FormBase();
@@ -374,7 +376,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
         sparse: true,
       },
       {
-        groups: [ updateContentGroup ],
+        groups: [ updateContentGroup, readOnlyGroup ],
         name: 'edit',
         sparse: false,
       },
