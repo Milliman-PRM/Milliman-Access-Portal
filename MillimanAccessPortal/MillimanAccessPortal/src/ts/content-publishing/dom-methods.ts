@@ -371,7 +371,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
         sparse: false,
       },
       {
-        groups: [ updateContentGroup, submitPublication ],
+        groups: [ updateContentGroup, submitPublication, readOnlyGroup ],
         name: 'edit-or-republish',
         sparse: true,
       },
