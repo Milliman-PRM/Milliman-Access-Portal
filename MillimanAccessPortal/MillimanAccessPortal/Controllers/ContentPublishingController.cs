@@ -788,9 +788,14 @@ namespace MillimanAccessPortal.Controllers
             foreach (SelectionGroup ContentRelatedSelectionGroup in DbContext.SelectionGroup.Where(g => g.RootContentItemId == rootContentItemId)
                                                                                             .Where(g => !g.IsMaster))
             {
+                ContentReductionTask ThisTask;
+
                 // RelatedReductionTasks should have one ContentReductionTask related to the SelectionGroup
-                ContentReductionTask ThisTask = RelatedReductionTasks.SingleOrDefault(t => t.SelectionGroupId == ContentRelatedSelectionGroup.Id);
-                if (ThisTask == null)
+                try
+                {
+                    ThisTask = RelatedReductionTasks.Single(t => t.SelectionGroupId == ContentRelatedSelectionGroup.Id);
+                }
+                catch (InvalidOperationException)
                 {
                     Response.Headers.Add("Warning", $"Expected 1 reduction task related to SelectionGroup {ContentRelatedSelectionGroup.Id}, cannot complete this go-live request.");
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
