@@ -12,7 +12,6 @@ export interface ColumnSelectorProps {
 }
 
 export interface FilterProps {
-  updateFilterString: (string, boolean) => void;
+  updateFilterString: (string) => void;
   placeholderText: string;
-  primaryColumn: boolean;
 }

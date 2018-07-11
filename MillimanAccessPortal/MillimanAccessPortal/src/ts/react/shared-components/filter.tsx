@@ -9,9 +9,14 @@ export class Filter extends React.Component<FilterProps, {}> {
     super(props);
   }
 
+  handleChange(event) {
+    this.props.updateFilterString(event.target.value);
+  }
+
   public render() {
     return (
       <div className="filter-container">
+        <input type="text" placeholder={this.props.placeholderText} onChange={this.handleChange.bind(this)} />
       </div>
     );
   }

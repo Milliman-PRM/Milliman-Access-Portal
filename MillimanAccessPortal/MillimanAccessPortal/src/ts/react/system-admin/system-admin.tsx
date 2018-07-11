@@ -3,6 +3,7 @@
 import * as React from 'react';
 
 import { ColumnSelector } from '../shared-components/column-selector';
+import { Filter } from '../shared-components/filter';
 import { SystemAdminState } from './interfaces';
 
 export class SystemAdmin extends React.Component<{}, SystemAdminState> {
@@ -82,6 +83,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     }
   }
 
+  public updatePrimaryColumnFilter = (filterString: string) => {
+    this.setState({ primaryColFilter: filterString });
+  }
+
   private columnSelectionOptions = {
     'Users': ['Clients', 'Authorized Content'],
     'Clients': ['Users', 'Content Items'],
@@ -99,13 +104,17 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             primaryColumn={true}
           />
           <div className="admin-panel-toolbar">
-            <input className="admin-panel-searchbar-tree" type="search" placeholder="Filter Clients" />
+            <Filter
+              updateFilterString={this.updatePrimaryColumnFilter}
+              placeholderText={`Filter ${this.state.primaryColContent}`}
+            />
             <div className="admin-panel-action-icons-container">
               <svg className="action-icon-add action-icon tooltip">
                 <use xlinkHref="#add"></use>
               </svg>
             </div>
           </div>
+          <h2>{this.state.primaryColFilter}</h2>
           <div className="admin-panel-content-container">
             <ul className="admin-panel-content">
             </ul>
