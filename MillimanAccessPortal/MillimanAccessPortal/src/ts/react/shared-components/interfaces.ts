@@ -11,6 +11,7 @@ export interface ColumnSelectorProps {
 }
 
 export interface FilterProps {
+  filterText: string,
   updateFilterString: (string) => void;
   placeholderText: string;
 }

@@ -21,7 +21,7 @@ export class Filter extends React.Component<FilterProps, {}> {
         <svg className="filter-icon">
           <use xlinkHref="#filter"></use>
         </svg>
-        <input type="text" className="filter-input" placeholder={this.props.placeholderText} onChange={this.handleChange.bind(this)} />
+        <input type="text" key={this.props.placeholderText} className="filter-input" placeholder={this.props.placeholderText} onChange={this.handleChange.bind(this)} />
       </div>
     );
   }

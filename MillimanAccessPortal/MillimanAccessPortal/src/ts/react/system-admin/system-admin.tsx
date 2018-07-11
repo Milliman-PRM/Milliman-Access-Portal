@@ -104,6 +104,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           />
           <div className="admin-panel-toolbar">
             <Filter
+              filterText={this.state.primaryColFilter}
               updateFilterString={this.updatePrimaryColumnFilter}
               placeholderText={`Filter ${this.state.primaryColContent}`}
             />
