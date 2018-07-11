@@ -922,6 +922,7 @@ namespace MillimanAccessPortal.Controllers
                         }
                     }
                 }
+                PubRequest.RootContentItem.ContentFilesList = UpdatedContentFilesList;
 
                 // 2 Rename reduced content files to live names
                 foreach (var ThisTask in RelatedReductionTasks.Where(t => !t.SelectionGroup.IsMaster))
