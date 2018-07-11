@@ -916,6 +916,7 @@ namespace MillimanAccessPortal.Controllers
                         foreach (SelectionGroup MasterContentGroup in RelatedReductionTasks.Select(t => t.SelectionGroup).Where(g => g.IsMaster))
                         {
                             MasterContentGroup.ContentInstanceUrl = Path.Combine($"{rootContentItemId}", TargetFileName);
+                            DbContext.SelectionGroup.Update(MasterContentGroup);
                         }
                     }
                 }
@@ -929,6 +930,7 @@ namespace MillimanAccessPortal.Controllers
 
                     // Set url in SelectionGroup
                     ThisTask.SelectionGroup.ContentInstanceUrl = Path.Combine($"{rootContentItemId}", TargetFileName);
+                    DbContext.SelectionGroup.Update(ThisTask.SelectionGroup);
 
                     // Move the existing file to backed up name if exists
                     if (System.IO.File.Exists(TargetFilePath))
