@@ -789,13 +789,12 @@ namespace MillimanAccessPortal.Controllers
                                                                                             .Where(g => !g.IsMaster))
             {
                 // RelatedReductionTasks should have one ContentReductionTask related to the SelectionGroup
-                if (RelatedReductionTasks.Count(t => t.SelectionGroupId == ContentRelatedSelectionGroup.Id) != 1)
+                ContentReductionTask ThisTask = RelatedReductionTasks.SingleOrDefault(t => t.SelectionGroupId == ContentRelatedSelectionGroup.Id);
+                if (ThisTask == null)
                 {
                     Response.Headers.Add("Warning", $"Expected 1 reduction task related to SelectionGroup {ContentRelatedSelectionGroup.Id}, cannot complete this go-live request.");
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
-
-                ContentReductionTask ThisTask = RelatedReductionTasks.Single(t => t.SelectionGroupId == ContentRelatedSelectionGroup.Id);
 
                 // This ContentReductionTask must be a reducing task
                 if (ThisTask.TaskAction != TaskActionEnum.HierarchyAndReduction)
@@ -880,6 +879,7 @@ namespace MillimanAccessPortal.Controllers
             using (IDbContextTransaction Txn = DbContext.Database.BeginTransaction())
             {
                 // 1 Move new master content and related files (not reduced content) into live file names, removing any existing copies of previous version
+                List<ContentRelatedFile> UpdatedContentFilesList = PubRequest.RootContentItem.ContentFilesList;
                 foreach (ContentRelatedFile Crf in PubRequest.LiveReadyFilesObj)
                 {
                     // This assignment defines the live file name
@@ -903,12 +903,9 @@ namespace MillimanAccessPortal.Controllers
                     FilesToDelete.Add(Crf.FullPath);
 
                     // if file with this FilePurpose does not already exist for the Content Item
-                    if (!PubRequest.RootContentItem.ContentFilesList.Select(cf => cf.FilePurpose).Contains(Crf.FilePurpose))
+                    if (!UpdatedContentFilesList.Select(cf => cf.FilePurpose).Contains(Crf.FilePurpose))
                     {
-                        // Can't just .Add() to this List property because it's not actually a persistent List object
-                        PubRequest.RootContentItem.ContentFilesList = PubRequest.RootContentItem.ContentFilesList.Append(
-                            new ContentRelatedFile { FilePurpose = Crf.FilePurpose, FullPath = TargetFilePath, Checksum = Crf.Checksum }
-                        ).ToList();
+                        UpdatedContentFilesList.Add(new ContentRelatedFile { FilePurpose = Crf.FilePurpose, FullPath = TargetFilePath, Checksum = Crf.Checksum });
                     }
 
                     if (Crf.FilePurpose.ToLower() == "mastercontent")
