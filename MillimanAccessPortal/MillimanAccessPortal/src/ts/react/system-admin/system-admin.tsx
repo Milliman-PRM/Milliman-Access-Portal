@@ -114,7 +114,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
               </svg>
             </div>
           </div>
-          <h2>{this.state.primaryColFilter}</h2>
           <div className="admin-panel-content-container">
             <ul className="admin-panel-content">
             </ul>
