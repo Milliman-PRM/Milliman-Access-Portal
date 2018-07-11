@@ -731,7 +731,7 @@ namespace MillimanAccessPortal.Controllers
                     ReturnObj.ClientName,
                 },
                 User.Identity.Name,
-                HttpContext.Session.Id,
+                HttpContext.Session.Id
                 );
             AuditLogger.Log(PreLiveSummaryEvent);
             #endregion
