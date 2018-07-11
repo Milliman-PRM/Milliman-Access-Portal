@@ -17,7 +17,7 @@ export class ColumnSelector extends React.Component<ColumnSelectorProps, {}> {
           return (
             <div key={index}
               className={`content-option ${selectorClass}`}
-              onClick={() => this.props.colContentSelection(option, this.props.primaryColumn)}>
+              onClick={() => this.props.colContentSelection(option)}>
               {option}
             </div>
            );

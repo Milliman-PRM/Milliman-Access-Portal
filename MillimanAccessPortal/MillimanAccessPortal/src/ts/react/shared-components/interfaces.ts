@@ -5,10 +5,9 @@
 }
 
 export interface ColumnSelectorProps {
-  colContentSelection: (string, boolean) => void;
+  colContentSelection: (string) => void;
   colContentOptions: string[];
   colContent: string;
-  primaryColumn: boolean;
 }
 
 export interface FilterProps {

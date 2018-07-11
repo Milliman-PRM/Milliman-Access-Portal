@@ -72,14 +72,14 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     };
   }
 
-  public selectColumn = (colContentSelection: string, primaryCol: boolean) => {
-    if (primaryCol) {
+  public selectPrimaryColumn = (colContentSelection: string) => {
+    if (colContentSelection !== this.state.primaryColContent) {
       this.setState({
         primaryColContent: colContentSelection,
-        secondaryColContent: null
+        secondaryColContent: null,
+        primaryColFilter: null,
+        secondaryColFilter: null
       });
-    } else {
-      this.setState({ secondaryColContent: colContentSelection });
     }
   }
 
@@ -100,8 +100,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           <ColumnSelector
             colContentOptions={Object.keys(this.columnSelectionOptions)}
             colContent={this.state.primaryColContent}
-            colContentSelection={this.selectColumn}
-            primaryColumn={true}
+            colContentSelection={this.selectPrimaryColumn}
           />
           <div className="admin-panel-toolbar">
             <Filter
