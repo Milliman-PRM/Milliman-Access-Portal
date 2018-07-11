@@ -67,6 +67,11 @@ namespace ContentPublishingLib.JobRunners
         /// </summary>
         public static explicit operator ContentReductionHierarchy<ReductionFieldValue>(ExtractedHierarchy Hierarchy)
         {
+            if (Hierarchy == null)
+            {
+                return null;
+            }
+
             ContentReductionHierarchy<ReductionFieldValue> ReturnObject = new ContentReductionHierarchy<ReductionFieldValue>();
             foreach (ExtractedField Field in Hierarchy.Fields)
             {

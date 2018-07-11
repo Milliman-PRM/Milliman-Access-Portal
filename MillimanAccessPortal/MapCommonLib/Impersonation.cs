@@ -60,7 +60,7 @@ namespace MapCommonLib
             if (!returnValue)
             {
                 int result = GetLastError();
-                Trace.WriteLine($"LoginUser failed, GetLastError returned {result}");
+                GlobalFunctions.TraceWriteLine($"LoginUser failed, GetLastError returned {result}");
                 throw new ApplicationException("Impersonation login failed");
             }
         }

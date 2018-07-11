@@ -80,6 +80,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\MillimanAccessPortal\MapCommonLib\MapCommonLib.csproj">
+      <Project>{8a193e32-0813-4c3b-8c2f-648b6116ec63}</Project>
+      <Name>MapCommonLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ContentPublishingLib\ContentPublishingLib.csproj">
       <Project>{c9e25bdc-e5bd-4499-8a16-6d251b6c0558}</Project>
       <Name>ContentPublishingLib</Name>

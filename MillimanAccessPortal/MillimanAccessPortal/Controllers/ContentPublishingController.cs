@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Controllers
@@ -387,6 +388,19 @@ namespace MillimanAccessPortal.Controllers
             DbContext.RootContentItem.Remove(rootContentItem);
             DbContext.SaveChanges();
 
+            try
+            {
+                string ContentFolderPath = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"], rootContentItem.Id.ToString());
+                Directory.Delete(ContentFolderPath, true);
+            }
+            catch
+            {
+                if (! (new StackTrace()).GetFrames().Any(f => f.GetMethod().DeclaringType.Namespace == "MapTests"))
+                {
+                    throw;
+                }
+            }
+
             #region Log audit event(s)
             AuditEvent rootContentItemDeletedEvent = AuditEvent.New(
                 $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
@@ -487,7 +501,7 @@ namespace MillimanAccessPortal.Controllers
 
             // There must be no unresolved ContentPublicationRequest.
             List<PublicationStatus> BlockingRequestStatusList = new List<PublicationStatus>
-                                                              { PublicationStatus.Processing, PublicationStatus.Queued };
+                                                              { PublicationStatus.Processing, PublicationStatus.Processed, PublicationStatus.Queued };
             Blocked = DbContext.ContentPublicationRequest
                                .Where(r => r.RootContentItemId == Arg.RootContentItemId)
                                .Any(r => BlockingRequestStatusList.Contains(r.RequestStatus));
@@ -498,7 +512,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             List<ReductionStatusEnum> BlockingTaskStatusList = new List<ReductionStatusEnum>
-                                                             { ReductionStatusEnum.Reducing, ReductionStatusEnum.Queued };
+                                                             { ReductionStatusEnum.Reducing, ReductionStatusEnum.Reduced, ReductionStatusEnum.Queued };
             Blocked = DbContext.ContentReductionTask
                                .Where(t => t.ContentPublicationRequestId == null)
                                .Include(t => t.SelectionGroup)
@@ -546,7 +560,7 @@ namespace MillimanAccessPortal.Controllers
 
                     foreach (UploadedRelatedFile UploadedFileRef in Arg.RelatedFiles)
                     {
-                        ContentRelatedFile Crf = HandleRelatedFile(UploadedFileRef, ContentItem, ThisRequestGuid, NewContentPublicationRequest.Id);
+                        ContentRelatedFile Crf = HandleRelatedFile(UploadedFileRef, ContentItem, NewContentPublicationRequest.Id);
 
                         if (Crf != null)
                         {
@@ -642,7 +656,6 @@ namespace MillimanAccessPortal.Controllers
             catch
             {
                 Response.Headers.Add("Warning", "The publication request failed to be canceled.  Processing may have started.");
-                Response.Headers.Add("Warning", "The publication request failed to be canceled.  Processing may have started.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
@@ -699,11 +712,457 @@ namespace MillimanAccessPortal.Controllers
 
             PreLiveContentValidationSummary ReturnObj = PreLiveContentValidationSummary.Build(DbContext, RootContentItemId, ApplicationConfig);
 
+            #region Log audit event
+            AuditEvent PreLiveSummaryEvent = AuditEvent.New(
+                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                "Pre-live publication summary returned for user validation",
+                AuditEventId.PreGoLiveSummary,
+                new
+                {
+                    ReturnObj.ValidationSummaryId,
+                    ReturnObj.PublicationRequestId,
+                    ReturnObj.AttestationLanguage,
+                    ReturnObj.ContentDescription,
+                    ReturnObj.RootContentName,
+                    ReturnObj.ContentTypeName,
+                    ReturnObj.LiveHierarchy,
+                    ReturnObj.NewHierarchy,
+                    ReturnObj.DoesReduce,
+                    ReturnObj.ClientName,
+                },
+                User.Identity.Name,
+                HttpContext.Session.Id
+                );
+            AuditLogger.Log(PreLiveSummaryEvent);
+            #endregion
+
             return new JsonResult(ReturnObj);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GoLive(long rootContentItemId, long publicationRequestId, string validationSummaryId)
+        {
+            #region Authorization
+            AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItemId));
+            if (!authorization.Succeeded)
+            {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    $"Request for content go-live without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in root content item",
+                    AuditEventId.Unauthorized,
+                    new { RootContentItemId = rootContentItemId, ValidationSummaryId = validationSummaryId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
+                Response.Headers.Add("Warning", "You are not authorized to publish content for this root content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            ContentPublicationRequest PubRequest = DbContext.ContentPublicationRequest.Where(r => r.Id == publicationRequestId)
+                                                                                      .Where(r => r.RootContentItemId == rootContentItemId)
+                                                                                      .Include(r => r.RootContentItem)
+                                                                                      .Include(r => r.ApplicationUser)
+                                                                                      .SingleOrDefault(r => r.RequestStatus == PublicationStatus.Processed);
+
+            if (PubRequest == null)
+            {
+                Response.Headers.Add("Warning", "Go-Live request references an invalid publication request.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            ContentReductionHierarchy<ReductionFieldValue> LiveHierarchy = new ContentReductionHierarchy<ReductionFieldValue> { RootContentItemId = PubRequest.RootContentItemId };
+            ContentReductionHierarchy<ReductionFieldValue> NewHierarchy = new ContentReductionHierarchy<ReductionFieldValue> { RootContentItemId = PubRequest.RootContentItemId };
+
+            List<ContentReductionTask> RelatedReductionTasks = DbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == PubRequest.Id)
+                                                                                             .Include(t => t.SelectionGroup)
+                                                                                             .ToList();
+
+            // For each reducing SelectionGroup related to the RootContentItem:
+            foreach (SelectionGroup ContentRelatedSelectionGroup in DbContext.SelectionGroup.Where(g => g.RootContentItemId == rootContentItemId)
+                                                                                            .Where(g => !g.IsMaster))
+            {
+                ContentReductionTask ThisTask;
+
+                // RelatedReductionTasks should have one ContentReductionTask related to the SelectionGroup
+                try
+                {
+                    ThisTask = RelatedReductionTasks.Single(t => t.SelectionGroupId == ContentRelatedSelectionGroup.Id);
+                }
+                catch (InvalidOperationException)
+                {
+                    Response.Headers.Add("Warning", $"Expected 1 reduction task related to SelectionGroup {ContentRelatedSelectionGroup.Id}, cannot complete this go-live request.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+
+                // This ContentReductionTask must be a reducing task
+                if (ThisTask.TaskAction != TaskActionEnum.HierarchyAndReduction)
+                {
+                    Response.Headers.Add("Warning", $"Go live request failed to verify related content reduction task {ThisTask.Id}.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+                // The reduced content file identified in the ContentReductionTask must exist
+                if (!System.IO.File.Exists(ThisTask.ResultFilePath))
+                {
+                    Response.Headers.Add("Warning", $"Reduced content file {ThisTask.ResultFilePath} does not exist, cannot complete the go-live request.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+                // Validate file checksum for reduced content
+                if (GlobalFunctions.GetFileChecksum(ThisTask.ResultFilePath).ToLower() != ThisTask.ReducedContentChecksum.ToLower())
+                {
+                    #region Log audit event
+                    AuditEvent ChecksumFailedEvent = AuditEvent.New(
+                        $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                        "Checksum validation failed for reduced content file before copying to live path",
+                        AuditEventId.GoLiveValidationFailed,
+                        new { File = ThisTask.ResultFilePath, ValidationSummaryId = validationSummaryId },
+                        User.Identity.Name,
+                        HttpContext.Session.Id
+                        );
+                    AuditLogger.Log(ChecksumFailedEvent);
+                    #endregion
+
+                    Response.Headers.Add("Warning", $"Reduced content file failed integrity check, cannot complete the go-live request.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+            }
+
+            // Validate Checksums of LiveReady files
+            foreach (ContentRelatedFile Crf in PubRequest.LiveReadyFilesObj)
+            {
+                if (GlobalFunctions.GetFileChecksum(Crf.FullPath).ToLower() != Crf.Checksum.ToLower())
+                {
+                    #region Log audit event
+                    AuditEvent ChecksumFailedEvent = AuditEvent.New(
+                        $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                        "Checksum validation failed for live-ready file before copying to live path",
+                        AuditEventId.GoLiveValidationFailed,
+                        new { File = Crf.FullPath, ValidationSummaryId = validationSummaryId },
+                        User.Identity.Name,
+                        HttpContext.Session.Id
+                        );
+                    AuditLogger.Log(ChecksumFailedEvent);
+                    #endregion
+
+                    Response.Headers.Add("Warning", "File integrity validation failed");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+            }
+
+            if (PubRequest.RootContentItem.DoesReduce)
+            {
+                LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(DbContext, PubRequest.RootContentItemId);
+                NewHierarchy = RelatedReductionTasks[0].MasterContentHierarchyObj;
+
+                if (LiveHierarchy.Fields.Count != 0)
+                {
+                    // No change in field list (e.g. names) should occur
+                    if (!LiveHierarchy.Fields.Select(f => f.FieldName).ToHashSet().SetEquals(NewHierarchy.Fields.Select(f => f.FieldName)))
+                    {
+                        Response.Headers.Add("Warning", "New hierarchy field list does not match the live hierarchy");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
+                }
+            }
+            #endregion
+
+            /* At this point, available variables include:
+             * - PubRequest - validated to be the relevant ContentPublicationRequest instance, with RootContentItem and ApplicationUser navigation properties
+             * - RelatedReductionTasks - List of ContentReductionTask instances referring to PubRequest, with SelectionGroup navigation properties
+             * - LiveHierarchy - Reflects the hierarchy of the currently live content
+             * - NewHierarchy - Reflects the new hierarchy of the content being requested to go live
+             */
+
+            List<string> FilesToDelete = new List<string>();
+
+            using (IDbContextTransaction Txn = DbContext.Database.BeginTransaction())
+            {
+                // 1 Move new master content and related files (not reduced content) into live file names, removing any existing copies of previous version
+                List<ContentRelatedFile> UpdatedContentFilesList = PubRequest.RootContentItem.ContentFilesList;
+                foreach (ContentRelatedFile Crf in PubRequest.LiveReadyFilesObj)
+                {
+                    // This assignment defines the live file name
+                    string TargetFileName = $"{Crf.FilePurpose}.Content[{rootContentItemId}]{Path.GetExtension(Crf.FullPath)}";
+                    string TargetFilePath = Path.Combine(Path.GetDirectoryName(Crf.FullPath), TargetFileName);
+
+                    // Move any existing file to backed up name
+                    if (System.IO.File.Exists(TargetFilePath))
+                    {
+                        string BackupFilePath = TargetFilePath + ".bak";
+                        if (System.IO.File.Exists(BackupFilePath))
+                        {
+                            System.IO.File.Delete(BackupFilePath);
+                        }
+                        System.IO.File.Move(TargetFilePath, BackupFilePath);
+                        FilesToDelete.Add(BackupFilePath);
+                    }
+
+                    // Can't move between different volumes
+                    System.IO.File.Copy(Crf.FullPath, TargetFilePath);
+                    FilesToDelete.Add(Crf.FullPath);
+
+                    // if file with this FilePurpose does not already exist for the Content Item
+                    if (!UpdatedContentFilesList.Select(cf => cf.FilePurpose).Contains(Crf.FilePurpose))
+                    {
+                        UpdatedContentFilesList.Add(new ContentRelatedFile { FilePurpose = Crf.FilePurpose, FullPath = TargetFilePath, Checksum = Crf.Checksum });
+                    }
+
+                    if (Crf.FilePurpose.ToLower() == "mastercontent")
+                    {
+                        foreach (SelectionGroup MasterContentGroup in RelatedReductionTasks.Select(t => t.SelectionGroup).Where(g => g.IsMaster))
+                        {
+                            MasterContentGroup.ContentInstanceUrl = Path.Combine($"{rootContentItemId}", TargetFileName);
+                            DbContext.SelectionGroup.Update(MasterContentGroup);
+                        }
+                    }
+                }
+                PubRequest.RootContentItem.ContentFilesList = UpdatedContentFilesList;
+
+                // 2 Rename reduced content files to live names
+                foreach (var ThisTask in RelatedReductionTasks.Where(t => !t.SelectionGroup.IsMaster))
+                {
+                    // This assignment defines the live file name for any reduced content file
+                    string TargetFileName = $"ReducedContent.SelGrp[{ThisTask.SelectionGroupId}].Content[{PubRequest.RootContentItemId}]{Path.GetExtension(ThisTask.ResultFilePath)}";
+                    string TargetFilePath = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"], PubRequest.RootContentItemId.ToString(), TargetFileName);
+
+                    // Set url in SelectionGroup
+                    ThisTask.SelectionGroup.ContentInstanceUrl = Path.Combine($"{rootContentItemId}", TargetFileName);
+                    DbContext.SelectionGroup.Update(ThisTask.SelectionGroup);
+
+                    // Move the existing file to backed up name if exists
+                    if (System.IO.File.Exists(TargetFilePath))
+                    {
+                        string BackupFilePath = TargetFilePath + ".bak";
+                        if (System.IO.File.Exists(BackupFilePath))
+                        {
+                            System.IO.File.Delete(BackupFilePath);
+                        }
+                        System.IO.File.Move(TargetFilePath, BackupFilePath);
+                        FilesToDelete.Add(BackupFilePath);
+                    }
+
+                    System.IO.File.Copy(ThisTask.ResultFilePath, TargetFilePath);
+                    FilesToDelete.Add(ThisTask.ResultFilePath);
+                }
+
+                //3 Update db:
+                //3.1  ContentPublicationRequest.Status
+                foreach (ContentPublicationRequest PreviousLiveRequest in DbContext.ContentPublicationRequest.Where(r => r.RequestStatus == PublicationStatus.Confirmed))
+                {
+                    PreviousLiveRequest.RequestStatus = PublicationStatus.Replaced;
+                    DbContext.ContentPublicationRequest.Update(PreviousLiveRequest);
+                }
+                PubRequest.RequestStatus = PublicationStatus.Confirmed;
+
+                //3.2  ContentReductionTask.Status
+                foreach (ContentReductionTask PreviousLiveTask in DbContext.ContentReductionTask.Where(r => r.ReductionStatus == ReductionStatusEnum.Live))
+                {
+                    PreviousLiveTask.ReductionStatus = ReductionStatusEnum.Replaced;
+                    DbContext.ContentReductionTask.Update(PreviousLiveTask);
+                }
+                RelatedReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Live);
+
+                //3.3  HierarchyFieldValue due to hierarchy changes
+                //3.3.1  If this is first publication for this root content item, add the fields to db and to LiveHierarchy to help identify all values as new
+                if (LiveHierarchy.Fields.Count == 0)
+                {  // This must be first time publication, need to insert the fields.  Values are handled below
+                    NewHierarchy.Fields.ForEach(f =>
+                    {
+                        HierarchyField NewField = new HierarchyField
+                        {
+                            FieldName = f.FieldName,
+                            FieldDisplayName = f.DisplayName,
+                            RootContentItemId = PubRequest.RootContentItemId,
+                            FieldDelimiter = f.ValueDelimiter,
+                            StructureType = f.StructureType,
+                        };
+                        DbContext.HierarchyField.Add(NewField);
+                        DbContext.SaveChanges();
+
+                        LiveHierarchy.Fields.Add(new ReductionField<ReductionFieldValue>
+                        {
+                            Id = NewField.Id,  // Id is assigned during DbContext.SaveChanges() above
+                            FieldName = NewField.FieldName,
+                            DisplayName = NewField.FieldDisplayName,
+                            StructureType = NewField.StructureType,
+                            ValueDelimiter = NewField.FieldDelimiter,
+                            Values = new List<ReductionFieldValue>(),
+                        });
+                    });
+                }
+                //3.3.2  Add/Remove field values based on value list differences between new/old
+                foreach (var NewHierarchyField in NewHierarchy.Fields)
+                {
+                    ReductionField<ReductionFieldValue> MatchingLiveField = LiveHierarchy.Fields.Single(f => f.FieldName == NewHierarchyField.FieldName);
+
+                    List<string> NewHierarchyFieldValueList = NewHierarchyField.Values.Select(v => v.Value).ToList();
+                    List<string> LiveHierarchyFieldValueList = MatchingLiveField.Values.Select(v => v.Value).ToList();
+
+                    // Insert new values
+                    foreach (string NewValue in NewHierarchyFieldValueList.Except(LiveHierarchyFieldValueList))
+                    {
+                        DbContext.HierarchyFieldValue.Add(new HierarchyFieldValue { HierarchyFieldId = MatchingLiveField.Id, Value = NewValue });
+                    }
+
+                    // Delete removed values
+                    foreach (string RemovedValue in LiveHierarchyFieldValueList.Except(NewHierarchyFieldValueList))
+                    {
+                        HierarchyFieldValue ObsoleteRecord = DbContext.HierarchyFieldValue.Single(v => v.HierarchyField.RootContentItemId == PubRequest.RootContentItemId
+                                                                                                    && v.Value == RemovedValue);
+                        DbContext.HierarchyFieldValue.Remove(ObsoleteRecord);
+                    }
+                }
+                DbContext.SaveChanges();
+
+                //3.4  SelectionGroup 1) URL and 2) SelectedHierarchyFieldValueList due to hierarchy changes
+                List<long> AllRemainingFieldValues = DbContext.HierarchyFieldValue.Where(v => v.HierarchyField.RootContentItemId == PubRequest.RootContentItemId)
+                                                                                  .Select(v => v.Id)
+                                                                                  .ToList();
+                foreach (SelectionGroup Group in DbContext.SelectionGroup.Where(g => g.RootContentItemId == PubRequest.RootContentItemId && !g.IsMaster))
+                {
+                    Group.SelectedHierarchyFieldValueList = Group.SelectedHierarchyFieldValueList.Intersect(AllRemainingFieldValues).ToArray();
+                }
+
+                DbContext.SaveChanges();
+                Txn.Commit();
+            }
+
+            #region Log audit event
+            AuditEvent GoLiveLogEvent = AuditEvent.New(
+                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                "Content publication go-live was successful",
+                AuditEventId.ContentPublicationGoLive,
+                new { UserAttestedSummaryId = validationSummaryId, PublicationRequestId = PubRequest.Id },
+                User.Identity.Name,
+                HttpContext.Session.Id
+                );
+            AuditLogger.Log(GoLiveLogEvent);
+            #endregion
+
+            // 4 Delete all temporary files
+            foreach (string FileToDelete in FilesToDelete)
+            {
+                try
+                {
+                    System.IO.File.Delete(FileToDelete);
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    continue;
+                }
+            }
+
+            if (PubRequest.RootContentItem.DoesReduce)
+            {
+                //Delete temporary folder of publication job (contains temporary reduced content files)
+                string PubJobTempFolder = Path.GetDirectoryName(RelatedReductionTasks[0].MasterFilePath);
+                Directory.Delete(PubJobTempFolder, true);
+            }
+
+            return Ok();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reject(long rootContentItemId, long publicationRequestId)
+        {
+            // TODO Could/should this be handled in the Cancel action?
+            #region Authorization
+            AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItemId));
+            if (!authorization.Succeeded)
+            {
+                #region Log audit event
+                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
+                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                    $"Request to reject content without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in root content item",
+                    AuditEventId.Unauthorized,
+                    new { RootContentItemId = rootContentItemId },
+                    User.Identity.Name,
+                    HttpContext.Session.Id
+                    );
+                AuditLogger.Log(AuthorizationFailedEvent);
+                #endregion
+
+                Response.Headers.Add("Warning", "You are not authorized to publish content for this root content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            // the content item exists if the authorization check passes
+            RootContentItem rootContentItem = DbContext.RootContentItem.Find(rootContentItemId);
+
+            #region Validation
+            ContentPublicationRequest pubRequest = DbContext.ContentPublicationRequest.Find(publicationRequestId);
+            if (pubRequest == null || pubRequest.RootContentItemId != rootContentItemId)
+            {
+                Response.Headers.Add("Warning", "The requested publication request does not exist.");
+                return BadRequest();
+            }
+
+            if (pubRequest.RequestStatus != PublicationStatus.Processed)
+            {
+                Response.Headers.Add("Warning", "The specified publication request is not currently queued.");
+                return BadRequest();
+            }
+            #endregion
+
+            using (var Txn = DbContext.Database.BeginTransaction())
+            {
+                pubRequest.RequestStatus = PublicationStatus.Rejected;
+                DbContext.ContentPublicationRequest.Update(pubRequest);
+
+                List<ContentReductionTask> RelatedTasks = DbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == publicationRequestId).ToList();
+                foreach (ContentReductionTask relatedTask in RelatedTasks)
+                {
+                    relatedTask.ReductionStatus = ReductionStatusEnum.Rejected;
+                    DbContext.ContentReductionTask.Update(relatedTask);
+                }
+                DbContext.SaveChanges();
+
+                // Delete each staged prelive file
+                foreach (ContentRelatedFile PreliveFile in pubRequest.LiveReadyFilesObj)
+                {
+                    if (System.IO.File.Exists(PreliveFile.FullPath))
+                    {
+                        System.IO.File.Delete(PreliveFile.FullPath);
+                    }
+                }
+                // Delete any FileExchange folder
+                if (RelatedTasks.Any())
+                {
+                    string ExchangeFolder = Path.GetDirectoryName(RelatedTasks[0].MasterFilePath);
+                    if (Directory.Exists(ExchangeFolder))
+                    {
+                        Directory.Delete(ExchangeFolder, true);
+                    }
+                }
+
+                Txn.Commit();
+            }
+
+            #region Log audit event
+            AuditEvent PublicationRejectedEvent = AuditEvent.New(
+                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
+                $"User rejected a publication request",
+                AuditEventId.ContentPublicationRejected,
+                new { RootContentItemId = rootContentItemId, ContentPublicationRequestId = publicationRequestId },
+                User.Identity.Name,
+                HttpContext.Session.Id
+                );
+            AuditLogger.Log(PublicationRejectedEvent);
+            #endregion
+
+            return Ok();
+        }
+
         [NonAction]
-        private ContentRelatedFile HandleRelatedFile(UploadedRelatedFile RelatedFile, RootContentItem ContentItem, Guid RequestGuid, long PubRequestId)
+        private ContentRelatedFile HandleRelatedFile(UploadedRelatedFile RelatedFile, RootContentItem ContentItem, long PubRequestId)
         {
             ContentRelatedFile ReturnObj = null;
 

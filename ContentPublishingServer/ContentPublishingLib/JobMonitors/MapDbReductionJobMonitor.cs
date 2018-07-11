@@ -20,6 +20,7 @@ using ContentPublishingLib.JobRunners;
 using Newtonsoft.Json;
 using TestResourcesLib;
 using Moq;
+using MapCommonLib;
 
 namespace ContentPublishingLib.JobMonitors
 {
@@ -36,26 +37,6 @@ namespace ContentPublishingLib.JobMonitors
         private List<ReductionJobTrackingItem> ActiveReductionRunnerItems = new List<ReductionJobTrackingItem>();
 
         // Settable operating parameters
-        private TimeSpan TaskAgeBeforeExecution
-        {
-            get
-            {
-                int TaskAgeSec;
-                try
-                {
-                    if (!int.TryParse(Configuration.ApplicationConfiguration["TaskAgeBeforeExecutionSeconds"], out TaskAgeSec))
-                    {
-                        throw new Exception();
-                    }
-                }
-                catch
-                {
-                    TaskAgeSec = 30;
-                }
-                return TimeSpan.FromSeconds(TaskAgeSec);
-            }
-        }
-
         /// <summary>
         /// Initializes data used to construct database context instances using a named configuration parameter.
         /// </summary>
@@ -66,17 +47,6 @@ namespace ContentPublishingLib.JobMonitors
                 ConnectionString = Configuration.GetConnectionString(value);
             }
         }
-
-        #region Unit testing support
-        public TimeSpan TaskAgeBeforeExecution_TestAssert
-        {
-            get
-            {
-                AssertTesting();
-                return TaskAgeBeforeExecution;
-            }
-        }
-        #endregion
 
         /// <summary>
         /// Initializes data used to construct database context instances.
@@ -150,7 +120,7 @@ namespace ContentPublishingLib.JobMonitors
                                 break;
 
                             default:
-                                Trace.WriteLine($"Task record discovered for unsupported content type");
+                                GlobalFunctions.TraceWriteLine($"Task record discovered for unsupported content type");
                                 break;
                         }
 
@@ -164,7 +134,7 @@ namespace ContentPublishingLib.JobMonitors
                 Thread.Sleep(1000);
             }
 
-            Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} stopping {ActiveReductionRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
+            GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} stopping {ActiveReductionRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
 
             if (ActiveReductionRunnerItems.Count != 0)
             {
@@ -173,7 +143,7 @@ namespace ContentPublishingLib.JobMonitors
                 DateTime WaitStart = DateTime.Now;
                 while (DateTime.Now - WaitStart < StopWaitTimeSeconds)
                 {
-                    Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} waiting for {ActiveReductionRunnerItems.Count} running tasks to complete");
+                    GlobalFunctions.TraceWriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} waiting for {ActiveReductionRunnerItems.Count} running tasks to complete");
 
                     int CompletedTaskIndex = Task.WaitAny(ActiveReductionRunnerItems.Select(t => t.task).ToArray(), new TimeSpan(StopWaitTimeSeconds.Ticks / 100));
                     if (CompletedTaskIndex > -1)
@@ -183,19 +153,19 @@ namespace ContentPublishingLib.JobMonitors
 
                     if (ActiveReductionRunnerItems.Count == 0)
                     {
-                        Trace.WriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} all reduction runners terminated successfully");
+                        GlobalFunctions.TraceWriteLine($"{DateTime.Now} {Method.ReflectedType.Name}.{Method.Name} all reduction runners terminated successfully");
                         break;
                     }
                 }
 
                 foreach (var Item in ActiveReductionRunnerItems)
                 {
-                    Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} after timer expired, task {Item.dbTask.Id.ToString()} not completed");
+                    GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} after timer expired, task {Item.dbTask.Id.ToString()} not completed");
                 }
             }
 
             Token.ThrowIfCancellationRequested();
-            Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} returning");
+            GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} returning");
         }
 
         /// <summary>
@@ -217,8 +187,7 @@ namespace ContentPublishingLib.JobMonitors
             {
                 try
                 {
-                    List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => DateTime.UtcNow - t.CreateDateTimeUtc > TaskAgeBeforeExecution)
-                                                                                 .Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
+                    List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
                                                                                  .Include(t => t.SelectionGroup).ThenInclude(sg => sg.RootContentItem).ThenInclude(rc => rc.ContentType)
                                                                                  .OrderBy(t => t.CreateDateTimeUtc)
                                                                                  .Take(ReturnNoMoreThan)
@@ -234,7 +203,7 @@ namespace ContentPublishingLib.JobMonitors
                 }
                 catch (Exception e)
                 {
-                    Trace.WriteLine($"Failed to query MAP database for available tasks.  Exception:{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}");
+                    GlobalFunctions.TraceWriteLine($"Failed to query MAP database for available tasks.  Exception:{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}");
                     throw;
                 }
             }
@@ -251,7 +220,7 @@ namespace ContentPublishingLib.JobMonitors
             {
                 MethodBase Method = MethodBase.GetCurrentMethod();
                 string Msg = $"{Method.ReflectedType.Name}.{Method.Name} unusable argument";
-                Trace.WriteLine(Msg);
+                GlobalFunctions.TraceWriteLine(Msg);
                 return false;
             }
 
@@ -289,13 +258,9 @@ namespace ContentPublishingLib.JobMonitors
                             throw new Exception("Unsupported job result status in MapDbJobMonitor.UpdateTask().");
                     }
 
-                    DbTask.MasterContentHierarchy = JobDetail.Result.MasterContentHierarchy != null 
-                                                ? JsonConvert.SerializeObject((ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.MasterContentHierarchy, Formatting.Indented)
-                                                : null;
+                    DbTask.MasterContentHierarchyObj = (ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.MasterContentHierarchy;
 
-                    DbTask.ReducedContentHierarchy = JobDetail.Result.ReducedContentHierarchy != null
-                                                ? JsonConvert.SerializeObject((ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.ReducedContentHierarchy, Formatting.Indented)
-                                                : null;
+                    DbTask.ReducedContentHierarchyObj = (ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.ReducedContentHierarchy;
 
                     DbTask.ResultFilePath = JobDetail.Result.ReducedContentFilePath;
 
@@ -312,7 +277,7 @@ namespace ContentPublishingLib.JobMonitors
             }
             catch (Exception e)
             {
-                Trace.WriteLine("Failed to update task in database" + Environment.NewLine + e.Message);
+                GlobalFunctions.TraceWriteLine("Failed to update task in database" + Environment.NewLine + e.Message);
                 return false;
             }
         }
