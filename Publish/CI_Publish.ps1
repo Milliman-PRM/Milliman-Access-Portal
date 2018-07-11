@@ -69,21 +69,11 @@ function create_db { # Attempt to create a database by copying another one; retr
 #endregion
 
 #region Configure environment properties
-$ResourceGroupName = "map-ci"
-$SubscriptionId = "8f047950-269e-43c7-94e0-ff90d22bf013"
-$TenantId = "15dfebdf-8eb6-49ea-b9c7-f4b275f6b4b4"
-$WebAppName = "map-ci-app"
-$AppServicePlanName = "map-ci"
 $BranchName = $env:git_branch.Replace("_","").Replace("-","").ToLower() # Will be used as the name of the deployment slot & appended to database names
 
-$deployUser = $env:app_deploy_user
-$deployPassword = $env:app_deploy_password
-
 $gitExePath = "git"
-$credManagerPath = "L:\Hotware\Powershell_Plugins\CredMan.ps1"
 $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
 
-$dbServerHostname = "map-ci-db"
 $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
 $dbPassword = $env:db_deploy_password
@@ -97,8 +87,16 @@ $dbCreationRetries = 5 # The number of times the script will attempt to create a
 
 $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 
-$env:PATH = $env:PATH+";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin\;$env:appdata\npm\"
+$env:APP_DATABASE_NAME=$appDbName
+$env:AUDIT_LOG_DATABASE_NAME=$logDbName
+$env:ASPNETCORE_ENVIRONMENT="CI"
+$env:PATH = $env:PATH+";C:\Program Files (x86)\OctopusCLI\;$env:appdata\npm\"
 $rootPath = (get-location).Path
+$webBuildTarget = "$rootPath\WebDeploy"
+$serviceBuildTarget = "$rootPath\ContentPublishingServer\ContentPublishingService\bin\debug"
+$nugetDestination = "$rootPath\nugetPackages"
+$octopusURL = "https://indy-prmdeploy.milliman.com"
+$octopusAPIKey = $env:octopus_api_key
 
 #endregion
 
@@ -142,17 +140,7 @@ if ($codeChangeFound -eq $false)
 
 #region Run unit tests and exit if any fail
 
-cd MillimanAccessPortal\MillimanAccessPortal
-
 log_statement "Restoring packages and building MAP"
-
-MSBuild /t:Restore /verbosity:quiet
-
-if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: Initial nuget package restore failed for MAP solution"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
-}
 
 $command = "npm install -g yarn@1.5.1"
 invoke-expression $command
@@ -163,6 +151,8 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+cd $rootpath\MillimanAccessPortal\MillimanAccessPortal
+
 $command = "yarn install --frozen-lockfile"
 invoke-expression "&$command"
 
@@ -172,10 +162,32 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+cd $rootpath\MillimanAccessPortal\
+
+MSBuild /restore:true /verbosity:quiet
+
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: Initial build of MAP solution failed"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
+
+cd $rootpath\MillimanAccessPortal\MillimanAccessPortal
+
+log_statement "Building yarn packages"
+
+yarn build
+
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: yarn build failed"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
 
 cd $rootpath\ContentPublishingServer
 
-log_statement "Performing test build of content publishing server"
+log_statement "Building content publishing server"
 
 MSBuild /restore:true /verbosity:quiet /nowarn:CS1998
 
@@ -185,28 +197,19 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-
-log_statement "Building MAP unit tests"
-
-cd $rootPath\MillimanAccessPortal\MapTests
-
-MSBuild /restore:True /verbosity:quiet /nowarn:CS1998
-
-if ( $LASTEXITCODE -ne 0 ) {
-    log_statement "ERROR: Unit test build failed"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
-}
-
 log_statement "Performing MAP unit tests"
+ 
+ cd $rootPath\MillimanAccessPortal\MapTests
 
-dotnet test --no-build
-
-if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: One or more xUnit tests failed"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
+ dotnet test --no-build
+ 
+ if ($LASTEXITCODE -ne 0) {
+     log_statement "ERROR: One or more MAP xUnit tests failed"
+     log_statement "errorlevel was $LASTEXITCODE"
+     exit $LASTEXITCODE
 }
+
+log_statement "Peforming Jest tests"
 
 cd $rootPath\MillimanAccessPortal\MillimanAccessPortal
 
@@ -221,131 +224,21 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-log_statement "Building Content Publishing Server unit tests"
+log_statement "Performing content publishing unit tests"
 
-cd $rootpath\ContentPublishingServer\ContentPublishingServiceTests
+cd $rootPath\ContentPublishingServer\ContentPublishingServiceTests
 
-MSBuild /restore:True /verbosity:quiet
+dotnet test --no-build
 
-if ( $LASTEXITCODE -ne 0 ) {
-    log_statement "ERROR: Content publishing server unit test build failed"
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: One or more content publishing xUnit tests failed"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
 
-log_statement "Performing Content publishing server unit tests"
- 
- dotnet test --no-build
- 
- if ($LASTEXITCODE -ne 0) {
-     log_statement "ERROR: One or more Content publishing server xUnit tests failed"
-     log_statement "errorlevel was $LASTEXITCODE"
-     exit $LASTEXITCODE
-}
-
-cd $rootPath
-
 #endregion
 
-
-$env:PSModulePath = $env:PSModulePath+';C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager'
-
-#Load required PowerShell modules
-$silent = import-module AzureRM.Profile, AzureRM.Resources, AzureRM.Websites, Microsoft.PowerShell.Security
-
-if ($? -eq $false)
-{
-    log_statement "Failed to load modules"
-    exit -1000
-}
-
-#region Authenticate to Azure with a service principal
-
-$DeployCredential = new-object -typename System.Management.Automation.PSCredential -argumentlist $deployUser,($deployPassword | ConvertTo-SecureString -AsPlainText -Force)
-$silent = Add-AzureRmAccount -ServicePrincipal -Credential $DeployCredential -TenantId $TenantId  -Subscription $SubscriptionId
-
-if ($? -eq $false)
-{
-    log_statement "Failed to authenticate to Azure. Unable to deploy."
-    exit -1000
-}
-
-#endregion
-
-#region Create and configure deployment slot
-
-log_statement "Preparing deployment slot"
-
-$silent = Get-AzureRmWebAppSlot -ResourceGroupName $ResourceGroupName -Name $WebAppName -Slot $Branchname
-if ($? -eq $false)
-{
-    New-AzureRmWebAppSlot -ResourceGroupName $ResourceGroupName -AppServicePlan $AppServicePlanName -Name $WebAppName -Slot $BranchName
-
-    if ($? -eq $false)
-    {
-        log_statement "Failed to create deployment slot"
-        exit -1000
-    }
-}
-else
-{
-    log_statement "Deployment slot $BranchName already exists. Restarting to avoid file access conflicts."
-
-    Restart-AzureRmWebAppSlot -Name $webappname -Slot $BranchName -ResourceGroupName $ResourceGroupName
-
-    if ($? -eq $false)
-    {
-        log_statement "Failed to restart running web app slot. Deployment cannot be successful."
-        exit -1000
-    }
-}
-
-# Configure local Git deployment
-$PropertiesObject = @{
-    scmType = "LocalGit"
-}
-Set-AzureRmResource -PropertyObject $PropertiesObject -ResourceGroupName $ResourceGroupName -ResourceType Microsoft.Web/sites/slots/config -ResourceName "$WebAppName/$BranchName/web" -ApiVersion 2016-08-01 -Force
-
-if ($? -eq $false)
-{
-    log_statement "Failed to configure App Settings"
-    exit -1000
-}
-
-# Update branch name
-$resource = Invoke-AzureRmResourceAction -ResourceGroupName $ResourceGroupName -ResourceType Microsoft.Web/sites/slots/config -ResourceName "$WebAppName/$BranchName/appsettings" -Action list -ApiVersion 2016-08-01 -Force
-$resource.Properties.BranchName = $BranchName
-$silent = New-AzureRmResource -PropertyObject $resource.properties -ResourceGroupName $ResourceGroupName -ResourceType Microsoft.Web/sites/slots/config -ResourceName "$WebAppName/$BranchName/appsettings" -ApiVersion 2016-08-01 -Force
-
-if ($? -eq $false)
-{
-    log_statement "Failed to set BranchName environment variable in deployment slot"
-    exit -1000
-}
-
-# Retrieve git remote URL
-$deployProperties = Get-AzureRmResource -ResourceGroupName $ResourceGroupName -ResourceType Microsoft.Web/sites/slots/sourcecontrols -ResourceName "$WebAppName/$BranchName/web" -ApiVersion 2016-08-01
-
-# Get app-level deployment credentials
-$xml = [xml](Get-AzureRmWebAppSlotPublishingProfile -Name $webappname -Slot $BranchName -ResourceGroupName $ResourceGroupName -OutputFile null)
-$gitUser = $xml.SelectNodes("//publishProfile[@publishMethod=`"MSDeploy`"]/@userName").value
-$gitPassword = $xml.SelectNodes("//publishProfile[@publishMethod=`"MSDeploy`"]/@userPWD").value
-
-$remoteUrl = $deployProperties.Properties.repoUrl
-
-# Retrieve public URL of deployment slot to output later
-$slot = Get-AzureRmResource -ResourceGroupName map-ci -ResourceType Microsoft.Web/sites/slots -ResourceName "$WebAppName/$BranchName" -ApiVersion 2016-08-01
-if ($? -eq $false)
-{
-    log_statement "Failed to retrieve deployment slot properties"
-    exit -1000
-}
-
-$publicURL = "https://$($slot.Properties.defaultHostName)"
-
-#endregion
-
-#region Clone databases
+#region Create and update databases
 
 log_statement "Preparing branch databases"
 
@@ -390,136 +283,132 @@ if ($logDbFound -eq $false)
 
 remove-item env:PGPASSWORD
 
+log_statement "Performing database migrations"
+
+$env:ASPNETCORE_ENVIRONMENT = "AzureCI"
+
+cd $rootpath\MillimanAccessPortal\MillimanAccessPortal
+
+dotnet ef database update
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to apply application database migrations"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+
+dotnet ef database update --project "..\AuditLogLib\AuditLogLib.csproj" --startup-project ".\MillimanAccessPortal.csproj"  --context "AuditLogDbContext"
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to apply audit log database migrations"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
 #endregion
 
-#region Create Windows credential store object for deployment
+log_statement "Publishing and packaging web application"
 
-$command = "$credManagerPath -DelCred -Target `"git:$RemoteUrl`""
-start-process "powershell.exe" -ArgumentList "-Command `"$command`"" -wait -RedirectStandardOutput "$env:temp\output.txt" -redirectstandarderror "$env:temp\error.txt"
-log_statement "Attempted to delete an existing credential, if one exists. Return code was $LASTEXITCODE."
-log_output
+#region Publish web application to a folder
 
-.$credManagerPath -AddCred -Target "git:$RemoteUrl" -User "$gitUser" -pass "$gitPassword"
-if ($LASTEXITCODE -ne 0)
-{
-    log_statement "Failed to add git credential"
-    exit 42
+msbuild /t:publish /p:PublishDir=$webBuildTarget /verbosity:quiet
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to publish web application"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
 }
+
+log_statement "Copying Deployment scripts to target folder"
+
+Copy-Item "$rootPath\Publish\ManageVars.ps1" -Destination "$webBuildTarget\ManageVars.ps1"
+Copy-Item "$rootPath\Publish\OctopusSetBranch.ps1" -Destination "$webBuildTarget\OctopusSetBranch.ps1"
+
 #endregion
 
-#region Push to git remote
+#region package the web application for nuget
 
-$command = "$gitExePath remote remove ci_push 2>&1"
-$silent = Invoke-Expression "&$command" | out-string
-if ($LASTEXITCODE -ne 0)
-{
-    if ($silent -notlike "*fatal: No such remote:*")
-    {
-        log_statement "Remote cleanup failed with error:"
-        log_statement $silent
-        exit -250
-    }
+cd $webBuildTarget
+
+$webVersion = get-childitem "MillimanAccessPortal.dll" | select -expandproperty VersionInfo | select -expandproperty ProductVersion
+$webVersion = "$webVersion-$branchName"
+
+octo pack --id MillimanAccessPortal --version $webVersion --basepath $webBuildTarget --outfolder $nugetDestination\web
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to package web application for nuget"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
 }
 
-$command = "$gitExePath remote add ci_push $RemoteUrl"
-Invoke-Expression "$command"
-if ($LASTEXITCODE -ne 0)
-{
-    log_statement "Failed to add git remote."
-    exit -200
-}
-
-
-
-log_statement "Checking if git credential exists"
-$Attempts = 1
-$NumberRetries = 5
-$WaitSeconds = 10
-$CredentialFound = $False
-
-while ($attempts -lt $NumberRetries -and $credentialFound -eq $false)
-{
-    $command = "powershell -command `"$credManagerPath -GetCred -Target `"git:$RemoteUrl`" *>&1`""
-    $output = invoke-expression "&$command" | out-string
-    if ($output -match "Found credentials as:")
-    {
-        $credentialFound = $true
-        log_statement "Credential was found; ready to push to Azure to finalize deployment"
-    }
-    else
-    {
-        log_statement "Credential not found. Waiting $WaitSeconds seconds before trying again."
-        $Attempts = $Attempts + 1
-        start-sleep -Seconds $WaitSeconds
-    }
-}
-
-if ($CredentialFound)
-{
-    start-process "activate" -argumentlist "prod2016_11" -Wait
-    if ($LASTEXITCODE -ne 0) {
-        log_statement "ERROR: Failed to initialize environment"
-        exit $LASTEXITCODE
-    }
-
-    # "Unset" the git credential helper, so that its cache will be cleared
-    $command = "$gitexepath config --global --unset credential.helper wincred"
-    Invoke-Expression "$command"
-    if ($LASTEXITCODE -ne 0)
-    {
-        log_statement "Failed to unset git credential manager."
-        exit -800
-    }
-
-    $command = "$gitexepath config --global credential.helper wincred"
-    Invoke-Expression "$command"
-    if ($LASTEXITCODE -ne 0)
-    {
-        log_statement "Failed to set git credential manager."
-        exit -800
-    }
-
-    log_statement "Local script complete. Console output will be delayed until the remote deployment script is finished."
-
-    $command = "$gitExePath push ci_push `"HEAD:refs/heads/master`" --force 2>&1"
-    $pushOutput = Invoke-Expression "&$command" | out-string
-
-    log_statement "Push Output:"
-    write-output $pushOutput
-
-    if ($pushOutput -notlike "*remote: Finished successfully.*")
-    {
-        log_statement "Deployment failed"
-        exit -300
-    }
-}
-else
-{
-    log_statement "Git credential was not found"
-    exit -200
-}
 #endregion
 
-#region Check login page to confirm deployment
+#region Package publication server for nuget
 
-try
-{
-    $resp = Invoke-WebRequest "$publicURL/Account/Login"
-}
-catch
-{
-    log_statement "Failed to get login page: $publicURL/Account/Login"
-    exit -404
+log_statement "Packaging publication server"
+
+cd $serviceBuildTarget
+
+$serviceVersion = get-childitem "ContentPublishingService.exe" | select -expandproperty VersionInfo | select -expandproperty ProductVersion
+$serviceVersion = "$serviceVersion-$branchName"
+
+octo pack --id ContentPublishingServer --version $serviceVersion --outfolder $nugetDestination\service
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to package publication server for nuget"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
 }
 
-if ($resp.StatusCode -ne 200)
-{
-    log_statement "ERROR: Login page failed with code $($resp.StatusCode)"
-    exit $resp.StatusCode
+#endregion
+
+#region Deploy releases to Octopus
+
+log_statement "Deploying packages to Octopus"
+
+cd $nugetDestination
+
+octo push --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to push packages to Octopus"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
 }
-else
-{
-  log_statement "Successfully loaded login page: $publicURL/Account/Login"
+
+log_statement "Creating web app release"
+
+octo create-release --project "Milliman Access Portal" --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Web application release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for the web application"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+log_statement "Deploying web app release"
+
+octo deploy-release --project "Milliman Access Portal" --deployto "Development" --channel "Development" --version $webVersion --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL --waitfordeployment --cancelontimeout --progress
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Web application release deployed successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to deploy the web application"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
 }
 
 #endregion
