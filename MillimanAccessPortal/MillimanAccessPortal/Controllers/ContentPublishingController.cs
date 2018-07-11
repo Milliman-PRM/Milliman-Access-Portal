@@ -910,14 +910,25 @@ namespace MillimanAccessPortal.Controllers
                             new ContentRelatedFile { FilePurpose = Crf.FilePurpose, FullPath = TargetFilePath, Checksum = Crf.Checksum }
                         ).ToList();
                     }
+
+                    if (Crf.FilePurpose.ToLower() == "mastercontent")
+                    {
+                        foreach (SelectionGroup MasterContentGroup in RelatedReductionTasks.Select(t => t.SelectionGroup).Where(g => g.IsMaster))
+                        {
+                            MasterContentGroup.ContentInstanceUrl = Path.Combine($"{rootContentItemId}", TargetFileName);
+                        }
+                    }
                 }
 
                 // 2 Rename reduced content files to live names
-                foreach (var ThisTask in RelatedReductionTasks.Where(t => t.TaskAction == TaskActionEnum.HierarchyAndReduction))
+                foreach (var ThisTask in RelatedReductionTasks.Where(t => !t.SelectionGroup.IsMaster))
                 {
                     // This assignment defines the live file name for any reduced content file
                     string TargetFileName = $"ReducedContent.SelGrp[{ThisTask.SelectionGroupId}].Content[{PubRequest.RootContentItemId}]{Path.GetExtension(ThisTask.ResultFilePath)}";
                     string TargetFilePath = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"], PubRequest.RootContentItemId.ToString(), TargetFileName);
+
+                    // Set url in SelectionGroup
+                    ThisTask.SelectionGroup.ContentInstanceUrl = Path.Combine($"{rootContentItemId}", TargetFileName);
 
                     // Move the existing file to backed up name if exists
                     if (System.IO.File.Exists(TargetFilePath))
@@ -931,7 +942,6 @@ namespace MillimanAccessPortal.Controllers
                         FilesToDelete.Add(BackupFilePath);
                     }
 
-                    // TODO test Checksum
                     System.IO.File.Copy(ThisTask.ResultFilePath, TargetFilePath);
                     FilesToDelete.Add(ThisTask.ResultFilePath);
                 }
@@ -1012,14 +1022,6 @@ namespace MillimanAccessPortal.Controllers
                 foreach (SelectionGroup Group in DbContext.SelectionGroup.Where(g => g.RootContentItemId == PubRequest.RootContentItemId && !g.IsMaster))
                 {
                     Group.SelectedHierarchyFieldValueList = Group.SelectedHierarchyFieldValueList.Intersect(AllRemainingFieldValues).ToArray();
-                    if (Group.IsMaster)
-                    {
-                        Group.ContentInstanceUrl = $"MasterContent.Content[{Group.RootContentItemId}]."; align file naming with the live file names used in Publish()
-                    }
-                    else
-                    {
-                        Group.ContentInstanceUrl = align file naming with the live file names used in Publish()
-                    }
                 }
 
                 DbContext.SaveChanges();
