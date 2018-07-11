@@ -1,4 +1,6 @@
 import * as $ from 'jquery';
+import 'jquery-validation';
+import 'jquery-validation-unobtrusive';
 import * as toastr from 'toastr';
 
 import { AddRootContentItemActionCard, ClientCard, RootContentItemCard } from '../card';
@@ -112,7 +114,7 @@ export function openNewRootContentItemForm() {
   renderRootContentItemForm({
     ClientId: clientId,
     ContentName: '',
-    ContentTypeId: 0,
+    ContentTypeId: '0',
     Description: '',
     DoesReduce: false,
     Id: 0,
@@ -369,6 +371,11 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
       },
     ],
   );
+
+  $rootContentItemForm
+    .removeData('validator')
+    .removeData('unobtrusiveValidation');
+  $.validator.unobtrusive.parse($rootContentItemForm[0]);
 }
 
 function renderRootContentItem(item: RootContentItemSummary) {
@@ -456,7 +463,7 @@ function populateAvailableContentTypes(contentTypes: ContentType[]) {
   const $rootContentItemForm = $panel.find('form.admin-panel-content');
 
   const $contentTypeDropdown = $rootContentItemForm.find('#ContentTypeId');
-  $contentTypeDropdown.children(':not(option[value = ""])').remove();
+  $contentTypeDropdown.children(':not(option[value = "0"])').remove();
 
   contentTypes.forEach((contentType) => {
     const option = new Option(contentType.Name, contentType.Id.toString());
@@ -500,7 +507,7 @@ export function setup() {
     ).build());
 
   $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').click(() => {
-    if (formObject.accessMode === AccessMode.Read) {
+    if (formObject.accessMode === AccessMode.Read || formObject.submissionMode === 'new') {
       $('#root-content-items [selected]').click();
     } else {
       setFormReadOnly();

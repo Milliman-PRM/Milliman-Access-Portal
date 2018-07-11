@@ -54,29 +54,16 @@ namespace MillimanAccessPortal
                 options.Filters.Add(new RequireHttpsAttribute());
             });
 
-            #region Configure application connection string (environment-dependent)
+            #region Configure application connection string
 
             string appConnectionString = Configuration.GetConnectionString("DefaultConnection");
-            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
-
-            switch (EnvironmentName)
+            
+            // If the database name is defined in the environment, update the connection string
+            if (Environment.GetEnvironmentVariable("APP_DATABASE_NAME") != null)
             {
-                case "AZURECI":
-                    // Modify connection strings in Azure CI to point to the correct database name
-                    string branchName = Environment.GetEnvironmentVariable("BranchName");
-                    string appDbName = $"appdb_{branchName}";
-                    Npgsql.NpgsqlConnectionStringBuilder appConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(appConnectionString);
-                    appConnBuilder.Database = appDbName;
-                    appConnectionString = appConnBuilder.ConnectionString;
-                    break;
-
-                case "PRODUCTION":
-                case "DEVELOPMENT":
-                    break;
-
-                default: // Unsupported environment name	
-                    throw new InvalidOperationException($"Current environment name ({EnvironmentName}) is not supported in Startup.cs");
-
+                Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(appConnectionString);
+                stringBuilder.Database = Environment.GetEnvironmentVariable("APP_DATABASE_NAME");
+                appConnectionString = stringBuilder.ConnectionString;
             }
 
             // Add framework services.
@@ -170,15 +157,19 @@ namespace MillimanAccessPortal
 
             app.UseRewriter(options);
 
-            if (env.IsDevelopment() || env.EnvironmentName == "CI")
+            if (env.IsDevelopment() || env.EnvironmentName.ToUpper() == "AZURECI")
             {
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
                 app.UseBrowserLink();
-                app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
+
+                if (env.IsDevelopment())
                 {
-                    HotModuleReplacement = true,
-                });
+                    app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
+                    {
+                        HotModuleReplacement = true,
+                    });
+                }
             }
             else
             {
@@ -228,28 +219,15 @@ namespace MillimanAccessPortal
                 SmtpFromName = Configuration.GetValue<string>("SmtpFromName")
             });
 
-            #region Configure Audit Logger connection string (environment-dependent)
+            #region Configure Audit Logger connection string
             string auditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString");
-            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
 
-            switch (EnvironmentName)
+            // If the database name is defined in the environment, update the connection string
+            if (Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME") != null)
             {
-                case "AZURECI":
-                    string branchName = Environment.GetEnvironmentVariable("BranchName");
-                    string logDbName = $"auditlogdb_{branchName}";
-                    Npgsql.NpgsqlConnectionStringBuilder logConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString);
-                    logConnBuilder.Database = logDbName;
-                    auditLogConnectionString = logConnBuilder.ConnectionString;
-                    break;
-
-                
-                case "PRODUCTION":
-                case "DEVELOPMENT":
-                    // nothing
-                    break;
-
-                default:
-                    throw new InvalidOperationException($"Current environment name ({EnvironmentName}) is not supported in Startup.cs");
+                Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString);
+                stringBuilder.Database = Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME");
+                auditLogConnectionString = stringBuilder.ConnectionString;
             }
 
             AuditLogger.Config = new AuditLoggerConfiguration

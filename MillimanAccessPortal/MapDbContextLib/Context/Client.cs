@@ -58,6 +58,7 @@ namespace MapDbContextLib.Context
         [Display(Name = "Approved Email Domain List")]
         public string[] AcceptedEmailDomainList { get; set; }
 
+        [Required]
         [Display(Name = "Approved Email Address Exception List")]
         public string[] AcceptedEmailAddressExceptionList { get; set; }
         
@@ -68,7 +69,7 @@ namespace MapDbContextLib.Context
 
         public Client ParentClient { get; set; }
 
-        [Required]  // This will cause schema migration failure to any database populated with Clients but without the ProfitCenter entity
+        [Required]
         [ForeignKey("ProfitCenter")]
         [Display(Name = "Profit Center")]
         public long ProfitCenterId { get; set; }

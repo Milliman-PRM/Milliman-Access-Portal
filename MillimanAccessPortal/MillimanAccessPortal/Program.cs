@@ -67,7 +67,7 @@ namespace MillimanAccessPortal
 
                             var builtConfig = config.Build();
                         
-                            var store = new X509Store(StoreName.My, (EnvironmentName == "PRODUCTION" ? StoreLocation.LocalMachine : StoreLocation.CurrentUser));
+                            var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
                             store.Open(OpenFlags.ReadOnly);
                             var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
 

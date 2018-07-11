@@ -84,12 +84,12 @@ namespace MillimanAccessPortal.Controllers
             {
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+                var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
                     HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
 
-                    AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User login successful", AuditEventId.LoginSuccess, null, model.Email, HttpContext.Session.Id);
+                    AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User login successful", AuditEventId.LoginSuccess, null, model.Username, HttpContext.Session.Id);
                     _auditLogger.Log(LogObject);
 
                     // The default route is /AuthorizedContent/Index as configured in startup.cs
@@ -113,7 +113,7 @@ namespace MillimanAccessPortal.Controllers
                 }
                 else
                 {
-                    AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User login failed", AuditEventId.LoginFailure, null, model.Email, HttpContext.Session.Id);
+                    AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User login failed", AuditEventId.LoginFailure, null, model.Username, HttpContext.Session.Id);
                     _auditLogger.Log(LogObject);
 
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");

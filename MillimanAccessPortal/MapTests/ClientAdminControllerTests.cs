@@ -645,7 +645,7 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.IsType<BadRequestObjectResult>(view);
+            Assert.IsType<BadRequestResult>(view);
             #endregion
         }
 

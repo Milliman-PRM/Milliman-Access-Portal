@@ -29,6 +29,7 @@ using MillimanAccessPortal.Models.ClientAdminViewModels;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.Models.ContentAccessAdmin;
 using MillimanAccessPortal.Services;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -645,7 +646,10 @@ namespace MillimanAccessPortal.Controllers
             #region Preliminary Validation
             if (!ModelState.IsValid)
             {
-                return BadRequest("Invalid Model");
+                Response.Headers.Add("Warning", ModelState
+                    .Values.First(value => value.ValidationState == ModelValidationState.Invalid)
+                    .Errors.First().ErrorMessage);
+                return BadRequest();
             }
             if (Model.ParentClientId == Model.Id)
             {
@@ -836,6 +840,14 @@ namespace MillimanAccessPortal.Controllers
             #endregion Authorization
 
             #region Validation
+            if (!ModelState.IsValid)
+            {
+                Response.Headers.Add("Warning", ModelState
+                    .Values.First(value => value.ValidationState == ModelValidationState.Invalid)
+                    .Errors.First().ErrorMessage);
+                return BadRequest();
+            }
+
             // Convert delimited strings bound from the browser to a proper array
             Model.AcceptedEmailDomainList = GetCleanClientEmailWhitelistArray(Model.AcceptedEmailDomainList, true);
             Model.AcceptedEmailAddressExceptionList = GetCleanClientEmailWhitelistArray(Model.AcceptedEmailAddressExceptionList, false);
@@ -911,7 +923,6 @@ namespace MillimanAccessPortal.Controllers
             {
                 string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Failed to update client {Model.Id} to database");
                 Logger.LogError(ErrMsg);
-                Response.Headers.Add("Warning", "Error processing request.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 

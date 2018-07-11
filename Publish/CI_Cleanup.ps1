@@ -18,120 +18,24 @@ function log_statement {
 #endregion
 
 #region Configure environment properties
-$ResourceGroupName = "map-ci"
-$SubscriptionId = "8f047950-269e-43c7-94e0-ff90d22bf013"
-$TenantId = "15dfebdf-8eb6-49ea-b9c7-f4b275f6b4b4"
-$WebAppName = "map-ci-app"
-$AppServicePlanName = "map-ci"
 $BranchName = $env:git_branch.Replace("_","").Replace("-","").ToLower() # Will be used as the name of the deployment slot & appended to database names
 
-$deployUser = $env:app_deploy_user
-$deployPassword = $env:app_deploy_password
-
-$gitExePath = "git"
-$credManagerPath = "L:\Hotware\Powershell_Plugins\CredMan.ps1"
 $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
 
-$dbServerHostname = "map-ci-db"
 $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
 $dbPassword = $env:db_deploy_password
 $appDbName = "appdb_$BranchName"
 $logDbName = "auditlogdb_$BranchName"
-$dbCreationRetries = 5 # The number of times the script will attempt to create a new database before throwing an error
 
-$env:PATH = $env:PATH+";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin\"
-$env:PSModulePath = $env:PSModulePath+';C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager'
+$rootPath = (get-location).Path
+$nugetDestination = "$rootPath\nugetPackages"
+$cleanupVersion = "1.0.0"
+$cleanupPackageVersion = "$cleanupVersion-$branchName"
+$octopusURL = "https://indy-prmdeploy.milliman.com"
+$octopusAPIKey = $env:octopus_api_key
 
-#Load required PowerShell modules
-$silent = import-module AzureRM.Profile, AzureRM.Resources, AzureRM.Websites, Microsoft.PowerShell.Security 
-
-if ($? -eq $false)
-{
-    log_statement "Failed to load modules"
-    exit -1000
-}
-
-#region Authenticate to Azure with a service principal
-
-$DeployCredential = new-object -typename System.Management.Automation.PSCredential -argumentlist $deployUser,($deployPassword | ConvertTo-SecureString -AsPlainText -Force)
-$silent = Add-AzureRmAccount -ServicePrincipal -Credential $DeployCredential -TenantId $TenantId  -Subscription $SubscriptionId
-
-if ($? -eq $false)
-{
-    log_statement "Failed to authenticate to Azure. Unable to clean up."
-    exit -1000
-}
-
-#endregion
-
-log_statement "Removing deployment slot"
-
-$silent = Get-AzureRmWebAppSlot -ResourceGroupName $ResourceGroupName -Name $WebAppName -Slot $Branchname
-if ($? -eq $false)
-{
-    if ($? -eq $false)
-    {
-        log_statement "Deployment slot $BranchName was not found"
-    }
-}
-else
-{
-    Remove-AzureRmWebAppSlot -ResourceGroupName $ResourceGroupName -name $WebAppName -Slot $BranchName -Force
-    if ($? -eq $false)
-    {
-        log_statement "Deployment slot $BranchName could not be removed"
-        exit -1000
-    }
-}
-
-
-#region Remove database firewall rules
-
-$command = "az login --service-principal -u $deployUser -p $deployPassword --tenant $tenantId"
-Invoke-Expression "&$command"
-if ($? -eq $false)
-{
-    log_statement "Failed to authenticate for removal of firewall rules"
-    exit -9000
-}
-
-# Retrieve the current list of firewall rules
-# Will be compared against the app's IP addresses to see which rules need to be created
-$command = "az postgres server firewall-rule list --server-name `"$dbServerHostname`" --resource-group `"$ResourceGroupName`"" 
-$firewallRules = invoke-expression "&$command" | out-string | ConvertFrom-Json
-if ($LASTEXITCODE -ne 0)
-{
-    log_statement "Failed retrieving list of existing firewall rules"
-}
-$firewallFailures = 0
-
-foreach ( $rule in $firewallRules) 
-{    
-    if ($rule.name -match "Allow_"+$branchname+"_")
-    {
-        $ruleName = $rule.name
-        $command = "az postgres server firewall-rule delete --yes --resource-group `"$ResourceGroupName`" --server `"$DbServerHostname`" --name `"$ruleName`""
-        invoke-expression "&$command"
-        if ($LASTEXITCODE -ne 0)
-        {
-            log_statement "Failed to create firewall rule named $ruleName"
-            $firewallFailures = $firewallFailures + 1
-        }
-    }
-} 
-
-if ($firewallFailures -gt 0)
-{
-    # Output that firewall cleanup failed for one or more rules
-    # Because this isn't a serious issue, it's not worth failing the cleanup job
-    log_statement "Failed removing one or more firewall rules. Manual cleanup may be required."
-}
-else 
-{
-    log_statement "Finished removing database firewall rules"
-}
-#endregion
+$env:PATH = $env:PATH+";C:\Program Files (x86)\OctopusCLI\;"
 
 #region Drop Databases
 
@@ -197,4 +101,63 @@ else
 {
     log_statement "Audit Log database was not found for this branch"
 }
+#endregion
+
+#region Prepare nuget package for Octopus cleanup tasks
+
+mkdir $nugetDestination
+
+copy-item "$rootPath\Publish\OctopusSetBranch.ps1" -Destination "$nugetDestination\OctopusSetBranch.ps1"
+copy-item "$rootPath\Publish\OctopusCleanup.ps1" -Destination "$nugetDestination\OctopusCleanup.ps1"
+
+cd $nugetDestination
+
+log_statement "Packaging cleanup scripts for deployment"
+
+octo pack --id MAPCleanup --version $cleanupPackageVersion $nugetDestination --outfolder $nugetDestination
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to package cleanup script for nuget"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+octo push --package "MAPCleanup.$cleanupPackageVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
+
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to push package to Octopus"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+log_statement "Creating release"
+
+octo create-release --project "Test Branch Cleanup" --version $cleanupPackageVersion --packageVersion $cleanupPackageVersion --ignoreexisting --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Cleanup release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for cleanup"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+log_statement "Deploying and executing cleanup package"
+
+octo deploy-release --project "Test Branch Cleanup" --deployto "Development" --channel "Development" --version $cleanupPackageVersion --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL --waitfordeployment --cancelontimeout --progress
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Cleanup release deployed successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to deploy the cleanup package"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
 #endregion
