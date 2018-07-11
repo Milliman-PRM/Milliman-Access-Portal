@@ -48,6 +48,8 @@ namespace MapDbContextLib.Context
             // For example, you can rename the ASP.NET Identity table names and more.
             // Add your customizations after calling base.OnModelCreating(builder);
 
+            builder.HasPostgresExtension("uuid-ossp");  // for server side guid generation
+
             builder.Entity<ContentPublicationRequest>()
                 .ForNpgsqlUseXminAsConcurrencyToken();
 

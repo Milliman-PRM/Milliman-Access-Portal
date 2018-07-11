@@ -102,6 +102,8 @@ export interface PublishRequest {
 }
 
 export interface PreLiveContentValidationSummary {
+  ValidationSummaryId: string;
+  PublicationRequestId: number;
   RootContentName: string;
   ContentTypeName: string;
   ContentDescription: string;

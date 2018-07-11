@@ -48,13 +48,13 @@ namespace MapDbContextLib.Context
             get
             {
                 return ContentFiles == null
-                    ? null
+                    ? new List<ContentRelatedFile>()
                     : JsonConvert.DeserializeObject<List<ContentRelatedFile>>(ContentFiles);
             }
             set
             {
                 ContentFiles = value == null
-                    ? null
+                    ? "[]"
                     : JsonConvert.SerializeObject(value);
             }
         }
