@@ -1005,13 +1005,21 @@ namespace MillimanAccessPortal.Controllers
                 }
                 DbContext.SaveChanges();
 
-                //3.4  SelectionGroup.SelectedHierarchyFieldValueList due to hierarchy changes
+                //3.4  SelectionGroup 1) URL and 2) SelectedHierarchyFieldValueList due to hierarchy changes
                 List<long> AllRemainingFieldValues = DbContext.HierarchyFieldValue.Where(v => v.HierarchyField.RootContentItemId == PubRequest.RootContentItemId)
                                                                                   .Select(v => v.Id)
                                                                                   .ToList();
                 foreach (SelectionGroup Group in DbContext.SelectionGroup.Where(g => g.RootContentItemId == PubRequest.RootContentItemId && !g.IsMaster))
                 {
                     Group.SelectedHierarchyFieldValueList = Group.SelectedHierarchyFieldValueList.Intersect(AllRemainingFieldValues).ToArray();
+                    if (Group.IsMaster)
+                    {
+                        Group.ContentInstanceUrl = $"MasterContent.Content[{Group.RootContentItemId}]."; align file naming with the live file names used in Publish()
+                    }
+                    else
+                    {
+                        Group.ContentInstanceUrl = align file naming with the live file names used in Publish()
+                    }
                 }
 
                 DbContext.SaveChanges();
