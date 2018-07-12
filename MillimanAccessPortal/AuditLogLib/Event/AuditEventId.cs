@@ -22,7 +22,7 @@ namespace AuditLogLib.Event
         {
             return new AuditEvent
             {
-                TimeStampUtc = DateTime.Now,
+                TimeStampUtc = DateTime.UtcNow,
                 EventType = name,
                 User = user.ToString(),
                 SessionId = sessionId,
