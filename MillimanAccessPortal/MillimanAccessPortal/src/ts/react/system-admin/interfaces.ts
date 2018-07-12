@@ -41,3 +41,15 @@ interface SystemAdminStructure {
   Clients: PrimaryColumnClientsElement;
   PC: PrimaryColumnProfitCentersElement;
 }
+
+export interface UserPanelProps {
+  selectedUser: string;
+}
+
+export interface UserPanelState {
+  userList: User[];
+}
+
+interface User {
+  userName: string;
+}

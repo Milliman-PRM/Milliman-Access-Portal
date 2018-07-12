@@ -5,6 +5,8 @@ import * as React from 'react';
 import { ColumnSelector } from '../shared-components/column-selector';
 import { Filter } from '../shared-components/filter';
 import { ActionIcon } from '../shared-components/action-icon';
+import { UserContentPanel } from './user-content-panel';
+
 import { SystemAdminState } from './interfaces';
 import { SelectionOption } from '../shared-components/interfaces';
 
@@ -135,10 +137,11 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
               }
             </div>
           </div>
-          <div className="admin-panel-content-container">
-            <ul className="admin-panel-content">
-            </ul>
-          </div>
+          {
+            (this.state.primaryColContent === 'Users') ? (
+              <UserContentPanel selectedUser={this.state.structure[this.state.primaryColContent].selectedInstance} />
+            ) : null
+          }
         </div>
       </div>
     );
