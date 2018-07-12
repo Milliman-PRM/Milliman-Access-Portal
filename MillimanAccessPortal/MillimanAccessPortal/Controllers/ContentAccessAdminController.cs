@@ -177,10 +177,13 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateSelectionGroup(long RootContentItemId, String SelectionGroupName)
         {
-            RootContentItem RootContentItem = DbContext.RootContentItem.Find(RootContentItemId);
+            RootContentItem rootContentItem = DbContext.RootContentItem
+                .Where(item => item.Id == RootContentItemId)
+                .Include(item => item.Client)
+                .SingleOrDefault();
 
             #region Preliminary validation
-            if (RootContentItem == null)
+            if (rootContentItem == null)
             {
                 Response.Headers.Add("Warning", "The requested root content item does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
@@ -196,7 +199,7 @@ namespace MillimanAccessPortal.Controllers
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     $"Request to create selection group without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentAccessAdmin]} role in root content item",
                     AuditEventIdRegistry.Unauthorized,
-                    new { RootContentItem.ClientId, RootContentItemId },
+                    new { rootContentItem.ClientId, RootContentItemId },
                     User.Identity.Name,
                     HttpContext.Session.Id
                     );
@@ -211,9 +214,9 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            SelectionGroup SelectionGroup = new SelectionGroup
+            SelectionGroup selectionGroup = new SelectionGroup
             {
-                RootContentItemId = RootContentItem.Id,
+                RootContentItemId = rootContentItem.Id,
                 GroupName = SelectionGroupName,
                 SelectedHierarchyFieldValueList = new long[] { },
                 ContentInstanceUrl = ""
@@ -221,12 +224,12 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                DbContext.SelectionGroup.Add(SelectionGroup);
+                DbContext.SelectionGroup.Add(selectionGroup);
                 DbContext.SaveChanges();
             }
             catch (Exception ex)
             {
-                string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while creating selection group \"{SelectionGroup.Id}\"");
+                string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while creating selection group \"{selectionGroup.Id}\"");
                 Logger.LogError(ErrMsg);
                 Response.Headers.Add("Warning", $"Failed to complete transaction.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
@@ -237,14 +240,19 @@ namespace MillimanAccessPortal.Controllers
                 $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                 "Selection group created",
                 AuditEventIdRegistry.SelectionGroupCreated,
-                new { RootContentItem.ClientId, RootContentItemId, SelectionGroupId = SelectionGroup.Id },
+                new { rootContentItem.ClientId, SelectionGroupId = selectionGroup.Id },
                 User.Identity.Name,
                 HttpContext.Session.Id
                 );
-            AuditLogger.Log(SelectionGroupCreatedEvent);
+            AuditLogger.Log(AuditEventIdRegistry.SelectionGroupCreated.GenerateEvent(
+                await Queries.GetCurrentApplicationUser(User),
+                HttpContext.Session.Id,
+                rootContentItem.Client,
+                rootContentItem,
+                selectionGroup));
             #endregion
 
-            Models.ContentAccessAdmin.SelectionGroupSummary Model = Models.ContentAccessAdmin.SelectionGroupSummary.Build(DbContext, SelectionGroup);
+            Models.ContentAccessAdmin.SelectionGroupSummary Model = Models.ContentAccessAdmin.SelectionGroupSummary.Build(DbContext, selectionGroup);
 
             return Json(Model);
         }
@@ -494,7 +502,11 @@ namespace MillimanAccessPortal.Controllers
                     User.Identity.Name,
                     HttpContext.Session.Id
                     );
-                AuditLogger.Log(SelectionGroupUserAssignmentsUpdatedEvent);
+                AuditLogger.Log(AuditEventIdRegistry.SelectionGroupUserAssigned.GenerateEvent(
+                    await Queries.GetCurrentApplicationUser(User),
+                    HttpContext.Session.Id,
+                    SelectionGroup,
+                    DbContext.ApplicationUser.Find(UserAddition)));
             }
             foreach (var UserRemoval in UserRemovals)
             {
@@ -506,7 +518,11 @@ namespace MillimanAccessPortal.Controllers
                     User.Identity.Name,
                     HttpContext.Session.Id
                     );
-                AuditLogger.Log(SelectionGroupUserAssignmentsUpdatedEvent);
+                AuditLogger.Log(AuditEventIdRegistry.SelectionGroupUserRemoved.GenerateEvent(
+                    await Queries.GetCurrentApplicationUser(User),
+                    HttpContext.Session.Id,
+                    SelectionGroup,
+                    DbContext.ApplicationUser.Find(UserRemoval)));
             }
             #endregion
 
@@ -589,6 +605,7 @@ namespace MillimanAccessPortal.Controllers
         {
             SelectionGroup SelectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
+                    .ThenInclude(rci => rci.Client)
                 .SingleOrDefault(sg => sg.Id == SelectionGroupId);
 
             #region Preliminary Validation
@@ -679,7 +696,10 @@ namespace MillimanAccessPortal.Controllers
                 User.Identity.Name,
                 HttpContext.Session.Id
                 );
-            AuditLogger.Log(SelectionGroupDeletedEvent);
+            AuditLogger.Log(AuditEventIdRegistry.SelectionGroupDeleted.GenerateEvent(
+                await Queries.GetCurrentApplicationUser(User),
+                HttpContext.Session.Id,
+                SelectionGroup));
             #endregion
 
             SelectionGroupList Model = SelectionGroupList.Build(DbContext, SelectionGroup.RootContentItem);
