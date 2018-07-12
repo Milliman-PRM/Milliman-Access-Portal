@@ -20,6 +20,7 @@ using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Moq;
+using AuditLogLib.Event;
 
 namespace ContentPublishingLib.JobRunners
 {
@@ -149,7 +150,7 @@ namespace ContentPublishingLib.JobRunners
                     AuditEvent GoLiveLogEvent = AuditEvent.New(
                         $"{Method.DeclaringType.Name}.{Method.Name}",
                         "Content publication request was successfully processed",
-                        AuditEventId.PublicationRequestProcessingSuccess,
+                        AuditEventIdRegistry.PublicationRequestProcessingSuccess,
                         new
                         {
                             PublicationRequestId = JobDetail.JobId,

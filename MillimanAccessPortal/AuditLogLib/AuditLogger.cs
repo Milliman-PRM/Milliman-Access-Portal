@@ -33,8 +33,8 @@ namespace AuditLogLib
         private readonly UserManager<ApplicationUser> _userManager;
 
         public AuditLogger(
-            IHttpContextAccessor context,
-            UserManager<ApplicationUser> userManager)
+            IHttpContextAccessor context = null,
+            UserManager<ApplicationUser> userManager = null)
         {
             _contextAccessor = context;
             _userManager = userManager;
@@ -79,8 +79,8 @@ namespace AuditLogLib
         /// <param name="Event">Event data to be logged. Use AuditEvent.New method to enforce proper creation</param>
         public async void Log(AuditEvent Event)
         {
-            var context = _contextAccessor.HttpContext;
-            var user = await _userManager.GetUserAsync(context?.User);
+            var context = _contextAccessor?.HttpContext;
+            var user = await _userManager?.GetUserAsync(context?.User);
 
             Event.SessionId = context?.Session?.Id;
             Event.User = user?.ToString();
