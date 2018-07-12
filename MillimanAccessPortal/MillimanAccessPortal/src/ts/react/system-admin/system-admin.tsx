@@ -6,6 +6,8 @@ import { ColumnSelector } from '../shared-components/column-selector';
 import { Filter } from '../shared-components/filter';
 import { ActionIcon } from '../shared-components/action-icon';
 import { UserContentPanel } from './user-content-panel';
+import { ClientContentPanel } from './client-content-panel';
+import { ProfitCenterContentPanel } from './profit-center-content-panel';
 
 import { SystemAdminState } from './interfaces';
 import { SelectionOption } from '../shared-components/interfaces';
@@ -140,6 +142,16 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           {
             (this.state.primaryColContent === 'Users') ? (
               <UserContentPanel selectedUser={this.state.structure[this.state.primaryColContent].selectedInstance} />
+            ) : null
+          }
+          {
+            (this.state.primaryColContent === 'Clients') ? (
+              <ClientContentPanel selectedClient={this.state.structure[this.state.primaryColContent].selectedInstance} />
+            ) : null
+          }
+          {
+            (this.state.primaryColContent === 'PC') ? (
+              <ProfitCenterContentPanel selectedProfitCenter={this.state.structure[this.state.primaryColContent].selectedInstance} />
             ) : null
           }
         </div>

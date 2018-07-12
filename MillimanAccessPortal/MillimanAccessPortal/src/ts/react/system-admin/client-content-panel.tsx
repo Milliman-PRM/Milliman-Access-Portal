@@ -2,13 +2,13 @@
 
 import * as React from 'react';
 
-import { UserPanelProps, UserPanelState } from './interfaces';
+import { ClientPanelProps, ClientPanelState } from './interfaces';
 
-export class UserContentPanel extends React.Component<UserPanelProps, UserPanelState> {
+export class ClientContentPanel extends React.Component<ClientPanelProps, ClientPanelState> {
   public constructor(props) {
     super(props);
     this.state = {
-      userList: []
+      clientList: []
     };
   }
 
@@ -16,9 +16,9 @@ export class UserContentPanel extends React.Component<UserPanelProps, UserPanelS
     return (
       <div className="admin-panel-content-container">
         <ul className="admin-panel-content">
-          <li>User 1</li>
-          <li>User 2</li>
-          <li>User 3</li>
+          <li>Client 1</li>
+          <li>Client 2</li>
+          <li>Client 3</li>
         </ul>
       </div>
     );

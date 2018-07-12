@@ -53,3 +53,28 @@ export interface UserPanelState {
 interface User {
   userName: string;
 }
+
+export interface ClientPanelProps {
+  selectedClient: string;
+}
+
+export interface ClientPanelState {
+  clientList: Client[];
+}
+
+interface Client {
+  clientName: string;
+}
+
+export interface ProfitCenterPanelProps {
+  selectedProfitCenter: string;
+}
+
+export interface ProfitCenterPanelState {
+  profitCenterList: ProfitCenter[];
+}
+
+interface ProfitCenter {
+  profitCenterName: string;
+}
+
