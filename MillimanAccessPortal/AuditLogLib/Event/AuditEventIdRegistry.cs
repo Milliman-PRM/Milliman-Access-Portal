@@ -68,21 +68,35 @@ namespace AuditLogLib.Event
             });
 
         // Content Access Admin category 4000 - 4999
-        public static readonly AuditEventId<SelectionGroup> SelectionGroupCreated = new AuditEventId<SelectionGroup>(
-            4001, "Selection group created", (selectionGroup) => new
+        public static readonly AuditEventId<Client, RootContentItem, SelectionGroup> SelectionGroupCreated = new AuditEventId<Client, RootContentItem, SelectionGroup>(
+            4001, "Selection group created", (client, rootContentItem, selectionGroup) => new
             {
+                ClientId = client.Id,
+                RootContentItemId = rootContentItem.Id,
+                SelectionGroupId = selectionGroup.Id,
             });
         public static readonly AuditEventId<SelectionGroup> SelectionGroupDeleted = new AuditEventId<SelectionGroup>(
-            4002, "Selection group deleted", (selectionGroup) => new
+            4002, "Selection group deleted", (selectionGroup) => new SelectionGroupLogTemplate
             {
+                ClientId = selectionGroup.RootContentItem?.Client?.Id ?? 0,
+                RootContentItemId = selectionGroup.RootContentItem?.Id ?? 0,
+                SelectionGroupId = selectionGroup.Id,
             });
         public static readonly AuditEventId<SelectionGroup, ApplicationUser> SelectionGroupUserAssigned = new AuditEventId<SelectionGroup, ApplicationUser>(
             4003, "User assigned to selection group", (selectionGroup, user) => new
             {
+                ClientId = selectionGroup.RootContentItem?.Client?.Id ?? 0,
+                RootContentItemId = selectionGroup.RootContentItem?.Id ?? 0,
+                SelectionGroupId = selectionGroup.Id,
+                UserId = user.Id,
             });
         public static readonly AuditEventId<SelectionGroup, ApplicationUser> SelectionGroupUserRemoved = new AuditEventId<SelectionGroup, ApplicationUser>(
             4004, "User removed from selection group", (selectionGroup, user) => new
             {
+                ClientId = selectionGroup.RootContentItem?.Client?.Id ?? 0,
+                RootContentItemId = selectionGroup.RootContentItem?.Id ?? 0,
+                SelectionGroupId = selectionGroup.Id,
+                UserId = user.Id,
             });
         public static readonly AuditEventId<SelectionGroup, ContentReductionTask> SelectionChangeReductionQueued = new AuditEventId<SelectionGroup, ContentReductionTask>(
             4005, "Selection change reduction task queued", (selectionGroup, reductionTask) => new
@@ -162,5 +176,12 @@ namespace AuditLogLib.Event
             6107, "Content publication rejected", (rootContentItem, publicationRequest) => new
             {
             });
+
+        private class SelectionGroupLogTemplate
+        {
+            public long ClientId { get; set; }
+            public long RootContentItemId { get; set; }
+            public long SelectionGroupId { get; set; }
+        }
     }
 }
