@@ -1,6 +1,7 @@
-import * as $ from 'jquery';
 import 'jquery-validation';
 import 'jquery-validation-unobtrusive';
+
+import * as $ from 'jquery';
 import * as toastr from 'toastr';
 
 import { AddRootContentItemActionCard, ClientCard, RootContentItemCard } from '../card';
@@ -12,8 +13,8 @@ import { AccessMode } from '../form/form-modes';
 import { SubmissionGroup } from '../form/form-submission';
 import {
   collapseAllListener, expandAllListener, filterFormListener, filterTreeListener, get,
-  post, showButtonSpinner, updateCardStatus, updateCardStatusButtons, updateFormStatusButtons,
-  wrapCardCallback, wrapCardIconCallback,
+  hideButtonSpinner, post, showButtonSpinner, updateCardStatus, updateCardStatusButtons,
+  updateFormStatusButtons, wrapCardCallback, wrapCardIconCallback,
 } from '../shared';
 import { setUnloadAlert } from '../unload-alerts';
 import {
@@ -334,9 +335,6 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
     'POST',
     (response) => {
       renderRootContentItemForm();
-      setFormReadOnly();
-      // Update root content item card status immediately
-      statusMonitor.checkStatus();
       toastr.success('Publication request submitted');
     },
     (data) => {
@@ -362,6 +360,8 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
   );
   const readOnlyGroup = SubmissionGroup.FinalGroup(() => {
     setFormReadOnly();
+    // Update root content item card status immediately
+    statusMonitor.checkStatus();
   });
 
   // Create/retrieve and bind the new form
@@ -370,7 +370,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
   formObject.configure(
     [
       {
-        groups: [ createContentGroup, submitPublication ],
+        groups: [ createContentGroup, submitPublication, readOnlyGroup ],
         name: 'new',
         sparse: false,
       },
@@ -540,8 +540,11 @@ export function setup() {
           .map((checkbox: HTMLInputElement) => checkbox.checked)
           .reduce((cum, cur) => cum && cur, true))
       .removeAttr('disabled'));
-  $('#confirmation-section-attestation .button-reject').click(() => {
+  $('#confirmation-section-attestation .button-reject').click((event) => {
+    const $target = $(event.target);
+    $target.attr('disabled', '');
     const rootContentItemId = $('#root-content-items [selected]').closest('.card-container').data().rootContentItemId;
+    showButtonSpinner($target, 'Rejecting');
     $.post({
       data: {
         publicationRequestId: preLiveObject && preLiveObject.PublicationRequestId,
@@ -551,14 +554,24 @@ export function setup() {
         RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
       },
       url: 'ContentPublishing/Reject/',
-    }).done((response) => {
-      toastr.success('Successful Reject');
+    }).done(() => {
+      toastr.success('Publication rejected.');
     }).fail((response) => {
-      toastr.error('Failed Reject');
+      toastr.warning(response.getResponseHeader('Warning')
+        || 'An unknown error has occurred.');
+    }).always(() => {
+      hideButtonSpinner($target);
+      $('#report-confirmation').hide();
+      $('#root-content-items [selected]').removeAttr('selected');
+      $target.removeAttr('disabled');
+      statusMonitor.checkStatus();
     });
   });
-  $('#confirmation-section-attestation .button-approve').click(() => {
+  $('#confirmation-section-attestation .button-approve').click((event) => {
+    const $target = $(event.target);
+    $target.attr('disabled', '');
     const rootContentItemId = $('#root-content-items [selected]').closest('.card-container').data().rootContentItemId;
+    showButtonSpinner($target, 'Rejecting');
     $.post({
       data: {
         publicationRequestId: preLiveObject && preLiveObject.PublicationRequestId,
@@ -569,10 +582,17 @@ export function setup() {
         RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
       },
       url: 'ContentPublishing/GoLive/',
-    }).done((response) => {
-      toastr.success('Successful GoLive');
+    }).done(() => {
+      toastr.success('Publication is now live.');
     }).fail((response) => {
-      toastr.error('Failed GoLive');
+      toastr.warning(response.getResponseHeader('Warning')
+        || 'An unknown error has occurred.');
+    }).always(() => {
+      hideButtonSpinner($target);
+      $('#report-confirmation').hide();
+      $('#root-content-items [selected]').removeAttr('selected');
+      $target.removeAttr('disabled');
+      statusMonitor.checkStatus();
     });
   });
 
