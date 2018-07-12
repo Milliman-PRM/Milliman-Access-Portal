@@ -2,7 +2,7 @@
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AuditLogLib
+namespace AuditLogLib.Event
 {
     public class AuditEvent
     {

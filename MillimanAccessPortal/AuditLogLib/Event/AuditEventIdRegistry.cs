@@ -1,16 +1,9 @@
 ﻿using MapDbContextLib.Context;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 
-namespace AuditLogLib
+namespace AuditLogLib.Event
 {
-    public class AuditEventFactory
+    public class AuditEventIdRegistry
     {
-        public static AuditEventFactory Instance { get; } = new AuditEventFactory();
-
         // WARNING!!!  After production begins, never change the numeric ID of any AuditEventId
 
         // Uncategorized 1 - 999
@@ -41,7 +34,7 @@ namespace AuditLogLib
         public static readonly AuditEventId UserAccountDeleted = new AuditEventId(3004, "User account deleted");
 
         // Content Access Admin category 4000 - 4999
-        public static readonly AuditEventId<SelectionGroup> SelectionGroupCreated = new AuditEventId<SelectionGroup>(4001, "Selection group created");
+        public static readonly AuditEventId SelectionGroupCreated = new AuditEventId(4001, "Selection group created");
         public static readonly AuditEventId SelectionGroupDeleted = new AuditEventId(4002, "Selection group deleted");
         public static readonly AuditEventId SelectionGroupUserAssigned = new AuditEventId(4003, "User assigned to selection group");
         public static readonly AuditEventId SelectionGroupUserRemoved = new AuditEventId(4004, "User removed from selection group");
@@ -69,50 +62,5 @@ namespace AuditLogLib
         public static readonly AuditEventId ContentPublicationGoLive = new AuditEventId(6105, "Content publication golive");
         public static readonly AuditEventId PreGoLiveSummary = new AuditEventId(6106, "Content publication pre-golive summary");
         public static readonly AuditEventId ContentPublicationRejected = new AuditEventId(6107, "Content publication rejected");
-
-        private readonly Dictionary<AuditEventId, Object> _registeredEvents = new Dictionary<AuditEventId, Object>();
-
-        private AuditEventFactory()
-        {
-        }
-
-        public void Register(AuditEventId auditEventId)
-        {
-            
-        }
-
-        public void Register<T>(AuditEventId<T> auditEventId, Func<T, Object> func)
-        {
-            _registeredEvents.Add(auditEventId, func);
-        }
-
-        public void Register<T, U>(AuditEventId<T, U> auditEventId, Func<T, U, Object> func)
-        {
-
-        }
-
-        public AuditEvent Create<T>(AuditEventId eventId, T entity, string userName = "System", string sessionId = "", [CallerMemberName] string callerName = "")
-        {
-            var registration = _registeredEvents.SingleOrDefault(e => e.Key.id == eventId.id);
-
-            if (registration.Equals(default(KeyValuePair<AuditEventId, Object>)))
-            {
-                // return generic "Unconfigured audit event" object, or throw
-                return null;
-            }
-
-            var objectFn = registration.Value as Func<T, Object>;
-            var loggableObject = objectFn(entity);
-
-            return new AuditEvent
-            {
-                TimeStampUtc = DateTime.Now,
-                EventType = registration.Key.Name,
-                EventDataObject = loggableObject,
-                User = userName,
-                SessionId = sessionId,
-                Source = callerName,
-            };
-        }
     }
 }
