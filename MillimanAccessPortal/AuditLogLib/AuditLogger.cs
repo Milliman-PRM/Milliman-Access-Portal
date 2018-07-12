@@ -85,7 +85,7 @@ namespace AuditLogLib
         /// <param name="formatter">If provided, should be compatible with state argument</param>
         public void Log<ParamObj>(LogLevel LogLevel, AuditEventId EventId, ParamObj ParamObject, Exception exception = null, Func<ParamObj, Exception, string> formatter = null)
         {
-            if (EventId.Id < AuditEventId.AuditEventBaseId || EventId.Id > AuditEventId.AuditEventMaxId)
+            if (EventId.id < AuditEventId.AuditEventBaseId || EventId.id > AuditEventId.AuditEventMaxId)
                 return;
 
             AuditEvent NewEvent = null;
@@ -93,14 +93,14 @@ namespace AuditLogLib
             if (ParamObject.GetType() == typeof(AuditEvent))
             {
                 NewEvent = ParamObject as AuditEvent;
-                NewEvent.EventType = EventId.Name;
+                NewEvent.EventType = EventId.name;
             }
             else
             {
                 NewEvent = new AuditEvent
                 {
-                    EventType = EventId.Name,
-                    TimeStamp = DateTime.Now,
+                    EventType = EventId.name,
+                    TimeStampUtc = DateTime.Now,
                 };
 
                 Type t = ParamObject.GetType();
@@ -116,7 +116,7 @@ namespace AuditLogLib
                             NewEvent.Source = Property.GetValue(ParamObject) as string;
                             break;
                         case "Detail":
-                            NewEvent.EventDetailObject = Property.GetValue(ParamObject);
+                            NewEvent.EventDataObject = Property.GetValue(ParamObject);
                             break;
                         case "Summary":
                             NewEvent.Summary = Property.GetValue(ParamObject) as string;
