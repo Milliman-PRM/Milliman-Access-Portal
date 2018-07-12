@@ -146,7 +146,7 @@ function setFormEdit() {
 }
 function setFormEditOrRepublish() {
   formObject.submissionMode = 'edit-or-republish';
-  formObject.accessMode = AccessMode.Write;
+  formObject.accessMode = AccessMode.Defer;
   $('#root-content-items [selected]').attr('editing', '');
   $('#content-publishing-form .admin-panel-toolbar .action-icon').hide();
   $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').show();
@@ -284,6 +284,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
     [
       'common',
       'root-content-item-info',
+      'root-content-item-content-type',
       'root-content-item-description',
     ],
     'ContentPublishing/CreateRootContentItem',

@@ -316,9 +316,7 @@ namespace MillimanAccessPortal.Controllers
             // Update the current item so that it can be updated
             // See ClientAdminController.cs
             currentRootContentItem.ContentName = rootContentItem.ContentName;
-            currentRootContentItem.ContentTypeId = rootContentItem.ContentTypeId;
             currentRootContentItem.Description = rootContentItem.Description;
-            currentRootContentItem.DoesReduce = rootContentItem.DoesReduce;
             currentRootContentItem.Notes = rootContentItem.Notes;
             currentRootContentItem.TypeSpecificDetail = rootContentItem.TypeSpecificDetail;
 
