@@ -1,4 +1,5 @@
 ﻿using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
 
 namespace AuditLogLib.Event
 {
@@ -19,48 +20,147 @@ namespace AuditLogLib.Event
         public static readonly AuditEventId UserPasswordChanged = new AuditEventId(1006, "User password changed");
 
         // Client Admin category 2000 - 2999
-        public static readonly AuditEventId UserAssignedToClient = new AuditEventId(2001, "User assigned to client");
-        public static readonly AuditEventId UserRemovedFromClient = new AuditEventId(2002, "User removed from client");
-        public static readonly AuditEventId NewClientSaved = new AuditEventId(2003, "New client saved");
-        public static readonly AuditEventId ClientEdited = new AuditEventId(2004, "Client edited");
-        public static readonly AuditEventId ClientDeleted = new AuditEventId(2005, "Client deleted");
-        public static readonly AuditEventId ClientRoleAssigned = new AuditEventId(2006, "Client role assigned");
-        public static readonly AuditEventId ClientRoleRemoved = new AuditEventId(2007, "Client role removed");
+        public static readonly AuditEventId<Client, ApplicationUser> UserAssignedToClient = new AuditEventId<Client, ApplicationUser>(
+            2001, "User assigned to client", (client, user) => new
+            {
+            });
+        public static readonly AuditEventId<Client, ApplicationUser> UserRemovedFromClient = new AuditEventId<Client, ApplicationUser>(
+            2002, "User removed from client", (client, user) => new
+            {
+            });
+        public static readonly AuditEventId<Client> NewClientSaved = new AuditEventId<Client>(
+            2003, "New client saved", (client) => new
+            {
+            });
+        public static readonly AuditEventId<Client> ClientEdited = new AuditEventId<Client>(
+            2004, "Client edited", (client) => new
+            {
+            });
+        public static readonly AuditEventId<Client> ClientDeleted = new AuditEventId<Client>(
+            2005, "Client deleted", (client) => new
+            {
+            });
+        public static readonly AuditEventId<UserRoleInClient> ClientRoleAssigned = new AuditEventId<UserRoleInClient>(
+            2006, "Client role assigned", (userClient) => new
+            {
+            });
+        public static readonly AuditEventId<UserRoleInClient> ClientRoleRemoved = new AuditEventId<UserRoleInClient>(
+            2007, "Client role removed", (userClient) => new
+            {
+            });
 
         // User Account category 3000 - 3999
-        public static readonly AuditEventId UserAccountCreated = new AuditEventId(3001, "User account created");
-        public static readonly AuditEventId UserAccountModified = new AuditEventId(3002, "User account modified");
-        public static readonly AuditEventId UserAccountLockByAdmin = new AuditEventId(3003, "User account lock by Admin");
-        public static readonly AuditEventId UserAccountDeleted = new AuditEventId(3004, "User account deleted");
+        public static readonly AuditEventId<ApplicationUser> UserAccountCreated = new AuditEventId<ApplicationUser>(
+            3001, "User account created", (user) => new
+            {
+            });
+        public static readonly AuditEventId<ApplicationUser> UserAccountModified = new AuditEventId<ApplicationUser>(
+            3002, "User account modified", (user) => new
+            {
+            });
+        public static readonly AuditEventId<ApplicationUser, string> UserAccountLockByAdmin = new AuditEventId<ApplicationUser, string>(
+            3003, "User account lock by Admin", (user, reason) => new
+            {
+            });
+        public static readonly AuditEventId<ApplicationUser> UserAccountDeleted = new AuditEventId<ApplicationUser>(
+            3004, "User account deleted", (user) => new
+            {
+            });
 
         // Content Access Admin category 4000 - 4999
-        public static readonly AuditEventId SelectionGroupCreated = new AuditEventId(4001, "Selection group created");
-        public static readonly AuditEventId SelectionGroupDeleted = new AuditEventId(4002, "Selection group deleted");
-        public static readonly AuditEventId SelectionGroupUserAssigned = new AuditEventId(4003, "User assigned to selection group");
-        public static readonly AuditEventId SelectionGroupUserRemoved = new AuditEventId(4004, "User removed from selection group");
-        public static readonly AuditEventId SelectionChangeReductionQueued = new AuditEventId(4005, "Selection change reduction task queued");
-        public static readonly AuditEventId SelectionChangeReductionCanceled = new AuditEventId(4006, "Selection change reduction task canceled");
-        public static readonly AuditEventId SelectionChangeMasterAccessGranted = new AuditEventId(4007, "Selection group given master access");
-        public static readonly AuditEventId SelectionGroupSuspensionUpdate = new AuditEventId(4008, "Selection group suspension status updated");
+        public static readonly AuditEventId<SelectionGroup> SelectionGroupCreated = new AuditEventId<SelectionGroup>(
+            4001, "Selection group created", (selectionGroup) => new
+            {
+            });
+        public static readonly AuditEventId<SelectionGroup> SelectionGroupDeleted = new AuditEventId<SelectionGroup>(
+            4002, "Selection group deleted", (selectionGroup) => new
+            {
+            });
+        public static readonly AuditEventId<SelectionGroup, ApplicationUser> SelectionGroupUserAssigned = new AuditEventId<SelectionGroup, ApplicationUser>(
+            4003, "User assigned to selection group", (selectionGroup, user) => new
+            {
+            });
+        public static readonly AuditEventId<SelectionGroup, ApplicationUser> SelectionGroupUserRemoved = new AuditEventId<SelectionGroup, ApplicationUser>(
+            4004, "User removed from selection group", (selectionGroup, user) => new
+            {
+            });
+        public static readonly AuditEventId<SelectionGroup, ContentReductionTask> SelectionChangeReductionQueued = new AuditEventId<SelectionGroup, ContentReductionTask>(
+            4005, "Selection change reduction task queued", (selectionGroup, reductionTask) => new
+            {
+            });
+        public static readonly AuditEventId<SelectionGroup, ContentReductionTask> SelectionChangeReductionCanceled = new AuditEventId<SelectionGroup, ContentReductionTask>(
+            4006, "Selection change reduction task canceled", (selectionGroup, reductionTask) => new
+            {
+            });
+        public static readonly AuditEventId<SelectionGroup> SelectionChangeMasterAccessGranted = new AuditEventId<SelectionGroup>(
+            4007, "Selection group given master access", (selectionGroup) => new
+            {
+            });
+        public static readonly AuditEventId<SelectionGroup, string> SelectionGroupSuspensionUpdate = new AuditEventId<SelectionGroup, string>(
+            4008, "Selection group suspension status updated", (selectionGroup, reason) => new
+            {
+            });
 
         // Reduction Server category 5000 - 5999
-        public static readonly AuditEventId ReductionValidationFailed = new AuditEventId(5001, "Reduction Validation Failed");
-        public static readonly AuditEventId HierarchyExtractionSucceeded = new AuditEventId(5101, "Content hierarchy extraction completed");
-        public static readonly AuditEventId HierarchyExtractionFailed = new AuditEventId(5102, "Content hierarchy extraction failed");
-        public static readonly AuditEventId ContentReductionSucceeded = new AuditEventId(5201, "Content reduction completed");
-        public static readonly AuditEventId ContentReductionFailed = new AuditEventId(5202, "Content reduction failed");
-        public static readonly AuditEventId PublicationRequestProcessingSuccess = new AuditEventId(5301, "Content PublicationRequest Succeeded");
+        public static readonly AuditEventId<ContentReductionTask> ReductionValidationFailed = new AuditEventId<ContentReductionTask>(
+            5001, "Reduction Validation Failed", (reductionTask) => new
+            {
+            });
+        public static readonly AuditEventId<ContentReductionTask> HierarchyExtractionSucceeded = new AuditEventId<ContentReductionTask>(
+            5101, "Content hierarchy extraction completed", (reductionTask) => new
+            {
+            });
+        public static readonly AuditEventId<ContentReductionTask> HierarchyExtractionFailed = new AuditEventId<ContentReductionTask>(
+            5102, "Content hierarchy extraction failed", (reductionTask) => new
+            {
+            });
+        public static readonly AuditEventId<ContentReductionTask> ContentReductionSucceeded = new AuditEventId<ContentReductionTask>(
+            5201, "Content reduction completed", (reductionTask) => new
+            {
+            });
+        public static readonly AuditEventId<ContentReductionTask> ContentReductionFailed = new AuditEventId<ContentReductionTask>(
+            5202, "Content reduction failed", (reductionTask) => new
+            {
+            });
+        public static readonly AuditEventId<ContentPublicationRequest> PublicationRequestProcessingSuccess = new AuditEventId<ContentPublicationRequest>(
+            5301, "Content PublicationRequest Succeeded", (publicationRequest) => new
+            {
+            });
 
         // Content Publishing category 6000 - 6999
-        public static readonly AuditEventId RootContentItemCreated = new AuditEventId(6001, "Root content item created");
-        public static readonly AuditEventId RootContentItemDeleted = new AuditEventId(6002, "Root content item deleted");
-        public static readonly AuditEventId RootContentItemUpdated = new AuditEventId(6003, "Root content item updated");
-        public static readonly AuditEventId PublicationQueued = new AuditEventId(6101, "Publication request queued");
-        public static readonly AuditEventId PublicationCanceled = new AuditEventId(6102, "Publication request canceled");
-        public static readonly AuditEventId GoLiveValidationFailed = new AuditEventId(6103, "GoLive Validation Failed");
+        public static readonly AuditEventId<RootContentItem> RootContentItemCreated = new AuditEventId<RootContentItem>(
+            6001, "Root content item created", (rootContentItem) => new
+            {
+            });
+        public static readonly AuditEventId<RootContentItem> RootContentItemDeleted = new AuditEventId<RootContentItem>(
+            6002, "Root content item deleted", (rootContentItem) => new
+            {
+            });
+        public static readonly AuditEventId<RootContentItem> RootContentItemUpdated = new AuditEventId<RootContentItem>(
+            6003, "Root content item updated", (rootContentItem) => new
+            {
+            });
+        public static readonly AuditEventId<RootContentItem, ContentPublicationRequest> PublicationQueued = new AuditEventId<RootContentItem, ContentPublicationRequest>(
+            6101, "Publication request queued", (rootContentItem, publicationRequest) => new
+            {
+            });
+        public static readonly AuditEventId<RootContentItem, ContentPublicationRequest> PublicationCanceled = new AuditEventId<RootContentItem, ContentPublicationRequest>(
+            6102, "Publication request canceled", (rootContentItem, publicationRequest) => new
+            {
+            });
+        public static readonly AuditEventId<RootContentItem, ContentPublicationRequest> GoLiveValidationFailed = new AuditEventId<RootContentItem, ContentPublicationRequest>(
+            6103, "GoLive Validation Failed", (rootContentItem, publicationRequest) => new
+            {
+            });
         public static readonly AuditEventId ChecksumInvalid = new AuditEventId(6104, "Checksum Invalid");
-        public static readonly AuditEventId ContentPublicationGoLive = new AuditEventId(6105, "Content publication golive");
+        public static readonly AuditEventId<RootContentItem, ContentPublicationRequest> ContentPublicationGoLive = new AuditEventId<RootContentItem, ContentPublicationRequest>(
+            6105, "Content publication golive", (rootContentItem, publicationRequest) => new
+            {
+            });
         public static readonly AuditEventId PreGoLiveSummary = new AuditEventId(6106, "Content publication pre-golive summary");
-        public static readonly AuditEventId ContentPublicationRejected = new AuditEventId(6107, "Content publication rejected");
+        public static readonly AuditEventId<RootContentItem, ContentPublicationRequest> ContentPublicationRejected = new AuditEventId<RootContentItem, ContentPublicationRequest>(
+            6107, "Content publication rejected", (rootContentItem, publicationRequest) => new
+            {
+            });
     }
 }
