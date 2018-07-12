@@ -245,8 +245,6 @@ namespace MillimanAccessPortal.Controllers
                 HttpContext.Session.Id
                 );
             AuditLogger.Log(AuditEventIdRegistry.SelectionGroupCreated.GenerateEvent(
-                await Queries.GetCurrentApplicationUser(User),
-                HttpContext.Session.Id,
                 rootContentItem.Client,
                 rootContentItem,
                 selectionGroup));
@@ -503,8 +501,6 @@ namespace MillimanAccessPortal.Controllers
                     HttpContext.Session.Id
                     );
                 AuditLogger.Log(AuditEventIdRegistry.SelectionGroupUserAssigned.GenerateEvent(
-                    await Queries.GetCurrentApplicationUser(User),
-                    HttpContext.Session.Id,
                     SelectionGroup,
                     DbContext.ApplicationUser.Find(UserAddition)));
             }
@@ -519,8 +515,6 @@ namespace MillimanAccessPortal.Controllers
                     HttpContext.Session.Id
                     );
                 AuditLogger.Log(AuditEventIdRegistry.SelectionGroupUserRemoved.GenerateEvent(
-                    await Queries.GetCurrentApplicationUser(User),
-                    HttpContext.Session.Id,
                     SelectionGroup,
                     DbContext.ApplicationUser.Find(UserRemoval)));
             }
@@ -697,8 +691,6 @@ namespace MillimanAccessPortal.Controllers
                 HttpContext.Session.Id
                 );
             AuditLogger.Log(AuditEventIdRegistry.SelectionGroupDeleted.GenerateEvent(
-                await Queries.GetCurrentApplicationUser(User),
-                HttpContext.Session.Id,
                 SelectionGroup));
             #endregion
 

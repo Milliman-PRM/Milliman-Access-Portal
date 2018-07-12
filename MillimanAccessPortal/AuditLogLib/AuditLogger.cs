@@ -1,6 +1,9 @@
 ﻿using AuditLogLib.Event;
 using AuditLogLib.Services;
 using MapCommonLib;
+using MapDbContextLib.Identity;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -26,8 +29,16 @@ namespace AuditLogLib
             private get;
         }
 
-        public AuditLogger()
+        private readonly IHttpContextAccessor _contextAccessor;
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public AuditLogger(
+            IHttpContextAccessor context,
+            UserManager<ApplicationUser> userManager)
         {
+            _contextAccessor = context;
+            _userManager = userManager;
+
             lock (ThreadSafetyLock)
             {
                 if (Config == null)
@@ -66,8 +77,14 @@ namespace AuditLogLib
         /// Simplest logging method, does not conform to ILogger, requires a fully formed event object
         /// </summary>
         /// <param name="Event">Event data to be logged. Use AuditEvent.New method to enforce proper creation</param>
-        public void Log(AuditEvent Event)
+        public async void Log(AuditEvent Event)
         {
+            var context = _contextAccessor.HttpContext;
+            var user = await _userManager.GetUserAsync(context?.User);
+
+            Event.SessionId = context?.Session?.Id;
+            Event.User = user?.ToString();
+
             LogEventQueue.Enqueue(Event);
         }
 
@@ -101,8 +118,7 @@ namespace AuditLogLib
                     {
                         List<AuditEvent> NewEventsToStore = new List<AuditEvent>();
 
-                        AuditEvent NextEvent;
-                        while (LogEventQueue.TryDequeue(out NextEvent))
+                        while (LogEventQueue.TryDequeue(out AuditEvent NextEvent))
                         {
                             NewEventsToStore.Add(NextEvent);
                         }

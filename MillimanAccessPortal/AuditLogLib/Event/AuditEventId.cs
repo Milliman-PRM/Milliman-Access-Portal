@@ -15,7 +15,7 @@ namespace AuditLogLib.Event
             this.name = name;
         }
 
-        protected AuditEvent GenerateEvent(ApplicationUser user, string sessionId,
+        protected AuditEvent GenerateEvent(
             [CallerFilePath] string callerPath = "",
             [CallerMemberName] string callerName = "",
             [CallerLineNumber] int callerLine = 0)
@@ -24,8 +24,6 @@ namespace AuditLogLib.Event
             {
                 TimeStampUtc = DateTime.UtcNow,
                 EventType = name,
-                User = user.ToString(),
-                SessionId = sessionId,
                 Source = $"{callerPath} {callerName}:{callerLine}",
             };
         }
@@ -45,12 +43,12 @@ namespace AuditLogLib.Event
             this.fn = fn ?? new Func<object>(() => new { });
         }
 
-        new public AuditEvent GenerateEvent(ApplicationUser user, string sessionId,
+        new public AuditEvent GenerateEvent(
             [CallerFilePath] string callerPath = "",
             [CallerMemberName] string callerName = "",
             [CallerLineNumber] int callerLine = 0)
         {
-            var auditEvent = base.GenerateEvent(user, sessionId, callerPath, callerName, callerLine);
+            var auditEvent = GenerateEvent(callerPath, callerName, callerLine);
             auditEvent.EventDataObject = fn();
 
             return auditEvent;
@@ -65,13 +63,12 @@ namespace AuditLogLib.Event
             this.fn = fn;
         }
 
-        public AuditEvent GenerateEvent(ApplicationUser user, string sessionId,
-            T entity,
+        public AuditEvent GenerateEvent(T entity,
             [CallerFilePath] string callerPath = "",
             [CallerMemberName] string callerName = "",
             [CallerLineNumber] int callerLine = 0)
         {
-            var auditEvent = base.GenerateEvent(user, sessionId, callerPath, callerName, callerLine);
+            var auditEvent = base.GenerateEvent(callerPath, callerName, callerLine);
             auditEvent.EventDataObject = fn(entity);
 
             return auditEvent;
@@ -86,13 +83,12 @@ namespace AuditLogLib.Event
             this.fn = fn;
         }
 
-        public AuditEvent GenerateEvent(ApplicationUser user, string sessionId,
-            T firstEntity, U secondEntity,
+        public AuditEvent GenerateEvent(T firstEntity, U secondEntity,
             [CallerFilePath] string callerPath = "",
             [CallerMemberName] string callerName = "",
             [CallerLineNumber] int callerLine = 0)
         {
-            var auditEvent = base.GenerateEvent(user, sessionId, callerPath, callerName, callerLine);
+            var auditEvent = GenerateEvent(callerPath, callerName, callerLine);
             auditEvent.EventDataObject = fn(firstEntity, secondEntity);
 
             return auditEvent;
@@ -107,13 +103,12 @@ namespace AuditLogLib.Event
             this.fn = fn;
         }
 
-        public AuditEvent GenerateEvent(ApplicationUser user, string sessionId,
-            T firstEntity, U secondEntity, V thirdEntity,
+        public AuditEvent GenerateEvent(T firstEntity, U secondEntity, V thirdEntity,
             [CallerFilePath] string callerPath = "",
             [CallerMemberName] string callerName = "",
             [CallerLineNumber] int callerLine = 0)
         {
-            var auditEvent = base.GenerateEvent(user, sessionId, callerPath, callerName, callerLine);
+            var auditEvent = GenerateEvent(callerPath, callerName, callerLine);
             auditEvent.EventDataObject = fn(firstEntity, secondEntity, thirdEntity);
 
             return auditEvent;
