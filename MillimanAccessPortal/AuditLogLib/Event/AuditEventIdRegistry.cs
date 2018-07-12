@@ -7,19 +7,21 @@ namespace AuditLogLib.Event
     {
         // WARNING!!!  After production begins, never change the numeric ID of any AuditEventId
 
-        // Uncategorized 1 - 999
-        public static readonly AuditEventId Unspecified = new AuditEventId(1, "Unspecified");
-        public static readonly AuditEventId InvalidRequest = new AuditEventId(2, "Invalid request");
+        #region Uncategorized [0000 - 0999]
+        public static readonly AuditEventId Unspecified = new AuditEventId(0001, "Unspecified");
+        public static readonly AuditEventId InvalidRequest = new AuditEventId(0002, "Invalid request");
+        #endregion
 
-        // User activity category 1000 - 1999
+        #region User activity [1000 - 1999]
         public static readonly AuditEventId LoginSuccess = new AuditEventId(1001, "Login success");
         public static readonly AuditEventId LoginFailure = new AuditEventId(1002, "Login failure");
         public static readonly AuditEventId Unauthorized = new AuditEventId(1003, "Unauthorized request");
         public static readonly AuditEventId Logout = new AuditEventId(1004, "Logout success");
         public static readonly AuditEventId AccountLockByUser = new AuditEventId(1005, "Account lock by user");
         public static readonly AuditEventId UserPasswordChanged = new AuditEventId(1006, "User password changed");
+        #endregion
 
-        // Client Admin category 2000 - 2999
+        #region Client Admin [2000 - 2999]
         public static readonly AuditEventId<Client, ApplicationUser> UserAssignedToClient = new AuditEventId<Client, ApplicationUser>(
             2001, "User assigned to client", (client, user) => new
             {
@@ -48,8 +50,9 @@ namespace AuditLogLib.Event
             2007, "Client role removed", (userClient) => new
             {
             });
+        #endregion
 
-        // User Account category 3000 - 3999
+        #region User Account [3000 - 3999]
         public static readonly AuditEventId<ApplicationUser> UserAccountCreated = new AuditEventId<ApplicationUser>(
             3001, "User account created", (user) => new
             {
@@ -66,8 +69,9 @@ namespace AuditLogLib.Event
             3004, "User account deleted", (user) => new
             {
             });
+        #endregion
 
-        // Content Access Admin category 4000 - 4999
+        #region Content Access Admin [4000 - 4999]
         public static readonly AuditEventId<Client, RootContentItem, SelectionGroup> SelectionGroupCreated = new AuditEventId<Client, RootContentItem, SelectionGroup>(
             4001, "Selection group created", (client, rootContentItem, selectionGroup) => new
             {
@@ -114,8 +118,9 @@ namespace AuditLogLib.Event
             4008, "Selection group suspension status updated", (selectionGroup, reason) => new
             {
             });
+        #endregion
 
-        // Reduction Server category 5000 - 5999
+        #region Reduction Server [5000 - 5999]
         public static readonly AuditEventId<ContentReductionTask> ReductionValidationFailed = new AuditEventId<ContentReductionTask>(
             5001, "Reduction Validation Failed", (reductionTask) => new
             {
@@ -140,8 +145,9 @@ namespace AuditLogLib.Event
             5301, "Content PublicationRequest Succeeded", (publicationRequest) => new
             {
             });
+        #endregion
 
-        // Content Publishing category 6000 - 6999
+        #region Content Publishing [6000 - 6999]
         public static readonly AuditEventId<RootContentItem> RootContentItemCreated = new AuditEventId<RootContentItem>(
             6001, "Root content item created", (rootContentItem) => new
             {
@@ -176,6 +182,7 @@ namespace AuditLogLib.Event
             6107, "Content publication rejected", (rootContentItem, publicationRequest) => new
             {
             });
+        #endregion
 
         private class SelectionGroupLogTemplate
         {
