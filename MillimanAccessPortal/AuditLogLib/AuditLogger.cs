@@ -1,16 +1,14 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Text;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System.Runtime.CompilerServices;
-using System.Reflection;
+﻿using AuditLogLib.Event;
 using AuditLogLib.Services;
 using MapCommonLib;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AuditLogLib
 {
@@ -68,66 +66,9 @@ namespace AuditLogLib
         /// Simplest logging method, does not conform to ILogger, requires a fully formed event object
         /// </summary>
         /// <param name="Event">Event data to be logged. Use AuditEvent.New method to enforce proper creation</param>
-        public virtual void Log(AuditEvent Event)
+        public void Log(AuditEvent Event)
         {
             LogEventQueue.Enqueue(Event);
-        }
-
-        /// <summary>
-        /// Method compliant with ILogger interface, which is not the primary intended use for this class. 
-        /// Full ILogger support requires additional work since this does not currently inherit interface ILogger
-        /// </summary>
-        /// <typeparam name="TState"></typeparam>
-        /// <param name="LogLevel">Provide one of the enum values</param>
-        /// <param name="EventId">Intended to receive one of the static properties of class AuditEventId</param>
-        /// <param name="ParamObject">Object of any type, but should follow conventions</param>
-        /// <param name="exception">Use null if no exception is being documented</param>
-        /// <param name="formatter">If provided, should be compatible with state argument</param>
-        public void Log<ParamObj>(LogLevel LogLevel, AuditEventId EventId, ParamObj ParamObject, Exception exception = null, Func<ParamObj, Exception, string> formatter = null)
-        {
-            if (EventId.id < AuditEventId.AuditEventBaseId || EventId.id > AuditEventId.AuditEventMaxId)
-                return;
-
-            AuditEvent NewEvent = null;
-
-            if (ParamObject.GetType() == typeof(AuditEvent))
-            {
-                NewEvent = ParamObject as AuditEvent;
-                NewEvent.EventType = EventId.name;
-            }
-            else
-            {
-                NewEvent = new AuditEvent
-                {
-                    EventType = EventId.name,
-                    TimeStampUtc = DateTime.Now,
-                };
-
-                Type t = ParamObject.GetType();
-                var p = t.GetTypeInfo();
-                foreach (var Property in p.DeclaredProperties)
-                {
-                    switch (Property.Name)
-                    {
-                        case "UserName":
-                            NewEvent.User = Property.GetValue(ParamObject) as string;
-                            break;
-                        case "Source":
-                            NewEvent.Source = Property.GetValue(ParamObject) as string;
-                            break;
-                        case "Detail":
-                            NewEvent.EventDataObject = Property.GetValue(ParamObject);
-                            break;
-                        case "Summary":
-                            NewEvent.Summary = Property.GetValue(ParamObject) as string;
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-
-            LogEventQueue.Enqueue(NewEvent);
         }
 
         /// <summary>

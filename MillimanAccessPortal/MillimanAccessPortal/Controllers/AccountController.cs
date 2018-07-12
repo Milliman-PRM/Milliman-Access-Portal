@@ -24,6 +24,7 @@ using MillimanAccessPortal.Services;
 using AuditLogLib;
 using AuditLogLib.Services;
 using MillimanAccessPortal.DataQueries;
+using AuditLogLib.Event;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -89,7 +90,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
 
-                    AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User login successful", AuditEventId.LoginSuccess, null, model.Username, HttpContext.Session.Id);
+                    AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User login successful", AuditEventIdRegistry.LoginSuccess, null, model.Username, HttpContext.Session.Id);
                     _auditLogger.Log(LogObject);
 
                     // The default route is /AuthorizedContent/Index as configured in startup.cs
@@ -113,7 +114,7 @@ namespace MillimanAccessPortal.Controllers
                 }
                 else
                 {
-                    AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User login failed", AuditEventId.LoginFailure, null, model.Username, HttpContext.Session.Id);
+                    AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User login failed", AuditEventIdRegistry.LoginFailure, null, model.Username, HttpContext.Session.Id);
                     _auditLogger.Log(LogObject);
 
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
@@ -174,7 +175,7 @@ namespace MillimanAccessPortal.Controllers
             await _signInManager.SignOutAsync();
 
             _auditLogger.Log(
-                AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User logged out successful", AuditEventId.Logout, null, User.Identity.Name, HttpContext.Session.Id)
+                AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User logged out successful", AuditEventIdRegistry.Logout, null, User.Identity.Name, HttpContext.Session.Id)
             );
 
             Response.Cookies.Delete(".AspNetCore.Session");

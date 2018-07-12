@@ -6,6 +6,11 @@ namespace AuditLogLib.Event
 {
     public class AuditEvent
     {
+        public static AuditEvent New(object a = null, object b = null, object c = null, object d = null, object e = null, object f = null)
+        {
+            return new AuditEvent { };
+        }
+
         public long Id { get; set; }
 
         public DateTime TimeStampUtc { get; set; }
