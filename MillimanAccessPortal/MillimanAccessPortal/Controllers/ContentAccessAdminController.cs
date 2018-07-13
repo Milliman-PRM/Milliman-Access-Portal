@@ -198,7 +198,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     $"Request to create selection group without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentAccessAdmin]} role in root content item",
-                    AuditEventIdRegistry.Unauthorized,
+                    AuditEventType.Unauthorized,
                     new { rootContentItem.ClientId, RootContentItemId },
                     User.Identity.Name,
                     HttpContext.Session.Id
@@ -239,12 +239,12 @@ namespace MillimanAccessPortal.Controllers
             AuditEvent SelectionGroupCreatedEvent = AuditEvent.New(
                 $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                 "Selection group created",
-                AuditEventIdRegistry.SelectionGroupCreated,
+                AuditEventType.SelectionGroupCreated,
                 new { rootContentItem.ClientId, SelectionGroupId = selectionGroup.Id },
                 User.Identity.Name,
                 HttpContext.Session.Id
                 );
-            AuditLogger.Log(AuditEventIdRegistry.SelectionGroupCreated.GenerateEvent(
+            AuditLogger.Log(AuditEventType.SelectionGroupCreated.GenerateEvent(
                 rootContentItem.Client,
                 rootContentItem,
                 selectionGroup));
@@ -285,7 +285,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     $"Request to update selection group without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentAccessAdmin]} role in root content item",
-                    AuditEventIdRegistry.Unauthorized,
+                    AuditEventType.Unauthorized,
                     new { selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, selectionGroupId },
                     User.Identity.Name,
                     HttpContext.Session.Id
@@ -339,7 +339,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     $"Request to update selection group without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentAccessAdmin]} role in root content item",
-                    AuditEventIdRegistry.Unauthorized,
+                    AuditEventType.Unauthorized,
                     new { selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, SelectionGroupId },
                     User.Identity.Name,
                     HttpContext.Session.Id
@@ -397,7 +397,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     $"Request to update selection group without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentAccessAdmin]} role in root content item",
-                    AuditEventIdRegistry.Unauthorized,
+                    AuditEventType.Unauthorized,
                     new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId },
                     User.Identity.Name,
                     HttpContext.Session.Id
@@ -495,12 +495,12 @@ namespace MillimanAccessPortal.Controllers
                 AuditEvent SelectionGroupUserAssignmentsUpdatedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     "User assigned to selection group",
-                    AuditEventIdRegistry.SelectionGroupUserAssigned,
+                    AuditEventType.SelectionGroupUserAssigned,
                     new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, UserId = UserAddition },
                     User.Identity.Name,
                     HttpContext.Session.Id
                     );
-                AuditLogger.Log(AuditEventIdRegistry.SelectionGroupUserAssigned.GenerateEvent(
+                AuditLogger.Log(AuditEventType.SelectionGroupUserAssigned.GenerateEvent(
                     SelectionGroup,
                     DbContext.ApplicationUser.Find(UserAddition)));
             }
@@ -509,12 +509,12 @@ namespace MillimanAccessPortal.Controllers
                 AuditEvent SelectionGroupUserAssignmentsUpdatedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     "User removed from selection group",
-                    AuditEventIdRegistry.SelectionGroupUserRemoved,
+                    AuditEventType.SelectionGroupUserRemoved,
                     new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, UserId = UserRemoval },
                     User.Identity.Name,
                     HttpContext.Session.Id
                     );
-                AuditLogger.Log(AuditEventIdRegistry.SelectionGroupUserRemoved.GenerateEvent(
+                AuditLogger.Log(AuditEventType.SelectionGroupUserRemoved.GenerateEvent(
                     SelectionGroup,
                     DbContext.ApplicationUser.Find(UserRemoval)));
             }
@@ -555,7 +555,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditEvent authorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     $"Request to delete selection group without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentAccessAdmin]} role in root content item",
-                    AuditEventIdRegistry.Unauthorized,
+                    AuditEventType.Unauthorized,
                     new { selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, selectionGroupId },
                     User.Identity.Name,
                     HttpContext.Session.Id
@@ -576,7 +576,7 @@ namespace MillimanAccessPortal.Controllers
             AuditEvent selectionGroupSuspensionEvent = AuditEvent.New(
                 $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                 "Selection group suspension status updated",
-                AuditEventIdRegistry.SelectionGroupSuspensionUpdate,
+                AuditEventType.SelectionGroupSuspensionUpdate,
                 new { selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, selectionGroupId, isSuspended },
                 User.Identity.Name,
                 HttpContext.Session.Id
@@ -618,7 +618,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     $"Request to delete selection group without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentAccessAdmin]} role in root content item",
-                    AuditEventIdRegistry.Unauthorized,
+                    AuditEventType.Unauthorized,
                     new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId },
                     User.Identity.Name,
                     HttpContext.Session.Id
@@ -674,7 +674,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditEvent SelectionGroupUpdatedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     "User removed from selection group",
-                    AuditEventIdRegistry.SelectionGroupUserRemoved,
+                    AuditEventType.SelectionGroupUserRemoved,
                     new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, UserId },
                     User.Identity.Name,
                     HttpContext.Session.Id
@@ -685,12 +685,12 @@ namespace MillimanAccessPortal.Controllers
             AuditEvent SelectionGroupDeletedEvent = AuditEvent.New(
                 $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                 "Selection group deleted",
-                AuditEventIdRegistry.SelectionGroupDeleted,
+                AuditEventType.SelectionGroupDeleted,
                 new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId },
                 User.Identity.Name,
                 HttpContext.Session.Id
                 );
-            AuditLogger.Log(AuditEventIdRegistry.SelectionGroupDeleted.GenerateEvent(
+            AuditLogger.Log(AuditEventType.SelectionGroupDeleted.GenerateEvent(
                 SelectionGroup));
             #endregion
 
@@ -763,7 +763,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     $"Request to update selections without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentAccessAdmin]} role in root content item",
-                    AuditEventIdRegistry.Unauthorized,
+                    AuditEventType.Unauthorized,
                     new { selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, selectionGroupId, selections },
                     User.Identity.Name,
                     HttpContext.Session.Id
@@ -862,7 +862,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditEvent selectionGroupMasterAccessEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     "Selection group given master access",
-                    AuditEventIdRegistry.SelectionChangeMasterAccessGranted,
+                    AuditEventType.SelectionChangeMasterAccessGranted,
                     new { selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, selectionGroupId },
                     User.Identity.Name,
                     HttpContext.Session.Id
@@ -892,7 +892,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditEvent selectionChangeReductionQueuedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     "Selection change reduction task queued",
-                    AuditEventIdRegistry.SelectionChangeReductionQueued,
+                    AuditEventType.SelectionChangeReductionQueued,
                     new { selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, selectionGroupId, selections },
                     User.Identity.Name,
                     HttpContext.Session.Id
@@ -935,7 +935,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     $"Request to cancel reduction without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentAccessAdmin]} role in root content item",
-                    AuditEventIdRegistry.Unauthorized,
+                    AuditEventType.Unauthorized,
                     new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId },
                     User.Identity.Name,
                     HttpContext.Session.Id
@@ -979,7 +979,7 @@ namespace MillimanAccessPortal.Controllers
             AuditEvent SelectionChangeReductionCanceledEvent = AuditEvent.New(
                 $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                 "Selection change reduction task canceled",
-                AuditEventIdRegistry.SelectionChangeReductionCanceled,
+                AuditEventType.SelectionChangeReductionCanceled,
                 new { SelectionGroup.RootContentItem.ClientId, SelectionGroup.RootContentItemId, SelectionGroupId, UpdatedTasks },
                 User.Identity.Name,
                 HttpContext.Session.Id

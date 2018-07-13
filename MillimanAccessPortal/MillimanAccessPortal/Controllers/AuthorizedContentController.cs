@@ -113,7 +113,7 @@ namespace MillimanAccessPortal.Controllers
                 });
             if (!Result1.Succeeded)
             {
-                AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Unauthorized request", AuditEventIdRegistry.Unauthorized, null, UserManager.GetUserName(HttpContext.User), HttpContext.Session.Id);
+                AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Unauthorized request", AuditEventType.Unauthorized, null, UserManager.GetUserName(HttpContext.User), HttpContext.Session.Id);
                 LogObject.EventDataObject = new { GroupIdRequested = Id };
                 AuditLogger.Log(LogObject);
 

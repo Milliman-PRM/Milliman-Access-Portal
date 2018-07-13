@@ -191,7 +191,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     $"Request to create root content item without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in client",
-                    AuditEventIdRegistry.Unauthorized,
+                    AuditEventType.Unauthorized,
                     new { ClientId = rootContentItem.ClientId },
                     User.Identity.Name,
                     HttpContext.Session.Id
@@ -249,7 +249,7 @@ namespace MillimanAccessPortal.Controllers
             AuditEvent rootContentItemCreatedEvent = AuditEvent.New(
                 $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                 "Root content item created",
-                AuditEventIdRegistry.RootContentItemCreated,
+                AuditEventType.RootContentItemCreated,
                 new { ClientId = rootContentItem.ClientId, RootContentItemId = rootContentItem.Id },
                 User.Identity.Name,
                 HttpContext.Session.Id
@@ -287,7 +287,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{this.ControllerContext.ActionDescriptor.ActionName}",
                     $"Request to update root content item without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in item",
-                    AuditEventIdRegistry.Unauthorized,
+                    AuditEventType.Unauthorized,
                     new { RootContentItemId = rootContentItem.Id },
                     User.Identity.Name,
                     HttpContext.Session.Id
@@ -330,7 +330,7 @@ namespace MillimanAccessPortal.Controllers
             AuditEvent rootContentItemUpdatedEvent = AuditEvent.New(
                 $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                 "Root content item updated",
-                AuditEventIdRegistry.RootContentItemUpdated,
+                AuditEventType.RootContentItemUpdated,
                 new { ClientId = rootContentItem.ClientId, RootContentItemId = rootContentItem.Id },
                 User.Identity.Name,
                 HttpContext.Session.Id
@@ -368,7 +368,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     $"Request to delete root content item without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in root content item",
-                    AuditEventIdRegistry.Unauthorized,
+                    AuditEventType.Unauthorized,
                     new { ClientId = rootContentItem.ClientId, RootContentItemId = rootContentItem.Id },
                     User.Identity.Name,
                     HttpContext.Session.Id
@@ -406,7 +406,7 @@ namespace MillimanAccessPortal.Controllers
             AuditEvent rootContentItemDeletedEvent = AuditEvent.New(
                 $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                 "Root content item deleted",
-                AuditEventIdRegistry.RootContentItemDeleted,
+                AuditEventType.RootContentItemDeleted,
                 new { ClientId = rootContentItem.ClientId, RootContentItemId = rootContentItem.Id },
                 User.Identity.Name,
                 HttpContext.Session.Id
@@ -439,7 +439,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditLogEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     $"Request to queue a publication request without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in content item",
-                    AuditEventIdRegistry.Unauthorized,
+                    AuditEventType.Unauthorized,
                     new { UserId = currentApplicationUser.Id, RequestedContentItem = Arg.RootContentItemId },
                     User.Identity.Name,
                     HttpContext.Session.Id
@@ -591,7 +591,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogEvent = AuditEvent.New(
                 $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                 $"New publication request successfully stored",
-                AuditEventIdRegistry.PublicationQueued,
+                AuditEventType.PublicationQueued,
                 new { UserId = currentApplicationUser.Id, RequestId = NewContentPublicationRequest.Id, RootContentItem = NewContentPublicationRequest.RootContentItemId },
                 User.Identity.Name,
                 HttpContext.Session.Id
@@ -623,7 +623,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     $"Request to cancel content publication request without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in root content item",
-                    AuditEventIdRegistry.Unauthorized,
+                    AuditEventType.Unauthorized,
                     new { RootContentItemId = rootContentItem.Id },
                     User.Identity.Name,
                     HttpContext.Session.Id
@@ -690,7 +690,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     $"Request for publication summary without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in root content item",
-                    AuditEventIdRegistry.Unauthorized,
+                    AuditEventType.Unauthorized,
                     new { RootContentItemId = RootContentItemId },
                     User.Identity.Name,
                     HttpContext.Session.Id
@@ -717,7 +717,7 @@ namespace MillimanAccessPortal.Controllers
             AuditEvent PreLiveSummaryEvent = AuditEvent.New(
                 $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                 "Pre-live publication summary returned for user validation",
-                AuditEventIdRegistry.PreGoLiveSummary,
+                AuditEventType.PreGoLiveSummary,
                 new
                 {
                     ReturnObj.ValidationSummaryId,
@@ -752,7 +752,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     $"Request for content go-live without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in root content item",
-                    AuditEventIdRegistry.Unauthorized,
+                    AuditEventType.Unauthorized,
                     new { RootContentItemId = rootContentItemId, ValidationSummaryId = validationSummaryId },
                     User.Identity.Name,
                     HttpContext.Session.Id
@@ -821,7 +821,7 @@ namespace MillimanAccessPortal.Controllers
                     AuditEvent ChecksumFailedEvent = AuditEvent.New(
                         $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                         "Checksum validation failed for reduced content file before copying to live path",
-                        AuditEventIdRegistry.GoLiveValidationFailed,
+                        AuditEventType.GoLiveValidationFailed,
                         new { File = ThisTask.ResultFilePath, ValidationSummaryId = validationSummaryId },
                         User.Identity.Name,
                         HttpContext.Session.Id
@@ -843,7 +843,7 @@ namespace MillimanAccessPortal.Controllers
                     AuditEvent ChecksumFailedEvent = AuditEvent.New(
                         $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                         "Checksum validation failed for live-ready file before copying to live path",
-                        AuditEventIdRegistry.GoLiveValidationFailed,
+                        AuditEventType.GoLiveValidationFailed,
                         new { File = Crf.FullPath, ValidationSummaryId = validationSummaryId },
                         User.Identity.Name,
                         HttpContext.Session.Id
@@ -1038,7 +1038,7 @@ namespace MillimanAccessPortal.Controllers
             AuditEvent GoLiveLogEvent = AuditEvent.New(
                 $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                 "Content publication go-live was successful",
-                AuditEventIdRegistry.ContentPublicationGoLive,
+                AuditEventType.ContentPublicationGoLive,
                 new { UserAttestedSummaryId = validationSummaryId, PublicationRequestId = PubRequest.Id },
                 User.Identity.Name,
                 HttpContext.Session.Id
@@ -1082,7 +1082,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditEvent AuthorizationFailedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     $"Request to reject content without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in root content item",
-                    AuditEventIdRegistry.Unauthorized,
+                    AuditEventType.Unauthorized,
                     new { RootContentItemId = rootContentItemId },
                     User.Identity.Name,
                     HttpContext.Session.Id
@@ -1151,7 +1151,7 @@ namespace MillimanAccessPortal.Controllers
             AuditEvent PublicationRejectedEvent = AuditEvent.New(
                 $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                 $"User rejected a publication request",
-                AuditEventIdRegistry.ContentPublicationRejected,
+                AuditEventType.ContentPublicationRejected,
                 new { RootContentItemId = rootContentItemId, ContentPublicationRequestId = publicationRequestId },
                 User.Identity.Name,
                 HttpContext.Session.Id
