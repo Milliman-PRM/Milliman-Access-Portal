@@ -173,9 +173,10 @@ namespace MillimanAccessPortal.Controllers
                     AuthorizationResult GlobalUserCreatorResult = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.UserCreator));
                     if (!GlobalUserCreatorResult.Succeeded)
                     {
-                        var AssignedClientDetailObject = new { RequestedUser = Model.UserName, RequiredRole = RoleEnum.UserCreator.ToString(), RequestedClientIds = string.Join(",", Model.MemberOfClientIdArray) };
-                        AuditEvent AuthorizationFailedEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Request to create user without required role", AuditEventType.Unauthorized, AssignedClientDetailObject, User.Identity.Name, HttpContext.Session.Id);
-                        AuditLogger.Log(AuthorizationFailedEvent);
+                        // also logged:
+                        //   - requested user
+                        //   - requested clients
+                        AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.UserCreator));
 
                         Response.Headers.Add("Warning", "You are not authorized to create a user");
                         return Unauthorized();
@@ -188,9 +189,11 @@ namespace MillimanAccessPortal.Controllers
                         AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserCreator, RequestedClientId));
                         if (!Result1.Succeeded)
                         {
-                            var AssignedClientDetailObject = new { RequestedUser = Model.UserName, RequiredRole = RoleEnum.UserCreator.ToString(), RequestedClientIds = string.Join(",", Model.MemberOfClientIdArray), ClientNotAuthorized = RequestedClientId };
-                            AuditEvent AuthorizationFailedEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Request to create user for specific client without required role", AuditEventType.Unauthorized, AssignedClientDetailObject, User.Identity.Name, HttpContext.Session.Id);
-                            AuditLogger.Log(AuthorizationFailedEvent);
+                            // also logged:
+                            //   - requested user
+                            //   - requested clients
+                            //   - client ID
+                            AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.UserCreator));
 
                             Response.Headers.Add("Warning", "You are not authorized to create a user for a requested client");
                             return Unauthorized();
@@ -205,12 +208,13 @@ namespace MillimanAccessPortal.Controllers
                 AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, RequestedClientId));
                 if (!Result2.Succeeded)
                 {
-                    var AssignedClientDetailObject = new { RequestedUser = Model.UserName, RequiredRole = RoleEnum.Admin.ToString(), RequestedClientIds = string.Join(",", Model.MemberOfClientIdArray), ClientNotAuthorized = RequestedClientId };
+                    // also logged:
+                    //   - requested user
+                    //   - requested clients
+                    //   - client ID
+                    AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.UserCreator));
 
-                    AuditEvent AuthorizationFailedEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Request to associate a user with unauthorized client(s)", AuditEventType.Unauthorized, AssignedClientDetailObject, User.Identity.Name, HttpContext.Session.Id);
-                    Response.Headers.Add("Warning", $"You are not authorized to assign a user to the requested client(s) ({AssignedClientDetailObject.RequestedClientIds})");
-                    AuditLogger.Log(AuthorizationFailedEvent);
-
+                    Response.Headers.Add("Warning", $"You are not authorized to assign a user to the requested client(s)");
                     return Unauthorized();
                 }
             }
@@ -288,17 +292,16 @@ namespace MillimanAccessPortal.Controllers
             // UserCreated Audit log
             if (RequestedUserIsNew)
             {
-                var CreatedUserDetailObject = new { NewUserName = Model.UserName, Email = Model.Email, };
-                AuditEvent UserCreatedEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New user created", AuditEventType.UserAccountCreated, CreatedUserDetailObject, User.Identity.Name, HttpContext.Session.Id);
-                AuditLogger.Log(UserCreatedEvent);
+                AuditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(RequestedUser));
             }
 
             // Client membership assignment Audit log
-            foreach (var ClientId in Model.MemberOfClientIdArray)
+            var assignedClients = DbContext.Client
+                .Where(client => Model.MemberOfClientIdArray.Contains(client.Id))
+                .ToList();
+            foreach (var client in assignedClients)
             {
-                var AssignedClientDetailObject = new { NewUserName = Model.UserName, ClientId = ClientId, RequestedClientIds = string.Join(",", Model.MemberOfClientIdArray), };
-                AuditEvent UserAssignedEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New user assigned to client", AuditEventType.UserAssignedToClient, AssignedClientDetailObject, User.Identity.Name, HttpContext.Session.Id);
-                AuditLogger.Log(UserAssignedEvent);
+                AuditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(client, RequestedUser));
             }
 
             // TODO: Send proper welcome email w/ link to set initial password
@@ -386,11 +389,7 @@ namespace MillimanAccessPortal.Controllers
                     return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
                 }
 
-                object LogDetails = new { AssignedUserName = RequestedUser.UserName,
-                                          AssignedUserId = RequestedUser.Id,
-                                          AssignedClient = RequestedClient.Name,
-                                          AssignedClientId = RequestedClient.Id};
-                AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User Assigned to Client", AuditEventType.UserAssignedToClient, LogDetails, User.Identity.Name, HttpContext.Session.Id) );
+                AuditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(RequestedClient, RequestedUser));
             }
 
             ClientDetailViewModel ReturnModel = new ClientDetailViewModel { ClientEntity = RequestedClient };
@@ -600,19 +599,7 @@ namespace MillimanAccessPortal.Controllers
                 DbContext.UserClaims.RemoveRange(DbContext.UserClaims.Where(uc => uc.UserId == RequestedUser.Id && uc.ClaimType == ClaimNames.ClientMembership.ToString() && uc.ClaimValue == RequestedClient.Id.ToString()).ToList());
                 DbContext.SaveChanges();  // (transactional)
 
-                object LogDetails = new
-                {
-                    AssignedUserName = RequestedUser.UserName,
-                    AssignedUserId = RequestedUser.Id,
-                    AssignedClient = RequestedClient.Name,
-                    AssignedClientId = RequestedClient.Id
-                };
-                AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                                            "User removed from Client",
-                                            AuditEventType.UserRemovedFromClient,
-                                            LogDetails,
-                                            User.Identity.Name,
-                                            HttpContext.Session.Id));
+                AuditLogger.Log(AuditEventType.UserRemovedFromClient.ToEvent(RequestedClient, RequestedUser));
             }
             catch (Exception e)
             {
@@ -761,13 +748,10 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Log new client store and ClientAdministrator role authorization events
-            object LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, };
-            AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New Client Saved", AuditEventType.NewClientSaved, LogDetails, User.Identity.Name, HttpContext.Session.Id));
+            AuditLogger.Log(AuditEventType.ClientCreated.ToEvent(Model));
+            AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(Model, CurrentApplicationUser, RoleEnum.Admin));
 
-            LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, User = User.Identity.Name, Role = RoleEnum.Admin.ToString() };
-            AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Client Administrator role assigned", AuditEventType.ClientRoleAssigned, LogDetails, User.Identity.Name, HttpContext.Session.Id));
-
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(CurrentApplicationUser, UserManager, DbContext);
             ModelToReturn.RelevantClientId = Model.Id;
 
             return Json(ModelToReturn);
@@ -917,8 +901,7 @@ namespace MillimanAccessPortal.Controllers
                 DbContext.Client.Update(ExistingClientRecord);
                 DbContext.SaveChanges();
 
-                object LogDetails = new { ClientId = Model.Id, ClientName = Model.Name, };
-                AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Client Edited", AuditEventType.ClientEdited, LogDetails, User.Identity.Name, HttpContext.Session.Id));
+                AuditLogger.Log(AuditEventType.ClientEdited.ToEvent(Model));
             }
             catch (Exception ex)
             {
@@ -1019,9 +1002,7 @@ namespace MillimanAccessPortal.Controllers
                 }
             }
 
-            object LogDetails = new { ClientId = Id.Value };
-            AuditLogger.Log(AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Client Deleted", AuditEventType.ClientDeleted, LogDetails, User.Identity.Name, HttpContext.Session.Id));
-
+            AuditLogger.Log(AuditEventType.ClientDeleted.ToEvent(ExistingClient));
 
             ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
 

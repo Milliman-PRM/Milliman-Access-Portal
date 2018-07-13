@@ -187,18 +187,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult roleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, rootContentItem.ClientId));
             if (!roleInClientResult.Succeeded)
             {
-                #region Log audit event
-                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
-                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                    $"Request to create root content item without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in client",
-                    AuditEventType.Unauthorized,
-                    new { ClientId = rootContentItem.ClientId },
-                    User.Identity.Name,
-                    HttpContext.Session.Id
-                    );
-                AuditLogger.Log(AuthorizationFailedEvent);
-                #endregion
-
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
                 Response.Headers.Add("Warning", "You are not authorized to create root content items for the specified client.");
                 return Unauthorized();
             }
@@ -245,17 +234,7 @@ namespace MillimanAccessPortal.Controllers
                 DbTransaction.Commit();
             }
 
-            #region Log audit event
-            AuditEvent rootContentItemCreatedEvent = AuditEvent.New(
-                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                "Root content item created",
-                AuditEventType.RootContentItemCreated,
-                new { ClientId = rootContentItem.ClientId, RootContentItemId = rootContentItem.Id },
-                User.Identity.Name,
-                HttpContext.Session.Id
-                );
-            AuditLogger.Log(rootContentItemCreatedEvent);
-            #endregion
+            AuditLogger.Log(AuditEventType.RootContentItemCreated.ToEvent(rootContentItem));
 
             RootContentItemSummary summary = RootContentItemSummary.Build(DbContext, rootContentItem);
             RootContentItemDetail detail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, rootContentItem);
@@ -283,18 +262,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItem.Id));
             if (!roleInRootContentItemResult.Succeeded)
             {
-                #region Log audit event
-                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
-                    $"{this.GetType().Name}.{this.ControllerContext.ActionDescriptor.ActionName}",
-                    $"Request to update root content item without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in item",
-                    AuditEventType.Unauthorized,
-                    new { RootContentItemId = rootContentItem.Id },
-                    User.Identity.Name,
-                    HttpContext.Session.Id
-                    );
-                AuditLogger.Log(AuthorizationFailedEvent);
-                #endregion
-
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
                 Response.Headers.Add("Warning", "You are not authorized to update this root content item.");
                 return Unauthorized();
             }
@@ -326,17 +294,7 @@ namespace MillimanAccessPortal.Controllers
             DbContext.RootContentItem.Update(currentRootContentItem);
             DbContext.SaveChanges();
 
-            #region Log audit event
-            AuditEvent rootContentItemUpdatedEvent = AuditEvent.New(
-                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                "Root content item updated",
-                AuditEventType.RootContentItemUpdated,
-                new { ClientId = rootContentItem.ClientId, RootContentItemId = rootContentItem.Id },
-                User.Identity.Name,
-                HttpContext.Session.Id
-                );
-            AuditLogger.Log(rootContentItemUpdatedEvent);
-            #endregion
+            AuditLogger.Log(AuditEventType.RootContentItemUpdated.ToEvent(rootContentItem));
 
             RootContentItemSummary summary = RootContentItemSummary.Build(DbContext, currentRootContentItem);
             RootContentItemDetail detail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, currentRootContentItem);
@@ -364,18 +322,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult roleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItem.Id));
             if (!roleInRootContentItemResult.Succeeded)
             {
-                #region Log audit event
-                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
-                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                    $"Request to delete root content item without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in root content item",
-                    AuditEventType.Unauthorized,
-                    new { ClientId = rootContentItem.ClientId, RootContentItemId = rootContentItem.Id },
-                    User.Identity.Name,
-                    HttpContext.Session.Id
-                    );
-                AuditLogger.Log(AuthorizationFailedEvent);
-                #endregion
-
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
                 Response.Headers.Add("Warning", "You are not authorized to administer the specified root content item.");
                 return Unauthorized();
             }
@@ -402,17 +349,7 @@ namespace MillimanAccessPortal.Controllers
                 }
             }
 
-            #region Log audit event(s)
-            AuditEvent rootContentItemDeletedEvent = AuditEvent.New(
-                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                "Root content item deleted",
-                AuditEventType.RootContentItemDeleted,
-                new { ClientId = rootContentItem.ClientId, RootContentItemId = rootContentItem.Id },
-                User.Identity.Name,
-                HttpContext.Session.Id
-                );
-            AuditLogger.Log(rootContentItemDeletedEvent);
-            #endregion
+            AuditLogger.Log(AuditEventType.RootContentItemDeleted.ToEvent(rootContentItem));
 
             return Json(model);
         }
@@ -435,18 +372,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, Arg.RootContentItemId));
             if (!RoleInRootContentItemResult.Succeeded)
             {
-                #region Log audit event
-                AuditLogEvent = AuditEvent.New(
-                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                    $"Request to queue a publication request without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in content item",
-                    AuditEventType.Unauthorized,
-                    new { UserId = currentApplicationUser.Id, RequestedContentItem = Arg.RootContentItemId },
-                    User.Identity.Name,
-                    HttpContext.Session.Id
-                    );
-                AuditLogger.Log(AuditLogEvent);
-                #endregion
-
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
                 Response.Headers.Add("Warning", $"You are not authorized to publish this content");
                 return Unauthorized();
             }
@@ -586,18 +512,7 @@ namespace MillimanAccessPortal.Controllers
             DbContext.ContentPublicationRequest.Update(NewContentPublicationRequest);
             DbContext.SaveChanges();
 
-            // Log the queued publication request
-            #region Log audit event
-            AuditLogEvent = AuditEvent.New(
-                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                $"New publication request successfully stored",
-                AuditEventType.PublicationQueued,
-                new { UserId = currentApplicationUser.Id, RequestId = NewContentPublicationRequest.Id, RootContentItem = NewContentPublicationRequest.RootContentItemId },
-                User.Identity.Name,
-                HttpContext.Session.Id
-                );
-            AuditLogger.Log(AuditLogEvent);
-            #endregion
+            AuditLogger.Log(AuditEventType.PublicationQueued.ToEvent(ContentItem, NewContentPublicationRequest));
 
             return Ok();
         }
@@ -619,18 +534,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult roleInRootContentItem = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItem.Id));
             if (!roleInRootContentItem.Succeeded)
             {
-                #region Log audit event
-                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
-                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                    $"Request to cancel content publication request without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in root content item",
-                    AuditEventType.Unauthorized,
-                    new { RootContentItemId = rootContentItem.Id },
-                    User.Identity.Name,
-                    HttpContext.Session.Id
-                    );
-                AuditLogger.Log(AuthorizationFailedEvent);
-                #endregion
-
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
                 Response.Headers.Add("Warning", "You are not authorized to cancel content publication requests for this root content item.");
                 return Unauthorized();
             }
@@ -686,18 +590,6 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult roleInRootContentItem = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, RootContentItemId));
             if (!roleInRootContentItem.Succeeded)
             {
-                #region Log audit event
-                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
-                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                    $"Request for publication summary without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in root content item",
-                    AuditEventType.Unauthorized,
-                    new { RootContentItemId = RootContentItemId },
-                    User.Identity.Name,
-                    HttpContext.Session.Id
-                    );
-                AuditLogger.Log(AuthorizationFailedEvent);
-                #endregion
-
                 Response.Headers.Add("Warning", "You are not authorized to view the publication certification summary for this root content item.");
                 return Unauthorized();
             }
@@ -713,29 +605,20 @@ namespace MillimanAccessPortal.Controllers
 
             PreLiveContentValidationSummary ReturnObj = PreLiveContentValidationSummary.Build(DbContext, RootContentItemId, ApplicationConfig);
 
-            #region Log audit event
-            AuditEvent PreLiveSummaryEvent = AuditEvent.New(
-                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                "Pre-live publication summary returned for user validation",
-                AuditEventType.PreGoLiveSummary,
-                new
-                {
-                    ReturnObj.ValidationSummaryId,
-                    ReturnObj.PublicationRequestId,
-                    ReturnObj.AttestationLanguage,
-                    ReturnObj.ContentDescription,
-                    ReturnObj.RootContentName,
-                    ReturnObj.ContentTypeName,
-                    ReturnObj.LiveHierarchy,
-                    ReturnObj.NewHierarchy,
-                    ReturnObj.DoesReduce,
-                    ReturnObj.ClientName,
-                },
-                User.Identity.Name,
-                HttpContext.Session.Id
-                );
-            AuditLogger.Log(PreLiveSummaryEvent);
-            #endregion
+            var preGoLiveSummary = new
+            {
+                ReturnObj.ValidationSummaryId,
+                ReturnObj.PublicationRequestId,
+                ReturnObj.AttestationLanguage,
+                ReturnObj.ContentDescription,
+                ReturnObj.RootContentName,
+                ReturnObj.ContentTypeName,
+                ReturnObj.LiveHierarchy,
+                ReturnObj.NewHierarchy,
+                ReturnObj.DoesReduce,
+                ReturnObj.ClientName,
+            };
+            AuditLogger.Log(AuditEventType.PreGoLiveSummary.ToEvent(preGoLiveSummary));
 
             return new JsonResult(ReturnObj);
         }
@@ -748,18 +631,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItemId));
             if (!authorization.Succeeded)
             {
-                #region Log audit event
-                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
-                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                    $"Request for content go-live without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in root content item",
-                    AuditEventType.Unauthorized,
-                    new { RootContentItemId = rootContentItemId, ValidationSummaryId = validationSummaryId },
-                    User.Identity.Name,
-                    HttpContext.Session.Id
-                    );
-                AuditLogger.Log(AuthorizationFailedEvent);
-                #endregion
-
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
                 Response.Headers.Add("Warning", "You are not authorized to publish content for this root content item.");
                 return Unauthorized();
             }
@@ -817,18 +689,7 @@ namespace MillimanAccessPortal.Controllers
                 // Validate file checksum for reduced content
                 if (GlobalFunctions.GetFileChecksum(ThisTask.ResultFilePath).ToLower() != ThisTask.ReducedContentChecksum.ToLower())
                 {
-                    #region Log audit event
-                    AuditEvent ChecksumFailedEvent = AuditEvent.New(
-                        $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                        "Checksum validation failed for reduced content file before copying to live path",
-                        AuditEventType.GoLiveValidationFailed,
-                        new { File = ThisTask.ResultFilePath, ValidationSummaryId = validationSummaryId },
-                        User.Identity.Name,
-                        HttpContext.Session.Id
-                        );
-                    AuditLogger.Log(ChecksumFailedEvent);
-                    #endregion
-
+                    AuditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(PubRequest.RootContentItem, PubRequest));
                     Response.Headers.Add("Warning", $"Reduced content file failed integrity check, cannot complete the go-live request.");
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
@@ -839,18 +700,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 if (GlobalFunctions.GetFileChecksum(Crf.FullPath).ToLower() != Crf.Checksum.ToLower())
                 {
-                    #region Log audit event
-                    AuditEvent ChecksumFailedEvent = AuditEvent.New(
-                        $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                        "Checksum validation failed for live-ready file before copying to live path",
-                        AuditEventType.GoLiveValidationFailed,
-                        new { File = Crf.FullPath, ValidationSummaryId = validationSummaryId },
-                        User.Identity.Name,
-                        HttpContext.Session.Id
-                        );
-                    AuditLogger.Log(ChecksumFailedEvent);
-                    #endregion
-
+                    AuditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(PubRequest.RootContentItem, PubRequest));
                     Response.Headers.Add("Warning", "File integrity validation failed");
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
@@ -1034,17 +884,7 @@ namespace MillimanAccessPortal.Controllers
                 Txn.Commit();
             }
 
-            #region Log audit event
-            AuditEvent GoLiveLogEvent = AuditEvent.New(
-                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                "Content publication go-live was successful",
-                AuditEventType.ContentPublicationGoLive,
-                new { UserAttestedSummaryId = validationSummaryId, PublicationRequestId = PubRequest.Id },
-                User.Identity.Name,
-                HttpContext.Session.Id
-                );
-            AuditLogger.Log(GoLiveLogEvent);
-            #endregion
+            AuditLogger.Log(AuditEventType.ContentPublicationGoLive.ToEvent(PubRequest.RootContentItem, PubRequest, validationSummaryId));
 
             // 4 Delete all temporary files
             foreach (string FileToDelete in FilesToDelete)
@@ -1078,18 +918,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItemId));
             if (!authorization.Succeeded)
             {
-                #region Log audit event
-                AuditEvent AuthorizationFailedEvent = AuditEvent.New(
-                    $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                    $"Request to reject content without {ApplicationRole.RoleDisplayNames[RoleEnum.ContentPublisher]} role in root content item",
-                    AuditEventType.Unauthorized,
-                    new { RootContentItemId = rootContentItemId },
-                    User.Identity.Name,
-                    HttpContext.Session.Id
-                    );
-                AuditLogger.Log(AuthorizationFailedEvent);
-                #endregion
-
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
                 Response.Headers.Add("Warning", "You are not authorized to publish content for this root content item.");
                 return Unauthorized();
             }
@@ -1147,17 +976,7 @@ namespace MillimanAccessPortal.Controllers
                 Txn.Commit();
             }
 
-            #region Log audit event
-            AuditEvent PublicationRejectedEvent = AuditEvent.New(
-                $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
-                $"User rejected a publication request",
-                AuditEventType.ContentPublicationRejected,
-                new { RootContentItemId = rootContentItemId, ContentPublicationRequestId = publicationRequestId },
-                User.Identity.Name,
-                HttpContext.Session.Id
-                );
-            AuditLogger.Log(PublicationRejectedEvent);
-            #endregion
+            AuditLogger.Log(AuditEventType.ContentPublicationRejected.ToEvent(rootContentItem, pubRequest));
 
             return Ok();
         }

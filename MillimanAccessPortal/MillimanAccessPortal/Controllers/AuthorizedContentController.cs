@@ -113,9 +113,7 @@ namespace MillimanAccessPortal.Controllers
                 });
             if (!Result1.Succeeded)
             {
-                AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Unauthorized request", AuditEventType.Unauthorized, null, UserManager.GetUserName(HttpContext.User), HttpContext.Session.Id);
-                LogObject.EventDataObject = new { GroupIdRequested = Id };
-                AuditLogger.Log(LogObject);
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent());
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
                 return Unauthorized();
