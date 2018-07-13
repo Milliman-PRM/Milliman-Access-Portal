@@ -32,6 +32,11 @@ namespace AuditLogLib
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly UserManager<ApplicationUser> _userManager;
 
+        public AuditLogger()
+        {
+            InstantiateLogger();
+        }
+
         public AuditLogger(
             IHttpContextAccessor context = null,
             UserManager<ApplicationUser> userManager = null)
@@ -39,6 +44,27 @@ namespace AuditLogLib
             _contextAccessor = context;
             _userManager = userManager;
 
+            InstantiateLogger();
+        }
+
+        ~AuditLogger()
+        {
+            // Watch out how this lock is used.  The worker thread needs to be able to stop itself when InstanceCount == 0
+            lock (ThreadSafetyLock)
+            {
+                InstanceCount--;
+                if (InstanceCount == 0 && WaitForWorkerThreadEnd(1000))  // Not the best stategy
+                {
+                    WorkerTask = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Perform on construction
+        /// </summary>
+        private void InstantiateLogger()
+        {
             lock (ThreadSafetyLock)
             {
                 if (Config == null)
@@ -60,24 +86,11 @@ namespace AuditLogLib
             }
         }
 
-        ~AuditLogger()
-        {
-            // Watch out how this lock is used.  The worker thread needs to be able to stop itself when InstanceCount == 0
-            lock (ThreadSafetyLock)
-            {
-                InstanceCount--;
-                if (InstanceCount == 0 && WaitForWorkerThreadEnd(1000))  // Not the best stategy
-                {
-                    WorkerTask = null;
-                }
-            }
-        }
-
         /// <summary>
         /// Simplest logging method, does not conform to ILogger, requires a fully formed event object
         /// </summary>
         /// <param name="Event">Event data to be logged. Use AuditEvent.New method to enforce proper creation</param>
-        public async void Log(AuditEvent Event)
+        public async virtual void Log(AuditEvent Event)
         {
             var context = _contextAccessor?.HttpContext;
             var user = await _userManager?.GetUserAsync(context?.User);
