@@ -357,7 +357,6 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         public async Task<IActionResult> Publish(PublishRequest Arg)
         {
-            AuditEvent AuditLogEvent;
             ApplicationUser currentApplicationUser = await Queries.GetCurrentApplicationUser(User);
 
             #region Preliminary Validation
