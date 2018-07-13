@@ -872,6 +872,7 @@ export function RootContentItemCard(
   this.addComponent('button', {
     callback: deleteCallback,
     color: 'red',
+    dynamic: true,
     icon: 'delete',
     tooltip: 'Delete root content item',
   });
