@@ -572,7 +572,7 @@ export function setup() {
     const $target = $(event.target);
     $target.attr('disabled', '');
     const rootContentItemId = $('#root-content-items [selected]').closest('.card-container').data().rootContentItemId;
-    showButtonSpinner($target, 'Rejecting');
+    showButtonSpinner($target, 'Approving');
     $.post({
       data: {
         publicationRequestId: preLiveObject && preLiveObject.PublicationRequestId,
