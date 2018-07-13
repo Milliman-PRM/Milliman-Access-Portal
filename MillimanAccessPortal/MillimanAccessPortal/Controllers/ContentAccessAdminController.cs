@@ -859,16 +859,13 @@ namespace MillimanAccessPortal.Controllers
             }
             else
             {
-                string selectionCriteriaString = JsonConvert.SerializeObject(ContentReductionHierarchy<ReductionFieldValueSelection>
-                    .GetFieldSelectionsForSelectionGroup(DbContext, selectionGroupId, selections), Formatting.Indented);
-
                 var contentReductionTask = new ContentReductionTask
                 {
                     ApplicationUser = await Queries.GetCurrentApplicationUser(User),
                     SelectionGroupId = selectionGroup.Id,
                     MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",  // TODO Fix this
                     ContentPublicationRequest = null,
-                    SelectionCriteria = selectionCriteriaString,
+                    SelectionCriteriaObj = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(DbContext, selectionGroupId, selections),
                     ReductionStatus = ReductionStatusEnum.Queued,
                     CreateDateTimeUtc = DateTime.UtcNow,
                 };

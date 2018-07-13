@@ -307,8 +307,7 @@ namespace ContentPublishingLib.JobRunners
                         }
                         else
                         {
-                            var SelectionHierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, SelGrp.Id);
-                            NewTask.SelectionCriteria = SelectionHierarchy.SerializeJson();
+                            NewTask.SelectionCriteriaObj = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, SelGrp.Id);
                             NewTask.TaskAction = TaskActionEnum.HierarchyAndReduction;
                         }
 

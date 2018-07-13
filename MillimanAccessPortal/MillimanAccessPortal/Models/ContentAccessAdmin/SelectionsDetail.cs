@@ -58,9 +58,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
             if (latestTask != null && outstandingStatus.Contains(latestTask.ReductionStatus))
             {
                 pendingSelectionSet = new HashSet<long>();
-                var hierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>
-                    .DeserializeJson(latestTask.SelectionCriteria);
-                foreach (var field in hierarchy.Fields)
+                foreach (var field in latestTask.SelectionCriteriaObj.Fields)
                 {
                     foreach (var value in field.Values)
                     {

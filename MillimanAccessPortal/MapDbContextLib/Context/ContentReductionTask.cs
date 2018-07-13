@@ -137,6 +137,18 @@ namespace MapDbContextLib.Context
         [Column(TypeName ="jsonb")]
         public string SelectionCriteria { get; set; }
 
+        [NotMapped]
+        public ContentReductionHierarchy<ReductionFieldValueSelection> SelectionCriteriaObj
+        {
+            get
+            {
+                return SelectionCriteria == null
+                    ? null
+                    : JsonConvert.DeserializeObject<ContentReductionHierarchy<ReductionFieldValueSelection>>(SelectionCriteria);
+            }
+            set { SelectionCriteria = JsonConvert.SerializeObject(value, Formatting.Indented); }
+        }
+
         public string MasterContentChecksum { get; set; }
 
         public string ReducedContentChecksum { get; set; }
