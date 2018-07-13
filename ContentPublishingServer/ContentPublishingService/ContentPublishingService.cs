@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.ServiceProcess;
 using System.Threading;
 using ContentPublishingLib;
+using MapCommonLib;
 
 namespace ContentPublishingService
 {
@@ -26,13 +27,13 @@ namespace ContentPublishingService
 
         protected override void OnStart(string[] args)
         {
-            Thread.Sleep(12000);
+            //Thread.Sleep(12000);
             try
             {
                 Configuration.LoadConfiguration();
 
                 InitiateTraceLogging();
-                Trace.WriteLine($"Service OnStart() called");
+                GlobalFunctions.TraceWriteLine($"Service OnStart() called");
 
                 if (Manager == null || !Manager.AnyMonitorThreadRunning)
                 {
@@ -42,7 +43,7 @@ namespace ContentPublishingService
             }
             catch (Exception e)
             {
-                Trace.WriteLine($"Failed to start service, exception:{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}");
+                GlobalFunctions.TraceWriteLine($"Failed to start service, exception:{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}");
                 throw;
             }
         }
@@ -80,7 +81,7 @@ namespace ContentPublishingService
 
         protected override void OnStop()
         {
-            Trace.WriteLine($"Service OnStop() called");
+            GlobalFunctions.TraceWriteLine($"Service OnStop() called");
             if (Manager != null)
             {
                 Manager.Stop();
@@ -90,7 +91,7 @@ namespace ContentPublishingService
 
         protected override void OnShutdown()
         {
-            Trace.WriteLine($"Service OnShutdown() called");
+            GlobalFunctions.TraceWriteLine($"Service OnShutdown() called");
             if (Manager != null)
             {
                 Manager.Stop();
@@ -101,21 +102,21 @@ namespace ContentPublishingService
         #region Unimplemented service callbacks
         protected override void OnPause()
         {
-            Trace.WriteLine($"Service OnPause() called");
+            GlobalFunctions.TraceWriteLine($"Service OnPause() called");
 
             base.OnPause();
         }
 
         protected override void OnContinue()
         {
-            Trace.WriteLine($"Service OnContinue() called");
+            GlobalFunctions.TraceWriteLine($"Service OnContinue() called");
 
             base.OnContinue();
         }
 
         protected override void OnCustomCommand(int command)
         {
-            Trace.WriteLine($"Service OnCommand() called with command= {command}");
+            GlobalFunctions.TraceWriteLine($"Service OnCommand() called with command= {command}");
             base.OnCustomCommand(command);
 
             switch (command)   // must be between 128 and 255

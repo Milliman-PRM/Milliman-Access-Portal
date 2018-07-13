@@ -18,4 +18,6 @@ export class ToggleInput extends FormInput {
   protected enable = ($input: JQuery<HTMLElement>) => $input.removeAttr('disabled');
 
   protected comparator = (a: string, b: string) => a === b;
+
+  protected validFn = ($input: JQuery<HTMLElement>) => true;
 }

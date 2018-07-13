@@ -10,6 +10,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using MapDbContextLib.Models;
 using MapDbContextLib.Identity;
+using Newtonsoft.Json;
 
 namespace MapDbContextLib.Context
 {
@@ -20,13 +21,13 @@ namespace MapDbContextLib.Context
     {
         Unspecified = 0,    // Default unknown state
         Canceled = 1,       // The task was canceled before the reduction server began processing
-        Discarded = 2,      // The task was completed by the reduction server, but a user did not publish the reduced document
-        Replaced = 3,       // The reduced document was published, but a more recent document has since been published
+        Rejected = 2,       // The task was completed by the reduction server, but a user did not publish the reduced document
         Validating = 11,    // The task is awaiting content validation (e.g. virus scan)
         Queued = 10,        // The task is in queue for reduction
         Reducing = 20,      // The reduction server is currently processing the reduction task
         Reduced = 30,       // The reduction server has completed the reduction task, but no user has pushed the reduced document
         Live = 40,          // The reduced document is published and is currently being served to users
+        Replaced = 50,      // The reduced document was previously live, but a more recent document has since gone live
         Error = 90,         // An error has occured
     }
 
@@ -47,13 +48,13 @@ namespace MapDbContextLib.Context
         {
             { ReductionStatusEnum.Unspecified, "Unspecified" },
             { ReductionStatusEnum.Canceled, "Canceled" },
-            { ReductionStatusEnum.Discarded, "Discarded" },
-            { ReductionStatusEnum.Replaced, "Replaced" },
+            { ReductionStatusEnum.Rejected, "Discarded" },
             { ReductionStatusEnum.Validating, "Validating" },
             { ReductionStatusEnum.Queued, "Queued" },
             { ReductionStatusEnum.Reducing, "Reducing" },
             { ReductionStatusEnum.Reduced, "Reduced" },
             { ReductionStatusEnum.Live, "Live" },
+            { ReductionStatusEnum.Replaced, "Replaced" },
             { ReductionStatusEnum.Error, "Error" },
         };
 
@@ -103,11 +104,35 @@ namespace MapDbContextLib.Context
         [Column(TypeName = "jsonb")]
         public string MasterContentHierarchy { get; set; }
 
+        [NotMapped]
+        public ContentReductionHierarchy<ReductionFieldValue> MasterContentHierarchyObj
+        {
+            get
+            {
+                return MasterContentHierarchy == null
+                    ? null
+                    : JsonConvert.DeserializeObject<ContentReductionHierarchy<ReductionFieldValue>>(MasterContentHierarchy);
+            }
+            set { MasterContentHierarchy = JsonConvert.SerializeObject(value, Formatting.Indented); }
+        }
+
         /// <summary>
         /// From reduction server. json is intended to deserialize to an instance of ContentReductionHierarchy
         /// </summary>
         [Column(TypeName = "jsonb")]
         public string ReducedContentHierarchy { get; set; }
+
+        [NotMapped]
+        public ContentReductionHierarchy<ReductionFieldValue> ReducedContentHierarchyObj
+        {
+            get
+            {
+                return ReducedContentHierarchy == null
+                    ? null
+                    : JsonConvert.DeserializeObject<ContentReductionHierarchy<ReductionFieldValue>>(ReducedContentHierarchy);
+            }
+            set { ReducedContentHierarchy = JsonConvert.SerializeObject(value, Formatting.Indented); }
+        }
 
         [Column(TypeName ="jsonb")]
         public string SelectionCriteria { get; set; }

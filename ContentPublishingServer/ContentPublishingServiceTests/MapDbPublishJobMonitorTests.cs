@@ -122,9 +122,10 @@ namespace ContentPublishingServiceTests
             Task MonitorTask = JobMonitor.Start(CancelTokenSource.Token);
             Thread.Sleep(1000);
             Assert.Equal(TaskStatus.Running, MonitorTask.Status);
-            Assert.Equal(PublicationStatus.Processing, DbRequest.RequestStatus);
+            Assert.Equal(PublicationStatus.Queued, DbRequest.RequestStatus);
 
-            while (DbRequest.RequestStatus == PublicationStatus.Processing &&
+            while ((DbRequest.RequestStatus == PublicationStatus.Queued ||
+                    DbRequest.RequestStatus == PublicationStatus.Processing) &&
                    DateTime.UtcNow - TestStart < new TimeSpan(0,1,0))
             {
                 Thread.Sleep(500);
@@ -229,6 +230,8 @@ namespace ContentPublishingServiceTests
             Task ReductionMonitorTask = ReductionJobMonitor.Start(CancelTokenSource.Token);
             Thread.Sleep(2000);
             Assert.Equal(TaskStatus.Running, PublishMonitorTask.Status);
+            Assert.Equal(PublicationStatus.Queued, DbRequest.RequestStatus);
+            Thread.Sleep(35000);
             Assert.Equal(PublicationStatus.Processing, DbRequest.RequestStatus);
 
             while (DbRequest.RequestStatus == PublicationStatus.Processing &&

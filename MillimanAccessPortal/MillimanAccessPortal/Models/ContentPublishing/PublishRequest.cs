@@ -5,9 +5,7 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
 {
@@ -15,11 +13,14 @@ namespace MillimanAccessPortal.Models.ContentPublishing
     {
         public long RootContentItemId { get; set; }
 
+        [Required]
         public UploadedRelatedFile[] RelatedFiles { get; set; }
     }
 
     public class UploadedRelatedFile
     {
+        public string FileOriginalName { get; set; }
+
         /// <summary>
         /// Standard values: MasterContent, UserGuide, Thumbnail, ReleaseNotes
         /// </summary>

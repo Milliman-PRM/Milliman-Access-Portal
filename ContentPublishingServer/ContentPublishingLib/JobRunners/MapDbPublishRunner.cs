@@ -28,9 +28,6 @@ namespace ContentPublishingLib.JobRunners
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
         string _ContentItemRootPath = string.Empty;
 
-        private object AuditLogDetailObj;
-        private AuditEvent AuditLogEvent;
-
         public PublishJobDetail JobDetail { get; set; } = new PublishJobDetail();
 
         /// <summary>
@@ -137,20 +134,52 @@ namespace ContentPublishingLib.JobRunners
                     Thread.Sleep(1000);
                 }
 
-                // Check the actual status of reduction tasks to make sure publication status is assigned correctly
-                JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
+                List<ContentReductionTask> AllRelatedReductionTasks = null;
+                using (ApplicationDbContext Db = GetDbContext())
+                {
+                    AllRelatedReductionTasks = Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId).ToList();
+                }
+
+                // Check the actual status of reduction tasks to assign publication status
+                if (AllRelatedReductionTasks.All(t => t.ReductionStatus == ReductionStatusEnum.Reduced))
+                {
+                    JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
+
+                    #region Log audit event
+                    AuditEvent GoLiveLogEvent = AuditEvent.New(
+                        $"{Method.DeclaringType.Name}.{Method.Name}",
+                        "Content publication request was successfully processed",
+                        AuditEventId.PublicationRequestProcessingSuccess,
+                        new
+                        {
+                            PublicationRequestId = JobDetail.JobId,
+                            JobDetail.Request.DoesReduce,
+                            RequestingUser = JobDetail.Request.ApplicationUserId,
+                            ReductionTasks = AllRelatedReductionTasks.Select(t => t.Id.ToString("D")).ToArray()
+                        },
+                        "PublicationService",
+                        null
+                        );
+                    AuditLog.Log(GoLiveLogEvent);
+                    #endregion
+
+                }
+                else
+                {
+                    JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
+                }
             }
             catch (OperationCanceledException e)
             {
                 string msg = GlobalFunctions.LoggableExceptionString(e);
-                Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {msg}");
+                GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {msg}");
                 JobDetail.Status = PublishJobDetail.JobStatusEnum.Canceled;
                 JobDetail.Result.StatusMessage = msg;
             }
             catch (Exception e)
             {
                 string msg = GlobalFunctions.LoggableExceptionString(e);
-                Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {msg}");
+                GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {msg}");
                 JobDetail.Status = PublishJobDetail.JobStatusEnum.Error;
                 JobDetail.Result.StatusMessage = msg;
             }
@@ -180,7 +209,7 @@ namespace ContentPublishingLib.JobRunners
                     await CancelReductionTasks(QueuedTasks);
 
                     string Msg = $"Publication request terminating due to error in related reduction task(s):{Environment.NewLine}  {string.Join("  " + Environment.NewLine, FailedTasks.Select(t => t.Id.ToString() + " : " + t.ReductionStatusMessage))}";
-                    Trace.WriteLine(Msg);
+                    GlobalFunctions.TraceWriteLine(Msg);
 
                     throw new ApplicationException(Msg);
                 }

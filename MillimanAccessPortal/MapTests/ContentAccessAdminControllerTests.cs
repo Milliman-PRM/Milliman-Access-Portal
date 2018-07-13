@@ -651,7 +651,7 @@ namespace MapTests
         [Theory]
         [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Live })]                                // No outstanding tasks exist
         [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Live, ReductionStatusEnum.Canceled  })]  // "
-        [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Live, ReductionStatusEnum.Discarded })]  // "
+        [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Live, ReductionStatusEnum.Rejected })]  // "
         [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Live, ReductionStatusEnum.Replaced  })]  // "
         public async Task SingleReduction_Success(long SelectionGroupId, ReductionStatusEnum[] Tasks)
         {
@@ -692,7 +692,7 @@ namespace MapTests
         [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Reduced   })]  // "
         [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Live      })]  // "
         [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Canceled  })]  // "
-        [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Discarded })]  // "
+        [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Rejected })]  // "
         [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Replaced  })]  // "
         [InlineData(1,    1, new ReductionStatusEnum[] { ReductionStatusEnum.Queued    })]  // The queued task is part of a publication request
         public async Task CancelReduction_ErrorInvalid(long SelectionGroupId, long? ContentPublicationRequestId, ReductionStatusEnum[] Tasks)

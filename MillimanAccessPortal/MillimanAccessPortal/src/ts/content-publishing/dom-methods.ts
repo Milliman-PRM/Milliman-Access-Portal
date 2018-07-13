@@ -1,3 +1,6 @@
+import 'jquery-validation';
+import 'jquery-validation-unobtrusive';
+
 import * as $ from 'jquery';
 import * as toastr from 'toastr';
 
@@ -10,8 +13,8 @@ import { AccessMode } from '../form/form-modes';
 import { SubmissionGroup } from '../form/form-submission';
 import {
   collapseAllListener, expandAllListener, filterFormListener, filterTreeListener, get,
-  post, showButtonSpinner, updateCardStatus, updateCardStatusButtons, updateFormStatusButtons,
-  wrapCardCallback, wrapCardIconCallback,
+  hideButtonSpinner, post, showButtonSpinner, updateCardStatus, updateCardStatusButtons,
+  updateFormStatusButtons, wrapCardCallback, wrapCardIconCallback,
 } from '../shared';
 import { setUnloadAlert } from '../unload-alerts';
 import {
@@ -25,6 +28,8 @@ require('tooltipster');
 
 let formObject: FormBase;
 let statusMonitor: PublicationStatusMonitor;
+
+let preLiveObject: PreLiveContentValidationSummary;
 
 function deleteRootContentItem(
   rootContentItemId: string,
@@ -110,11 +115,12 @@ export function openNewRootContentItemForm() {
   renderRootContentItemForm({
     ClientId: clientId,
     ContentName: '',
-    ContentTypeId: 0,
+    ContentTypeId: '0',
     Description: '',
     DoesReduce: false,
     Id: 0,
     Notes: '',
+    RelatedFiles: [],
   });
   setFormNew();
 }
@@ -140,7 +146,7 @@ function setFormEdit() {
 }
 function setFormEditOrRepublish() {
   formObject.submissionMode = 'edit-or-republish';
-  formObject.accessMode = AccessMode.Write;
+  formObject.accessMode = AccessMode.Defer;
   $('#root-content-items [selected]').attr('editing', '');
   $('#content-publishing-form .admin-panel-toolbar .action-icon').hide();
   $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').show();
@@ -248,6 +254,8 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
   }
   // populate attestation
   $('#confirmation-section-attestation p').html(response.AttestationLanguage);
+
+  preLiveObject = response;
 }
 
 function renderRootContentItemForm(item?: RootContentItemDetail) {
@@ -259,6 +267,14 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
     formMap.forEach((value, key) => {
       $rootContentItemForm.find(`#${key}`).val(value ? value.toString() : '');
     });
+    $rootContentItemForm.find('.file-upload').data('originalName', '');
+    if (item.RelatedFiles) {
+      item.RelatedFiles.forEach((relatedFile) => {
+        $rootContentItemForm.find(`#${relatedFile.FilePurpose}`)
+          .siblings('label').find('.file-upload')
+          .data('originalName', relatedFile.FileOriginalName);
+      });
+    }
 
     const $doesReduceToggle = $rootContentItemForm.find('#DoesReduce');
     $doesReduceToggle.prop('checked', item.DoesReduce);
@@ -268,6 +284,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
     [
       'common',
       'root-content-item-info',
+      'root-content-item-content-type',
       'root-content-item-description',
     ],
     'ContentPublishing/CreateRootContentItem',
@@ -299,7 +316,6 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
     'POST',
     (response) => {
       renderRootContentItemForm(response.detail);
-      setFormReadOnly();
       // Update related root content item card
       const $card = $('#root-content-items .card-container')
         .filter((i, card) => $(card).data().rootContentItemId === response.detail.Id);
@@ -320,9 +336,6 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
     'POST',
     (response) => {
       renderRootContentItemForm();
-      setFormReadOnly();
-      // Update root content item card status immediately
-      statusMonitor.checkStatus();
       toastr.success('Publication request submitted');
     },
     (data) => {
@@ -332,16 +345,25 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
         .forEach((kvp) => dataArray[kvp[0]] = kvp[1]);
       const publishRequest: PublishRequest = {
         RelatedFiles: ['MasterContent', 'UserGuide', 'Thumbnail', 'ReleaseNotes']
-          .map((file) => ({
-            FilePurpose: file,
-            FileUploadId: dataArray[file],
-          }))
+          .map((file) => {
+            const fileData = dataArray[file].split('|');
+            return {
+              FileOriginalName: fileData[0],
+              FilePurpose: file,
+              FileUploadId: fileData[1],
+            };
+          })
           .filter((file) => file.FileUploadId),
         RootContentItemId: parseInt(dataArray.Id, 10),
       };
       return publishRequest;
     },
   );
+  const readOnlyGroup = SubmissionGroup.FinalGroup(() => {
+    setFormReadOnly();
+    // Update root content item card status immediately
+    statusMonitor.checkStatus();
+  });
 
   // Create/retrieve and bind the new form
   formObject = new FormBase();
@@ -349,22 +371,27 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
   formObject.configure(
     [
       {
-        groups: [ createContentGroup, submitPublication ],
+        groups: [ createContentGroup, submitPublication, readOnlyGroup ],
         name: 'new',
         sparse: false,
       },
       {
-        groups: [ updateContentGroup, submitPublication ],
+        groups: [ updateContentGroup, submitPublication, readOnlyGroup ],
         name: 'edit-or-republish',
         sparse: true,
       },
       {
-        groups: [ updateContentGroup ],
+        groups: [ updateContentGroup, readOnlyGroup ],
         name: 'edit',
         sparse: false,
       },
     ],
   );
+
+  $rootContentItemForm
+    .removeData('validator')
+    .removeData('unobtrusiveValidation');
+  $.validator.unobtrusive.parse($rootContentItemForm[0]);
 }
 
 function renderRootContentItem(item: RootContentItemSummary) {
@@ -452,7 +479,7 @@ function populateAvailableContentTypes(contentTypes: ContentType[]) {
   const $rootContentItemForm = $panel.find('form.admin-panel-content');
 
   const $contentTypeDropdown = $rootContentItemForm.find('#ContentTypeId');
-  $contentTypeDropdown.children(':not(option[value = ""])').remove();
+  $contentTypeDropdown.children(':not(option[value = "0"])').remove();
 
   contentTypes.forEach((contentType) => {
     const option = new Option(contentType.Name, contentType.Id.toString());
@@ -496,7 +523,7 @@ export function setup() {
     ).build());
 
   $('#content-publishing-form .admin-panel-toolbar .action-icon-cancel').click(() => {
-    if (formObject.accessMode === AccessMode.Read) {
+    if (formObject.accessMode === AccessMode.Read || formObject.submissionMode === 'new') {
       $('#root-content-items [selected]').click();
     } else {
       setFormReadOnly();
@@ -514,11 +541,60 @@ export function setup() {
           .map((checkbox: HTMLInputElement) => checkbox.checked)
           .reduce((cum, cur) => cum && cur, true))
       .removeAttr('disabled'));
-  $('#confirmation-section-attestation .button-reject').click(() => {
-    alert('\'Reject\' not implemented.');
+  $('#confirmation-section-attestation .button-reject').click((event) => {
+    const $target = $(event.target);
+    $target.attr('disabled', '');
+    const rootContentItemId = $('#root-content-items [selected]').closest('.card-container').data().rootContentItemId;
+    showButtonSpinner($target, 'Rejecting');
+    $.post({
+      data: {
+        publicationRequestId: preLiveObject && preLiveObject.PublicationRequestId,
+        rootContentItemId,
+      },
+      headers: {
+        RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
+      },
+      url: 'ContentPublishing/Reject/',
+    }).done(() => {
+      toastr.success('Publication rejected.');
+    }).fail((response) => {
+      toastr.warning(response.getResponseHeader('Warning')
+        || 'An unknown error has occurred.');
+    }).always(() => {
+      hideButtonSpinner($target);
+      $('#report-confirmation').hide();
+      $('#root-content-items [selected]').removeAttr('selected');
+      $target.removeAttr('disabled');
+      statusMonitor.checkStatus();
+    });
   });
-  $('#confirmation-section-attestation .button-approve').click(() => {
-    alert('\'Approve\' not implemented.');
+  $('#confirmation-section-attestation .button-approve').click((event) => {
+    const $target = $(event.target);
+    $target.attr('disabled', '');
+    const rootContentItemId = $('#root-content-items [selected]').closest('.card-container').data().rootContentItemId;
+    showButtonSpinner($target, 'Approving');
+    $.post({
+      data: {
+        publicationRequestId: preLiveObject && preLiveObject.PublicationRequestId,
+        rootContentItemId,
+        validationSummaryId: preLiveObject && preLiveObject.ValidationSummaryId,
+      },
+      headers: {
+        RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
+      },
+      url: 'ContentPublishing/GoLive/',
+    }).done(() => {
+      toastr.success('Publication is now live.');
+    }).fail((response) => {
+      toastr.warning(response.getResponseHeader('Warning')
+        || 'An unknown error has occurred.');
+    }).always(() => {
+      hideButtonSpinner($target);
+      $('#report-confirmation').hide();
+      $('#root-content-items [selected]').removeAttr('selected');
+      $target.removeAttr('disabled');
+      statusMonitor.checkStatus();
+    });
   });
 
   $('.admin-panel-toolbar .action-icon-edit').click(() => {

@@ -149,19 +149,19 @@ namespace ContentPublishingLib.JobRunners
             catch (OperationCanceledException e)
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Canceled;
-                Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
+                GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
             }
             catch (ApplicationException e)
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Error;
-                Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
+                GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
             }
             catch (System.Exception e)
             {
                 JobDetail.Status = ReductionJobDetail.JobStatusEnum.Error;
-                Trace.WriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
+                GlobalFunctions.TraceWriteLine($"{Method.ReflectedType.Name}.{Method.Name} {e.Message}");
                 JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in {Method.ReflectedType.Name}.{Method.Name}", true, true);
             }
             finally
@@ -241,7 +241,7 @@ namespace ContentPublishingLib.JobRunners
 
             try
             {
-                if (Directory.Exists(WorkingFolderAbsolute))
+                if (Directory.Exists(WorkingFolderAbsolute) && !string.IsNullOrWhiteSpace(WorkingFolderRelative))
                 {
                     Directory.Delete(WorkingFolderAbsolute, true);
                 }
@@ -263,7 +263,7 @@ namespace ContentPublishingLib.JobRunners
             }
             catch (System.Exception e)
             {
-                Trace.WriteLine($"QvReductionRunner.PreTaskSetup() failed to create folder {WorkingFolderAbsolute} or copy master file {JobDetail.Request.MasterFilePath} to {MasterFileDestinationPath}, {GlobalFunctions.LoggableExceptionString(e)}");
+                GlobalFunctions.TraceWriteLine($"QvReductionRunner.PreTaskSetup() failed to create folder {WorkingFolderAbsolute} or copy master file {JobDetail.Request.MasterFilePath} to {MasterFileDestinationPath}, {GlobalFunctions.LoggableExceptionString(e)}");
                 throw;
             }
 
@@ -327,7 +327,7 @@ namespace ContentPublishingLib.JobRunners
             }
             catch (System.Exception e)
             {
-                Trace.WriteLine($"Error converting file {ReductionSchemeFilePath} to json output.  Details:" + Environment.NewLine + e.Message);
+                GlobalFunctions.TraceWriteLine($"Error converting file {ReductionSchemeFilePath} to json output.  Details:" + Environment.NewLine + e.Message);
 
                 // TODO may need to log more issues, like if the Qlikview task processing fails
                 object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), ExceptionMessage = e.Message };
@@ -348,12 +348,12 @@ namespace ContentPublishingLib.JobRunners
                 }
                 catch (System.Exception e)
                 {
-                    Trace.WriteLine($"Failed to delete Qlikview task log file {LogFile}:" + Environment.NewLine + e.Message);
+                    GlobalFunctions.TraceWriteLine($"Failed to delete Qlikview task log file {LogFile}:" + Environment.NewLine + e.Message);
                     throw;
                 }
             }
 
-            Trace.WriteLine($"Task {JobDetail.TaskId.ToString()} completed ExtractReductionHierarchy");
+            GlobalFunctions.TraceWriteLine($"Task {JobDetail.TaskId.ToString()} completed ExtractReductionHierarchy");
 
             return ResultHierarchy;
         }
@@ -372,7 +372,7 @@ namespace ContentPublishingLib.JobRunners
                     object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), Error = Msg };
                     AuditEvent Event = AuditEvent.New("Reduction server", "Creation of reduced content file failed", AuditEventId.ContentReductionFailed, DetailObj);
                     AuditLog.Log(Event);
-                    Trace.WriteLine(Msg);
+                    GlobalFunctions.TraceWriteLine(Msg);
                     throw new ApplicationException(Msg);
                 }
             }
@@ -386,7 +386,7 @@ namespace ContentPublishingLib.JobRunners
                 object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), RequestesSelections = JobDetail.Request.SelectionCriteria, Error = Msg };
                 AuditEvent Event = AuditEvent.New("Reduction server", "Creation of reduced content file failed", AuditEventId.ContentReductionFailed, DetailObj);
                 AuditLog.Log(Event);
-                Trace.WriteLine(Msg);
+                GlobalFunctions.TraceWriteLine(Msg);
                 throw new ApplicationException(Msg);
             }
 
@@ -400,10 +400,10 @@ namespace ContentPublishingLib.JobRunners
 
             if (ReducedDocumentNode == null)
             {
-                Trace.WriteLine($"Failed to get DocumentNode for file {JobDetail.Request.RequestedOutputFileName} in folder {SourceDocFolder.General.Path}\\{WorkingFolderRelative}");
+                GlobalFunctions.TraceWriteLine($"Failed to get DocumentNode for file {JobDetail.Request.RequestedOutputFileName} in folder {SourceDocFolder.General.Path}\\{WorkingFolderRelative}");
             }
 
-            Trace.WriteLine($"Task {JobDetail.TaskId.ToString()} completed CreateReducedContent");
+            GlobalFunctions.TraceWriteLine($"Task {JobDetail.TaskId.ToString()} completed CreateReducedContent");
         }
 
         /// <summary>
@@ -421,7 +421,7 @@ namespace ContentPublishingLib.JobRunners
             JobDetail.Result.ReducedContentFileChecksum = GlobalFunctions.GetFileChecksum(CopyDestinationPath);
             JobDetail.Result.ReducedContentFilePath = CopyDestinationPath;
 
-            Trace.WriteLine($"Task {JobDetail.TaskId.ToString()} completed DistributeReducedContent");
+            GlobalFunctions.TraceWriteLine($"Task {JobDetail.TaskId.ToString()} completed DistributeReducedContent");
         }
 
         /// <summary>
@@ -435,7 +435,7 @@ namespace ContentPublishingLib.JobRunners
                 Directory.Delete(WorkingFolderAbsolute, true);
             }
 
-            Trace.WriteLine($"Task {JobDetail.TaskId.ToString()} completed Cleanup");
+            GlobalFunctions.TraceWriteLine($"Task {JobDetail.TaskId.ToString()} completed Cleanup");
 
             return true;
         }
@@ -465,7 +465,7 @@ namespace ContentPublishingLib.JobRunners
 
             if (DocNode == null)
             {
-                Trace.WriteLine(string.Format($"Did not find SourceDocument '{MasterFileName}' in subfolder {RequestedRelativeFolder} of source documents folder {SourceDocFolder.General.Path}"));
+                GlobalFunctions.TraceWriteLine(string.Format($"Did not find SourceDocument '{MasterFileName}' in subfolder {RequestedRelativeFolder} of source documents folder {SourceDocFolder.General.Path}"));
             }
 
             return DocNode;
@@ -566,7 +566,7 @@ namespace ContentPublishingLib.JobRunners
             int Index = 0;
             foreach (FieldValueSelection FieldVal in Selections.Where(v => v.Selected))
             {
-                Trace.WriteLine(string.Format($"Reduction task: assigning selection for field <{FieldVal.FieldName}> with value <{FieldVal.FieldValue}>")); // TODO delete this
+                GlobalFunctions.TraceWriteLine(string.Format($"Reduction task: assigning selection for field <{FieldVal.FieldName}> with value <{FieldVal.FieldValue}>")); // TODO delete this
                 NewDocumentTask.Reduce.Static.Reductions[Index] = new TaskReduction();
                 NewDocumentTask.Reduce.Static.Reductions[Index].Type = TaskReductionType.ByField;
                 NewDocumentTask.Reduce.Static.Reductions[Index].Field = new TaskReduction.TaskReductionField();
@@ -654,7 +654,7 @@ namespace ContentPublishingLib.JobRunners
             await QmsClient.SaveDocumentTaskAsync(DocTask);
             TaskInfo TInfo = await QmsClient.FindTaskAsync(QdsServiceInfo.ID, TaskType.DocumentTask, DocTask.General.TaskName);
             Guid TaskIdGuid = TInfo.ID;
-            Trace.WriteLine($"QDS task with ID '{TaskIdGuid.ToString("D")}' successfully saved");
+            GlobalFunctions.TraceWriteLine($"QDS task with ID '{TaskIdGuid.ToString("D")}' successfully saved");
 
             try
             {
@@ -674,7 +674,7 @@ namespace ContentPublishingLib.JobRunners
                     Status = await QmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
                 } while (Status == null || Status.Extended == null || !(DateTime.TryParse(Status.Extended.StartTime, out _) || DateTime.TryParse(Status.Extended.FinishedTime, out _)));
 
-                Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} started running after {DateTime.Now - StartTime}");
+                GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} started running after {DateTime.Now - StartTime}");
 
                 // Wait for started task to finish
                 DateTime RunningStartTime = DateTime.Now;
@@ -690,7 +690,7 @@ namespace ContentPublishingLib.JobRunners
                     QmsClient = QmsClientCreator.New(QmsUrl);
                     Status = await QmsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
                 } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));
-                Trace.WriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} finished running after {DateTime.Now - RunningStartTime}");
+                GlobalFunctions.TraceWriteLine($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} finished running after {DateTime.Now - RunningStartTime}");
 
                 if (Status.General.Status == TaskStatusValue.Failed)
                 {

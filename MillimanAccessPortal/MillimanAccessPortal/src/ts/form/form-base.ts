@@ -35,6 +35,7 @@ export class FormBase extends FormElement {
       });
       this.submissionSection.submissions
         .forEach((submission) => submission.modified = this.modified);
+      this.resetValidation();
     }, mode === AccessMode.Read && this.modified);
     this._accessMode = mode;
   }
@@ -80,6 +81,11 @@ export class FormBase extends FormElement {
       }))
       .filter((x) => $(x.element).is(`.${x.section.cssClasses.main}`))
       .map((x) => {
+        const orFlag = $(x.element).is('.form-section-valid-or');
+        x.section.validReduce = {
+          fn: orFlag ? (cum, cur) => cum || cur : (cum, cur) => cum && cur,
+          init: !orFlag,
+        };
         x.section.bindToDOM(x.element);
         return x.section;
       });
@@ -102,7 +108,15 @@ export class FormBase extends FormElement {
         input.onChange(() => {
           const modified = this.modified;
           this.submissionSection.submissions
-            .forEach((submission) => submission.modified = modified);
+            .forEach((submission) => {
+              submission.modified = modified;
+              const sections = submission.submissionMode
+                ? submission.submissionMode.groups
+                  .map((group) => group.sections)
+                  .reduce((cum, cur) => cum.concat(cur), [])
+                : [];
+              submission.valid = this.valid(sections);
+            });
         });
       });
     });
@@ -130,6 +144,24 @@ export class FormBase extends FormElement {
     return this.inputSections
       .map((section) => section.modified)
       .reduce((cum, cur) => cum || cur, false);
+  }
+
+  public valid(sections: string[] = []) {
+    return this.inputSections
+      .filter((section) => sections.length === 0 || sections.indexOf(section.name) > -1)
+      .map((section) => section.valid)
+      .reduce((cum, cur) => cum && cur, true);
+  }
+
+  public validate() {
+    this.$entryPoint.validate();
+  }
+
+  public resetValidation() {
+    this.$entryPoint
+      .find('.input-validation-error').removeClass('input-validation-error');
+    this.$entryPoint
+      .find('span.field-validation-error > span').remove();
   }
 
   public serialize(sectionNames: string[]): string {

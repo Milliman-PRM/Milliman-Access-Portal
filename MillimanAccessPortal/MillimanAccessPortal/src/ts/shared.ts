@@ -451,10 +451,11 @@ export function updateCardStatusButtons($card: JQuery<HTMLElement>, publishingSt
   $card.find('.card-button-dynamic').hide();
   if (publishingStatusEnum === PublicationStatus.Queued) {
     $card.find('.card-button-cancel').css('display', 'flex');
-  } else if (publishingStatusEnum === PublicationStatus.Complete) {
+  } else if (publishingStatusEnum === PublicationStatus.Processed) {
     $card.find('.card-button-checkmark').css('display', 'flex');
-  } else {
+  } else if (publishingStatusEnum !== PublicationStatus.Processing) {
     $card.find('.card-button-upload').css('display', 'flex');
+    $card.find('.card-button-delete').css('display', 'flex');
   }
 }
 export function updateFormStatusButtons() {
@@ -466,7 +467,10 @@ export function updateFormStatusButtons() {
   const $statusFormContainer = $('#content-publishing-form').find('.form-status-container');
   $statusFormContainer.hide();
 
-  if (statusEnum === undefined || statusEnum === PublicationStatus.Unknown) {
+  if (statusEnum === undefined
+   || statusEnum === PublicationStatus.Unknown
+   || statusEnum === PublicationStatus.Canceled
+   || statusEnum === PublicationStatus.Confirmed) {
     $statusFormContainer.filter('.form-status-edit-or-republish').show();
   } else {
     $statusFormContainer.filter('.form-status-edit').show();

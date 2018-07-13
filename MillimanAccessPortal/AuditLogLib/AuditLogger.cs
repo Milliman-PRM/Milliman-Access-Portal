@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using System.Runtime.CompilerServices;
 using System.Reflection;
 using AuditLogLib.Services;
+using MapCommonLib;
 
 namespace AuditLogLib
 {
@@ -34,7 +35,7 @@ namespace AuditLogLib
                 if (Config == null)
                 {
                     string msg = "Attempt to instantiate AuditLogger before initializing!";
-                    Trace.WriteLine($"{msg}{Environment.NewLine}{new StackTrace().ToString()}");
+                    GlobalFunctions.TraceWriteLine($"{msg}{Environment.NewLine}{new StackTrace().ToString()}");
                     throw new ApplicationException(msg);
                 }
 

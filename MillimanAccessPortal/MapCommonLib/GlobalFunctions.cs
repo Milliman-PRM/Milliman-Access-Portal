@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.IO;
 using System.Reflection;
@@ -70,6 +71,12 @@ namespace MapCommonLib
                 Indent += "  ";
             }
             return ErrMsg;
+        }
+
+        public static void TraceWriteLine(string CallerMessage)
+        {
+            string FullMessageString = $"{DateTime.UtcNow.ToString("s")} {CallerMessage}";
+            Trace.WriteLine(FullMessageString);
         }
 
         /// <summary>

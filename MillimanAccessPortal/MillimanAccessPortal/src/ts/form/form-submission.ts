@@ -6,6 +6,8 @@ import { FormElement } from './form-element';
 import { SubmissionMode } from './form-modes';
 
 export class Submission extends FormElement {
+  public form: FormBase;
+
   // tslint:disable:object-literal-sort-keys
   protected _cssClasses = {
     main: 'button-container',
@@ -14,7 +16,6 @@ export class Submission extends FormElement {
   };
   // tslint:enable:object-literal-sort-keys
 
-  private _disabled = false;
   private _submissionMode: SubmissionMode;
   public get submissionMode(): SubmissionMode {
     return this._submissionMode;
@@ -31,16 +32,30 @@ export class Submission extends FormElement {
     return `.button-container-${this.submissionMode.name}`;
   }
 
+  private _modified: boolean;
   public get modified() {
-    return false;
+    return this._modified;
   }
   public set modified(value: boolean) {
-    if (value) {
+    this._modified = value;
+    if (this.anyValidAndModified()) {
       this.$entryPoint.show();
     } else {
       this.$entryPoint.hide();
     }
-    this._disabled = value;
+  }
+
+  private _valid: boolean;
+  public get valid() {
+    return this._valid;
+  }
+  public set valid(value: boolean) {
+    this._valid = value;
+    if (this.anyValidAndModified()) {
+      this.$entryPoint.show();
+    } else {
+      this.$entryPoint.hide();
+    }
   }
 
   public setCallbacks(modes: SubmissionMode[], form: FormBase) {
@@ -51,6 +66,8 @@ export class Submission extends FormElement {
       return;
     }
     const mode = singleMode[0];
+
+    this.form = form;
 
     // Set submit callback
     this.$entryPoint
@@ -74,6 +91,20 @@ export class Submission extends FormElement {
         });
         this.modified = form.modified;
       }));
+  }
+
+  private anyValidAndModified(): boolean {
+    if (!this.submissionMode || !this.form) {
+      return false;
+    }
+    return this.submissionMode.groups.map((group) => {
+      const modified = group.url === null || this.form.inputSections
+        .filter((inputSection) => group.sections === undefined || group.sections.indexOf(inputSection.name) !== -1)
+        .map((inputSection) => inputSection.modified)
+        .reduce((cum, cur) => cum || cur, false);
+      const valid = this.form.valid(group.sections);
+      return modified && valid;
+    }).reduce((cum, cur) => this.submissionMode.sparse ? cum || cur : cum && cur, !this.submissionMode.sparse);
   }
 }
 
@@ -112,6 +143,8 @@ export class SubmissionGroup<T> {
         return;
       }
     }
+
+    form.validate();
 
     return new Promise((resolve, reject) => {
       $.ajax({

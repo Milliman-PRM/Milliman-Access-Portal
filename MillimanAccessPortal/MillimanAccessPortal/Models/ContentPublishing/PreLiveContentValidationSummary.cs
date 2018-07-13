@@ -12,6 +12,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 {
     public class PreLiveContentValidationSummary
     {
+        public string ValidationSummaryId { get; set; }
+        public long PublicationRequestId { get; set; }
         public string RootContentName { get; set; }
         public string ContentTypeName { get; set; }
         public string ContentDescription { get; set; }
@@ -47,6 +49,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
             PreLiveContentValidationSummary ReturnObj = new PreLiveContentValidationSummary
             {
+                ValidationSummaryId = Guid.NewGuid().ToString("D"),
+                PublicationRequestId = PubRequest.Id,
                 RootContentName = PubRequest.RootContentItem.ContentName,
                 ContentTypeName = PubRequest.RootContentItem.ContentType.Name,
                 ContentDescription = PubRequest.RootContentItem.Description,
@@ -77,7 +81,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 #endregion
 
                 ReturnObj.LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(Db, RootContentItemId);
-                ReturnObj.NewHierarchy = ContentReductionHierarchy<ReductionFieldValue>.DeserializeJson(AllTasks[0].MasterContentHierarchy);
+                ReturnObj.NewHierarchy = AllTasks[0].MasterContentHierarchyObj;
                 ReturnObj.SelectionGroups = AllTasks.Select(t => new SelectionGroupSummary
                     {
                         Name = t.SelectionGroup.GroupName,

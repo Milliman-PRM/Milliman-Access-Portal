@@ -33,9 +33,12 @@ export interface ClientTree extends BasicTree<ClientSummary> {
 
 export enum PublicationStatus {
   Unknown = 0,
+  Canceled = 1,
+  Error = 2,
   Queued = 10,
   Processing = 20,
-  Complete = 30,
+  Processed = 30,
+  Confirmed = 40,
 }
 export interface PublicationSummary {
   User: UserInfo;
@@ -68,8 +71,9 @@ export interface RootContentItemDetail {
   Id: number;
   ClientId: number;
   ContentName: string;
-  ContentTypeId: number;
+  ContentTypeId: number | string;
   DoesReduce: boolean;
+  RelatedFiles: ContentRelatedFile[];
   Description: string;
   Notes: string;
 }
@@ -90,6 +94,7 @@ export interface RootContentItemStatus {
 }
 
 export interface ContentRelatedFile {
+  FileOriginalName: string;
   FilePurpose: string;
   FileUploadId: string;
 }
@@ -99,6 +104,8 @@ export interface PublishRequest {
 }
 
 export interface PreLiveContentValidationSummary {
+  ValidationSummaryId: string;
+  PublicationRequestId: number;
   RootContentName: string;
   ContentTypeName: string;
   ContentDescription: string;

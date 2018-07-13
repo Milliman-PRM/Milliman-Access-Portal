@@ -148,6 +148,7 @@ namespace MapDbContextLib.Models
                         case ContentTypeEnum.Qlikview:
                             ReturnObject.Fields.Add(new ReductionField<ReductionFieldValue>
                             {
+                                Id = Field.Id,
                                 FieldName = Field.FieldName,
                                 DisplayName = Field.FieldDisplayName,
                                 ValueDelimiter = Field.FieldDelimiter,

@@ -13,6 +13,11 @@ import { Submission } from './form-submission';
 export class FormInputSection extends FormElement {
   public inputs: FormInput[];
 
+  public validReduce: {
+    fn: (cum: boolean, cur: boolean) => boolean;
+    init: boolean,
+  };
+
   // tslint:disable:object-literal-sort-keys
   protected _cssClasses =  {
     main: 'form-section',
@@ -59,15 +64,24 @@ export class FormInputSection extends FormElement {
       .reduce((cum, cur) => cum || cur, false);
   }
 
+  public get valid() {
+    const filteredInputs = this.inputs
+      .map((input) => input.valid)
+      .filter((valid) => valid !== undefined);
+    return filteredInputs.length
+      ? filteredInputs.reduce(this.validReduce.fn, this.validReduce.init)
+      : false;
+  }
+
   public get name() {
-    return this.$entryPoint.data().section;
+    return this.$entryPoint.data().section as string;
   }
 
   public setMode(accessMode: AccessMode, submissionMode: SubmissionMode) {
     if (accessMode === AccessMode.Defer) {
       this.inputs.forEach((input) => {
         input.setAccessMode(submissionMode.groups
-          .filter((group) => group.sections.indexOf(this.name) !== -1).length
+          .filter((group) => group.sections !== undefined && group.sections.indexOf(this.name) !== -1).length
             ? AccessMode.Write
             : AccessMode.Read,
         );

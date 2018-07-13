@@ -92,7 +92,7 @@ namespace AuditLogLib
                 case "PRODUCTION":
                     configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
                     built = configurationBuilder.Build();
-                    var store = new X509Store(StoreName.My, (environmentName == "PRODUCTION" ? StoreLocation.LocalMachine : StoreLocation.CurrentUser));
+                    var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
                     store.Open(OpenFlags.ReadOnly);
                     var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
 
@@ -103,14 +103,8 @@ namespace AuditLogLib
 
                     built = configurationBuilder.Build();
 
-                    string branchName = Environment.GetEnvironmentVariable("BranchName");
-                    Npgsql.NpgsqlConnectionStringBuilder logConnBuilder = new Npgsql.NpgsqlConnectionStringBuilder(built.GetConnectionString(ConnectionStringName));
+                    auditLogConnectionString = built.GetConnectionString(ConnectionStringName);
 
-                    if (environmentName == "AZURECI")
-                    {
-                        logConnBuilder.Database = $"auditlogdb_{branchName}";
-                    }
-                    auditLogConnectionString = logConnBuilder.ConnectionString;
                     break;
 
                 case "DEVELOPMENT":
@@ -122,6 +116,13 @@ namespace AuditLogLib
 
                 default: // Unsupported environment name	
                     throw new InvalidOperationException($"Current environment name ({environmentName}) is not supported for AuditLogLib migrations");
+            }
+
+            if (Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME") != null)
+            {
+                Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString);
+                stringBuilder.Database = Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME");
+                auditLogConnectionString = stringBuilder.ConnectionString;
             }
 
             return auditLogConnectionString;
