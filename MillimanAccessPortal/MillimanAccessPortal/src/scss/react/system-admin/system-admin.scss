@@ -2,6 +2,9 @@
 @import "../../map_modules/mixins";
 
 #master-content-container {
-    height: 100%;
-    width: 100%;
+    display: flex;
+    flex-flow: row nowrap;
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 1em;
 }
