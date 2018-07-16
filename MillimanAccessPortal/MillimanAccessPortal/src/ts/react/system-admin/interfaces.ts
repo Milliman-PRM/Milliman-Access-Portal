@@ -1,4 +1,6 @@
-﻿export interface SystemAdminState {
+﻿import { UserInfo } from '../../view-models/content-publishing';
+
+export interface SystemAdminState {
   primaryColContent: string;
   primaryColContentLabel: string;
   primaryColSelection: string;
@@ -8,19 +10,18 @@
   secondaryColSelection: string;
   secondaryColFilter?: string;
   addUserDialog: boolean;
+  userData: UserInfo[];
 }
 
 export interface UserPanelProps {
+  onFetch: (data: UserInfo[]) => void;
+  users: UserInfo[];
   selectedUser: string;
   makeUserSelection: (string) => void;
 }
 
 export interface UserPanelState {
-  userList: User[];
-}
-
-interface User {
-  userName: string;
+  userList: UserInfo[];
 }
 
 export interface ClientPanelProps {
@@ -48,4 +49,3 @@ export interface ProfitCenterPanelState {
 interface ProfitCenter {
   profitCenterName: string;
 }
-

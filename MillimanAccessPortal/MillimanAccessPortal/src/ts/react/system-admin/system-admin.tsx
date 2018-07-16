@@ -1,18 +1,17 @@
-﻿import '../../../scss/react/system-admin/system-admin.scss';
+﻿import '../../../images/add.svg';
+import '../../../scss/react/system-admin/system-admin.scss';
 
 import * as React from 'react';
 
+import { ActionIcon } from '../shared-components/action-icon';
 import { ColumnSelector } from '../shared-components/column-selector';
 import { Filter } from '../shared-components/filter';
-import { ActionIcon } from '../shared-components/action-icon';
-import { UserContentPanel } from './user-content-panel';
-import { ClientContentPanel } from './client-content-panel';
-import { ProfitCenterContentPanel } from './profit-center-content-panel';
-
-import { SystemAdminState } from './interfaces';
 import { SelectionOption } from '../shared-components/interfaces';
-
-import '../../../images/add.svg';
+import { ClientContentPanel } from './client-content-panel';
+import { SystemAdminState } from './interfaces';
+import { ProfitCenterContentPanel } from './profit-center-content-panel';
+import { UserContentPanel } from './user-content-panel';
+import { UserInfo } from '../../view-models/content-publishing';
 
 export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   public constructor(props) {
@@ -27,7 +26,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       secondaryColSelection: null,
       secondaryColFilter: null,
       addUserDialog: false,
+      userData: [],
     };
+
+    this.setUserData = this.setUserData.bind(this);
   }
 
   private structure = {
@@ -115,6 +117,12 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     console.log('Add Profit Center');
   }
 
+  public setUserData(data: UserInfo[]) {
+    this.setState({
+      userData: data,
+    });
+  }
+
   public render() {
 
     // Define the primary column options
@@ -158,6 +166,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
               <UserContentPanel
                 selectedUser={this.state.primaryColSelection}
                 makeUserSelection={this.makePrimaryColumnSelection}
+                users={this.state.userData}
+                onFetch={this.setUserData}
               />
             ) : null
           }
