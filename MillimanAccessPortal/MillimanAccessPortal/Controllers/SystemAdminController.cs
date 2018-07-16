@@ -17,6 +17,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
+using MillimanAccessPortal.Models.AccountViewModels;
+using MillimanAccessPortal.Models.ContentAccessAdmin;
+using MillimanAccessPortal.Models.SystemAdmin;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -69,6 +72,25 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             return View();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> Users(QueryFilter filter)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult Result = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!Result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var model = UserList.Build(DbContext, filter);
+
+            return Json(model);
         }
     }
 }

@@ -20,13 +20,13 @@ export interface UserPanelProps {
   makeUserSelection: (string) => void;
 }
 
-export interface UserPanelState {
-  userList: UserInfo[];
-}
-
 export interface ClientPanelProps {
   selectedClient: string;
   makeClientSelection: (string) => void;
+}
+
+export interface UserList {
+  Users: UserInfo[];
 }
 
 export interface ClientPanelState {

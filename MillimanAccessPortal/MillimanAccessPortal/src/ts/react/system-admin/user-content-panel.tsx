@@ -1,18 +1,13 @@
 ﻿import '../../../scss/react/shared-components/content-panel.scss';
 
+import { ajax } from 'jquery';
 import * as React from 'react';
 
-import { ajax } from 'jquery';
+import { UserList, UserPanelProps } from './interfaces';
 
-import { UserInfo } from '../../view-models/content-publishing';
-import { UserPanelProps, UserPanelState } from './interfaces';
-
-export class UserContentPanel extends React.Component<UserPanelProps, UserPanelState> {
+export class UserContentPanel extends React.Component<UserPanelProps, {}> {
   public constructor(props) {
     super(props);
-    this.state = {
-      userList: [],
-    };
   }
 
   public render() {
@@ -33,23 +28,14 @@ export class UserContentPanel extends React.Component<UserPanelProps, UserPanelS
   }
 
   public fetch() {
-    // ajax({
-    //   method: 'GET',
-    //   url: 'SystemAdmin/Users/',
-    // }).done((response: UserInfo[]) => {
-    //   this.props.onFetch(response);
-    // }).fail((response) => {
-    //   console.log(response.getResponseHeader('Warning')
-    //     || 'An unknown error has occurred.');
-    // });
-    this.props.onFetch([
-      {
-        Email: 'johndoe@domain.domain',
-        FirstName: 'John',
-        Id: 1,
-        LastName: 'Doe',
-        UserName: 'johndoe',
-      },
-    ]);
+    ajax({
+      method: 'GET',
+      url: 'SystemAdmin/Users/',
+    }).done((response: UserList) => {
+      this.props.onFetch(response.Users);
+    }).fail((response) => {
+      console.log(response.getResponseHeader('Warning')
+        || 'An unknown error has occurred.');
+    });
   }
 }
