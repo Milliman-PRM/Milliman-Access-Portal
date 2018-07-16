@@ -150,7 +150,7 @@ namespace ContentPublishingLib.JobRunners
                     AuditEvent GoLiveLogEvent = AuditEvent.New(
                         $"{Method.DeclaringType.Name}.{Method.Name}",
                         "Content publication request was successfully processed",
-                        AuditEventIdRegistry.PublicationRequestProcessingSuccess,
+                        AuditEventType.PublicationRequestProcessingSuccess,
                         new
                         {
                             PublicationRequestId = JobDetail.JobId,
