@@ -16,9 +16,9 @@ export class ClientContentPanel extends React.Component<ClientPanelProps, Client
     return (
       <div className="admin-panel-content-container">
         <ul className="admin-panel-content">
-          <li>Client 1</li>
-          <li>Client 2</li>
-          <li>Client 3</li>
+          <li onClick={() => this.props.makeClientSelection('1')}>Client 1</li>
+          <li onClick={() => this.props.makeClientSelection('2')}>Client 2</li>
+          <li onClick={() => this.props.makeClientSelection('3')}>Client 3</li>
         </ul>
       </div>
     );

@@ -16,9 +16,9 @@ export class ProfitCenterContentPanel extends React.Component<ProfitCenterPanelP
     return (
       <div className="admin-panel-content-container">
         <ul className="admin-panel-content">
-          <li>Profit Center 1</li>
-          <li>Profit Center 2</li>
-          <li>Profit Center 3</li>
+          <li onClick={() => this.props.makeProfitCenterSelection('1')}>Profit Center 1</li>
+          <li onClick={() => this.props.makeProfitCenterSelection('2')}>Profit Center 2</li>
+          <li onClick={() => this.props.makeProfitCenterSelection('3')}>Profit Center 3</li>
         </ul>
       </div>
     );
