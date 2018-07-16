@@ -9,18 +9,26 @@ import '../../../images/filter.svg';
 export class Filter extends React.Component<FilterProps, {}> {
   public constructor(props) {
     super(props);
+
+    this.handleChange = this.handleChange.bind(this);
   }
 
-  handleChange(event) {
+  public handleChange(event) {
     this.props.updateFilterString(event.target.value);
   }
 
   public render() {
     return (
       <div className="filter-container">
-        <input type="text" key={this.props.placeholderText} className="filter-input" placeholder={this.props.placeholderText} onChange={this.handleChange.bind(this)} />
+        <input
+          type="text"
+          key={this.props.placeholderText}
+          className="filter-input"
+          placeholder={this.props.placeholderText}
+          onChange={this.handleChange}
+        />
         <svg className="filter-icon">
-          <use xlinkHref="#filter"></use>
+          <use xlinkHref="#filter" />
         </svg>
       </div>
     );

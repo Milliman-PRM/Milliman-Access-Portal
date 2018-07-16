@@ -1,11 +1,11 @@
 ﻿export interface ActionIconProps {
   title: string;
-  action: () => void;
+  action: (event: React.MouseEvent<HTMLElement>) => void;
   icon: string;
 }
 
 export interface ColumnSelectorProps {
-  colContentSelection: (SelectionOption) => void;
+  colContentSelection: (option: SelectionOption) => void;
   colContentOptions: SelectionOption[];
   colContent: string;
 }
@@ -16,7 +16,7 @@ export interface SelectionOption {
 }
 
 export interface FilterProps {
-  filterText: string,
-  updateFilterString: (string) => void;
+  filterText: string;
+  updateFilterString: (filterString: string) => void;
   placeholderText: string;
 }

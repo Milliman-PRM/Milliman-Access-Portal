@@ -18,12 +18,12 @@ export class FilterBar extends React.Component<FilterBarProps, {}> {
   public render() {
     return (
       <input
-        id='authorized-content-filter'
-        name='authorizedContentFilter'
-        type='text'
-        placeholder='Filter content'
+        id="authorized-content-filter"
+        name="authorizedContentFilter"
+        type="text"
+        placeholder="Filter content"
         onKeyUp={this.handleFilterStringChange}
-        />
+      />
     );
   }
 

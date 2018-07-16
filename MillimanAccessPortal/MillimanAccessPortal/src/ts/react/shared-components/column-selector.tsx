@@ -10,19 +10,24 @@ export class ColumnSelector extends React.Component<ColumnSelectorProps, {}> {
   }
 
   public render() {
+    const options = this.props.colContentOptions.map((option, index) => {
+      const selectorClass = (option.value === this.props.colContent)
+        ? 'selected'
+        : null;
+      return (
+        <div
+          key={index}
+          className={`content-option ${selectorClass}`}
+          // tslint:disable-next-line:jsx-no-lambda
+          onClick={() => this.props.colContentSelection(option)}
+        >
+          {option.label}
+        </div>
+      );
+    });
     return (
       <div className="content-options">
-        {this.props.colContentOptions.map((option, index) => {
-          let selectorClass = (option.value === this.props.colContent) ? 'selected' : null;
-          return (
-            <div key={index}
-              className={`content-option ${selectorClass}`}
-              onClick={() => this.props.colContentSelection(option)}>
-              {option.label}
-            </div>
-           );
-          }
-        )}
+        {options}
       </div>
     );
   }
