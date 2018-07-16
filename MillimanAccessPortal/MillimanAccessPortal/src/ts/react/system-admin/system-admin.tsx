@@ -20,81 +20,91 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     this.state = {
       primaryColContent: 'Users',
       primaryColContentLabel: 'Users',
+      primaryColSelection: null,
       primaryColFilter: null,
-      secondaryColContent: null,
+      secondaryColContent: 'Clients',
+      secondaryColContentLabel: 'Clients',
+      secondaryColSelection: null,
       secondaryColFilter: null,
       addUserDialog: false,
-      structure: {
+    };
+  }
+
+  private structure = {
+    Users: {
+      displayValue: 'Users',
+      secColElements: {
+        Clients: {
+          displayValue: 'Clients',
+        },
+        AuthContent: {
+          displayValue: 'Authorized Content',
+        }
+      }
+    },
+    Clients: {
+      displayValue: 'Clients',
+      secColElements: {
         Users: {
           displayValue: 'Users',
-          panel: 'UserPanel',
-          selectedInstance: null,
-          secColElements: {
-            Clients: {
-              displayValue: 'Clients',
-              panel: 'ClientsPanel',
-              selectedInstance: null
-            },
-            AuthContent: {
-              displayValue: 'Authorized Content',
-              panel: 'AuthContentPanel',
-              selectedInstance: null
-            }
-          }
+        },
+        Content: {
+          displayValue: 'Content Items',
+        }
+      }
+    },
+    PC: {
+      displayValue: 'Profit Centers',
+      secColElements: {
+        AuthUsers: {
+          displayValue: 'Authorized Users',
         },
         Clients: {
           displayValue: 'Clients',
-          panel: 'ClientPanel',
-          selectedInstance: null,
-          secColElements: {
-            Users: {
-              displayValue: 'Users',
-              panel: 'UsersPanel',
-              selectedInstance: null
-            },
-            Content: {
-              displayValue: 'Content Items',
-              panel: 'ContentPanel',
-              selectedInstance: null
-            }
-          }
-        },
-        PC: {
-          displayValue: 'Profit Centers',
-          panel: 'ProfitCentersPanel',
-          selectedInstance: null,
-          secColElements: {
-            AuthUsers: {
-              displayValue: 'Authorized Users',
-              panel: 'AuthUsersPanel',
-              selectedInstance: null
-            },
-            Clients: {
-              displayValue: 'Clients',
-              panel: 'ClientsPanel',
-              selectedInstance: null
-            }
-          }
         }
       }
-      
-    };
+    }
   }
 
   public selectPrimaryColumn = (colContentSelection: SelectionOption) => {
     if (colContentSelection.value !== this.state.primaryColContent) {
+      const newSecondaryColContent = Object.keys(this.structure[colContentSelection.value].secColElements)[0];
       this.setState({
         primaryColContent: colContentSelection.value,
-        primaryColContentLabel: colContentSelection.label, 
-        secondaryColContent: null,
+        primaryColContentLabel: colContentSelection.label,
+        primaryColSelection: null,
+        secondaryColContent: newSecondaryColContent,
+        secondaryColContentLabel: this.structure[colContentSelection.value].secColElements[newSecondaryColContent].displayValue,
+        secondaryColSelection: null,
         primaryColFilter: null,
         secondaryColFilter: null
       });
     }
   }
 
+  public selectSecondaryColumn = (colContentSelection: SelectionOption) => {
+    if (colContentSelection.value !== this.state.secondaryColContent) {
+      this.setState({
+        secondaryColContent: colContentSelection.value,
+        secondaryColContentLabel: colContentSelection.label,
+      });
+    }
+  }
+
   public updatePrimaryColumnFilter = (filterString: string) => {
     this.setState({ primaryColFilter: filterString });
+  }
+
+  public updateSecondaryColumnFilter = (filterString: string) => {
+    this.setState({ secondaryColFilter: filterString });
+  }
+
+  public makePrimaryColumnSelection = (id: string) => {
+    this.setState({ primaryColSelection: id });
+  }
+
+  public makeSecondaryColumnSelection = (id: string) => {
+    this.setState({ secondaryColSelection: id });
   }
 
   public addUser = () => {
@@ -108,9 +118,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   public render() {
 
     // Define the primary column options
-    const primaryColOptions = Object.keys(this.state.structure).map((property) => {
-      return { value: property, label: this.state.structure[property].displayValue };
+    const primaryColOptions = Object.keys(this.structure).map((property) => {
+      return { value: property, label: this.structure[property].displayValue };
     });
+
+    const secondaryColOptions = Object.keys(this.structure[this.state.primaryColContent].secColElements).map((property) => {
+      return { value: property, label: this.structure[this.state.primaryColContent].secColElements[property].displayValue };
+    })
 
     return (
       <div id="master-content-container">
@@ -141,20 +155,59 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           </div>
           {
             (this.state.primaryColContent === 'Users') ? (
-              <UserContentPanel selectedUser={this.state.structure[this.state.primaryColContent].selectedInstance} />
+              <UserContentPanel
+                selectedUser={this.state.primaryColSelection}
+                makeUserSelection={this.makePrimaryColumnSelection}
+              />
             ) : null
           }
           {
             (this.state.primaryColContent === 'Clients') ? (
-              <ClientContentPanel selectedClient={this.state.structure[this.state.primaryColContent].selectedInstance} />
+              <ClientContentPanel
+                selectedClient={this.state.primaryColSelection}
+                makeClientSelection={this.makePrimaryColumnSelection}
+              />
             ) : null
           }
           {
             (this.state.primaryColContent === 'PC') ? (
-              <ProfitCenterContentPanel selectedProfitCenter={this.state.structure[this.state.primaryColContent].selectedInstance} />
+              <ProfitCenterContentPanel
+                selectedProfitCenter={this.state.primaryColSelection}
+                makeProfitCenterSelection={this.makePrimaryColumnSelection}
+              />
             ) : null
           }
         </div>
+        {
+          (this.state.primaryColSelection) ? (
+            <div id="primary-content-panel" className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12">
+              <ColumnSelector
+                colContentOptions={secondaryColOptions}
+                colContent={this.state.secondaryColContent}
+                colContentSelection={this.selectSecondaryColumn}
+              />
+              <div className="admin-panel-toolbar">
+                <Filter
+                  filterText={this.state.secondaryColFilter}
+                  updateFilterString={this.updateSecondaryColumnFilter}
+                  placeholderText={`Filter ${this.state.secondaryColContentLabel}`}
+                />
+                <div className="admin-panel-action-icons-container">
+                  {
+                    (this.state.primaryColContent === 'Clients' && this.state.secondaryColContent === 'Users') ? (
+                      <ActionIcon title="Add User" action={this.addUser} icon="add" />
+                    ) : null
+                  }
+                  {
+                    (this.state.primaryColContent === 'PC' && this.state.secondaryColContent === 'AuthUsers') ? (
+                      <ActionIcon title="Add Profit Center" action={this.addPC} icon="add" />
+                    ) : null
+                  }
+                </div>
+              </div>
+            </div>
+          ) : null
+        }
       </div>
     );
   }

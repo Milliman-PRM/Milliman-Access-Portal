@@ -1,49 +1,18 @@
 ﻿export interface SystemAdminState {
   primaryColContent: string;
   primaryColContentLabel: string;
+  primaryColSelection: string;
   primaryColFilter?: string;
   secondaryColContent?: string;
   secondaryColContentLabel?: string;
+  secondaryColSelection: string;
   secondaryColFilter?: string;
   addUserDialog: boolean;
-  structure: SystemAdminStructure;
-}
-
-interface ColumnElement {
-  displayValue: string;
-  panel: string;
-  selectedInstance?: string;
-}
-
-interface PrimaryColumnUsersElement extends ColumnElement {
-  secColElements: {
-    Clients: ColumnElement;
-    AuthContent: ColumnElement;
-  }
-}
-
-interface PrimaryColumnClientsElement extends ColumnElement {
-  secColElements: {
-    Users: ColumnElement;
-    Content: ColumnElement;
-  }
-}
-
-interface PrimaryColumnProfitCentersElement extends ColumnElement {
-  secColElements: {
-    AuthUsers: ColumnElement;
-    Clients: ColumnElement;
-  }
-}
-
-interface SystemAdminStructure {
-  Users: PrimaryColumnUsersElement;
-  Clients: PrimaryColumnClientsElement;
-  PC: PrimaryColumnProfitCentersElement;
 }
 
 export interface UserPanelProps {
   selectedUser: string;
+  makeUserSelection: (string) => void;
 }
 
 export interface UserPanelState {
@@ -56,6 +25,7 @@ interface User {
 
 export interface ClientPanelProps {
   selectedClient: string;
+  makeClientSelection: (string) => void;
 }
 
 export interface ClientPanelState {
@@ -68,6 +38,7 @@ interface Client {
 
 export interface ProfitCenterPanelProps {
   selectedProfitCenter: string;
+  makeProfitCenterSelection: (string) => void;
 }
 
 export interface ProfitCenterPanelState {
