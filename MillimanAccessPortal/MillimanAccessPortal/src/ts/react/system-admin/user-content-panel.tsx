@@ -12,7 +12,14 @@ export class UserContentPanel extends React.Component<UserPanelProps, {}> {
 
   public render() {
     const users = this.props.users.map((user) => (
-      <li key={user.Id}>{user.UserName}</li>
+      <li
+        key={user.Id}
+        // tslint:disable-next-line:jsx-no-lambda
+        onClick={() => this.props.makeUserSelection(user.Id.toString())}
+        style={this.props.selectedUser === user.Id.toString() ? {fontWeight: 'bold'} : {}}
+      >
+        {user.UserName}
+      </li>
     ));
     return (
       <div className="admin-panel-content-container">

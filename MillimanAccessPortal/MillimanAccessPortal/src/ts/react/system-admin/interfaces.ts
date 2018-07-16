@@ -17,7 +17,7 @@ export interface UserPanelProps {
   onFetch: (data: UserInfo[]) => void;
   users: UserInfo[];
   selectedUser: string;
-  makeUserSelection: (string) => void;
+  makeUserSelection: (id: string) => void;
   queryFilter: QueryFilter;
 }
 

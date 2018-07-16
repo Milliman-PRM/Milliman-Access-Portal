@@ -20,3 +20,7 @@ require('../../../images/map-logo.svg');
 document.addEventListener('DOMContentLoaded', (event) => {
   ReactDOM.render(<SystemAdmin />, document.getElementById('content-container'));
 });
+
+if (module.hot) {
+  module.hot.accept();
+}
