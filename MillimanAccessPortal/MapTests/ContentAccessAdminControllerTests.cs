@@ -39,7 +39,8 @@ namespace MapTests
                 TestResources.DbContextObject,
                 TestResources.LoggerFactory,
                 TestResources.QueriesObj,
-                TestResources.UserManagerObject
+                TestResources.UserManagerObject,
+                TestResources.ConfigurationObject
                 );
 
             try

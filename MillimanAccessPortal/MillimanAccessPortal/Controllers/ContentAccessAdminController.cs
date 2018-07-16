@@ -842,7 +842,7 @@ namespace MillimanAccessPortal.Controllers
                 }
             }
 
-            // Live master file path must be known and the file must exist
+            // Require that the live master file path is stored in the RootContentItem and the file exists
             ContentRelatedFile LiveMasterFile = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
             if (LiveMasterFile == null 
              || !System.IO.File.Exists(LiveMasterFile.FullPath)
@@ -857,7 +857,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 selectionGroup.IsMaster = true;
                 selectionGroup.SelectedHierarchyFieldValueList = new long[0];
-                selectionGroup.ContentInstanceUrl = move this to a function: Path.Combine($"{selectionGroup.RootContentItemId}", Path.GetFileName(LiveMasterFile.FullPath));
+                selectionGroup.SetContentUrl(Path.GetFileName(LiveMasterFile.FullPath));
                 DbContext.SelectionGroup.Update(selectionGroup);
                 DbContext.SaveChanges();
 
@@ -897,6 +897,9 @@ namespace MillimanAccessPortal.Controllers
                 };
                 DbContext.ContentReductionTask.Add(contentReductionTask);
                 DbContext.SaveChanges();
+
+                string CxnString = ApplicationConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
+                ContentAccessSupport.AddReductionMonitor(Task.Run(() => ContentAccessSupport.MonitorReductionTaskForGoLive(NewTaskGuid, CxnString)));
 
                 #region Log audit event
                 AuditEvent selectionChangeReductionQueuedEvent = AuditEvent.New(

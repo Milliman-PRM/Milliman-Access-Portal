@@ -782,6 +782,8 @@ namespace MillimanAccessPortal.Controllers
 
             List<ContentReductionTask> RelatedReductionTasks = DbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == PubRequest.Id)
                                                                                              .Include(t => t.SelectionGroup)
+                                                                                             .ThenInclude(g => g.RootContentItem)
+                                                                                             .ThenInclude(c => c.ContentType)
                                                                                              .ToList();
 
             // For each reducing SelectionGroup related to the RootContentItem:
@@ -888,7 +890,7 @@ namespace MillimanAccessPortal.Controllers
                 foreach (ContentRelatedFile Crf in PubRequest.LiveReadyFilesObj)
                 {
                     // This assignment defines the live file name
-                    string TargetFileName = $"{Crf.FilePurpose}.Content[{rootContentItemId}]{Path.GetExtension(Crf.FullPath)}";
+                    string TargetFileName = ContentAccessSupport.GenerateContentFileName(Crf, rootContentItemId);
                     string TargetFilePath = Path.Combine(Path.GetDirectoryName(Crf.FullPath), TargetFileName);
 
                     // Move any existing file to backed up name
@@ -917,7 +919,7 @@ namespace MillimanAccessPortal.Controllers
                     {
                         foreach (SelectionGroup MasterContentGroup in RelatedReductionTasks.Select(t => t.SelectionGroup).Where(g => g.IsMaster))
                         {
-                            MasterContentGroup.ContentInstanceUrl = Path.Combine($"{rootContentItemId}", TargetFileName);
+                            MasterContentGroup.SetContentUrl(TargetFileName);
                             DbContext.SelectionGroup.Update(MasterContentGroup);
                         }
                     }
@@ -928,11 +930,11 @@ namespace MillimanAccessPortal.Controllers
                 foreach (var ThisTask in RelatedReductionTasks.Where(t => !t.SelectionGroup.IsMaster))
                 {
                     // This assignment defines the live file name for any reduced content file
-                    string TargetFileName = $"ReducedContent.SelGrp[{ThisTask.SelectionGroupId}].Content[{PubRequest.RootContentItemId}]{Path.GetExtension(ThisTask.ResultFilePath)}";
+                    string TargetFileName = ContentAccessSupport.GenerateReducedContentFileName(ThisTask.SelectionGroupId, PubRequest.RootContentItemId, Path.GetExtension(ThisTask.ResultFilePath));
                     string TargetFilePath = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"], PubRequest.RootContentItemId.ToString(), TargetFileName);
 
                     // Set url in SelectionGroup
-                    ThisTask.SelectionGroup.ContentInstanceUrl = Path.Combine($"{rootContentItemId}", TargetFileName);
+                    ThisTask.SelectionGroup.SetContentUrl(TargetFileName);
                     DbContext.SelectionGroup.Update(ThisTask.SelectionGroup);
 
                     // Move the existing file to backed up name if exists
