@@ -3,15 +3,15 @@ import '../../../scss/react/system-admin/system-admin.scss';
 
 import * as React from 'react';
 
+import { ClientSummary, UserInfo } from '../../view-models/content-publishing';
 import { ActionIcon } from '../shared-components/action-icon';
 import { ColumnSelector } from '../shared-components/column-selector';
 import { Filter } from '../shared-components/filter';
 import { SelectionOption } from '../shared-components/interfaces';
 import { ClientContentPanel } from './client-content-panel';
-import { SystemAdminState } from './interfaces';
+import { ProfitCenterInfo, SystemAdminState } from './interfaces';
 import { ProfitCenterContentPanel } from './profit-center-content-panel';
 import { UserContentPanel } from './user-content-panel';
-import { UserInfo } from '../../view-models/content-publishing';
 
 export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   public constructor(props) {
@@ -27,9 +27,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       secondaryColFilter: null,
       addUserDialog: false,
       userData: [],
+      clientData: [],
+      profitCenterData: [],
     };
 
     this.setUserData = this.setUserData.bind(this);
+    this.setClientData = this.setClientData.bind(this);
+    this.setProfitCenterData = this.setProfitCenterData.bind(this);
   }
 
   private structure = {
@@ -101,11 +105,11 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     this.setState({ secondaryColFilter: filterString });
   }
 
-  public makePrimaryColumnSelection = (id: string) => {
+  public makePrimaryColumnSelection = (id: number) => {
     this.setState({ primaryColSelection: id });
   }
 
-  public makeSecondaryColumnSelection = (id: string) => {
+  public makeSecondaryColumnSelection = (id: number) => {
     this.setState({ secondaryColSelection: id });
   }
 
@@ -120,6 +124,18 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   public setUserData(data: UserInfo[]) {
     this.setState({
       userData: data,
+    });
+  }
+
+  public setClientData(data: ClientSummary[]) {
+    this.setState({
+      clientData: data,
+    });
+  }
+
+  public setProfitCenterData(data: ProfitCenterInfo[]) {
+    this.setState({
+      profitCenterData: data,
     });
   }
 
@@ -164,9 +180,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           {
             (this.state.primaryColContent === 'Users') ? (
               <UserContentPanel
-                selectedUser={this.state.primaryColSelection}
-                makeUserSelection={this.makePrimaryColumnSelection}
-                users={this.state.userData}
+                selected={this.state.primaryColSelection}
+                select={this.makePrimaryColumnSelection}
+                data={this.state.userData}
                 onFetch={this.setUserData}
                 queryFilter={{}}
               />
@@ -175,16 +191,22 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           {
             (this.state.primaryColContent === 'Clients') ? (
               <ClientContentPanel
-                selectedClient={this.state.primaryColSelection}
-                makeClientSelection={this.makePrimaryColumnSelection}
+                selected={this.state.primaryColSelection}
+                select={this.makePrimaryColumnSelection}
+                data={this.state.clientData}
+                onFetch={this.setClientData}
+                queryFilter={{}}
               />
             ) : null
           }
           {
             (this.state.primaryColContent === 'PC') ? (
               <ProfitCenterContentPanel
-                selectedProfitCenter={this.state.primaryColSelection}
-                makeProfitCenterSelection={this.makePrimaryColumnSelection}
+                selected={this.state.primaryColSelection}
+                select={this.makePrimaryColumnSelection}
+                data={this.state.profitCenterData}
+                onFetch={this.setProfitCenterData}
+                queryFilter={{}}
               />
             ) : null
           }

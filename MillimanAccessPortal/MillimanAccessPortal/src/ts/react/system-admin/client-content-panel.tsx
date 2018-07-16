@@ -1,26 +1,50 @@
 ﻿import '../../../scss/react/shared-components/content-panel.scss';
 
+import { ajax } from 'jquery';
 import * as React from 'react';
 
-import { ClientPanelProps, ClientPanelState } from './interfaces';
+import { ClientSummary } from '../../view-models/content-publishing';
+import { ContentPanelProps } from './interfaces';
 
-export class ClientContentPanel extends React.Component<ClientPanelProps, ClientPanelState> {
+export class ClientContentPanel extends React.Component<ContentPanelProps<ClientSummary>, {}> {
   public constructor(props) {
     super(props);
-    this.state = {
-      clientList: []
-    };
   }
 
   public render() {
+    const clients = this.props.data.map((client) => (
+      <li
+        key={client.Id}
+        // tslint:disable-next-line:jsx-no-lambda
+        onClick={() => this.props.select(client.Id)}
+        style={this.props.selected === client.Id ? {fontWeight: 'bold'} : {}}
+      >
+        {client.Name}
+      </li>
+    ));
     return (
       <div className="admin-panel-content-container">
         <ul className="admin-panel-content">
-          <li onClick={() => this.props.makeClientSelection('1')}>Client 1</li>
-          <li onClick={() => this.props.makeClientSelection('2')}>Client 2</li>
-          <li onClick={() => this.props.makeClientSelection('3')}>Client 3</li>
+          {clients}
         </ul>
       </div>
     );
+  }
+
+  public componentDidMount() {
+    this.fetch();
+  }
+
+  public fetch() {
+    ajax({
+      data: this.props.queryFilter,
+      method: 'GET',
+      url: 'SystemAdmin/Clients/',
+    }).done((response: ClientSummary[]) => {
+      this.props.onFetch(response);
+    }).fail((response) => {
+      console.log(response.getResponseHeader('Warning')
+        || 'An unknown error has occurred.');
+    });
   }
 }

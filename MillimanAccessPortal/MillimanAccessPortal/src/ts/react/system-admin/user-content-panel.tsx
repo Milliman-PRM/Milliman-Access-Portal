@@ -3,20 +3,21 @@
 import { ajax } from 'jquery';
 import * as React from 'react';
 
-import { UserList, UserPanelProps } from './interfaces';
+import { UserInfo } from '../../view-models/content-publishing';
+import { ContentPanelProps } from './interfaces';
 
-export class UserContentPanel extends React.Component<UserPanelProps, {}> {
+export class UserContentPanel extends React.Component<ContentPanelProps<UserInfo>, {}> {
   public constructor(props) {
     super(props);
   }
 
   public render() {
-    const users = this.props.users.map((user) => (
+    const users = this.props.data.map((user) => (
       <li
         key={user.Id}
         // tslint:disable-next-line:jsx-no-lambda
-        onClick={() => this.props.makeUserSelection(user.Id.toString())}
-        style={this.props.selectedUser === user.Id.toString() ? {fontWeight: 'bold'} : {}}
+        onClick={() => this.props.select(user.Id)}
+        style={this.props.selected === user.Id ? {fontWeight: 'bold'} : {}}
       >
         {user.UserName}
       </li>
@@ -39,8 +40,8 @@ export class UserContentPanel extends React.Component<UserPanelProps, {}> {
       data: this.props.queryFilter,
       method: 'GET',
       url: 'SystemAdmin/Users/',
-    }).done((response: UserList) => {
-      this.props.onFetch(response.Users);
+    }).done((response: UserInfo[]) => {
+      this.props.onFetch(response);
     }).fail((response) => {
       console.log(response.getResponseHeader('Warning')
         || 'An unknown error has occurred.');
