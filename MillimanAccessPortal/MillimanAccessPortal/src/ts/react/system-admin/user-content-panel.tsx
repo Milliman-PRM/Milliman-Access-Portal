@@ -29,6 +29,7 @@ export class UserContentPanel extends React.Component<UserPanelProps, {}> {
 
   public fetch() {
     ajax({
+      data: this.props.queryFilter,
       method: 'GET',
       url: 'SystemAdmin/Users/',
     }).done((response: UserList) => {

@@ -168,6 +168,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                 makeUserSelection={this.makePrimaryColumnSelection}
                 users={this.state.userData}
                 onFetch={this.setUserData}
+                queryFilter={{}}
               />
             ) : null
           }

@@ -18,6 +18,14 @@ export interface UserPanelProps {
   users: UserInfo[];
   selectedUser: string;
   makeUserSelection: (string) => void;
+  queryFilter: QueryFilter;
+}
+
+export interface QueryFilter {
+  userId?: number;
+  clientId?: number;
+  profitCenterId?: number;
+  rootContentItemId?: number;
 }
 
 export interface ClientPanelProps {
