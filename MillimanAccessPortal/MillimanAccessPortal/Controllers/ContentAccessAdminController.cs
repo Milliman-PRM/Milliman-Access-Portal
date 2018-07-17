@@ -795,21 +795,6 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            // There must be no reduction task with erroneous or unexpected status for this selection group
-            var unexpectedStatus = new List<ReductionStatusEnum>
-            {
-                ReductionStatusEnum.Unspecified,
-                ReductionStatusEnum.Replaced,
-            };
-            if (DbContext.ContentReductionTask
-                .Where(task => task.SelectionGroupId == selectionGroup.Id)
-                .Where(task => task.CreateDateTimeUtc > currentLivePublication.CreateDateTimeUtc)
-                .Any(task => unexpectedStatus.Contains(task.ReductionStatus)))
-            {
-                Response.Headers.Add("Warning", "An erroneous reduction status prevents this action.");
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-
             if (isMaster)
             {
                 if (selectionGroup.IsMaster)
@@ -899,14 +884,15 @@ namespace MillimanAccessPortal.Controllers
                 DbContext.SaveChanges();
 
                 string CxnString = ApplicationConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
-                ContentAccessSupport.AddReductionMonitor(Task.Run(() => ContentAccessSupport.MonitorReductionTaskForGoLive(NewTaskGuid, CxnString)));
+                string ContentItemRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
+                ContentAccessSupport.AddReductionMonitor(Task.Run(() => ContentAccessSupport.MonitorReductionTaskForGoLive(NewTaskGuid, CxnString, ContentItemRootPath)));
 
                 #region Log audit event
                 AuditEvent selectionChangeReductionQueuedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     "Selection change reduction task queued",
                     AuditEventId.SelectionChangeReductionQueued,
-                    new { selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, selectionGroupId, selections },
+                    new { TaskId = NewTaskGuid.ToString("D"), selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, selectionGroupId, selections },
                     User.Identity.Name,
                     HttpContext.Session.Id
                     );

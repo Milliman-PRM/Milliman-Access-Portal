@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AuditLogLib;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -79,29 +80,45 @@ namespace MillimanAccessPortal
         internal static void MonitorReductionTaskForGoLive(Guid TaskGuid, string connectionString, string contentRootFolder)
         {
             TimeSpan timeoutDuration = new TimeSpan(0, 8, 0);
+            ContentReductionTask thisContentReductionTask = null;
 
-            // Maybe there is a better way to configure the context...
             DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(connectionString);
             DbContextOptions<ApplicationDbContext> ContextOptions = ContextBuilder.Options;
 
-            DateTime expireTimeUtc = DateTime.UtcNow + timeoutDuration;
-
-            ContentReductionTask thisContentReductionTask = null;
-            while (thisContentReductionTask == null || thisContentReductionTask.ReductionStatus != ReductionStatusEnum.Reduced)
+            do
             {
                 using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
                     thisContentReductionTask = Db.ContentReductionTask.Find(TaskGuid);
                 }
 
-                if (DateTime.UtcNow < expireTimeUtc)
+                Thread.Sleep(1000);
+            }
+            while (thisContentReductionTask.ReductionStatus == ReductionStatusEnum.Queued);
+
+            // The task might stay queued a while, waiting for other tasks.  Don't start timing till it has started
+            DateTime expireTimeUtc = DateTime.UtcNow + timeoutDuration;
+
+            while (thisContentReductionTask.ReductionStatus != ReductionStatusEnum.Reduced)
+            {
+                Thread.Sleep(2000);
+
+                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
-                    // Time out
-                    // log something
+                    thisContentReductionTask = Db.ContentReductionTask.Find(TaskGuid);
+                }
+
+                if (DateTime.UtcNow > expireTimeUtc)
+                {
+                    // TODO log something
                     return;
                 }
 
-                Thread.Sleep(2000);
+                if (thisContentReductionTask.ReductionStatus == ReductionStatusEnum.Canceled || 
+                    thisContentReductionTask.ReductionStatus == ReductionStatusEnum.Error)
+                {
+                    throw new ApplicationException($"Reduction error while processing UpdateSelections request{Environment.NewLine}{thisContentReductionTask.ReductionStatusMessage}");
+                }
             }
 
             // ready for go live, get all the navigation properties
@@ -109,31 +126,82 @@ namespace MillimanAccessPortal
             {
                 thisContentReductionTask = Db.ContentReductionTask.Include(t => t.SelectionGroup)
                                                                   .ThenInclude(g => g.RootContentItem)
-                                                                  //.ThenInclude(c => c.ContentType)
+                                                                  .Include(t => t.ApplicationUser)
                                                                   .Single(t => t.Id == thisContentReductionTask.Id);
 
-                PositionReducedContentForGoLive(Db, thisContentReductionTask.SelectionGroup, contentRootFolder);
-                Db.SaveChanges();
+                List<string> FilesToDelete = ReducedContentGoLive(Db, thisContentReductionTask, contentRootFolder);
+
+                FilesToDelete.ForEach(f => File.Delete(f));
+                Directory.Delete(Path.GetDirectoryName(thisContentReductionTask.ResultFilePath), true);
+
+                if (thisContentReductionTask.ReductionStatus == ReductionStatusEnum.Live)
+                {
+                    #region Log audit event
+                    AuditLogger Logger = new AuditLogger();
+                    AuditEvent selectionChangeReductionQueuedEvent = AuditEvent.New(
+                        "ContentAccessSupport.MonitorReductionTaskForGoLive",
+                        "Selection change reduction task was successfully deployed",
+                        AuditEventId.SelectionChangeReductionLive,
+                        new { TaskId = thisContentReductionTask.Id.ToString("D"),  },
+                        thisContentReductionTask.ApplicationUser.UserName,
+                        ""
+                        );
+                    Logger.Log(selectionChangeReductionQueuedEvent);
+                    #endregion
+                }
             }
 
         }
 
         /// <summary>
-        /// Moves files and writes db updates, requires navigation property chain SelectionGroup, RootContentItem
+        /// Moves files and updates db, requires navigation property chain SelectionGroup and RootContentItem. Cooperates in a transaction
         /// </summary>
-        /// <param name="Db"></param>
-        internal static void PositionReducedContentForGoLive(ApplicationDbContext Db, ContentReductionTask reductionTask, string contentRootFolder)
+        /// <param name="Db">A valid instance of database context</param>
+        /// <param name="reductionTask">The reduction task with navigation property chain SelectionGroup and RootContentItem</param>
+        /// <param name="contentRootShareFolder">The configured root path for live content files</param>
+        /// <returns>A list of files that should be deleted by the caller</returns>
+        internal static List<string> ReducedContentGoLive(ApplicationDbContext Db, ContentReductionTask reductionTask, string contentRootShareFolder)
         {
-            string targetFileName = GenerateReducedContentFileName(reductionTask.SelectionGroupId, reductionTask.SelectionGroup.RootContentItemId, Path.GetExtension(reductionTask.ResultFilePath));
-            string targetFilePath = Path.Combine(contentRootFolder, reductionTask.SelectionGroup.RootContentItemId.ToString(), targetFileName);
+            List<string> FilesToDelete = new List<string>();
 
-            continue here
-            // rename the live reduced file to .bak
+            if (reductionTask == null || 
+                reductionTask.SelectionGroup == null || 
+                reductionTask.SelectionGroup.RootContentItem == null)
+            {
+                throw new ApplicationException("ContentAccessSupport.PositionReducedContentForGoLive called without required navigation properties");
+            }
+
+            string targetFileName = GenerateReducedContentFileName(reductionTask.SelectionGroupId, reductionTask.SelectionGroup.RootContentItemId, Path.GetExtension(reductionTask.ResultFilePath));
+            string targetFilePath = Path.Combine(contentRootShareFolder, reductionTask.SelectionGroup.RootContentItemId.ToString(), targetFileName);
+            string backupFilePath = targetFilePath + ".bak";
+
+            // rename the live reduced file to *.bak
+            if (File.Exists(targetFilePath))
+            {
+                File.Delete(backupFilePath);  // does not throw if !Exists
+                File.Move(targetFilePath, backupFilePath);
+                FilesToDelete.Add(backupFilePath);
+            }
+
             // rename the new reduced file to live
-            // update selection group with new selection list
-            // update selection group set IsMaster = false
+            File.Move(reductionTask.ResultFilePath, targetFilePath);
+
+            // update selection group
+            List<long> ValueIdList = new List<long>();
+            reductionTask.SelectionCriteriaObj.Fields.ForEach(f => ValueIdList.AddRange(f.Values.Where(v => v.SelectionStatus).Select(v => v.Id)));
+            reductionTask.SelectionGroup.SelectedHierarchyFieldValueList = ValueIdList.ToArray();
+            reductionTask.SelectionGroup.IsMaster = false;
+
+            // update reduction tasks status (previous: Live -> Replaced, new: Reduced -> Live
+            ContentReductionTask PreviousLiveTask = Db.ContentReductionTask.SingleOrDefault(t => t.SelectionGroupId == reductionTask.SelectionGroupId && 
+                                                                                                 t.ReductionStatus == ReductionStatusEnum.Live);
+            PreviousLiveTask.ReductionStatus = ReductionStatusEnum.Replaced;
+            reductionTask.ReductionStatus = ReductionStatusEnum.Live;
 
             // save changes
+            Db.SaveChanges();
+
+            return FilesToDelete;
         }
     }
 }
