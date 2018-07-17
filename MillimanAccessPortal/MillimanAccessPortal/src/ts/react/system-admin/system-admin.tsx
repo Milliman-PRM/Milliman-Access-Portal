@@ -3,14 +3,14 @@ import '../../../scss/react/system-admin/system-admin.scss';
 
 import * as React from 'react';
 
-import { ClientSummary } from '../../view-models/content-publishing';
 import { ActionIcon } from '../shared-components/action-icon';
 import { ColumnSelector } from '../shared-components/column-selector';
 import { Filter } from '../shared-components/filter';
 import { SelectionOption } from '../shared-components/interfaces';
 import { ClientContentPanel } from './client-content-panel';
-import { ProfitCenterInfo, SystemAdminState, UserInfo } from './interfaces';
+import { ClientInfo, ProfitCenterInfo, SystemAdminState, UserInfo, RootContentItemInfo, QueryFilter } from './interfaces';
 import { ProfitCenterContentPanel } from './profit-center-content-panel';
+import { RootContentItemContentPanel } from './root-content-item-content-panel';
 import { UserContentPanel } from './user-content-panel';
 
 export class SystemAdmin extends React.Component<{}, SystemAdminState> {
@@ -62,6 +62,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       primaryColFilter: null,
       primaryColSelection: null,
       profitCenterData: [],
+      rootContentItemData: [],
       secondaryColContent: 'Clients',
       secondaryColContentLabel: 'Clients',
       secondaryColFilter: null,
@@ -140,7 +141,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     });
   }
 
-  public setClientData(data: ClientSummary[]) {
+  public setClientData(data: ClientInfo[]) {
     this.setState({
       clientData: data,
     });
@@ -149,6 +150,12 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   public setProfitCenterData(data: ProfitCenterInfo[]) {
     this.setState({
       profitCenterData: data,
+    });
+  }
+
+  public setRootContentItemData(data: RootContentItemInfo[]) {
+    this.setState({
+      rootContentItemData: data,
     });
   }
 
@@ -195,7 +202,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       }
     })();
 
-    const primaryContentPanel = (() => {
+    const primaryContent = (() => {
       switch (this.state.primaryColContent) {
         case 'Users':
           return (
@@ -246,6 +253,66 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       return null;
     })();
 
+    const secondaryContent = (() => {
+      switch (this.state.secondaryColContent) {
+        case 'Clients':
+          const queryFilter: QueryFilter = this.state.primaryColContent === 'Users'
+            ? { userId: this.state.primaryColSelection }
+            : { profitCenterId: this.state.primaryColSelection };
+          return (
+            <ClientContentPanel
+              selected={this.state.secondaryColSelection}
+              select={this.makeSecondaryColumnSelection}
+              data={this.state.clientData}
+              onFetch={this.setClientData}
+              queryFilter={queryFilter}
+            />
+          );
+        case 'AuthContent':
+          return (
+            <RootContentItemContentPanel
+              selected={this.state.secondaryColSelection}
+              select={this.makeSecondaryColumnSelection}
+              data={this.state.rootContentItemData}
+              onFetch={this.setRootContentItemData}
+              queryFilter={{ userId: this.state.primaryColSelection }}
+            />
+          );
+        case 'Users':
+          return (
+            <UserContentPanel
+              selected={this.state.secondaryColSelection}
+              select={this.makeSecondaryColumnSelection}
+              data={this.state.userData}
+              onFetch={this.setUserData}
+              queryFilter={{ clientId: this.state.primaryColSelection }}
+            />
+          );
+        case 'Content':
+          return (
+            <RootContentItemContentPanel
+              selected={this.state.secondaryColSelection}
+              select={this.makeSecondaryColumnSelection}
+              data={this.state.rootContentItemData}
+              onFetch={this.setRootContentItemData}
+              queryFilter={{ clientId: this.state.primaryColSelection }}
+            />
+          );
+        case 'AuthUsers':
+          return (
+            <UserContentPanel
+              selected={this.state.secondaryColSelection}
+              select={this.makeSecondaryColumnSelection}
+              data={this.state.userData}
+              onFetch={this.setUserData}
+              queryFilter={{ profitCenterId: this.state.primaryColSelection }}
+            />
+          );
+        default:
+          return null;
+      }
+    })();
+
     const secondaryContentPanel = this.state.primaryColSelection
       ? (
         <div
@@ -267,6 +334,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
               {secondaryAddIcon}
             </div>
           </div>
+          {secondaryContent}
         </div>
       )
       : null;
@@ -292,7 +360,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
               {addIcon}
             </div>
           </div>
-          {primaryContentPanel}
+          {primaryContent}
         </div>
         {secondaryContentPanel}
       </div>

@@ -11,6 +11,7 @@
   userData: UserInfo[];
   clientData: ClientInfo[];
   profitCenterData: ProfitCenterInfo[];
+  rootContentItemData: RootContentItemInfo[];
 }
 
 export interface QueryFilter {
