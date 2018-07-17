@@ -20,3 +20,7 @@ export interface FilterProps {
   updateFilterString: (filterString: string) => void;
   placeholderText: string;
 }
+
+export interface CardProps<T> {
+  data: T;
+}

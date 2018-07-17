@@ -4,6 +4,7 @@ import { ajax } from 'jquery';
 import * as React from 'react';
 
 import { ClientSummary } from '../../view-models/content-publishing';
+import { ClientCard } from '../shared-components/client-card';
 import { ContentPanelProps } from './interfaces';
 
 export class ClientContentPanel extends React.Component<ContentPanelProps<ClientSummary>, {}> {
@@ -19,7 +20,9 @@ export class ClientContentPanel extends React.Component<ContentPanelProps<Client
         onClick={() => this.props.select(client.Id)}
         style={this.props.selected === client.Id ? {fontWeight: 'bold'} : {}}
       >
-        {client.Name}
+        <ClientCard
+          data={client}
+        />
       </li>
     ));
     return (

@@ -1,13 +1,12 @@
 import 'tooltipster';
 import 'tooltipster/src/css/tooltipster.css';
-import '../../../scss/map.scss';
 
 import * as React from 'react';
 
 import { RootContentItemSummary } from '../../view-models/content-publishing';
-import { Card } from './card';
+import { CardProps } from './interfaces';
 
-export class RootContentItemCard extends Card<RootContentItemSummary> {
+export class RootContentItemCard extends React.Component<CardProps<RootContentItemSummary>, {}> {
   public constructor(props) {
     super(props);
   }

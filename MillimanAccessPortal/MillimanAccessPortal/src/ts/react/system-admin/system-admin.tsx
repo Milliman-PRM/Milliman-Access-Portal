@@ -236,7 +236,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         );
       }
       return null;
-    });
+    })();
 
     const secondaryContentPanel = this.state.primaryColSelection
       ? (
