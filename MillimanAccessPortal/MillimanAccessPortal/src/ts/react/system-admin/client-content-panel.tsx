@@ -18,10 +18,10 @@ export class ClientContentPanel extends React.Component<ContentPanelProps<Client
         key={client.Id}
         // tslint:disable-next-line:jsx-no-lambda
         onClick={() => this.props.select(client.Id)}
-        style={this.props.selected === client.Id ? {fontWeight: 'bold'} : {}}
       >
         <ClientCard
           data={client}
+          selected={this.props.selected === client.Id}
         />
       </li>
     ));

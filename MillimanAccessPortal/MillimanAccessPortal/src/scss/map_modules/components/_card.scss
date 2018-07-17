@@ -58,13 +58,15 @@
             color: $dark-grey !important;
             background-color: darken($light-grey, 5%) !important;
 
-            &[selected] {
+            &[selected],
+            &.selected {
                 border-color: $blue;
                 box-shadow: 0 0 0 3px $blue;
             }
         }
 
-        &[selected] {
+        &[selected],
+        &.selected {
             color: $white;
             background-color: $blue;
         }

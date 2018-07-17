@@ -23,4 +23,5 @@ export interface FilterProps {
 
 export interface CardProps<T> {
   data: T;
+  selected: boolean;
 }
