@@ -5,9 +5,9 @@ import * as React from 'react';
 
 import { ClientSummary } from '../../view-models/content-publishing';
 import { ClientCard } from '../shared-components/client-card';
-import { ContentPanelProps } from './interfaces';
+import { ClientInfo, ContentPanelProps } from './interfaces';
 
-export class ClientContentPanel extends React.Component<ContentPanelProps<ClientSummary>, {}> {
+export class ClientContentPanel extends React.Component<ContentPanelProps<ClientInfo>, {}> {
   public constructor(props) {
     super(props);
   }

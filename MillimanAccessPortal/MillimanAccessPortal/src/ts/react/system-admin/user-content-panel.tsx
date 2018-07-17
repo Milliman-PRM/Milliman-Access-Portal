@@ -3,8 +3,7 @@
 import { ajax } from 'jquery';
 import * as React from 'react';
 
-import { UserInfo } from '../../view-models/content-publishing';
-import { ContentPanelProps } from './interfaces';
+import { ContentPanelProps, UserInfo } from './interfaces';
 
 export class UserContentPanel extends React.Component<ContentPanelProps<UserInfo>, {}> {
   public constructor(props) {
@@ -19,7 +18,7 @@ export class UserContentPanel extends React.Component<ContentPanelProps<UserInfo
         onClick={() => this.props.select(user.Id)}
         style={this.props.selected === user.Id ? {fontWeight: 'bold'} : {}}
       >
-        {user.UserName}
+        {user.Name}
       </li>
     ));
     return (

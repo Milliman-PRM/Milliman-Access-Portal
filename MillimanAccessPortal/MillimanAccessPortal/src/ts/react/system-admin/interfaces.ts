@@ -1,6 +1,4 @@
-﻿import { ClientSummary, UserInfo } from '../../view-models/content-publishing';
-
-export interface SystemAdminState {
+﻿export interface SystemAdminState {
   primaryColContent: string;
   primaryColContentLabel: string;
   primaryColSelection: number;
@@ -11,7 +9,7 @@ export interface SystemAdminState {
   secondaryColFilter?: string;
   addUserDialog: boolean;
   userData: UserInfo[];
-  clientData: ClientSummary[];
+  clientData: ClientInfo[];
   profitCenterData: ProfitCenterInfo[];
 }
 
@@ -40,7 +38,22 @@ export interface ProfitCenterPanelProps {
   makeProfitCenterSelection: (id: string) => void;
 }
 
+export interface UserInfo {
+  Id: number;
+  Name: string;
+}
+
+export interface ClientInfo {
+  Id: number;
+  Name: string;
+}
+
 export interface ProfitCenterInfo {
+  Id: number;
+  Name: string;
+}
+
+export interface RootContentItemInfo {
   Id: number;
   Name: string;
 }

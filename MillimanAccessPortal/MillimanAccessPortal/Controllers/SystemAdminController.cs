@@ -88,6 +88,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             IQueryable<ApplicationUser> query = _dbContext.ApplicationUser;
+            #region Filter query
             if (filter.ProfitCenterId.HasValue)
             {
                 var userIds = _dbContext.UserRoleInProfitCenter
@@ -106,17 +107,17 @@ namespace MillimanAccessPortal.Controllers
                     .ToList();
                 query = query.Where(user => userIds.Contains(user.Id));
             }
+            #endregion
 
-            var users = new List<UserInfoViewModel>();
-            foreach (var applicationUser in query)
+            var userInfoList = new List<UserInfo>();
+            foreach (var user in query)
             {
-                var user = ((UserInfoViewModel)applicationUser);
-                users.Add(user);
+                var userInfo = (UserInfo)user;
+                userInfoList.Add(userInfo);
             }
 
-            return Json(users);
+            return Json(userInfoList);
         }
-
 
         [HttpGet]
         public async Task<ActionResult> Clients(QueryFilter filter)
@@ -133,6 +134,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             IQueryable<Client> query = _dbContext.Client;
+            #region Filter query
             if (filter.UserId.HasValue)
             {
                 var clientIds = _dbContext.UserClaims
@@ -146,19 +148,16 @@ namespace MillimanAccessPortal.Controllers
             {
                 query = query.Where(client => client.ProfitCenterId == filter.ProfitCenterId.Value);
             }
+            #endregion
 
-            var clients = new List<ClientSummary>();
+            var clientInfoList = new List<ClientInfo>();
             foreach (var client in query)
             {
-                clients.Add(new ClientSummary
-                {
-                    Id = client.Id,
-                    Name = client.Name,
-                    Code = client.ClientCode,
-                });
+                var clientInfo = (ClientInfo)client;
+                clientInfoList.Add(clientInfo);
             }
 
-            return Json(clients);
+            return Json(clientInfoList);
         }
 
         [HttpGet]
@@ -176,15 +175,17 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             IQueryable<ProfitCenter> query = _dbContext.ProfitCenter;
+            #region Filter query
+            #endregion
 
-            var profitCenters = new List<ProfitCenterInfo>();
-            foreach (var profitCenter in query)
+            var pcInfoList = new List<ProfitCenterInfo>();
+            foreach (var pc in query)
             {
-                var profitCenterInfo = (ProfitCenterInfo)profitCenter;
-                profitCenters.Add(profitCenterInfo);
+                var pcInfo = (ProfitCenterInfo)pc;
+                pcInfoList.Add(pcInfo);
             }
 
-            return Json(profitCenters);
+            return Json(pcInfoList);
         }
 
         [HttpGet]
@@ -202,6 +203,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             IQueryable<RootContentItem> query = _dbContext.RootContentItem;
+            #region Filter query
             if (filter.UserId.HasValue)
             {
                 var itemIds = _dbContext.UserInSelectionGroup
@@ -214,17 +216,16 @@ namespace MillimanAccessPortal.Controllers
             {
                 query = query.Where(item => item.ClientId == filter.ClientId.Value);
             }
+            #endregion
 
-            var items = new List<RootContentItemSummary>();
+            var itemInfoList = new List<RootContentItemInfo>();
             foreach (var item in query)
             {
-                items.Add(new RootContentItemSummary
-                {
-                    Id = item.Id,
-                });
+                var itemInfo = (RootContentItemInfo)item;
+                itemInfoList.Add(itemInfo);
             }
 
-            return Json(items);
+            return Json(itemInfoList);
         }
     }
 }

@@ -3,13 +3,13 @@ import '../../../scss/react/system-admin/system-admin.scss';
 
 import * as React from 'react';
 
-import { ClientSummary, UserInfo } from '../../view-models/content-publishing';
+import { ClientSummary } from '../../view-models/content-publishing';
 import { ActionIcon } from '../shared-components/action-icon';
 import { ColumnSelector } from '../shared-components/column-selector';
 import { Filter } from '../shared-components/filter';
 import { SelectionOption } from '../shared-components/interfaces';
 import { ClientContentPanel } from './client-content-panel';
-import { ProfitCenterInfo, SystemAdminState } from './interfaces';
+import { ProfitCenterInfo, SystemAdminState, UserInfo } from './interfaces';
 import { ProfitCenterContentPanel } from './profit-center-content-panel';
 import { UserContentPanel } from './user-content-panel';
 
