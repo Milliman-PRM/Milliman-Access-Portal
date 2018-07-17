@@ -111,11 +111,19 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   public makePrimaryColumnSelection = (id: number) => {
-    this.setState({ primaryColSelection: id });
+    this.setState((prevState) => ({
+      primaryColSelection: prevState.primaryColSelection === id
+        ? null
+        : id,
+    }));
   }
 
   public makeSecondaryColumnSelection = (id: number) => {
-    this.setState({ secondaryColSelection: id });
+    this.setState((prevState) => ({
+      secondaryColSelection: prevState.secondaryColSelection === id
+        ? null
+        : id,
+    }));
   }
 
   public addUser = () => {
