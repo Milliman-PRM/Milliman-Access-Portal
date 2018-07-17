@@ -24,31 +24,31 @@ namespace MillimanAccessPortal.Controllers
 {
     public class SystemAdminController : Controller
     {
-        private readonly ApplicationDbContext DbContext;
-        private readonly UserManager<ApplicationUser> UserManager;
-        private readonly StandardQueries Queries;
-        private readonly IAuthorizationService AuthorizationService;
-        private readonly ILogger Logger;
-        private readonly IAuditLogger AuditLogger;
-        private readonly RoleManager<ApplicationRole> RoleManager;
+        private readonly ApplicationDbContext _dbContext;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly StandardQueries _queries;
+        private readonly IAuthorizationService _authService;
+        private readonly ILogger _logger;
+        private readonly IAuditLogger _auditLogger;
+        private readonly RoleManager<ApplicationRole> _roleManager;
 
         public SystemAdminController(
-            ApplicationDbContext context,
-            UserManager<ApplicationUser> UserManagerArg,
-            StandardQueries QueryArg,
-            IAuthorizationService AuthorizationServiceArg,
-            ILoggerFactory LoggerFactoryArg,
-            IAuditLogger AuditLoggerArg,
-            RoleManager<ApplicationRole> RoleManagerArg
+            ApplicationDbContext dbContext,
+            UserManager<ApplicationUser> userManager,
+            StandardQueries queries,
+            IAuthorizationService authService,
+            ILoggerFactory loggerFactory,
+            IAuditLogger auditLogger,
+            RoleManager<ApplicationRole> roleManager
             )
         {
-            DbContext = context;
-            UserManager = UserManagerArg;
-            Queries = QueryArg;
-            AuthorizationService = AuthorizationServiceArg;
-            Logger = LoggerFactoryArg.CreateLogger<ClientAdminController>();
-            AuditLogger = AuditLoggerArg;
-            RoleManager = RoleManagerArg;
+            _dbContext = dbContext;
+            _userManager = userManager;
+            _queries = queries;
+            _authService = authService;
+            _logger = loggerFactory.CreateLogger<SystemAdminController>();
+            _auditLogger = auditLogger;
+            _roleManager = roleManager;
         }
 
         // GET: SystemAdmin
@@ -61,9 +61,9 @@ namespace MillimanAccessPortal.Controllers
         {
             #region Authorization
             // User must have a global Admin role
-            AuthorizationResult Result = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
-            if (!Result.Succeeded)
+            if (!result.Succeeded)
             {
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
@@ -78,19 +78,28 @@ namespace MillimanAccessPortal.Controllers
         {
             #region Authorization
             // User must have a global Admin role
-            AuthorizationResult Result = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
-            if (!Result.Succeeded)
+            if (!result.Succeeded)
             {
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
             #endregion
 
-            IQueryable<ApplicationUser> query = DbContext.ApplicationUser;
+            IQueryable<ApplicationUser> query = _dbContext.ApplicationUser;
+            if (filter.ProfitCenterId.HasValue)
+            {
+                var userIds = _dbContext.UserRoleInProfitCenter
+                    .Where(role => role.ProfitCenterId == filter.ProfitCenterId.Value)
+                    .Where(role => role.Role.RoleEnum == RoleEnum.Admin)
+                    .Select(role => role.UserId)
+                    .ToList();
+                query = query.Where(user => userIds.Contains(user.Id));
+            }
             if (filter.ClientId.HasValue)
             {
-                var userIds = DbContext.UserClaims
+                var userIds = _dbContext.UserClaims
                     .Where(claim => claim.ClaimType == ClaimNames.ClientMembership.ToString())
                     .Where(claim => claim.ClaimValue == filter.ClientId.ToString())
                     .Select(claim => claim.UserId)
@@ -108,24 +117,25 @@ namespace MillimanAccessPortal.Controllers
             return Json(users);
         }
 
+
         [HttpGet]
         public async Task<ActionResult> Clients(QueryFilter filter)
         {
             #region Authorization
             // User must have a global Admin role
-            AuthorizationResult Result = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
-            if (!Result.Succeeded)
+            if (!result.Succeeded)
             {
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
             #endregion
 
-            IQueryable<Client> query = DbContext.Client;
+            IQueryable<Client> query = _dbContext.Client;
             if (filter.UserId.HasValue)
             {
-                var clientIds = DbContext.UserClaims
+                var clientIds = _dbContext.UserClaims
                     .Where(claim => claim.ClaimType == ClaimNames.ClientMembership.ToString())
                     .Where(claim => claim.UserId == filter.UserId.Value)
                     .Select(claim => long.Parse(claim.ClaimValue))
@@ -156,16 +166,16 @@ namespace MillimanAccessPortal.Controllers
         {
             #region Authorization
             // User must have a global Admin role
-            AuthorizationResult Result = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
 
-            if (!Result.Succeeded)
+            if (!result.Succeeded)
             {
                 Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
                 return Unauthorized();
             }
             #endregion
 
-            IQueryable<ProfitCenter> query = DbContext.ProfitCenter;
+            IQueryable<ProfitCenter> query = _dbContext.ProfitCenter;
 
             var profitCenters = new List<ProfitCenterInfo>();
             foreach (var profitCenter in query)
@@ -175,6 +185,46 @@ namespace MillimanAccessPortal.Controllers
             }
 
             return Json(profitCenters);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> RootContentItems(QueryFilter filter)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            IQueryable<RootContentItem> query = _dbContext.RootContentItem;
+            if (filter.UserId.HasValue)
+            {
+                var itemIds = _dbContext.UserInSelectionGroup
+                    .Where(us => us.UserId == filter.UserId.Value)
+                    .Select(us => us.SelectionGroup.RootContentItemId)
+                    .ToList();
+                query = query.Where(item => itemIds.Contains(item.Id));
+            }
+            if (filter.ClientId.HasValue)
+            {
+                query = query.Where(item => item.ClientId == filter.ClientId.Value);
+            }
+
+            var items = new List<RootContentItemSummary>();
+            foreach (var item in query)
+            {
+                items.Add(new RootContentItemSummary
+                {
+                    Id = item.Id,
+                });
+            }
+
+            return Json(items);
         }
     }
 }
