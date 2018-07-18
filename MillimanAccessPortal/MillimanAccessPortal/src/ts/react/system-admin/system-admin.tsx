@@ -8,7 +8,9 @@ import { ColumnSelector } from '../shared-components/column-selector';
 import { Filter } from '../shared-components/filter';
 import { SelectionOption } from '../shared-components/interfaces';
 import { ClientContentPanel } from './client-content-panel';
-import { ClientInfo, ProfitCenterInfo, SystemAdminState, UserInfo, RootContentItemInfo, QueryFilter } from './interfaces';
+import {
+  ClientInfo, ProfitCenterInfo, QueryFilter, RootContentItemInfo, SystemAdminState, UserInfo,
+} from './interfaces';
 import { ProfitCenterContentPanel } from './profit-center-content-panel';
 import { RootContentItemContentPanel } from './root-content-item-content-panel';
 import { UserContentPanel } from './user-content-panel';
@@ -73,6 +75,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     this.setUserData = this.setUserData.bind(this);
     this.setClientData = this.setClientData.bind(this);
     this.setProfitCenterData = this.setProfitCenterData.bind(this);
+    this.setRootContentItemData = this.setRootContentItemData.bind(this);
   }
 
   public selectPrimaryColumn = (colContentSelection: SelectionOption) => {

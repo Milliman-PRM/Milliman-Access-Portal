@@ -38,6 +38,10 @@ export class ClientContentPanel extends React.Component<ContentPanelProps<Client
     this.fetch();
   }
 
+  public componentWillUnmount() {
+    this.props.onFetch([]);
+  }
+
   public fetch() {
     ajax({
       data: this.props.queryFilter,

@@ -3,6 +3,7 @@
 import { ajax } from 'jquery';
 import * as React from 'react';
 
+import { UserCard } from '../shared-components/user-card';
 import { ContentPanelProps, UserInfo } from './interfaces';
 
 export class UserContentPanel extends React.Component<ContentPanelProps<UserInfo>, {}> {
@@ -16,9 +17,11 @@ export class UserContentPanel extends React.Component<ContentPanelProps<UserInfo
         key={user.Id}
         // tslint:disable-next-line:jsx-no-lambda
         onClick={() => this.props.select(user.Id)}
-        style={this.props.selected === user.Id ? {fontWeight: 'bold'} : {}}
       >
-        {user.Name}
+        <UserCard
+          data={user}
+          selected={this.props.selected === user.Id}
+        />
       </li>
     ));
     return (
@@ -32,6 +35,10 @@ export class UserContentPanel extends React.Component<ContentPanelProps<UserInfo
 
   public componentDidMount() {
     this.fetch();
+  }
+
+  public componentWillUnmount() {
+    this.props.onFetch([]);
   }
 
   public fetch() {

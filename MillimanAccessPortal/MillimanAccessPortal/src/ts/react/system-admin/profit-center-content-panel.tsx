@@ -3,6 +3,7 @@
 import { ajax } from 'jquery';
 import * as React from 'react';
 
+import { ProfitCenterCard } from '../shared-components/profit-center-card';
 import { ContentPanelProps, ProfitCenterInfo } from './interfaces';
 
 export class ProfitCenterContentPanel extends React.Component<ContentPanelProps<ProfitCenterInfo>, {}> {
@@ -16,9 +17,11 @@ export class ProfitCenterContentPanel extends React.Component<ContentPanelProps<
         key={profitCenter.Id}
         // tslint:disable-next-line:jsx-no-lambda
         onClick={() => this.props.select(profitCenter.Id)}
-        style={this.props.selected === profitCenter.Id ? {fontWeight: 'bold'} : {}}
       >
-        {profitCenter.Name}
+        <ProfitCenterCard
+          data={profitCenter}
+          selected={this.props.selected === profitCenter.Id}
+        />
       </li>
     ));
     return (
@@ -32,6 +35,10 @@ export class ProfitCenterContentPanel extends React.Component<ContentPanelProps<
 
   public componentDidMount() {
     this.fetch();
+  }
+
+  public componentWillUnmount() {
+    this.props.onFetch([]);
   }
 
   public fetch() {

@@ -37,6 +37,10 @@ export class RootContentItemContentPanel extends React.Component<ContentPanelPro
     this.fetch();
   }
 
+  public componentWillUnmount() {
+    this.props.onFetch([]);
+  }
+
   public fetch() {
     ajax({
       data: this.props.queryFilter,

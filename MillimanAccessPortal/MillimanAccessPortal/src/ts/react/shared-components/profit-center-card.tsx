@@ -8,10 +8,10 @@ import '../../../images/reports.svg';
 
 import * as React from 'react';
 
-import { ClientInfo } from '../system-admin/interfaces';
+import { ProfitCenterInfo } from '../system-admin/interfaces';
 import { CardProps } from './interfaces';
 
-export class ClientCard extends React.Component<CardProps<ClientInfo>, {}> {
+export class ProfitCenterCard extends React.Component<CardProps<ProfitCenterInfo>, {}> {
   public constructor(props) {
     super(props);
   }

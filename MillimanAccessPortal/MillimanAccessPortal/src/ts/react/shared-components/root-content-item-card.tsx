@@ -14,7 +14,9 @@ export class RootContentItemCard extends React.Component<CardProps<RootContentIt
   public render() {
     return (
       <div className="card-container">
-        <div className="card-body-container">
+        <div
+          className={`card-body-container${this.props.selected ? ' selected' : ''}`}
+        >
           <div className="card-body-main-container">
             <div className="card-body-primary-container">
               <h2 className="card-body-primary-text">
