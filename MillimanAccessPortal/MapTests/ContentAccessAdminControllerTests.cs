@@ -8,6 +8,8 @@ using MapDbContextLib.Context;
 using TestResourcesLib;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
+using MapCommonLib;
+using MapDbContextLib.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -134,8 +136,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-            StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal("422", viewResult.StatusCode.ToString());
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             #endregion
         }
 
@@ -185,8 +186,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-            StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal("422", viewResult.StatusCode.ToString());
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             #endregion
         }
 
@@ -240,8 +240,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-            StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal("422", viewResult.StatusCode.ToString());
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             Assert.Equal(preCount, postCount);
             #endregion
         }
@@ -325,8 +324,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-            StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal("422", viewResult.StatusCode.ToString());
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             Assert.Equal(preCount, postCount);
             #endregion
         }
@@ -423,8 +421,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-            StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal("422", viewResult.StatusCode.ToString());
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             Assert.Equal(groupsPreCount, groupsPostCount);
             Assert.Equal(userPreCount, userPostCount);
             #endregion
@@ -509,8 +506,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-            StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal("422", viewResult.StatusCode.ToString());
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             #endregion
         }
 
@@ -590,8 +586,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-            StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal("422", viewResult.StatusCode.ToString());
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             Assert.Equal(tasksPreCount, tasksPostCount);
             #endregion
         }
@@ -630,63 +625,6 @@ namespace MapTests
             #endregion
         }
 
-        [Fact]
-        public async Task SingleReduction_ReturnsJson()
-        {
-            #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("user1");
-            var Selections = new long[]
-            {
-                2,
-            };
-            #endregion
-
-            #region Act
-            var view = controller.UpdateSelections(1, false, Selections);
-            #endregion
-
-            #region Assert
-            #endregion
-        }
-
-        [Theory]
-        [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Live })]                                // No outstanding tasks exist
-        [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Live, ReductionStatusEnum.Canceled  })]  // "
-        [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Live, ReductionStatusEnum.Rejected })]  // "
-        [InlineData(1, new ReductionStatusEnum[] { ReductionStatusEnum.Live, ReductionStatusEnum.Replaced  })]  // "
-        public async Task SingleReduction_Success(long SelectionGroupId, ReductionStatusEnum[] Tasks)
-        {
-            #region Arrange
-            ContentAccessAdminController controller = await GetControllerForUser("user1");
-            var Selections = new long[]
-            {
-                2,
-            };
-            foreach (var Status in Tasks)
-            {
-                TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
-                {
-                    ReductionStatus = Status,
-                    ContentPublicationRequestId = null,
-                    SelectionGroupId = SelectionGroupId,
-                    ApplicationUserId = 1
-                });
-            }
-            #endregion
-
-            #region Act
-            int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
-
-            var view = await controller.UpdateSelections(SelectionGroupId, false, Selections);
-
-            int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
-            #endregion
-
-            #region Assert
-            Assert.Equal(tasksPreCount + 1, tasksPostCount);
-            #endregion
-        }
-
         [Theory]
         [InlineData(1, null, new ReductionStatusEnum[] { })]                                // No queued tasks exist
         [InlineData(1, null, new ReductionStatusEnum[] { ReductionStatusEnum.Reducing  })]  // "
@@ -722,8 +660,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-            StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal("422", viewResult.StatusCode.ToString());
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             Assert.Equal(tasksPreCount, tasksPostCount);
             #endregion
         }
