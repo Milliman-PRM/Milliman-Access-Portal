@@ -28,6 +28,9 @@ import {
   BasicNode, ClientSummary, ClientTree, ReductionField, ReductionFieldValueSelection,
   RootContentItemDetail, RootContentItemList, RootContentItemSummary, UserInfo,
 } from '../view-models/content-publishing';
+import { SelectionStatusMonitor } from './selection-status-monitor';
+
+let statusMonitor: SelectionStatusMonitor;
 
 function updateSelectionGroupCount() {
   $('#root-content-items [selected] [href="#group"]')
@@ -401,4 +404,7 @@ export function setup() {
   });
 
   $('.tooltip').tooltipster();
+
+  statusMonitor = new SelectionStatusMonitor();
+  statusMonitor.start();
 }
