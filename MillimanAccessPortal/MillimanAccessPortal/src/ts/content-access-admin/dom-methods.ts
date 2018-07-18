@@ -124,6 +124,13 @@ function submitSelectionForm() {
   });
 }
 
+function validateSelections() {
+  const same = $('#selection-info .selection-content input[type="checkbox"]')
+    .toArray().map((element) => $(element).prop('checked') === $(element).data('originalValue'))
+    .reduce((cum, cur) => cum && cur, true);
+  $('#selection-info .blue-button').hide().filter(() => !same).show();
+}
+
 function renderValue(
   value: ReductionFieldValueSelection,
   $fieldset: JQuery<HTMLElement>,
@@ -143,13 +150,18 @@ function renderValue(
   const live = liveSelections.filter((s) => s.Id === value.Id);
   const pending = pendingSelections && pendingSelections.filter((s) => s.Id === value.Id);
   $checkbox.find('input[type="checkbox"]')
-    .prop('checked', pending ? pending.length > 0 : live.length > 0);
+    .prop('checked', pending ? pending.length > 0 : live.length > 0)
+    .data('originalValue', live.length > 0);
   if (pending && live.length && live[0].Marked) {
     $div.attr('style', 'color: red;');
   }
   if (pending && pending.length && pending[0].Marked) {
     $div.attr('style', 'color: green;');
   }
+
+  // hide button if no changes
+  $('#selection-info .selection-content input[type="checkbox"]')
+    .on('click', validateSelections);
 }
 
 function renderField(
@@ -188,7 +200,9 @@ function renderSelections(response: SelectionsDetail) {
 
   const comparison = response.SelectionComparison;
   const isMaster = comparison.PendingSelections === null && comparison.IsLiveMaster;
-  $('#IsMaster').prop('checked', isMaster);
+  $('#IsMaster')
+    .prop('checked', isMaster)
+    .data('originalValue', isMaster);
   $fieldsetDiv.hide().filter(() => !isMaster).show();
   $('#IsSuspended').prop('checked', response.IsSuspended);
   $('#selection-info form.admin-panel-content .selection-content')
@@ -201,6 +215,7 @@ function renderSelections(response: SelectionsDetail) {
   $selectionInfo
     .find('button').hide()
     .filter(`.button-status-${details.StatusEnum}`).show();
+  $('#selection-info .blue-button').hide();
   // TODO: rely on some flag in the response to disable checkboxes
   const readonly = [10, 20, 30].indexOf(details.StatusEnum) !== -1;
   $fieldsetDiv
@@ -225,6 +240,7 @@ function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
       ],
     )),
     selectionGroupDeleteClickHandler,
+    // edit selection group click handler
     (event: Event) => {
       event.stopPropagation();
       const $target = $(event.target).closest('.card-body-container');
@@ -240,6 +256,7 @@ function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
       setExpanded($('#selection-groups'), $target);
       $target.find('.tt-input').focus();
     },
+    // confirm changes click handler
     (event: Event) => {
       event.stopPropagation();
       const $target = $(event.target).closest('.card-body-container');
@@ -369,6 +386,7 @@ export function setup() {
   $('#IsMaster').click(() => {
     $('#selection-info form.admin-panel-content .fieldset-container')
       .hide().filter(() => !$('#IsMaster').prop('checked')).show();
+    validateSelections();
   });
   $('#IsSuspended').click((event) => {
     event.preventDefault();

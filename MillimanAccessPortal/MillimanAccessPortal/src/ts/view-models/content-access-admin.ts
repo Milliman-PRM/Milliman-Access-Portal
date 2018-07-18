@@ -1,5 +1,5 @@
 import {
-  ContentReductionHierarchy, PublicationDetails, ReductionFieldValueSelection, UserInfo, RootContentItemStatus,
+  ContentReductionHierarchy, ReductionFieldValueSelection, RootContentItemStatus, UserInfo,
 } from './content-publishing';
 
 export enum ReductionStatus {
