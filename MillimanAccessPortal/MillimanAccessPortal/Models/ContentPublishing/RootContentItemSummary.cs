@@ -46,8 +46,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 PublicationDetails = publicationDetails,
             };
 
-            var eligibleUsers = dbContext.UserRoleInRootContentItem
-                .Where(role => role.RootContentItemId == rootContentItem.Id)
+            var eligibleUsers = dbContext.UserRoleInClient
+                .Where(role => role.ClientId == rootContentItem.ClientId)
                 .Where(role => role.Role.RoleEnum == RoleEnum.ContentUser)
                 .Select(role => role.User)
                 .ToList();

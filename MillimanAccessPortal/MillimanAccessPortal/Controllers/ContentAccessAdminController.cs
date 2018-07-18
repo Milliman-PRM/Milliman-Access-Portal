@@ -428,9 +428,9 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            var Permissioned = DbContext.UserRoleInRootContentItem
+            var Permissioned = DbContext.UserRoleInClient
                 .Where(ur => UserAdditions.Contains(ur.UserId))
-                .Where(ur => ur.RootContentItemId == SelectionGroup.RootContentItemId)
+                .Where(ur => ur.ClientId == SelectionGroup.RootContentItem.ClientId)
                 .Where(ur => ur.RoleId == ((long) RoleEnum.ContentUser));
             if (Permissioned.Count() < UserAdditions.Count())
             {
