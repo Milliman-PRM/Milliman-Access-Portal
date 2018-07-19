@@ -81,7 +81,7 @@ export class FormInputSection extends FormElement {
     if (accessMode === AccessMode.Defer) {
       this.inputs.forEach((input) => {
         input.setAccessMode(submissionMode.groups
-          .filter((group) => group.sections.indexOf(this.name) !== -1).length
+          .filter((group) => group.sections !== undefined && group.sections.indexOf(this.name) !== -1).length
             ? AccessMode.Write
             : AccessMode.Read,
         );

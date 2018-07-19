@@ -8,6 +8,7 @@ namespace MapDbContextLib.Models
     {
         public string FullPath { get; set; }
         public string FilePurpose { get; set; }
+        public string FileOriginalName { get; set; }
         public string Checksum { get; set; }
     }
 }

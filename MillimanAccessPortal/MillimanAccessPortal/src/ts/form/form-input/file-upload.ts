@@ -21,6 +21,8 @@ export class FileUploadInput extends FormInput {
     return this._upload;
   }
 
+  private originalName: string;
+
   public configure(token: string) {
     this.upload.setFileTypes(fileTypes.get(this.component));
 
@@ -42,7 +44,8 @@ export class FileUploadInput extends FormInput {
     this.upload.onProgressMessage = (message: string) => undefined;
 
     this.upload.onFileAdded = (resumableFile: any) => {
-      this.$entryPoint.find('input.file-upload').val(resumableFile.fileName);
+      this.originalName = resumableFile.fileName;
+      this.$entryPoint.find('input.file-upload').val(this.originalName);
       if (this.component === UploadComponent.Image) {
         const reader = new FileReader();
         reader.onload = (event) => {
@@ -52,7 +55,7 @@ export class FileUploadInput extends FormInput {
       }
     };
     this.upload.onFileSuccess = (fileGUID: string) => {
-      this.value = fileGUID;
+      this.value = `${this.originalName}|${fileGUID}`;
     };
     this.upload.onStateChange = (alertUnload: boolean, cancelable: boolean) => {
       this.uploadInProgress = alertUnload;
@@ -64,6 +67,7 @@ export class FileUploadInput extends FormInput {
     const clickableElement = this.$entryPoint.find('label')[0];
     const $clonedInput = $(clickableElement.cloneNode(true));
     $clonedInput.find('input[type="file"]').remove();
+    $clonedInput.find('.file-upload').data($(clickableElement).find('.file-upload').data());
     $(clickableElement).replaceWith($clonedInput);
 
     this.upload.assignBrowse(this.$entryPoint.find('label')[0]);
@@ -76,7 +80,9 @@ export class FileUploadInput extends FormInput {
 
   public reset() {
     super.reset();
-    this.$entryPoint.find('input.file-upload').val('');
+    const $fileUpload = this.$entryPoint.find('input.file-upload');
+    const fileUploadData = $fileUpload.data();
+    $fileUpload.val(fileUploadData && fileUploadData.originalName || '');
     this.$entryPoint.find('img.image-preview').removeAttr('src');
     if (this.upload) {
       this.upload.reset();

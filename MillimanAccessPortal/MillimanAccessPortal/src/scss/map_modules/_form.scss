@@ -220,6 +220,10 @@ label.input-with-upload {
             right: .25em;
             top: 1.9em;
             z-index: 2;
+
+            &[disabled="disabled"] {
+                display: none !important;
+            }
         }
     }
 

@@ -316,9 +316,7 @@ namespace MillimanAccessPortal.Controllers
             // Update the current item so that it can be updated
             // See ClientAdminController.cs
             currentRootContentItem.ContentName = rootContentItem.ContentName;
-            currentRootContentItem.ContentTypeId = rootContentItem.ContentTypeId;
             currentRootContentItem.Description = rootContentItem.Description;
-            currentRootContentItem.DoesReduce = rootContentItem.DoesReduce;
             currentRootContentItem.Notes = rootContentItem.Notes;
             currentRootContentItem.TypeSpecificDetail = rootContentItem.TypeSpecificDetail;
 
@@ -381,6 +379,16 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
+            List<PublicationStatus> blockingRequestStatusList = new List<PublicationStatus>
+                                                              { PublicationStatus.Processing, PublicationStatus.Processed, PublicationStatus.Queued };
+            var blocked = DbContext.ContentPublicationRequest
+                .Where(r => r.RootContentItemId == rootContentItemId)
+                .Any(r => blockingRequestStatusList.Contains(r.RequestStatus));
+            if (blocked)
+            {
+                Response.Headers.Add("Warning", "The specified root content item cannot be deleted at this time.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             RootContentItemDetail model = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, rootContentItem);
@@ -1197,6 +1205,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     FilePurpose = RelatedFile.FilePurpose,
                     FullPath = DestinationFullPath,
+                    FileOriginalName = RelatedFile.FileOriginalName,
                     Checksum = FileUploadRecord.Checksum,
                 };
 
