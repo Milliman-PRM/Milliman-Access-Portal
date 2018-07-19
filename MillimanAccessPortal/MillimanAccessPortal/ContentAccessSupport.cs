@@ -1,4 +1,10 @@
-﻿using AuditLogLib;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: Functionality to support actions in the ContentAccessAdminController
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using AuditLogLib;
 using System;
 using System.Collections.Generic;
 using System.IO;
