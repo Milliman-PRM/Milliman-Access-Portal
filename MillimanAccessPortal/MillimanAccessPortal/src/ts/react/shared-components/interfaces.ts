@@ -1,11 +1,13 @@
-﻿export interface ActionIconProps {
+﻿import { Column } from '../system-admin/interfaces';
+
+export interface ActionIconProps {
   title: string;
   action: (event: React.MouseEvent<HTMLElement>) => void;
   icon: string;
 }
 
 export interface ColumnSelectorOption {
-  contentList: JSX.Element;
+  column: Column;
   displayName: string;
 }
 

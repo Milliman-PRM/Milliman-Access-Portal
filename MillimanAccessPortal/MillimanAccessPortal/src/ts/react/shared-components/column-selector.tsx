@@ -1,12 +1,14 @@
 ﻿import '../../../scss/react/shared-components/column-selector.scss';
 
 import * as React from 'react';
+
+import { Column } from '../system-admin/interfaces';
 import { ColumnSelectorOption } from './interfaces';
 
 interface ColumnSelectorProps {
-  options: ColumnSelectorOption[];
-  select: (id: number) => void;
-  selected: number;
+  columnOptions: ColumnSelectorOption[];
+  setSelected: (id: Column) => void;
+  selected: Column;
 }
 
 export class ColumnSelector extends React.Component<ColumnSelectorProps, {}> {
@@ -15,16 +17,16 @@ export class ColumnSelector extends React.Component<ColumnSelectorProps, {}> {
   }
 
   public render() {
-    const options = this.props.options.map((option, index) => {
-      const selectorClass = (this.props.selected === index)
+    const options = this.props.columnOptions.map((option) => {
+      const selectorClass = (this.props.selected === option.column)
         ? 'selected'
         : null;
       return (
         <div
-          key={index}
+          key={option.column}
           className={`content-option ${selectorClass}`}
           // tslint:disable-next-line:jsx-no-lambda
-          onClick={() => this.props.select(index)}
+          onClick={() => this.props.setSelected(option.column)}
         >
           {option.displayName}
         </div>

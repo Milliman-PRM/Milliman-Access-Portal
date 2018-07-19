@@ -4,9 +4,15 @@ import '../../../scss/react/system-admin/system-admin.scss';
 import * as React from 'react';
 
 import { QueryFilter } from '../shared-components/interfaces';
-import { PrimaryContentPanel } from './primary-content-panel';
+import { ClientContentPanel } from './content-panel/client-content-panel';
+import { ProfitCenterContentPanel } from './content-panel/profit-center-content-panel';
+import { RootContentPanel } from './content-panel/root-content-panel';
+import { UserContentPanel } from './content-panel/user-content-panel';
+import { Column } from './interfaces';
 
 export interface SystemAdminState {
+  selectedPrimaryColumn: Column;
+  selectedSecondaryColumn: Column;
   secondaryQueryFilter: QueryFilter;
   finalQueryFilter: QueryFilter;
 }
@@ -57,10 +63,14 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     this.state = {
       finalQueryFilter: {},
       secondaryQueryFilter: {},
+      selectedPrimaryColumn: Column.User,
+      selectedSecondaryColumn: Column.Undefined,
     };
 
     this.setSecondaryQueryFilter = this.setSecondaryQueryFilter.bind(this);
     this.setFinalQueryFilter = this.setFinalQueryFilter.bind(this);
+    this.setSelectedPrimaryColumn = this.setSelectedPrimaryColumn.bind(this);
+    this.setSelectedSecondaryColumn = this.setSelectedSecondaryColumn.bind(this);
   }
 
   public render() {
@@ -158,20 +168,55 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
     return [
       (
-        <PrimaryContentPanel
+        <RootContentPanel
           controller={this.controller}
-          queryFilter={{}}
           setQueryFilter={this.setSecondaryQueryFilter}
-        />
-      ),
-      (
-        <PrimaryContentPanel
-          controller={this.controller}
           queryFilter={{}}
-          setQueryFilter={this.setFinalQueryFilter}
+          setSelectedColumn={this.setSelectedPrimaryColumn}
+          selectedColumn={this.state.selectedPrimaryColumn}
         />
       ),
+      this.renderSecondaryContentPanel(),
     ];
+  }
+
+  private renderSecondaryContentPanel(): JSX.Element {
+    switch (this.state.selectedPrimaryColumn) {
+      case Column.User:
+        return (
+          <UserContentPanel
+            controller={this.controller}
+            setQueryFilter={this.setFinalQueryFilter}
+            queryFilter={this.state.secondaryQueryFilter}
+            setSelectedColumn={this.setSelectedSecondaryColumn}
+            selectedColumn={this.state.selectedSecondaryColumn}
+          />
+        );
+      case Column.Client:
+        return (
+          <ClientContentPanel
+            controller={this.controller}
+            setQueryFilter={this.setFinalQueryFilter}
+            queryFilter={this.state.secondaryQueryFilter}
+            setSelectedColumn={this.setSelectedSecondaryColumn}
+            selectedColumn={this.state.selectedSecondaryColumn}
+          />
+        );
+      case Column.ProfitCenter:
+        return (
+          <ProfitCenterContentPanel
+            controller={this.controller}
+            setQueryFilter={this.setFinalQueryFilter}
+            queryFilter={this.state.secondaryQueryFilter}
+            setSelectedColumn={this.setSelectedSecondaryColumn}
+            selectedColumn={this.state.selectedSecondaryColumn}
+          />
+        );
+      default:
+        return (
+          <div />
+        );
+    }
   }
 
   private setSecondaryQueryFilter(queryFilter: QueryFilter) {
@@ -186,4 +231,15 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     });
   }
 
+  private setSelectedPrimaryColumn(column: Column) {
+    this.setState({
+      selectedPrimaryColumn: column,
+    });
+  }
+
+  private setSelectedSecondaryColumn(column: Column) {
+    this.setState({
+      selectedSecondaryColumn: column,
+    });
+  }
 }

@@ -2,35 +2,36 @@ import '../../../scss/react/shared-components/content-panel.scss';
 
 import * as React from 'react';
 
+import { Column } from '../system-admin/interfaces';
 import { ColumnSelector } from './column-selector';
-import { ContentList } from './content-list';
 import { ColumnSelectorOption, QueryFilter } from './interfaces';
 
 export interface ContentPanelProps {
+  controller: string;
   setQueryFilter: (queryFilter: QueryFilter) => void;
   queryFilter: QueryFilter;
-  controller: string;
+  setSelectedColumn: (column: Column) => void;
+  selectedColumn: Column;
 }
 interface ContentPanelState {
   action: string;
-  selectedColumn: number;
 }
 
 export abstract class ContentPanel extends React.Component<ContentPanelProps, ContentPanelState> {
-  protected _options: ColumnSelectorOption[];
-  private get options() {
-    return this._options;
-  }
+  protected columns: ColumnSelectorOption[];
 
   public constructor(props) {
     super(props);
 
     this.state = {
       action: '',
-      selectedColumn: 0,
     };
 
     this.selectColumn = this.selectColumn.bind(this);
+  }
+
+  public componentDidMount() {
+    this.props.setSelectedColumn(this.getDefaultColumn());
   }
 
   public render() {
@@ -39,18 +40,19 @@ export abstract class ContentPanel extends React.Component<ContentPanelProps, Co
         className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12"
       >
         <ColumnSelector
-          options={this.options}
-          select={this.selectColumn}
-          selected={this.state.selectedColumn}
+          columnOptions={this.columns}
+          setSelected={this.selectColumn}
+          selected={this.props.selectedColumn}
         />
-        {this.options[this.state.selectedColumn].contentList}
+        {this.renderContentList()}
       </div>
     );
   }
 
-  private selectColumn(id: number) {
-    this.setState({
-      selectedColumn: id,
-    });
+  protected abstract renderContentList(): JSX.Element;
+  protected abstract getDefaultColumn(): Column;
+
+  private selectColumn(id: Column) {
+    this.props.setSelectedColumn(id);
   }
 }

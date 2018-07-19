@@ -37,3 +37,11 @@ export interface RootContentItemInfo {
   Id: number;
   Name: string;
 }
+
+export enum Column {
+  Undefined = 0,
+  User = 1,
+  Client = 2,
+  ProfitCenter = 3,
+  RootContentItem = 4,
+}
