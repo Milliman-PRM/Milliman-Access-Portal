@@ -1,10 +1,7 @@
-import 'tooltipster';
-import 'tooltipster/src/css/tooltipster.css';
-
 import * as React from 'react';
 
 import { RootContentItemInfo } from '../system-admin/interfaces';
-import { CardProps } from './interfaces';
+import { CardProps } from './card';
 
 export class RootContentItemCard extends React.Component<CardProps<RootContentItemInfo>, {}> {
   public constructor(props) {
@@ -20,7 +17,7 @@ export class RootContentItemCard extends React.Component<CardProps<RootContentIt
           <div className="card-body-main-container">
             <div className="card-body-primary-container">
               <h2 className="card-body-primary-text">
-                {this.props.data.Name}
+                {this.props.entity.Name}
               </h2>
             </div>
           </div>

@@ -4,24 +4,26 @@
   icon: string;
 }
 
-export interface ColumnSelectorProps {
-  colContentSelection: (option: SelectionOption) => void;
-  colContentOptions: SelectionOption[];
-  colContent: string;
-}
-
-export interface SelectionOption {
-  label: string;
-  value: string;
+export interface ColumnSelectorOption {
+  contentList: JSX.Element;
+  displayName: string;
 }
 
 export interface FilterProps {
   filterText: string;
-  updateFilterString: (filterString: string) => void;
+  setFilterText: (filterString: string) => void;
   placeholderText: string;
 }
 
-export interface CardProps<T> {
-  data: T;
-  selected: boolean;
+// Represents an EF entity
+export interface Entity {
+  Id: number;
+  Name: string;
+}
+
+export interface QueryFilter {
+  userId?: number;
+  clientId?: number;
+  profitCenterId?: number;
+  rootContentItemId?: number;
 }

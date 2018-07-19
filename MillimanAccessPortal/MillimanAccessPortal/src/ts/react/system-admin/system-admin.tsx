@@ -3,17 +3,13 @@ import '../../../scss/react/system-admin/system-admin.scss';
 
 import * as React from 'react';
 
-import { ActionIcon } from '../shared-components/action-icon';
-import { ColumnSelector } from '../shared-components/column-selector';
-import { Filter } from '../shared-components/filter';
-import { SelectionOption } from '../shared-components/interfaces';
-import { ClientContentPanel } from './client-content-panel';
-import {
-  ClientInfo, ProfitCenterInfo, QueryFilter, RootContentItemInfo, SystemAdminState, UserInfo,
-} from './interfaces';
-import { ProfitCenterContentPanel } from './profit-center-content-panel';
-import { RootContentItemContentPanel } from './root-content-item-content-panel';
-import { UserContentPanel } from './user-content-panel';
+import { QueryFilter } from '../shared-components/interfaces';
+import { PrimaryContentPanel } from './primary-content-panel';
+
+export interface SystemAdminState {
+  secondaryQueryFilter: QueryFilter;
+  finalQueryFilter: QueryFilter;
+}
 
 export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   // tslint:disable:object-literal-sort-keys
@@ -53,117 +49,22 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     },
   };
   // tslint:enable:object-literal-sort-keys
+  private controller: string = 'SystemAdmin';
 
   public constructor(props) {
     super(props);
+
     this.state = {
-      addUserDialog: false,
-      clientData: [],
-      primaryColContent: 'Users',
-      primaryColContentLabel: 'Users',
-      primaryColFilter: null,
-      primaryColSelection: null,
-      profitCenterData: [],
-      rootContentItemData: [],
-      secondaryColContent: 'Clients',
-      secondaryColContentLabel: 'Clients',
-      secondaryColFilter: null,
-      secondaryColSelection: null,
-      userData: [],
+      finalQueryFilter: {},
+      secondaryQueryFilter: {},
     };
 
-    this.setUserData = this.setUserData.bind(this);
-    this.setClientData = this.setClientData.bind(this);
-    this.setProfitCenterData = this.setProfitCenterData.bind(this);
-    this.setRootContentItemData = this.setRootContentItemData.bind(this);
-  }
-
-  public selectPrimaryColumn = (colContentSelection: SelectionOption) => {
-    if (colContentSelection.value !== this.state.primaryColContent) {
-      const newSecondaryColContent = Object.keys(this.structure[colContentSelection.value].secColElements)[0];
-      this.setState({
-        primaryColContent: colContentSelection.value,
-        primaryColContentLabel: colContentSelection.label,
-        primaryColFilter: null,
-        primaryColSelection: null,
-        secondaryColContent: newSecondaryColContent,
-        secondaryColContentLabel: this
-          .structure[colContentSelection.value]
-          .secColElements[newSecondaryColContent]
-          .displayValue,
-        secondaryColFilter: null,
-        secondaryColSelection: null,
-      });
-    }
-  }
-
-  public selectSecondaryColumn = (colContentSelection: SelectionOption) => {
-    if (colContentSelection.value !== this.state.secondaryColContent) {
-      this.setState({
-        secondaryColContent: colContentSelection.value,
-        secondaryColContentLabel: colContentSelection.label,
-      });
-    }
-  }
-
-  public updatePrimaryColumnFilter = (filterString: string) => {
-    this.setState({ primaryColFilter: filterString });
-  }
-
-  public updateSecondaryColumnFilter = (filterString: string) => {
-    this.setState({ secondaryColFilter: filterString });
-  }
-
-  public makePrimaryColumnSelection = (id: number) => {
-    this.setState((prevState) => ({
-      primaryColSelection: prevState.primaryColSelection === id
-        ? null
-        : id,
-    }));
-  }
-
-  public makeSecondaryColumnSelection = (id: number) => {
-    this.setState((prevState) => ({
-      secondaryColSelection: prevState.secondaryColSelection === id
-        ? null
-        : id,
-    }));
-  }
-
-  public addUser = () => {
-    console.log('Add User');
-  }
-
-  public addPC = () => {
-    console.log('Add Profit Center');
-  }
-
-  public setUserData(data: UserInfo[]) {
-    this.setState({
-      userData: data,
-    });
-  }
-
-  public setClientData(data: ClientInfo[]) {
-    this.setState({
-      clientData: data,
-    });
-  }
-
-  public setProfitCenterData(data: ProfitCenterInfo[]) {
-    this.setState({
-      profitCenterData: data,
-    });
-  }
-
-  public setRootContentItemData(data: RootContentItemInfo[]) {
-    this.setState({
-      rootContentItemData: data,
-    });
+    this.setSecondaryQueryFilter = this.setSecondaryQueryFilter.bind(this);
+    this.setFinalQueryFilter = this.setFinalQueryFilter.bind(this);
   }
 
   public render() {
-
+    /*
     // Define the primary column options
     const primaryColOptions = Object.keys(this.structure).map((property) => {
       return {
@@ -210,11 +111,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         case 'Users':
           return (
             <UserContentPanel
-              selected={this.state.primaryColSelection}
-              select={this.makePrimaryColumnSelection}
-              data={this.state.userData}
-              onFetch={this.setUserData}
+              setQueryFilter={() => {}}
               queryFilter={{}}
+              controller={this.controller}
             />
           );
         case 'Clients':
@@ -255,118 +154,36 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       }
       return null;
     })();
+    */
 
-    const secondaryContent = (() => {
-      switch (this.state.secondaryColContent) {
-        case 'Clients':
-          const queryFilter: QueryFilter = this.state.primaryColContent === 'Users'
-            ? { userId: this.state.primaryColSelection }
-            : { profitCenterId: this.state.primaryColSelection };
-          return (
-            <ClientContentPanel
-              selected={this.state.secondaryColSelection}
-              select={this.makeSecondaryColumnSelection}
-              data={this.state.clientData}
-              onFetch={this.setClientData}
-              queryFilter={queryFilter}
-            />
-          );
-        case 'AuthContent':
-          return (
-            <RootContentItemContentPanel
-              selected={this.state.secondaryColSelection}
-              select={this.makeSecondaryColumnSelection}
-              data={this.state.rootContentItemData}
-              onFetch={this.setRootContentItemData}
-              queryFilter={{ userId: this.state.primaryColSelection }}
-            />
-          );
-        case 'Users':
-          return (
-            <UserContentPanel
-              selected={this.state.secondaryColSelection}
-              select={this.makeSecondaryColumnSelection}
-              data={this.state.userData}
-              onFetch={this.setUserData}
-              queryFilter={{ clientId: this.state.primaryColSelection }}
-            />
-          );
-        case 'Content':
-          return (
-            <RootContentItemContentPanel
-              selected={this.state.secondaryColSelection}
-              select={this.makeSecondaryColumnSelection}
-              data={this.state.rootContentItemData}
-              onFetch={this.setRootContentItemData}
-              queryFilter={{ clientId: this.state.primaryColSelection }}
-            />
-          );
-        case 'AuthUsers':
-          return (
-            <UserContentPanel
-              selected={this.state.secondaryColSelection}
-              select={this.makeSecondaryColumnSelection}
-              data={this.state.userData}
-              onFetch={this.setUserData}
-              queryFilter={{ profitCenterId: this.state.primaryColSelection }}
-            />
-          );
-        default:
-          return null;
-      }
-    })();
-
-    const secondaryContentPanel = this.state.primaryColSelection
-      ? (
-        <div
-          id="secondary-content-panel"
-          className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12"
-        >
-          <ColumnSelector
-            colContentOptions={secondaryColOptions}
-            colContent={this.state.secondaryColContent}
-            colContentSelection={this.selectSecondaryColumn}
-          />
-          <div className="admin-panel-toolbar">
-            <Filter
-              filterText={this.state.secondaryColFilter}
-              updateFilterString={this.updateSecondaryColumnFilter}
-              placeholderText={`Filter ${this.state.secondaryColContentLabel}`}
-            />
-            <div className="admin-panel-action-icons-container">
-              {secondaryAddIcon}
-            </div>
-          </div>
-          {secondaryContent}
-        </div>
-      )
-      : null;
-
-    return (
-      <div id="master-content-container">
-        <div
-          id="primary-content-panel"
-          className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12"
-        >
-          <ColumnSelector
-            colContentOptions={primaryColOptions}
-            colContent={this.state.primaryColContent}
-            colContentSelection={this.selectPrimaryColumn}
-          />
-          <div className="admin-panel-toolbar">
-            <Filter
-              filterText={this.state.primaryColFilter}
-              updateFilterString={this.updatePrimaryColumnFilter}
-              placeholderText={`Filter ${this.state.primaryColContentLabel}`}
-            />
-            <div className="admin-panel-action-icons-container">
-              {addIcon}
-            </div>
-          </div>
-          {primaryContent}
-        </div>
-        {secondaryContentPanel}
-      </div>
-    );
+    return [
+      (
+        <PrimaryContentPanel
+          controller={this.controller}
+          queryFilter={{}}
+          setQueryFilter={this.setSecondaryQueryFilter}
+        />
+      ),
+      (
+        <PrimaryContentPanel
+          controller={this.controller}
+          queryFilter={{}}
+          setQueryFilter={this.setFinalQueryFilter}
+        />
+      ),
+    ];
   }
+
+  private setSecondaryQueryFilter(queryFilter: QueryFilter) {
+    this.setState({
+      secondaryQueryFilter: queryFilter,
+    });
+  }
+
+  private setFinalQueryFilter(queryFilter: QueryFilter) {
+    this.setState({
+      finalQueryFilter: queryFilter,
+    });
+  }
+
 }

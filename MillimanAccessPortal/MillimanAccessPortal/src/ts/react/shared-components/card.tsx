@@ -1,17 +1,13 @@
-import 'tooltipster';
-import 'tooltipster/src/css/tooltipster.css';
-import '../../../images/add.svg';
-import '../../../images/delete.svg';
-import '../../../images/edit.svg';
-import '../../../images/group.svg';
-import '../../../images/reports.svg';
-
 import * as React from 'react';
 
-import { UserInfo } from '../system-admin/interfaces';
-import { CardProps } from './interfaces';
+import { Entity } from './interfaces';
 
-export class UserCard extends React.Component<CardProps<UserInfo>, {}> {
+export interface CardProps<T> {
+  entity: T;
+  selected: boolean;
+}
+
+export class Card<T extends Entity> extends React.Component<CardProps<T>, {}> {
   public constructor(props) {
     super(props);
   }
@@ -25,7 +21,7 @@ export class UserCard extends React.Component<CardProps<UserInfo>, {}> {
           <div className="card-body-main-container">
             <div className="card-body-primary-container">
               <h2 className="card-body-primary-text">
-                {this.props.data.Name}
+                {this.props.entity.Name}
               </h2>
             </div>
           </div>

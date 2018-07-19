@@ -14,7 +14,7 @@ export class Filter extends React.Component<FilterProps, {}> {
   }
 
   public handleChange(event) {
-    this.props.updateFilterString(event.target.value);
+    this.props.setFilterText(event.target.value);
   }
 
   public render() {
