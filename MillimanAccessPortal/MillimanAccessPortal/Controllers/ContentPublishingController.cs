@@ -846,7 +846,7 @@ namespace MillimanAccessPortal.Controllers
             // Validate Checksums of LiveReady files
             foreach (ContentRelatedFile Crf in PubRequest.LiveReadyFilesObj)
             {
-                if (GlobalFunctions.GetFileChecksum(Crf.FullPath).ToLower() != Crf.Checksum.ToLower())
+                if (!Crf.ValidateChecksum())
                 {
                     #region Log audit event
                     AuditEvent ChecksumFailedEvent = AuditEvent.New(
