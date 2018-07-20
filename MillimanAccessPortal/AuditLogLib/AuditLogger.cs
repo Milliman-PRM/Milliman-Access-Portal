@@ -31,6 +31,7 @@ namespace AuditLogLib
 
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly string _assemblyName = Assembly.GetEntryAssembly().FullName;
 
         public AuditLogger()
         {
@@ -97,7 +98,7 @@ namespace AuditLogLib
 
             Event.SessionId = context?.Session?.Id;
             Event.User = user?.ToString();
-            Event.Assembly = Config?.AssemblyFullName;
+            Event.Assembly = _assemblyName;
 
             LogEventQueue.Enqueue(Event);
         }

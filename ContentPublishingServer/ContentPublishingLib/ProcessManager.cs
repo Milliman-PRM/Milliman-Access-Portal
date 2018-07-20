@@ -39,7 +39,6 @@ namespace ContentPublishingLib
 
             AuditLogger.Config = new AuditLoggerConfiguration {
                 AuditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString"),
-                AssemblyFullName = typeof(ProcessManager).Assembly.FullName,
             };
 
             ServiceName = ServiceNameArg;
