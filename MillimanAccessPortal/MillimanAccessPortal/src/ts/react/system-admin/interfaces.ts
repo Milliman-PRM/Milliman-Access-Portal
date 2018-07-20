@@ -1,51 +1,60 @@
 ﻿export interface SystemAdminState {
   primaryColContent: string;
   primaryColContentLabel: string;
-  primaryColSelection: string;
+  primaryColSelection: number;
   primaryColFilter?: string;
   secondaryColContent?: string;
   secondaryColContentLabel?: string;
-  secondaryColSelection: string;
+  secondaryColSelection: number;
   secondaryColFilter?: string;
   addUserDialog: boolean;
+  userData: UserInfo[];
+  clientData: ClientInfo[];
+  profitCenterData: ProfitCenterInfo[];
+  rootContentItemData: RootContentItemInfo[];
 }
 
-export interface UserPanelProps {
-  selectedUser: string;
-  makeUserSelection: (string) => void;
+export interface QueryFilter {
+  userId?: number;
+  clientId?: number;
+  profitCenterId?: number;
+  rootContentItemId?: number;
 }
 
-export interface UserPanelState {
-  userList: User[];
-}
-
-interface User {
-  userName: string;
+export interface ContentPanelProps<T> {
+  onFetch: (data: T[]) => void;
+  data: T[];
+  select: (id: number) => void;
+  selected: number;
+  queryFilter: QueryFilter;
 }
 
 export interface ClientPanelProps {
   selectedClient: string;
-  makeClientSelection: (string) => void;
-}
-
-export interface ClientPanelState {
-  clientList: Client[];
-}
-
-interface Client {
-  clientName: string;
+  makeClientSelection: (id: string) => void;
 }
 
 export interface ProfitCenterPanelProps {
   selectedProfitCenter: string;
-  makeProfitCenterSelection: (string) => void;
+  makeProfitCenterSelection: (id: string) => void;
 }
 
-export interface ProfitCenterPanelState {
-  profitCenterList: ProfitCenter[];
+export interface UserInfo {
+  Id: number;
+  Name: string;
 }
 
-interface ProfitCenter {
-  profitCenterName: string;
+export interface ClientInfo {
+  Id: number;
+  Name: string;
 }
 
+export interface ProfitCenterInfo {
+  Id: number;
+  Name: string;
+}
+
+export interface RootContentItemInfo {
+  Id: number;
+  Name: string;
+}

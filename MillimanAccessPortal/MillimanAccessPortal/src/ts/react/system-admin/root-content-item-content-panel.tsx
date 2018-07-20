@@ -3,32 +3,31 @@
 import { ajax } from 'jquery';
 import * as React from 'react';
 
-import { ClientSummary } from '../../view-models/content-publishing';
-import { ClientCard } from '../shared-components/client-card';
-import { ClientInfo, ContentPanelProps } from './interfaces';
+import { RootContentItemCard } from '../shared-components/root-content-item-card';
+import { ContentPanelProps, RootContentItemInfo } from './interfaces';
 
-export class ClientContentPanel extends React.Component<ContentPanelProps<ClientInfo>, {}> {
+export class RootContentItemContentPanel extends React.Component<ContentPanelProps<RootContentItemInfo>, {}> {
   public constructor(props) {
     super(props);
   }
 
   public render() {
-    const clients = this.props.data.map((client) => (
+    const items = this.props.data.map((item) => (
       <li
-        key={client.Id}
+        key={item.Id}
         // tslint:disable-next-line:jsx-no-lambda
-        onClick={() => this.props.select(client.Id)}
+        onClick={() => this.props.select(item.Id)}
       >
-        <ClientCard
-          data={client}
-          selected={this.props.selected === client.Id}
+        <RootContentItemCard
+          data={item}
+          selected={this.props.selected === item.Id}
         />
       </li>
     ));
     return (
       <div className="admin-panel-content-container">
         <ul className="admin-panel-content">
-          {clients}
+          {items}
         </ul>
       </div>
     );
@@ -46,8 +45,8 @@ export class ClientContentPanel extends React.Component<ContentPanelProps<Client
     ajax({
       data: this.props.queryFilter,
       method: 'GET',
-      url: 'SystemAdmin/Clients/',
-    }).done((response: ClientSummary[]) => {
+      url: 'SystemAdmin/RootContentItems/',
+    }).done((response: RootContentItemInfo[]) => {
       this.props.onFetch(response);
     }).fail((response) => {
       console.log(response.getResponseHeader('Warning')

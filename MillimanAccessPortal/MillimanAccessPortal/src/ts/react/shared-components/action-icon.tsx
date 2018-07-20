@@ -10,13 +10,11 @@ export class ActionIcon extends React.Component<ActionIconProps, {}> {
   public render() {
     return this.props.action && (
       <div
-        className='action-icon-container tooltip'
+        className="action-icon-container tooltip"
         title={this.props.title}
-        onClick={(event) => {
-          event.stopPropagation();
-          this.props.action();
-        }}>
-        <svg className='action-icon'>
+        onClick={this.props.action}
+      >
+        <svg className="action-icon">
           <use xlinkHref={`#${this.props.icon}`} />
         </svg>
       </div>

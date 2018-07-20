@@ -15,6 +15,8 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
       ItemGroups: [],
       filterString: '',
     };
+
+    this.setFilterString = this.setFilterString.bind(this);
   }
 
   public componentDidMount() {
@@ -26,28 +28,40 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
     });
   }
 
+  public setFilterString(filterString: string) {
+    this.setState({
+      filterString,
+    });
+  }
+
   public render() {
+    const partialSections = this.filteredArray().map((client) => ({
+      client,
+      contentItems: client.Items.map((contentItem) => (
+        <ContentCard
+          key={contentItem.Id.toString()}
+          {...contentItem}
+        />
+      )),
+    }));
+    const sections = partialSections.map((partialSection) => (
+      <div
+        key={`client-${partialSection.client.Id}`}
+        className="client-content-container"
+      >
+        <h1 className="client-name">
+          {partialSection.client.Name}
+        </h1>
+        {partialSection.contentItems}
+      </div>
+      ));
     return (
-      <div id='authorized-content-container'>
-        <div id='authorized-content-header'>
-          <FilterBar onFilterStringChanged={(filterString) => this.setState({ filterString })} />
+      <div id="authorized-content-container">
+        <div id="authorized-content-header">
+          <FilterBar onFilterStringChanged={this.setFilterString} />
         </div>
-        <div id='authorized-content-items'>
-          {
-            this.filteredArray().map((client: ContentItemGroup, index: number) => (
-              <div key={`client-${client.Id}`} className='client-content-container'>
-                <h1 className='client-name'>{client.Name}</h1>
-                {
-                  client.Items.map((contentItem: ContentItem) => (
-                    <ContentCard
-                      key={contentItem.Id.toString()}
-                      {...contentItem}
-                    />
-                  ))
-                }
-              </div>
-            ))
-          }
+        <div id="authorized-content-items">
+          {sections}
         </div>
       </div>
     );
@@ -55,7 +69,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
 
   private filteredArray() {
     // Deep copy state
-    const groups = JSON.parse(JSON.stringify(this.state.ItemGroups));
+    const groups = JSON.parse(JSON.stringify(this.state.ItemGroups)) as ContentItemGroup[];
     return groups.map((itemGroup: ContentItemGroup) => {
       itemGroup.Items = itemGroup.Items.filter((item) =>
         [itemGroup.Name, item.Name, item.Description].filter((text) =>

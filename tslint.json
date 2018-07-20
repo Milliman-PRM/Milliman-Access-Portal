@@ -1,14 +1,15 @@
 {
     "defaultSeverity": "error",
     "extends": [
-        "tslint:recommended"
+        "tslint:recommended",
+        "tslint-react"
     ],
     "jsRules": {},
     "rules": {
         "interface-name": [true, "never-prefix"],
         "max-classes-per-file": [true, 3],
         "no-var-requires": false,
-        "quotemark": [true, "single", "avoid-template"],
+        "quotemark": [true, "single", "avoid-template", "jsx-double"],
         "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"]
     },
     "rulesDirectory": []
