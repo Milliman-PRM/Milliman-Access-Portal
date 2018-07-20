@@ -103,8 +103,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-            StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal("422", viewResult.StatusCode.ToString());
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             Assert.Equal(preCount, postCount);
             #endregion
         }
@@ -201,8 +200,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-            StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal("422", viewResult.StatusCode.ToString());
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             Assert.Equal(preCount, postCount);
             #endregion
         }
@@ -417,7 +415,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-            Assert.Equal(422, ((StatusCodeResult)view).StatusCode);
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             Assert.Contains(controller.Response.Headers, h => h.Value == "Go-Live request references an invalid publication request.");
             #endregion
         }

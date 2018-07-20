@@ -147,7 +147,7 @@ namespace ContentPublishingLib.JobRunners
 
                     #region Log audit event
                     AuditEvent GoLiveLogEvent = AuditEvent.New(
-                        $"{Method.DeclaringType.Name}.{Method.Name}",
+                        $"MapDbPublishRunner.Execute",
                         "Content publication request was successfully processed",
                         AuditEventId.PublicationRequestProcessingSuccess,
                         new
@@ -157,8 +157,7 @@ namespace ContentPublishingLib.JobRunners
                             RequestingUser = JobDetail.Request.ApplicationUserId,
                             ReductionTasks = AllRelatedReductionTasks.Select(t => t.Id.ToString("D")).ToArray()
                         },
-                        "PublicationService",
-                        null
+                        "PublicationServer"
                         );
                     AuditLog.Log(GoLiveLogEvent);
                     #endregion
@@ -307,8 +306,7 @@ namespace ContentPublishingLib.JobRunners
                         }
                         else
                         {
-                            var SelectionHierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, SelGrp.Id);
-                            NewTask.SelectionCriteria = SelectionHierarchy.SerializeJson();
+                            NewTask.SelectionCriteriaObj = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, SelGrp.Id);
                             NewTask.TaskAction = TaskActionEnum.HierarchyAndReduction;
                         }
 

@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
@@ -23,6 +24,7 @@ using MillimanAccessPortal.Models.ContentAccessAdmin;
 using MillimanAccessPortal.Models.ContentPublishing;
 using Newtonsoft.Json;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -33,6 +35,7 @@ namespace MillimanAccessPortal.Controllers
     {
         private readonly IAuditLogger AuditLogger;
         private readonly IAuthorizationService AuthorizationService;
+        private readonly IConfiguration ApplicationConfig;
         private readonly ApplicationDbContext DbContext;
         private readonly ILogger Logger;
         private readonly StandardQueries Queries;
@@ -44,7 +47,8 @@ namespace MillimanAccessPortal.Controllers
             ApplicationDbContext DbContextArg,
             ILoggerFactory LoggerFactoryArg,
             StandardQueries QueriesArg,
-            UserManager<ApplicationUser> UserManagerArg
+            UserManager<ApplicationUser> UserManagerArg,
+            IConfiguration ApplicationConfigArg
             )
         {
             AuditLogger = AuditLoggerArg;
@@ -53,6 +57,7 @@ namespace MillimanAccessPortal.Controllers
             Logger = LoggerFactoryArg.CreateLogger<ContentAccessAdminController>();
             Queries = QueriesArg;
             UserManager = UserManagerArg;
+            ApplicationConfig = ApplicationConfigArg;
         }
 
         /// <summary>Action for content access administration index.</summary>
@@ -790,21 +795,6 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            // There must be no reduction task with erroneous or unexpected status for this selection group
-            var unexpectedStatus = new List<ReductionStatusEnum>
-            {
-                ReductionStatusEnum.Unspecified,
-                ReductionStatusEnum.Replaced,
-            };
-            if (DbContext.ContentReductionTask
-                .Where(task => task.SelectionGroupId == selectionGroup.Id)
-                .Where(task => task.CreateDateTimeUtc > currentLivePublication.CreateDateTimeUtc)
-                .Any(task => unexpectedStatus.Contains(task.ReductionStatus)))
-            {
-                Response.Headers.Add("Warning", "An erroneous reduction status prevents this action.");
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-
             if (isMaster)
             {
                 if (selectionGroup.IsMaster)
@@ -836,12 +826,23 @@ namespace MillimanAccessPortal.Controllers
                     }
                 }
             }
+
+            // Require that the live master file path is stored in the RootContentItem and the file exists
+            ContentRelatedFile LiveMasterFile = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
+            if (LiveMasterFile == null 
+             || !System.IO.File.Exists(LiveMasterFile.FullPath)
+             || GlobalFunctions.GetFileChecksum(LiveMasterFile.FullPath).ToLower() != LiveMasterFile.Checksum.ToLower())
+            {
+                Response.Headers.Add("Warning", "A master content file does not exist for the requested content item.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             if (isMaster)
             {
                 selectionGroup.IsMaster = true;
                 selectionGroup.SelectedHierarchyFieldValueList = new long[0];
+                selectionGroup.SetContentUrl(Path.GetFileName(LiveMasterFile.FullPath));
                 DbContext.SelectionGroup.Update(selectionGroup);
                 DbContext.SaveChanges();
 
@@ -859,28 +860,39 @@ namespace MillimanAccessPortal.Controllers
             }
             else
             {
-                string selectionCriteriaString = JsonConvert.SerializeObject(ContentReductionHierarchy<ReductionFieldValueSelection>
-                    .GetFieldSelectionsForSelectionGroup(DbContext, selectionGroupId, selections), Formatting.Indented);
+                // Stage the master file in a task folder in the file exchange share
+                Guid NewTaskGuid = Guid.NewGuid();
+                string TaskFolderPath = Path.Combine(ApplicationConfig.GetValue<string>("Storage:MapPublishingServerExchangePath"), NewTaskGuid.ToString("D"));
+                Directory.CreateDirectory(TaskFolderPath);
+                string MasterFileCopyTarget = Path.Combine(TaskFolderPath, Path.GetFileName(LiveMasterFile.FullPath));
+                System.IO.File.Copy(LiveMasterFile.FullPath, MasterFileCopyTarget);
 
                 var contentReductionTask = new ContentReductionTask
                 {
+                    Id = NewTaskGuid,
                     ApplicationUser = await Queries.GetCurrentApplicationUser(User),
                     SelectionGroupId = selectionGroup.Id,
-                    MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",  // TODO Fix this
+                    MasterFilePath = MasterFileCopyTarget,
+                    MasterContentChecksum = LiveMasterFile.Checksum,
                     ContentPublicationRequest = null,
-                    SelectionCriteria = selectionCriteriaString,
+                    SelectionCriteriaObj = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(DbContext, selectionGroupId, selections),
                     ReductionStatus = ReductionStatusEnum.Queued,
                     CreateDateTimeUtc = DateTime.UtcNow,
+                    TaskAction = TaskActionEnum.HierarchyAndReduction,
                 };
                 DbContext.ContentReductionTask.Add(contentReductionTask);
                 DbContext.SaveChanges();
+
+                string CxnString = ApplicationConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
+                string ContentItemRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
+                ContentAccessSupport.AddReductionMonitor(Task.Run(() => ContentAccessSupport.MonitorReductionTaskForGoLive(NewTaskGuid, CxnString, ContentItemRootPath)));
 
                 #region Log audit event
                 AuditEvent selectionChangeReductionQueuedEvent = AuditEvent.New(
                     $"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}",
                     "Selection change reduction task queued",
                     AuditEventId.SelectionChangeReductionQueued,
-                    new { selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, selectionGroupId, selections },
+                    new { TaskId = NewTaskGuid.ToString("D"), selectionGroup.RootContentItem.ClientId, selectionGroup.RootContentItemId, selectionGroupId, selections },
                     User.Identity.Name,
                     HttpContext.Session.Id
                     );

@@ -112,7 +112,7 @@ namespace ContentPublishingLib.JobRunners
                     JobDetail.Result.MasterContentHierarchy = await ExtractReductionHierarchy(MasterDocumentNode);
 
                     DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), JobAction = JobDetail.Request.JobAction, Hierarchy = JobDetail.Result.MasterContentHierarchy };
-                    Event = AuditEvent.New("Reduction server", "Extraction of master content hierarchy succeeded", AuditEventId.HierarchyExtractionSucceeded, DetailObj);
+                    Event = AuditEvent.New("QvReductionRunner.Execute", "Extraction of master content hierarchy succeeded", AuditEventId.HierarchyExtractionSucceeded, DetailObj, "PublicationServer");
                     AuditLog.Log(Event);
                     #endregion
 
@@ -124,7 +124,7 @@ namespace ContentPublishingLib.JobRunners
                         await CreateReducedContent();
 
                         DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), RequestedSelections = JobDetail.Request.SelectionCriteria };
-                        Event = AuditEvent.New("Reduction server", "Creation of reduced content succeeded", AuditEventId.ContentReductionSucceeded, DetailObj);
+                        Event = AuditEvent.New("QvReductionRunner.Execute", "Creation of reduced content succeeded", AuditEventId.ContentReductionSucceeded, DetailObj, "PublicationServer");
                         AuditLog.Log(Event);
                         #endregion
 
@@ -134,7 +134,7 @@ namespace ContentPublishingLib.JobRunners
                         JobDetail.Result.ReducedContentHierarchy = await ExtractReductionHierarchy(ReducedDocumentNode);
 
                         DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), JobAction = JobDetail.Request.JobAction, Hierarchy = JobDetail.Result.ReducedContentHierarchy };
-                        Event = AuditEvent.New("Reduction server", "Extraction of reduced content hierarchy succeeded", AuditEventId.HierarchyExtractionSucceeded, DetailObj);
+                        Event = AuditEvent.New("QvReductionRunner.Execute", "Extraction of reduced content hierarchy succeeded", AuditEventId.HierarchyExtractionSucceeded, DetailObj, "PublicationServer");
                         AuditLog.Log(Event);
                         #endregion
 
@@ -221,7 +221,7 @@ namespace ContentPublishingLib.JobRunners
                 MethodBase Method = MethodBase.GetCurrentMethod();
 
                 object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), Error = Msg};
-                AuditEvent Event = AuditEvent.New("Reduction server", "Validation of processing prerequisites failed", AuditEventId.ReductionValidationFailed, DetailObj);
+                AuditEvent Event = AuditEvent.New("QvReductionRunner.ValidateThisInstance", "Validation of processing prerequisites failed", AuditEventId.ReductionValidationFailed, DetailObj, "PublicationServer");
                 AuditLog.Log(Event);
 
                 Msg = $"Error in {Method.ReflectedType.Name}.{Method.Name}: {Msg}";
@@ -331,7 +331,7 @@ namespace ContentPublishingLib.JobRunners
 
                 // TODO may need to log more issues, like if the Qlikview task processing fails
                 object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), ExceptionMessage = e.Message };
-                AuditEvent Event = AuditEvent.New("Reduction server", "Extraction of hierarchy failed", AuditEventId.HierarchyExtractionFailed, DetailObj);
+                AuditEvent Event = AuditEvent.New("QvReductionRunner.ExtractReductionHierarchy", "Extraction of hierarchy failed", AuditEventId.HierarchyExtractionFailed, DetailObj, "PublicationServer");
                 AuditLog.Log(Event);
             }
             finally
@@ -370,7 +370,7 @@ namespace ContentPublishingLib.JobRunners
                 {
                     string Msg = $"The requested reduction field <{SelectedFieldValue.FieldName}> is not found in the reduction hierarchy";
                     object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), Error = Msg };
-                    AuditEvent Event = AuditEvent.New("Reduction server", "Creation of reduced content file failed", AuditEventId.ContentReductionFailed, DetailObj);
+                    AuditEvent Event = AuditEvent.New("QvReductionRunner.CreateReducedContent", "Creation of reduced content file failed", AuditEventId.ContentReductionFailed, DetailObj, "PublicationServer");
                     AuditLog.Log(Event);
                     GlobalFunctions.TraceWriteLine(Msg);
                     throw new ApplicationException(Msg);
@@ -384,7 +384,7 @@ namespace ContentPublishingLib.JobRunners
             {
                 string Msg = $"No requested selections exist in the master hierarchy";
                 object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), RequestesSelections = JobDetail.Request.SelectionCriteria, Error = Msg };
-                AuditEvent Event = AuditEvent.New("Reduction server", "Creation of reduced content file failed", AuditEventId.ContentReductionFailed, DetailObj);
+                AuditEvent Event = AuditEvent.New("QvReductionRunner.CreateReducedContent", "Creation of reduced content file failed", AuditEventId.ContentReductionFailed, DetailObj, "PublicationServer");
                 AuditLog.Log(Event);
                 GlobalFunctions.TraceWriteLine(Msg);
                 throw new ApplicationException(Msg);

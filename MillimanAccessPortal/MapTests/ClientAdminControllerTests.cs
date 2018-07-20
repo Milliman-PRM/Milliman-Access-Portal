@@ -298,8 +298,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-            StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal("422", viewResult.StatusCode.ToString());
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             #endregion
         }
 
@@ -389,8 +388,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-            StatusCodeResult viewResult = (StatusCodeResult) view;
-            Assert.Equal("422", viewResult.StatusCode.ToString());
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             Assert.Equal(preCount, postCount);
             #endregion
         }
@@ -705,10 +703,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-
-            StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal<int>(422, viewResult.StatusCode);
-
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             #endregion
         }
 
@@ -879,9 +874,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-
-            StatusCodeResult statusCodeResult = (StatusCodeResult)view;
-            Assert.Equal<int>(422, statusCodeResult.StatusCode);
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             #endregion
         }
 
@@ -1002,9 +995,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-
-            StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal<int>(422, viewResult.StatusCode);
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             #endregion
         }
 
@@ -1024,9 +1015,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-
-            StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal<int>(422, viewResult.StatusCode);
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             #endregion
         }
 
