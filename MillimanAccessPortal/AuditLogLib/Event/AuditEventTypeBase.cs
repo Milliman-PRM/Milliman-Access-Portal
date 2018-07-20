@@ -1,6 +1,4 @@
-using MapDbContextLib.Identity;
 using System;
-using System.Runtime.CompilerServices;
 
 namespace AuditLogLib.Event
 {

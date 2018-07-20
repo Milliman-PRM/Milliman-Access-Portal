@@ -233,6 +233,7 @@ namespace MillimanAccessPortal
             AuditLogger.Config = new AuditLoggerConfiguration
             {
                 AuditLogConnectionString = auditLogConnectionString,
+                AssemblyFullName = typeof(Startup).Assembly.FullName,
             };
             #endregion
 

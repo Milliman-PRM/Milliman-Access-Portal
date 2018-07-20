@@ -19,6 +19,8 @@ namespace AuditLogLib.Event
 
         public string User { get; set; }
 
+        public string Assembly { get; set; }
+
         public string Source { get; set; }
 
         public string EventType { get; set; }

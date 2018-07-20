@@ -97,6 +97,7 @@ namespace AuditLogLib
 
             Event.SessionId = context?.Session?.Id;
             Event.User = user?.ToString();
+            Event.Assembly = Config?.AssemblyFullName;
 
             LogEventQueue.Enqueue(Event);
         }

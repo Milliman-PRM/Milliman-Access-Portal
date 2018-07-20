@@ -37,7 +37,10 @@ namespace ContentPublishingLib
                 throw new ApplicationException("Application configuration is not initialized");
             }
 
-            AuditLogger.Config = new AuditLoggerConfiguration { AuditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString") };
+            AuditLogger.Config = new AuditLoggerConfiguration {
+                AuditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString"),
+                AssemblyFullName = typeof(ProcessManager).Assembly.FullName,
+            };
 
             ServiceName = ServiceNameArg;
         }
