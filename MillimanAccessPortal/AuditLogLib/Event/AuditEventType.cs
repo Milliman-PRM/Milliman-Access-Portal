@@ -234,7 +234,7 @@ namespace AuditLogLib.Event
             [CallerFilePath] string callerPath = "",
             [CallerLineNumber] int callerLine = 0)
         {
-            var auditEvent = base.ToEvent(callerPath, callerName, callerLine);
+            var auditEvent = base.ToEvent(callerName, callerPath, callerLine);
             auditEvent.EventDataObject = logObjectTransform();
 
             return auditEvent;
@@ -255,7 +255,7 @@ namespace AuditLogLib.Event
             [CallerFilePath] string callerPath = "",
             [CallerLineNumber] int callerLine = 0)
         {
-            var auditEvent = ToEvent(callerPath, callerName, callerLine);
+            var auditEvent = ToEvent(callerName, callerPath, callerLine);
             auditEvent.EventDataObject = logObjectTransform(param1);
 
             return auditEvent;
@@ -275,7 +275,7 @@ namespace AuditLogLib.Event
             [CallerFilePath] string callerPath = "",
             [CallerLineNumber] int callerLine = 0)
         {
-            var auditEvent = ToEvent(callerPath, callerName, callerLine);
+            var auditEvent = ToEvent(callerName, callerPath, callerLine);
             auditEvent.EventDataObject = logObjectTransform(param1, param2);
 
             return auditEvent;
@@ -295,7 +295,7 @@ namespace AuditLogLib.Event
             [CallerFilePath] string callerPath = "",
             [CallerLineNumber] int callerLine = 0)
         {
-            var auditEvent = ToEvent(callerPath, callerName, callerLine);
+            var auditEvent = ToEvent(callerName, callerPath, callerLine);
             auditEvent.EventDataObject = logObjectTransform(param1, param2, param3);
 
             return auditEvent;
