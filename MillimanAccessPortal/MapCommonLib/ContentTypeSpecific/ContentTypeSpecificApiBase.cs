@@ -6,15 +6,11 @@
 
 using System;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Text;
-using MapDbContextLib.Context;
-using Microsoft.AspNetCore.Http;
 
 namespace MapCommonLib.ContentTypeSpecific
 {
     public abstract class ContentTypeSpecificApiBase
     {
-        public abstract Task<UriBuilder> GetContentUri(SelectionGroup GroupEntity, HttpContext Context, object ConfigInfo);
+        public abstract Task<UriBuilder> GetContentUri(string SelectionGroupUrl, string UserName, object ConfigInfo);
     }
 }
