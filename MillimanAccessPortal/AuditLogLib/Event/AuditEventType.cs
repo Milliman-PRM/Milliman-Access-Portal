@@ -230,8 +230,8 @@ namespace AuditLogLib.Event
         }
 
         public new AuditEvent ToEvent(
-            [CallerFilePath] string callerPath = "",
             [CallerMemberName] string callerName = "",
+            [CallerFilePath] string callerPath = "",
             [CallerLineNumber] int callerLine = 0)
         {
             var auditEvent = base.ToEvent(callerPath, callerName, callerLine);
@@ -251,8 +251,8 @@ namespace AuditLogLib.Event
         }
 
         public AuditEvent ToEvent(P1 param1,
-            [CallerFilePath] string callerPath = "",
             [CallerMemberName] string callerName = "",
+            [CallerFilePath] string callerPath = "",
             [CallerLineNumber] int callerLine = 0)
         {
             var auditEvent = ToEvent(callerPath, callerName, callerLine);
@@ -271,8 +271,8 @@ namespace AuditLogLib.Event
         }
 
         public AuditEvent ToEvent(P1 param1, P2 param2,
-            [CallerFilePath] string callerPath = "",
             [CallerMemberName] string callerName = "",
+            [CallerFilePath] string callerPath = "",
             [CallerLineNumber] int callerLine = 0)
         {
             var auditEvent = ToEvent(callerPath, callerName, callerLine);
@@ -291,8 +291,8 @@ namespace AuditLogLib.Event
         }
 
         public AuditEvent ToEvent(P1 param1, P2 param2, P3 param3,
-            [CallerFilePath] string callerPath = "",
             [CallerMemberName] string callerName = "",
+            [CallerFilePath] string callerPath = "",
             [CallerLineNumber] int callerLine = 0)
         {
             var auditEvent = ToEvent(callerPath, callerName, callerLine);

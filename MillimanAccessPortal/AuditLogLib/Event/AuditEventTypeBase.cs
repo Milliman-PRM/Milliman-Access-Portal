@@ -15,16 +15,13 @@ namespace AuditLogLib.Event
             this.name = name;
         }
 
-        protected AuditEvent ToEvent(
-            [CallerFilePath] string callerPath = "",
-            [CallerMemberName] string callerName = "",
-            [CallerLineNumber] int callerLine = 0)
+        protected AuditEvent ToEvent(string callerName, string callerPath, int callerLine)
         {
             return new AuditEvent
             {
                 TimeStampUtc = DateTime.UtcNow,
                 EventType = name,
-                Source = $"{callerPath} {callerName}:{callerLine}",
+                Source = $"{callerPath}:{callerLine} {callerName}",
             };
         }
 
