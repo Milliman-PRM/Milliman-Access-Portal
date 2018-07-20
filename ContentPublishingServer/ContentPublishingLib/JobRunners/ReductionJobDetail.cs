@@ -43,9 +43,8 @@ namespace ContentPublishingLib.JobRunners
         // cast operator to convert a MAP ContentReductionTask to this type
         public static explicit operator ReductionJobDetail(ContentReductionTask DbTask)
         {
-            ContentReductionHierarchy<ReductionFieldValueSelection> MapSelections = DbTask.SelectionCriteriaObj != null
-                ? DbTask.SelectionCriteriaObj
-                : new ContentReductionHierarchy<ReductionFieldValueSelection>();
+            ContentReductionHierarchy<ReductionFieldValueSelection> MapSelections = DbTask.SelectionCriteriaObj 
+                                                                                    ?? new ContentReductionHierarchy<ReductionFieldValueSelection>();
 
             return new ReductionJobDetail
             {

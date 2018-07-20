@@ -58,13 +58,16 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
             if (latestTask != null && outstandingStatus.Contains(latestTask.ReductionStatus))
             {
                 pendingSelectionSet = new HashSet<long>();
-                foreach (var field in latestTask.SelectionCriteriaObj.Fields)
+                if (latestTask.SelectionCriteria != null)
                 {
-                    foreach (var value in field.Values)
+                    foreach (var field in latestTask.SelectionCriteriaObj.Fields)
                     {
-                        if (value.SelectionStatus)
+                        foreach (var value in field.Values)
                         {
-                            pendingSelectionSet.Add(value.Id);
+                            if (value.SelectionStatus)
+                            {
+                                pendingSelectionSet.Add(value.Id);
+                            }
                         }
                     }
                 }

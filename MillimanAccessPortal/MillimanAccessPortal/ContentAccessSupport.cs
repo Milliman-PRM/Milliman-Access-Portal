@@ -5,15 +5,15 @@
  */
 
 using AuditLogLib;
+using MapDbContextLib.Context;
+using MapDbContextLib.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MapDbContextLib.Context;
-using MapDbContextLib.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace MillimanAccessPortal
 {
@@ -175,6 +175,10 @@ namespace MillimanAccessPortal
                 reductionTask.SelectionGroup.RootContentItem == null)
             {
                 throw new ApplicationException("ContentAccessSupport.PositionReducedContentForGoLive called without required navigation properties");
+            }
+            if (reductionTask.SelectionCriteria == null)
+            {
+                throw new ApplicationException("ContentAccessSupport.PositionReducedContentForGoLive called for ContentReductionTask with null SelectionCriteria");
             }
 
             string targetFileName = GenerateReducedContentFileName(reductionTask.SelectionGroupId, reductionTask.SelectionGroup.RootContentItemId, Path.GetExtension(reductionTask.ResultFilePath));
