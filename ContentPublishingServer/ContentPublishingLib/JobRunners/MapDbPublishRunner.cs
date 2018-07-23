@@ -147,20 +147,14 @@ namespace ContentPublishingLib.JobRunners
                     JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
 
                     #region Log audit event
-                    AuditEvent GoLiveLogEvent = AuditEvent.New(
-                        $"MapDbPublishRunner.Execute",
-                        "Content publication request was successfully processed",
-                        AuditEventType.PublicationRequestProcessingSuccess,
-                        new
-                        {
-                            PublicationRequestId = JobDetail.JobId,
-                            JobDetail.Request.DoesReduce,
-                            RequestingUser = JobDetail.Request.ApplicationUserId,
-                            ReductionTasks = AllRelatedReductionTasks.Select(t => t.Id.ToString("D")).ToArray()
-                        },
-                        "PublicationServer"
-                        );
-                    AuditLog.Log(GoLiveLogEvent);
+                    var DetailObj = new
+                    {
+                        PublicationRequestId = JobDetail.JobId,
+                        JobDetail.Request.DoesReduce,
+                        RequestingUser = JobDetail.Request.ApplicationUserId,
+                        ReductionTasks = AllRelatedReductionTasks.Select(t => t.Id.ToString("D")).ToArray(),
+                    };
+                    AuditLog.Log(AuditEventType.PublicationRequestProcessingSuccess.ToEvent(DetailObj));
                     #endregion
 
                 }

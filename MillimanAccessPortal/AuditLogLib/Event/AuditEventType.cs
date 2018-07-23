@@ -141,30 +141,18 @@ namespace AuditLogLib.Event
         #endregion
 
         #region Reduction Server [5000 - 5999]
-        public static readonly AuditEventType<ContentReductionTask> ReductionValidationFailed = new AuditEventType<ContentReductionTask>(
-            5001, "Reduction Validation Failed", (reductionTask) => new
-            {
-            });
-        public static readonly AuditEventType<ContentReductionTask> HierarchyExtractionSucceeded = new AuditEventType<ContentReductionTask>(
-            5101, "Content hierarchy extraction completed", (reductionTask) => new
-            {
-            });
-        public static readonly AuditEventType<ContentReductionTask> HierarchyExtractionFailed = new AuditEventType<ContentReductionTask>(
-            5102, "Content hierarchy extraction failed", (reductionTask) => new
-            {
-            });
-        public static readonly AuditEventType<ContentReductionTask> ContentReductionSucceeded = new AuditEventType<ContentReductionTask>(
-            5201, "Content reduction completed", (reductionTask) => new
-            {
-            });
-        public static readonly AuditEventType<ContentReductionTask> ContentReductionFailed = new AuditEventType<ContentReductionTask>(
-            5202, "Content reduction failed", (reductionTask) => new
-            {
-            });
-        public static readonly AuditEventType<ContentPublicationRequest> PublicationRequestProcessingSuccess = new AuditEventType<ContentPublicationRequest>(
-            5301, "Content PublicationRequest Succeeded", (publicationRequest) => new
-            {
-            });
+        public static readonly AuditEventType<object> ReductionValidationFailed = new AuditEventType<object>(
+            5001, "Reduction Validation Failed", (logObject) => logObject);
+        public static readonly AuditEventType<object> HierarchyExtractionSucceeded = new AuditEventType<object>(
+            5101, "Content hierarchy extraction completed", (logObject) => logObject);
+        public static readonly AuditEventType<object> HierarchyExtractionFailed = new AuditEventType<object>(
+            5102, "Content hierarchy extraction failed", (logObject) => logObject);
+        public static readonly AuditEventType<object> ContentReductionSucceeded = new AuditEventType<object>(
+            5201, "Content reduction completed", (logObject) => logObject);
+        public static readonly AuditEventType<object> ContentReductionFailed = new AuditEventType<object>(
+            5202, "Content reduction failed", (logObject) => logObject);
+        public static readonly AuditEventType<object> PublicationRequestProcessingSuccess = new AuditEventType<object>(
+            5301, "Content PublicationRequest Succeeded", (logObject) => logObject);
         #endregion
 
         #region Content Publishing [6000 - 6999]
