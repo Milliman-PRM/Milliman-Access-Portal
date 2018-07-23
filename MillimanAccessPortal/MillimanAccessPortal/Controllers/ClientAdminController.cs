@@ -154,26 +154,26 @@ namespace MillimanAccessPortal.Controllers
         // POST: ClientAdmin/SaveNewUser
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> SaveNewUser([Bind("UserName,Email,FirstName,LastName,PhoneNumber,Employer,MemberOfClientIdArray")]ApplicationUserViewModel Model)
+        public async Task<ActionResult> SaveNewUser([Bind("UserName,Email,FirstName,LastName,PhoneNumber,Employer,MemberOfClientId")]ApplicationUserViewModel Model)
         {
             #region If user already exists get the record
             ApplicationUser RequestedUser = DbContext.ApplicationUser
                                                         .FirstOrDefault(u => u.UserName == Model.UserName
-                                                                        || u.Email == Model.Email);
+                                                                          || u.Email == Model.Email);
             bool RequestedUserIsNew = (RequestedUser == null);
             #endregion
 
             #region Authorization
-            // If creating a new user, current user must either have global UserCreator role or UserCreator role for each requested client
+            // If creating a new user, current user must either have global UserCreator role or UserCreator role for requested client
             if (RequestedUserIsNew)
             {
-                if (Model.MemberOfClientIdArray.Length == 0)
+                if (!Model.MemberOfClientId.HasValue)
                 {
                     AuthorizationResult GlobalUserCreatorResult = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.UserCreator));
                     if (!GlobalUserCreatorResult.Succeeded)
                     {
-                        var AssignedClientDetailObject = new { RequestedUser = Model.UserName, RequiredRole = RoleEnum.UserCreator.ToString(), RequestedClientIds = string.Join(",", Model.MemberOfClientIdArray) };
-                        AuditEvent AuthorizationFailedEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Request to create user without required role", AuditEventId.Unauthorized, AssignedClientDetailObject, User.Identity.Name, HttpContext.Session.Id);
+                        var DetailObject = new { RequestedUser = Model.UserName, RequiredRole = ApplicationRole.RoleDisplayNames[RoleEnum.UserCreator], RequestedClientId = "none" };
+                        AuditEvent AuthorizationFailedEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Request to create user without required role", AuditEventId.Unauthorized, DetailObject, User.Identity.Name, HttpContext.Session.Id);
                         AuditLogger.Log(AuthorizationFailedEvent);
 
                         Response.Headers.Add("Warning", "You are not authorized to create a user");
@@ -182,32 +182,29 @@ namespace MillimanAccessPortal.Controllers
                 }
                 else
                 {
-                    foreach (var RequestedClientId in Model.MemberOfClientIdArray)
+                    AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserCreator, Model.MemberOfClientId.Value));
+                    if (!Result1.Succeeded)
                     {
-                        AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserCreator, RequestedClientId));
-                        if (!Result1.Succeeded)
-                        {
-                            var AssignedClientDetailObject = new { RequestedUser = Model.UserName, RequiredRole = RoleEnum.UserCreator.ToString(), RequestedClientIds = string.Join(",", Model.MemberOfClientIdArray), ClientNotAuthorized = RequestedClientId };
-                            AuditEvent AuthorizationFailedEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Request to create user for specific client without required role", AuditEventId.Unauthorized, AssignedClientDetailObject, User.Identity.Name, HttpContext.Session.Id);
-                            AuditLogger.Log(AuthorizationFailedEvent);
+                        var DetailObject = new { RequestedUser = Model.UserName, RequiredRole = ApplicationRole.RoleDisplayNames[RoleEnum.UserCreator], RequestedClientId = Model.MemberOfClientId };
+                        AuditEvent AuthorizationFailedEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Request to create user for specific client without required role", AuditEventId.Unauthorized, DetailObject, User.Identity.Name, HttpContext.Session.Id);
+                        AuditLogger.Log(AuthorizationFailedEvent);
 
-                            Response.Headers.Add("Warning", "You are not authorized to create a user for a requested client");
-                            return Unauthorized();
-                        }
+                        Response.Headers.Add("Warning", "You are not authorized to create a user for the requested client");
+                        return Unauthorized();
                     }
                 }
             }
 
-            // If 1+ client assignment is requested, user must be admin for the requested client
-            foreach (var RequestedClientId in Model.MemberOfClientIdArray)
+            // If a client assignment is requested, user must be admin for the requested client
+            if (Model.MemberOfClientId.HasValue)
             {
-                AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, RequestedClientId));
+                AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, Model.MemberOfClientId.Value));
                 if (!Result2.Succeeded)
                 {
-                    var AssignedClientDetailObject = new { RequestedUser = Model.UserName, RequiredRole = RoleEnum.Admin.ToString(), RequestedClientIds = string.Join(",", Model.MemberOfClientIdArray), ClientNotAuthorized = RequestedClientId };
+                    var DetailObject = new { RequestedUser = Model.UserName, RequiredRole = ApplicationRole.RoleDisplayNames[RoleEnum.Admin], RequestedClientId = Model.MemberOfClientId.Value };
 
-                    AuditEvent AuthorizationFailedEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Request to associate a user with unauthorized client(s)", AuditEventId.Unauthorized, AssignedClientDetailObject, User.Identity.Name, HttpContext.Session.Id);
-                    Response.Headers.Add("Warning", $"You are not authorized to assign a user to the requested client(s) ({AssignedClientDetailObject.RequestedClientIds})");
+                    AuditEvent AuthorizationFailedEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Request to associate a user with unauthorized client(s)", AuditEventId.Unauthorized, DetailObject, User.Identity.Name, HttpContext.Session.Id);
+                    Response.Headers.Add("Warning", $"You are not authorized to assign a user to the requested client ({DetailObject.RequestedClientId})");
                     AuditLogger.Log(AuthorizationFailedEvent);
 
                     return Unauthorized();
@@ -261,50 +258,46 @@ namespace MillimanAccessPortal.Controllers
                         await UserManager.CreateAsync(RequestedUser);
                     }
 
-                    foreach (var ClientId in Model.MemberOfClientIdArray)
+                    IdentityUserClaim<long> ThisClientMembershipClaim = new IdentityUserClaim<long> { ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = Model.MemberOfClientId.ToString(), UserId = RequestedUser.Id };
+                    if (!DbContext.UserClaims.Any(uc => uc.ClaimType == ThisClientMembershipClaim.ClaimType
+                                                        && uc.ClaimValue == ThisClientMembershipClaim.ClaimValue
+                                                        && uc.UserId == RequestedUser.Id))
                     {
-                        IdentityUserClaim<long> ThisClientMembershipClaim = new IdentityUserClaim<long> { ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = ClientId.ToString(), UserId = RequestedUser.Id };
-                        if (!DbContext.UserClaims.Any(uc => uc.ClaimType == ThisClientMembershipClaim.ClaimType
-                                                         && uc.ClaimValue == ThisClientMembershipClaim.ClaimValue
-                                                         && uc.UserId == RequestedUser.Id))
-                        {
-                            DbContext.UserClaims.Add(ThisClientMembershipClaim);
-                        }
+                        DbContext.UserClaims.Add(ThisClientMembershipClaim);
                     }
-                    DbContext.SaveChanges();
 
+                    DbContext.SaveChanges();
                     DbTransaction.Commit();
                 }
                 catch (Exception e)
                 {
-                    string ErrMsg = GlobalFunctions.LoggableExceptionString(e, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while creating new user \"{Model.UserName}\" or assigning user membership in client(s): [{string.Join(",", Model.MemberOfClientIdArray)}]");
+                    string ErrMsg = GlobalFunctions.LoggableExceptionString(e, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while creating new user \"{Model.UserName}\" or assigning user membership in client(s): [{Model.MemberOfClientId.ToString()}]");
                     Logger.LogError(ErrMsg);
                     Response.Headers.Add("Warning", "Failed to complete operation");
                     return StatusCode(StatusCodes.Status500InternalServerError);
                 }
             }
 
-            // UserCreated Audit log
             if (RequestedUserIsNew)
             {
+                // UserCreated Audit log
                 var CreatedUserDetailObject = new { NewUserName = Model.UserName, Email = Model.Email, };
                 AuditEvent UserCreatedEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New user created", AuditEventId.UserAccountCreated, CreatedUserDetailObject, User.Identity.Name, HttpContext.Session.Id);
                 AuditLogger.Log(UserCreatedEvent);
+
+                // 
+                string emailBody = string.Empty;  // TODO: Compose proper welcome email w/ link to set initial password
+                string emailSubject = string.Empty;  // TODO: Compose proper welcome email w/ link to set initial password
+                MessageQueueService.QueueEmail(Model.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
             }
 
             // Client membership assignment Audit log
-            foreach (var ClientId in Model.MemberOfClientIdArray)
-            {
-                var AssignedClientDetailObject = new { NewUserName = Model.UserName, ClientId = ClientId, RequestedClientIds = string.Join(",", Model.MemberOfClientIdArray), };
-                AuditEvent UserAssignedEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New user assigned to client", AuditEventId.UserAssignedToClient, AssignedClientDetailObject, User.Identity.Name, HttpContext.Session.Id);
-                AuditLogger.Log(UserAssignedEvent);
-            }
-
-            // TODO: Send proper welcome email w/ link to set initial password
-            MessageQueueService.QueueEmail(Model.Email, "Welcome to Milliman blah blah", "Message text");
+            var EventDetailObject = new { NewUserName = Model.UserName, ClientId = Model.MemberOfClientId, };
+            AuditEvent UserAssignedEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New user assigned to client", AuditEventId.UserAssignedToClient, EventDetailObject, User.Identity.Name, HttpContext.Session.Id);
+            AuditLogger.Log(UserAssignedEvent);
 
             Response.Headers.Add("Warning", $"The requested user was successfully saved");
-            return Ok("New User saved successfully");
+            return Ok();
         }
 
         /// <summary>
