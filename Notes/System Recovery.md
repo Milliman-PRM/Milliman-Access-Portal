@@ -52,7 +52,7 @@ In the past, we have offered clients a 98% uptime SLA, excluding scheduled maint
 
 ### Virtual Machines
 
-**Data center outage: RPO XX hours, RTO 2 hours**
+**Data center outage: RPO 1 hour, RTO 2 hours**
 
 Our virtual machines are configued to have geo-redundant backups with Azure Site Recovery Services. This means that in the case of a datacenter outage, we will be able to recover our virtual machines in a new Azure region. [Microsoft guarantees a 2 hour RTO for site recovery](https://azure.microsoft.com/en-us/support/legal/sla/site-recovery/v1_2/).
 
