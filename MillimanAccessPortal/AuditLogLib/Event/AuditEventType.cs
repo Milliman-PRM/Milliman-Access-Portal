@@ -231,10 +231,23 @@ namespace AuditLogLib.Event
 
         private readonly Func<object> logObjectTransform;
 
+        /// <summary>
+        /// Represents a class of loggable event.
+        /// </summary>
+        /// <param name="id">AuditEvent ID. This value is logged and is used to uniquely identify this event type.</param>
+        /// <param name="name">Name of the event type.</param>
+        /// <param name="logObjectTransform">Defines the log object for this event type.</param>
         public AuditEventType(int id, string name, Func<object> logObjectTransform = null) : base(id, name) {
             this.logObjectTransform = logObjectTransform ?? new Func<object>(() => new { });
         }
 
+        /// <summary>
+        /// Create an audit event based on this event type.
+        /// </summary>
+        /// <param name="callerName">Calling method or property. Determined by the compiler if not supplied.</param>
+        /// <param name="callerPath">Absolute path of the calling file. Determined by the compiler if not supplied.</param>
+        /// <param name="callerLine">Line of the calling file. Determined by the compiler if not supplied.</param>
+        /// <returns>AuditEvent</returns>
         public new AuditEvent ToEvent(
             [CallerMemberName] string callerName = "",
             [CallerFilePath] string callerPath = "",
@@ -252,10 +265,23 @@ namespace AuditLogLib.Event
     {
         private readonly Func<P1, object> logObjectTransform;
 
+        /// <summary>
+        /// Represents a class of loggable event.
+        /// </summary>
+        /// <param name="id">AuditEvent ID. This value is logged and is used to uniquely identify this event type.</param>
+        /// <param name="name">Name of the event type.</param>
+        /// <param name="logObjectTransform">Defines the log object for this event type.</param>
         public AuditEventType(int id, string name, Func<P1, object> logObjectTransform) : base(id, name) {
             this.logObjectTransform = logObjectTransform;
         }
 
+        /// <summary>
+        /// Create an audit event based on this event type.
+        /// </summary>
+        /// <param name="callerName">Calling method or property. Determined by the compiler if not supplied.</param>
+        /// <param name="callerPath">Absolute path of the calling file. Determined by the compiler if not supplied.</param>
+        /// <param name="callerLine">Line of the calling file. Determined by the compiler if not supplied.</param>
+        /// <returns>AuditEvent</returns>
         public AuditEvent ToEvent(P1 param1,
             [CallerMemberName] string callerName = "",
             [CallerFilePath] string callerPath = "",
@@ -272,10 +298,23 @@ namespace AuditLogLib.Event
     {
         private readonly Func<P1, P2, object> logObjectTransform;
 
+        /// <summary>
+        /// Represents a class of loggable event.
+        /// </summary>
+        /// <param name="id">AuditEvent ID. This value is logged and is used to uniquely identify this event type.</param>
+        /// <param name="name">Name of the event type.</param>
+        /// <param name="logObjectTransform">Defines the log object for this event type.</param>
         public AuditEventType(int id, string name, Func<P1, P2, object> logObjectTransform) : base(id, name) {
             this.logObjectTransform = logObjectTransform;
         }
 
+        /// <summary>
+        /// Create an audit event based on this event type.
+        /// </summary>
+        /// <param name="callerName">Calling method or property. Determined by the compiler if not supplied.</param>
+        /// <param name="callerPath">Absolute path of the calling file. Determined by the compiler if not supplied.</param>
+        /// <param name="callerLine">Line of the calling file. Determined by the compiler if not supplied.</param>
+        /// <returns>AuditEvent</returns>
         public AuditEvent ToEvent(P1 param1, P2 param2,
             [CallerMemberName] string callerName = "",
             [CallerFilePath] string callerPath = "",
@@ -292,10 +331,23 @@ namespace AuditLogLib.Event
     {
         private readonly Func<P1, P2, P3, object> logObjectTransform;
 
+        /// <summary>
+        /// Represents a class of loggable event.
+        /// </summary>
+        /// <param name="id">AuditEvent ID. This value is logged and is used to uniquely identify this event type.</param>
+        /// <param name="name">Name of the event type.</param>
+        /// <param name="logObjectTransform">Defines the log object for this event type.</param>
         public AuditEventType(int id, string name, Func<P1, P2, P3, object> logObjectTransform) : base(id, name) {
             this.logObjectTransform = logObjectTransform;
         }
 
+        /// <summary>
+        /// Create an audit event based on this event type.
+        /// </summary>
+        /// <param name="callerName">Calling method or property. Determined by the compiler if not supplied.</param>
+        /// <param name="callerPath">Absolute path of the calling file. Determined by the compiler if not supplied.</param>
+        /// <param name="callerLine">Line of the calling file. Determined by the compiler if not supplied.</param>
+        /// <returns>AuditEvent</returns>
         public AuditEvent ToEvent(P1 param1, P2 param2, P3 param3,
             [CallerMemberName] string callerName = "",
             [CallerFilePath] string callerPath = "",
