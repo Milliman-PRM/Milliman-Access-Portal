@@ -287,6 +287,28 @@ namespace MillimanAccessPortal.Controllers
             {
                 return View("Error");
             }
+
+            // Prompt for the user's password
+            return View("ConfirmEmail");
+        }
+
+        // GET: /Account/ConfirmEmail
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> ConfirmEmail(string userId, string code, string password)
+        {
+            if (userId == null || code == null)
+            {
+                return View("Error");
+            }
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return View("Error");
+            }
+
+            await _userManager.ChangePasswordAsync(user, "", password);
+
             var result = await _userManager.ConfirmEmailAsync(user, code);
             return View(result.Succeeded ? "ConfirmEmail" : "Error");
         }

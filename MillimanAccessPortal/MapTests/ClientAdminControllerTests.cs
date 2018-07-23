@@ -38,7 +38,8 @@ namespace MapTests
                 TestResources.MessageQueueServicesObject,
                 TestResources.RoleManagerObject,
                 TestResources.QueriesObj,
-                TestResources.UserManagerObject);
+                TestResources.UserManagerObject,
+                TestResources.ConfigurationObject);
 
         // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
         testController.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: (await TestResources.UserManagerObject.FindByNameAsync(UserName)).UserName);

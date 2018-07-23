@@ -18,6 +18,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
@@ -45,6 +46,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly RoleManager<ApplicationRole> RoleManager;
         private readonly StandardQueries Queries;
         private readonly UserManager<ApplicationUser> UserManager;
+        private readonly IConfiguration ApplicationConfig;
 
         public ClientAdminController(
             ApplicationDbContext context,
@@ -54,7 +56,8 @@ namespace MillimanAccessPortal.Controllers
             IMessageQueue MessageQueueServiceArg,
             RoleManager<ApplicationRole> RoleManagerArg,
             StandardQueries QueryArg,
-            UserManager<ApplicationUser> UserManagerArg
+            UserManager<ApplicationUser> UserManagerArg,
+            IConfiguration ApplicationConfigArg
             )
         {
             DbContext = context;
@@ -65,6 +68,7 @@ namespace MillimanAccessPortal.Controllers
             RoleManager = RoleManagerArg;
             Queries = QueryArg;
             UserManager = UserManagerArg;
+            ApplicationConfig = ApplicationConfigArg;
         }
 
         // GET: ClientAdmin
@@ -161,6 +165,13 @@ namespace MillimanAccessPortal.Controllers
                                                         .FirstOrDefault(u => u.UserName == Model.UserName
                                                                           || u.Email == Model.Email);
             bool RequestedUserIsNew = (RequestedUser == null);
+
+            Client RequestedClient = DbContext.Client.SingleOrDefault(c => c.Id == Model.MemberOfClientId);
+            if (RequestedClient == null)
+            {
+                Response.Headers.Add("Warning", "The requested Client does not exist");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             #region Authorization
@@ -235,60 +246,72 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion Validation
 
-            // Because db operations in this transaction use both UserManager and DbContext directly, the transaction must be created from the same
-            // instance of the context that both share.  Because the instance variable refers to the instance that is injected by MVC, this is true.
-            using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
+            try
             {
-                try
+                // Create requested user if not already existing
+                if (RequestedUserIsNew)
                 {
-                    // Create requested user if not already existing
-                    if (RequestedUserIsNew)
+                    RequestedUser = new ApplicationUser
                     {
-                        RequestedUser = new ApplicationUser
-                        {
-                            UserName = Model.UserName,
-                            Email = Model.Email,
-                            LastName = Model.LastName,
-                            FirstName = Model.FirstName,
-                            PhoneNumber = Model.PhoneNumber,
-                            Employer = Model.Employer,
-                            // Maintain this function's parameter bind list to match the fields being used here
-                        };
+                        UserName = Model.UserName,
+                        Email = Model.Email,
+                        LastName = Model.LastName,
+                        FirstName = Model.FirstName,
+                        PhoneNumber = Model.PhoneNumber,
+                        Employer = Model.Employer,
+                        // Maintain this function's parameter bind list to match the fields being used here
+                    };
 
-                        await UserManager.CreateAsync(RequestedUser);
-                    }
-
-                    IdentityUserClaim<long> ThisClientMembershipClaim = new IdentityUserClaim<long> { ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = Model.MemberOfClientId.ToString(), UserId = RequestedUser.Id };
-                    if (!DbContext.UserClaims.Any(uc => uc.ClaimType == ThisClientMembershipClaim.ClaimType
-                                                        && uc.ClaimValue == ThisClientMembershipClaim.ClaimValue
-                                                        && uc.UserId == RequestedUser.Id))
+                    IdentityResult result = await UserManager.CreateAsync(RequestedUser);
+                    if (result.Succeeded)
                     {
-                        DbContext.UserClaims.Add(ThisClientMembershipClaim);
-                    }
+                        var confirmationCode = await UserManager.GenerateEmailConfirmationTokenAsync(RequestedUser);
+                        var callbackUrl = Url.Action(nameof(AccountController.ConfirmEmail), "Account", new { userId = RequestedUser.Id, code = confirmationCode }, protocol: "https");
 
-                    DbContext.SaveChanges();
-                    DbTransaction.Commit();
+                        // Notify user of new account
+                        string emailBody = RequestedClient.NewUserWelcomeText 
+                                        ?? ApplicationConfig["Global:DefaultNewUserWelcomeText"] 
+                                        ?? "";
+                        emailBody += $"{Environment.NewLine}{Environment.NewLine}To activate your account please use the following link:{Environment.NewLine}{callbackUrl}";
+                        string emailSubject = "Welcome to Milliman Access Portal";
+                        MessageQueueService.QueueEmail(Model.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
+                    }
+                    else
+                    {
+                        Response.Headers.Add("Warning", $"Error while creating user ({Model.UserName}) in database");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
                 }
-                catch (Exception e)
+
+                IdentityUserClaim<long> ThisClientMembershipClaim = new IdentityUserClaim<long>
+                    {
+                        ClaimType = ClaimNames.ClientMembership.ToString(),
+                        ClaimValue = Model.MemberOfClientId.ToString(),
+                        UserId = RequestedUser.Id
+                    };
+                if (!DbContext.UserClaims.Any(uc => uc.ClaimType == ThisClientMembershipClaim.ClaimType
+                                                    && uc.ClaimValue == ThisClientMembershipClaim.ClaimValue
+                                                    && uc.UserId == RequestedUser.Id))
                 {
-                    string ErrMsg = GlobalFunctions.LoggableExceptionString(e, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while creating new user \"{Model.UserName}\" or assigning user membership in client(s): [{Model.MemberOfClientId.ToString()}]");
-                    Logger.LogError(ErrMsg);
-                    Response.Headers.Add("Warning", "Failed to complete operation");
-                    return StatusCode(StatusCodes.Status500InternalServerError);
+                    DbContext.UserClaims.Add(ThisClientMembershipClaim);
                 }
+
+                DbContext.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                string ErrMsg = GlobalFunctions.LoggableExceptionString(e, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while creating new user \"{Model.UserName}\" or assigning user membership in client(s): [{Model.MemberOfClientId.ToString()}]");
+                Logger.LogError(ErrMsg);
+                Response.Headers.Add("Warning", "Failed to complete operation");
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
+            // UserCreated Audit log
             if (RequestedUserIsNew)
             {
-                // UserCreated Audit log
                 var CreatedUserDetailObject = new { NewUserName = Model.UserName, Email = Model.Email, };
                 AuditEvent UserCreatedEvent = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "New user created", AuditEventId.UserAccountCreated, CreatedUserDetailObject, User.Identity.Name, HttpContext.Session.Id);
                 AuditLogger.Log(UserCreatedEvent);
-
-                // 
-                string emailBody = string.Empty;  // TODO: Compose proper welcome email w/ link to set initial password
-                string emailSubject = string.Empty;  // TODO: Compose proper welcome email w/ link to set initial password
-                MessageQueueService.QueueEmail(Model.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
             }
 
             // Client membership assignment Audit log

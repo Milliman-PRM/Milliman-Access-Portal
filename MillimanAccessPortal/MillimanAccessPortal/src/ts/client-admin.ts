@@ -389,7 +389,7 @@ function saveNewUser(username, email, callback) {
   $.ajax({
     data: {
       Email: email,
-      MemberOfClientIdArray: [clientId],
+      MemberOfClientId: clientId,
       UserName: username || email,
     },
     headers: {
