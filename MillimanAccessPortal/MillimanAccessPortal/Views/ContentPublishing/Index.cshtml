@@ -93,6 +93,10 @@
                                 <span asp-validation-for="ContentName" class="text-danger"></span>
                             </div>
                         </div>
+                    </div>
+                </div>
+                <div class="form-section" data-section="root-content-item-content-type">
+                    <div class="form-input-container">
                         <div class="form-input form-input-dropdown content-item-flex-1">
                             <label asp-for="ContentTypeId"></label>
                             <div>
@@ -322,8 +326,10 @@
             <div>
                 <p></p>
             </div>
-            <button type="button" class="button-reject red-button">Reject</button>
-            <button type="button" class="button-approve green-button" disabled>Approve</button>
+            <div class="confirmation-section-button-container">
+                <button type="button" class="button-reject red-button">Reject</button>
+                <button type="button" class="button-approve green-button" disabled>Approve</button>
+            </div>        
         </div>
     </div>
 </div>

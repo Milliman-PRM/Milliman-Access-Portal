@@ -132,6 +132,12 @@ namespace AuditLogLib.Event
                 IsSuspended = isSuspended,
                 Reason = reason,
             });
+        public static readonly AuditEventType<ContentReductionTask> SelectionChangeReductionLive = new AuditEventType<ContentReductionTask>(
+            4009, "Selection change reduction task go live succeeded", (task) => new
+            {
+                ContentReductionTaskId = task.Id,
+            });
+
         #endregion
 
         #region Reduction Server [5000 - 5999]

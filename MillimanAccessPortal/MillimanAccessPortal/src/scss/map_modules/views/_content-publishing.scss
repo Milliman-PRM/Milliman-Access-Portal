@@ -89,4 +89,10 @@
       }
     }
   }
+
+  .confirmation-section-button-container {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+  }
 }
