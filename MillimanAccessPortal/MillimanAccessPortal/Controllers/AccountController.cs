@@ -289,28 +289,30 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Prompt for the user's password
-            return View("EnableAccount");
+            var model = new EnableAccountViewModel
+            {
+                Id = user.Id,
+                Code = code,
+                UserName = user.UserName,
+            };
+            return View(model);
         }
 
         // GET: /Account/EnableAccount
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> EnableAccount(string userId, string code, string password)
+        public async Task<IActionResult> EnableAccount(EnableAccountViewModel model)
         {
-            if (userId == null || code == null)
-            {
-                return View("Error");
-            }
-            var user = await _userManager.FindByIdAsync(userId);
+            var user = await _userManager.FindByIdAsync(model.Id.ToString());
             if (user == null)
             {
                 return View("Error");
             }
 
-            await _userManager.ChangePasswordAsync(user, "", password);
+            await _userManager.ChangePasswordAsync(user, "", model.NewPassword);
 
-            var result = await _userManager.ConfirmEmailAsync(user, code);
-            return View(result.Succeeded ? "EnableAccount" : "Error");
+            var result = await _userManager.ConfirmEmailAsync(user, model.Code);
+            return View(result.Succeeded ? "ConfirmEmail" : "Error");
         }
 
         //
