@@ -19,7 +19,6 @@ require('../images/checkmark.svg');
 
 const card = {};
 
-// tslint:disable:object-literal-sort-keys
 const cardLayout = {
   card: {
     body: {
@@ -553,7 +552,6 @@ const components = Object.assign(
     },
   },
 );
-// tslint:enable:object-literal-sort-keys
 
 // Compute select properties
 (() => {

@@ -9,6 +9,7 @@
         "interface-name": [true, "never-prefix"],
         "max-classes-per-file": [true, 3],
         "no-var-requires": false,
+        "object-literal-sort-keys": false,
         "quotemark": [true, "single", "avoid-template", "jsx-double"],
         "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"]
     },

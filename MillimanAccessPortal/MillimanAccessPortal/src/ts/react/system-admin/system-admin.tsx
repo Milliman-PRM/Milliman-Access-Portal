@@ -16,7 +16,6 @@ export interface SystemAdminState {
 
 export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   private controller: string = 'SystemAdmin';
-  // tslint:disable:object-literal-sort-keys
   private dataSources: Array<DataSource<Entity>> = [
     {
       name: 'user',
@@ -72,7 +71,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       }),
     },
   ];
-  // tslint:enable:object-literal-sort-keys
 
   public constructor(props) {
     super(props);

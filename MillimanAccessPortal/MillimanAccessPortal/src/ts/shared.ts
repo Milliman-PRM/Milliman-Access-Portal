@@ -422,7 +422,6 @@ export function updateCardStatus($card, reductionDetails) {
   const $statusContainer = $card.find('.card-status-container');
   const $statusName = $statusContainer.find('strong');
   const $statusUser = $statusContainer.find('em');
-  // tslint:disable:object-literal-sort-keys
   const details = $.extend({
     User: {
       FirstName: '',
@@ -432,7 +431,6 @@ export function updateCardStatus($card, reductionDetails) {
     SelectionGroupId: 0,
     RootContentItemId: 0,
   }, reductionDetails);
-  // tslint:enable:object-literal-sort-keys
 
   $statusContainer
     .removeClass((i, classString) => {
