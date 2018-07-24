@@ -34,11 +34,25 @@ export interface ClientTree extends BasicTree<ClientSummary> {
 export enum PublicationStatus {
   Unknown = 0,
   Canceled = 1,
-  Error = 2,
+  Rejected = 2,
   Queued = 10,
   Processing = 20,
   Processed = 30,
   Confirmed = 40,
+  Replaced = 50,
+  Error = 90,
+}
+export enum ReductionStatus {
+  Unspecified = 0,
+  Canceled = 1,
+  Rejected = 2,
+  Validating = 11,
+  Queued = 10,
+  Reducing = 20,
+  Reduced = 30,
+  Live = 40,
+  Replaced = 50,
+  Error = 90,
 }
 export interface PublicationSummary {
   User: UserInfo;
