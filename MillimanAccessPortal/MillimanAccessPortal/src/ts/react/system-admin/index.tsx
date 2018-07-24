@@ -1,7 +1,7 @@
 ﻿import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
-import { SystemAdmin } from './system-admin';
+import { SystemAdmin } from './system-admin.1';
 
 require('jquery');
 require('../../navbar');

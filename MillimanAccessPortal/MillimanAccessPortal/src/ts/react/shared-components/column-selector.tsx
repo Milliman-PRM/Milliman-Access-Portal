@@ -2,13 +2,12 @@
 
 import * as React from 'react';
 
-import { Column } from '../system-admin/interfaces';
-import { ColumnSelectorOption } from './interfaces';
+import { DataSource, Entity } from './interfaces';
 
 interface ColumnSelectorProps {
-  columnOptions: ColumnSelectorOption[];
-  setSelected: (id: Column) => void;
-  selected: Column;
+  dataSources: Array<DataSource<Entity>>;
+  setSelectedDataSource: (dataSource: string) => void;
+  selectedDataSource: DataSource<Entity>;
 }
 
 export class ColumnSelector extends React.Component<ColumnSelectorProps, {}> {
@@ -17,18 +16,19 @@ export class ColumnSelector extends React.Component<ColumnSelectorProps, {}> {
   }
 
   public render() {
-    const options = this.props.columnOptions.map((option) => {
-      const selectorClass = (this.props.selected === option.column)
+    const options = this.props.dataSources.map((dataSource) => {
+      const selectedDataSourceName = this.props.selectedDataSource && this.props.selectedDataSource.name;
+      const selectorClass = (selectedDataSourceName === dataSource.name)
         ? 'selected'
         : null;
       return (
         <div
-          key={option.column}
+          key={dataSource.name}
           className={`content-option ${selectorClass}`}
           // tslint:disable-next-line:jsx-no-lambda
-          onClick={() => this.props.setSelected(option.column)}
+          onClick={() => this.props.setSelectedDataSource(dataSource.name)}
         >
-          {option.displayName}
+          {dataSource.displayName}
         </div>
       );
     });

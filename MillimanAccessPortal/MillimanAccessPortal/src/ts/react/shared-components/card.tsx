@@ -2,12 +2,11 @@ import * as React from 'react';
 
 import { Entity } from './interfaces';
 
-export interface CardProps<T> {
-  entity: T;
+export interface CardProps extends Entity {
   selected: boolean;
 }
 
-export class Card<T extends Entity> extends React.Component<CardProps<T>, {}> {
+export class Card extends React.Component<CardProps, {}> {
   public constructor(props) {
     super(props);
   }
@@ -21,7 +20,7 @@ export class Card<T extends Entity> extends React.Component<CardProps<T>, {}> {
           <div className="card-body-main-container">
             <div className="card-body-primary-container">
               <h2 className="card-body-primary-text">
-                {this.props.entity.Name}
+                {this.props.PrimaryText}
               </h2>
             </div>
           </div>

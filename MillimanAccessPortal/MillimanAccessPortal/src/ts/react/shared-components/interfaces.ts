@@ -1,14 +1,7 @@
-﻿import { Column } from '../system-admin/interfaces';
-
-export interface ActionIconProps {
+﻿export interface ActionIconProps {
   title: string;
   action: (event: React.MouseEvent<HTMLElement>) => void;
   icon: string;
-}
-
-export interface ColumnSelectorOption {
-  column: Column;
-  displayName: string;
 }
 
 export interface FilterProps {
@@ -17,10 +10,10 @@ export interface FilterProps {
   placeholderText: string;
 }
 
-// Represents an EF entity
+// Represents an object displayable on a card
 export interface Entity {
   Id: number;
-  Name: string;
+  PrimaryText: string;
 }
 
 export interface QueryFilter {
@@ -28,4 +21,12 @@ export interface QueryFilter {
   clientId?: number;
   profitCenterId?: number;
   rootContentItemId?: number;
+}
+
+export interface DataSource<T> {
+  name: string;
+  sources: string[];
+  displayName: string;
+  action: string;
+  processResponse: (response: any) => T;
 }
