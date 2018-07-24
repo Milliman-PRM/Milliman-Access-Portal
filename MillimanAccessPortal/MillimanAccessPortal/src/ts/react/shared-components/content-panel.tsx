@@ -42,9 +42,6 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
   }
 
   public componentDidMount() {
-    const initialColumn = this.props.dataSources[0].name;
-    this.props.setSelectedDataSource(initialColumn);
-
     this.fetch();
   }
 

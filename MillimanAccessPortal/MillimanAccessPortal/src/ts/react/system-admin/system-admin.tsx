@@ -126,9 +126,12 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private setPrimaryDataSource(dataSource: string) {
-    this.setState({
+    this.setState((prevState) => ({
       primaryDataSource: dataSource,
-    });
+      secondaryDataSource: dataSource === prevState.primaryDataSource
+        ? prevState.secondaryDataSource
+        : null,
+    }));
   }
 
   private setSecondaryDataSource(dataSource: string) {
