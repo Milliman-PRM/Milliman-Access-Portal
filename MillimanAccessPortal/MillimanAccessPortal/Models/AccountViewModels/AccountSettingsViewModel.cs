@@ -24,10 +24,12 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         [Display(Name = "Email Address")]
         public string Email { get; set; }
 
+        [Required]
         [Phone]
         [Display(Name = "Phone Number")]
         public string PhoneNumber { get; set; }
 
+        [Required]
         public string Employer { get; set; }
 
         [DataType(DataType.Password)]
