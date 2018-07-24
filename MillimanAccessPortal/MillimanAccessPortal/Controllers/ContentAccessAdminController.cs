@@ -831,7 +831,7 @@ namespace MillimanAccessPortal.Controllers
             ContentRelatedFile LiveMasterFile = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
             if (LiveMasterFile == null 
              || !System.IO.File.Exists(LiveMasterFile.FullPath)
-             || GlobalFunctions.GetFileChecksum(LiveMasterFile.FullPath).ToLower() != LiveMasterFile.Checksum.ToLower())
+             || ! LiveMasterFile.ValidateChecksum())
             {
                 Response.Headers.Add("Warning", "A master content file does not exist for the requested content item.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);

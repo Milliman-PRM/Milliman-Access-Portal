@@ -142,7 +142,7 @@ namespace MillimanAccessPortal.Controllers
                         return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
                 }
 
-                UriBuilder ContentUri = await ContentSpecificHandler.GetContentUri(SelGroup, HttpContext, QlikviewConfig);
+                UriBuilder ContentUri = await ContentSpecificHandler.GetContentUri(SelGroup.ContentInstanceUrl, HttpContext.User.Identity.Name, QlikviewConfig);
 
                 AuthorizedContentViewModel ResponseModel = new AuthorizedContentViewModel
                 {
