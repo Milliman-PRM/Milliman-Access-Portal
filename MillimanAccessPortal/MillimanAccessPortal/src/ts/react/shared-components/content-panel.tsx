@@ -160,5 +160,9 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
 
   private setSelectedCard(id: number) {
     this.setState({ selectedCard: id });
+
+    const queryFilter = {...this.props.queryFilter};
+    Object.assign(queryFilter, this.props.selectedDataSource.assignQueryFilter(id));
+    this.props.setQueryFilter(queryFilter);
   }
 }

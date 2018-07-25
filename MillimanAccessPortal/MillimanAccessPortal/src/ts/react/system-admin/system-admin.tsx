@@ -23,6 +23,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     displayName: '',
     action: '',
     processResponse: () => null,
+    assignQueryFilter: () => null,
   };
   private dataSources: Array<DataSource<Entity>> = [
     {
@@ -43,6 +44,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         response.Id,
         response.Name,
       ),
+      assignQueryFilter: (userId: number) => ({ userId }),
     },
     {
       name: 'client',
@@ -57,6 +59,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         response.Id,
         response.Name,
       ),
+      assignQueryFilter: (clientId: number) => ({ clientId }),
     },
     {
       name: 'profitCenter',
@@ -69,6 +72,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         response.Id,
         response.Name,
       ),
+      assignQueryFilter: (profitCenterId: number) => ({ profitCenterId }),
     },
     {
       name: 'rootContentItem',
@@ -87,6 +91,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         response.Id,
         response.Name,
       ),
+      assignQueryFilter: (rootContentItemId: number) => ({ rootContentItemId }),
     },
   ];
 
@@ -133,7 +138,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           setSelectedDataSource={this.setSecondaryDataSource}
           selectedDataSource={secondaryDataSource}
           setQueryFilter={this.setFinalQueryFilter}
-          queryFilter={{}}
+          queryFilter={this.state.secondaryQueryFilter}
         />
       ),
     ];

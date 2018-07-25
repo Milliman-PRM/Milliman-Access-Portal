@@ -11,6 +11,7 @@ export interface DataSource<T> {
   displayName: string;
   action: string;
   processResponse: (response: any) => T;
+  assignQueryFilter: (id: number) => Partial<QueryFilter>;
 }
 
 export interface DataSourceOverride<T> {
