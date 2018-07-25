@@ -6,31 +6,32 @@ namespace AuditLogLib.Event
 {
     public abstract class AuditEventTypeBase
     {
-        private static string _baseName = null;
-        private static string BaseName
+        private static string _pathToRemove = null;
+
+        /// <summary>
+        /// Initializes the root portion of the path that should be removed from all log message caller paths.  Call from code one folder below the solution
+        /// </summary>
+        /// </summary>
+        /// <param name="LevelsUp">How many folders up from location of the calling code should be the root to be removed</param>
+        /// <param name="callerFilePath">Normally no value should be provided</param>
+        public static void SetPathToRemove(int LevelsUp = 1, [CallerFilePath] string callerFilePath = "")
         {
-            get
+            if (string.IsNullOrWhiteSpace(callerFilePath))
             {
-                if (_baseName == null)
+                _pathToRemove = null;
+            }
+            else
+            {
+                for (int index = 0; index <= LevelsUp; index++)
                 {
-                    _baseName = GetBaseName();
+                    callerFilePath = Path.GetDirectoryName(callerFilePath);
                 }
-                return _baseName;
+                _pathToRemove = callerFilePath;
             }
         }
 
         protected readonly int id;
         protected readonly string name;
-
-        private static string GetBaseName([CallerFilePath] string callerPath = "")
-        {
-            var depth = 4;  // based on this file's location within the repository
-            for (var i = 0; i < depth; i += 1)
-            {
-                callerPath = Path.GetDirectoryName(callerPath);
-            }
-            return callerPath;
-        }
 
         public AuditEventTypeBase(int id, string name)
         {
@@ -40,15 +41,17 @@ namespace AuditLogLib.Event
 
         protected AuditEvent ToEvent(string callerName, string callerPath, int callerLine)
         {
-            // Path.GetRelativePath is not available in .NET Standard 2.0
-            // Use a naive approach instead that works for the common case
-            var relativeCallerPath = callerPath.Replace(BaseName, "");
+            // Path.GetRelativePath() is not available in .NET Standard 2.0
+            if (!string.IsNullOrWhiteSpace(_pathToRemove))
+            {
+                callerPath.Replace(_pathToRemove, ".");
+            }
 
             return new AuditEvent
             {
                 TimeStampUtc = DateTime.UtcNow,
                 EventType = name,
-                Source = $"{relativeCallerPath}:{callerLine} {callerName}",
+                Source = $"{callerPath}:{callerLine} {callerName}",
             };
         }
 
