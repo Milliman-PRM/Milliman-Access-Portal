@@ -22,6 +22,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     parentSources: [],
     displayName: '',
     action: '',
+    createAction: null,
     processResponse: () => null,
     assignQueryFilter: () => null,
   };
@@ -40,6 +41,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       ],
       displayName: 'Users',
       action: 'Users',
+      createAction: 'CreateUser',
       processResponse: (response: UserInfo) => new Entity(
         response.Id,
         response.Name,
@@ -55,6 +57,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       ],
       displayName: 'Clients',
       action: 'Clients',
+      createAction: null,
       processResponse: (response: ClientInfo) => new Entity(
         response.Id,
         response.Name,
@@ -68,6 +71,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       ],
       displayName: 'Profit Center',
       action: 'ProfitCenters',
+      createAction: 'CreateProfitCenter',
       processResponse: (response: ProfitCenterInfo) => new Entity(
         response.Id,
         response.Name,
@@ -87,6 +91,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       ],
       displayName: 'Content Items',
       action: 'RootContentItems',
+      createAction: null,
       processResponse: (response: RootContentItemInfo) => new Entity(
         response.Id,
         response.Name,

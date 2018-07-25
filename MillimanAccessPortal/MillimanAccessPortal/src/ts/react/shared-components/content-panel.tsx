@@ -63,6 +63,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
     };
 
     this.setFilterText = this.setFilterText.bind(this);
+    this.addAction = this.addAction.bind(this);
   }
 
   public componentDidMount() {
@@ -102,6 +103,14 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
     const filterPlaceholder = this.props.selectedDataSource.displayName
       ? `Filter ${this.props.selectedDataSource.displayName}...`
       : '';
+    const actionIcon = this.props.selectedDataSource.createAction
+      && (
+        <ActionIcon
+          title={'Add'}
+          action={this.addAction}
+          icon={'add'}
+        />
+      );
     return (
       <div
         className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12"
@@ -117,11 +126,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
               filterText={this.state.filterText}
             />
             <div className="admin-panel-action-icons-container">
-              <ActionIcon
-                title={''}
-                action={() => {}}
-                icon={'add'}
-              />
+              {actionIcon}
             </div>
           </div>
           <div className="admin-panel-content-container">
@@ -160,5 +165,9 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
 
   private setFilterText(filterText: string) {
     this.setState({ filterText });
+  }
+
+  private addAction() {
+    throw new Error('Not implemented');
   }
 }
