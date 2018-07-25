@@ -80,23 +80,25 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
   }
 
   public render() {
-    const cards = this.state.entities === null
+    const filteredCards = this.state.entities && this.state.entities
+      .filter((entity) => entity.applyFilter(this.state.filterText));
+    const cards = filteredCards === null
       ? (<div>Loading...</div>)
-      : this.state.entities
-        .filter((entity) => entity.applyFilter(this.state.filterText))
-        .map((entity) => (
-          <li
-            key={entity.id}
-            // tslint:disable-next-line:jsx-no-lambda
-            onClick={() => this.props.setSelectedCard(entity.id)}
-          >
-            <Card
-              id={entity.id}
-              primaryText={entity.primaryText}
-              selected={entity.id === this.props.selectedCard}
-            />
-          </li>
-        ));
+      : filteredCards.length === 0
+        ? (<div>No {this.props.selectedDataSource.displayName} found.</div>)
+        : filteredCards.map((entity) => (
+            <li
+              key={entity.id}
+              // tslint:disable-next-line:jsx-no-lambda
+              onClick={() => this.props.setSelectedCard(entity.id)}
+            >
+              <Card
+                id={entity.id}
+                primaryText={entity.primaryText}
+                selected={entity.id === this.props.selectedCard}
+              />
+            </li>
+          ));
     const filterPlaceholder = this.props.selectedDataSource.displayName
       ? `Filter ${this.props.selectedDataSource.displayName}...`
       : '';
