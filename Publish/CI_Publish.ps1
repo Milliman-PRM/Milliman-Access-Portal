@@ -411,4 +411,30 @@ else {
     exit $error_code
 }
 
+log_statement "Creating Content Publishing Server release"
+
+octo create-release --project "Content Publication Server" --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Publishing service application release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for the publishing service application"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+octo deploy-release --project "Content Publication Server" --deployto "Development" --channel "Development" --version $serviceVersion --apiKey "$octopusAPIKey" --channel "Development" --server $octopusURL --waitfordeployment --cancelontimeout --progress
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Publication service application release deployed successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to deploy the publication service application"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
 #endregion
