@@ -1,8 +1,8 @@
 import * as React from 'react';
 
-import { Entity } from './interfaces';
-
-export interface CardProps extends Entity {
+export interface CardProps {
+  id: number;
+  primaryText: string;
   selected: boolean;
 }
 
@@ -20,7 +20,7 @@ export class Card extends React.Component<CardProps, {}> {
           <div className="card-body-main-container">
             <div className="card-body-primary-container">
               <h2 className="card-body-primary-text">
-                {this.props.PrimaryText}
+                {this.props.primaryText}
               </h2>
             </div>
           </div>

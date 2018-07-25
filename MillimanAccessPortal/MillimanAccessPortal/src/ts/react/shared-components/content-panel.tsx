@@ -3,10 +3,12 @@ import '../../../scss/react/shared-components/content-panel.scss';
 import { ajax } from 'jquery';
 import * as React from 'react';
 
+import { ActionIcon } from './action-icon';
 import { Card } from './card';
 import { ColumnSelector } from './column-selector';
+import { Entity } from './entity';
 import { Filter } from './filter';
-import { DataSource, Entity, QueryFilter } from './interfaces';
+import { DataSource, QueryFilter } from './interfaces';
 
 export interface ContentPanelProps {
   controller: string;
@@ -46,14 +48,17 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
   }
 
   public render() {
-    const cards = this.state.entities.map((entity) => (
+    const cards = this.state.entities
+    .filter((entity) => entity.applyFilter(this.state.filterText))
+    .map((entity) => (
       <li
-        key={entity.Id}
+        key={entity.id}
         // tslint:disable-next-line:jsx-no-lambda
-        onClick={() => this.setSelectedCard(entity.Id)}
+        onClick={() => this.setSelectedCard(entity.id)}
       >
         <Card
-          {...entity}
+          id={entity.id}
+          primaryText={entity.primaryText}
           selected={false}
         />
       </li>
@@ -68,12 +73,16 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
         <div className="admin-panel-list">
           <div className="admin-panel-toolbar">
             <Filter
-              placeholderText={'this.props.???'}
+              placeholderText={`Filter ${this.props.selectedDataSource && this.props.selectedDataSource.displayName}...`}
               setFilterText={this.setFilterText}
               filterText={''}
             />
             <div className="admin-panel-action-icons-container">
-              {'addIcon'}
+              <ActionIcon
+                title={''}
+                action={() => {}}
+                icon={'add'}
+              />
             </div>
           </div>
           <div className="admin-panel-content-container">

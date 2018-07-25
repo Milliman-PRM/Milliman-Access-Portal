@@ -2,7 +2,8 @@
 
 import * as React from 'react';
 
-import { DataSource, Entity } from './interfaces';
+import { Entity } from './entity';
+import { DataSource } from './interfaces';
 
 interface ColumnSelectorProps {
   dataSources: Array<DataSource<Entity>>;

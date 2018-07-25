@@ -4,7 +4,8 @@ import '../../../scss/react/system-admin/system-admin.scss';
 import * as React from 'react';
 
 import { ContentPanel } from '../shared-components/content-panel';
-import { DataSource, Entity, QueryFilter } from '../shared-components/interfaces';
+import { Entity } from '../shared-components/entity';
+import { DataSource, QueryFilter } from '../shared-components/interfaces';
 import { ClientInfo, ProfitCenterInfo, RootContentItemInfo, UserInfo } from './interfaces';
 
 export interface SystemAdminState {
@@ -26,10 +27,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       ],
       displayName: 'Users',
       action: 'Users',
-      processResponse: (response: UserInfo) => ({
-        Id: response.Id,
-        PrimaryText: response.Name,
-      }),
+      processResponse: (response: UserInfo) => (new Entity(
+        response.Id,
+        response.Name,
+      )),
     },
     {
       name: 'client',
@@ -40,10 +41,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       ],
       displayName: 'Clients',
       action: 'Clients',
-      processResponse: (response: ClientInfo) => ({
-        Id: response.Id,
-        PrimaryText: response.Name,
-      }),
+      processResponse: (response: ClientInfo) => (new Entity(
+        response.Id,
+        response.Name,
+      )),
     },
     {
       name: 'profitCenter',
@@ -52,10 +53,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       ],
       displayName: 'PCs',
       action: 'ProfitCenters',
-      processResponse: (response: ProfitCenterInfo) => ({
-        Id: response.Id,
-        PrimaryText: response.Name,
-      }),
+      processResponse: (response: ProfitCenterInfo) => (new Entity(
+        response.Id,
+        response.Name,
+      )),
     },
     {
       name: 'rootContentItem',
@@ -65,10 +66,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       ],
       displayName: 'Content',
       action: 'RootContentItems',
-      processResponse: (response: RootContentItemInfo) => ({
-        Id: response.Id,
-        PrimaryText: response.Name,
-      }),
+      processResponse: (response: RootContentItemInfo) => (new Entity(
+        response.Id,
+        response.Name,
+      )),
     },
   ];
 

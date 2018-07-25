@@ -10,12 +10,6 @@ export interface FilterProps {
   placeholderText: string;
 }
 
-// Represents an object displayable on a card
-export interface Entity {
-  Id: number;
-  PrimaryText: string;
-}
-
 export interface QueryFilter {
   userId?: number;
   clientId?: number;
