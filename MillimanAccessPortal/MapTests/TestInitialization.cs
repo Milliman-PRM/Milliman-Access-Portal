@@ -390,6 +390,7 @@ namespace MapTests
                 DbContextObject.UserRoleInClient.AddRange(new List<UserRoleInClient>
                     { 
                         new UserRoleInClient { Id=1, ClientId=1, RoleId=2, UserId=1 },
+                        new UserRoleInClient { Id=1, ClientId=1, RoleId=5, UserId=1 },
                         new UserRoleInClient { Id=2, ClientId=1, RoleId=1, UserId=3 },
                         new UserRoleInClient { Id=3, ClientId=4, RoleId=1, UserId=3 },
                         new UserRoleInClient { Id=4, ClientId=5, RoleId=1, UserId=3 },
