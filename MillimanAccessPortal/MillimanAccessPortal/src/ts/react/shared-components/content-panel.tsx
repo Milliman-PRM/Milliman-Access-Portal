@@ -26,7 +26,7 @@ interface ContentPanelState {
 
 export class ContentPanel extends React.Component<ContentPanelProps, ContentPanelState> {
   private get url() {
-    return this.props.selectedDataSource
+    return this.props.selectedDataSource.action
       && `${this.props.controller}/${this.props.selectedDataSource.action}/`;
   }
 

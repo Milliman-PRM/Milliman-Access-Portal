@@ -19,8 +19,13 @@ export interface QueryFilter {
 
 export interface DataSource<T> {
   name: string;
-  sources: string[];
+  parentSources: Array<string | DataSourceOverride<T>>;
   displayName: string;
   action: string;
   processResponse: (response: any) => T;
+}
+
+export interface DataSourceOverride<T> {
+  name: string;
+  overrides: Partial<DataSource<T>>;
 }

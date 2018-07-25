@@ -17,59 +17,76 @@ export interface SystemAdminState {
 
 export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   private controller: string = 'SystemAdmin';
+  private nullDataSource: DataSource<Entity> = {
+    name: null,
+    parentSources: [],
+    displayName: '',
+    action: '',
+    processResponse: () => null,
+  };
   private dataSources: Array<DataSource<Entity>> = [
     {
       name: 'user',
-      sources: [
+      parentSources: [
         null,
         'client',
-        'profitCenter',
+        {
+          name: 'profitCenter',
+          overrides: {
+            displayName: 'Authorized Users',
+          },
+        },
       ],
       displayName: 'Users',
       action: 'Users',
-      processResponse: (response: UserInfo) => (new Entity(
+      processResponse: (response: UserInfo) => new Entity(
         response.Id,
         response.Name,
-      )),
+      ),
     },
     {
       name: 'client',
-      sources: [
+      parentSources: [
         null,
         'user',
         'profitCenter',
       ],
       displayName: 'Clients',
       action: 'Clients',
-      processResponse: (response: ClientInfo) => (new Entity(
+      processResponse: (response: ClientInfo) => new Entity(
         response.Id,
         response.Name,
-      )),
+      ),
     },
     {
       name: 'profitCenter',
-      sources: [
+      parentSources: [
         null,
       ],
-      displayName: 'PCs',
+      displayName: 'Profit Center',
       action: 'ProfitCenters',
-      processResponse: (response: ProfitCenterInfo) => (new Entity(
+      processResponse: (response: ProfitCenterInfo) => new Entity(
         response.Id,
         response.Name,
-      )),
+      ),
     },
     {
       name: 'rootContentItem',
-      sources: [
-        'user',
+      parentSources: [
+        {
+          name: 'user',
+          overrides: {
+            displayName: 'Authorized Content',
+          },
+        },
         'client',
       ],
-      displayName: 'Content',
+      displayName: 'Content Items',
       action: 'RootContentItems',
-      processResponse: (response: RootContentItemInfo) => (new Entity(
+      processResponse: (response: RootContentItemInfo) => new Entity(
         response.Id,
         response.Name,
-      )),
+      ),
     },
   ];
 
@@ -90,16 +107,12 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   public render() {
-    const primaryDataSources = this.dataSources.filter((source) =>
-      source.sources.filter((parent) => parent === null).length);
-    const primaryDataSource = primaryDataSources.filter((source) =>
-      this.state.primaryDataSource === source.name)[0];
+    const primaryDataSources = this.getDataSources(null);
+    const primaryDataSource = this.getDataSourceByName(primaryDataSources, this.state.primaryDataSource);
 
-    const secondaryDataSources = this.dataSources.filter((source) =>
-      source.sources.filter((parent) =>
-        parent === this.state.primaryDataSource).length);
-    const secondaryDataSource = secondaryDataSources.filter((source) =>
-      this.state.secondaryDataSource === source.name)[0];
+    const secondaryDataSources = this.getDataSources(this.state.primaryDataSource);
+    const secondaryDataSource = this.getDataSourceByName(secondaryDataSources, this.state.secondaryDataSource);
+
     return [
       (
         <ContentPanel
@@ -126,6 +139,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     ];
   }
 
+  // callbacks for child components
   private setPrimaryDataSource(dataSource: string) {
     this.setState((prevState) => ({
       primaryDataSource: dataSource,
@@ -151,5 +165,34 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     this.setState({
       finalQueryFilter: queryFilter,
     });
+  }
+
+  // utility methods
+  private getDataSources(parentName: string): Array<DataSource<Entity>> {
+    return this.dataSources
+      // strip non-matching parent sources
+      .map((dataSource) => {
+        const filteredDataSource = {...dataSource};
+        filteredDataSource.parentSources = filteredDataSource.parentSources.filter((parentSource) =>
+          parentSource === null || typeof parentSource === 'string'
+            ? parentSource === parentName
+            : parentSource.name === parentName);
+        return filteredDataSource;
+      })
+      // filter out data sources without the parent source
+      .filter((dataSource) => dataSource.parentSources.length)
+      // apply overrides if present
+      .map((dataSource) => {
+        const parentSource = dataSource.parentSources[0];
+        if (parentSource !== null && typeof parentSource !== 'string') {
+          Object.assign(dataSource, parentSource.overrides);
+        }
+        return dataSource;
+      });
+  }
+
+  private getDataSourceByName(dataSources: Array<DataSource<Entity>>, name: string): DataSource<Entity> {
+    return dataSources.filter((dataSource) => dataSource.name === name)[0]
+      || this.nullDataSource;
   }
 }
