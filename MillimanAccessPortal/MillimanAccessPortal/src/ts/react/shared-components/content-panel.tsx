@@ -63,6 +63,9 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
         />
       </li>
     ));
+    const filterPlaceholder = this.props.selectedDataSource.displayName
+      ? `Filter ${this.props.selectedDataSource.displayName}...`
+      : '';
     return (
       <div
         className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12"
@@ -73,7 +76,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
         <div className="admin-panel-list">
           <div className="admin-panel-toolbar">
             <Filter
-              placeholderText={`Filter ${this.props.selectedDataSource && this.props.selectedDataSource.displayName}...`}
+              placeholderText={filterPlaceholder}
               setFilterText={this.setFilterText}
               filterText={''}
             />

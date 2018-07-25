@@ -4,7 +4,11 @@ import '../../../scss/react/shared-components/action-icon.scss';
 
 import * as React from 'react';
 
-import { ActionIconProps } from './interfaces';
+export interface ActionIconProps {
+  title: string;
+  action: (event: React.MouseEvent<HTMLElement>) => void;
+  icon: string;
+}
 
 export class ActionIcon extends React.Component<ActionIconProps, {}> {
   public render() {

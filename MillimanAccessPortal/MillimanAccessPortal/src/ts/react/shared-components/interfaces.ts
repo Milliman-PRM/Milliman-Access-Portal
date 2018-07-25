@@ -1,16 +1,4 @@
-﻿export interface ActionIconProps {
-  title: string;
-  action: (event: React.MouseEvent<HTMLElement>) => void;
-  icon: string;
-}
-
-export interface FilterProps {
-  filterText: string;
-  setFilterText: (filterString: string) => void;
-  placeholderText: string;
-}
-
-export interface QueryFilter {
+﻿export interface QueryFilter {
   userId?: number;
   clientId?: number;
   profitCenterId?: number;
