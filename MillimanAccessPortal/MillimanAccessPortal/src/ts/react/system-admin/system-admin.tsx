@@ -45,6 +45,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       processResponse: (response: UserInfo) => new Entity(
         response.Id,
         response.Name,
+        response.RootContentItems && response.RootContentItems.map((item) => item.Name),
       ),
       assignQueryFilter: (userId: number) => ({ userId }),
     },
@@ -95,6 +96,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       processResponse: (response: RootContentItemInfo) => new Entity(
         response.Id,
         response.Name,
+        response.Users && response.Users.map((user) => user.Name),
       ),
       assignQueryFilter: (rootContentItemId: number) => ({ rootContentItemId }),
     },

@@ -1,6 +1,7 @@
 // Represents an object displayable on a card
 export class Entity {
   public readonly id: number;
+  public readonly detailList: string[];
 
   private _primaryText: string;
   private _primaryTextLower: string;
@@ -15,9 +16,10 @@ export class Entity {
     return this._primaryTextLower;
   }
 
-  public constructor(id: number, primaryText: string) {
+  public constructor(id: number, primaryText: string, detailList?: string[]) {
     this.id = id;
     this.primaryText = primaryText;
+    this.detailList = detailList;
   }
 
   public applyFilter(filterText: string): boolean {

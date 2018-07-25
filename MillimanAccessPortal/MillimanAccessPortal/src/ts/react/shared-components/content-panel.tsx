@@ -96,6 +96,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
               <Card
                 id={entity.id}
                 primaryText={entity.primaryText}
+                detailList={entity.detailList}
                 selected={entity.id === this.props.selectedCard}
               />
             </li>

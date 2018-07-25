@@ -21,6 +21,7 @@ export interface ProfitCenterPanelProps {
 export interface UserInfo {
   Id: number;
   Name: string;
+  RootContentItems?: RootContentItemInfo[];
 }
 
 export interface ClientInfo {
@@ -36,4 +37,5 @@ export interface ProfitCenterInfo {
 export interface RootContentItemInfo {
   Id: number;
   Name: string;
+  Users?: UserInfo[];
 }
