@@ -16,13 +16,13 @@ export interface ContentPanelProps {
   dataSources: Array<DataSource<Entity>>;
   setSelectedDataSource: (sourceName: string) => void;
   selectedDataSource: DataSource<Entity>;
-  setQueryFilter: (queryFilter: QueryFilter) => void;
+  setSelectedCard: (cardId: number) => void;
+  selectedCard: number;
   queryFilter: QueryFilter;
 }
 interface ContentPanelState {
   entities: Entity[];
   filterText: string;
-  selectedCard: number;
   prevQuery: {
     queryFilter: QueryFilter;
     sourceName: string;
@@ -59,21 +59,23 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
     this.state = {
       entities: null,
       filterText: '',
-      selectedCard: null,
       prevQuery: null,
     };
 
     this.setFilterText = this.setFilterText.bind(this);
-    this.setSelectedCard = this.setSelectedCard.bind(this);
   }
 
   public componentDidMount() {
+    this.props.setSelectedDataSource(this.props.dataSources[0] && this.props.dataSources[0].name);
     this.fetch();
   }
 
   public componentDidUpdate() {
     if (this.state.entities === null) {
       this.fetch();
+    }
+    if (this.props.selectedDataSource.name === null) {
+      this.props.setSelectedDataSource(this.props.dataSources[0] && this.props.dataSources[0].name);
     }
   }
 
@@ -86,12 +88,12 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
           <li
             key={entity.id}
             // tslint:disable-next-line:jsx-no-lambda
-            onClick={() => this.setSelectedCard(entity.id)}
+            onClick={() => this.props.setSelectedCard(entity.id)}
           >
             <Card
               id={entity.id}
               primaryText={entity.primaryText}
-              selected={entity.id === this.state.selectedCard}
+              selected={entity.id === this.props.selectedCard}
             />
           </li>
         ));
@@ -156,18 +158,5 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
 
   private setFilterText(filterText: string) {
     this.setState({ filterText });
-  }
-
-  private setSelectedCard(id: number) {
-    this.setState((prevState) => ({
-      selectedCard: prevState.selectedCard === id
-        ? null
-        : id,
-    }));
-
-    const queryFilter = {...this.props.queryFilter};
-    Object.assign(queryFilter, this.props.selectedDataSource.assignQueryFilter(
-      id === this.state.selectedCard ? null : id));
-    this.props.setQueryFilter(queryFilter);
   }
 }

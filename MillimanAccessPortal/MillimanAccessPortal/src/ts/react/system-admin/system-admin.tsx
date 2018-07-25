@@ -11,8 +11,8 @@ import { ClientInfo, ProfitCenterInfo, RootContentItemInfo, UserInfo } from './i
 export interface SystemAdminState {
   primaryDataSource: string;
   secondaryDataSource: string;
-  secondaryQueryFilter: QueryFilter;
-  finalQueryFilter: QueryFilter;
+  primarySelectedCard: number;
+  secondarySelectedCard: number;
 }
 
 export class SystemAdmin extends React.Component<{}, SystemAdminState> {
@@ -101,14 +101,14 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     this.state = {
       primaryDataSource: 'user',
       secondaryDataSource: null,
-      secondaryQueryFilter: {},
-      finalQueryFilter: {},
+      primarySelectedCard: null,
+      secondarySelectedCard: null,
     };
 
     this.setPrimaryDataSource = this.setPrimaryDataSource.bind(this);
     this.setSecondaryDataSource = this.setSecondaryDataSource.bind(this);
-    this.setSecondaryQueryFilter = this.setSecondaryQueryFilter.bind(this);
-    this.setFinalQueryFilter = this.setFinalQueryFilter.bind(this);
+    this.setPrimarySelectedCard = this.setPrimarySelectedCard.bind(this);
+    this.setSecondarySelectedCard = this.setSecondarySelectedCard.bind(this);
   }
 
   public render() {
@@ -118,6 +118,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     const secondaryDataSources = this.getDataSources(this.state.primaryDataSource);
     const secondaryDataSource = this.getDataSourceByName(secondaryDataSources, this.state.secondaryDataSource);
 
+    const secondaryQueryFilter = Object.assign(
+      {}, primaryDataSource.assignQueryFilter(this.state.primarySelectedCard));
+
     return [
       (
         <ContentPanel
@@ -126,19 +129,21 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           dataSources={primaryDataSources}
           setSelectedDataSource={this.setPrimaryDataSource}
           selectedDataSource={primaryDataSource}
-          setQueryFilter={this.setSecondaryQueryFilter}
+          setSelectedCard={this.setPrimarySelectedCard}
+          selectedCard={this.state.primarySelectedCard}
           queryFilter={{}}
         />
       ),
-      (
+      this.state.primarySelectedCard && (
         <ContentPanel
           key={'secondaryColumn'}
           controller={this.controller}
           dataSources={secondaryDataSources}
           setSelectedDataSource={this.setSecondaryDataSource}
           selectedDataSource={secondaryDataSource}
-          setQueryFilter={this.setFinalQueryFilter}
-          queryFilter={this.state.secondaryQueryFilter}
+          setSelectedCard={this.setSecondarySelectedCard}
+          selectedCard={this.state.secondarySelectedCard}
+          queryFilter={secondaryQueryFilter}
         />
       ),
     ];
@@ -151,25 +156,30 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       secondaryDataSource: sourceName === prevState.primaryDataSource
         ? prevState.secondaryDataSource
         : null,
+      primarySelectedCard: sourceName === prevState.primaryDataSource
+        ? prevState.primarySelectedCard
+        : null,
     }));
   }
 
   private setSecondaryDataSource(sourceName: string) {
-    this.setState({
-      secondaryDataSource: sourceName,
-    });
+    this.setState({ secondaryDataSource: sourceName });
   }
 
-  private setSecondaryQueryFilter(queryFilter: QueryFilter) {
-    this.setState({
-      secondaryQueryFilter: queryFilter,
-    });
+  private setPrimarySelectedCard(cardId: number) {
+    this.setState((prevState) => ({
+      primarySelectedCard: prevState.primarySelectedCard === cardId
+        ? null
+        : cardId,
+    }));
   }
 
-  private setFinalQueryFilter(queryFilter: QueryFilter) {
-    this.setState({
-      finalQueryFilter: queryFilter,
-    });
+  private setSecondarySelectedCard(cardId: number) {
+    this.setState((prevState) => ({
+      secondarySelectedCard: prevState.secondarySelectedCard === cardId
+        ? null
+        : cardId,
+    }));
   }
 
   // utility methods
