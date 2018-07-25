@@ -140,18 +140,18 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   // callbacks for child components
-  private setPrimaryDataSource(dataSource: string) {
+  private setPrimaryDataSource(sourceName: string) {
     this.setState((prevState) => ({
-      primaryDataSource: dataSource,
-      secondaryDataSource: dataSource === prevState.primaryDataSource
+      primaryDataSource: sourceName,
+      secondaryDataSource: sourceName === prevState.primaryDataSource
         ? prevState.secondaryDataSource
         : null,
     }));
   }
 
-  private setSecondaryDataSource(dataSource: string) {
+  private setSecondaryDataSource(sourceName: string) {
     this.setState({
-      secondaryDataSource: dataSource,
+      secondaryDataSource: sourceName,
     });
   }
 

@@ -1,6 +1,7 @@
 import '../../../scss/react/shared-components/content-panel.scss';
 
 import { ajax } from 'jquery';
+import { isEqual } from 'lodash';
 import * as React from 'react';
 
 import { ActionIcon } from './action-icon';
@@ -13,7 +14,7 @@ import { DataSource, QueryFilter } from './interfaces';
 export interface ContentPanelProps {
   controller: string;
   dataSources: Array<DataSource<Entity>>;
-  setSelectedDataSource: (dataSource: string) => void;
+  setSelectedDataSource: (sourceName: string) => void;
   selectedDataSource: DataSource<Entity>;
   setQueryFilter: (queryFilter: QueryFilter) => void;
   queryFilter: QueryFilter;
@@ -22,9 +23,31 @@ interface ContentPanelState {
   entities: Entity[];
   filterText: string;
   selectedCard: number;
+  prevQuery: {
+    queryFilter: QueryFilter;
+    sourceName: string;
+  };
 }
 
 export class ContentPanel extends React.Component<ContentPanelProps, ContentPanelState> {
+
+  // see https://github.com/reactjs/rfcs/issues/26#issuecomment-365744134
+  public static getDerivedStateFromProps(
+    nextProps: ContentPanelProps, prevState: ContentPanelState,
+  ): Partial<ContentPanelState> {
+    const nextQuery = {
+      queryFilter: nextProps.queryFilter,
+      sourceName: nextProps.selectedDataSource.name,
+    };
+    if (!isEqual(nextQuery, prevState.prevQuery)) {
+      return {
+        prevQuery: nextQuery,
+        entities: null,
+      };
+    }
+    return null;
+  }
+
   private get url() {
     return this.props.selectedDataSource.action
       && `${this.props.controller}/${this.props.selectedDataSource.action}/`;
@@ -34,9 +57,10 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
     super(props);
 
     this.state = {
-      entities: [],
+      entities: null,
       filterText: '',
       selectedCard: null,
+      prevQuery: null,
     };
 
     this.setFilterText = this.setFilterText.bind(this);
@@ -47,22 +71,30 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
     this.fetch();
   }
 
+  public componentDidUpdate() {
+    if (this.state.entities === null) {
+      this.fetch();
+    }
+  }
+
   public render() {
-    const cards = this.state.entities
-    .filter((entity) => entity.applyFilter(this.state.filterText))
-    .map((entity) => (
-      <li
-        key={entity.id}
-        // tslint:disable-next-line:jsx-no-lambda
-        onClick={() => this.setSelectedCard(entity.id)}
-      >
-        <Card
-          id={entity.id}
-          primaryText={entity.primaryText}
-          selected={false}
-        />
-      </li>
-    ));
+    const cards = this.state.entities === null
+      ? (<div>Loading...</div>)
+      : this.state.entities
+        .filter((entity) => entity.applyFilter(this.state.filterText))
+        .map((entity) => (
+          <li
+            key={entity.id}
+            // tslint:disable-next-line:jsx-no-lambda
+            onClick={() => this.setSelectedCard(entity.id)}
+          >
+            <Card
+              id={entity.id}
+              primaryText={entity.primaryText}
+              selected={entity.id === this.state.selectedCard}
+            />
+          </li>
+        ));
     const filterPlaceholder = this.props.selectedDataSource.displayName
       ? `Filter ${this.props.selectedDataSource.displayName}...`
       : '';
@@ -100,9 +132,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
 
   private fetch() {
     if (!this.url) {
-      return this.setState({
-        entities: [],
-      });
+      return this.setState({ entities: [] });
     }
 
     ajax({

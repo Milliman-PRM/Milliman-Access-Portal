@@ -7,7 +7,7 @@ import { DataSource } from './interfaces';
 
 interface ColumnSelectorProps {
   dataSources: Array<DataSource<Entity>>;
-  setSelectedDataSource: (dataSource: string) => void;
+  setSelectedDataSource: (sourceName: string) => void;
   selectedDataSource: DataSource<Entity>;
 }
 
