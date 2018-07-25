@@ -114,7 +114,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
             <Filter
               placeholderText={filterPlaceholder}
               setFilterText={this.setFilterText}
-              filterText={''}
+              filterText={this.state.filterText}
             />
             <div className="admin-panel-action-icons-container">
               <ActionIcon

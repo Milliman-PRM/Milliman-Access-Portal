@@ -27,6 +27,7 @@ export class Filter extends React.Component<FilterProps, {}> {
         <input
           type="text"
           key={this.props.placeholderText}
+          value={this.props.filterText}
           className="filter-input"
           placeholder={this.props.placeholderText || 'Filter...'}
           onChange={this.handleChange}
