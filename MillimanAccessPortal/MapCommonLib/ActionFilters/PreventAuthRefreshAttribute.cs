@@ -1,4 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc.Filters;
+﻿/*
+ * CODE OWNERS: Joseph Sweeny
+ * OBJECTIVE: <What and WHY.>
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace MapCommonLib.ActionFilters
 {

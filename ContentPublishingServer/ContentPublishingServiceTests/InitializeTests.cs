@@ -296,7 +296,7 @@ namespace ContentPublishingServiceTests
                 SelectionGroupId = 1,
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
-                SelectionCriteria = JsonConvert.SerializeObject(ValidSelectionsObject, Formatting.Indented),
+                SelectionCriteriaObj = ValidSelectionsObject,
             });
 
             ContentReductionHierarchy<ReductionFieldValueSelection> InvalidFieldValueObject = new ContentReductionHierarchy<ReductionFieldValueSelection>
@@ -333,7 +333,7 @@ namespace ContentPublishingServiceTests
                 SelectionGroupId = 1,
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
-                SelectionCriteria = JsonConvert.SerializeObject(InvalidFieldValueObject, Formatting.Indented),
+                SelectionCriteriaObj = InvalidFieldValueObject,
             });
 
             ContentReductionHierarchy<ReductionFieldValueSelection> OneValidAndOneInvalidFieldValueObject = new ContentReductionHierarchy<ReductionFieldValueSelection>
@@ -387,7 +387,7 @@ namespace ContentPublishingServiceTests
                 SelectionGroupId = 1,
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
-                SelectionCriteria = JsonConvert.SerializeObject(OneValidAndOneInvalidFieldValueObject, Formatting.Indented),
+                SelectionCriteriaObj = OneValidAndOneInvalidFieldValueObject,
             });
 
             ContentReductionHierarchy<ReductionFieldValueSelection> InvalidFieldNameObject = new ContentReductionHierarchy<ReductionFieldValueSelection>
@@ -424,7 +424,7 @@ namespace ContentPublishingServiceTests
                 SelectionGroupId = 1,
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
-                SelectionCriteria = JsonConvert.SerializeObject(InvalidFieldNameObject, Formatting.Indented),
+                SelectionCriteriaObj = InvalidFieldNameObject,
             });
 
             MockDbSet<ContentReductionTask>.AssignNavigationProperty<SelectionGroup>(Db.Object.ContentReductionTask, "SelectionGroupId", Db.Object.SelectionGroup);

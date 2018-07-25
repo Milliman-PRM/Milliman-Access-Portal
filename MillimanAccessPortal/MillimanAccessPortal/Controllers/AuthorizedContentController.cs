@@ -5,6 +5,7 @@
  */
 
 using AuditLogLib;
+using AuditLogLib.Event;
 using AuditLogLib.Services;
 using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
@@ -112,9 +113,7 @@ namespace MillimanAccessPortal.Controllers
                 });
             if (!Result1.Succeeded)
             {
-                AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Unauthorized request", AuditEventId.Unauthorized, null, UserManager.GetUserName(HttpContext.User), HttpContext.Session.Id);
-                LogObject.EventDetailObject = new { GroupIdRequested = Id };
-                AuditLogger.Log(LogObject);
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
                 return Unauthorized();
@@ -142,7 +141,7 @@ namespace MillimanAccessPortal.Controllers
                         return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
                 }
 
-                UriBuilder ContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup, HttpContext, QlikviewConfig);
+                UriBuilder ContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.ContentInstanceUrl, HttpContext.User.Identity.Name, QlikviewConfig);
 
                 AuthorizedContentViewModel ResponseModel = new AuthorizedContentViewModel
                 {

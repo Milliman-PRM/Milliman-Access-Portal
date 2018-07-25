@@ -14,6 +14,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography.X509Certificates;
+using AuditLogLib.Event;
 
 namespace AuditLogLib
 {

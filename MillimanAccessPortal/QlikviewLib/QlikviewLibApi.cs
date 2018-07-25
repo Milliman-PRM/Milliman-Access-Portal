@@ -8,27 +8,24 @@ using System;
 using System.Threading.Tasks;
 using MapCommonLib.ContentTypeSpecific;
 using QlikviewLib.Internal;
-using MapDbContextLib.Context;
-using Microsoft.AspNetCore.Http;
 
 namespace QlikviewLib
 {
     public class QlikviewLibApi : ContentTypeSpecificApiBase
     {
-        public override async Task<UriBuilder> GetContentUri(SelectionGroup GroupEntity, HttpContext Context, object ConfigInfoArg)
+        public override async Task<UriBuilder> GetContentUri(string SelectionGroupUrl, string UserName, object ConfigInfoArg)
         {
             QlikviewConfig ConfigInfo = (QlikviewConfig)ConfigInfoArg;
 
             string QvServerUriScheme = "https";  // Scheme of the iframe should match scheme of the top page
-            string EndUserName = Context.User.Identity.Name;  // TODO Is this needed instead?:    string EndUserName = UserManager.GetUserName(HttpContext.User);
 
             // TODO Resolve the user naming convention for the QV server.  
-            string QlikviewWebTicket = await QvServerOperations.GetQvWebTicket(/*@"Custom\" +*/ EndUserName, ConfigInfo as QlikviewConfig);
+            string QlikviewWebTicket = await QvServerOperations.GetQvWebTicket(/*@"Custom\" +*/ UserName, ConfigInfo as QlikviewConfig);
 
             string[] QueryStringItems = new string[]
             {
                 $"type=html",
-                $"try=/qvajaxzfc/opendoc.htm?document={GroupEntity.ContentInstanceUrl}",  // TODO use the relative document path/name in the following
+                $"try=/qvajaxzfc/opendoc.htm?document={SelectionGroupUrl}",  // TODO use the relative document path/name in the following
                 $"back=/",  // TODO probably use something other than "/" (such as a proper error page)
                 $"webticket={QlikviewWebTicket}",
             };

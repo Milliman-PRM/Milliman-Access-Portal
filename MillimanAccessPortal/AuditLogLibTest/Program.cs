@@ -3,6 +3,7 @@ using System.Threading;
 using AuditLogLib;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using AuditLogLib.Event;
 
 namespace AuditLogLibTest
 {
@@ -35,10 +36,9 @@ namespace AuditLogLibTest
                 };
 
                 // DetailObj is serialized and then persisted as jsonb.  Arbitrary structure is supported, including typed or anonymous objects.
-                // It is preferred to use AuditEvent.CreateNew() to enforce the list of user provided field values in the AuditEvent object that get used. 
-                L.Log(AuditEvent.New("AuditLogLibTest", "Incorrect password provided by user", AuditEventId.LoginFailure, DetailObj, "Bad@there.com", new Guid(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).ToString()));
-                L.Log(AuditEvent.New("AuditLogLibTest", "User logged in using biometric implant", AuditEventId.LoginSuccess, null, "Ok@here.com"));
-                L.Log(AuditEvent.New("AuditLogLibTest", "He came out of nowhere", AuditEventId.Unspecified, null, null));
+                // L.Log(AuditEvent.New("AuditLogLibTest", "Incorrect password provided by user", AuditEventType.LoginFailure, DetailObj, "Bad@there.com", new Guid(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).ToString()));
+                // L.Log(AuditEvent.New("AuditLogLibTest", "User logged in using biometric implant", AuditEventType.LoginSuccess, null, "Ok@here.com"));
+                // L.Log(AuditEvent.New("AuditLogLibTest", "He came out of nowhere", AuditEventType.Unspecified, null, null));
 
                 Thread.Sleep(2000);
             }

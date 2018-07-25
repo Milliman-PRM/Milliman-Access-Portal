@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.ServiceProcess;
 using AuditLogLib;
+using AuditLogLib.Event;
 using MapCommonLib;
 using ContentPublishingLib.JobMonitors;
 
@@ -37,7 +38,11 @@ namespace ContentPublishingLib
                 throw new ApplicationException("Application configuration is not initialized");
             }
 
-            AuditLogger.Config = new AuditLoggerConfiguration { AuditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString") };
+            AuditEventTypeBase.SetPathToRemove();
+
+            AuditLogger.Config = new AuditLoggerConfiguration {
+                AuditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString"),
+            };
 
             ServiceName = ServiceNameArg;
         }
