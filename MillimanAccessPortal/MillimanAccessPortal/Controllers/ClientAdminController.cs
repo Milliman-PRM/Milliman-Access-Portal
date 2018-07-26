@@ -248,6 +248,16 @@ namespace MillimanAccessPortal.Controllers
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
             }
+
+            // 3. The user's email must match address or domain requirement of the client
+            string UserEmailDomain = Model.Email.Substring(Model.Email.IndexOf('@') + 1);
+            if (!RequestedClient.AcceptedEmailDomainList.Any(d => string.Equals(d, UserEmailDomain, StringComparison.OrdinalIgnoreCase)) && 
+                !RequestedClient.AcceptedEmailAddressExceptionList.Any(a => string.Equals(a, Model.Email, StringComparison.OrdinalIgnoreCase)))
+            {
+                // TODO consider in the future, prompt to edit the whitelist
+                Response.Headers.Add("Warning", $"The requested user email ({Model.Email}) is not permitted for the requested client.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion Validation
 
             try
