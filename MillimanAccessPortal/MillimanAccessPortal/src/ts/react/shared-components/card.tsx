@@ -1,9 +1,8 @@
 import * as React from 'react';
 
-export interface CardProps {
-  id: number;
-  primaryText: string;
-  detailList: string[];
+import { Entity } from './entity';
+
+export interface CardProps extends Entity {
   selected: boolean;
 }
 
@@ -13,6 +12,20 @@ export class Card extends React.Component<CardProps, {}> {
   }
 
   public render() {
+    const stats = [this.props.primaryStat, this.props.secondaryStat]
+      .filter((stat) => stat)
+      .map((stat) => (
+        <div
+          key={stat.icon}
+          className="card-stat-container"
+          title={stat.name}
+        >
+          <svg className="card-stat-icon">
+            <use xlinkHref={`#${stat.icon}`} />
+          </svg>
+          <h4 className="card-stat-value">{stat.value}</h4>
+        </div>
+      ));
     const detailList = this.props.detailList && this.props.detailList.map((detail, i) => (
       <li
         key={i}
@@ -21,7 +34,7 @@ export class Card extends React.Component<CardProps, {}> {
       </li>
     ));
     const expansion = (
-      <div className="">
+      <div className="card-expansion-container">
         <ul>
           {detailList}
         </ul>
@@ -37,6 +50,12 @@ export class Card extends React.Component<CardProps, {}> {
               <h2 className="card-body-primary-text">
                 {this.props.primaryText}
               </h2>
+              <p className="card-body-secondary-text">
+                {this.props.secondaryText}
+              </p>
+            </div>
+            <div className="card-stats-container">
+              {stats}
             </div>
           </div>
           {expansion}

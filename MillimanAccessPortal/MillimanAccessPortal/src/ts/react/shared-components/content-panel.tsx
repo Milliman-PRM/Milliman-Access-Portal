@@ -7,7 +7,7 @@ import * as React from 'react';
 import { ActionIcon } from './action-icon';
 import { Card } from './card';
 import { ColumnSelector } from './column-selector';
-import { Entity } from './entity';
+import { Entity, EntityHelper } from './entity';
 import { Filter } from './filter';
 import { DataSource, QueryFilter } from './interfaces';
 
@@ -82,7 +82,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
 
   public render() {
     const filteredCards = this.state.entities && this.state.entities
-      .filter((entity) => entity.applyFilter(this.state.filterText));
+      .filter((entity) => EntityHelper.applyFilter(entity, this.state.filterText));
     const cards = filteredCards === null
       ? (<div>Loading...</div>)
       : filteredCards.length === 0
@@ -94,9 +94,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
               onClick={() => this.props.setSelectedCard(entity.id)}
             >
               <Card
-                id={entity.id}
-                primaryText={entity.primaryText}
-                detailList={entity.detailList}
+                {...entity}
                 selected={entity.id === this.props.selectedCard}
               />
             </li>

@@ -88,7 +88,6 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             IQueryable<ApplicationUser> query = _dbContext.ApplicationUser;
-            var detailFlag = false;
             #region Filter query
             if (filter.ProfitCenterId.HasValue)
             {
@@ -101,7 +100,6 @@ namespace MillimanAccessPortal.Controllers
             }
             if (filter.ClientId.HasValue)
             {
-                detailFlag = true;
                 var userIds = _dbContext.UserClaims
                     .Where(claim => claim.ClaimType == ClaimNames.ClientMembership.ToString())
                     .Where(claim => claim.ClaimValue == filter.ClientId.ToString())
@@ -115,10 +113,7 @@ namespace MillimanAccessPortal.Controllers
             foreach (var user in query)
             {
                 var userInfo = (UserInfo)user;
-                if (detailFlag)
-                {
-                    userInfo.IncludeRootContentItems(_dbContext);
-                }
+                userInfo.AssignRelatedEntityCounts(_dbContext, filter.ClientId, filter.ProfitCenterId);
                 userInfoList.Add(userInfo);
             }
 

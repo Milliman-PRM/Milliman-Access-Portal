@@ -14,7 +14,11 @@ namespace MillimanAccessPortal.Models.SystemAdmin
     public class UserInfo
     {
         public long Id { get; set; }
-        public string Name { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string UserName { get; set; }
+        public int? ClientCount { get; set; } = null;
+        public int? RootContentItemCount { get; set; } = null;
         public List<RootContentItemInfo> RootContentItems { get; set; }
 
         public static explicit operator UserInfo(ApplicationUser user)
@@ -27,11 +31,58 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             return new UserInfo
             {
                 Id = user.Id,
-                Name = user.FirstName,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                UserName = user.UserName,
             };
         }
 
-        public void IncludeRootContentItems(ApplicationDbContext dbContext)
+        public void AssignRelatedEntityCounts(ApplicationDbContext dbContext, long? clientId, long? profitCenterId)
+        {
+            if (clientId.HasValue)
+            {
+                // don't count clients
+
+                // only count root content items that are under the specified client
+                RootContentItemCount = dbContext.UserInSelectionGroup
+                    .Where(usg => usg.UserId == Id)
+                    .Where(usg => usg.SelectionGroup.RootContentItem.ClientId == clientId.Value)
+                    .Select(usg => usg.SelectionGroup.RootContentItemId)
+                    .ToHashSet().Count;
+
+                AssignRootContentItemList(dbContext);
+            }
+            else if (profitCenterId.HasValue)
+            {
+                // only count clients that are under the specified profit center
+                var clientIdList = dbContext.UserClaims
+                    .Where(claim => claim.ClaimType == ClaimNames.ClientMembership.ToString())
+                    .Where(claim => claim.UserId == Id)
+                    .Select(claim => long.Parse(claim.ClaimValue))
+                    .ToList();
+                ClientCount = dbContext.Client
+                    .Where(client => clientIdList.Contains(client.Id))
+                    .Where(client => client.ProfitCenterId == profitCenterId.Value)
+                    .Count();
+
+                // don't count root content items
+            }
+            else
+            {
+                // count all client and root content items related to the user
+                ClientCount = dbContext.UserClaims
+                    .Where(claim => claim.ClaimType == ClaimNames.ClientMembership.ToString())
+                    .Where(claim => claim.UserId == Id)
+                    .Count();
+
+                RootContentItemCount = dbContext.UserInSelectionGroup
+                    .Where(usg => usg.UserId == Id)
+                    .Select(usg => usg.SelectionGroup.RootContentItemId)
+                    .ToHashSet().Count;
+            }
+        }
+
+        private void AssignRootContentItemList(ApplicationDbContext dbContext)
         {
             var query = dbContext.UserInSelectionGroup
                 .Where(usg => usg.UserId == Id)

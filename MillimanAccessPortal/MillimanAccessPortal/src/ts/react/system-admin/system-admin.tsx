@@ -1,11 +1,13 @@
 ﻿import '../../../images/add.svg';
+import '../../../images/client-admin.svg';
+import '../../../images/reports.svg';
 import '../../../scss/react/system-admin/system-admin.scss';
 
 import * as React from 'react';
 
 import { ContentPanel } from '../shared-components/content-panel';
 import { Entity } from '../shared-components/entity';
-import { DataSource, QueryFilter } from '../shared-components/interfaces';
+import { DataSource } from '../shared-components/interfaces';
 import { ClientInfo, ProfitCenterInfo, RootContentItemInfo, UserInfo } from './interfaces';
 
 export interface SystemAdminState {
@@ -42,11 +44,22 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       displayName: 'Users',
       action: 'Users',
       createAction: 'CreateUser',
-      processResponse: (response: UserInfo) => new Entity(
-        response.Id,
-        response.Name,
-        response.RootContentItems && response.RootContentItems.map((item) => item.Name),
-      ),
+      processResponse: (response: UserInfo) => ({
+        id: response.Id,
+        primaryText: `${response.LastName}, ${response.FirstName}`,
+        secondaryText: response.UserName,
+        primaryStat: response.ClientCount !== null && {
+          name: 'Clients',
+          value: response.ClientCount,
+          icon: 'client-admin',
+        },
+        secondaryStat: response.RootContentItemCount !== null && {
+          name: 'Reports',
+          value: response.RootContentItemCount,
+          icon: 'reports',
+        },
+        detailList: response.RootContentItems && response.RootContentItems.map((item) => item.Name),
+      }),
       assignQueryFilter: (userId: number) => ({ userId }),
     },
     {
@@ -59,10 +72,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       displayName: 'Clients',
       action: 'Clients',
       createAction: null,
-      processResponse: (response: ClientInfo) => new Entity(
-        response.Id,
-        response.Name,
-      ),
+      processResponse: (response: ClientInfo) => ({
+        id: response.Id,
+        primaryText: response.Name,
+      }),
       assignQueryFilter: (clientId: number) => ({ clientId }),
     },
     {
@@ -73,10 +86,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       displayName: 'Profit Center',
       action: 'ProfitCenters',
       createAction: 'CreateProfitCenter',
-      processResponse: (response: ProfitCenterInfo) => new Entity(
-        response.Id,
-        response.Name,
-      ),
+      processResponse: (response: ProfitCenterInfo) => ({
+        id: response.Id,
+        primaryText: response.Name,
+      }),
       assignQueryFilter: (profitCenterId: number) => ({ profitCenterId }),
     },
     {
@@ -93,11 +106,11 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       displayName: 'Content Items',
       action: 'RootContentItems',
       createAction: null,
-      processResponse: (response: RootContentItemInfo) => new Entity(
-        response.Id,
-        response.Name,
-        response.Users && response.Users.map((user) => user.Name),
-      ),
+      processResponse: (response: RootContentItemInfo) => ({
+        id: response.Id,
+        primaryText: response.Name,
+        detailList: response.Users && response.Users.map((item) => item.FirstName),
+      }),
       assignQueryFilter: (rootContentItemId: number) => ({ rootContentItemId }),
     },
   ];
