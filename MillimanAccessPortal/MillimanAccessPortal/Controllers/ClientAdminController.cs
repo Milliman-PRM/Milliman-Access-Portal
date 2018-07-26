@@ -270,7 +270,7 @@ namespace MillimanAccessPortal.Controllers
                     if (result.Succeeded)
                     {
                         var confirmationCode = await UserManager.GenerateEmailConfirmationTokenAsync(RequestedUser);
-                        var callbackUrl = Url.Action(nameof(AccountController.ConfirmEmail), "Account", new { userId = RequestedUser.Id, code = confirmationCode }, protocol: "https");
+                        var callbackUrl = Url.Action(nameof(AccountController.EnableAccount), "Account", new { userId = RequestedUser.Id, code = confirmationCode }, protocol: "https");
 
                         // Notify user of new account
                         string emailBody = RequestedClient.NewUserWelcomeText 

@@ -1,13 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Models.AccountViewModels
 {
-    public class AccountSettingsViewModel
+    public class EnableAccountViewModel
     {
+        [Required]
+        [HiddenInput]
+        [Editable(false)]
+        public long Id { get; set; }
+
+        [Required]
+        [HiddenInput]
+        [Editable(false)]
+        public string Code { get; set; }
+
+        [Required]
+        [Editable(false)]
+        public string UserName { get; set; }
+
         [Required]
         [Display(Name = "First Name")]
         public string FirstName { get; set; }
@@ -17,24 +28,11 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         public string LastName { get; set; }
 
         [Required]
-        public string UserName { get; set; }
-
-        [Required]
-        [EmailAddress]
-        [Display(Name = "Email Address")]
-        public string Email { get; set; }
-
-        [Required]
-        [Phone]
         [Display(Name = "Phone Number")]
-        public string PhoneNumber { get; set; }
+        public string Phone { get; set; }
 
         [Required]
         public string Employer { get; set; }
-
-        [DataType(DataType.Password)]
-        [Display(Name = "Current Password")]
-        public string CurrentPassword { get; set; }
 
         [DataType(DataType.Password)]
         [Display(Name = "New Password")]
@@ -44,7 +42,5 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         [Display(Name = "Confirm password")]
         [Compare("NewPassword", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmNewPassword { get; set; }
-
-        public string Code { get; set; }
     }
 }

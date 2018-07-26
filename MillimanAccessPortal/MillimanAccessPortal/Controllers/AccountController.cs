@@ -151,7 +151,7 @@ namespace MillimanAccessPortal.Controllers
                     // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=532713
                     // Send an email with this link
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var callbackUrl = Url.Action(nameof(ConfirmEmail), "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
+                    var callbackUrl = Url.Action(nameof(EnableAccount), "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
                     _messageSender.QueueEmail(model.Email, "Confirm your account",
                         $"Please confirm your account by clicking this link: <a href='{callbackUrl}'>link</a>");
                     _logger.LogInformation(3, "User created a new account with password.");
@@ -270,10 +270,10 @@ namespace MillimanAccessPortal.Controllers
             return View(model);
         }
 
-        // GET: /Account/ConfirmEmail
+        // GET: /Account/EnableAccount
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> ConfirmEmail(string userId, string code)
+        public async Task<IActionResult> EnableAccount(string userId, string code)
         {
             if (userId == null || code == null)
             {
@@ -286,27 +286,29 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Prompt for the user's password
-            return View("ConfirmEmail");
+            var model = new EnableAccountViewModel
+            {
+                Id = user.Id,
+                Code = code,
+                UserName = user.UserName,
+            };
+            return View(model);
         }
 
-        // GET: /Account/ConfirmEmail
+        // GET: /Account/EnableAccount
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> ConfirmEmail(string userId, string code, string password)
+        public async Task<IActionResult> EnableAccount(EnableAccountViewModel model)
         {
-            if (userId == null || code == null)
-            {
-                return View("Error");
-            }
-            var user = await _userManager.FindByIdAsync(userId);
+            var user = await _userManager.FindByIdAsync(model.Id.ToString());
             if (user == null)
             {
                 return View("Error");
             }
 
-            await _userManager.ChangePasswordAsync(user, "", password);
+            await _userManager.ChangePasswordAsync(user, "", model.NewPassword);
 
-            var result = await _userManager.ConfirmEmailAsync(user, code);
+            var result = await _userManager.ConfirmEmailAsync(user, model.Code);
             return View(result.Succeeded ? "ConfirmEmail" : "Error");
         }
 
