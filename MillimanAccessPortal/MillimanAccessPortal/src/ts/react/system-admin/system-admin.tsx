@@ -101,6 +101,12 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       processResponse: (response: ProfitCenterInfo) => ({
         id: response.Id,
         primaryText: response.Name,
+        secondaryText: response.Office,
+        primaryStat: {
+          name: 'Clients',
+          value: response.ClientCount,
+          icon: 'client-admin',
+        },
       }),
       assignQueryFilter: (profitCenterId: number) => ({ profitCenterId }),
     },

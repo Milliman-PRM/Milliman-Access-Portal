@@ -184,6 +184,7 @@ namespace MillimanAccessPortal.Controllers
             foreach (var pc in query)
             {
                 var pcInfo = (ProfitCenterInfo)pc;
+                pcInfo.QueryRelatedEntityCounts(_dbContext);
                 pcInfoList.Add(pcInfo);
             }
 
