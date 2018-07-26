@@ -37,7 +37,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             };
         }
 
-        public void AssignRelatedEntityCounts(ApplicationDbContext dbContext, long? clientId, long? profitCenterId)
+        public void QueryRelatedEntityCounts(ApplicationDbContext dbContext, long? clientId, long? profitCenterId)
         {
             if (clientId.HasValue)
             {
@@ -69,7 +69,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             }
             else
             {
-                // count all client and root content items related to the user
+                // count all clients and root content items related to the user
                 ClientCount = dbContext.UserClaims
                     .Where(claim => claim.ClaimType == ClaimNames.ClientMembership.ToString())
                     .Where(claim => claim.UserId == Id)

@@ -113,7 +113,7 @@ namespace MillimanAccessPortal.Controllers
             foreach (var user in query)
             {
                 var userInfo = (UserInfo)user;
-                userInfo.AssignRelatedEntityCounts(_dbContext, filter.ClientId, filter.ProfitCenterId);
+                userInfo.QueryRelatedEntityCounts(_dbContext, filter.ClientId, filter.ProfitCenterId);
                 userInfoList.Add(userInfo);
             }
 
@@ -155,6 +155,7 @@ namespace MillimanAccessPortal.Controllers
             foreach (var client in query)
             {
                 var clientInfo = (ClientInfo)client;
+                clientInfo.QueryRelatedEntityCounts(_dbContext, filter.UserId, filter.ProfitCenterId);
                 clientInfoList.Add(clientInfo);
             }
 

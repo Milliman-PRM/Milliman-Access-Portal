@@ -31,6 +31,9 @@ export interface UserInfo {
 export interface ClientInfo {
   Id: number;
   Name: string;
+  Code: string;
+  UserCount?: number;
+  RootContentItemCount?: number;
 }
 
 export interface ProfitCenterInfo {
