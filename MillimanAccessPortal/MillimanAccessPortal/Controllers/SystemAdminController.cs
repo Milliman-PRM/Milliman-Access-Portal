@@ -206,7 +206,6 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             IQueryable<RootContentItem> query = _dbContext.RootContentItem;
-            var detailFlag = false;
             #region Filter query
             if (filter.UserId.HasValue)
             {
@@ -218,7 +217,6 @@ namespace MillimanAccessPortal.Controllers
             }
             if (filter.ClientId.HasValue)
             {
-                detailFlag = true;
                 query = query.Where(item => item.ClientId == filter.ClientId.Value);
             }
             #endregion
@@ -227,10 +225,7 @@ namespace MillimanAccessPortal.Controllers
             foreach (var item in query)
             {
                 var itemInfo = (RootContentItemInfo)item;
-                if (detailFlag)
-                {
-                    itemInfo.IncludeUsers(_dbContext);
-                }
+                itemInfo.QueryRelatedEntityCounts(_dbContext, filter.UserId);
                 itemInfoList.Add(itemInfo);
             }
 

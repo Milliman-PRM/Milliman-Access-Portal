@@ -1,5 +1,6 @@
 ﻿import '../../../images/add.svg';
 import '../../../images/client-admin.svg';
+import '../../../images/group.svg';
 import '../../../images/reports.svg';
 import '../../../images/user.svg';
 import '../../../scss/react/system-admin/system-admin.scss';
@@ -127,6 +128,17 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       processResponse: (response: RootContentItemInfo) => ({
         id: response.Id,
         primaryText: response.Name,
+        secondaryText: response.ClientName,
+        primaryStat: response.UserCount !== null && {
+          name: 'Users',
+          value: response.UserCount,
+          icon: 'user',
+        },
+        secondaryStat: response.SelectionGroupCount !== null && {
+          name: 'Selection Groups',
+          value: response.SelectionGroupCount,
+          icon: 'group',
+        },
         detailList: response.Users && response.Users.map((item) => item.FirstName),
       }),
       assignQueryFilter: (rootContentItemId: number) => ({ rootContentItemId }),

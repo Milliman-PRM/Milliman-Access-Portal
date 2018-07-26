@@ -46,5 +46,9 @@ export interface ProfitCenterInfo {
 export interface RootContentItemInfo {
   Id: number;
   Name: string;
+  ClientName: string;
+  UserCount?: number;
+  SelectionGroupCount?: number;
   Users?: UserInfo[];
+  IsSuspended: boolean;
 }
