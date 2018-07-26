@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AuditLogLib.Event;
+using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore;
 using Microsoft.Extensions.Configuration;
@@ -40,6 +41,8 @@ namespace MillimanAccessPortal
                     throw;
                 }
             }
+
+            AuditEventTypeBase.SetPathToRemove();
 
             host.Run();
         }

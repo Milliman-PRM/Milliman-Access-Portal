@@ -11,9 +11,10 @@ using System;
 namespace AuditLogLib.Migrations
 {
     [DbContext(typeof(AuditLogDbContext))]
-    partial class AuditLogDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180712180957_RemoveSummary")]
+    partial class RemoveSummary
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -24,8 +25,6 @@ namespace AuditLogLib.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
-
-                    b.Property<string>("Assembly");
 
                     b.Property<string>("EventData")
                         .HasColumnType("jsonb");

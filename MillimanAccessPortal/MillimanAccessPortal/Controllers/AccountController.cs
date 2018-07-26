@@ -24,6 +24,7 @@ using MillimanAccessPortal.Services;
 using AuditLogLib;
 using AuditLogLib.Services;
 using MillimanAccessPortal.DataQueries;
+using AuditLogLib.Event;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -89,8 +90,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
 
-                    AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User login successful", AuditEventId.LoginSuccess, null, model.Username, HttpContext.Session.Id);
-                    _auditLogger.Log(LogObject);
+                    _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent());
 
                     // The default route is /AuthorizedContent/Index as configured in startup.cs
                     if (!string.IsNullOrEmpty(returnUrl))
@@ -113,8 +113,7 @@ namespace MillimanAccessPortal.Controllers
                 }
                 else
                 {
-                    AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User login failed", AuditEventId.LoginFailure, null, model.Username, HttpContext.Session.Id);
-                    _auditLogger.Log(LogObject);
+                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent());
 
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                     return View(model);
@@ -173,9 +172,7 @@ namespace MillimanAccessPortal.Controllers
         {
             await _signInManager.SignOutAsync();
 
-            _auditLogger.Log(
-                AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "User logged out successful", AuditEventId.Logout, null, User.Identity.Name, HttpContext.Session.Id)
-            );
+            _auditLogger.Log(AuditEventType.Logout.ToEvent());
 
             Response.Cookies.Delete(".AspNetCore.Session");
             HttpContext.Session.Clear();

@@ -5,6 +5,7 @@
  */
 
 using AuditLogLib;
+using AuditLogLib.Event;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
@@ -144,15 +145,7 @@ namespace MillimanAccessPortal
                 {
                     #region Log audit event
                     AuditLogger Logger = new AuditLogger();
-                    AuditEvent selectionChangeReductionQueuedEvent = AuditEvent.New(
-                        "ContentAccessSupport.MonitorReductionTaskForGoLive",
-                        "Selection change reduction task was successfully deployed",
-                        AuditEventId.SelectionChangeReductionLive,
-                        new { TaskId = thisContentReductionTask.Id.ToString("D"),  },
-                        thisContentReductionTask.ApplicationUser.UserName,
-                        ""
-                        );
-                    Logger.Log(selectionChangeReductionQueuedEvent);
+                    Logger.Log(AuditEventType.SelectionChangeReductionLive.ToEvent(thisContentReductionTask));
                     #endregion
                 }
             }
