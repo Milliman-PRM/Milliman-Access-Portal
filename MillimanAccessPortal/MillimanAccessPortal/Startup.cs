@@ -77,6 +77,8 @@ namespace MillimanAccessPortal
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
+            services.Configure<PasswordHasherOptions>(options => options.IterationCount = 100_000);
+
             services.Configure<IdentityOptions>(options =>
             {
                 // Password settings
