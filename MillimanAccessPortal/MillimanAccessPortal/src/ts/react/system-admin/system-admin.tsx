@@ -127,6 +127,11 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         primaryText: profitCenter.Name,
         secondaryText: profitCenter.Office,
         primaryStat: {
+          name: 'Authorized users',
+          value: profitCenter.UserCount,
+          icon: 'user',
+        },
+        secondaryStat: {
           name: 'Clients',
           value: profitCenter.ClientCount,
           icon: 'client-admin',

@@ -41,6 +41,7 @@ export interface ProfitCenterInfo {
   Id: number;
   Name: string;
   Office: string;
+  UserCount: number;
   ClientCount: number;
 }
 
