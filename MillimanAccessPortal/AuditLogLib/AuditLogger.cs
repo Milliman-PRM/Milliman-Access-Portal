@@ -93,10 +93,17 @@ namespace AuditLogLib
         /// <param name="Event">Event data to be logged. Use AuditEvent.New method to enforce proper creation</param>
         public async virtual void Log(AuditEvent Event)
         {
-            var context = _contextAccessor?.HttpContext;
-            var user = await _userManager?.GetUserAsync(context?.User);
+            HttpContext context = _contextAccessor?.HttpContext;
+            ApplicationUser user = await _userManager?.GetUserAsync(context?.User);
 
-            Event.SessionId = context?.Session?.Id;
+            try
+            {
+                Event.SessionId = context?.Session?.Id;
+            }
+            catch (InvalidOperationException)
+            {
+                Event.SessionId = null;
+            }
             Event.User = user?.ToString();
             Event.Assembly = _assemblyName;
 
