@@ -53,11 +53,13 @@ export class ContentCard extends React.Component<ContentItem, {}> {
                   action={this.navigateToReleaseNotes}
                   title="View Release Notes"
                   icon="release-notes"
+                  inline={true}
                 />
                 <ActionIcon
                   action={this.navigateToUserguide}
                   title="View Userguide"
                   icon="userguide"
+                  inline={true}
                 />
               </div>
             </div>

@@ -1,8 +1,8 @@
 ﻿@import "../../map_modules/variables";
 
 
-.action-icon-container {
-    display: flex;
+.action-icon-container,
+.action-icon-container-inline {
     margin-left: .5em;
 
     .action-icon {
@@ -13,4 +13,12 @@
             color: darken($charcoal, 15%);
         }
     }
+}
+
+.action-icon-container {
+    display: flex;
+}
+
+.action-icon-container-inline {
+    display: inline;
 }
