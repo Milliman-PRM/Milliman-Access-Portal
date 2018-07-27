@@ -1,6 +1,7 @@
 ﻿using MapDbContextLib.Context;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {
@@ -30,6 +31,26 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 LastUpdated = DateTime.UtcNow,
                 LastAccessed = DateTime.UtcNow,
             };
+        }
+
+        public void QueryRelatedEntities(ApplicationDbContext dbContext, long clientId)
+        {
+            var groups = dbContext.UserInSelectionGroup
+                .Where(g => g.SelectionGroup.RootContentItemId == Id)
+                .Where(g => g.SelectionGroup.RootContentItem.ClientId == clientId)
+                .Select(g => new KeyValuePair<string, string>(g.SelectionGroup.GroupName, $"{g.User.FirstName} {g.User.LastName}"));
+
+            var selectionGroups = new Dictionary<string, List<string>>();
+            foreach (var group in groups)
+            {
+                if (!selectionGroups.Keys.Contains(group.Key))
+                {
+                    selectionGroups[group.Key] = new List<string>();
+                }
+                selectionGroups[group.Key].Add(group.Value);
+            }
+
+            SelectionGroups = selectionGroups;
         }
     }
 }

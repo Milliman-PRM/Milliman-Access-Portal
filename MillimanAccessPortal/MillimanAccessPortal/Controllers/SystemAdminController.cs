@@ -9,13 +9,13 @@ using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
-using MillimanAccessPortal.Models.AccountViewModels;
-using MillimanAccessPortal.Models.ContentPublishing;
 using MillimanAccessPortal.Models.SystemAdmin;
 using System.Collections.Generic;
 using System.Linq;
@@ -121,6 +121,46 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(userInfoList);
         }
+        [HttpGet]
+        public async Task<ActionResult> UserDetail(QueryFilter filter)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            ApplicationUser user = null;
+            #region Validation
+            if (!filter.UserId.HasValue)
+            {
+                return BadRequest();
+            }
+            user = _dbContext.ApplicationUser.SingleOrDefault(u => u.Id == filter.UserId.Value);
+            if (user == null)
+            {
+                Response.Headers.Add("Warning", "The specified user does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            if (filter.ClientId.HasValue)
+            {
+                return Json((UserDetailForClient)user);
+            }
+            if (filter.ProfitCenterId.HasValue)
+            {
+                var model = (UserDetailForProfitCenter)user;
+                model.QueryRelatedEntities(_dbContext, filter.ProfitCenterId.Value);
+                return Json(model);
+            }
+            return Json((UserDetail)user);
+        }
 
         [HttpGet]
         public async Task<ActionResult> Clients(QueryFilter filter)
@@ -176,6 +216,48 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(clientTree);
         }
+        [HttpGet]
+        public async Task<ActionResult> ClientDetail(QueryFilter filter)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            Client client = null;
+            #region Validation
+            if (!filter.ClientId.HasValue)
+            {
+                return BadRequest();
+            }
+            client = _dbContext.Client
+                .Include(c => c.ProfitCenter)
+                .SingleOrDefault(c => c.Id == filter.ClientId.Value);
+            if (client == null)
+            {
+                Response.Headers.Add("Warning", "The specified client does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            if (filter.UserId.HasValue)
+            {
+                return Json((ClientDetailForUser)client);
+            }
+            if (filter.ProfitCenterId.HasValue)
+            {
+                var model = (ClientDetailForProfitCenter)client;
+                model.QueryRelatedEntities(_dbContext, filter.ProfitCenterId.Value);
+                return Json(model);
+            }
+            return Json((ClientDetail)client);
+        }
 
         [HttpGet]
         public async Task<ActionResult> ProfitCenters(QueryFilter filter)
@@ -205,6 +287,36 @@ namespace MillimanAccessPortal.Controllers
             }
 
             return Json(pcInfoList);
+        }
+        [HttpGet]
+        public async Task<ActionResult> ProfitCenterDetail(QueryFilter filter)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            ProfitCenter pc = null;
+            #region Validation
+            if (!filter.ProfitCenterId.HasValue)
+            {
+                return BadRequest();
+            }
+            pc = _dbContext.ProfitCenter.SingleOrDefault(c => c.Id == filter.ProfitCenterId.Value);
+            if (pc == null)
+            {
+                Response.Headers.Add("Warning", "The specified profit center does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            return Json((ProfitCenterDetail)pc);
         }
 
         [HttpGet]
@@ -247,6 +359,48 @@ namespace MillimanAccessPortal.Controllers
             }
 
             return Json(itemInfoList);
+        }
+        [HttpGet]
+        public async Task<ActionResult> RootContentItemDetail(QueryFilter filter)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            RootContentItem item = null;
+            #region Validation
+            if (!filter.RootContentItemId.HasValue)
+            {
+                return BadRequest();
+            }
+            item = _dbContext.RootContentItem
+                .Include(i => i.ContentType)
+                .SingleOrDefault(i => i.Id == filter.RootContentItemId.Value);
+            if (item == null)
+            {
+                Response.Headers.Add("Warning", "The specified user does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            if (filter.UserId.HasValue)
+            {
+                return Json((RootContentItemDetailForUser)item);
+            }
+            if (filter.ClientId.HasValue)
+            {
+                var model = (RootContentDetailForClient)item;
+                model.QueryRelatedEntities(_dbContext, filter.ClientId.Value); 
+                return Json(model);
+            }
+            return BadRequest();
         }
     }
 }

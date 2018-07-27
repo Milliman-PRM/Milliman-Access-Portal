@@ -1,5 +1,7 @@
-﻿using MapDbContextLib.Identity;
+﻿using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {
@@ -27,6 +29,26 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 Email = user.Email,
                 Phone = user.PhoneNumber,
             };
+        }
+
+        public void QueryRelatedEntities(ApplicationDbContext dbContext, long profitCenterId)
+        {
+            var roles = dbContext.UserRoleInClient
+                .Where(r => r.UserId == Id)
+                .Where(r => r.Client.ProfitCenterId == profitCenterId)
+                .Select(r => new KeyValuePair<string, string>(r.Client.Name, r.Role.RoleEnum.ToString()));
+
+            var assignedClients = new Dictionary<string, List<string>>();
+            foreach (var role in roles)
+            {
+                if (!assignedClients.Keys.Contains(role.Key))
+                {
+                    assignedClients[role.Key] = new List<string>();
+                }
+                assignedClients[role.Key].Add(role.Value);
+            }
+
+            AssignedClients = assignedClients;
         }
     }
 }
