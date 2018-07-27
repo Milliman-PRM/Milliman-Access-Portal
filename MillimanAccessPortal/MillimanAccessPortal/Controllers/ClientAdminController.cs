@@ -275,6 +275,8 @@ namespace MillimanAccessPortal.Controllers
                     IdentityResult result = await UserManager.CreateAsync(RequestedUser);
                     if (result.Succeeded)
                     {
+                        AuditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(RequestedUser));
+
                         var confirmationCode = await UserManager.GenerateEmailConfirmationTokenAsync(RequestedUser);
                         var callbackUrl = Url.Action(nameof(AccountController.EnableAccount), "Account", new { userId = RequestedUser.Id, code = confirmationCode }, protocol: "https");
 
@@ -298,20 +300,16 @@ namespace MillimanAccessPortal.Controllers
                     }
                 }
 
-                IdentityUserClaim<long> ThisClientMembershipClaim = new IdentityUserClaim<long>
-                    {
-                        ClaimType = ClaimNames.ClientMembership.ToString(),
-                        ClaimValue = Model.MemberOfClientId.ToString(),
-                        UserId = RequestedUser.Id
-                    };
-                if (!DbContext.UserClaims.Any(uc => uc.ClaimType == ThisClientMembershipClaim.ClaimType
-                                                    && uc.ClaimValue == ThisClientMembershipClaim.ClaimValue
-                                                    && uc.UserId == RequestedUser.Id))
+                Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), Model.MemberOfClientId.ToString());
+                var CurrentClaimsOfRequestedUser = await UserManager.GetClaimsAsync(RequestedUser);
+                if (!CurrentClaimsOfRequestedUser.Any(c => c.Type == ThisClientMembershipClaim.Type && c.Value == ThisClientMembershipClaim.Value))
                 {
-                    DbContext.UserClaims.Add(ThisClientMembershipClaim);
+                    await UserManager.AddClaimAsync(RequestedUser, ThisClientMembershipClaim);
                 }
 
                 DbContext.SaveChanges();
+
+                AuditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(RequestedClient, RequestedUser));
             }
             catch (Exception e)
             {
@@ -320,15 +318,6 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "Failed to complete operation");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
-
-            // UserCreated Audit log
-            if (RequestedUserIsNew)
-            {
-                AuditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(RequestedUser));
-            }
-
-            // Client membership assignment Audit log
-            AuditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(RequestedClient, RequestedUser));
 
             Response.Headers.Add("Warning", $"The requested user was successfully saved");
             return Ok("New User saved successfully");
