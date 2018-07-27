@@ -86,7 +86,9 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
     const cards = filteredCards === null
       ? (<div>Loading...</div>)
       : filteredCards.length === 0
-        ? (<div>No {this.props.selectedDataSource.displayName} found.</div>)
+        ? (
+          <div>No {this.props.selectedDataSource.displayName.toLowerCase()} found.</div>
+        )
         : filteredCards.map((entity) => (
             <li
               key={entity.id}

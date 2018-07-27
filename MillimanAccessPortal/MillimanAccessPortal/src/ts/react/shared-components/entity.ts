@@ -19,8 +19,13 @@ export interface Entity {
 
 export class EntityHelper {
   public static applyFilter(entity: Entity, filterText: string): boolean {
-    const entityTextLower = entity.primaryText.toLowerCase();
     const filterTextLower = filterText.toLowerCase();
-    return entityTextLower.indexOf(filterTextLower) !== -1;
+    const primaryMatch = entity.primaryText
+      ? entity.primaryText.toLowerCase().indexOf(filterTextLower) !== -1
+      : false;
+    const secondaryMatch = entity.secondaryText
+      ? entity.secondaryText.toLowerCase().indexOf(filterTextLower) !== -1
+      : false;
+    return primaryMatch || secondaryMatch;
   }
 }
