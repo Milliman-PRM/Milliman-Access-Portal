@@ -18,13 +18,11 @@ export class FormInputSection extends FormElement {
     init: boolean,
   };
 
-  // tslint:disable:object-literal-sort-keys
   protected _cssClasses =  {
     main: 'form-section',
     title: 'form-section-title',
     extension: 'form-input-container',
   };
-  // tslint:enable:object-literal-sort-keys
 
   public bindToDOM(entryPoint: HTMLElement) {
     super.bindToDOM(entryPoint);
@@ -101,13 +99,11 @@ export class FormInputSection extends FormElement {
 export class FormSubmissionSection extends FormElement {
   public submissions: Submission[];
 
-  // tslint:disable:object-literal-sort-keys
   protected _cssClasses = {
     main: 'form-submission-section',
     title: '',
     extension: '',
   };
-  // tslint:enable:object-literal-sort-keys
 
   public bindToDOM(entryPoint: HTMLElement) {
     super.bindToDOM(entryPoint);

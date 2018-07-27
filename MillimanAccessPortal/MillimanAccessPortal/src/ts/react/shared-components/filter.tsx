@@ -2,9 +2,13 @@
 
 import * as React from 'react';
 
-import { FilterProps } from './interfaces';
-
 import '../../../images/filter.svg';
+
+export interface FilterProps {
+  filterText: string;
+  setFilterText: (filterString: string) => void;
+  placeholderText: string;
+}
 
 export class Filter extends React.Component<FilterProps, {}> {
   public constructor(props) {
@@ -14,7 +18,7 @@ export class Filter extends React.Component<FilterProps, {}> {
   }
 
   public handleChange(event) {
-    this.props.updateFilterString(event.target.value);
+    this.props.setFilterText(event.target.value);
   }
 
   public render() {
@@ -23,9 +27,11 @@ export class Filter extends React.Component<FilterProps, {}> {
         <input
           type="text"
           key={this.props.placeholderText}
+          value={this.props.filterText}
           className="filter-input"
-          placeholder={this.props.placeholderText}
+          placeholder={this.props.placeholderText || 'Filter...'}
           onChange={this.handleChange}
+          disabled={!this.props.placeholderText}
         />
         <svg className="filter-icon">
           <use xlinkHref="#filter" />

@@ -5,6 +5,7 @@
  */
 
 using AuditLogLib.Services;
+using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Authorization;
@@ -108,11 +109,13 @@ namespace MillimanAccessPortal.Controllers
                 query = query.Where(user => userIds.Contains(user.Id));
             }
             #endregion
+            query = query.OrderBy(user => user.LastName).ThenBy(user => user.FirstName);
 
             var userInfoList = new List<UserInfo>();
             foreach (var user in query)
             {
                 var userInfo = (UserInfo)user;
+                userInfo.QueryRelatedEntityCounts(_dbContext, filter.ClientId, filter.ProfitCenterId);
                 userInfoList.Add(userInfo);
             }
 
@@ -149,15 +152,29 @@ namespace MillimanAccessPortal.Controllers
                 query = query.Where(client => client.ProfitCenterId == filter.ProfitCenterId.Value);
             }
             #endregion
+            // since the query won't be returned, order the tree instead of the query
+
+            var clientList = query.Select(c => c.Id).ToList();
 
             var clientInfoList = new List<ClientInfo>();
-            foreach (var client in query)
+            foreach (var client in _dbContext.Client)
             {
                 var clientInfo = (ClientInfo)client;
+                clientInfo.ParentOnly = !clientList.Contains(clientInfo.Id);
                 clientInfoList.Add(clientInfo);
             }
 
-            return Json(clientInfoList);
+            var clientTree = new BasicTree<ClientInfo>();
+            clientTree.Root.Populate(ref clientInfoList);
+            clientTree.Root.Prune((ClientInfo ci) => clientList.Contains(ci.Id), (cum, cur) => cum || cur, false);
+            clientTree.Root.Apply((ci) =>
+            {
+                ci?.QueryRelatedEntityCounts(_dbContext, filter.UserId, filter.ProfitCenterId);
+                return ci;
+            });
+            clientTree.Root.OrderInPlaceBy((node) => node.Value.Name);
+
+            return Json(clientTree);
         }
 
         [HttpGet]
@@ -177,11 +194,13 @@ namespace MillimanAccessPortal.Controllers
             IQueryable<ProfitCenter> query = _dbContext.ProfitCenter;
             #region Filter query
             #endregion
+            query = query.OrderBy(pc => pc.Name);
 
             var pcInfoList = new List<ProfitCenterInfo>();
             foreach (var pc in query)
             {
                 var pcInfo = (ProfitCenterInfo)pc;
+                pcInfo.QueryRelatedEntityCounts(_dbContext);
                 pcInfoList.Add(pcInfo);
             }
 
@@ -217,11 +236,13 @@ namespace MillimanAccessPortal.Controllers
                 query = query.Where(item => item.ClientId == filter.ClientId.Value);
             }
             #endregion
+            query = query.OrderBy(item => item.ContentName).ThenBy(item => item.ContentType);
 
             var itemInfoList = new List<RootContentItemInfo>();
             foreach (var item in query)
             {
                 var itemInfo = (RootContentItemInfo)item;
+                itemInfo.QueryRelatedEntityCounts(_dbContext, filter.UserId);
                 itemInfoList.Add(itemInfo);
             }
 

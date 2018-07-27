@@ -5,6 +5,8 @@
  */
 
 using MapDbContextLib.Context;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {
@@ -12,6 +14,11 @@ namespace MillimanAccessPortal.Models.SystemAdmin
     {
         public long Id { get; set; }
         public string Name { get; set; }
+        public string ClientName { get; set; }
+        public int? UserCount { get; set; }
+        public int? SelectionGroupCount { get; set; }
+        public List<UserInfo> Users { get; set; }
+        public bool IsSuspended { get; set; }
 
         public static explicit operator RootContentItemInfo(RootContentItem rootContentItem)
         {
@@ -25,6 +32,45 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 Id = rootContentItem.Id,
                 Name = rootContentItem.ContentName,
             };
+        }
+
+        public void QueryRelatedEntityCounts(ApplicationDbContext dbContext, long? userId)
+        {
+            if (userId.HasValue)
+            {
+                // don't count users
+                
+                // don't count selection groups
+            }
+            else
+            {
+                // count all users and selection groups related to the root content item
+                UserCount = dbContext.UserInSelectionGroup
+                    .Where(usg => usg.SelectionGroup.RootContentItemId == Id)
+                    .Count();
+
+                SelectionGroupCount = dbContext.SelectionGroup
+                    .Where(group => group.RootContentItemId == Id)
+                    .Count();
+
+                _includeUsers(dbContext);
+            }
+        }
+
+        private void _includeUsers(ApplicationDbContext dbContext)
+        {
+            var query = dbContext.UserInSelectionGroup
+                .Where(usg => usg.SelectionGroup.RootContentItemId == Id)
+                .Select(usg => usg.User);
+
+            var userInfoList = new List<UserInfo>();
+            foreach (var user in query)
+            {
+                var userInfo = (UserInfo)user;
+                userInfoList.Add(userInfo);
+            }
+
+            Users = userInfoList;
         }
     }
 }

@@ -1,372 +1,291 @@
 ﻿import '../../../images/add.svg';
+import '../../../images/client-admin.svg';
+import '../../../images/group.svg';
+import '../../../images/reports.svg';
+import '../../../images/user.svg';
 import '../../../scss/react/system-admin/system-admin.scss';
 
 import * as React from 'react';
 
-import { ActionIcon } from '../shared-components/action-icon';
-import { ColumnSelector } from '../shared-components/column-selector';
-import { Filter } from '../shared-components/filter';
-import { SelectionOption } from '../shared-components/interfaces';
-import { ClientContentPanel } from './client-content-panel';
-import {
-  ClientInfo, ProfitCenterInfo, QueryFilter, RootContentItemInfo, SystemAdminState, UserInfo,
-} from './interfaces';
-import { ProfitCenterContentPanel } from './profit-center-content-panel';
-import { RootContentItemContentPanel } from './root-content-item-content-panel';
-import { UserContentPanel } from './user-content-panel';
+import { BasicNode, BasicTree, Nestable } from '../../view-models/content-publishing';
+import { ContentPanel } from '../shared-components/content-panel';
+import { Entity } from '../shared-components/entity';
+import { DataSource } from '../shared-components/interfaces';
+import { ClientInfo, ProfitCenterInfo, RootContentItemInfo, UserInfo } from './interfaces';
+
+export interface SystemAdminState {
+  primaryDataSource: string;
+  secondaryDataSource: string;
+  primarySelectedCard: number;
+  secondarySelectedCard: number;
+}
 
 export class SystemAdmin extends React.Component<{}, SystemAdminState> {
-  // tslint:disable:object-literal-sort-keys
-  private structure = {
-    Users: {
-      displayValue: 'Users',
-      secColElements: {
-        Clients: {
-          displayValue: 'Clients',
-        },
-        AuthContent: {
-          displayValue: 'Authorized Content',
-        },
-      },
-    },
-    Clients: {
-      displayValue: 'Clients',
-      secColElements: {
-        Users: {
-          displayValue: 'Users',
-        },
-        Content: {
-          displayValue: 'Content Items',
-        },
-      },
-    },
-    PC: {
-      displayValue: 'Profit Centers',
-      secColElements: {
-        AuthUsers: {
-          displayValue: 'Authorized Users',
-        },
-        Clients: {
-          displayValue: 'Clients',
-        },
-      },
-    },
+  private controller: string = 'SystemAdmin';
+  private nullDataSource: DataSource<Entity> = {
+    name: null,
+    parentSources: [],
+    displayName: '',
+    action: '',
+    createAction: null,
+    processResponse: () => null,
+    assignQueryFilter: () => null,
   };
-  // tslint:enable:object-literal-sort-keys
+  private dataSources: Array<DataSource<Entity>> = [
+    {
+      name: 'user',
+      parentSources: [
+        null,
+        'client',
+        {
+          name: 'profitCenter',
+          overrides: {
+            displayName: 'Authorized Users',
+          },
+        },
+      ],
+      displayName: 'Users',
+      action: 'Users',
+      createAction: 'CreateUser',
+      processResponse: (response: UserInfo[]) => response.map((user) => ({
+        id: user.Id,
+        primaryText: `${user.LastName}, ${user.FirstName}`,
+        secondaryText: user.UserName,
+        primaryStat: user.ClientCount !== null && {
+          name: 'Clients',
+          value: user.ClientCount,
+          icon: 'client-admin',
+        },
+        secondaryStat: user.RootContentItemCount !== null && {
+          name: 'Reports',
+          value: user.RootContentItemCount,
+          icon: 'reports',
+        },
+        detailList: user.RootContentItems && user.RootContentItems.map((item) => item.Name),
+      })),
+      assignQueryFilter: (userId: number) => ({ userId }),
+    },
+    {
+      name: 'client',
+      parentSources: [
+        null,
+        'user',
+        'profitCenter',
+      ],
+      displayName: 'Clients',
+      action: 'Clients',
+      createAction: null,
+      processResponse: (response: BasicTree<ClientInfo>) => {
+        interface ClientDepth {
+          client: ClientInfo;
+          depth: number;
+        }
+        function traverse(node: BasicNode<ClientInfo>, list: ClientDepth[] = [], depth = 0): ClientDepth[] {
+          if (node.Value !== null) {
+            const clientDepth = {
+              client: node.Value,
+              depth,
+            };
+            list.push(clientDepth);
+          }
+          if (node.Children.length) {
+            node.Children.forEach((child) => list = traverse(child, list, depth + 1));
+          }
+          return list;
+        }
+        const clientDepthList = traverse(response.Root);
+        return clientDepthList.map((cd) => ({
+          id: cd.client.Id,
+          primaryText: cd.client.Name,
+          secondaryText: cd.client.Code,
+          primaryStat: cd.client.UserCount !== null && {
+            name: 'Users',
+            value: cd.client.UserCount,
+            icon: 'user',
+          },
+          secondaryStat: cd.client.RootContentItemCount !== null && {
+            name: 'Reports',
+            value: cd.client.RootContentItemCount,
+            icon: 'reports',
+          },
+          indent: cd.depth,
+          readOnly: cd.client.ParentOnly,
+        }));
+      },
+      assignQueryFilter: (clientId: number) => ({ clientId }),
+    },
+    {
+      name: 'profitCenter',
+      parentSources: [
+        null,
+      ],
+      displayName: 'Profit Center',
+      action: 'ProfitCenters',
+      createAction: 'CreateProfitCenter',
+      processResponse: (response: ProfitCenterInfo[]) => response.map((profitCenter) => ({
+        id: profitCenter.Id,
+        primaryText: profitCenter.Name,
+        secondaryText: profitCenter.Office,
+        primaryStat: {
+          name: 'Authorized users',
+          value: profitCenter.UserCount,
+          icon: 'user',
+        },
+        secondaryStat: {
+          name: 'Clients',
+          value: profitCenter.ClientCount,
+          icon: 'client-admin',
+        },
+      })),
+      assignQueryFilter: (profitCenterId: number) => ({ profitCenterId }),
+    },
+    {
+      name: 'rootContentItem',
+      parentSources: [
+        {
+          name: 'user',
+          overrides: {
+            displayName: 'Authorized Content',
+          },
+        },
+        'client',
+      ],
+      displayName: 'Content Items',
+      action: 'RootContentItems',
+      createAction: null,
+      processResponse: (response: RootContentItemInfo[]) => response.map((item) => ({
+        id: item.Id,
+        primaryText: item.Name,
+        secondaryText: item.ClientName,
+        primaryStat: item.UserCount !== null && {
+          name: 'Users',
+          value: item.UserCount,
+          icon: 'user',
+        },
+        secondaryStat: item.SelectionGroupCount !== null && {
+          name: 'Selection Groups',
+          value: item.SelectionGroupCount,
+          icon: 'group',
+        },
+        detailList: item.Users && item.Users.map((user) => user.FirstName),
+      })),
+      assignQueryFilter: (rootContentItemId: number) => ({ rootContentItemId }),
+    },
+  ];
 
   public constructor(props) {
     super(props);
+
     this.state = {
-      addUserDialog: false,
-      clientData: [],
-      primaryColContent: 'Users',
-      primaryColContentLabel: 'Users',
-      primaryColFilter: null,
-      primaryColSelection: null,
-      profitCenterData: [],
-      rootContentItemData: [],
-      secondaryColContent: 'Clients',
-      secondaryColContentLabel: 'Clients',
-      secondaryColFilter: null,
-      secondaryColSelection: null,
-      userData: [],
+      primaryDataSource: 'user',
+      secondaryDataSource: null,
+      primarySelectedCard: null,
+      secondarySelectedCard: null,
     };
 
-    this.setUserData = this.setUserData.bind(this);
-    this.setClientData = this.setClientData.bind(this);
-    this.setProfitCenterData = this.setProfitCenterData.bind(this);
-    this.setRootContentItemData = this.setRootContentItemData.bind(this);
-  }
-
-  public selectPrimaryColumn = (colContentSelection: SelectionOption) => {
-    if (colContentSelection.value !== this.state.primaryColContent) {
-      const newSecondaryColContent = Object.keys(this.structure[colContentSelection.value].secColElements)[0];
-      this.setState({
-        primaryColContent: colContentSelection.value,
-        primaryColContentLabel: colContentSelection.label,
-        primaryColFilter: null,
-        primaryColSelection: null,
-        secondaryColContent: newSecondaryColContent,
-        secondaryColContentLabel: this
-          .structure[colContentSelection.value]
-          .secColElements[newSecondaryColContent]
-          .displayValue,
-        secondaryColFilter: null,
-        secondaryColSelection: null,
-      });
-    }
-  }
-
-  public selectSecondaryColumn = (colContentSelection: SelectionOption) => {
-    if (colContentSelection.value !== this.state.secondaryColContent) {
-      this.setState({
-        secondaryColContent: colContentSelection.value,
-        secondaryColContentLabel: colContentSelection.label,
-      });
-    }
-  }
-
-  public updatePrimaryColumnFilter = (filterString: string) => {
-    this.setState({ primaryColFilter: filterString });
-  }
-
-  public updateSecondaryColumnFilter = (filterString: string) => {
-    this.setState({ secondaryColFilter: filterString });
-  }
-
-  public makePrimaryColumnSelection = (id: number) => {
-    this.setState((prevState) => ({
-      primaryColSelection: prevState.primaryColSelection === id
-        ? null
-        : id,
-    }));
-  }
-
-  public makeSecondaryColumnSelection = (id: number) => {
-    this.setState((prevState) => ({
-      secondaryColSelection: prevState.secondaryColSelection === id
-        ? null
-        : id,
-    }));
-  }
-
-  public addUser = () => {
-    console.log('Add User');
-  }
-
-  public addPC = () => {
-    console.log('Add Profit Center');
-  }
-
-  public setUserData(data: UserInfo[]) {
-    this.setState({
-      userData: data,
-    });
-  }
-
-  public setClientData(data: ClientInfo[]) {
-    this.setState({
-      clientData: data,
-    });
-  }
-
-  public setProfitCenterData(data: ProfitCenterInfo[]) {
-    this.setState({
-      profitCenterData: data,
-    });
-  }
-
-  public setRootContentItemData(data: RootContentItemInfo[]) {
-    this.setState({
-      rootContentItemData: data,
-    });
+    this.setPrimaryDataSource = this.setPrimaryDataSource.bind(this);
+    this.setSecondaryDataSource = this.setSecondaryDataSource.bind(this);
+    this.setPrimarySelectedCard = this.setPrimarySelectedCard.bind(this);
+    this.setSecondarySelectedCard = this.setSecondarySelectedCard.bind(this);
   }
 
   public render() {
+    const primaryDataSources = this.getDataSources(null);
+    const primaryDataSource = this.getDataSourceByName(primaryDataSources, this.state.primaryDataSource);
 
-    // Define the primary column options
-    const primaryColOptions = Object.keys(this.structure).map((property) => {
-      return {
-        label: this.structure[property].displayValue,
-        value: property,
-      };
-    });
+    const secondaryDataSources = this.getDataSources(this.state.primaryDataSource);
+    const secondaryDataSource = this.getDataSourceByName(secondaryDataSources, this.state.secondaryDataSource);
 
-    const secondaryColOptions = Object.keys(
-      this.structure[this.state.primaryColContent].secColElements,
-    ).map((property) => ({
-      label: this
-        .structure[this.state.primaryColContent]
-        .secColElements[property]
-        .displayValue,
-      value: property,
+    const secondaryQueryFilter = Object.assign(
+      {}, primaryDataSource.assignQueryFilter(this.state.primarySelectedCard));
+
+    return [
+      (
+        <ContentPanel
+          key={'primaryColumn'}
+          controller={this.controller}
+          dataSources={primaryDataSources}
+          setSelectedDataSource={this.setPrimaryDataSource}
+          selectedDataSource={primaryDataSource}
+          setSelectedCard={this.setPrimarySelectedCard}
+          selectedCard={this.state.primarySelectedCard}
+          queryFilter={{}}
+        />
+      ),
+      this.state.primarySelectedCard && (
+        <ContentPanel
+          key={'secondaryColumn'}
+          controller={this.controller}
+          dataSources={secondaryDataSources}
+          setSelectedDataSource={this.setSecondaryDataSource}
+          selectedDataSource={secondaryDataSource}
+          setSelectedCard={this.setSecondarySelectedCard}
+          selectedCard={this.state.secondarySelectedCard}
+          queryFilter={secondaryQueryFilter}
+        />
+      ),
+    ];
+  }
+
+  // callbacks for child components
+  private setPrimaryDataSource(sourceName: string) {
+    this.setState((prevState) => ({
+      primaryDataSource: sourceName,
+      secondaryDataSource: sourceName === prevState.primaryDataSource
+        ? prevState.secondaryDataSource
+        : null,
+      primarySelectedCard: sourceName === prevState.primaryDataSource
+        ? prevState.primarySelectedCard
+        : null,
     }));
+  }
 
-    const addIcon = (() => {
-      switch (this.state.primaryColContent) {
-        case 'Users':
-          return (
-            <ActionIcon
-              title="Add User"
-              action={this.addUser}
-              icon="add"
-            />
-          );
-        case 'PC':
-          return (
-            <ActionIcon
-              title="Add Profit Center"
-              action={this.addPC}
-              icon="add"
-            />
-          );
-        default:
-          return null;
-      }
-    })();
+  private setSecondaryDataSource(sourceName: string) {
+    this.setState({ secondaryDataSource: sourceName });
+  }
 
-    const primaryContent = (() => {
-      switch (this.state.primaryColContent) {
-        case 'Users':
-          return (
-            <UserContentPanel
-              selected={this.state.primaryColSelection}
-              select={this.makePrimaryColumnSelection}
-              data={this.state.userData}
-              onFetch={this.setUserData}
-              queryFilter={{}}
-            />
-          );
-        case 'Clients':
-          return (
-            <ClientContentPanel
-              selected={this.state.primaryColSelection}
-              select={this.makePrimaryColumnSelection}
-              data={this.state.clientData}
-              onFetch={this.setClientData}
-              queryFilter={{}}
-            />
-          );
-        case 'PC':
-          return (
-            <ProfitCenterContentPanel
-              selected={this.state.primaryColSelection}
-              select={this.makePrimaryColumnSelection}
-              data={this.state.profitCenterData}
-              onFetch={this.setProfitCenterData}
-              queryFilter={{}}
-            />
-          );
-        default:
-          return null;
-      }
-    })();
+  private setPrimarySelectedCard(cardId: number) {
+    this.setState((prevState) => ({
+      primarySelectedCard: prevState.primarySelectedCard === cardId
+        ? null
+        : cardId,
+    }));
+  }
 
-    const secondaryAddIcon = (() => {
-      if (this.state.primaryColContent === 'Clients' && this.state.secondaryColContent === 'Users') {
-        return (
-          <ActionIcon title="Add User" action={this.addUser} icon="add" />
-        );
-      }
-      if (this.state.primaryColContent === 'PC' && this.state.secondaryColContent === 'AuthUsers') {
-        return (
-          <ActionIcon title="Add Profit Center" action={this.addPC} icon="add" />
-        );
-      }
-      return null;
-    })();
+  private setSecondarySelectedCard(cardId: number) {
+    this.setState((prevState) => ({
+      secondarySelectedCard: prevState.secondarySelectedCard === cardId
+        ? null
+        : cardId,
+    }));
+  }
 
-    const secondaryContent = (() => {
-      switch (this.state.secondaryColContent) {
-        case 'Clients':
-          const queryFilter: QueryFilter = this.state.primaryColContent === 'Users'
-            ? { userId: this.state.primaryColSelection }
-            : { profitCenterId: this.state.primaryColSelection };
-          return (
-            <ClientContentPanel
-              selected={this.state.secondaryColSelection}
-              select={this.makeSecondaryColumnSelection}
-              data={this.state.clientData}
-              onFetch={this.setClientData}
-              queryFilter={queryFilter}
-            />
-          );
-        case 'AuthContent':
-          return (
-            <RootContentItemContentPanel
-              selected={this.state.secondaryColSelection}
-              select={this.makeSecondaryColumnSelection}
-              data={this.state.rootContentItemData}
-              onFetch={this.setRootContentItemData}
-              queryFilter={{ userId: this.state.primaryColSelection }}
-            />
-          );
-        case 'Users':
-          return (
-            <UserContentPanel
-              selected={this.state.secondaryColSelection}
-              select={this.makeSecondaryColumnSelection}
-              data={this.state.userData}
-              onFetch={this.setUserData}
-              queryFilter={{ clientId: this.state.primaryColSelection }}
-            />
-          );
-        case 'Content':
-          return (
-            <RootContentItemContentPanel
-              selected={this.state.secondaryColSelection}
-              select={this.makeSecondaryColumnSelection}
-              data={this.state.rootContentItemData}
-              onFetch={this.setRootContentItemData}
-              queryFilter={{ clientId: this.state.primaryColSelection }}
-            />
-          );
-        case 'AuthUsers':
-          return (
-            <UserContentPanel
-              selected={this.state.secondaryColSelection}
-              select={this.makeSecondaryColumnSelection}
-              data={this.state.userData}
-              onFetch={this.setUserData}
-              queryFilter={{ profitCenterId: this.state.primaryColSelection }}
-            />
-          );
-        default:
-          return null;
-      }
-    })();
+  // utility methods
+  private getDataSources(parentName: string): Array<DataSource<Entity>> {
+    return this.dataSources
+      // strip non-matching parent sources
+      .map((dataSource) => {
+        const filteredDataSource = {...dataSource};
+        filteredDataSource.parentSources = filteredDataSource.parentSources.filter((parentSource) =>
+          parentSource === null || typeof parentSource === 'string'
+            ? parentSource === parentName
+            : parentSource.name === parentName);
+        return filteredDataSource;
+      })
+      // filter out data sources without the parent source
+      .filter((dataSource) => dataSource.parentSources.length)
+      // apply overrides if present
+      .map((dataSource) => {
+        const parentSource = dataSource.parentSources[0];
+        if (parentSource !== null && typeof parentSource !== 'string') {
+          Object.assign(dataSource, parentSource.overrides);
+        }
+        return dataSource;
+      });
+  }
 
-    const secondaryContentPanel = this.state.primaryColSelection
-      ? (
-        <div
-          id="secondary-content-panel"
-          className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12"
-        >
-          <ColumnSelector
-            colContentOptions={secondaryColOptions}
-            colContent={this.state.secondaryColContent}
-            colContentSelection={this.selectSecondaryColumn}
-          />
-          <div className="admin-panel-toolbar">
-            <Filter
-              filterText={this.state.secondaryColFilter}
-              updateFilterString={this.updateSecondaryColumnFilter}
-              placeholderText={`Filter ${this.state.secondaryColContentLabel}`}
-            />
-            <div className="admin-panel-action-icons-container">
-              {secondaryAddIcon}
-            </div>
-          </div>
-          {secondaryContent}
-        </div>
-      )
-      : null;
-
-    return (
-      <div id="master-content-container">
-        <div
-          id="primary-content-panel"
-          className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12"
-        >
-          <ColumnSelector
-            colContentOptions={primaryColOptions}
-            colContent={this.state.primaryColContent}
-            colContentSelection={this.selectPrimaryColumn}
-          />
-          <div className="admin-panel-toolbar">
-            <Filter
-              filterText={this.state.primaryColFilter}
-              updateFilterString={this.updatePrimaryColumnFilter}
-              placeholderText={`Filter ${this.state.primaryColContentLabel}`}
-            />
-            <div className="admin-panel-action-icons-container">
-              {addIcon}
-            </div>
-          </div>
-          {primaryContent}
-        </div>
-        {secondaryContentPanel}
-      </div>
-    );
+  private getDataSourceByName(dataSources: Array<DataSource<Entity>>, name: string): DataSource<Entity> {
+    return dataSources.filter((dataSource) => dataSource.name === name)[0]
+      || this.nullDataSource;
   }
 }

@@ -1,9 +1,9 @@
-interface Nestable {
+export interface Nestable {
   Id: number;
   ParentId?: number;
 }
 
-interface BasicTree<T extends Nestable> {
+export interface BasicTree<T extends Nestable> {
   Root: BasicNode<T>;
 }
 export interface BasicNode<T extends Nestable> {

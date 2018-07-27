@@ -13,13 +13,11 @@ export class FormBase extends FormElement {
   public inputSections: FormInputSection[];
   public submissionSection: FormSubmissionSection;
 
-  // tslint:disable:object-literal-sort-keys
   protected _cssClasses = {
     main: 'admin-panel-content',
     title: '',
     extension: 'form-section-container',
   };
-  // tslint:enable:object-literal-sort-keys
 
   private _accessMode: AccessMode;
   public get accessMode(): AccessMode {

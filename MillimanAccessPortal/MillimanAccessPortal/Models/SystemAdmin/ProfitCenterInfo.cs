@@ -5,6 +5,8 @@
  */
 
 using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
+using System.Linq;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {
@@ -12,6 +14,9 @@ namespace MillimanAccessPortal.Models.SystemAdmin
     {
         public long Id { get; set; }
         public string Name { get; set; }
+        public string Office { get; set; }
+        public int UserCount { get; set; }
+        public int ClientCount { get; set; }
 
         public static explicit operator ProfitCenterInfo(ProfitCenter profitCenter)
         {
@@ -24,7 +29,22 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             {
                 Id = profitCenter.Id,
                 Name = profitCenter.Name,
+                Office = profitCenter.MillimanOffice,
             };
+        }
+
+        public void QueryRelatedEntityCounts(ApplicationDbContext dbContext)
+        {
+            // count all users under the profit center
+            UserCount = dbContext.UserRoleInProfitCenter
+                .Where(role => role.ProfitCenterId == Id)
+                .Where(role => role.Role.RoleEnum == RoleEnum.Admin)
+                .Count();
+
+            // count all clients under the profit center
+            ClientCount = dbContext.Client
+                .Where(client => client.ProfitCenterId == Id)
+                .Count();
         }
     }
 }

@@ -1,27 +1,21 @@
-﻿export interface ActionIconProps {
-  title: string;
-  action: (event: React.MouseEvent<HTMLElement>) => void;
-  icon: string;
+﻿export interface QueryFilter {
+  userId?: number;
+  clientId?: number;
+  profitCenterId?: number;
+  rootContentItemId?: number;
 }
 
-export interface ColumnSelectorProps {
-  colContentSelection: (option: SelectionOption) => void;
-  colContentOptions: SelectionOption[];
-  colContent: string;
+export interface DataSource<T> {
+  name: string;
+  parentSources: Array<string | DataSourceOverride<T>>;
+  displayName: string;
+  action: string;
+  createAction: string;
+  processResponse: (response: any) => T[];
+  assignQueryFilter: (id: number) => Partial<QueryFilter>;
 }
 
-export interface SelectionOption {
-  label: string;
-  value: string;
-}
-
-export interface FilterProps {
-  filterText: string;
-  updateFilterString: (filterString: string) => void;
-  placeholderText: string;
-}
-
-export interface CardProps<T> {
-  data: T;
-  selected: boolean;
+export interface DataSourceOverride<T> {
+  name: string;
+  overrides: Partial<DataSource<T>>;
 }

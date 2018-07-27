@@ -1,25 +1,5 @@
-﻿export interface SystemAdminState {
-  primaryColContent: string;
-  primaryColContentLabel: string;
-  primaryColSelection: number;
-  primaryColFilter?: string;
-  secondaryColContent?: string;
-  secondaryColContentLabel?: string;
-  secondaryColSelection: number;
-  secondaryColFilter?: string;
-  addUserDialog: boolean;
-  userData: UserInfo[];
-  clientData: ClientInfo[];
-  profitCenterData: ProfitCenterInfo[];
-  rootContentItemData: RootContentItemInfo[];
-}
-
-export interface QueryFilter {
-  userId?: number;
-  clientId?: number;
-  profitCenterId?: number;
-  rootContentItemId?: number;
-}
+﻿import { Nestable } from '../../view-models/content-publishing';
+import { QueryFilter } from '../shared-components/interfaces';
 
 export interface ContentPanelProps<T> {
   onFetch: (data: T[]) => void;
@@ -41,20 +21,36 @@ export interface ProfitCenterPanelProps {
 
 export interface UserInfo {
   Id: number;
-  Name: string;
+  FirstName: string;
+  LastName: string;
+  UserName: string;
+  ClientCount?: number;
+  RootContentItemCount?: number;
+  RootContentItems?: RootContentItemInfo[];
 }
 
-export interface ClientInfo {
-  Id: number;
+export interface ClientInfo extends Nestable {
   Name: string;
+  Code: string;
+  UserCount?: number;
+  RootContentItemCount?: number;
+  ParentOnly: boolean;
 }
 
 export interface ProfitCenterInfo {
   Id: number;
   Name: string;
+  Office: string;
+  UserCount: number;
+  ClientCount: number;
 }
 
 export interface RootContentItemInfo {
   Id: number;
   Name: string;
+  ClientName: string;
+  UserCount?: number;
+  SelectionGroupCount?: number;
+  Users?: UserInfo[];
+  IsSuspended: boolean;
 }

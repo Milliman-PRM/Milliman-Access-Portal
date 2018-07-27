@@ -1,13 +1,11 @@
 import { FormInput } from './input';
 
 export class SelectizedInput extends FormInput {
-  // tslint:disable:object-literal-sort-keys
   protected _cssClasses = {
     main: 'form-input-selectized',
     title: 'form-input-selectized-title',
     extension: 'form-input-selectized-contents',
   };
-  // tslint:enable:object-literal-sort-keys
 
   protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('input.selectized');
 
