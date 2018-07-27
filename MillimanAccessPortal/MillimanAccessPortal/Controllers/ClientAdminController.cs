@@ -159,7 +159,7 @@ namespace MillimanAccessPortal.Controllers
         // POST: ClientAdmin/SaveNewUser
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> SaveNewUser([Bind("UserName,Email,FirstName,LastName,PhoneNumber,Employer,MemberOfClientId")]ApplicationUserViewModel Model)
+        public async Task<ActionResult> SaveNewUser([Bind("UserName,Email,MemberOfClientId")]ApplicationUserViewModel Model)
         {
             #region If user already exists get the record
             ApplicationUser RequestedUser = DbContext.ApplicationUser
@@ -269,10 +269,6 @@ namespace MillimanAccessPortal.Controllers
                     {
                         UserName = Model.UserName,
                         Email = Model.Email,
-                        LastName = Model.LastName,
-                        FirstName = Model.FirstName,
-                        PhoneNumber = Model.PhoneNumber,
-                        Employer = Model.Employer,
                         // Maintain this function's parameter bind list to match the fields being used here
                     };
 
@@ -283,16 +279,21 @@ namespace MillimanAccessPortal.Controllers
                         var callbackUrl = Url.Action(nameof(AccountController.EnableAccount), "Account", new { userId = RequestedUser.Id, code = confirmationCode }, protocol: "https");
 
                         // Notify user of new account
-                        string emailBody = RequestedClient.NewUserWelcomeText 
-                                        ?? ApplicationConfig["Global:DefaultNewUserWelcomeText"] 
-                                        ?? "";
-                        emailBody += $"{Environment.NewLine}{Environment.NewLine}To activate your account please use the following link:{Environment.NewLine}{callbackUrl}";
+                        var x = ApplicationConfig.AsEnumerable().ToList();
+                        string emailBody = 
+                            RequestedClient.NewUserWelcomeText != null
+                            ? RequestedClient.NewUserWelcomeText + $"{Environment.NewLine}{Environment.NewLine}"
+                            : ApplicationConfig["Global:DefaultNewUserWelcomeText"] != null
+                            ? ApplicationConfig["Global:DefaultNewUserWelcomeText"] + $"{Environment.NewLine}{Environment.NewLine}"
+                            : "";
+                        emailBody += $"To activate your new account please click the below link or paste to your web browser:{Environment.NewLine}{callbackUrl}";
                         string emailSubject = "Welcome to Milliman Access Portal";
                         MessageQueueService.QueueEmail(Model.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
                     }
                     else
                     {
-                        Response.Headers.Add("Warning", $"Error while creating user ({Model.UserName}) in database");
+                        string Errors = string.Join($", ", result.Errors.Select(e => e.Description));
+                        Response.Headers.Add("Warning", $"Error while creating user ({Model.UserName}) in database: {Errors}");
                         return StatusCode(StatusCodes.Status422UnprocessableEntity);
                     }
                 }

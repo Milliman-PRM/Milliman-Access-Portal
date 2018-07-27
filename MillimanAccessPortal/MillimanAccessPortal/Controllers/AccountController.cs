@@ -306,10 +306,27 @@ namespace MillimanAccessPortal.Controllers
                 return View("Error");
             }
 
-            await _userManager.ChangePasswordAsync(user, "", model.NewPassword);
+            IdentityResult identityResult = await _userManager.ConfirmEmailAsync(user, model.Code);
+            if (identityResult.Succeeded)
+            {
+                string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+                identityResult = await _userManager.ResetPasswordAsync(user, PasswordResetToken, model.NewPassword);
 
-            var result = await _userManager.ConfirmEmailAsync(user, model.Code);
-            return View(result.Succeeded ? "ConfirmEmail" : "Error");
+                if (identityResult.Succeeded)
+                {
+                    user.FirstName = model.FirstName;
+                    user.LastName = model.LastName;
+                    user.Employer = model.Employer;
+                    user.PhoneNumber = model.Phone;
+                    await _userManager.UpdateAsync(user);
+
+                    return View("Login");
+                }
+            }
+
+            string Errors = string.Join($", ", identityResult.Errors.Select(e => e.Description));
+            Response.Headers.Add("Warning", $"Error while enabling account: {Errors}");
+            return View("Error");
         }
 
         //
