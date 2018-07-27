@@ -109,6 +109,7 @@ namespace MillimanAccessPortal.Controllers
                 query = query.Where(user => userIds.Contains(user.Id));
             }
             #endregion
+            query = query.OrderBy(user => user.LastName).ThenBy(user => user.FirstName);
 
             var userInfoList = new List<UserInfo>();
             foreach (var user in query)
@@ -151,11 +152,12 @@ namespace MillimanAccessPortal.Controllers
                 query = query.Where(client => client.ProfitCenterId == filter.ProfitCenterId.Value);
             }
             #endregion
+            // since the query won't be returned, order the tree instead of the query
 
             var clientList = query.Select(c => c.Id).ToList();
 
             var clientInfoList = new List<ClientInfo>();
-            foreach (var client in _dbContext.Client.OrderBy(c => c.Name))
+            foreach (var client in _dbContext.Client)
             {
                 var clientInfo = (ClientInfo)client;
                 clientInfo.ParentOnly = !clientList.Contains(clientInfo.Id);
@@ -167,9 +169,10 @@ namespace MillimanAccessPortal.Controllers
             clientTree.Root.Prune((ClientInfo ci) => clientList.Contains(ci.Id), (cum, cur) => cum || cur, false);
             clientTree.Root.Apply((ci) =>
             {
-                ci.QueryRelatedEntityCounts(_dbContext, filter.UserId, filter.ProfitCenterId);
+                ci?.QueryRelatedEntityCounts(_dbContext, filter.UserId, filter.ProfitCenterId);
                 return ci;
             });
+            clientTree.Root.OrderInPlaceBy((node) => node.Value.Name);
 
             return Json(clientTree);
         }
@@ -191,6 +194,7 @@ namespace MillimanAccessPortal.Controllers
             IQueryable<ProfitCenter> query = _dbContext.ProfitCenter;
             #region Filter query
             #endregion
+            query = query.OrderBy(pc => pc.Name);
 
             var pcInfoList = new List<ProfitCenterInfo>();
             foreach (var pc in query)
@@ -232,6 +236,7 @@ namespace MillimanAccessPortal.Controllers
                 query = query.Where(item => item.ClientId == filter.ClientId.Value);
             }
             #endregion
+            query = query.OrderBy(item => item.ContentName).ThenBy(item => item.ContentType);
 
             var itemInfoList = new List<RootContentItemInfo>();
             foreach (var item in query)

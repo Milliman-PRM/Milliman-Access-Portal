@@ -91,13 +91,25 @@ namespace MapCommonLib
         /// <param name="map">Function to apply to each subtree's child node values</param>
         public void Apply(Func<T, T> map)
         {
-            if (Value != null)
-            {
-                Value = map(Value);
-            }
+            Value = map(Value);
             foreach (var childNode in Children)
             {
                 childNode.Apply(map);
+            }
+        }
+
+        /// <summary>
+        /// Order a tree's children recursively
+        /// </summary>
+        /// <remarks>A more robust approach would be to implement IOrderedEnumerable</remarks>
+        /// <typeparam name="U"></typeparam>
+        /// <param name="lambda">Provides the element used to sort the tree.</param>
+        public void OrderInPlaceBy<U>(Func<BasicNode<T>, U> lambda)
+        {
+            Children = Children.OrderBy(lambda).ToList();
+            foreach (var childNode in Children)
+            {
+                childNode.OrderInPlaceBy(lambda);
             }
         }
     }
