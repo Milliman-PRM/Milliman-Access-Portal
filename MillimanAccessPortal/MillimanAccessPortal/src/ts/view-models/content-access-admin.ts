@@ -1,5 +1,5 @@
 import {
-  ContentReductionHierarchy, PublicationDetails, ReductionFieldValueSelection, UserInfo,
+  ContentReductionHierarchy, ReductionFieldValueSelection, RootContentItemStatus, UserInfo,
 } from './content-publishing';
 
 export enum ReductionStatus {
@@ -20,6 +20,9 @@ export interface ReductionSummary {
   StatusName: string;
   SelectionGroupId: number;
   RootContentItemId?: number;
+}
+export interface SelectionGroupStatus {
+  Status: ReductionSummary[];
 }
 export interface SelectionDetails {
   Id: number;
@@ -51,4 +54,9 @@ export interface SelectionGroupSummary {
 export interface SelectionGroupList {
   SelectionGroups: SelectionGroupSummary[];
   RelevantRootContentItemId: number;
+}
+
+export interface ContentAccessStatus {
+  RootContentItemStatusList: RootContentItemStatus;
+  SelectionGroupStatusList: SelectionGroupStatus;
 }

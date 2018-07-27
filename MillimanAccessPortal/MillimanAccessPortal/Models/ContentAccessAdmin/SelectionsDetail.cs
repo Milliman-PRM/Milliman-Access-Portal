@@ -51,7 +51,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
             var liveHierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>
                 .GetFieldSelectionsForSelectionGroup(dbContext, selectionGroup.Id);
 
-            var liveSelectionSet = selectionGroup.SelectedHierarchyFieldValueList.ToHashSet();
+            var liveSelectionSet = selectionGroup.SelectedHierarchyFieldValueList?.ToHashSet() ?? new HashSet<long>();
 
             // Convert the serialized content reduction hierarchy into a list of selected values
             HashSet<long> pendingSelectionSet = null;
