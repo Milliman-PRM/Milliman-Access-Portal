@@ -7,6 +7,12 @@ export interface CardProps extends Entity {
 }
 
 export class Card extends React.Component<CardProps, {}> {
+  private indentClasses: { [indent: number]: string; } = {
+    1: 'card-100',
+    2: 'card-90',
+    3: 'card-80',
+  };
+
   public constructor(props) {
     super(props);
   }
@@ -41,7 +47,7 @@ export class Card extends React.Component<CardProps, {}> {
       </div>
     );
     return (
-      <div className="card-container">
+      <div className={`card-container ${this.indentClasses[this.props.indent] || ''}`}>
         <div
           className={`card-body-container${this.props.selected ? ' selected' : ''}`}
         >

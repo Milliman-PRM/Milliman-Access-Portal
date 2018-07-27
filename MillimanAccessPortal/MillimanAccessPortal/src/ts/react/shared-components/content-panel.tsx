@@ -148,15 +148,11 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
       method: 'GET',
       url: this.url,
     }).done((response) => {
-      if (typeof(response.map) !== 'function') {
-        throw new Error('Malformed response');
+      if (this.props.selectedDataSource) {
+        this.setState({
+          entities: this.props.selectedDataSource.processResponse(response),
+        });
       }
-      const process = this.props.selectedDataSource
-        ? this.props.selectedDataSource.processResponse
-        : (entity) => entity;
-      this.setState({
-        entities: response.map(process),
-      });
     }).fail((response) => {
       throw new Error(response.getResponseHeader('Warning') || 'Unknown error');
     });

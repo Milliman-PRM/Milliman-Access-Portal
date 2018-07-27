@@ -7,6 +7,7 @@ import '../../../scss/react/system-admin/system-admin.scss';
 
 import * as React from 'react';
 
+import { BasicNode, BasicTree, Nestable } from '../../view-models/content-publishing';
 import { ContentPanel } from '../shared-components/content-panel';
 import { Entity } from '../shared-components/entity';
 import { DataSource } from '../shared-components/interfaces';
@@ -46,22 +47,22 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       displayName: 'Users',
       action: 'Users',
       createAction: 'CreateUser',
-      processResponse: (response: UserInfo) => ({
-        id: response.Id,
-        primaryText: `${response.LastName}, ${response.FirstName}`,
-        secondaryText: response.UserName,
-        primaryStat: response.ClientCount !== null && {
+      processResponse: (response: UserInfo[]) => response.map((user) => ({
+        id: user.Id,
+        primaryText: `${user.LastName}, ${user.FirstName}`,
+        secondaryText: user.UserName,
+        primaryStat: user.ClientCount !== null && {
           name: 'Clients',
-          value: response.ClientCount,
+          value: user.ClientCount,
           icon: 'client-admin',
         },
-        secondaryStat: response.RootContentItemCount !== null && {
+        secondaryStat: user.RootContentItemCount !== null && {
           name: 'Reports',
-          value: response.RootContentItemCount,
+          value: user.RootContentItemCount,
           icon: 'reports',
         },
-        detailList: response.RootContentItems && response.RootContentItems.map((item) => item.Name),
-      }),
+        detailList: user.RootContentItems && user.RootContentItems.map((item) => item.Name),
+      })),
       assignQueryFilter: (userId: number) => ({ userId }),
     },
     {
@@ -74,21 +75,43 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       displayName: 'Clients',
       action: 'Clients',
       createAction: null,
-      processResponse: (response: ClientInfo) => ({
-        id: response.Id,
-        primaryText: response.Name,
-        secondaryText: response.Code,
-        primaryStat: response.UserCount !== null && {
-          name: 'Users',
-          value: response.UserCount,
-          icon: 'user',
-        },
-        secondaryStat: response.RootContentItemCount !== null && {
-          name: 'Reports',
-          value: response.RootContentItemCount,
-          icon: 'reports',
-        },
-      }),
+      processResponse: (response: BasicTree<ClientInfo>) => {
+        interface ClientDepth {
+          client: ClientInfo;
+          depth: number;
+        }
+        function traverse(node: BasicNode<ClientInfo>, list: ClientDepth[] = [], depth = 0): ClientDepth[] {
+          if (node.Value !== null) {
+            const clientDepth = {
+              client: node.Value,
+              depth,
+            };
+            list.push(clientDepth);
+          }
+          if (node.Children.length) {
+            node.Children.forEach((child) => list = traverse(child, list, depth + 1));
+          }
+          return list;
+        }
+        const clientDepthList = traverse(response.Root);
+        return clientDepthList.map((cd) => ({
+          id: cd.client.Id,
+          primaryText: cd.client.Name,
+          secondaryText: cd.client.Code,
+          primaryStat: cd.client.UserCount !== null && {
+            name: 'Users',
+            value: cd.client.UserCount,
+            icon: 'user',
+          },
+          secondaryStat: cd.client.RootContentItemCount !== null && {
+            name: 'Reports',
+            value: cd.client.RootContentItemCount,
+            icon: 'reports',
+          },
+          indent: cd.depth,
+          readOnly: cd.client.ParentOnly,
+        }));
+      },
       assignQueryFilter: (clientId: number) => ({ clientId }),
     },
     {
@@ -99,16 +122,16 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       displayName: 'Profit Center',
       action: 'ProfitCenters',
       createAction: 'CreateProfitCenter',
-      processResponse: (response: ProfitCenterInfo) => ({
-        id: response.Id,
-        primaryText: response.Name,
-        secondaryText: response.Office,
+      processResponse: (response: ProfitCenterInfo[]) => response.map((profitCenter) => ({
+        id: profitCenter.Id,
+        primaryText: profitCenter.Name,
+        secondaryText: profitCenter.Office,
         primaryStat: {
           name: 'Clients',
-          value: response.ClientCount,
+          value: profitCenter.ClientCount,
           icon: 'client-admin',
         },
-      }),
+      })),
       assignQueryFilter: (profitCenterId: number) => ({ profitCenterId }),
     },
     {
@@ -125,22 +148,22 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       displayName: 'Content Items',
       action: 'RootContentItems',
       createAction: null,
-      processResponse: (response: RootContentItemInfo) => ({
-        id: response.Id,
-        primaryText: response.Name,
-        secondaryText: response.ClientName,
-        primaryStat: response.UserCount !== null && {
+      processResponse: (response: RootContentItemInfo[]) => response.map((item) => ({
+        id: item.Id,
+        primaryText: item.Name,
+        secondaryText: item.ClientName,
+        primaryStat: item.UserCount !== null && {
           name: 'Users',
-          value: response.UserCount,
+          value: item.UserCount,
           icon: 'user',
         },
-        secondaryStat: response.SelectionGroupCount !== null && {
+        secondaryStat: item.SelectionGroupCount !== null && {
           name: 'Selection Groups',
-          value: response.SelectionGroupCount,
+          value: item.SelectionGroupCount,
           icon: 'group',
         },
-        detailList: response.Users && response.Users.map((item) => item.FirstName),
-      }),
+        detailList: item.Users && item.Users.map((user) => user.FirstName),
+      })),
       assignQueryFilter: (rootContentItemId: number) => ({ rootContentItemId }),
     },
   ];

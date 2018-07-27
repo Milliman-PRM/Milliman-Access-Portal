@@ -1,4 +1,5 @@
-﻿import { QueryFilter } from '../shared-components/interfaces';
+﻿import { Nestable } from '../../view-models/content-publishing';
+import { QueryFilter } from '../shared-components/interfaces';
 
 export interface ContentPanelProps<T> {
   onFetch: (data: T[]) => void;
@@ -28,12 +29,12 @@ export interface UserInfo {
   RootContentItems?: RootContentItemInfo[];
 }
 
-export interface ClientInfo {
-  Id: number;
+export interface ClientInfo extends Nestable {
   Name: string;
   Code: string;
   UserCount?: number;
   RootContentItemCount?: number;
+  ParentOnly: boolean;
 }
 
 export interface ProfitCenterInfo {

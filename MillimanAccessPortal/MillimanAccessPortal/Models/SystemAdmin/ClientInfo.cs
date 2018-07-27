@@ -4,18 +4,19 @@
  * DEVELOPER NOTES:
  */
 
+using MapCommonLib;
 using MapDbContextLib.Context;
 using System.Linq;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {
-    public class ClientInfo
+    public class ClientInfo : Nestable
     {
-        public long Id { get; set; }
         public string Name { get; set; }
         public string Code { get; set; }
         public int? UserCount { get; set; }
         public int? RootContentItemCount { get; set; }
+        public bool ParentOnly { get; set; } = true;
 
         public static explicit operator ClientInfo(Client client)
         {
@@ -27,6 +28,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             return new ClientInfo
             {
                 Id = client.Id,
+                ParentId = client.ParentClientId,
                 Name = client.Name,
                 Code = client.ClientCode,
             };

@@ -5,6 +5,7 @@
  */
 
 using AuditLogLib.Services;
+using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Authorization;
@@ -151,15 +152,21 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            var clientList = query.Select(c => c.Id).ToList();
+
             var clientInfoList = new List<ClientInfo>();
-            foreach (var client in query)
+            foreach (var client in _dbContext.Client.OrderBy(c => c.Name))
             {
                 var clientInfo = (ClientInfo)client;
-                clientInfo.QueryRelatedEntityCounts(_dbContext, filter.UserId, filter.ProfitCenterId);
+                clientInfo.ParentOnly = !clientList.Contains(clientInfo.Id);
                 clientInfoList.Add(clientInfo);
             }
 
-            return Json(clientInfoList);
+            var clientTree = new BasicTree<ClientInfo>();
+            clientTree.Root.Populate(ref clientInfoList);
+            clientTree.Root.Prune((ClientInfo ci) => clientList.Contains(ci.Id), (cum, cur) => cum || cur, false);
+
+            return Json(clientTree);
         }
 
         [HttpGet]

@@ -11,7 +11,7 @@ export interface DataSource<T> {
   displayName: string;
   action: string;
   createAction: string;
-  processResponse: (response: any) => T;
+  processResponse: (response: any) => T[];
   assignQueryFilter: (id: number) => Partial<QueryFilter>;
 }
 

@@ -13,6 +13,8 @@ export interface Entity {
   primaryStat?: CardStat;
   secondaryStat?: CardStat;
   detailList?: string[];
+  indent?: number;
+  readOnly?: boolean;
 }
 
 export class EntityHelper {
