@@ -24,16 +24,14 @@
                         <h4 class="form-section-title"></h4>
                         <div class="form-input-container">
                             <div class="form-input form-input-text flex-item-12-12">
-                                <label class="form-input-text-title" asp-for="Id"></label>
                                 <div>
-                                    <input asp-for="Id" data-original-value="@Model.Id" readonly />
+                                    <input asp-for="Id" data-original-value="@Model.Id" />
                                     <span asp-validation-for="Id" class="text-danger"></span>
                                 </div>
                             </div>
                             <div class="form-input form-input-text flex-item-12-12">
-                                <label class="form-input-text-title" asp-for="Code"></label>
                                 <div>
-                                    <input asp-for="Code" data-original-value="@Model.Code" readonly />
+                                    <input asp-for="Code" data-original-value="@Model.Code" />
                                     <span asp-validation-for="Code" class="text-danger"></span>
                                 </div>
                             </div>

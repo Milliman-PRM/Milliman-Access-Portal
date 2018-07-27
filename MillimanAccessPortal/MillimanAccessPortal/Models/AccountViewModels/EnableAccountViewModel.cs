@@ -7,16 +7,13 @@ namespace MillimanAccessPortal.Models.AccountViewModels
     {
         [Required]
         [HiddenInput]
-        [Editable(false)]
         public long Id { get; set; }
 
         [Required]
         [HiddenInput]
-        [Editable(false)]
         public string Code { get; set; }
 
         [Required]
-        [Editable(false)]
         public string UserName { get; set; }
 
         [Required]
