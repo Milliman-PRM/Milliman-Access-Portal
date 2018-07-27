@@ -84,6 +84,22 @@ namespace MapCommonLib
             var flattened = Children.ToDictionary(c => c, c => flatten(c));
             Children.RemoveAll(node => !flattened[node].Select(n => map(n.Value)).Aggregate(seed, reduce));
         }
+
+        /// <summary>
+        /// Apply a function recursively to this node and all children
+        /// </summary>
+        /// <param name="map">Function to apply to each subtree's child node values</param>
+        public void Apply(Func<T, T> map)
+        {
+            if (Value != null)
+            {
+                Value = map(Value);
+            }
+            foreach (var childNode in Children)
+            {
+                childNode.Apply(map);
+            }
+        }
     }
 
     /// <summary>

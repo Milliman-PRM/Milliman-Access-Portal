@@ -165,6 +165,11 @@ namespace MillimanAccessPortal.Controllers
             var clientTree = new BasicTree<ClientInfo>();
             clientTree.Root.Populate(ref clientInfoList);
             clientTree.Root.Prune((ClientInfo ci) => clientList.Contains(ci.Id), (cum, cur) => cum || cur, false);
+            clientTree.Root.Apply((ci) =>
+            {
+                ci.QueryRelatedEntityCounts(_dbContext, filter.UserId, filter.ProfitCenterId);
+                return ci;
+            });
 
             return Json(clientTree);
         }
