@@ -75,7 +75,8 @@ namespace MillimanAccessPortal
 
             services.AddIdentity<ApplicationUser, ApplicationRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
+                .AddDefaultTokenProviders()
+                .AddTop100000PasswordValidator<ApplicationUser>();
 
             services.Configure<PasswordHasherOptions>(options => options.IterationCount = 100_000);
 
@@ -83,7 +84,8 @@ namespace MillimanAccessPortal
             {
                 // Password settings
                 options.Password.RequireDigit = true;
-                options.Password.RequiredLength = 8;
+                options.Password.RequiredLength = 10;
+                options.Password.RequiredUniqueChars = 6;
                 options.Password.RequireNonAlphanumeric = true;
                 options.Password.RequireUppercase = true;
                 options.Password.RequireLowercase = false;
