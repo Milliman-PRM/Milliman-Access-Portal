@@ -5,6 +5,7 @@
  */
 
 using Microsoft.AspNetCore.Identity;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace MapDbContextLib.Identity
@@ -14,6 +15,7 @@ namespace MapDbContextLib.Identity
     {
         public ApplicationUser() : base()
         {
+            PreviousUserPasswords = new List<PreviousPassword>();
         }
 
         public ApplicationUser(string userName) // : base(userName)
@@ -40,5 +42,10 @@ namespace MapDbContextLib.Identity
         // Summary:
         //     Gets or sets the user's Employer.
         public virtual string Employer { get; set; }
+
+        //
+        // Summary:
+        //     Gets or sets the previous passwords.
+        public virtual IList<PreviousPassword> PreviousUserPasswords { get; set; }
     }
 }
