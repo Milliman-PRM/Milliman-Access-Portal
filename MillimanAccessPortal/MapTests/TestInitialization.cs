@@ -146,8 +146,8 @@ namespace MapTests
             MockUploadHelper = GenerateUploadHelper();
             LoggerFactory = new LoggerFactory();
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
-            QueriesObj = new StandardQueries(DbContextObject, UserManagerObject);
             MockAuditLogger = TestResourcesLib.MockAuditLogger.New();
+            QueriesObj = new StandardQueries(DbContextObject, UserManagerObject, MockAuditLogger.Object);
             MockConfiguration = GenerateMockConfiguration();
         }
 

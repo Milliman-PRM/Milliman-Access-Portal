@@ -268,10 +268,8 @@ namespace MillimanAccessPortal.Controllers
                     IdentityResult result;
                     (result, RequestedUser) = await Queries.CreateNewAccount(Model.UserName, Model.Email);
 
-                    if (result.Succeeded)
+                    if (result.Succeeded && RequestedUser != null)
                     {
-                        AuditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(RequestedUser));
-
                         var confirmationCode = await UserManager.GenerateEmailConfirmationTokenAsync(RequestedUser);
                         var callbackUrl = Url.Action(nameof(AccountController.EnableAccount), "Account", new { userId = RequestedUser.Id, code = confirmationCode }, protocol: "https");
 
