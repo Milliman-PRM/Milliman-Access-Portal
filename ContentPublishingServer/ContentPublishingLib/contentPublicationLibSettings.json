@@ -10,8 +10,8 @@
     }
   },
   "Storage": {
-    "ContentItemRootPath": "",
-    "QvSourceDocumentsPath": ""
+    "ContentItemRootPath": "\\\\map-fs-01\\live\\Content",
+    "QvSourceDocumentsPath": "\\\\map-fs-01\\reducing"
   },
   "QvServerHost": "",
   "IQmsUrl": "",
