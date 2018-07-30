@@ -9,9 +9,10 @@ export interface DataSource<T> {
   name: string;
   parentSources: Array<string | DataSourceOverride<T>>;
   displayName: string;
-  action: string;
+  infoAction: string;
+  detailAction: string;
   createAction: string;
-  processResponse: (response: any) => T[];
+  processInfo: (response: any) => T[];
   assignQueryFilter: (id: number) => Partial<QueryFilter>;
 }
 

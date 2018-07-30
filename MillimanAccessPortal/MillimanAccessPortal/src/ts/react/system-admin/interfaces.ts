@@ -64,7 +64,6 @@ export interface UserDetail {
   Email: string;
   Phone: string;
 }
-
 export interface ClientDetail {
   Id: number;
   ClientName: string;
@@ -77,7 +76,6 @@ export interface ClientDetail {
   ConsultantName: string;
   ConsultantEmail: string;
 }
-
 export interface ProfitCenterDetail {
   Id: number;
   Name: string;
@@ -86,6 +84,7 @@ export interface ProfitCenterDetail {
   ContactEmail: string;
   ContactPhone: string;
 }
+export type PrimaryDetail = UserDetail | ClientDetail | ProfitCenterDetail;
 
 export interface UserDetailForClient {
   Id: number;
@@ -96,7 +95,6 @@ export interface UserDetailForClient {
   Email: string;
   Phone: string;
 }
-
 export interface UserDetailForProfitCenter {
     Id: number;
     FirstName: string;
@@ -107,13 +105,11 @@ export interface UserDetailForProfitCenter {
       [key: string]: string[];
     };
 }
-
 export interface ClientDetailForUser {
     Id: number;
     ClientName: string;
     ClientCode: string;
 }
-
 export interface ClientDetailForProfitCenter {
     Id: number;
     Name: string;
@@ -125,13 +121,11 @@ export interface ClientDetailForProfitCenter {
       [key: string]: string[];
     };
 }
-
 export interface RootContentItemDetailForUser {
     Id: number;
     ContentName: string;
     ContentType: string;
 }
-
 export interface RootContentDetailForClient {
     Id: string;
     ContentName: string;
@@ -143,3 +137,8 @@ export interface RootContentDetailForClient {
       [key: string]: string[];
     };
 }
+export type SecondaryDetail = UserDetailForClient | UserDetailForProfitCenter
+  | ClientDetailForUser | ClientDetailForProfitCenter
+  | RootContentItemDetailForUser | RootContentDetailForClient;
+
+export type Detail = PrimaryDetail | SecondaryDetail;

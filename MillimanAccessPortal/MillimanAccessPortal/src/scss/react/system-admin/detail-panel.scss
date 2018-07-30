@@ -1,0 +1,17 @@
+﻿@import "../../map_modules/variables";
+@import "../../map_modules/mixins";
+
+.detail-label {
+    font-weight: bold;
+    width: 35%;
+    display: inline-block;
+
+    &::after {
+        content: ':'
+    }
+}
+
+.detail-value {
+    width: 65%;
+    display: inline-block;
+}
