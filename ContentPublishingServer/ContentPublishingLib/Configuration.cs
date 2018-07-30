@@ -30,7 +30,8 @@ namespace ContentPublishingLib
             {
                 case "AZURECI":
                 case "PRODUCTION":
-                    CfgBuilder.AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true);
+                    CfgBuilder.AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true)
+                              .AddJsonFile($"contentPublicationLibSettings.{EnvironmentName}.json", optional: true, reloadOnChange: true);
 
                     var builtConfig = CfgBuilder.Build();
 
