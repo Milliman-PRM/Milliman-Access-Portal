@@ -11,8 +11,8 @@
 Param(
     [Parameter(Mandatory=$true)]
     [string]$SiteName,
-    [Parameter(Mandatory=$true)]
     [string]$AppName,
+    [Parameter(Mandatory=$true)]
     [string]$VarName,
     [Parameter(Mandatory=$true)]
     [string]$NewValue
