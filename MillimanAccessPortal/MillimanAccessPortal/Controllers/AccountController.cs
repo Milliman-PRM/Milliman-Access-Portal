@@ -90,7 +90,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
 
-                    _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(model.Username));
+                    _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(), model.Username);
 
                     // The default route is /AuthorizedContent/Index as configured in startup.cs
                     if (!string.IsNullOrEmpty(returnUrl))
