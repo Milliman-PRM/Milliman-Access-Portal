@@ -28,6 +28,7 @@ namespace ContentPublishingLib
             string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
             switch (EnvironmentName)
             {
+                case "CI":
                 case "AZURECI":
                 case "PRODUCTION":
                     CfgBuilder.AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true)
@@ -45,8 +46,8 @@ namespace ContentPublishingLib
                         cert.OfType<X509Certificate2>().Single()
                         );
                     break;
-
-                case "CI":
+                    
+                case null:  // for framework GUI project
                 case "DEVELOPMENT":
                     
                     break;
