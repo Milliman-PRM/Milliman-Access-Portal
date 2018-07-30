@@ -44,6 +44,8 @@ namespace ContentPublishingLib
                         cert.OfType<X509Certificate2>().Single()
                         );
                     break;
+
+                case "CI":
                 case "DEVELOPMENT":
                     
                     break;
