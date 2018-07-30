@@ -126,7 +126,7 @@ export interface RootContentItemDetailForUser {
     ContentName: string;
     ContentType: string;
 }
-export interface RootContentDetailForClient {
+export interface RootContentItemDetailForClient {
     Id: string;
     ContentName: string;
     ContentType: string;
@@ -139,6 +139,6 @@ export interface RootContentDetailForClient {
 }
 export type SecondaryDetail = UserDetailForClient | UserDetailForProfitCenter
   | ClientDetailForUser | ClientDetailForProfitCenter
-  | RootContentItemDetailForUser | RootContentDetailForClient;
+  | RootContentItemDetailForUser | RootContentItemDetailForClient;
 
 export type Detail = PrimaryDetail | SecondaryDetail;

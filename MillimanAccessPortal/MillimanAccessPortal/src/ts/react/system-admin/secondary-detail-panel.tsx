@@ -4,168 +4,335 @@ import * as React from 'react';
 
 import { Entity } from '../shared-components/entity';
 import { DataSource, QueryFilter } from '../shared-components/interfaces';
-import { PrimaryDetail, SecondaryDetail, UserDetail } from './interfaces';
+import { SecondaryDetail, UserDetail, ClientDetailForUser, RootContentItemDetailForUser, UserDetailForClient, UserDetailForProfitCenter, RootContentItemDetailForClient, ClientDetailForProfitCenter } from './interfaces';
 
-interface DetailPanelProps {
+interface SecondaryDetailPanelProps {
+  controller: string;
   primarySelectedDataSource: DataSource<Entity>;
   secondarySelectedDataSource: DataSource<Entity>;
-  primarySelectedCard: number;
-  secondarySelectedCard: number;
+  selectedCard: number;
   queryFilter: QueryFilter;
-  controller: string;
 }
 
-interface DetailPanelState {
-  primaryDetail: PrimaryDetail;
-  secondaryDetail: SecondaryDetail;
-  prevPrimaryQuery: {
-    dataSource: string;
-    entityId: number;
-  };
-  prevSecondaryQuery: {
+interface SecondaryDetailPanelState {
+  detail: SecondaryDetail;
+  prevQuery: {
     dataSource: string;
     entityId: number;
   };
 }
 
-export class DetailPanel extends React.Component<DetailPanelProps, DetailPanelState> {
+export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelProps, SecondaryDetailPanelState> {
 
   // see https://github.com/reactjs/rfcs/issues/26#issuecomment-365744134
   public static getDerivedStateFromProps(
-    nextProps: DetailPanelProps, prevState: DetailPanelState,
-  ): Partial<DetailPanelState> {
-    const nextPrimaryQuery = {
-      dataSource: nextProps.primarySelectedDataSource.name,
-      entityId: nextProps.primarySelectedCard,
-    };
-    const nextSecondaryQuery = {
+    nextProps: SecondaryDetailPanelProps, prevState: SecondaryDetailPanelState,
+  ): Partial<SecondaryDetailPanelState> {
+    const nextQuery = {
       dataSource: nextProps.secondarySelectedDataSource.name,
-      entityId: nextProps.secondarySelectedCard,
+      entityId: nextProps.selectedCard,
     };
 
-    const primaryChange = !isEqual(nextPrimaryQuery, prevState.prevPrimaryQuery);
-    const secondaryChange = !isEqual(nextPrimaryQuery, prevState.prevPrimaryQuery);
+    if (!isEqual(nextQuery, prevState.prevQuery)) {
+      return {
+        prevQuery: nextQuery,
+        detail: null,
+      };
+    }
 
-    const newState = {};
-    if (primaryChange) {
-      Object.assign(newState, {
-        prevPrimaryQuery: nextPrimaryQuery,
-        primaryDetail: null,
-      });
-    }
-    if (secondaryChange) {
-      Object.assign(newState, {
-        prevSecondaryQuery: nextSecondaryQuery,
-        secondaryDetail: null,
-      });
-    }
     return null;
   }
 
   private get url() {
-    return this.props.selectedDataSource
-      && `${this.props.controller}/${this.props.selectedDataSource.action}/`;
+    return this.props.selectedCard
+      && `${this.props.controller}/${this.props.secondarySelectedDataSource.detailAction}/`;
   }
 
   public constructor(props) {
     super(props);
 
     this.state = {
-      primaryDetail: null,
-      secondaryDetail: null,
-      prevPrimaryQuery: null,
-      prevSecondaryQuery: null,
+      detail: null,
+      prevQuery: null,
     };
   }
 
   public componentDidMount() {
-    this.props.setSelectedDataSource(this.props.dataSources[0] && this.props.dataSources[0].name);
     this.fetch();
   }
 
   public componentDidUpdate() {
-    if (this.state.entities === null) {
+    if (this.state.detail === null) {
       this.fetch();
-    }
-    if (this.props.selectedDataSource.name === null) {
-      this.props.setSelectedDataSource(this.props.dataSources[0] && this.props.dataSources[0].name);
     }
   }
 
-
   public render() {
     // populate detail panel
-    const detail = (() => {
-      if (!this.state.primaryDetail) {
+    const secondaryDetail = (() => {
+      if (!this.state.detail) {
         return null;
       }
-      switch (this.props.primaryDataSource) {
+      switch (this.props.primarySelectedDataSource.name) {
         case 'user':
-          const userDetail = this.state.primaryDetail as UserDetail;
-          return (
-            <div>
-              <h2>User Details</h2>
-              <div className="flex-item-for-desktop-up-6-12">
+          switch (this.props.secondarySelectedDataSource.name) {
+            case 'client':
+              const clientDetailForUser = this.state.detail as ClientDetailForUser;
+              return (
                 <div>
-                  <h3>User Details</h3>
-                  <div>
-                    <span className="detail-label">First Name</span>
-                    <span className="detail-value">{userDetail.FirstName}</span>
-                  </div>
-                  <div>
-                    <span className="detail-label">Last Name</span>
-                    <span className="detail-value">{userDetail.LastName}</span>
-                  </div>
-                  <div>
-                    <span className="detail-label">Company</span>
-                    <span className="detail-value">{userDetail.Employer}</span>
-                  </div>
-                  <div>
-                    <span className="detail-label">Username</span>
-                    <span className="detail-value">{userDetail.UserName}</span>
-                  </div>
-                  <div>
-                    <span className="detail-label">Email</span>
-                    <span className="detail-value">{userDetail.Email}</span>
-                  </div>
-                  <div>
-                    <span className="detail-label">Phone</span>
-                    <span className="detail-value">{userDetail.Phone}</span>
+                  <div style={{display: 'flex'}}>
+                    <div className="flex-item-for-desktop-up-6-12">
+                      <div>
+                        <h3>Client Details</h3>
+                        <div>
+                          <span className="detail-label">Client Name</span>
+                          <span className="detail-value">{clientDetailForUser.ClientName}</span>
+                        </div>
+                        <div>
+                          <span className="detail-label">Client Code</span>
+                          <span className="detail-value">{clientDetailForUser.ClientCode}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex-item-for-desktop-up-6-12">
+                      <div>
+                        <h3>Client/User Roles</h3>
+                        <div>
+                          <span>(component placeholder)</span>
+                        </div>
+                        <div>
+                          <span>(component placeholder)</span>
+                        </div>
+                        <div>
+                          <span>(component placeholder)</span>
+                        </div>
+                        <div>
+                          <span>(component placeholder)</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex-item-for-desktop-up-6-12">
+              );
+            case 'rootContentItem':
+              const rootContentItemDetailForUser = this.state.detail as RootContentItemDetailForUser;
+              return (
                 <div>
-                  <h3>System Permissions</h3>
-                  <div>
-                    <span className="detail-label">(component placeholder)</span>
-                  </div>
-                  <div>
-                    <span className="detail-label">(component placeholder)</span>
+                  <div style={{display: 'flex'}}>
+                    <div className="flex-item-for-desktop-up-6-12">
+                      <div>
+                        <h3>Authorized Content Details</h3>
+                        <div>
+                          <span className="detail-label">Content Name</span>
+                          <span className="detail-value">{rootContentItemDetailForUser.ContentName}</span>
+                        </div>
+                        <div>
+                          <span className="detail-label">Content Type</span>
+                          <span className="detail-value">{rootContentItemDetailForUser.ContentType}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <h3>User Settings</h3>
-                  <div>
-                    <span className="detail-label">(component placeholder)</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
+              );
+            default:
+              return null;
+          }
         case 'client':
-          return (
-            <h2>Client Details</h2>
-          );
+          switch (this.props.secondarySelectedDataSource.name) {
+            case 'user':
+              const userDetailForClient = this.state.detail as UserDetailForClient;
+              return (
+                <div>
+                  <div style={{display: 'flex'}}>
+                    <div className="flex-item-for-desktop-up-6-12">
+                      <div>
+                        <h3>User Details</h3>
+                        <div>
+                          <span className="detail-label">First Name</span>
+                          <span className="detail-value">{userDetailForClient.FirstName}</span>
+                        </div>
+                        <div>
+                          <span className="detail-label">Last Name</span>
+                          <span className="detail-value">{userDetailForClient.LastName}</span>
+                        </div>
+                        <div>
+                          <span className="detail-label">Company</span>
+                          <span className="detail-value">{userDetailForClient.Employer}</span>
+                        </div>
+                        <div>
+                          <span className="detail-label">Username</span>
+                          <span className="detail-value">{userDetailForClient.UserName}</span>
+                        </div>
+                        <div>
+                          <span className="detail-label">Email</span>
+                          <span className="detail-value">{userDetailForClient.Email}</span>
+                        </div>
+                        <div>
+                          <span className="detail-label">Phone</span>
+                          <span className="detail-value">{userDetailForClient.Phone}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex-item-for-desktop-up-6-12">
+                      <div>
+                        <h3>Client/User Roles</h3>
+                        <div>
+                          <span>(component placeholder)</span>
+                        </div>
+                        <div>
+                          <span>(component placeholder)</span>
+                        </div>
+                        <div>
+                          <span>(component placeholder)</span>
+                        </div>
+                        <div>
+                          <span>(component placeholder)</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            case 'rootContentItem':
+              const rootContentItemDetailForClient = this.state.detail as RootContentItemDetailForClient;
+              const selectionGroups = null;
+              return (
+                <div>
+                  <div style={{display: 'flex'}}>
+                    <div className="flex-item-for-desktop-up-6-12">
+                      <div>
+                        <h3>Content Item Details</h3>
+                        <div>
+                          <span className="detail-label">Name</span>
+                          <span className="detail-value">{rootContentItemDetailForClient.ContentName}</span>
+                        </div>
+                        <div>
+                          <span className="detail-label">Content Type</span>
+                          <span className="detail-value">{rootContentItemDetailForClient.ContentType}</span>
+                        </div>
+                        <div>
+                          <span className="detail-label">Description</span>
+                          <span className="detail-value">{rootContentItemDetailForClient.Description}</span>
+                        </div>
+                        <div>
+                          <span className="detail-label">Last Updated</span>
+                          <span className="detail-value">{rootContentItemDetailForClient.LastUpdated}</span>
+                        </div>
+                        <div>
+                          <span className="detail-label">Last Accessed</span>
+                          <span className="detail-value">{rootContentItemDetailForClient.LastAccessed}</span>
+                        </div>
+                        <div>
+                          <span>(component placeholder)</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex-item-for-desktop-up-6-12">
+                      <div>
+                        <h3>Selection Groups</h3>
+                        <div>
+                          {selectionGroups}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            default:
+              return null;
+          }
         case 'profitCenter':
-          return (
-            <h2>Profit Center Details</h2>
-          );
+          switch (this.props.secondarySelectedDataSource.name) {
+            case 'user':
+              const userDetailForProfitCenter = this.state.detail as UserDetailForProfitCenter;
+              const assignedClients = null;
+              return (
+                <div>
+                  <div style={{display: 'flex'}}>
+                    <div className="flex-item-for-desktop-up-6-12">
+                      <div>
+                        <h3>Authorized User Details</h3>
+                        <div>
+                          <span className="detail-label">Name</span>
+                          <span className="detail-value">{userDetailForProfitCenter.FirstName}</span>
+                        </div>
+                        <div>
+                          <span className="detail-label">Email</span>
+                          <span className="detail-value">{userDetailForProfitCenter.Email}</span>
+                        </div>
+                        <div>
+                          <span className="detail-label">Phone</span>
+                          <span className="detail-value">{userDetailForProfitCenter.Phone}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex-item-for-desktop-up-6-12">
+                      <div>
+                        <h3>Assigned Clients</h3>
+                        <div>
+                          {assignedClients}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            case 'client':
+              const clientDetailForProfitCenter = this.state.detail as ClientDetailForProfitCenter;
+              const authorizedUsers = null;
+              return (
+                <div>
+                  <div style={{display: 'flex'}}>
+                    <div className="flex-item-for-desktop-up-6-12">
+                      <div>
+                        <h3>Client Details</h3>
+                        <div>
+                          <span className="detail-label">Name</span>
+                          <span className="detail-value">{clientDetailForProfitCenter.Name}</span>
+                        </div>
+                        <div>
+                          <span className="detail-label">Code</span>
+                          <span className="detail-value">{clientDetailForProfitCenter.Code}</span>
+                        </div>
+                        <div>
+                          <span className="detail-label">Contact</span>
+                          <span className="detail-value">{clientDetailForProfitCenter.ContactName}</span>
+                        </div>
+                        <div>
+                          <span className="detail-label">Email</span>
+                          <span className="detail-value">{clientDetailForProfitCenter.ContactEmail}</span>
+                        </div>
+                        <div>
+                          <span className="detail-label">Phone</span>
+                          <span className="detail-value">{clientDetailForProfitCenter.ContactPhone}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex-item-for-desktop-up-6-12">
+                      <div>
+                        <h3>Authorized Users</h3>
+                        <div>
+                          {authorizedUsers}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            default:
+              return null;
+          }
         default:
           return null;
       }
     })();
 
+    const detail = !this.props.selectedCard
+      ? null
+      : this.state.detail === null
+        ? (<div>Loading...</div>)
+        : secondaryDetail;
     return (
       <div>
         {detail}
@@ -175,7 +342,7 @@ export class DetailPanel extends React.Component<DetailPanelProps, DetailPanelSt
 
   private fetch() {
     if (!this.url) {
-      return this.setState({ entities: [] });
+      return this.setState({ detail: undefined });
     }
 
     ajax({
@@ -183,11 +350,9 @@ export class DetailPanel extends React.Component<DetailPanelProps, DetailPanelSt
       method: 'GET',
       url: this.url,
     }).done((response) => {
-      if (this.props.selectedDataSource) {
-        this.setState({
-          entities: this.props.selectedDataSource.processResponse(response),
-        });
-      }
+      this.setState({
+        detail: response,
+      });
     }).fail((response) => {
       throw new Error(response.getResponseHeader('Warning') || 'Unknown error');
     });

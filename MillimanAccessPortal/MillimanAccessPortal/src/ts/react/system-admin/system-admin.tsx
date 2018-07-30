@@ -13,6 +13,7 @@ import { Entity } from '../shared-components/entity';
 import { DataSource } from '../shared-components/interfaces';
 import { ClientInfo, ProfitCenterInfo, RootContentItemInfo, UserInfo } from './interfaces';
 import { PrimaryDetailPanel } from './primary-detail-panel';
+import { SecondaryDetailPanel } from './secondary-detail-panel';
 
 export interface SystemAdminState {
   primaryDataSource: string;
@@ -247,6 +248,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             selectedCard={this.state.primarySelectedCard}
             queryFilter={secondaryQueryFilter}
           />
+          <SecondaryDetailPanel
+            controller={this.controller}
+            primarySelectedDataSource={primaryDataSource}
+            secondarySelectedDataSource={secondaryDataSource}
+            selectedCard={this.state.secondarySelectedCard}
+            queryFilter={finalQueryFilter}
+          />
         </div>
       ),
     ];
@@ -262,11 +270,19 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       primarySelectedCard: sourceName === prevState.primaryDataSource
         ? prevState.primarySelectedCard
         : null,
+      secondarySelectedCard: sourceName === prevState.primaryDataSource
+        ? prevState.secondarySelectedCard
+        : null,
     }));
   }
 
   private setSecondaryDataSource(sourceName: string) {
-    this.setState({ secondaryDataSource: sourceName });
+    this.setState((prevState) => ({
+      secondaryDataSource: sourceName,
+      secondarySelectedCard: sourceName === prevState.secondaryDataSource
+        ? prevState.secondarySelectedCard
+        : null,
+    }));
   }
 
   private setPrimarySelectedCard(cardId: number) {
@@ -274,6 +290,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       primarySelectedCard: prevState.primarySelectedCard === cardId
         ? null
         : cardId,
+      secondarySelectedCard: null,
     }));
   }
 
