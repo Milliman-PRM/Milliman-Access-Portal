@@ -30,22 +30,22 @@ namespace ContentPublishingLib
             {
                 case "AZURECI":
                 case "PRODUCTION":
-                    config.AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true);
+                    CfgBuilder.AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true);
 
-                    var builtConfig = config.Build();
+                    var builtConfig = CfgBuilder.Build();
 
                     var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
                     store.Open(OpenFlags.ReadOnly);
                     var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
 
-                    config.AddAzureKeyVault(
+                    CfgBuilder.AddAzureKeyVault(
                         builtConfig["AzureVaultName"],
                         builtConfig["AzureClientID"],
                         cert.OfType<X509Certificate2>().Single()
                         );
                     break;
                 case "DEVELOPMENT":
-                    config.AddUserSecrets<Startup>();
+                    
                     break;
 
                 default: // Unsupported environment name	
