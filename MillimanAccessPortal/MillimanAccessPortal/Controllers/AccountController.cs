@@ -1,6 +1,6 @@
 ﻿/*
- * CODE OWNERS: <At least 2 names.>
- * OBJECTIVE: <What and WHY.>
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: Actions related to user account management
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
@@ -19,11 +19,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
+using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Services;
 using AuditLogLib;
 using AuditLogLib.Services;
-using MillimanAccessPortal.DataQueries;
 using AuditLogLib.Event;
 
 namespace MillimanAccessPortal.Controllers
@@ -295,7 +295,7 @@ namespace MillimanAccessPortal.Controllers
             return View(model);
         }
 
-        // GET: /Account/EnableAccount
+        // POST: /Account/EnableAccount
         [HttpPost]
         [AllowAnonymous]
         public async Task<IActionResult> EnableAccount(EnableAccountViewModel model)

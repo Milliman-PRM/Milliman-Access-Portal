@@ -138,13 +138,13 @@ namespace MillimanAccessPortal
             }
             services.AddSingleton<IFileProvider>(new PhysicalFileProvider(fileUploadPath));
 
-            // Depends on UserManager from Identity, which is scoped, so don't add the following as singleton
+            // These depend on UserManager from Identity, which is scoped, so don't add the following as singleton
             services.AddScoped<IAuthorizationHandler, MapAuthorizationHandler>();
             services.AddScoped<IAuditLogger, AuditLogger>();
+            services.AddScoped<StandardQueries>();
 
             // Add application services.
             services.AddTransient<IMessageQueue, MessageQueueServices>();
-            services.AddScoped<StandardQueries>();
             services.AddScoped<IUploadHelper, UploadHelper>();
         }
 

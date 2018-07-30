@@ -70,14 +70,14 @@ namespace MillimanAccessPortal.Controllers
             Queries = QueryArg;
             UserManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
-        }
+    }
 
-        // GET: ClientAdmin
-        /// <summary>
-        /// Action leading to the main landing page for Client administration UI
-        /// </summary>
-        /// <returns></returns>
-        public async Task<IActionResult> Index()
+    // GET: ClientAdmin
+    /// <summary>
+    /// Action leading to the main landing page for Client administration UI
+    /// </summary>
+    /// <returns></returns>
+    public async Task<IActionResult> Index()
         {
             #region Authorization
             // User must have Admin role to at least 1 Client OR to at least 1 ProfitCenter
@@ -265,14 +265,9 @@ namespace MillimanAccessPortal.Controllers
                 // Create requested user if not already existing
                 if (RequestedUserIsNew)
                 {
-                    RequestedUser = new ApplicationUser
-                    {
-                        UserName = Model.UserName,
-                        Email = Model.Email,
-                        // Maintain this function's parameter bind list to match the fields being used here
-                    };
+                    IdentityResult result;
+                    (result, RequestedUser) = await Queries.CreateNewAccount(Model.UserName, Model.Email);
 
-                    IdentityResult result = await UserManager.CreateAsync(RequestedUser);
                     if (result.Succeeded)
                     {
                         AuditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(RequestedUser));
@@ -281,9 +276,8 @@ namespace MillimanAccessPortal.Controllers
                         var callbackUrl = Url.Action(nameof(AccountController.EnableAccount), "Account", new { userId = RequestedUser.Id, code = confirmationCode }, protocol: "https");
 
                         // Notify user of new account
-                        var x = ApplicationConfig.AsEnumerable().ToList();
                         string emailBody = 
-                            RequestedClient.NewUserWelcomeText != null
+                            !string.IsNullOrWhiteSpace(RequestedClient.NewUserWelcomeText)
                             ? RequestedClient.NewUserWelcomeText + $"{Environment.NewLine}{Environment.NewLine}"
                             : ApplicationConfig["Global:DefaultNewUserWelcomeText"] != null
                             ? ApplicationConfig["Global:DefaultNewUserWelcomeText"] + $"{Environment.NewLine}{Environment.NewLine}"
