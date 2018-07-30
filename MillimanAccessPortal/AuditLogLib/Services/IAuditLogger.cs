@@ -4,6 +4,6 @@ namespace AuditLogLib.Services
 {
     public interface IAuditLogger
     {
-        void Log(AuditEvent Event);
+        void Log(AuditEvent Event, string UserNameArg=null);
     }
 }
