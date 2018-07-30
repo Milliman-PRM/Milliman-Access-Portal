@@ -4,7 +4,10 @@ import * as React from 'react';
 
 import { Entity } from '../shared-components/entity';
 import { DataSource, QueryFilter } from '../shared-components/interfaces';
-import { SecondaryDetail, UserDetail, ClientDetailForUser, RootContentItemDetailForUser, UserDetailForClient, UserDetailForProfitCenter, RootContentItemDetailForClient, ClientDetailForProfitCenter } from './interfaces';
+import {
+  ClientDetailForProfitCenter, ClientDetailForUser, NestedList, RootContentItemDetailForClient,
+  RootContentItemDetailForUser, SecondaryDetail, UserDetailForClient, UserDetailForProfitCenter,
+} from './interfaces';
 
 interface SecondaryDetailPanelProps {
   controller: string;
@@ -196,7 +199,6 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
               );
             case 'rootContentItem':
               const rootContentItemDetailForClient = this.state.detail as RootContentItemDetailForClient;
-              const selectionGroups = null;
               return (
                 <div>
                   <div style={{display: 'flex'}}>
@@ -232,7 +234,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       <div>
                         <h3>Selection Groups</h3>
                         <div>
-                          {selectionGroups}
+                          {this.renderNestedList(rootContentItemDetailForClient.SelectionGroups)}
                         </div>
                       </div>
                     </div>
@@ -246,7 +248,6 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
           switch (this.props.secondarySelectedDataSource.name) {
             case 'user':
               const userDetailForProfitCenter = this.state.detail as UserDetailForProfitCenter;
-              const assignedClients = null;
               return (
                 <div>
                   <div style={{display: 'flex'}}>
@@ -271,7 +272,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       <div>
                         <h3>Assigned Clients</h3>
                         <div>
-                          {assignedClients}
+                          {this.renderNestedList(userDetailForProfitCenter.AssignedClients)}
                         </div>
                       </div>
                     </div>
@@ -280,7 +281,6 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
               );
             case 'client':
               const clientDetailForProfitCenter = this.state.detail as ClientDetailForProfitCenter;
-              const authorizedUsers = null;
               return (
                 <div>
                   <div style={{display: 'flex'}}>
@@ -313,7 +313,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       <div>
                         <h3>Authorized Users</h3>
                         <div>
-                          {authorizedUsers}
+                          {this.renderNestedList(clientDetailForProfitCenter.AuthorizedUsers)}
                         </div>
                       </div>
                     </div>
@@ -355,6 +355,25 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
       });
     }).fail((response) => {
       throw new Error(response.getResponseHeader('Warning') || 'Unknown error');
+    });
+  }
+
+  private renderNestedList(list: NestedList): JSX.Element[] {
+    return list.Sections.map((section, i) => {
+      const values = section.Values.map((value, j) => (
+        <div
+          key={j}
+        >{value}
+        </div>
+      ));
+      return (
+        <div
+          key={i}
+        >
+          <h4>{section.Name}</h4>
+          {values}
+        </div>
+      );
     });
   }
 }

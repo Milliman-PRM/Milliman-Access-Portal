@@ -12,7 +12,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public string ContactName { get; set; }
         public string ContactEmail { get; set; }
         public string ContactPhone { get; set; }
-        public Dictionary<string, List<string>> AuthorizedUsers { get; set; } = null;
+        public NestedList AuthorizedUsers { get; set; } = null;
 
         public static explicit operator ClientDetailForProfitCenter(Client client)
         {
@@ -39,14 +39,17 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 .Where(r => r.Client.ProfitCenterId == profitCenterId)
                 .Select(r => new KeyValuePair<string, string>(r.Role.RoleEnum.ToString(), $"{r.User.FirstName} {r.User.LastName}"));
 
-            var authorizedUsers = new Dictionary<string, List<string>>();
+            var authorizedUsers = new NestedList();
             foreach (var role in roles)
             {
-                if (!authorizedUsers.Keys.Contains(role.Key))
+                if (!authorizedUsers.Sections.Any(s => s.Name == role.Key))
                 {
-                    authorizedUsers[role.Key] = new List<string>();
+                    authorizedUsers.Sections.Add(new NestedListSection
+                    {
+                        Name = role.Key,
+                    });
                 }
-                authorizedUsers[role.Key].Add(role.Value);
+                authorizedUsers.Sections.Single(s => s.Name == role.Key).Values.Add(role.Value);
             }
 
             AuthorizedUsers = authorizedUsers;

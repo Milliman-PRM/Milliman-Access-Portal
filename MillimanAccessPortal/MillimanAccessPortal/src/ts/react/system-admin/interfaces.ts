@@ -9,14 +9,12 @@ export interface ContentPanelProps<T> {
   queryFilter: QueryFilter;
 }
 
-export interface ClientPanelProps {
-  selectedClient: string;
-  makeClientSelection: (id: string) => void;
+export interface NestedList {
+  Sections: NestedListSection[];
 }
-
-export interface ProfitCenterPanelProps {
-  selectedProfitCenter: string;
-  makeProfitCenterSelection: (id: string) => void;
+export interface NestedListSection {
+  Name: string;
+  Values: string[];
 }
 
 export interface UserInfo {
@@ -28,7 +26,6 @@ export interface UserInfo {
   RootContentItemCount?: number;
   RootContentItems?: RootContentItemInfo[];
 }
-
 export interface ClientInfo extends Nestable {
   Name: string;
   Code: string;
@@ -36,7 +33,6 @@ export interface ClientInfo extends Nestable {
   RootContentItemCount?: number;
   ParentOnly: boolean;
 }
-
 export interface ProfitCenterInfo {
   Id: number;
   Name: string;
@@ -44,7 +40,6 @@ export interface ProfitCenterInfo {
   UserCount: number;
   ClientCount: number;
 }
-
 export interface RootContentItemInfo {
   Id: number;
   Name: string;
@@ -101,9 +96,7 @@ export interface UserDetailForProfitCenter {
     LastName: string;
     Email: string;
     Phone: string;
-    AssignedClients: {
-      [key: string]: string[];
-    };
+    AssignedClients: NestedList;
 }
 export interface ClientDetailForUser {
     Id: number;
@@ -117,9 +110,7 @@ export interface ClientDetailForProfitCenter {
     ContactName: string;
     ContactEmail: string;
     ContactPhone: string;
-    AuthorizedUsers: {
-      [key: string]: string[];
-    };
+    AuthorizedUsers: NestedList;
 }
 export interface RootContentItemDetailForUser {
     Id: number;
@@ -133,9 +124,7 @@ export interface RootContentItemDetailForClient {
     Description: string;
     LastUpdated: string;
     LastAccessed: string;
-    SelectionGroups: {
-      [key: string]: string[];
-    };
+    SelectionGroups: NestedList;
 }
 export type SecondaryDetail = UserDetailForClient | UserDetailForProfitCenter
   | ClientDetailForUser | ClientDetailForProfitCenter

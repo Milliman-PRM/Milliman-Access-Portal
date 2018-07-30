@@ -13,7 +13,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public string Description { get; set; }
         public DateTime LastUpdated { get; set; }
         public DateTime LastAccessed { get; set; }
-        public Dictionary<string, List<string>> SelectionGroups { get; set; } = null;
+        public NestedList SelectionGroups { get; set; } = null;
 
         public static explicit operator RootContentDetailForClient(RootContentItem item)
         {
@@ -40,14 +40,17 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 .Where(g => g.SelectionGroup.RootContentItem.ClientId == clientId)
                 .Select(g => new KeyValuePair<string, string>(g.SelectionGroup.GroupName, $"{g.User.FirstName} {g.User.LastName}"));
 
-            var selectionGroups = new Dictionary<string, List<string>>();
+            var selectionGroups = new NestedList();
             foreach (var group in groups)
             {
-                if (!selectionGroups.Keys.Contains(group.Key))
+                if (!selectionGroups.Sections.Any(s => s.Name == group.Key))
                 {
-                    selectionGroups[group.Key] = new List<string>();
+                    selectionGroups.Sections.Add(new NestedListSection
+                    {
+                        Name = group.Key,
+                    });
                 }
-                selectionGroups[group.Key].Add(group.Value);
+                selectionGroups.Sections.Single(s => s.Name == group.Key).Values.Add(group.Value);
             }
 
             SelectionGroups = selectionGroups;
