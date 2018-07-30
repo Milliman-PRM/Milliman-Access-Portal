@@ -61,7 +61,7 @@
     <Folder Include="node_modules\" />
   </ItemGroup>
   <ItemGroup>
-    <Content Update="AzureKeyVault.AzureCI.json">
+    <Content Update="AzureKeyVault.Production.AzureCI.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Update="qlikview.json">
