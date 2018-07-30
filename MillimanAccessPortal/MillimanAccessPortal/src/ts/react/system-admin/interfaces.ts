@@ -54,3 +54,92 @@ export interface RootContentItemInfo {
   Users?: UserInfo[];
   IsSuspended: boolean;
 }
+
+export interface UserDetail {
+  Id: number;
+  FirstName: string;
+  LastName: string;
+  Employer: string;
+  UserName: string;
+  Email: string;
+  Phone: string;
+}
+
+export interface ClientDetail {
+  Id: number;
+  ClientName: string;
+  ClientCode: string;
+  ClientContactName: string;
+  ClientContactEmail: string;
+  ClientContactPhone: string;
+  ProfitCenter: string;
+  Office: string;
+  ConsultantName: string;
+  ConsultantEmail: string;
+}
+
+export interface ProfitCenterDetail {
+  Id: number;
+  Name: string;
+  Office: string;
+  ContactName: string;
+  ContactEmail: string;
+  ContactPhone: string;
+}
+
+export interface UserDetailForClient {
+  Id: number;
+  FirstName: string;
+  LastName: string;
+  Employer: string;
+  UserName: string;
+  Email: string;
+  Phone: string;
+}
+
+export interface UserDetailForProfitCenter {
+    Id: number;
+    FirstName: string;
+    LastName: string;
+    Email: string;
+    Phone: string;
+    AssignedClients: {
+      [key: string]: string[];
+    };
+}
+
+export interface ClientDetailForUser {
+    Id: number;
+    ClientName: string;
+    ClientCode: string;
+}
+
+export interface ClientDetailForProfitCenter {
+    Id: number;
+    Name: string;
+    Code: string;
+    ContactName: string;
+    ContactEmail: string;
+    ContactPhone: string;
+    AuthorizedUsers: {
+      [key: string]: string[];
+    };
+}
+
+export interface RootContentItemDetailForUser {
+    Id: number;
+    ContentName: string;
+    ContentType: string;
+}
+
+export interface RootContentDetailForClient {
+    Id: string;
+    ContentName: string;
+    ContentType: string;
+    Description: string;
+    LastUpdated: string;
+    LastAccessed: string;
+    SelectionGroups: {
+      [key: string]: string[];
+    };
+}
