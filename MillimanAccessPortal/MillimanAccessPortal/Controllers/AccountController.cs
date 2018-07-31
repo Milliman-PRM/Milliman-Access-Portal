@@ -359,11 +359,13 @@ namespace MillimanAccessPortal.Controllers
                     return View(model);
                 }
 
-                var PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var callbackUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = user.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
+                string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+                string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = user.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
 
-                string emailBody = $"A password reset was initiated for your Milliman Access Portal account.  Please create a new password at the following linked page:{Environment.NewLine}<a href='{callbackUrl}'>link</a>";
+                string emailBody = $"A password reset was initiated for your Milliman Access Portal account.  Please create a new password at the following linked page:{Environment.NewLine}{linkUrl}";
                 _messageSender.QueueEmail(model.Email, "MAP password reset", emailBody);
+
+                _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(user));
 
                 return View("ForgotPasswordConfirmation");
             }
@@ -419,13 +421,14 @@ namespace MillimanAccessPortal.Controllers
                 // Don't reveal that the user does not exist
                 return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
             }
-            var result = await _userManager.ResetPasswordAsync(user, model.PasswordResetToken, model.Password);
+            var result = await _userManager.ResetPasswordAsync(user, model.PasswordResetToken, model.NewPassword);
             if (result.Succeeded)
             {
+                _auditLogger.Log(AuditEventType.PasswordResetCompleted.ToEvent(user));
                 return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
             }
             AddErrors(result);
-            return View();
+            return View("Error", model);
         }
 
         //

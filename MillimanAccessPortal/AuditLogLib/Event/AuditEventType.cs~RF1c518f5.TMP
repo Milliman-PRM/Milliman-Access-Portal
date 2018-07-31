@@ -98,11 +98,6 @@ namespace AuditLogLib.Event
             {
                 NewUserName = user.UserName,
             });
-        public static readonly AuditEventType<ApplicationUser> PasswordResetCompleted = new AuditEventType<ApplicationUser>(
-            3007, "Account password reset requested", (user) => new
-            {
-                NewUserName = user.UserName,
-            });
         #endregion
 
         #region Content Access Admin [4000 - 4999]

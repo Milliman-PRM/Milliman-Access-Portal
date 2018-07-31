@@ -266,22 +266,25 @@ namespace MillimanAccessPortal.Controllers
                 if (RequestedUserIsNew)
                 {
                     IdentityResult result;
+                    // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
                     (result, RequestedUser) = await Queries.CreateNewAccount(Model.UserName, Model.Email);
 
                     if (result.Succeeded && RequestedUser != null)
                     {
-                        var confirmationCode = await UserManager.GenerateEmailConfirmationTokenAsync(RequestedUser);
-                        var callbackUrl = Url.Action(nameof(AccountController.EnableAccount), "Account", new { userId = RequestedUser.Id, code = confirmationCode }, protocol: "https");
+                        var emailConfirmationToken = await UserManager.GenerateEmailConfirmationTokenAsync(RequestedUser);
+                        var callbackUrl = Url.Action(nameof(AccountController.EnableAccount), "Account", new { userId = RequestedUser.Id, code = emailConfirmationToken }, protocol: "https");
 
-                        // Notify user of new account
+                        // Configurable portion of email body
                         string emailBody = 
                             !string.IsNullOrWhiteSpace(RequestedClient.NewUserWelcomeText)
                             ? RequestedClient.NewUserWelcomeText + $"{Environment.NewLine}{Environment.NewLine}"
                             : ApplicationConfig["Global:DefaultNewUserWelcomeText"] != null
                             ? ApplicationConfig["Global:DefaultNewUserWelcomeText"] + $"{Environment.NewLine}{Environment.NewLine}"
                             : "";
+                        // Non-configurable portion of email body
                         emailBody += $"To activate your new account please click the below link or paste to your web browser:{Environment.NewLine}{callbackUrl}";
                         string emailSubject = "Welcome to Milliman Access Portal";
+                        // Send welcome email
                         MessageQueueService.QueueEmail(Model.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
                     }
                     else
