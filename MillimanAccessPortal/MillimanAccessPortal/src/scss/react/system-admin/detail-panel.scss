@@ -1,17 +1,51 @@
 ﻿@import "../../map_modules/variables";
 @import "../../map_modules/mixins";
 
-.detail-label {
-    font-weight: bold;
-    width: 35%;
-    display: inline-block;
+.detail-column-container {
+    display: flex;
+    margin-left: 0.4em;
+    margin-right: 0.4em;
+    margin-bottom: 0.8em;
 
-    &::after {
-        content: ':'
+    .detail-column {
+        margin-bottom: 0.4em;
+
+        .detail-section {
+
+            .detail-section-title {
+                margin-bottom: 0.2em;
+            }
+
+            .detail-container {
+                margin-left: 0.4em;
+                margin-bottom: 0.1em;
+
+                .detail-label {
+                    font-weight: bold;
+                    width: 35%;
+                    display: inline-block;
+
+                    &::after {
+                        content: ':'
+                    }
+                }
+
+                .detail-value {
+                    width: 65%;
+                    display: inline-block;
+                }
+            }
+
+            .nested-list-section {
+                .nested-list-section-title {
+                    margin: 0;
+                    margin-left: 0.4em;
+                }
+                .nested-list-value {
+                    margin: 0;
+                    margin-left: 0.8em;
+                }
+            }
+        }
     }
-}
-
-.detail-value {
-    width: 65%;
-    display: inline-block;
 }
