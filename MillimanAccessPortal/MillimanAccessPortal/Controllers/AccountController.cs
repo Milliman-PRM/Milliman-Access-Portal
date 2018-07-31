@@ -298,6 +298,7 @@ namespace MillimanAccessPortal.Controllers
         // POST: /Account/EnableAccount
         [HttpPost]
         [AllowAnonymous]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> EnableAccount(EnableAccountViewModel model)
         {
             var user = await _userManager.FindByIdAsync(model.Id.ToString());
@@ -309,8 +310,7 @@ namespace MillimanAccessPortal.Controllers
             IdentityResult identityResult = await _userManager.ConfirmEmailAsync(user, model.Code);
             if (identityResult.Succeeded)
             {
-                string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
-                identityResult = await _userManager.ResetPasswordAsync(user, PasswordResetToken, model.NewPassword);
+                identityResult = await _userManager.AddPasswordAsync(user, model.NewPassword);
 
                 if (identityResult.Succeeded)
                 {
@@ -337,6 +337,7 @@ namespace MillimanAccessPortal.Controllers
         [AllowAnonymous]
         public IActionResult ForgotPassword()
         {
+            // Simply prompts for user email address so that a reset link can be emailed
             return View();
         }
 
@@ -347,21 +348,23 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
+            // Sends an email with password reset link to the requested user
+            // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=532713
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByEmailAsync(model.Email);
                 if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
                 {
                     // Don't reveal that the user does not exist or is not confirmed
-                    return View("ForgotPasswordConfirmation");
+                    return View(model);
                 }
 
-                // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=532713
-                // Send an email with this link
-                var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var callbackUrl = Url.Action(nameof(ResetPassword), "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
-                _messageSender.QueueEmail(model.Email, "Reset Password",
-                   $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>");
+                var PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var callbackUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = user.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
+
+                string emailBody = $"A password reset was initiated for your Milliman Access Portal account.  Please create a new password at the following linked page:{Environment.NewLine}<a href='{callbackUrl}'>link</a>";
+                _messageSender.QueueEmail(model.Email, "MAP password reset", emailBody);
+
                 return View("ForgotPasswordConfirmation");
             }
 
@@ -382,9 +385,21 @@ namespace MillimanAccessPortal.Controllers
         // GET: /Account/ResetPassword
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult ResetPassword(string code = null)
+        public async Task<IActionResult> ResetPassword(string userEmail, string passwordResetToken)
         {
-            return code == null ? View("Error") : View();
+            ApplicationUser user = await _userManager.FindByEmailAsync(userEmail);
+            if (user == null)
+            {
+                return View("Error");
+            }
+
+            ResetPasswordViewModel model = new ResetPasswordViewModel
+            {
+                Email = user.Email,
+                PasswordResetToken = passwordResetToken,
+            };
+
+            return View(model);
         }
 
         //
@@ -404,7 +419,7 @@ namespace MillimanAccessPortal.Controllers
                 // Don't reveal that the user does not exist
                 return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
             }
-            var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
+            var result = await _userManager.ResetPasswordAsync(user, model.PasswordResetToken, model.Password);
             if (result.Succeeded)
             {
                 return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
