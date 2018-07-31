@@ -385,7 +385,7 @@ namespace MillimanAccessPortal.Controllers
                 .SingleOrDefault(i => i.Id == filter.RootContentItemId.Value);
             if (item == null)
             {
-                Response.Headers.Add("Warning", "The specified user does not exist.");
+                Response.Headers.Add("Warning", "The specified root content item does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -401,6 +401,348 @@ namespace MillimanAccessPortal.Controllers
                 return Json(model);
             }
             return BadRequest();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> SystemRole(long userId, RoleEnum role)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var user = _dbContext.ApplicationUser.SingleOrDefault(u => u.Id == userId);
+            #region Validation
+            if (user == null)
+            {
+                Response.Headers.Add("Warning", "The specified user does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            var systemRoles = new List<RoleEnum>
+            {
+                RoleEnum.Admin,
+                RoleEnum.UserCreator,
+            };
+            if (!systemRoles.Contains(role))
+            {
+                Response.Headers.Add("Warning", "The specified role is not a system role.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            var roleId = (long)role;
+            var roleExists = _dbContext.UserRoles.Any(ur => ur.UserId == userId && ur.RoleId == roleId);
+
+            return Json(roleExists);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> SystemRole(long userId, RoleEnum role, bool value)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var user = _dbContext.ApplicationUser.SingleOrDefault(u => u.Id == userId);
+            #region Validation
+            if (user == null)
+            {
+                Response.Headers.Add("Warning", "The specified user does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            var systemRoles = new List<RoleEnum>
+            {
+                RoleEnum.Admin,
+                RoleEnum.UserCreator,
+            };
+            if (!systemRoles.Contains(role))
+            {
+                Response.Headers.Add("Warning", "The specified role is not a system role.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            var roleId = (long)role;
+            var roleQuery = _dbContext.UserRoles.Where(ur => ur.UserId == userId && ur.RoleId == roleId);
+            var roleExists = roleQuery.Any();
+
+            if (roleExists == value)
+            {
+                // pass
+            }
+            else if (roleExists)
+            {
+                var roleToRemove = roleQuery.Single();
+                _dbContext.UserRoles.Remove(roleToRemove);
+                _dbContext.SaveChanges();
+            }
+            else
+            {
+                var roleToAdd = new IdentityUserRole<long>
+                {
+                    UserId = user.Id,
+                    RoleId = roleId,
+                };
+                _dbContext.UserRoles.Add(roleToAdd);
+                _dbContext.SaveChanges();
+            }
+
+            return Json(value);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> UserSuspension(long userId)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var user = _dbContext.ApplicationUser.SingleOrDefault(u => u.Id == userId);
+            #region Validation
+            if (user == null)
+            {
+                Response.Headers.Add("Warning", "The specified user does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            return Json(false);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> UserSuspension(long userId, bool value)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var user = _dbContext.ApplicationUser.SingleOrDefault(u => u.Id == userId);
+            #region Validation
+            if (user == null)
+            {
+                Response.Headers.Add("Warning", "The specified user does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            if (value)
+            {
+                Response.Headers.Add("Warning", "User suspension not implemented.");
+                return StatusCode(StatusCodes.Status501NotImplemented);
+            }
+
+            return Json(false);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> UserClientRoles(long userId, long clientId, RoleEnum role)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var user = _dbContext.ApplicationUser.SingleOrDefault(u => u.Id == userId);
+            var client = _dbContext.Client.SingleOrDefault(c => c.Id == clientId);
+            #region Validation
+            if (user == null)
+            {
+                Response.Headers.Add("Warning", "The specified user does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (client == null)
+            {
+                Response.Headers.Add("Warning", "The specified client does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            var userClientRoles = new List<RoleEnum>
+            {
+                RoleEnum.Admin,
+                RoleEnum.ContentAccessAdmin,
+                RoleEnum.ContentPublisher,
+                RoleEnum.ContentUser,
+            };
+            if (!userClientRoles.Contains(role))
+            {
+                Response.Headers.Add("Warning", "The specified role is not a user-client role.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            var roleExists = _dbContext.UserRoleInClient
+                .Where(ur => ur.UserId == user.Id)
+                .Where(ur => ur.ClientId == client.Id)
+                .Where(ur => ur.Role.RoleEnum == role)
+                .Any();
+
+            return Json(roleExists);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> UserClientRoles(long userId, long clientId, RoleEnum role, bool value)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var user = _dbContext.ApplicationUser.SingleOrDefault(u => u.Id == userId);
+            var client = _dbContext.Client.SingleOrDefault(c => c.Id == clientId);
+            #region Validation
+            if (user == null)
+            {
+                Response.Headers.Add("Warning", "The specified user does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (client == null)
+            {
+                Response.Headers.Add("Warning", "The specified client does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            var userClientRoles = new List<RoleEnum>
+            {
+                RoleEnum.Admin,
+                RoleEnum.ContentAccessAdmin,
+                RoleEnum.ContentPublisher,
+                RoleEnum.ContentUser,
+            };
+            if (!userClientRoles.Contains(role))
+            {
+                Response.Headers.Add("Warning", "The specified role is not a user-client role.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            var roleQuery = _dbContext.UserRoleInClient
+                .Where(ur => ur.UserId == user.Id)
+                .Where(ur => ur.ClientId == client.Id)
+                .Where(ur => ur.Role.RoleEnum == role);
+            var roleExists = roleQuery.Any();
+
+            if (roleExists == value)
+            {
+                // pass
+            }
+            else if (roleExists)
+            {
+                var roleToRemove = roleQuery.Single();
+                _dbContext.UserRoleInClient.Remove(roleToRemove);
+                _dbContext.SaveChanges();
+            }
+            else
+            {
+                var roleToAdd = new UserRoleInClient
+                {
+                    UserId = user.Id,
+                    ClientId = client.Id,
+                    RoleId = (long)role,
+                };
+                _dbContext.UserRoleInClient.Add(roleToAdd);
+                _dbContext.SaveChanges();
+            }
+
+            return Json(value);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> ContentSuspension(long rootContentItemId)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var rootContentItem = _dbContext.RootContentItem.SingleOrDefault(i => i.Id == rootContentItemId);
+            #region Validation
+            if (rootContentItem == null)
+            {
+                Response.Headers.Add("Warning", "The specified root content item does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            return Json(false);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ContentSuspension(long rootContentItemId, bool value)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var rootContentItem = _dbContext.RootContentItem.SingleOrDefault(i => i.Id == rootContentItemId);
+            #region Validation
+            if (rootContentItem == null)
+            {
+                Response.Headers.Add("Warning", "The specified root content item does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            if (value)
+            {
+                Response.Headers.Add("Warning", "Content suspension not implemented.");
+                return StatusCode(StatusCodes.Status501NotImplemented);
+            }
+
+            return Json(false);
         }
     }
 }
