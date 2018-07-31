@@ -20,3 +20,11 @@ export interface DataSourceOverride<T> {
   name: string;
   overrides: Partial<DataSource<T>>;
 }
+
+export enum RoleEnum {
+  Admin = 1,
+  UserCreator = 2,
+  ContentAccessAdmin = 3,
+  ContentPublisher = 4,
+  ContentUser = 5,
+}

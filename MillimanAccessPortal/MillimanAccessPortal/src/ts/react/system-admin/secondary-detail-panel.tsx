@@ -3,7 +3,8 @@ import { isEqual } from 'lodash';
 import * as React from 'react';
 
 import { Entity } from '../shared-components/entity';
-import { DataSource, QueryFilter } from '../shared-components/interfaces';
+import { ImmediateToggle } from '../shared-components/immediate-toggle';
+import { DataSource, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import {
   ClientDetailForProfitCenter, ClientDetailForUser, NestedList, RootContentItemDetailForClient,
   RootContentItemDetailForUser, SecondaryDetail, UserDetailForClient, UserDetailForProfitCenter,
@@ -101,16 +102,40 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       <div>
                         <h3>Client/User Roles</h3>
                         <div>
-                          <span>(component placeholder)</span>
+                          <ImmediateToggle
+                            controller={this.props.controller}
+                            action={'UserClientRoles'}
+                            queryFilter={this.props.queryFilter}
+                            label={'Client Admin'}
+                            data={{ role: RoleEnum.Admin }}
+                          />
                         </div>
                         <div>
-                          <span>(component placeholder)</span>
+                          <ImmediateToggle
+                            controller={this.props.controller}
+                            action={'UserClientRoles'}
+                            queryFilter={this.props.queryFilter}
+                            label={'Client Access Admin'}
+                            data={{ role: RoleEnum.ContentAccessAdmin }}
+                          />
                         </div>
                         <div>
-                          <span>(component placeholder)</span>
+                          <ImmediateToggle
+                            controller={this.props.controller}
+                            action={'UserClientRoles'}
+                            queryFilter={this.props.queryFilter}
+                            label={'Content Publisher'}
+                            data={{ role: RoleEnum.ContentPublisher }}
+                          />
                         </div>
                         <div>
-                          <span>(component placeholder)</span>
+                          <ImmediateToggle
+                            controller={this.props.controller}
+                            action={'UserClientRoles'}
+                            queryFilter={this.props.queryFilter}
+                            label={'Content Eligible'}
+                            data={{ role: RoleEnum.ContentUser }}
+                          />
                         </div>
                       </div>
                     </div>
@@ -181,16 +206,40 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       <div>
                         <h3>Client/User Roles</h3>
                         <div>
-                          <span>(component placeholder)</span>
+                          <ImmediateToggle
+                            controller={this.props.controller}
+                            action={'UserClientRoles'}
+                            queryFilter={this.props.queryFilter}
+                            label={'Client Admin'}
+                            data={{ role: RoleEnum.Admin }}
+                          />
                         </div>
                         <div>
-                          <span>(component placeholder)</span>
+                          <ImmediateToggle
+                            controller={this.props.controller}
+                            action={'UserClientRoles'}
+                            queryFilter={this.props.queryFilter}
+                            label={'Client Access Admin'}
+                            data={{ role: RoleEnum.ContentAccessAdmin }}
+                          />
                         </div>
                         <div>
-                          <span>(component placeholder)</span>
+                          <ImmediateToggle
+                            controller={this.props.controller}
+                            action={'UserClientRoles'}
+                            queryFilter={this.props.queryFilter}
+                            label={'Content Publisher'}
+                            data={{ role: RoleEnum.ContentPublisher }}
+                          />
                         </div>
                         <div>
-                          <span>(component placeholder)</span>
+                          <ImmediateToggle
+                            controller={this.props.controller}
+                            action={'UserClientRoles'}
+                            queryFilter={this.props.queryFilter}
+                            label={'Content Eligible'}
+                            data={{ role: RoleEnum.ContentUser }}
+                          />
                         </div>
                       </div>
                     </div>
@@ -226,7 +275,13 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                           <span className="detail-value">{rootContentItemDetailForClient.LastAccessed}</span>
                         </div>
                         <div>
-                          <span>(component placeholder)</span>
+                          <ImmediateToggle
+                            controller={this.props.controller}
+                            action={'ContentSuspension'}
+                            queryFilter={this.props.queryFilter}
+                            label={'Suspended'}
+                            data={{ }}
+                          />
                         </div>
                       </div>
                     </div>

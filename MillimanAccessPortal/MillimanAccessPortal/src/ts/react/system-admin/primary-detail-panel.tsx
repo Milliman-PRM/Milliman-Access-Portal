@@ -5,7 +5,8 @@ import { isEqual } from 'lodash';
 import * as React from 'react';
 
 import { Entity } from '../shared-components/entity';
-import { DataSource, QueryFilter } from '../shared-components/interfaces';
+import { ImmediateToggle } from '../shared-components/immediate-toggle';
+import { DataSource, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { ClientDetail, PrimaryDetail, ProfitCenterDetail, UserDetail } from './interfaces';
 
 interface PrimaryDetailPanelProps {
@@ -114,16 +115,34 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps,
                   <div>
                     <h3>System Permissions</h3>
                     <div>
-                      <span>(component placeholder)</span>
+                      <ImmediateToggle
+                        controller={this.props.controller}
+                        action={'SystemRole'}
+                        queryFilter={this.props.queryFilter}
+                        label={'System Admin'}
+                        data={{ role: RoleEnum.Admin }}
+                      />
                     </div>
                     <div>
-                      <span>(component placeholder)</span>
+                      <ImmediateToggle
+                        controller={this.props.controller}
+                        action={'SystemRole'}
+                        queryFilter={this.props.queryFilter}
+                        label={'User Creator'}
+                        data={{ role: RoleEnum.UserCreator }}
+                      />
                     </div>
                   </div>
                   <div>
                     <h3>User Settings</h3>
                     <div>
-                      <span>(component placeholder)</span>
+                      <ImmediateToggle
+                        controller={this.props.controller}
+                        action={'UserSuspension'}
+                        queryFilter={this.props.queryFilter}
+                        label={'Suspended'}
+                        data={{ }}
+                      />
                     </div>
                   </div>
                 </div>
