@@ -24,16 +24,19 @@ namespace ContentPublishingLib
                 ;
 
             // Add environment dependent configuration
-            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            #region Configure Azure Key Vault for CI & Production
+            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
             switch (EnvironmentName)
             {
                 case "CI":
-                case "AzureCI":
-                case "AzureProduction":
-                    CfgBuilder.AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true);
+                case "AZURECI":
+                case "PRODUCTION":
+                    CfgBuilder.AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true)
+                              .AddJsonFile($"contentPublicationLibSettings.{EnvironmentName}.json", optional: true, reloadOnChange: true);
+
                     var builtConfig = CfgBuilder.Build();
 
-                    var store = new X509Store(StoreLocation.LocalMachine);
+                    var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
                     store.Open(OpenFlags.ReadOnly);
                     var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
 
@@ -45,17 +48,18 @@ namespace ContentPublishingLib
                     break;
 
                 case null:  // for framework GUI project
-                case "Development":
-                    CfgBuilder.AddUserSecrets<ProcessManager>();
+                case "DEVELOPMENT":
+
                     break;
 
                 default: // Unsupported environment name	
                     throw new InvalidOperationException($"Current environment name ({EnvironmentName}) is not supported in Configuration.cs");
 
             }
+            #endregion
 
             ApplicationConfiguration = CfgBuilder.Build();
-            
+
         }
 
         public static IConfigurationRoot ApplicationConfiguration { get; set; } = null;
