@@ -100,13 +100,18 @@ namespace AuditLogLib
         public async virtual void Log(AuditEvent Event, string UserNameArg)
         {
             HttpContext context = _contextAccessor?.HttpContext;
-            ApplicationUser user = await _userManager?.GetUserAsync(context?.User);
+            ApplicationUser user = null;
 
             try
             {
+                user = await _userManager?.GetUserAsync(context?.User);
                 Event.SessionId = context?.Session?.Id;
             }
             catch (InvalidOperationException)
+            {
+                Event.SessionId = null;
+            }
+            catch (NullReferenceException)
             {
                 Event.SessionId = null;
             }
