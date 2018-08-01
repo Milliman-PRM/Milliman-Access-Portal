@@ -5,6 +5,7 @@
  */
 
 using MapCommonLib;
+using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.SystemAdmin;
@@ -577,6 +578,164 @@ namespace MapTests
         #endregion
 
         #region Immediate toggle action tests
+        [Theory]
+        [InlineData(-1, RoleEnum.Admin)]
+        [InlineData(1, RoleEnum.ContentUser)]
+        public async Task SystemRole_Invalid(long userId, RoleEnum role)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var json = await controller.SystemRole(userId, role);
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(json);
+            Assert.Equal(422, ((StatusCodeResult)json).StatusCode);
+            #endregion
+        }
+        [Theory]
+        [InlineData(1, RoleEnum.Admin, true)]
+        [InlineData(1, RoleEnum.UserCreator, false)]
+        public async Task SystemRole_Success(long userId, RoleEnum role, bool expectedValue)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var json1 = await controller.SystemRole(userId, role);
+            var json2 = await controller.SystemRole(userId, role, !expectedValue);
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json1);
+            Assert.Equal(expectedValue, (bool)(json1 as JsonResult).Value);
+            Assert.IsType<JsonResult>(json2);
+            Assert.Equal(!expectedValue, (bool)(json2 as JsonResult).Value);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(-1)]
+        public async Task UserSuspension_Invalid(long userId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var json = await controller.UserSuspension(userId);
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(json);
+            Assert.Equal(422, ((StatusCodeResult)json).StatusCode);
+            #endregion
+        }
+        [Theory]
+        [InlineData(1, true)]
+        public async Task UserSuspension_Success(long userId, bool expectedValue)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var json1 = await controller.UserSuspension(userId);
+            var json2 = await controller.UserSuspension(userId, !expectedValue);
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json1);
+            Assert.Equal(expectedValue, (bool)(json1 as JsonResult).Value);
+            Assert.IsType<JsonResult>(json2);
+            Assert.Equal(!expectedValue, (bool)(json2 as JsonResult).Value);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(-1, 1, RoleEnum.Admin)]
+        [InlineData(1, -1, RoleEnum.Admin)]
+        [InlineData(1, 1, RoleEnum.UserCreator)]
+        public async Task UserClientRoles_Invalid(long userId, long clientId, RoleEnum role)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var json = await controller.UserClientRoles(userId, clientId, role);
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(json);
+            Assert.Equal(422, ((StatusCodeResult)json).StatusCode);
+            #endregion
+        }
+        [Theory]
+        [InlineData(1, 1, RoleEnum.Admin, true)]
+        [InlineData(1, 1, RoleEnum.ContentAccessAdmin, false)]
+        [InlineData(1, 1, RoleEnum.ContentPublisher, false)]
+        [InlineData(1, 1, RoleEnum.ContentUser, false)]
+        public async Task UserClientRoles_Success(long userId, long clientId, RoleEnum role, bool expectedValue)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var json1 = await controller.UserClientRoles(userId, clientId, role);
+            var json2 = await controller.UserClientRoles(userId, clientId, role, !expectedValue);
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json1);
+            Assert.Equal(expectedValue, (bool)(json1 as JsonResult).Value);
+            Assert.IsType<JsonResult>(json2);
+            Assert.Equal(!expectedValue, (bool)(json2 as JsonResult).Value);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(-1)]
+        public async Task ContentSuspension_Invalid(long rootContentItemId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var json = await controller.ContentSuspension(rootContentItemId);
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(json);
+            Assert.Equal(422, ((StatusCodeResult)json).StatusCode);
+            #endregion
+        }
+        [Theory]
+        [InlineData(1, false)]
+        public async Task ContentSuspension_Success(long rootContentItemId, bool expectedValue)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var json1 = await controller.ContentSuspension(rootContentItemId);
+            var json2 = await controller.ContentSuspension(rootContentItemId, !expectedValue);
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json1);
+            Assert.Equal(expectedValue, (bool)(json1 as JsonResult).Value);
+            Assert.IsType<JsonResult>(json2);
+            Assert.Equal(!expectedValue, (bool)(json2 as JsonResult).Value);
+            #endregion
+        }
         #endregion
     }
 }
