@@ -37,31 +37,31 @@ namespace MillimanAccessPortal.Controllers
 {
     public class SystemAdminController : Controller
     {
-        private readonly ApplicationDbContext _dbContext;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly StandardQueries _queries;
-        private readonly IAuthorizationService _authService;
-        private readonly ILogger _logger;
         private readonly IAuditLogger _auditLogger;
+        private readonly IAuthorizationService _authService;
+        private readonly ApplicationDbContext _dbContext;
+        private readonly ILogger _logger;
+        private readonly StandardQueries _queries;
         private readonly RoleManager<ApplicationRole> _roleManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public SystemAdminController(
-            ApplicationDbContext dbContext,
-            UserManager<ApplicationUser> userManager,
-            StandardQueries queries,
-            IAuthorizationService authService,
-            ILoggerFactory loggerFactory,
             IAuditLogger auditLogger,
-            RoleManager<ApplicationRole> roleManager
+            IAuthorizationService authService,
+            ApplicationDbContext dbContext,
+            ILoggerFactory loggerFactory,
+            StandardQueries queries,
+            RoleManager<ApplicationRole> roleManager,
+            UserManager<ApplicationUser> userManager
             )
         {
-            _dbContext = dbContext;
-            _userManager = userManager;
-            _queries = queries;
-            _authService = authService;
-            _logger = loggerFactory.CreateLogger<SystemAdminController>();
             _auditLogger = auditLogger;
+            _authService = authService;
+            _dbContext = dbContext;
+            _logger = loggerFactory.CreateLogger<SystemAdminController>();
+            _queries = queries;
             _roleManager = roleManager;
+            _userManager = userManager;
         }
 
         /// <summary>
