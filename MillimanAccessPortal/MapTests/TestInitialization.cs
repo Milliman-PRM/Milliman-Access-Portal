@@ -400,6 +400,7 @@ namespace MapTests
                         new UserRoleInClient { Id=9, ClientId=8, RoleId=3, UserId=5 },
                         new UserRoleInClient { Id=10, ClientId=8, RoleId=3, UserId=6 },
                         new UserRoleInClient { Id=11, ClientId=1, RoleId=2, UserId=2 }, // this record is intentionally without a respective claim
+                        new UserRoleInClient { Id=12, ClientId=1, RoleId=5, UserId=1 },
                     });
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);

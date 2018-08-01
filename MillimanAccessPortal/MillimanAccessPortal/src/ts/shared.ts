@@ -469,7 +469,9 @@ export function updateFormStatusButtons() {
 
   if (statusEnum === undefined
    || statusEnum === PublicationStatus.Unknown
+   || statusEnum === PublicationStatus.Error
    || statusEnum === PublicationStatus.Canceled
+   || statusEnum === PublicationStatus.Replaced
    || statusEnum === PublicationStatus.Confirmed) {
     $statusFormContainer.filter('.form-status-edit-or-republish').show();
   } else {

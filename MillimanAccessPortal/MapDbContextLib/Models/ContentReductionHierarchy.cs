@@ -4,14 +4,13 @@
  * DEVELOPER NOTES: 
  */
 
-using System;
-using System.Linq;
-using System.IO;
-using System.Collections.Generic;
-using System.Text;
+using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using MapDbContextLib.Context;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace MapDbContextLib.Models
 {
@@ -138,8 +137,9 @@ namespace MapDbContextLib.Models
                 ContentReductionHierarchy<ReductionFieldValue> ReturnObject = new ContentReductionHierarchy<ReductionFieldValue> { RootContentItemId = RootContentItemId };
 
                 foreach (HierarchyField Field in DbContext.HierarchyField
-                                                            .Where(hf => hf.RootContentItemId == RootContentItemId)
-                                                            .ToList())
+                    .Where(hf => hf.RootContentItemId == RootContentItemId)
+                    .OrderBy(hf => hf.FieldDisplayName)
+                    .ToList())
                 {
                     // There may be different handling required for some future content type. If so, move
                     // the characteristics specific to Qlikview into a class derived from ReductionFieldBase
@@ -154,9 +154,10 @@ namespace MapDbContextLib.Models
                                 ValueDelimiter = Field.FieldDelimiter,
                                 StructureType = Field.StructureType,
                                 Values = DbContext.HierarchyFieldValue
-                                                         .Where(fv => fv.HierarchyFieldId == Field.Id)
-                                                         .Select(fv => new ReductionFieldValue { Value = fv.Value })
-                                                         .ToList(),
+                                    .Where(fv => fv.HierarchyFieldId == Field.Id)
+                                    .OrderBy(hfv => hfv.Value)
+                                    .Select(fv => new ReductionFieldValue { Value = fv.Value })
+                                    .ToList(),
                             });
                             break;
 

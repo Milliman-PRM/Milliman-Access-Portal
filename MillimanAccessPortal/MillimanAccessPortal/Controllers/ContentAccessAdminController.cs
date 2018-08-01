@@ -8,6 +8,7 @@ using AuditLogLib;
 using AuditLogLib.Event;
 using AuditLogLib.Services;
 using MapCommonLib;
+using MapCommonLib.ActionFilters;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
@@ -382,9 +383,9 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            var Permissioned = DbContext.UserRoleInRootContentItem
+            var Permissioned = DbContext.UserRoleInClient
                 .Where(ur => UserAdditions.Contains(ur.UserId))
-                .Where(ur => ur.RootContentItemId == SelectionGroup.RootContentItemId)
+                .Where(ur => ur.ClientId == SelectionGroup.RootContentItem.ClientId)
                 .Where(ur => ur.RoleId == ((long) RoleEnum.ContentUser));
             if (Permissioned.Count() < UserAdditions.Count())
             {
@@ -820,6 +821,22 @@ namespace MillimanAccessPortal.Controllers
             SelectionsDetail Model = SelectionsDetail.Build(DbContext, Queries, SelectionGroup);
 
             return Json(Model);
+        }
+
+        [HttpGet]
+        [PreventAuthRefresh]
+        public async Task<IActionResult> Status()
+        {
+            var rootContentItemStatusList = RootContentItemStatus.Build(DbContext, await Queries.GetCurrentApplicationUser(User));
+            var selectionGroupStatusList = SelectionGroupStatus.Build(DbContext, await Queries.GetCurrentApplicationUser(User));
+
+            var model = new
+            {
+                RootContentItemStatusList = rootContentItemStatusList,
+                SelectionGroupStatusList = selectionGroupStatusList,
+            };
+
+            return new JsonResult(model);
         }
     }
 }
