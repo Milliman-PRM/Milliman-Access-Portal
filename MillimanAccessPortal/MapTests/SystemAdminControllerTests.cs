@@ -89,7 +89,8 @@ namespace MapTests
             #endregion
         }
 
-        #region Query action tests
+        #region query action tests
+        #region user queries
         [Fact]
         public async Task Users_Success_FilterNone()
         {
@@ -153,6 +154,96 @@ namespace MapTests
             #endregion
         }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData(-1)]
+        public async Task UserDetail_Invalid(long? userId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var queryFilter = new QueryFilter
+            {
+                UserId = userId,
+            };
+            #endregion
+
+            #region Act
+            var json = await controller.UserDetail(queryFilter);
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(json);
+            Assert.Equal(422, ((StatusCodeResult)json).StatusCode);
+            #endregion
+        }
+        [Theory]
+        [InlineData(1)]
+        public async Task UserDetail_Success_FilterNone(long userId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var queryFilter = new QueryFilter
+            {
+                UserId = userId,
+            };
+            #endregion
+
+            #region Act
+            var json = await controller.UserDetail(queryFilter);
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.IsType<UserDetail>((json as JsonResult).Value);
+            #endregion
+        }
+        [Theory]
+        [InlineData(1, 1)]
+        public async Task UserDetail_Success_FilterClient(long userId, long clientId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var queryFilter = new QueryFilter
+            {
+                UserId = userId,
+                ClientId = clientId,
+            };
+            #endregion
+
+            #region Act
+            var json = await controller.UserDetail(queryFilter);
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.IsType<UserDetailForClient>((json as JsonResult).Value);
+            #endregion
+        }
+        [Theory]
+        [InlineData(1, 1)]
+        public async Task UserDetail_Success_FilterProfitCenter(long userId, long profitCenterId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var queryFilter = new QueryFilter
+            {
+                UserId = userId,
+                ProfitCenterId = profitCenterId,
+            };
+            #endregion
+
+            #region Act
+            var json = await controller.UserDetail(queryFilter);
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.IsType<UserDetailForProfitCenter>((json as JsonResult).Value);
+            #endregion
+        }
+        #endregion
+
+        #region client queries
         [Fact]
         public async Task Clients_Success_FilterNone()
         {
@@ -216,6 +307,96 @@ namespace MapTests
             #endregion
         }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData(-1)]
+        public async Task ClientDetail_Invalid(long? clientId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var queryFilter = new QueryFilter
+            {
+                ClientId = clientId,
+            };
+            #endregion
+
+            #region Act
+            var json = await controller.ClientDetail(queryFilter);
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(json);
+            Assert.Equal(422, ((StatusCodeResult)json).StatusCode);
+            #endregion
+        }
+        [Theory]
+        [InlineData(1)]
+        public async Task ClientDetail_Success_FilterNone(long clientId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var queryFilter = new QueryFilter
+            {
+                ClientId = clientId,
+            };
+            #endregion
+
+            #region Act
+            var json = await controller.ClientDetail(queryFilter);
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.IsType<ClientDetail>((json as JsonResult).Value);
+            #endregion
+        }
+        [Theory]
+        [InlineData(1, 1)]
+        public async Task ClientDetail_Success_FilterUser(long clientId, long userId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var queryFilter = new QueryFilter
+            {
+                ClientId = clientId,
+                UserId = userId,
+            };
+            #endregion
+
+            #region Act
+            var json = await controller.ClientDetail(queryFilter);
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.IsType<ClientDetailForUser>((json as JsonResult).Value);
+            #endregion
+        }
+        [Theory]
+        [InlineData(1, 1)]
+        public async Task ClientDetail_Success_FilterProfitCenter(long clientId, long profitCenterId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var queryFilter = new QueryFilter
+            {
+                ClientId = clientId,
+                ProfitCenterId = profitCenterId,
+            };
+            #endregion
+
+            #region Act
+            var json = await controller.ClientDetail(queryFilter);
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.IsType<ClientDetailForProfitCenter>((json as JsonResult).Value);
+            #endregion
+        }
+        #endregion
+
+        #region profit center queries
         [Fact]
         public async Task ProfitCenters_Success_FilterNone()
         {
@@ -235,6 +416,52 @@ namespace MapTests
             #endregion
         }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData(-1)]
+        public async Task ProfitCenterDetail_Invalid(long? profitCenterId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var queryFilter = new QueryFilter
+            {
+                ProfitCenterId = profitCenterId,
+            };
+            #endregion
+
+            #region Act
+            var json = await controller.ProfitCenterDetail(queryFilter);
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(json);
+            Assert.Equal(422, ((StatusCodeResult)json).StatusCode);
+            #endregion
+        }
+        [Theory]
+        [InlineData(1)]
+        public async Task ProfitCenterDetail_Success_FilterNone(long profitCenterId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var queryFilter = new QueryFilter
+            {
+                ProfitCenterId = profitCenterId,
+            };
+            #endregion
+
+            #region Act
+            var json = await controller.ProfitCenterDetail(queryFilter);
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.IsType<ProfitCenterDetail>((json as JsonResult).Value);
+            #endregion
+        }
+        #endregion
+
+        #region root content item queries
         [Theory]
         [InlineData( 1, 0)]
         [InlineData(11, 1)]
@@ -279,6 +506,74 @@ namespace MapTests
             Assert.Equal(expectedRootContentItems, ((json as JsonResult).Value as List<RootContentItemInfo>).Count);
             #endregion
         }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData(-1)]
+        public async Task RootContentItemDetail_Invalid(long? rootContentItemId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var queryFilter = new QueryFilter
+            {
+                RootContentItemId = rootContentItemId,
+            };
+            #endregion
+
+            #region Act
+            var json = await controller.RootContentItemDetail(queryFilter);
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(json);
+            Assert.Equal(422, ((StatusCodeResult)json).StatusCode);
+            #endregion
+        }
+        [Theory]
+        [InlineData(1, 1)]
+        public async Task RootContentItemDetail_Success_FilterUser(long rootContentItemId, long userId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var queryFilter = new QueryFilter
+            {
+                RootContentItemId = rootContentItemId,
+                UserId = userId,
+            };
+            #endregion
+
+            #region Act
+            var json = await controller.RootContentItemDetail(queryFilter);
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.IsType<RootContentItemDetailForUser>((json as JsonResult).Value);
+            #endregion
+        }
+        [Theory]
+        [InlineData(1, 1)]
+        public async Task RootContentItemDetail_Success_FilterRootContentItem(long rootContentItemId, long clientId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var queryFilter = new QueryFilter
+            {
+                RootContentItemId = rootContentItemId,
+                ClientId = clientId,
+            };
+            #endregion
+
+            #region Act
+            var json = await controller.RootContentItemDetail(queryFilter);
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.IsType<RootContentItemDetailForClient>((json as JsonResult).Value);
+            #endregion
+        }
+        #endregion
         #endregion
 
         #region Immediate toggle action tests

@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {
-    public class RootContentDetailForClient
+    public class RootContentItemDetailForClient
     {
         public long Id { get; set; }
         public string ContentName { get; set; }
@@ -15,14 +15,14 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public DateTime LastAccessed { get; set; }
         public NestedList SelectionGroups { get; set; } = null;
 
-        public static explicit operator RootContentDetailForClient(RootContentItem item)
+        public static explicit operator RootContentItemDetailForClient(RootContentItem item)
         {
             if (item == null)
             {
                 return null;
             }
 
-            return new RootContentDetailForClient
+            return new RootContentItemDetailForClient
             {
                 Id = item.Id,
                 ContentName = item.ContentName,

@@ -161,11 +161,7 @@ namespace MillimanAccessPortal.Controllers
 
             ApplicationUser user = null;
             #region Validation
-            if (!filter.UserId.HasValue)
-            {
-                return BadRequest();
-            }
-            user = _dbContext.ApplicationUser.SingleOrDefault(u => u.Id == filter.UserId.Value);
+            user = _dbContext.ApplicationUser.SingleOrDefault(u => u.Id == (filter.UserId ?? 0));
             if (user == null)
             {
                 Response.Headers.Add("Warning", "The specified user does not exist.");
@@ -267,13 +263,10 @@ namespace MillimanAccessPortal.Controllers
 
             Client client = null;
             #region Validation
-            if (!filter.ClientId.HasValue)
-            {
-                return BadRequest();
-            }
             client = _dbContext.Client
                 .Include(c => c.ProfitCenter)
-                .SingleOrDefault(c => c.Id == filter.ClientId.Value);
+                .SingleOrDefault(c => c.Id == (filter.ClientId ?? 0));
+
             if (client == null)
             {
                 Response.Headers.Add("Warning", "The specified client does not exist.");
@@ -349,11 +342,7 @@ namespace MillimanAccessPortal.Controllers
 
             ProfitCenter pc = null;
             #region Validation
-            if (!filter.ProfitCenterId.HasValue)
-            {
-                return BadRequest();
-            }
-            pc = _dbContext.ProfitCenter.SingleOrDefault(c => c.Id == filter.ProfitCenterId.Value);
+            pc = _dbContext.ProfitCenter.SingleOrDefault(c => c.Id == (filter.ProfitCenterId ?? 0));
             if (pc == null)
             {
                 Response.Headers.Add("Warning", "The specified profit center does not exist.");
@@ -433,13 +422,9 @@ namespace MillimanAccessPortal.Controllers
 
             RootContentItem item = null;
             #region Validation
-            if (!filter.RootContentItemId.HasValue)
-            {
-                return BadRequest();
-            }
             item = _dbContext.RootContentItem
                 .Include(i => i.ContentType)
-                .SingleOrDefault(i => i.Id == filter.RootContentItemId.Value);
+                .SingleOrDefault(i => i.Id == (filter.RootContentItemId ?? 0));
             if (item == null)
             {
                 Response.Headers.Add("Warning", "The specified root content item does not exist.");
@@ -453,7 +438,7 @@ namespace MillimanAccessPortal.Controllers
             }
             if (filter.ClientId.HasValue)
             {
-                var model = (RootContentDetailForClient)item;
+                var model = (RootContentItemDetailForClient)item;
                 model.QueryRelatedEntities(_dbContext, filter.ClientId.Value); 
                 return Json(model);
             }
