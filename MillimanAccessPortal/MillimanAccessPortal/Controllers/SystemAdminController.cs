@@ -1,7 +1,19 @@
 ﻿/*
- * CODE OWNERS: <At least 2 names.>
- * OBJECTIVE: <What and WHY.>
- * DEVELOPER NOTES: <What future developers need to know.>
+ * CODE OWNERS: Joseph Sweeney,
+ * OBJECTIVE: Define various MVC actions to support system administration.
+ * DEVELOPER NOTES:
+ *      Most of the code in this controller is conditional logic that is strongly tied to the requirements
+ *      of the system admin page.
+ *
+ *      For each type of entity that can be used as a filter by a system admin, there are two actions:
+ *          - [GET] <entities>: Query the database for all <entities>. If other entity IDs are provided in the
+ *              query filter, use them to constrain the query in a custom manner based on <entity>.
+ *          - [GET] <entity>Detail: Query the database for a specific <entity>, whose PK is supplied in the
+ *              query filter. If other entity IDs are provided in the query filter, return a different detail model
+ *              in context of the other entities in a custom manner based on <entity>.
+ *      For each set of immediate toggles available to system admins, there are two actions:
+ *          - [GET]: Return the value of the toggle.
+ *          - [POST]: Set the value of the toggle and return this new value.
  */
 
 using AuditLogLib.Services;
@@ -52,12 +64,11 @@ namespace MillimanAccessPortal.Controllers
             _roleManager = roleManager;
         }
 
-        // GET: SystemAdmin
         /// <summary>
-        /// Action leading to the main landing page for System Administration UI
+        /// System Admin landing page
         /// </summary>
-        /// <returns></returns>
-
+        /// <returns>View</returns>
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             #region Authorization
@@ -74,6 +85,12 @@ namespace MillimanAccessPortal.Controllers
             return View();
         }
 
+        #region Query actions
+        /// <summary>
+        /// Query for all users that match the supplied filter.
+        /// </summary>
+        /// <param name="filter">Entity IDs for constraining the query.</param>
+        /// <returns>Json</returns>
         [HttpGet]
         public async Task<ActionResult> Users(QueryFilter filter)
         {
@@ -92,6 +109,7 @@ namespace MillimanAccessPortal.Controllers
             #region Filter query
             if (filter.ProfitCenterId.HasValue)
             {
+                // Constrain query to users that are admins in the specified profit center
                 var userIds = _dbContext.UserRoleInProfitCenter
                     .Where(role => role.ProfitCenterId == filter.ProfitCenterId.Value)
                     .Where(role => role.Role.RoleEnum == RoleEnum.Admin)
@@ -101,6 +119,7 @@ namespace MillimanAccessPortal.Controllers
             }
             if (filter.ClientId.HasValue)
             {
+                // Constrain query to users that are members of the specified client
                 var userIds = _dbContext.UserClaims
                     .Where(claim => claim.ClaimType == ClaimNames.ClientMembership.ToString())
                     .Where(claim => claim.ClaimValue == filter.ClientId.ToString())
@@ -121,6 +140,11 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(userInfoList);
         }
+        /// <summary>
+        /// Query for details for a specified user, optionally in context of another entity
+        /// </summary>
+        /// <param name="filter">Entity IDs for constraining the query.</param>
+        /// <returns>Json</returns>
         [HttpGet]
         public async Task<ActionResult> UserDetail(QueryFilter filter)
         {
@@ -162,6 +186,11 @@ namespace MillimanAccessPortal.Controllers
             return Json((UserDetail)user);
         }
 
+        /// <summary>
+        /// Query for all clients that match the supplied filter.
+        /// </summary>
+        /// <param name="filter">Entity IDs for constraining the query.</param>
+        /// <returns>Json</returns>
         [HttpGet]
         public async Task<ActionResult> Clients(QueryFilter filter)
         {
@@ -180,6 +209,7 @@ namespace MillimanAccessPortal.Controllers
             #region Filter query
             if (filter.UserId.HasValue)
             {
+                // Constrain query to clients that have the specified user as a member
                 var clientIds = _dbContext.UserClaims
                     .Where(claim => claim.ClaimType == ClaimNames.ClientMembership.ToString())
                     .Where(claim => claim.UserId == filter.UserId.Value)
@@ -216,6 +246,11 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(clientTree);
         }
+        /// <summary>
+        /// Query for details for a specified client, optionally in context of another entity
+        /// </summary>
+        /// <param name="filter">Entity IDs for constraining the query.</param>
+        /// <returns>Json</returns>
         [HttpGet]
         public async Task<ActionResult> ClientDetail(QueryFilter filter)
         {
@@ -259,6 +294,11 @@ namespace MillimanAccessPortal.Controllers
             return Json((ClientDetail)client);
         }
 
+        /// <summary>
+        /// Query for all profit centers that match the supplied filter.
+        /// </summary>
+        /// <param name="filter">Entity IDs for constraining the query.</param>
+        /// <returns>Json</returns>
         [HttpGet]
         public async Task<ActionResult> ProfitCenters(QueryFilter filter)
         {
@@ -288,6 +328,11 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(pcInfoList);
         }
+        /// <summary>
+        /// Query for details for a specified profit center, optionally in context of another entity
+        /// </summary>
+        /// <param name="filter">Entity IDs for constraining the query.</param>
+        /// <returns>Json</returns>
         [HttpGet]
         public async Task<ActionResult> ProfitCenterDetail(QueryFilter filter)
         {
@@ -319,6 +364,11 @@ namespace MillimanAccessPortal.Controllers
             return Json((ProfitCenterDetail)pc);
         }
 
+        /// <summary>
+        /// Query for all root content items that match the supplied filter.
+        /// </summary>
+        /// <param name="filter">Entity IDs for constraining the query.</param>
+        /// <returns>Json</returns>
         [HttpGet]
         public async Task<ActionResult> RootContentItems(QueryFilter filter)
         {
@@ -337,6 +387,7 @@ namespace MillimanAccessPortal.Controllers
             #region Filter query
             if (filter.UserId.HasValue)
             {
+                // Constrain query to root content items that the specified user can access
                 var itemIds = _dbContext.UserInSelectionGroup
                     .Where(us => us.UserId == filter.UserId.Value)
                     .Select(us => us.SelectionGroup.RootContentItemId)
@@ -345,6 +396,7 @@ namespace MillimanAccessPortal.Controllers
             }
             if (filter.ClientId.HasValue)
             {
+                // Constrain query to root content items that belong to the specified client
                 query = query.Where(item => item.ClientId == filter.ClientId.Value);
             }
             #endregion
@@ -360,6 +412,11 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(itemInfoList);
         }
+        /// <summary>
+        /// Query for details for a specified root content item, optionally in context of another entity
+        /// </summary>
+        /// <param name="filter">Entity IDs for constraining the query.</param>
+        /// <returns>Json</returns>
         [HttpGet]
         public async Task<ActionResult> RootContentItemDetail(QueryFilter filter)
         {
@@ -402,7 +459,15 @@ namespace MillimanAccessPortal.Controllers
             }
             return BadRequest();
         }
+        #endregion
 
+        #region Immediate toggle actions
+        /// <summary>
+        /// Get whether a user has a particular system role or not.
+        /// </summary>
+        /// <param name="userId">User whose role is to be checked</param>
+        /// <param name="role">Role to check</param>
+        /// <returns>true if the user has the role; false otherwise</returns>
         [HttpGet]
         public async Task<ActionResult> SystemRole(long userId, RoleEnum role)
         {
@@ -442,6 +507,13 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(roleExists);
         }
+        /// <summary>
+        /// Set a specific system role for a user.
+        /// </summary>
+        /// <param name="userId">User whose role is to be set</param>
+        /// <param name="role">Role to set</param>
+        /// <param name="value">true to set the role; false to unset the role</param>
+        /// <returns>true if the user has the role; false otherwise</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> SystemRole(long userId, RoleEnum role, bool value)
@@ -505,6 +577,11 @@ namespace MillimanAccessPortal.Controllers
             return Json(value);
         }
 
+        /// <summary>
+        /// Get whether a user is suspended or not.
+        /// </summary>
+        /// <param name="userId">User whose suspension status is to be checked.</param>
+        /// <returns>true if the user is suspended; false otherwise</returns>
         [HttpGet]
         public async Task<ActionResult> UserSuspension(long userId)
         {
@@ -530,6 +607,12 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(false);
         }
+        /// <summary>
+        /// Set suspension status for a user.
+        /// </summary>
+        /// <param name="userId">User whose suspension status is to be set.</param>
+        /// <param name="value">true to suspend the user; false to unsuspend the user</param>
+        /// <returns>true if the user is suspended; false otherwise</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> UserSuspension(long userId, bool value)
@@ -562,7 +645,14 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(false);
         }
-
+        
+        /// <summary>
+        /// Get whether a user has a particular client role or not.
+        /// </summary>
+        /// <param name="userId">User whose role is to be checked</param>
+        /// <param name="clientId">Client whose role is to be checked</param>
+        /// <param name="role">Role to check</param>
+        /// <returns>true if the user has the role in the client; false otherwise</returns>
         [HttpGet]
         public async Task<ActionResult> UserClientRoles(long userId, long clientId, RoleEnum role)
         {
@@ -613,6 +703,14 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(roleExists);
         }
+        /// <summary>
+        /// Set a specific client role for a user.
+        /// </summary>
+        /// <param name="userId">User whose role is to be set</param>
+        /// <param name="clientId">Client whose role is to be set</param>
+        /// <param name="role">Role to set</param>
+        /// <param name="value">true to set the role; false to unset the role</param>
+        /// <returns>true if the user has the role in the client; false otherwise</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> UserClientRoles(long userId, long clientId, RoleEnum role, bool value)
@@ -687,6 +785,11 @@ namespace MillimanAccessPortal.Controllers
             return Json(value);
         }
 
+        /// <summary>
+        /// Get whether a root content item is suspended or not.
+        /// </summary>
+        /// <param name="rootContentItemId">Root content item whose suspension status is to be checked.</param>
+        /// <returns>true is the root content item is suspended; false otherwise</returns>
         [HttpGet]
         public async Task<ActionResult> ContentSuspension(long rootContentItemId)
         {
@@ -712,6 +815,12 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(false);
         }
+        /// <summary>
+        /// Set suspension status for a root content item.
+        /// </summary>
+        /// <param name="rootContentItemId">Root content item whose suspension status is to be set.</param>
+        /// <param name="value">true to suspend the root content item; false to unsuspend the root content item</param>
+        /// <returns>true is the root content item is suspended; false otherwise</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ContentSuspension(long rootContentItemId, bool value)
@@ -744,5 +853,6 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(false);
         }
+        #endregion
     }
 }
