@@ -37,6 +37,7 @@ const ajaxStatus: any = {};
 const SHOW_DURATION = 50;
 let eligibleUsers;
 let formObject: FormBase;
+let defaultWelcomeText: string;
 
 function domainRegex() {
   return new RegExp(globalSettings.domainValidationRegex);
@@ -133,7 +134,7 @@ function bindForm() {
     },
   );
 
-  formObject = new FormBase();
+  formObject = new FormBase(defaultWelcomeText);
   formObject.bindToDOM($clientForm[0]);
   formObject.configure([
     {
@@ -565,6 +566,7 @@ function getClientTree(clientId?) {
   }).done(function onDone(response) {
     populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
     renderClientTree(response.ClientTreeList, clientId || response.RelevantClientId);
+    defaultWelcomeText = response.SystemDefaultWelcomeEmailText;
     $('#client-tree .loading-wrapper').hide();
   }).fail(function onFail(response) {
     $('#client-tree .loading-wrapper').hide();

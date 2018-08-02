@@ -62,6 +62,7 @@ namespace MapDbContextLib.Context
         [Display(Name = "Approved Email Address Exception List")]
         public string[] AcceptedEmailAddressExceptionList { get; set; }
 
+        [DataType(DataType.MultilineText)]
         [Display(Name = "Custom Welcome Text")]
         public string NewUserWelcomeText { get; set; }
         

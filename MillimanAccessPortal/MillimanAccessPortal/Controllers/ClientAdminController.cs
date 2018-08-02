@@ -633,7 +633,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveNewClient([Bind("Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
-                                                 "ConsultantOffice,AcceptedEmailDomainList,ParentClientId,ProfitCenterId")] Client Model)
+                                                 "ConsultantOffice,AcceptedEmailDomainList,ParentClientId,ProfitCenterId,NewUserWelcomeText")] Client Model)
         // Members intentionally not bound: Id, AcceptedEmailAddressExceptionList
         {
             ApplicationUser CurrentApplicationUser = await Queries.GetCurrentApplicationUser(User);
@@ -775,7 +775,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditClient([Bind("Id,Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
-                                              "ConsultantOffice,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId,ProfitCenterId")] Client Model)
+                                              "ConsultantOffice,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId,ProfitCenterId,NewUserWelcomeText")] Client Model)
         {
             #region Preliminary Validation
             if (Model.Id <= 0)
@@ -904,6 +904,7 @@ namespace MillimanAccessPortal.Controllers
                 ExistingClientRecord.AcceptedEmailAddressExceptionList = Model.AcceptedEmailAddressExceptionList;
                 //Not supported:  ExistingClientRecord.ParentClientId = Model.ParentClientId;
                 ExistingClientRecord.ProfitCenterId = Model.ProfitCenterId;
+                ExistingClientRecord.NewUserWelcomeText = Model.NewUserWelcomeText;
 
                 DbContext.Client.Update(ExistingClientRecord);
                 DbContext.SaveChanges();

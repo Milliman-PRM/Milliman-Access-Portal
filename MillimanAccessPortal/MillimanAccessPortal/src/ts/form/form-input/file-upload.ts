@@ -4,13 +4,11 @@ import { AccessMode } from '../form-modes';
 import { FormInput } from './input';
 
 export class FileUploadInput extends FormInput {
-  // tslint:disable:object-literal-sort-keys
   protected _cssClasses = {
     main: 'form-input-file-upload',
     title: 'form-input-file-upload-title',
     extension: 'form-input-file-upload-contents',
   };
-  // tslint:enable:object-literal-sort-keys
 
   private uploadInProgress: boolean = false;
   private _upload: Upload;
