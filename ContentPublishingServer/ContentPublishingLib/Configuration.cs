@@ -23,8 +23,7 @@ namespace ContentPublishingLib
                 .AddJsonFile(path: "appSettings.json", optional: true, reloadOnChange: true)
                 ;
 
-            // Add environment dependent configuration
-            #region Configure Azure Key Vault for CI & Production
+            #region Add environment dependent configuration sources
             string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.ToUpper();
             switch (EnvironmentName)
             {
