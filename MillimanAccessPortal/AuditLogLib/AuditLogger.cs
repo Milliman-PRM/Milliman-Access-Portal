@@ -114,7 +114,6 @@ namespace AuditLogLib
                     ? user.UserName
                     : UserNameArg;
             }
-
             Event.Assembly = _assemblyName;
 
             LogEventQueue.Enqueue(Event);
