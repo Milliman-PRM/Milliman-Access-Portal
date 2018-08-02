@@ -25,7 +25,7 @@ namespace ContentPublishingLib
 
             // Add environment dependent configuration
             #region Configure Azure Key Vault for CI & Production
-            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
+            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.ToUpper();
             switch (EnvironmentName)
             {
                 case "CI":
@@ -49,7 +49,7 @@ namespace ContentPublishingLib
 
                 case null:  // for framework GUI project
                 case "DEVELOPMENT":
-
+                    CfgBuilder.AddUserSecrets<ProcessManager>();
                     break;
 
                 default: // Unsupported environment name	
