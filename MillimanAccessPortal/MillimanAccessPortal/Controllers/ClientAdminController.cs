@@ -113,7 +113,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, ApplicationConfig["DefaultNewUserWelcomeText"]);
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
 
             return Json(ModelToReturn);
         }
@@ -758,7 +758,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(AuditEventType.ClientCreated.ToEvent(Model));
             AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(Model, CurrentApplicationUser, RoleEnum.Admin));
 
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(CurrentApplicationUser, UserManager, DbContext, ApplicationConfig["DefaultNewUserWelcomeText"]);
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(CurrentApplicationUser, UserManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
             ModelToReturn.RelevantClientId = Model.Id;
 
             return Json(ModelToReturn);
@@ -917,7 +917,7 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, ApplicationConfig["DefaultNewUserWelcomeText"]);
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
             ModelToReturn.RelevantClientId = ExistingClientRecord.Id;
 
             return Json(ModelToReturn);
@@ -1011,7 +1011,7 @@ namespace MillimanAccessPortal.Controllers
 
             AuditLogger.Log(AuditEventType.ClientDeleted.ToEvent(ExistingClient));
 
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, ApplicationConfig["DefaultNewUserWelcomeText"]);
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
 
             return Json(ModelToReturn);
         }
