@@ -49,8 +49,8 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
   }
 
   private get url() {
-    return this.props.selectedDataSource.action
-      && `${this.props.controller}/${this.props.selectedDataSource.action}/`;
+    return this.props.selectedDataSource.infoAction
+      && `${this.props.controller}/${this.props.selectedDataSource.infoAction}/`;
   }
 
   public constructor(props) {
@@ -152,7 +152,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
     }).done((response) => {
       if (this.props.selectedDataSource) {
         this.setState({
-          entities: this.props.selectedDataSource.processResponse(response),
+          entities: this.props.selectedDataSource.processInfo(response),
         });
       }
     }).fail((response) => {

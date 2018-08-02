@@ -7,11 +7,13 @@ import '../../../scss/react/system-admin/system-admin.scss';
 
 import * as React from 'react';
 
-import { BasicNode, BasicTree, Nestable } from '../../view-models/content-publishing';
+import { BasicNode, BasicTree } from '../../view-models/content-publishing';
 import { ContentPanel } from '../shared-components/content-panel';
 import { Entity } from '../shared-components/entity';
 import { DataSource } from '../shared-components/interfaces';
 import { ClientInfo, ProfitCenterInfo, RootContentItemInfo, UserInfo } from './interfaces';
+import { PrimaryDetailPanel } from './primary-detail-panel';
+import { SecondaryDetailPanel } from './secondary-detail-panel';
 
 export interface SystemAdminState {
   primaryDataSource: string;
@@ -26,9 +28,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     name: null,
     parentSources: [],
     displayName: '',
-    action: '',
+    infoAction: '',
+    detailAction: '',
     createAction: null,
-    processResponse: () => null,
+    processInfo: () => null,
     assignQueryFilter: () => null,
   };
   private dataSources: Array<DataSource<Entity>> = [
@@ -45,9 +48,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         },
       ],
       displayName: 'Users',
-      action: 'Users',
-      createAction: 'CreateUser',
-      processResponse: (response: UserInfo[]) => response.map((user) => ({
+      infoAction: 'Users',
+      detailAction: 'UserDetail',
+      createAction: '',
+      processInfo: (response: UserInfo[]) => response.map((user) => ({
         id: user.Id,
         primaryText: `${user.LastName}, ${user.FirstName}`,
         secondaryText: user.UserName,
@@ -73,9 +77,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         'profitCenter',
       ],
       displayName: 'Clients',
-      action: 'Clients',
+      infoAction: 'Clients',
+      detailAction: 'ClientDetail',
       createAction: null,
-      processResponse: (response: BasicTree<ClientInfo>) => {
+      processInfo: (response: BasicTree<ClientInfo>) => {
         interface ClientDepth {
           client: ClientInfo;
           depth: number;
@@ -120,9 +125,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         null,
       ],
       displayName: 'Profit Center',
-      action: 'ProfitCenters',
+      infoAction: 'ProfitCenters',
+      detailAction: 'ProfitCenterDetail',
       createAction: 'CreateProfitCenter',
-      processResponse: (response: ProfitCenterInfo[]) => response.map((profitCenter) => ({
+      processInfo: (response: ProfitCenterInfo[]) => response.map((profitCenter) => ({
         id: profitCenter.Id,
         primaryText: profitCenter.Name,
         secondaryText: profitCenter.Office,
@@ -151,9 +157,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         'client',
       ],
       displayName: 'Content Items',
-      action: 'RootContentItems',
+      infoAction: 'RootContentItems',
+      detailAction: 'RootContentItemDetail',
       createAction: null,
-      processResponse: (response: RootContentItemInfo[]) => response.map((item) => ({
+      processInfo: (response: RootContentItemInfo[]) => response.map((item) => ({
         id: item.Id,
         primaryText: item.Name,
         secondaryText: item.ClientName,
@@ -190,14 +197,20 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   public render() {
+
+    // pass available data sources as props based on defined data sources
     const primaryDataSources = this.getDataSources(null);
     const primaryDataSource = this.getDataSourceByName(primaryDataSources, this.state.primaryDataSource);
-
     const secondaryDataSources = this.getDataSources(this.state.primaryDataSource);
     const secondaryDataSource = this.getDataSourceByName(secondaryDataSources, this.state.secondaryDataSource);
 
     const secondaryQueryFilter = Object.assign(
       {}, primaryDataSource.assignQueryFilter(this.state.primarySelectedCard));
+    const finalQueryFilter = Object.assign(
+      {},
+      primaryDataSource.assignQueryFilter(this.state.primarySelectedCard),
+      secondaryDataSource.assignQueryFilter(this.state.secondarySelectedCard),
+    );
 
     return [
       (
@@ -224,6 +237,26 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           queryFilter={secondaryQueryFilter}
         />
       ),
+      (
+        <div
+          key={'detail'}
+          className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-6-12"
+        >
+          <PrimaryDetailPanel
+            controller={this.controller}
+            selectedDataSource={primaryDataSource}
+            selectedCard={this.state.primarySelectedCard}
+            queryFilter={secondaryQueryFilter}
+          />
+          <SecondaryDetailPanel
+            controller={this.controller}
+            primarySelectedDataSource={primaryDataSource}
+            secondarySelectedDataSource={secondaryDataSource}
+            selectedCard={this.state.secondarySelectedCard}
+            queryFilter={finalQueryFilter}
+          />
+        </div>
+      ),
     ];
   }
 
@@ -237,11 +270,19 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       primarySelectedCard: sourceName === prevState.primaryDataSource
         ? prevState.primarySelectedCard
         : null,
+      secondarySelectedCard: sourceName === prevState.primaryDataSource
+        ? prevState.secondarySelectedCard
+        : null,
     }));
   }
 
   private setSecondaryDataSource(sourceName: string) {
-    this.setState({ secondaryDataSource: sourceName });
+    this.setState((prevState) => ({
+      secondaryDataSource: sourceName,
+      secondarySelectedCard: sourceName === prevState.secondaryDataSource
+        ? prevState.secondarySelectedCard
+        : null,
+    }));
   }
 
   private setPrimarySelectedCard(cardId: number) {
@@ -249,6 +290,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       primarySelectedCard: prevState.primarySelectedCard === cardId
         ? null
         : cardId,
+      secondarySelectedCard: null,
     }));
   }
 

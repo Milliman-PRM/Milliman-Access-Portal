@@ -9,14 +9,12 @@ export interface ContentPanelProps<T> {
   queryFilter: QueryFilter;
 }
 
-export interface ClientPanelProps {
-  selectedClient: string;
-  makeClientSelection: (id: string) => void;
+export interface NestedList {
+  Sections: NestedListSection[];
 }
-
-export interface ProfitCenterPanelProps {
-  selectedProfitCenter: string;
-  makeProfitCenterSelection: (id: string) => void;
+export interface NestedListSection {
+  Name: string;
+  Values: string[];
 }
 
 export interface UserInfo {
@@ -28,7 +26,6 @@ export interface UserInfo {
   RootContentItemCount?: number;
   RootContentItems?: RootContentItemInfo[];
 }
-
 export interface ClientInfo extends Nestable {
   Name: string;
   Code: string;
@@ -36,7 +33,6 @@ export interface ClientInfo extends Nestable {
   RootContentItemCount?: number;
   ParentOnly: boolean;
 }
-
 export interface ProfitCenterInfo {
   Id: number;
   Name: string;
@@ -44,7 +40,6 @@ export interface ProfitCenterInfo {
   UserCount: number;
   ClientCount: number;
 }
-
 export interface RootContentItemInfo {
   Id: number;
   Name: string;
@@ -54,3 +49,85 @@ export interface RootContentItemInfo {
   Users?: UserInfo[];
   IsSuspended: boolean;
 }
+
+export interface UserDetail {
+  Id: number;
+  FirstName: string;
+  LastName: string;
+  Employer: string;
+  UserName: string;
+  Email: string;
+  Phone: string;
+}
+export interface ClientDetail {
+  Id: number;
+  ClientName: string;
+  ClientCode: string;
+  ClientContactName: string;
+  ClientContactEmail: string;
+  ClientContactPhone: string;
+  ProfitCenter: string;
+  Office: string;
+  ConsultantName: string;
+  ConsultantEmail: string;
+}
+export interface ProfitCenterDetail {
+  Id: number;
+  Name: string;
+  Office: string;
+  ContactName: string;
+  ContactEmail: string;
+  ContactPhone: string;
+}
+export type PrimaryDetail = UserDetail | ClientDetail | ProfitCenterDetail;
+
+export interface UserDetailForClient {
+  Id: number;
+  FirstName: string;
+  LastName: string;
+  Employer: string;
+  UserName: string;
+  Email: string;
+  Phone: string;
+}
+export interface UserDetailForProfitCenter {
+    Id: number;
+    FirstName: string;
+    LastName: string;
+    Email: string;
+    Phone: string;
+    AssignedClients: NestedList;
+}
+export interface ClientDetailForUser {
+    Id: number;
+    ClientName: string;
+    ClientCode: string;
+}
+export interface ClientDetailForProfitCenter {
+    Id: number;
+    Name: string;
+    Code: string;
+    ContactName: string;
+    ContactEmail: string;
+    ContactPhone: string;
+    AuthorizedUsers: NestedList;
+}
+export interface RootContentItemDetailForUser {
+    Id: number;
+    ContentName: string;
+    ContentType: string;
+}
+export interface RootContentItemDetailForClient {
+    Id: string;
+    ContentName: string;
+    ContentType: string;
+    Description: string;
+    LastUpdated: string;
+    LastAccessed: string;
+    SelectionGroups: NestedList;
+}
+export type SecondaryDetail = UserDetailForClient | UserDetailForProfitCenter
+  | ClientDetailForUser | ClientDetailForProfitCenter
+  | RootContentItemDetailForUser | RootContentItemDetailForClient;
+
+export type Detail = PrimaryDetail | SecondaryDetail;
