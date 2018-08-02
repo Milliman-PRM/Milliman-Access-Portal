@@ -23,7 +23,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
         public long RelevantClientId { get; set; } = -1;
         public string SystemDefaultWelcomeEmailText { get; set; }
 
-        public static async Task<ClientAdminIndexViewModel> GetClientAdminIndexModelForUser(ApplicationUser CurrentUser, UserManager<ApplicationUser> UserManager, ApplicationDbContext DbContext, string SystemDefaultWecomeEmailTextArg = null)
+        public static async Task<ClientAdminIndexViewModel> GetClientAdminIndexModelForUser(ApplicationUser CurrentUser, UserManager<ApplicationUser> UserManager, ApplicationDbContext DbContext, string SystemDefaultWelcomeEmailTextArg = null)
         {
             #region Validation
             if (CurrentUser == null)
@@ -62,7 +62,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                 ModelToReturn.AuthorizedProfitCenterList.Add(new AuthorizedProfitCenterModel(AuthorizedProfitCenter));
             }
 
-            ModelToReturn.SystemDefaultWelcomeEmailText = SystemDefaultWecomeEmailTextArg;
+            ModelToReturn.SystemDefaultWelcomeEmailText = SystemDefaultWelcomeEmailTextArg;
 
             return ModelToReturn;
         }
