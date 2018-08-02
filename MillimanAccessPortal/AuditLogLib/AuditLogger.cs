@@ -99,27 +99,21 @@ namespace AuditLogLib
         /// <param name="UserNameArg">Caller provided user name, will be used only if the HttpContext does not yield a user name</param>
         public async virtual void Log(AuditEvent Event, string UserNameArg)
         {
-            HttpContext context = _contextAccessor?.HttpContext;
-            ApplicationUser user = null;
+            if (_contextAccessor == null || _userManager == null)
+            {
+                Event.SessionId = null;
+                Event.User = UserNameArg;  // with value or null
+            }
+            else
+            {
+                HttpContext context = _contextAccessor?.HttpContext;
+                ApplicationUser user = await _userManager.GetUserAsync(context.User);
 
-            try
-            {
-                user = await _userManager?.GetUserAsync(context?.User);
-                Event.SessionId = context?.Session?.Id;
+                Event.SessionId = context.Session.Id;
+                Event.User = user != null
+                    ? user.UserName
+                    : UserNameArg;
             }
-            catch (InvalidOperationException)
-            {
-                Event.SessionId = null;
-            }
-            catch (NullReferenceException)
-            {
-                Event.SessionId = null;
-            }
-            Event.User = user != null
-                ? user.UserName
-                : UserNameArg != null
-                ? UserNameArg
-                : null;
             Event.Assembly = _assemblyName;
 
             LogEventQueue.Enqueue(Event);

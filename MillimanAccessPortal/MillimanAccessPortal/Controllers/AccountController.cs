@@ -413,12 +413,14 @@ namespace MillimanAccessPortal.Controllers
         {
             if (!ModelState.IsValid)
             {
+                model.Message = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)));
                 return View(model);
             }
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
                 // Don't reveal that the user does not exist
+                // TODO but do something better than this!
                 return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
             }
             var result = await _userManager.ResetPasswordAsync(user, model.PasswordResetToken, model.NewPassword);
@@ -428,7 +430,8 @@ namespace MillimanAccessPortal.Controllers
                 return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
             }
             AddErrors(result);
-            return View("Error", model);
+            model.Message = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)));
+            return View(model);
         }
 
         //
