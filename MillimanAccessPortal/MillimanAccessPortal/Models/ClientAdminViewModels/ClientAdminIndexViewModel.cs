@@ -21,7 +21,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
         public List<ClientAndChildrenModel> ClientTreeList { get; set; } = new List<ClientAndChildrenModel>();
         public List<AuthorizedProfitCenterModel> AuthorizedProfitCenterList { get; set; } = new List<AuthorizedProfitCenterModel>();
         public long RelevantClientId { get; set; } = -1;
-        public string SystemDefaultWecomeEmailText { get; set; }
+        public string SystemDefaultWelcomeEmailText { get; set; }
 
         public static async Task<ClientAdminIndexViewModel> GetClientAdminIndexModelForUser(ApplicationUser CurrentUser, UserManager<ApplicationUser> UserManager, ApplicationDbContext DbContext, string SystemDefaultWecomeEmailTextArg = null)
         {
@@ -62,7 +62,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                 ModelToReturn.AuthorizedProfitCenterList.Add(new AuthorizedProfitCenterModel(AuthorizedProfitCenter));
             }
 
-            ModelToReturn.SystemDefaultWecomeEmailText = SystemDefaultWecomeEmailTextArg;
+            ModelToReturn.SystemDefaultWelcomeEmailText = SystemDefaultWecomeEmailTextArg;
 
             return ModelToReturn;
         }
