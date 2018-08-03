@@ -138,6 +138,14 @@ namespace EmailQueue
                 using (var client = new SmtpClient())
                 {
                     client.Connect(smtpConfig.SmtpServer, smtpConfig.SmtpPort, MailKit.Security.SecureSocketOptions.None);
+
+                    // Attempt to authenticate if credentials are configured
+                    // Will throw an exception if authentication fails
+                    if (!string.IsNullOrEmpty(smtpConfig.SmtpUsername) && !string.IsNullOrEmpty(smtpConfig.SmtpPassword))
+                    {
+                        client.Authenticate(smtpConfig.SmtpUsername, smtpConfig.SmtpPassword);
+                    }
+
                     client.Send(message.message);
                     client.Disconnect(true);
                 }
