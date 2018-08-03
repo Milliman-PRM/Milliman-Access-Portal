@@ -3,5 +3,7 @@
   "SmtpPort": 25,
   "SmtpFromAddress": "prm.support@milliman.com",
   "SmtpFromName": "Milliman PRM Analytics Support",
-  "MaximumSendAttempts": 5
+  "MaximumSendAttempts": 5,
+  "SmtpUsername": "",
+  "SmtpPassword":  ""
 }
