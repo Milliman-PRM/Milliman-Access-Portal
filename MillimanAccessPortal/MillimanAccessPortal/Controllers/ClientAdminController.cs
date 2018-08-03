@@ -70,14 +70,14 @@ namespace MillimanAccessPortal.Controllers
             Queries = QueryArg;
             UserManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
-    }
+        }
 
-    // GET: ClientAdmin
-    /// <summary>
-    /// Action leading to the main landing page for Client administration UI
-    /// </summary>
-    /// <returns></returns>
-    public async Task<IActionResult> Index()
+        // GET: ClientAdmin
+        /// <summary>
+        /// Action leading to the main landing page for Client administration UI
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IActionResult> Index()
         {
             #region Authorization
             // User must have Admin role to at least 1 Client OR to at least 1 ProfitCenter
