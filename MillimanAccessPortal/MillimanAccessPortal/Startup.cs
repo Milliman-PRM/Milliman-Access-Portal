@@ -216,7 +216,9 @@ namespace MillimanAccessPortal
                 SmtpServer = Configuration.GetValue<string>("SmtpServer"),
                 SmtpPort = Configuration.GetValue<int>("SmtpPort"),
                 SmtpFromAddress = Configuration.GetValue<string>("SmtpFromAddress"),
-                SmtpFromName = Configuration.GetValue<string>("SmtpFromName")
+                SmtpFromName = Configuration.GetValue<string>("SmtpFromName"),
+                SmtpUsername = Configuration.GetValue<string>("SmtpUsername"),
+                SmtpPassword = Configuration.GetValue<string>("SmtpPassword")
             });
 
             #region Configure Audit Logger connection string
