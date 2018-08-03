@@ -137,11 +137,11 @@ namespace EmailQueue
                 // Send mail
                 using (var client = new SmtpClient())
                 {
-                    client.Connect(smtpConfig.SmtpServer, smtpConfig.SmtpPort, MailKit.Security.SecureSocketOptions.None);
+                    client.Connect(smtpConfig.SmtpServer, smtpConfig.SmtpPort, MailKit.Security.SecureSocketOptions.StartTlsWhenAvailable);
 
                     // Attempt to authenticate if credentials are configured
                     // Will throw an exception if authentication fails
-                    if (!string.IsNullOrEmpty(smtpConfig.SmtpUsername) && !string.IsNullOrEmpty(smtpConfig.SmtpPassword))
+                    if (!string.IsNullOrWhiteSpace(smtpConfig.SmtpUsername) && !string.IsNullOrWhiteSpace(smtpConfig.SmtpPassword))
                     {
                         client.Authenticate(smtpConfig.SmtpUsername, smtpConfig.SmtpPassword);
                     }
