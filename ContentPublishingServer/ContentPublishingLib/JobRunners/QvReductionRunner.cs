@@ -294,7 +294,7 @@ namespace ContentPublishingLib.JobRunners
 
             // Create ancillary script
             string AncillaryScriptFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "ancillary_script.txt");
-            File.WriteAllText(AncillaryScriptFilePath, "LET DataExtraction=true();");
+            File.WriteAllText(AncillaryScriptFilePath, "LET DataExtraction=true(); LET MAP_Reduction=true();");
 
             // Create Qlikview publisher (QDS) task
             DocumentTask HierarchyTask = CreateHierarchyExtractionQdsTask(DocumentNodeArg);
