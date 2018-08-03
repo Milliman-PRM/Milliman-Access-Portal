@@ -362,7 +362,9 @@ namespace MillimanAccessPortal.Controllers
                 string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
                 string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = user.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
 
-                string emailBody = $"A password reset was initiated for your Milliman Access Portal account.  Please create a new password at the following linked page:{Environment.NewLine}{linkUrl}";
+                string emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page.{Environment.NewLine}";
+                emailBody += $"Your user name is {user.UserName}{Environment.NewLine}{Environment.NewLine}";
+                emailBody += $"{linkUrl}";
                 _messageSender.QueueEmail(model.Email, "MAP password reset", emailBody);
 
                 _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(user));
