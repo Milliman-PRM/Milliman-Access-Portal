@@ -16,7 +16,6 @@ export class NullableTextareaInput extends FormInput {
       if (this.$entryPoint.find('input').prop('checked')) {
         this.$input.removeAttr('disabled');
       } else {
-        this.$input.val(this.defaultText);
         this.$input.attr('disabled', '');
       }
     });
