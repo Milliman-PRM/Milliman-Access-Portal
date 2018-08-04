@@ -290,7 +290,6 @@ namespace MillimanAccessPortal.Controllers
             {
                 Id = user.Id,
                 Code = code,
-                UserName = user.UserName,
             };
             return View(model);
         }

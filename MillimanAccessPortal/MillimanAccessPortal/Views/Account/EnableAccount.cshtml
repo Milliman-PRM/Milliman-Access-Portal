@@ -12,6 +12,10 @@
     ViewData["NavIcon"] = "EnableAccount";
 }
 
+@section Scripts {
+    <script src="~/js/enable-account.bundle.js"></script>
+}
+
 <div id="enable-account-container">
     <div id="enable-account" class="admin-panel-container flex-item-for-phone-only-12-12 flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-5-12">
         <div class="loading-wrapper" style="display: none;">
@@ -20,8 +24,7 @@
         <div class="admin-panel-content-container">
             <form id="enable-account-form" class="admin-panel-content" autocomplete="off" action="EnableAccount/" method="post">
                 <div class="form-section-container">
-                    <div class="form-section" data-section="account">
-                        <h4 class="form-section-title"></h4>
+                    <div class="form-section" style="display: none;">
                         <div class="form-input-container">
                             <div class="form-input form-input-text flex-item-12-12">
                                 <div>
@@ -35,13 +38,11 @@
                                     <span asp-validation-for="Code" class="text-danger"></span>
                                 </div>
                             </div>
-                            <div class="form-input form-input-text flex-item-12-12">
-                                <label class="form-input-text-title" asp-for="UserName"></label>
-                                <div>
-                                    <input asp-for="UserName" data-original-value="@Model.UserName" readonly />
-                                    <span asp-validation-for="UserName" class="text-danger"></span>
-                                </div>
-                            </div>
+                        </div>
+                    </div>
+                    <div class="form-section" data-section="account">
+                        <h4 class="form-section-title">Activate Account</h4>
+                        <div class="form-input-container">
                             <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
                                 <label class="form-input-text-title" asp-for="FirstName"></label>
                                 <div>
