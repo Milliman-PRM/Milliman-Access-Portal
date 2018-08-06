@@ -3,5 +3,7 @@
   "SmtpPort": 25,
   "SmtpFromAddress": "map.support@milliman.com",
   "SmtpFromName": "Milliman Access Portal Support",
-  "MaximumSendAttempts": 5
+  "MaximumSendAttempts": 5,
+  "SmtpUsername": "",
+  "SmtpPassword":  ""
 }

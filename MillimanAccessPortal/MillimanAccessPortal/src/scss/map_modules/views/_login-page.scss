@@ -9,11 +9,12 @@
     align-self:      center;
     margin:          0 auto;
     padding:         1em;
-    max-width:       25em;
+    max-width:       95vw;
+    width:           25em;
 
     #login-logo-container {
-        margin:    0 auto;
-        max-width: 100%;
+        padding: .5em;
+        width: 100%;
 
         #login-logo {
             width:  100%;
