@@ -6,6 +6,7 @@
 
 using Microsoft.AspNetCore.Identity;
 using System.Collections.Generic;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace MapDbContextLib.Identity
@@ -27,6 +28,11 @@ namespace MapDbContextLib.Identity
         /// This overide is here only to apply the explicit [Key] attribute, required in unit tests
         [Key]
         public override long Id { get; set; }
+
+        //
+        // Summary:
+        //     Gets or sets the user's password reset date
+        public virtual DateTime PasswordChangeDate { get; set; }
 
         //
         // Summary:
