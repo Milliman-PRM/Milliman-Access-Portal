@@ -94,14 +94,16 @@ namespace MillimanAccessPortal.Controllers
                 bool passwordSuccess = await _userManager.CheckPasswordAsync(user, model.Password);
 
                 // Set a default value in case the configuration isn't found or isn't an int
-                int expirationDays = 30;
+                int defaultExpirationDays = 30;
+                int expirationDays = defaultExpirationDays;
                 try
                 {
                     expirationDays = _confiugration.GetValue<int>("PasswordExpirationDays");
                 }
                 catch
                 {
-                    _logger.LogWarning(2, "PasswordExpirationDays value not found or cannot be cast to an integer");
+                    expirationDays = defaultExpirationDays;
+                    _logger.LogWarning($"PasswordExpirationDays value not found or cannot be cast to an integer. The default value of { expirationDays } will be used.");
                 }
                                 
                 if (user.PasswordChangeDate.AddDays(expirationDays) < DateTime.UtcNow && passwordSuccess)
