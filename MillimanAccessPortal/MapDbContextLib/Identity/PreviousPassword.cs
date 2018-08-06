@@ -18,6 +18,7 @@ namespace MapDbContextLib.Identity
 
         public string PasswordHash { get; set; }
 
+        [Key]
         public DateTimeOffset EndDate { get; set; }
 
         public virtual ApplicationUser User { get; set; }
