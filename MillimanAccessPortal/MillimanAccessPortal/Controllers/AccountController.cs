@@ -361,9 +361,19 @@ namespace MillimanAccessPortal.Controllers
                 // Don't reveal that the user does not exist
                 return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
             }
+            string previousHash = user.PasswordHash;
             var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
             if (result.Succeeded)
             {
+                // Save previous password hash
+                user.PreviousUserPasswords.Add(new PreviousPassword() { PasswordHash = previousHash, User = user });
+                var addHistoryResult = await _userManager.UpdateAsync(user);
+
+                if (!addHistoryResult.Succeeded)
+                {
+                    _logger.LogError($"Failed to save password history for {user.UserName }");
+                }
+
                 return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
             }
             AddErrors(result);
