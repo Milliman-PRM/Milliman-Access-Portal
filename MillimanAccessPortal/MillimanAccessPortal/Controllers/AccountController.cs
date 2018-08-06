@@ -84,10 +84,14 @@ namespace MillimanAccessPortal.Controllers
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByNameAsync(model.Username);
-                if (user.PasswordChangeDate.AddDays(90) < DateTime.UtcNow)
+
+                // Only notify of password expiration if the correct password was provided
+                // Redirect user to the password reset view to set a new password
+                bool passwordSuccess = await _userManager.CheckPasswordAsync(user, model.Password);
+                if (user.PasswordChangeDate.AddDays(60) < DateTime.UtcNow && passwordSuccess)
                 {
                     ModelState.AddModelError(string.Empty, "Password Has Expired.");
-                    return View("Error");
+                    return View("ResetPassword");
                 }
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
