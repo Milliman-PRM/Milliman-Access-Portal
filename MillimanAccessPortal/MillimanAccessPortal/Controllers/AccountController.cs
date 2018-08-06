@@ -563,7 +563,10 @@ namespace MillimanAccessPortal.Controllers
                 
                 if (result.Succeeded)
                 {
+                    // Update the last password change date
                     user.PasswordChangeDate = DateTime.UtcNow;
+                    await _userManager.UpdateAsync(user);
+
                     return Ok();
                 }
                 else
