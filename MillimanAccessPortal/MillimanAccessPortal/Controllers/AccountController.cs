@@ -25,6 +25,7 @@ using AuditLogLib;
 using AuditLogLib.Services;
 using MillimanAccessPortal.DataQueries;
 using AuditLogLib.Event;
+using Microsoft.Extensions.Configuration;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -38,6 +39,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly ILogger _logger;
         private readonly IAuditLogger _auditLogger;
         private readonly StandardQueries Queries;
+        private readonly IConfiguration _confiugration;
 
         public AccountController(
             ApplicationDbContext ContextArg,
@@ -46,7 +48,8 @@ namespace MillimanAccessPortal.Controllers
             IMessageQueue messageSender,
             ILoggerFactory loggerFactory,
             IAuditLogger AuditLoggerArg,
-            StandardQueries QueriesArg)
+            StandardQueries QueriesArg,
+            IConfiguration ConfigArg)
         {
             DbContext = ContextArg;
             _userManager = userManager;
@@ -55,6 +58,7 @@ namespace MillimanAccessPortal.Controllers
             _logger = loggerFactory.CreateLogger<AccountController>();
             _auditLogger = AuditLoggerArg;
             Queries = QueriesArg;
+            _confiugration = ConfigArg;
         }
 
         //
@@ -83,6 +87,30 @@ namespace MillimanAccessPortal.Controllers
 
             if (ModelState.IsValid)
             {
+                var user = await _userManager.FindByNameAsync(model.Username);
+
+                // Only notify of password expiration if the correct password was provided
+                // Redirect user to the password reset view to set a new password
+                bool passwordSuccess = await _userManager.CheckPasswordAsync(user, model.Password);
+
+                // Set a default value in case the configuration isn't found or isn't an int
+                int defaultExpirationDays = 30;
+                int expirationDays = defaultExpirationDays;
+                try
+                {
+                    expirationDays = _confiugration.GetValue<int>("PasswordExpirationDays");
+                }
+                catch
+                {
+                    expirationDays = defaultExpirationDays;
+                    _logger.LogWarning($"PasswordExpirationDays value not found or cannot be cast to an integer. The default value of { expirationDays } will be used.");
+                }
+                                
+                if (user.PasswordChangeDate.AddDays(expirationDays) < DateTime.UtcNow && passwordSuccess)
+                {
+                    ModelState.AddModelError(string.Empty, "Password Has Expired.");
+                    return View("ResetPassword");
+                }
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: true);
@@ -553,6 +581,10 @@ namespace MillimanAccessPortal.Controllers
                 
                 if (result.Succeeded)
                 {
+                    // Update the last password change date
+                    user.PasswordChangeDate = DateTime.UtcNow;
+                    await _userManager.UpdateAsync(user);
+
                     return Ok();
                 }
                 else
