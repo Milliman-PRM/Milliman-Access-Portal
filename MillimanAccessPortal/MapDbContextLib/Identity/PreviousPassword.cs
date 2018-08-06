@@ -9,7 +9,7 @@ namespace MapDbContextLib.Identity
     {
         public PreviousPassword()
         {
-            CreateDate = DateTimeOffset.Now;
+            EndDate = DateTimeOffset.Now;
 
         }
 
@@ -18,7 +18,7 @@ namespace MapDbContextLib.Identity
 
         public string PasswordHash { get; set; }
 
-        public DateTimeOffset CreateDate { get; set; }
+        public DateTimeOffset EndDate { get; set; }
 
         public virtual ApplicationUser User { get; set; }
     }
