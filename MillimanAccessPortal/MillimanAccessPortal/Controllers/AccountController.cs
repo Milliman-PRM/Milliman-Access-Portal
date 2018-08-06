@@ -25,6 +25,7 @@ using AuditLogLib;
 using AuditLogLib.Services;
 using MillimanAccessPortal.DataQueries;
 using AuditLogLib.Event;
+using Microsoft.Extensions.Configuration;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -38,6 +39,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly ILogger _logger;
         private readonly IAuditLogger _auditLogger;
         private readonly StandardQueries Queries;
+        private readonly IConfiguration _confiugration;
 
         public AccountController(
             ApplicationDbContext ContextArg,
@@ -46,7 +48,8 @@ namespace MillimanAccessPortal.Controllers
             IMessageQueue messageSender,
             ILoggerFactory loggerFactory,
             IAuditLogger AuditLoggerArg,
-            StandardQueries QueriesArg)
+            StandardQueries QueriesArg,
+            IConfiguration ConfigArg)
         {
             DbContext = ContextArg;
             _userManager = userManager;
@@ -55,6 +58,7 @@ namespace MillimanAccessPortal.Controllers
             _logger = loggerFactory.CreateLogger<AccountController>();
             _auditLogger = AuditLoggerArg;
             Queries = QueriesArg;
+            _confiugration = ConfigArg;
         }
 
         //
@@ -88,7 +92,19 @@ namespace MillimanAccessPortal.Controllers
                 // Only notify of password expiration if the correct password was provided
                 // Redirect user to the password reset view to set a new password
                 bool passwordSuccess = await _userManager.CheckPasswordAsync(user, model.Password);
-                if (user.PasswordChangeDate.AddDays(60) < DateTime.UtcNow && passwordSuccess)
+
+                // Set a default value in case the configuration isn't found or isn't an int
+                int expirationDays = 30;
+                try
+                {
+                    expirationDays = _confiugration.GetValue<int>("PasswordExpirationDays");
+                }
+                catch
+                {
+                    _logger.LogWarning(2, "PasswordExpirationDays value not found or cannot be cast to an integer");
+                }
+                                
+                if (user.PasswordChangeDate.AddDays(expirationDays) < DateTime.UtcNow && passwordSuccess)
                 {
                     ModelState.AddModelError(string.Empty, "Password Has Expired.");
                     return View("ResetPassword");
