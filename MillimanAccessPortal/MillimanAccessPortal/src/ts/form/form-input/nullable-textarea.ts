@@ -7,6 +7,8 @@ export class NullableTextareaInput extends FormInput {
     extension: 'form-input-nullable-textarea-contents',
   };
 
+  private memory: string = '';
+
   public constructor(readonly defaultText: string) {
     super();
   }
@@ -15,8 +17,11 @@ export class NullableTextareaInput extends FormInput {
     this.$entryPoint.find('input').off('click').on('click', () => {
       if (this.$entryPoint.find('input').prop('checked')) {
         this.$input.removeAttr('disabled');
+        this.$input.val(this.memory);
       } else {
         this.$input.attr('disabled', '');
+        this.memory = this.$input.val().toString();
+        this.$input.val(this.defaultText);
       }
     });
   }
