@@ -300,6 +300,10 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EnableAccount(EnableAccountViewModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return View();
+            }
             var user = await _userManager.FindByIdAsync(model.Id.ToString());
             if (user == null)
             {
@@ -352,27 +356,25 @@ namespace MillimanAccessPortal.Controllers
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByEmailAsync(model.Email);
-                if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
+                if (user != null && !(await _userManager.IsEmailConfirmedAsync(user)))
                 {
-                    // Don't reveal that the user does not exist or is not confirmed
-                    return View(model);
+                    string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+                    string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = user.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
+
+                    string emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page.{Environment.NewLine}";
+                    emailBody += $"Your user name is {user.UserName}{Environment.NewLine}{Environment.NewLine}";
+                    emailBody += $"{linkUrl}";
+                    _messageSender.QueueEmail(model.Email, "MAP password reset", emailBody);
+
+                    _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(user));
                 }
-
-                string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
-                string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = user.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
-
-                string emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page.{Environment.NewLine}";
-                emailBody += $"Your user name is {user.UserName}{Environment.NewLine}{Environment.NewLine}";
-                emailBody += $"{linkUrl}";
-                _messageSender.QueueEmail(model.Email, "MAP password reset", emailBody);
-
-                _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(user));
-
-                return View("ForgotPasswordConfirmation");
+                else
+                {
+                    _auditLogger.Log(AuditEventType.PasswordResetRequestedForInvalidEmail.ToEvent(model.Email));
+                }
             }
 
-            // If we got this far, something failed, redisplay form
-            return View(model);
+            return View("ForgotPasswordConfirmation", model);
         }
 
         //

@@ -50,6 +50,10 @@ namespace MapDbContextLib.Context
 
             builder.HasPostgresExtension("uuid-ossp");  // for server side guid generation
 
+            builder.Entity<ApplicationUser>()
+                        .HasIndex(b => b.NormalizedEmail)
+                        .IsUnique();
+
             builder.Entity<ContentPublicationRequest>()
                 .ForNpgsqlUseXminAsConcurrencyToken();
 

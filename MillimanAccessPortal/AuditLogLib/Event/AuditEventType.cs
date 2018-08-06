@@ -103,6 +103,11 @@ namespace AuditLogLib.Event
             {
                 NewUserName = user.UserName,
             });
+        public static readonly AuditEventType<string> PasswordResetRequestedForInvalidEmail = new AuditEventType<string>(
+            3008, "Account password reset requested for invalid email", (email) => new
+            {
+                RequestedEmail = email,
+            });
         #endregion
 
         #region Content Access Admin [4000 - 4999]

@@ -1,15 +1,7 @@
 ﻿{
   "ConnectionStrings": {
-    "AuditLogConnectionString": "Server=localhost;Database=MapAuditLog;User Id=postgres;Password=postgres;",
-    "DefaultConnection": "Server=localhost;Database=aspnet-MillimanAccessPortal-847815e5-1b44-4721-982f-fcd3f01de6ac;User Id=postgres;Password=postgres;",
-    "OtherAuditLogConnectionString": "Server=IN-NanneyV.milliman.com;Database=MapAuditLog;User Id=postgres;Password=postgres;",
-    "OtherDefaultConnection": "Server=IN-NanneyV.milliman.com;Database=aspnet-MillimanAccessPortal-847815e5-1b44-4721-982f-fcd3f01de6ac;User Id=postgres;Password=postgres;"
-  },
-  "Storage": {
-    "FileUploadPath": "\\\\indy-syn01\\prm_test\\Uploads",
-    "ContentItemRootPath": "\\\\indy-syn01\\prm_test\\ContentRoot",
-    "QvSourceDocumentsPath": "\\\\indy-syn01\\prm_test\\MillimanSourceDocuments",
-    "MapPublishingServerExchangePath": "\\\\indy-syn01\\prm_test\\MapPublishingServerExchange"
+    "AuditLogConnectionString": "",
+    "DefaultConnection": ""
   },
   "Logging": {
     "IncludeScopes": false,
@@ -17,12 +9,16 @@
       "Default": "Warning"
     }
   },
-  "QvServerHost": "indy-qvtest01.milliman.com",
-  "IQmsUrl": "http://indy-qvtest01:4799/QMS/Service",
+  "Storage": {
+    "ContentItemRootPath": "",
+    "QvSourceDocumentsPath": ""
+  },
+  "QvServerHost": "",
+  "IQmsUrl": "",
   "TaskAgeBeforeExecutionSeconds": 20,
   "StopWaitTimeSeconds": 180,
   "MaxParallelTasks": 1,
-  "QvServerAdminUserAuthenticationDomain": "indy-qvtest01.milliman.com",
-  "QvServerAdminUserName": "QlikviewAdmin",
-  "QvServerAdminUserPassword": "FWkKoy!PyG"
+  "QvServerAdminUserAuthenticationDomain": "",
+  "QvServerAdminUserName": "",
+  "QvServerAdminUserPassword": ""
 }
