@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Identity;
 using System.Collections.Generic;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Newtonsoft.Json;
+using MapDbContextLib.Models;
 
 namespace MapDbContextLib.Identity
 {
@@ -49,5 +52,26 @@ namespace MapDbContextLib.Identity
         //     Gets or sets the user's Employer.
         public virtual string Employer { get; set; }
 
+        /// <summary>
+        /// Store a history of previously-used passwords
+        /// </summary>
+        [Column(TypeName = "jsonb")]
+        public string PreviousPasswords { get; set; }
+
+        /// <summary>
+        /// Access a list of all password history
+        /// </summary>
+        [NotMapped]
+        public List<PasswordHistory> PasswordHistoryObj
+        {
+            get
+            {
+                return JsonConvert.DeserializeObject<List<PasswordHistory>>(PreviousPasswords);
+            }
+            set
+            {
+                PreviousPasswords = JsonConvert.SerializeObject(value);
+            }
+        }
     }
 }
