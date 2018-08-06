@@ -96,6 +96,10 @@ function populateClientForm(response) {
           field[0].selectize.addOption({ value: item, text: item });
           field[0].selectize.addItem(item);
         });
+      } else if (key === 'NewUserWelcomeText') {
+        const cb = field.parent().parent().find('input');
+        cb.prop('checked', value !== null);
+        field.val(value);
       } else {
         field.val(value);
       }
