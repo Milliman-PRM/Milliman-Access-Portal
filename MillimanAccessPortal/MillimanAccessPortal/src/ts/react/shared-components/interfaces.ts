@@ -5,8 +5,14 @@
   rootContentItemId?: number;
 }
 
+export enum Structure {
+  List = 1,
+  Tree = 2,
+}
+
 export interface DataSource<T> {
   name: string;
+  structure: Structure;
   parentSources: Array<string | DataSourceOverride<T>>;
   displayName: string;
   infoAction: string;

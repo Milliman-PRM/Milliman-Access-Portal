@@ -9,7 +9,7 @@ import { Card } from './card';
 import { ColumnSelector } from './column-selector';
 import { Entity, EntityHelper } from './entity';
 import { Filter } from './filter';
-import { DataSource, QueryFilter } from './interfaces';
+import { DataSource, QueryFilter, Structure } from './interfaces';
 
 export interface ContentPanelProps {
   controller: string;
@@ -83,24 +83,54 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
   public render() {
     const filteredCards = this.state.entities && this.state.entities
       .filter((entity) => EntityHelper.applyFilter(entity, this.state.filterText));
-    const cards = filteredCards === null
-      ? (<div>Loading...</div>)
-      : filteredCards.length === 0
-        ? (
-          <div>No {this.props.selectedDataSource.displayName.toLowerCase()} found.</div>
-        )
-        : filteredCards.map((entity) => (
-            <li
-              key={entity.id}
-              // tslint:disable-next-line:jsx-no-lambda
-              onClick={() => this.props.setSelectedCard(entity.id)}
-            >
-              <Card
-                {...entity}
-                selected={entity.id === this.props.selectedCard}
-              />
-            </li>
-          ));
+    let cards = null;
+    if (filteredCards === null) {
+      cards = (<div>Loading...</div>);
+    } else if (filteredCards.length === 0) {
+      cards = (
+        <div>No {this.props.selectedDataSource.displayName.toLowerCase()} found.</div>
+      );
+    } else if (this.props.selectedDataSource.structure === Structure.Tree) {
+      const rootIndices = [];
+      filteredCards.forEach((entity, i) => {
+        if (entity.indent === 1) {
+          rootIndices.push(i);
+        }
+      });
+      const cardGroups = rootIndices.map((_, i) =>
+        filteredCards.slice(rootIndices[i], rootIndices[i + 1]));
+      cards = cardGroups.map((group, i) => {
+        const groupCards = group.map((entity) => (
+          <li
+            key={entity.id}
+            // tslint:disable-next-line:jsx-no-lambda
+            onClick={() => this.props.setSelectedCard(entity.id)}
+          >
+            <Card
+              {...entity}
+              selected={entity.id === this.props.selectedCard}
+            />
+          </li>
+        ));
+        if (i + 1 !== cardGroups.length) {
+          groupCards.push((<div key="hr-{i}" className="hr" />));
+        }
+        return groupCards;
+      });
+    } else {
+      cards = filteredCards.map((entity) => (
+        <li
+          key={entity.id}
+          // tslint:disable-next-line:jsx-no-lambda
+          onClick={() => this.props.setSelectedCard(entity.id)}
+        >
+          <Card
+            {...entity}
+            selected={entity.id === this.props.selectedCard}
+          />
+        </li>
+      ));
+    }
     const filterPlaceholder = this.props.selectedDataSource.displayName
       ? `Filter ${this.props.selectedDataSource.displayName}...`
       : '';

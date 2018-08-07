@@ -10,7 +10,7 @@ import * as React from 'react';
 import { BasicNode, BasicTree } from '../../view-models/content-publishing';
 import { ContentPanel } from '../shared-components/content-panel';
 import { Entity } from '../shared-components/entity';
-import { DataSource } from '../shared-components/interfaces';
+import { DataSource, Structure } from '../shared-components/interfaces';
 import { ClientInfo, ProfitCenterInfo, RootContentItemInfo, UserInfo } from './interfaces';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
@@ -26,6 +26,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   private controller: string = 'SystemAdmin';
   private nullDataSource: DataSource<Entity> = {
     name: null,
+    structure: 0,
     parentSources: [],
     displayName: '',
     infoAction: '',
@@ -37,6 +38,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   private dataSources: Array<DataSource<Entity>> = [
     {
       name: 'user',
+      structure: Structure.List,
       parentSources: [
         null,
         'client',
@@ -71,6 +73,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     },
     {
       name: 'client',
+      structure: Structure.Tree,
       parentSources: [
         null,
         'user',
@@ -121,6 +124,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     },
     {
       name: 'profitCenter',
+      structure: Structure.List,
       parentSources: [
         null,
       ],
@@ -147,6 +151,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     },
     {
       name: 'rootContentItem',
+      structure: Structure.List,
       parentSources: [
         {
           name: 'user',
