@@ -76,7 +76,8 @@ namespace MillimanAccessPortal
             services.AddIdentity<ApplicationUser, ApplicationRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders()
-                .AddTop100000PasswordValidator<ApplicationUser>();
+                .AddTop100000PasswordValidator<ApplicationUser>()
+                .AddPasswordValidator<PasswordHistoryValidator<ApplicationUser>>();
 
             services.Configure<PasswordHasherOptions>(options => options.IterationCount = 100_000);
 
