@@ -13,8 +13,9 @@ using System.Threading.Tasks;
 namespace MillimanAccessPortal.Services
 {
     public class PasswordHistoryValidator<TUser> : IPasswordValidator<TUser>
-        where TUser : ApplicationUser 
+        where TUser : ApplicationUser
     {
+
         public Task<IdentityResult> ValidateAsync(UserManager<TUser> manager, TUser user, string password)
         {
             if (user.PasswordIsInHistory(password))
@@ -29,7 +30,6 @@ namespace MillimanAccessPortal.Services
             }
 
             return Task.FromResult(IdentityResult.Success);
-            throw new NotImplementedException();
         }
     }
 }
