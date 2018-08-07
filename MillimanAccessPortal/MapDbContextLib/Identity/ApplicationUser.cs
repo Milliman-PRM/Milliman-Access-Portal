@@ -73,5 +73,28 @@ namespace MapDbContextLib.Identity
                 PreviousPasswords = JsonConvert.SerializeObject(value);
             }
         }
+
+        /// <summary>
+        /// Convenience method to determine if a given string was ever used as a password by the user
+        /// </summary>
+        /// <param name="passwordArg"></param>
+        /// <returns></returns>
+        public bool PasswordIsInHistory(string passwordArg)
+        {
+            bool matchFound = false;
+
+            // Iterate over history and return if a match is found
+            foreach (PasswordHistory history in PasswordHistoryObj)
+            {
+                matchFound = history.PasswordMatches(passwordArg);
+
+                if (matchFound)
+                {
+                    return true;
+                }
+            }
+
+            return matchFound;
+        }
     }
 }
