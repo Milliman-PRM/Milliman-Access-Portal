@@ -74,12 +74,87 @@ namespace MapDbContextLib.Identity
             }
         }
 
+
+        /// <summary>
+        /// Return a list of recent passwords (a specified number of most recent passwords)
+        /// </summary>
+        /// <param name="daysArg"></param>
+        /// <returns></returns>
+        public List<PasswordHistory> RecentPasswords(int countArg)
+        {
+            int passwordCount = PasswordHistoryObj.Count;
+
+            if (passwordCount <= countArg)
+            {
+                return PasswordHistoryObj;
+            }
+
+            return PasswordHistoryObj.GetRange(passwordCount - countArg, countArg);
+        }
+
+        /// <summary>
+        /// Return a list of recent passwords (since a provided date)
+        /// </summary>
+        /// <param name="timeArg"></param>
+        /// <returns></returns>
+        public List<PasswordHistory> RecentPasswords(DateTimeOffset timeArg)
+        {
+            return PasswordHistoryObj.FindAll(s => s.dateSet > timeArg);
+        }
+
         /// <summary>
         /// Convenience method to determine if a given string was ever used as a password by the user
         /// </summary>
         /// <param name="passwordArg"></param>
         /// <returns></returns>
         public bool PasswordIsInHistory(string passwordArg)
+        {
+            return SearchPasswordHistory(PasswordHistoryObj, passwordArg);
+        }
+
+        /// <summary>
+        /// Search for a match in history (specified number of recent passwords)
+        /// </summary>
+        /// <param name="passwordArg"></param>
+        /// <param name="countArg"></param>
+        /// <returns></returns>
+        public bool PasswordRecentlyUsed(string passwordArg, int countArg)
+        {
+            List<PasswordHistory> history = RecentPasswords(countArg);
+
+            if (history == null)
+            {
+                return false;
+            }
+
+            return SearchPasswordHistory(history, passwordArg);
+        }
+
+        /// <summary>
+        /// Search for a match in history (since a given date/time)
+        /// </summary>
+        /// <param name="passwordArg"></param>
+        /// <param name="timeArg"></param>
+        /// <returns></returns>
+        public bool PasswordRecentlyUsed(string passwordArg, DateTimeOffset timeArg)
+        {
+            List<PasswordHistory> history = RecentPasswords(timeArg);
+
+            if (history == null)
+            {
+                return false;
+            }
+
+            return SearchPasswordHistory(history, passwordArg);
+        }
+
+        /// <summary>
+        /// Search for a password within a provided history list
+        /// </summary>
+        /// <param name="historyArg"></param>
+        /// <param name="passwordArg"></param>
+        /// <returns></returns>
+        public bool SearchPasswordHistory(List<PasswordHistory> historyArg, string passwordArg)
         {
             bool matchFound = false;
 
