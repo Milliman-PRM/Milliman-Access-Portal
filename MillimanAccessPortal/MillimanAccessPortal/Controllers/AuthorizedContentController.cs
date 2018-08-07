@@ -143,13 +143,6 @@ namespace MillimanAccessPortal.Controllers
 
                 UriBuilder ContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.ContentInstanceUrl, HttpContext.User.Identity.Name, QlikviewConfig);
 
-                AuthorizedContentViewModel ResponseModel = new AuthorizedContentViewModel
-                {
-                    // Url = ContentUri.Uri.AbsoluteUri,  // must be absolute because it is used in iframe element
-                    // UserGroupId = SelGroup.Id,
-                    // ContentName = SelGroup.RootContentItem.ContentName,
-                };
-
                 // Now return the appropriate view for the requested content
                 switch (selectionGroup.RootContentItem.ContentType.Name)
                 {
