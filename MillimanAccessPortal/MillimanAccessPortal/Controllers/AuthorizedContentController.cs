@@ -84,15 +84,15 @@ namespace MillimanAccessPortal.Controllers
         /// <summary>
         /// Handles a request to display content that is hosted by a web server. 
         /// </summary>
-        /// <param name="Id">The primary key value of the SelectionGroup authorizing this user to the requested content</param>
+        /// <param name="selectionGroupId">The primary key value of the SelectionGroup authorizing this user to the requested content</param>
         /// <returns>A View (and model) that displays the requested content</returns>
         [Authorize]
-        public async Task<IActionResult> WebHostedContent(long Id)
+        public async Task<IActionResult> WebHostedContent(long selectionGroupId)
         {
             var selectionGroup = DataContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
                     .ThenInclude(rc => rc.ContentType)
-                .Where(sg => sg.Id == Id)
+                .Where(sg => sg.Id == selectionGroupId)
                 .FirstOrDefault();
             #region Validation
             if (selectionGroup == null || selectionGroup.RootContentItem == null || selectionGroup.RootContentItem.ContentType == null)
@@ -108,7 +108,7 @@ namespace MillimanAccessPortal.Controllers
             #region Authorization
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
                 {
-                    new UserInSelectionGroupRequirement(Id),
+                    new UserInSelectionGroupRequirement(selectionGroupId),
                     new RoleInClientRequirement(RoleEnum.ContentUser, selectionGroup.RootContentItem.ClientId),
                 });
             if (!Result1.Succeeded)
@@ -154,7 +154,7 @@ namespace MillimanAccessPortal.Controllers
                 switch (selectionGroup.RootContentItem.ContentType.Name)
                 {
                     case "Qlikview":
-                        return View(ResponseModel);
+                        return View("WebHostedContent", ContentUri.Uri.AbsoluteUri);
 
                     //case "Another web hosted type":
                         //return TheRightThing;

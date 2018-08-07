@@ -1,7 +1,7 @@
-@model MillimanAccessPortal.Models.AuthorizedContentViewModels.AuthorizedContentViewModel
+@model string
 
 @{
-    ViewData["Title"] = Model.ContentName;
+    //ViewData["Title"] = Model.ContentName;
     Layout = "_Layout_w_NB";
     ViewData["NavIcon"] = "AuthorizedContent";
 }
@@ -11,5 +11,5 @@
 }
 
 <div id="iframe-container">
-    <iframe id="content-iframe" src=@(Model.Url)></iframe>
+    <iframe id="content-iframe" src=@(Model)></iframe>
 </div>

@@ -1,6 +1,7 @@
 ﻿using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -27,6 +28,14 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                 .Select(sg => sg.RootContentItem.Client)
                 .ToHashSet();
 
+            UriBuilder ContentUrl = new UriBuilder
+            {
+                Scheme = "https",
+                Port = 44336,
+                Path = "/AuthorizedContent/WebHostedContent",
+                Query = $"selectionGroupId=",
+            };
+
             return new AuthorizedContentViewModel
             {
                 ItemGroups = clients.Select(c => new ContentItemGroup
@@ -39,7 +48,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                         Name = sg.RootContentItem.ContentName,
                         Description = sg.RootContentItem.Description,
                         ImageURL = sg.RootContentItem.ContentFilesList?.SingleOrDefault(f => f.FilePurpose == "Thumbnail")?.FullPath,
-                        ContentURL = sg.ContentInstanceUrl,
+                        ContentURL = $"{ContentUrl.Uri.AbsoluteUri}{sg.Id}",  // must be absolute because it is used in iframe element
                         UserguideURL = sg.RootContentItem.ContentFilesList?.SingleOrDefault(f => f.FilePurpose == "UserGuide")?.FullPath,
                         ReleaseNotesURL = sg.RootContentItem.ContentFilesList?.SingleOrDefault(f => f.FilePurpose == "ReleaseNotes")?.FullPath,
                     }).OrderBy(item => item.Name).ToList(),
