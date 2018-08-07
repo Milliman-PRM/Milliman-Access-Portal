@@ -356,7 +356,7 @@ namespace MillimanAccessPortal.Controllers
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByEmailAsync(model.Email);
-                if (user != null && !(await _userManager.IsEmailConfirmedAsync(user)))
+                if (user != null && (await _userManager.IsEmailConfirmedAsync(user)))
                 {
                     string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
                     string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = user.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
