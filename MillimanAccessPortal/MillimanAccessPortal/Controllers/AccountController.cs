@@ -19,6 +19,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
+using MapDbContextLib.Models;
 using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Services;
 using AuditLogLib;
@@ -389,12 +390,11 @@ namespace MillimanAccessPortal.Controllers
                 // Don't reveal that the user does not exist
                 return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
             }
-            string previousHash = user.PasswordHash;
             var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
             if (result.Succeeded)
             {
                 // Save previous password hash
-                user.PreviousUserPasswords.Add(new PreviousPassword() { PasswordHash = previousHash, User = user });
+                user.PasswordHistoryObj.Add(new PasswordHistory(model.Password));
                 var addHistoryResult = await _userManager.UpdateAsync(user);
 
                 if (!addHistoryResult.Succeeded)
@@ -591,9 +591,14 @@ namespace MillimanAccessPortal.Controllers
                 
                 if (result.Succeeded)
                 {
-                    // Update the last password change date
+                    user.PasswordHistoryObj.Add(new PasswordHistory(Model.NewPassword));
                     user.PasswordChangeDate = DateTime.UtcNow;
-                    await _userManager.UpdateAsync(user);
+                    var addHistoryResult = await _userManager.UpdateAsync(user);
+
+                    if (!addHistoryResult.Succeeded)
+                    {
+                        _logger.LogError($"Failed to save password history for {user.UserName }");
+                    }
 
                     return Ok();
                 }
