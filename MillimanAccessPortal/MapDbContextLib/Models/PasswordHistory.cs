@@ -1,13 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿/*
+ * CODE OWNERS: Ben Wyatt
+ * OBJECTIVE: Represents a single instance of a prior password used by a user
+ *              Stored and accessed as a list on ApplicationUser objects
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using System;
+using CryptoHelper;
 
 namespace MapDbContextLib.Models
 {
     public class PasswordHistory
     {
-
-        public string uniqueSalt { get; set; }
 
         public string algorithmUsed { get; set; }
 
@@ -24,27 +28,12 @@ namespace MapDbContextLib.Models
         {
             dateSet = DateTimeOffset.UtcNow;
 
-            uniqueSalt = generateSalt();
-
-            hash = calculateHash(uniqueSalt, passwordArg);
+            hash = Crypto.HashPassword(passwordArg);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public string generateSalt()
+        public bool PasswordMatches(string passwordArg)
         {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public string calculateHash (string saltArg, string passwordArg)
-        {
-            throw new NotImplementedException();
+            return Crypto.VerifyHashedPassword(hash, passwordArg);
         }
     }
 }
