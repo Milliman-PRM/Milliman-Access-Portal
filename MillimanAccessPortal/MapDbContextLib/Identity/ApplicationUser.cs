@@ -19,7 +19,7 @@ namespace MapDbContextLib.Identity
     {
         public ApplicationUser() : base()
         {
-            PreviousUserPasswords = new List<PreviousPassword>();
+            PasswordHistoryObj = new List<PasswordHistory>();
         }
 
         public ApplicationUser(string userName) // : base(userName)
