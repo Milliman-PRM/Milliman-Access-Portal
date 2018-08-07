@@ -70,3 +70,24 @@ export class Card extends React.Component<CardProps, {}> {
     );
   }
 }
+
+interface WithActivatedProps {
+  activated: boolean;
+}
+
+export function withActivated(Component: React.ComponentType<CardProps>) {
+  return class extends React.Component<CardProps & WithActivatedProps> {
+    public render() {
+      const { activated } = this.props as WithActivatedProps;
+      const props = this.props as CardProps;
+      return activated
+        ? <Component {...props} />
+        : (
+          <Component
+            {...props}
+            primaryText={'(Unactivated)'}
+          />
+        );
+    }
+  };
+}

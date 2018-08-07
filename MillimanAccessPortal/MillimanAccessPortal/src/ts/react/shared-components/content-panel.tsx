@@ -5,7 +5,7 @@ import { isEqual } from 'lodash';
 import * as React from 'react';
 
 import { ActionIcon } from './action-icon';
-import { Card } from './card';
+import { Card, withActivated } from './card';
 import { ColumnSelector } from './column-selector';
 import { Entity, EntityHelper } from './entity';
 import { Filter } from './filter';
@@ -47,6 +47,8 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
     }
     return null;
   }
+
+  private UserCard = withActivated(Card);
 
   private get url() {
     return this.props.selectedDataSource.infoAction
@@ -117,6 +119,20 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
         }
         return groupCards;
       });
+    } else if (this.props.selectedDataSource.name === 'user') {
+      cards = filteredCards.map((entity) => (
+        <li
+          key={entity.id}
+          // tslint:disable-next-line:jsx-no-lambda
+          onClick={() => this.props.setSelectedCard(entity.id)}
+        >
+          <this.UserCard
+            {...entity}
+            selected={entity.id === this.props.selectedCard}
+            activated={entity.primaryText ? true : false}
+          />
+        </li>
+      ));
     } else {
       cards = filteredCards.map((entity) => (
         <li
