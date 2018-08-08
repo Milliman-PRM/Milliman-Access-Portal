@@ -13,6 +13,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
     super(props);
     this.state = {
       ItemGroups: [],
+      selectedContentItem: null,
       filterString: '',
     };
   }
@@ -24,6 +25,10 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
     }).done((response: ContentItemGroupList) => {
       this.setState(response);
     });
+  }
+
+  public selectContentItem(contentItem: ContentItem) {
+    this.setState({ selectedContentItem: contentItem });
   }
 
   public render() {
@@ -41,6 +46,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
                   client.Items.map((contentItem: ContentItem) => (
                     <ContentCard
                       key={contentItem.Id.toString()}
+                      selectContent={this.selectContentItem}
                       {...contentItem}
                     />
                   ))

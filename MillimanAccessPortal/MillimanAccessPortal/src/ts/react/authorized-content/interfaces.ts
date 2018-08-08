@@ -20,4 +20,5 @@ export interface ContentItemGroup {
 
 export interface ContentItemGroupList {
   ItemGroups: ContentItemGroup[];
+  selectedContentItem: ContentItem;
 }

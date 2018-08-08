@@ -3,3 +3,8 @@
   action: () => void;
   icon: string;
 }
+
+export interface ContentContainerProps {
+  contentURL: string;
+  closeAction: () => void;
+}
