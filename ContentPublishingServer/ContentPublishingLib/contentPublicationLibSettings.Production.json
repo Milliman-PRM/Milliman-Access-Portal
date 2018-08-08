@@ -1,6 +1,7 @@
 ﻿{
   "Storage": {
     "ContentItemRootPath": "\\\\map-fs-01\\live\\Content",
-    "QvSourceDocumentsPath": "\\\\map-fs-01\\reducing\\QVP"
+    "QvSourceDocumentsPath": "\\\\map-fs-01\\reducing\\QVP",
+    "MapPublishingServerExchangePath": "\\\\map-fs-01\\live\\Waiting"
   }
 }
