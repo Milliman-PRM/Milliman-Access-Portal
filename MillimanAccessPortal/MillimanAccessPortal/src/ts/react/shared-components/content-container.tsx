@@ -4,11 +4,12 @@ import * as React from 'react';
 
 import { ContentContainerProps } from './interfaces';
 
-export class ActionIcon extends React.Component<ContentContainerProps, {}> {
+export class ContentContainer extends React.Component<ContentContainerProps, {}> {
   public render() {
     return (
       <div id="iframe-container">
-        <iframe id="content-iframe" src={this.props.contentURL}></iframe>
+        <span id="close-content-container" onClick={() => this.props.closeAction(null)}>Close</span>
+        <iframe id="content-iframe" src={this.props.contentId.toString()}></iframe>
       </div>
     );
   }

@@ -20,5 +20,9 @@ export interface ContentItemGroup {
 
 export interface ContentItemGroupList {
   ItemGroups: ContentItemGroup[];
-  selectedContentItem: ContentItem;
+  selectedContentItem: number;
+}
+
+export interface ContentCardFunctions {
+  selectContent: (id: number) => void;
 }
