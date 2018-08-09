@@ -989,6 +989,8 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+            ApplicationUser AppUser = await TestResources.UserManagerObject.FindByNameAsync("ClientAdmin1");
+            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, "password");
             #endregion
 
             #region Act
@@ -1009,6 +1011,8 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+            ApplicationUser AppUser = await TestResources.UserManagerObject.FindByNameAsync("ClientAdmin1");
+            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, "password");
             #endregion
 
             #region Act
@@ -1029,6 +1033,8 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+            ApplicationUser AppUser = await TestResources.UserManagerObject.FindByNameAsync("ClientAdmin1");
+            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, "password");
 
             int clientPreCount = TestResources.DbContextObject.Client.Count();
             int claimsPreCount = TestResources.DbContextObject.UserClaims.Count();
