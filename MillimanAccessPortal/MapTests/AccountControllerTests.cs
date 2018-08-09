@@ -222,12 +222,16 @@ namespace MapTests
             ViewResult viewAsViewResult = view as ViewResult;
             Assert.IsType<AccountSettingsViewModel>(viewAsViewResult.Model);
             AccountSettingsViewModel viewModel = viewAsViewResult.Model as AccountSettingsViewModel;
-            Assert.Equal(AppUser.Email, viewModel.Email);
-            Assert.Equal(AppUser.FirstName, viewModel.FirstName);
-            Assert.Equal(AppUser.LastName, viewModel.LastName);
-            Assert.Equal(AppUser.UserName, viewModel.UserName);
-            Assert.Equal(AppUser.PhoneNumber, viewModel.PhoneNumber);
-            Assert.Equal(AppUser.Employer, viewModel.Employer);
+            Assert.Equal(AppUser.Email, viewModel.accountSettingsModel.Email);
+            Assert.Equal(AppUser.FirstName, viewModel.accountSettingsModel.FirstName);
+            Assert.Equal(AppUser.LastName, viewModel.accountSettingsModel.LastName);
+            Assert.Equal(AppUser.UserName, viewModel.accountSettingsModel.UserName);
+            Assert.Equal(AppUser.PhoneNumber, viewModel.accountSettingsModel.PhoneNumber);
+            Assert.Equal(AppUser.Employer, viewModel.accountSettingsModel.Employer);
+            Assert.Null(viewModel.updatePasswordModel.CurrentPassword);
+            Assert.Null(viewModel.updatePasswordModel.ConfirmNewPassword);
+            Assert.Null(viewModel.updatePasswordModel.NewPassword);
+            Assert.Equal(AppUser.UserName, viewModel.accountSettingsModel.UserName);
             #endregion
         }
 
@@ -242,7 +246,7 @@ namespace MapTests
             string FirstName = "MyFirstName";
             string LastName = "MyLastName";
             string Phone = "3173171212";
-            AccountSettingsViewModel model = new AccountSettingsViewModel
+            AccountSettingsModel model = new AccountSettingsModel
             {
                 UserName = AppUser.UserName,
                 Employer = NewEmployer,
@@ -277,11 +281,11 @@ namespace MapTests
             string NewPassword = "Abcd!@#$1234";
             await TestResources.UserManagerObject.AddPasswordAsync(AppUser, CurrentPassword);
 
-            AccountSettingsViewModel model = new AccountSettingsViewModel
+            UpdatePasswordModel model = new UpdatePasswordModel
             {
                 UserName = AppUser.UserName,
                 NewPassword = NewPassword,
-                ConfirmNewPassword = NewPassword+"X",
+                ConfirmNewPassword = NewPassword,
                 CurrentPassword = CurrentPassword,
             };
             #endregion
@@ -308,7 +312,7 @@ namespace MapTests
             string FirstName = "MyFirstName";
             string LastName = "MyLastName";
             string Phone = "3173171212";
-            AccountSettingsViewModel model = new AccountSettingsViewModel
+            AccountSettingsModel model = new AccountSettingsModel
             {
                 UserName = "SomeNobody",
                 Employer = NewEmployer,

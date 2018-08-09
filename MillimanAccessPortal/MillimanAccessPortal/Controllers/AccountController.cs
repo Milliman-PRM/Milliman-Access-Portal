@@ -598,12 +598,19 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
             AccountSettingsViewModel model = new AccountSettingsViewModel
             {
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                UserName = user.UserName,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                Employer = user.Employer
+                accountSettingsModel = new AccountSettingsModel
+                {
+                    UserName = user.UserName,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber,
+                    Employer = user.Employer
+                },
+                updatePasswordModel = new UpdatePasswordModel
+                {
+                    UserName = user.UserName,
+                }
             };
 
             return View(model);
@@ -612,7 +619,7 @@ namespace MillimanAccessPortal.Controllers
         // POST /Account/UpdateAccountSettings
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> AccountSettings([Bind("FirstName,LastName,PhoneNumber,Employer")]AccountSettingsViewModel Model)
+        public async Task<ActionResult> AccountSettings([Bind("FirstName,LastName,PhoneNumber,Employer")]AccountSettingsModel Model)
         {
             ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
 
@@ -644,7 +651,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> UpdatePassword([Bind("CurrentPassword,NewPassword,ConfirmNewPassword")]AccountSettingsViewModel Model)
+        public async Task<ActionResult> UpdatePassword([Bind("CurrentPassword,NewPassword,ConfirmNewPassword")]UpdatePasswordModel Model)
         {
             ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
 
