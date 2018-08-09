@@ -147,7 +147,7 @@ namespace MillimanAccessPortal.Controllers
                 switch (selectionGroup.RootContentItem.ContentType.Name)
                 {
                     case "Qlikview":
-                        return View("WebHostedContent", ContentUri.Uri.AbsoluteUri);
+                        return Redirect(ContentUri.Uri.AbsoluteUri);
 
                     //case "Another web hosted type":
                         //return TheRightThing;
