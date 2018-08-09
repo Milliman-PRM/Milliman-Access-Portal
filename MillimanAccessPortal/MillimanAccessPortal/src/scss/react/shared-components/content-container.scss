@@ -14,14 +14,22 @@
 
     #close-content-container {
         position: absolute;
-        top: 1em;
+        top: 2em;
         right: 1em;
+        height: 2em;
+        width: 2em;
+        color: $red;
         cursor: pointer;
         opacity: .2;
-        z-index: 1001
+        z-index: 1001;
 
         &:hover {
             opacity: 1;
+        }
+
+        svg {
+            height: 100%;
+            width: 100%;
         }
     }
 }
