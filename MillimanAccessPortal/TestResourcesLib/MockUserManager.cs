@@ -49,6 +49,7 @@ namespace TestResourcesLib
 
             // Return true if the password is not null
             ReturnMockUserManager.Setup(m => m.CheckPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).Returns(async (ApplicationUser usr, string pwd) => await Task.FromResult(!String.IsNullOrEmpty(pwd)));
+            ReturnMockUserManager.Setup(m => m.ResetPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>(), It.IsAny<string>())).Returns(async (ApplicationUser usr, string token, string pwd) => await Task.FromResult(IdentityResult.Success));
 
             return ReturnMockUserManager;
         }
