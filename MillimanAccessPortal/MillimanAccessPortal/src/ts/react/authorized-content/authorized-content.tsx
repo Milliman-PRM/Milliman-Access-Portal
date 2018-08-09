@@ -34,7 +34,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
       if (this.state.selectedContentURL) {
         display = 'none';
       } else {
-        display = 'flex';
+        display = null;
       }
       console.log(display);
       document.getElementById('page-header').style.display = display;

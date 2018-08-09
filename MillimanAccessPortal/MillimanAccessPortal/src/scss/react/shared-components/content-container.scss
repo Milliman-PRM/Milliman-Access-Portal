@@ -18,6 +18,7 @@
         right: 1em;
         cursor: pointer;
         opacity: .2;
+        z-index: 1001
 
         &:hover {
             opacity: 1;
