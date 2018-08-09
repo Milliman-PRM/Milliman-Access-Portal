@@ -38,6 +38,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly ILogger _logger;
         private readonly IAuditLogger _auditLogger;
         private readonly StandardQueries Queries;
+        private readonly IMessageQueue MessageQueueService;
 
         public AccountController(
             ApplicationDbContext ContextArg,
@@ -46,7 +47,8 @@ namespace MillimanAccessPortal.Controllers
             IMessageQueue messageSender,
             ILoggerFactory loggerFactory,
             IAuditLogger AuditLoggerArg,
-            StandardQueries QueriesArg)
+            StandardQueries QueriesArg,
+            IMessageQueue MessageQueueServiceArg)
         {
             DbContext = ContextArg;
             _userManager = userManager;
@@ -55,6 +57,7 @@ namespace MillimanAccessPortal.Controllers
             _logger = loggerFactory.CreateLogger<AccountController>();
             _auditLogger = AuditLoggerArg;
             Queries = QueriesArg;
+            MessageQueueService = MessageQueueServiceArg;
         }
 
         //
@@ -102,22 +105,35 @@ namespace MillimanAccessPortal.Controllers
                         return RedirectToAction(nameof(AuthorizedContentController.Index), nameof(AuthorizedContentController).Replace("Controller", ""));
                     }
                 }
-                if (result.RequiresTwoFactor)
-                {
-                    return RedirectToAction(nameof(SendCode), new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
-                }
-                if (result.IsLockedOut)
-                {
-                    _logger.LogWarning(2, "User account locked out.");
-                    return View("Lockout");
-                }
                 else
                 {
-                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent());
-
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                    return View(model);
+                    if (result.RequiresTwoFactor)
+                    {
+                        return RedirectToAction(nameof(SendCode), new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
+                    }
+                    else if (result.IsNotAllowed)
+                    {
+                        ModelState.AddModelError(string.Empty, "User login is not allowed.");
+                        _logger.LogWarning(2, $"User login not allowed: {model.Username}");
+                        _auditLogger.Log(AuditEventType.LoginNotAllowed.ToEvent(), model.Username);
+                        return View("Lockout");  // TODO need a better UX
+                    }
+                    else if (result.IsLockedOut)
+                    {
+                        ModelState.AddModelError(string.Empty, "User account is locked out.");
+                        _logger.LogWarning(2, "User account locked out.");
+                        _auditLogger.Log(AuditEventType.LoginIsLockedOut.ToEvent(), model.Username);
+                        return View("Lockout");  // TODO need a better UX
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                        _logger.LogWarning(2, "User login failed.");
+                        _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(), model.Username);
+                        return View(model);
+                    }
                 }
+
             }
 
             // If we got this far, something failed, redisplay form
@@ -170,14 +186,15 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
+            ApplicationUser appUser = await Queries.GetCurrentApplicationUser(User);
             await _signInManager.SignOutAsync();
 
-            _auditLogger.Log(AuditEventType.Logout.ToEvent());
+            _auditLogger.Log(AuditEventType.Logout.ToEvent(), appUser?.UserName);
+            _logger.LogInformation(4, "User logged out.");
 
             Response.Cookies.Delete(".AspNetCore.Session");
             HttpContext.Session.Clear();
 
-            _logger.LogInformation(4, "User logged out.");
             return RedirectToAction(nameof(AccountController.Login), "Account");
         }
 
@@ -268,6 +285,24 @@ namespace MillimanAccessPortal.Controllers
 
             ViewData["ReturnUrl"] = returnUrl;
             return View(model);
+        }
+
+        [NonAction]
+        public async void SendNewAccountWelcomeEmail(ApplicationUser RequestedUser, IUrlHelper Url, string ClientSpecificText = null)
+        {
+            var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(RequestedUser);
+            var callbackUrl = Url.Action(nameof(AccountController.EnableAccount), "Account", new { userId = RequestedUser.Id, code = emailConfirmationToken }, protocol: "https");
+
+            // Configurable portion of email body
+            string emailBody = string.IsNullOrWhiteSpace(ClientSpecificText)
+                ? string.Empty
+                : ClientSpecificText + $"{Environment.NewLine}{Environment.NewLine}";
+
+            // Non-configurable portion of email body
+            emailBody += $"To activate your new account please click the below link or paste to your web browser:{Environment.NewLine}{callbackUrl}";
+            string emailSubject = "Welcome to Milliman Access Portal";
+            // Send welcome email
+            MessageQueueService.QueueEmail(RequestedUser.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
         }
 
         // GET: /Account/EnableAccount

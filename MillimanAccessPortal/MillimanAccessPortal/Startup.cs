@@ -121,6 +121,7 @@ namespace MillimanAccessPortal
                              .Build();
                 config.Filters.Add(new AuthorizeFilter(policy));
             })
+            .AddControllersAsServices()
             .AddJsonOptions(opt =>
             {
                 var resolver = opt.SerializerSettings.ContractResolver;

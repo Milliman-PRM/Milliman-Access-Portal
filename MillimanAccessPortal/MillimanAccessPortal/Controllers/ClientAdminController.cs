@@ -48,6 +48,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly StandardQueries Queries;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly IConfiguration ApplicationConfig;
+        private readonly AccountController _accountController;
 
         public ClientAdminController(
             ApplicationDbContext context,
@@ -58,7 +59,8 @@ namespace MillimanAccessPortal.Controllers
             RoleManager<ApplicationRole> RoleManagerArg,
             StandardQueries QueryArg,
             UserManager<ApplicationUser> UserManagerArg,
-            IConfiguration ApplicationConfigArg
+            IConfiguration ApplicationConfigArg,
+            AccountController AccountControllerArg
             )
         {
             DbContext = context;
@@ -70,6 +72,7 @@ namespace MillimanAccessPortal.Controllers
             Queries = QueryArg;
             UserManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
+            _accountController = AccountControllerArg;
         }
 
         // GET: ClientAdmin
@@ -271,21 +274,12 @@ namespace MillimanAccessPortal.Controllers
 
                     if (result.Succeeded && RequestedUser != null)
                     {
-                        var emailConfirmationToken = await UserManager.GenerateEmailConfirmationTokenAsync(RequestedUser);
-                        var callbackUrl = Url.Action(nameof(AccountController.EnableAccount), "Account", new { userId = RequestedUser.Id, code = emailConfirmationToken }, protocol: "https");
-
                         // Configurable portion of email body
-                        string emailBody = 
-                            !string.IsNullOrWhiteSpace(RequestedClient.NewUserWelcomeText)
-                            ? RequestedClient.NewUserWelcomeText + $"{Environment.NewLine}{Environment.NewLine}"
-                            : ApplicationConfig["Global:DefaultNewUserWelcomeText"] != null
-                            ? ApplicationConfig["Global:DefaultNewUserWelcomeText"] + $"{Environment.NewLine}{Environment.NewLine}"
-                            : "";
-                        // Non-configurable portion of email body
-                        emailBody += $"To activate your new account please click the below link or paste to your web browser:{Environment.NewLine}{callbackUrl}";
-                        string emailSubject = "Welcome to Milliman Access Portal";
-                        // Send welcome email
-                        MessageQueueService.QueueEmail(Model.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
+                        string welcomeText = !string.IsNullOrWhiteSpace(RequestedClient.NewUserWelcomeText)
+                            ? RequestedClient.NewUserWelcomeText
+                            : ApplicationConfig["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
+
+                        _accountController.SendNewAccountWelcomeEmail(RequestedUser, Url, welcomeText);
                     }
                     else
                     {

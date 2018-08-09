@@ -33,7 +33,9 @@ namespace AuditLogLib.Event
             2001, "User assigned to client", (client, user) => new
             {
                 ClientId = client.Id,
+                ClientName = client.Name,
                 UserId = user.Id,
+                UserName = user.UserName,
             });
         public static readonly AuditEventType<Client, ApplicationUser> UserRemovedFromClient = new AuditEventType<Client, ApplicationUser>(
             2002, "User removed from client", (client, user) => new
@@ -73,41 +75,47 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<ApplicationUser> UserAccountCreated = new AuditEventType<ApplicationUser>(
             3001, "User account created", (user) => new
             {
+                UserId = user.Id,
                 UserName = user.UserName,
                 Email = user.Email,
             });
         public static readonly AuditEventType<ApplicationUser> UserAccountModified = new AuditEventType<ApplicationUser>(
             3002, "User account modified", (user) => new
             {
+                AccountUserName = user.UserName,
             });
         public static readonly AuditEventType<ApplicationUser, string> UserAccountLockByAdmin = new AuditEventType<ApplicationUser, string>(
             3003, "User account lock by Admin", (user, reason) => new
             {
+                AccountUserName = user.UserName,
             });
         public static readonly AuditEventType<ApplicationUser> UserAccountDeleted = new AuditEventType<ApplicationUser>(
             3004, "User account deleted", (user) => new
             {
+                AccountUserName = user.UserName,
             });
         public static readonly AuditEventType<ApplicationUser> UserAccountEnabled = new AuditEventType<ApplicationUser>(
             3005, "New user account enabled", (user) => new
             {
-                NewUserName = user.UserName,
+                AccountUserName = user.UserName,
             });
         public static readonly AuditEventType<ApplicationUser> PasswordResetRequested = new AuditEventType<ApplicationUser>(
             3006, "Account password reset requested", (user) => new
             {
-                NewUserName = user.UserName,
+                AccountUserName = user.UserName,
             });
         public static readonly AuditEventType<ApplicationUser> PasswordResetCompleted = new AuditEventType<ApplicationUser>(
-            3007, "Account password reset requested", (user) => new
+            3007, "Account password reset completed", (user) => new
             {
-                NewUserName = user.UserName,
+                AccountUserName = user.UserName,
             });
         public static readonly AuditEventType<string> PasswordResetRequestedForInvalidEmail = new AuditEventType<string>(
             3008, "Account password reset requested for invalid email", (email) => new
             {
                 RequestedEmail = email,
             });
+        public static readonly AuditEventType LoginNotAllowed = new AuditEventType(3009, "Login not allowed");
+        public static readonly AuditEventType LoginIsLockedOut = new AuditEventType(3010, "Login account is locked out");
         #endregion
 
         #region Content Access Admin [4000 - 4999]
