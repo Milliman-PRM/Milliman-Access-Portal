@@ -38,7 +38,6 @@ namespace MillimanAccessPortal.Controllers
         private readonly ILogger _logger;
         private readonly IAuditLogger _auditLogger;
         private readonly StandardQueries Queries;
-        private readonly IMessageQueue MessageQueueService;
 
         public AccountController(
             ApplicationDbContext ContextArg,
@@ -47,8 +46,7 @@ namespace MillimanAccessPortal.Controllers
             IMessageQueue messageSender,
             ILoggerFactory loggerFactory,
             IAuditLogger AuditLoggerArg,
-            StandardQueries QueriesArg,
-            IMessageQueue MessageQueueServiceArg)
+            StandardQueries QueriesArg)
         {
             DbContext = ContextArg;
             _userManager = userManager;
@@ -57,7 +55,6 @@ namespace MillimanAccessPortal.Controllers
             _logger = loggerFactory.CreateLogger<AccountController>();
             _auditLogger = AuditLoggerArg;
             Queries = QueriesArg;
-            MessageQueueService = MessageQueueServiceArg;
         }
 
         //
@@ -183,6 +180,7 @@ namespace MillimanAccessPortal.Controllers
         //
         // POST: /Account/Logout
         [HttpPost]
+        [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
@@ -288,21 +286,21 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [NonAction]
-        public async void SendNewAccountWelcomeEmail(ApplicationUser RequestedUser, IUrlHelper Url, string ClientSpecificText = null)
+        public async void SendNewAccountWelcomeEmail(ApplicationUser RequestedUser, IUrlHelper Url, string SettableEmailText = null)
         {
             var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(RequestedUser);
             var callbackUrl = Url.Action(nameof(AccountController.EnableAccount), "Account", new { userId = RequestedUser.Id, code = emailConfirmationToken }, protocol: "https");
 
             // Configurable portion of email body
-            string emailBody = string.IsNullOrWhiteSpace(ClientSpecificText)
+            string emailBody = string.IsNullOrWhiteSpace(SettableEmailText)
                 ? string.Empty
-                : ClientSpecificText + $"{Environment.NewLine}{Environment.NewLine}";
+                : SettableEmailText + $"{Environment.NewLine}{Environment.NewLine}";
 
             // Non-configurable portion of email body
             emailBody += $"To activate your new account please click the below link or paste to your web browser:{Environment.NewLine}{callbackUrl}";
             string emailSubject = "Welcome to Milliman Access Portal";
             // Send welcome email
-            MessageQueueService.QueueEmail(RequestedUser.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
+            _messageSender.QueueEmail(RequestedUser.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
         }
 
         // GET: /Account/EnableAccount
@@ -585,6 +583,7 @@ namespace MillimanAccessPortal.Controllers
         //
         // GET /Account/AccessDenied
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult AccessDenied()
         {
             return View();
