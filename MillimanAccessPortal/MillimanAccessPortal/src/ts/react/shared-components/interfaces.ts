@@ -5,6 +5,6 @@
 }
 
 export interface ContentContainerProps {
-  contentId: number;
-  closeAction: (id: number) => void;
+  contentURL: string;
+  closeAction: (URL: string) => void;
 }

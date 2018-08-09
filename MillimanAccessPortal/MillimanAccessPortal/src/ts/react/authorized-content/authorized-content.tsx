@@ -14,7 +14,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
     super(props);
     this.state = {
       ItemGroups: [],
-      selectedContentItem: null,
+      selectedContentURL: null,
       filterString: '',
     };
   }
@@ -28,10 +28,10 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
     });
   }
 
-  public selectContentItem = (contentItem: number) => {
-    this.setState({ selectedContentItem: contentItem }, () => {
+  public selectContentItem = (contentURL: string) => {
+    this.setState({ selectedContentURL: contentURL }, () => {
       let display;
-      if (this.state.selectedContentItem) {
+      if (this.state.selectedContentURL) {
         display = 'none';
       } else {
         display = 'flex';
@@ -43,11 +43,11 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
   }
 
   public render() {
-    if (this.state.selectedContentItem) {
+    if (this.state.selectedContentURL) {
       return (
         <ContentContainer
           closeAction={this.selectContentItem}
-          contentId={this.state.selectedContentItem} />
+          contentURL={this.state.selectedContentURL} />
       )
     } else {
       return (

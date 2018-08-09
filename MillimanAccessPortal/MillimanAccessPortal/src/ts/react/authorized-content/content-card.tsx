@@ -16,7 +16,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
   public render() {
     return (
         <div className='content-card-container'>
-          <div className='content-card' onClick={() => this.props.selectContent(this.props.Id)}>
+          <div className='content-card' onClick={() => this.props.selectContent(this.props.ContentURL)}>
             <div className='content-card-header'>
               <h2 className='content-card-title'>{this.props.Name}</h2>
               <div className='content-card-icons'>

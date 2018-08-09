@@ -9,7 +9,7 @@ export class ContentContainer extends React.Component<ContentContainerProps, {}>
     return (
       <div id="iframe-container">
         <span id="close-content-container" onClick={() => this.props.closeAction(null)}>Close</span>
-        <iframe id="content-iframe" src={this.props.contentId.toString()}></iframe>
+        <iframe id="content-iframe" src={this.props.contentURL}></iframe>
       </div>
     );
   }
