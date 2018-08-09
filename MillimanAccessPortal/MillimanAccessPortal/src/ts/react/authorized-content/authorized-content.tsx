@@ -29,7 +29,17 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
   }
 
   public selectContentItem = (contentItem: number) => {
-    this.setState({ selectedContentItem: contentItem });
+    this.setState({ selectedContentItem: contentItem }, () => {
+      let display;
+      if (this.state.selectedContentItem) {
+        display = 'none';
+      } else {
+        display = 'flex';
+      }
+      console.log(display);
+      document.getElementById('page-header').style.display = display;
+      document.getElementById('page-footer').style.display = display;
+    });
   }
 
   public render() {
