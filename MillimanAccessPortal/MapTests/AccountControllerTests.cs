@@ -1,4 +1,10 @@
-﻿using MapDbContextLib.Context;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: Xunit tests for the account controller
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
@@ -80,6 +86,47 @@ namespace MapTests
         }
 
         [Fact]
+        public async Task EnableAccountPOSTUpdatesUser()
+        {
+            #region Arrange
+            AccountController controller = await GetController("user1");
+            string NewToken = "Abc123!@#";
+            string NewPass = "TestPassword";
+            string NewEmployer = "Milliman";
+            string FirstName = "MyFirstName";
+            string LastName = "MyLastName";
+            string Phone = "3173171212";
+            EnableAccountViewModel model = new EnableAccountViewModel
+            {
+                Id = 1,
+                Code = NewToken,
+                NewPassword = NewPass,
+                ConfirmNewPassword = NewPass,
+                Employer = NewEmployer,
+                FirstName = FirstName,
+                LastName = LastName,
+                Phone = Phone,
+            };
+            #endregion
+
+            #region Act
+            var view = await controller.EnableAccount(model);
+            var UserRecord = TestResources.DbContextObject.ApplicationUser.Single(u => u.UserName == "user1");
+            #endregion
+
+            #region Assert
+            Assert.IsType<ViewResult>(view);
+            ViewResult viewAsViewResult = view as ViewResult;
+            Assert.Equal("Login", viewAsViewResult.ViewName);
+            Assert.Equal(NewPass + "xyz", UserRecord.PasswordHash);
+            Assert.Equal(NewEmployer, UserRecord.Employer);
+            Assert.Equal(FirstName, UserRecord.FirstName);
+            Assert.Equal(LastName, UserRecord.LastName);
+            Assert.Equal(Phone, UserRecord.PhoneNumber);
+            #endregion
+        }
+
+        [Fact]
         public async Task ForgotPasswordPOSTReturnsConfirmation()
         {
             #region Arrange
@@ -154,6 +201,130 @@ namespace MapTests
             RedirectToActionResult viewAsViewResult = view as RedirectToActionResult;
             Assert.Equal("ResetPasswordConfirmation", viewAsViewResult.ActionName);
             Assert.Equal("Account", viewAsViewResult.ControllerName);
+            #endregion
+        }
+
+        [Fact]
+        public async Task AccountSettingsGETWorks()
+        {
+            #region Act
+            AccountController controller = await GetController("user1");
+            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
+            #endregion
+
+            #region Act
+            var view = await controller.AccountSettings();
+            var UserRecord = TestResources.DbContextObject.ApplicationUser.Single(u => u.UserName == "user1");
+            #endregion
+
+            #region Assert
+            Assert.IsType<ViewResult>(view);
+            ViewResult viewAsViewResult = view as ViewResult;
+            Assert.IsType<AccountSettingsViewModel>(viewAsViewResult.Model);
+            AccountSettingsViewModel viewModel = viewAsViewResult.Model as AccountSettingsViewModel;
+            Assert.Equal(AppUser.Email, viewModel.Email);
+            Assert.Equal(AppUser.FirstName, viewModel.FirstName);
+            Assert.Equal(AppUser.LastName, viewModel.LastName);
+            Assert.Equal(AppUser.UserName, viewModel.UserName);
+            Assert.Equal(AppUser.PhoneNumber, viewModel.PhoneNumber);
+            Assert.Equal(AppUser.Employer, viewModel.Employer);
+            #endregion
+        }
+
+        [Fact]
+        public async Task AccountSettingsPOSTWorks()
+        {
+            #region Arrange
+            AccountController controller = await GetController("user1");
+            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
+
+            string NewEmployer = "Milliman";
+            string FirstName = "MyFirstName";
+            string LastName = "MyLastName";
+            string Phone = "3173171212";
+            AccountSettingsViewModel model = new AccountSettingsViewModel
+            {
+                UserName = AppUser.UserName,
+                Employer = NewEmployer,
+                FirstName = FirstName,
+                LastName = LastName,
+                PhoneNumber = Phone,
+            };
+            #endregion
+
+            #region Act
+            var view = await controller.AccountSettings(model);
+            var UserRecord = TestResources.DbContextObject.ApplicationUser.Single(u => u.UserName == "user1");
+            #endregion
+
+            #region Assert
+            Assert.IsType<OkResult>(view);
+            Assert.Equal(NewEmployer, UserRecord.Employer);
+            Assert.Equal(FirstName, UserRecord.FirstName);
+            Assert.Equal(LastName, UserRecord.LastName);
+            Assert.Equal(Phone, UserRecord.PhoneNumber);
+            #endregion
+        }
+
+        [Fact]
+        public async Task UpdatePasswordPOSTWorks()
+        {
+            #region Arrange
+            AccountController controller = await GetController("user1");
+            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
+
+            string CurrentPassword = "QWERqwer1234!@$#";
+            string NewPassword = "Abcd!@#$1234";
+            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, CurrentPassword);
+
+            AccountSettingsViewModel model = new AccountSettingsViewModel
+            {
+                UserName = AppUser.UserName,
+                NewPassword = NewPassword,
+                ConfirmNewPassword = NewPassword+"X",
+                CurrentPassword = CurrentPassword,
+            };
+            #endregion
+
+            #region Act
+            var view = await controller.UpdatePassword(model);
+            var UserRecord = TestResources.DbContextObject.ApplicationUser.Single(u => u.UserName == "user1");
+            #endregion
+
+            #region Assert
+            Assert.IsType<OkResult>(view);
+            Assert.Equal(NewPassword + "xyz", UserRecord.PasswordHash);
+            #endregion
+        }
+
+        [Fact]
+        public async Task AccountSettingsPOSTFailsForWrongUser()
+        {
+            #region Arrange
+            AccountController controller = await GetController("user1");
+            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
+
+            string NewEmployer = "Milliman";
+            string FirstName = "MyFirstName";
+            string LastName = "MyLastName";
+            string Phone = "3173171212";
+            AccountSettingsViewModel model = new AccountSettingsViewModel
+            {
+                UserName = "SomeNobody",
+                Employer = NewEmployer,
+                FirstName = FirstName,
+                LastName = LastName,
+                PhoneNumber = Phone,
+            };
+            #endregion
+
+            #region Act
+            var view = await controller.AccountSettings(model);
+            var UserRecord = TestResources.DbContextObject.ApplicationUser.Single(u => u.UserName == "user1");
+            #endregion
+
+            #region Assert
+            Assert.IsType<UnauthorizedResult>(view);
             #endregion
         }
     }

@@ -648,7 +648,7 @@ namespace MillimanAccessPortal.Controllers
         {
             ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
 
-            if (Model.NewPassword == Model.ConfirmNewPassword)
+            if (ModelState.IsValid && await _userManager.CheckPasswordAsync(user, Model.CurrentPassword))
             {
                 IdentityResult result = await _userManager.ChangePasswordAsync(user, Model.CurrentPassword, Model.NewPassword);
                 
@@ -666,7 +666,7 @@ namespace MillimanAccessPortal.Controllers
             }
             else
             {
-                Response.Headers.Add("Warning", $"The passwords provided did not match");
+                Response.Headers.Add("Warning", $"Password update failed");
                 return BadRequest();
             }
         }
