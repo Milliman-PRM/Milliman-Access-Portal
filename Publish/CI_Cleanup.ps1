@@ -20,6 +20,7 @@ function log_statement {
 #region Configure environment properties
 $BranchName = $env:git_branch.Replace("_","").Replace("-","").ToLower() # Will be used as the name of the deployment slot & appended to database names
 
+$gitExePath = "git"
 $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
 
 $dbServer = "map-ci-db.postgres.database.azure.com"
@@ -36,6 +37,10 @@ $octopusURL = "https://indy-prmdeploy.milliman.com"
 $octopusAPIKey = $env:octopus_api_key
 
 $env:PATH = $env:PATH+";C:\Program Files (x86)\OctopusCLI\;"
+
+$IsMerged = $env:IsMerged
+$MergeBase = $env:MergeBase
+$CloneURL = "https://indy-github.milliman.com/PRM/milliman-access-portal.git"
 
 #region Drop Databases
 
@@ -158,6 +163,31 @@ else {
     log_statement "ERROR: Failed to deploy the cleanup package"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
+}
+
+#endregion
+
+#region Modify Environment to push base branch to Dev
+
+if (IsMerged) {
+
+    log_statement "Deploying $MergeBase to dev infrastructure"
+
+    cd $rootPath
+
+    Remove-Item -path $nugetDestination -Recurse -Force
+
+    if ($MergeBase -eq 'develop') {
+        $env:git_branch = $MergeBase
+        $checkoutPath = $rootPath
+    } elif ($MergeBase -eq 'master') {
+        $checkoutPath = "$env:TEMP\$env:repo_name\"
+        cd $env:TEMP
+        & $gitExePath clone $CloneURL
+        cd $checkoutPath
+    }
+    & $gitExePath checkout $MergeBase
+    & "$checkoutPath\Publish\CI_Publish.ps1"
 }
 
 #endregion
