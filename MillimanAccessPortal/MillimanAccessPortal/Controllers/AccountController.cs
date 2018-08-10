@@ -622,6 +622,11 @@ namespace MillimanAccessPortal.Controllers
         public async Task<ActionResult> AccountSettings([Bind("FirstName,LastName,PhoneNumber,Employer")]AccountSettingsModel Model)
         {
             ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+            if (Model.UserName != User.Identity.Name)
+            {
+                Response.Headers.Add("Warning", "You may not access another user's settings.");
+                return Unauthorized();
+            }
 
             if (!string.IsNullOrEmpty(Model.FirstName))
             {
