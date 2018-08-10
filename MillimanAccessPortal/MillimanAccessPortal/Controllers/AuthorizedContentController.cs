@@ -24,6 +24,7 @@ using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.AuthorizedContentViewModels;
 using QlikviewLib;
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -98,7 +99,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (selectionGroup == null || selectionGroup.RootContentItem == null || selectionGroup.RootContentItem.ContentType == null)
             {
-                string ErrMsg = $"Failed to obtain the requested user group, root content item, or content type";
+                string ErrMsg = $"Failed to obtain the requested selection group, root content item, or content type";
                 Logger.LogError(ErrMsg);
 
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
@@ -179,18 +180,17 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Thumbnail(long selectionGroupId)
         {
             var selectionGroup = DataContext.SelectionGroup
-                .Include(sg => sg.RootContentItem)
-                    .ThenInclude(rc => rc.ContentType)
-                .Where(sg => sg.Id == selectionGroupId)
-                .FirstOrDefault();
+                                            .Include(sg => sg.RootContentItem)
+                                                .ThenInclude(rc => rc.ContentType)
+                                            .FirstOrDefault(sg => sg.Id == selectionGroupId);
+
             #region Validation
             if (selectionGroup == null || selectionGroup.RootContentItem == null || selectionGroup.RootContentItem.ContentType == null)
             {
-                string ErrMsg = $"Failed to obtain the requested user group, root content item, or content type";
+                string ErrMsg = $"Failed to obtain the requested selection group, root content item, or content type";
                 Logger.LogError(ErrMsg);
 
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
-                // something that appropriately returns to a logical next view
             }
             #endregion
 
@@ -211,25 +211,34 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                string thumbnailPath = null;
                 ContentRelatedFile contentRelatedThumbnail = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(cf => cf.FilePurpose.ToLower() == "thumbnail");
 
-                if (contentRelatedThumbnail != null)
+                if (contentRelatedThumbnail != null && System.IO.File.Exists(contentRelatedThumbnail.FullPath))
                 {
-                    thumbnailPath = contentRelatedThumbnail.FullPath;
-                }
-                var image = System.IO.File.OpenRead(thumbnailPath);
-                // To do: Identify the file extension to specify the content-type in the return
+                    FileStream imageStream = System.IO.File.OpenRead(contentRelatedThumbnail.FullPath);
 
-                return await Task.Run(() => File(image, "image/png"));
+                    switch (Path.GetExtension(contentRelatedThumbnail.FullPath).ToLower())
+                    {
+                        case ".png":
+                            return File(imageStream, "image/png");
+
+                        case ".gif":
+                            return File(imageStream, "image/gif");
+
+                        case ".jpg":
+                        case ".jpeg":
+                            return File(imageStream, "image/jpeg");
+                    }
+                }
+                else
+                {
+                    return Redirect($"/images/{selectionGroup.RootContentItem.ContentType.DefaultIconName}");
+                }
             }
-            catch (MapException e)
-            {
-                TempData["Message"] = $"{e.Message}<br>{e.StackTrace}";
-                TempData["ReturnToController"] = "AuthorizedContent";
-                TempData["ReturnToAction"] = "Index";
-                return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
-            }
+            catch
+            { }
+            Logger.LogError($"Failed to obtain thumbnail image for SelectionGroup {selectionGroupId}")
+            return StatusCode(StatusCodes.Status500InternalServerError, "Content thumbnail not available");
         }
     }
 }
