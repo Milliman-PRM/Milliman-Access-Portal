@@ -1,10 +1,10 @@
 # Code Owners: Ben Wyatt, Steve Gredell
 
 ### OBJECTIVE:
-#  Run cleanup steps for CI builds of Milliman Access Portal
+#  Run cleanup steps for CI builds of Milliman Access Portal, and publish if it was merged into Master or Develop
 
 ### DEVELOPER NOTES:
-#
+#  
 
 
 #region Define Functions
