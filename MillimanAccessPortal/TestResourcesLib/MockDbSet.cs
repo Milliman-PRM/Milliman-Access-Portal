@@ -51,7 +51,8 @@ namespace TestResourcesLib
             });
             Set.Setup(d => d.RemoveRange(It.IsAny<IEnumerable<T>>())).Callback<IEnumerable<T>>((removeSet) =>
             {
-                foreach (T item in removeSet)
+                List<T> removeSetList = removeSet.ToList();
+                foreach (T item in removeSetList)
                 {
                     Set.Object.Remove(item);
                 }
