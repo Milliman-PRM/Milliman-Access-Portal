@@ -186,7 +186,6 @@ function renderSelections(response: SelectionsDetail) {
   $selectionInfo.children('h2').html(response.SelectionGroupName);
   $selectionInfo.children('h3').html(response.RootContentItemName);
 
-  // tslint:disable:object-literal-sort-keys
   const details = $.extend({
     User: {
       FirstName: '',
@@ -196,7 +195,6 @@ function renderSelections(response: SelectionsDetail) {
     SelectionGroupId: 0,
     RootContentItemId: 0,
   }, response.ReductionSummary);
-  // tslint:enable:object-literal-sort-keys
 
   const comparison = response.SelectionComparison;
   const isMaster = comparison.PendingSelections === null && comparison.IsLiveMaster;
