@@ -18,6 +18,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
@@ -46,6 +47,8 @@ namespace MillimanAccessPortal.Controllers
         private readonly RoleManager<ApplicationRole> RoleManager;
         private readonly StandardQueries Queries;
         private readonly UserManager<ApplicationUser> UserManager;
+        private readonly IConfiguration ApplicationConfig;
+        private readonly AccountController _accountController;
 
         public ClientAdminController(
             ApplicationDbContext context,
@@ -55,7 +58,9 @@ namespace MillimanAccessPortal.Controllers
             IMessageQueue MessageQueueServiceArg,
             RoleManager<ApplicationRole> RoleManagerArg,
             StandardQueries QueryArg,
-            UserManager<ApplicationUser> UserManagerArg
+            UserManager<ApplicationUser> UserManagerArg,
+            IConfiguration ApplicationConfigArg,
+            AccountController AccountControllerArg
             )
         {
             DbContext = context;
@@ -66,6 +71,8 @@ namespace MillimanAccessPortal.Controllers
             RoleManager = RoleManagerArg;
             Queries = QueryArg;
             UserManager = UserManagerArg;
+            ApplicationConfig = ApplicationConfigArg;
+            _accountController = AccountControllerArg;
         }
 
         // GET: ClientAdmin
@@ -109,7 +116,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
 
             return Json(ModelToReturn);
         }
@@ -155,27 +162,34 @@ namespace MillimanAccessPortal.Controllers
         // POST: ClientAdmin/SaveNewUser
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> SaveNewUser([Bind("UserName,Email,FirstName,LastName,PhoneNumber,Employer,MemberOfClientIdArray")]ApplicationUserViewModel Model)
+        public async Task<ActionResult> SaveNewUser([Bind("UserName,Email,MemberOfClientId")]ApplicationUserViewModel Model)
         {
             #region If user already exists get the record
             ApplicationUser RequestedUser = DbContext.ApplicationUser
                                                         .FirstOrDefault(u => u.UserName == Model.UserName
-                                                                        || u.Email == Model.Email);
+                                                                          || u.Email == Model.Email);
             bool RequestedUserIsNew = (RequestedUser == null);
+
+            Client RequestedClient = DbContext.Client.SingleOrDefault(c => c.Id == Model.MemberOfClientId);
+            if (RequestedClient == null)
+            {
+                Response.Headers.Add("Warning", "The requested Client does not exist");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             #region Authorization
-            // If creating a new user, current user must either have global UserCreator role or UserCreator role for each requested client
+            // If creating a new user, current user must either have global UserCreator role or UserCreator role for requested client
             if (RequestedUserIsNew)
             {
-                if (Model.MemberOfClientIdArray.Length == 0)
+                if (!Model.MemberOfClientId.HasValue)
                 {
                     AuthorizationResult GlobalUserCreatorResult = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.UserCreator));
                     if (!GlobalUserCreatorResult.Succeeded)
                     {
                         // also logged:
                         //   - requested user
-                        //   - requested clients
+                        //   - (there is no requested client)
                         AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.UserCreator));
 
                         Response.Headers.Add("Warning", "You are not authorized to create a user");
@@ -184,28 +198,24 @@ namespace MillimanAccessPortal.Controllers
                 }
                 else
                 {
-                    foreach (var RequestedClientId in Model.MemberOfClientIdArray)
+                    AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserCreator, Model.MemberOfClientId.Value));
+                    if (!Result1.Succeeded)
                     {
-                        AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserCreator, RequestedClientId));
-                        if (!Result1.Succeeded)
-                        {
                             // also logged:
                             //   - requested user
-                            //   - requested clients
-                            //   - client ID
+                            //   - requested client ID
                             AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.UserCreator));
 
-                            Response.Headers.Add("Warning", "You are not authorized to create a user for a requested client");
-                            return Unauthorized();
-                        }
+                        Response.Headers.Add("Warning", "You are not authorized to create a user for the requested client");
+                        return Unauthorized();
                     }
                 }
             }
 
-            // If 1+ client assignment is requested, user must be admin for the requested client
-            foreach (var RequestedClientId in Model.MemberOfClientIdArray)
+            // If a client assignment is requested, user must be admin for the requested client
+            if (Model.MemberOfClientId.HasValue)
             {
-                AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, RequestedClientId));
+                AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, Model.MemberOfClientId.Value));
                 if (!Result2.Succeeded)
                 {
                     // also logged:
@@ -214,7 +224,7 @@ namespace MillimanAccessPortal.Controllers
                     //   - client ID
                     AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.UserCreator));
 
-                    Response.Headers.Add("Warning", $"You are not authorized to assign a user to the requested client(s)");
+                    Response.Headers.Add("Warning", $"You are not authorized to assign a user to the requested client");
                     return Unauthorized();
                 }
             }
@@ -241,71 +251,62 @@ namespace MillimanAccessPortal.Controllers
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
             }
+
+            // 3. The user's email must match address or domain requirement of the client
+            string UserEmailDomain = Model.Email.Substring(Model.Email.IndexOf('@') + 1);
+            if (!RequestedClient.AcceptedEmailDomainList.Any(d => string.Equals(d, UserEmailDomain, StringComparison.OrdinalIgnoreCase)) && 
+                !RequestedClient.AcceptedEmailAddressExceptionList.Any(a => string.Equals(a, Model.Email, StringComparison.OrdinalIgnoreCase)))
+            {
+                // TODO consider in the future, prompt to edit the whitelist
+                Response.Headers.Add("Warning", $"The requested user email ({Model.Email}) is not permitted for the requested client.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion Validation
 
-            // Because db operations in this transaction use both UserManager and DbContext directly, the transaction must be created from the same
-            // instance of the context that both share.  Because the instance variable refers to the instance that is injected by MVC, this is true.
-            using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
+            try
             {
-                try
+                // Create requested user if not already existing
+                if (RequestedUserIsNew)
                 {
-                    // Create requested user if not already existing
-                    if (RequestedUserIsNew)
+                    IdentityResult result;
+                    // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
+                    (result, RequestedUser) = await Queries.CreateNewAccount(Model.UserName, Model.Email);
+
+                    if (result.Succeeded && RequestedUser != null)
                     {
-                        RequestedUser = new ApplicationUser
-                        {
-                            UserName = Model.UserName,
-                            Email = Model.Email,
-                            LastName = Model.LastName,
-                            FirstName = Model.FirstName,
-                            PhoneNumber = Model.PhoneNumber,
-                            Employer = Model.Employer,
-                            // Maintain this function's parameter bind list to match the fields being used here
-                        };
+                        // Configurable portion of email body
+                        string welcomeText = !string.IsNullOrWhiteSpace(RequestedClient.NewUserWelcomeText)
+                            ? RequestedClient.NewUserWelcomeText
+                            : ApplicationConfig["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
 
-                        await UserManager.CreateAsync(RequestedUser);
+                        _accountController.SendNewAccountWelcomeEmail(RequestedUser, Url, welcomeText);
                     }
-
-                    foreach (var ClientId in Model.MemberOfClientIdArray)
+                    else
                     {
-                        IdentityUserClaim<long> ThisClientMembershipClaim = new IdentityUserClaim<long> { ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = ClientId.ToString(), UserId = RequestedUser.Id };
-                        if (!DbContext.UserClaims.Any(uc => uc.ClaimType == ThisClientMembershipClaim.ClaimType
-                                                         && uc.ClaimValue == ThisClientMembershipClaim.ClaimValue
-                                                         && uc.UserId == RequestedUser.Id))
-                        {
-                            DbContext.UserClaims.Add(ThisClientMembershipClaim);
-                        }
+                        string Errors = string.Join($", ", result.Errors.Select(e => e.Description));
+                        Response.Headers.Add("Warning", $"Error while creating user ({Model.UserName}) in database: {Errors}");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
                     }
-                    DbContext.SaveChanges();
-
-                    DbTransaction.Commit();
                 }
-                catch (Exception e)
+
+                Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), Model.MemberOfClientId.ToString());
+                var CurrentClaimsOfRequestedUser = await UserManager.GetClaimsAsync(RequestedUser);
+                if (!CurrentClaimsOfRequestedUser.Any(c => c.Type == ThisClientMembershipClaim.Type && c.Value == ThisClientMembershipClaim.Value))
                 {
-                    string ErrMsg = GlobalFunctions.LoggableExceptionString(e, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while creating new user \"{Model.UserName}\" or assigning user membership in client(s): [{string.Join(",", Model.MemberOfClientIdArray)}]");
-                    Logger.LogError(ErrMsg);
-                    Response.Headers.Add("Warning", "Failed to complete operation");
-                    return StatusCode(StatusCodes.Status500InternalServerError);
+                    await UserManager.AddClaimAsync(RequestedUser, ThisClientMembershipClaim);
                 }
-            }
 
-            // UserCreated Audit log
-            if (RequestedUserIsNew)
+                DbContext.SaveChanges();
+
+                AuditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(RequestedClient, RequestedUser));
+            }
+            catch (Exception e)
             {
-                AuditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(RequestedUser));
+                string ErrMsg = GlobalFunctions.LoggableExceptionString(e, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Exception while creating new user \"{Model.UserName}\" or assigning user membership in client(s): [{Model.MemberOfClientId.ToString()}]");
+                Logger.LogError(ErrMsg);
+                Response.Headers.Add("Warning", "Failed to complete operation");
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
-
-            // Client membership assignment Audit log
-            var assignedClients = DbContext.Client
-                .Where(client => Model.MemberOfClientIdArray.Contains(client.Id))
-                .ToList();
-            foreach (var client in assignedClients)
-            {
-                AuditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(client, RequestedUser));
-            }
-
-            // TODO: Send proper welcome email w/ link to set initial password
-            MessageQueueService.QueueEmail(Model.Email, "Welcome to Milliman blah blah", "Message text");
 
             Response.Headers.Add("Warning", $"The requested user was successfully saved");
             return Ok("New User saved successfully");
@@ -626,7 +627,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveNewClient([Bind("Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
-                                                 "ConsultantOffice,AcceptedEmailDomainList,ParentClientId,ProfitCenterId")] Client Model)
+                                                 "ConsultantOffice,AcceptedEmailDomainList,ParentClientId,ProfitCenterId,NewUserWelcomeText")] Client Model)
         // Members intentionally not bound: Id, AcceptedEmailAddressExceptionList
         {
             ApplicationUser CurrentApplicationUser = await Queries.GetCurrentApplicationUser(User);
@@ -751,7 +752,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(AuditEventType.ClientCreated.ToEvent(Model));
             AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(Model, CurrentApplicationUser, RoleEnum.Admin));
 
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(CurrentApplicationUser, UserManager, DbContext);
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(CurrentApplicationUser, UserManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
             ModelToReturn.RelevantClientId = Model.Id;
 
             return Json(ModelToReturn);
@@ -768,7 +769,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditClient([Bind("Id,Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
-                                              "ConsultantOffice,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId,ProfitCenterId")] Client Model)
+                                              "ConsultantOffice,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId,ProfitCenterId,NewUserWelcomeText")] Client Model)
         {
             #region Preliminary Validation
             if (Model.Id <= 0)
@@ -897,6 +898,7 @@ namespace MillimanAccessPortal.Controllers
                 ExistingClientRecord.AcceptedEmailAddressExceptionList = Model.AcceptedEmailAddressExceptionList;
                 //Not supported:  ExistingClientRecord.ParentClientId = Model.ParentClientId;
                 ExistingClientRecord.ProfitCenterId = Model.ProfitCenterId;
+                ExistingClientRecord.NewUserWelcomeText = Model.NewUserWelcomeText;
 
                 DbContext.Client.Update(ExistingClientRecord);
                 DbContext.SaveChanges();
@@ -910,7 +912,7 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
             ModelToReturn.RelevantClientId = ExistingClientRecord.Id;
 
             return Json(ModelToReturn);
@@ -1004,7 +1006,7 @@ namespace MillimanAccessPortal.Controllers
 
             AuditLogger.Log(AuditEventType.ClientDeleted.ToEvent(ExistingClient));
 
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext);
+            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await Queries.GetCurrentApplicationUser(User), UserManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
 
             return Json(ModelToReturn);
         }

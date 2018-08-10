@@ -42,6 +42,7 @@ namespace MapTests
         // Important: Keep this enum synchronized with Dictionary DataGenFunctionDict in the constructor
         Basic,
         Reduction,
+        Account,
     }
 
     /// <summary>
@@ -98,6 +99,7 @@ namespace MapTests
                 // Important: Keep this dictionary synchronized with enum DataSelection above
                 { DataSelection.Basic, GenerateBasicTestData },
                 { DataSelection.Reduction, GenerateReductionTestData },
+                { DataSelection.Account, GenerateAccountTestData },
             };
         }
         /// <summary>
@@ -146,8 +148,8 @@ namespace MapTests
             MockUploadHelper = GenerateUploadHelper();
             LoggerFactory = new LoggerFactory();
             AuthorizationService = GenerateAuthorizationService(DbContextObject, UserManagerObject, LoggerFactory);
-            QueriesObj = new StandardQueries(DbContextObject, UserManagerObject);
             MockAuditLogger = TestResourcesLib.MockAuditLogger.New();
+            QueriesObj = new StandardQueries(DbContextObject, UserManagerObject, MockAuditLogger.Object);
             MockConfiguration = GenerateMockConfiguration();
         }
 
@@ -677,6 +679,16 @@ namespace MapTests
             DbContextObject.FileUpload.AddRange(new List<FileUpload>
             {
                 new FileUpload { Id=new Guid(1,1,1,1,1,1,1,1,1,1,1) },
+            });
+            #endregion
+        }
+
+        private void GenerateAccountTestData()
+        {
+            #region Initialize Users
+            DbContextObject.ApplicationUser.AddRange(new List<ApplicationUser>
+            {
+                new ApplicationUser { Id=1, UserName="user1", Email="user1@example.com" },
             });
             #endregion
         }

@@ -87,17 +87,33 @@ namespace AuditLogLib
             }
         }
 
+        public async virtual void Log(AuditEvent Event)
+        {
+            await Task.Run(() => Log(Event, null));
+        }
+
         /// <summary>
         /// Simplest logging method, does not conform to ILogger, requires a fully formed event object
         /// </summary>
         /// <param name="Event">Event data to be logged. Use AuditEvent.New method to enforce proper creation</param>
-        public async virtual void Log(AuditEvent Event)
+        /// <param name="UserNameArg">Caller provided user name, will be used only if the HttpContext does not yield a user name</param>
+        public async virtual void Log(AuditEvent Event, string UserNameArg)
         {
-            var context = _contextAccessor?.HttpContext;
-            var user = await _userManager?.GetUserAsync(context?.User);
+            if (_contextAccessor == null || _userManager == null)
+            {
+                Event.SessionId = null;
+                Event.User = UserNameArg;  // with value or null
+            }
+            else
+            {
+                HttpContext context = _contextAccessor?.HttpContext;
+                ApplicationUser user = await _userManager.GetUserAsync(context.User);
 
-            Event.SessionId = context?.Session?.Id;
-            Event.User = user?.ToString();
+                Event.SessionId = context.Session.Id;
+                Event.User = user != null
+                    ? user.UserName
+                    : UserNameArg;
+            }
             Event.Assembly = _assemblyName;
 
             LogEventQueue.Enqueue(Event);
