@@ -237,7 +237,8 @@ namespace MillimanAccessPortal.Controllers
             }
             catch
             { }
-            Logger.LogError($"Failed to obtain thumbnail image for SelectionGroup {selectionGroupId}")
+
+            Logger.LogError($"Failed to obtain thumbnail image for SelectionGroup {selectionGroupId}");
             return StatusCode(StatusCodes.Status500InternalServerError, "Content thumbnail not available");
         }
     }
