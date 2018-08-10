@@ -129,7 +129,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
           <this.UserCard
             {...entity}
             selected={entity.id === this.props.selectedCard}
-            activated={entity.primaryText ? true : false}
+            activated={entity.activated}
           />
         </li>
       ));

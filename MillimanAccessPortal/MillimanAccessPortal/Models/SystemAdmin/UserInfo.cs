@@ -14,6 +14,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
     public class UserInfo
     {
         public long Id { get; set; }
+        public bool Activated { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string UserName { get; set; }
@@ -31,6 +32,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             return new UserInfo
             {
                 Id = user.Id,
+                Activated = user.EmailConfirmed,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 UserName = user.UserName,

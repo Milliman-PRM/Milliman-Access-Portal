@@ -15,6 +15,7 @@ export interface Entity {
   detailList?: string[];
   indent?: number;
   readOnly?: boolean;
+  activated?: boolean;
 }
 
 export class EntityHelper {

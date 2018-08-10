@@ -55,7 +55,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       createAction: '',
       processInfo: (response: UserInfo[]) => response.map((user) => ({
         id: user.Id,
-        primaryText: user.FirstName && `${user.LastName}, ${user.FirstName}`,
+        primaryText: `${user.LastName}, ${user.FirstName}`,
         secondaryText: user.UserName,
         primaryStat: user.ClientCount !== null && {
           name: 'Clients',
@@ -68,7 +68,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           icon: 'reports',
         },
         detailList: user.RootContentItems && user.RootContentItems.map((item) => item.Name),
-        activated: user.FirstName !== null,
+        activated: user.Activated,
       })),
       assignQueryFilter: (userId: number) => ({ userId }),
     },
