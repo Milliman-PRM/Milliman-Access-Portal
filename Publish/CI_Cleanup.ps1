@@ -178,7 +178,6 @@ if (IsMerged) {
     Remove-Item -path $nugetDestination -Recurse -Force
 
     if ($MergeBase -eq 'develop') {
-        $env:git_branch = $MergeBase
         $checkoutPath = $rootPath
     } elif ($MergeBase -eq 'master') {
         $checkoutPath = "$env:TEMP\$env:repo_name\"
@@ -186,6 +185,7 @@ if (IsMerged) {
         & $gitExePath clone $CloneURL
         cd $checkoutPath
     }
+    $env:git_branch = $MergeBase
     & $gitExePath checkout $MergeBase
     & "$checkoutPath\Publish\CI_Publish.ps1"
 }
