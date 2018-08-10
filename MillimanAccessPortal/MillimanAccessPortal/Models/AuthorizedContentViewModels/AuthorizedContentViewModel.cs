@@ -36,6 +36,14 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                 Query = $"selectionGroupId=",
             };
 
+            UriBuilder ThumbnailUrl = new UriBuilder
+            {
+                Scheme = "https",
+                Port = 44336,
+                Path = "/AuthorizedContent/Thumbnail",
+                Query = $"selectionGroupId=",
+            };
+
             return new AuthorizedContentViewModel
             {
                 ItemGroups = clients.Select(c => new ContentItemGroup
@@ -47,7 +55,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                         Id = sg.Id,
                         Name = sg.RootContentItem.ContentName,
                         Description = sg.RootContentItem.Description,
-                        ImageURL = sg.RootContentItem.ContentFilesList?.SingleOrDefault(f => f.FilePurpose == "Thumbnail")?.FullPath,
+                        ImageURL = $"{ThumbnailUrl.Uri.AbsoluteUri}{sg.Id}",
                         ContentURL = $"{ContentUrl.Uri.AbsoluteUri}{sg.Id}",  // must be absolute because it is used in iframe element
                         UserguideURL = sg.RootContentItem.ContentFilesList?.SingleOrDefault(f => f.FilePurpose == "UserGuide")?.FullPath,
                         ReleaseNotesURL = sg.RootContentItem.ContentFilesList?.SingleOrDefault(f => f.FilePurpose == "ReleaseNotes")?.FullPath,

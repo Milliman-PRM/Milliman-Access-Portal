@@ -11,6 +11,7 @@ using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -159,6 +160,68 @@ namespace MillimanAccessPortal.Controllers
                         TempData["ReturnToAction"] = "Index";
                         return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
                 }
+            }
+            catch (MapException e)
+            {
+                TempData["Message"] = $"{e.Message}<br>{e.StackTrace}";
+                TempData["ReturnToController"] = "AuthorizedContent";
+                TempData["ReturnToAction"] = "Index";
+                return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
+            }
+        }
+
+        /// <summary>
+        /// Handles a request to display a content items associated thumbnail 
+        /// </summary>
+        /// <param name="selectionGroupId">The primary key value of the SelectionGroup authorizing this user to the requested content</param>
+        /// <returns>A View (and model) that displays the requested content</returns>
+        [Authorize]
+        public async Task<IActionResult> Thumbnail(long selectionGroupId)
+        {
+            var selectionGroup = DataContext.SelectionGroup
+                .Include(sg => sg.RootContentItem)
+                    .ThenInclude(rc => rc.ContentType)
+                .Where(sg => sg.Id == selectionGroupId)
+                .FirstOrDefault();
+            #region Validation
+            if (selectionGroup == null || selectionGroup.RootContentItem == null || selectionGroup.RootContentItem.ContentType == null)
+            {
+                string ErrMsg = $"Failed to obtain the requested user group, root content item, or content type";
+                Logger.LogError(ErrMsg);
+
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+                // something that appropriately returns to a logical next view
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
+                {
+                    new UserInSelectionGroupRequirement(selectionGroupId),
+                    new RoleInClientRequirement(RoleEnum.ContentUser, selectionGroup.RootContentItem.ClientId),
+                });
+            if (!Result1.Succeeded)
+            {
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
+
+                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
+                return Unauthorized();
+            }
+            #endregion
+
+            try
+            {
+                string thumbnailPath = null;
+                ContentRelatedFile contentRelatedThumbnail = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(cf => cf.FilePurpose.ToLower() == "thumbnail");
+
+                if (contentRelatedThumbnail != null)
+                {
+                    thumbnailPath = contentRelatedThumbnail.FullPath;
+                }
+                var image = System.IO.File.OpenRead(thumbnailPath);
+                // To do: Identify the file extension to specify the content-type in the return
+
+                return await Task.Run(() => File(image, "image/png"));
             }
             catch (MapException e)
             {
