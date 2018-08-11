@@ -78,7 +78,7 @@ namespace MillimanAccessPortal.Controllers
 
         public async Task<IActionResult> Content()
         {
-            var model = AuthorizedContentViewModel.Build(DataContext, await Queries.GetCurrentApplicationUser(User));
+            var model = AuthorizedContentViewModel.Build(DataContext, await Queries.GetCurrentApplicationUser(User), HttpContext);
 
             return Json(model);
         }
@@ -187,10 +187,9 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (selectionGroup == null || selectionGroup.RootContentItem == null || selectionGroup.RootContentItem.ContentType == null)
             {
-                string ErrMsg = $"Failed to obtain the requested selection group, root content item, or content type";
-                Logger.LogError(ErrMsg);
-
-                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+                string Msg = $"Failed to obtain the requested selection group, root content item, or content type";
+                Logger.LogError(Msg);
+                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
             #endregion
 
@@ -215,31 +214,83 @@ namespace MillimanAccessPortal.Controllers
 
                 if (contentRelatedThumbnail != null && System.IO.File.Exists(contentRelatedThumbnail.FullPath))
                 {
-                    FileStream imageStream = System.IO.File.OpenRead(contentRelatedThumbnail.FullPath);
-
                     switch (Path.GetExtension(contentRelatedThumbnail.FullPath).ToLower())
                     {
                         case ".png":
-                            return File(imageStream, "image/png");
+                            return File(System.IO.File.OpenRead(contentRelatedThumbnail.FullPath), "image/png");
 
                         case ".gif":
-                            return File(imageStream, "image/gif");
+                            return File(System.IO.File.OpenRead(contentRelatedThumbnail.FullPath), "image/gif");
 
                         case ".jpg":
                         case ".jpeg":
-                            return File(imageStream, "image/jpeg");
+                            return File(System.IO.File.OpenRead(contentRelatedThumbnail.FullPath), "image/jpeg");
+
+                        default:
+                            break;
                     }
                 }
                 else
                 {
+                    // when the content item has no thumbnail, return the default image for the ContentType
                     return Redirect($"/images/{selectionGroup.RootContentItem.ContentType.DefaultIconName}");
                 }
             }
             catch
             { }
 
-            Logger.LogError($"Failed to obtain thumbnail image for SelectionGroup {selectionGroupId}");
-            return StatusCode(StatusCodes.Status500InternalServerError, "Content thumbnail not available");
+            string ErrMsg = $"Failed to obtain image for SelectionGroup {selectionGroupId}";
+            Logger.LogError(ErrMsg);
+            return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+        }
+
+        [Authorize]
+        public async Task<IActionResult> RelatedPdf(string purpose, long selectionGroupId)
+        {
+            var selectionGroup = DataContext.SelectionGroup
+                                            .Include(sg => sg.RootContentItem)
+                                            .FirstOrDefault(sg => sg.Id == selectionGroupId);
+
+            #region Validation
+            if (selectionGroup == null || selectionGroup.RootContentItem == null)
+            {
+                string Msg = $"Failed to obtain the requested selection group or root content item";
+                Logger.LogError(Msg);
+                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
+                {
+                    new UserInSelectionGroupRequirement(selectionGroupId),
+                    new RoleInClientRequirement(RoleEnum.ContentUser, selectionGroup.RootContentItem.ClientId),
+                });
+            if (!Result1.Succeeded)
+            {
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
+
+                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
+                return Unauthorized();
+            }
+            #endregion
+
+            try
+            {
+                ContentRelatedFile contentRelatedPdf = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(cf => cf.FilePurpose.ToLower() == purpose.ToLower());
+
+                if (contentRelatedPdf != null && System.IO.File.Exists(contentRelatedPdf.FullPath))
+                {
+                    FileStream fileStream = System.IO.File.OpenRead(contentRelatedPdf.FullPath);
+                    return File(fileStream, "application/pdf");
+                }
+            }
+            catch
+            { }
+
+            string ErrMsg = $"Failed to load requested {purpose} PDF for SelectionGroup {selectionGroupId}";
+            Logger.LogError(ErrMsg);
+            return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
         }
     }
 }
