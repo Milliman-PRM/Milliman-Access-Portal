@@ -3,6 +3,7 @@ import '../../../scss/react/shared-components/content-panel.scss';
 import { ajax } from 'jquery';
 import { isEqual } from 'lodash';
 import * as React from 'react';
+import * as ReactModal from 'react-modal';
 
 import { ActionIcon } from './action-icon';
 import { Card, withActivated } from './card';
@@ -27,6 +28,7 @@ interface ContentPanelState {
     queryFilter: QueryFilter;
     sourceName: string;
   };
+  modalOpen: boolean;
 }
 
 export class ContentPanel extends React.Component<ContentPanelProps, ContentPanelState> {
@@ -50,9 +52,14 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
 
   private UserCard = withActivated(Card);
 
-  private get url() {
+  private get infoUrl() {
     return this.props.selectedDataSource.infoAction
       && `${this.props.controller}/${this.props.selectedDataSource.infoAction}/`;
+  }
+
+  private get createUrl() {
+    return this.props.selectedDataSource.createAction
+      && `${this.props.controller}/${this.props.selectedDataSource.createAction}/`;
   }
 
   public constructor(props) {
@@ -62,10 +69,13 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
       entities: null,
       filterText: '',
       prevQuery: null,
+      modalOpen: false,
     };
 
     this.setFilterText = this.setFilterText.bind(this);
     this.addAction = this.addAction.bind(this);
+    this.closeModal = this.closeModal.bind(this);
+    this.handleCreate = this.handleCreate.bind(this);
   }
 
   public componentDidMount() {
@@ -158,6 +168,13 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
           icon={'add'}
         />
       );
+
+    const modalStyle = {
+      overlay: {
+        zIndex: 200,
+      },
+    };
+
     return (
       <div
         className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12"
@@ -182,19 +199,34 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
             </ul>
           </div>
         </div>
+        <ReactModal
+          isOpen={this.state.modalOpen}
+          onRequestClose={this.closeModal}
+          ariaHideApp={false}
+          style={modalStyle}
+        >
+          <div>Please press the button</div>
+          <button
+            type="button"
+            className="button-submit blue-button"
+            onClick={this.handleCreate}
+          >
+            Click Me
+          </button>
+        </ReactModal>
       </div>
     );
   }
 
   private fetch() {
-    if (!this.url) {
+    if (!this.infoUrl) {
       return this.setState({ entities: [] });
     }
 
     ajax({
       data: this.props.queryFilter,
       method: 'GET',
-      url: this.url,
+      url: this.infoUrl,
     }).done((response) => {
       if (this.props.selectedDataSource) {
         this.setState({
@@ -211,6 +243,25 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
   }
 
   private addAction() {
-    throw new Error('Not implemented');
+    this.setState({
+      modalOpen: true,
+    });
+  }
+
+  private closeModal() {
+    this.setState({
+      modalOpen: false,
+    });
+  }
+
+  private handleCreate() {
+    ajax({
+      method: 'POST',
+      url: this.createUrl,
+    }).done((response) => {
+      throw new Error('Not implemented');
+    }).fail((response) => {
+      throw new Error(response.getResponseHeader('Warning') || 'Unknown error');
+    });
   }
 }

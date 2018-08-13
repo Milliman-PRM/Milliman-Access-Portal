@@ -41,10 +41,16 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       structure: Structure.List,
       parentSources: [
         null,
-        'client',
+        {
+          name: 'client',
+          overrides: {
+            createAction: 'AddUserToClient',
+          },
+        },
         {
           name: 'profitCenter',
           overrides: {
+            createAction: 'AddUserToProfitCenter',
             displayName: 'Authorized Users',
           },
         },
@@ -52,7 +58,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       displayName: 'Users',
       infoAction: 'Users',
       detailAction: 'UserDetail',
-      createAction: '',
+      createAction: 'CreateUser',
       processInfo: (response: UserInfo[]) => response.map((user) => ({
         id: user.Id,
         primaryText: `${user.LastName}, ${user.FirstName}`,

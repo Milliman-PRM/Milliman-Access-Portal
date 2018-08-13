@@ -446,6 +446,88 @@ namespace MillimanAccessPortal.Controllers
         }
         #endregion
 
+        #region Create actions
+        [HttpPost]
+        public async Task<ActionResult> CreateUser()
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            Response.Headers.Add("Warning", "Not implemented.");
+            return StatusCode(StatusCodes.Status501NotImplemented);
+
+            return Json(new { });
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> CreateProfitCenter()
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            Response.Headers.Add("Warning", "Not implemented.");
+            return StatusCode(StatusCodes.Status501NotImplemented);
+
+            return Json(new { });
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> AddUserToClient()
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            Response.Headers.Add("Warning", "Not implemented.");
+            return StatusCode(StatusCodes.Status501NotImplemented);
+
+            return Json(new { });
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> AddUserToProfitCenter()
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            Response.Headers.Add("Warning", "Not implemented.");
+            return StatusCode(StatusCodes.Status501NotImplemented);
+
+            return Json(new { });
+        }
+        #endregion
+
         #region Immediate toggle actions
         /// <summary>
         /// Get whether a user has a particular system role or not.
