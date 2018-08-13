@@ -3,8 +3,9 @@ import '../../../scss/react/shared-components/content-panel.scss';
 import { ajax } from 'jquery';
 import { isEqual } from 'lodash';
 import * as React from 'react';
-import * as ReactModal from 'react-modal';
+import * as Modal from 'react-modal';
 
+import { CreateUserModal } from '../system-admin/modals/create-user';
 import { ActionIcon } from './action-icon';
 import { Card, withActivated } from './card';
 import { ColumnSelector } from './column-selector';
@@ -52,7 +53,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
 
   private UserCard = withActivated(Card);
 
-  private get infoUrl() {
+  private get url() {
     return this.props.selectedDataSource.infoAction
       && `${this.props.controller}/${this.props.selectedDataSource.infoAction}/`;
   }
@@ -175,6 +176,37 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
       },
     };
 
+    const modal = (() => {
+      switch (this.props.selectedDataSource.createAction) {
+        case 'CreateUser':
+          return (
+            <CreateUserModal
+              isOpen={this.state.modalOpen}
+              onRequestClose={this.closeModal}
+              style={modalStyle}
+            />
+          );
+        default:
+          return (
+            <Modal
+              isOpen={this.state.modalOpen}
+              onRequestClose={this.closeModal}
+              ariaHideApp={false}
+              style={modalStyle}
+            >
+              <div>Please press the button</div>
+              <button
+                type="button"
+                className="button-submit blue-button"
+                onClick={this.handleCreate}
+              >
+                Click Me
+              </button>
+            </Modal>
+          );
+      }
+    })();
+
     return (
       <div
         className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12"
@@ -199,34 +231,20 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
             </ul>
           </div>
         </div>
-        <ReactModal
-          isOpen={this.state.modalOpen}
-          onRequestClose={this.closeModal}
-          ariaHideApp={false}
-          style={modalStyle}
-        >
-          <div>Please press the button</div>
-          <button
-            type="button"
-            className="button-submit blue-button"
-            onClick={this.handleCreate}
-          >
-            Click Me
-          </button>
-        </ReactModal>
+        {modal}
       </div>
     );
   }
 
   private fetch() {
-    if (!this.infoUrl) {
+    if (!this.url) {
       return this.setState({ entities: [] });
     }
 
     ajax({
       data: this.props.queryFilter,
       method: 'GET',
-      url: this.infoUrl,
+      url: this.url,
     }).done((response) => {
       if (this.props.selectedDataSource) {
         this.setState({
