@@ -11,6 +11,11 @@ require('../../../images/cancel.svg');
 
 
 export class ContentContainer extends React.Component<ContentContainerProps, {}> {
+
+  public componentDidMount() {
+    history.pushState({ content: this.props.contentURL }, null);
+  }
+
   public render() {
     return (
       <div id="iframe-container">

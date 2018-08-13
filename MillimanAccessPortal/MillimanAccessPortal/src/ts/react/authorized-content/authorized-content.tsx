@@ -26,19 +26,21 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
     }).done((response: ContentItemGroupList) => {
       this.setState(response);
     });
+    window.onpopstate = (e) => {
+      if (this.state.selectedContentURL) {
+        this.setState({ selectedContentURL: null });
+      }
+    }
   }
 
   public selectContentItem = (contentURL: string) => {
     this.setState({ selectedContentURL: contentURL }, () => {
-      let display;
-      if (this.state.selectedContentURL) {
-        display = 'none';
-      } else {
-        display = null;
-      }
-      console.log(display);
+      let display = (this.state.selectedContentURL) ? 'none' : null;
       document.getElementById('page-header').style.display = display;
       document.getElementById('page-footer').style.display = display;
+      if (!contentURL) {
+        history.back();
+      }
     });
   }
 
