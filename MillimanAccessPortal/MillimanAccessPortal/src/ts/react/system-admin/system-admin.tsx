@@ -187,6 +187,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           icon: 'group',
         },
         detailList: item.Users && item.Users.map((user) => user.FirstName),
+        suspended: item.IsSuspended,
       })),
       assignQueryFilter: (rootContentItemId: number) => ({ rootContentItemId }),
     },

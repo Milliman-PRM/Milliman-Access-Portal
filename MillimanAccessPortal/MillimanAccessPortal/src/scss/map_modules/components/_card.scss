@@ -71,6 +71,10 @@
             background-color: $blue;
         }
 
+        &.suspended {
+            border-color: $red;
+        }
+
         .card-body-main-container {
             position: relative;
             padding: .25em;

@@ -16,6 +16,7 @@ export interface Entity {
   indent?: number;
   readOnly?: boolean;
   activated?: boolean;
+  suspended?: boolean;
 }
 
 export class EntityHelper {

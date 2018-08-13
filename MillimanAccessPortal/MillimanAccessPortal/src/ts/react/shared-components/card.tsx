@@ -46,15 +46,19 @@ export class Card extends React.Component<CardProps, {}> {
         </ul>
       </div>
     );
+    const additionalClasses = [
+      this.props.selected ? ' selected' : '',
+      this.props.suspended ? ' suspended' : '',
+    ].join('');
     return (
       <div className={`card-container ${this.indentClasses[this.props.indent] || ''}`}>
         <div
-          className={`card-body-container${this.props.selected ? ' selected' : ''}`}
+          className={`card-body-container${additionalClasses}`}
         >
           <div className="card-body-main-container">
             <div className="card-body-primary-container">
               <h2 className="card-body-primary-text">
-                {this.props.primaryText}
+                {this.props.primaryText + (this.props.suspended ? ' (Suspended)' : '')}
               </h2>
               <p className="card-body-secondary-text">
                 {this.props.secondaryText}
