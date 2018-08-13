@@ -97,7 +97,7 @@ namespace MapDbContextLib.Identity
         /// </summary>
         /// <param name="timeArg"></param>
         /// <returns></returns>
-        public List<PreviousPassword> RecentPasswords(DateTimeOffset timeArg)
+        public List<PreviousPassword> RecentPasswords(DateTime timeArg)
         {
             return PasswordHistoryObj.FindAll(s => s.dateSet > timeArg);
         }
@@ -136,7 +136,7 @@ namespace MapDbContextLib.Identity
         /// <param name="passwordArg"></param>
         /// <param name="timeArg"></param>
         /// <returns></returns>
-        public bool PasswordRecentlyUsed(string passwordArg, DateTimeOffset timeArg)
+        public bool PasswordRecentlyUsed(string passwordArg, DateTime timeArg)
         {
             List<PreviousPassword> history = RecentPasswords(timeArg);
 

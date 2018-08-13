@@ -17,7 +17,7 @@ namespace MapDbContextLib.Models
 
         public string hash { get; set; }
 
-        public DateTimeOffset dateSet {get; set;}
+        public DateTime dateSet {get; set;}
 
         /// <summary>
         /// When a password is provided to the constructor, 
@@ -26,7 +26,7 @@ namespace MapDbContextLib.Models
         /// <param name="passwordArg"></param>
         public PreviousPassword(string passwordArg)
         {
-            dateSet = DateTimeOffset.UtcNow;
+            dateSet = DateTime.UtcNow;
 
             hash = Crypto.HashPassword(passwordArg);
         }
