@@ -5,6 +5,9 @@ import { isEqual } from 'lodash';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
+import { AddUserToClientModal } from '../system-admin/modals/add-user-to-client';
+import { AddUserToProfitCenterModal } from '../system-admin/modals/add-user-to-profit-center';
+import { CreateProfitCenterModal } from '../system-admin/modals/create-profit-center';
 import { CreateUserModal } from '../system-admin/modals/create-user';
 import { ActionIcon } from './action-icon';
 import { Card, withActivated } from './card';
@@ -181,6 +184,30 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
         case 'CreateUser':
           return (
             <CreateUserModal
+              isOpen={this.state.modalOpen}
+              onRequestClose={this.closeModal}
+              style={modalStyle}
+            />
+          );
+        case 'CreateProfitCenter':
+          return (
+            <CreateProfitCenterModal
+              isOpen={this.state.modalOpen}
+              onRequestClose={this.closeModal}
+              style={modalStyle}
+            />
+          );
+        case 'AddUserToClient':
+          return (
+            <AddUserToClientModal
+              isOpen={this.state.modalOpen}
+              onRequestClose={this.closeModal}
+              style={modalStyle}
+            />
+          );
+        case 'AddUserToProfitCenter':
+          return (
+            <AddUserToProfitCenterModal
               isOpen={this.state.modalOpen}
               onRequestClose={this.closeModal}
               style={modalStyle}

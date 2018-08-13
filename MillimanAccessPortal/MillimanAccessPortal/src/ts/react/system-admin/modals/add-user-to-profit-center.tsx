@@ -2,19 +2,19 @@ import { ajax } from 'jquery';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
-interface CreateUserModalState {
-  emailText: string;
+interface AddUserToProfitCenterModalState {
+  userText: string;
 }
 
-export class CreateUserModal extends React.Component<Modal.Props, CreateUserModalState> {
+export class AddUserToProfitCenterModal extends React.Component<Modal.Props, AddUserToProfitCenterModalState> {
 
-  private url: string = 'SystemAdmin/CreateUser';
+  private url: string = 'SystemAdmin/AddUserToProfitCenter';
 
   public constructor(props) {
     super(props);
 
     this.state = {
-      emailText: '',
+      userText: '',
     };
 
     this.handleChange = this.handleChange.bind(this);
@@ -28,9 +28,9 @@ export class CreateUserModal extends React.Component<Modal.Props, CreateUserModa
         ariaHideApp={false}
         {...this.props}
       >
-        <h2>Create New User</h2>
+        <h2>Add User</h2>
         <form onSubmit={this.handleSubmit}>
-          <h3>User to create:</h3>
+          <h3>User to add:</h3>
           <input
             type="text"
             placeholder="Email address"
@@ -45,7 +45,7 @@ export class CreateUserModal extends React.Component<Modal.Props, CreateUserModa
           <button
             type="submit"
           >
-            Create User
+            Add User
           </button>
         </form>
       </Modal>
@@ -54,7 +54,7 @@ export class CreateUserModal extends React.Component<Modal.Props, CreateUserModa
 
   private handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     this.setState({
-      emailText: event.target.value,
+      userText: event.target.value,
     });
   }
 

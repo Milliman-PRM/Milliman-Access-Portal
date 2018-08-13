@@ -2,19 +2,29 @@ import { ajax } from 'jquery';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
-interface CreateUserModalState {
-  emailText: string;
+interface CreateProfitCenterModalState {
+  name: string;
+  code: string;
+  office: string;
+  contact: string;
+  email: string;
+  phone: string;
 }
 
-export class CreateUserModal extends React.Component<Modal.Props, CreateUserModalState> {
+export class CreateProfitCenterModal extends React.Component<Modal.Props, CreateProfitCenterModalState> {
 
-  private url: string = 'SystemAdmin/CreateUser';
+  private url: string = 'SystemAdmin/CreateProfitCenter';
 
   public constructor(props) {
     super(props);
 
     this.state = {
-      emailText: '',
+      name: '',
+      code: '',
+      office: '',
+      contact: '',
+      email: '',
+      phone: '',
     };
 
     this.handleChange = this.handleChange.bind(this);
@@ -28,14 +38,17 @@ export class CreateUserModal extends React.Component<Modal.Props, CreateUserModa
         ariaHideApp={false}
         {...this.props}
       >
-        <h2>Create New User</h2>
+        <h2>Create New Profit Center</h2>
         <form onSubmit={this.handleSubmit}>
-          <h3>User to create:</h3>
-          <input
-            type="text"
-            placeholder="Email address"
-            onChange={this.handleChange}
-          />
+          <h3>Profit Center Information</h3>
+          <span>
+            <label htmlFor="pcName">Name:</label>
+            <input
+              name="pcName"
+              type="text"
+              onChange={null}
+            />
+          </span>
           <button
             type="button"
             onClick={this.cancel}
@@ -45,7 +58,7 @@ export class CreateUserModal extends React.Component<Modal.Props, CreateUserModa
           <button
             type="submit"
           >
-            Create User
+            Create Profit Center
           </button>
         </form>
       </Modal>
@@ -54,7 +67,7 @@ export class CreateUserModal extends React.Component<Modal.Props, CreateUserModa
 
   private handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     this.setState({
-      emailText: event.target.value,
+      name: event.target.value,
     });
   }
 
