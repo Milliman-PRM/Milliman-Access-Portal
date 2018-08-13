@@ -394,7 +394,7 @@ namespace MillimanAccessPortal.Controllers
             if (result.Succeeded)
             {
                 // Save previous password hash
-                user.PasswordHistoryObj.Add(new PasswordHistory(model.Password));
+                user.PasswordHistoryObj.Add(new PreviousPassword(model.Password));
                 var addHistoryResult = await _userManager.UpdateAsync(user);
 
                 if (!addHistoryResult.Succeeded)
@@ -591,7 +591,7 @@ namespace MillimanAccessPortal.Controllers
                 
                 if (result.Succeeded)
                 {
-                    user.PasswordHistoryObj.Add(new PasswordHistory(Model.NewPassword));
+                    user.PasswordHistoryObj.Add(new PreviousPassword(Model.NewPassword));
                     user.PasswordChangeDate = DateTime.UtcNow;
                     var addHistoryResult = await _userManager.UpdateAsync(user);
 

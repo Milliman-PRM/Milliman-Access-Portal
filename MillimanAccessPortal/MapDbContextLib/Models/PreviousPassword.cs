@@ -10,7 +10,7 @@ using CryptoHelper;
 
 namespace MapDbContextLib.Models
 {
-    public class PasswordHistory
+    public class PreviousPassword
     {
 
         public string algorithmUsed { get; set; }
@@ -24,7 +24,7 @@ namespace MapDbContextLib.Models
         /// automatically build the other properties
         /// </summary>
         /// <param name="passwordArg"></param>
-        public PasswordHistory(string passwordArg)
+        public PreviousPassword(string passwordArg)
         {
             dateSet = DateTimeOffset.UtcNow;
 

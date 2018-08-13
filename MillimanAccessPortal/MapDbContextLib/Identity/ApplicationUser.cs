@@ -19,7 +19,7 @@ namespace MapDbContextLib.Identity
     {
         public ApplicationUser() : base()
         {
-            PasswordHistoryObj = new List<PasswordHistory>();
+            PasswordHistoryObj = new List<PreviousPassword>();
         }
 
         public ApplicationUser(string userName) // : base(userName)
@@ -62,11 +62,11 @@ namespace MapDbContextLib.Identity
         /// Access a list of all password history
         /// </summary>
         [NotMapped]
-        public List<PasswordHistory> PasswordHistoryObj
+        public List<PreviousPassword> PasswordHistoryObj
         {
             get
             {
-                return JsonConvert.DeserializeObject<List<PasswordHistory>>(PreviousPasswords);
+                return JsonConvert.DeserializeObject<List<PreviousPassword>>(PreviousPasswords);
             }
             set
             {
@@ -80,7 +80,7 @@ namespace MapDbContextLib.Identity
         /// </summary>
         /// <param name="daysArg"></param>
         /// <returns></returns>
-        public List<PasswordHistory> RecentPasswords(int countArg)
+        public List<PreviousPassword> RecentPasswords(int countArg)
         {
             int passwordCount = PasswordHistoryObj.Count;
 
@@ -97,7 +97,7 @@ namespace MapDbContextLib.Identity
         /// </summary>
         /// <param name="timeArg"></param>
         /// <returns></returns>
-        public List<PasswordHistory> RecentPasswords(DateTimeOffset timeArg)
+        public List<PreviousPassword> RecentPasswords(DateTimeOffset timeArg)
         {
             return PasswordHistoryObj.FindAll(s => s.dateSet > timeArg);
         }
@@ -120,7 +120,7 @@ namespace MapDbContextLib.Identity
         /// <returns></returns>
         public bool PasswordRecentlyUsed(string passwordArg, int countArg)
         {
-            List<PasswordHistory> history = RecentPasswords(countArg);
+            List<PreviousPassword> history = RecentPasswords(countArg);
 
             if (history == null)
             {
@@ -138,7 +138,7 @@ namespace MapDbContextLib.Identity
         /// <returns></returns>
         public bool PasswordRecentlyUsed(string passwordArg, DateTimeOffset timeArg)
         {
-            List<PasswordHistory> history = RecentPasswords(timeArg);
+            List<PreviousPassword> history = RecentPasswords(timeArg);
 
             if (history == null)
             {
@@ -154,12 +154,12 @@ namespace MapDbContextLib.Identity
         /// <param name="historyArg"></param>
         /// <param name="passwordArg"></param>
         /// <returns></returns>
-        public bool SearchPasswordHistory(List<PasswordHistory> historyArg, string passwordArg)
+        public bool SearchPasswordHistory(List<PreviousPassword> historyArg, string passwordArg)
         {
             bool matchFound = false;
 
             // Iterate over history and return if a match is found
-            foreach (PasswordHistory history in PasswordHistoryObj)
+            foreach (PreviousPassword history in PasswordHistoryObj)
             {
                 matchFound = history.PasswordMatches(passwordArg);
 
