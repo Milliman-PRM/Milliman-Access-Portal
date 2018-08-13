@@ -16,11 +16,11 @@ namespace MillimanAccessPortal.Services
         where TUser : ApplicationUser
     {
 
+        public int numberOfDays = 180;
+
         public Task<IdentityResult> ValidateAsync(UserManager<TUser> manager, TUser user, string password)
         {
-            int numberOfDays = 180;
-
-            DateTimeOffset beginningTime = DateTimeOffset.Now.Subtract(new TimeSpan(180, 0, 0, 0));
+            DateTime beginningTime = DateTime.Now.Subtract(new TimeSpan(numberOfDays, 0, 0, 0));
             
             // Check the specified number of days of history
             if (user.PasswordRecentlyUsed(password, beginningTime))

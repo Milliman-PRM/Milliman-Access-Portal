@@ -393,7 +393,7 @@ namespace MillimanAccessPortal.Controllers
             var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
             if (result.Succeeded)
             {
-                // Save previous password hash
+                // Save password hash in history
                 user.PasswordHistoryObj.Add(new PreviousPassword(model.Password));
                 var addHistoryResult = await _userManager.UpdateAsync(user);
 

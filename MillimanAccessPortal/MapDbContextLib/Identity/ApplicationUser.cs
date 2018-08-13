@@ -19,7 +19,6 @@ namespace MapDbContextLib.Identity
     {
         public ApplicationUser() : base()
         {
-            PasswordHistoryObj = new List<PreviousPassword>();
         }
 
         public ApplicationUser(string userName) // : base(userName)
@@ -56,7 +55,7 @@ namespace MapDbContextLib.Identity
         /// Store a history of previously-used passwords
         /// </summary>
         [Column(TypeName = "jsonb")]
-        public string PreviousPasswords { get; set; }
+        public string PreviousPasswords { get; set; } = "[]";
 
         /// <summary>
         /// Access a list of all password history
@@ -66,11 +65,11 @@ namespace MapDbContextLib.Identity
         {
             get
             {
-                return JsonConvert.DeserializeObject<List<PreviousPassword>>(PreviousPasswords);
+                return string.IsNullOrWhiteSpace(PreviousPasswords) ? new List<PreviousPassword>() : JsonConvert.DeserializeObject<List<PreviousPassword>>(PreviousPasswords);
             }
             set
             {
-                PreviousPasswords = JsonConvert.SerializeObject(value);
+                PreviousPasswords = JsonConvert.SerializeObject(value == null ? new List<PreviousPassword>() : value);
             }
         }
 
@@ -80,7 +79,7 @@ namespace MapDbContextLib.Identity
         /// </summary>
         /// <param name="daysArg"></param>
         /// <returns></returns>
-        public List<PreviousPassword> RecentPasswords(int countArg)
+        public List<PreviousPassword> GetRecentPasswords(int countArg)
         {
             int passwordCount = PasswordHistoryObj.Count;
 
@@ -120,7 +119,7 @@ namespace MapDbContextLib.Identity
         /// <returns></returns>
         public bool PasswordRecentlyUsed(string passwordArg, int countArg)
         {
-            List<PreviousPassword> history = RecentPasswords(countArg);
+            List<PreviousPassword> history = GetRecentPasswords(countArg);
 
             if (history == null)
             {
