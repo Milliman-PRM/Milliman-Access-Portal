@@ -5,6 +5,7 @@
  */
 
 using AuditLogLib;
+using AuditLogLib.Event;
 using Moq;
 
 namespace TestResourcesLib
@@ -15,6 +16,7 @@ namespace TestResourcesLib
         {
             AuditLogger.Config = new AuditLoggerConfiguration { AuditLogConnectionString = "" };
             Mock<AuditLogger> ReturnObject = new Mock<AuditLogger>();
+            ReturnObject.Setup(al => al.Log(It.IsAny<AuditEvent>(), It.IsAny<string>())).Callback(() => { /*Do nothing*/});
             ReturnObject.Setup(al => al.Log(It.IsAny<AuditEvent>())).Callback(() => { /*Do nothing*/});
 
             return ReturnObject;

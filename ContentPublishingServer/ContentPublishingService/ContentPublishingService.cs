@@ -27,10 +27,15 @@ namespace ContentPublishingService
 
         protected override void OnStart(string[] args)
         {
-            //Thread.Sleep(12000);
             try
             {
                 Configuration.LoadConfiguration();
+
+                string ServiceLaunchDelaySecString = Configuration.GetConfigurationValue("ServiceLaunchDelaySec");
+                if (!string.IsNullOrWhiteSpace(ServiceLaunchDelaySecString) && int.TryParse(ServiceLaunchDelaySecString, out int ServiceLaunchDelaySec))
+                {
+                     Thread.Sleep(ServiceLaunchDelaySec * 1000);
+                }
 
                 InitiateTraceLogging();
                 GlobalFunctions.TraceWriteLine($"Service OnStart() called");

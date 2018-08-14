@@ -20,6 +20,7 @@ using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Moq;
+using AuditLogLib.Event;
 
 namespace ContentPublishingLib.JobRunners
 {
@@ -146,21 +147,14 @@ namespace ContentPublishingLib.JobRunners
                     JobDetail.Status = PublishJobDetail.JobStatusEnum.Success;
 
                     #region Log audit event
-                    AuditEvent GoLiveLogEvent = AuditEvent.New(
-                        $"{Method.DeclaringType.Name}.{Method.Name}",
-                        "Content publication request was successfully processed",
-                        AuditEventId.PublicationRequestProcessingSuccess,
-                        new
-                        {
-                            PublicationRequestId = JobDetail.JobId,
-                            JobDetail.Request.DoesReduce,
-                            RequestingUser = JobDetail.Request.ApplicationUserId,
-                            ReductionTasks = AllRelatedReductionTasks.Select(t => t.Id.ToString("D")).ToArray()
-                        },
-                        "PublicationService",
-                        null
-                        );
-                    AuditLog.Log(GoLiveLogEvent);
+                    var DetailObj = new
+                    {
+                        PublicationRequestId = JobDetail.JobId,
+                        JobDetail.Request.DoesReduce,
+                        RequestingUser = JobDetail.Request.ApplicationUserId,
+                        ReductionTasks = AllRelatedReductionTasks.Select(t => t.Id.ToString("D")).ToArray(),
+                    };
+                    AuditLog.Log(AuditEventType.PublicationRequestProcessingSuccess.ToEvent(DetailObj));
                     #endregion
 
                 }
@@ -307,8 +301,7 @@ namespace ContentPublishingLib.JobRunners
                         }
                         else
                         {
-                            var SelectionHierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, SelGrp.Id);
-                            NewTask.SelectionCriteria = SelectionHierarchy.SerializeJson();
+                            NewTask.SelectionCriteriaObj = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, SelGrp.Id);
                             NewTask.TaskAction = TaskActionEnum.HierarchyAndReduction;
                         }
 

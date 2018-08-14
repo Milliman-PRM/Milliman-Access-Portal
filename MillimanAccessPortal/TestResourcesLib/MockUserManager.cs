@@ -29,8 +29,6 @@ namespace TestResourcesLib
             ReturnMockUserManager.Setup(m => m.FindByIdAsync(It.IsAny<string>())).Returns(async (string id) => await UserStore.Object.FindByIdAsync(id, CancellationToken.None));
             ReturnMockUserManager.Setup(m => m.FindByEmailAsync(It.IsAny<string>())).Returns(async (string email) => await UserStore.Object.FindByEmailAsync(email, CancellationToken.None));
             ReturnMockUserManager.Setup(m => m.FindByLoginAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(async (string provider, string key) => await UserStore.Object.FindByLoginAsync(provider, key));
-            // TODO: Make this method actually try the password. Currently it will always return true.
-            ReturnMockUserManager.Setup(m => m.CheckPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).ReturnsAsync<ApplicationUser, string, UserManager<ApplicationUser>, bool>((user, password) => true);
             ReturnMockUserManager.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).Returns(async (ApplicationUser user, string password) => await UserStore.Object.CreateAsync(user, CancellationToken.None));
 
             // Role-related methods
@@ -47,8 +45,35 @@ namespace TestResourcesLib
             ReturnMockUserManager.Setup(m => m.RemoveClaimsAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<Claim>>())).Returns(async (ApplicationUser user, IEnumerable<Claim> claims) => await Task.FromResult(RemoveClaims(UserStore.Object, user, claims)));
             ReturnMockUserManager.Setup(m => m.GetUsersForClaimAsync(It.IsAny<Claim>())).Returns(async (Claim claim) => await UserStore.Object.GetUsersForClaimAsync(claim, CancellationToken.None));
 
+            // Password-related methods
             // Return true if the password is not null
-            ReturnMockUserManager.Setup(m => m.CheckPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).Returns(async (ApplicationUser usr, string pwd) => await Task.FromResult(!String.IsNullOrEmpty(pwd)));
+            // As of 8/2018 there is no password validation built into anthing in this class so tests should no rely on it.
+            ReturnMockUserManager.Setup(m => m.CheckPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).Returns(async (ApplicationUser usr, string pwd) => await Task.FromResult(usr.PasswordHash == pwd + "xyz"));
+            ReturnMockUserManager.Setup(m => m.ResetPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>(), It.IsAny<string>())).Returns(async (ApplicationUser usr, string token, string pwd) =>
+            {
+                usr.PasswordHash = pwd + "xyz";
+                return await Task.FromResult(IdentityResult.Success);
+            });
+            ReturnMockUserManager.Setup(m => m.AddPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).Returns(async (ApplicationUser usr, string pw) =>
+            {
+                usr.PasswordHash = pw + "xyz";  // useful enough for testing
+                return await Task.FromResult(IdentityResult.Success);
+            });
+            ReturnMockUserManager.Setup(m => m.ChangePasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>(), It.IsAny<string>())).Returns(async(ApplicationUser usr, string oldpw, string newpw) =>
+            {
+                if (usr.PasswordHash == oldpw + "xyz")  // valid oldpw
+                {
+                    usr.PasswordHash = newpw + "xyz";
+                    return await Task.FromResult(IdentityResult.Success);
+                }
+                else  // invalid oldpw
+                {
+                    return await Task.FromResult(IdentityResult.Failed(new IdentityError {Code="", Description = "oldpw incorrect" }));
+                }
+            });
+
+            // Account Enablement methods
+            ReturnMockUserManager.Setup(m => m.ConfirmEmailAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).Returns(async (ApplicationUser usr, string token) => await Task.FromResult(IdentityResult.Success));
 
             return ReturnMockUserManager;
         }

@@ -1,16 +1,17 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Text;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System.Runtime.CompilerServices;
-using System.Reflection;
+﻿using AuditLogLib.Event;
 using AuditLogLib.Services;
 using MapCommonLib;
+using MapDbContextLib.Identity;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AuditLogLib
 {
@@ -28,7 +29,42 @@ namespace AuditLogLib
             private get;
         }
 
+        private readonly IHttpContextAccessor _contextAccessor;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly string _assemblyName = Assembly.GetEntryAssembly().FullName;
+
         public AuditLogger()
+        {
+            InstantiateLogger();
+        }
+
+        public AuditLogger(
+            IHttpContextAccessor context = null,
+            UserManager<ApplicationUser> userManager = null)
+        {
+            _contextAccessor = context;
+            _userManager = userManager;
+
+            InstantiateLogger();
+        }
+
+        ~AuditLogger()
+        {
+            // Watch out how this lock is used.  The worker thread needs to be able to stop itself when InstanceCount == 0
+            lock (ThreadSafetyLock)
+            {
+                InstanceCount--;
+                if (InstanceCount == 0 && WaitForWorkerThreadEnd(1000))  // Not the best stategy
+                {
+                    WorkerTask = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Perform on construction
+        /// </summary>
+        private void InstantiateLogger()
         {
             lock (ThreadSafetyLock)
             {
@@ -51,83 +87,36 @@ namespace AuditLogLib
             }
         }
 
-        ~AuditLogger()
+        public async virtual void Log(AuditEvent Event)
         {
-            // Watch out how this lock is used.  The worker thread needs to be able to stop itself when InstanceCount == 0
-            lock (ThreadSafetyLock)
-            {
-                InstanceCount--;
-                if (InstanceCount == 0 && WaitForWorkerThreadEnd(1000))  // Not the best stategy
-                {
-                    WorkerTask = null;
-                }
-            }
+            await Task.Run(() => Log(Event, null));
         }
 
         /// <summary>
         /// Simplest logging method, does not conform to ILogger, requires a fully formed event object
         /// </summary>
         /// <param name="Event">Event data to be logged. Use AuditEvent.New method to enforce proper creation</param>
-        public virtual void Log(AuditEvent Event)
+        /// <param name="UserNameArg">Caller provided user name, will be used only if the HttpContext does not yield a user name</param>
+        public async virtual void Log(AuditEvent Event, string UserNameArg)
         {
-            LogEventQueue.Enqueue(Event);
-        }
-
-        /// <summary>
-        /// Method compliant with ILogger interface, which is not the primary intended use for this class. 
-        /// Full ILogger support requires additional work since this does not currently inherit interface ILogger
-        /// </summary>
-        /// <typeparam name="TState"></typeparam>
-        /// <param name="LogLevel">Provide one of the enum values</param>
-        /// <param name="EventId">Intended to receive one of the static properties of class AuditEventId</param>
-        /// <param name="ParamObject">Object of any type, but should follow conventions</param>
-        /// <param name="exception">Use null if no exception is being documented</param>
-        /// <param name="formatter">If provided, should be compatible with state argument</param>
-        public void Log<ParamObj>(LogLevel LogLevel, AuditEventId EventId, ParamObj ParamObject, Exception exception = null, Func<ParamObj, Exception, string> formatter = null)
-        {
-            if (EventId.Id < AuditEventId.AuditEventBaseId || EventId.Id > AuditEventId.AuditEventMaxId)
-                return;
-
-            AuditEvent NewEvent = null;
-
-            if (ParamObject.GetType() == typeof(AuditEvent))
+            if (_contextAccessor == null || _userManager == null)
             {
-                NewEvent = ParamObject as AuditEvent;
-                NewEvent.EventType = EventId.Name;
+                Event.SessionId = null;
+                Event.User = UserNameArg;  // with value or null
             }
             else
             {
-                NewEvent = new AuditEvent
-                {
-                    EventType = EventId.Name,
-                    TimeStamp = DateTime.Now,
-                };
+                HttpContext context = _contextAccessor?.HttpContext;
+                ApplicationUser user = await _userManager.GetUserAsync(context.User);
 
-                Type t = ParamObject.GetType();
-                var p = t.GetTypeInfo();
-                foreach (var Property in p.DeclaredProperties)
-                {
-                    switch (Property.Name)
-                    {
-                        case "UserName":
-                            NewEvent.User = Property.GetValue(ParamObject) as string;
-                            break;
-                        case "Source":
-                            NewEvent.Source = Property.GetValue(ParamObject) as string;
-                            break;
-                        case "Detail":
-                            NewEvent.EventDetailObject = Property.GetValue(ParamObject);
-                            break;
-                        case "Summary":
-                            NewEvent.Summary = Property.GetValue(ParamObject) as string;
-                            break;
-                        default:
-                            break;
-                    }
-                }
+                Event.SessionId = context.Session.Id;
+                Event.User = user != null
+                    ? user.UserName
+                    : UserNameArg;
             }
+            Event.Assembly = _assemblyName;
 
-            LogEventQueue.Enqueue(NewEvent);
+            LogEventQueue.Enqueue(Event);
         }
 
         /// <summary>
@@ -160,8 +149,7 @@ namespace AuditLogLib
                     {
                         List<AuditEvent> NewEventsToStore = new List<AuditEvent>();
 
-                        AuditEvent NextEvent;
-                        while (LogEventQueue.TryDequeue(out NextEvent))
+                        while (LogEventQueue.TryDequeue(out AuditEvent NextEvent))
                         {
                             NewEventsToStore.Add(NextEvent);
                         }

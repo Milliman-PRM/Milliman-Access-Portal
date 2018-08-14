@@ -1,10 +1,10 @@
 import { FormInput } from './input';
 
-export class TextAreaInput extends FormInput {
+export class TextareaInput extends FormInput {
   protected _cssClasses = {
-    main: 'form-input-text-area',
-    title: 'form-input-text-area-title',
-    extension: 'form-input-text-area-contents',
+    main: 'form-input-textarea',
+    title: 'form-input-textarea-title',
+    extension: 'form-input-textarea-contents',
   };
 
   protected findInput = ($entryPoint: JQuery<HTMLElement>) => $entryPoint.find('textarea');
