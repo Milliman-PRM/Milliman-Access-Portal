@@ -37,7 +37,7 @@ if (test-path $FolderToRemove)
     write-output "Deleting files"
     Get-ChildItem -Path $FolderToRemove -Recurse | Remove-Item -Confirm:$false
 
-    Remove-Item $FolderToRemove -Confirm:$false
+    Remove-Item $FolderToRemove -Force
 }
 
 # Remove app pool
