@@ -360,7 +360,8 @@
             transition: .25s all linear;
             cursor: default;
 
-            &[maximized] {
+            &[maximized],
+            &.maximized {
                 max-height: 15.5em;
                 overflow: visible;
                 transition: .25s all linear;

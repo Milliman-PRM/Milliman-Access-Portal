@@ -8,7 +8,11 @@ export interface CardProps extends Entity {
   resetButton?: boolean;
 }
 
-export class Card extends React.Component<CardProps, {}> {
+interface CardState {
+  expanded: boolean;
+}
+
+export class Card extends React.Component<CardProps, CardState> {
   private indentClasses: { [indent: number]: string; } = {
     1: 'card-100',
     2: 'card-90',
@@ -18,7 +22,12 @@ export class Card extends React.Component<CardProps, {}> {
   public constructor(props) {
     super(props);
 
+    this.state = {
+      expanded: false,
+    };
+
     this.sendPasswordReset = this.sendPasswordReset.bind(this);
+    this.toggleExpansion = this.toggleExpansion.bind(this);
   }
 
   public render() {
@@ -52,14 +61,35 @@ export class Card extends React.Component<CardProps, {}> {
       <li
         key={i}
       >
-        <div>{detail}</div>
+        <span className="detail-item-user">
+          <div className="detail-item-user-icon">
+            <svg className="card-user-icon">
+              <use xlinkHref="#user" />
+            </svg>
+          </div>
+          <div className="detail-item-user-name">
+            <h4 className="first-last">{detail}</h4>
+            <span className="user-name">{'<Username>'}</span>
+          </div>
+        </span>
       </li>
     ));
-    const expansion = (
-      <div className="card-expansion-container">
+    const expansion = this.props.detailList && (
+      <div className={'card-expansion-container' + (this.state.expanded ? ' maximized' : '')}>
+        <h4 className="card-expansion-category-label">Members</h4>
         <ul>
           {detailList}
         </ul>
+        <div className="card-button-bottom-container">
+          <div
+            className="card-button-background card-button-expansion"
+            onClick={this.toggleExpansion}
+          >
+            <svg className="card-button-icon">
+              <use xlinkHref="#expand-card" />
+            </svg>
+          </div>
+        </div>
       </div>
     );
     const additionalClasses = [
@@ -105,6 +135,13 @@ export class Card extends React.Component<CardProps, {}> {
     }).fail((response) => {
       throw new Error(response.getResponseHeader('Warning') || 'Unknown error');
     });
+  }
+
+  private toggleExpansion(event: React.MouseEvent<HTMLDivElement>) {
+    event.stopPropagation();
+    this.setState((prevState) => ({
+      expanded: !prevState.expanded,
+    }));
   }
 }
 

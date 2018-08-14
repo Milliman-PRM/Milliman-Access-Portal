@@ -1,5 +1,7 @@
 ﻿import '../../../images/add.svg';
 import '../../../images/client-admin.svg';
+import '../../../images/email.svg';
+import '../../../images/expand-card.svg';
 import '../../../images/group.svg';
 import '../../../images/reports.svg';
 import '../../../images/user.svg';
