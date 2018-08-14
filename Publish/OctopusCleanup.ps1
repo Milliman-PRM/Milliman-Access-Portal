@@ -35,7 +35,7 @@ if ($webApp)
 if (test-path $FolderToRemove)
 {
     write-output "Deleting files"
-    Get-ChildItem -Path $FolderToRemove -Recurse | Remove-Item -Confirm:$false
+    Get-ChildItem -Path $FolderToRemove -Recurse | Remove-Item -Force
 
     Remove-Item $FolderToRemove -Force
 }
