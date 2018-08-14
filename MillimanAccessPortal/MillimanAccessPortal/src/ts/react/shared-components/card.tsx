@@ -130,13 +130,17 @@ export class Card extends React.Component<CardProps, CardState> {
     );
   }
 
-  private sendPasswordReset() {
+  private sendPasswordReset(event: React.MouseEvent<HTMLDivElement>) {
+    event.stopPropagation();
     ajax({
       data: {
-        userId: this.props.id,
+        Email: this.props.email,
       },
       method: 'POST',
-      url: '',
+      url: 'Account/ForgotPassword',
+      headers: {
+        RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
+      },
     }).done((response) => {
       console.log('Password reset email sent!');
     }).fail((response) => {

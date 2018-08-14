@@ -18,6 +18,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string UserName { get; set; }
+        public string Email { get; set; }
         public int? ClientCount { get; set; } = null;
         public int? RootContentItemCount { get; set; } = null;
         public List<RootContentItemInfo> RootContentItems { get; set; }
@@ -36,6 +37,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 UserName = user.UserName,
+                Email = user.Email,
             };
         }
 

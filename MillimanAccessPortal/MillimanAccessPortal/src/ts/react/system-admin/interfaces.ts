@@ -23,6 +23,7 @@ export interface UserInfo {
   FirstName: string;
   LastName: string;
   UserName: string;
+  Email: string;
   ClientCount?: number;
   RootContentItemCount?: number;
   RootContentItems?: RootContentItemInfo[];

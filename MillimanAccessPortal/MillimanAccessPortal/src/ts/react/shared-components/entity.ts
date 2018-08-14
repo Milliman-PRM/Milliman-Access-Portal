@@ -17,6 +17,7 @@ export interface Entity {
   readOnly?: boolean;
   activated?: boolean;
   suspended?: boolean;
+  email?: string;
 }
 
 export class EntityHelper {

@@ -85,6 +85,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           primaryText: item.Name,
         })),
         activated: user.Activated,
+        email: user.Email,
       })),
       assignQueryFilter: (userId: number) => ({ userId }),
     },
