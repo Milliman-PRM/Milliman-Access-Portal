@@ -2,11 +2,16 @@ import { ajax } from 'jquery';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
+export interface AddUserToClientModalProps extends Modal.Props {
+  clientId: number;
+}
+
 interface AddUserToClientModalState {
   userText: string;
 }
 
-export class AddUserToClientModal extends React.Component<Modal.Props, AddUserToClientModalState> {
+export class AddUserToClientModal
+    extends React.Component<AddUserToClientModalProps, AddUserToClientModalState> {
 
   private url: string = 'SystemAdmin/AddUserToClient';
 
@@ -61,10 +66,15 @@ export class AddUserToClientModal extends React.Component<Modal.Props, AddUserTo
   private handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     ajax({
+      data: {
+        email: this.state.userText,
+        clientId: this.props.clientId,
+      },
       method: 'POST',
       url: this.url,
     }).done((response) => {
-      throw new Error('Not implemented');
+      alert('User added to client.');
+      this.props.onRequestClose(null);
     }).fail((response) => {
       throw new Error(response.getResponseHeader('Warning') || 'Unknown error');
     });

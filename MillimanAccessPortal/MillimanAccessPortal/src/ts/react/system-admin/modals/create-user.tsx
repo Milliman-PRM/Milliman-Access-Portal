@@ -61,10 +61,14 @@ export class CreateUserModal extends React.Component<Modal.Props, CreateUserModa
   private handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     ajax({
+      data: {
+        email: this.state.emailText,
+      },
       method: 'POST',
       url: this.url,
     }).done((response) => {
-      throw new Error('Not implemented');
+      alert('User created.');
+      this.props.onRequestClose(null);
     }).fail((response) => {
       throw new Error(response.getResponseHeader('Warning') || 'Unknown error');
     });

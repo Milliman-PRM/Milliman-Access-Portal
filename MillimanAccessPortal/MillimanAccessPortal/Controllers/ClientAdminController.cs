@@ -279,7 +279,7 @@ namespace MillimanAccessPortal.Controllers
                             ? RequestedClient.NewUserWelcomeText
                             : ApplicationConfig["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
 
-                        _accountController.SendNewAccountWelcomeEmail(RequestedUser, Url, welcomeText);
+                        await _accountController.SendNewAccountWelcomeEmail(RequestedUser, Url, welcomeText);
                     }
                     else
                     {
@@ -635,9 +635,8 @@ namespace MillimanAccessPortal.Controllers
             #region Preliminary Validation
             if (!ModelState.IsValid)
             {
-                Response.Headers.Add("Warning", ModelState
-                    .Values.First(value => value.ValidationState == ModelValidationState.Invalid)
-                    .Errors.First().ErrorMessage);
+                var message = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)));
+                Response.Headers.Add("Warning", message);
                 return BadRequest();
             }
             if (Model.ParentClientId == Model.Id)

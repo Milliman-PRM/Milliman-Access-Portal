@@ -207,6 +207,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
               isOpen={this.state.modalOpen}
               onRequestClose={this.closeModal}
               style={modalStyle}
+              clientId={this.props.queryFilter.clientId}
             />
           );
         case 'AddUserToProfitCenter':
@@ -215,6 +216,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
               isOpen={this.state.modalOpen}
               onRequestClose={this.closeModal}
               style={modalStyle}
+              profitCenterId={this.props.queryFilter.profitCenterId}
             />
           );
         default:

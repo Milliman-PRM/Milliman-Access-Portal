@@ -2,11 +2,16 @@ import { ajax } from 'jquery';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
+export interface AddUserToProfitCenterModalProps extends Modal.Props {
+  profitCenterId: number;
+}
+
 interface AddUserToProfitCenterModalState {
   userText: string;
 }
 
-export class AddUserToProfitCenterModal extends React.Component<Modal.Props, AddUserToProfitCenterModalState> {
+export class AddUserToProfitCenterModal
+    extends React.Component<AddUserToProfitCenterModalProps, AddUserToProfitCenterModalState> {
 
   private url: string = 'SystemAdmin/AddUserToProfitCenter';
 
@@ -61,10 +66,15 @@ export class AddUserToProfitCenterModal extends React.Component<Modal.Props, Add
   private handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     ajax({
+      data: {
+        email: this.state.userText,
+        profitCenterId: this.props.profitCenterId,
+      },
       method: 'POST',
       url: this.url,
     }).done((response) => {
-      throw new Error('Not implemented');
+      alert('User added to profit center.');
+      this.props.onRequestClose(null);
     }).fail((response) => {
       throw new Error(response.getResponseHeader('Warning') || 'Unknown error');
     });
