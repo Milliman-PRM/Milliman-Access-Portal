@@ -117,7 +117,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
 
-                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
+                Response.Headers.Add("Warning", "You are not authorized to access the requested content");
                 return Unauthorized();
             }
             #endregion
