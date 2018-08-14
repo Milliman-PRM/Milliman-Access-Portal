@@ -3,9 +3,10 @@ import { DropdownInput } from './form-input/dropdown';
 import { FileUploadInput } from './form-input/file-upload';
 import { HiddenInput } from './form-input/hidden';
 import { FormInput } from './form-input/input';
+import { NullableTextareaInput } from './form-input/nullable-textarea';
 import { SelectizedInput } from './form-input/selectized';
 import { TextInput } from './form-input/text';
-import { TextAreaInput } from './form-input/text-area';
+import { TextareaInput } from './form-input/textarea';
 import { ToggleInput } from './form-input/toggle';
 import { AccessMode, SubmissionMode } from './form-modes';
 import { Submission } from './form-submission';
@@ -24,6 +25,10 @@ export class FormInputSection extends FormElement {
     extension: 'form-input-container',
   };
 
+  public constructor(readonly defaultWelcomeText: string = '') {
+    super();
+  }
+
   public bindToDOM(entryPoint: HTMLElement) {
     super.bindToDOM(entryPoint);
 
@@ -31,7 +36,8 @@ export class FormInputSection extends FormElement {
       .find(`.${this.cssClasses.extension}`).children().toArray();
     const inputConstructors: Array<() => FormInput> = [
       () => new TextInput(),
-      () => new TextAreaInput(),
+      () => new TextareaInput(),
+      () => new NullableTextareaInput(this.defaultWelcomeText),
       () => new DropdownInput(),
       () => new ToggleInput(),
       () => new SelectizedInput(),

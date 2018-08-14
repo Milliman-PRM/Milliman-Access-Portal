@@ -265,7 +265,9 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
   if (item) {
     const formMap = mapRootContentItemDetail(item);
     formMap.forEach((value, key) => {
-      $rootContentItemForm.find(`#${key}`).val(value ? value.toString() : '');
+      if (key !== 'DoesReduce') {  // because DoesReduce is a checkbox
+        $rootContentItemForm.find(`#${key}`).val(value ? value.toString() : '');
+      }
     });
     $rootContentItemForm.find('.file-upload').data('originalName', '');
     if (item.RelatedFiles) {

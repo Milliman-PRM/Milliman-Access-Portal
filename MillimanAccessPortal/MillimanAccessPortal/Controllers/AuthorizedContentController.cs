@@ -5,6 +5,7 @@
  */
 
 using AuditLogLib;
+using AuditLogLib.Event;
 using AuditLogLib.Services;
 using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
@@ -88,13 +89,13 @@ namespace MillimanAccessPortal.Controllers
         [Authorize]
         public async Task<IActionResult> WebHostedContent(long Id)
         {
+            var selectionGroup = DataContext.SelectionGroup
+                .Include(sg => sg.RootContentItem)
+                    .ThenInclude(rc => rc.ContentType)
+                .Where(sg => sg.Id == Id)
+                .FirstOrDefault();
             #region Validation
-            SelectionGroup SelGroup = DataContext.SelectionGroup
-                                                        .Include(sg => sg.RootContentItem)
-                                                            .ThenInclude(rc => rc.ContentType)
-                                                        .Where(sg => sg.Id == Id)
-                                                        .FirstOrDefault();
-            if (SelGroup == null || SelGroup.RootContentItem == null || SelGroup.RootContentItem.ContentType == null)
+            if (selectionGroup == null || selectionGroup.RootContentItem == null || selectionGroup.RootContentItem.ContentType == null)
             {
                 string ErrMsg = $"Failed to obtain the requested user group, root content item, or content type";
                 Logger.LogError(ErrMsg);
@@ -108,13 +109,11 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
                 {
                     new UserInSelectionGroupRequirement(Id),
-                    new RoleInRootContentItemRequirement(RoleEnum.ContentUser, SelGroup.RootContentItem.Id),
+                    new RoleInClientRequirement(RoleEnum.ContentUser, selectionGroup.RootContentItem.ClientId),
                 });
             if (!Result1.Succeeded)
             {
-                AuditEvent LogObject = AuditEvent.New($"{this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}", "Unauthorized request", AuditEventId.Unauthorized, null, UserManager.GetUserName(HttpContext.User), HttpContext.Session.Id);
-                LogObject.EventDetailObject = new { GroupIdRequested = Id };
-                AuditLogger.Log(LogObject);
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
                 return Unauthorized();
@@ -125,7 +124,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 // Instantiate the right content handler class
                 ContentTypeSpecificApiBase ContentSpecificHandler = null;
-                switch (SelGroup.RootContentItem.ContentType.TypeEnum)
+                switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
                 {   // Never break out of this switch without a valid ContentSpecificHandler object
                     case ContentTypeEnum.Qlikview:
                         ContentSpecificHandler = new QlikviewLibApi();
@@ -136,13 +135,13 @@ namespace MillimanAccessPortal.Controllers
                     //    break;
 
                     default:
-                        TempData["Message"] = $"Display of an unsupported ContentType was requested: {SelGroup.RootContentItem.ContentType.Name}";
+                        TempData["Message"] = $"Display of an unsupported ContentType was requested: {selectionGroup.RootContentItem.ContentType.Name}";
                         TempData["ReturnToController"] = "AuthorizedContent";
                         TempData["ReturnToAction"] = "Index";
                         return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
                 }
 
-                UriBuilder ContentUri = await ContentSpecificHandler.GetContentUri(SelGroup, HttpContext, QlikviewConfig);
+                UriBuilder ContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.ContentInstanceUrl, HttpContext.User.Identity.Name, QlikviewConfig);
 
                 AuthorizedContentViewModel ResponseModel = new AuthorizedContentViewModel
                 {
@@ -152,7 +151,7 @@ namespace MillimanAccessPortal.Controllers
                 };
 
                 // Now return the appropriate view for the requested content
-                switch (SelGroup.RootContentItem.ContentType.Name)
+                switch (selectionGroup.RootContentItem.ContentType.Name)
                 {
                     case "Qlikview":
                         return View(ResponseModel);
@@ -162,7 +161,7 @@ namespace MillimanAccessPortal.Controllers
 
                     default:
                         // Perhaps this can't happen since this case is handled above
-                        TempData["Message"] = $"An unsupported ContentType was requested: {SelGroup.RootContentItem.ContentType.Name}";
+                        TempData["Message"] = $"An unsupported ContentType was requested: {selectionGroup.RootContentItem.ContentType.Name}";
                         TempData["ReturnToController"] = "AuthorizedContent";
                         TempData["ReturnToAction"] = "Index";
                         return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));

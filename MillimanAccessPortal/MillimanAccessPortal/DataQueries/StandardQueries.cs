@@ -15,13 +15,16 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.ClientAdminViewModels;
+using AuditLogLib.Services;
+using AuditLogLib.Event;
 
 namespace MillimanAccessPortal.DataQueries
 {
     public partial class StandardQueries
     {
         private ApplicationDbContext DbContext = null;
-        private UserManager<ApplicationUser> UserManager = null;
+        private UserManager<ApplicationUser> _userManager = null;
+        private IAuditLogger _auditLog = null;
 
         /// <summary>
         /// Constructor, stores local copy of the caller's IServiceScope
@@ -29,11 +32,39 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="SvcProvider"></param>
         public StandardQueries(
             ApplicationDbContext ContextArg,
-            UserManager<ApplicationUser> UserManagerArg
+            UserManager<ApplicationUser> UserManagerArg,
+            IAuditLogger AuditLogArg
             )
         {
             DbContext = ContextArg;
-            UserManager = UserManagerArg;
+            _userManager = UserManagerArg;
+            _auditLog = AuditLogArg;
+        }
+
+        /// <summary>
+        /// Creates a new user account
+        /// </summary>
+        /// <param name="UserNameArg"></param>
+        /// <param name="EmailArg"></param>
+        /// <returns>On success, returns the new ApplicationUser instance, null otherwise</returns>
+        internal async Task<(IdentityResult result, ApplicationUser user)> CreateNewAccount(string UserNameArg, string EmailArg)
+        {
+            var RequestedUser = new ApplicationUser
+            {
+                UserName = UserNameArg,
+                Email = EmailArg,
+            };
+            IdentityResult result = await _userManager.CreateAsync(RequestedUser);
+
+            if (result.Succeeded)
+            {
+                _auditLog.Log(AuditEventType.UserAccountCreated.ToEvent(RequestedUser));
+            }
+            else
+            {
+                RequestedUser = null;
+            }
+            return (result, RequestedUser);
         }
 
         /// <summary>
@@ -143,7 +174,7 @@ namespace MillimanAccessPortal.DataQueries
         /// <returns></returns>
         internal async Task<ApplicationUser> GetCurrentApplicationUser(ClaimsPrincipal User)
         {
-            return await UserManager.GetUserAsync(User);
+            return await _userManager.GetUserAsync(User);
         }
 
     }

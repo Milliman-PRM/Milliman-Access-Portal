@@ -8,6 +8,7 @@ import { FileUploadInput } from './form-input/file-upload';
 import { AccessMode, SubmissionMode } from './form-modes';
 import { FormInputSection, FormSubmissionSection } from './form-section';
 import { SubmissionGroup } from './form-submission';
+import { NullableTextareaInput } from './form-input/nullable-textarea';
 
 export class FormBase extends FormElement {
   public inputSections: FormInputSection[];
@@ -61,7 +62,7 @@ export class FormBase extends FormElement {
     return this._token;
   }
 
-  public constructor() {
+  public constructor(readonly defaultWelcomeText: string = '') {
     super();
   }
 
@@ -75,7 +76,7 @@ export class FormBase extends FormElement {
     this.inputSections = childElements
       .map((x: HTMLElement) => ({
         element: x,
-        section: new FormInputSection(),
+        section: new FormInputSection(this.defaultWelcomeText),
       }))
       .filter((x) => $(x.element).is(`.${x.section.cssClasses.main}`))
       .map((x) => {
@@ -127,13 +128,19 @@ export class FormBase extends FormElement {
     this.submissionSection.submissions
       .forEach((submission) => submission.setCallbacks(modes, this));
 
-    // Create upload objects
+    // Create upload objects, configure special inputs
     this.inputSections.forEach((section) => {
       section.inputs
         .filter((input) => input instanceof FileUploadInput)
         .forEach((upload) => {
           const uploadInput = upload as FileUploadInput;
           uploadInput.configure(this.token);
+        });
+      section.inputs
+        .filter((input) => input instanceof NullableTextareaInput)
+        .forEach((textarea) => {
+          const nullableTextareaInput = textarea as NullableTextareaInput;
+          nullableTextareaInput.configure();
         });
     });
   }

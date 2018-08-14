@@ -38,7 +38,9 @@ namespace MapTests
                 TestResources.MessageQueueServicesObject,
                 TestResources.RoleManagerObject,
                 TestResources.QueriesObj,
-                TestResources.UserManagerObject);
+                TestResources.UserManagerObject,
+                TestResources.ConfigurationObject,
+                null);   // AccountController
 
         // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
         testController.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: (await TestResources.UserManagerObject.FindByNameAsync(UserName)).UserName);
@@ -298,8 +300,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-            StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal("422", viewResult.StatusCode.ToString());
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             #endregion
         }
 
@@ -389,8 +390,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-            StatusCodeResult viewResult = (StatusCodeResult) view;
-            Assert.Equal("422", viewResult.StatusCode.ToString());
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             Assert.Equal(preCount, postCount);
             #endregion
         }
@@ -705,10 +705,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-
-            StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal<int>(422, viewResult.StatusCode);
-
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             #endregion
         }
 
@@ -879,9 +876,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-
-            StatusCodeResult statusCodeResult = (StatusCodeResult)view;
-            Assert.Equal<int>(422, statusCodeResult.StatusCode);
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             #endregion
         }
 
@@ -994,6 +989,8 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+            ApplicationUser AppUser = await TestResources.UserManagerObject.FindByNameAsync("ClientAdmin1");
+            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, "password");
             #endregion
 
             #region Act
@@ -1002,9 +999,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-
-            StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal<int>(422, viewResult.StatusCode);
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             #endregion
         }
 
@@ -1016,6 +1011,8 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+            ApplicationUser AppUser = await TestResources.UserManagerObject.FindByNameAsync("ClientAdmin1");
+            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, "password");
             #endregion
 
             #region Act
@@ -1024,9 +1021,7 @@ namespace MapTests
 
             #region Assert
             Assert.IsType<StatusCodeResult>(view);
-
-            StatusCodeResult viewResult = (StatusCodeResult)view;
-            Assert.Equal<int>(422, viewResult.StatusCode);
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
             #endregion
         }
 
@@ -1038,6 +1033,8 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+            ApplicationUser AppUser = await TestResources.UserManagerObject.FindByNameAsync("ClientAdmin1");
+            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, "password");
 
             int clientPreCount = TestResources.DbContextObject.Client.Count();
             int claimsPreCount = TestResources.DbContextObject.UserClaims.Count();

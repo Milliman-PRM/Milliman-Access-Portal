@@ -45,6 +45,8 @@ We will utilize multiple Azure products to build the production environment. Mos
 
 * **Azure Security Center** - Monitor our Azure infrastructure and alert security staff about possible issues.
 
+* **Azure Site Recovery** - Maintain copies of VMs in the case of data center loss or other large-scale disaster. Additional details are outlined in the [System Recovery document](System%20Recovery.md).
+
 ## Virtual Machines
 
 VMs in the MAP environment are segmented by function and user access. Throughout this document, VMs will be referred to by category, not by name.
@@ -119,7 +121,7 @@ We will utilize Azure Security Center to monitor for potential issues within our
 
 ### File system Encryption
 
-Virtual machines' file systems must be encrypted at all times.
+VM disks are stored in [encrypted storage accounts](https://docs.microsoft.com/en-us/azure/storage/common/storage-service-encryption) managed by Microsoft. Each VM is stored in a separate account, and Microsoft does not have access to the data.
 
 ### Configuration Encryption
 

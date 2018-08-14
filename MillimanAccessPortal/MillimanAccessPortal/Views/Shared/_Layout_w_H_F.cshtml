@@ -1,0 +1,17 @@
+﻿@{
+    Layout = "_Layout";
+}
+
+@section CSS {
+    @RenderSection("CSS", required: false)
+}
+
+<div id="content-wrapper">
+    @Html.Partial("_Header")
+    @RenderBody()
+    @Html.Partial("_Footer")
+</div>
+
+@section Scripts {
+    @RenderSection("Scripts", required: false)
+}

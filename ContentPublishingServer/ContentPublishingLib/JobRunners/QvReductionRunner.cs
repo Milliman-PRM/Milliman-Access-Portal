@@ -16,6 +16,7 @@ using AuditLogLib;
 using AuditLogLib.Services;
 using QlikviewLib.Qms;
 using MapCommonLib;
+using AuditLogLib.Event;
 
 namespace ContentPublishingLib.JobRunners
 {
@@ -111,9 +112,12 @@ namespace ContentPublishingLib.JobRunners
                     #region Extract master content hierarchy
                     JobDetail.Result.MasterContentHierarchy = await ExtractReductionHierarchy(MasterDocumentNode);
 
-                    DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), JobAction = JobDetail.Request.JobAction, Hierarchy = JobDetail.Result.MasterContentHierarchy };
-                    Event = AuditEvent.New("Reduction server", "Extraction of master content hierarchy succeeded", AuditEventId.HierarchyExtractionSucceeded, DetailObj);
-                    AuditLog.Log(Event);
+                    DetailObj = new {
+                        ReductionJobId = JobDetail.TaskId.ToString(),
+                        JobAction = JobDetail.Request.JobAction,
+                        Hierarchy = JobDetail.Result.MasterContentHierarchy,
+                    };
+                    AuditLog.Log(AuditEventType.HierarchyExtractionSucceeded.ToEvent(DetailObj));
                     #endregion
 
                     _CancellationToken.ThrowIfCancellationRequested();
@@ -123,9 +127,11 @@ namespace ContentPublishingLib.JobRunners
                         #region Create reduced content
                         await CreateReducedContent();
 
-                        DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), RequestedSelections = JobDetail.Request.SelectionCriteria };
-                        Event = AuditEvent.New("Reduction server", "Creation of reduced content succeeded", AuditEventId.ContentReductionSucceeded, DetailObj);
-                        AuditLog.Log(Event);
+                        DetailObj = new {
+                            ReductionJobId = JobDetail.TaskId.ToString(),
+                            RequestedSelections = JobDetail.Request.SelectionCriteria,
+                        };
+                        AuditLog.Log(AuditEventType.ContentReductionSucceeded.ToEvent(DetailObj));
                         #endregion
 
                         _CancellationToken.ThrowIfCancellationRequested();
@@ -133,9 +139,12 @@ namespace ContentPublishingLib.JobRunners
                         #region Extract reduced content hierarchy
                         JobDetail.Result.ReducedContentHierarchy = await ExtractReductionHierarchy(ReducedDocumentNode);
 
-                        DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), JobAction = JobDetail.Request.JobAction, Hierarchy = JobDetail.Result.ReducedContentHierarchy };
-                        Event = AuditEvent.New("Reduction server", "Extraction of reduced content hierarchy succeeded", AuditEventId.HierarchyExtractionSucceeded, DetailObj);
-                        AuditLog.Log(Event);
+                        DetailObj = new {
+                            ReductionJobId = JobDetail.TaskId.ToString(),
+                            JobAction = JobDetail.Request.JobAction,
+                            Hierarchy = JobDetail.Result.ReducedContentHierarchy,
+                        };
+                        AuditLog.Log(AuditEventType.HierarchyExtractionSucceeded.ToEvent(DetailObj));
                         #endregion
 
                         _CancellationToken.ThrowIfCancellationRequested();
@@ -220,9 +229,11 @@ namespace ContentPublishingLib.JobRunners
             {
                 MethodBase Method = MethodBase.GetCurrentMethod();
 
-                object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), Error = Msg};
-                AuditEvent Event = AuditEvent.New("Reduction server", "Validation of processing prerequisites failed", AuditEventId.ReductionValidationFailed, DetailObj);
-                AuditLog.Log(Event);
+                object DetailObj = new {
+                    ReductionJobId = JobDetail.TaskId.ToString(),
+                    Error = Msg,
+                };
+                AuditLog.Log(AuditEventType.ReductionValidationFailed.ToEvent(DetailObj));
 
                 Msg = $"Error in {Method.ReflectedType.Name}.{Method.Name}: {Msg}";
 
@@ -283,7 +294,7 @@ namespace ContentPublishingLib.JobRunners
 
             // Create ancillary script
             string AncillaryScriptFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "ancillary_script.txt");
-            File.WriteAllText(AncillaryScriptFilePath, "LET DataExtraction=true();");
+            File.WriteAllText(AncillaryScriptFilePath, "LET DataExtraction=true(); LET MAP_Reduction=true();");
 
             // Create Qlikview publisher (QDS) task
             DocumentTask HierarchyTask = CreateHierarchyExtractionQdsTask(DocumentNodeArg);
@@ -330,9 +341,11 @@ namespace ContentPublishingLib.JobRunners
                 GlobalFunctions.TraceWriteLine($"Error converting file {ReductionSchemeFilePath} to json output.  Details:" + Environment.NewLine + e.Message);
 
                 // TODO may need to log more issues, like if the Qlikview task processing fails
-                object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), ExceptionMessage = e.Message };
-                AuditEvent Event = AuditEvent.New("Reduction server", "Extraction of hierarchy failed", AuditEventId.HierarchyExtractionFailed, DetailObj);
-                AuditLog.Log(Event);
+                object DetailObj = new {
+                    ReductionJobId = JobDetail.TaskId.ToString(),
+                    ExceptionMessage = e.Message,
+                };
+                AuditLog.Log(AuditEventType.HierarchyExtractionFailed.ToEvent(DetailObj));
             }
             finally
             {
@@ -369,9 +382,12 @@ namespace ContentPublishingLib.JobRunners
                 if (!JobDetail.Result.MasterContentHierarchy.Fields.Any(f => f.FieldName == SelectedFieldValue.FieldName))
                 {
                     string Msg = $"The requested reduction field <{SelectedFieldValue.FieldName}> is not found in the reduction hierarchy";
-                    object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), Error = Msg };
-                    AuditEvent Event = AuditEvent.New("Reduction server", "Creation of reduced content file failed", AuditEventId.ContentReductionFailed, DetailObj);
-                    AuditLog.Log(Event);
+                    object DetailObj = new {
+                        ReductionJobId = JobDetail.TaskId.ToString(),
+                        Error = Msg,
+                    };
+
+                    AuditLog.Log(AuditEventType.ContentReductionFailed.ToEvent(DetailObj));
                     GlobalFunctions.TraceWriteLine(Msg);
                     throw new ApplicationException(Msg);
                 }
@@ -383,9 +399,13 @@ namespace ContentPublishingLib.JobRunners
                                                               JobDetail.Result.MasterContentHierarchy.Fields.Any(f => f.FieldName == s.FieldName && f.FieldValues.Contains(s.FieldValue))))
             {
                 string Msg = $"No requested selections exist in the master hierarchy";
-                object DetailObj = new { ReductionJobId = JobDetail.TaskId.ToString(), RequestesSelections = JobDetail.Request.SelectionCriteria, Error = Msg };
-                AuditEvent Event = AuditEvent.New("Reduction server", "Creation of reduced content file failed", AuditEventId.ContentReductionFailed, DetailObj);
-                AuditLog.Log(Event);
+                object DetailObj = new {
+                    ReductionJobId = JobDetail.TaskId.ToString(),
+                    RequestesSelections = JobDetail.Request.SelectionCriteria,
+                    Error = Msg,
+                };
+
+                AuditLog.Log(AuditEventType.ContentReductionFailed.ToEvent(DetailObj));
                 GlobalFunctions.TraceWriteLine(Msg);
                 throw new ApplicationException(Msg);
             }

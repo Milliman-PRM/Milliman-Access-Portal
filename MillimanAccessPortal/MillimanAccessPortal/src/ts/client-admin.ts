@@ -37,6 +37,7 @@ const ajaxStatus: any = {};
 const SHOW_DURATION = 50;
 let eligibleUsers;
 let formObject: FormBase;
+let defaultWelcomeText: string;
 
 function domainRegex() {
   return new RegExp(globalSettings.domainValidationRegex);
@@ -95,6 +96,10 @@ function populateClientForm(response) {
           field[0].selectize.addOption({ value: item, text: item });
           field[0].selectize.addItem(item);
         });
+      } else if (key === 'NewUserWelcomeText') {
+        const cb = field.parent().parent().find('input');
+        cb.prop('checked', value !== null);
+        field.val(value);
       } else {
         field.val(value);
       }
@@ -133,7 +138,7 @@ function bindForm() {
     },
   );
 
-  formObject = new FormBase();
+  formObject = new FormBase(defaultWelcomeText);
   formObject.bindToDOM($clientForm[0]);
   formObject.configure([
     {
@@ -389,7 +394,7 @@ function saveNewUser(username, email, callback) {
   $.ajax({
     data: {
       Email: email,
-      MemberOfClientIdArray: [clientId],
+      MemberOfClientId: clientId,
       UserName: username || email,
     },
     headers: {
@@ -565,6 +570,7 @@ function getClientTree(clientId?) {
   }).done(function onDone(response) {
     populateProfitCenterDropDown(response.AuthorizedProfitCenterList);
     renderClientTree(response.ClientTreeList, clientId || response.RelevantClientId);
+    defaultWelcomeText = response.SystemDefaultWelcomeEmailText;
     $('#client-tree .loading-wrapper').hide();
   }).fail(function onFail(response) {
     $('#client-tree .loading-wrapper').hide();

@@ -51,22 +51,23 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
             var liveHierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>
                 .GetFieldSelectionsForSelectionGroup(dbContext, selectionGroup.Id);
 
-            var liveSelectionSet = selectionGroup.SelectedHierarchyFieldValueList.ToHashSet();
+            var liveSelectionSet = selectionGroup.SelectedHierarchyFieldValueList?.ToHashSet() ?? new HashSet<long>();
 
             // Convert the serialized content reduction hierarchy into a list of selected values
             HashSet<long> pendingSelectionSet = null;
             if (latestTask != null && outstandingStatus.Contains(latestTask.ReductionStatus))
             {
                 pendingSelectionSet = new HashSet<long>();
-                var hierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>
-                    .DeserializeJson(latestTask.SelectionCriteria);
-                foreach (var field in hierarchy.Fields)
+                if (latestTask.SelectionCriteria != null)
                 {
-                    foreach (var value in field.Values)
+                    foreach (var field in latestTask.SelectionCriteriaObj.Fields)
                     {
-                        if (value.SelectionStatus)
+                        foreach (var value in field.Values)
                         {
-                            pendingSelectionSet.Add(value.Id);
+                            if (value.SelectionStatus)
+                            {
+                                pendingSelectionSet.Add(value.Id);
+                            }
                         }
                     }
                 }

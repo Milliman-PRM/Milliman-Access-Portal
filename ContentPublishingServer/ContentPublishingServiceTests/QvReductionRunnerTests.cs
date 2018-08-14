@@ -184,7 +184,7 @@ namespace ContentPublishingServiceTests
             Assert.Null(TaskResult.ReducedContentHierarchy);
             Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFilePath));
             Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFileChecksum));
-            Assert.True(TaskResult.StatusMessage.Contains("No requested selections exist in the master hierarchy"));
+            Assert.Contains("No requested selections exist in the master hierarchy", TaskResult.StatusMessage);
             #endregion
         }
 

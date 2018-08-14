@@ -18,6 +18,7 @@ namespace MillimanAccessPortal.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasAnnotation("Npgsql:PostgresExtension:uuid-ossp", "'uuid-ossp', '', ''")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
                 .HasAnnotation("ProductVersion", "2.0.1-rtm-125");
 
@@ -26,7 +27,8 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string[]>("AcceptedEmailAddressExceptionList");
+                    b.Property<string[]>("AcceptedEmailAddressExceptionList")
+                        .IsRequired();
 
                     b.Property<string[]>("AcceptedEmailDomainList")
                         .IsRequired();
@@ -49,6 +51,8 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired();
+
+                    b.Property<string>("NewUserWelcomeText");
 
                     b.Property<long?>("ParentClientId");
 
@@ -476,6 +480,7 @@ namespace MillimanAccessPortal.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedEmail")
+                        .IsUnique()
                         .HasName("EmailIndex");
 
                     b.HasIndex("NormalizedUserName")
