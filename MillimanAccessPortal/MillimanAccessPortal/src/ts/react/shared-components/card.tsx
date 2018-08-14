@@ -6,6 +6,11 @@ import { Entity } from './entity';
 export interface CardProps extends Entity {
   selected: boolean;
   resetButton?: boolean;
+  sublistInfo: {
+    title: string;
+    icon: string;
+    emptyText: string;
+  };
 }
 
 interface CardState {
@@ -57,41 +62,43 @@ export class Card extends React.Component<CardProps, CardState> {
         </div>
       )
       : null;
-    const detailList = this.props.detailList && this.props.detailList.map((detail, i) => (
+    const detailList = this.props.sublist && this.props.sublist.map((subitem, i) => (
       <li
         key={i}
       >
         <span className="detail-item-user">
           <div className="detail-item-user-icon">
             <svg className="card-user-icon">
-              <use xlinkHref="#user" />
+              <use xlinkHref={`#${this.props.sublistInfo.icon}`} />
             </svg>
           </div>
           <div className="detail-item-user-name">
-            <h4 className="first-last">{detail}</h4>
-            <span className="user-name">{'<Username>'}</span>
+            <h4 className="first-last">{subitem.primaryText}</h4>
+            <span className="user-name">{subitem.secondaryText}</span>
           </div>
         </span>
       </li>
     ));
-    const expansion = this.props.detailList && (
-      <div className={'card-expansion-container' + (this.state.expanded ? ' maximized' : '')}>
-        <h4 className="card-expansion-category-label">Members</h4>
-        <ul>
-          {detailList}
-        </ul>
-        <div className="card-button-bottom-container">
-          <div
-            className="card-button-background card-button-expansion"
-            onClick={this.toggleExpansion}
-          >
-            <svg className="card-button-icon">
-              <use xlinkHref="#expand-card" />
-            </svg>
+    const expansion = this.props.sublist && this.props.sublist.length
+      ? (
+        <div className={'card-expansion-container' + (this.state.expanded ? ' maximized' : '')}>
+          <h4 className="card-expansion-category-label">{this.props.sublistInfo.title}</h4>
+          <ul>
+            {detailList}
+          </ul>
+          <div className="card-button-bottom-container">
+            <div
+              className="card-button-background card-button-expansion"
+              onClick={this.toggleExpansion}
+            >
+              <svg className="card-button-icon">
+                <use xlinkHref="#expand-card" />
+              </svg>
+            </div>
           </div>
         </div>
-      </div>
-    );
+      )
+      : null;
     const additionalClasses = [
       this.props.selected ? ' selected' : '',
       this.props.suspended ? ' suspended' : '',

@@ -18,6 +18,11 @@ export interface DataSource<T> {
   infoAction: string;
   detailAction: string;
   createAction: string;
+  sublistInfo?: {
+    title: string;
+    icon: string;
+    emptyText: string;
+  };
   processInfo: (response: any) => T[];
   assignQueryFilter: (id: number) => Partial<QueryFilter>;
 }

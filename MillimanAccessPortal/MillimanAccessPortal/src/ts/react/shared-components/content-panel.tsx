@@ -125,6 +125,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
             <Card
               {...entity}
               selected={entity.id === this.props.selectedCard}
+              sublistInfo={this.props.selectedDataSource.sublistInfo}
             />
           </li>
         ));
@@ -145,6 +146,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
             selected={entity.id === this.props.selectedCard}
             activated={entity.activated}
             resetButton={true}
+            sublistInfo={this.props.selectedDataSource.sublistInfo}
           />
         </li>
       ));
@@ -158,6 +160,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
           <Card
             {...entity}
             selected={entity.id === this.props.selectedCard}
+            sublistInfo={this.props.selectedDataSource.sublistInfo}
           />
         </li>
       ));
