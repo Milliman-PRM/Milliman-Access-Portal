@@ -86,7 +86,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
     return groups.map((itemGroup: ContentItemGroup) => {
       itemGroup.Items = itemGroup.Items.filter((item) =>
         [itemGroup.Name, item.Name, item.Description].filter((text) =>
-          text.toLowerCase().indexOf(this.state.filterString.toLowerCase()) > -1).length);
+          text && text.toLowerCase().indexOf(this.state.filterString.toLowerCase()) > -1).length);
       return itemGroup;
     }).filter((itemGroup: ContentItemGroup) => itemGroup.Items.length);
   }

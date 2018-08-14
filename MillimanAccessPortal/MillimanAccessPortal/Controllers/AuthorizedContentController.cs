@@ -290,7 +290,8 @@ namespace MillimanAccessPortal.Controllers
 
             string ErrMsg = $"Failed to load requested {purpose} PDF for SelectionGroup {selectionGroupId}";
             Logger.LogError(ErrMsg);
-            return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+            Response.Headers.Add("Warning", ErrMsg);
+            return StatusCode(StatusCodes.Status500InternalServerError);
         }
     }
 }
