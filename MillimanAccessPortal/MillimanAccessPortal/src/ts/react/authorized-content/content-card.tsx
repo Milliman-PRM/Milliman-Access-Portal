@@ -20,16 +20,20 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
             <div className='content-card-header'>
               <h2 className='content-card-title'>{this.props.Name}</h2>
               <div className='content-card-icons'>
-              <ActionIcon
-                action={() => this.props.selectContent(this.props.ReleaseNotesURL)}
-                title='View Release Notes'
-                icon='release-notes'
-              />
-              <ActionIcon
-                action={() => this.props.selectContent(this.props.UserguideURL)}
-                title='View Userguide'
-                icon='userguide'
-              />
+              {this.props.ReleaseNotesURL &&
+                <ActionIcon
+                  action={() => this.props.selectContent(this.props.ReleaseNotesURL)}
+                  title='View Release Notes'
+                  icon='release-notes'
+                />
+              }
+              {this.props.ReleaseNotesURL &&
+                <ActionIcon
+                  action={() => this.props.selectContent(this.props.UserguideURL)}
+                  title='View Userguide'
+                  icon='userguide'
+                />
+              }
               </div>
             </div>
             <div className='content-card-body'>

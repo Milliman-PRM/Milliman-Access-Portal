@@ -73,10 +73,10 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                         Id = sg.Id,
                         Name = sg.RootContentItem.ContentName,
                         Description = sg.RootContentItem.Description,
-                        ImageURL = $"{thumbnailUrlBuilder.Uri.AbsoluteUri}{sg.Id}",
+                        ImageURL = (sg.RootContentItem.ContentFilesList.Any(cf => cf.FilePurpose.ToLower() == "thumbnail")) ? $"{thumbnailUrlBuilder.Uri.AbsoluteUri}{sg.Id}" : null,
                         ContentURL = $"{contentUrlBuilder.Uri.AbsoluteUri}{sg.Id}",  // must be absolute because it is used in iframe element
-                        UserguideURL = $"{userGuideUrlBuilder.Uri.AbsoluteUri}{sg.Id}",
-                        ReleaseNotesURL = $"{releaseNotesUrlBuilder.Uri.AbsoluteUri}{sg.Id}",
+                        UserguideURL = (sg.RootContentItem.ContentFilesList.Any(cf => cf.FilePurpose.ToLower() == "userguide")) ? $"{userGuideUrlBuilder.Uri.AbsoluteUri}{sg.Id}" : null,
+                        ReleaseNotesURL = (sg.RootContentItem.ContentFilesList.Any(cf => cf.FilePurpose.ToLower() == "releasenotes")) ? $"{releaseNotesUrlBuilder.Uri.AbsoluteUri}{sg.Id}" : null,
                     }).OrderBy(item => item.Name).ToList(),
                 }).OrderBy(group => group.Name).ToList(),
             };
