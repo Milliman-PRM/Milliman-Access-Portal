@@ -1,4 +1,10 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Ben Wyatt, Tom Puckett
+ * OBJECTIVE: Create and configure password validators
+ * DEVELOPER NOTES: 
+ */
+ 
+ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
 using MapDbContextLib.Identity;
@@ -8,6 +14,13 @@ namespace MillimanAccessPortal.Services
 {
     public static class IdentityBuilderExtensions
     {
+        /// <summary>
+        /// Configure a password validator to check if a password was used within a specified number of recent passwords for the user
+        /// </summary>
+        /// <typeparam name="TUser"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="numberOfPasswordsArg"></param>
+        /// <returns></returns>
         public static IdentityBuilder AddRecentPasswordCountValidator<TUser>(this IdentityBuilder builder, int numberOfPasswordsArg)
             where TUser : ApplicationUser
         {
@@ -21,6 +34,13 @@ namespace MillimanAccessPortal.Services
             return builder;
         }
 
+        /// <summary>
+        /// Configure a password validator to check if a password was used within a specified number of days for the user
+        /// </summary>
+        /// <typeparam name="TUser"></typeparam>
+        /// <param name="builder"></param>
+        /// <param name="numberOfDaysArg"></param>
+        /// <returns></returns>
         public static IdentityBuilder AddRecentPasswordInDaysValidator<TUser>(this IdentityBuilder builder, int numberOfDaysArg)
             where TUser : ApplicationUser
         {
@@ -32,14 +52,6 @@ namespace MillimanAccessPortal.Services
             builder.Services.AddSingleton(typeof(IPasswordValidator<>).MakeGenericType(builder.UserType), validator);
 
             return builder;
-        }
-
-        public static IdentityBuilder AddPasswordEverUsedValidator<TUser>(this IdentityBuilder builder)
-            where TUser : ApplicationUser
-        {
-            if (builder == null) { throw new ArgumentNullException(nameof(builder)); }
-
-            return builder.AddPasswordValidator<PasswordHistoryValidator<TUser>>();
         }
     }
 }
