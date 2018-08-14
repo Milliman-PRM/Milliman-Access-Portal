@@ -20,7 +20,7 @@ namespace MillimanAccessPortal.Services
         public Task<IdentityResult> ValidateAsync(UserManager<TUser> manager, TUser user, string password)
         {
             // Check the specified number of recent passwords
-            if (user.PasswordRecentlyUsed(password, numberOfPasswords))
+            if (user.IsPasswordRecentlyUsed(password, numberOfPasswords))
             {
                 var result = IdentityResult.Failed(new IdentityError
                 {

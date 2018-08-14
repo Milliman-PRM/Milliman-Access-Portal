@@ -117,7 +117,7 @@ namespace MapDbContextLib.Identity
         /// <param name="passwordArg"></param>
         /// <param name="countArg"></param>
         /// <returns></returns>
-        public bool PasswordRecentlyUsed(string passwordArg, int countArg)
+        public bool IsPasswordRecentlyUsed(string passwordArg, int countArg)
         {
             List<PreviousPassword> history = GetRecentPasswords(countArg);
 
@@ -135,7 +135,7 @@ namespace MapDbContextLib.Identity
         /// <param name="passwordArg"></param>
         /// <param name="timeArg"></param>
         /// <returns></returns>
-        public bool PasswordRecentlyUsed(string passwordArg, DateTime timeArg)
+        public bool IsPasswordRecentlyUsed(string passwordArg, DateTime timeArg)
         {
             List<PreviousPassword> history = RecentPasswords(timeArg);
 

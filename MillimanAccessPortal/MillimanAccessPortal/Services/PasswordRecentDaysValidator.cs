@@ -23,7 +23,7 @@ namespace MillimanAccessPortal.Services
             DateTime beginningTime = DateTime.Now.Subtract(new TimeSpan(numberOfDays, 0, 0, 0));
             
             // Check the specified number of days of history
-            if (user.PasswordRecentlyUsed(password, beginningTime))
+            if (user.IsPasswordRecentlyUsed(password, beginningTime))
             {
                 var result = IdentityResult.Failed(new IdentityError
                 {
