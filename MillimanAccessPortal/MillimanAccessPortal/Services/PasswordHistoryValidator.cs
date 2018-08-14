@@ -18,7 +18,7 @@ namespace MillimanAccessPortal.Services
 
         public Task<IdentityResult> ValidateAsync(UserManager<TUser> manager, TUser user, string password)
         {
-            if (user.PasswordIsInHistory(password))
+            if (user.IsPasswordInHistory(password))
             {
                 var result = IdentityResult.Failed(new IdentityError
                 {

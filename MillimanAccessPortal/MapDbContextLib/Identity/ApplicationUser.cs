@@ -106,7 +106,7 @@ namespace MapDbContextLib.Identity
         /// </summary>
         /// <param name="passwordArg"></param>
         /// <returns></returns>
-        public bool PasswordIsInHistory(string passwordArg)
+        public bool IsPasswordInHistory(string passwordArg)
         {
             return SearchPasswordHistory(PasswordHistoryObj, passwordArg);
         }
