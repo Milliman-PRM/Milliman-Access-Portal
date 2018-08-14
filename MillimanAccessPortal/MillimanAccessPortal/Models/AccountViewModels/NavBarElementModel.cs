@@ -2,7 +2,7 @@
 
 namespace MillimanAccessPortal.Models.AccountViewModels
 {
-    public class NavBarElement
+    public class NavBarElementModel
     {
         [Required]
         public long Order { get; set; }

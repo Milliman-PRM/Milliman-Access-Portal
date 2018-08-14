@@ -487,20 +487,20 @@ namespace MillimanAccessPortal.Controllers
         // GET: /Account/NavBar
         [HttpGet]
         [Authorize]
-        public async Task<JsonResult> NavBarOptions() {
+        public async Task<JsonResult> NavBarElements() {
             AuthorizationResult SystemAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
             AuthorizationResult ClientAdminResult1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, null));
             AuthorizationResult ClientAdminResult2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin, null));
             AuthorizationResult ContentAccessResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
             AuthorizationResult ContentPublishResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, null));
 
-            List<NavBarElement> NavBarElements = new List<NavBarElement> { };
+            List<NavBarElementModel> NavBarElements = new List<NavBarElementModel> { };
             long order = 1;
 
             // Add the Authorized Content Element
-            NavBarElements.Add(new NavBarElement
+            NavBarElements.Add(new NavBarElementModel
             {
-                Order = order,
+                Order = order++,
                 Label = "Authorized Content",
                 URL = nameof(AuthorizedContentController).Replace("Controller", ""),
                 Icon = "content-grid",
@@ -509,10 +509,9 @@ namespace MillimanAccessPortal.Controllers
             // Conditionally add the Client Admin Element
             if (SystemAdminResult.Succeeded)
             {
-                order++;
-                NavBarElements.Add(new NavBarElement
+                NavBarElements.Add(new NavBarElementModel
                 {
-                    Order = order,
+                    Order = order++,
                     Label = "System Admin",
                     URL = nameof(SystemAdminController).Replace("Controller", ""),
                     Icon = "system-admin",
@@ -522,10 +521,9 @@ namespace MillimanAccessPortal.Controllers
             // Conditionally add the Client Admin Element
             if (ClientAdminResult1.Succeeded || ClientAdminResult2.Succeeded)
             {
-                order++;
-                NavBarElements.Add(new NavBarElement
+                NavBarElements.Add(new NavBarElementModel
                 {
-                    Order = order,
+                    Order = order++,
                     Label = "Manage Clients",
                     URL = nameof(ClientAdminController).Replace("Controller", ""),
                     Icon = "client-admin",
@@ -535,10 +533,9 @@ namespace MillimanAccessPortal.Controllers
             // Conditionally add the Content Access Element
             if (ContentAccessResult.Succeeded)
             {
-                order++;
-                NavBarElements.Add(new NavBarElement
+                NavBarElements.Add(new NavBarElementModel
                 {
-                    Order = order,
+                    Order = order++,
                     Label = "Manage Access",
                     URL = nameof(ContentAccessAdminController).Replace("Controller", ""),
                     Icon = "content-access",
@@ -548,10 +545,9 @@ namespace MillimanAccessPortal.Controllers
             // Conditionally add the Content Publishing Element
             if (ContentPublishResult.Succeeded)
             {
-                order++;
-                NavBarElements.Add(new NavBarElement
+                NavBarElements.Add(new NavBarElementModel
                 {
-                    Order = order,
+                    Order = order++,
                     Label = "Publish Content",
                     URL = nameof(ContentPublishingController).Replace("Controller", ""),
                     Icon = "content-publishing",
