@@ -70,14 +70,16 @@ namespace MillimanAccessPortal
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(appConnectionString, b => b.MigrationsAssembly("MillimanAccessPortal")));
             #endregion
-            
+
+            int passwordHistoryDays = Configuration.GetValue<int>("PasswordHistoryValidatorDays");
+
             // Do not add AuditLogDbContext.  This context should be protected from direct access.  Use the api class instead.  -TP
 
             services.AddIdentity<ApplicationUser, ApplicationRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders()
                 .AddTop100000PasswordValidator<ApplicationUser>()
-                .AddPasswordValidator<PasswordRecentDaysValidator<ApplicationUser>>();
+                .AddRecentPasswordInDaysValidator<ApplicationUser>(passwordHistoryDays);
 
             services.Configure<PasswordHasherOptions>(options => options.IterationCount = 100_000);
 
