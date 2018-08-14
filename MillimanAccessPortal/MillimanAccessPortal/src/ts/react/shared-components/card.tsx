@@ -1,9 +1,11 @@
+import { ajax } from 'jquery';
 import * as React from 'react';
 
 import { Entity } from './entity';
 
 export interface CardProps extends Entity {
   selected: boolean;
+  resetButton?: boolean;
 }
 
 export class Card extends React.Component<CardProps, {}> {
@@ -15,6 +17,8 @@ export class Card extends React.Component<CardProps, {}> {
 
   public constructor(props) {
     super(props);
+
+    this.sendPasswordReset = this.sendPasswordReset.bind(this);
   }
 
   public render() {
@@ -32,6 +36,18 @@ export class Card extends React.Component<CardProps, {}> {
           <h4 className="card-stat-value">{stat.value}</h4>
         </div>
       ));
+    const sideButtons = this.props.resetButton
+      ? (
+        <div
+          className="card-button-background card-button-blue"
+          onClick={this.sendPasswordReset}
+        >
+          <svg className="card-button-icon">
+            <use xlinkHref="#email" />
+          </svg>
+        </div>
+      )
+      : null;
     const detailList = this.props.detailList && this.props.detailList.map((detail, i) => (
       <li
         key={i}
@@ -67,11 +83,28 @@ export class Card extends React.Component<CardProps, {}> {
             <div className="card-stats-container">
               {stats}
             </div>
+            <div className="card-button-side-container">
+              {sideButtons}
+            </div>
           </div>
           {expansion}
         </div>
       </div>
     );
+  }
+
+  private sendPasswordReset() {
+    ajax({
+      data: {
+        userId: this.props.id,
+      },
+      method: 'POST',
+      url: '',
+    }).done((response) => {
+      console.log('Password reset email sent!');
+    }).fail((response) => {
+      throw new Error(response.getResponseHeader('Warning') || 'Unknown error');
+    });
   }
 }
 

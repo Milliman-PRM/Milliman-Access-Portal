@@ -144,6 +144,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
             {...entity}
             selected={entity.id === this.props.selectedCard}
             activated={entity.activated}
+            resetButton={true}
           />
         </li>
       ));
