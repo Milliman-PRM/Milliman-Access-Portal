@@ -25,6 +25,7 @@ using MillimanAccessPortal.Services;
 using AuditLogLib;
 using AuditLogLib.Services;
 using AuditLogLib.Event;
+using MillimanAccessPortal.Authorization;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -38,6 +39,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly ILogger _logger;
         private readonly IAuditLogger _auditLogger;
         private readonly StandardQueries Queries;
+        private readonly IAuthorizationService AuthorizationService;
 
         public AccountController(
             ApplicationDbContext ContextArg,
@@ -46,7 +48,8 @@ namespace MillimanAccessPortal.Controllers
             IMessageQueue messageSender,
             ILoggerFactory loggerFactory,
             IAuditLogger AuditLoggerArg,
-            StandardQueries QueriesArg)
+            StandardQueries QueriesArg,
+            IAuthorizationService AuthorizationServiceArg)
         {
             DbContext = ContextArg;
             _userManager = userManager;
@@ -55,6 +58,7 @@ namespace MillimanAccessPortal.Controllers
             _logger = loggerFactory.CreateLogger<AccountController>();
             _auditLogger = AuditLoggerArg;
             Queries = QueriesArg;
+            AuthorizationService = AuthorizationServiceArg;
         }
 
         //
@@ -477,6 +481,84 @@ namespace MillimanAccessPortal.Controllers
         public IActionResult ResetPasswordConfirmation()
         {
             return View();
+        }
+
+        //
+        // GET: /Account/NavBar
+        [HttpGet]
+        [Authorize]
+        public async Task<JsonResult> NavBarOptions() {
+            AuthorizationResult SystemAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+            AuthorizationResult ClientAdminResult1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, null));
+            AuthorizationResult ClientAdminResult2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin, null));
+            AuthorizationResult ContentAccessResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
+            AuthorizationResult ContentPublishResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, null));
+
+            List<NavBarElement> NavBarElements = new List<NavBarElement> { };
+            long order = 1;
+
+            // Add the Authorized Content Element
+            NavBarElements.Add(new NavBarElement
+            {
+                Order = order,
+                Label = "Authorized Content",
+                URL = nameof(AuthorizedContentController).Replace("Controller", ""),
+                Icon = "content-grid",
+            });
+
+            // Conditionally add the Client Admin Element
+            if (SystemAdminResult.Succeeded)
+            {
+                order++;
+                NavBarElements.Add(new NavBarElement
+                {
+                    Order = order,
+                    Label = "System Admin",
+                    URL = nameof(SystemAdminController).Replace("Controller", ""),
+                    Icon = "system-admin",
+                });
+            }
+
+            // Conditionally add the Client Admin Element
+            if (ClientAdminResult1.Succeeded || ClientAdminResult2.Succeeded)
+            {
+                order++;
+                NavBarElements.Add(new NavBarElement
+                {
+                    Order = order,
+                    Label = "Manage Clients",
+                    URL = nameof(ClientAdminController).Replace("Controller", ""),
+                    Icon = "client-admin",
+                });
+            }
+
+            // Conditionally add the Content Access Element
+            if (ContentAccessResult.Succeeded)
+            {
+                order++;
+                NavBarElements.Add(new NavBarElement
+                {
+                    Order = order,
+                    Label = "Manage Access",
+                    URL = nameof(ContentAccessAdminController).Replace("Controller", ""),
+                    Icon = "content-access",
+                });
+            }
+
+            // Conditionally add the Content Publishing Element
+            if (ContentPublishResult.Succeeded)
+            {
+                order++;
+                NavBarElements.Add(new NavBarElement
+                {
+                    Order = order,
+                    Label = "Publish Content",
+                    URL = nameof(ContentPublishingController).Replace("Controller", ""),
+                    Icon = "content-publishing",
+                });
+            }
+
+            return Json(NavBarElements);
         }
 
         //
