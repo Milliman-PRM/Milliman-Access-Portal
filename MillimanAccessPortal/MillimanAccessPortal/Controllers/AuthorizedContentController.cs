@@ -177,7 +177,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="selectionGroupId">The primary key value of the SelectionGroup authorizing this user to the requested content</param>
         /// <returns>A View (and model) that displays the requested content</returns>
         [Authorize]
-        public async Task<IActionResult> Thumbnail(long selectionGroupId)
+        public IActionResult Thumbnail(long selectionGroupId)
         {
             var selectionGroup = DataContext.SelectionGroup
                                             .Include(sg => sg.RootContentItem)
@@ -190,21 +190,6 @@ namespace MillimanAccessPortal.Controllers
                 string Msg = $"Failed to obtain the requested selection group, root content item, or content type";
                 Logger.LogError(Msg);
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
-            }
-            #endregion
-
-            #region Authorization
-            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
-                {
-                    new UserInSelectionGroupRequirement(selectionGroupId),
-                    new RoleInClientRequirement(RoleEnum.ContentUser, selectionGroup.RootContentItem.ClientId),
-                });
-            if (!Result1.Succeeded)
-            {
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
-
-                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
-                return Unauthorized();
             }
             #endregion
 
@@ -261,11 +246,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
-                {
-                    new UserInSelectionGroupRequirement(selectionGroupId),
-                    new RoleInClientRequirement(RoleEnum.ContentUser, selectionGroup.RootContentItem.ClientId),
-                });
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new UserInSelectionGroupRequirement(selectionGroupId));
             if (!Result1.Succeeded)
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
