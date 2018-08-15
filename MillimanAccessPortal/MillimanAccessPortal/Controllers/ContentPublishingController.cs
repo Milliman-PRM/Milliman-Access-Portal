@@ -219,18 +219,22 @@ namespace MillimanAccessPortal.Controllers
                 // Copy user roles for the new root content item from its client.
                 // In the future, root content item management and publishing roles may
                 // be separated in which case this automatic role copy should be removed.
-                var automaticRoles = DbContext.UserRoleInClient
-                    .Where(r => r.ClientId == rootContentItem.ClientId)
-                    .Where(r => r.RoleId == ((long) RoleEnum.ContentPublisher))
-                    .Select(r => new UserRoleInRootContentItem
-                    {
-                        UserId = r.UserId,
-                        RootContentItemId = rootContentItem.Id,
-                        RoleId = ((long) RoleEnum.ContentPublisher),
-                    });
-                DbContext.UserRoleInRootContentItem.AddRange(automaticRoles);
-                DbContext.SaveChanges();
+                List<RoleEnum> RolesToInheritFromClient = new List<RoleEnum> { RoleEnum.ContentAccessAdmin, RoleEnum.ContentPublisher };
 
+                foreach (RoleEnum role in RolesToInheritFromClient)
+                {
+                    var inheritedRoles = DbContext.UserRoleInClient
+                        .Where(r => r.ClientId == rootContentItem.ClientId)
+                        .Where(r => r.RoleId == ((long)role))
+                        .Select(r => new UserRoleInRootContentItem
+                        {
+                            UserId = r.UserId,
+                            RootContentItemId = rootContentItem.Id,
+                            RoleId = ((long)role),
+                        });
+                    DbContext.UserRoleInRootContentItem.AddRange(inheritedRoles);
+                }
+                DbContext.SaveChanges();
                 DbTransaction.Commit();
             }
 

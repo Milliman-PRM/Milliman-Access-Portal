@@ -18,5 +18,7 @@ namespace EmailQueue
         public string SmtpFromAddress { get; set; }
         public string SmtpFromName { get; set; }
         public int MaximumSendAttempts { get; set; }
+        public string SmtpUsername { get; set; }
+        public string SmtpPassword { get; set; }
     }
 }

@@ -1,0 +1,98 @@
+﻿@model EnableAccountViewModel;
+
+@{
+    /*
+     * CODE OWNERS: Joseph Sweeney
+     * OBJECTIVE: Allow the user to enable their account
+     * DEVELOPER NOTES:
+     */
+
+    ViewData["Title"] = "Account Activation";
+    Layout = "_Layout_w_H_F";
+    ViewData["NavIcon"] = "EnableAccount";
+}
+
+@section Scripts {
+    <script src="~/js/enable-account.bundle.js"></script>
+}
+
+<div id="enable-account-container">
+    <div id="enable-account" class="admin-panel-container flex-item-for-phone-only-12-12 flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-5-12">
+        <div class="loading-wrapper" style="display: none;">
+            @Html.Partial("~/Views/Shared/_Loader.cshtml")
+        </div>
+        <div class="admin-panel-content-container">
+            <form id="enable-account-form" class="admin-panel-content" autocomplete="off" action="EnableAccount/" method="post">
+                <div class="form-section-container">
+                    <div class="form-section" style="display: none;">
+                        <div class="form-input-container">
+                            <div class="form-input form-input-text flex-item-12-12">
+                                <div>
+                                    <input asp-for="Id" data-original-value="@Model.Id" />
+                                    <span asp-validation-for="Id" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="form-input form-input-text flex-item-12-12">
+                                <div>
+                                    <input asp-for="Code" data-original-value="@Model.Code" />
+                                    <span asp-validation-for="Code" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-section" data-section="account">
+                        <h4 class="form-section-title">Activate Account</h4>
+                        <div class="form-input-container">
+                            <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                                <label class="form-input-text-title" asp-for="FirstName"></label>
+                                <div>
+                                    <input asp-for="FirstName" data-original-value="@Model.FirstName" />
+                                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+                                <label class="form-input-text-title" asp-for="LastName"></label>
+                                <div>
+                                    <input asp-for="LastName" data-original-value="@Model.LastName" />
+                                    <span asp-validation-for="LastName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-4-12">
+                                <label class="form-input-text-title" asp-for="Phone"></label>
+                                <div>
+                                    <input asp-for="Phone" data-original-value="@Model.Phone" />
+                                    <span asp-validation-for="Phone" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-8-12">
+                                <label class="form-input-text-title" asp-for="Employer"></label>
+                                <div>
+                                    <input asp-for="Employer" data-original-value="@Model.Employer" />
+                                    <span asp-validation-for="Employer" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="form-input form-input-text flex-item-12-12">
+                                <label class="form-input-text-title" asp-for="NewPassword"></label>
+                                <div>
+                                    <input asp-for="NewPassword" data-original-value="@Model.NewPassword" />
+                                    <span asp-validation-for="NewPassword" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="form-input form-input-text flex-item-12-12">
+                                <label class="form-input-text-title" asp-for="ConfirmNewPassword"></label>
+                                <div>
+                                    <input asp-for="ConfirmNewPassword" data-original-value="@Model.ConfirmNewPassword" />
+                                    <span asp-validation-for="ConfirmNewPassword" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="button-submit blue-button">Activate Account</button>
+                        <div class="form-antiforgery-token" style="display: none;">
+                            @Html.AntiForgeryToken()
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

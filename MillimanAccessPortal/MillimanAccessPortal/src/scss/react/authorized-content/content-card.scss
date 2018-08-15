@@ -29,6 +29,7 @@
         padding: 1em;
         cursor: pointer;
         border-radius: .25em;
+        border: 1px solid $charcoal;
 
 
         &:hover {
@@ -41,6 +42,7 @@
             flex-flow: row nowrap;
             flex: none;
             justify-content: flex-start;
+            margin-bottom: .5em;
 
             .content-card-title {
                 margin: 0 0 .25em;

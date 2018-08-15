@@ -19,43 +19,6 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
     /// </summary>
     public class ApplicationUserViewModel
     {
-        public ApplicationUserViewModel()
-        { }
-
-        /// <summary>
-        /// Type conversion constructor, converts an ApplicationUser to this type
-        /// </summary>
-        /// <param name="UserArg"></param>
-        /// <param name="userManager">Provide this if an array of client membership Ids is to be assigned</param>
-        public static async Task<ApplicationUserViewModel> New(ApplicationUser UserArg, UserManager<ApplicationUser> userManager = null)
-        {
-            ApplicationUserViewModel ReturnObject = new ApplicationUserViewModel
-            {
-                Id = UserArg.Id,
-                UserName = UserArg.UserName,
-                Email = UserArg.Email,
-                FirstName = UserArg.FirstName,
-                LastName = UserArg.LastName,
-                PhoneNumber = UserArg.PhoneNumber,
-                Employer = UserArg.Employer,
-            };
-
-            if (userManager != null)
-            {
-                IList<Claim> ClaimsForUserArg = await userManager.GetClaimsAsync(UserArg);
-                ReturnObject.MemberOfClientIdArray = ClaimsForUserArg
-                                                        .Where(c => c.Type == ClaimNames.ClientMembership.ToString())
-                                                        .Select(c =>
-                                                                {
-                                                                    long.TryParse(c.Value, out long ClientIdOfClaim);
-                                                                    return ClientIdOfClaim;
-                                                                })
-                                                        .ToArray();
-            }
-
-            return ReturnObject;
-        }
-
         public long Id { get; set; }
 
         public string UserName { get; set; }
@@ -70,7 +33,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
 
         public string Employer { get; set; }
 
-        public long[] MemberOfClientIdArray { get; set; } = new long[0];
+        public long? MemberOfClientId { get; set; } = null;
 
     }
 }

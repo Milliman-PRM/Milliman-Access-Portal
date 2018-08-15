@@ -75,7 +75,10 @@ namespace MillimanAccessPortal
 
             // Do not add AuditLogDbContext.  This context should be protected from direct access.  Use the api class instead.  -TP
 
-            services.AddIdentity<ApplicationUser, ApplicationRole>()
+            services.AddIdentity<ApplicationUser, ApplicationRole>(config =>
+                {
+                    config.SignIn.RequireConfirmedEmail = true;
+                })
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders()
                 .AddTop100000PasswordValidator<ApplicationUser>()
@@ -126,6 +129,7 @@ namespace MillimanAccessPortal
                              .Build();
                 config.Filters.Add(new AuthorizeFilter(policy));
             })
+            .AddControllersAsServices()
             .AddJsonOptions(opt =>
             {
                 var resolver = opt.SerializerSettings.ContractResolver;
@@ -143,13 +147,13 @@ namespace MillimanAccessPortal
             }
             services.AddSingleton<IFileProvider>(new PhysicalFileProvider(fileUploadPath));
 
-            // Depends on UserManager from Identity, which is scoped, so don't add the following as singleton
+            // These depend on UserManager from Identity, which is scoped, so don't add the following as singleton
             services.AddScoped<IAuthorizationHandler, MapAuthorizationHandler>();
             services.AddScoped<IAuditLogger, AuditLogger>();
+            services.AddScoped<StandardQueries>();
 
             // Add application services.
             services.AddTransient<IMessageQueue, MessageQueueServices>();
-            services.AddScoped<StandardQueries>();
             services.AddScoped<IUploadHelper, UploadHelper>();
         }
 
@@ -224,7 +228,9 @@ namespace MillimanAccessPortal
                 SmtpServer = Configuration.GetValue<string>("SmtpServer"),
                 SmtpPort = Configuration.GetValue<int>("SmtpPort"),
                 SmtpFromAddress = Configuration.GetValue<string>("SmtpFromAddress"),
-                SmtpFromName = Configuration.GetValue<string>("SmtpFromName")
+                SmtpFromName = Configuration.GetValue<string>("SmtpFromName"),
+                SmtpUsername = Configuration.GetValue<string>("SmtpUsername"),
+                SmtpPassword = Configuration.GetValue<string>("SmtpPassword")
             });
 
             #region Configure Audit Logger connection string

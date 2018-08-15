@@ -82,7 +82,7 @@ function initializeContactForm() {
     input: [
       '<h2 id="contact-title">Contact Support</h2>',
       '<form id="contact-form" asp-controller="Message" asp-action="SendEmailFromUser" method="post">',
-      '<input id="recipient" type="hidden" name="recipient" value="prm.support@milliman.com" />',
+      '<input id="recipient" type="hidden" name="recipient" value="support.78832.5ad4ee0bf11242a6@helpscout.net" />',
       '<div>',
       '<select id="subject" name="subject" required>',
       '<option value="">Please Select a Topic</option>',
