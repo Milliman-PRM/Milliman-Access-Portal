@@ -54,6 +54,7 @@ export class Card extends React.Component<CardProps, CardState> {
       ? (
         <div
           className="card-button-background card-button-blue"
+          title="Send password reset email"
           onClick={this.sendPasswordReset}
         >
           <svg className="card-button-icon">
