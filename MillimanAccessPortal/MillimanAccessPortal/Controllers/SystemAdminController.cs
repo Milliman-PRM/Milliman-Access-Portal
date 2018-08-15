@@ -605,7 +605,10 @@ namespace MillimanAccessPortal.Controllers
             // Add client membership claim for the user if it doesn't already exist
             var clientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), clientId.ToString());
             var existingClaimsForUser = await _userManager.GetClaimsAsync(user);
-            if (!existingClaimsForUser.Any(claim => claim.Equals(clientMembershipClaim)))
+            var matchingClaims = existingClaimsForUser
+                .Where(claim => claim.Type == clientMembershipClaim.Type)
+                .Where(claim => claim.Value == clientMembershipClaim.Value);
+            if (!matchingClaims.Any())
             {
                 await _userManager.AddClaimAsync(user, clientMembershipClaim);
             }
