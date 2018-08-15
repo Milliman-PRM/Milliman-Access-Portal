@@ -492,7 +492,7 @@ namespace MillimanAccessPortal.Controllers
             if (result.Succeeded)
             {
                 // Save password hash in history
-                user.PasswordHistoryObj.Add(new PreviousPassword(model.Password));
+                user.PasswordHistoryObj.Add(new PreviousPassword(model.NewPassword));
                 var addHistoryResult = await _userManager.UpdateAsync(user);
 
                 if (!addHistoryResult.Succeeded)
