@@ -26,8 +26,7 @@ namespace MillimanAccessPortal.Services
         {
             if (builder == null) { throw new ArgumentNullException(nameof(builder)); }
 
-            var validator = new PasswordRecentNumberValidator<TUser>();
-            validator.numberOfPasswords = numberOfPasswordsArg;
+            var validator = new PasswordRecentNumberValidator<TUser> { numberOfPasswords = numberOfPasswordsArg };
 
             builder.Services.AddSingleton(typeof(IPasswordValidator<>).MakeGenericType(builder.UserType), validator);
 
@@ -46,8 +45,7 @@ namespace MillimanAccessPortal.Services
         {
             if (builder == null) { throw new ArgumentNullException(nameof(builder)); }
 
-            var validator = new PasswordRecentDaysValidator<TUser>();
-            validator.numberOfDays = numberOfDaysArg;
+            var validator = new PasswordRecentDaysValidator<TUser> { numberOfDays = numberOfDaysArg };
 
             builder.Services.AddSingleton(typeof(IPasswordValidator<>).MakeGenericType(builder.UserType), validator);
 

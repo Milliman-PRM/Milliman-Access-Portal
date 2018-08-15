@@ -15,12 +15,12 @@ namespace MillimanAccessPortal.Services
     public class PasswordRecentNumberValidator<TUser> : IPasswordValidator<TUser>
         where TUser : ApplicationUser
     {
-        public int numberOfPasswords = 10;
+        public int numberOfPasswords { get; set; } = 10;
 
         public Task<IdentityResult> ValidateAsync(UserManager<TUser> manager, TUser user, string password)
         {
             // Check the specified number of recent passwords
-            if (user.IsPasswordRecentlyUsed(password, numberOfPasswords))
+            if (user.WasPasswordUsedInLastN(password, numberOfPasswords))
             {
                 var result = IdentityResult.Failed(new IdentityError
                 {

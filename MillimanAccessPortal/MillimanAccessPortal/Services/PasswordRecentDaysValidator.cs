@@ -15,20 +15,17 @@ namespace MillimanAccessPortal.Services
     public class PasswordRecentDaysValidator<TUser> : IPasswordValidator<TUser>
         where TUser : ApplicationUser
     {
-
-        public int numberOfDays = 180;
+        public int numberOfDays { get; set; } = 180;
 
         public Task<IdentityResult> ValidateAsync(UserManager<TUser> manager, TUser user, string password)
         {
-            DateTime beginningTime = DateTime.Now.Subtract(new TimeSpan(numberOfDays, 0, 0, 0));
-            
             // Check the specified number of days of history
-            if (user.IsPasswordRecentlyUsed(password, beginningTime))
+            if (user.WasPasswordUsedWithinTimeSpan(password, new TimeSpan(numberOfDays, 0, 0, 0)))
             {
                 var result = IdentityResult.Failed(new IdentityError
                 {
                     Code = "Password Reuse",
-                    Description = $"You cannot reuse passwords used in the last {numberOfDays}"
+                    Description = $"You cannot reuse any password created in the last {numberOfDays} days"
                 });
 
                 return Task.FromResult(result);

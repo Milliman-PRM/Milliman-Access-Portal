@@ -7,6 +7,7 @@
 using Microsoft.AspNetCore.Identity;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Newtonsoft.Json;
@@ -73,34 +74,6 @@ namespace MapDbContextLib.Identity
             }
         }
 
-
-        /// <summary>
-        /// Return a list of recent passwords (a specified number of most recent passwords)
-        /// </summary>
-        /// <param name="daysArg"></param>
-        /// <returns></returns>
-        public List<PreviousPassword> GetRecentPasswords(int countArg)
-        {
-            int passwordCount = PasswordHistoryObj.Count;
-
-            if (passwordCount <= countArg)
-            {
-                return PasswordHistoryObj;
-            }
-
-            return PasswordHistoryObj.GetRange(passwordCount - countArg, countArg);
-        }
-
-        /// <summary>
-        /// Return a list of recent passwords (since a provided date)
-        /// </summary>
-        /// <param name="timeArg"></param>
-        /// <returns></returns>
-        public List<PreviousPassword> RecentPasswords(DateTime timeArg)
-        {
-            return PasswordHistoryObj.FindAll(s => s.dateSet > timeArg);
-        }
-
         /// <summary>
         /// Convenience method to determine if a given string was ever used as a password by the user
         /// </summary>
@@ -108,7 +81,7 @@ namespace MapDbContextLib.Identity
         /// <returns></returns>
         public bool IsPasswordInHistory(string passwordArg)
         {
-            return SearchPasswordHistory(PasswordHistoryObj, passwordArg);
+            return PasswordHistoryObj.Any(p => p.PasswordMatches(passwordArg));
         }
 
         /// <summary>
@@ -117,16 +90,11 @@ namespace MapDbContextLib.Identity
         /// <param name="passwordArg"></param>
         /// <param name="countArg"></param>
         /// <returns></returns>
-        public bool IsPasswordRecentlyUsed(string passwordArg, int countArg)
+        public bool WasPasswordUsedInLastN(string passwordArg, int countArg)
         {
-            List<PreviousPassword> history = GetRecentPasswords(countArg);
-
-            if (history == null)
-            {
-                return false;
-            }
-
-            return SearchPasswordHistory(history, passwordArg);
+            return PasswordHistoryObj.OrderByDescending(p => p.dateSet)
+                                     .Take(countArg)
+                                     .Any(p => p.PasswordMatches(passwordArg));
         }
 
         /// <summary>
@@ -135,40 +103,11 @@ namespace MapDbContextLib.Identity
         /// <param name="passwordArg"></param>
         /// <param name="timeArg"></param>
         /// <returns></returns>
-        public bool IsPasswordRecentlyUsed(string passwordArg, DateTime timeArg)
+        public bool WasPasswordUsedWithinTimeSpan(string passwordArg, TimeSpan timeArg)
         {
-            List<PreviousPassword> history = RecentPasswords(timeArg);
-
-            if (history == null)
-            {
-                return false;
-            }
-
-            return SearchPasswordHistory(history, passwordArg);
-        }
-
-        /// <summary>
-        /// Search for a password within a provided history list
-        /// </summary>
-        /// <param name="historyArg"></param>
-        /// <param name="passwordArg"></param>
-        /// <returns></returns>
-        public bool SearchPasswordHistory(List<PreviousPassword> historyArg, string passwordArg)
-        {
-            bool matchFound = false;
-
-            // Iterate over history and return if a match is found
-            foreach (PreviousPassword history in PasswordHistoryObj)
-            {
-                matchFound = history.PasswordMatches(passwordArg);
-
-                if (matchFound)
-                {
-                    return true;
-                }
-            }
-
-            return matchFound;
+            DateTime Cutoff = DateTime.UtcNow - timeArg;
+            return PasswordHistoryObj.Where(s => s.dateSet > Cutoff)
+                                     .Any(p => p.PasswordMatches(passwordArg));
         }
     }
 }

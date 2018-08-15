@@ -12,22 +12,32 @@ namespace MapDbContextLib.Models
 {
     public class PreviousPassword
     {
+        public string hash { get; set; } = null;
 
-        public string algorithmUsed { get; set; }
-
-        public string hash { get; set; }
-
-        public DateTime dateSet {get; set;}
+        public DateTime dateSet { get; set; }
 
         /// <summary>
-        /// When a password is provided to the constructor, 
-        /// automatically build the other properties
+        /// Parameterless constructor, required due to json deserialization to this type in ApplicationUser entity class
+        /// </summary>
+        public PreviousPassword()
+        {}
+
+        /// <summary>
+        /// Initializing constructor
         /// </summary>
         /// <param name="passwordArg"></param>
         public PreviousPassword(string passwordArg)
         {
-            dateSet = DateTime.UtcNow;
+            Set(passwordArg);
+        }
 
+        /// <summary>
+        /// Full population of instance properties
+        /// </summary>
+        /// <param name="passwordArg"></param>
+        public void Set(string passwordArg)
+        {
+            dateSet = DateTime.UtcNow;
             hash = Crypto.HashPassword(passwordArg);
         }
 
