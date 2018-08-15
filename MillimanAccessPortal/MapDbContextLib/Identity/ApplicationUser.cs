@@ -5,8 +5,13 @@
  */
 
 using Microsoft.AspNetCore.Identity;
+using System.Collections.Generic;
 using System;
+using System.Linq;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Newtonsoft.Json;
+using MapDbContextLib.Models;
 
 namespace MapDbContextLib.Identity
 {
@@ -46,5 +51,63 @@ namespace MapDbContextLib.Identity
         // Summary:
         //     Gets or sets the user's Employer.
         public virtual string Employer { get; set; }
+
+        /// <summary>
+        /// Store a history of previously-used passwords
+        /// </summary>
+        [Column(TypeName = "jsonb")]
+        public string PreviousPasswords { get; set; } = "[]";
+
+        /// <summary>
+        /// Access a list of all password history
+        /// </summary>
+        [NotMapped]
+        public List<PreviousPassword> PasswordHistoryObj
+        {
+            get
+            {
+                return string.IsNullOrWhiteSpace(PreviousPasswords) ? new List<PreviousPassword>() : JsonConvert.DeserializeObject<List<PreviousPassword>>(PreviousPasswords);
+            }
+            set
+            {
+                PreviousPasswords = JsonConvert.SerializeObject(value == null ? new List<PreviousPassword>() : value);
+            }
+        }
+
+        /// <summary>
+        /// Convenience method to determine if a given string was ever used as a password by the user
+        /// </summary>
+        /// <param name="passwordArg"></param>
+        /// <returns></returns>
+        public bool IsPasswordInHistory(string passwordArg)
+        {
+            return PasswordHistoryObj.Any(p => p.PasswordMatches(passwordArg));
+        }
+
+        /// <summary>
+        /// Search for a match in password history (in specified number of recent passwords)
+        /// </summary>
+        /// <param name="passwordArg"></param>
+        /// <param name="countArg"></param>
+        /// <returns></returns>
+        public bool WasPasswordUsedInLastN(string passwordArg, int countArg)
+        {
+            return PasswordHistoryObj.OrderByDescending(p => p.dateSet)
+                                     .Take(countArg)
+                                     .Any(p => p.PasswordMatches(passwordArg));
+        }
+
+        /// <summary>
+        /// Search for a match in password history (in specified timespan of the most recent past)
+        /// </summary>
+        /// <param name="passwordArg"></param>
+        /// <param name="timeArg"></param>
+        /// <returns></returns>
+        public bool WasPasswordUsedWithinTimeSpan(string passwordArg, TimeSpan timeArg)
+        {
+            DateTime Cutoff = DateTime.UtcNow - timeArg;
+            return PasswordHistoryObj.Where(s => s.dateSet > Cutoff)
+                                     .Any(p => p.PasswordMatches(passwordArg));
+        }
     }
 }
