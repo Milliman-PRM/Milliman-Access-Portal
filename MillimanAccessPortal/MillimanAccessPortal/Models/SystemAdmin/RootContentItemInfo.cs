@@ -36,6 +36,11 @@ namespace MillimanAccessPortal.Models.SystemAdmin
 
         public void QueryRelatedEntityCounts(ApplicationDbContext dbContext, long? userId)
         {
+            ClientName = dbContext.RootContentItem
+                .Where(i => i.Id == Id)
+                .Select(i => i.Client.Name)
+                .Single();
+
             if (userId.HasValue)
             {
                 // don't count users
