@@ -274,6 +274,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         <div
           key={'detail'}
           className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-6-12"
+          style={{overflowY: 'auto'}}
         >
           <PrimaryDetailPanel
             controller={this.controller}
