@@ -85,7 +85,7 @@ namespace MapDbContextLib.Identity
         }
 
         /// <summary>
-        /// Search for a match in history (specified number of recent passwords)
+        /// Search for a match in password history (in specified number of recent passwords)
         /// </summary>
         /// <param name="passwordArg"></param>
         /// <param name="countArg"></param>
@@ -98,7 +98,7 @@ namespace MapDbContextLib.Identity
         }
 
         /// <summary>
-        /// Search for a match in history (since a given date/time)
+        /// Search for a match in password history (in specified timespan of the most recent past)
         /// </summary>
         /// <param name="passwordArg"></param>
         /// <param name="timeArg"></param>
