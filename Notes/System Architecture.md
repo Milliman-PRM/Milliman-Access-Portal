@@ -19,7 +19,7 @@ This architecture is intended to conform to the following objectives, roughly pr
 
 ## Data Centers
 
-MAP will be hosted on Microsoft's Azure platform, in the North Central US region. Backups will be performed to the South Central US region when possible.
+MAP will be hosted on Microsoft's Azure platform, in the Central US region (Iowa). Backups will be performed to the East US 2 region (Virginia) when possible.
 
 ## Azure Products Used
 
@@ -47,6 +47,10 @@ We will utilize multiple Azure products to build the production environment. Mos
 
 * **Azure Site Recovery** - Maintain copies of VMs in the case of data center loss or other large-scale disaster. Additional details are outlined in the [System Recovery document](System%20Recovery.md).
 
+* **Azure File Sync** - Synchronize file shares from the file server VM to Azure Files, to provide redundancy and secure storage.
+
+* **Azure Monitor** - Define and monitor metrics for production systems. Identify issues proactively and notify the infrastructure team.
+
 ## Virtual Machines
 
 VMs in the MAP environment are segmented by function and user access. Throughout this document, VMs will be referred to by category, not by name.
@@ -54,8 +58,8 @@ VMs in the MAP environment are segmented by function and user access. Throughout
 |VM Type|Primary Functions|Availability to users|
 |----|----|----|
 |QlikView Server|Surface QlikView reports|Available to end users over the web|
-|QlikView Publisher|Reduce QlikView reports and host the Milliman Reduction Service|Not available to end users. These will operate largely independently, retrieving tasks from the database directly.|
-|Web Server|Hosts the application via IIS|Available to users over port 443 (HTTPS) only through the application gateway|
+|QlikView Publisher|Reduce QlikView reports and host the Milliman Content Publishing Service|Not available to end users. These will operate largely independently, retrieving tasks from the database directly.|
+|Web Server|Host the application via IIS|Available to users over port 443 (HTTPS) only through the application gateway|
 |File Server|Store QVWs and other content to be delivered to end users via the web app|Not available directly to end users. Content will be streamed to users via the web app|
 |Domain Controllers|Authentication to internal (MAP server) resources|Not available to users.|
 |Remote Administration|Secure entry point for system administrators to access private MAP resources.|VPN access is required to connect. No general users will have access.|
@@ -64,11 +68,9 @@ VMs in the MAP environment are segmented by function and user access. Throughout
 
 Microsoft guarantees a 99.95% availability SLA. This is sufficient for our purposes, so we will plan to maintain a single instance of the application. Note that this SLA is only for Microsoft services, not for our application itself. We have not determined an SLA for our application at this time.
 
-### Virtual Machine Availability
+### Domain Controller Availability
 
-When possible, virtual machines should be redundant with at least one more providing the same functionality.
-
-Redundant Virtual Machines will be assigned to Availability Sets, with one Set defined for each distinct group of VMs. Within the set, each VM must be assigned to a different [Fault Domain and Update Domain](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/manage-availability), to reduce risk of downtime from datacenter failures or updates to the underlying infrastructure.
+Because of their critical role in our infrastructure, we maintain two domain controllers, which are assigned to an Availability Set. Within the set, each VM is assigned to a different [Fault Domain and Update Domain](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/manage-availability), to reduce risk of downtime from datacenter failures or updates to the underlying infrastructure.
 
 ### QlikView Server/Publisher availability
 
@@ -84,11 +86,11 @@ Azure performs backups of every database every 5 minutes, giving us a 5-minute R
 
 We will perform regular restore tests of the Azure backups, to ensure we are able to stand up a new server using the backups in case of an emergency.
 
-In the case that we have to stand up a new PostgreSQL instance, the connection strings stored in Azure Key Store will also need to be updated.
+In the case that we have to stand up a new PostgreSQL instance, the connection strings stored in Azure Key Vault will also need to be updated.
 
 ## File server redundancy
 
-The File servers in production will be a cluster of two servers, utilizing Windows Server 2016's [Storage Spaces Direct feature](https://docs.microsoft.com/en-us/windows-server/storage/storage-spaces/storage-spaces-direct-overview). 
+We operate a single file server VM, which uses Azure File Sync to replicate files to Azure Files storage. This enables us to quickly rebuild if needed in an emergency.
 
 ## Data backups
 
@@ -104,7 +106,7 @@ In the case that the data center becomes unavailable permanently or for a signif
   * Azure Database for PostgreSQL
   * Azure Key Vault
     * Update secret values to reflect changes in the environment, if needed
-  * Load balancer
+  * Application Gateway
 * Restore Virtual Machine backups
 * Restore most recent available PostgreSQL database backups
 * Verify that all applications and services are functioning normally
@@ -113,11 +115,11 @@ In the case that the data center becomes unavailable permanently or for a signif
 
 ### Web Application firewall
 
-The Web Application Firewall feature of the Application Gateway will guard our infrastructure against common types of attacks and vulnerabilities, as defined by the [OWASP 3.0 Core Rule Set](https://coreruleset.org/). All end-user traffic to MAP and QlikView Server will flow through the WAF/AG.
+The Web Application Firewall feature of the Application Gateway guards our infrastructure against common types of attacks and vulnerabilities, as defined by the [OWASP 3.0 Core Rule Set](https://coreruleset.org/). All end-user traffic to MAP and QlikView Server will flow through the WAF/AG.
 
 ### Azure Security Center
 
-We will utilize Azure Security Center to monitor for potential issues within our Azure infrastructure. Over time, we will evaluate for possible automated actions to take in response to log entries or other security events.
+We utilize Azure Security Center to monitor for potential issues within our Azure infrastructure. Over time, we will evaluate for possible automated actions to take in response to log entries or other security events.
 
 ### File system Encryption
 
@@ -125,17 +127,17 @@ VM disks are stored in [encrypted storage accounts](https://docs.microsoft.com/e
 
 ### Configuration Encryption
 
-Sensitive configuration options will be stored in Azure Key Vault.
+Sensitive configuration options will be stored in Azure Key Vault and protected by Hardware Security Modules.
 
 ### Point-to-Site VPN
 
-We will utilize a [Virtual Network Gateway](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpngateways) to establish a VPN between individual Milliman computers and our Azure infrastructure. This gateway will ensure traffic between Milliman's network and our infrastructure is encrypted at all times, providing another layer of security for administrative tasks.
+We utilize a [Virtual Network Gateway](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpngateways) to establish a VPN between individual Milliman computers and our Azure infrastructure. This gateway will ensure traffic between Milliman's network and our infrastructure is encrypted at all times, providing another layer of security for administrative tasks.
 
 Access to the VPN is controlled by the Azure administrators and is only granted on an as-needed basis.
 
 ### Virtual Network Isolation
 
-We will utilize Azure Virtual Networks to isolate our Azure resources from each other and allow traffic to flow between networks only as needed.
+We utilize Azure Virtual Networks to isolate our Azure resources from each other and allow traffic to flow between networks only as needed.
 
 The below table maps out Peering arrangements between the virtual networks.
 
@@ -143,15 +145,15 @@ Specific ports and protocols will be opened to groups of VMs via Network Securit
 
 |Virtual Network|IP Range|Peered with|
 |----|--------|-----------|
-|Domain Controllers|10.254.4.0/24|File Servers, QlikView Publishers, QlikView Servers, Clients|
-|File Servers|10.254.5.0/24|Domain Controllers, MAP application, QlikView Servers, QlikView Publishers, Remote Administration|
-|QlikView Servers|10.254.10.0/24|File Servers, Domain Controllers, MAP application, Application Gateways|
+|Domain Controllers|10.254.4.0/24|File Servers, Web servers, QlikView Publishers, QlikView Servers, Clients|
+|File Servers|10.254.5.0/24|Domain Controllers, Web servers,  QlikView Servers, QlikView Publishers, Remote Administration|
+|QlikView Servers|10.254.10.0/24|File Servers, Domain Controllers, Web servers, Application Gateways|
 |QlikView Publishers|10.254.12.0/24|File Servers, Domain Controllers|
-|MAP application|10.254.11.0/24|File Servers, Qlikview Servers, Application Gateways, Shared Infrastructure|
-|Remote Administration|10.254.6.0/24|Domain Controllers, File Servers, Any others added temporarily as-needed|
-|Application Gateways|10.254.7.0/24|MAP application, QlikView Servers|
+|Web servers|10.254.11.0/24|File Servers, Qlikview Servers, Application Gateways, Shared Infrastructure|
+|Remote Administration|10.254.6.0/24|All vnets|
+|Application Gateways|10.254.7.0/24|Web servers, QlikView Servers|
 |VPN Gateway|10.254.0.0/22|Remote Administration|
-|Shared infrastructure|10.0.0.0/24|MAP application|
+|Shared infrastructure|10.0.0.0/24|Web servers, Remote Administration|
 
 > The Shared Infrastructure VNET listed above contains VMs and other resources shared with non-MAP infrastructure, such as the SMTP server.
 
@@ -161,15 +163,13 @@ Inbound requests from the public internet will pass through the Application Gate
 
 The table defines rules to be applied both within Network Security Groups as well as the Windows Firewall.
 
-Zabbix monitoring will be allowed for all virtual machines (TCP & UDP ports 10050-10051).
-
 |Server Type|Public (external) allowed protocols|Internal (From Milliman) connections allowed|Outbound (within Azure) connections allowed|Inbound (within Azure) connections allowed|
 |-----|-----|-----|-----|-----|
 |Domain Controllers|---|---|Active Directory & DNS traffic only|Active Directory & DNS traffic only|
-|QlikView Server|HTTPS|HTTPS, RDP, Zabbix|Domain Controllers (Active Directory & DNS), File Servers|QlikView qvajaxzfc web app|
-|QlikView Publisher|---|RDP, Zabbix|Domain Controllers (Active Directory & DNS), PostgreSQL, File Servers|---|
+|QlikView Server|HTTPS|HTTPS, RDP|Domain Controllers (Active Directory & DNS), File Servers|QlikView qvajaxzfc web app|
+|QlikView Publisher|---|RDP|Domain Controllers (Active Directory & DNS), PostgreSQL, File Servers|---|
 |Web Server|HTTPS, through Application Gateway|---|Domain Controllers (Active Directory & DNS), File Servers|---|
-|File Server|---|RDP, Zabbix|Domain Controllers (Active Directory & DNS)|File access (SMB3)|
+|File Server|---|RDP|Domain Controllers (Active Directory & DNS)|File access (SMB3)|
 |Remote Administration VMs|---|RDP|QlikView Servers, Domain Controllers (Active Directory & DNS), QlikView Publishers, File Servers|---|
 
 #### Additional Firewall rule for Azure VMs
@@ -201,13 +201,13 @@ We will utilize multiple file shares throughout the content publication pipeline
 |Share|Description|Accessed By|
 |-------|------|--------|
 |Quarantine|Landing place for user content uploads. Virus scanning will be performed here before any other actions are taken on the file.|MAP application|
-|Waiting for Reduction|Holding area for files waiting to be reduced by the Publishers|MAP, QlikView Publishers|
-|Reducing (non-shared)|Local storage on QlikView Publishers. Publishers will copy files locally for reduction. Reduced files will undergo a verification process before being promoted for publishing.|Local only|
-|Live content|Holds content currently being served by MAP and content ready for user verification.|MAP, QlikView Servers|
+|Waiting|Holding area for files waiting to be reduced by the Publishers|MAP, QlikView Publishers|
+|Reducing|Publishers will copy files here for reduction. Reduced files will undergo a verification process before being promoted for publishing.|QlikView Publishers|
+|Live|Holds content currently being served by MAP and content ready for user verification.|MAP, QlikView Servers|
 
 ### Malware Protection
 
-All virtual machines will run Windows Defender antimalware software, utilizing real-time scanning.
+All virtual machines run Windows Defender antimalware software, utilizing real-time scanning.
 
 Additionally, files uploaded by users should be scanned before the system takes any action on them or serves them up to end-users. Windows Defender has a [command line interface](https://docs.microsoft.com/en-us/windows/security/threat-protection/windows-defender-antivirus/command-line-arguments-windows-defender-antivirus) and [PowerShell cmdlets](https://docs.microsoft.com/en-us/powershell/module/defender/index?view=win10-ps) that may be useful to developers.
 
@@ -219,7 +219,7 @@ This applies both to uploaded content files and uploaded user guides.
 
 * When a user uploads content to be published, a checksum is generated client-side and verified server-side. If the checksums don't match, the content is not published and the user is notified that an error has occurred.
    * This checksum is stored in the database and used to validate the master content file in future steps.
-*  When the reduction service processes master content files, the checksum is validated before performing reduction tasks.
+*  When the Content Publishing Service processes master content files, the checksum is validated before performing reduction tasks.
 * When the reduction server generates reduced content files, a checksum is generated and stored for each output file.
 * When users promote/approve content for publication, the checksum is validated again.
 * The checksum is validated again before content is presented to the end user.
@@ -236,7 +236,7 @@ Ensuring the integrity of the databases is essential to the security of the appl
 
 Connections to the PostgreSQL server should only be allowed from within Azure, and only from specific resources.
 
-Enabling VM access to PostgreSQL server requires the creation of a role permitting outbound traffic over port 5432 from the Network Security Group to the destination `Sql.NorthCentralUS`.
+Enabling VM access to PostgreSQL server requires the creation of a role permitting outbound traffic over port 5432 from the Network Security Group to the destination `Sql.CentralUS`.
 
 Our PostgreSQL server is configured only to allow connections from specific VNets.
 
@@ -256,17 +256,15 @@ No shared accounts/credentials will be created or distributed.
 
 ### Limited write access
 
-Only the applications (MAP and the Reduction Service) should have write access to the database. At no time will any non-DBA user be granted write access to any database in this environment.
+Only the applications (MAP and the Content Publishing Service) should have write access to the database. At no time will any non-DBA user be granted write access to any database in this environment.
 
 DBAs may temporarily grant themselves write access to the application only when necessary. They should never have write access to the Audit Log database.
 
 ## Active Directory Management
 
-### Separation of duties
+### Account Sharing
 
-Active Directory administrators will have two logins - one for general tasks, and a second for performing administrative functions. The generic account will have read only access to a limited set of resources. Accessing other resources requires elevating to the admin account.
-
-Each administrator will have their own set of accounts
+No shared accounts will be issued. 
 
 ### Permissions to groups, not Users
 
@@ -278,13 +276,11 @@ Groups will be named with this convention: `[resource type]_[resource name]_[acc
 
 Regular accounts: `firstname.lastname`
 
-Admin accounts: `firstname.lastname.admin`
-
 ### Service accounts
 
 QlikView services will be installed to run under [Group Managed Service Accounts](https://docs.microsoft.com/en-us/windows-server/security/group-managed-service-accounts/group-managed-service-accounts-overview). Active Directory manages the credentials for these accounts and keep them updated. The servers which need the accounts will be authorized to retrieve the credentials, but they will not be available to any users.
 
-Service accounts will be named with this convention: `svc_[serverGroup]_[ServiceName]`, e.g. `svc_QlikViewServers_QlikView` or `svc_QlikViewPublishers_ReductionService`.
+Service accounts will be named with the prefix `svc` to indicate that they are not user accounts.
 
 ## Change Management
 
@@ -325,29 +321,25 @@ Manual updates will typically only be applied for QlikView services.
 
 ### MAP updates
 
-We will utilize Azure's [App Service Deployment Slots](https://docs.microsoft.com/en-us/azure/app-service/web-sites-staged-publishing) feature to perform updates in a limited staging environment before updating the production application.
+We use Octopus Deploy to perform deployments of MAP and the Content Publishing Service.
 
-To leverage this properly, we will maintain separate databases for the staging environment. This will allow us to test changes such as database migrations on the production infrastructure before making the changes live.
+There is a completely separate dev/test environment in a standalone Azure subscription which cannot access production. Pull Request code changes are pushed automatically to this environment.
 
-MAP will be [deployed via Git](https://docs.microsoft.com/en-us/azure/app-service/app-service-deploy-local-git). We will utilize a deployment script, executed by Azure on every git push, to perform any post-update configuration.
+The staging environment is configured as a separate IIS application on the production Web server(s). To leverage this properly, we will maintain separate databases for the staging environment. This will allow us to test changes such as database migrations on the production infrastructure before making the changes live.
 
 Deployments should only ever be made to the Staging deployment slot. Once changes are verified in Staging, swap the slot over to production to complete the update. The previous deployed version will now be in the Staging slot, which makes reverting the update very easy if something goes wrong after switching to Production.
 
-The MAP development team will coordinate update scheduling with the infrastructure team. Updates should only be deployed after completing the formal release process and QRM documentation is complete.
-
-From time to time, MAP updates may require additional planning, and in rare cases can actually require limited application down time.
+The MAP development team will coordinate update scheduling with the infrastructure team. Updates should only be deployed after completing the formal release process and QRM documentation is complete. At this time, only the infrastructure team is able to push releases to production from Octopus Deploy.
 
 Additional special scenarios should be added to this section as they are identified.
 
 ## Monitoring
 
-### Internal monitors - Zabbix
+### Internal monitors - Azure Monitor
 
-Zabbix will monitor VMs for system performance, availability, and stability issues. Application-specific monitors will be used as appropriate, similar to the system that is already in place for monitoring Indy-PRM-1 and Indy-PRM-2.
+We leverage Azure Monitor, including custom metrics defined with Application Insights, to monitor VM performance and service availability. The infrastructure team is alerted by email when any alarm is raised.
 
-Additionally, we will configure an automated monitor in Zabbix which will actually authenticate to the application and load a demo report. This ensures the application stack is functioning together as intended.
-
-### Azure monitors
+### Monitoring Azure Infrastructure
 
 We will configure availability alerts to notify the infrastructure team of any Azure service-level issues. We will also use metric-based alerts as appropriate to alert the infrastructure team when other problems arise, such as reaching the capacity limits of the services we're using.
 
