@@ -29,6 +29,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
+using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Models.SystemAdmin;
 using System.Collections.Generic;
 using System.Linq;
@@ -455,6 +456,14 @@ namespace MillimanAccessPortal.Controllers
         #endregion
 
         #region Create actions
+        /// <summary>
+        /// Create new user with no associations
+        /// </summary>
+        /// <param name="email">
+        /// The address to which the new user email is to be sent. This value is used as
+        /// new user's permanent username and initial email address.
+        /// </param>
+        /// <returns>Json</returns>
         [HttpPost]
         public async Task<ActionResult> CreateUser(string email)
         {
@@ -469,12 +478,20 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            #region Validation
+            if (!GlobalFunctions.IsValidEmail(email))
+            {
+                Response.Headers.Add("Warning", "The specified email address is invalid.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             ApplicationUser user = await _userManager.FindByEmailAsync(email);
             if (user != null)
             {
                 Response.Headers.Add("Warning", "User already exists.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+            #endregion
+
             // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
             IdentityResult createResult;
             (createResult, user) = await _queries.CreateNewAccount(email, email);
@@ -491,9 +508,16 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            return Json(user);
+            var userSummary = (UserInfoViewModel)user;
+
+            return Json(userSummary);
         }
 
+        /// <summary>
+        /// Create new profit center
+        /// </summary>
+        /// <param name="profitCenter">The profit center to create</param>
+        /// <returns>Json</returns>
         [HttpPost]
         public async Task<ActionResult> CreateProfitCenter(
             [Bind("Name", "ProfitCenterCode", "MillimanOffice", "ContactName", "ContactEmail", "ContactPhone")] ProfitCenter profitCenter)
@@ -523,6 +547,13 @@ namespace MillimanAccessPortal.Controllers
             return Json(profitCenter);
         }
 
+        /// <summary>
+        /// Associate a user with a client. If the user does not exist, create one.
+        /// If the user is already a member of the client, do nothing.
+        /// </summary>
+        /// <param name="email">Email of the user to add.</param>
+        /// <param name="clientId">Client of which the user is to become a member.</param>
+        /// <returns>Json</returns>
         [HttpPost]
         public async Task<ActionResult> AddUserToClient(string email, long clientId)
         {
@@ -538,6 +569,11 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
+            if (!GlobalFunctions.IsValidEmail(email))
+            {
+                Response.Headers.Add("Warning", "The specified email address is invalid.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             if (_dbContext.Client.Find(clientId) == null)
             {
                 Response.Headers.Add("Warning", "Client does not exist.");
@@ -577,6 +613,13 @@ namespace MillimanAccessPortal.Controllers
             return Json(user);
         }
 
+        /// <summary>
+        /// Make a user a profit center admin. If the user does not exist, create one.
+        /// If the user is already an admin on the profit center, do nothing.
+        /// </summary>
+        /// <param name="email">Email of the user to add.</param>
+        /// <param name="profitCenterId">Profit center to which the user is to become an admin.</param>
+        /// <returns>Json</returns>
         [HttpPost]
         public async Task<ActionResult> AddUserToProfitCenter(string email, long profitCenterId)
         {
@@ -592,6 +635,11 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
+            if (!GlobalFunctions.IsValidEmail(email))
+            {
+                Response.Headers.Add("Warning", "The specified email address is invalid.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             if (_dbContext.ProfitCenter.Find(profitCenterId) == null)
             {
                 Response.Headers.Add("Warning", "Profit center does not exist.");
@@ -620,13 +668,22 @@ namespace MillimanAccessPortal.Controllers
                 }
             }
 
-            _dbContext.UserRoleInProfitCenter.Add(new UserRoleInProfitCenter
+            var alreadyAdmin = _dbContext.UserRoleInProfitCenter
+                .Where(r => r.User.Email == email)
+                .Where(r => r.ProfitCenterId == profitCenterId)
+                .Where(r => r.Role.RoleEnum == RoleEnum.Admin)
+                .Any();
+
+            if (!alreadyAdmin)
             {
-                ProfitCenterId = profitCenterId,
-                RoleId = (long)RoleEnum.Admin,
-                UserId = user.Id,
-            });
-            _dbContext.SaveChanges();
+                _dbContext.UserRoleInProfitCenter.Add(new UserRoleInProfitCenter
+                {
+                    ProfitCenterId = profitCenterId,
+                    RoleId = (long)RoleEnum.Admin,
+                    UserId = user.Id,
+                });
+                _dbContext.SaveChanges();
+            }
 
             return Json(user);
         }
