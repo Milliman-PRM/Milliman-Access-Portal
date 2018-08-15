@@ -54,7 +54,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                     .Select(usg => usg.SelectionGroup.RootContentItemId)
                     .ToHashSet().Count;
 
-                _assignRootContentItemList(dbContext);
+                _assignRootContentItemList(dbContext, clientId.Value);
             }
             else if (profitCenterId.HasValue)
             {
@@ -86,10 +86,11 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             }
         }
 
-        private void _assignRootContentItemList(ApplicationDbContext dbContext)
+        private void _assignRootContentItemList(ApplicationDbContext dbContext, long clientId)
         {
             var query = dbContext.UserInSelectionGroup
                 .Where(usg => usg.UserId == Id)
+                .Where(usg => usg.SelectionGroup.RootContentItem.ClientId == clientId)
                 .Select(usg => usg.SelectionGroup.RootContentItem);
 
             var itemInfoList = new List<RootContentItemInfo>();
