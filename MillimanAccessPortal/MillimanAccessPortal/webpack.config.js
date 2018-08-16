@@ -78,13 +78,10 @@ module.exports = {
         to: '../favicon.ico',
       },
       {
-        from: 'src/images/QlikView_Icon.png',
-        to: '../images/QlikView_Icon.png',
+        from: 'src/images/default_content_images/',
+        to: '../images/',
+        flatten: true,
       },
-      {
-        from: 'src/images/PDF_Icon.png',
-        to: '../images/PDF_Icon.png',
-      }
     ]),
     new webpack.ProvidePlugin({
       $: 'jquery',
