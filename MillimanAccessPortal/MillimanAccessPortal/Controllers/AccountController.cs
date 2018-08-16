@@ -379,6 +379,15 @@ namespace MillimanAccessPortal.Controllers
 
                 if (identityResult.Succeeded)
                 {
+                    // Save password hash in history
+                    user.PasswordHistoryObj = user.PasswordHistoryObj.Append<PreviousPassword>(new PreviousPassword(model.NewPassword)).ToList<PreviousPassword>();
+                    var addHistoryResult = await _userManager.UpdateAsync(user);
+
+                    if (!addHistoryResult.Succeeded)
+                    {
+                        _logger.LogError($"Failed to save password history for {user.UserName }");
+                    }
+
                     _auditLogger.Log(AuditEventType.UserAccountEnabled.ToEvent(user));
 
                     user.FirstName = model.FirstName;
