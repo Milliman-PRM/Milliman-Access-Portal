@@ -113,7 +113,10 @@ namespace ContentPublishingLib.JobRunners
 
             try
             {
-                QueueReductionActivity(JobDetail.Request.MasterContentFile);
+                if (JobDetail.Request.MasterContentFile != null)
+                {
+                    QueueReductionActivity(JobDetail.Request.MasterContentFile);
+                }
 
                 // Wait for any/all related reduction tasks to complete
                 for (int PendingTaskCount = await CountPendingReductionTasks(); PendingTaskCount > 0; PendingTaskCount = await CountPendingReductionTasks())

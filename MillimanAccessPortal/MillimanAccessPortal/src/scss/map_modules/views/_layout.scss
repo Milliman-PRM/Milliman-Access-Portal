@@ -18,8 +18,6 @@
         display: flex;
         flex-flow: row nowrap;
         flex: 1;
-        overflow-y: auto;
-        padding: 0 1em;
 
         @include for-tablet-down() {
             flex-flow: column nowrap !important;

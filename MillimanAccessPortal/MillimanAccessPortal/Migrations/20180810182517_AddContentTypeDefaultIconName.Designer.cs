@@ -12,9 +12,10 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180810182517_AddContentTypeDefaultIconName")]
+    partial class AddContentTypeDefaultIconName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -467,16 +468,11 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256);
 
-                    b.Property<DateTime>("PasswordChangeDate");
-
                     b.Property<string>("PasswordHash");
 
                     b.Property<string>("PhoneNumber");
 
                     b.Property<bool>("PhoneNumberConfirmed");
-
-                    b.Property<string>("PreviousPasswords")
-                        .HasColumnType("jsonb");
 
                     b.Property<string>("SecurityStamp");
 
