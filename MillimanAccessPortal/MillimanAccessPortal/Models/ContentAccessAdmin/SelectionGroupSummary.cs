@@ -6,6 +6,7 @@
 
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.AccountViewModels;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,9 +29,10 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
             }
 
             var latestTask = dbContext.ContentReductionTask
-                    .Where(crt => crt.SelectionGroupId == selectionGroup.Id)
-                    .OrderByDescending(crt => crt.CreateDateTimeUtc)
-                    .FirstOrDefault();
+                .Include(crt => crt.ApplicationUser)
+                .Where(crt => crt.SelectionGroupId == selectionGroup.Id)
+                .OrderByDescending(crt => crt.CreateDateTimeUtc)
+                .FirstOrDefault();
             var reductionDetails = ((ReductionSummary) latestTask);
 
             var model = new SelectionGroupSummary

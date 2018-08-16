@@ -6,6 +6,7 @@
 
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.ContentAccessAdmin;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,6 +32,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             foreach (var rootContentItem in rootContentItems)
             {
                 var publicationRequest = dbContext.ContentPublicationRequest
+                    .Include(r => r.ApplicationUser)
                     .Where(r => r.RootContentItemId == rootContentItem.Id)
                     .OrderByDescending(r => r.CreateDateTimeUtc)
                     .FirstOrDefault();

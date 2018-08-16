@@ -6,6 +6,7 @@
 
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -30,6 +31,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
             foreach (var selectionGroup in selectionGroups)
             {
                 var reductionTask = dbContext.ContentReductionTask
+                    .Include(t => t.ApplicationUser)
                     .Where(t => t.SelectionGroupId == selectionGroup.Id)
                     .OrderByDescending(r => r.CreateDateTimeUtc)
                     .FirstOrDefault();

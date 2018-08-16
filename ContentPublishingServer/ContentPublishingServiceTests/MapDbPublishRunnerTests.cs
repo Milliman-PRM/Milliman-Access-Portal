@@ -153,6 +153,13 @@ namespace ContentPublishingServiceTests
                     Checksum = "e3d450391704b574f010012111af718cf630e444",
                 }
             };
+            DbRequest.ReductionRelatedFilesObj = new List<ReductionRelatedFiles>
+            {
+                new ReductionRelatedFiles
+                {
+                    MasterContentFile = DbRequest.LiveReadyFilesObj.Single(f => f.FilePurpose == "MasterContent")
+                }
+            };
             DbRequest.RequestStatus = PublicationStatus.Queued;
 
             MapDbPublishRunner TestRunner = new MapDbPublishRunner
