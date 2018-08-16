@@ -391,6 +391,28 @@ namespace MapTests
             #endregion
         }
 
+        /// <summary>
+        /// Verify that PasswordContainsCommonWordsValidator will not allow passwords that contain a banned word or phrase
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task CommonWordInPasswordNotAllowed()
+        {
+            #region Arrange
+            AccountController controller = await GetController("user1");
+            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
+            var validator = new PasswordContainsCommonWordsValidator<ApplicationUser>() { commonWords = { "milliman" } };
+            #endregion
+
+            #region Act
+            IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, "Milliman123");
+            #endregion
+
+            #region Assert
+            Assert.False(result.Succeeded);
+            #endregion
+        }
+
         [Fact]
         public async Task AccountSettingsGETWorks()
         {
