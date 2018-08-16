@@ -26,12 +26,12 @@ require('tooltipster/src/css/tooltipster.css');
 require('tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css');
 require('../scss/map.scss');
 
-require('../images/map-logo.svg');
-require('../images/add.svg');
-require('../images/expand-cards.svg');
-require('../images/collapse-cards.svg');
-require('../images/edit.svg');
-require('../images/cancel.svg');
+import '../images/map-logo.svg';
+import '../images/add.svg';
+import '../images/expand-cards.svg';
+import '../images/collapse-cards.svg';
+import '../images/edit.svg';
+import '../images/cancel.svg';
 
 const ajaxStatus: any = {};
 const SHOW_DURATION = 50;

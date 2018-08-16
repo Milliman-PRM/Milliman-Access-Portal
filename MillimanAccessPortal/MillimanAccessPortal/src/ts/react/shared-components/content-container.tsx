@@ -7,7 +7,7 @@ import { ContentContainerProps } from './interfaces';
 import 'tooltipster';
 import 'tooltipster/src/css/tooltipster.css';
 
-require('../../../images/cancel.svg');
+import '../../../images/cancel.svg';
 
 
 export class ContentContainer extends React.Component<ContentContainerProps, {}> {

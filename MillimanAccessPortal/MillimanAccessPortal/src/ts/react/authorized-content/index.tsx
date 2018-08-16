@@ -17,7 +17,7 @@ require('vex-js/sass/vex.sass');
 require('../../../scss/map.scss');
 // # sourceMappingURL=authorized-content.js.map
 
-require('../../../images/map-logo.svg');
+import '../../../images/map-logo.svg';
 
 document.addEventListener('DOMContentLoaded', (event) => {
   ReactDOM.render(<AuthorizedContent />, document.getElementById('content-container'));

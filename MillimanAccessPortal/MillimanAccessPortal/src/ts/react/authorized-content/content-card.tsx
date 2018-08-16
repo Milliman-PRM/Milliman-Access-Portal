@@ -8,8 +8,8 @@ import { ContentItem, ContentCardFunctions } from './interfaces';
 require('tooltipster');
 require('tooltipster/src/css/tooltipster.css');
 
-require('../../../images/userguide.svg');
-require('../../../images/release-notes.svg');
+import '../../../images/userguide.svg';
+import '../../../images/release-notes.svg';
 
 interface ContentCardProps extends ContentItem, ContentCardFunctions { }
 export class ContentCard extends React.Component<ContentCardProps, {}> {
