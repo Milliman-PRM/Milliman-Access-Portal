@@ -435,6 +435,13 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest();
             }
 
+            // Give the virus scanner enough time for each related file
+            var uploadedFiles = Arg.RelatedFiles.Select(f => DbContext.FileUpload.Single(fu => fu.Id == f.FileUploadId));
+            while (uploadedFiles.Any(f => !f.VirusScanAgeRequirementMet))
+            {
+                await Task.Delay(1000);
+            }
+
             bool Blocked;
 
             // There must be no unresolved ContentPublicationRequest.

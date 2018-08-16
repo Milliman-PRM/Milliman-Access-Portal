@@ -4,8 +4,10 @@
  * DEVELOPER NOTES: 
  */
 
+using MapCommonLib;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MapDbContextLib.Context
 {
@@ -19,6 +21,12 @@ namespace MapDbContextLib.Context
 
         [Required]
         public DateTime CreatedDateTimeUtc { get; set; }
+
+        [NotMapped]
+        public bool VirusScanAgeRequirementMet
+        {
+            get => (CreatedDateTimeUtc + TimeSpan.FromSeconds(GlobalFunctions.virusScanAgeRequirement)) < DateTime.UtcNow;
+        }
 
         [Required]
         public string ClientFileIdentifier { get; set; }
