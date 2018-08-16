@@ -83,7 +83,7 @@ namespace MillimanAccessPortal
                 .AddDefaultTokenProviders()
                 .AddTop100000PasswordValidator<ApplicationUser>()
                 .AddRecentPasswordInDaysValidator<ApplicationUser>(passwordHistoryDays)
-                .AddPasswordValidator<PasswordIsEmailValidator<ApplicationUser>>();
+                .AddPasswordValidator<PasswordIsEmailOrUsernameValidator<ApplicationUser>>();
 
             services.Configure<PasswordHasherOptions>(options => options.IterationCount = 100_000);
 

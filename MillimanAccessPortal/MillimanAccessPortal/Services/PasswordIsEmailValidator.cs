@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Services
 {
-    public class PasswordIsEmailValidator<TUser> : IPasswordValidator<TUser>
+    public class PasswordIsEmailOrUsernameValidator<TUser> : IPasswordValidator<TUser>
         where TUser : ApplicationUser
     {
         public Task<IdentityResult> ValidateAsync(UserManager<TUser> manager, TUser user, string password)
