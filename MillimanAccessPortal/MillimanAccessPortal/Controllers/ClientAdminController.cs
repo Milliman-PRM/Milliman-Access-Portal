@@ -548,11 +548,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
-                {
-                    new RoleInClientRequirement(RoleEnum.Admin, Model.ClientId),
-                    new RoleInProfitCenterRequirement(RoleEnum.Admin, RequestedClient.ProfitCenterId),
-                });
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, Model.ClientId));
             if (!Result1.Succeeded)
             {
                 return Unauthorized();
@@ -569,36 +565,44 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest("The requested user does not exist");
             }
 
-            // 2. RequestedUser must not be assigned to any SelectionGroup of RequestedClient
-            IQueryable<SelectionGroup> AllAuthorizedGroupsQuery =
-                DbContext.UserInSelectionGroup
-                         .Include(usg => usg.SelectionGroup)
-                         .Where(usg => usg.UserId == RequestedUser.Id)
-                         .Select(usg => usg.SelectionGroup);
-            if (AllAuthorizedGroupsQuery.Any(group => group.RootContentItem.ClientId == RequestedClient.Id))
-            {
-                Response.Headers.Add("Warning", "The requested user must first be unauthorized to content of the requested client");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
+            List<IdentityUserClaim<long>> UserClaims = DbContext.UserClaims
+                                                                .Where(uc => uc.ClaimType == "ClientMembership")
+                                                                .Where(uc => uc.ClaimValue == Model.ClientId.ToString())
+                                                                .Where(uc => uc.UserId == Model.UserId)
+                                                                .ToList();
 
-            // 3. RequestedUser must not be assigned a role for any RootContentItem of RequestedClient
-            IQueryable<RootContentItem> AllAuthorizedContentQuery =
-                DbContext.UserRoleInRootContentItem
-                         .Include(urc => urc.RootContentItem)
-                         .Where(urc => urc.UserId == RequestedUser.Id)
-                         .Select(urc => urc.RootContentItem);
-            if (AllAuthorizedContentQuery.Any(rc => rc.ClientId == RequestedClient.Id))
+            // 2. Requested user must be currently assigned to the requested client
+            if (!UserClaims.Any())
             {
-                Response.Headers.Add("Warning", "The requested user must first have no role for content item(s) of the requested client");
+                Response.Headers.Add("Warning", "The requested user is not associated with the requested client");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
+            List<UserInSelectionGroup> 
+            AllSelectionGroupAssignments = DbContext.UserInSelectionGroup
+                                                    .Where(u => u.UserId == RequestedUser.Id)
+                                                    .Where(u => u.SelectionGroup.RootContentItem.ClientId == RequestedClient.Id)
+                                                    .ToList();
+            List<UserRoleInRootContentItem> 
+            AllRootContentItemAssignments = DbContext.UserRoleInRootContentItem
+                                                     .Where(r => r.UserId == RequestedUser.Id)
+                                                     .Where(r => r.RootContentItem.ClientId == RequestedClient.Id)
+                                                     .ToList();
+            List<UserRoleInClient> 
+            AllClientRoleAssignments = DbContext.UserRoleInClient
+                                                .Where(r => r.UserId == RequestedUser.Id)
+                                                .Where(r => r.ClientId == RequestedClient.Id)
+                                                .ToList();
+
             try
             {
-                DbContext.UserRoleInClient.RemoveRange(DbContext.UserRoleInClient.Where(urc => urc.UserId == RequestedUser.Id && urc.ClientId == RequestedClient.Id).ToList());
-                DbContext.UserClaims.RemoveRange(DbContext.UserClaims.Where(uc => uc.UserId == RequestedUser.Id && uc.ClaimType == ClaimNames.ClientMembership.ToString() && uc.ClaimValue == RequestedClient.Id.ToString()).ToList());
-                DbContext.SaveChanges();  // (transactional)
+                DbContext.UserInSelectionGroup.RemoveRange(AllSelectionGroupAssignments);
+                DbContext.UserRoleInRootContentItem.RemoveRange(AllRootContentItemAssignments);
+                DbContext.UserRoleInClient.RemoveRange(AllClientRoleAssignments);
+                DbContext.UserClaims.RemoveRange(UserClaims); // UserClaims is queried above
+
+                DbContext.SaveChanges();
 
                 AuditLogger.Log(AuditEventType.UserRemovedFromClient.ToEvent(RequestedClient, RequestedUser));
             }
@@ -1017,6 +1021,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="InArray">0 or more strings that may contain 0 or more email entries or a delimited list</param>
         /// <param name="CleanDomain">If true, strip characters up through '@' from each found element</param>
         /// <returns></returns>
+        [NonAction]
         private string[] GetCleanClientEmailWhitelistArray(string[] InArray, bool CleanDomain)
         {
             char[] StringDelimiters = new char[] { ',', ';', ' ' };
