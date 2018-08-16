@@ -17,7 +17,7 @@ import '../../images/add.svg';
 import '../../images/edit.svg';
 import '../../images/upload.svg';
 import '../../images/cancel.svg';
-import '../../images/checkmark.svg)
+import '../../images/checkmark.svg';
 
 $(document).ready(() => {
   setup();
