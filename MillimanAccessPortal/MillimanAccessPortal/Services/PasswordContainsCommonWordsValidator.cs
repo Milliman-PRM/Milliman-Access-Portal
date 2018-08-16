@@ -10,7 +10,7 @@ namespace MillimanAccessPortal.Services
     public class PasswordContainsCommonWordsValidator<TUser> : IPasswordValidator<TUser>
         where TUser : ApplicationUser
     {
-        public List<string> commonWords { get; set; }
+        public List<string> commonWords { get; set; } = new List<string>();
 
         public Task<IdentityResult> ValidateAsync(UserManager<TUser> manager, TUser user, string password)
         {
