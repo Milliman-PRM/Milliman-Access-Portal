@@ -30,6 +30,7 @@ using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Services;
 using QlikviewLib;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -72,6 +73,7 @@ namespace MillimanAccessPortal
             #endregion
 
             int passwordHistoryDays = Configuration.GetValue<int>("PasswordHistoryValidatorDays");
+            List<string> commonWords = Configuration.GetValue<List<string>>("PasswordBannedWords");
 
             // Do not add AuditLogDbContext.  This context should be protected from direct access.  Use the api class instead.  -TP
 
@@ -83,7 +85,8 @@ namespace MillimanAccessPortal
                 .AddDefaultTokenProviders()
                 .AddTop100000PasswordValidator<ApplicationUser>()
                 .AddRecentPasswordInDaysValidator<ApplicationUser>(passwordHistoryDays)
-                .AddPasswordValidator<PasswordIsEmailOrUsernameValidator<ApplicationUser>>();
+                .AddPasswordValidator<PasswordIsEmailOrUsernameValidator<ApplicationUser>>()
+                .AddCommonWordsValidator<ApplicationUser>(commonWords);
 
             services.Configure<PasswordHasherOptions>(options => options.IterationCount = 100_000);
 

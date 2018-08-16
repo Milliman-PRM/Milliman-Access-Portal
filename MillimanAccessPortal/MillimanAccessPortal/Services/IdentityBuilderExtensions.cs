@@ -51,5 +51,18 @@ namespace MillimanAccessPortal.Services
 
             return builder;
         }
+
+        public static IdentityBuilder AddCommonWordsValidator<TUser>(this IdentityBuilder builder, List<string> commonWordsArg)
+            where TUser : ApplicationUser
+        {
+            if (builder == null) { throw new ArgumentNullException(nameof(builder)); }
+
+            var validator = new PasswordContainsCommonWordsValidator<TUser> { commonWords = commonWordsArg };
+
+            builder.Services.AddSingleton(typeof(IPasswordValidator<>).MakeGenericType(builder.UserType), validator);
+
+
+            return builder;
+        }
     }
 }
