@@ -77,7 +77,7 @@ namespace MapDbContextLib.Context
                 }
                 else
                 {
-                    fromDb.Name = fromDb.Name;
+                    fromDb.Name = type.Name;
                     fromDb.CanReduce = type.CanReduce;
                     fromDb.DefaultIconName = type.DefaultIconName;
                     Db.ContentType.Update(fromDb);

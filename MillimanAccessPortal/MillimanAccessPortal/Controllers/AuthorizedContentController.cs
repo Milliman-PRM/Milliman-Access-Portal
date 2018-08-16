@@ -212,7 +212,7 @@ namespace MillimanAccessPortal.Controllers
                             return File(System.IO.File.OpenRead(contentRelatedThumbnail.FullPath), "image/jpeg");
 
                         default:
-                            break;
+                            throw new Exception();
                     }
                 }
                 else
@@ -222,11 +222,12 @@ namespace MillimanAccessPortal.Controllers
                 }
             }
             catch
-            { }
-
-            string ErrMsg = $"Failed to obtain image for SelectionGroup {selectionGroupId}";
-            Logger.LogError(ErrMsg);
-            return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+            {
+                // ControllerBase.File does not throw, but the Stream can throw all sorts of things.
+                string ErrMsg = $"Failed to obtain image for SelectionGroup {selectionGroupId}";
+                Logger.LogError(ErrMsg);
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+            }
         }
 
         [Authorize]
@@ -258,21 +259,19 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                ContentRelatedFile contentRelatedPdf = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(cf => cf.FilePurpose.ToLower() == purpose.ToLower());
+                ContentRelatedFile contentRelatedPdf = selectionGroup.RootContentItem.ContentFilesList.Single(cf => cf.FilePurpose.ToLower() == purpose.ToLower());
+                FileStream fileStream = System.IO.File.OpenRead(contentRelatedPdf.FullPath);
 
-                if (contentRelatedPdf != null && System.IO.File.Exists(contentRelatedPdf.FullPath))
-                {
-                    FileStream fileStream = System.IO.File.OpenRead(contentRelatedPdf.FullPath);
-                    return File(fileStream, "application/pdf");
-                }
+                return File(fileStream, "application/pdf");
             }
             catch
-            { }
-
-            string ErrMsg = $"Failed to load requested {purpose} PDF for SelectionGroup {selectionGroupId}";
-            Logger.LogError(ErrMsg);
-            Response.Headers.Add("Warning", ErrMsg);
-            return StatusCode(StatusCodes.Status500InternalServerError);
+            {
+                string ErrMsg = $"Failed to load requested {purpose} PDF for SelectionGroup {selectionGroupId}";
+                Logger.LogError(ErrMsg);
+                Response.Headers.Add("Warning", ErrMsg);
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
+
     }
 }
