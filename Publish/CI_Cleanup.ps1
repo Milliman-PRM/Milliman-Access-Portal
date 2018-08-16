@@ -169,7 +169,7 @@ else {
 
 #region Modify Environment to push base branch to Dev
 
-if (IsMerged) {
+if ($IsMerged) {
 
     log_statement "Deploying $MergeBase to dev infrastructure"
 
