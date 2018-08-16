@@ -35,9 +35,9 @@ if ($webApp)
 if (test-path $FolderToRemove)
 {
     write-output "Deleting files"
-    Get-ChildItem -Path $FolderToRemove -Recurse | Remove-Item -Force
+    Get-ChildItem -Path $FolderToRemove -Recurse | Remove-Item -Force -Recurse
 
-    Remove-Item $FolderToRemove -Force
+    Remove-Item $FolderToRemove -Force -Recurse
 }
 
 # Remove app pool
