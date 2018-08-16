@@ -12,9 +12,12 @@ export interface Entity {
   secondaryText?: string;
   primaryStat?: CardStat;
   secondaryStat?: CardStat;
-  detailList?: string[];
+  sublist?: Entity[];
   indent?: number;
   readOnly?: boolean;
+  activated?: boolean;
+  suspended?: boolean;
+  email?: string;
 }
 
 export class EntityHelper {

@@ -68,6 +68,10 @@
             background-color: $blue;
         }
 
+        &.suspended {
+            border-color: $red;
+        }
+
         .card-body-main-container {
             position: relative;
             padding: .25em;
@@ -353,7 +357,8 @@
             transition: .25s all linear;
             cursor: default;
 
-            &[maximized] {
+            &[maximized],
+            &.maximized {
                 max-height: 15.5em;
                 overflow: visible;
                 transition: .25s all linear;

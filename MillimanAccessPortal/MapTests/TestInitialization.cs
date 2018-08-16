@@ -859,10 +859,10 @@ namespace MapTests
             #region Initialize Users
             DbContextObject.ApplicationUser.AddRange(new List<ApplicationUser>
             {
-                    new ApplicationUser { Id =  1, UserName = "sysAdmin1", },
-                    new ApplicationUser { Id =  2, UserName = "sysAdmin2", },
-                    new ApplicationUser { Id = 11, UserName = "sysUser1", },
-                    new ApplicationUser { Id = 12, UserName = "sysUser2", },
+                    new ApplicationUser { Id =  1, UserName = "sysAdmin1", Email = "sysAdmin1@site.domain", },
+                    new ApplicationUser { Id =  2, UserName = "sysAdmin2", Email = "sysAdmin2@site.domain", },
+                    new ApplicationUser { Id = 11, UserName = "sysUser1",  Email = "sysUser1@site.domain",  },
+                    new ApplicationUser { Id = 12, UserName = "sysUser2",  Email = "sysUser2@site.domain",  },
             });
             #endregion
 

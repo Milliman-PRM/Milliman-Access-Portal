@@ -1,5 +1,7 @@
 ﻿import '../../../images/add.svg';
 import '../../../images/client-admin.svg';
+import '../../../images/email.svg';
+import '../../../images/expand-card.svg';
 import '../../../images/group.svg';
 import '../../../images/reports.svg';
 import '../../../images/user.svg';
@@ -10,7 +12,7 @@ import * as React from 'react';
 import { BasicNode, BasicTree } from '../../view-models/content-publishing';
 import { ContentPanel } from '../shared-components/content-panel';
 import { Entity } from '../shared-components/entity';
-import { DataSource } from '../shared-components/interfaces';
+import { DataSource, Structure } from '../shared-components/interfaces';
 import { ClientInfo, ProfitCenterInfo, RootContentItemInfo, UserInfo } from './interfaces';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
@@ -26,6 +28,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   private controller: string = 'SystemAdmin';
   private nullDataSource: DataSource<Entity> = {
     name: null,
+    structure: 0,
     parentSources: [],
     displayName: '',
     infoAction: '',
@@ -37,20 +40,32 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   private dataSources: Array<DataSource<Entity>> = [
     {
       name: 'user',
+      structure: Structure.List,
       parentSources: [
         null,
-        'client',
+        {
+          name: 'client',
+          overrides: {
+            createAction: 'AddUserToClient',
+          },
+        },
         {
           name: 'profitCenter',
           overrides: {
+            createAction: 'AddUserToProfitCenter',
             displayName: 'Authorized Users',
           },
         },
       ],
       displayName: 'Users',
+      sublistInfo: {
+        title: 'Content Items',
+        icon: 'reports',
+        emptyText: 'This user does not have access to any reports.',
+      },
       infoAction: 'Users',
       detailAction: 'UserDetail',
-      createAction: '',
+      createAction: 'CreateUser',
       processInfo: (response: UserInfo[]) => response.map((user) => ({
         id: user.Id,
         primaryText: `${user.LastName}, ${user.FirstName}`,
@@ -65,12 +80,18 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           value: user.RootContentItemCount,
           icon: 'reports',
         },
-        detailList: user.RootContentItems && user.RootContentItems.map((item) => item.Name),
+        sublist: user.RootContentItems && user.RootContentItems.map((item) => ({
+          id: item.Id,
+          primaryText: item.Name,
+        })),
+        activated: user.Activated,
+        email: user.Email,
       })),
       assignQueryFilter: (userId: number) => ({ userId }),
     },
     {
       name: 'client',
+      structure: Structure.Tree,
       parentSources: [
         null,
         'user',
@@ -121,6 +142,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     },
     {
       name: 'profitCenter',
+      structure: Structure.List,
       parentSources: [
         null,
       ],
@@ -147,6 +169,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     },
     {
       name: 'rootContentItem',
+      structure: Structure.List,
       parentSources: [
         {
           name: 'user',
@@ -157,6 +180,11 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         'client',
       ],
       displayName: 'Content Items',
+      sublistInfo: {
+        title: 'Members',
+        icon: 'user',
+        emptyText: 'No users have access to this report.',
+      },
       infoAction: 'RootContentItems',
       detailAction: 'RootContentItemDetail',
       createAction: null,
@@ -174,7 +202,12 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           value: item.SelectionGroupCount,
           icon: 'group',
         },
-        detailList: item.Users && item.Users.map((user) => user.FirstName),
+        sublist: item.Users && item.Users.map((user) => ({
+          id: user.Id,
+          primaryText: `${user.FirstName} ${user.LastName}`,
+          secondaryText: user.UserName,
+        })),
+        suspended: item.IsSuspended,
       })),
       assignQueryFilter: (rootContentItemId: number) => ({ rootContentItemId }),
     },
@@ -241,6 +274,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         <div
           key={'detail'}
           className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-6-12"
+          style={{overflowY: 'auto'}}
         >
           <PrimaryDetailPanel
             controller={this.controller}

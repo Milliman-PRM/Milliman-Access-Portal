@@ -5,13 +5,24 @@
   rootContentItemId?: number;
 }
 
+export enum Structure {
+  List = 1,
+  Tree = 2,
+}
+
 export interface DataSource<T> {
   name: string;
+  structure: Structure;
   parentSources: Array<string | DataSourceOverride<T>>;
   displayName: string;
   infoAction: string;
   detailAction: string;
   createAction: string;
+  sublistInfo?: {
+    title: string;
+    icon: string;
+    emptyText: string;
+  };
   processInfo: (response: any) => T[];
   assignQueryFilter: (id: number) => Partial<QueryFilter>;
 }

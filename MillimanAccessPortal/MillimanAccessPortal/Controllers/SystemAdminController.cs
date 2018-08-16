@@ -25,29 +25,36 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
+using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Models.SystemAdmin;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Controllers
 {
     public class SystemAdminController : Controller
     {
+        private readonly AccountController _accountController;
         private readonly IAuditLogger _auditLogger;
         private readonly IAuthorizationService _authService;
         private readonly ApplicationDbContext _dbContext;
+        private readonly IConfiguration _configuration;
         private readonly ILogger _logger;
         private readonly StandardQueries _queries;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly UserManager<ApplicationUser> _userManager;
 
         public SystemAdminController(
+            AccountController accountController,
             IAuditLogger auditLogger,
             IAuthorizationService authService,
+            IConfiguration configuration,
             ApplicationDbContext dbContext,
             ILoggerFactory loggerFactory,
             StandardQueries queries,
@@ -55,8 +62,10 @@ namespace MillimanAccessPortal.Controllers
             UserManager<ApplicationUser> userManager
             )
         {
+            _accountController = accountController;
             _auditLogger = auditLogger;
             _authService = authService;
+            _configuration = configuration;
             _dbContext = dbContext;
             _logger = loggerFactory.CreateLogger<SystemAdminController>();
             _queries = queries;
@@ -443,6 +452,243 @@ namespace MillimanAccessPortal.Controllers
                 return Json(model);
             }
             return BadRequest();
+        }
+        #endregion
+
+        #region Create actions
+        /// <summary>
+        /// Create new user with no associations
+        /// </summary>
+        /// <param name="email">
+        /// The address to which the new user email is to be sent. This value is used as
+        /// new user's permanent username and initial email address.
+        /// </param>
+        /// <returns>Json</returns>
+        [HttpPost]
+        public async Task<ActionResult> CreateUser(string email)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            if (!GlobalFunctions.IsValidEmail(email))
+            {
+                Response.Headers.Add("Warning", "The specified email address is invalid.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            ApplicationUser user = await _userManager.FindByEmailAsync(email);
+            if (user != null)
+            {
+                Response.Headers.Add("Warning", "User already exists.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
+            IdentityResult createResult;
+            (createResult, user) = await _queries.CreateNewAccount(email, email);
+
+            if (createResult.Succeeded && user != null)
+            {
+                string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
+                await _accountController.SendNewAccountWelcomeEmail(user, Url, welcomeText);
+            }
+            else
+            {
+                string errors = string.Join($", ", createResult.Errors.Select(e => e.Description));
+                Response.Headers.Add("Warning", $"Error while creating user ({email}) in database: {errors}");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            var userSummary = (UserInfoViewModel)user;
+
+            return Json(userSummary);
+        }
+
+        /// <summary>
+        /// Create new profit center
+        /// </summary>
+        /// <param name="profitCenter">The profit center to create</param>
+        /// <returns>Json</returns>
+        [HttpPost]
+        public async Task<ActionResult> CreateProfitCenter(
+            [Bind("Name", "ProfitCenterCode", "MillimanOffice", "ContactName", "ContactEmail", "ContactPhone")] ProfitCenter profitCenter)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            if (!ModelState.IsValid)
+            {
+                Response.Headers.Add("Warning", ModelState.Values.First(v => v.Errors.Any()).Errors.ToString());
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            _dbContext.ProfitCenter.Add(profitCenter);
+            _dbContext.SaveChanges();
+
+            return Json(profitCenter);
+        }
+
+        /// <summary>
+        /// Associate a user with a client. If the user does not exist, create one.
+        /// If the user is already a member of the client, do nothing.
+        /// </summary>
+        /// <param name="email">Email of the user to add.</param>
+        /// <param name="clientId">Client of which the user is to become a member.</param>
+        /// <returns>Json</returns>
+        [HttpPost]
+        public async Task<ActionResult> AddUserToClient(string email, long clientId)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            if (!GlobalFunctions.IsValidEmail(email))
+            {
+                Response.Headers.Add("Warning", "The specified email address is invalid.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (_dbContext.Client.Find(clientId) == null)
+            {
+                Response.Headers.Add("Warning", "Client does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            // Find the user or create one if it doesn't exist
+            ApplicationUser user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
+                IdentityResult createResult;
+                (createResult, user) = await _queries.CreateNewAccount(email, email);
+
+                if (createResult.Succeeded && user != null)
+                {
+                    string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
+                    await _accountController.SendNewAccountWelcomeEmail(user, Url, welcomeText);
+                }
+                else
+                {
+                    string errors = string.Join($", ", createResult.Errors.Select(e => e.Description));
+                    Response.Headers.Add("Warning", $"Error while creating user ({email}) in database: {errors}");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+            }
+
+            // Add client membership claim for the user if it doesn't already exist
+            var clientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), clientId.ToString());
+            var existingClaimsForUser = await _userManager.GetClaimsAsync(user);
+            var matchingClaims = existingClaimsForUser
+                .Where(claim => claim.Type == clientMembershipClaim.Type)
+                .Where(claim => claim.Value == clientMembershipClaim.Value);
+            if (!matchingClaims.Any())
+            {
+                await _userManager.AddClaimAsync(user, clientMembershipClaim);
+            }
+
+            return Json(user);
+        }
+
+        /// <summary>
+        /// Make a user a profit center admin. If the user does not exist, create one.
+        /// If the user is already an admin on the profit center, do nothing.
+        /// </summary>
+        /// <param name="email">Email of the user to add.</param>
+        /// <param name="profitCenterId">Profit center to which the user is to become an admin.</param>
+        /// <returns>Json</returns>
+        [HttpPost]
+        public async Task<ActionResult> AddUserToProfitCenter(string email, long profitCenterId)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            if (!GlobalFunctions.IsValidEmail(email))
+            {
+                Response.Headers.Add("Warning", "The specified email address is invalid.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (_dbContext.ProfitCenter.Find(profitCenterId) == null)
+            {
+                Response.Headers.Add("Warning", "Profit center does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            // Find the user or create one if it doesn't exist
+            ApplicationUser user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
+                IdentityResult createResult;
+                (createResult, user) = await _queries.CreateNewAccount(email, email);
+
+                if (createResult.Succeeded && user != null)
+                {
+                    string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
+                    await _accountController.SendNewAccountWelcomeEmail(user, Url, welcomeText);
+                }
+                else
+                {
+                    string errors = string.Join($", ", createResult.Errors.Select(e => e.Description));
+                    Response.Headers.Add("Warning", $"Error while creating user ({email}) in database: {errors}");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+            }
+
+            var alreadyAdmin = _dbContext.UserRoleInProfitCenter
+                .Where(r => r.User.Email == email)
+                .Where(r => r.ProfitCenterId == profitCenterId)
+                .Where(r => r.Role.RoleEnum == RoleEnum.Admin)
+                .Any();
+
+            if (!alreadyAdmin)
+            {
+                _dbContext.UserRoleInProfitCenter.Add(new UserRoleInProfitCenter
+                {
+                    ProfitCenterId = profitCenterId,
+                    RoleId = (long)RoleEnum.Admin,
+                    UserId = user.Id,
+                });
+                _dbContext.SaveChanges();
+            }
+
+            return Json(user);
         }
         #endregion
 

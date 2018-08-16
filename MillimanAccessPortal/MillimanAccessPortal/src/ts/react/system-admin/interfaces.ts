@@ -19,9 +19,11 @@ export interface NestedListSection {
 
 export interface UserInfo {
   Id: number;
+  Activated: boolean;
   FirstName: string;
   LastName: string;
   UserName: string;
+  Email: string;
   ClientCount?: number;
   RootContentItemCount?: number;
   RootContentItems?: RootContentItemInfo[];

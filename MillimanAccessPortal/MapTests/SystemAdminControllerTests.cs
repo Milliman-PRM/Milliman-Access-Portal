@@ -5,10 +5,13 @@
  */
 
 using MapCommonLib;
+using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.SystemAdmin;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,9 +38,20 @@ namespace MapTests
         /// <returns>SystemAdminController</returns>
         public async Task<SystemAdminController> GetControllerForUser(string Username)
         {
+            var accountController = new AccountController(
+                _testResources.DbContextObject,
+                _testResources.UserManagerObject,
+                null,
+                _testResources.MessageQueueServicesObject,
+                _testResources.LoggerFactory,
+                _testResources.AuditLoggerObject,
+                _testResources.QueriesObj);
+
             var testController = new SystemAdminController(
+                accountController,
                 _testResources.AuditLoggerObject,
                 _testResources.AuthorizationService,
+                _testResources.ConfigurationObject,
                 _testResources.DbContextObject,
                 _testResources.LoggerFactory,
                 _testResources.QueriesObj,
@@ -575,6 +589,207 @@ namespace MapTests
             #endregion
         }
         #endregion
+        #endregion
+
+        #region create action queries
+        [Theory]
+        [InlineData("invalid_email_address")]
+        [InlineData("sysAdmin1@site.domain")]
+        public async Task CreateUser_Invalid(string email)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.Users.Count();
+            var json = await controller.CreateUser(email);
+            var postCount = _testResources.DbContextObject.Users.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(json);
+            Assert.Equal(422, ((StatusCodeResult)json).StatusCode);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
+        /* Disabled until mail sender is testable.
+        [Theory]
+        [InlineData("sysUser3@site.domain")]
+        public async Task CreateUser_Success(string email)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.Users.Count();
+            var json = await controller.CreateUser(email);
+            var postCount = _testResources.DbContextObject.Users.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.Equal(preCount + 1, postCount);
+            #endregion
+        }
+        */
+
+        [Theory]
+        [InlineData("", null, null, null, null, null)]
+        public async Task CreateProfitCenter_Success(string name, string code, string office, string contact, string email, string phone)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var profitCenter = new ProfitCenter
+            {
+                Name = name,
+                ProfitCenterCode = code,
+                MillimanOffice = office,
+                ContactName = contact,
+                ContactEmail = email,
+                ContactPhone = phone,
+            };
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.ProfitCenter.Count();
+            var json = await controller.CreateProfitCenter(profitCenter);
+            var postCount = _testResources.DbContextObject.ProfitCenter.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.Equal(preCount + 1, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData("invalid_email_address", 1)]
+        [InlineData("sysUser1@site.domain", 99)]
+        public async Task AddUserToClient_Invalid(string email, long clientId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.UserClaims.Count();
+            var json = await controller.AddUserToClient(email, clientId);
+            var postCount = _testResources.DbContextObject.UserClaims.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(json);
+            Assert.Equal(422, ((StatusCodeResult)json).StatusCode);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData("sysUser2@site.domain", 1)]
+        // [InlineData("sysUser3@site.domain", 1)]  // Disabled until mail sender is testable.
+        public async Task AddUserToClient_Success(string email, long clientId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.UserClaims.Count();
+            var json = await controller.AddUserToClient(email, clientId);
+            var postCount = _testResources.DbContextObject.UserClaims.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.Equal(preCount + 1, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData("sysUser1@site.domain", 1)]
+        public async Task AddUserToClient_NoOp(string email, long clientId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.UserClaims.Count();
+            var json = await controller.AddUserToClient(email, clientId);
+            var postCount = _testResources.DbContextObject.UserClaims.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData("invalid_email_address", 1)]
+        [InlineData("sysUser1@site.domain", 99)]
+        public async Task AddUserToProfitCenter_Invalid(string email, long profitCenterId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
+            var json = await controller.AddUserToProfitCenter(email, profitCenterId);
+            var postCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(json);
+            Assert.Equal(422, ((StatusCodeResult)json).StatusCode);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData("sysUser1@site.domain", 1)]
+        // [InlineData("sysUser3@site.domain", 1)]  // Disabled until mail sender is testable.
+        public async Task AddUserToProfitCenter_Success(string email, long profitCenterId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
+            var json = await controller.AddUserToProfitCenter(email, profitCenterId);
+            var postCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.Equal(preCount + 1, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData("sysAdmin1@site.domain", 1)]
+        public async Task AddUserToProfitCenter_NoOp(string email, long profitCenterId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
+            var json = await controller.AddUserToProfitCenter(email, profitCenterId);
+            var postCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
         #endregion
 
         #region Immediate toggle action tests
