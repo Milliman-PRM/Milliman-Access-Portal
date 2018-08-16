@@ -6,8 +6,11 @@
  */
 
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Identity;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Services
@@ -19,8 +22,12 @@ namespace MillimanAccessPortal.Services
 
         public Task<IdentityResult> ValidateAsync(UserManager<TUser> manager, TUser user, string password)
         {
+            List<PreviousPassword> history = user.PasswordHistoryObj;
+            
             // Check the specified number of recent passwords
-            if (user.WasPasswordUsedInLastN(password, numberOfPasswords))
+            if (history.OrderByDescending(p => p.dateSet)
+                                     .Take(numberOfPasswords)
+                                     .Any(p => p.PasswordMatches(password)))
             {
                 var result = IdentityResult.Failed(new IdentityError
                 {

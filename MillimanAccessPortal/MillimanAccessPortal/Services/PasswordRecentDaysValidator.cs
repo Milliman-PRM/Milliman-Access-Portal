@@ -8,6 +8,7 @@
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Identity;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Services
@@ -19,8 +20,11 @@ namespace MillimanAccessPortal.Services
 
         public Task<IdentityResult> ValidateAsync(UserManager<TUser> manager, TUser user, string password)
         {
+            DateTime Cutoff = DateTime.UtcNow - new TimeSpan(numberOfDays, 0, 0, 0);
+            
             // Check the specified number of days of history
-            if (user.WasPasswordUsedWithinTimeSpan(password, new TimeSpan(numberOfDays, 0, 0, 0)))
+            if (user.PasswordHistoryObj.Where(s => s.dateSet > Cutoff)
+                                     .Any(p => p.PasswordMatches(password)))
             {
                 var result = IdentityResult.Failed(new IdentityError
                 {
