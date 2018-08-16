@@ -73,7 +73,7 @@ namespace MillimanAccessPortal
             #endregion
 
             int passwordHistoryDays = Configuration.GetValue<int>("PasswordHistoryValidatorDays");
-            List<string> commonWords = Configuration.GetValue<List<string>>("PasswordBannedWords");
+            List<string> commonWords = Configuration.GetSection("PasswordBannedWords").GetChildren().Select(c => c.Value).ToList<string>();
 
             // Do not add AuditLogDbContext.  This context should be protected from direct access.  Use the api class instead.  -TP
 
