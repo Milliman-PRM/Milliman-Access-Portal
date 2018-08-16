@@ -8,16 +8,6 @@ namespace MillimanAccessPortal.Models.AccountViewModels
 {
     public class AccountSettingsViewModel
     {
-        public AccountSettingsModel accountSettingsModel { get; set; }
-        public UpdatePasswordModel updatePasswordModel { get; set; }
-    }
-
-    public class AccountSettingsModel
-    {
-        [Required]
-        [Display(Name = "Username")]
-        public string UserName { get; set; }
-
         [Required]
         [Display(Name = "First Name")]
         public string FirstName { get; set; }
@@ -27,37 +17,35 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         public string LastName { get; set; }
 
         [Required]
-        [EmailAddress]
-        [Display(Name = "Email Address")]
-        public string Email { get; set; }
-
-        [Phone]
-        [Display(Name = "Phone Number")]
-        public string PhoneNumber { get; set; } = string.Empty;
-
-        public string Employer { get; set; } = string.Empty;
-    }
-
-    public class UpdatePasswordModel
-    {
-        [Required]
         [Display(Name = "Username")]
         public string UserName { get; set; }
 
         [Required]
+        [EmailAddress]
+        [Display(Name = "Email Address")]
+        public string Email { get; set; }
+
+        [Required]
+        [Phone]
+        [Display(Name = "Phone Number")]
+        public string PhoneNumber { get; set; }
+
+        [Required]
+        public string Employer { get; set; }
+
         [DataType(DataType.Password)]
         [Display(Name = "Current Password")]
         public string CurrentPassword { get; set; }
 
-        [Required]
         [DataType(DataType.Password)]
         [Display(Name = "New Password")]
         public string NewPassword { get; set; }
 
-        [Required]
         [DataType(DataType.Password)]
         [Display(Name = "Confirm password")]
         [Compare("NewPassword", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmNewPassword { get; set; }
+
+        public string Code { get; set; }
     }
 }
