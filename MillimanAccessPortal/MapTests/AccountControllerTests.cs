@@ -209,6 +209,7 @@ namespace MapTests
         public async Task AccountSettingsGETWorks()
         {
             #region Act
+            #region Arrange
             AccountController controller = await GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
             #endregion
