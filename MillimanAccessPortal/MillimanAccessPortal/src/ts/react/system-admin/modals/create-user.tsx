@@ -2,6 +2,8 @@ import { ajax } from 'jquery';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
+import '../../../../scss/react/shared-components/modal.scss';
+
 interface CreateUserModalState {
   emailText: string;
 }
@@ -27,26 +29,32 @@ export class CreateUserModal extends React.Component<Modal.Props, CreateUserModa
       <Modal
         ariaHideApp={false}
         {...this.props}
+        className="modal"
+        overlayClassName="modal-overlay"
       >
-        <h2>Create New User</h2>
+        <h3 className="title blue">Create New User</h3>
+        <span className="modal-text">User to create:</span>
         <form onSubmit={this.handleSubmit}>
-          <h3>User to create:</h3>
           <input
             type="text"
             placeholder="Email address"
             onChange={this.handleChange}
           />
-          <button
-            type="button"
-            onClick={this.cancel}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-          >
-            Create User
-          </button>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={this.cancel}
+            >
+              Cancel
+            </button>
+            <button
+              className="blue-button"
+              type="submit"
+            >
+              Create User
+            </button>
+          </div>
         </form>
       </Modal>
     );

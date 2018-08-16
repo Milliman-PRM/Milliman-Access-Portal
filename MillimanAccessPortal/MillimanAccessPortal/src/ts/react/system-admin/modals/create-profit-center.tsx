@@ -2,6 +2,8 @@ import { ajax } from 'jquery';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
+import '../../../../scss/react/shared-components/modal.scss';
+
 interface CreateProfitCenterModalState {
   name: string;
   code: string;
@@ -42,10 +44,12 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
       <Modal
         ariaHideApp={false}
         {...this.props}
+        className = "modal"
+        overlayClassName = "modal-overlay"
       >
-        <h2>Create New Profit Center</h2>
+        <h3 className="title blue">Create New Profit Center</h3>
+        <span className="modal-text">Profit Center Information</span>
         <form onSubmit={this.handleSubmit}>
-          <h3>Profit Center Information</h3>
           <span>
             <label htmlFor="pcName">Name:</label>
             <input
@@ -94,17 +98,21 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
               onChange={this.handleChangePhone}
             />
           </span>
-          <button
-            type="button"
-            onClick={this.cancel}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-          >
-            Create Profit Center
-          </button>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={this.cancel}
+            >
+              Cancel
+            </button>
+            <button
+              className="blue-button"
+              type="submit"
+            >
+              Create Profit Center
+            </button>
+          </div>
         </form>
       </Modal>
     );

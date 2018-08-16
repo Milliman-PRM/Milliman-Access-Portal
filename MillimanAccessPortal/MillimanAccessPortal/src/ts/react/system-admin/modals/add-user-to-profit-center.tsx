@@ -2,6 +2,8 @@ import { ajax } from 'jquery';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
+import '../../../../scss/react/shared-components/modal.scss';
+
 export interface AddUserToProfitCenterModalProps extends Modal.Props {
   profitCenterId: number;
 }
@@ -32,26 +34,32 @@ export class AddUserToProfitCenterModal
       <Modal
         ariaHideApp={false}
         {...this.props}
+        className="modal"
+        overlayClassName="modal-overlay"
       >
-        <h2>Add User</h2>
+        <h3 className="title blue">Add User</h3>
+        <span className="modal-text">User to add:</span>
         <form onSubmit={this.handleSubmit}>
-          <h3>User to add:</h3>
           <input
             type="text"
             placeholder="Email address"
             onChange={this.handleChange}
           />
-          <button
-            type="button"
-            onClick={this.cancel}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-          >
-            Add User
-          </button>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={this.cancel}
+            >
+              Cancel
+            </button>
+            <button
+              className="blue-button"
+              type="submit"
+            >
+              Add User
+            </button>
+          </div>
         </form>
       </Modal>
     );

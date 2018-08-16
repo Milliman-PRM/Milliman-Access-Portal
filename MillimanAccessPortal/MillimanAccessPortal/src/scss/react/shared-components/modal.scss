@@ -1,0 +1,57 @@
+@import "../../map_modules/variables";
+
+.modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: $light-grey;
+    width: 35em;
+    max-width: 95vw;
+    max-height: 95vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0 1em 1em;
+    color: $charcoal;
+    border: 2px solid $black;
+    border-radius: 5px;
+
+    .title {
+        color: $white;
+        overflow: hidden;
+        margin: -1px -1em 1em -1em;
+        padding: .4em 1em;
+        border-bottom: 1px solid $black;
+
+        &.blue {
+            background-color: $blue;
+        }
+
+        &.green {
+            background-color: $green;
+        }
+
+        &.red {
+            background-color: $red;
+        }
+    }
+
+    .modal-text {
+        display: block;
+        margin-bottom: 1em;
+    }
+
+    .button-container {
+        padding-top: 1em;
+        text-align: right;
+    }
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba($charcoal, .5);
+}
