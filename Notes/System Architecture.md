@@ -100,7 +100,7 @@ All virtual machines and databases will be backed up to geo-redundant storage. T
 
 In the case that the data center becomes unavailable permanently or for a significant period, we will need to transfer our application and services to a new Azure data center.
 
-* If available, transfer resources to the South Central US region
+* If available, transfer resources to the East US 2 region
 * If public IP addresses have changed, update public DNS records to point at IP addresses served by the new data center
 * Stand up services in the new location, utilizing the configuration scripts used to stand up the original data center
   * Azure Database for PostgreSQL
@@ -116,6 +116,11 @@ In the case that the data center becomes unavailable permanently or for a signif
 ### Web Application firewall
 
 The Web Application Firewall feature of the Application Gateway guards our infrastructure against common types of attacks and vulnerabilities, as defined by the [OWASP 3.0 Core Rule Set](https://coreruleset.org/). All end-user traffic to MAP and QlikView Server will flow through the WAF/AG.
+
+Due to the unique nature of our application (particularly in uploading QlikView content) some rules may need to be disabled. At this time, the following rules have been disabled because they interfere with user-facing functionality in some way. These rules have been disabled only for the web server's gateway,  unless otherwise noted.
+
+* #942450 SQL Hex Encoding Identified
+* #942440 SQL Comment Sequence Detected
 
 ### Azure Security Center
 
@@ -151,7 +156,6 @@ Specific ports and protocols will be opened to groups of VMs via Network Securit
 |QlikView Publishers|10.254.12.0/24|File Servers, Domain Controllers|
 |Web servers|10.254.11.0/24|File Servers, Qlikview Servers, Application Gateways, Shared Infrastructure|
 |Remote Administration|10.254.6.0/24|All vnets|
-|Application Gateways|10.254.7.0/24|Web servers, QlikView Servers|
 |VPN Gateway|10.254.0.0/22|Remote Administration|
 |Shared infrastructure|10.0.0.0/24|Web servers, Remote Administration|
 
@@ -161,16 +165,20 @@ Specific ports and protocols will be opened to groups of VMs via Network Securit
 
 Inbound requests from the public internet will pass through the Application Gateway. Additionally, the operating system firewall will be enabled and properly configured on each VM.
 
+All traffic is allowed to flow between peered virtual networks, as described above.
+
 The table defines rules to be applied both within Network Security Groups as well as the Windows Firewall.
 
-|Server Type|Public (external) allowed protocols|Internal (From Milliman) connections allowed|Outbound (within Azure) connections allowed|Inbound (within Azure) connections allowed|
+|Server Type|Connections allowed from the Internet|Connections allowed from VPN|
 |-----|-----|-----|-----|-----|
-|Domain Controllers|---|---|Active Directory & DNS traffic only|Active Directory & DNS traffic only|
-|QlikView Server|HTTPS|HTTPS, RDP|Domain Controllers (Active Directory & DNS), File Servers|QlikView qvajaxzfc web app|
-|QlikView Publisher|---|RDP|Domain Controllers (Active Directory & DNS), PostgreSQL, File Servers|---|
-|Web Server|HTTPS, through Application Gateway|---|Domain Controllers (Active Directory & DNS), File Servers|---|
-|File Server|---|RDP|Domain Controllers (Active Directory & DNS)|File access (SMB3)|
-|Remote Administration VMs|---|RDP|QlikView Servers, Domain Controllers (Active Directory & DNS), QlikView Publishers, File Servers|---|
+|Domain Controllers|---|---|
+|QlikView Server|HTTPS, through Application Gateway|HTTPS, through Application Gateway|
+|QlikView Publisher|---|---|
+|Web Server|HTTPS, through Application Gateway|HTTPS, through Application Gateway|
+|File Server|---|---|
+|Remote Administration VMs|---|RDP|
+
+Additionally, servers that host Octopus Deploy endpoints allow traffic from Milliman on port 10933. This traffic is HTTPS-only and it will only allow deployments from our in-house Octopus Deploy server.
 
 #### Additional Firewall rule for Azure VMs
 
@@ -188,11 +196,11 @@ Access to VMs in this network should not be granted on a permanent basis to user
 
 Remote Desktop access from Milliman will only be allowed to VMs within the Remote Administration virtual network, and only via the Point-to-Site VPN.
 
-Non-administrator users will not be allowed to remotely connect to any machines beyond that virtual network.
+Non-administrator users will not be allowed to remotely connect to any machines beyond that virtual network unless specifically granted access by the infrastructure team.
 
 Administrators can use these VMs as an entry point and connect from them to VMs in other virtual networks.
 
-These restrictions will be enforced via Group Policy.
+These restrictions will be enforced via Group Policy and Network Security Groups.
 
 ### File Share Isolation
 
