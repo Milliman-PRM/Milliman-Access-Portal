@@ -71,7 +71,8 @@ export class Submission extends FormElement {
     this.$entryPoint
       .find('.button-submit')
       .off('click')
-      .on('click', async () => {
+      .on('click', async (event) => {
+        event.preventDefault();
         for (const group of mode.groups) {
           await group.submit(form, mode.sparse);
         }
