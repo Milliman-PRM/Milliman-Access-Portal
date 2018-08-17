@@ -23,7 +23,7 @@ namespace MapDbContextLib.Context
         public DateTime CreatedDateTimeUtc { get; set; }
 
         [NotMapped]
-        public bool VirusScanAgeRequirementMet
+        public bool VirusScanWindowComplete
         {
             get => (CreatedDateTimeUtc + TimeSpan.FromSeconds(GlobalFunctions.virusScanAgeRequirement)) < DateTime.UtcNow;
         }
