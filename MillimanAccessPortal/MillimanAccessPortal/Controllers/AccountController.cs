@@ -645,19 +645,12 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
             AccountSettingsViewModel model = new AccountSettingsViewModel
             {
-                accountSettingsModel = new AccountSettingsModel
-                {
-                    UserName = user.UserName,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName,
-                    Email = user.Email,
-                    PhoneNumber = user.PhoneNumber,
-                    Employer = user.Employer
-                },
-                updatePasswordModel = new UpdatePasswordModel
-                {
-                    UserName = user.UserName,
-                }
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                UserName = user.UserName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Employer = user.Employer
             };
 
             return View(model);
@@ -666,7 +659,7 @@ namespace MillimanAccessPortal.Controllers
         // POST /Account/UpdateAccountSettings
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> AccountSettings([Bind("UserName,FirstName,LastName,PhoneNumber,Employer")]AccountSettingsModel Model)
+        public async Task<ActionResult> AccountSettings([Bind("UserName,FirstName,LastName,PhoneNumber,Employer")]AccountSettingsViewModel Model)
         {
             ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
             if (Model.UserName != User.Identity.Name)
@@ -703,7 +696,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> UpdatePassword([Bind("UserName,CurrentPassword,NewPassword,ConfirmNewPassword")]UpdatePasswordModel Model)
+        public async Task<ActionResult> UpdatePassword([Bind("UserName,CurrentPassword,NewPassword,ConfirmNewPassword")]AccountSettingsViewModel Model)
         {
             ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
             if (Model.UserName != User.Identity.Name)
