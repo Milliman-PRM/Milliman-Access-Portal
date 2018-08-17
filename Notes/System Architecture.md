@@ -225,9 +225,9 @@ All uploaded files must be verified to detect possible data corruption or tamper
 
 This applies both to uploaded content files and uploaded user guides.
 
-* When a user uploads content to be published, a checksum is generated client-side and verified server-side. If the checksums don't match, the content is not published and the user is notified that an error has occurred.
+* When a user uploads content to be published, a checksum is generated client-side and verified server-side. If the checksums don't match, the uploaded file is immediately deleted, no content is published, and the user is notified that an error has occurred.
    * This checksum is stored in the database and used to validate the master content file in future steps.
-*  When the Content Publishing Service processes master content files, the checksum is validated before performing reduction tasks.
+*  When the Content Publishing Service processes master content files, the checksum is validated before performing reduction tasks. This applies to new publications as well as new reductions on existing master content files.
 * When the reduction server generates reduced content files, a checksum is generated and stored for each output file.
 * When users promote/approve content for publication, the checksum is validated again.
 * The checksum is validated again before content is presented to the end user.
