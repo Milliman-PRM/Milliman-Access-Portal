@@ -4,7 +4,7 @@
 #  Run cleanup steps for CI builds of Milliman Access Portal, and publish if it was merged into Master or Develop
 
 ### DEVELOPER NOTES:
-#  
+#
 
 
 #region Define Functions
@@ -84,7 +84,7 @@ if ($appDbFound)
         exit 42
     }
 }
-else 
+else
 {
     log_statement "Application database was not found for this branch"
 }
@@ -179,7 +179,7 @@ if ($IsMerged) {
 
     if ($MergeBase -eq 'develop') {
         $checkoutPath = $rootPath
-    } elif ($MergeBase -eq 'master') {
+    } elseif ($MergeBase -eq 'master') {
         $checkoutPath = "$env:TEMP\$env:repo_name\"
         cd $env:TEMP
         & $gitExePath clone $CloneURL
@@ -188,6 +188,16 @@ if ($IsMerged) {
     $env:git_branch = $MergeBase
     & $gitExePath checkout $MergeBase
     & "$checkoutPath\Publish\CI_Publish.ps1"
+
+    if ($LASTEXITCODE -eq 0) {
+        log_statement "$MergeBase deployed successfully"
+    }
+    else {
+        $error_code = $LASTEXITCODE
+        log_statement "ERROR: Failed to deploy $MergeBase"
+        log_statement "errorlevel was $LASTEXITCODE"
+        exit $error_code
+    }
 }
 
 #endregion
