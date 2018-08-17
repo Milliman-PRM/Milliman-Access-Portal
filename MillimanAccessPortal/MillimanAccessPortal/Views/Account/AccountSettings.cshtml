@@ -27,18 +27,16 @@
                 <div class="form-section-container">
                     <div class="form-section" data-section="username">
                         <h4 class="form-section-title">User Information</h4>
-                        <div class="form-input-container">
+                        <div class="form-input-container" style="margin-bottom: 0;">
                             <div class="form-input form-input-text flex-item-12-12">
                                 <label class="form-input-text-title" asp-for="UserName"></label>
                                 <div>
                                     <input asp-for="UserName" data-original-value="UserName" readonly />
-                                    <span asp-validation-for="UserName" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="form-section" data-section="account">
-                        <h4 class="form-section-title">User Information</h4>
                         <div class="form-input-container">
                             <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
                                 <label class="form-input-text-title" asp-for="FirstName"></label>
