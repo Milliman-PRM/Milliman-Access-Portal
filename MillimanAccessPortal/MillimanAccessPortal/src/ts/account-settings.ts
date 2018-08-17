@@ -19,7 +19,7 @@ $(document).ready(() => {
   }
 
   const accountGroup = new SubmissionGroup(
-    [ 'account' ],
+    [ 'username', 'account' ],
     'AccountSettings',
     'POST',
     (response) => {
@@ -27,7 +27,7 @@ $(document).ready(() => {
     },
   );
   const passwordGroup = new SubmissionGroup(
-    [ 'password' ],
+    [ 'username', 'password' ],
     'UpdatePassword',
     'POST',
     (response) => {
