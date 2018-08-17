@@ -38,7 +38,7 @@ namespace MapDbContextLib.Context
             { PublicationStatus.Unknown, "Unknown" },
             { PublicationStatus.Canceled, "Canceled" },
             { PublicationStatus.Rejected, "Rejected"},
-            { PublicationStatus.Validating, "Validating"},
+            { PublicationStatus.Validating, "Virus Scanning"},
             { PublicationStatus.Queued, "Queued"},
             { PublicationStatus.Processing, "Processing"},
             { PublicationStatus.Processed, "Processed"},
