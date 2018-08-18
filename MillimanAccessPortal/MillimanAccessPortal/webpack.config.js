@@ -77,6 +77,11 @@ module.exports = {
         from: 'src/favicon.ico',
         to: '../favicon.ico',
       },
+      {
+        from: 'src/images/default_content_images/',
+        to: '../images/',
+        flatten: true,
+      },
     ]),
     new webpack.ProvidePlugin({
       $: 'jquery',

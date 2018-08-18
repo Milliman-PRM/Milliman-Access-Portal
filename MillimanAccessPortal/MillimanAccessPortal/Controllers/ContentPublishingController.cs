@@ -655,11 +655,13 @@ namespace MillimanAccessPortal.Controllers
                                                                                       .Include(r => r.ApplicationUser)
                                                                                       .SingleOrDefault(r => r.RequestStatus == PublicationStatus.Processed);
 
-            if (PubRequest == null)
+            if (PubRequest == null || PubRequest.RootContentItem == null || PubRequest.ApplicationUser == null)
             {
                 Response.Headers.Add("Warning", "Go-Live request references an invalid publication request.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+
+            bool ReductionIsInvolved = PubRequest.RootContentItem.DoesReduce && PubRequest.LiveReadyFilesObj.Any(f => f.FilePurpose.ToLower() == "mastercontent");
 
             ContentReductionHierarchy<ReductionFieldValue> LiveHierarchy = new ContentReductionHierarchy<ReductionFieldValue> { RootContentItemId = PubRequest.RootContentItemId };
             ContentReductionHierarchy<ReductionFieldValue> NewHierarchy = new ContentReductionHierarchy<ReductionFieldValue> { RootContentItemId = PubRequest.RootContentItemId };
@@ -670,57 +672,46 @@ namespace MillimanAccessPortal.Controllers
                                                                                              .ThenInclude(c => c.ContentType)
                                                                                              .ToList();
 
-            // For each reducing SelectionGroup related to the RootContentItem:
-            foreach (SelectionGroup ContentRelatedSelectionGroup in DbContext.SelectionGroup.Where(g => g.RootContentItemId == rootContentItemId)
-                                                                                            .Where(g => !g.IsMaster))
+            if (ReductionIsInvolved)
             {
-                ContentReductionTask ThisTask;
+                // For each reducing SelectionGroup related to the RootContentItem:
+                foreach (SelectionGroup ContentRelatedSelectionGroup in DbContext.SelectionGroup.Where(g => g.RootContentItemId == rootContentItemId)
+                                                                                                .Where(g => !g.IsMaster))
+                {
+                    ContentReductionTask ThisTask;
 
-                // RelatedReductionTasks should have one ContentReductionTask related to the SelectionGroup
-                try
-                {
-                    ThisTask = RelatedReductionTasks.Single(t => t.SelectionGroupId == ContentRelatedSelectionGroup.Id);
-                }
-                catch (InvalidOperationException)
-                {
-                    Response.Headers.Add("Warning", $"Expected 1 reduction task related to SelectionGroup {ContentRelatedSelectionGroup.Id}, cannot complete this go-live request.");
-                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    // RelatedReductionTasks should have one ContentReductionTask related to the SelectionGroup
+                    try
+                    {
+                        ThisTask = RelatedReductionTasks.Single(t => t.SelectionGroupId == ContentRelatedSelectionGroup.Id);
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        Response.Headers.Add("Warning", $"Expected 1 reduction task related to SelectionGroup {ContentRelatedSelectionGroup.Id}, cannot complete this go-live request.");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
+
+                    // This ContentReductionTask must be a reducing task
+                    if (ThisTask.TaskAction != TaskActionEnum.HierarchyAndReduction)
+                    {
+                        Response.Headers.Add("Warning", $"Go live request failed to verify related content reduction task {ThisTask.Id}.");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
+                    // The reduced content file identified in the ContentReductionTask must exist
+                    if (!System.IO.File.Exists(ThisTask.ResultFilePath))
+                    {
+                        Response.Headers.Add("Warning", $"Reduced content file {ThisTask.ResultFilePath} does not exist, cannot complete the go-live request.");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
+                    // Validate file checksum for reduced content
+                    if (GlobalFunctions.GetFileChecksum(ThisTask.ResultFilePath).ToLower() != ThisTask.ReducedContentChecksum.ToLower())
+                    {
+                        AuditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(PubRequest.RootContentItem, PubRequest));
+                        Response.Headers.Add("Warning", $"Reduced content file failed integrity check, cannot complete the go-live request.");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
                 }
 
-                // This ContentReductionTask must be a reducing task
-                if (ThisTask.TaskAction != TaskActionEnum.HierarchyAndReduction)
-                {
-                    Response.Headers.Add("Warning", $"Go live request failed to verify related content reduction task {ThisTask.Id}.");
-                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
-                }
-                // The reduced content file identified in the ContentReductionTask must exist
-                if (!System.IO.File.Exists(ThisTask.ResultFilePath))
-                {
-                    Response.Headers.Add("Warning", $"Reduced content file {ThisTask.ResultFilePath} does not exist, cannot complete the go-live request.");
-                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
-                }
-                // Validate file checksum for reduced content
-                if (GlobalFunctions.GetFileChecksum(ThisTask.ResultFilePath).ToLower() != ThisTask.ReducedContentChecksum.ToLower())
-                {
-                    AuditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(PubRequest.RootContentItem, PubRequest));
-                    Response.Headers.Add("Warning", $"Reduced content file failed integrity check, cannot complete the go-live request.");
-                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
-                }
-            }
-
-            // Validate Checksums of LiveReady files
-            foreach (ContentRelatedFile Crf in PubRequest.LiveReadyFilesObj)
-            {
-                if (!Crf.ValidateChecksum())
-                {
-                    AuditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(PubRequest.RootContentItem, PubRequest));
-                    Response.Headers.Add("Warning", "File integrity validation failed");
-                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
-                }
-            }
-
-            if (PubRequest.RootContentItem.DoesReduce)
-            {
                 LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(DbContext, PubRequest.RootContentItemId);
                 NewHierarchy = RelatedReductionTasks[0].MasterContentHierarchyObj;
 
@@ -732,6 +723,17 @@ namespace MillimanAccessPortal.Controllers
                         Response.Headers.Add("Warning", "New hierarchy field list does not match the live hierarchy");
                         return StatusCode(StatusCodes.Status422UnprocessableEntity);
                     }
+                }
+            }
+
+            // Validate Checksums of LiveReady files
+            foreach (ContentRelatedFile Crf in PubRequest.LiveReadyFilesObj)
+            {
+                if (!Crf.ValidateChecksum())
+                {
+                    AuditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(PubRequest.RootContentItem, PubRequest));
+                    Response.Headers.Add("Warning", "File integrity validation failed");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
             }
             #endregion
@@ -771,11 +773,8 @@ namespace MillimanAccessPortal.Controllers
                     System.IO.File.Copy(Crf.FullPath, TargetFilePath);
                     FilesToDelete.Add(Crf.FullPath);
 
-                    // if file with this FilePurpose does not already exist for the Content Item
-                    if (!UpdatedContentFilesList.Select(cf => cf.FilePurpose).Contains(Crf.FilePurpose))
-                    {
-                        UpdatedContentFilesList.Add(new ContentRelatedFile { FilePurpose = Crf.FilePurpose, FullPath = TargetFilePath, Checksum = Crf.Checksum });
-                    }
+                    UpdatedContentFilesList.RemoveAll(f => f.FilePurpose.ToLower() == Crf.FilePurpose.ToLower());
+                    UpdatedContentFilesList.Add(new ContentRelatedFile { FilePurpose = Crf.FilePurpose, FullPath = TargetFilePath, Checksum = Crf.Checksum });
 
                     if (Crf.FilePurpose.ToLower() == "mastercontent")
                     {
@@ -884,7 +883,7 @@ namespace MillimanAccessPortal.Controllers
                 }
                 DbContext.SaveChanges();
 
-                //3.4  SelectionGroup 1) URL and 2) SelectedHierarchyFieldValueList due to hierarchy changes
+                //3.4  Update SelectionGroup SelectedHierarchyFieldValueList due to hierarchy changes
                 List<long> AllRemainingFieldValues = DbContext.HierarchyFieldValue.Where(v => v.HierarchyField.RootContentItemId == PubRequest.RootContentItemId)
                                                                                   .Select(v => v.Id)
                                                                                   .ToList();
@@ -912,7 +911,7 @@ namespace MillimanAccessPortal.Controllers
                 }
             }
 
-            if (PubRequest.RootContentItem.DoesReduce)
+            if (ReductionIsInvolved)
             {
                 //Delete temporary folder of publication job (contains temporary reduced content files)
                 string PubJobTempFolder = Path.GetDirectoryName(RelatedReductionTasks[0].MasterFilePath);

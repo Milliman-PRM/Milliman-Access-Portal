@@ -132,8 +132,14 @@ foreach ($diff in $diffOutput)
 # If no code changes were found, we don't have to run the rest of this script
 if ($codeChangeFound -eq $false)
 {
-  log_statement "Code changes were not found. No build or deployment is needed."
-  exit 0
+    if ($BranchName -in "master", "develop")
+    {
+        log_statement "Branch name $BranchName is always built and deployed"
+    }
+    else {
+        log_statement "Code changes were not found. No build or deployment is needed."
+        exit 0
+    }
 }
 
 #endregion

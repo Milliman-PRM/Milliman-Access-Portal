@@ -18,3 +18,8 @@ export interface NavBarElement {
   URL: string;
   Icon: string;
 }
+
+export interface ContentContainerProps {
+  contentURL: string;
+  closeAction: (URL: string) => void;
+}
