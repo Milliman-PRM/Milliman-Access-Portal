@@ -201,6 +201,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
 
             ContentItems = DbContext.RootContentItem
                                     .Where(rc => rc.ClientId == ClientEntity.Id)
+                                    .Where(rc => !rc.IsSuspended)
                                     .ToList();
 
         }

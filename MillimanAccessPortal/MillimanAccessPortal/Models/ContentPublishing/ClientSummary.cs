@@ -63,6 +63,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
             clientDetail.RootContentItemCount = dbContext.RootContentItem
                 .Where(rci => rci.ClientId == clientDetail.Id)
+                .Where(rci => !rci.IsSuspended)
                 .Count();
 
             return clientDetail;
