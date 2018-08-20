@@ -106,7 +106,8 @@ select {
         border: solid 1px $blue;
     }
 
-    &[disabled] {
+    &[disabled],
+    &[readonly] {
         border: solid 1px $grey;
         color: $charcoal;
         background-color: $light-grey;
