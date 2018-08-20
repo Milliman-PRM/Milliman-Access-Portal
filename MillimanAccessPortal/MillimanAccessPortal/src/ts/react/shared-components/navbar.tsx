@@ -16,13 +16,15 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
 
   public componentDidMount() {
     const elements = fetch('/Account/NavBarElements', {
-      credentials: 'include'
-      }).then(response => response.json()
-       ).then(json => {
-         this.setState({ NavBarElements: json });
-      }).catch(ex => {
-        console.log('parsing failed', ex)
-      });
+      credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(json => {
+      this.setState({ NavBarElements: json });
+    })
+    .catch(ex => {
+      console.log('parsing failed', ex)
+    });
   }
   
   public render() {
