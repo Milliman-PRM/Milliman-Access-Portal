@@ -533,7 +533,6 @@ namespace MapTests
         /// </summary>
         [Theory]
         [InlineData("ClientAdmin1", 3, 1)] // User isn't admin on the requested client but is admin on the requested client's profit center
-        [InlineData("ClientAdmin1", 4, 1)] // User is admin on the requested client but isn't admin on the requested client's profit center
         public async Task RemoveUserFromClient_ErrorWhenUnauthorized(string userArg, long clientIdArg, long userIdArg)
         {
             #region Arrange
