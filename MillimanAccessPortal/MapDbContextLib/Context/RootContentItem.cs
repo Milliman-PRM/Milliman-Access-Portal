@@ -39,6 +39,8 @@ namespace MapDbContextLib.Context
 
         public string Notes { get; set; }
 
+        public bool IsSuspended { get; set; }
+
         [Column(TypeName = "jsonb")]
         public string ContentFiles { get; set; } = "[]";
 

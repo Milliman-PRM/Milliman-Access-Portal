@@ -40,5 +40,10 @@ namespace MapDbContextLib.Identity
         // Summary:
         //     Gets or sets the user's Employer.
         public virtual string Employer { get; set; }
+
+        //
+        // Summary:
+        //     Gets or sets the user's IsSuspended status.
+        public virtual bool IsSuspended { get; set; }
     }
 }
