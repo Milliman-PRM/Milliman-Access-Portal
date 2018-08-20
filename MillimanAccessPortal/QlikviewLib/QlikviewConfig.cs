@@ -19,7 +19,7 @@ namespace QlikviewLib
         /// <summary>
         /// Directory name or path to append to the front of the document path (the root QlikView document directory as configured in QlikView Server)
         /// </summary>
-        public string QvServerContentUriRootPath { get; set; }
+        public string QvServerContentUriRootPath { get; set; } = "";
         /// <summary>
         /// Cast operator, returns a NetworkCredential object based on an object of this type; requires explicit cast. 
         /// </summary>
