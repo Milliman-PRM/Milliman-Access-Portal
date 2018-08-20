@@ -133,7 +133,7 @@ namespace MillimanAccessPortal
             });
 
             string fileUploadPath = Path.GetTempPath();
-            if (!string.IsNullOrWhiteSpace(Configuration.GetValue<string>("Storage:FileUploadPath")))
+            if (!string.IsNullOrWhiteSpace(Configuration.GetValue<string>("Storage:FileUploadPath")) && Environment.GetEnvironmentVariable("MIGRATIONS_RUNNING") == null)
             {
                 fileUploadPath = Configuration.GetValue<string>("Storage:FileUploadPath");
             }
