@@ -25,48 +25,51 @@
         <div class="admin-panel-content-container">
             <form id="account-settings-form" class="admin-panel-content" autocomplete="off">
                 <div class="form-section-container">
-                    <div class="form-section" data-section="account">
+                    <div class="form-section" data-section="username">
                         <h4 class="form-section-title">User Information</h4>
-                        <div class="form-input-container">
+                        <div class="form-input-container" style="margin-bottom: 0;">
                             <div class="form-input form-input-text flex-item-12-12">
                                 <label class="form-input-text-title" asp-for="UserName"></label>
                                 <div>
-                                    <input asp-for="UserName" data-original-value="@Model.UserName" readonly disabled />
-                                    <span asp-validation-for="UserName" class="text-danger"></span>
+                                    <input asp-for="UserName" data-original-value="UserName" readonly />
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                    <div class="form-section" data-section="account">
+                        <div class="form-input-container">
                             <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
                                 <label class="form-input-text-title" asp-for="FirstName"></label>
                                 <div>
-                                    <input asp-for="FirstName" data-original-value="@Model.FirstName" />
+                                    <input asp-for="FirstName" data-original-value="FirstName" />
                                     <span asp-validation-for="FirstName" class="text-danger"></span>
                                 </div>
                             </div>
                             <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
                                 <label class="form-input-text-title" asp-for="LastName"></label>
                                 <div>
-                                    <input asp-for="LastName" data-original-value="@Model.LastName" />
+                                    <input asp-for="LastName" data-original-value="LastName" />
                                     <span asp-validation-for="LastName" class="text-danger"></span>
                                 </div>
                             </div>
                             <div class="form-input form-input-text flex-item-12-12" style="display: none;">
                                 <label class="form-input-text-title" asp-for="Email"></label>
                                 <div>
-                                    <input asp-for="Email" data-original-value="@Model.Email" readonly disabled />
+                                    <input asp-for="Email" data-original-value="Email" readonly disabled />
                                     <span asp-validation-for="Email" class="text-danger"></span>
                                 </div>
                             </div>
                             <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-4-12">
                                 <label class="form-input-text-title" asp-for="PhoneNumber"></label>
                                 <div>
-                                    <input asp-for="PhoneNumber" placeholder="(###) ###-####" data-original-value="@Model.PhoneNumber" />
+                                    <input asp-for="PhoneNumber" placeholder="(###) ###-####" data-original-value="PhoneNumber" />
                                     <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                                 </div>
                             </div>
                             <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-8-12">
                                 <label class="form-input-text-title" asp-for="Employer"></label>
                                 <div>
-                                    <input asp-for="Employer" data-original-value="@Model.Employer" />
+                                    <input asp-for="Employer" data-original-value="Employer" />
                                     <span asp-validation-for="Employer" class="text-danger"></span>
                                 </div>
                             </div>
@@ -100,7 +103,7 @@
                     <div class="form-submission-section">
                         <div class="button-container button-container-update" style="display: none;">
                             <button type="button" class="button-reset link-button">Discard Changes</button>
-                            <button type="button" class="button-submit blue-button">Update Account</button>
+                            <button type="submit" class="button-submit blue-button">Update Account</button>
                         </div>
                         <div class="form-antiforgery-token" style="display: none;">
                             @Html.AntiForgeryToken()

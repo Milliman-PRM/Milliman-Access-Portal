@@ -31,6 +31,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
 
             // Query for the most recent reduction task for this selection group.
             var latestTask = dbContext.ContentReductionTask
+                .Include(crt => crt.ApplicationUser)
                 .Include(crt => crt.ContentPublicationRequest)
                 .Where(crt => crt.SelectionGroupId == selectionGroup.Id)
                 .OrderByDescending(crt => crt.CreateDateTimeUtc)

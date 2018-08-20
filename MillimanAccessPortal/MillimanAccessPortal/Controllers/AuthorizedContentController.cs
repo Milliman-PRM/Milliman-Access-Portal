@@ -11,6 +11,7 @@ using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -23,6 +24,7 @@ using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.AuthorizedContentViewModels;
 using QlikviewLib;
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -76,7 +78,7 @@ namespace MillimanAccessPortal.Controllers
 
         public async Task<IActionResult> Content()
         {
-            var model = AuthorizedContentViewModel.Build(DataContext, await Queries.GetCurrentApplicationUser(User));
+            var model = AuthorizedContentViewModel.Build(DataContext, await Queries.GetCurrentApplicationUser(User), HttpContext);
 
             return Json(model);
         }
@@ -84,20 +86,20 @@ namespace MillimanAccessPortal.Controllers
         /// <summary>
         /// Handles a request to display content that is hosted by a web server. 
         /// </summary>
-        /// <param name="Id">The primary key value of the SelectionGroup authorizing this user to the requested content</param>
+        /// <param name="selectionGroupId">The primary key value of the SelectionGroup authorizing this user to the requested content</param>
         /// <returns>A View (and model) that displays the requested content</returns>
         [Authorize]
-        public async Task<IActionResult> WebHostedContent(long Id)
+        public async Task<IActionResult> WebHostedContent(long selectionGroupId)
         {
             var selectionGroup = DataContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
                     .ThenInclude(rc => rc.ContentType)
-                .Where(sg => sg.Id == Id)
+                .Where(sg => sg.Id == selectionGroupId)
                 .FirstOrDefault();
             #region Validation
             if (selectionGroup == null || selectionGroup.RootContentItem == null || selectionGroup.RootContentItem.ContentType == null)
             {
-                string ErrMsg = $"Failed to obtain the requested user group, root content item, or content type";
+                string ErrMsg = $"Failed to obtain the requested selection group, root content item, or content type";
                 Logger.LogError(ErrMsg);
 
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
@@ -108,14 +110,14 @@ namespace MillimanAccessPortal.Controllers
             #region Authorization
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
                 {
-                    new UserInSelectionGroupRequirement(Id),
+                    new UserInSelectionGroupRequirement(selectionGroupId),
                     new RoleInClientRequirement(RoleEnum.ContentUser, selectionGroup.RootContentItem.ClientId),
                 });
             if (!Result1.Succeeded)
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
 
-                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
+                Response.Headers.Add("Warning", "You are not authorized to access the requested content");
                 return Unauthorized();
             }
             #endregion
@@ -143,18 +145,11 @@ namespace MillimanAccessPortal.Controllers
 
                 UriBuilder ContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.ContentInstanceUrl, HttpContext.User.Identity.Name, QlikviewConfig);
 
-                AuthorizedContentViewModel ResponseModel = new AuthorizedContentViewModel
-                {
-                    // Url = ContentUri.Uri.AbsoluteUri,  // must be absolute because it is used in iframe element
-                    // UserGroupId = SelGroup.Id,
-                    // ContentName = SelGroup.RootContentItem.ContentName,
-                };
-
                 // Now return the appropriate view for the requested content
                 switch (selectionGroup.RootContentItem.ContentType.Name)
                 {
                     case "Qlikview":
-                        return View(ResponseModel);
+                        return Redirect(ContentUri.Uri.AbsoluteUri);
 
                     //case "Another web hosted type":
                         //return TheRightThing;
@@ -175,5 +170,108 @@ namespace MillimanAccessPortal.Controllers
                 return RedirectToAction(nameof(ErrorController.Error), nameof(ErrorController).Replace("Controller", ""));
             }
         }
+
+        /// <summary>
+        /// Handles a request to display a content items associated thumbnail 
+        /// </summary>
+        /// <param name="selectionGroupId">The primary key value of the SelectionGroup authorizing this user to the requested content</param>
+        /// <returns>A View (and model) that displays the requested content</returns>
+        [Authorize]
+        public IActionResult Thumbnail(long selectionGroupId)
+        {
+            var selectionGroup = DataContext.SelectionGroup
+                                            .Include(sg => sg.RootContentItem)
+                                                .ThenInclude(rc => rc.ContentType)
+                                            .FirstOrDefault(sg => sg.Id == selectionGroupId);
+
+            #region Validation
+            if (selectionGroup == null || selectionGroup.RootContentItem == null || selectionGroup.RootContentItem.ContentType == null)
+            {
+                string Msg = $"Failed to obtain the requested selection group, root content item, or content type";
+                Logger.LogError(Msg);
+                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
+            }
+            #endregion
+
+            try
+            {
+                ContentRelatedFile contentRelatedThumbnail = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(cf => cf.FilePurpose.ToLower() == "thumbnail");
+
+                if (contentRelatedThumbnail != null && System.IO.File.Exists(contentRelatedThumbnail.FullPath))
+                {
+                    switch (Path.GetExtension(contentRelatedThumbnail.FullPath).ToLower())
+                    {
+                        case ".png":
+                            return File(System.IO.File.OpenRead(contentRelatedThumbnail.FullPath), "image/png");
+
+                        case ".gif":
+                            return File(System.IO.File.OpenRead(contentRelatedThumbnail.FullPath), "image/gif");
+
+                        case ".jpg":
+                        case ".jpeg":
+                            return File(System.IO.File.OpenRead(contentRelatedThumbnail.FullPath), "image/jpeg");
+
+                        default:
+                            throw new Exception();
+                    }
+                }
+                else
+                {
+                    // when the content item has no thumbnail, return the default image for the ContentType
+                    return Redirect($"/images/{selectionGroup.RootContentItem.ContentType.DefaultIconName}");
+                }
+            }
+            catch
+            {
+                // ControllerBase.File does not throw, but the Stream can throw all sorts of things.
+                string ErrMsg = $"Failed to obtain image for SelectionGroup {selectionGroupId}";
+                Logger.LogError(ErrMsg);
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+            }
+        }
+
+        [Authorize]
+        public async Task<IActionResult> RelatedPdf(string purpose, long selectionGroupId)
+        {
+            var selectionGroup = DataContext.SelectionGroup
+                                            .Include(sg => sg.RootContentItem)
+                                            .FirstOrDefault(sg => sg.Id == selectionGroupId);
+
+            #region Validation
+            if (selectionGroup == null || selectionGroup.RootContentItem == null)
+            {
+                string Msg = $"Failed to obtain the requested selection group or root content item";
+                Logger.LogError(Msg);
+                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new UserInSelectionGroupRequirement(selectionGroupId));
+            if (!Result1.Succeeded)
+            {
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
+
+                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
+                return Unauthorized();
+            }
+            #endregion
+
+            try
+            {
+                ContentRelatedFile contentRelatedPdf = selectionGroup.RootContentItem.ContentFilesList.Single(cf => cf.FilePurpose.ToLower() == purpose.ToLower());
+                FileStream fileStream = System.IO.File.OpenRead(contentRelatedPdf.FullPath);
+
+                return File(fileStream, "application/pdf");
+            }
+            catch
+            {
+                string ErrMsg = $"Failed to load requested {purpose} PDF for SelectionGroup {selectionGroupId}";
+                Logger.LogError(ErrMsg);
+                Response.Headers.Add("Warning", ErrMsg);
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
     }
 }

@@ -2,12 +2,12 @@ require('./contact-form');
 
 require('bootstrap/scss/bootstrap-grid.scss');
 
-require('../images/content-grid.svg');
-require('../images/user-settings.svg');
-require('../images/content-access.svg');
-require('../images/content-publishing.svg');
-require('../images/client-admin.svg');
-require('../images/system-admin.svg');
-require('../images/userguide.svg');
-require('../images/email.svg');
-require('../images/logout.svg');
+import '../images/content-grid.svg';
+import '../images/user-settings.svg';
+import '../images/content-access.svg';
+import '../images/content-publishing.svg';
+import '../images/client-admin.svg';
+import '../images/system-admin.svg';
+import '../images/userguide.svg';
+import '../images/email.svg';
+import '../images/logout.svg';

@@ -71,8 +71,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                                         .Where(t => t.ContentPublicationRequestId == PubRequest.Id)
                                                         .ToList();
                 #region Validation of reduction tasks and related nav properties from db
-                if (AllTasks.Count == 0
-                 || AllTasks.Any(t => t.SelectionGroup == null)
+                if (AllTasks.Any(t => t.SelectionGroup == null)
                  || AllTasks.Any(t => t.SelectionGroup.RootContentItemId != PubRequest.RootContentItemId)
                  )  // if any of this happens it probably means db corruption or connection failed
                 {
@@ -81,7 +80,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 #endregion
 
                 ReturnObj.LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(Db, RootContentItemId);
-                ReturnObj.NewHierarchy = AllTasks[0].MasterContentHierarchyObj;
+                ReturnObj.NewHierarchy = AllTasks.Any() ? AllTasks[0].MasterContentHierarchyObj : null;  // null == there was no hierarchy extraction
                 ReturnObj.SelectionGroups = AllTasks.Select(t => new SelectionGroupSummary
                     {
                         Name = t.SelectionGroup.GroupName,

@@ -39,3 +39,8 @@ export enum RoleEnum {
   ContentPublisher = 4,
   ContentUser = 5,
 }
+
+export interface ContentContainerProps {
+  contentURL: string;
+  closeAction: (URL: string) => void;
+}

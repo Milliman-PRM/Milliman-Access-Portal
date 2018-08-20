@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -48,6 +49,9 @@ namespace MapDbContextLib.Context
         [Required]
         public bool CanReduce { get; set; }
 
+        [Required]
+        public string DefaultIconName { get; set; }
+
         #region Database Initialization
         /// <summary>
         /// Initialize the database with known content types
@@ -58,20 +62,28 @@ namespace MapDbContextLib.Context
         {
             List<ContentType> AllProposedContentTypes = new List<ContentType>
             {
-                new ContentType { Id = 1, TypeEnum=ContentTypeEnum.Qlikview, CanReduce = true },
-                //new ContentType { Id = 2, TypeEnum = ContentTypeEnum.AnotherType, CanReduce = trueorfalse },
+                new ContentType { Id = 1, TypeEnum=ContentTypeEnum.Qlikview, CanReduce = true, DefaultIconName = "QlikView_Icon.png" },
+                //new ContentType { Id = 2, TypeEnum = ContentTypeEnum.AnotherType, CanReduce = trueorfalse, DefaultIconName = ""},
             };
 
             ApplicationDbContext Db = serviceProvider.GetService<Context.ApplicationDbContext>();
 
-            // Eliminate any proposed objects already in the database
-            AllProposedContentTypes.RemoveAll(t => AreSameContentType(t, Db.ContentType.Find(t.Id)));
-
-            if (AllProposedContentTypes.Count > 0)
+            foreach (ContentType type in AllProposedContentTypes)
             {
-                Db.ContentType.AddRange(AllProposedContentTypes);
-                Db.SaveChanges();
+                ContentType fromDb = Db.ContentType.Find(type.Id);
+                if (fromDb == null)
+                {
+                    Db.ContentType.Add(type);
+                }
+                else
+                {
+                    fromDb.Name = type.Name;
+                    fromDb.CanReduce = type.CanReduce;
+                    fromDb.DefaultIconName = type.DefaultIconName;
+                    Db.ContentType.Update(fromDb);
+                }
             }
+            Db.SaveChanges();
         }
 
         /// <summary>
@@ -85,7 +97,7 @@ namespace MapDbContextLib.Context
         {
             if (l != null && r != null)  // Neither one is null
             {
-                return l.Id == r.Id && l.Name == r.Name && l.CanReduce == r.CanReduce;
+                return l.Id == r.Id && l.Name == r.Name && l.CanReduce == r.CanReduce && r.DefaultIconName == l.DefaultIconName;
             }
             else if (l == null ^ r == null)  // exactly one is null  (^ is logical xor operator)
             {
