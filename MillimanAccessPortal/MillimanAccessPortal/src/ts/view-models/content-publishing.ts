@@ -66,6 +66,7 @@ export interface RootContentItemSummary {
   ContentName: string;
   ContentTypeName: string;
   GroupCount: number;
+  IsSuspended: boolean;
   EligibleUserList: UserInfo[];
   PublicationDetails: PublicationSummary;
 }
@@ -90,6 +91,7 @@ export interface RootContentItemDetail {
   RelatedFiles: ContentRelatedFile[];
   Description: string;
   Notes: string;
+  IsSuspended: boolean;
 }
 
 export interface RootContentItemSummaryAndDetail {

@@ -121,6 +121,7 @@ export function openNewRootContentItemForm() {
     Id: 0,
     Notes: '',
     RelatedFiles: [],
+    IsSuspended: false,
   });
   setFormNew();
 }
