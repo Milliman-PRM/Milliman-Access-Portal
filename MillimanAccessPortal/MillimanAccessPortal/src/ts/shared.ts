@@ -505,13 +505,18 @@ export function confirmAndContinueForm(onContinue, condition = true) {
 
 // fetch helpers
 export function getData(url = '', data = {}) {
-  return fetch(url, {
+  const urlObj = new URL(url, `${window.location.protocol}//${window.location.host}`);
+  Object.keys(data).forEach((key) => {
+    if (Object.prototype.hasOwnProperty.call(data, key)) {
+      urlObj.searchParams.append(key, data[key]);
+    }
+  });
+  return fetch(urlObj.href, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
     },
     credentials: 'same-origin',
-    body: JSON.stringify(data),
   })
   .then((response) => {
     if (!response.ok) {
@@ -524,14 +529,21 @@ export function getData(url = '', data = {}) {
 export function postData(url: string = '', data: object = {}) {
   const antiforgeryInput = document.querySelector('input[name="__RequestVerificationToken"]') as HTMLInputElement;
   const antiforgeryToken = antiforgeryInput.value.toString();
-  return fetch(url, {
+  const urlObj = new URL(url, `${window.location.protocol}//${window.location.host}`);
+  const formData = Object.keys(data).map((key) => {
+    if (Object.prototype.hasOwnProperty.call(data, key)) {
+      return `${key}=${data[key]}`;
+    }
+    return null;
+  }).filter((kvp) => kvp !== null).join('&');
+  return fetch(urlObj.href, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json; charset=utf-8',
+      'Content-Type': 'application/x-www-form-urlencoded',
       'RequestVerificationToken': antiforgeryToken,
     },
     credentials: 'same-origin',
-    body: JSON.stringify(data),
+    body: formData,
   })
   .then((response) => {
     if (!response.ok) {
