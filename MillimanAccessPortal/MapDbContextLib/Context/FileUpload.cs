@@ -25,7 +25,7 @@ namespace MapDbContextLib.Context
         [NotMapped]
         public bool VirusScanWindowComplete
         {
-            get => (CreatedDateTimeUtc + TimeSpan.FromSeconds(GlobalFunctions.virusScanAgeRequirement)) < DateTime.UtcNow;
+            get => (CreatedDateTimeUtc + TimeSpan.FromSeconds(GlobalFunctions.virusScanWindowSeconds)) < DateTime.UtcNow;
         }
 
         [Required]
