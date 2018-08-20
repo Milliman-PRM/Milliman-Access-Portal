@@ -10,6 +10,7 @@ export interface NavBarProps {
 
 export interface NavBarState {
   NavBarElements: NavBarElement[];
+  NavBarIsLoaded: boolean;
 }
 
 export interface NavBarElement {
