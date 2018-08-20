@@ -502,3 +502,41 @@ export function confirmAndContinueForm(onContinue, condition = true) {
     onContinue();
   }
 }
+
+// fetch helpers
+export function getData(url = '', data = {}) {
+  return fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+    },
+    credentials: 'same-origin',
+    body: JSON.stringify(data),
+  })
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error(response.headers.get('Warning') || 'Unknown error');
+    }
+    return response.json();
+  });
+}
+
+export function postData(url: string = '', data: object = {}) {
+  const antiforgeryInput = document.querySelector('input[name="__RequestVerificationToken"]') as HTMLInputElement;
+  const antiforgeryToken = antiforgeryInput.value.toString();
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'RequestVerificationToken': antiforgeryToken,
+    },
+    credentials: 'same-origin',
+    body: JSON.stringify(data),
+  })
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error(response.headers.get('Warning') || 'Unknown error');
+    }
+    return response.json();
+  });
+}
