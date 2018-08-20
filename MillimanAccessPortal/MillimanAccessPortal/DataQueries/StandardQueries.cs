@@ -177,5 +177,24 @@ namespace MillimanAccessPortal.DataQueries
             return await _userManager.GetUserAsync(User);
         }
 
+        public class TrimCaseInsensitiveStringComparer : IEqualityComparer<string>
+        {
+            public bool Equals(string l, string r)
+            {
+                if (ReferenceEquals(l, r)) return true;
+                if (ReferenceEquals(l, null) || ReferenceEquals(r, null)) return false;
+                return l.Trim().ToLower() == r.Trim().ToLower();
+            }
+            public int GetHashCode(string Arg)
+            {
+                return Arg.Trim().ToLower().GetHashCode();
+            }
+        };
+        public bool DoesEmailSatisfyClientWhitelists(string email, IEnumerable<string> domains, IEnumerable<string> addresses)
+        {
+            IEqualityComparer<string> comparer = new TrimCaseInsensitiveStringComparer();
+
+            return domains.Contains(email.Substring(email.IndexOf('@')+1), comparer) || addresses.Contains(email, comparer);
+        }
     }
 }

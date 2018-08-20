@@ -164,10 +164,18 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> SaveNewUser([Bind("UserName,Email,MemberOfClientId")]ApplicationUserViewModel Model)
         {
+            ApplicationUser RequestedUser = null;
+
             #region If user already exists get the record
-            ApplicationUser RequestedUser = DbContext.ApplicationUser
-                                                        .FirstOrDefault(u => u.UserName == Model.UserName
-                                                                          || u.Email == Model.Email);
+            if (!string.IsNullOrWhiteSpace(Model.Email))
+            {
+                RequestedUser = await UserManager.FindByEmailAsync(Model.Email);
+            }
+            if (RequestedUser == null && !string.IsNullOrWhiteSpace(Model.UserName))
+            {
+                RequestedUser = await UserManager.FindByNameAsync(Model.UserName);
+            }
+            
             bool RequestedUserIsNew = (RequestedUser == null);
 
             Client RequestedClient = DbContext.Client.SingleOrDefault(c => c.Id == Model.MemberOfClientId);
@@ -250,6 +258,11 @@ namespace MillimanAccessPortal.Controllers
                     Response.Headers.Add("Warning", $"The provided user name ({Model.UserName}) already exists in the system");
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
+            }
+            else
+            {
+                // This is part of handling a difference in case of submitted email and the user's recorded email
+                Model.Email = RequestedUser.Email;
             }
 
             // 3. The user's email must match address or domain requirement of the client
@@ -535,7 +548,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>BadRequestObjectResult, UnauthorizedResult, OkResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RemoveUserFromClient(ClientUserAssociationViewModel Model)
+        public async Task<IActionResult> RemoveUserFromClient(ClientUserAssociationViewModel Model, bool AllowZeroAdmins = false)
         {
             Client RequestedClient = DbContext.Client.Find(Model.ClientId);
 
@@ -577,30 +590,41 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The requested user is not associated with the requested client");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+
+            // 3. At least one client admin is required (unless otherwise specified)
+            if (!AllowZeroAdmins)
+            {
+                bool OtherAdminExists = DbContext.UserRoleInClient.Where(r => r.ClientId == Model.ClientId)
+                                                                  .Where(r => r.Role.RoleEnum == RoleEnum.Admin)
+                                                                  .Any(r => r.UserId != Model.UserId);
+                if (!OtherAdminExists)
+                {
+                    Response.Headers.Add("Warning", "Cannot remove the only remaining client admin from the client");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+            }
             #endregion
 
-            List<UserInSelectionGroup> 
-            AllSelectionGroupAssignments = DbContext.UserInSelectionGroup
-                                                    .Where(u => u.UserId == RequestedUser.Id)
-                                                    .Where(u => u.SelectionGroup.RootContentItem.ClientId == RequestedClient.Id)
-                                                    .ToList();
-            List<UserRoleInRootContentItem> 
-            AllRootContentItemAssignments = DbContext.UserRoleInRootContentItem
-                                                     .Where(r => r.UserId == RequestedUser.Id)
-                                                     .Where(r => r.RootContentItem.ClientId == RequestedClient.Id)
-                                                     .ToList();
-            List<UserRoleInClient> 
-            AllClientRoleAssignments = DbContext.UserRoleInClient
-                                                .Where(r => r.UserId == RequestedUser.Id)
-                                                .Where(r => r.ClientId == RequestedClient.Id)
-                                                .ToList();
+            // UserClaims is queried above
+            List<UserInSelectionGroup> AllSelectionGroupAssignments = DbContext.UserInSelectionGroup
+                .Where(u => u.UserId == RequestedUser.Id)
+                .Where(u => u.SelectionGroup.RootContentItem.ClientId == RequestedClient.Id)
+                .ToList();
+            List<UserRoleInRootContentItem> AllRootContentItemAssignments = DbContext.UserRoleInRootContentItem
+                .Where(r => r.UserId == RequestedUser.Id)
+                .Where(r => r.RootContentItem.ClientId == RequestedClient.Id)
+                .ToList();
+            List<UserRoleInClient> AllClientRoleAssignments = DbContext.UserRoleInClient
+                .Where(r => r.UserId == RequestedUser.Id)
+                .Where(r => r.ClientId == RequestedClient.Id)
+                .ToList();
 
             try
             {
                 DbContext.UserInSelectionGroup.RemoveRange(AllSelectionGroupAssignments);
                 DbContext.UserRoleInRootContentItem.RemoveRange(AllRootContentItemAssignments);
                 DbContext.UserRoleInClient.RemoveRange(AllClientRoleAssignments);
-                DbContext.UserClaims.RemoveRange(UserClaims); // UserClaims is queried above
+                DbContext.UserClaims.RemoveRange(UserClaims);
 
                 DbContext.SaveChanges();
 
@@ -714,6 +738,13 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion Validation
+
+            // Make sure current user is allowed by email or domain whitelist
+            if (!Queries.DoesEmailSatisfyClientWhitelists(CurrentApplicationUser.Email, Model.AcceptedEmailDomainList, Model.AcceptedEmailAddressExceptionList))
+            {
+                // TODO can use a simpler expression after the whitelist fields change to List from array. 
+                Model.AcceptedEmailAddressExceptionList = Model.AcceptedEmailAddressExceptionList.Append(CurrentApplicationUser.Email).ToArray();
+            }
 
             using (IDbContextTransaction DbTransaction = DbContext.Database.BeginTransaction())
             {
@@ -888,24 +919,52 @@ namespace MillimanAccessPortal.Controllers
             // Perform the update
             try
             {
-                // Must update the instance that's tracked by EF, can't update the context with the untracked Model object
-                ExistingClientRecord.Name = Model.Name;
-                ExistingClientRecord.ClientCode = Model.ClientCode;
-                ExistingClientRecord.ContactName = Model.ContactName;
-                ExistingClientRecord.ContactTitle = Model.ContactTitle;
-                ExistingClientRecord.ContactEmail = Model.ContactEmail;
-                ExistingClientRecord.ContactPhone = Model.ContactPhone;
-                ExistingClientRecord.ConsultantName = Model.ConsultantName;
-                ExistingClientRecord.ConsultantEmail = Model.ConsultantEmail;
-                ExistingClientRecord.ConsultantOffice = Model.ConsultantOffice;
-                ExistingClientRecord.AcceptedEmailDomainList = Model.AcceptedEmailDomainList;
-                ExistingClientRecord.AcceptedEmailAddressExceptionList = Model.AcceptedEmailAddressExceptionList;
-                //Not supported:  ExistingClientRecord.ParentClientId = Model.ParentClientId;
-                ExistingClientRecord.ProfitCenterId = Model.ProfitCenterId;
-                ExistingClientRecord.NewUserWelcomeText = Model.NewUserWelcomeText;
+                using (IDbContextTransaction Tx = DbContext.Database.BeginTransaction())
+                {
+                    // Remove any user for which the email does not match new domain or address whitelist
+                    var AllClientMemberUserIds = DbContext.UserClaims
+                        .Where(c => c.ClaimType == "ClientMembership")
+                        .Where(c => c.ClaimValue == ExistingClientRecord.Id.ToString())
+                        .Select(r => r.UserId)
+                        .ToList();
+                    IQueryable<ApplicationUser> AllClientMemberUsers = DbContext.ApplicationUser.Where(u => AllClientMemberUserIds.Contains(u.Id));
+                    foreach (ApplicationUser ClientMemberUser in AllClientMemberUsers)
+                    {
+                        if (!Queries.DoesEmailSatisfyClientWhitelists(ClientMemberUser.Email, Model.AcceptedEmailDomainList, Model.AcceptedEmailAddressExceptionList))
+                        {
+                            // Make sure RemoveUserFromClient() doesn't start using a transaction iternally
+                            IActionResult result = await RemoveUserFromClient(new ClientUserAssociationViewModel { UserId = ClientMemberUser.Id, ClientId = Model.Id });
 
-                DbContext.Client.Update(ExistingClientRecord);
-                DbContext.SaveChanges();
+                            if (result.GetType() == typeof(ObjectResult) && 
+                                ((ObjectResult)result).StatusCode.HasValue && 
+                                ((ObjectResult)result).StatusCode.Value >= 400)
+                            {
+                                Tx.Rollback();
+                                return result;
+                            }
+                        }
+                    }
+
+                    // Must update the instance that's tracked by EF, can't update the context with the untracked Model object
+                    ExistingClientRecord.Name = Model.Name;
+                    ExistingClientRecord.ClientCode = Model.ClientCode;
+                    ExistingClientRecord.ContactName = Model.ContactName;
+                    ExistingClientRecord.ContactTitle = Model.ContactTitle;
+                    ExistingClientRecord.ContactEmail = Model.ContactEmail;
+                    ExistingClientRecord.ContactPhone = Model.ContactPhone;
+                    ExistingClientRecord.ConsultantName = Model.ConsultantName;
+                    ExistingClientRecord.ConsultantEmail = Model.ConsultantEmail;
+                    ExistingClientRecord.ConsultantOffice = Model.ConsultantOffice;
+                    ExistingClientRecord.AcceptedEmailDomainList = Model.AcceptedEmailDomainList;
+                    ExistingClientRecord.AcceptedEmailAddressExceptionList = Model.AcceptedEmailAddressExceptionList;
+                    //Not supported:  ExistingClientRecord.ParentClientId = Model.ParentClientId;
+                    ExistingClientRecord.ProfitCenterId = Model.ProfitCenterId;
+                    ExistingClientRecord.NewUserWelcomeText = Model.NewUserWelcomeText;
+
+                    DbContext.Client.Update(ExistingClientRecord);
+                    DbContext.SaveChanges();
+                    Tx.Commit();
+                }
 
                 AuditLogger.Log(AuditEventType.ClientEdited.ToEvent(Model));
             }
@@ -986,12 +1045,17 @@ namespace MillimanAccessPortal.Controllers
             {
                 try
                 {
-                    // Remove all claims associated with the client
-                    var MembershipClaims = DbContext.UserClaims
-                        .Where(uc => uc.ClaimType == ClaimNames.ClientMembership.ToString())
-                        .Where(uc => uc.ClaimValue == Id.ToString())
+                    // Remove all users from the Client
+                    List<ApplicationUser> AllClientUsers = DbContext.UserClaims
+                        .Where(c => c.ClaimType == "ClientMembership")
+                        .Where(c => c.ClaimValue == ExistingClient.Id.ToString())
+                        .Join(DbContext.ApplicationUser, c => c.UserId, u => u.Id, (c, u) => u)
                         .ToList();
-                    DbContext.UserClaims.RemoveRange(MembershipClaims);
+
+                    foreach (ApplicationUser user in AllClientUsers)
+                    {
+                        await RemoveUserFromClient(new ClientUserAssociationViewModel { ClientId = ExistingClient.Id, UserId = user.Id }, true);
+                    }
 
                     // Remove the client
                     DbContext.Client.Remove(ExistingClient);
@@ -1034,7 +1098,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     foreach (string GoodElement in InArray[0].Split(StringDelimiters, StringSplitOptions.RemoveEmptyEntries))
                     {
-                        Result = Result.Append(GoodElement).ToArray();
+                        Result = Result.Append(GoodElement.Trim()).ToArray();
                     }
                 }
             }
