@@ -4,6 +4,7 @@ import { isEqual } from 'lodash';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
+import { getData, postData } from '../../shared';
 import { AddUserToClientModal } from '../system-admin/modals/add-user-to-client';
 import { AddUserToProfitCenterModal } from '../system-admin/modals/add-user-to-profit-center';
 import { CreateProfitCenterModal } from '../system-admin/modals/create-profit-center';
@@ -14,7 +15,6 @@ import { ColumnSelector } from './column-selector';
 import { Entity, EntityHelper } from './entity';
 import { Filter } from './filter';
 import { DataSource, QueryFilter, Structure } from './interfaces';
-import { getData, postData } from '../../shared';
 
 export interface ContentPanelProps {
   controller: string;
@@ -54,6 +54,7 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
     return null;
   }
 
+  // tslint:disable-next-line:variable-name
   private UserCard = withActivated(Card);
 
   private get url() {

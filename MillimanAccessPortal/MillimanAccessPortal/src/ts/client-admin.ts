@@ -1,3 +1,10 @@
+import '../images/add.svg';
+import '../images/cancel.svg';
+import '../images/collapse-cards.svg';
+import '../images/edit.svg';
+import '../images/expand-cards.svg';
+import '../images/map-logo.svg';
+
 import { Dictionary } from 'lodash';
 
 import { FormBase } from './form/form-base';
@@ -25,13 +32,6 @@ require('toastr/toastr.scss');
 require('tooltipster/src/css/tooltipster.css');
 require('tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css');
 require('../scss/map.scss');
-
-import '../images/map-logo.svg';
-import '../images/add.svg';
-import '../images/expand-cards.svg';
-import '../images/collapse-cards.svg';
-import '../images/edit.svg';
-import '../images/cancel.svg';
 
 const ajaxStatus: any = {};
 const SHOW_DURATION = 50;

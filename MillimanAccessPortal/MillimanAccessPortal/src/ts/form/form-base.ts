@@ -2,13 +2,11 @@ import { randomBytes } from 'crypto';
 import * as $ from 'jquery';
 
 import { confirmAndContinueForm } from '../shared';
-import { UploadComponent } from '../upload/upload';
 import { FormElement } from './form-element';
 import { FileUploadInput } from './form-input/file-upload';
+import { NullableTextareaInput } from './form-input/nullable-textarea';
 import { AccessMode, SubmissionMode } from './form-modes';
 import { FormInputSection, FormSubmissionSection } from './form-section';
-import { SubmissionGroup } from './form-submission';
-import { NullableTextareaInput } from './form-input/nullable-textarea';
 
 export class FormBase extends FormElement {
   public inputSections: FormInputSection[];

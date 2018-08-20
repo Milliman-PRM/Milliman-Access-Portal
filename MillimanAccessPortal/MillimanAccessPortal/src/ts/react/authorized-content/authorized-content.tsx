@@ -3,9 +3,9 @@
 import * as React from 'react';
 
 import { getData } from '../../shared';
+import { ContentContainer } from '../shared-components/content-container';
 import { ContentCard } from './content-card';
 import { FilterBar } from './filter-bar';
-import { ContentContainer } from '../shared-components/content-container';
 import { ContentItem, ContentItemGroup, ContentItemGroupList, Filterable } from './interfaces';
 
 interface AuthorizedContentState extends ContentItemGroupList, Filterable { }
@@ -28,12 +28,12 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
       if (this.state.selectedContentURL) {
         this.setState({ selectedContentURL: null });
       }
-    }
+    };
   }
 
   public selectContentItem = (contentURL: string) => {
     this.setState({ selectedContentURL: contentURL }, () => {
-      let display = (this.state.selectedContentURL) ? 'none' : null;
+      const display = (this.state.selectedContentURL) ? 'none' : null;
       document.getElementById('page-header').style.display = display;
       document.getElementById('page-footer').style.display = display;
       if (!contentURL) {
@@ -53,31 +53,32 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
       return (
         <ContentContainer
           closeAction={this.selectContentItem}
-          contentURL={this.state.selectedContentURL} />
-      )
+          contentURL={this.state.selectedContentURL}
+        />
+      );
     } else {
-      return (
-        <div id='authorized-content-container'>
-          <div id='authorized-content-header'>
-            <FilterBar onFilterStringChanged={(filterString) => this.setState({ filterString })} />
+      const clientGroups = this.filteredArray().map((client: ContentItemGroup, index: number) => {
+        const clientItems = client.Items.map((contentItem: ContentItem) => (
+          <ContentCard
+            key={contentItem.Id.toString()}
+            selectContent={this.selectContentItem}
+            {...contentItem}
+          />
+        ));
+        return (
+          <div key={`client-${client.Id}`} className="client-content-container">
+            <h1 className="client-name">{client.Name}</h1>
+            {clientItems}
           </div>
-          <div id='authorized-content-items'>
-            {
-              this.filteredArray().map((client: ContentItemGroup, index: number) => (
-                <div key={`client-${client.Id}`} className='client-content-container'>
-                  <h1 className='client-name'>{client.Name}</h1>
-                  {
-                    client.Items.map((contentItem: ContentItem) => (
-                      <ContentCard
-                        key={contentItem.Id.toString()}
-                        selectContent={this.selectContentItem}
-                        {...contentItem}
-                      />
-                    ))
-                  }
-                </div>
-              ))
-            }
+        );
+      });
+      return (
+        <div id="authorized-content-container">
+          <div id="authorized-content-header">
+            <FilterBar onFilterStringChanged={this.setFilterString} />
+          </div>
+          <div id="authorized-content-items">
+            {clientGroups}
           </div>
         </div>
       );

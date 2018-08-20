@@ -151,6 +151,7 @@ interface WithActivatedProps {
   activated: boolean;
 }
 
+// tslint:disable-next-line:variable-name
 export function withActivated(Component: React.ComponentType<CardProps>) {
   return class extends React.Component<CardProps & WithActivatedProps> {
     public render() {
