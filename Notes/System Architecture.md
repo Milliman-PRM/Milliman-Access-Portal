@@ -170,7 +170,7 @@ All traffic is allowed to flow between peered virtual networks, as described abo
 The table defines rules to be applied both within Network Security Groups as well as the Windows Firewall.
 
 |Server Type|Connections allowed from the Internet|Connections allowed from VPN|
-|-----|-----|-----|-----|-----|
+|-----|-----|-----|
 |Domain Controllers|---|---|
 |QlikView Server|HTTPS, through Application Gateway|HTTPS, through Application Gateway|
 |QlikView Publisher|---|---|
