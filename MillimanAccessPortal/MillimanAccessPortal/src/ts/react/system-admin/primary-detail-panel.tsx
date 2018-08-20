@@ -1,9 +1,9 @@
 import '../../../scss/react/system-admin/detail-panel.scss';
 
-import { ajax } from 'jquery';
 import { isEqual } from 'lodash';
 import * as React from 'react';
 
+import { getData } from '../../shared';
 import { Entity } from '../shared-components/entity';
 import { ImmediateToggle } from '../shared-components/immediate-toggle';
 import { DataSource, QueryFilter, RoleEnum } from '../shared-components/interfaces';
@@ -260,16 +260,9 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps,
       return;
     }
 
-    ajax({
-      data: this.props.queryFilter,
-      method: 'GET',
-      url: this.url,
-    }).done((response) => {
-      this.setState({
-        detail: response,
-      });
-    }).fail((response) => {
-      throw new Error(response.getResponseHeader('Warning') || 'Unknown error');
-    });
+    getData(this.url, this.props.queryFilter)
+    .then((response) => this.setState({
+      detail: response,
+    }));
   }
 }

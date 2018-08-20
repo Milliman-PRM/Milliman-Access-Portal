@@ -1,8 +1,8 @@
 import '../../../scss/react/shared-components/toggle.scss';
 
-import { ajax } from 'jquery';
 import * as React from 'react';
 
+import { getData, postData } from '../../shared';
 import { QueryFilter } from './interfaces';
 
 interface ImmediateToggleProps {
@@ -65,17 +65,12 @@ export class ImmediateToggle extends React.Component<ImmediateToggleProps, Immed
   }
 
   private fetch() {
-    ajax({
-      data: Object.assign({}, this.props.queryFilter, this.props.data),
-      method: 'GET',
-      url: this.url,
-    }).done((response: ToggleResponse) => {
+    getData(this.url, Object.assign({}, this.props.queryFilter, this.props.data))
+    .then((response: ToggleResponse) => {
       this.setState({
         checked: response,
         disabled: false,
       });
-    }).fail((response) => {
-      throw new Error(response.getResponseHeader('Warning') || 'Unknown error');
     });
   }
 
@@ -88,23 +83,14 @@ export class ImmediateToggle extends React.Component<ImmediateToggleProps, Immed
       disabled: true,
     });
 
-    ajax({
-      data: Object.assign({}, this.props.queryFilter, this.props.data, {
-        value: !this.state.checked,
-      }),
-      headers: {
-        RequestVerificationToken: (
-          document.getElementsByName('__RequestVerificationToken')[0] as HTMLInputElement).value,
-      },
-      method: 'POST',
-      url: this.url,
-    }).done((response: ToggleResponse) => {
+    postData(this.url, Object.assign({}, this.props.queryFilter, this.props.data, {
+      value: !this.state.checked,
+    }))
+    .then((response: ToggleResponse) => {
       this.setState({
         checked: response,
         disabled: false,
       });
-    }).fail((response) => {
-      throw new Error(response.getResponseHeader('Warning') || 'Unknown error');
     });
   }
 }

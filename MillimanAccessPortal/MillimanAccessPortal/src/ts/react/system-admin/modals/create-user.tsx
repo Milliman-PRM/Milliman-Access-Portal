@@ -1,8 +1,8 @@
-import { ajax } from 'jquery';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
 import '../../../../scss/react/shared-components/modal.scss';
+import { postData } from '../../../shared';
 
 interface CreateUserModalState {
   emailText: string;
@@ -68,17 +68,12 @@ export class CreateUserModal extends React.Component<Modal.Props, CreateUserModa
 
   private handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    ajax({
-      data: {
-        email: this.state.emailText,
-      },
-      method: 'POST',
-      url: this.url,
-    }).done((response) => {
+    postData(this.url, {
+      email: this.state.emailText,
+    })
+    .then(() => {
       alert('User created.');
       this.props.onRequestClose(null);
-    }).fail((response) => {
-      throw new Error(response.getResponseHeader('Warning') || 'Unknown error');
     });
   }
 

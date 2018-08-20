@@ -1,8 +1,8 @@
-import { ajax } from 'jquery';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
 import '../../../../scss/react/shared-components/modal.scss';
+import { postData } from '../../../shared';
 
 interface CreateProfitCenterModalState {
   name: string;
@@ -156,22 +156,17 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
 
   private handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    ajax({
-      data: {
-        Name: this.state.name,
-        ProfitCenterCode: this.state.code,
-        MillimanOffice: this.state.office,
-        ContactName: this.state.contact,
-        ContactEmail: this.state.email,
-        ContactPhone: this.state.phone,
-      },
-      method: 'POST',
-      url: this.url,
-    }).done((response) => {
+    postData(this.url, {
+      Name: this.state.name,
+      ProfitCenterCode: this.state.code,
+      MillimanOffice: this.state.office,
+      ContactName: this.state.contact,
+      ContactEmail: this.state.email,
+      ContactPhone: this.state.phone,
+    })
+    .then(() => {
       alert('Profit center created.');
       this.props.onRequestClose(null);
-    }).fail((response) => {
-      throw new Error(response.getResponseHeader('Warning') || 'Unknown error');
     });
   }
 

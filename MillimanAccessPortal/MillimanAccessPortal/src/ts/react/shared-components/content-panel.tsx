@@ -1,6 +1,5 @@
 import '../../../scss/react/shared-components/content-panel.scss';
 
-import { ajax } from 'jquery';
 import { isEqual } from 'lodash';
 import * as React from 'react';
 import * as Modal from 'react-modal';
@@ -15,6 +14,7 @@ import { ColumnSelector } from './column-selector';
 import { Entity, EntityHelper } from './entity';
 import { Filter } from './filter';
 import { DataSource, QueryFilter, Structure } from './interfaces';
+import { getData, postData } from '../../shared';
 
 export interface ContentPanelProps {
   controller: string;
@@ -274,18 +274,13 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
       return this.setState({ entities: [] });
     }
 
-    ajax({
-      data: this.props.queryFilter,
-      method: 'GET',
-      url: this.url,
-    }).done((response) => {
+    getData(this.url, this.props.queryFilter)
+    .then((response) => {
       if (this.props.selectedDataSource) {
         this.setState({
           entities: this.props.selectedDataSource.processInfo(response),
         });
       }
-    }).fail((response) => {
-      throw new Error(response.getResponseHeader('Warning') || 'Unknown error');
     });
   }
 
@@ -306,13 +301,9 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
   }
 
   private handleCreate() {
-    ajax({
-      method: 'POST',
-      url: this.createUrl,
-    }).done((response) => {
+    postData(this.createUrl)
+    .then(() => {
       throw new Error('Not implemented');
-    }).fail((response) => {
-      throw new Error(response.getResponseHeader('Warning') || 'Unknown error');
     });
   }
 }

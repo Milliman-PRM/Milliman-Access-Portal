@@ -1,7 +1,7 @@
-import { ajax } from 'jquery';
 import { isEqual } from 'lodash';
 import * as React from 'react';
 
+import { getData } from '../../shared';
 import { Entity } from '../shared-components/entity';
 import { ImmediateToggle } from '../shared-components/immediate-toggle';
 import { DataSource, QueryFilter, RoleEnum } from '../shared-components/interfaces';
@@ -400,16 +400,11 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
       return this.setState({ detail: undefined });
     }
 
-    ajax({
-      data: this.props.queryFilter,
-      method: 'GET',
-      url: this.url,
-    }).done((response) => {
+    getData(this.url, this.props.queryFilter)
+    .then((response) => {
       this.setState({
         detail: response,
       });
-    }).fail((response) => {
-      throw new Error(response.getResponseHeader('Warning') || 'Unknown error');
     });
   }
 

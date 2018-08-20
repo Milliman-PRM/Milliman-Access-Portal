@@ -1,5 +1,5 @@
-import { ajax } from 'jquery';
 import * as React from 'react';
+import { postData } from '../../shared';
 
 import { Entity } from './entity';
 
@@ -133,20 +133,10 @@ export class Card extends React.Component<CardProps, CardState> {
 
   private sendPasswordReset(event: React.MouseEvent<HTMLDivElement>) {
     event.stopPropagation();
-    ajax({
-      data: {
-        Email: this.props.email,
-      },
-      method: 'POST',
-      url: 'Account/ForgotPassword',
-      headers: {
-        RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
-      },
-    }).done((response) => {
-      console.log('Password reset email sent!');
-    }).fail((response) => {
-      throw new Error(response.getResponseHeader('Warning') || 'Unknown error');
-    });
+    postData('Account/ForgotPassword', {
+      Email: this.props.email,
+    })
+    .then((response) => console.log('Password reset email sent!'));
   }
 
   private toggleExpansion(event: React.MouseEvent<HTMLDivElement>) {

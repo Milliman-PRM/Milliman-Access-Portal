@@ -1,8 +1,8 @@
 ﻿import '../../../scss/react/authorized-content/authorized-content.scss';
 
-import { ajax } from 'jquery';
 import * as React from 'react';
 
+import { getData } from '../../shared';
 import { ContentCard } from './content-card';
 import { FilterBar } from './filter-bar';
 import { ContentContainer } from '../shared-components/content-container';
@@ -22,12 +22,8 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
   }
 
   public componentDidMount() {
-    const itemGroups = ajax({
-      method: 'GET',
-      url: 'AuthorizedContent/Content/',
-    }).done((response: ContentItemGroupList) => {
-      this.setState(response);
-    });
+    getData('AuthorizedContent/Content/')
+    .then((json: ContentItemGroupList) => this.setState(json));
     window.onpopstate = (e) => {
       if (this.state.selectedContentURL) {
         this.setState({ selectedContentURL: null });
