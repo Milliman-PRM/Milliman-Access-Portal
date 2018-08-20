@@ -85,7 +85,18 @@ namespace MillimanAccessPortal.Controllers
             {
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: false);
+
+                var user = await _userManager.FindByNameAsync(model.Username);
+
+                if (user == null || user.IsSuspended)
+                {
+                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    _logger.LogWarning(2, "User login failed.");
+                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(), model.Username);
+                    return View(model);
+                }
+
+                var result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
                     HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
