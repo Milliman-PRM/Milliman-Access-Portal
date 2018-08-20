@@ -27,6 +27,11 @@ namespace MillimanAccessPortal.Authorization
 
         internal override MapAuthorizationRequirementResult EvaluateRequirement(ApplicationUser User, ApplicationDbContext DataContext)
         {
+            if (User.IsSuspended)
+            {
+                return MapAuthorizationRequirementResult.Fail;
+            }
+
             var Query = DataContext.UserRoles
                                    .Join(DataContext.ApplicationRole, ur => ur.RoleId, ar => ar.Id, (ur, ar) => new { UserRole = ur, AppRole = ar })
                                    .Where(obj => obj.UserRole.UserId == User.Id
