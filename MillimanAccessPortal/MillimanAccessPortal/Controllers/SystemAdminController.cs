@@ -836,7 +836,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            return Json(false);
+            return Json(user.IsSuspended);
         }
         /// <summary>
         /// Set suspension status for a user.
@@ -868,13 +868,10 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            if (value)
-            {
-                Response.Headers.Add("Warning", "User suspension not implemented.");
-                return StatusCode(StatusCodes.Status501NotImplemented);
-            }
+            user.IsSuspended = value;
+            _dbContext.ApplicationUser.Update(user);
 
-            return Json(false);
+            return Json(user.IsSuspended);
         }
         
         /// <summary>
@@ -1044,7 +1041,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            return Json(false);
+            return Json(rootContentItem.IsSuspended);
         }
         /// <summary>
         /// Set suspension status for a root content item.
@@ -1076,11 +1073,8 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            if (value)
-            {
-                Response.Headers.Add("Warning", "Content suspension not implemented.");
-                return StatusCode(StatusCodes.Status501NotImplemented);
-            }
+            rootContentItem.IsSuspended = value;
+            _dbContext.RootContentItem.Update(rootContentItem);
 
             return Json(false);
         }
