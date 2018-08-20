@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using MapCommonLib.ContentTypeSpecific;
 using QlikviewLib.Internal;
@@ -16,6 +17,8 @@ namespace QlikviewLib
         public override async Task<UriBuilder> GetContentUri(string SelectionGroupUrl, string UserName, object ConfigInfoArg)
         {
             QlikviewConfig ConfigInfo = (QlikviewConfig)ConfigInfoArg;
+            string ContentUrl = string.IsNullOrWhiteSpace(ConfigInfo.QvServerContentUriRootPath) ? 
+                Path.Combine(ConfigInfo.QvServerContentUriRootPath, SelectionGroupUrl) : SelectionGroupUrl;
 
             string QvServerUriScheme = "https";  // Scheme of the iframe should match scheme of the top page
 
@@ -25,7 +28,7 @@ namespace QlikviewLib
             string[] QueryStringItems = new string[]
             {
                 $"type=html",
-                $"try=/qvajaxzfc/opendoc.htm?document={SelectionGroupUrl}",  // TODO use the relative document path/name in the following
+                $"try=/qvajaxzfc/opendoc.htm?document={ContentUrl}",  // TODO use the relative document path/name in the following
                 $"back=/",  // TODO probably use something other than "/" (such as a proper error page)
                 $"webticket={QlikviewWebTicket}",
             };

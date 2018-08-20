@@ -4,5 +4,6 @@
   // If the server user is to be authenticated locally on the server, use the same value as the above "QvServerHost" setting
   "QvServerAdminUserAuthenticationDomain": "",
   "QvServerAdminUserName": "",
-  "QvServerAdminUserPassword": ""
+  "QvServerAdminUserPassword": "",
+  "QvServerContentUriRootPath": ""
 }
