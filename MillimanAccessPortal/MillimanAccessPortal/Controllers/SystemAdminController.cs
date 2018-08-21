@@ -870,6 +870,7 @@ namespace MillimanAccessPortal.Controllers
 
             user.IsSuspended = value;
             _dbContext.ApplicationUser.Update(user);
+            _dbContext.SaveChanges();
 
             return Json(user.IsSuspended);
         }
@@ -1075,6 +1076,7 @@ namespace MillimanAccessPortal.Controllers
 
             rootContentItem.IsSuspended = value;
             _dbContext.RootContentItem.Update(rootContentItem);
+            _dbContext.SaveChanges();
 
             return Json(rootContentItem.IsSuspended);
         }
