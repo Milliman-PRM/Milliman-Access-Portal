@@ -17,6 +17,7 @@ export interface NavBarElement {
   Order: number;
   Label: string;
   URL: string;
+  View: string;
   Icon: string;
 }
 

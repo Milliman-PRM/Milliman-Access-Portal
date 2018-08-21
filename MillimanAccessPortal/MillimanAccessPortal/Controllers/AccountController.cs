@@ -488,11 +488,6 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         [Authorize]
         public async Task<JsonResult> NavBarElements() {
-            AuthorizationResult SystemAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
-            AuthorizationResult ClientAdminResult1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, null));
-            AuthorizationResult ClientAdminResult2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin, null));
-            AuthorizationResult ContentAccessResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
-            AuthorizationResult ContentPublishResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, null));
 
             List<NavBarElementModel> NavBarElements = new List<NavBarElementModel> { };
             long order = 1;
@@ -503,10 +498,12 @@ namespace MillimanAccessPortal.Controllers
                 Order = order++,
                 Label = "Authorized Content",
                 URL = nameof(AuthorizedContentController).Replace("Controller", ""),
+                View = "AuthorizedContent",
                 Icon = "content-grid",
             });
 
-            // Conditionally add the Client Admin Element
+            // Conditionally add the System Admin Element
+            AuthorizationResult SystemAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
             if (SystemAdminResult.Succeeded)
             {
                 NavBarElements.Add(new NavBarElementModel
@@ -514,11 +511,14 @@ namespace MillimanAccessPortal.Controllers
                     Order = order++,
                     Label = "System Admin",
                     URL = nameof(SystemAdminController).Replace("Controller", ""),
+                    View = "SystemAdmin",
                     Icon = "system-admin",
                 });
             }
 
             // Conditionally add the Client Admin Element
+            AuthorizationResult ClientAdminResult1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, null));
+            AuthorizationResult ClientAdminResult2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin, null));
             if (ClientAdminResult1.Succeeded || ClientAdminResult2.Succeeded)
             {
                 NavBarElements.Add(new NavBarElementModel
@@ -526,11 +526,13 @@ namespace MillimanAccessPortal.Controllers
                     Order = order++,
                     Label = "Manage Clients",
                     URL = nameof(ClientAdminController).Replace("Controller", ""),
+                    View = "ClientAdmin",
                     Icon = "client-admin",
                 });
             }
 
             // Conditionally add the Content Access Element
+            AuthorizationResult ContentAccessResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
             if (ContentAccessResult.Succeeded)
             {
                 NavBarElements.Add(new NavBarElementModel
@@ -538,11 +540,13 @@ namespace MillimanAccessPortal.Controllers
                     Order = order++,
                     Label = "Manage Access",
                     URL = nameof(ContentAccessAdminController).Replace("Controller", ""),
+                    View = "ContentAccessAdmin",
                     Icon = "content-access",
                 });
             }
 
             // Conditionally add the Content Publishing Element
+            AuthorizationResult ContentPublishResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, null));
             if (ContentPublishResult.Succeeded)
             {
                 NavBarElements.Add(new NavBarElementModel
@@ -550,6 +554,7 @@ namespace MillimanAccessPortal.Controllers
                     Order = order++,
                     Label = "Publish Content",
                     URL = nameof(ContentPublishingController).Replace("Controller", ""),
+                    View = "ContentPublishing",
                     Icon = "content-publishing",
                 });
             }
@@ -560,6 +565,7 @@ namespace MillimanAccessPortal.Controllers
                 Order = order++,
                 Label = "Account Settings",
                 URL = nameof(AccountController).Replace("Controller", "/Settings"),
+                View = "AccountSettings",
                 Icon = "user-settings",
             });
 

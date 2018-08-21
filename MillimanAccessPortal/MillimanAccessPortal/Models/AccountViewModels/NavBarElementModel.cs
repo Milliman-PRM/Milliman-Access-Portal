@@ -14,6 +14,9 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         public string URL { get; set; }
 
         [Required]
+        public string View { get; set; }
+
+        [Required]
         public string Icon { get; set; }
     }
 }
