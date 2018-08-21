@@ -30,8 +30,18 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
       this.setState(response);
     });
     window.onpopstate = (e) => {
-      if (this.state.selectedContentURL) {
-        this.setState({ selectedContentURL: null });
+      if (window.history && window.history.pushState) {
+        const hashName = location.hash.split('#!/')[1];
+        if (hashName !== '' && window.location.hash === '') {
+          if (this.state.selectedContentURL) {
+            this.setState({ selectedContentURL: null }, () => {
+              const display = null;
+              document.getElementById('page-header').style.display = display;
+              document.getElementById('page-footer').style.display = display;
+              document.getElementById('authorized-content-container').style.display = display;
+            });
+          }
+        }
       }
     }
   }
@@ -41,6 +51,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
       let display = (this.state.selectedContentURL) ? 'none' : null;
       document.getElementById('page-header').style.display = display;
       document.getElementById('page-footer').style.display = display;
+      document.getElementById('authorized-content-container').style.display = display;
       if (!contentURL) {
         history.back();
       }
@@ -57,32 +68,29 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
               closeAction={this.selectContentItem}
               contentURL={this.state.selectedContentURL} />
         }
-        {
-          !this.state.selectedContentURL &&
-            <div id='authorized-content-container'>
-              <div id='authorized-content-header'>
-                <FilterBar onFilterStringChanged={(filterString) => this.setState({ filterString })} />
-              </div>
-              <div id='authorized-content-items'>
-                {
-                  this.filteredArray().map((client: ContentItemGroup, index: number) => (
-                    <div key={`client-${client.Id}`} className='client-content-container'>
-                      <h1 className='client-name'>{client.Name}</h1>
-                      {
-                        client.Items.map((contentItem: ContentItem) => (
-                          <ContentCard
-                            key={contentItem.Id.toString()}
-                            selectContent={this.selectContentItem}
-                            {...contentItem}
-                          />
-                        ))
-                      }
-                    </div>
-                  ))
-                }
-              </div>
-            </div>
-        }
+        <div id='authorized-content-container'>
+          <div id='authorized-content-header'>
+            <FilterBar onFilterStringChanged={(filterString) => this.setState({ filterString })} />
+          </div>
+          <div id='authorized-content-items'>
+            {
+              this.filteredArray().map((client: ContentItemGroup, index: number) => (
+                <div key={`client-${client.Id}`} className='client-content-container'>
+                  <h1 className='client-name'>{client.Name}</h1>
+                  {
+                    client.Items.map((contentItem: ContentItem) => (
+                      <ContentCard
+                        key={contentItem.Id.toString()}
+                        selectContent={this.selectContentItem}
+                        {...contentItem}
+                      />
+                    ))
+                  }
+                </div>
+              ))
+            }
+          </div>
+        </div>
       </React.Fragment>
     )
   }
