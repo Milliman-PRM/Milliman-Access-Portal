@@ -11,7 +11,7 @@
     @Html.Raw(JavaScriptSnippet.FullScript)
     @RenderSection("Scripts", required: false)
 </head>
-<body>
+<body data-nav-location="@ViewData["NavIcon"]">
 
     @RenderBody()
 
