@@ -17,6 +17,7 @@ export interface UserInfo {
   FirstName: string;
   Email: string;
   UserName: string;
+  IsSuspended: boolean;
 }
 export interface ClientSummary extends Nestable {
   Name: string;

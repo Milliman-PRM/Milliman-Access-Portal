@@ -26,7 +26,6 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 .Where(urc => urc.RootContentItem.ClientId == client.Id)
                 .Where(urc => urc.UserId == User.Id)
                 .Where(urc => urc.Role.RoleEnum == roleInRootContentItem)
-                .Where(urc => !urc.RootContentItem.IsSuspended || roleInRootContentItem == RoleEnum.ContentPublisher)
                 .Select(urc => urc.RootContentItem)
                 .Distinct()
                 .ToList();
