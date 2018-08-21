@@ -447,7 +447,8 @@ export function updateCardStatus($card, reductionDetails) {
 }
 export function updateCardStatusButtons($card: JQuery<HTMLElement>, publishingStatusEnum: PublicationStatus) {
   $card.find('.card-button-dynamic').hide();
-  if (publishingStatusEnum === PublicationStatus.Queued) {
+  if (publishingStatusEnum === PublicationStatus.Validating ||
+      publishingStatusEnum === PublicationStatus.Queued) {
     $card.find('.card-button-cancel').css('display', 'flex');
   } else if (publishingStatusEnum === PublicationStatus.Processed) {
     $card.find('.card-button-checkmark').css('display', 'flex');
