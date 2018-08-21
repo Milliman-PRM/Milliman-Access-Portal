@@ -24,7 +24,7 @@ namespace MillimanAccessPortal.Services
                 var result = IdentityResult.Failed(new IdentityError
                 {
                     Code = "Password Reuse",
-                    Description = "You cannot a previous password"
+                    Description = "You cannot reuse any previous password"
                 });
 
                 return Task.FromResult(result);

@@ -23,7 +23,7 @@ namespace MillimanAccessPortal.Services
             DateTime Cutoff = DateTime.UtcNow - new TimeSpan(numberOfDays, 0, 0, 0);
             
             // Check the specified number of days of history
-            if (user.PasswordHistoryObj.Where(s => s.dateSet > Cutoff)
+            if (user.PasswordHistoryObj.Where(s => s.dateSetUtc > Cutoff)
                                      .Any(p => p.PasswordMatches(password)))
             {
                 var result = IdentityResult.Failed(new IdentityError

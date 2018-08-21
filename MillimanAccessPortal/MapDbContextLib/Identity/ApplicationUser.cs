@@ -34,8 +34,8 @@ namespace MapDbContextLib.Identity
 
         //
         // Summary:
-        //     Gets or sets the user's password reset date
-        public virtual DateTime PasswordChangeDate { get; set; }
+        //     Gets or sets the user's most recent password change date
+        public virtual DateTime LastPasswordChangeDateTimeUtc { get; set; }
 
         //
         // Summary:

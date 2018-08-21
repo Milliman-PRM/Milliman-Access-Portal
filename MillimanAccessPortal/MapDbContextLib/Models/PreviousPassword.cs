@@ -14,7 +14,7 @@ namespace MapDbContextLib.Models
     {
         public string hash { get; set; } = null;
 
-        public DateTime dateSet { get; set; }
+        public DateTime dateSetUtc { get; set; }
 
         /// <summary>
         /// Parameterless constructor, required due to json deserialization to this type in ApplicationUser entity class
@@ -37,7 +37,7 @@ namespace MapDbContextLib.Models
         /// <param name="passwordArg"></param>
         public void Set(string passwordArg)
         {
-            dateSet = DateTime.UtcNow;
+            dateSetUtc = DateTime.UtcNow;
             hash = Crypto.HashPassword(passwordArg);
         }
 

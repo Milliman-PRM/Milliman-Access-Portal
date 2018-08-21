@@ -74,6 +74,7 @@ namespace MillimanAccessPortal
 
             int passwordHistoryDays = Configuration.GetValue<int>("PasswordHistoryValidatorDays");
             List<string> commonWords = Configuration.GetSection("PasswordBannedWords").GetChildren().Select(c => c.Value).ToList<string>();
+            int passwordHashingIterations = Configuration.GetValue<int>("PasswordHashingIterations");
 
             // Do not add AuditLogDbContext.  This context should be protected from direct access.  Use the api class instead.  -TP
 
@@ -85,10 +86,10 @@ namespace MillimanAccessPortal
                 .AddDefaultTokenProviders()
                 .AddTop100000PasswordValidator<ApplicationUser>()
                 .AddRecentPasswordInDaysValidator<ApplicationUser>(passwordHistoryDays)
-                .AddPasswordValidator<PasswordIsEmailOrUsernameValidator<ApplicationUser>>()
+                .AddPasswordValidator<PasswordIsNotEmailOrUsernameValidator<ApplicationUser>>()
                 .AddCommonWordsValidator<ApplicationUser>(commonWords);
 
-            services.Configure<PasswordHasherOptions>(options => options.IterationCount = 100_000);
+            services.Configure<PasswordHasherOptions>(options => options.IterationCount = passwordHashingIterations);
 
             services.Configure<IdentityOptions>(options =>
             {

@@ -25,7 +25,7 @@ namespace MillimanAccessPortal.Services
             List<PreviousPassword> history = user.PasswordHistoryObj;
             
             // Check the specified number of recent passwords
-            if (history.OrderByDescending(p => p.dateSet)
+            if (history.OrderByDescending(p => p.dateSetUtc)
                                      .Take(numberOfPasswords)
                                      .Any(p => p.PasswordMatches(password)))
             {

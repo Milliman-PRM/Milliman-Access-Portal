@@ -40,7 +40,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly ILogger _logger;
         private readonly IAuditLogger _auditLogger;
         private readonly StandardQueries Queries;
-        private readonly IConfiguration _confiugration;
+        private readonly IConfiguration _configuration;
 
         public AccountController(
             ApplicationDbContext ContextArg,
@@ -59,7 +59,7 @@ namespace MillimanAccessPortal.Controllers
             _logger = loggerFactory.CreateLogger<AccountController>();
             _auditLogger = AuditLoggerArg;
             Queries = QueriesArg;
-            _confiugration = ConfigArg;
+            _configuration = ConfigArg;
         }
 
         //
@@ -99,7 +99,7 @@ namespace MillimanAccessPortal.Controllers
                 int expirationDays = defaultExpirationDays;
                 try
                 {
-                    expirationDays = _confiugration.GetValue<int>("PasswordExpirationDays");
+                    expirationDays = _configuration.GetValue<int>("PasswordExpirationDays");
                 }
                 catch
                 {
@@ -107,13 +107,12 @@ namespace MillimanAccessPortal.Controllers
                     _logger.LogWarning($"PasswordExpirationDays value not found or cannot be cast to an integer. The default value of { expirationDays } will be used.");
                 }
                                 
-                if (user.PasswordChangeDate.AddDays(expirationDays) < DateTime.UtcNow && passwordSuccess)
+                if (user.LastPasswordChangeDateTimeUtc.AddDays(expirationDays) < DateTime.UtcNow && passwordSuccess)
                 {
                     ModelState.AddModelError(string.Empty, "Password Has Expired.");
                     return View("ResetPassword");
                 }
-                // This doesn't count login failures towards account lockout
-                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
+                
                 var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
@@ -381,7 +380,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     // Save password hash in history
                     user.PasswordHistoryObj = user.PasswordHistoryObj.Append<PreviousPassword>(new PreviousPassword(model.NewPassword)).ToList<PreviousPassword>();
-                    user.PasswordChangeDate = DateTime.Now;
+                    user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
                     var addHistoryResult = await _userManager.UpdateAsync(user);
 
                     if (!addHistoryResult.Succeeded)
@@ -503,7 +502,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 // Save password hash in history
                 user.PasswordHistoryObj = user.PasswordHistoryObj.Append<PreviousPassword>(new PreviousPassword(model.NewPassword)).ToList<PreviousPassword>();
-                user.PasswordChangeDate = DateTime.Now;
+                user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
                 var addHistoryResult = await _userManager.UpdateAsync(user);
 
                 if (!addHistoryResult.Succeeded)
@@ -715,7 +714,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     // Save password hash in history
                     user.PasswordHistoryObj = user.PasswordHistoryObj.Append<PreviousPassword>(new PreviousPassword(Model.NewPassword)).ToList<PreviousPassword>();
-                    user.PasswordChangeDate = DateTime.Now;
+                    user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
                     var addHistoryResult = await _userManager.UpdateAsync(user);
 
                     if (!addHistoryResult.Succeeded)

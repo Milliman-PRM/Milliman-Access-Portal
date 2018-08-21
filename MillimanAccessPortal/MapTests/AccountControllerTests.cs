@@ -249,7 +249,7 @@ namespace MapTests
             var validator = new PasswordRecentDaysValidator<ApplicationUser>() { numberOfDays = 1 };
 
             string newPassword = "Passw0rd!";
-            var passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(newPassword) { dateSet = DateTime.Now.Subtract(new TimeSpan(2, 0, 0, 0)) });
+            var passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(newPassword) { dateSetUtc = DateTime.UtcNow.Subtract(new TimeSpan(2, 0, 0, 0)) });
             AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
             #endregion
 
@@ -361,7 +361,7 @@ namespace MapTests
             #region Arrange
             AccountController controller = await GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-            var validator = new PasswordIsEmailOrUsernameValidator<ApplicationUser>();
+            var validator = new PasswordIsNotEmailOrUsernameValidator<ApplicationUser>();
             #endregion
 
             #region Act
@@ -379,7 +379,7 @@ namespace MapTests
             #region Arrange
             AccountController controller = await GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-            var validator = new PasswordIsEmailOrUsernameValidator<ApplicationUser>();
+            var validator = new PasswordIsNotEmailOrUsernameValidator<ApplicationUser>();
             #endregion
 
             #region Act
