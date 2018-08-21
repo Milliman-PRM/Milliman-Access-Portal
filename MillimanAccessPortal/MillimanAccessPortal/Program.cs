@@ -56,6 +56,7 @@ namespace MillimanAccessPortal
                     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                     .AddJsonFile($"appsettings.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
                     .AddJsonFile("qlikview.json", optional: false, reloadOnChange: true)
+                    .AddJsonFile($"qlikview.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
                     .AddJsonFile("smtp.json", optional: false, reloadOnChange: true)
                     .AddJsonFile($"smtp.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
                     ;

@@ -146,7 +146,9 @@ namespace MillimanAccessPortal
             });
 
             string fileUploadPath = Path.GetTempPath();
-            if (!string.IsNullOrWhiteSpace(Configuration.GetValue<string>("Storage:FileUploadPath")))
+            // The environment variable check enables migrations to be deployed to Staging or Production via the MAP deployment server
+            // This variable should never be set on a real production or staging system
+            if (!string.IsNullOrWhiteSpace(Configuration.GetValue<string>("Storage:FileUploadPath")) && Environment.GetEnvironmentVariable("MIGRATIONS_RUNNING") == null)
             {
                 fileUploadPath = Configuration.GetValue<string>("Storage:FileUploadPath");
             }
