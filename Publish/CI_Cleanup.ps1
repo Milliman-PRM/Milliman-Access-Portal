@@ -18,7 +18,7 @@ function log_statement {
 #endregion
 
 #region Configure environment properties
-$BranchName = $env:sha1.Replace("_","").Replace("-","").ToLower() # Will be used as the name of the deployment slot & appended to database names
+$BranchName = $env:branch_name.Replace("_","").Replace("-","").ToLower() # Will be used as the name of the deployment slot & appended to database names
 
 $gitExePath = "git"
 $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
