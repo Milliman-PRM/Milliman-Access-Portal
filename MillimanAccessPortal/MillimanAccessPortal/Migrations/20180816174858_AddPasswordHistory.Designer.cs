@@ -12,9 +12,10 @@ using System;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180816174858_AddPasswordHistory")]
+    partial class AddPasswordHistory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -167,9 +168,6 @@ namespace MillimanAccessPortal.Migrations
                         .ValueGeneratedOnAdd();
 
                     b.Property<bool>("CanReduce");
-
-                    b.Property<string>("DefaultIconName")
-                        .IsRequired();
 
                     b.Property<string>("Name")
                         .IsRequired();
