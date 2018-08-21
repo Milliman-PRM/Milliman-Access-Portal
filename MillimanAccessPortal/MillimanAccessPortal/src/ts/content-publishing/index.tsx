@@ -1,4 +1,7 @@
-import '../navbar';
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+
+import { NavBar } from '../react/shared-components/navbar';
 
 import 'bootstrap/scss/bootstrap-reboot.scss';
 import 'toastr/toastr.scss';
@@ -18,6 +21,11 @@ import '../../images/edit.svg';
 import '../../images/upload.svg';
 import '../../images/cancel.svg';
 import '../../images/checkmark.svg';
+
+document.addEventListener('DOMContentLoaded', (event) => {
+  const view = document.getElementsByTagName("body")[0].getAttribute("data-nav-location");
+  ReactDOM.render(<NavBar currentView={ view } />, document.getElementById('navbar'));
+});
 
 $(document).ready(() => {
   setup();
