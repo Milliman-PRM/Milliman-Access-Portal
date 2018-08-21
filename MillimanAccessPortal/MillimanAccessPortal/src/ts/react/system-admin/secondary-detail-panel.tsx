@@ -115,7 +115,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                             controller={this.props.controller}
                             action={'UserClientRoles'}
                             queryFilter={this.props.queryFilter}
-                            label={'Client Access Admin'}
+                            label={'Content Access Admin'}
                             data={{ role: RoleEnum.ContentAccessAdmin }}
                           />
                         </div>
@@ -219,7 +219,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                             controller={this.props.controller}
                             action={'UserClientRoles'}
                             queryFilter={this.props.queryFilter}
-                            label={'Client Access Admin'}
+                            label={'Content Access Admin'}
                             data={{ role: RoleEnum.ContentAccessAdmin }}
                           />
                         </div>
