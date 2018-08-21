@@ -115,7 +115,7 @@ mkdir $nugetDestination
 copy-item "$rootPath\Publish\OctopusSetBranch.ps1" -Destination "$nugetDestination\OctopusSetBranch.ps1"
 copy-item "$rootPath\Publish\OctopusCleanup.ps1" -Destination "$nugetDestination\OctopusCleanup.ps1"
 
-cd $nugetDestination
+Set-Location $nugetDestination
 
 log_statement "Packaging cleanup scripts for deployment"
 
@@ -173,7 +173,7 @@ if ($IsMerged) {
 
     log_statement "Deploying $MergeBase to dev infrastructure"
 
-    cd $rootPath
+    Set-Location $rootPath
 
     Remove-Item -path $nugetDestination -Recurse -Force
 
@@ -181,9 +181,9 @@ if ($IsMerged) {
         $checkoutPath = $rootPath
     } elseif ($MergeBase -eq 'master') {
         $checkoutPath = "$env:TEMP\$env:repo_name\"
-        cd $env:TEMP
+        Set-Location $env:TEMP
         & $gitExePath clone $CloneURL
-        cd $checkoutPath
+        Set-Location $checkoutPath
     }
     $env:git_branch = $MergeBase
     & $gitExePath checkout $MergeBase
