@@ -29,6 +29,7 @@ namespace MillimanAccessPortal
                 GlobalFunctions.domainValRegex = Configuration.GetValue("Global:DomainValidationRegex", GlobalFunctions.domainValRegex);
                 GlobalFunctions.emailValRegex = Configuration.GetValue("Global:EmailValidationRegex", GlobalFunctions.emailValRegex);
                 GlobalFunctions.maxFileUploadSize = Configuration.GetValue("Global:MaxFileUploadSize", GlobalFunctions.maxFileUploadSize);
+                GlobalFunctions.virusScanWindowSeconds = Configuration.GetValue("Global:VirusScanWindowSeconds", GlobalFunctions.virusScanWindowSeconds);
                 #endregion
 
                 try
