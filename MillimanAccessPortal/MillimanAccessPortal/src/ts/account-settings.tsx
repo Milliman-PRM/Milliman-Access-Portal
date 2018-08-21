@@ -1,3 +1,8 @@
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+
+import { NavBar } from './react/shared-components/navbar';
+
 import { FormBase } from './form/form-base';
 import { AccessMode, SubmissionMode } from './form/form-modes';
 import { SubmissionGroup } from './form/form-submission';
@@ -5,13 +10,17 @@ import { SubmissionGroup } from './form/form-submission';
 import $ = require('jquery');
 import toastr = require('toastr');
 
-require('./navbar');
-
 require('bootstrap/scss/bootstrap-reboot.scss');
 require('toastr/toastr.scss');
 require('../scss/map.scss');
 
 import '../images/map-logo.svg';
+
+
+document.addEventListener('DOMContentLoaded', (event) => {
+  const view = document.getElementsByTagName("body")[0].getAttribute("data-nav-location");
+  ReactDOM.render(<NavBar currentView={view} />, document.getElementById('navbar'));
+});
 
 $(document).ready(() => {
   if ($('#UserName').val() !== $('#Email').val()) {
@@ -60,3 +69,4 @@ $(document).ready(() => {
   ]);
   formObject.submissionMode = 'update';
 });
+
