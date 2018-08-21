@@ -17,8 +17,8 @@ namespace QlikviewLib
         public override async Task<UriBuilder> GetContentUri(string SelectionGroupUrl, string UserName, object ConfigInfoArg)
         {
             QlikviewConfig ConfigInfo = (QlikviewConfig)ConfigInfoArg;
-            string ContentUrl = string.IsNullOrWhiteSpace(ConfigInfo.QvServerContentUriRootPath) ?
-                SelectionGroupUrl : Path.Combine(ConfigInfo.QvServerContentUriRootPath, SelectionGroupUrl) ;
+            string ContentUrl = string.IsNullOrWhiteSpace(ConfigInfo.QvServerContentUriSubfolder) ?
+                SelectionGroupUrl : Path.Combine(ConfigInfo.QvServerContentUriSubfolder, SelectionGroupUrl) ;
 
             string QvServerUriScheme = "https";  // Scheme of the iframe should match scheme of the top page
 

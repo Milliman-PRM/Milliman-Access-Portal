@@ -5,5 +5,5 @@
   "QvServerAdminUserAuthenticationDomain": "",
   "QvServerAdminUserName": "",
   "QvServerAdminUserPassword": "",
-  "QvServerContentUriRootPath": ""
+  "QvServerContentUriSubfolder": ""
 }
