@@ -690,7 +690,7 @@ namespace MapTests
             #region Initialize Users
             DbContextObject.ApplicationUser.AddRange(new List<ApplicationUser>
             {
-                new ApplicationUser { Id=1, UserName="user1", Email="user1@example.com" },
+                new ApplicationUser { Id=1, UserName="user1", Email="user1@example.com", NormalizedEmail="USER1@EXAMPLE.COM", NormalizedUserName="USER1" },
             });
             #endregion
         }
