@@ -6,7 +6,8 @@ import * as React from 'react';
 import { ContentCard } from './content-card';
 import { FilterBar } from './filter-bar';
 import { ContentContainer } from '../shared-components/content-container';
-import { ContentItem, ContentItemGroup, ContentItemGroupList, Filterable, NavBarLocation } from './interfaces';
+import { ContentItem, ContentItemGroup, ContentItemGroupList, Filterable } from './interfaces';
+import { NavBarLocation } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 
 interface AuthorizedContentState extends ContentItemGroupList, Filterable, NavBarLocation { }
