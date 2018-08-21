@@ -1076,7 +1076,7 @@ namespace MillimanAccessPortal.Controllers
             rootContentItem.IsSuspended = value;
             _dbContext.RootContentItem.Update(rootContentItem);
 
-            return Json(false);
+            return Json(rootContentItem.IsSuspended);
         }
         #endregion
     }
