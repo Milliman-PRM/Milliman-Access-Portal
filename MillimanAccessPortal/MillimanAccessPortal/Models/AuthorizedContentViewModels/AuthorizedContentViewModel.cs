@@ -31,6 +31,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
 
             UriBuilder contentUrlBuilder = new UriBuilder
             {
+                Host = Context.Request.Host.Host,
                 Scheme = Context.Request.Scheme,
                 Port = Context.Request.Host.Port.HasValue ? Context.Request.Host.Port.Value : -1,
                 Path = "/AuthorizedContent/WebHostedContent",
@@ -40,6 +41,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
             // TODO each of the below UrlBuilders should be conditional on the existence of the related file
             UriBuilder thumbnailUrlBuilder = new UriBuilder
             {
+                Host = Context.Request.Host.Host,
                 Scheme = Context.Request.Scheme,
                 Port = Context.Request.Host.Port.HasValue ? Context.Request.Host.Port.Value : -1,
                 Path = "/AuthorizedContent/Thumbnail",
@@ -48,6 +50,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
 
             UriBuilder userGuideUrlBuilder = new UriBuilder
             {
+                Host = Context.Request.Host.Host,
                 Scheme = Context.Request.Scheme,
                 Port = Context.Request.Host.Port.HasValue ? Context.Request.Host.Port.Value : -1,
                 Path = "/AuthorizedContent/RelatedPdf",
@@ -56,6 +59,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
 
             UriBuilder releaseNotesUrlBuilder = new UriBuilder
             {
+                Host = Context.Request.Host.Host,
                 Scheme = Context.Request.Scheme,
                 Port = Context.Request.Host.Port.HasValue ? Context.Request.Host.Port.Value : -1,
                 Path = "/AuthorizedContent/RelatedPdf",
