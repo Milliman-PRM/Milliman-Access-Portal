@@ -9,6 +9,7 @@ import '../../../images/system-admin.svg';
 import '../../../images/client-admin.svg';
 import '../../../images/content-publishing.svg';
 import '../../../images/content-access.svg';
+import '../../../images/user-settings.svg';
 import '../../../images/userguide.svg';
 import '../../../images/email.svg';
 import '../../../images/logout.svg';
@@ -44,7 +45,7 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
     const navElements = this.state.NavBarElements.map((element: NavBarElement) => {
       const classes = `nav-element ${(this.props.currentView === element.Label) ? 'selected' : null }`;
       return (
-        <a href={element.URL}>
+        <a href={"/" + element.URL} key={element.Label}>
           <div className={ classes } style={{ order: element.Order }}>
             <h3 className="nav-element-label">{ element.Label }</h3>
             <svg className="nav-element-icon">

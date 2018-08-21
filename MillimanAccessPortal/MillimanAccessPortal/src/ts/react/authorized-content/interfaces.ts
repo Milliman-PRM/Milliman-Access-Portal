@@ -26,3 +26,7 @@ export interface ContentItemGroupList {
 export interface ContentCardFunctions {
   selectContent: (URL: string) => void;
 }
+
+export interface NavBarLocation {
+  navLocation: string;
+}
