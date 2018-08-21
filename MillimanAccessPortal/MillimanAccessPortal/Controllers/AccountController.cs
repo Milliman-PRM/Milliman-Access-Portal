@@ -554,6 +554,15 @@ namespace MillimanAccessPortal.Controllers
                 });
             }
 
+            // Add the Account Settings Element
+            NavBarElements.Add(new NavBarElementModel
+            {
+                Order = order++,
+                Label = "Account Settings",
+                URL = nameof(AccountController).Replace("Controller", "/Settings"),
+                Icon = "user-settings",
+            });
+
             return Json(NavBarElements);
         }
 
