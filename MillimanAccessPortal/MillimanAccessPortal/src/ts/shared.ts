@@ -447,7 +447,8 @@ export function updateCardStatus($card, reductionDetails) {
 }
 export function updateCardStatusButtons($card: JQuery<HTMLElement>, publishingStatusEnum: PublicationStatus) {
   $card.find('.card-button-dynamic').hide();
-  if (publishingStatusEnum === PublicationStatus.Queued) {
+  if (publishingStatusEnum === PublicationStatus.Validating ||
+      publishingStatusEnum === PublicationStatus.Queued) {
     $card.find('.card-button-cancel').css('display', 'flex');
   } else if (publishingStatusEnum === PublicationStatus.Processed) {
     $card.find('.card-button-checkmark').css('display', 'flex');
@@ -501,4 +502,54 @@ export function confirmAndContinueForm(onContinue, condition = true) {
   } else {
     onContinue();
   }
+}
+
+// fetch helpers
+export function getData(url = '', data = {}) {
+  const urlObj = new URL(url, `${window.location.protocol}//${window.location.host}`);
+  Object.keys(data).forEach((key) => {
+    if (Object.prototype.hasOwnProperty.call(data, key)) {
+      urlObj.searchParams.append(key, data[key]);
+    }
+  });
+  return fetch(urlObj.href, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+    },
+    credentials: 'same-origin',
+  })
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error(response.headers.get('Warning') || 'Unknown error');
+    }
+    return response.json();
+  });
+}
+
+export function postData(url: string = '', data: object = {}) {
+  const antiforgeryInput = document.querySelector('input[name="__RequestVerificationToken"]') as HTMLInputElement;
+  const antiforgeryToken = antiforgeryInput.value.toString();
+  const urlObj = new URL(url, `${window.location.protocol}//${window.location.host}`);
+  const formData = Object.keys(data).map((key) => {
+    if (Object.prototype.hasOwnProperty.call(data, key)) {
+      return `${key}=${data[key]}`;
+    }
+    return null;
+  }).filter((kvp) => kvp !== null).join('&');
+  return fetch(urlObj.href, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'RequestVerificationToken': antiforgeryToken,
+    },
+    credentials: 'same-origin',
+    body: formData,
+  })
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error(response.headers.get('Warning') || 'Unknown error');
+    }
+    return response.json();
+  });
 }

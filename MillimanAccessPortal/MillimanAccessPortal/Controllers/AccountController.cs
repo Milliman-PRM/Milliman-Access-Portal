@@ -19,6 +19,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
+using MapDbContextLib.Models;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Services;
@@ -26,6 +27,7 @@ using AuditLogLib;
 using AuditLogLib.Services;
 using AuditLogLib.Event;
 using MillimanAccessPortal.Authorization;
+using Microsoft.Extensions.Configuration;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -40,6 +42,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuditLogger _auditLogger;
         private readonly StandardQueries Queries;
         private readonly IAuthorizationService AuthorizationService;
+        private readonly IConfiguration _configuration;
 
         public AccountController(
             ApplicationDbContext ContextArg,
@@ -49,7 +52,8 @@ namespace MillimanAccessPortal.Controllers
             ILoggerFactory loggerFactory,
             IAuditLogger AuditLoggerArg,
             StandardQueries QueriesArg,
-            IAuthorizationService AuthorizationServiceArg)
+            IAuthorizationService AuthorizationServiceArg,
+            IConfiguration ConfigArg)
         {
             DbContext = ContextArg;
             _userManager = userManager;
@@ -59,6 +63,7 @@ namespace MillimanAccessPortal.Controllers
             _auditLogger = AuditLoggerArg;
             Queries = QueriesArg;
             AuthorizationService = AuthorizationServiceArg;
+            _configuration = ConfigArg;
         }
 
         //
@@ -87,9 +92,32 @@ namespace MillimanAccessPortal.Controllers
 
             if (ModelState.IsValid)
             {
-                // This doesn't count login failures towards account lockout
-                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: false);
+                var user = await _userManager.FindByNameAsync(model.Username);
+
+                // Only notify of password expiration if the correct password was provided
+                // Redirect user to the password reset view to set a new password
+                bool passwordSuccess = await _userManager.CheckPasswordAsync(user, model.Password);
+
+                // Set a default value in case the configuration isn't found or isn't an int
+                int defaultExpirationDays = 30;
+                int expirationDays = defaultExpirationDays;
+                try
+                {
+                    expirationDays = _configuration.GetValue<int>("PasswordExpirationDays");
+                }
+                catch
+                {
+                    expirationDays = defaultExpirationDays;
+                    _logger.LogWarning($"PasswordExpirationDays value not found or cannot be cast to an integer. The default value of { expirationDays } will be used.");
+                }
+                                
+                if (user.LastPasswordChangeDateTimeUtc.AddDays(expirationDays) < DateTime.UtcNow && passwordSuccess)
+                {
+                    ModelState.AddModelError(string.Empty, "Password Has Expired.");
+                    return View("ResetPassword");
+                }
+                
+                var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
                     HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
@@ -290,7 +318,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [NonAction]
-        public async void SendNewAccountWelcomeEmail(ApplicationUser RequestedUser, IUrlHelper Url, string SettableEmailText = null)
+        public async Task SendNewAccountWelcomeEmail(ApplicationUser RequestedUser, IUrlHelper Url, string SettableEmailText = null)
         {
             var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(RequestedUser);
             var callbackUrl = Url.Action(nameof(AccountController.EnableAccount), "Account", new { userId = RequestedUser.Id, code = emailConfirmationToken }, protocol: "https");
@@ -354,6 +382,16 @@ namespace MillimanAccessPortal.Controllers
 
                 if (identityResult.Succeeded)
                 {
+                    // Save password hash in history
+                    user.PasswordHistoryObj = user.PasswordHistoryObj.Append<PreviousPassword>(new PreviousPassword(model.NewPassword)).ToList<PreviousPassword>();
+                    user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
+                    var addHistoryResult = await _userManager.UpdateAsync(user);
+
+                    if (!addHistoryResult.Succeeded)
+                    {
+                        _logger.LogError($"Failed to save password history for {user.UserName }");
+                    }
+
                     _auditLogger.Log(AuditEventType.UserAccountEnabled.ToEvent(user));
 
                     user.FirstName = model.FirstName;
@@ -466,6 +504,16 @@ namespace MillimanAccessPortal.Controllers
             var result = await _userManager.ResetPasswordAsync(user, model.PasswordResetToken, model.NewPassword);
             if (result.Succeeded)
             {
+                // Save password hash in history
+                user.PasswordHistoryObj = user.PasswordHistoryObj.Append<PreviousPassword>(new PreviousPassword(model.NewPassword)).ToList<PreviousPassword>();
+                user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
+                var addHistoryResult = await _userManager.UpdateAsync(user);
+
+                if (!addHistoryResult.Succeeded)
+                {
+                    _logger.LogError($"Failed to save password history for {user.UserName }");
+                }
+
                 _auditLogger.Log(AuditEventType.PasswordResetCompleted.ToEvent(user));
                 return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
             }
@@ -757,6 +805,16 @@ namespace MillimanAccessPortal.Controllers
                 
                 if (result.Succeeded)
                 {
+                    // Save password hash in history
+                    user.PasswordHistoryObj = user.PasswordHistoryObj.Append<PreviousPassword>(new PreviousPassword(Model.NewPassword)).ToList<PreviousPassword>();
+                    user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
+                    var addHistoryResult = await _userManager.UpdateAsync(user);
+
+                    if (!addHistoryResult.Succeeded)
+                    {
+                        _logger.LogError($"Failed to save password history for {user.UserName }");
+                    }
+
                     return Ok();
                 }
                 else

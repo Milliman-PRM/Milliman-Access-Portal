@@ -1,21 +1,21 @@
+import '../images/add-circle.svg';
+import '../images/add.svg';
+import '../images/cancel.svg';
+import '../images/checkmark.svg';
+import '../images/delete.svg';
+import '../images/edit.svg';
+import '../images/expand-card.svg';
+import '../images/group.svg';
+import '../images/remove-circle.svg';
+import '../images/reports.svg';
+import '../images/upload.svg';
+import '../images/user.svg';
+
 import * as toastr from 'toastr';
 
 import * as shared from './shared';
 import { SelectionGroupSummary } from './view-models/content-access-admin';
-import { RootContentItemSummary, UserInfo } from './view-models/content-publishing';
-
-import '../images/user.svg';
-import '../images/remove-circle.svg';
-import '../images/add-circle.svg';
-import '../images/expand-card.svg';
-import '../images/cancel.svg';
-import '../images/group.svg';
-import '../images/reports.svg';
-import '../images/delete.svg';
-import '../images/edit.svg';
-import '../images/add.svg';
-import '../images/upload.svg';
-import '../images/checkmark.svg';
+import { UserInfo } from './view-models/content-publishing';
 
 const card = {};
 

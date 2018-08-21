@@ -1,24 +1,23 @@
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-
-import { NavBar } from '../react/shared-components/navbar';
-
-import 'bootstrap/scss/bootstrap-reboot.scss';
-import 'toastr/toastr.scss';
-import 'tooltipster';
-import 'tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css';
-import 'tooltipster/src/css/tooltipster.css';
-import '../../scss/map.scss';
-
-import * as $ from 'jquery';
-import * as toastr from 'toastr';
-
-import { setup } from './dom-methods';
-
-import '../../images/map-logo.svg';
 import '../../images/add.svg';
 import '../../images/collapse-cards.svg';
 import '../../images/expand-cards.svg';
+import '../../images/map-logo.svg';
+
+import '../../scss/map.scss';
+import 'bootstrap/scss/bootstrap-reboot.scss';
+import 'toastr/toastr.scss';
+
+import 'tooltipster';
+import 'tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css';
+import 'tooltipster/src/css/tooltipster.css';
+
+import * as $ from 'jquery';
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+import * as toastr from 'toastr';
+
+import { NavBar } from '../react/shared-components/navbar';
+import { setup } from './dom-methods';
 
 document.addEventListener('DOMContentLoaded', (event) => {
   const view = document.getElementsByTagName("body")[0].getAttribute("data-nav-location");

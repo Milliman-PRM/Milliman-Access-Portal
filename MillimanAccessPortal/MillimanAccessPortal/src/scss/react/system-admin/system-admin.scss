@@ -1,0 +1,10 @@
+﻿@import "../../map_modules/variables";
+@import "../../map_modules/mixins";
+
+#master-content-container {
+    display: flex;
+    flex-flow: row nowrap;
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 1em;
+}

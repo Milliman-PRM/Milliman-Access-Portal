@@ -84,6 +84,34 @@ namespace MapCommonLib
             var flattened = Children.ToDictionary(c => c, c => flatten(c));
             Children.RemoveAll(node => !flattened[node].Select(n => map(n.Value)).Aggregate(seed, reduce));
         }
+
+        /// <summary>
+        /// Apply a function recursively to this node and all children
+        /// </summary>
+        /// <param name="map">Function to apply to each subtree's child node values</param>
+        public void Apply(Func<T, T> map)
+        {
+            Value = map(Value);
+            foreach (var childNode in Children)
+            {
+                childNode.Apply(map);
+            }
+        }
+
+        /// <summary>
+        /// Order a tree's children recursively
+        /// </summary>
+        /// <remarks>A more robust approach would be to implement IOrderedEnumerable</remarks>
+        /// <typeparam name="U"></typeparam>
+        /// <param name="lambda">Provides the element used to sort the tree.</param>
+        public void OrderInPlaceBy<U>(Func<BasicNode<T>, U> lambda)
+        {
+            Children = Children.OrderBy(lambda).ToList();
+            foreach (var childNode in Children)
+            {
+                childNode.OrderInPlaceBy(lambda);
+            }
+        }
     }
 
     /// <summary>

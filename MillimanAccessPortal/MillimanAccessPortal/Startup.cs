@@ -30,6 +30,7 @@ using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Services;
 using QlikviewLib;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -70,7 +71,11 @@ namespace MillimanAccessPortal
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(appConnectionString, b => b.MigrationsAssembly("MillimanAccessPortal")));
             #endregion
-            
+
+            int passwordHistoryDays = Configuration.GetValue<int>("PasswordHistoryValidatorDays");
+            List<string> commonWords = Configuration.GetSection("PasswordBannedWords").GetChildren().Select(c => c.Value).ToList<string>();
+            int passwordHashingIterations = Configuration.GetValue<int>("PasswordHashingIterations");
+
             // Do not add AuditLogDbContext.  This context should be protected from direct access.  Use the api class instead.  -TP
 
             services.AddIdentity<ApplicationUser, ApplicationRole>(config =>
@@ -78,13 +83,20 @@ namespace MillimanAccessPortal
                     config.SignIn.RequireConfirmedEmail = true;
                 })
                 .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
+                .AddDefaultTokenProviders()
+                .AddTop100000PasswordValidator<ApplicationUser>()
+                .AddRecentPasswordInDaysValidator<ApplicationUser>(passwordHistoryDays)
+                .AddPasswordValidator<PasswordIsNotEmailOrUsernameValidator<ApplicationUser>>()
+                .AddCommonWordsValidator<ApplicationUser>(commonWords);
+
+            services.Configure<PasswordHasherOptions>(options => options.IterationCount = passwordHashingIterations);
 
             services.Configure<IdentityOptions>(options =>
             {
                 // Password settings
                 options.Password.RequireDigit = true;
-                options.Password.RequiredLength = 8;
+                options.Password.RequiredLength = 10;
+                options.Password.RequiredUniqueChars = 6;
                 options.Password.RequireNonAlphanumeric = true;
                 options.Password.RequireUppercase = true;
                 options.Password.RequireLowercase = false;
@@ -92,6 +104,7 @@ namespace MillimanAccessPortal
                 // Lockout settings
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
                 options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.AllowedForNewUsers = true;
                 
                 // User settings
                 options.User.RequireUniqueEmail = true;
@@ -133,7 +146,9 @@ namespace MillimanAccessPortal
             });
 
             string fileUploadPath = Path.GetTempPath();
-            if (!string.IsNullOrWhiteSpace(Configuration.GetValue<string>("Storage:FileUploadPath")))
+            // The environment variable check enables migrations to be deployed to Staging or Production via the MAP deployment server
+            // This variable should never be set on a real production or staging system
+            if (!string.IsNullOrWhiteSpace(Configuration.GetValue<string>("Storage:FileUploadPath")) && Environment.GetEnvironmentVariable("MIGRATIONS_RUNNING") == null)
             {
                 fileUploadPath = Configuration.GetValue<string>("Storage:FileUploadPath");
             }
