@@ -423,6 +423,11 @@ const components = Object.assign(
           if (Object.hasOwnProperty.call(properties, 'id')) {
             this.addClass(component, 'card-100 action-card');
           }
+          if (Object.hasOwnProperty.call(properties, 'suspended')) {
+            if (properties.suspended) {
+              this.addClass(component, 'suspended');
+            }
+          }
         };
       },
     },
@@ -855,7 +860,12 @@ export function RootContentItemCard(
 ) {
   Card.call(this);
 
-  this.addComponent('primaryText', { text: rootContentItemDetail.ContentName });
+  this.addComponent('body', { suspended: rootContentItemDetail.IsSuspended });
+  this.addComponent('primaryText', {
+    text: rootContentItemDetail.ContentName + (rootContentItemDetail.IsSuspended
+      ? ' (Suspended)'
+      : ''),
+  });
   this.addComponent('secondaryText', { text: rootContentItemDetail.ContentTypeName });
   this.addComponent('statistic', {
     icon: 'group',
@@ -937,7 +947,12 @@ export function SelectionGroupCard(
     return acc.concat(cur);
   }, []);
 
-  this.addComponent('primaryTextBox', { text: selectionGroup.Name });
+  this.addComponent('body', { suspended: selectionGroup.IsSuspended });
+  this.addComponent('primaryTextBox', {
+    text: selectionGroup.Name + (selectionGroup.IsSuspended
+      ? ' (Suspended)'
+      : ''),
+  });
   this.addComponent('secondaryText', { text: selectionGroup.RootContentItemName });
   this.addComponent('statistic', {
     icon: 'group',
@@ -1084,9 +1099,14 @@ export function UserCard(
   }
   names.push(user.Email);
 
+  this.addComponent('body', { suspended: user.IsSuspended });
   this.addComponent('icon', { icon: 'user', class: 'card-user-icon' });
   this.addComponent('icon', { icon: 'add', class: 'card-user-role-indicator' });
-  this.addComponent('primaryText', { text: names[0] });
+  this.addComponent('primaryText', {
+    text: names[0] + (user.IsSuspended
+      ? ' (Suspended)'
+      : ''),
+  });
   names.slice(1).forEach(function(name) {
     this.addComponent('secondaryText', { text: name });
   }, this);
