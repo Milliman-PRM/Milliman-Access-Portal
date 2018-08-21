@@ -54,25 +54,6 @@ namespace MapTests
             return testController;
         }
 
-        [Theory]
-        [InlineData("random.dat", "2339ebed070fd30a869a22193ef2f76284ed333b")]
-        public void GetFileChecksum_Match(string fileName, string checksum)
-        {
-            #region Arrange
-            var filePath = Path.Combine("../../../TestData", fileName);
-            #endregion
-
-            #region Act
-            //var fileChecksum = GlobalFunctions.GetFileChecksum(filePath).ToLower();
-            #endregion
-
-            #region Assert
-            Assert.True(true);
-            // TODO: Manage test resources
-            //Assert.Equal(fileChecksum, checksum);
-            #endregion
-        }
-
         private ResumableInfo BuildResumableInfo(string fileName, string checksum, ulong size, uint chunkNumber)
         {
             const uint chunkSize = (1024 * 1024);
