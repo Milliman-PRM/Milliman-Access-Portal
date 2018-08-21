@@ -4,7 +4,6 @@
 #  Run cleanup steps for CI builds of Milliman Access Portal, and publish if it was merged into master or develop
 
 ### DEVELOPER NOTES:
-# Test CI
 #
 
 
