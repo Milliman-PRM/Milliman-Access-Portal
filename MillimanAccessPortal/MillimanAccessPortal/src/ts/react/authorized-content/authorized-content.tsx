@@ -6,9 +6,10 @@ import * as React from 'react';
 import { ContentCard } from './content-card';
 import { FilterBar } from './filter-bar';
 import { ContentContainer } from '../shared-components/content-container';
-import { ContentItem, ContentItemGroup, ContentItemGroupList, Filterable } from './interfaces';
+import { ContentItem, ContentItemGroup, ContentItemGroupList, Filterable, NavBarLocation } from './interfaces';
+import { NavBar } from '../shared-components/navbar';
 
-interface AuthorizedContentState extends ContentItemGroupList, Filterable { }
+interface AuthorizedContentState extends ContentItemGroupList, Filterable, NavBarLocation { }
 export class AuthorizedContent extends React.Component<{}, AuthorizedContentState> {
   public constructor(props) {
     super(props);
@@ -16,6 +17,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
       ItemGroups: [],
       selectedContentURL: null,
       filterString: '',
+      navLocation: document.getElementsByTagName("body")[0].getAttribute("data-nav-location")
     };
   }
 
@@ -45,39 +47,43 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
   }
 
   public render() {
-    if (this.state.selectedContentURL) {
-      return (
-        <ContentContainer
-          closeAction={this.selectContentItem}
-          contentURL={this.state.selectedContentURL} />
-      )
-    } else {
-      return (
-        <div id='authorized-content-container'>
-          <div id='authorized-content-header'>
-            <FilterBar onFilterStringChanged={(filterString) => this.setState({ filterString })} />
-          </div>
-          <div id='authorized-content-items'>
-            {
-              this.filteredArray().map((client: ContentItemGroup, index: number) => (
-                <div key={`client-${client.Id}`} className='client-content-container'>
-                  <h1 className='client-name'>{client.Name}</h1>
-                  {
-                    client.Items.map((contentItem: ContentItem) => (
-                      <ContentCard
-                        key={contentItem.Id.toString()}
-                        selectContent={this.selectContentItem}
-                        {...contentItem}
-                      />
-                    ))
-                  }
-                </div>
-              ))
-            }
-          </div>
-        </div>
-      );
-    }
+    return (
+      <React.Fragment>
+        <NavBar currentView={this.state.navLocation} />
+        {
+          this.state.selectedContentURL &&
+            <ContentContainer
+              closeAction={this.selectContentItem}
+              contentURL={this.state.selectedContentURL} />
+        }
+        {
+          !this.state.selectedContentURL &&
+            <div id='authorized-content-container'>
+              <div id='authorized-content-header'>
+                <FilterBar onFilterStringChanged={(filterString) => this.setState({ filterString })} />
+              </div>
+              <div id='authorized-content-items'>
+                {
+                  this.filteredArray().map((client: ContentItemGroup, index: number) => (
+                    <div key={`client-${client.Id}`} className='client-content-container'>
+                      <h1 className='client-name'>{client.Name}</h1>
+                      {
+                        client.Items.map((contentItem: ContentItem) => (
+                          <ContentCard
+                            key={contentItem.Id.toString()}
+                            selectContent={this.selectContentItem}
+                            {...contentItem}
+                          />
+                        ))
+                      }
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+        }
+      </React.Fragment>
+    )
   }
 
   private filteredArray() {
