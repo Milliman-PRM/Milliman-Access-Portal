@@ -39,7 +39,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
             clientDetail.CanManage = dbContext.UserRoleInClient
                 .Where(urc => urc.UserId == currentUser.Id)
-                .Where(urc => urc.Role.RoleEnum == RoleEnum.ContentAccessAdmin)
+                .Where(urc => urc.Role.RoleEnum == roleInClient)
                 .Where(urc => urc.ClientId == clientDetail.Id)
                 .Any();
 
@@ -56,7 +56,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 .ToList();
 
             clientDetail.EligibleUserCount = dbContext.UserRoleInClient
-                .Where(urc => urc.Role.RoleEnum == roleInClient)
+                .Where(urc => urc.Role.RoleEnum == RoleEnum.ContentUser)
                 .Where(urc => urc.ClientId == clientDetail.Id)
                 .ToHashSet()
                 .Count();
