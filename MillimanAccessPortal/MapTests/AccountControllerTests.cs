@@ -6,10 +6,14 @@
 
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.AccountViewModels;
+using MillimanAccessPortal.Services;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TestResourcesLib;
@@ -43,7 +47,8 @@ namespace MapTests
                 TestResources.MessageQueueServicesObject,
                 TestResources.LoggerFactory,
                 TestResources.AuditLoggerObject,
-                TestResources.QueriesObj);
+                TestResources.QueriesObj,
+                TestResources.ConfigurationObject);
 
             // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
             if (!string.IsNullOrWhiteSpace(UserName))
@@ -204,10 +209,214 @@ namespace MapTests
             #endregion
         }
 
+        /// <summary>
+        /// Verify that The PasswordRecentDaysValidator rejects passwords within the specified range of recent history
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task PasswordInRecentDaysNotAllowed()
+        {
+            #region Arrange
+            AccountController controller = await GetController("user1");
+            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
+            var validator = new PasswordRecentDaysValidator<ApplicationUser>() { numberOfDays = 1 };
+
+            string newPassword = "Passw0rd!";
+            var passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(newPassword));
+            AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
+            #endregion
+
+            #region Act
+
+            IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, newPassword);
+            #endregion
+
+            #region Assert
+            Assert.False(result.Succeeded);
+            #endregion
+        }
+
+        /// <summary>
+        /// Verify that The PasswordRecentDaysValidator accepts passwords earlier in the user's history than the specified time frame
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task PasswordNotInRecentDaysAllowed()
+        {
+            #region Arrange
+            AccountController controller = await GetController("user1");
+            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
+            var validator = new PasswordRecentDaysValidator<ApplicationUser>() { numberOfDays = 1 };
+
+            string newPassword = "Passw0rd!";
+            var passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(newPassword) { dateSetUtc = DateTime.UtcNow.Subtract(new TimeSpan(2, 0, 0, 0)) });
+            AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
+            #endregion
+
+            #region Act
+            IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, newPassword);
+            #endregion
+
+            #region Assert
+            Assert.True(result.Succeeded);
+            #endregion
+        }
+
+        /// <summary>
+        /// Verify that The PasswordRecentNumberValidator rejects passwords within the specified range of recent history
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task PasswordInRecentNumberNotAllowed()
+        {
+            #region Arrange
+            AccountController controller = await GetController("user1");
+            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
+            var validator = new PasswordRecentNumberValidator<ApplicationUser>() { numberOfPasswords = 1 };
+
+            string newPassword = "Passw0rd!";
+            var passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(newPassword));
+            AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
+
+            string secondNewPassword = "Passw0rd!2";
+            passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(secondNewPassword));
+            AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
+            #endregion
+
+            #region Act
+            IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, secondNewPassword);
+            #endregion
+
+            #region Assert
+            Assert.False(result.Succeeded);
+            #endregion
+        }
+
+        /// <summary>
+        /// Verify that The PasswordRecentNumberValidator accepts passwords earlier in the user's history than the specified number
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task PasswordNotInRecentNumberAllowed()
+        {
+            #region Arrange
+            AccountController controller = await GetController("user1");
+            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
+            var validator = new PasswordRecentNumberValidator<ApplicationUser>() { numberOfPasswords = 1 };
+
+            string newPassword = "Passw0rd!";
+            var passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(newPassword));
+            AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
+
+            string secondNewPassword = "Passw0rd!2";
+            passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(secondNewPassword));
+            AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
+            #endregion
+
+            #region Act
+            IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, newPassword);
+            #endregion
+
+            #region Assert
+            Assert.True(result.Succeeded);
+            #endregion
+        }
+
+        /// <summary>
+        /// Verify that The PasswordRecentNumberValidator accepts passwords earlier in the user's history than the specified number
+        /// </summary>
+        /// <returns></returns>
+        
+        [Theory]
+        [InlineData("Passw0rd!")]
+        [InlineData("Passw0rd!2")]
+        public async Task PasswordEverInHistoryNotAllowed(string inputPassword)
+        {
+            #region Arrange
+            AccountController controller = await GetController("user1");
+            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
+            var validator = new PasswordHistoryValidator<ApplicationUser>();
+
+            string newPassword = "Passw0rd!";
+            var passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(newPassword));
+            AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
+
+            string secondNewPassword = "Passw0rd!2";
+            passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(secondNewPassword));
+            AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
+            #endregion
+
+            #region Act
+            IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, inputPassword);
+            #endregion
+
+            #region Assert
+            Assert.False(result.Succeeded);
+            #endregion
+        }
+
+        [Fact]
+        public async Task EmailInPasswordNotAllowed()
+        {
+            #region Arrange
+            AccountController controller = await GetController("user1");
+            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
+            var validator = new PasswordIsNotEmailOrUsernameValidator<ApplicationUser>();
+            #endregion
+
+            #region Act
+            IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, AppUser.Email);
+            #endregion
+
+            #region Assert
+            Assert.False(result.Succeeded);
+            #endregion
+        }
+
+        [Fact]
+        public async Task UsernameInPasswordNotAllowed()
+        {
+            #region Arrange
+            AccountController controller = await GetController("user1");
+            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
+            var validator = new PasswordIsNotEmailOrUsernameValidator<ApplicationUser>();
+            #endregion
+
+            #region Act
+            IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, AppUser.UserName);
+            #endregion
+
+            #region Assert
+            Assert.False(result.Succeeded);
+            #endregion
+        }
+
+        /// <summary>
+        /// Verify that PasswordContainsCommonWordsValidator will not allow passwords that contain a banned word or phrase
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task CommonWordInPasswordNotAllowed()
+        {
+            #region Arrange
+            AccountController controller = await GetController("user1");
+            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
+            var validator = new PasswordContainsCommonWordsValidator<ApplicationUser>() { commonWords = { "milliman" } };
+            #endregion
+
+            #region Act
+            IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, "Milliman123");
+            #endregion
+
+            #region Assert
+            Assert.False(result.Succeeded);
+            #endregion
+        }
+
         [Fact]
         public async Task AccountSettingsGETWorks()
         {
-            #region Act
+            #region Arrange
             AccountController controller = await GetController("user1");
             var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
             #endregion
