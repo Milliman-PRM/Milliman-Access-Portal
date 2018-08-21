@@ -16,6 +16,7 @@
  *          - [POST]: Set the value of the toggle and return this new value.
  */
 
+using AuditLogLib.Event;
 using AuditLogLib.Services;
 using MapCommonLib;
 using MapDbContextLib.Context;
@@ -793,6 +794,8 @@ namespace MillimanAccessPortal.Controllers
                 var roleToRemove = roleQuery.Single();
                 _dbContext.UserRoles.Remove(roleToRemove);
                 _dbContext.SaveChanges();
+
+                _auditLogger.Log(AuditEventType.SystemRoleRemoved.ToEvent(user, role));
             }
             else
             {
@@ -803,6 +806,8 @@ namespace MillimanAccessPortal.Controllers
                 };
                 _dbContext.UserRoles.Add(roleToAdd);
                 _dbContext.SaveChanges();
+
+                _auditLogger.Log(AuditEventType.SystemRoleAssigned.ToEvent(user, role));
             }
 
             return Json(value);
@@ -871,6 +876,8 @@ namespace MillimanAccessPortal.Controllers
             user.IsSuspended = value;
             _dbContext.ApplicationUser.Update(user);
             _dbContext.SaveChanges();
+
+            _auditLogger.Log(AuditEventType.UserSuspensionUpdate.ToEvent(user, value, ""));
 
             return Json(user.IsSuspended);
         }
@@ -998,6 +1005,8 @@ namespace MillimanAccessPortal.Controllers
                 var roleToRemove = roleQuery.Single();
                 _dbContext.UserRoleInClient.Remove(roleToRemove);
                 _dbContext.SaveChanges();
+
+                _auditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(client, user, role));
             }
             else
             {
@@ -1009,6 +1018,8 @@ namespace MillimanAccessPortal.Controllers
                 };
                 _dbContext.UserRoleInClient.Add(roleToAdd);
                 _dbContext.SaveChanges();
+
+                _auditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(client, user, role));
             }
 
             return Json(value);
@@ -1077,6 +1088,8 @@ namespace MillimanAccessPortal.Controllers
             rootContentItem.IsSuspended = value;
             _dbContext.RootContentItem.Update(rootContentItem);
             _dbContext.SaveChanges();
+
+            _auditLogger.Log(AuditEventType.RootContentItemSuspensionUpdate.ToEvent(rootContentItem, value, ""));
 
             return Json(rootContentItem.IsSuspended);
         }
