@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett, Joseph Sweeney
- * OBJECTIVE: Functionality to support actions in the ContentAccessAdminController
+ * OBJECTIVE: Functionality to support actions in the ContentPublishingController
  * DEVELOPER NOTES: Strongly consider utilizing a background task queue for this in the future.
  *      See: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/hosted-services
  */
