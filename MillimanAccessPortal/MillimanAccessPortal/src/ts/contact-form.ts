@@ -3,7 +3,6 @@ import toastr = require('toastr');
 require('./lib-options');
 import vex = require('vex-js');
 
-require('bootstrap/scss/bootstrap-reboot.scss');
 require('toastr/toastr.scss');
 require('vex-js/sass/vex.sass');
 require('vex-js/sass/vex-theme-default.sass');

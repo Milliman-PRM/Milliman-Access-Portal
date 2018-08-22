@@ -27,7 +27,6 @@ require('selectize');
 require('tooltipster');
 require('vex-js');
 
-require('bootstrap/scss/bootstrap-reboot.scss');
 require('selectize/src/less/selectize.default.less');
 require('toastr/toastr.scss');
 require('tooltipster/src/css/tooltipster.css');

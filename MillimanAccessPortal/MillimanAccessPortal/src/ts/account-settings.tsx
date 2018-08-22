@@ -10,7 +10,6 @@ import { SubmissionGroup } from './form/form-submission';
 import $ = require('jquery');
 import toastr = require('toastr');
 
-require('bootstrap/scss/bootstrap-reboot.scss');
 require('toastr/toastr.scss');
 require('../scss/map.scss');
 

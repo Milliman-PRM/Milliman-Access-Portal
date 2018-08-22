@@ -1,7 +1,6 @@
-require('jquery');
-require('./navbar');
+import '../images/map-logo.svg';
 
-require('bootstrap/scss/bootstrap-reboot.scss');
+require('jquery');
+
 require('../scss/map.scss');
 
-import '../images/map-logo.svg';
