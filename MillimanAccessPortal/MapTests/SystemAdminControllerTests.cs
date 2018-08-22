@@ -45,7 +45,9 @@ namespace MapTests
                 _testResources.MessageQueueServicesObject,
                 _testResources.LoggerFactory,
                 _testResources.AuditLoggerObject,
-                _testResources.QueriesObj);
+                _testResources.QueriesObj,
+                _testResources.AuthorizationService,
+                _testResources.ConfigurationObject);
 
             var testController = new SystemAdminController(
                 accountController,
