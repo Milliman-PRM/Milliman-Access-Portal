@@ -911,7 +911,7 @@ namespace MapTests
             testClient.ConsultantEmail = "editconsultant@example2.com";
             testClient.ConsultantName = "Edit consultant name";
             testClient.ConsultantOffice = "Edit consultant office";
-            testClient.AcceptedEmailAddressExceptionList = new string[] { "edit1@example.com", "edit2@example.com" };
+            testClient.AcceptedEmailAddressExceptionList = new string[] { "edit1@example.com,edit2@example.com", "edit3@example.com" };
             testClient.AcceptedEmailDomainList = new string[] { "editexample.com", "example2.com" };
             #endregion 
 
