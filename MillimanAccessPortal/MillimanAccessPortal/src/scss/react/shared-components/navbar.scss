@@ -17,7 +17,7 @@ nav {
     z-index: 101;
 
     &.loaded {
-        left: -14em;
+        left: -14.5em;
     }
 
     &:hover {
@@ -43,7 +43,10 @@ nav {
 
         &.selected {
             background-color: $blue;
-            fill: $white;
+
+            &:hover {
+                color: $charcoal;
+            }
         }
 
         .nav-element-label {
