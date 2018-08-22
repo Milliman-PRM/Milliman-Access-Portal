@@ -40,6 +40,22 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
       console.log('error:', ex)
     });
   }
+
+  public logout() {
+    fetch('/account/logout', {
+      credentials: 'same-origin',
+      method: 'POST',
+      headers: {
+        RequestVerificationToken: document.getElementsByName('__RequestVerificationToken')[0].getAttribute('value'),
+      },
+    })
+      .then(() => {
+        window.location.replace('/')
+      })
+      .catch((e) => {
+        console.log("An error occured:", e);
+      });
+  }
   
   public render() {
     const navElements = this.state.NavBarElements.map((element: NavBarElement) => {
@@ -71,7 +87,7 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
             <use xlinkHref="#email" />
           </svg>
         </div>
-        <div className="nav-element" style={{ order: 100 }}>
+        <div className="nav-element" style={{ order: 100 }} onClick={this.logout}>
           <h3 className="nav-element-label">Log Out</h3>
           <svg className="nav-element-icon">
             <use xlinkHref="#logout" />
