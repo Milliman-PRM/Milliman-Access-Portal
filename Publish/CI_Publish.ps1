@@ -1,12 +1,35 @@
-# Code Owners: Ben Wyatt, Steve Gredell
+<#
+    .SYNOPSIS
+        Run unit tests and deploy MAP
+ 
+    .DESCRIPTION
+        This script assumes the repository has already been cloned to $rootPath
 
-### OBJECTIVE:
-#  Deploy Milliman Access Portal CI builds to Azure
+    .PARAMETER targetFolder
+        The fully-qualified path to a folder where the MAP repository has been cloned
+    
+    .PARAMETER deployEnvironment
+        The ASPNETCORE_ENVIRONMENT value for the environment being targeted for deployment
+        This environment will be used to perform database migrations
 
-### DEVELOPER NOTES:
-#
+    .PARAMETER testEnvironment
+        The ASPNETCORE_ENVIRONMENT value for the environment where unit tests are being run
+        
+    .NOTES
+        AUTHORS - Ben Wyatt, Steve Gredell
+#>
 
-#region Define Functions
+
+Param(
+    [Parameter]
+    [ValidateSet("AzureCI","CI","Production","Staging","Development")]
+    [string]$deployEnvironment="AzureCI",
+    [Parameter]
+    [ValidateSet("AzureCI","CI","Production","Staging","Development")]
+    [string]$testEnvironment="CI"
+)
+
+
 function log_statement {
     Param([string]$statement)
 
@@ -89,7 +112,7 @@ $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 
 $env:APP_DATABASE_NAME=$appDbName
 $env:AUDIT_LOG_DATABASE_NAME=$logDbName
-$env:ASPNETCORE_ENVIRONMENT="CI"
+$env:ASPNETCORE_ENVIRONMENT=$testEnvironment
 $env:PATH = $env:PATH+";C:\Program Files (x86)\OctopusCLI\;$env:appdata\npm\"
 $rootPath = (get-location).Path
 $webBuildTarget = "$rootPath\WebDeploy"
@@ -291,7 +314,7 @@ remove-item env:PGPASSWORD
 
 log_statement "Performing database migrations"
 
-$env:ASPNETCORE_ENVIRONMENT = "AzureCI"
+$env:ASPNETCORE_ENVIRONMENT = $deployEnvironment
 
 cd $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
