@@ -14,6 +14,7 @@ import { ContentPanel } from '../shared-components/content-panel';
 import { Entity } from '../shared-components/entity';
 import { DataSource, Structure } from '../shared-components/interfaces';
 import { ClientInfo, ProfitCenterInfo, RootContentItemInfo, UserInfo } from './interfaces';
+import { NavBar } from '../shared-components/navbar';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
 
@@ -22,6 +23,7 @@ export interface SystemAdminState {
   secondaryDataSource: string;
   primarySelectedCard: number;
   secondarySelectedCard: number;
+  currentView: string;
 }
 
 export class SystemAdmin extends React.Component<{}, SystemAdminState> {
@@ -221,6 +223,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       secondaryDataSource: null,
       primarySelectedCard: null,
       secondarySelectedCard: null,
+      currentView: document.getElementsByTagName("body")[0].getAttribute("data-nav-location"),
     };
 
     this.setPrimaryDataSource = this.setPrimaryDataSource.bind(this);
@@ -246,6 +249,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     );
 
     return [
+      (
+        <NavBar currentView={this.state.currentView}/>
+      ),
       (
         <ContentPanel
           key={'primaryColumn'}
