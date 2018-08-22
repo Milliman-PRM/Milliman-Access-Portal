@@ -1092,7 +1092,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 if (!string.IsNullOrWhiteSpace(Element))  // Model binding passes null when nothing provided
                 {
-                    foreach (string GoodElement in InArray[0].Split(StringDelimiters, StringSplitOptions.RemoveEmptyEntries))
+                    foreach (string GoodElement in Element.Split(StringDelimiters, StringSplitOptions.RemoveEmptyEntries))
                     {
                         Result = Result.Append(GoodElement.Trim()).ToArray();
                     }
