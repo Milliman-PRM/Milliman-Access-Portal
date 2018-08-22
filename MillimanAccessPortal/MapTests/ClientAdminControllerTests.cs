@@ -912,7 +912,7 @@ namespace MapTests
             testClient.ConsultantName = "Edit consultant name";
             testClient.ConsultantOffice = "Edit consultant office";
             testClient.AcceptedEmailAddressExceptionList = new string[] { "edit1@example.com", "edit2@example.com" };
-            testClient.AcceptedEmailDomainList = new string[] { "editexample.com" };
+            testClient.AcceptedEmailDomainList = new string[] { "editexample.com", "example2.com" };
             #endregion 
 
             var view = await controller.EditClient(testClient);
