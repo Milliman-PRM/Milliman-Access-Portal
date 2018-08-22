@@ -71,7 +71,7 @@ $psqlPath = "$pgsqlToolsPath\psql.exe"
 $pgDumpPath = "$pgsqlToolsPath\pg_dump.exe"
 $pgRestorePath = "$pgsqlToolsPath\pg_restore.exe"
 
-if (Test-Path $psqlPath -eq $false -or test-path $pgDumpPath -eq $false -or test-path $pgRestorePath -eq $false)
+if (((Test-Path $psqlPath) -eq $false) -or ((test-path $pgDumpPath) -eq $false) -or ((test-path $pgRestorePath) -eq $false))
 {
     write-error "One or more of the required tools (psql.exe, pg_dump.exe, pg_restore.exe) was not found."
     return -42
