@@ -267,14 +267,6 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                           <span className="detail-value">{rootContentItemDetailForClient.Description}</span>
                         </div>
                         <div className="detail-container">
-                          <span className="detail-label">Last Updated</span>
-                          <span className="detail-value">{rootContentItemDetailForClient.LastUpdated}</span>
-                        </div>
-                        <div className="detail-container">
-                          <span className="detail-label">Last Accessed</span>
-                          <span className="detail-value">{rootContentItemDetailForClient.LastAccessed}</span>
-                        </div>
-                        <div className="detail-container">
                           <ImmediateToggle
                             controller={this.props.controller}
                             action={'ContentSuspension'}
