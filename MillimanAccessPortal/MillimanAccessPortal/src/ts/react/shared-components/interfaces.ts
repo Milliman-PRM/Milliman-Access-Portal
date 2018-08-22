@@ -63,7 +63,3 @@ export interface ContentContainerProps {
   contentURL: string;
   closeAction: (URL: string) => void;
 }
-
-export interface NavBarLocation {
-  navLocation: string;
-}

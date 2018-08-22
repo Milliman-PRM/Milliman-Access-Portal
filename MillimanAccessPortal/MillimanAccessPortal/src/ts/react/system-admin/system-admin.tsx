@@ -23,11 +23,12 @@ export interface SystemAdminState {
   secondaryDataSource: string;
   primarySelectedCard: number;
   secondarySelectedCard: number;
-  currentView: string;
 }
 
 export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   private controller: string = 'SystemAdmin';
+  private readonly currentView: string = document
+    .getElementsByTagName('body')[0].getAttribute('data-nav-location');
   private nullDataSource: DataSource<Entity> = {
     name: null,
     structure: 0,
@@ -223,7 +224,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       secondaryDataSource: null,
       primarySelectedCard: null,
       secondarySelectedCard: null,
-      currentView: document.getElementsByTagName('body')[0].getAttribute('data-nav-location'),
     };
 
     this.setPrimaryDataSource = this.setPrimaryDataSource.bind(this);
@@ -250,7 +250,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
     return [
       (
-        <NavBar currentView={this.state.currentView}/>
+        <NavBar currentView={this.currentView}/>
       ),
       (
         <ContentPanel

@@ -4,21 +4,23 @@ import * as React from 'react';
 
 import { getData } from '../../shared';
 import { ContentContainer } from '../shared-components/content-container';
-import { NavBarLocation } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import { ContentCard } from './content-card';
 import { FilterBar } from './filter-bar';
 import { ContentItem, ContentItemGroup, ContentItemGroupList, Filterable } from './interfaces';
 
-interface AuthorizedContentState extends ContentItemGroupList, Filterable, NavBarLocation { }
+interface AuthorizedContentState extends ContentItemGroupList, Filterable { }
 export class AuthorizedContent extends React.Component<{}, AuthorizedContentState> {
+  private readonly currentView: string = document
+    .getElementsByTagName('body')[0].getAttribute('data-nav-location');
+
   public constructor(props) {
     super(props);
+
     this.state = {
       ItemGroups: [],
       selectedContentURL: null,
       filterString: '',
-      navLocation: document.getElementsByTagName('body')[0].getAttribute('data-nav-location'),
     };
 
     this.setFilterString = this.setFilterString.bind(this);
@@ -88,7 +90,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
       : null;
     return (
       <React.Fragment>
-        <NavBar currentView={this.state.navLocation} />
+        <NavBar currentView={this.currentView} />
         {contentContainer}
         <div id="authorized-content-container">
           <div id="authorized-content-header">
