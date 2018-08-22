@@ -69,17 +69,18 @@ Param(
 
 $psqlPath = "$pgsqlToolsPath\psql.exe"
 $pgDumpPath = "$pgsqlToolsPath\pg_dump.exe"
-$pgRestorePath = "$pgsqlToolsPath\pg_restore.exe"
 
-if (((Test-Path $psqlPath) -eq $false) -or ((test-path $pgDumpPath) -eq $false) -or ((test-path $pgRestorePath) -eq $false))
+if (((Test-Path $psqlPath) -eq $false) -or ((test-path $pgDumpPath) -eq $false))
 {
     write-error "One or more of the required tools (psql.exe, pg_dump.exe, pg_restore.exe) was not found."
     return -42
 }
 
+$env:PGSSLMODE="require"
+
 #region Create a backup of the source database
-    $env:PGPASSWORD = $sourcePassword
-    $command = "$pgDumpPath --dbname=$sourceDatabase  -h $sourceServer -U $sourceUser --file=dumpSource.sql --echo-errors"
+    $env:PGPASSWORD = [System.Runtime.InteropServices.marshal]::PtrToStringAuto([System.Runtime.InteropServices.marshal]::SecureStringToBSTR($sourcePassword))
+    $command = "$pgDumpPath --dbname=$sourceDatabase  -h $sourceServer -U $sourceUser --file=dumpSource.sql"
     invoke-expression "&$command"
 
     $env:PGPASSWORD = ""
@@ -95,19 +96,24 @@ if (((Test-Path $psqlPath) -eq $false) -or ((test-path $pgDumpPath) -eq $false) 
 
     # Write drop command to a file
     "
-    DO $$ DECLARE
+    DO `$`$ DECLARE
         r RECORD;
     BEGIN
         FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = current_schema()) LOOP
             EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
         END LOOP;
-    END $$;
+    END `$`$;
         " | Set-Content dropCommand.txt 
 
                         
-    $env:PGPASSWORD = $targetPassword
+    $env:PGPASSWORD = [System.Runtime.InteropServices.marshal]::PtrToStringAuto([System.Runtime.InteropServices.marshal]::SecureStringToBSTR($targetPassword))
     $command = "$psqlPath --dbname=$targetDatabase  -h $targetServer -U $targetUser -f dropCommand.txt --echo-errors"
-    invoke-expression "&$command"
+    invoke-expression "&$command" -ErrorVariable $errorOutput
+
+    if ($errorOutput -like "*drop cascades*")
+    {
+        invoke-expression "&$command"
+    }
 
     $env:PGPASSWORD = ""
 
@@ -118,9 +124,22 @@ if (((Test-Path $psqlPath) -eq $false) -or ((test-path $pgDumpPath) -eq $false) 
     }
 #endregion 
 
+#region Replace references to $sourceUser with $targetUser in dumpSource.sql
+
+$trimSourceUser = $sourceUser.Substring(0,$sourceUser.IndexOf('@'))
+$trimTargetUser = $targetUser.Substring(0,$targetUser.IndexOf('@'))
+
+$sqlText = get-content dumpSource.sql
+
+$sqlText = $sqlText.Replace($trimSourceUser,$trimTargetUser).Replace("prod_app_owners","stage_app_owners")
+
+$sqlText | set-content dumpSource.sql
+
+#endregion
+
 #region Restore the backup to the target database
-    $env:PGPASSWORD = $targetPassword
-    $command = "$pgRestorePath --dbname=$targetDatabase  -h $targetServer -U $targetUser --file=dumpSource.sql"
+    $env:PGPASSWORD = [System.Runtime.InteropServices.marshal]::PtrToStringAuto([System.Runtime.InteropServices.marshal]::SecureStringToBSTR($targetPassword))
+    $command = "$psqlPath --dbname=$targetDatabase  -h $targetServer -U $targetUser --file=dumpSource.sql"
     invoke-expression "&$command"
 
     $env:PGPASSWORD = ""
