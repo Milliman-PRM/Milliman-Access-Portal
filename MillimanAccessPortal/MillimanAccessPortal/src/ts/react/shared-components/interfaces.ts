@@ -48,6 +48,7 @@ export interface NavBarState {
   navBarElements: NavBarElement[];
   navBarIsLoaded: boolean;
   contactFormOpen: boolean;
+  userGuideOpen: boolean;
 }
 
 export interface NavBarElement {

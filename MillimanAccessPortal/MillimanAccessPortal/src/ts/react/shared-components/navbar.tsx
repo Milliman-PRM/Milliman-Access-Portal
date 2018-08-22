@@ -15,6 +15,7 @@ import 'whatwg-fetch';
 import * as React from 'react';
 
 import { ContactFormModal } from '../contact-form-modal';
+import { UserGuideModal } from '../user-guide-modal';
 import { NavBarElement, NavBarProps, NavBarState } from './interfaces';
 
 export class NavBar extends React.Component<NavBarProps, NavBarState> {
@@ -25,10 +26,13 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
       navBarElements: [],
       navBarIsLoaded: false,
       contactFormOpen: false,
+      userGuideOpen: false,
     };
 
     this.openContactForm = this.openContactForm.bind(this);
     this.closeContactForm = this.closeContactForm.bind(this);
+    this.openUserGuide = this.openUserGuide.bind(this);
+    this.closeUserGuide = this.closeUserGuide.bind(this);
   }
 
   public componentDidMount() {
@@ -65,7 +69,7 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
     return (
       <nav className={this.state.navBarIsLoaded ? 'loaded' : null}>
         {navElements}
-        <div className="nav-element" style={{ order: 98 }}>
+        <div className="nav-element" style={{ order: 98 }} onClick={this.openUserGuide}>
           <h3 className="nav-element-label">User Guide</h3>
           <svg className="nav-element-icon">
             <use xlinkHref="#userguide" />
@@ -86,6 +90,11 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
         <ContactFormModal
           isOpen={this.state.contactFormOpen}
           onRequestClose={this.closeContactForm}
+        />
+        <UserGuideModal
+          isOpen={this.state.userGuideOpen}
+          onRequestClose={this.closeUserGuide}
+          source={this.props.currentView}
         />
       </nav>
     );
@@ -116,6 +125,18 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
   private closeContactForm() {
     this.setState({
       contactFormOpen: false,
+    });
+  }
+
+  private openUserGuide() {
+    this.setState({
+      userGuideOpen: true,
+    });
+  }
+
+  private closeUserGuide() {
+    this.setState({
+      userGuideOpen: false,
     });
   }
 }
