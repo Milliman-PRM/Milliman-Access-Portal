@@ -21,10 +21,8 @@
 
 
 Param(
-    [Parameter]
     [ValidateSet("AzureCI","CI","Production","Staging","Development")]
     [string]$deployEnvironment="AzureCI",
-    [Parameter]
     [ValidateSet("AzureCI","CI","Production","Staging","Development")]
     [string]$testEnvironment="CI"
 )

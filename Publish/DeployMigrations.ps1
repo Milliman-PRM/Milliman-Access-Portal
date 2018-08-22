@@ -32,7 +32,6 @@ Param(
     [Parameter(Mandatory=$true)]
     [ValidateSet("AzureCI","CI","Production","Staging","Development")]
     [string]$environmentName,
-    [Parameter]
     [string]$branchName
 )
 
