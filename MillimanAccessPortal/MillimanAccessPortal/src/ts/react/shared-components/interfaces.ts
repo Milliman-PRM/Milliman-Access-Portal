@@ -51,11 +51,11 @@ export interface NavBarState {
 }
 
 export interface NavBarElement {
-  order: number;
-  label: string;
-  url: string;
-  view: string;
-  icon: string;
+  Order: number;
+  Label: string;
+  URL: string;
+  View: string;
+  Icon: string;
 }
 
 export interface ContentContainerProps {

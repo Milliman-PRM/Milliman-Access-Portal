@@ -3,6 +3,8 @@ import * as Modal from 'react-modal';
 
 import { postData } from '../shared';
 
+import '../../scss/react/shared-components/modal.scss';
+
 interface ContactFormModalState {
   topic: string;
   message: string;
@@ -62,7 +64,7 @@ export class ContactFormModal extends React.Component<Modal.Props, ContactFormMo
               className="blue-button"
               type="submit"
             >
-              Add User
+              Submit
             </button>
           </div>
         </form>
@@ -84,13 +86,14 @@ export class ContactFormModal extends React.Component<Modal.Props, ContactFormMo
 
   private handleSubmit(event: React.MouseEvent<HTMLFormElement> | React.KeyboardEvent<HTMLFormElement>) {
     event.preventDefault();
+    event.persist();
     postData('Message/SendEmailFromUser', {
       subject: this.state.topic,
       message: this.state.message,
       recipient: this.recipient,
-    })
+    }, true)
     .then(() => {
-      alert('User added to profit center.');
+      alert('Submission received.');
       this.props.onRequestClose(event.nativeEvent);
     });
   }

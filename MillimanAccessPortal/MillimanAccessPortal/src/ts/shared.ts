@@ -527,7 +527,7 @@ export function getData(url = '', data = {}) {
   });
 }
 
-export function postData(url: string = '', data: object = {}) {
+export function postData(url: string = '', data: object = {}, rawResponse: boolean = false) {
   const antiforgeryInput = document.querySelector('input[name="__RequestVerificationToken"]') as HTMLInputElement;
   const antiforgeryToken = antiforgeryInput.value.toString();
   const urlObj = new URL(url, `${window.location.protocol}//${window.location.host}`);
@@ -550,6 +550,8 @@ export function postData(url: string = '', data: object = {}) {
     if (!response.ok) {
       throw new Error(response.headers.get('Warning') || 'Unknown error');
     }
-    return response.json();
+    return rawResponse
+      ? response
+      : response.json();
   });
 }

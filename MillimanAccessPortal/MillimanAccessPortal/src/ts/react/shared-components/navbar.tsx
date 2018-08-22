@@ -14,7 +14,7 @@ import 'whatwg-fetch';
 
 import * as React from 'react';
 
-import { ContactFormModal } from '../contact-form';
+import { ContactFormModal } from '../contact-form-modal';
 import { NavBarElement, NavBarProps, NavBarState } from './interfaces';
 
 export class NavBar extends React.Component<NavBarProps, NavBarState> {
@@ -49,13 +49,13 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
 
   public render() {
     const navElements = this.state.navBarElements.map((element: NavBarElement) => {
-      const classes = `nav-element ${(this.props.currentView === element.view) ? 'selected' : null }`;
+      const classes = `nav-element ${(this.props.currentView === element.View) ? 'selected' : null }`;
       return (
-        <a href={'/' + element.url} key={element.view}>
-          <div className={classes} style={{ order: element.order }}>
-            <h3 className="nav-element-label">{element.label}</h3>
+        <a href={'/' + element.URL} key={element.View}>
+          <div className={classes} style={{ order: element.Order }}>
+            <h3 className="nav-element-label">{element.Label}</h3>
             <svg className="nav-element-icon">
-              <use xlinkHref={`#${element.icon}`} />
+              <use xlinkHref={`#${element.Icon}`} />
             </svg>
           </div>
         </a>
@@ -71,7 +71,7 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
             <use xlinkHref="#userguide" />
           </svg>
         </div>
-        <div className="nav-element" style={{ order: 99 }}>
+        <div className="nav-element" style={{ order: 99 }} onClick={this.openContactForm}>
           <h3 className="nav-element-label">Contact Support</h3>
           <svg className="nav-element-icon">
             <use xlinkHref="#email" />
