@@ -5,10 +5,13 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using MapCommonLib.ContentTypeSpecific;
 using QlikviewLib.Internal;
+using QlikviewLib.Qms;
 
 namespace QlikviewLib
 {
@@ -45,5 +48,38 @@ namespace QlikviewLib
 
             return QvServerUri;
         }
+
+        public async Task AuthorizeUserDocumentsInFolder(string ContentPathRelativeToUserDocRoot, QlikviewConfig ConfigInfo)
+        {
+            IQMS Client = QmsClientCreator.New(ConfigInfo.IQmsUrl);
+
+            ServiceInfo[] QvsServicesArrray = await Client.GetServicesAsync(ServiceTypes.QlikViewServer);
+            ServiceInfo QvsServiceInfo = QvsServicesArrray[0];
+
+            DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(QvsServiceInfo.ID, DocumentFolderScope.General);
+            DocumentFolder QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == ConfigInfo.QvServerContentUriSubfolder);
+
+            //await Client.ClearQVSCacheAsync(QVSCacheObjects.UserDocumentList);  // Is this really needed?
+
+            DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, ContentPathRelativeToUserDocRoot);
+            foreach (DocumentNode DocNode in AllDocNodesInRequestedFolder)
+            {
+                var DocAuthorizationMetadata = await Client.GetDocumentMetaDataAsync(DocNode, DocumentMetaDataScope.Authorization);
+
+                if (!DocAuthorizationMetadata.Authorization.Access.Any(a => a.UserName == ""))
+                {
+                    List<DocumentAccessEntry> DAL = DocAuthorizationMetadata.Authorization.Access.ToList();
+                    DAL.Add(new DocumentAccessEntry
+                    {
+                        UserName = "",
+                        AccessMode = DocumentAccessEntryMode.Always,
+                        DayOfWeekConstraints = new DayOfWeek[0],
+                    });
+                    DocAuthorizationMetadata.Authorization.Access = DAL.ToArray();
+                    await Client.SaveDocumentMetaDataAsync(DocAuthorizationMetadata);
+                }
+            }
+        }
+
     }
 }
