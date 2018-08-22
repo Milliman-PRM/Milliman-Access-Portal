@@ -14,15 +14,21 @@ import 'whatwg-fetch';
 
 import * as React from 'react';
 
+import { ContactFormModal } from '../contact-form';
 import { NavBarElement, NavBarProps, NavBarState } from './interfaces';
 
 export class NavBar extends React.Component<NavBarProps, NavBarState> {
   public constructor(props) {
     super(props);
+
     this.state = {
       navBarElements: [],
       navBarIsLoaded: false,
+      contactFormOpen: false,
     };
+
+    this.openContactForm = this.openContactForm.bind(this);
+    this.closeContactForm = this.closeContactForm.bind(this);
   }
 
   public componentDidMount() {
@@ -35,22 +41,6 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
         navBarElements: json,
         navBarIsLoaded: true,
       });
-    })
-    .catch((e) => {
-      throw new Error(e);
-    });
-  }
-
-  public logout() {
-    fetch('/account/logout', {
-      credentials: 'same-origin',
-      method: 'POST',
-      headers: {
-        RequestVerificationToken: document.getElementsByName('__RequestVerificationToken')[0].getAttribute('value'),
-      },
-    })
-    .then(() => {
-      window.location.replace('/');
     })
     .catch((e) => {
       throw new Error(e);
@@ -93,7 +83,39 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
             <use xlinkHref="#logout" />
           </svg>
         </div>
+        <ContactFormModal
+          isOpen={this.state.contactFormOpen}
+          onRequestClose={this.closeContactForm}
+        />
       </nav>
     );
+  }
+
+  private logout() {
+    fetch('/account/logout', {
+      credentials: 'same-origin',
+      method: 'POST',
+      headers: {
+        RequestVerificationToken: document.getElementsByName('__RequestVerificationToken')[0].getAttribute('value'),
+      },
+    })
+    .then(() => {
+      window.location.replace('/');
+    })
+    .catch((e) => {
+      throw new Error(e);
+    });
+  }
+
+  private openContactForm() {
+    this.setState({
+      contactFormOpen: true,
+    });
+  }
+
+  private closeContactForm() {
+    this.setState({
+      contactFormOpen: false,
+    });
   }
 }

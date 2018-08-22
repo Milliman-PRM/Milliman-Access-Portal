@@ -47,6 +47,7 @@ export interface NavBarProps {
 export interface NavBarState {
   navBarElements: NavBarElement[];
   navBarIsLoaded: boolean;
+  contactFormOpen: boolean;
 }
 
 export interface NavBarElement {
