@@ -31,6 +31,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             {
                 Id = rootContentItem.Id,
                 Name = rootContentItem.ContentName,
+                IsSuspended = rootContentItem.IsSuspended,
             };
         }
 

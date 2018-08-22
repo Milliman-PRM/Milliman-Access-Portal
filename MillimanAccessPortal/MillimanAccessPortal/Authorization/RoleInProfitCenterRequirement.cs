@@ -28,6 +28,11 @@ namespace MillimanAccessPortal.Authorization
 
         internal override MapAuthorizationRequirementResult EvaluateRequirement(ApplicationUser User, ApplicationDbContext DataContext)
         {
+            if (User.IsSuspended)
+            {
+                return MapAuthorizationRequirementResult.Fail;
+            }
+
             // TODO Some day, convert this to query through injected UserManager service instead of DataContext, no need to pass that as argument
             IQueryable<UserRoleInProfitCenter> Query = 
                 DataContext.UserRoleInProfitCenter

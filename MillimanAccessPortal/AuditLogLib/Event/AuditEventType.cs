@@ -65,9 +65,12 @@ namespace AuditLogLib.Event
                 UserId = client.Id,
                 Role = role.ToString(),
             });
-        public static readonly AuditEventType<UserRoleInClient> ClientRoleRemoved = new AuditEventType<UserRoleInClient>(
-            2007, "Client role removed", (userClient) => new
+        public static readonly AuditEventType<Client, ApplicationUser, RoleEnum> ClientRoleRemoved = new AuditEventType<Client, ApplicationUser, RoleEnum>(
+            2007, "Client role removed", (client, user, role) => new
             {
+                ClientId = client.Id,
+                UserId = client.Id,
+                Role = role.ToString(),
             });
         #endregion
 
@@ -232,6 +235,35 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<RootContentItem, ContentPublicationRequest> ContentPublicationRejected = new AuditEventType<RootContentItem, ContentPublicationRequest>(
             6107, "Content publication rejected", (rootContentItem, publicationRequest) => new
             {
+            });
+        #endregion
+
+        #region System Admin [7000 - 7999]
+        public static readonly AuditEventType<ApplicationUser, bool, string> UserSuspensionUpdate = new AuditEventType<ApplicationUser, bool, string>(
+            7001, "User suspension status updated", (user, isSuspended, reason) => new
+            {
+                UserId = user.Id,
+                IsSuspended = isSuspended,
+                Reason = reason,
+            });
+        public static readonly AuditEventType<RootContentItem, bool, string> RootContentItemSuspensionUpdate = new AuditEventType<RootContentItem, bool, string>(
+            7002, "Root content item suspension status updated", (item, isSuspended, reason) => new
+            {
+                UserId = item.Id,
+                IsSuspended = isSuspended,
+                Reason = reason,
+            });
+        public static readonly AuditEventType<ApplicationUser, RoleEnum> SystemRoleAssigned = new AuditEventType<ApplicationUser, RoleEnum>(
+            7003, "System role assigned", (user, role) => new
+            {
+                UserId = user.Id,
+                Role = role.ToString(),
+            });
+        public static readonly AuditEventType<ApplicationUser, RoleEnum> SystemRoleRemoved = new AuditEventType<ApplicationUser, RoleEnum>(
+            7004, "System role removed", (user, role) => new
+            {
+                UserId = user.Id,
+                Role = role.ToString(),
             });
         #endregion
         #endregion

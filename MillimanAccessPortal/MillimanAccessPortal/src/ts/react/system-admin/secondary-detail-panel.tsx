@@ -115,7 +115,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                             controller={this.props.controller}
                             action={'UserClientRoles'}
                             queryFilter={this.props.queryFilter}
-                            label={'Client Access Admin'}
+                            label={'Content Access Admin'}
                             data={{ role: RoleEnum.ContentAccessAdmin }}
                           />
                         </div>
@@ -219,7 +219,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                             controller={this.props.controller}
                             action={'UserClientRoles'}
                             queryFilter={this.props.queryFilter}
-                            label={'Client Access Admin'}
+                            label={'Content Access Admin'}
                             data={{ role: RoleEnum.ContentAccessAdmin }}
                           />
                         </div>
@@ -265,14 +265,6 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                         <div className="detail-container">
                           <span className="detail-label">Description</span>
                           <span className="detail-value">{rootContentItemDetailForClient.Description}</span>
-                        </div>
-                        <div className="detail-container">
-                          <span className="detail-label">Last Updated</span>
-                          <span className="detail-value">{rootContentItemDetailForClient.LastUpdated}</span>
-                        </div>
-                        <div className="detail-container">
-                          <span className="detail-label">Last Accessed</span>
-                          <span className="detail-value">{rootContentItemDetailForClient.LastAccessed}</span>
                         </div>
                         <div className="detail-container">
                           <ImmediateToggle

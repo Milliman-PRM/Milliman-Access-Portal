@@ -74,5 +74,9 @@ namespace MapDbContextLib.Identity
             }
         }
 
+        //
+        // Summary:
+        //     Gets or sets the user's IsSuspended status.
+        public virtual bool IsSuspended { get; set; }
     }
 }
