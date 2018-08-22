@@ -354,10 +354,7 @@ if ($LASTEXITCODE -ne 0) {
 
 log_statement "Copying Deployment scripts to target folder"
 
-Copy-Item "$rootPath\Publish\ManageVars.ps1" -Destination "$webBuildTarget\ManageVars.ps1"
-Copy-Item "$rootPath\Publish\OctopusSetBranch.ps1" -Destination "$webBuildTarget\OctopusSetBranch.ps1"
-Copy-Item "$rootPath\Publish\CopyDbContents.ps1" -Destination "$webBuildTarget\CopyDbContents.ps1"
-Copy-Item "$rootPath\Publish\DeployMigrations.ps1" -Destination "$webBuildTarget\DeployMigrations.ps1"
+Get-ChildItem -path "$rootPath\Publish\*" -include *.ps1 | Copy-Item -Destination "$webBuildTarget"
 
 #endregion
 
