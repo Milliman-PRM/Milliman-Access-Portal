@@ -261,14 +261,12 @@ namespace MillimanAccessPortal.Controllers
             }
             else
             {
-                // This is part of handling a difference in case of submitted email and the user's recorded email
+                // For the scenario where only username was provided in the model, need to record email of an existing user account for user below
                 Model.Email = RequestedUser.Email;
             }
 
             // 3. The user's email must match address or domain requirement of the client
-            string UserEmailDomain = Model.Email.Substring(Model.Email.IndexOf('@') + 1);
-            if (!RequestedClient.AcceptedEmailDomainList.Any(d => string.Equals(d, UserEmailDomain, StringComparison.OrdinalIgnoreCase)) && 
-                !RequestedClient.AcceptedEmailAddressExceptionList.Any(a => string.Equals(a, Model.Email, StringComparison.OrdinalIgnoreCase)))
+            if (!Queries.DoesEmailSatisfyClientWhitelists(Model.Email, RequestedClient.AcceptedEmailDomainList, RequestedClient.AcceptedEmailAddressExceptionList))
             {
                 // TODO consider in the future, prompt to edit the whitelist
                 Response.Headers.Add("Warning", $"The requested user email ({Model.Email}) is not permitted for the requested client.");
@@ -627,8 +625,6 @@ namespace MillimanAccessPortal.Controllers
                 DbContext.UserClaims.RemoveRange(UserClaims);
 
                 DbContext.SaveChanges();
-
-                AuditLogger.Log(AuditEventType.UserRemovedFromClient.ToEvent(RequestedClient, RequestedUser));
             }
             catch (Exception e)
             {
@@ -637,6 +633,8 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "Error processing request.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
+
+            AuditLogger.Log(AuditEventType.UserRemovedFromClient.ToEvent(RequestedClient, RequestedUser));
 
             ClientDetailViewModel ReturnModel = new ClientDetailViewModel { ClientEntity = RequestedClient };
             await ReturnModel.GenerateSupportingProperties(DbContext, UserManager, await Queries.GetCurrentApplicationUser(User), RoleEnum.Admin, false);
@@ -935,9 +933,7 @@ namespace MillimanAccessPortal.Controllers
                             // Make sure RemoveUserFromClient() doesn't start using a transaction iternally
                             IActionResult result = await RemoveUserFromClient(new ClientUserAssociationViewModel { UserId = ClientMemberUser.Id, ClientId = Model.Id });
 
-                            if (result.GetType() == typeof(ObjectResult) && 
-                                ((ObjectResult)result).StatusCode.HasValue && 
-                                ((ObjectResult)result).StatusCode.Value >= 400)
+                            if (result.GetType() != typeof(JsonResult))
                             {
                                 Tx.Rollback();
                                 return result;
