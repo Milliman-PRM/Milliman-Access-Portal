@@ -135,8 +135,7 @@ export class Card extends React.Component<CardProps, CardState> {
     event.stopPropagation();
     postData('Account/ForgotPassword', {
       Email: this.props.email,
-    })
-    .then((response) => console.log('Password reset email sent!'));
+    });
   }
 
   private toggleExpansion(event: React.MouseEvent<HTMLDivElement>) {

@@ -4,11 +4,11 @@ import * as React from 'react';
 
 import { getData } from '../../shared';
 import { ContentContainer } from '../shared-components/content-container';
+import { NavBarLocation } from '../shared-components/interfaces';
+import { NavBar } from '../shared-components/navbar';
 import { ContentCard } from './content-card';
 import { FilterBar } from './filter-bar';
 import { ContentItem, ContentItemGroup, ContentItemGroupList, Filterable } from './interfaces';
-import { NavBarLocation } from '../shared-components/interfaces';
-import { NavBar } from '../shared-components/navbar';
 
 interface AuthorizedContentState extends ContentItemGroupList, Filterable, NavBarLocation { }
 export class AuthorizedContent extends React.Component<{}, AuthorizedContentState> {
@@ -18,7 +18,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
       ItemGroups: [],
       selectedContentURL: null,
       filterString: '',
-      navLocation: document.getElementsByTagName("body")[0].getAttribute("data-nav-location")
+      navLocation: document.getElementsByTagName('body')[0].getAttribute('data-nav-location'),
     };
 
     this.setFilterString = this.setFilterString.bind(this);
@@ -78,17 +78,20 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
         </div>
       );
     });
+    const contentContainer = this.state.selectedContentURL
+      ? (
+        <ContentContainer
+          closeAction={this.selectContentItem}
+          contentURL={this.state.selectedContentURL}
+        />
+      )
+      : null;
     return (
       <React.Fragment>
         <NavBar currentView={this.state.navLocation} />
-        {
-          this.state.selectedContentURL &&
-            <ContentContainer
-              closeAction={this.selectContentItem}
-              contentURL={this.state.selectedContentURL} />
-        }
-        <div id='authorized-content-container'>
-          <div id='authorized-content-header'>
+        {contentContainer}
+        <div id="authorized-content-container">
+          <div id="authorized-content-header">
             <FilterBar onFilterStringChanged={this.setFilterString} />
           </div>
           <div id="authorized-content-items">

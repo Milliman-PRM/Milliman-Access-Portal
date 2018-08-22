@@ -15,9 +15,8 @@ require('../scss/map.scss');
 
 import '../images/map-logo.svg';
 
-
-document.addEventListener('DOMContentLoaded', (event) => {
-  const view = document.getElementsByTagName("body")[0].getAttribute("data-nav-location");
+document.addEventListener('DOMContentLoaded', () => {
+  const view = document.getElementsByTagName('body')[0].getAttribute('data-nav-location');
   ReactDOM.render(<NavBar currentView={view} />, document.getElementById('navbar'));
 });
 
@@ -68,4 +67,3 @@ $(document).ready(() => {
   ]);
   formObject.submissionMode = 'update';
 });
-

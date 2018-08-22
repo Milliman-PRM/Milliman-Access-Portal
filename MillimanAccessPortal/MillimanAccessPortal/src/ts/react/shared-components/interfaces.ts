@@ -45,16 +45,16 @@ export interface NavBarProps {
 }
 
 export interface NavBarState {
-  NavBarElements: NavBarElement[];
-  NavBarIsLoaded: boolean;
+  navBarElements: NavBarElement[];
+  navBarIsLoaded: boolean;
 }
 
 export interface NavBarElement {
-  Order: number;
-  Label: string;
-  URL: string;
-  View: string;
-  Icon: string;
+  order: number;
+  label: string;
+  url: string;
+  view: string;
+  icon: string;
 }
 
 export interface ContentContainerProps {
