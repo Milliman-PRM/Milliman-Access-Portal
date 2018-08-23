@@ -95,6 +95,7 @@ $env:PGSSLMODE="require"
     if ($LASTEXITCODE -ne 0)
     {
         write-output "An error occurred: $backupError"
+        write-output "Command: $command"
         write-output "Parameters:"
         $PSBoundParameters | format-list
         dump-script -outputPath $scriptDumpPath
@@ -131,7 +132,7 @@ $env:PGSSLMODE="require"
     if ($LASTEXITCODE -ne 0)
     {
         write-output "An error occurred: $backupError"
-        write-output "Parameters:"
+        write-output "Command: $command"
         write-output "Parameters:"
         $PSBoundParameters | format-list
         dump-script -outputPath $scriptDumpPath
@@ -164,6 +165,7 @@ $sqlText | set-content dumpSource.sql
     if ($LASTEXITCODE -ne 0)
     {
         write-output "An error occurred: $backupError"
+        write-output "Command: $command"
         write-output "Parameters:"   write-output "Parameters:"
         $PSBoundParameters | format-list
         dump-script -outputPath $scriptDumpPath
