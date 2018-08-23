@@ -6,6 +6,9 @@ import { FormBase } from './form/form-base';
 import { SelectionGroupSummary } from './view-models/content-access-admin';
 import { PublicationStatus, UserInfo } from './view-models/content-publishing';
 
+import 'promise-polyfill/src/polyfill';
+import 'whatwg-fetch';
+
 const SHOW_DURATION = 50;
 const ajaxStatus = [];
 
@@ -506,17 +509,15 @@ export function confirmAndContinueForm(onContinue, condition = true) {
 
 // fetch helpers
 export function getData(url = '', data = {}) {
-  const urlObj = new URL(url, `${window.location.protocol}//${window.location.host}`);
+  const queryParams: string[] = [];
   Object.keys(data).forEach((key) => {
     if (Object.prototype.hasOwnProperty.call(data, key)) {
-      urlObj.searchParams.append(key, data[key]);
+      queryParams.push(`${key}=${data[key]}`);
     }
   });
-  return fetch(urlObj.href, {
+  url = `${url}?${queryParams.join('&')}`;
+  return fetch(url, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-    },
     credentials: 'same-origin',
   })
   .then((response) => {
@@ -527,17 +528,16 @@ export function getData(url = '', data = {}) {
   });
 }
 
-export function postData(url: string = '', data: object = {}) {
+export function postData(url: string = '', data: object = {}, rawResponse: boolean = false) {
   const antiforgeryInput = document.querySelector('input[name="__RequestVerificationToken"]') as HTMLInputElement;
   const antiforgeryToken = antiforgeryInput.value.toString();
-  const urlObj = new URL(url, `${window.location.protocol}//${window.location.host}`);
   const formData = Object.keys(data).map((key) => {
     if (Object.prototype.hasOwnProperty.call(data, key)) {
       return `${key}=${data[key]}`;
     }
     return null;
   }).filter((kvp) => kvp !== null).join('&');
-  return fetch(urlObj.href, {
+  return fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -550,6 +550,8 @@ export function postData(url: string = '', data: object = {}) {
     if (!response.ok) {
       throw new Error(response.headers.get('Warning') || 'Unknown error');
     }
-    return response.json();
+    return rawResponse
+      ? response
+      : response.json();
   });
 }

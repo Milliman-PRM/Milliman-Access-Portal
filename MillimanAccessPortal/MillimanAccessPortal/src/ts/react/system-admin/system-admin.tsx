@@ -13,6 +13,7 @@ import { BasicNode, BasicTree } from '../../view-models/content-publishing';
 import { ContentPanel } from '../shared-components/content-panel';
 import { Entity } from '../shared-components/entity';
 import { DataSource, Structure } from '../shared-components/interfaces';
+import { NavBar } from '../shared-components/navbar';
 import { ClientInfo, ProfitCenterInfo, RootContentItemInfo, UserInfo } from './interfaces';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
@@ -26,6 +27,8 @@ export interface SystemAdminState {
 
 export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   private controller: string = 'SystemAdmin';
+  private readonly currentView: string = document
+    .getElementsByTagName('body')[0].getAttribute('data-nav-location');
   private nullDataSource: DataSource<Entity> = {
     name: null,
     structure: 0,
@@ -246,22 +249,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       secondaryDataSource.assignQueryFilter(this.state.secondarySelectedCard),
     );
 
-    return [
-      (
+    const secondaryColumnComponent = this.state.primarySelectedCard
+      ? (
         <ContentPanel
-          key={'primaryColumn'}
-          controller={this.controller}
-          dataSources={primaryDataSources}
-          setSelectedDataSource={this.setPrimaryDataSource}
-          selectedDataSource={primaryDataSource}
-          setSelectedCard={this.setPrimarySelectedCard}
-          selectedCard={this.state.primarySelectedCard}
-          queryFilter={{}}
-        />
-      ),
-      this.state.primarySelectedCard && (
-        <ContentPanel
-          key={'secondaryColumn'}
           controller={this.controller}
           dataSources={secondaryDataSources}
           setSelectedDataSource={this.setSecondaryDataSource}
@@ -270,10 +260,24 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           selectedCard={this.state.secondarySelectedCard}
           queryFilter={secondaryQueryFilter}
         />
-      ),
-      (
+      )
+      : null;
+    return (
+      <>
+        <NavBar
+          currentView={this.currentView}
+        />
+        <ContentPanel
+          controller={this.controller}
+          dataSources={primaryDataSources}
+          setSelectedDataSource={this.setPrimaryDataSource}
+          selectedDataSource={primaryDataSource}
+          setSelectedCard={this.setPrimarySelectedCard}
+          selectedCard={this.state.primarySelectedCard}
+          queryFilter={{}}
+        />
+        {secondaryColumnComponent}
         <div
-          key={'detail'}
           className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-6-12"
           style={{overflowY: 'auto'}}
         >
@@ -291,8 +295,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             queryFilter={finalQueryFilter}
           />
         </div>
-      ),
-    ];
+      </>
+    );
   }
 
   // callbacks for child components

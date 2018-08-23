@@ -47,7 +47,7 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps,
 
   private get url() {
     return this.props.selectedCard
-      && `${this.props.controller}/${this.props.selectedDataSource.detailAction}/`;
+      && `/${this.props.controller}/${this.props.selectedDataSource.detailAction}`;
   }
 
   public constructor(props) {

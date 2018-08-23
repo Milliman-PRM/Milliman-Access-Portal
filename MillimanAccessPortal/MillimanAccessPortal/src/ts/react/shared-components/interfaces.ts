@@ -40,6 +40,25 @@ export enum RoleEnum {
   ContentUser = 5,
 }
 
+export interface NavBarProps {
+  currentView: string;
+}
+
+export interface NavBarState {
+  navBarElements: NavBarElement[];
+  navBarIsLoaded: boolean;
+  contactFormOpen: boolean;
+  userGuideOpen: boolean;
+}
+
+export interface NavBarElement {
+  Order: number;
+  Label: string;
+  URL: string;
+  View: string;
+  Icon: string;
+}
+
 export interface ContentContainerProps {
   contentURL: string;
   closeAction: (URL: string) => void;

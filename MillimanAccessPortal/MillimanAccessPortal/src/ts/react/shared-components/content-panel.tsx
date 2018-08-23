@@ -59,12 +59,12 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
 
   private get url() {
     return this.props.selectedDataSource.infoAction
-      && `${this.props.controller}/${this.props.selectedDataSource.infoAction}/`;
+      && `/${this.props.controller}/${this.props.selectedDataSource.infoAction}`;
   }
 
   private get createUrl() {
     return this.props.selectedDataSource.createAction
-      && `${this.props.controller}/${this.props.selectedDataSource.createAction}/`;
+      && `/${this.props.controller}/${this.props.selectedDataSource.createAction}`;
   }
 
   public constructor(props) {

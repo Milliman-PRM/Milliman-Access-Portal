@@ -48,6 +48,7 @@ namespace MapTests
                 TestResources.LoggerFactory,
                 TestResources.AuditLoggerObject,
                 TestResources.QueriesObj,
+                TestResources.AuthorizationService,
                 TestResources.ConfigurationObject);
 
             // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
