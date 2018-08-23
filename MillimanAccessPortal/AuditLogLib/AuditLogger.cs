@@ -30,7 +30,6 @@ namespace AuditLogLib
         }
 
         private readonly IHttpContextAccessor _contextAccessor;
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly string _assemblyName = Assembly.GetEntryAssembly().FullName;
 
         public AuditLogger()
@@ -38,12 +37,9 @@ namespace AuditLogLib
             InstantiateLogger();
         }
 
-        public AuditLogger(
-            IHttpContextAccessor context = null,
-            UserManager<ApplicationUser> userManager = null)
+        public AuditLogger(IHttpContextAccessor context = null)
         {
             _contextAccessor = context;
-            _userManager = userManager;
 
             InstantiateLogger();
         }
@@ -87,9 +83,9 @@ namespace AuditLogLib
             }
         }
 
-        public async virtual void Log(AuditEvent Event)
+        public virtual void Log(AuditEvent Event)
         {
-            await Task.Run(() => Log(Event, null));
+            Log(Event, null);
         }
 
         /// <summary>
@@ -97,23 +93,19 @@ namespace AuditLogLib
         /// </summary>
         /// <param name="Event">Event data to be logged. Use AuditEvent.New method to enforce proper creation</param>
         /// <param name="UserNameArg">Caller provided user name, will be used only if the HttpContext does not yield a user name</param>
-        public async virtual void Log(AuditEvent Event, string UserNameArg)
+        public virtual void Log(AuditEvent Event, string UserNameArg)
         {
-            if (_contextAccessor == null || _userManager == null)
+            try
+            {
+                Event.SessionId = _contextAccessor.HttpContext.Session.Id;
+                Event.User = _contextAccessor.HttpContext.User.Identity.Name ?? UserNameArg;
+            }
+            catch  // It would be an improvement to declare exception types but the list is probably large and time is short
             {
                 Event.SessionId = null;
-                Event.User = UserNameArg;  // with value or null
+                Event.User = UserNameArg;
             }
-            else
-            {
-                HttpContext context = _contextAccessor?.HttpContext;
-                ApplicationUser user = await _userManager.GetUserAsync(context.User);
 
-                Event.SessionId = context.Session.Id;
-                Event.User = user != null
-                    ? user.UserName
-                    : UserNameArg;
-            }
             Event.Assembly = _assemblyName;
 
             LogEventQueue.Enqueue(Event);
