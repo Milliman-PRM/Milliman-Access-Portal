@@ -108,6 +108,7 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
   private openContactForm() {
     this.setState({
       contactFormOpen: true,
+      userGuideOpen: false,
     });
   }
 
@@ -119,6 +120,7 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
 
   private openUserGuide() {
     this.setState({
+      contactFormOpen: false,
       userGuideOpen: true,
     });
   }
