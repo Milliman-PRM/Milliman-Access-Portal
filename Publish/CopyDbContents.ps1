@@ -88,12 +88,13 @@ $env:PGSSLMODE="require"
 #region Create a backup of the source database
     $env:PGPASSWORD = [System.Runtime.InteropServices.marshal]::PtrToStringAuto([System.Runtime.InteropServices.marshal]::SecureStringToBSTR($sourcePassword))
     $command = "$pgDumpPath --dbname=$sourceDatabase  -h $sourceServer -U $sourceUser --file=dumpSource.sql"
-    invoke-expression "&$command"
+    invoke-expression "&$command" -ErrorVariable $backupError
 
     $env:PGPASSWORD = ""
 
     if ($LASTEXITCODE -ne 0)
     {
+        write-output "An error occurred: $backupError"
         write-output "Parameters:"
         $PSBoundParameters | format-list
         dump-script -outputPath $scriptDumpPath
@@ -122,13 +123,15 @@ $env:PGSSLMODE="require"
 
     if ($errorOutput -like "*drop cascades*")
     {
-        invoke-expression "&$command"
+        invoke-expression "&$command" -ErrorVariable $clearError
     }
 
     $env:PGPASSWORD = ""
 
     if ($LASTEXITCODE -ne 0)
     {
+        write-output "An error occurred: $backupError"
+        write-output "Parameters:"
         write-output "Parameters:"
         $PSBoundParameters | format-list
         dump-script -outputPath $scriptDumpPath
@@ -153,13 +156,15 @@ $sqlText | set-content dumpSource.sql
 #region Restore the backup to the target database
     $env:PGPASSWORD = [System.Runtime.InteropServices.marshal]::PtrToStringAuto([System.Runtime.InteropServices.marshal]::SecureStringToBSTR($targetPassword))
     $command = "$psqlPath --dbname=$targetDatabase  -h $targetServer -U $targetUser --file=dumpSource.sql"
-    invoke-expression "&$command"
+    invoke-expression "&$command" -ErrorVariable $backupError
 
     $env:PGPASSWORD = ""
     remove-item dumpSource.sql
+
     if ($LASTEXITCODE -ne 0)
     {
-        write-output "Parameters:"
+        write-output "An error occurred: $backupError"
+        write-output "Parameters:"   write-output "Parameters:"
         $PSBoundParameters | format-list
         dump-script -outputPath $scriptDumpPath
         write-error "Restoring backup of $sourceDatabase to $targetDatabase failed."
