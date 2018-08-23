@@ -52,6 +52,8 @@
 
             .content-card-icons {
                 flex: none;
+                display: flex;
+                flex-flow: row nowrap;
 
                 .action-icon-container {
                     margin-left: 1em;
