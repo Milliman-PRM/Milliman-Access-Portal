@@ -853,7 +853,7 @@ namespace MapTests
             #endregion
         }
         [Theory]
-        [InlineData(1, true)]
+        [InlineData(1, false)]
         public async Task UserSuspension_Success(long userId, bool expectedValue)
         {
             #region Arrange
@@ -866,7 +866,6 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.True(true); return;  // TODO: re-enable test once suspension is complete
             Assert.IsType<JsonResult>(json1);
             Assert.Equal(expectedValue, (bool)(json1 as JsonResult).Value);
             Assert.IsType<JsonResult>(json2);
@@ -948,7 +947,6 @@ namespace MapTests
             #endregion
 
             #region Assert
-            Assert.True(true); return;  // TODO: re-enable test once suspension is complete
             Assert.IsType<JsonResult>(json1);
             Assert.Equal(expectedValue, (bool)(json1 as JsonResult).Value);
             Assert.IsType<JsonResult>(json2);

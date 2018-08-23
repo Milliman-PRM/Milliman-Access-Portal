@@ -94,6 +94,14 @@ namespace MillimanAccessPortal.Controllers
             {
                 var user = await _userManager.FindByNameAsync(model.Username);
 
+                if (user == null || user.IsSuspended)
+                {
+                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    _logger.LogWarning(2, "User login failed.");
+                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(), model.Username);
+                    return View(model);
+                }
+                
                 // Only notify of password expiration if the correct password was provided
                 // Redirect user to the password reset view to set a new password
                 bool passwordSuccess = await _userManager.CheckPasswordAsync(user, model.Password);
@@ -116,7 +124,7 @@ namespace MillimanAccessPortal.Controllers
                     ModelState.AddModelError(string.Empty, "Password Has Expired.");
                     return View("ResetPassword");
                 }
-                
+
                 var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {

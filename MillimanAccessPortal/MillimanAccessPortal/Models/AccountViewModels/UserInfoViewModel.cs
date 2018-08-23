@@ -15,6 +15,7 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         public string FirstName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
+        public bool IsSuspended { get; set; } = false;
 
         public static explicit operator UserInfoViewModel(ApplicationUser User)
         {
@@ -30,6 +31,7 @@ namespace MillimanAccessPortal.Models.AccountViewModels
                 FirstName = User.FirstName,
                 LastName = User.LastName,
                 UserName = User.UserName,
+                IsSuspended = User.IsSuspended,
             };
         }
     }

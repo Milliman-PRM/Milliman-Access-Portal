@@ -50,6 +50,7 @@ export interface SelectionGroupSummary {
   MemberList: UserInfo[];
   ReductionDetails: ReductionSummary;
   RootContentItemName: string;
+  IsSuspended: boolean;
 }
 export interface SelectionGroupList {
   SelectionGroups: SelectionGroupSummary[];

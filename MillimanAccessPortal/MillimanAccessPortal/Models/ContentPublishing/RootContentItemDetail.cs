@@ -38,6 +38,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
         public string Notes { get; set; }
 
+        public bool IsSuspended { get; set; }
+
         internal static RootContentItemDetail Build(ApplicationDbContext dbContext, RootContentItem rootContentItem)
         {
             var publicationRequest = dbContext.ContentPublicationRequest
@@ -70,6 +72,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 RelatedFiles = relatedFiles,
                 Description = rootContentItem.Description,
                 Notes = rootContentItem.Notes,
+                IsSuspended = rootContentItem.IsSuspended,
             };
 
             return model;

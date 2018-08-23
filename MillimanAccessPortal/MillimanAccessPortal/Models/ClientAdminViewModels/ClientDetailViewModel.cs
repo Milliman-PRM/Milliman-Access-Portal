@@ -42,6 +42,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
         public string FirstName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
+        public bool IsSuspended { get; set; } = false;
         public List<AssignedRoleInfo> UserRoles { get; set; } = new List<AssignedRoleInfo>();
 
         public static explicit operator UserInfoModel(ApplicationUser U)
@@ -53,6 +54,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                 FirstName = U.FirstName,
                 LastName = U.LastName,
                 UserName = U.UserName,
+                IsSuspended = U.IsSuspended,
             };
         }
     }

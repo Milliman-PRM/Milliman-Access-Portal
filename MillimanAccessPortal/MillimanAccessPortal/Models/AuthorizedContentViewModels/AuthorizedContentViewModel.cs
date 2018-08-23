@@ -20,6 +20,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
             var selectionGroupsQuery = dbContext.UserInSelectionGroup
                 .Where(usg => usg.UserId == user.Id)
                 .Where(usg => !usg.SelectionGroup.IsSuspended)
+                .Where(usg => !usg.SelectionGroup.RootContentItem.IsSuspended)
                 .Select(usg => usg.SelectionGroup);
 
             var selectionGroups = selectionGroupsQuery
