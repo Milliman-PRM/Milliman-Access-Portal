@@ -251,7 +251,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
     return [
       (
-        <NavBar currentView={this.currentView}/>
+        <NavBar
+          key={'navBar'}
+          currentView={this.currentView} />
       ),
       (
         <ContentPanel
