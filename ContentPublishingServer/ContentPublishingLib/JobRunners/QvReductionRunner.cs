@@ -485,7 +485,7 @@ namespace ContentPublishingLib.JobRunners
 
             if (DocNode == null)
             {
-                GlobalFunctions.TraceWriteLine(string.Format($"Did not find SourceDocument '{MasterFileName}' in subfolder {RequestedRelativeFolder} of source documents folder {SourceDocFolder.General.Path}"));
+                GlobalFunctions.TraceWriteLine(string.Format($"Did not find SourceDocument '{RequestedFileName}' in subfolder {RequestedRelativeFolder} of source documents folder {SourceDocFolder.General.Path}"));
             }
 
             return DocNode;
