@@ -1,5 +1,5 @@
 ﻿{
-  "AzureVaultName": "https://map-prod-vault.vault.azure.net/",
+  "AzureVaultName": "https://map-staging-vault.vault.azure.net/",
   "AzureClientID": "acbd835d-21e0-41aa-8c78-2f4041eff270",
   "AzureCertificateThumbprint": "E6B73ACF86F7941C0A17977CE42C53313B2DAEDA"
 }
