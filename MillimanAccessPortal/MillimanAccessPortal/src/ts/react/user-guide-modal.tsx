@@ -16,10 +16,11 @@ export class UserGuideModal extends React.Component<UserGuideModalProps, {}> {
       <Modal
         ariaHideApp={false}
         {...this.props}
-        className="modal"
+        className="modal modal-large"
         overlayClassName="modal-overlay"
       >
         <iframe
+          className="content-frame"
           src={`/Documentation/${this.props.source}.html`}
         />
       </Modal>

@@ -16,11 +16,18 @@
     border: 2px solid $black;
     border-radius: 5px;
 
+    &.modal-large {
+        height: 50em;
+        width: 50em;
+        overflow: hidden;
+        padding: 0;
+    }
+
     .title {
         color: $white;
         overflow: hidden;
-        margin: -1px -1em 1em -1em;
-        padding: .4em 1em;
+        margin: 0 -1em 1em -1em;
+        padding: .2em 1em;
         border-bottom: 1px solid $black;
 
         &.blue {
@@ -44,6 +51,27 @@
     .button-container {
         padding-top: 1em;
         text-align: right;
+    }
+
+    .content-frame {
+        height: 100%;
+        width: 100%;
+        border: none;
+        overflow-y: auto;
+        overflow-x: none;
+    }
+
+    .modal-input {
+        margin-bottom: 1em;
+        padding: .5em;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    textarea {
+        min-height: 10em;
     }
 }
 

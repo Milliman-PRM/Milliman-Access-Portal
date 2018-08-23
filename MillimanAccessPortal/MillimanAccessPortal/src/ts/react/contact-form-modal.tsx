@@ -36,22 +36,26 @@ export class ContactFormModal extends React.Component<Modal.Props, ContactFormMo
         className="modal"
         overlayClassName="modal-overlay"
       >
-        <h2 className="title blue">Contact Support</h2>
+        <h3 className="title blue">Contact Support</h3>
         <form onSubmit={this.handleSubmit}>
-          <select
-            required={true}
-            onChange={this.handleChangeTopic}
-          >
-            <option value="">Please Select a Topic</option>
-            <option value="Account Inquiery">Account Inquiry</option>
-            <option value="Bug Report">Report a Bug</option>
-            <option value="Other Support Question">Other</option>
-          </select>
-          <textarea
-            placeholder="Message"
-            required={true}
-            onChange={this.handleChangeMessage}
-          />
+          <div>
+            <select
+              className="modal-input"
+              required={true}
+              onChange={this.handleChangeTopic}
+            >
+              <option value="">Please Select a Topic</option>
+              <option value="Account Inquiery">Account Inquiry</option>
+              <option value="Bug Report">Report a Bug</option>
+              <option value="Other Support Question">Other</option>
+            </select>
+            <textarea
+              className="modal-input"
+              placeholder="Message"
+              required={true}
+              onChange={this.handleChangeMessage}
+            />
+          </div>
           <div className="button-container">
             <button
               className="link-button"
