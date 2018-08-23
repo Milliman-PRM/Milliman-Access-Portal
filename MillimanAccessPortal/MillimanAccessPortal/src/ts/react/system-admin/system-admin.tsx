@@ -252,7 +252,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     const secondaryColumnComponent = this.state.primarySelectedCard
       ? (
         <ContentPanel
-          key={'secondaryColumn'}
           controller={this.controller}
           dataSources={secondaryDataSources}
           setSelectedDataSource={this.setSecondaryDataSource}
@@ -266,11 +265,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     return (
       <>
         <NavBar
-          key={'navBar'}
           currentView={this.currentView}
         />
         <ContentPanel
-          key={'primaryColumn'}
           controller={this.controller}
           dataSources={primaryDataSources}
           setSelectedDataSource={this.setPrimaryDataSource}
@@ -281,7 +278,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         />
         {secondaryColumnComponent}
         <div
-          key={'detail'}
           className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-6-12"
           style={{overflowY: 'auto'}}
         >
