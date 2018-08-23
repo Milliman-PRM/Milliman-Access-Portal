@@ -1,0 +1,8 @@
+﻿{
+  "Storage": {
+    "ContentItemRootPath": "\\\\map-fs-01\\staging\\live\\content",
+    "QvSourceDocumentsPath": "\\\\map-fs-01\\staging\\reducing\\QVP",
+    "MapPublishingServerExchangePath": "\\\\map-fs-01\\staging\\waiting"
+  },
+  "IQmsUrl": "http://map-qvp-01:4799/QMS/Service"
+}
