@@ -20,7 +20,7 @@ export class UserGuideModal extends React.Component<UserGuideModalProps, {}> {
         overlayClassName="modal-overlay"
       >
         <iframe
-          srcDoc={this.props.source}
+          src={`/Documentation/${this.props.source}.html`}
         />
       </Modal>
     );
