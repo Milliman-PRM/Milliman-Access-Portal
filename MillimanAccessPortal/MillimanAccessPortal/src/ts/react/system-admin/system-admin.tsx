@@ -249,25 +249,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       secondaryDataSource.assignQueryFilter(this.state.secondarySelectedCard),
     );
 
-    return [
-      (
-        <NavBar
-          key={'navBar'}
-          currentView={this.currentView} />
-      ),
-      (
-        <ContentPanel
-          key={'primaryColumn'}
-          controller={this.controller}
-          dataSources={primaryDataSources}
-          setSelectedDataSource={this.setPrimaryDataSource}
-          selectedDataSource={primaryDataSource}
-          setSelectedCard={this.setPrimarySelectedCard}
-          selectedCard={this.state.primarySelectedCard}
-          queryFilter={{}}
-        />
-      ),
-      this.state.primarySelectedCard && (
+    const secondaryColumnComponent = this.state.primarySelectedCard
+      ? (
         <ContentPanel
           key={'secondaryColumn'}
           controller={this.controller}
@@ -278,8 +261,25 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           selectedCard={this.state.secondarySelectedCard}
           queryFilter={secondaryQueryFilter}
         />
-      ),
-      (
+      )
+      : null;
+    return (
+      <>
+        <NavBar
+          key={'navBar'}
+          currentView={this.currentView}
+        />
+        <ContentPanel
+          key={'primaryColumn'}
+          controller={this.controller}
+          dataSources={primaryDataSources}
+          setSelectedDataSource={this.setPrimaryDataSource}
+          selectedDataSource={primaryDataSource}
+          setSelectedCard={this.setPrimarySelectedCard}
+          selectedCard={this.state.primarySelectedCard}
+          queryFilter={{}}
+        />
+        {secondaryColumnComponent}
         <div
           key={'detail'}
           className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-6-12"
@@ -299,8 +299,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             queryFilter={finalQueryFilter}
           />
         </div>
-      ),
-    ];
+      </>
+    );
   }
 
   // callbacks for child components
