@@ -65,10 +65,17 @@ Param(
     [string]$pgsqlToolsPath
 )
 
+function dump-script {
+    Param([string]$outputPath)
+    get-content -path $MyInvocation.ScriptName | set-content $outputPath
+    write-output "Script was written out to $outputPath"
+}
+
 # Build and test full paths to needed tools
 
 $psqlPath = "$pgsqlToolsPath\psql.exe"
 $pgDumpPath = "$pgsqlToolsPath\pg_dump.exe"
+$scriptDumpPath = "C:\script-debug\CopyDbContents.ps1"
 
 if (((Test-Path $psqlPath) -eq $false) -or ((test-path $pgDumpPath) -eq $false))
 {
@@ -87,6 +94,9 @@ $env:PGSSLMODE="require"
 
     if ($LASTEXITCODE -ne 0)
     {
+        write-output "Parameters:"
+        $PSBoundParameters | format-list
+        dump-script -outputPath $scriptDumpPath
         write-error "Backing up from $sourceDatabase on $sourceServer failed."
         return -42
     }
@@ -119,6 +129,9 @@ $env:PGSSLMODE="require"
 
     if ($LASTEXITCODE -ne 0)
     {
+        write-output "Parameters:"
+        $PSBoundParameters | format-list
+        dump-script -outputPath $scriptDumpPath
         write-error "Dropping tables from $targetDatabase on $targetServer failed."
         return -42
     }
@@ -146,6 +159,9 @@ $sqlText | set-content dumpSource.sql
     remove-item dumpSource.sql
     if ($LASTEXITCODE -ne 0)
     {
+        write-output "Parameters:"
+        $PSBoundParameters | format-list
+        dump-script -outputPath $scriptDumpPath
         write-error "Restoring backup of $sourceDatabase to $targetDatabase failed."
         return -42
     }
