@@ -9,11 +9,9 @@ import '../../../images/user-settings.svg';
 import '../../../images/userguide.svg';
 import '../../../scss/react/shared-components/navbar.scss';
 
-import 'promise-polyfill/src/polyfill';
-import 'whatwg-fetch';
-
 import * as React from 'react';
 
+import { getData, postData } from '../../shared';
 import { ContactFormModal } from '../contact-form-modal';
 import { UserGuideModal } from '../user-guide-modal';
 import { NavBarElement, NavBarProps, NavBarState } from './interfaces';
@@ -36,13 +34,10 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
   }
 
   public componentDidMount() {
-    fetch('/Account/NavBarElements', {
-      credentials: 'same-origin',
-    })
-    .then((response) => response.json())
-    .then((json) => {
+    getData('/Account/NavBarElements')
+    .then((response) => {
       this.setState({
-        navBarElements: json,
+        navBarElements: response,
         navBarIsLoaded: true,
       });
     })
@@ -101,13 +96,7 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
   }
 
   private logout() {
-    fetch('/account/logout', {
-      credentials: 'same-origin',
-      method: 'POST',
-      headers: {
-        RequestVerificationToken: document.getElementsByName('__RequestVerificationToken')[0].getAttribute('value'),
-      },
-    })
+    postData('/Account/Logout', {}, false)
     .then(() => {
       window.location.replace('/');
     })

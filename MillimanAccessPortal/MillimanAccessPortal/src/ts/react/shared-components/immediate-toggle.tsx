@@ -22,7 +22,7 @@ type ToggleResponse = boolean;
 export class ImmediateToggle extends React.Component<ImmediateToggleProps, ImmediateToggleState> {
 
   private get url() {
-    return `${this.props.controller}/${this.props.action}/`;
+    return `/${this.props.controller}/${this.props.action}`;
   }
 
   public constructor(props) {
