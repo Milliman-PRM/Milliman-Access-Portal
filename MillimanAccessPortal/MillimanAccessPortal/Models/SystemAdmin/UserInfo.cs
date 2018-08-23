@@ -19,6 +19,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public string LastName { get; set; }
         public string UserName { get; set; }
         public string Email { get; set; }
+        public bool IsSuspended { get; set; }
         public int? ClientCount { get; set; } = null;
         public int? RootContentItemCount { get; set; } = null;
         public List<RootContentItemInfo> RootContentItems { get; set; }
@@ -38,6 +39,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 LastName = user.LastName,
                 UserName = user.UserName,
                 Email = user.Email,
+                IsSuspended = user.IsSuspended,
             };
         }
 

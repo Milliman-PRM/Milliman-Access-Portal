@@ -24,6 +24,7 @@ export interface UserInfo {
   LastName: string;
   UserName: string;
   Email: string;
+  IsSuspended: boolean;
   ClientCount?: number;
   RootContentItemCount?: number;
   RootContentItems?: RootContentItemInfo[];
@@ -60,6 +61,7 @@ export interface UserDetail {
   UserName: string;
   Email: string;
   Phone: string;
+  IsSuspended: boolean;
 }
 export interface ClientDetail {
   Id: number;
