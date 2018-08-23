@@ -17,10 +17,17 @@
     border-radius: 5px;
 
     &.modal-large {
+        display: flex;
+        flex-flow: column nowrap;
         height: 50em;
         width: 50em;
         overflow: hidden;
         padding: 0;
+
+        .title {
+            flex: none;
+            margin: 0 -1em 0 0;
+        }
     }
 
     .title {
@@ -54,11 +61,11 @@
     }
 
     .content-frame {
-        height: 100%;
+        flex: 1;
         width: 100%;
         border: none;
         overflow-y: auto;
-        overflow-x: none;
+        overflow-x: hidden;
     }
 
     .modal-input {

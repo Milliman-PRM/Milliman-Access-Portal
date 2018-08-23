@@ -19,6 +19,7 @@ export class UserGuideModal extends React.Component<UserGuideModalProps, {}> {
         className="modal modal-large"
         overlayClassName="modal-overlay"
       >
+        <h3 className="title blue">User Guide</h3>
         <iframe
           className="content-frame"
           src={`/Documentation/${this.props.source}.html`}
