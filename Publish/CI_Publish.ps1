@@ -90,7 +90,7 @@ function create_db { # Attempt to create a database by copying another one; retr
 #endregion
 
 #region Configure environment properties
-$BranchName = $env:git_branch.Replace("_","").Replace("-","").ToLower() # Will be used as the name of the deployment slot & appended to database names
+$BranchName = $env:git_branch # Will be used in the version string of the octopus package & appended to database names
 
 $gitExePath = "git"
 $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
@@ -98,10 +98,10 @@ $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
 $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
 $dbPassword = $env:db_deploy_password
-$appDbName = "appdb_$BranchName"
+$appDbName = "appdb_$BranchName".Replace("_","").Replace("-","").ToLower()
 $appDbTemplateName = "appdb_ci_template"
 $appDbOwner = "appdb_admin"
-$logDbName = "auditlogdb_$BranchName"
+$logDbName = "auditlogdb_$BranchName".Replace("_","").Replace("-","").ToLower()
 $logDbTemplateName = "auditlogdb_ci_template"
 $logDbOwner = "logdb_admin"
 $dbCreationRetries = 5 # The number of times the script will attempt to create a new database before throwing an error
