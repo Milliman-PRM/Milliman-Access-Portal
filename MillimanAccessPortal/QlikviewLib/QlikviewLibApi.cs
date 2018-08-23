@@ -59,7 +59,7 @@ namespace QlikviewLib
             DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(QvsServiceInfo.ID, DocumentFolderScope.General);
             DocumentFolder QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == ConfigInfo.QvServerContentUriSubfolder);
 
-            //await Client.ClearQVSCacheAsync(QVSCacheObjects.UserDocumentList);  // Is this really needed?
+            await Client.ClearQVSCacheAsync(QVSCacheObjects.UserDocumentList);  // Is this really needed?
 
             DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, ContentPathRelativeToUserDocRoot);
             foreach (DocumentNode DocNode in AllDocNodesInRequestedFolder)
