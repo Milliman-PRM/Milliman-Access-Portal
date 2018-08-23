@@ -223,7 +223,7 @@ if ($LASTEXITCODE -ne 0) {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
-
+<#
 log_statement "Performing MAP unit tests"
  
  cd $rootPath\MillimanAccessPortal\MapTests
@@ -336,7 +336,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 #endregion
-
+#>
 log_statement "Publishing and packaging web application"
 
 #region Publish web application to a folder
