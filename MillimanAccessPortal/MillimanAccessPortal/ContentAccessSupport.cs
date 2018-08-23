@@ -188,8 +188,8 @@ namespace MillimanAccessPortal
                 FilesToDelete.Add(backupFilePath);
             }
 
-            // rename the new reduced file to live
-            File.Move(reductionTask.ResultFilePath, targetFilePath);
+            // Copy the new reduced file to live.  Entire source directirectory is removed by the caller of this function
+            File.Copy(reductionTask.ResultFilePath, targetFilePath);
 
             // update selection group
             List<long> ValueIdList = new List<long>();
@@ -200,7 +200,10 @@ namespace MillimanAccessPortal
             // update reduction tasks status (previous: Live -> Replaced, new: Reduced -> Live
             ContentReductionTask PreviousLiveTask = Db.ContentReductionTask.SingleOrDefault(t => t.SelectionGroupId == reductionTask.SelectionGroupId && 
                                                                                                  t.ReductionStatus == ReductionStatusEnum.Live);
-            PreviousLiveTask.ReductionStatus = ReductionStatusEnum.Replaced;
+            if (PreviousLiveTask != null)
+            {
+                PreviousLiveTask.ReductionStatus = ReductionStatusEnum.Replaced;
+            }
             reductionTask.ReductionStatus = ReductionStatusEnum.Live;
 
             // Perform any content type dependent follow up processing
