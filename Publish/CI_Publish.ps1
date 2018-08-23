@@ -341,6 +341,8 @@ log_statement "Publishing and packaging web application"
 
 #region Publish web application to a folder
 
+cd $rootpath\MillimanAccessPortal\MillimanAccessPortal
+
 msbuild /t:publish /p:PublishDir=$webBuildTarget /verbosity:quiet
 
 if ($LASTEXITCODE -ne 0) {
