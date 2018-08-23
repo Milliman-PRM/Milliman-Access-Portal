@@ -49,7 +49,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
 
   private get url() {
     return this.props.selectedCard
-      && `${this.props.controller}/${this.props.secondarySelectedDataSource.detailAction}/`;
+      && `/${this.props.controller}/${this.props.secondarySelectedDataSource.detailAction}`;
   }
 
   public constructor(props) {
