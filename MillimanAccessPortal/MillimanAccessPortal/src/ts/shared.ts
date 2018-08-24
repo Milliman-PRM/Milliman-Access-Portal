@@ -6,7 +6,7 @@ import { FormBase } from './form/form-base';
 import { SelectionGroupSummary } from './view-models/content-access-admin';
 import { PublicationStatus, UserInfo } from './view-models/content-publishing';
 
-import 'promise-polyfill/src/polyfill';
+import 'promise-polyfill';
 import 'whatwg-fetch';
 
 const SHOW_DURATION = 50;
