@@ -49,7 +49,14 @@ namespace QlikviewLib
             return QvServerUri;
         }
 
-        public async Task AuthorizeUserDocumentsInFolder(string ContentPathRelativeToUserDocRoot, QlikviewConfig ConfigInfo)
+        /// <summary>
+        ///   Grants QV server authorization for all QVWs in a specified subfolder of the UserDocuments path named in config param "QvServerContentUriSubfolder"
+        ///     Corresponds to document authorization that can be interactively configured in QMC
+        /// </summary>
+        /// <param name="ContentPathRelativeToNamedUserDocFolder"></param>
+        /// <param name="ConfigInfo"></param>
+        /// <returns></returns>
+        public async Task AuthorizeUserDocumentsInFolder(string ContentPathRelativeToNamedUserDocFolder, QlikviewConfig ConfigInfo)
         {
             IQMS Client = QmsClientCreator.New(ConfigInfo.IQmsUrl);
 
@@ -61,7 +68,7 @@ namespace QlikviewLib
 
             await Client.ClearQVSCacheAsync(QVSCacheObjects.UserDocumentList);  // Is this really needed?
 
-            DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, ContentPathRelativeToUserDocRoot);
+            DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, ContentPathRelativeToNamedUserDocFolder);
             foreach (DocumentNode DocNode in AllDocNodesInRequestedFolder)
             {
                 var DocAuthorizationMetadata = await Client.GetDocumentMetaDataAsync(DocNode, DocumentMetaDataScope.Authorization);
