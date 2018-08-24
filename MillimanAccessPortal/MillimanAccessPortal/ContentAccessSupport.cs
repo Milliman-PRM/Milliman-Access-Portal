@@ -196,6 +196,7 @@ namespace MillimanAccessPortal
             reductionTask.SelectionCriteriaObj.Fields.ForEach(f => ValueIdList.AddRange(f.Values.Where(v => v.SelectionStatus).Select(v => v.Id)));
             reductionTask.SelectionGroup.SelectedHierarchyFieldValueList = ValueIdList.ToArray();
             reductionTask.SelectionGroup.IsMaster = false;
+            reductionTask.SelectionGroup.SetContentUrl(Path.GetFileName(targetFileName));
 
             // update reduction tasks status (previous: Live -> Replaced, new: Reduced -> Live
             ContentReductionTask PreviousLiveTask = Db.ContentReductionTask.SingleOrDefault(t => t.SelectionGroupId == reductionTask.SelectionGroupId && 
