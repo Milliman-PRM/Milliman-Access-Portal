@@ -1,5 +1,5 @@
 ﻿{
-  "SmtpServer": "52.237.134.246",
+  "SmtpServer": "prm-smtp.northcentralus.cloudapp.azure.com",
   "SmtpPort": 25,
   "SmtpFromAddress": "map.support@milliman.com",
   "SmtpFromName": "Milliman Access Portal Support"
