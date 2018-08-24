@@ -212,6 +212,17 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+log_statement "Building documentation"
+
+cd "$rootpath\Documentation\"
+cmd /c "compileUserDocs.bat"
+
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: failed to build documentation"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
 cd $rootpath\ContentPublishingServer
 
 log_statement "Building content publishing server"
