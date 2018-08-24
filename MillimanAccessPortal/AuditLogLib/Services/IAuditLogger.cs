@@ -13,5 +13,6 @@ namespace AuditLogLib.Services
     {
         void Log(AuditEvent Event);
         void Log(AuditEvent Event, string UserNameArg);
+        void Log(AuditEvent Event, string UserNameArg, string SessionIdArg);
     }
 }
