@@ -661,9 +661,9 @@ namespace MillimanAccessPortal.Controllers
             #region Preliminary Validation
             if (!ModelState.IsValid)
             {
-                Response.Headers.Add("Warning", ModelState
-                    .Values.First(value => value.ValidationState == ModelValidationState.Invalid)
-                    .Errors.First().ErrorMessage);
+                var firstInvalidKey = ModelState
+                    .Keys.First(key => ModelState[key].ValidationState == ModelValidationState.Invalid);
+                Response.Headers.Add("Warning", $"{firstInvalidKey}: {ModelState[firstInvalidKey].Errors.First().ErrorMessage}");
                 return BadRequest();
             }
             if (Model.ParentClientId == Model.Id)
