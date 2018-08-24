@@ -19,6 +19,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentPublishing;
@@ -29,6 +30,7 @@ using System.Linq;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using AuditLogLib.Event;
+using QlikviewLib;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -41,6 +43,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly ILogger Logger;
         private readonly StandardQueries Queries;
         private readonly UserManager<ApplicationUser> UserManager;
+        private readonly QlikviewConfig QlikviewConfig;
 
 
         /// <summary>
@@ -58,7 +61,8 @@ namespace MillimanAccessPortal.Controllers
             ILoggerFactory LoggerFactoryArg,
             StandardQueries QueriesArg,
             UserManager<ApplicationUser> UserManagerArg,
-            IConfiguration ApplicationConfigArg
+            IConfiguration ApplicationConfigArg,
+            IOptions<QlikviewConfig> QlikviewOptionsAccessorArg
             )
         {
             AuditLogger = AuditLoggerArg;
@@ -68,6 +72,7 @@ namespace MillimanAccessPortal.Controllers
             Queries = QueriesArg;
             UserManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
+            QlikviewConfig = QlikviewOptionsAccessorArg.Value;
         }
 
         /// <summary>
@@ -617,6 +622,7 @@ namespace MillimanAccessPortal.Controllers
             ContentPublicationRequest PubRequest = DbContext.ContentPublicationRequest.Where(r => r.Id == publicationRequestId)
                                                                                       .Where(r => r.RootContentItemId == rootContentItemId)
                                                                                       .Include(r => r.RootContentItem)
+                                                                                          .ThenInclude(c => c.ContentType)
                                                                                       .Include(r => r.ApplicationUser)
                                                                                       .SingleOrDefault(r => r.RequestStatus == PublicationStatus.Processed);
 
@@ -855,6 +861,18 @@ namespace MillimanAccessPortal.Controllers
                 foreach (SelectionGroup Group in DbContext.SelectionGroup.Where(g => g.RootContentItemId == PubRequest.RootContentItemId && !g.IsMaster))
                 {
                     Group.SelectedHierarchyFieldValueList = Group.SelectedHierarchyFieldValueList.Intersect(AllRemainingFieldValues).ToArray();
+                }
+
+                // Perform any content type dependent follow up processing
+                switch (PubRequest.RootContentItem.ContentType.TypeEnum)
+                {
+                    case ContentTypeEnum.Qlikview:
+                        await new QlikviewLib.QlikviewLibApi().AuthorizeUserDocumentsInFolder(rootContentItemId.ToString(), QlikviewConfig);
+                        break;
+
+                    case ContentTypeEnum.Unknown:
+                    default:
+                        break;
                 }
 
                 DbContext.SaveChanges();

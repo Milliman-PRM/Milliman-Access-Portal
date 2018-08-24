@@ -420,7 +420,9 @@ namespace ContentPublishingLib.JobRunners
 
             if (ReducedDocumentNode == null)
             {
-                GlobalFunctions.TraceWriteLine($"Failed to get DocumentNode for file {JobDetail.Request.RequestedOutputFileName} in folder {SourceDocFolder.General.Path}\\{WorkingFolderRelative}");
+                string Msg = $"Failed to get DocumentNode for file {JobDetail.Request.RequestedOutputFileName} in folder {SourceDocFolder.General.Path}\\{WorkingFolderRelative}";
+                GlobalFunctions.TraceWriteLine(Msg);
+                throw new ApplicationException(Msg);
             }
 
             GlobalFunctions.TraceWriteLine($"Task {JobDetail.TaskId.ToString()} completed CreateReducedContent");
@@ -485,7 +487,7 @@ namespace ContentPublishingLib.JobRunners
 
             if (DocNode == null)
             {
-                GlobalFunctions.TraceWriteLine(string.Format($"Did not find SourceDocument '{MasterFileName}' in subfolder {RequestedRelativeFolder} of source documents folder {SourceDocFolder.General.Path}"));
+                GlobalFunctions.TraceWriteLine(string.Format($"Did not find SourceDocument '{RequestedFileName}' in subfolder {RequestedRelativeFolder} of source documents folder {SourceDocFolder.General.Path}"));
             }
 
             return DocNode;
