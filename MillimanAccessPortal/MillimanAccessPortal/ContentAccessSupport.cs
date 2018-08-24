@@ -9,6 +9,7 @@ using AuditLogLib.Event;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
+using QlikviewLib;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -84,7 +85,7 @@ namespace MillimanAccessPortal
         /// </summary>
         /// <param name="TaskGuid"></param>
         /// <param name="connectionString"></param>
-        internal static void MonitorReductionTaskForGoLive(Guid TaskGuid, string connectionString, string contentRootFolder)
+        internal static async Task MonitorReductionTaskForGoLive(Guid TaskGuid, string connectionString, string contentRootFolder, object ContentTypeConfig = null)
         {
             TimeSpan timeoutDuration = new TimeSpan(0, 8, 0);
             ContentReductionTask thisContentReductionTask = null;
@@ -131,12 +132,13 @@ namespace MillimanAccessPortal
             // ready for go live, get all the navigation properties
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
-                thisContentReductionTask = Db.ContentReductionTask.Include(t => t.SelectionGroup)
-                                                                  .ThenInclude(g => g.RootContentItem)
-                                                                  .Include(t => t.ApplicationUser)
+                thisContentReductionTask = Db.ContentReductionTask.Include(t => t.ApplicationUser)
+                                                                  .Include(t => t.SelectionGroup)
+                                                                      .ThenInclude(g => g.RootContentItem)
+                                                                          .ThenInclude(c=> c.ContentType)
                                                                   .Single(t => t.Id == thisContentReductionTask.Id);
 
-                List<string> FilesToDelete = ReducedContentGoLive(Db, thisContentReductionTask, contentRootFolder);
+                List<string> FilesToDelete = await ReducedContentGoLive(Db, thisContentReductionTask, contentRootFolder, ContentTypeConfig);
 
                 FilesToDelete.ForEach(f => File.Delete(f));
                 Directory.Delete(Path.GetDirectoryName(thisContentReductionTask.ResultFilePath), true);
@@ -159,7 +161,7 @@ namespace MillimanAccessPortal
         /// <param name="reductionTask">The reduction task with navigation property chain SelectionGroup and RootContentItem</param>
         /// <param name="contentRootShareFolder">The configured root path for live content files</param>
         /// <returns>A list of files that should be deleted by the caller</returns>
-        internal static List<string> ReducedContentGoLive(ApplicationDbContext Db, ContentReductionTask reductionTask, string contentRootShareFolder)
+        internal static async Task<List<string>> ReducedContentGoLive(ApplicationDbContext Db, ContentReductionTask reductionTask, string contentRootShareFolder, object ContentTypeConfig = null)
         {
             List<string> FilesToDelete = new List<string>();
 
@@ -186,20 +188,37 @@ namespace MillimanAccessPortal
                 FilesToDelete.Add(backupFilePath);
             }
 
-            // rename the new reduced file to live
-            File.Move(reductionTask.ResultFilePath, targetFilePath);
+            // Copy the new reduced file to live.  Entire source directirectory is removed by the caller of this function
+            File.Copy(reductionTask.ResultFilePath, targetFilePath);
 
             // update selection group
             List<long> ValueIdList = new List<long>();
             reductionTask.SelectionCriteriaObj.Fields.ForEach(f => ValueIdList.AddRange(f.Values.Where(v => v.SelectionStatus).Select(v => v.Id)));
             reductionTask.SelectionGroup.SelectedHierarchyFieldValueList = ValueIdList.ToArray();
             reductionTask.SelectionGroup.IsMaster = false;
+            reductionTask.SelectionGroup.SetContentUrl(Path.GetFileName(targetFileName));
 
             // update reduction tasks status (previous: Live -> Replaced, new: Reduced -> Live
             ContentReductionTask PreviousLiveTask = Db.ContentReductionTask.SingleOrDefault(t => t.SelectionGroupId == reductionTask.SelectionGroupId && 
                                                                                                  t.ReductionStatus == ReductionStatusEnum.Live);
-            PreviousLiveTask.ReductionStatus = ReductionStatusEnum.Replaced;
+            if (PreviousLiveTask != null)
+            {
+                PreviousLiveTask.ReductionStatus = ReductionStatusEnum.Replaced;
+            }
             reductionTask.ReductionStatus = ReductionStatusEnum.Live;
+
+            // Perform any content type dependent follow up processing
+            switch (reductionTask.SelectionGroup.RootContentItem.ContentType.TypeEnum)
+            {
+                case ContentTypeEnum.Qlikview:
+                    QlikviewConfig QvConfig = (QlikviewConfig)ContentTypeConfig;
+                    await new QlikviewLibApi().AuthorizeUserDocumentsInFolder(reductionTask.SelectionGroup.RootContentItemId.ToString(), QvConfig);
+                    break;
+
+                case ContentTypeEnum.Unknown:
+                default:
+                    break;
+            }
 
             // save changes
             Db.SaveChanges();

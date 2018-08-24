@@ -29,21 +29,17 @@ namespace AuditLogLib
             private get;
         }
 
-        private readonly IHttpContextAccessor _contextAccessor;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly string _assemblyName = Assembly.GetEntryAssembly().FullName;
+        private readonly IHttpContextAccessor _contextAccessor = null;
+        private readonly string _assemblyName = Assembly.GetEntryAssembly().GetName().Name;
 
         public AuditLogger()
         {
             InstantiateLogger();
         }
 
-        public AuditLogger(
-            IHttpContextAccessor context = null,
-            UserManager<ApplicationUser> userManager = null)
+        public AuditLogger(IHttpContextAccessor context = null)
         {
             _contextAccessor = context;
-            _userManager = userManager;
 
             InstantiateLogger();
         }
@@ -87,33 +83,40 @@ namespace AuditLogLib
             }
         }
 
-        public async virtual void Log(AuditEvent Event)
+        public virtual void Log(AuditEvent Event)
         {
-            await Task.Run(() => Log(Event, null));
+            Log(Event, null, null);
+        }
+
+        public virtual void Log(AuditEvent Event, string UserNameArg)
+        {
+            Log(Event, UserNameArg, null);
         }
 
         /// <summary>
         /// Simplest logging method, does not conform to ILogger, requires a fully formed event object
         /// </summary>
         /// <param name="Event">Event data to be logged. Use AuditEvent.New method to enforce proper creation</param>
-        /// <param name="UserNameArg">Caller provided user name, will be used only if the HttpContext does not yield a user name</param>
-        public async virtual void Log(AuditEvent Event, string UserNameArg)
+        /// <param name="UserNameArg">Caller provided user name, if provided, will be used</param>
+        /// <param name="SessionIdArg">Caller provided session ID, if provided, will be used</param>
+        public virtual void Log(AuditEvent Event, string UserNameArg, string SessionIdArg)
         {
-            if (_contextAccessor == null || _userManager == null)
+            if (_contextAccessor == null)
             {
-                Event.SessionId = null;
-                Event.User = UserNameArg;  // with value or null
+                Event.User = UserNameArg;
+                Event.SessionId = SessionIdArg;
             }
             else
             {
-                HttpContext context = _contextAccessor?.HttpContext;
-                ApplicationUser user = await _userManager.GetUserAsync(context.User);
-
-                Event.SessionId = context.Session.Id;
-                Event.User = user != null
-                    ? user.UserName
-                    : UserNameArg;
+                try
+                {
+                    Event.User = UserNameArg ?? _contextAccessor.HttpContext?.User?.Identity?.Name;
+                    Event.SessionId = SessionIdArg ?? _contextAccessor.HttpContext?.Session?.Id;
+                }
+                catch (Exception) // Nothing should stop this from proceding
+                {}
             }
+
             Event.Assembly = _assemblyName;
 
             LogEventQueue.Enqueue(Event);
