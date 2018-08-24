@@ -1,12 +1,33 @@
-# Code Owners: Ben Wyatt, Steve Gredell
+<#
+    .SYNOPSIS
+        Run unit tests and deploy MAP
+ 
+    .DESCRIPTION
+        This script assumes the repository has already been cloned to $rootPath
 
-### OBJECTIVE:
-#  Deploy Milliman Access Portal CI builds to Azure
+    .PARAMETER targetFolder
+        The fully-qualified path to a folder where the MAP repository has been cloned
+    
+    .PARAMETER deployEnvironment
+        The ASPNETCORE_ENVIRONMENT value for the environment being targeted for deployment
+        This environment will be used to perform database migrations
 
-### DEVELOPER NOTES:
-#
+    .PARAMETER testEnvironment
+        The ASPNETCORE_ENVIRONMENT value for the environment where unit tests are being run
+        
+    .NOTES
+        AUTHORS - Ben Wyatt, Steve Gredell
+#>
 
-#region Define Functions
+
+Param(
+    [ValidateSet("AzureCI","CI","Production","Staging","Development")]
+    [string]$deployEnvironment="AzureCI",
+    [ValidateSet("AzureCI","CI","Production","Staging","Development")]
+    [string]$testEnvironment="CI"
+)
+
+
 function log_statement {
     Param([string]$statement)
 
@@ -69,7 +90,7 @@ function create_db { # Attempt to create a database by copying another one; retr
 #endregion
 
 #region Configure environment properties
-$BranchName = $env:git_branch.Replace("_","").Replace("-","").ToLower() # Will be used as the name of the deployment slot & appended to database names
+$BranchName = $env:git_branch # Will be used in the version string of the octopus package & appended to database names
 
 $gitExePath = "git"
 $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
@@ -77,10 +98,10 @@ $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
 $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
 $dbPassword = $env:db_deploy_password
-$appDbName = "appdb_$BranchName"
+$appDbName = "appdb_$BranchName".Replace("_","").Replace("-","").ToLower()
 $appDbTemplateName = "appdb_ci_template"
 $appDbOwner = "appdb_admin"
-$logDbName = "auditlogdb_$BranchName"
+$logDbName = "auditlogdb_$BranchName".Replace("_","").Replace("-","").ToLower()
 $logDbTemplateName = "auditlogdb_ci_template"
 $logDbOwner = "logdb_admin"
 $dbCreationRetries = 5 # The number of times the script will attempt to create a new database before throwing an error
@@ -89,7 +110,7 @@ $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 
 $env:APP_DATABASE_NAME=$appDbName
 $env:AUDIT_LOG_DATABASE_NAME=$logDbName
-$env:ASPNETCORE_ENVIRONMENT="CI"
+$env:ASPNETCORE_ENVIRONMENT=$testEnvironment
 $env:PATH = $env:PATH+";C:\Program Files (x86)\OctopusCLI\;$env:appdata\npm\"
 $rootPath = (get-location).Path
 $webBuildTarget = "$rootPath\WebDeploy"
@@ -291,7 +312,7 @@ remove-item env:PGPASSWORD
 
 log_statement "Performing database migrations"
 
-$env:ASPNETCORE_ENVIRONMENT = "AzureCI"
+$env:ASPNETCORE_ENVIRONMENT = $deployEnvironment
 
 cd $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
@@ -320,6 +341,8 @@ log_statement "Publishing and packaging web application"
 
 #region Publish web application to a folder
 
+cd $rootpath\MillimanAccessPortal\MillimanAccessPortal
+
 msbuild /t:publish /p:PublishDir=$webBuildTarget /verbosity:quiet
 
 if ($LASTEXITCODE -ne 0) {
@@ -331,8 +354,7 @@ if ($LASTEXITCODE -ne 0) {
 
 log_statement "Copying Deployment scripts to target folder"
 
-Copy-Item "$rootPath\Publish\ManageVars.ps1" -Destination "$webBuildTarget\ManageVars.ps1"
-Copy-Item "$rootPath\Publish\OctopusSetBranch.ps1" -Destination "$webBuildTarget\OctopusSetBranch.ps1"
+Get-ChildItem -path "$rootPath\Publish\*" -include *.ps1 | Copy-Item -Destination "$webBuildTarget"
 
 #endregion
 
