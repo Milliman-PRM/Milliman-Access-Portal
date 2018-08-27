@@ -129,7 +129,7 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps,
                     <div className="detail-container">
                       <ImmediateToggle
                         controller={this.props.controller}
-                        action={'UserSuspension'}
+                        action={'UserSuspendedStatus'}
                         queryFilter={this.props.queryFilter}
                         label={'Suspended'}
                         data={{ }}
