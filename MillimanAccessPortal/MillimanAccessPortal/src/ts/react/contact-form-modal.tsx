@@ -12,8 +12,6 @@ interface ContactFormModalState {
 
 export class ContactFormModal extends React.Component<Modal.Props, ContactFormModalState> {
 
-  private readonly recipient: string = 'support.78832.5ad4ee0bf11242a6@helpscout.net';
-
   public constructor(props) {
     super(props);
 
@@ -91,10 +89,9 @@ export class ContactFormModal extends React.Component<Modal.Props, ContactFormMo
   private handleSubmit(event: React.MouseEvent<HTMLFormElement> | React.KeyboardEvent<HTMLFormElement>) {
     event.preventDefault();
     event.persist();
-    postData('Message/SendEmailFromUser', {
+    postData('Message/SendSupportEmail', {
       subject: this.state.topic,
       message: this.state.message,
-      recipient: this.recipient,
     }, true)
     .then(() => {
       alert('Submission received.');

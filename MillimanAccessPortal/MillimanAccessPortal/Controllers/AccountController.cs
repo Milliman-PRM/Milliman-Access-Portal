@@ -233,7 +233,7 @@ namespace MillimanAccessPortal.Controllers
             Response.Cookies.Delete(".AspNetCore.Session");
             HttpContext.Session.Clear();
 
-            return RedirectToAction(nameof(AccountController.Login), "Account");
+            return Ok();
         }
 
         //

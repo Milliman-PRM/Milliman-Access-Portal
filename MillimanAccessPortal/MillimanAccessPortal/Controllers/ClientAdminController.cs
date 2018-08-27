@@ -782,7 +782,7 @@ namespace MillimanAccessPortal.Controllers
 
             // Log new client store and ClientAdministrator role authorization events
             AuditLogger.Log(AuditEventType.ClientCreated.ToEvent(Model));
-            AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(Model, CurrentApplicationUser, RoleEnum.Admin));
+            AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(Model, CurrentApplicationUser, new List<RoleEnum> { RoleEnum.Admin, RoleEnum.UserCreator }));
 
             ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(CurrentApplicationUser, UserManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
             ModelToReturn.RelevantClientId = Model.Id;

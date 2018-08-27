@@ -6,7 +6,7 @@ import { FormBase } from './form/form-base';
 import { SelectionGroupSummary } from './view-models/content-access-admin';
 import { PublicationStatus, UserInfo } from './view-models/content-publishing';
 
-import 'promise-polyfill/src/polyfill';
+import 'promise-polyfill/dist/polyfill';
 import 'whatwg-fetch';
 
 const SHOW_DURATION = 50;
@@ -529,8 +529,7 @@ export function getData(url = '', data = {}) {
 }
 
 export function postData(url: string = '', data: object = {}, rawResponse: boolean = false) {
-  const antiforgeryInput = document.querySelector('input[name="__RequestVerificationToken"]') as HTMLInputElement;
-  const antiforgeryToken = antiforgeryInput.value.toString();
+  const antiforgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').getAttribute('value');
   const formData = Object.keys(data).map((key) => {
     if (Object.prototype.hasOwnProperty.call(data, key)) {
       return `${key}=${data[key]}`;

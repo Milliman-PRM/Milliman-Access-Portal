@@ -725,7 +725,6 @@ namespace MillimanAccessPortal.Controllers
             var systemRoles = new List<RoleEnum>
             {
                 RoleEnum.Admin,
-                RoleEnum.UserCreator,
             };
             if (!systemRoles.Contains(role))
             {
@@ -772,11 +771,17 @@ namespace MillimanAccessPortal.Controllers
             var systemRoles = new List<RoleEnum>
             {
                 RoleEnum.Admin,
-                RoleEnum.UserCreator,
             };
             if (!systemRoles.Contains(role))
             {
                 Response.Headers.Add("Warning", "The specified role is not a system role.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            var currentUser = await _queries.GetCurrentApplicationUser(User);
+            if (user.Id == currentUser.Id && role == RoleEnum.Admin && !value)
+            {
+                Response.Headers.Add("Warning", "You cannot unset your own account as system admin.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -871,6 +876,13 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The specified user does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+
+            var currentUser = await _queries.GetCurrentApplicationUser(User);
+            if (user.Id == currentUser.Id && value)
+            {
+                Response.Headers.Add("Warning", "You cannot suspend your own account.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             user.IsSuspended = value;
@@ -917,25 +929,32 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            var userClientRoles = new List<RoleEnum>
+            var userClientAssignments = new Dictionary<RoleEnum, List<RoleEnum>>
             {
-                RoleEnum.Admin,
-                RoleEnum.ContentAccessAdmin,
-                RoleEnum.ContentPublisher,
-                RoleEnum.ContentUser,
+                {
+                    RoleEnum.Admin, new List<RoleEnum>
+                    {
+                        RoleEnum.Admin,
+                        RoleEnum.UserCreator,
+                    }
+                },
+                { RoleEnum.ContentAccessAdmin, new List<RoleEnum> { RoleEnum.ContentAccessAdmin, } },
+                { RoleEnum.ContentPublisher, new List<RoleEnum> { RoleEnum.ContentPublisher, } },
+                { RoleEnum.ContentUser, new List<RoleEnum> { RoleEnum.ContentUser, } },
             };
-            if (!userClientRoles.Contains(role))
+            if (!userClientAssignments.Keys.Contains(role))
             {
                 Response.Headers.Add("Warning", "The specified role is not a user-client role.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
-            var roleExists = _dbContext.UserRoleInClient
+            var roleQuery = _dbContext.UserRoleInClient
                 .Where(ur => ur.UserId == user.Id)
-                .Where(ur => ur.ClientId == client.Id)
-                .Where(ur => ur.Role.RoleEnum == role)
-                .Any();
+                .Where(ur => ur.ClientId == client.Id);
+            var roleExists = userClientAssignments[role]
+                .All(a => roleQuery
+                    .Any(ur => ur.Role.RoleEnum == a));
 
             return Json(roleExists);
         }
@@ -976,14 +995,22 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            var userClientRoles = new List<RoleEnum>
+            // For every valid role, associate a list of roles that will actually be assigned.
+            // This supports the existence of "hidden roles" that are always assigned with visible roles.
+            var userClientAssignments = new Dictionary<RoleEnum, List<RoleEnum>>
             {
-                RoleEnum.Admin,
-                RoleEnum.ContentAccessAdmin,
-                RoleEnum.ContentPublisher,
-                RoleEnum.ContentUser,
+                {
+                    RoleEnum.Admin, new List<RoleEnum>
+                    {
+                        RoleEnum.Admin,
+                        RoleEnum.UserCreator,
+                    }
+                },
+                { RoleEnum.ContentAccessAdmin, new List<RoleEnum> { RoleEnum.ContentAccessAdmin, } },
+                { RoleEnum.ContentPublisher, new List<RoleEnum> { RoleEnum.ContentPublisher, } },
+                { RoleEnum.ContentUser, new List<RoleEnum> { RoleEnum.ContentUser, } },
             };
-            if (!userClientRoles.Contains(role))
+            if (!userClientAssignments.Keys.Contains(role))
             {
                 Response.Headers.Add("Warning", "The specified role is not a user-client role.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
@@ -992,34 +1019,41 @@ namespace MillimanAccessPortal.Controllers
 
             var roleQuery = _dbContext.UserRoleInClient
                 .Where(ur => ur.UserId == user.Id)
-                .Where(ur => ur.ClientId == client.Id)
-                .Where(ur => ur.Role.RoleEnum == role);
-            var roleExists = roleQuery.Any();
+                .Where(ur => ur.ClientId == client.Id);
 
-            if (roleExists == value)
+            if (!value)
             {
-                // pass
-            }
-            else if (roleExists)
-            {
-                var roleToRemove = roleQuery.Single();
-                _dbContext.UserRoleInClient.Remove(roleToRemove);
+                var rolesToRemove = roleQuery
+                    .Where(ur => userClientAssignments[role].Contains(ur.Role.RoleEnum))
+                    .ToList();
+
+                foreach (var roleToRemove in rolesToRemove)
+                {
+                    _dbContext.UserRoleInClient.Remove(roleToRemove);
+                }
                 _dbContext.SaveChanges();
 
-                _auditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(client, user, role));
+                _auditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(client, user, userClientAssignments[role]));
             }
             else
             {
-                var roleToAdd = new UserRoleInClient
+                // Don't reassign any roles that are already assigned
+                var rolesToAdd = userClientAssignments[role]
+                    .Except(roleQuery.Select(ur => ur.Role.RoleEnum));
+
+                foreach (var roleToAdd in rolesToAdd)
                 {
-                    UserId = user.Id,
-                    ClientId = client.Id,
-                    RoleId = (long)role,
-                };
-                _dbContext.UserRoleInClient.Add(roleToAdd);
+                    var userRole = new UserRoleInClient
+                    {
+                        UserId = user.Id,
+                        ClientId = client.Id,
+                        RoleId = (long)roleToAdd,
+                    };
+                    _dbContext.UserRoleInClient.Add(userRole);
+                }
                 _dbContext.SaveChanges();
 
-                _auditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(client, user, role));
+                _auditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(client, user, userClientAssignments[role]));
             }
 
             return Json(value);

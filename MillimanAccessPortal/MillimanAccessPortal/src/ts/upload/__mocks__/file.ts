@@ -34,7 +34,7 @@ export class MockFileReader {
     const event = {
       target: {
         result: blob.contents,
-      }
+      },
     };
     this.onload(event);
     this.onerror(event);
