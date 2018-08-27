@@ -797,7 +797,8 @@ namespace MapTests
         #region Immediate toggle action tests
         [Theory]
         [InlineData(-1, RoleEnum.Admin)]
-        [InlineData(1, RoleEnum.UserCreator)]
+        [InlineData(1, RoleEnum.Admin)]  // Cannot remove self as admin
+        [InlineData(2, RoleEnum.UserCreator)]
         public async Task SystemRole_Invalid(long userId, RoleEnum role)
         {
             #region Arrange
@@ -805,7 +806,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json = await controller.SystemRole(userId, role);
+            var json = await controller.SystemRole(userId, role, false);
             #endregion
 
             #region Assert
@@ -814,7 +815,7 @@ namespace MapTests
             #endregion
         }
         [Theory]
-        [InlineData(1, RoleEnum.Admin, true)]
+        [InlineData(2, RoleEnum.Admin, false)]
         public async Task SystemRole_Success(long userId, RoleEnum role, bool expectedValue)
         {
             #region Arrange
@@ -836,6 +837,7 @@ namespace MapTests
 
         [Theory]
         [InlineData(-1)]
+        [InlineData(1)]  // Cannot suspend self
         public async Task UserSuspension_Invalid(long userId)
         {
             #region Arrange
@@ -843,7 +845,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json = await controller.UserSuspendedStatus(userId);
+            var json = await controller.UserSuspendedStatus(userId, true);
             #endregion
 
             #region Assert
@@ -852,7 +854,7 @@ namespace MapTests
             #endregion
         }
         [Theory]
-        [InlineData(1, false)]
+        [InlineData(2, false)]
         public async Task UserSuspension_Success(long userId, bool expectedValue)
         {
             #region Arrange
