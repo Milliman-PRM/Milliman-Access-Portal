@@ -37,10 +37,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="AzureKeyVault.Staging.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="AzureKeyVault.AzureCI.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="AzureKeyVault.Production.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="contentPublicationLibSettings.Staging.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="contentPublicationLibSettings.Production.json">
