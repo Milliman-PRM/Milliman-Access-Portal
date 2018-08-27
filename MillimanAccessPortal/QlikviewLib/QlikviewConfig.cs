@@ -16,7 +16,11 @@ namespace QlikviewLib
         public string QvServerAdminUserAuthenticationDomain { get; set; }
         public string QvServerAdminUserName { get; set; }
         public string QvServerAdminUserPassword { get; set; }
-
+        public string IQmsUrl { get; set; }
+        /// <summary>
+        /// Directory name or path to append to the front of the document path (the root QlikView document directory as configured in QlikView Server)
+        /// </summary>
+        public string QvServerContentUriSubfolder { get; set; } = "";
         /// <summary>
         /// Cast operator, returns a NetworkCredential object based on an object of this type; requires explicit cast. 
         /// </summary>

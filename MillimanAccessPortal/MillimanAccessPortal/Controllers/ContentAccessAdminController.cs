@@ -20,11 +20,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentAccessAdmin;
 using MillimanAccessPortal.Models.ContentPublishing;
 using Newtonsoft.Json;
+using QlikviewLib;
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -42,6 +44,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly ILogger Logger;
         private readonly StandardQueries Queries;
         private readonly UserManager<ApplicationUser> UserManager;
+        private readonly QlikviewConfig QvConfig;
 
         public ContentAccessAdminController(
             IAuditLogger AuditLoggerArg,
@@ -50,7 +53,8 @@ namespace MillimanAccessPortal.Controllers
             ILoggerFactory LoggerFactoryArg,
             StandardQueries QueriesArg,
             UserManager<ApplicationUser> UserManagerArg,
-            IConfiguration ApplicationConfigArg
+            IConfiguration ApplicationConfigArg,
+            IOptions<QlikviewConfig> QvConfigArg
             )
         {
             AuditLogger = AuditLoggerArg;
@@ -60,6 +64,7 @@ namespace MillimanAccessPortal.Controllers
             Queries = QueriesArg;
             UserManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
+            QvConfig = QvConfigArg.Value;
         }
 
         /// <summary>Action for content access administration index.</summary>
@@ -617,6 +622,7 @@ namespace MillimanAccessPortal.Controllers
         {
             var selectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
+                    .ThenInclude(c => c.ContentType)
                 .Where(sg => sg.Id == selectionGroupId)
                 .SingleOrDefault();
 
@@ -745,7 +751,19 @@ namespace MillimanAccessPortal.Controllers
 
                 string CxnString = ApplicationConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
                 string ContentItemRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
-                ContentAccessSupport.AddReductionMonitor(Task.Run(() => ContentAccessSupport.MonitorReductionTaskForGoLive(NewTaskGuid, CxnString, ContentItemRootPath)));
+
+                object ContentTypeConfigObj = null;
+                switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
+                {
+                    case ContentTypeEnum.Qlikview:
+                        ContentTypeConfigObj = QvConfig;
+                        break;
+
+                    case ContentTypeEnum.Unknown:
+                    default:
+                        break;
+                }
+                ContentAccessSupport.AddReductionMonitor(Task.Run(() => ContentAccessSupport.MonitorReductionTaskForGoLive(NewTaskGuid, CxnString, ContentItemRootPath, ContentTypeConfigObj)));
 
                 AuditLogger.Log(AuditEventType.SelectionChangeReductionQueued.ToEvent(selectionGroup, contentReductionTask));
             }

@@ -8,18 +8,15 @@ namespace MillimanAccessPortal.Models.AccountViewModels
 {
     public class AccountSettingsViewModel
     {
-        [Required]
         [Display(Name = "First Name")]
         public string FirstName { get; set; }
 
-        [Required]
         [Display(Name = "Last Name")]
         public string LastName { get; set; }
 
-        [Required]
+        [Display(Name = "Username")]
         public string UserName { get; set; }
 
-        [Required]
         [EmailAddress]
         [Display(Name = "Email Address")]
         public string Email { get; set; }

@@ -19,6 +19,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentPublishing;
@@ -29,6 +30,7 @@ using System.Linq;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using AuditLogLib.Event;
+using QlikviewLib;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -41,6 +43,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly ILogger Logger;
         private readonly StandardQueries Queries;
         private readonly UserManager<ApplicationUser> UserManager;
+        private readonly QlikviewConfig QlikviewConfig;
 
 
         /// <summary>
@@ -58,7 +61,8 @@ namespace MillimanAccessPortal.Controllers
             ILoggerFactory LoggerFactoryArg,
             StandardQueries QueriesArg,
             UserManager<ApplicationUser> UserManagerArg,
-            IConfiguration ApplicationConfigArg
+            IConfiguration ApplicationConfigArg,
+            IOptions<QlikviewConfig> QlikviewOptionsAccessorArg
             )
         {
             AuditLogger = AuditLoggerArg;
@@ -68,6 +72,7 @@ namespace MillimanAccessPortal.Controllers
             Queries = QueriesArg;
             UserManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
+            QlikviewConfig = QlikviewOptionsAccessorArg.Value;
         }
 
         /// <summary>
@@ -219,18 +224,22 @@ namespace MillimanAccessPortal.Controllers
                 // Copy user roles for the new root content item from its client.
                 // In the future, root content item management and publishing roles may
                 // be separated in which case this automatic role copy should be removed.
-                var automaticRoles = DbContext.UserRoleInClient
-                    .Where(r => r.ClientId == rootContentItem.ClientId)
-                    .Where(r => r.RoleId == ((long) RoleEnum.ContentPublisher))
-                    .Select(r => new UserRoleInRootContentItem
-                    {
-                        UserId = r.UserId,
-                        RootContentItemId = rootContentItem.Id,
-                        RoleId = ((long) RoleEnum.ContentPublisher),
-                    });
-                DbContext.UserRoleInRootContentItem.AddRange(automaticRoles);
-                DbContext.SaveChanges();
+                List<RoleEnum> RolesToInheritFromClient = new List<RoleEnum> { RoleEnum.ContentAccessAdmin, RoleEnum.ContentPublisher };
 
+                foreach (RoleEnum role in RolesToInheritFromClient)
+                {
+                    var inheritedRoles = DbContext.UserRoleInClient
+                        .Where(r => r.ClientId == rootContentItem.ClientId)
+                        .Where(r => r.RoleId == ((long)role))
+                        .Select(r => new UserRoleInRootContentItem
+                        {
+                            UserId = r.UserId,
+                            RootContentItemId = rootContentItem.Id,
+                            RoleId = ((long)role),
+                        });
+                    DbContext.UserRoleInRootContentItem.AddRange(inheritedRoles);
+                }
+                DbContext.SaveChanges();
                 DbTransaction.Commit();
             }
 
@@ -463,12 +472,11 @@ namespace MillimanAccessPortal.Controllers
             ContentPublicationRequest NewContentPublicationRequest = new ContentPublicationRequest
             {
                 ApplicationUserId = currentApplicationUser.Id,
-                RequestStatus = PublicationStatus.Unknown,
+                RequestStatus = PublicationStatus.Validating,
                 CreateDateTimeUtc = DateTime.UtcNow,
                 RootContentItemId = ContentItem.Id,
                 LiveReadyFilesObj = new List<ContentRelatedFile>(),
                 ReductionRelatedFilesObj = new List<ReductionRelatedFiles>(),
-                
             };
             try
             {
@@ -481,45 +489,11 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            Guid ThisRequestGuid = Guid.NewGuid();
-
-            switch (ContentItem.ContentType.TypeEnum)
-            {
-                case ContentTypeEnum.Qlikview:
-                    // TODO move this logic to a class in project QlikviewLib, derived from Interface or base class in MapCommonLib
-                    if (Arg.RelatedFiles.Select(f => f.FilePurpose).Count(p => p.ToLower() == "mastercontent") > 1)
-                    {
-                        throw new ApplicationException("Qlikview publication request cannot contain multiple MasterContent files");
-                    }
-
-                    foreach (UploadedRelatedFile UploadedFileRef in Arg.RelatedFiles)
-                    {
-                        ContentRelatedFile Crf = HandleRelatedFile(UploadedFileRef, ContentItem, NewContentPublicationRequest.Id);
-
-                        if (Crf != null)
-                        {
-                            NewContentPublicationRequest.LiveReadyFilesObj = NewContentPublicationRequest.LiveReadyFilesObj.Append(Crf).ToList();
-
-                            if (Crf.FilePurpose.ToLower() == "mastercontent" && ContentItem.DoesReduce)
-                            {
-                                ContentRelatedFile MasterCrf = ProcessMasterContentFile(Crf, ThisRequestGuid, ContentItem.DoesReduce);
-                                NewContentPublicationRequest.ReductionRelatedFilesObj = NewContentPublicationRequest.ReductionRelatedFilesObj.Append(new ReductionRelatedFiles { MasterContentFile = MasterCrf }).ToList();
-                            }
-                        }
-                    }
-                    break;
-
-                default:
-                    throw new NotSupportedException($"Publication request cannot be created for unsupported ContentType {ContentItem.ContentType.TypeEnum.ToString()}");
-            }
-
-            NewContentPublicationRequest.RequestStatus = PublicationStatus.Queued;
-
-            // Update the request record with file info and Queued status
-            DbContext.ContentPublicationRequest.Update(NewContentPublicationRequest);
-            DbContext.SaveChanges();
-
-            AuditLogger.Log(AuditEventType.PublicationQueued.ToEvent(ContentItem, NewContentPublicationRequest));
+            string rootPath = ApplicationConfig.GetSection("Storage")["ContentItemRootPath"];
+            string exchangePath = ApplicationConfig.GetSection("Storage")["MapPublishingServerExchangePath"];
+            string CxnString = ApplicationConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
+            ContentPublishSupport.AddPublicationMonitor(Task.Run(() =>
+                ContentPublishSupport.MonitorPublicationRequestForQueueing(NewContentPublicationRequest.Id, Arg.RelatedFiles, CxnString, rootPath, exchangePath)));
 
             return Ok();
         }
@@ -648,14 +622,17 @@ namespace MillimanAccessPortal.Controllers
             ContentPublicationRequest PubRequest = DbContext.ContentPublicationRequest.Where(r => r.Id == publicationRequestId)
                                                                                       .Where(r => r.RootContentItemId == rootContentItemId)
                                                                                       .Include(r => r.RootContentItem)
+                                                                                          .ThenInclude(c => c.ContentType)
                                                                                       .Include(r => r.ApplicationUser)
                                                                                       .SingleOrDefault(r => r.RequestStatus == PublicationStatus.Processed);
 
-            if (PubRequest == null)
+            if (PubRequest == null || PubRequest.RootContentItem == null || PubRequest.ApplicationUser == null)
             {
                 Response.Headers.Add("Warning", "Go-Live request references an invalid publication request.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+
+            bool ReductionIsInvolved = PubRequest.RootContentItem.DoesReduce && PubRequest.LiveReadyFilesObj.Any(f => f.FilePurpose.ToLower() == "mastercontent");
 
             ContentReductionHierarchy<ReductionFieldValue> LiveHierarchy = new ContentReductionHierarchy<ReductionFieldValue> { RootContentItemId = PubRequest.RootContentItemId };
             ContentReductionHierarchy<ReductionFieldValue> NewHierarchy = new ContentReductionHierarchy<ReductionFieldValue> { RootContentItemId = PubRequest.RootContentItemId };
@@ -666,57 +643,46 @@ namespace MillimanAccessPortal.Controllers
                                                                                              .ThenInclude(c => c.ContentType)
                                                                                              .ToList();
 
-            // For each reducing SelectionGroup related to the RootContentItem:
-            foreach (SelectionGroup ContentRelatedSelectionGroup in DbContext.SelectionGroup.Where(g => g.RootContentItemId == rootContentItemId)
-                                                                                            .Where(g => !g.IsMaster))
+            if (ReductionIsInvolved)
             {
-                ContentReductionTask ThisTask;
+                // For each reducing SelectionGroup related to the RootContentItem:
+                foreach (SelectionGroup ContentRelatedSelectionGroup in DbContext.SelectionGroup.Where(g => g.RootContentItemId == rootContentItemId)
+                                                                                                .Where(g => !g.IsMaster))
+                {
+                    ContentReductionTask ThisTask;
 
-                // RelatedReductionTasks should have one ContentReductionTask related to the SelectionGroup
-                try
-                {
-                    ThisTask = RelatedReductionTasks.Single(t => t.SelectionGroupId == ContentRelatedSelectionGroup.Id);
-                }
-                catch (InvalidOperationException)
-                {
-                    Response.Headers.Add("Warning", $"Expected 1 reduction task related to SelectionGroup {ContentRelatedSelectionGroup.Id}, cannot complete this go-live request.");
-                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    // RelatedReductionTasks should have one ContentReductionTask related to the SelectionGroup
+                    try
+                    {
+                        ThisTask = RelatedReductionTasks.Single(t => t.SelectionGroupId == ContentRelatedSelectionGroup.Id);
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        Response.Headers.Add("Warning", $"Expected 1 reduction task related to SelectionGroup {ContentRelatedSelectionGroup.Id}, cannot complete this go-live request.");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
+
+                    // This ContentReductionTask must be a reducing task
+                    if (ThisTask.TaskAction != TaskActionEnum.HierarchyAndReduction)
+                    {
+                        Response.Headers.Add("Warning", $"Go live request failed to verify related content reduction task {ThisTask.Id}.");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
+                    // The reduced content file identified in the ContentReductionTask must exist
+                    if (!System.IO.File.Exists(ThisTask.ResultFilePath))
+                    {
+                        Response.Headers.Add("Warning", $"Reduced content file {ThisTask.ResultFilePath} does not exist, cannot complete the go-live request.");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
+                    // Validate file checksum for reduced content
+                    if (GlobalFunctions.GetFileChecksum(ThisTask.ResultFilePath).ToLower() != ThisTask.ReducedContentChecksum.ToLower())
+                    {
+                        AuditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(PubRequest.RootContentItem, PubRequest));
+                        Response.Headers.Add("Warning", $"Reduced content file failed integrity check, cannot complete the go-live request.");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
                 }
 
-                // This ContentReductionTask must be a reducing task
-                if (ThisTask.TaskAction != TaskActionEnum.HierarchyAndReduction)
-                {
-                    Response.Headers.Add("Warning", $"Go live request failed to verify related content reduction task {ThisTask.Id}.");
-                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
-                }
-                // The reduced content file identified in the ContentReductionTask must exist
-                if (!System.IO.File.Exists(ThisTask.ResultFilePath))
-                {
-                    Response.Headers.Add("Warning", $"Reduced content file {ThisTask.ResultFilePath} does not exist, cannot complete the go-live request.");
-                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
-                }
-                // Validate file checksum for reduced content
-                if (GlobalFunctions.GetFileChecksum(ThisTask.ResultFilePath).ToLower() != ThisTask.ReducedContentChecksum.ToLower())
-                {
-                    AuditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(PubRequest.RootContentItem, PubRequest));
-                    Response.Headers.Add("Warning", $"Reduced content file failed integrity check, cannot complete the go-live request.");
-                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
-                }
-            }
-
-            // Validate Checksums of LiveReady files
-            foreach (ContentRelatedFile Crf in PubRequest.LiveReadyFilesObj)
-            {
-                if (!Crf.ValidateChecksum())
-                {
-                    AuditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(PubRequest.RootContentItem, PubRequest));
-                    Response.Headers.Add("Warning", "File integrity validation failed");
-                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
-                }
-            }
-
-            if (PubRequest.RootContentItem.DoesReduce)
-            {
                 LiveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(DbContext, PubRequest.RootContentItemId);
                 NewHierarchy = RelatedReductionTasks[0].MasterContentHierarchyObj;
 
@@ -728,6 +694,17 @@ namespace MillimanAccessPortal.Controllers
                         Response.Headers.Add("Warning", "New hierarchy field list does not match the live hierarchy");
                         return StatusCode(StatusCodes.Status422UnprocessableEntity);
                     }
+                }
+            }
+
+            // Validate Checksums of LiveReady files
+            foreach (ContentRelatedFile Crf in PubRequest.LiveReadyFilesObj)
+            {
+                if (!Crf.ValidateChecksum())
+                {
+                    AuditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(PubRequest.RootContentItem, PubRequest));
+                    Response.Headers.Add("Warning", "File integrity validation failed");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
             }
             #endregion
@@ -767,11 +744,8 @@ namespace MillimanAccessPortal.Controllers
                     System.IO.File.Copy(Crf.FullPath, TargetFilePath);
                     FilesToDelete.Add(Crf.FullPath);
 
-                    // if file with this FilePurpose does not already exist for the Content Item
-                    if (!UpdatedContentFilesList.Select(cf => cf.FilePurpose).Contains(Crf.FilePurpose))
-                    {
-                        UpdatedContentFilesList.Add(new ContentRelatedFile { FilePurpose = Crf.FilePurpose, FullPath = TargetFilePath, Checksum = Crf.Checksum });
-                    }
+                    UpdatedContentFilesList.RemoveAll(f => f.FilePurpose.ToLower() == Crf.FilePurpose.ToLower());
+                    UpdatedContentFilesList.Add(new ContentRelatedFile { FilePurpose = Crf.FilePurpose, FullPath = TargetFilePath, Checksum = Crf.Checksum });
 
                     if (Crf.FilePurpose.ToLower() == "mastercontent")
                     {
@@ -880,13 +854,25 @@ namespace MillimanAccessPortal.Controllers
                 }
                 DbContext.SaveChanges();
 
-                //3.4  SelectionGroup 1) URL and 2) SelectedHierarchyFieldValueList due to hierarchy changes
+                //3.4  Update SelectionGroup SelectedHierarchyFieldValueList due to hierarchy changes
                 List<long> AllRemainingFieldValues = DbContext.HierarchyFieldValue.Where(v => v.HierarchyField.RootContentItemId == PubRequest.RootContentItemId)
                                                                                   .Select(v => v.Id)
                                                                                   .ToList();
                 foreach (SelectionGroup Group in DbContext.SelectionGroup.Where(g => g.RootContentItemId == PubRequest.RootContentItemId && !g.IsMaster))
                 {
                     Group.SelectedHierarchyFieldValueList = Group.SelectedHierarchyFieldValueList.Intersect(AllRemainingFieldValues).ToArray();
+                }
+
+                // Perform any content type dependent follow up processing
+                switch (PubRequest.RootContentItem.ContentType.TypeEnum)
+                {
+                    case ContentTypeEnum.Qlikview:
+                        await new QlikviewLib.QlikviewLibApi().AuthorizeUserDocumentsInFolder(rootContentItemId.ToString(), QlikviewConfig);
+                        break;
+
+                    case ContentTypeEnum.Unknown:
+                    default:
+                        break;
                 }
 
                 DbContext.SaveChanges();
@@ -908,7 +894,7 @@ namespace MillimanAccessPortal.Controllers
                 }
             }
 
-            if (PubRequest.RootContentItem.DoesReduce)
+            if (ReductionIsInvolved)
             {
                 //Delete temporary folder of publication job (contains temporary reduced content files)
                 string PubJobTempFolder = Path.GetDirectoryName(RelatedReductionTasks[0].MasterFilePath);
@@ -989,78 +975,5 @@ namespace MillimanAccessPortal.Controllers
 
             return Ok();
         }
-
-        [NonAction]
-        private ContentRelatedFile HandleRelatedFile(UploadedRelatedFile RelatedFile, RootContentItem ContentItem, long PubRequestId)
-        {
-            ContentRelatedFile ReturnObj = null;
-
-            using (IDbContextTransaction Txn = DbContext.Database.BeginTransaction())
-            {
-                FileUpload FileUploadRecord = DbContext.FileUpload.Find(RelatedFile.FileUploadId);
-
-                #region Validate the file referenced by the FileUpload record
-                if (!System.IO.File.Exists(FileUploadRecord.StoragePath))
-                {
-                    throw new ApplicationException($"While publishing for content {ContentItem.Id}, uploaded file not found at path [{FileUploadRecord.StoragePath}].");
-                }
-                if (FileUploadRecord.Checksum.ToLower() != GlobalFunctions.GetFileChecksum(FileUploadRecord.StoragePath).ToLower())
-                {
-                    throw new ApplicationException($"While publishing for content {ContentItem.Id}, checksum validation failed for file [{FileUploadRecord.StoragePath}].");
-                }
-                #endregion
-
-                string RootContentFolder = Path.Combine(ApplicationConfig.GetSection("Storage")["ContentItemRootPath"], ContentItem.Id.ToString());
-
-                // Copy uploaded file to root content folder
-                string DestinationFileName = $"{RelatedFile.FilePurpose}.Pub[{PubRequestId.ToString()}].Content[{ContentItem.Id.ToString()}]{Path.GetExtension(FileUploadRecord.StoragePath)}";
-                string DestinationFullPath = Path.Combine(RootContentFolder, DestinationFileName);
-
-                // Create the root content folder if it does not already exist
-                Directory.CreateDirectory(RootContentFolder);
-                System.IO.File.Copy(FileUploadRecord.StoragePath, DestinationFullPath, true);
-
-                ReturnObj = new ContentRelatedFile
-                {
-                    FilePurpose = RelatedFile.FilePurpose,
-                    FullPath = DestinationFullPath,
-                    FileOriginalName = RelatedFile.FileOriginalName,
-                    Checksum = FileUploadRecord.Checksum,
-                };
-
-                // Remove FileUpload record(s) for this file path
-                List<FileUpload> Uploads = DbContext.FileUpload.Where(f => f.StoragePath == FileUploadRecord.StoragePath).ToList();
-                System.IO.File.Delete(FileUploadRecord.StoragePath);
-                DbContext.FileUpload.RemoveRange(Uploads);
-                //Uploads.ForEach(u => DbContext.FileUpload.r.Remove(u));
-
-                DbContext.SaveChanges();
-                Txn.Commit();
-            }
-
-            return ReturnObj;
-        }
-
-        [NonAction]
-        private ContentRelatedFile ProcessMasterContentFile(ContentRelatedFile FileDetails, Guid RequestGuid, bool DoesReduce)
-        {
-            if (DoesReduce)
-            {
-                string MapPublishingServerExchangeRequestFolder = Path.Combine(ApplicationConfig.GetSection("Storage")["MapPublishingServerExchangePath"], RequestGuid.ToString("D"));
-                Directory.CreateDirectory(MapPublishingServerExchangeRequestFolder);
-                string DestinationFullPath = Path.Combine(MapPublishingServerExchangeRequestFolder, Path.GetFileName(FileDetails.FullPath));
-                System.IO.File.Copy(FileDetails.FullPath, DestinationFullPath, true);
-
-                return new ContentRelatedFile
-                {
-                    FullPath = DestinationFullPath,
-                    FilePurpose = FileDetails.FilePurpose,
-                    Checksum = FileDetails.Checksum,
-                };
-            }
-
-            return null;
-        }
-
     }
 }

@@ -230,13 +230,17 @@ function renderConfirmationPane(response: PreLiveContentValidationSummary) {
           .append(subList);
       });
     }
-    response.NewHierarchy.Fields.forEach((field) => {
-      const subList = $(`<li><h6>${field.DisplayName}</h6><ul></ul></ul>`);
-      field.Values.forEach((value) =>
-          subList.find('ul').append(`<li>${value.Value}</li>`));
-      $('#confirmation-section-hierarchy-diff .hierarchy-right > ul')
-        .append(subList);
-    });
+    if (!response.NewHierarchy) {
+      $('#confirmation-section-hierarchy-diff .hierarchy-right > ul').append('<div>None</div>');
+    } else {
+      response.NewHierarchy.Fields.forEach((field) => {
+        const subList = $(`<li><h6>${field.DisplayName}</h6><ul></ul></ul>`);
+        field.Values.forEach((value) =>
+            subList.find('ul').append(`<li>${value.Value}</li>`));
+        $('#confirmation-section-hierarchy-diff .hierarchy-right > ul')
+          .append(subList);
+      });
+    }
     // populate hierarchy stats
     $('#confirmation-section-hierarchy-stats > div > ul').children().remove();
     response.SelectionGroups.forEach((selectionGroup) => {
@@ -265,7 +269,9 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
   if (item) {
     const formMap = mapRootContentItemDetail(item);
     formMap.forEach((value, key) => {
-      $rootContentItemForm.find(`#${key}`).val(value ? value.toString() : '');
+      if (key !== 'DoesReduce') {  // because DoesReduce is a checkbox
+        $rootContentItemForm.find(`#${key}`).val(value ? value.toString() : '');
+      }
     });
     $rootContentItemForm.find('.file-upload').data('originalName', '');
     if (item.RelatedFiles) {

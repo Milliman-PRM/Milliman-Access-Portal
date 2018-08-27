@@ -5,9 +5,13 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using MapCommonLib.ContentTypeSpecific;
 using QlikviewLib.Internal;
+using QlikviewLib.Qms;
 
 namespace QlikviewLib
 {
@@ -16,6 +20,8 @@ namespace QlikviewLib
         public override async Task<UriBuilder> GetContentUri(string SelectionGroupUrl, string UserName, object ConfigInfoArg)
         {
             QlikviewConfig ConfigInfo = (QlikviewConfig)ConfigInfoArg;
+            string ContentUrl = string.IsNullOrWhiteSpace(ConfigInfo.QvServerContentUriSubfolder) ?
+                SelectionGroupUrl : Path.Combine(ConfigInfo.QvServerContentUriSubfolder, SelectionGroupUrl) ;
 
             string QvServerUriScheme = "https";  // Scheme of the iframe should match scheme of the top page
 
@@ -25,7 +31,7 @@ namespace QlikviewLib
             string[] QueryStringItems = new string[]
             {
                 $"type=html",
-                $"try=/qvajaxzfc/opendoc.htm?document={SelectionGroupUrl}",  // TODO use the relative document path/name in the following
+                $"try=/qvajaxzfc/opendoc.htm?document={ContentUrl}",  // TODO use the relative document path/name in the following
                 $"back=/",  // TODO probably use something other than "/" (such as a proper error page)
                 $"webticket={QlikviewWebTicket}",
             };
@@ -42,5 +48,45 @@ namespace QlikviewLib
 
             return QvServerUri;
         }
+
+        /// <summary>
+        ///   Grants QV server authorization for all QVWs in a specified subfolder of the UserDocuments path named in config param "QvServerContentUriSubfolder"
+        ///     Corresponds to document authorization that can be interactively configured in QMC
+        /// </summary>
+        /// <param name="ContentPathRelativeToNamedUserDocFolder"></param>
+        /// <param name="ConfigInfo"></param>
+        /// <returns></returns>
+        public async Task AuthorizeUserDocumentsInFolder(string ContentPathRelativeToNamedUserDocFolder, QlikviewConfig ConfigInfo)
+        {
+            IQMS Client = QmsClientCreator.New(ConfigInfo.IQmsUrl);
+
+            ServiceInfo[] QvsServicesArrray = await Client.GetServicesAsync(ServiceTypes.QlikViewServer);
+            ServiceInfo QvsServiceInfo = QvsServicesArrray[0];
+
+            DocumentFolder[] QvsUserDocFolders = await Client.GetUserDocumentFoldersAsync(QvsServiceInfo.ID, DocumentFolderScope.General);
+            DocumentFolder QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == ConfigInfo.QvServerContentUriSubfolder);
+
+            await Client.ClearQVSCacheAsync(QVSCacheObjects.UserDocumentList);  // Is this really needed?
+
+            DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, ContentPathRelativeToNamedUserDocFolder);
+            foreach (DocumentNode DocNode in AllDocNodesInRequestedFolder)
+            {
+                var DocAuthorizationMetadata = await Client.GetDocumentMetaDataAsync(DocNode, DocumentMetaDataScope.Authorization);
+
+                if (!DocAuthorizationMetadata.Authorization.Access.Any(a => a.UserName == ""))
+                {
+                    List<DocumentAccessEntry> DAL = DocAuthorizationMetadata.Authorization.Access.ToList();
+                    DAL.Add(new DocumentAccessEntry
+                    {
+                        UserName = "",
+                        AccessMode = DocumentAccessEntryMode.Always,
+                        DayOfWeekConstraints = new DayOfWeek[0],
+                    });
+                    DocAuthorizationMetadata.Authorization.Access = DAL.ToArray();
+                    await Client.SaveDocumentMetaDataAsync(DocAuthorizationMetadata);
+                }
+            }
+        }
+
     }
 }

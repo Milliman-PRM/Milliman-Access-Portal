@@ -4,22 +4,21 @@ import * as shared from './shared';
 import { SelectionGroupSummary } from './view-models/content-access-admin';
 import { RootContentItemSummary, UserInfo } from './view-models/content-publishing';
 
-require('../images/user.svg');
-require('../images/remove-circle.svg');
-require('../images/add-circle.svg');
-require('../images/expand-card.svg');
-require('../images/cancel.svg');
-require('../images/group.svg');
-require('../images/reports.svg');
-require('../images/delete.svg');
-require('../images/edit.svg');
-require('../images/add.svg');
-require('../images/upload.svg');
-require('../images/checkmark.svg');
+import '../images/user.svg';
+import '../images/remove-circle.svg';
+import '../images/add-circle.svg';
+import '../images/expand-card.svg';
+import '../images/cancel.svg';
+import '../images/group.svg';
+import '../images/reports.svg';
+import '../images/delete.svg';
+import '../images/edit.svg';
+import '../images/add.svg';
+import '../images/upload.svg';
+import '../images/checkmark.svg';
 
 const card = {};
 
-// tslint:disable:object-literal-sort-keys
 const cardLayout = {
   card: {
     body: {
@@ -553,7 +552,6 @@ const components = Object.assign(
     },
   },
 );
-// tslint:enable:object-literal-sort-keys
 
 // Compute select properties
 (() => {

@@ -15,13 +15,16 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.ClientAdminViewModels;
+using AuditLogLib.Services;
+using AuditLogLib.Event;
 
 namespace MillimanAccessPortal.DataQueries
 {
     public partial class StandardQueries
     {
         private ApplicationDbContext DbContext = null;
-        private UserManager<ApplicationUser> UserManager = null;
+        private UserManager<ApplicationUser> _userManager = null;
+        private IAuditLogger _auditLog = null;
 
         /// <summary>
         /// Constructor, stores local copy of the caller's IServiceScope
@@ -29,11 +32,39 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="SvcProvider"></param>
         public StandardQueries(
             ApplicationDbContext ContextArg,
-            UserManager<ApplicationUser> UserManagerArg
+            UserManager<ApplicationUser> UserManagerArg,
+            IAuditLogger AuditLogArg
             )
         {
             DbContext = ContextArg;
-            UserManager = UserManagerArg;
+            _userManager = UserManagerArg;
+            _auditLog = AuditLogArg;
+        }
+
+        /// <summary>
+        /// Creates a new user account
+        /// </summary>
+        /// <param name="UserNameArg"></param>
+        /// <param name="EmailArg"></param>
+        /// <returns>On success, returns the new ApplicationUser instance, null otherwise</returns>
+        internal async Task<(IdentityResult result, ApplicationUser user)> CreateNewAccount(string UserNameArg, string EmailArg)
+        {
+            var RequestedUser = new ApplicationUser
+            {
+                UserName = UserNameArg,
+                Email = EmailArg,
+            };
+            IdentityResult result = await _userManager.CreateAsync(RequestedUser);
+
+            if (result.Succeeded)
+            {
+                _auditLog.Log(AuditEventType.UserAccountCreated.ToEvent(RequestedUser));
+            }
+            else
+            {
+                RequestedUser = null;
+            }
+            return (result, RequestedUser);
         }
 
         /// <summary>
@@ -143,8 +174,27 @@ namespace MillimanAccessPortal.DataQueries
         /// <returns></returns>
         internal async Task<ApplicationUser> GetCurrentApplicationUser(ClaimsPrincipal User)
         {
-            return await UserManager.GetUserAsync(User);
+            return await _userManager.GetUserAsync(User);
         }
 
+        public class TrimCaseInsensitiveStringComparer : IEqualityComparer<string>
+        {
+            public bool Equals(string l, string r)
+            {
+                if (ReferenceEquals(l, r)) return true;
+                if (ReferenceEquals(l, null) || ReferenceEquals(r, null)) return false;
+                return l.Trim().ToLower() == r.Trim().ToLower();
+            }
+            public int GetHashCode(string Arg)
+            {
+                return Arg.Trim().ToLower().GetHashCode();
+            }
+        };
+        public bool DoesEmailSatisfyClientWhitelists(string email, IEnumerable<string> domains, IEnumerable<string> addresses)
+        {
+            IEqualityComparer<string> comparer = new TrimCaseInsensitiveStringComparer();
+
+            return domains.Contains(email.Substring(email.IndexOf('@')+1), comparer) || addresses.Contains(email, comparer);
+        }
     }
 }

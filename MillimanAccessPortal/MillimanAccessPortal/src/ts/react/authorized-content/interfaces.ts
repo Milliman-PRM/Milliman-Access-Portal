@@ -20,4 +20,9 @@ export interface ContentItemGroup {
 
 export interface ContentItemGroupList {
   ItemGroups: ContentItemGroup[];
+  selectedContentURL: string;
+}
+
+export interface ContentCardFunctions {
+  selectContent: (URL: string) => void;
 }

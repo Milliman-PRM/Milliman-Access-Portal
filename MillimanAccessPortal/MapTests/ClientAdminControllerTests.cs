@@ -38,7 +38,9 @@ namespace MapTests
                 TestResources.MessageQueueServicesObject,
                 TestResources.RoleManagerObject,
                 TestResources.QueriesObj,
-                TestResources.UserManagerObject);
+                TestResources.UserManagerObject,
+                TestResources.ConfigurationObject,
+                null);   // AccountController
 
         // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
         testController.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: (await TestResources.UserManagerObject.FindByNameAsync(UserName)).UserName);
@@ -530,8 +532,7 @@ namespace MapTests
         /// Multiple authorizations are checked, so multiple scenarios should be tested
         /// </summary>
         [Theory]
-        [InlineData("ClientAdmin1", 3, 1)] // User isn't admin on the requested client but is admin on the requested client's profit center
-        [InlineData("ClientAdmin1", 4, 1)] // User is admin on the requested client but isn't admin on the requested client's profit center
+        [InlineData("ClientAdmin1", 3, 1)] // User isn't admin on the requested client
         public async Task RemoveUserFromClient_ErrorWhenUnauthorized(string userArg, long clientIdArg, long userIdArg)
         {
             #region Arrange
@@ -910,8 +911,8 @@ namespace MapTests
             testClient.ConsultantEmail = "editconsultant@example2.com";
             testClient.ConsultantName = "Edit consultant name";
             testClient.ConsultantOffice = "Edit consultant office";
-            testClient.AcceptedEmailAddressExceptionList = new string[] { "edit1@example.com", "edit2@example.com" };
-            testClient.AcceptedEmailDomainList = new string[] { "editexample.com" };
+            testClient.AcceptedEmailAddressExceptionList = new string[] { "edit1@example.com,edit2@example.com", "edit3@example.com" };
+            testClient.AcceptedEmailDomainList = new string[] { "editexample.com", "example2.com" };
             #endregion 
 
             var view = await controller.EditClient(testClient);
@@ -987,6 +988,8 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+            ApplicationUser AppUser = await TestResources.UserManagerObject.FindByNameAsync("ClientAdmin1");
+            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, "password");
             #endregion
 
             #region Act
@@ -1007,6 +1010,8 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+            ApplicationUser AppUser = await TestResources.UserManagerObject.FindByNameAsync("ClientAdmin1");
+            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, "password");
             #endregion
 
             #region Act
@@ -1027,6 +1032,8 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+            ApplicationUser AppUser = await TestResources.UserManagerObject.FindByNameAsync("ClientAdmin1");
+            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, "password");
 
             int clientPreCount = TestResources.DbContextObject.Client.Count();
             int claimsPreCount = TestResources.DbContextObject.UserClaims.Count();

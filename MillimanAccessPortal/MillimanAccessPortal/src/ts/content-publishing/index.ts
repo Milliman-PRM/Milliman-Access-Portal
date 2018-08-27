@@ -12,12 +12,12 @@ import $ = require('jquery');
 require('tooltipster');
 import toastr = require('toastr');
 
-require('../../images/map-logo.svg');
-require('../../images/add.svg');
-require('../../images/edit.svg');
-require('../../images/upload.svg');
-require('../../images/cancel.svg');
-require('../../images/checkmark.svg')
+import '../../images/map-logo.svg';
+import '../../images/add.svg';
+import '../../images/edit.svg';
+import '../../images/upload.svg';
+import '../../images/cancel.svg';
+import '../../images/checkmark.svg';
 
 $(document).ready(() => {
   setup();

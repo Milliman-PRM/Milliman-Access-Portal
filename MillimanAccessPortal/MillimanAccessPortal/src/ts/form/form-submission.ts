@@ -8,13 +8,11 @@ import { SubmissionMode } from './form-modes';
 export class Submission extends FormElement {
   public form: FormBase;
 
-  // tslint:disable:object-literal-sort-keys
   protected _cssClasses = {
     main: 'button-container',
     title: '',
     extension: '',
   };
-  // tslint:enable:object-literal-sort-keys
 
   private _submissionMode: SubmissionMode;
   public get submissionMode(): SubmissionMode {
@@ -73,7 +71,8 @@ export class Submission extends FormElement {
     this.$entryPoint
       .find('.button-submit')
       .off('click')
-      .on('click', async () => {
+      .on('click', async (event) => {
+        event.preventDefault();
         for (const group of mode.groups) {
           await group.submit(form, mode.sparse);
         }

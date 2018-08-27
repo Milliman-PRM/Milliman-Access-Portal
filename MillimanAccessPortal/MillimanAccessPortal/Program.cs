@@ -29,6 +29,7 @@ namespace MillimanAccessPortal
                 GlobalFunctions.domainValRegex = Configuration.GetValue("Global:DomainValidationRegex", GlobalFunctions.domainValRegex);
                 GlobalFunctions.emailValRegex = Configuration.GetValue("Global:EmailValidationRegex", GlobalFunctions.emailValRegex);
                 GlobalFunctions.maxFileUploadSize = Configuration.GetValue("Global:MaxFileUploadSize", GlobalFunctions.maxFileUploadSize);
+                GlobalFunctions.virusScanWindowSeconds = Configuration.GetValue("Global:VirusScanWindowSeconds", GlobalFunctions.virusScanWindowSeconds);
                 #endregion
 
                 try
@@ -56,6 +57,7 @@ namespace MillimanAccessPortal
                     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                     .AddJsonFile($"appsettings.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
                     .AddJsonFile("qlikview.json", optional: false, reloadOnChange: true)
+                    .AddJsonFile($"qlikview.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
                     .AddJsonFile("smtp.json", optional: false, reloadOnChange: true)
                     .AddJsonFile($"smtp.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
                     ;
@@ -66,6 +68,7 @@ namespace MillimanAccessPortal
                     {
                         case "AZURECI":
                         case "PRODUCTION":
+                        case "STAGING":
                             config.AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true);
 
                             var builtConfig = config.Build();

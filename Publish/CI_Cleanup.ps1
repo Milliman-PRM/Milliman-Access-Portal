@@ -18,7 +18,8 @@ function log_statement {
 #endregion
 
 #region Configure environment properties
-$BranchName = $env:branch_name.Replace("_","").Replace("-","").ToLower() # Will be used as the name of the deployment slot & appended to database names
+$BranchName = $env:git_branch # Will be used as the name of the deployment slot & appended to database names
+
 
 $gitExePath = "git"
 $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
@@ -26,8 +27,8 @@ $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
 $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
 $dbPassword = $env:db_deploy_password
-$appDbName = "appdb_$BranchName"
-$logDbName = "auditlogdb_$BranchName"
+$appDbName = "appdb_$BranchName".Replace("_","").Replace("-","").ToLower()
+$logDbName = "auditlogdb_$BranchName".Replace("_","").Replace("-","").ToLower()
 
 $rootPath = (get-location).Path
 $nugetDestination = "$rootPath\nugetPackages"

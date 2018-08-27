@@ -6,6 +6,7 @@
 
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Models.ContentAccessAdmin;
 using System.Collections.Generic;
@@ -30,6 +31,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             }
 
             var latestPublication = dbContext.ContentPublicationRequest
+                .Include(crt => crt.ApplicationUser)
                 .Where(crt => crt.RootContentItemId == rootContentItem.Id)
                 .OrderByDescending(crt => crt.CreateDateTimeUtc)
                 .FirstOrDefault();

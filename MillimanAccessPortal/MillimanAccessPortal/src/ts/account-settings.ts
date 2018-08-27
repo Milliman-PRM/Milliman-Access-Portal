@@ -11,7 +11,7 @@ require('bootstrap/scss/bootstrap-reboot.scss');
 require('toastr/toastr.scss');
 require('../scss/map.scss');
 
-require('../images/map-logo.svg');
+import '../images/map-logo.svg';
 
 $(document).ready(() => {
   if ($('#UserName').val() !== $('#Email').val()) {
@@ -19,7 +19,7 @@ $(document).ready(() => {
   }
 
   const accountGroup = new SubmissionGroup(
-    [ 'account' ],
+    [ 'username', 'account' ],
     'AccountSettings',
     'POST',
     (response) => {
@@ -27,7 +27,7 @@ $(document).ready(() => {
     },
   );
   const passwordGroup = new SubmissionGroup(
-    [ 'password' ],
+    [ 'username', 'password' ],
     'UpdatePassword',
     'POST',
     (response) => {
