@@ -1,4 +1,10 @@
-﻿using MapDbContextLib.Identity;
+﻿/*
+ * CODE OWNERS: Joseph Sweeney,
+ * OBJECTIVE: Provide user information for display in the system admin detail panel
+ * DEVELOPER NOTES:
+ */
+
+using MapDbContextLib.Identity;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {

@@ -1,4 +1,10 @@
-﻿using MapDbContextLib.Context;
+﻿/*
+ * CODE OWNERS: Joseph Sweeney,
+ * OBJECTIVE: Provide client information for display in the system admin detail panel
+ * DEVELOPER NOTES:
+ */
+
+using MapDbContextLib.Context;
 using System.Collections.Generic;
 using System.Linq;
 

@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Joseph Sweeney,
- * OBJECTIVE:
+ * OBJECTIVE: Provide user information for presentation on a user card.
  * DEVELOPER NOTES:
  */
 

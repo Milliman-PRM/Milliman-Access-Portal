@@ -1,4 +1,10 @@
-﻿using MapDbContextLib.Context;
+﻿/*
+ * CODE OWNERS: Joseph Sweeney,
+ * OBJECTIVE: Provide profit center information for display in the system admin detail panel
+ * DEVELOPER NOTES:
+ */
+
+using MapDbContextLib.Context;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {

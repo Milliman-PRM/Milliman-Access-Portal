@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Joseph Sweeney,
- * OBJECTIVE:
+ * OBJECTIVE: Provide profit center information for presentation on a profit center card.
  * DEVELOPER NOTES:
  */
 
