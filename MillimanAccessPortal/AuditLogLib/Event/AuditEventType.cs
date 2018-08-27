@@ -64,14 +64,14 @@ namespace AuditLogLib.Event
             2006, "Client role assigned", (client, user, roles) => new
             {
                 ClientId = client.Id,
-                UserId = client.Id,
+                UserId = user.Id,
                 Role = roles.Select(r => r.ToString()),
             });
         public static readonly AuditEventType<Client, ApplicationUser, List<RoleEnum>> ClientRoleRemoved = new AuditEventType<Client, ApplicationUser, List<RoleEnum>>(
             2007, "Client role removed", (client, user, roles) => new
             {
                 ClientId = client.Id,
-                UserId = client.Id,
+                UserId = user.Id,
                 Role = roles.Select(r => r.ToString()),
             });
         #endregion
@@ -251,7 +251,7 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<RootContentItem, bool, string> RootContentItemSuspensionUpdate = new AuditEventType<RootContentItem, bool, string>(
             7002, "Root content item suspension status updated", (item, isSuspended, reason) => new
             {
-                UserId = item.Id,
+                RootContentItemId = item.Id,
                 IsSuspended = isSuspended,
                 Reason = reason,
             });
