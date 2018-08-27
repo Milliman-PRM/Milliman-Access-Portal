@@ -1,6 +1,8 @@
 ﻿using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace AuditLogLib.Event
@@ -58,19 +60,19 @@ namespace AuditLogLib.Event
             {
                 Client = client,
             });
-        public static readonly AuditEventType<Client, ApplicationUser, RoleEnum> ClientRoleAssigned = new AuditEventType<Client, ApplicationUser, RoleEnum>(
-            2006, "Client role assigned", (client, user, role) => new
+        public static readonly AuditEventType<Client, ApplicationUser, List<RoleEnum>> ClientRoleAssigned = new AuditEventType<Client, ApplicationUser, List<RoleEnum>>(
+            2006, "Client role assigned", (client, user, roles) => new
             {
                 ClientId = client.Id,
                 UserId = client.Id,
-                Role = role.ToString(),
+                Role = roles.Select(r => r.ToString()),
             });
-        public static readonly AuditEventType<Client, ApplicationUser, RoleEnum> ClientRoleRemoved = new AuditEventType<Client, ApplicationUser, RoleEnum>(
-            2007, "Client role removed", (client, user, role) => new
+        public static readonly AuditEventType<Client, ApplicationUser, List<RoleEnum>> ClientRoleRemoved = new AuditEventType<Client, ApplicationUser, List<RoleEnum>>(
+            2007, "Client role removed", (client, user, roles) => new
             {
                 ClientId = client.Id,
                 UserId = client.Id,
-                Role = role.ToString(),
+                Role = roles.Select(r => r.ToString()),
             });
         #endregion
 

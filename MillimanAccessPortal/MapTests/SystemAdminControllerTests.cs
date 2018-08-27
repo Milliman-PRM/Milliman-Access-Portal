@@ -797,7 +797,7 @@ namespace MapTests
         #region Immediate toggle action tests
         [Theory]
         [InlineData(-1, RoleEnum.Admin)]
-        [InlineData(1, RoleEnum.ContentUser)]
+        [InlineData(1, RoleEnum.UserCreator)]
         public async Task SystemRole_Invalid(long userId, RoleEnum role)
         {
             #region Arrange
@@ -815,7 +815,6 @@ namespace MapTests
         }
         [Theory]
         [InlineData(1, RoleEnum.Admin, true)]
-        [InlineData(1, RoleEnum.UserCreator, false)]
         public async Task SystemRole_Success(long userId, RoleEnum role, bool expectedValue)
         {
             #region Arrange
@@ -893,7 +892,7 @@ namespace MapTests
             #endregion
         }
         [Theory]
-        [InlineData(1, 1, RoleEnum.Admin, true)]
+        [InlineData(1, 1, RoleEnum.Admin, false)]
         [InlineData(1, 1, RoleEnum.ContentAccessAdmin, false)]
         [InlineData(1, 1, RoleEnum.ContentPublisher, false)]
         [InlineData(1, 1, RoleEnum.ContentUser, false)]
