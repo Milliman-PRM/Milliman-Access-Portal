@@ -777,6 +777,13 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The specified role is not a system role.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+
+            var currentUser = await _queries.GetCurrentApplicationUser(User);
+            if (user.Id == currentUser.Id && role == RoleEnum.Admin && !value)
+            {
+                Response.Headers.Add("Warning", "You cannot unset your own account as system admin.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             var roleId = (long)role;
@@ -867,6 +874,13 @@ namespace MillimanAccessPortal.Controllers
             if (user == null)
             {
                 Response.Headers.Add("Warning", "The specified user does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            var currentUser = await _queries.GetCurrentApplicationUser(User);
+            if (user.Id == currentUser.Id && value)
+            {
+                Response.Headers.Add("Warning", "You cannot suspend your own account.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
