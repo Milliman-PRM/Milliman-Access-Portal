@@ -123,15 +123,6 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps,
                         data={{ role: RoleEnum.Admin }}
                       />
                     </div>
-                    <div className="detail-container">
-                      <ImmediateToggle
-                        controller={this.props.controller}
-                        action={'SystemRole'}
-                        queryFilter={this.props.queryFilter}
-                        label={'User Creator'}
-                        data={{ role: RoleEnum.UserCreator }}
-                      />
-                    </div>
                   </div>
                   <div className="detail-section">
                     <h3 className="detail-section-title">User Settings</h3>
