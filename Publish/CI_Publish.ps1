@@ -1,20 +1,20 @@
 <#
     .SYNOPSIS
         Run unit tests and deploy MAP
- 
+
     .DESCRIPTION
         This script assumes the repository has already been cloned to $rootPath
 
     .PARAMETER targetFolder
         The fully-qualified path to a folder where the MAP repository has been cloned
-    
+
     .PARAMETER deployEnvironment
         The ASPNETCORE_ENVIRONMENT value for the environment being targeted for deployment
         This environment will be used to perform database migrations
 
     .PARAMETER testEnvironment
         The ASPNETCORE_ENVIRONMENT value for the environment where unit tests are being run
-        
+
     .NOTES
         AUTHORS - Ben Wyatt, Steve Gredell
 #>
@@ -225,11 +225,11 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 log_statement "Performing MAP unit tests"
- 
+
  cd $rootPath\MillimanAccessPortal\MapTests
 
  dotnet test --no-build
- 
+
  if ($LASTEXITCODE -ne 0) {
      log_statement "ERROR: One or more MAP xUnit tests failed"
      log_statement "errorlevel was $LASTEXITCODE"
