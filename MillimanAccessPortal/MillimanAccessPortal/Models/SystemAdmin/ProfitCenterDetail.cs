@@ -6,6 +6,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
     {
         public long Id { get; set; }
         public string Name { get; set; }
+        public string Code { get; set; }
         public string Office { get; set; }
         public string ContactName { get; set; }
         public string ContactEmail { get; set; }
@@ -22,6 +23,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             {
                 Id = profitCenter.Id,
                 Name = profitCenter.Name,
+                Code = profitCenter.ProfitCenterCode,
                 Office = profitCenter.MillimanOffice,
                 ContactName = profitCenter.ContactName,
                 ContactEmail = profitCenter.ContactEmail,
