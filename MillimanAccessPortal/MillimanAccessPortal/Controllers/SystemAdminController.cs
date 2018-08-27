@@ -846,7 +846,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="userId">User whose suspension status is to be checked.</param>
         /// <returns>true if the user is suspended; false otherwise</returns>
         [HttpGet]
-        public async Task<ActionResult> UserSuspension(long userId)
+        public async Task<ActionResult> UserSuspendedStatus(long userId)
         {
             #region Authorization
             // User must have a global Admin role
@@ -878,7 +878,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>true if the user is suspended; false otherwise</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> UserSuspension(long userId, bool value)
+        public async Task<ActionResult> UserSuspendedStatus(long userId, bool value)
         {
             #region Authorization
             // User must have a global Admin role
@@ -924,7 +924,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="role">Role to check</param>
         /// <returns>true if the user has the role in the client; false otherwise</returns>
         [HttpGet]
-        public async Task<ActionResult> UserClientRoles(long userId, long clientId, RoleEnum role)
+        public async Task<ActionResult> UserClientRoleAssignment(long userId, long clientId, RoleEnum role)
         {
             #region Authorization
             // User must have a global Admin role
@@ -990,7 +990,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>true if the user has the role in the client; false otherwise</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> UserClientRoles(long userId, long clientId, RoleEnum role, bool value)
+        public async Task<ActionResult> UserClientRoleAssignment(long userId, long clientId, RoleEnum role, bool value)
         {
             #region Authorization
             // User must have a global Admin role
@@ -1087,7 +1087,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="rootContentItemId">Root content item whose suspension status is to be checked.</param>
         /// <returns>true is the root content item is suspended; false otherwise</returns>
         [HttpGet]
-        public async Task<ActionResult> ContentSuspension(long rootContentItemId)
+        public async Task<ActionResult> ContentSuspendedStatus(long rootContentItemId)
         {
             #region Authorization
             // User must have a global Admin role
@@ -1119,7 +1119,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>true is the root content item is suspended; false otherwise</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> ContentSuspension(long rootContentItemId, bool value)
+        public async Task<ActionResult> ContentSuspendedStatus(long rootContentItemId, bool value)
         {
             #region Authorization
             // User must have a global Admin role

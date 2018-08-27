@@ -843,7 +843,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json = await controller.UserSuspension(userId);
+            var json = await controller.UserSuspendedStatus(userId);
             #endregion
 
             #region Assert
@@ -860,8 +860,8 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json1 = await controller.UserSuspension(userId);
-            var json2 = await controller.UserSuspension(userId, !expectedValue);
+            var json1 = await controller.UserSuspendedStatus(userId);
+            var json2 = await controller.UserSuspendedStatus(userId, !expectedValue);
             #endregion
 
             #region Assert
@@ -883,7 +883,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json = await controller.UserClientRoles(userId, clientId, role);
+            var json = await controller.UserClientRoleAssignment(userId, clientId, role);
             #endregion
 
             #region Assert
@@ -903,8 +903,8 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json1 = await controller.UserClientRoles(userId, clientId, role);
-            var json2 = await controller.UserClientRoles(userId, clientId, role, !expectedValue);
+            var json1 = await controller.UserClientRoleAssignment(userId, clientId, role);
+            var json2 = await controller.UserClientRoleAssignment(userId, clientId, role, !expectedValue);
             #endregion
 
             #region Assert
@@ -924,7 +924,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json = await controller.ContentSuspension(rootContentItemId);
+            var json = await controller.ContentSuspendedStatus(rootContentItemId);
             #endregion
 
             #region Assert
@@ -941,8 +941,8 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json1 = await controller.ContentSuspension(rootContentItemId);
-            var json2 = await controller.ContentSuspension(rootContentItemId, !expectedValue);
+            var json1 = await controller.ContentSuspendedStatus(rootContentItemId);
+            var json2 = await controller.ContentSuspendedStatus(rootContentItemId, !expectedValue);
             #endregion
 
             #region Assert
