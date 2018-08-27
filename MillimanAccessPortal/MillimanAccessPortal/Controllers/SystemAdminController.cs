@@ -509,6 +509,8 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
+            _auditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(user));
+
             var userSummary = (UserInfoViewModel)user;
 
             return Json(userSummary);
@@ -545,6 +547,8 @@ namespace MillimanAccessPortal.Controllers
             _dbContext.ProfitCenter.Add(profitCenter);
             _dbContext.SaveChanges();
 
+            _auditLogger.Log(AuditEventType.ProfitCenterCreated.ToEvent(profitCenter));
+
             return Json(profitCenter);
         }
 
@@ -575,44 +579,53 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The specified email address is invalid.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            if (_dbContext.Client.Find(clientId) == null)
+            var client = _dbContext.Client.Find(clientId);
+            if (client == null)
             {
                 Response.Headers.Add("Warning", "Client does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
-            // Find the user or create one if it doesn't exist
-            ApplicationUser user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
+            ApplicationUser user = null;
+            using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
-                IdentityResult createResult;
-                (createResult, user) = await _queries.CreateNewAccount(email, email);
+                // Find the user or create one if it doesn't exist
+                user = await _userManager.FindByEmailAsync(email);
+                if (user == null)
+                {
+                    // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
+                    IdentityResult createResult;
+                    (createResult, user) = await _queries.CreateNewAccount(email, email);
 
-                if (createResult.Succeeded && user != null)
-                {
-                    string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
-                    await _accountController.SendNewAccountWelcomeEmail(user, Url, welcomeText);
+                    if (createResult.Succeeded && user != null)
+                    {
+                        string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
+                        await _accountController.SendNewAccountWelcomeEmail(user, Url, welcomeText);
+                    }
+                    else
+                    {
+                        string errors = string.Join($", ", createResult.Errors.Select(e => e.Description));
+                        Response.Headers.Add("Warning", $"Error while creating user ({email}) in database: {errors}");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
                 }
-                else
+
+                // Add client membership claim for the user if it doesn't already exist
+                var clientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), clientId.ToString());
+                var existingClaimsForUser = await _userManager.GetClaimsAsync(user);
+                var matchingClaims = existingClaimsForUser
+                    .Where(claim => claim.Type == clientMembershipClaim.Type)
+                    .Where(claim => claim.Value == clientMembershipClaim.Value);
+                if (!matchingClaims.Any())
                 {
-                    string errors = string.Join($", ", createResult.Errors.Select(e => e.Description));
-                    Response.Headers.Add("Warning", $"Error while creating user ({email}) in database: {errors}");
-                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    await _userManager.AddClaimAsync(user, clientMembershipClaim);
                 }
+
+                transaction.Commit();
             }
 
-            // Add client membership claim for the user if it doesn't already exist
-            var clientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), clientId.ToString());
-            var existingClaimsForUser = await _userManager.GetClaimsAsync(user);
-            var matchingClaims = existingClaimsForUser
-                .Where(claim => claim.Type == clientMembershipClaim.Type)
-                .Where(claim => claim.Value == clientMembershipClaim.Value);
-            if (!matchingClaims.Any())
-            {
-                await _userManager.AddClaimAsync(user, clientMembershipClaim);
-            }
+            _auditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(client, user));
 
             return Json(user);
         }
@@ -644,50 +657,59 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The specified email address is invalid.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            if (_dbContext.ProfitCenter.Find(profitCenterId) == null)
+            var profitCenter = _dbContext.ProfitCenter.Find(profitCenterId);
+            if (profitCenter == null)
             {
                 Response.Headers.Add("Warning", "Profit center does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
-            // Find the user or create one if it doesn't exist
-            ApplicationUser user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
+            ApplicationUser user = null;
+            using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
-                IdentityResult createResult;
-                (createResult, user) = await _queries.CreateNewAccount(email, email);
+                // Find the user or create one if it doesn't exist
+                user = await _userManager.FindByEmailAsync(email);
+                if (user == null)
+                {
+                    // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
+                    IdentityResult createResult;
+                    (createResult, user) = await _queries.CreateNewAccount(email, email);
 
-                if (createResult.Succeeded && user != null)
-                {
-                    string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
-                    await _accountController.SendNewAccountWelcomeEmail(user, Url, welcomeText);
+                    if (createResult.Succeeded && user != null)
+                    {
+                        string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
+                        await _accountController.SendNewAccountWelcomeEmail(user, Url, welcomeText);
+                    }
+                    else
+                    {
+                        string errors = string.Join($", ", createResult.Errors.Select(e => e.Description));
+                        Response.Headers.Add("Warning", $"Error while creating user ({email}) in database: {errors}");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
                 }
-                else
+
+                var alreadyAdmin = _dbContext.UserRoleInProfitCenter
+                    .Where(r => r.User.Email == email)
+                    .Where(r => r.ProfitCenterId == profitCenterId)
+                    .Where(r => r.Role.RoleEnum == RoleEnum.Admin)
+                    .Any();
+
+                if (!alreadyAdmin)
                 {
-                    string errors = string.Join($", ", createResult.Errors.Select(e => e.Description));
-                    Response.Headers.Add("Warning", $"Error while creating user ({email}) in database: {errors}");
-                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    _dbContext.UserRoleInProfitCenter.Add(new UserRoleInProfitCenter
+                    {
+                        ProfitCenterId = profitCenterId,
+                        RoleId = (long)RoleEnum.Admin,
+                        UserId = user.Id,
+                    });
+                    _dbContext.SaveChanges();
                 }
+
+                transaction.Commit();
             }
 
-            var alreadyAdmin = _dbContext.UserRoleInProfitCenter
-                .Where(r => r.User.Email == email)
-                .Where(r => r.ProfitCenterId == profitCenterId)
-                .Where(r => r.Role.RoleEnum == RoleEnum.Admin)
-                .Any();
-
-            if (!alreadyAdmin)
-            {
-                _dbContext.UserRoleInProfitCenter.Add(new UserRoleInProfitCenter
-                {
-                    ProfitCenterId = profitCenterId,
-                    RoleId = (long)RoleEnum.Admin,
-                    UserId = user.Id,
-                });
-                _dbContext.SaveChanges();
-            }
+            _auditLogger.Log(AuditEventType.UserAssignedToProfitCenter.ToEvent(profitCenter, user));
 
             return Json(user);
         }

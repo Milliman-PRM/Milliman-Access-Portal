@@ -267,6 +267,25 @@ namespace AuditLogLib.Event
                 UserId = user.Id,
                 Role = role.ToString(),
             });
+        public static readonly AuditEventType<ProfitCenter> ProfitCenterCreated = new AuditEventType<ProfitCenter>(
+            7101, "Profit center created", (profitCenter) => new
+            {
+                ProfitCenter = profitCenter,
+            });
+        public static readonly AuditEventType<ProfitCenter, ApplicationUser> UserAssignedToProfitCenter = new AuditEventType<ProfitCenter, ApplicationUser>(
+            7102, "User assigned to profit center", (profitCenter, user) => new
+            {
+                ProfitCenterId = profitCenter.Id,
+                ProfitCenterName = profitCenter.Name,
+                UserId = user.Id,
+                UserName = user.UserName,
+            });
+        public static readonly AuditEventType<ProfitCenter, ApplicationUser> UserRemovedFromProfitCenter = new AuditEventType<ProfitCenter, ApplicationUser>(
+            7103, "User removed from profit center", (profitCenter, user) => new
+            {
+                ProfitCenterId = profitCenter.Id,
+                UserId = user.Id,
+            });
         #endregion
         #endregion
 
