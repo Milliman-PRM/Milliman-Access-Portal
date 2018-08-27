@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="100%" height="100%" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:1.41421;">
-    <g id="Line_Icons" transform="matrix(1.15789,0,0,1.15789,-1.89471,-2.47365)">
-        <path d="M5,20C5,21.103 5.897,22 7,22L17,22C18.103,22 19,21.103 19,20L19,8L5,8L5,20ZM7,10L17,10L17.001,20L7,20L7,10Z" style="fill:rgb(117,117,117);fill-rule:nonzero;"/>
-        <path d="M15,5L15,3L9,3L9,5L3,5L3,7L21,7L21,5L15,5Z" style="fill:rgb(117,117,117);fill-rule:nonzero;"/>
-        <rect x="9" y="12" width="2" height="6" style="fill:rgb(117,117,117);"/>
-        <rect x="13" y="12" width="2" height="6" style="fill:rgb(117,117,117);"/>
-    </g>
+    <path d="M20.105,6.789L20.105,20.684C20.105,21.961 19.067,23 17.789,23L6.211,23C4.933,23 3.895,21.961 3.895,20.684L3.895,6.789L20.105,6.789ZM17.791,20.684L17.789,9.105L6.211,9.105L6.211,20.684L17.791,20.684ZM15.474,11.421L15.474,18.368L13.158,18.368L13.158,11.421L15.474,11.421ZM10.842,11.421L10.842,18.368L8.526,18.368L8.526,11.421L10.842,11.421ZM15.474,1L15.474,3.316L22.421,3.316L22.421,5.632L1.579,5.632L1.579,3.316L8.526,3.316L8.526,1L15.474,1Z" style="fill:rgb(117,117,117);fill-rule:nonzero;"/>
 </svg>
