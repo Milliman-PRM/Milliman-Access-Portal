@@ -480,7 +480,7 @@ namespace MapTests
 
         #region root content item queries
         [Theory]
-        [InlineData( 1, 0)]
+        [InlineData(1, 0)]
         [InlineData(11, 1)]
         public async Task RootContentItems_Success_FilterUser(long userId, int expectedRootContentItems)
         {
@@ -790,6 +790,146 @@ namespace MapTests
             #region Assert
             Assert.IsType<JsonResult>(json);
             Assert.Equal(preCount, postCount);
+            #endregion
+        }
+        #endregion
+
+        #region update action tests
+        [Theory]
+        [InlineData(-1, "Name")]
+        public async Task UpdateProfitCenter_Invalid(long profitCenterId, string profitCenterName)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var profitCenter = new ProfitCenter
+            {
+                Id = profitCenterId,
+                Name = profitCenterName,
+                ProfitCenterCode = "PC",
+            };
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.ProfitCenter.Count();
+            var json = await controller.UpdateProfitCenter(profitCenter);
+            var postCount = _testResources.DbContextObject.ProfitCenter.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(json);
+            Assert.Equal(422, ((StatusCodeResult)json).StatusCode);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
+        [Fact]
+        public async Task UpdateProfitCenter_Success()
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var profitCenter = new ProfitCenter
+            {
+                Id = 1,
+                Name = "Name",
+                ProfitCenterCode = "PC",
+            };
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.ProfitCenter.Count();
+            var json = await controller.UpdateProfitCenter(profitCenter);
+            var postCount = _testResources.DbContextObject.ProfitCenter.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+        #endregion
+
+        #region Remove/delete action tests
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(1)]  // Cannot delete if there are referencing clients
+        public async Task DeleteProfitCenter_Invalid(long profitCenterId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.ProfitCenter.Count();
+            var json = await controller.DeleteProfitCenter(profitCenterId);
+            var postCount = _testResources.DbContextObject.ProfitCenter.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(json);
+            Assert.Equal(422, ((StatusCodeResult)json).StatusCode);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(2)]
+        public async Task DeleteProfitCenter_Success(long profitCenterId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.ProfitCenter.Count();
+            var json = await controller.DeleteProfitCenter(profitCenterId);
+            var postCount = _testResources.DbContextObject.ProfitCenter.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.Equal(preCount - 1, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(-1, 1)]
+        [InlineData(1, -1)]
+        public async Task RemoveUserFromProfitCenter_Invalid(long userId, long profitCenterId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
+            var json = await controller.RemoveUserFromProfitCenter(userId, profitCenterId);
+            var postCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(json);
+            Assert.Equal(422, ((StatusCodeResult)json).StatusCode);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(1, 1)]
+        public async Task RemoveUserFromProfitCenter_Success(long userId, long profitCenterId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
+            var json = await controller.RemoveUserFromProfitCenter(userId, profitCenterId);
+            var postCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.Equal(preCount - 1, postCount);
             #endregion
         }
         #endregion

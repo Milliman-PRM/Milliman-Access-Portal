@@ -715,6 +715,153 @@ namespace MillimanAccessPortal.Controllers
         }
         #endregion
 
+        #region Update actions
+        /// <summary>
+        /// Update a profit center
+        /// </summary>
+        /// <param name="profitCenter">Profit center to update</param>
+        /// <returns>Json</returns>
+        [HttpPost]
+        public async Task<ActionResult> UpdateProfitCenter(
+            [Bind("Id", "Name", "ProfitCenterCode", "MillimanOffice", "ContactName", "ContactEmail", "ContactPhone")] ProfitCenter profitCenter)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            if (!ModelState.IsValid)
+            {
+                Response.Headers.Add("Warning", ModelState.Values.First(v => v.Errors.Any()).Errors.ToString());
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            var existingRecord = _dbContext.ProfitCenter.Find(profitCenter.Id);
+            if (existingRecord == null)
+            {
+                Response.Headers.Add("Warning", "The specified profit center does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            existingRecord.Name = profitCenter.Name;
+            existingRecord.ProfitCenterCode = profitCenter.ProfitCenterCode;
+            existingRecord.MillimanOffice = profitCenter.MillimanOffice;
+            existingRecord.ContactName = profitCenter.ContactName;
+            existingRecord.ContactEmail = profitCenter.ContactEmail;
+            existingRecord.ContactPhone = profitCenter.ContactPhone;
+
+            _dbContext.Update(existingRecord);
+            _dbContext.SaveChanges();
+
+            _auditLogger.Log(AuditEventType.ProfitCenterUpdated.ToEvent(profitCenter));
+
+            return Json(existingRecord);
+        }
+        #endregion
+
+        #region Remove/delete actions
+        /// <summary>
+        /// Delete a profit center
+        /// </summary>
+        /// <param name="profitCenterId">Profit center to delete</param>
+        /// <returns>Json</returns>
+        [HttpPost]
+        public async Task<ActionResult> DeleteProfitCenter(long profitCenterId)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            var existingRecord = _dbContext.ProfitCenter.Find(profitCenterId);
+            if (existingRecord == null)
+            {
+                Response.Headers.Add("Warning", "The specified profit center does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            // The profit center should have no clients
+            if (_dbContext.Client.Where(c => c.ProfitCenterId == profitCenterId).Any())
+            {
+                Response.Headers.Add("Warning", "The specified profit center has clients - remove those first.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            _dbContext.ProfitCenter.Remove(existingRecord);
+            _dbContext.SaveChanges();
+
+            _auditLogger.Log(AuditEventType.ProfitCenterDeleted.ToEvent(existingRecord));
+
+            return Json(existingRecord);
+        }
+
+        /// <summary>
+        /// Remove a user from a profit center
+        /// </summary>
+        /// <param name="userId">User to remove</param>
+        /// <param name="profitCenterId">Profit center from which user is to be removed</param>
+        /// <returns>Json</returns>
+        [HttpPost]
+        public async Task<ActionResult> RemoveUserFromProfitCenter(long userId, long profitCenterId)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            var user = _dbContext.ApplicationUser.Find(userId);
+            if (user == null)
+            {
+                Response.Headers.Add("Warning", "The specified user does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            var profitCenter = _dbContext.ProfitCenter.Find(profitCenterId);
+            if (profitCenter == null)
+            {
+                Response.Headers.Add("Warning", "Profit center does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            var rolesToRemove = _dbContext.UserRoleInProfitCenter
+                .Where(r => r.User.Id == userId)
+                .Where(r => r.ProfitCenterId == profitCenterId)
+                .Where(r => r.Role.RoleEnum == RoleEnum.Admin)
+                .ToList();
+
+            foreach (var roleToRemove in rolesToRemove)
+            {
+                _dbContext.UserRoleInProfitCenter.Remove(roleToRemove);
+            }
+            _dbContext.SaveChanges();
+
+            _auditLogger.Log(AuditEventType.UserRemovedFromProfitCenter.ToEvent(profitCenter, user));
+
+            return Json(user);
+        }
+        #endregion
+
         #region Immediate toggle actions
         /// <summary>
         /// Get whether a user has a particular system role or not.
