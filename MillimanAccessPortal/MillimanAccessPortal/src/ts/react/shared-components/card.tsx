@@ -1,3 +1,8 @@
+import '../../../images/delete.svg';
+import '../../../images/email.svg';
+import '../../../images/expand-card.svg';
+import '../../../images/remove-circle.svg';
+
 import * as React from 'react';
 import { postData } from '../../shared';
 
@@ -32,6 +37,8 @@ export class Card extends React.Component<CardProps, CardState> {
     };
 
     this.sendPasswordReset = this.sendPasswordReset.bind(this);
+    this.deleteAsProfitCenter = this.deleteAsProfitCenter.bind(this);
+    this.removeAsUser = this.removeAsUser.bind(this);
     this.toggleExpansion = this.toggleExpansion.bind(this);
   }
 
@@ -50,7 +57,7 @@ export class Card extends React.Component<CardProps, CardState> {
           <h4 className="card-stat-value">{stat.value}</h4>
         </div>
       ));
-    const sideButtons = this.props.resetButton
+    const resetButton = this.props.resetButton
       ? (
         <div
           className="card-button-background card-button-blue"
@@ -59,6 +66,32 @@ export class Card extends React.Component<CardProps, CardState> {
         >
           <svg className="card-button-icon">
             <use xlinkHref="#email" />
+          </svg>
+        </div>
+      )
+      : null;
+    const deleteAsProfitCenterButton = this.props.isProfitCenter
+      ? (
+        <div
+          className="card-button-background card-button-red"
+          title="Delete profit center"
+          onClick={this.deleteAsProfitCenter}
+        >
+          <svg className="card-button-icon">
+            <use xlinkHref="#delete" />
+          </svg>
+        </div>
+      )
+      : null;
+    const removeAsUserButton = this.props.isUserInProfitCenter
+      ? (
+        <div
+          className="card-button-background card-button-red"
+          title="Remove from profit center"
+          onClick={this.removeAsUser}
+        >
+          <svg className="card-button-icon">
+            <use xlinkHref="#remove-circle" />
           </svg>
         </div>
       )
@@ -122,7 +155,9 @@ export class Card extends React.Component<CardProps, CardState> {
               {stats}
             </div>
             <div className="card-button-side-container">
-              {sideButtons}
+              {deleteAsProfitCenterButton}
+              {removeAsUserButton}
+              {resetButton}
             </div>
           </div>
           {expansion}
@@ -135,6 +170,30 @@ export class Card extends React.Component<CardProps, CardState> {
     event.stopPropagation();
     postData('Account/ForgotPassword', {
       Email: this.props.email,
+    })
+    .then(() => {
+      alert('Password reset email sent.');
+    });
+  }
+
+  private deleteAsProfitCenter(event: React.MouseEvent<HTMLDivElement>) {
+    event.stopPropagation();
+    postData('SystemAdmin/DeleteProfitCenter', {
+      profitCenterId: this.props.id,
+    })
+    .then(() => {
+      alert('Profit center deleted.');
+    });
+  }
+
+  private removeAsUser(event: React.MouseEvent<HTMLDivElement>) {
+    event.stopPropagation();
+    postData('SystemAdmin/RemoveUserFromProfitCenter', {
+      userId: this.props.id,
+      profitCenterId: this.props.isUserInProfitCenter,
+    })
+    .then(() => {
+      alert('User removed from profit center.');
     });
   }
 

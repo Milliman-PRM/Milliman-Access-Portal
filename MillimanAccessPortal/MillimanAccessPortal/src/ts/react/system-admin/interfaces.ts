@@ -28,6 +28,7 @@ export interface UserInfo {
   ClientCount?: number;
   RootContentItemCount?: number;
   RootContentItems?: RootContentItemInfo[];
+  ProfitCenterId: number;
 }
 export interface ClientInfo extends Nestable {
   Name: string;
