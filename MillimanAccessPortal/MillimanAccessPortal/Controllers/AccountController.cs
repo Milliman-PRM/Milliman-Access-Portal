@@ -36,7 +36,7 @@ namespace MillimanAccessPortal.Controllers
     {
         private readonly ApplicationDbContext DbContext;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<ApplicationRole> _roleManager
+        private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IMessageQueue _messageSender;
         private readonly ILogger _logger;
