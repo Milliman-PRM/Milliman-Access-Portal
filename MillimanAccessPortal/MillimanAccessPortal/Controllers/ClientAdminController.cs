@@ -448,7 +448,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // requested role must exist
-            ApplicationRole RequestedRole = RoleManager.FindByIdAsync(((long)AssignedRoleInfoArg.RoleEnum).ToString()).Result;
+            ApplicationRole RequestedRole = RoleManager.FindByIdAsync(ApplicationRole.RoleIds[AssignedRoleInfoArg.RoleEnum].ToString()).Result;
             if (RequestedRole == null)
             {
                 Response.Headers.Add("Warning", $"The requested role was not found");

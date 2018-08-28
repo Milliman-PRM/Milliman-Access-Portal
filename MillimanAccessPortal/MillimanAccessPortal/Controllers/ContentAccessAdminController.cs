@@ -582,7 +582,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="SelectionGroupId">The selection group whose selections are to be returned.</param>
         /// <returns>JsonResult</returns>
         [HttpGet]
-        public async Task<IActionResult> Selections(long SelectionGroupId)
+        public async Task<IActionResult> Selections(Guid SelectionGroupId)
         {
             SelectionGroup SelectionGroup = DbContext.SelectionGroup.Find(SelectionGroupId);
 

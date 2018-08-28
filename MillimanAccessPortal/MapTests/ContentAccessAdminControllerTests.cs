@@ -521,7 +521,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.Selections(SelectionGroupId);
+            var view = await controller.Selections(new Guid(SelectionGroupId,1,1,1,1,1,1,1,1,1,1));
             #endregion
 
             #region Assert
@@ -537,7 +537,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.Selections(1);
+            var view = await controller.Selections(new Guid(1,1,1,1,1,1,1,1,1,1,1));
             #endregion
 
             #region Assert

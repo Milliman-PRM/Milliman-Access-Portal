@@ -557,7 +557,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="clientId">Client of which the user is to become a member.</param>
         /// <returns>Json</returns>
         [HttpPost]
-        public async Task<ActionResult> AddUserToClient(string email, long clientId)
+        public async Task<ActionResult> AddUserToClient(string email, Guid clientId)
         {
             #region Authorization
             // User must have a global Admin role
