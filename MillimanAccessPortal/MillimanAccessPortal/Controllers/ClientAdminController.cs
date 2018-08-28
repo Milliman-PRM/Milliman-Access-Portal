@@ -496,6 +496,8 @@ namespace MillimanAccessPortal.Controllers
                             }
                         }
                     }
+                    DbContext.SaveChanges();
+                    AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(RequestedClient, RequestedUser, RequestedRole.RoleEnum));
                 }
             }
             else
@@ -515,8 +517,13 @@ namespace MillimanAccessPortal.Controllers
                     DbContext.UserRoleInRootContentItem.RemoveRange(existingRolesInRootContentItem);
                 }
                 DbContext.UserRoleInClient.RemoveRange(ExistingRecords);
+                DbContext.SaveChanges();
+
+                foreach (var existingRecord in ExistingRecords)
+                {
+                    AuditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(existingRecord));
+                }
             }
-            DbContext.SaveChanges();
             #endregion
 
             #region Build resulting model
@@ -661,9 +668,9 @@ namespace MillimanAccessPortal.Controllers
             #region Preliminary Validation
             if (!ModelState.IsValid)
             {
-                Response.Headers.Add("Warning", ModelState
-                    .Values.First(value => value.ValidationState == ModelValidationState.Invalid)
-                    .Errors.First().ErrorMessage);
+                var firstInvalidKey = ModelState
+                    .Keys.First(key => ModelState[key].ValidationState == ModelValidationState.Invalid);
+                Response.Headers.Add("Warning", $"{firstInvalidKey}: {ModelState[firstInvalidKey].Errors.First().ErrorMessage}");
                 return BadRequest();
             }
             if (Model.ParentClientId == Model.Id)
