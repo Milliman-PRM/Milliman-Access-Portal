@@ -42,7 +42,8 @@ namespace MapTests
                 TestResources.LoggerFactory,
                 TestResources.QueriesObj,
                 TestResources.UserManagerObject,
-                TestResources.ConfigurationObject
+                TestResources.ConfigurationObject,
+                TestResources.QvConfig
                 );
 
             try

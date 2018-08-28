@@ -290,7 +290,7 @@ namespace MillimanAccessPortal.Controllers
                             ? RequestedClient.NewUserWelcomeText
                             : ApplicationConfig["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
 
-                        _accountController.SendNewAccountWelcomeEmail(RequestedUser, Url, welcomeText);
+                        await _accountController.SendNewAccountWelcomeEmail(RequestedUser, Url, welcomeText);
                     }
                     else
                     {
@@ -496,6 +496,8 @@ namespace MillimanAccessPortal.Controllers
                             }
                         }
                     }
+                    DbContext.SaveChanges();
+                    AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(RequestedClient, RequestedUser, new List<RoleEnum> { RequestedRole.RoleEnum }));
                 }
             }
             else
@@ -515,8 +517,13 @@ namespace MillimanAccessPortal.Controllers
                     DbContext.UserRoleInRootContentItem.RemoveRange(existingRolesInRootContentItem);
                 }
                 DbContext.UserRoleInClient.RemoveRange(ExistingRecords);
+                DbContext.SaveChanges();
+
+                foreach (var existingRecord in ExistingRecords)
+                {
+                    AuditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(existingRecord.Client, existingRecord.User, new List<RoleEnum> { existingRecord.Role.RoleEnum }));
+                }
             }
-            DbContext.SaveChanges();
             #endregion
 
             #region Build resulting model
@@ -661,9 +668,9 @@ namespace MillimanAccessPortal.Controllers
             #region Preliminary Validation
             if (!ModelState.IsValid)
             {
-                Response.Headers.Add("Warning", ModelState
-                    .Values.First(value => value.ValidationState == ModelValidationState.Invalid)
-                    .Errors.First().ErrorMessage);
+                var firstInvalidKey = ModelState
+                    .Keys.First(key => ModelState[key].ValidationState == ModelValidationState.Invalid);
+                Response.Headers.Add("Warning", $"{firstInvalidKey}: {ModelState[firstInvalidKey].Errors.First().ErrorMessage}");
                 return BadRequest();
             }
             if (Model.ParentClientId == Model.Id)
@@ -783,7 +790,7 @@ namespace MillimanAccessPortal.Controllers
 
             // Log new client store and ClientAdministrator role authorization events
             AuditLogger.Log(AuditEventType.ClientCreated.ToEvent(Model));
-            AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(Model, CurrentApplicationUser, RoleEnum.Admin));
+            AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(Model, CurrentApplicationUser, new List<RoleEnum> { RoleEnum.Admin, RoleEnum.UserCreator }));
 
             ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(CurrentApplicationUser, UserManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
             ModelToReturn.RelevantClientId = Model.Id;

@@ -1,88 +1,112 @@
 ﻿import '../../../scss/react/authorized-content/authorized-content.scss';
 
-import { ajax } from 'jquery';
 import * as React from 'react';
 
+import { getData } from '../../shared';
+import { ContentContainer } from '../shared-components/content-container';
+import { NavBar } from '../shared-components/navbar';
 import { ContentCard } from './content-card';
 import { FilterBar } from './filter-bar';
-import { ContentContainer } from '../shared-components/content-container';
 import { ContentItem, ContentItemGroup, ContentItemGroupList, Filterable } from './interfaces';
 
 interface AuthorizedContentState extends ContentItemGroupList, Filterable { }
 export class AuthorizedContent extends React.Component<{}, AuthorizedContentState> {
+  private readonly currentView: string = document
+    .getElementsByTagName('body')[0].getAttribute('data-nav-location');
+
   public constructor(props) {
     super(props);
+
     this.state = {
       ItemGroups: [],
       selectedContentURL: null,
       filterString: '',
     };
+
+    this.setFilterString = this.setFilterString.bind(this);
   }
 
   public componentDidMount() {
-    const itemGroups = ajax({
-      method: 'GET',
-      url: 'AuthorizedContent/Content/',
-    }).done((response: ContentItemGroupList) => {
-      this.setState(response);
-    });
+    getData('AuthorizedContent/Content/')
+    .then((json: ContentItemGroupList) => this.setState(json));
     window.onpopstate = (e) => {
-      if (this.state.selectedContentURL) {
-        this.setState({ selectedContentURL: null });
+      if (window.history && window.history.pushState) {
+        const hashName = location.hash.split('#!/')[1];
+        if (hashName !== '' && window.location.hash === '') {
+          if (this.state.selectedContentURL) {
+            this.setState({ selectedContentURL: null }, () => {
+              const display = null;
+              document.getElementById('page-header').style.display = display;
+              document.getElementById('page-footer').style.display = display;
+              document.getElementById('authorized-content-container').style.display = display;
+            });
+          }
+        }
       }
-    }
+    };
   }
 
   public selectContentItem = (contentURL: string) => {
     this.setState({ selectedContentURL: contentURL }, () => {
-      let display = (this.state.selectedContentURL) ? 'none' : null;
+      const display = (this.state.selectedContentURL) ? 'none' : null;
       document.getElementById('page-header').style.display = display;
       document.getElementById('page-footer').style.display = display;
+      document.getElementById('authorized-content-container').style.display = display;
       if (!contentURL) {
         history.back();
       }
     });
   }
 
+  public setFilterString(filterString: string) {
+    this.setState({
+      filterString,
+    });
+  }
+
   public render() {
-    if (this.state.selectedContentURL) {
+    const clientGroups = this.filteredArray().map((client: ContentItemGroup, index: number) => {
+      const clientItems = client.Items.map((contentItem: ContentItem) => (
+        <ContentCard
+          key={contentItem.Id.toString()}
+          selectContent={this.selectContentItem}
+          {...contentItem}
+        />
+      ));
       return (
-        <ContentContainer
-          closeAction={this.selectContentItem}
-          contentURL={this.state.selectedContentURL} />
-      )
-    } else {
-      return (
-        <div id='authorized-content-container'>
-          <div id='authorized-content-header'>
-            <FilterBar onFilterStringChanged={(filterString) => this.setState({ filterString })} />
-          </div>
-          <div id='authorized-content-items'>
-            {
-              this.filteredArray().map((client: ContentItemGroup, index: number) => (
-                <div key={`client-${client.Id}`} className='client-content-container'>
-                  <h1 className='client-name'>{client.Name}</h1>
-                  {
-                    client.Items.map((contentItem: ContentItem) => (
-                      <ContentCard
-                        key={contentItem.Id.toString()}
-                        selectContent={this.selectContentItem}
-                        {...contentItem}
-                      />
-                    ))
-                  }
-                </div>
-              ))
-            }
-          </div>
+        <div key={`client-${client.Id}`} className="client-content-container">
+          <h1 className="client-name">{client.Name}</h1>
+          {clientItems}
         </div>
       );
-    }
+    });
+    const contentContainer = this.state.selectedContentURL
+      ? (
+        <ContentContainer
+          closeAction={this.selectContentItem}
+          contentURL={this.state.selectedContentURL}
+        />
+      )
+      : null;
+    return (
+      <React.Fragment>
+        <NavBar currentView={this.currentView} />
+        {contentContainer}
+        <div id="authorized-content-container">
+          <div id="authorized-content-header">
+            <FilterBar onFilterStringChanged={this.setFilterString} />
+          </div>
+          <div id="authorized-content-items">
+            {clientGroups}
+          </div>
+        </div>
+      </React.Fragment>
+    );
   }
 
   private filteredArray() {
     // Deep copy state
-    const groups = JSON.parse(JSON.stringify(this.state.ItemGroups));
+    const groups = JSON.parse(JSON.stringify(this.state.ItemGroups)) as ContentItemGroup[];
     return groups.map((itemGroup: ContentItemGroup) => {
       itemGroup.Items = itemGroup.Items.filter((item) =>
         [itemGroup.Name, item.Name, item.Description].filter((text) =>

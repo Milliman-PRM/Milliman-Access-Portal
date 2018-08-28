@@ -1,17 +1,19 @@
-﻿@inject Microsoft.ApplicationInsights.AspNetCore.JavaScriptSnippet JavaScriptSnippet
+﻿@inject Microsoft.ApplicationInsights.AspNetCore.JavaScriptSnippet JavaScriptSnippet  
+@{string Title = String.Format("{0}{1}Milliman Access Portal", ViewData["Title"], (ViewData["Title"].ToString().Length > 0) ? " - " : "");}
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - MillimanAccessPortal</title>
+    <title>@Title</title>
 
     @RenderSection("CSS", required: false)
 
     @Html.Raw(JavaScriptSnippet.FullScript)
     @RenderSection("Scripts", required: false)
 </head>
-<body>
+<body data-nav-location="@ViewData["NavIcon"]">
 
     @RenderBody()
 

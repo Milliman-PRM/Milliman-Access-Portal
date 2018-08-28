@@ -6,6 +6,7 @@ const SpriteLoaderPlugin = require('svg-sprite-loader/plugin');
 
 module.exports = {
   entry: {
+    'create-initial-user': './src/js/create-initial-user.js',
     'forgot-password': './src/js/forgot-password.js',
     'reset-password': './src/js/reset-password.js',
     'enable-account': './src/js/enable-account.js',
@@ -15,7 +16,7 @@ module.exports = {
     'content-publishing': './src/js/content-publishing/index.js',
     'authorized-content': './src/js/react/authorized-content/index.js',
     'login': './src/js/login.js',
-    'system-admin': './src/js/system-admin.js',
+    'system-admin': './src/js/react/system-admin/index.js',
   },
   module: {
     rules: [

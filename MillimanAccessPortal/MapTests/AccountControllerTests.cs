@@ -43,11 +43,13 @@ namespace MapTests
         {
             AccountController testController = new AccountController(TestResources.DbContextObject,
                 TestResources.UserManagerObject,
+                TestResources.RoleManagerObject,
                 null,  // SingInManager<ApplicationUser>
                 TestResources.MessageQueueServicesObject,
                 TestResources.LoggerFactory,
                 TestResources.AuditLoggerObject,
                 TestResources.QueriesObj,
+                TestResources.AuthorizationService,
                 TestResources.ConfigurationObject);
 
             // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist

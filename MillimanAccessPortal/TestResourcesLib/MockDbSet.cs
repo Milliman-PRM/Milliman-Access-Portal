@@ -36,7 +36,13 @@ namespace TestResourcesLib
                 // Iterate over collection to find Index of item that matches input
                 foreach (T item in Data)
                 {
-                    if (GetIdValue(item) == GetIdValue(s))
+                    // If ID doesn't exist, it is likely an Identity entity and has .Equals implemented
+                    if (GetIdValue(s) == null && s.Equals(item))
+                    {
+                        foundIndex = Data.IndexOf(item);
+                        break;
+                    }
+                    else if (GetIdValue(item) == GetIdValue(s))
                     {
                         foundIndex = Data.IndexOf(item);
                         break;
@@ -67,9 +73,11 @@ namespace TestResourcesLib
         {
             Type TType = TargetedItem.GetType();
 
-            PropertyInfo IdPropertyInfo = TType.GetMembers().OfType<PropertyInfo>().Single(m => m.Name == "Id");
+            PropertyInfo IdPropertyInfo = TType.GetMembers().OfType<PropertyInfo>().SingleOrDefault(m => m.Name == "Id");
 
-            return IdPropertyInfo.GetValue(TargetedItem).ToString();
+            return IdPropertyInfo == default(PropertyInfo)
+                ? null
+                : IdPropertyInfo.GetValue(TargetedItem).ToString();
         }
 
         public static string GetPkValue(object TargetedItem)

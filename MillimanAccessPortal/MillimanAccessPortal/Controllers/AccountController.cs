@@ -26,6 +26,7 @@ using MillimanAccessPortal.Services;
 using AuditLogLib;
 using AuditLogLib.Services;
 using AuditLogLib.Event;
+using MillimanAccessPortal.Authorization;
 using Microsoft.Extensions.Configuration;
 
 namespace MillimanAccessPortal.Controllers
@@ -35,30 +36,36 @@ namespace MillimanAccessPortal.Controllers
     {
         private readonly ApplicationDbContext DbContext;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IMessageQueue _messageSender;
         private readonly ILogger _logger;
         private readonly IAuditLogger _auditLogger;
         private readonly StandardQueries Queries;
+        private readonly IAuthorizationService AuthorizationService;
         private readonly IConfiguration _configuration;
 
         public AccountController(
             ApplicationDbContext ContextArg,
             UserManager<ApplicationUser> userManager,
+            RoleManager<ApplicationRole> roleManager,
             SignInManager<ApplicationUser> signInManager,
             IMessageQueue messageSender,
             ILoggerFactory loggerFactory,
             IAuditLogger AuditLoggerArg,
             StandardQueries QueriesArg,
+            IAuthorizationService AuthorizationServiceArg,
             IConfiguration ConfigArg)
         {
             DbContext = ContextArg;
             _userManager = userManager;
+            _roleManager = roleManager;
             _signInManager = signInManager;
             _messageSender = messageSender;
             _logger = loggerFactory.CreateLogger<AccountController>();
             _auditLogger = AuditLoggerArg;
             Queries = QueriesArg;
+            AuthorizationService = AuthorizationServiceArg;
             _configuration = ConfigArg;
         }
 
@@ -90,6 +97,14 @@ namespace MillimanAccessPortal.Controllers
             {
                 var user = await _userManager.FindByNameAsync(model.Username);
 
+                if (user == null || user.IsSuspended)
+                {
+                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    _logger.LogWarning(2, "User login failed.");
+                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(), model.Username);
+                    return View(model);
+                }
+                
                 // Only notify of password expiration if the correct password was provided
                 // Redirect user to the password reset view to set a new password
                 bool passwordSuccess = await _userManager.CheckPasswordAsync(user, model.Password);
@@ -107,12 +122,12 @@ namespace MillimanAccessPortal.Controllers
                     _logger.LogWarning($"PasswordExpirationDays value not found or cannot be cast to an integer. The default value of { expirationDays } will be used.");
                 }
                                 
-                if (user.LastPasswordChangeDateTimeUtc.AddDays(expirationDays) < DateTime.UtcNow && passwordSuccess)
+                if (passwordSuccess && user.LastPasswordChangeDateTimeUtc.AddDays(expirationDays) < DateTime.UtcNow)
                 {
                     ModelState.AddModelError(string.Empty, "Password Has Expired.");
                     return View("ResetPassword");
                 }
-                
+
                 var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
@@ -166,36 +181,58 @@ namespace MillimanAccessPortal.Controllers
         }
 
         //
-        // GET: /Account/Register
+        // GET: /Account/CreateInitialUser
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Register(string returnUrl = null)
+        public IActionResult CreateInitialUser(string returnUrl = null)
         {
+            // If any users exist, return 404. We don't want to even hint that this URL is valid.
+            if (_userManager.Users.Any())
+            {
+                return NotFound();
+            }
+
             ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
 
         //
-        // POST: /Account/Register
+        // POST: /Account/CreateInitialUser
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterViewModel model, string returnUrl = null)
+        public async Task<IActionResult> CreateInitialUser(CreateInitialUserViewModel model, string returnUrl = null)
         {
+            // If any users exist, return 404. We don't want to even hint that this URL is valid.
+            if (_userManager.Users.Any())
+            {
+                return NotFound();
+            }
+
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
                 var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
-                var result = await _userManager.CreateAsync(user, model.Password);
+                var result = await _userManager.CreateAsync(user);
                 if (result.Succeeded)
                 {
-                    // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=532713
-                    // Send an email with this link
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var callbackUrl = Url.Action(nameof(EnableAccount), "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
-                    _messageSender.QueueEmail(model.Email, "Confirm your account",
-                        $"Please confirm your account by clicking this link: <a href='{callbackUrl}'>link</a>");
+                    _auditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(user));
+
+                    // Grant the System Admin role
+                    ApplicationRole adminRole = await _roleManager.FindByNameAsync(RoleEnum.Admin.ToString());
+                    var roleGrantResult = await _userManager.AddToRoleAsync(user, adminRole.Name);
+
+                    if (roleGrantResult == IdentityResult.Success)
+                    {
+                        _auditLogger.Log(AuditEventType.SystemRoleAssigned.ToEvent(user, RoleEnum.Admin ));
+                    }
+
                     _logger.LogInformation(3, "User created a new account with password.");
+
+                    // Send the confirmation message
+                    string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
+                    await SendNewAccountWelcomeEmail(user, Url, welcomeText);
+
                     return RedirectToLocal(returnUrl);
                 }
                 AddErrors(result);
@@ -221,7 +258,7 @@ namespace MillimanAccessPortal.Controllers
             Response.Cookies.Delete(".AspNetCore.Session");
             HttpContext.Session.Clear();
 
-            return RedirectToAction(nameof(AccountController.Login), "Account");
+            return Ok();
         }
 
         //
@@ -314,7 +351,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [NonAction]
-        public async void SendNewAccountWelcomeEmail(ApplicationUser RequestedUser, IUrlHelper Url, string SettableEmailText = null)
+        public async Task SendNewAccountWelcomeEmail(ApplicationUser RequestedUser, IUrlHelper Url, string SettableEmailText = null)
         {
             var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(RequestedUser);
             var callbackUrl = Url.Action(nameof(AccountController.EnableAccount), "Account", new { userId = RequestedUser.Id, code = emailConfirmationToken }, protocol: "https");
@@ -525,6 +562,95 @@ namespace MillimanAccessPortal.Controllers
         public IActionResult ResetPasswordConfirmation()
         {
             return View();
+        }
+
+        //
+        // GET: /Account/NavBar
+        [HttpGet]
+        [Authorize]
+        public async Task<JsonResult> NavBarElements() {
+
+            List<NavBarElementModel> NavBarElements = new List<NavBarElementModel> { };
+            long order = 1;
+
+            // Add the Authorized Content Element
+            NavBarElements.Add(new NavBarElementModel
+            {
+                Order = order++,
+                Label = "Authorized Content",
+                URL = nameof(AuthorizedContentController).Replace("Controller", ""),
+                View = "AuthorizedContent",
+                Icon = "content-grid",
+            });
+
+            // Conditionally add the System Admin Element
+            AuthorizationResult SystemAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+            if (SystemAdminResult.Succeeded)
+            {
+                NavBarElements.Add(new NavBarElementModel
+                {
+                    Order = order++,
+                    Label = "System Admin",
+                    URL = nameof(SystemAdminController).Replace("Controller", ""),
+                    View = "SystemAdmin",
+                    Icon = "system-admin",
+                });
+            }
+
+            // Conditionally add the Client Admin Element
+            AuthorizationResult ClientAdminResult1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, null));
+            AuthorizationResult ClientAdminResult2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin, null));
+            if (ClientAdminResult1.Succeeded || ClientAdminResult2.Succeeded)
+            {
+                NavBarElements.Add(new NavBarElementModel
+                {
+                    Order = order++,
+                    Label = "Manage Clients",
+                    URL = nameof(ClientAdminController).Replace("Controller", ""),
+                    View = "ClientAdmin",
+                    Icon = "client-admin",
+                });
+            }
+
+            // Conditionally add the Content Access Element
+            AuthorizationResult ContentAccessResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
+            if (ContentAccessResult.Succeeded)
+            {
+                NavBarElements.Add(new NavBarElementModel
+                {
+                    Order = order++,
+                    Label = "Manage Access",
+                    URL = nameof(ContentAccessAdminController).Replace("Controller", ""),
+                    View = "ContentAccessAdmin",
+                    Icon = "content-access",
+                });
+            }
+
+            // Conditionally add the Content Publishing Element
+            AuthorizationResult ContentPublishResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, null));
+            if (ContentPublishResult.Succeeded)
+            {
+                NavBarElements.Add(new NavBarElementModel
+                {
+                    Order = order++,
+                    Label = "Publish Content",
+                    URL = nameof(ContentPublishingController).Replace("Controller", ""),
+                    View = "ContentPublishing",
+                    Icon = "content-publishing",
+                });
+            }
+
+            // Add the Account Settings Element
+            NavBarElements.Add(new NavBarElementModel
+            {
+                Order = order++,
+                Label = "Account Settings",
+                URL = nameof(AccountController).Replace("Controller", "/Settings"),
+                View = "AccountSettings",
+                Icon = "user-settings",
+            });
+
+            return Json(NavBarElements);
         }
 
         //

@@ -1,9 +1,18 @@
-import { Dictionary } from 'lodash';
+import '../images/add.svg';
+import '../images/cancel.svg';
+import '../images/collapse-cards.svg';
+import '../images/edit.svg';
+import '../images/expand-cards.svg';
+import '../images/map-logo.svg';
+
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
 
 import { FormBase } from './form/form-base';
 import { AccessMode } from './form/form-modes';
 import { SubmissionGroup } from './form/form-submission';
 import { globalSettings } from './lib-options';
+import { NavBar } from './react/shared-components/navbar';
 
 import $ = require('jquery');
 import toastr = require('toastr');
@@ -17,27 +26,23 @@ require('jquery-validation-unobtrusive');
 require('selectize');
 require('tooltipster');
 require('vex-js');
-require('./navbar');
 
-require('bootstrap/scss/bootstrap-reboot.scss');
 require('selectize/src/less/selectize.default.less');
 require('toastr/toastr.scss');
 require('tooltipster/src/css/tooltipster.css');
 require('tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css');
 require('../scss/map.scss');
 
-import '../images/map-logo.svg';
-import '../images/add.svg';
-import '../images/expand-cards.svg';
-import '../images/collapse-cards.svg';
-import '../images/edit.svg';
-import '../images/cancel.svg';
-
 const ajaxStatus: any = {};
 const SHOW_DURATION = 50;
 let eligibleUsers;
 let formObject: FormBase;
 let defaultWelcomeText: string;
+
+document.addEventListener('DOMContentLoaded', (event) => {
+  const view = document.getElementsByTagName('body')[0].getAttribute('data-nav-location');
+  ReactDOM.render(<NavBar currentView={view} />, document.getElementById('navbar'));
+});
 
 function domainRegex() {
   return new RegExp(globalSettings.domainValidationRegex);
@@ -227,16 +232,20 @@ function userCardRoleToggleClickHandler(event) {
   const $clickedInput = $(event.target);
   event.preventDefault();
 
+  if ($clickedInput.data().disabled) {
+    return;
+  }
+
   setUserRole(
     $clickedInput.closest('.card-container').attr('data-client-id'),
     $clickedInput.closest('.card-container').attr('data-user-id'),
     $clickedInput.attr('data-role-enum'),
     $clickedInput.prop('checked'),
     function onDone() {
-      $('#client-users ul.admin-panel-content .toggle-switch-checkbox').removeAttr('disabled');
+      $clickedInput.data('disabled', false);
     },
   );
-  $('#client-users ul.admin-panel-content .toggle-switch-checkbox').attr('disabled', '');
+  $clickedInput.data('disabled', true);
 }
 
 function renderUserNode(client, user) {

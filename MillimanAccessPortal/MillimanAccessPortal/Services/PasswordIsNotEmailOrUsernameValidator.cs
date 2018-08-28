@@ -14,7 +14,7 @@ namespace MillimanAccessPortal.Services
         {
             string upperPassword = password.ToUpper();
             
-            // This case covers the user's initial password - May only be used by ~/Account/Register
+            // This case covers the user's initial password - May only be used by ~/Account/CreateInitialUser
             if (string.IsNullOrWhiteSpace(user.NormalizedEmail) || string.IsNullOrWhiteSpace(user.NormalizedUserName))
             {
                 if (upperPassword.Contains(user.Email.ToUpper()))

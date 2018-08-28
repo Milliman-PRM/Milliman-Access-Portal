@@ -1,0 +1,39 @@
+﻿@model CreateInitialUserViewModel
+@{
+    ViewData["Title"] = "";
+    Layout = "_Layout_w_H_F";
+}
+
+@section Scripts {
+    <script src="~/js/create-initial-user.bundle.js"></script>
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}
+
+<div id="create-initial-user-container">
+    <div id="create-initial-user" class="admin-panel-container flex-item-for-phone-only-12-12 flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-4-12">
+        <div class="admin-panel-content-container">
+            <form asp-controller="Account" asp-action="CreateInitialUser" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="form-horizontal">
+                <div class="form-section-container">
+                    <div class="form-section">
+                        <h4 class="form-section-title">Create a new account</h4>
+                        <div asp-validation-summary="All" class="text-danger"></div>
+                        <div class="form-input-container">
+                            <div class="form-input form-input-text flex-item-12-12">
+                                <label asp-for="Email" class="form-input-text-title"></label>
+                                <div class="col-md-10">
+                                    <input asp-for="Email" class="form-control" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-submission-section">
+                        <div class="button-container button-container-update">
+                            <button type="submit" class="button-submit blue-button">Create User</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

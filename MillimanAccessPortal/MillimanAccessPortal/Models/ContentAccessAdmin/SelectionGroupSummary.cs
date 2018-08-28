@@ -20,6 +20,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
         public List<UserInfoViewModel> MemberList { get; set; } = new List<UserInfoViewModel>();
         public ReductionSummary ReductionDetails { get; set; }
         public string RootContentItemName { get; set; }
+        public bool IsSuspended { get; set; }
 
         internal static SelectionGroupSummary Build(ApplicationDbContext dbContext, SelectionGroup selectionGroup)
         {
@@ -41,6 +42,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
                 Name = selectionGroup.GroupName,
                 ReductionDetails = reductionDetails,
                 RootContentItemName = selectionGroup.RootContentItem.ContentName,
+                IsSuspended = selectionGroup.IsSuspended,
             };
 
             // Retrieve users that are members of the specified selection group

@@ -20,6 +20,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public string ContentName { get; set; }
         public string ContentTypeName { get; set; }
         public int GroupCount { get; set; }
+        public bool IsSuspended { get; set; }
         public List<UserInfoViewModel> EligibleUserList = new List<UserInfoViewModel>();
         public PublicationSummary PublicationDetails { get; set; }
 
@@ -45,6 +46,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 GroupCount = dbContext.SelectionGroup
                     .Where(sg => sg.RootContentItemId == rootContentItem.Id)
                     .Count(),
+                IsSuspended = rootContentItem.IsSuspended,
                 PublicationDetails = publicationDetails,
             };
 

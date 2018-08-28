@@ -59,15 +59,21 @@
             color: $dark-grey !important;
             background-color: darken($light-grey, 5%) !important;
 
-            &[selected] {
+            &[selected],
+            &.selected {
                 border-color: $blue;
                 box-shadow: 0 0 0 3px $blue;
             }
         }
 
-        &[selected] {
+        &[selected],
+        &.selected {
             color: $white;
             background-color: $blue;
+        }
+
+        &.suspended {
+            border-color: $red;
         }
 
         .card-body-main-container {
@@ -81,7 +87,7 @@
             align-items: stretch;
             align-content: stretch;
             display: flex;
-            min-height: 4.2em;
+            min-height: 5em;
 
             &.full-width {
                 flex: 1 0 auto;
@@ -355,7 +361,8 @@
             transition: .25s all linear;
             cursor: default;
 
-            &[maximized] {
+            &[maximized],
+            &.maximized {
                 max-height: 15.5em;
                 overflow: visible;
                 transition: .25s all linear;
