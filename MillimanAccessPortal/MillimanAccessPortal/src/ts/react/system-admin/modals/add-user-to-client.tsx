@@ -6,7 +6,7 @@ import * as Modal from 'react-modal';
 import { postData } from '../../../shared';
 
 export interface AddUserToClientModalProps extends Modal.Props {
-  clientId: number;
+  clientId: string;
 }
 
 interface AddUserToClientModalState {

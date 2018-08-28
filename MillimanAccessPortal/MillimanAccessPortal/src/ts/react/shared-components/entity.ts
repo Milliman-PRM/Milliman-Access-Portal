@@ -7,7 +7,7 @@ export interface CardStat {
 }
 
 export interface Entity {
-  id: number;
+  id: string;
   primaryText: string;
   secondaryText?: string;
   primaryStat?: CardStat;

@@ -6,7 +6,7 @@ import * as Modal from 'react-modal';
 import { postData } from '../../../shared';
 
 export interface AddUserToProfitCenterModalProps extends Modal.Props {
-  profitCenterId: number;
+  profitCenterId: string;
 }
 
 interface AddUserToProfitCenterModalState {

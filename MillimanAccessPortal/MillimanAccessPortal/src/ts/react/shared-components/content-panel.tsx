@@ -21,8 +21,8 @@ export interface ContentPanelProps {
   dataSources: Array<DataSource<Entity>>;
   setSelectedDataSource: (sourceName: string) => void;
   selectedDataSource: DataSource<Entity>;
-  setSelectedCard: (cardId: number) => void;
-  selectedCard: number;
+  setSelectedCard: (cardId: string) => void;
+  selectedCard: string;
   queryFilter: QueryFilter;
 }
 interface ContentPanelState {

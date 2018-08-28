@@ -117,7 +117,7 @@ export function openNewRootContentItemForm() {
     ContentTypeId: '0',
     Description: '',
     DoesReduce: false,
-    Id: 0,
+    Id: '0',
     Notes: '',
     RelatedFiles: [],
     IsSuspended: false,
@@ -166,7 +166,7 @@ function mapRootContentItemDetail(item: RootContentItemDetail) {
   return formMap;
 }
 
-function addToDocumentCount(clientId: number, offset: number) {
+function addToDocumentCount(clientId: string, offset: number) {
   const itemCount = $('#client-tree .card-container')
     .filter((_, card) => $(card).data().clientId === clientId)
     .find('use[href="#reports"]').closest('div').find('h4');
@@ -360,7 +360,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
             };
           })
           .filter((file) => file.FileUploadId),
-        RootContentItemId: parseInt(dataArray.Id, 10),
+        RootContentItemId: dataArray.Id,
       };
       return publishRequest;
     },
@@ -434,13 +434,13 @@ function renderRootContentItem(item: RootContentItemSummary) {
   $rootContentItemCard.data('statusEnum', item.PublicationDetails && item.PublicationDetails.StatusEnum);
   $('#root-content-items ul.admin-panel-content').append($rootContentItemCard);
 }
-function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: number) {
+function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: string) {
   const $rootContentItemList = $('#root-content-items ul.admin-panel-content');
   $rootContentItemList.empty();
   response.SummaryList.forEach(renderRootContentItem);
   $rootContentItemList.find('.tooltip').tooltipster();
 
-  if (!isNaN(rootContentItemId)) {
+  if (rootContentItemId !== null) {
     $(`[data-root-content-item-id=${rootContentItemId}]`).click();
   }
 }
@@ -464,7 +464,7 @@ function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
     renderClientNode(childNode, level + 1);
   });
 }
-function renderClientTree(response: ClientTree, clientId?: number) {
+function renderClientTree(response: ClientTree, clientId?: string) {
   const $clientTreeList = $('#client-tree ul.admin-panel-content');
   $clientTreeList.empty();
   response.Root.Children.forEach((rootClient) => {
@@ -474,7 +474,7 @@ function renderClientTree(response: ClientTree, clientId?: number) {
   $clientTreeList.find('.hr').last().remove();
   $clientTreeList.find('.tooltip').tooltipster();
 
-  if (!isNaN(clientId)) {
+  if (clientId !== null) {
     $(`[data-client-id=${clientId}]`).click();
   }
 }

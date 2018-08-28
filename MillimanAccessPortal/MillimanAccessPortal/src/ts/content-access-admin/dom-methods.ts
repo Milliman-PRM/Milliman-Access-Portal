@@ -311,13 +311,13 @@ function renderRootContentItem(item: RootContentItemSummary) {
   updateCardStatus($rootContentItemCard, item.PublicationDetails);
   $('#root-content-items ul.admin-panel-content').append($rootContentItemCard);
 }
-function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: number) {
+function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: string) {
   const $rootContentItemList = $('#root-content-items ul.admin-panel-content');
   $rootContentItemList.empty();
   response.SummaryList.forEach(renderRootContentItem);
   $rootContentItemList.find('.tooltip').tooltipster();
 
-  if (!isNaN(rootContentItemId)) {
+  if (rootContentItemId !== null) {
     $(`[data-root-content-item-id=${rootContentItemId}]`).click();
   }
 }
@@ -341,7 +341,7 @@ function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
     renderClientNode(childNode, level + 1);
   });
 }
-function renderClientTree(response: ClientTree, clientId?: number) {
+function renderClientTree(response: ClientTree, clientId?: string) {
   const $clientTreeList = $('#client-tree ul.admin-panel-content');
   $clientTreeList.empty();
   response.Root.Children.forEach((rootClient) => {
@@ -351,7 +351,7 @@ function renderClientTree(response: ClientTree, clientId?: number) {
   $clientTreeList.find('.hr').last().remove();
   $clientTreeList.find('.tooltip').tooltipster();
 
-  if (!isNaN(clientId)) {
+  if (clientId !== null) {
     $(`[data-client-id=${clientId}]`).click();
   }
 }
