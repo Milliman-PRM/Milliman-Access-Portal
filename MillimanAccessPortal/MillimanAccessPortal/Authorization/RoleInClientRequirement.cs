@@ -22,7 +22,7 @@ namespace MillimanAccessPortal.Authorization
         /// Constructor; the only way to instantiate this type
         /// </summary>
         /// <param name="RoleEnumArg"></param>
-        /// <param name="ClientIdArg">null or &lt;= 0 to evaluate for ANY Client</param>
+        /// <param name="ClientIdArg">null to evaluate for ANY Client</param>
         public RoleInClientRequirement(RoleEnum RoleEnumArg, Guid? ClientIdArg)
         {
             ClientId = ClientIdArg.HasValue ? ClientIdArg.Value : Guid.Empty;

@@ -42,7 +42,7 @@ namespace TestResourcesLib
             ReturnMockContext.Object.UserClaims = MockDbSet<IdentityUserClaim<Guid>>.New(new List<IdentityUserClaim<Guid>>()).Object;
             ReturnMockContext.Object.Users = ReturnMockContext.Object.ApplicationUser;
             ReturnMockContext.Object.Roles = ReturnMockContext.Object.ApplicationRole;
-            ReturnMockContext.Object.FileUpload = MockDbSet<FileUpload>.New(new List<FileUpload>()).Object; ;
+            ReturnMockContext.Object.FileUpload = MockDbSet<FileUpload>.New(new List<FileUpload>()).Object;
             
             List<ContentPublicationRequest> ContentPublicationRequestData = new List<ContentPublicationRequest>();
             Mock<DbSet<ContentPublicationRequest>> MockContentPublicationRequest = MockDbSet<ContentPublicationRequest>.New(ContentPublicationRequestData);
@@ -142,15 +142,23 @@ namespace TestResourcesLib
             return ReturnMockContext;
         }
 
+        static object LockObject = new object();
         private static List<ApplicationRole> GetSystemRolesList()
         {
-            List<ApplicationRole> ReturnList = new List<ApplicationRole>();
-
-            foreach (RoleEnum Role in Enum.GetValues(typeof(RoleEnum)))
+            lock(LockObject)
             {
-                ReturnList.Add(new ApplicationRole { Id = new Guid((int)Role,1,1,1,1,1,1,1,1,1,1), RoleEnum = Role, Name = Role.ToString(), NormalizedName = Role.ToString().ToUpper() });
+                List<ApplicationRole> ReturnList = new List<ApplicationRole>();
+                ApplicationRole.RoleIds = new Dictionary<RoleEnum, Guid>();
+
+                foreach (RoleEnum Role in Enum.GetValues(typeof(RoleEnum)))
+                {
+                    ApplicationRole NewRole = new ApplicationRole { Id = new Guid((int)Role,1,1,1,1,1,1,1,1,1,1), RoleEnum = Role, Name = Role.ToString(), NormalizedName = Role.ToString().ToUpper(), DisplayName = ApplicationRole.RoleDisplayNames[Role] };
+
+                    ReturnList.Add(NewRole);
+                    ApplicationRole.RoleIds.Add(Role, NewRole.Id);
+                }
+                return ReturnList;
             }
-            return ReturnList;
         }
     }
 }

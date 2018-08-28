@@ -670,7 +670,7 @@ namespace MapTests
         [Theory]
         [InlineData("invalid_email_address", 1)]
         [InlineData("sysUser1@site.domain", 99)]
-        public async Task AddUserToClient_Invalid(string email, long clientId)
+        public async Task AddUserToClient_Invalid(string email, int clientId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
@@ -678,7 +678,7 @@ namespace MapTests
 
             #region Act
             var preCount = _testResources.DbContextObject.UserClaims.Count();
-            var json = await controller.AddUserToClient(email, clientId);
+            var json = await controller.AddUserToClient(email, new Guid(clientId,1,1,1,1,1,1,1,1,1,1));
             var postCount = _testResources.DbContextObject.UserClaims.Count();
             #endregion
 
@@ -692,7 +692,7 @@ namespace MapTests
         [Theory]
         [InlineData("sysUser2@site.domain", 1)]
         // [InlineData("sysUser3@site.domain", 1)]  // Disabled until mail sender is testable.
-        public async Task AddUserToClient_Success(string email, long clientId)
+        public async Task AddUserToClient_Success(string email, int clientId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
@@ -700,7 +700,7 @@ namespace MapTests
 
             #region Act
             var preCount = _testResources.DbContextObject.UserClaims.Count();
-            var json = await controller.AddUserToClient(email, clientId);
+            var json = await controller.AddUserToClient(email, new Guid(clientId,1,1,1,1,1,1,1,1,1,1));
             var postCount = _testResources.DbContextObject.UserClaims.Count();
             #endregion
 
@@ -712,7 +712,7 @@ namespace MapTests
 
         [Theory]
         [InlineData("sysUser1@site.domain", 1)]
-        public async Task AddUserToClient_NoOp(string email, long clientId)
+        public async Task AddUserToClient_NoOp(string email, int clientId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
@@ -720,7 +720,7 @@ namespace MapTests
 
             #region Act
             var preCount = _testResources.DbContextObject.UserClaims.Count();
-            var json = await controller.AddUserToClient(email, clientId);
+            var json = await controller.AddUserToClient(email, new Guid(clientId,1,1,1,1,1,1,1,1,1,1));
             var postCount = _testResources.DbContextObject.UserClaims.Count();
             #endregion
 

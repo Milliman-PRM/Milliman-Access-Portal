@@ -332,6 +332,7 @@ namespace MapTests
         }
 
         [Theory]
+        [InlineData(-5, "ClientAdmin1")]  // client doesn't exist
         [InlineData(1, "test2")]
         [InlineData(2, "ClientAdmin1")]
         public async Task SetUserRoleInClient_ErrorWhenUnauthorized(int clientId, string userName)
@@ -363,7 +364,6 @@ namespace MapTests
         }
 
         [Theory]
-        [InlineData(0, 1)]
         [InlineData(1, 0)]
         [InlineData(1, 2)]
         public async Task SetUserRoleInClient_ErrorWhenInvalid(int clientId, int userId)
