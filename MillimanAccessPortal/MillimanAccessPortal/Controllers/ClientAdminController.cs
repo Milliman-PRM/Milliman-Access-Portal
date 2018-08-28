@@ -496,6 +496,8 @@ namespace MillimanAccessPortal.Controllers
                             }
                         }
                     }
+                    DbContext.SaveChanges();
+                    AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(RequestedClient, RequestedUser, RequestedRole.RoleEnum));
                 }
             }
             else
@@ -515,8 +517,13 @@ namespace MillimanAccessPortal.Controllers
                     DbContext.UserRoleInRootContentItem.RemoveRange(existingRolesInRootContentItem);
                 }
                 DbContext.UserRoleInClient.RemoveRange(ExistingRecords);
+                DbContext.SaveChanges();
+
+                foreach (var existingRecord in ExistingRecords)
+                {
+                    AuditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(existingRecord));
+                }
             }
-            DbContext.SaveChanges();
             #endregion
 
             #region Build resulting model
