@@ -227,13 +227,12 @@ namespace MillimanAccessPortal.Controllers
                         _auditLogger.Log(AuditEventType.SystemRoleAssigned.ToEvent(user, RoleEnum.Admin ));
                     }
 
-                    // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=532713
-                    // Send an email with this link
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var callbackUrl = Url.Action(nameof(EnableAccount), "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
-                    _messageSender.QueueEmail(model.Email, "Confirm your account",
-                        $"Please confirm your account by clicking this link: <a href='{callbackUrl}'>link</a>");
                     _logger.LogInformation(3, "User created a new account with password.");
+
+                    // Send the confirmation message
+                    string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
+                    await SendNewAccountWelcomeEmail(user, Url, welcomeText);
+
                     return RedirectToLocal(returnUrl);
                 }
                 AddErrors(result);
