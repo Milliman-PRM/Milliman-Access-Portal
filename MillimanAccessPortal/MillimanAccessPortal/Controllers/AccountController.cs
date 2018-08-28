@@ -186,7 +186,7 @@ namespace MillimanAccessPortal.Controllers
         [AllowAnonymous]
         public IActionResult CreateInitialUser(string returnUrl = null)
         {
-            // If any users exist, return 404. We don't want to event hint that this URL is valid.
+            // If any users exist, return 404. We don't want to even hint that this URL is valid.
             if (_userManager.Users.Any())
             {
                 return NotFound();
@@ -203,7 +203,7 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateInitialUser(RegisterViewModel model, string returnUrl = null)
         {
-            // If any users exist, return 404. We don't want to event hint that this URL is valid.
+            // If any users exist, return 404. We don't want to even hint that this URL is valid.
             if (_userManager.Users.Any())
             {
                 return NotFound();
