@@ -510,6 +510,8 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
+            _auditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(user));
+
             var userSummary = (UserInfoViewModel)user;
 
             return Json(userSummary);
@@ -546,6 +548,8 @@ namespace MillimanAccessPortal.Controllers
             _dbContext.ProfitCenter.Add(profitCenter);
             _dbContext.SaveChanges();
 
+            _auditLogger.Log(AuditEventType.ProfitCenterCreated.ToEvent(profitCenter));
+
             return Json(profitCenter);
         }
 
@@ -576,43 +580,52 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The specified email address is invalid.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            if (_dbContext.Client.Find(clientId) == null)
+            var client = _dbContext.Client.Find(clientId);
+            if (client == null)
             {
                 Response.Headers.Add("Warning", "Client does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
-            // Find the user or create one if it doesn't exist
-            ApplicationUser user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
+            ApplicationUser user = null;
+            using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
-                IdentityResult createResult;
-                (createResult, user) = await _queries.CreateNewAccount(email, email);
-
-                if (createResult.Succeeded && user != null)
+                // Find the user or create one if it doesn't exist
+                user = await _userManager.FindByEmailAsync(email);
+                if (user == null)
                 {
-                    string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
-                    await _accountController.SendNewAccountWelcomeEmail(user, Url, welcomeText);
-                }
-                else
-                {
-                    string errors = string.Join($", ", createResult.Errors.Select(e => e.Description));
-                    Response.Headers.Add("Warning", $"Error while creating user ({email}) in database: {errors}");
-                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
-                }
-            }
+                    // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
+                    IdentityResult createResult;
+                    (createResult, user) = await _queries.CreateNewAccount(email, email);
 
-            // Add client membership claim for the user if it doesn't already exist
-            var clientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), clientId.ToString());
-            var existingClaimsForUser = await _userManager.GetClaimsAsync(user);
-            var matchingClaims = existingClaimsForUser
-                .Where(claim => claim.Type == clientMembershipClaim.Type)
-                .Where(claim => claim.Value == clientMembershipClaim.Value);
-            if (!matchingClaims.Any())
-            {
-                await _userManager.AddClaimAsync(user, clientMembershipClaim);
+                    if (createResult.Succeeded && user != null)
+                    {
+                        string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
+                        await _accountController.SendNewAccountWelcomeEmail(user, Url, welcomeText);
+                    }
+                    else
+                    {
+                        string errors = string.Join($", ", createResult.Errors.Select(e => e.Description));
+                        Response.Headers.Add("Warning", $"Error while creating user ({email}) in database: {errors}");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
+                }
+
+                // Add client membership claim for the user if it doesn't already exist
+                var clientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), clientId.ToString());
+                var existingClaimsForUser = await _userManager.GetClaimsAsync(user);
+                var matchingClaims = existingClaimsForUser
+                    .Where(claim => claim.Type == clientMembershipClaim.Type)
+                    .Where(claim => claim.Value == clientMembershipClaim.Value);
+                if (!matchingClaims.Any())
+                {
+                    await _userManager.AddClaimAsync(user, clientMembershipClaim);
+                }
+
+                transaction.Commit();
+
+                _auditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(client, user));
             }
 
             return Json(user);
@@ -645,50 +658,206 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The specified email address is invalid.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            if (_dbContext.ProfitCenter.Find(profitCenterId) == null)
+            var profitCenter = _dbContext.ProfitCenter.Find(profitCenterId);
+            if (profitCenter == null)
             {
                 Response.Headers.Add("Warning", "Profit center does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
-            // Find the user or create one if it doesn't exist
-            ApplicationUser user = await _userManager.FindByEmailAsync(email);
+            ApplicationUser user = null;
+            using (var transaction = _dbContext.Database.BeginTransaction())
+            {
+                // Find the user or create one if it doesn't exist
+                user = await _userManager.FindByEmailAsync(email);
+                if (user == null)
+                {
+                    // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
+                    IdentityResult createResult;
+                    (createResult, user) = await _queries.CreateNewAccount(email, email);
+
+                    if (createResult.Succeeded && user != null)
+                    {
+                        string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
+                        await _accountController.SendNewAccountWelcomeEmail(user, Url, welcomeText);
+                    }
+                    else
+                    {
+                        string errors = string.Join($", ", createResult.Errors.Select(e => e.Description));
+                        Response.Headers.Add("Warning", $"Error while creating user ({email}) in database: {errors}");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
+                }
+
+                var alreadyAdmin = _dbContext.UserRoleInProfitCenter
+                    .Where(r => r.User.Email == email)
+                    .Where(r => r.ProfitCenterId == profitCenterId)
+                    .Where(r => r.Role.RoleEnum == RoleEnum.Admin)
+                    .Any();
+
+                if (!alreadyAdmin)
+                {
+                    _dbContext.UserRoleInProfitCenter.Add(new UserRoleInProfitCenter
+                    {
+                        ProfitCenterId = profitCenterId,
+                        RoleId = ApplicationRole.RoleIds[RoleEnum.Admin],
+                        UserId = user.Id,
+                    });
+                    _dbContext.SaveChanges();
+                }
+
+                transaction.Commit();
+            }
+
+            _auditLogger.Log(AuditEventType.UserAssignedToProfitCenter.ToEvent(profitCenter, user));
+
+            return Json(user);
+        }
+        #endregion
+
+        #region Update actions
+        /// <summary>
+        /// Update a profit center
+        /// </summary>
+        /// <param name="profitCenter">Profit center to update</param>
+        /// <returns>Json</returns>
+        [HttpPost]
+        public async Task<ActionResult> UpdateProfitCenter(
+            [Bind("Id", "Name", "ProfitCenterCode", "MillimanOffice", "ContactName", "ContactEmail", "ContactPhone")] ProfitCenter profitCenter)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            if (!ModelState.IsValid)
+            {
+                Response.Headers.Add("Warning", ModelState.Values.First(v => v.Errors.Any()).Errors.ToString());
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            var existingRecord = _dbContext.ProfitCenter.Find(profitCenter.Id);
+            if (existingRecord == null)
+            {
+                Response.Headers.Add("Warning", "The specified profit center does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            existingRecord.Name = profitCenter.Name;
+            existingRecord.ProfitCenterCode = profitCenter.ProfitCenterCode;
+            existingRecord.MillimanOffice = profitCenter.MillimanOffice;
+            existingRecord.ContactName = profitCenter.ContactName;
+            existingRecord.ContactEmail = profitCenter.ContactEmail;
+            existingRecord.ContactPhone = profitCenter.ContactPhone;
+
+            _dbContext.Update(existingRecord);
+            _dbContext.SaveChanges();
+
+            _auditLogger.Log(AuditEventType.ProfitCenterUpdated.ToEvent(profitCenter));
+
+            return Json(existingRecord);
+        }
+        #endregion
+
+        #region Remove/delete actions
+        /// <summary>
+        /// Delete a profit center
+        /// </summary>
+        /// <param name="profitCenterId">Profit center to delete</param>
+        /// <returns>Json</returns>
+        [HttpPost]
+        public async Task<ActionResult> DeleteProfitCenter(Guid profitCenterId)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            var existingRecord = _dbContext.ProfitCenter.Find(profitCenterId);
+            if (existingRecord == null)
+            {
+                Response.Headers.Add("Warning", "The specified profit center does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            // The profit center should have no clients
+            if (_dbContext.Client.Where(c => c.ProfitCenterId == profitCenterId).Any())
+            {
+                Response.Headers.Add("Warning", "The specified profit center has clients - remove those first.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            _dbContext.ProfitCenter.Remove(existingRecord);
+            _dbContext.SaveChanges();
+
+            _auditLogger.Log(AuditEventType.ProfitCenterDeleted.ToEvent(existingRecord));
+
+            return Json(existingRecord);
+        }
+
+        /// <summary>
+        /// Remove a user from a profit center
+        /// </summary>
+        /// <param name="userId">User to remove</param>
+        /// <param name="profitCenterId">Profit center from which user is to be removed</param>
+        /// <returns>Json</returns>
+        [HttpPost]
+        public async Task<ActionResult> RemoveUserFromProfitCenter(Guid userId, Guid profitCenterId)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            var user = _dbContext.ApplicationUser.Find(userId);
             if (user == null)
             {
-                // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
-                IdentityResult createResult;
-                (createResult, user) = await _queries.CreateNewAccount(email, email);
-
-                if (createResult.Succeeded && user != null)
-                {
-                    string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];
-                    await _accountController.SendNewAccountWelcomeEmail(user, Url, welcomeText);
-                }
-                else
-                {
-                    string errors = string.Join($", ", createResult.Errors.Select(e => e.Description));
-                    Response.Headers.Add("Warning", $"Error while creating user ({email}) in database: {errors}");
-                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
-                }
+                Response.Headers.Add("Warning", "The specified user does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+            var profitCenter = _dbContext.ProfitCenter.Find(profitCenterId);
+            if (profitCenter == null)
+            {
+                Response.Headers.Add("Warning", "Profit center does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
 
-            var alreadyAdmin = _dbContext.UserRoleInProfitCenter
-                .Where(r => r.User.Email == email)
+            var rolesToRemove = _dbContext.UserRoleInProfitCenter
+                .Where(r => r.User.Id == userId)
                 .Where(r => r.ProfitCenterId == profitCenterId)
                 .Where(r => r.Role.RoleEnum == RoleEnum.Admin)
-                .Any();
+                .ToList();
 
-            if (!alreadyAdmin)
+            foreach (var roleToRemove in rolesToRemove)
             {
-                _dbContext.UserRoleInProfitCenter.Add(new UserRoleInProfitCenter
-                {
-                    ProfitCenterId = profitCenterId,
-                    RoleId = ApplicationRole.RoleIds[RoleEnum.Admin],
-                    UserId = user.Id,
-                });
-                _dbContext.SaveChanges();
+                _dbContext.UserRoleInProfitCenter.Remove(roleToRemove);
             }
+            _dbContext.SaveChanges();
+
+            _auditLogger.Log(AuditEventType.UserRemovedFromProfitCenter.ToEvent(profitCenter, user));
 
             return Json(user);
         }
@@ -825,7 +994,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="userId">User whose suspension status is to be checked.</param>
         /// <returns>true if the user is suspended; false otherwise</returns>
         [HttpGet]
-        public async Task<ActionResult> UserSuspension(Guid userId)
+        public async Task<ActionResult> UserSuspendedStatus(Guid userId)
         {
             #region Authorization
             // User must have a global Admin role
@@ -857,7 +1026,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>true if the user is suspended; false otherwise</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> UserSuspension(Guid userId, bool value)
+        public async Task<ActionResult> UserSuspendedStatus(Guid userId, bool value)
         {
             #region Authorization
             // User must have a global Admin role
@@ -903,7 +1072,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="role">Role to check</param>
         /// <returns>true if the user has the role in the client; false otherwise</returns>
         [HttpGet]
-        public async Task<ActionResult> UserClientRoles(Guid userId, Guid clientId, RoleEnum role)
+        public async Task<ActionResult> UserClientRoleAssignment(Guid userId, Guid clientId, RoleEnum role)
         {
             #region Authorization
             // User must have a global Admin role
@@ -969,7 +1138,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>true if the user has the role in the client; false otherwise</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> UserClientRoles(Guid userId, Guid clientId, RoleEnum role, bool value)
+        public async Task<ActionResult> UserClientRoleAssignment(Guid userId, Guid clientId, RoleEnum role, bool value)
         {
             #region Authorization
             // User must have a global Admin role
@@ -1066,7 +1235,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="rootContentItemId">Root content item whose suspension status is to be checked.</param>
         /// <returns>true is the root content item is suspended; false otherwise</returns>
         [HttpGet]
-        public async Task<ActionResult> ContentSuspension(Guid rootContentItemId)
+        public async Task<ActionResult> ContentSuspendedStatus(Guid rootContentItemId)
         {
             #region Authorization
             // User must have a global Admin role
@@ -1098,7 +1267,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>true is the root content item is suspended; false otherwise</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> ContentSuspension(Guid rootContentItemId, bool value)
+        public async Task<ActionResult> ContentSuspendedStatus(Guid rootContentItemId, bool value)
         {
             #region Authorization
             // User must have a global Admin role

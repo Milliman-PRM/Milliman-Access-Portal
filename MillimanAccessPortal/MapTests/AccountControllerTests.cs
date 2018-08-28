@@ -43,6 +43,7 @@ namespace MapTests
         {
             AccountController testController = new AccountController(TestResources.DbContextObject,
                 TestResources.UserManagerObject,
+                TestResources.RoleManagerObject,
                 null,  // SingInManager<ApplicationUser>
                 TestResources.MessageQueueServicesObject,
                 TestResources.LoggerFactory,

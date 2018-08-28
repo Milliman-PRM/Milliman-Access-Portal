@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Joseph Sweeney,
- * OBJECTIVE:
+ * OBJECTIVE: Provide client information for presentation on a client card.
  * DEVELOPER NOTES:
  */
 

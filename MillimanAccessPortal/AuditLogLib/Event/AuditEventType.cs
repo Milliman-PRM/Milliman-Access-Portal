@@ -64,14 +64,14 @@ namespace AuditLogLib.Event
             2006, "Client role assigned", (client, user, roles) => new
             {
                 ClientId = client.Id,
-                UserId = client.Id,
+                UserId = user.Id,
                 Role = roles.Select(r => r.ToString()),
             });
         public static readonly AuditEventType<Client, ApplicationUser, List<RoleEnum>> ClientRoleRemoved = new AuditEventType<Client, ApplicationUser, List<RoleEnum>>(
             2007, "Client role removed", (client, user, roles) => new
             {
                 ClientId = client.Id,
-                UserId = client.Id,
+                UserId = user.Id,
                 Role = roles.Select(r => r.ToString()),
             });
         #endregion
@@ -251,7 +251,7 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<RootContentItem, bool, string> RootContentItemSuspensionUpdate = new AuditEventType<RootContentItem, bool, string>(
             7002, "Root content item suspension status updated", (item, isSuspended, reason) => new
             {
-                UserId = item.Id,
+                RootContentItemId = item.Id,
                 IsSuspended = isSuspended,
                 Reason = reason,
             });
@@ -266,6 +266,35 @@ namespace AuditLogLib.Event
             {
                 UserId = user.Id,
                 Role = role.ToString(),
+            });
+        public static readonly AuditEventType<ProfitCenter> ProfitCenterCreated = new AuditEventType<ProfitCenter>(
+            7101, "Profit center created", (profitCenter) => new
+            {
+                ProfitCenter = profitCenter,
+            });
+        public static readonly AuditEventType<ProfitCenter> ProfitCenterUpdated = new AuditEventType<ProfitCenter>(
+            7102, "Profit center updated", (profitCenter) => new
+            {
+                ProfitCenter = profitCenter,
+            });
+        public static readonly AuditEventType<ProfitCenter> ProfitCenterDeleted = new AuditEventType<ProfitCenter>(
+            7103, "Profit center deleted", (profitCenter) => new
+            {
+                ProfitCenterId = profitCenter.Id,
+            });
+        public static readonly AuditEventType<ProfitCenter, ApplicationUser> UserAssignedToProfitCenter = new AuditEventType<ProfitCenter, ApplicationUser>(
+            7104, "User assigned to profit center", (profitCenter, user) => new
+            {
+                ProfitCenterId = profitCenter.Id,
+                ProfitCenterName = profitCenter.Name,
+                UserId = user.Id,
+                UserName = user.UserName,
+            });
+        public static readonly AuditEventType<ProfitCenter, ApplicationUser> UserRemovedFromProfitCenter = new AuditEventType<ProfitCenter, ApplicationUser>(
+            7105, "User removed from profit center", (profitCenter, user) => new
+            {
+                ProfitCenterId = profitCenter.Id,
+                UserId = user.Id,
             });
         #endregion
         #endregion

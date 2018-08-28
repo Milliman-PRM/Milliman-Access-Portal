@@ -28,6 +28,7 @@ export interface UserInfo {
   ClientCount?: number;
   RootContentItemCount?: number;
   RootContentItems?: RootContentItemInfo[];
+  ProfitCenterId: number;
 }
 export interface ClientInfo extends Nestable {
   Name: string;
@@ -39,6 +40,7 @@ export interface ClientInfo extends Nestable {
 export interface ProfitCenterInfo {
   Id: number;
   Name: string;
+  Code: string;
   Office: string;
   UserCount: number;
   ClientCount: number;
@@ -78,6 +80,7 @@ export interface ClientDetail {
 export interface ProfitCenterDetail {
   Id: number;
   Name: string;
+  Code: string;
   Office: string;
   ContactName: string;
   ContactEmail: string;

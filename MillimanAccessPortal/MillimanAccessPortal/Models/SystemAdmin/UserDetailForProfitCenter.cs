@@ -1,4 +1,10 @@
-﻿using MapDbContextLib.Context;
+﻿/*
+ * CODE OWNERS: Joseph Sweeney,
+ * OBJECTIVE: Provide user information for display in the system admin detail panel
+ * DEVELOPER NOTES:
+ */
+
+using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using System;
 using System.Collections.Generic;

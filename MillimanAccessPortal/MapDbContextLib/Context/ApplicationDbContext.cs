@@ -66,6 +66,11 @@ namespace MapDbContextLib.Context
                 .HasDefaultValue(ReductionStatusEnum.Unspecified);
 
             builder.Entity<ContentReductionTask>()
+                .HasOne(t => t.ContentPublicationRequest)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<ContentReductionTask>()
                 .ForNpgsqlUseXminAsConcurrencyToken();
 
             builder.Entity<HierarchyField>()

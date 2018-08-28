@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Joseph Sweeney,
- * OBJECTIVE:
+ * OBJECTIVE: Provide profit center information for presentation on a profit center card.
  * DEVELOPER NOTES:
  */
 
@@ -15,6 +15,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
+        public string Code { get; set; }
         public string Office { get; set; }
         public int UserCount { get; set; }
         public int ClientCount { get; set; }
@@ -30,6 +31,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             {
                 Id = profitCenter.Id,
                 Name = profitCenter.Name,
+                Code = profitCenter.ProfitCenterCode,
                 Office = profitCenter.MillimanOffice,
             };
         }

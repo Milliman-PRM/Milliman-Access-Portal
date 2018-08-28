@@ -120,12 +120,12 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
         const groupCards = group.map((entity) => (
           <li
             key={entity.id}
-            // tslint:disable-next-line:jsx-no-lambda
-            onClick={() => this.props.setSelectedCard(entity.id)}
           >
             <Card
               {...entity}
               selected={entity.id === this.props.selectedCard}
+              // tslint:disable-next-line:jsx-no-lambda
+              setSelected={() => this.props.setSelectedCard(entity.id)}
               sublistInfo={this.props.selectedDataSource.sublistInfo}
             />
           </li>
@@ -139,12 +139,12 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
       cards = filteredCards.map((entity) => (
         <li
           key={entity.id}
-          // tslint:disable-next-line:jsx-no-lambda
-          onClick={() => this.props.setSelectedCard(entity.id)}
         >
           <this.UserCard
             {...entity}
             selected={entity.id === this.props.selectedCard}
+            // tslint:disable-next-line:jsx-no-lambda
+            setSelected={() => this.props.setSelectedCard(entity.id)}
             activated={entity.activated}
             resetButton={true}
             sublistInfo={this.props.selectedDataSource.sublistInfo}
@@ -155,12 +155,12 @@ export class ContentPanel extends React.Component<ContentPanelProps, ContentPane
       cards = filteredCards.map((entity) => (
         <li
           key={entity.id}
-          // tslint:disable-next-line:jsx-no-lambda
-          onClick={() => this.props.setSelectedCard(entity.id)}
         >
           <Card
             {...entity}
             selected={entity.id === this.props.selectedCard}
+            // tslint:disable-next-line:jsx-no-lambda
+            setSelected={() => this.props.setSelectedCard(entity.id)}
             sublistInfo={this.props.selectedDataSource.sublistInfo}
           />
         </li>
