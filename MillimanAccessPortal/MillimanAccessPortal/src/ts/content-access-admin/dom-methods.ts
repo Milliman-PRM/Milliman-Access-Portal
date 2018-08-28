@@ -225,7 +225,6 @@ function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
   $('#root-content-items [selected]').parent().data('eligibleMembers', selectionGroup.MemberList);
   const $card = new SelectionGroupCard(
     selectionGroup,
-    $('#root-content-items [selected]').parent().data().eligibleList,
     wrapCardCallback(get(
       'ContentAccessAdmin/Selections',
       [
@@ -271,7 +270,7 @@ function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
           RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
         },
         url: 'ContentAccessAdmin/RenameSelectionGroup/',
-      }).done((response) => {
+      }).done(() => {
         $target
           .find('.card-button-dynamic').hide()
           .filter('.card-button-blue').show();

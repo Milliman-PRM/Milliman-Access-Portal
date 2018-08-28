@@ -29,7 +29,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
   public componentDidMount() {
     getData('AuthorizedContent/Content/')
     .then((json: ContentItemGroupList) => this.setState(json));
-    window.onpopstate = (e) => {
+    window.onpopstate = () => {
       if (window.history && window.history.pushState) {
         const hashName = location.hash.split('#!/')[1];
         if (hashName !== '' && window.location.hash === '') {
@@ -65,7 +65,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
   }
 
   public render() {
-    const clientGroups = this.filteredArray().map((client: ContentItemGroup, index: number) => {
+    const clientGroups = this.filteredArray().map((client: ContentItemGroup) => {
       const clientItems = client.Items.map((contentItem: ContentItem) => (
         <ContentCard
           key={contentItem.Id.toString()}

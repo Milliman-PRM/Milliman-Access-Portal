@@ -28,7 +28,7 @@ $(document).ready(() => {
     [ 'username', 'account' ],
     'AccountSettings',
     'POST',
-    (response) => {
+    () => {
       toastr.success('Your account has been updated');
     },
   );
@@ -36,7 +36,7 @@ $(document).ready(() => {
     [ 'username', 'password' ],
     'UpdatePassword',
     'POST',
-    (response) => {
+    () => {
       $('input[type="password"]').val('');
       toastr.success('Your password has been updated');
     },

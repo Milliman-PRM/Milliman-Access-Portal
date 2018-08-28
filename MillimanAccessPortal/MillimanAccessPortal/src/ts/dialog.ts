@@ -23,7 +23,7 @@ const userSubstringMatcher = (users) => {
     const matches = [];
     const regex = new RegExp(query, 'i');
 
-    $.each(users, function check(i, user) {
+    $.each(users, function check(_, user) {
       if (regex.test(user.Email) ||
           regex.test(user.UserName) ||
           regex.test(user.FirstName + ' ' + user.LastName)) {
@@ -57,7 +57,7 @@ export function Dialog(
         event.preventDefault();
         const data = {};
         if (self.options.input) {
-          $.each($('.vex-dialog-input input').serializeArray(), (i, obj) => {
+          $.each($('.vex-dialog-input input').serializeArray(), (_, obj) => {
             data[obj.name] = obj.value;
           });
         }
@@ -181,7 +181,7 @@ export function PasswordDialog(title, message, buttons, color, submitHandler) {
 PasswordDialog.prototype = Object.create(Dialog.prototype);
 PasswordDialog.prototype.constructor = PasswordDialog;
 
-export function DeleteClientDialog(clientName, clientId, submitHandler) {
+export function DeleteClientDialog(clientName, _, submitHandler) {
   const title = 'Delete Client';
   const buttons = [
     { type: vex.dialog.buttons.yes, text: 'Delete' },
@@ -213,7 +213,7 @@ export function DeleteClientDialog(clientName, clientId, submitHandler) {
 DeleteClientDialog.prototype = Object.create(Dialog.prototype);
 DeleteClientDialog.prototype.constructor = DeleteClientDialog;
 
-export function DeleteRootContentItemDialog(rootContentItemName, rootContentItemId, submitHandler) {
+export function DeleteRootContentItemDialog(rootContentItemName, _, submitHandler) {
   const title = 'Delete RootContentItem';
   const buttons = [
     { type: vex.dialog.buttons.yes, text: 'Delete' },

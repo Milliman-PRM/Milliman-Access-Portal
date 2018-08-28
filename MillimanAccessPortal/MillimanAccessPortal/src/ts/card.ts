@@ -275,7 +275,7 @@ const components = Object.assign(
         '<stub />',
       ].join(''),
       render(component) {
-        return function(properties) {
+        return function() {
           this.verify(component);
         };
       },
@@ -933,7 +933,6 @@ FileUploadCard.prototype.constructor = FileUploadCard;
 
 export function SelectionGroupCard(
   selectionGroup: SelectionGroupSummary,
-  eligibleUsers: UserInfo[],
   callback, deleteCallback, editCallback, confirmCallback,
 ) {
   Card.call(this);

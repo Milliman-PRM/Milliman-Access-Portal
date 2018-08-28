@@ -17,7 +17,7 @@ import 'tooltipster/src/css/plugins/tooltipster/sideTip/tooltipster-sideTip.css'
 import 'tooltipster/src/css/tooltipster.css';
 import '../../scss/map.scss';
 
-document.addEventListener('DOMContentLoaded', (event) => {
+document.addEventListener('DOMContentLoaded', () => {
   const view = document.getElementsByTagName('body')[0].getAttribute('data-nav-location');
   ReactDOM.render(<NavBar currentView={view} />, document.getElementById('navbar'));
 });

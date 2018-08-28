@@ -38,6 +38,7 @@ function deleteRootContentItem(
   $.ajax({
     data: {
       rootContentItemId,
+      password,
     },
     headers: {
       RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
@@ -47,7 +48,7 @@ function deleteRootContentItem(
   }).done(function onDone(response: RootContentItemDetail) {
     $('#content-publishing-form').hide();
     $('#root-content-items .card-container')
-      .filter((i, card) => $(card).data().rootContentItemId === response.Id)
+      .filter((_, card) => $(card).data().rootContentItemId === response.Id)
       .remove();
     addToDocumentCount(response.ClientId, -1);
     callback();
@@ -167,7 +168,7 @@ function mapRootContentItemDetail(item: RootContentItemDetail) {
 
 function addToDocumentCount(clientId: number, offset: number) {
   const itemCount = $('#client-tree .card-container')
-    .filter((i, card) => $(card).data().clientId === clientId)
+    .filter((_, card) => $(card).data().clientId === clientId)
     .find('use[href="#reports"]').closest('div').find('h4');
   itemCount.html(`${parseInt(itemCount.html(), 10) + offset}`);
 }
@@ -300,7 +301,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
       // Add the new content item as a card and select it
       renderRootContentItem(response.summary);
       $('#root-content-items .card-container')
-        .filter((i, card) => $(card).data().rootContentItemId === response.detail.Id)
+        .filter((_, card) => $(card).data().rootContentItemId === response.detail.Id)
         .children().click();
       // Update the root content item count stat on the client card
       addToDocumentCount(response.detail.ClientId, 1);
@@ -323,7 +324,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
       renderRootContentItemForm(response.detail);
       // Update related root content item card
       const $card = $('#root-content-items .card-container')
-        .filter((i, card) => $(card).data().rootContentItemId === response.detail.Id);
+        .filter((_, card) => $(card).data().rootContentItemId === response.detail.Id);
       $card.find('.card-body-primary-text').html(response.summary.ContentName);
       $card.find('.card-body-secondary-text').html(response.summary.ContentTypeName);
       toastr.success('Root content item updated');
@@ -339,7 +340,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
     ],
     'ContentPublishing/Publish',
     'POST',
-    (response) => {
+    () => {
       renderRootContentItemForm();
       toastr.success('Publication request submitted');
     },

@@ -20,7 +20,7 @@ let updateToolbarIcons;
 export function filterTree($panel, $this) {
   const $content = $panel.find('ul.admin-panel-content');
   $content.children('.hr').hide();
-  $content.find('[data-filter-string]').each((index, element) => {
+  $content.find('[data-filter-string]').each((_, element) => {
     const $element = $(element);
     if ($element.data('filter-string').indexOf($this.val().toUpperCase()) > -1) {
       $element.show();
@@ -36,7 +36,7 @@ export function filterTreeListener(event) {
 }
 export function filterForm($panel, $this) {
   const $content = $panel.find('form.admin-panel-content');
-  $content.find('[data-selection-value]').each((index, element) => {
+  $content.find('[data-selection-value]').each((_, element) => {
     const $element = $(element);
     if ($element.data('selection-value').indexOf($this.val().toUpperCase()) > -1) {
       $element.show();
@@ -71,7 +71,7 @@ export function toggleExpanded($panel, $this) {
   const $cardContainer = $this.closest('.card-container');
   $cardContainer
     .find('.card-expansion-container')
-    .attr('maximized', (index, attr) => {
+    .attr('maximized', (_, attr) => {
       const data = (attr === '')
         ? { text: 'Expand card', rv: null }
         : { text: 'Collapse card', rv: '' };
@@ -389,7 +389,7 @@ export function userSubstringMatcher(users: any) {
     const matches: any[] = [];
     const regex = new RegExp(query, 'i');
 
-    $.each(users, function check(i, user) {
+    $.each(users, function check(_, user) {
       if (regex.test(user.Email) ||
           regex.test(user.UserName) ||
           regex.test(user.FirstName + ' ' + user.LastName)) {
@@ -432,7 +432,7 @@ export function updateCardStatus($card, reductionDetails) {
   }, reductionDetails);
 
   $statusContainer
-    .removeClass((i, classString) => {
+    .removeClass((_, classString) => {
       const classNames = classString.split(' ');
       return classNames
         .filter((className) => {
