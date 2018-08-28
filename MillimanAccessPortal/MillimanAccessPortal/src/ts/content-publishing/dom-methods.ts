@@ -5,15 +5,13 @@ import * as $ from 'jquery';
 import * as toastr from 'toastr';
 
 import { AddRootContentItemActionCard, ClientCard, RootContentItemCard } from '../card';
-import {
-  CancelContentPublicationRequestDialog, DeleteRootContentItemDialog, DiscardConfirmationDialog,
-} from '../dialog';
+import { CancelContentPublicationRequestDialog, DeleteRootContentItemDialog } from '../dialog';
 import { FormBase } from '../form/form-base';
 import { AccessMode } from '../form/form-modes';
 import { SubmissionGroup } from '../form/form-submission';
 import {
   collapseAllListener, expandAllListener, filterFormListener, filterTreeListener, get,
-  hideButtonSpinner, post, showButtonSpinner, updateCardStatus, updateCardStatusButtons,
+  hideButtonSpinner, showButtonSpinner, updateCardStatus, updateCardStatusButtons,
   updateFormStatusButtons, wrapCardCallback, wrapCardIconCallback,
 } from '../shared';
 import { setUnloadAlert } from '../unload-alerts';
@@ -402,7 +400,6 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
 }
 
 function renderRootContentItem(item: RootContentItemSummary) {
-  const $panel = $('#content-publishing-form');
   const $rootContentItemCard = new RootContentItemCard(
     item,
     wrapCardCallback(get(

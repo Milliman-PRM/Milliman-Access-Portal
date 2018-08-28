@@ -1,7 +1,7 @@
 import * as $ from 'jquery';
 import * as toastr from 'toastr';
 
-import { Dialog, DiscardConfirmationDialog, ResetConfirmationDialog } from './dialog';
+import { DiscardConfirmationDialog, ResetConfirmationDialog } from './dialog';
 import { FormBase } from './form/form-base';
 import { SelectionGroupSummary } from './view-models/content-access-admin';
 import { PublicationStatus, UserInfo } from './view-models/content-publishing';
@@ -69,16 +69,12 @@ export function setExpanded($panel: JQuery<HTMLElement>, $this: JQuery<HTMLEleme
 }
 export function toggleExpanded($panel, $this) {
   const $cardContainer = $this.closest('.card-container');
-  let disabled: string;
   $cardContainer
     .find('.card-expansion-container')
     .attr('maximized', (index, attr) => {
       const data = (attr === '')
         ? { text: 'Expand card', rv: null }
         : { text: 'Collapse card', rv: '' };
-      disabled = (data.rv === '')
-        ? null
-        : '';
       $this.find('.tooltip').tooltipster('content', data.text);
       return data.rv;
     });

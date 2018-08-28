@@ -8,9 +8,6 @@ interface UserGuideModalProps extends Modal.Props {
 }
 
 export class UserGuideModal extends React.Component<UserGuideModalProps, {}> {
-
-  private readonly recipient: string = 'support.78832.5ad4ee0bf11242a6@helpscout.net';
-
   public render() {
     return (
       <Modal

@@ -1,7 +1,6 @@
 import { resumableOptions } from '../lib-options';
 import { FileScanner } from './file-scanner';
 import { ProgressMonitor, ProgressSummary } from './progress-monitor';
-import { RetainedValue } from './retained-value';
 
 import $ = require('jquery');
 import forge = require('node-forge');

@@ -14,15 +14,14 @@ import {
 import { AddSelectionGroupDialog, DeleteSelectionGroupDialog } from '../dialog';
 import {
   collapseAllListener, del, expandAllListener, filterFormListener, filterTreeListener, get,
-  hideButtonSpinner, post, setExpanded, showButtonSpinner, toggleExpanded, updateCardStatus,
-  wrapCardCallback,
+  hideButtonSpinner, post, setExpanded, showButtonSpinner, updateCardStatus, wrapCardCallback,
 } from '../shared';
 import {
   SelectionDetails, SelectionGroupList, SelectionGroupSummary, SelectionsDetail,
 } from '../view-models/content-access-admin';
 import {
   BasicNode, ClientSummary, ClientTree, ReductionField, ReductionFieldValueSelection,
-  RootContentItemDetail, RootContentItemList, RootContentItemSummary, UserInfo,
+  RootContentItemList, RootContentItemSummary,
 } from '../view-models/content-publishing';
 import { SelectionStatusMonitor } from './selection-status-monitor';
 

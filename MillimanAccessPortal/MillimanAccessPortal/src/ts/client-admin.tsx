@@ -294,7 +294,6 @@ function setupChildClientForm($parentClientDiv: JQuery<HTMLElement>) {
 
 // TODO
 function setupClientForm() {
-  const $clientForm = $('#client-info form.admin-panel-content');
   shared.clearForm($('#client-info'));
   bindForm();
   formObject.submissionMode = 'new';

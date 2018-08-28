@@ -17,8 +17,6 @@ import * as shared from './shared';
 import { SelectionGroupSummary } from './view-models/content-access-admin';
 import { UserInfo } from './view-models/content-publishing';
 
-const card = {};
-
 const cardLayout = {
   card: {
     body: {
@@ -940,7 +938,6 @@ export function SelectionGroupCard(
 ) {
   Card.call(this);
 
-  const self = this;
   const memberInfo = $.map(selectionGroup.MemberList, function toString(member) {
     return [member.FirstName + ' ' + member.LastName, member.Email, member.UserName];
   }).reduce(function concat(acc, cur) {
