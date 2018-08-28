@@ -45,8 +45,8 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
       <Modal
         ariaHideApp={false}
         {...this.props}
-        className = "modal"
-        overlayClassName = "modal-overlay"
+        className="modal"
+        overlayClassName="modal-overlay"
       >
         <h3 className="title blue">Create New Profit Center</h3>
         <span className="modal-text">Profit Center Information</span>
