@@ -9,13 +9,14 @@
 
     ViewData["Title"] = "Content Publishing";
     Layout = "_Layout_w_NB_H_F";
-    ViewData["NavIcon"] = "ContentPublisher";
+    ViewData["NavIcon"] = "ContentPublishing";
 }
 
 @section Scripts {
     <script src="~/js/content-publishing.bundle.js"></script>
 }
 
+<div id="navbar"></div>
 <div id="client-tree" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-3-12">
     <div class="loading-wrapper">
         @Html.Partial("~/Views/Shared/_Loader.cshtml")
@@ -329,7 +330,7 @@
             <div class="confirmation-section-button-container">
                 <button type="button" class="button-reject red-button">Reject</button>
                 <button type="button" class="button-approve green-button" disabled>Approve</button>
-            </div>        
+            </div>
         </div>
     </div>
 </div>

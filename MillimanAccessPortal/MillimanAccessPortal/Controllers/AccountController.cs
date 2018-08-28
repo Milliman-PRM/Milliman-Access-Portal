@@ -26,6 +26,7 @@ using MillimanAccessPortal.Services;
 using AuditLogLib;
 using AuditLogLib.Services;
 using AuditLogLib.Event;
+using MillimanAccessPortal.Authorization;
 using Microsoft.Extensions.Configuration;
 
 namespace MillimanAccessPortal.Controllers
@@ -40,6 +41,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly ILogger _logger;
         private readonly IAuditLogger _auditLogger;
         private readonly StandardQueries Queries;
+        private readonly IAuthorizationService AuthorizationService;
         private readonly IConfiguration _configuration;
 
         public AccountController(
@@ -50,6 +52,7 @@ namespace MillimanAccessPortal.Controllers
             ILoggerFactory loggerFactory,
             IAuditLogger AuditLoggerArg,
             StandardQueries QueriesArg,
+            IAuthorizationService AuthorizationServiceArg,
             IConfiguration ConfigArg)
         {
             DbContext = ContextArg;
@@ -59,6 +62,7 @@ namespace MillimanAccessPortal.Controllers
             _logger = loggerFactory.CreateLogger<AccountController>();
             _auditLogger = AuditLoggerArg;
             Queries = QueriesArg;
+            AuthorizationService = AuthorizationServiceArg;
             _configuration = ConfigArg;
         }
 
@@ -90,6 +94,14 @@ namespace MillimanAccessPortal.Controllers
             {
                 var user = await _userManager.FindByNameAsync(model.Username);
 
+                if (user == null || user.IsSuspended)
+                {
+                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    _logger.LogWarning(2, "User login failed.");
+                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(), model.Username);
+                    return View(model);
+                }
+                
                 // Only notify of password expiration if the correct password was provided
                 // Redirect user to the password reset view to set a new password
                 bool passwordSuccess = await _userManager.CheckPasswordAsync(user, model.Password);
@@ -112,7 +124,7 @@ namespace MillimanAccessPortal.Controllers
                     ModelState.AddModelError(string.Empty, "Password Has Expired.");
                     return View("ResetPassword");
                 }
-                
+
                 var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
@@ -221,7 +233,7 @@ namespace MillimanAccessPortal.Controllers
             Response.Cookies.Delete(".AspNetCore.Session");
             HttpContext.Session.Clear();
 
-            return RedirectToAction(nameof(AccountController.Login), "Account");
+            return Ok();
         }
 
         //
@@ -314,7 +326,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [NonAction]
-        public async void SendNewAccountWelcomeEmail(ApplicationUser RequestedUser, IUrlHelper Url, string SettableEmailText = null)
+        public async Task SendNewAccountWelcomeEmail(ApplicationUser RequestedUser, IUrlHelper Url, string SettableEmailText = null)
         {
             var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(RequestedUser);
             var callbackUrl = Url.Action(nameof(AccountController.EnableAccount), "Account", new { userId = RequestedUser.Id, code = emailConfirmationToken }, protocol: "https");
@@ -525,6 +537,95 @@ namespace MillimanAccessPortal.Controllers
         public IActionResult ResetPasswordConfirmation()
         {
             return View();
+        }
+
+        //
+        // GET: /Account/NavBar
+        [HttpGet]
+        [Authorize]
+        public async Task<JsonResult> NavBarElements() {
+
+            List<NavBarElementModel> NavBarElements = new List<NavBarElementModel> { };
+            long order = 1;
+
+            // Add the Authorized Content Element
+            NavBarElements.Add(new NavBarElementModel
+            {
+                Order = order++,
+                Label = "Authorized Content",
+                URL = nameof(AuthorizedContentController).Replace("Controller", ""),
+                View = "AuthorizedContent",
+                Icon = "content-grid",
+            });
+
+            // Conditionally add the System Admin Element
+            AuthorizationResult SystemAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+            if (SystemAdminResult.Succeeded)
+            {
+                NavBarElements.Add(new NavBarElementModel
+                {
+                    Order = order++,
+                    Label = "System Admin",
+                    URL = nameof(SystemAdminController).Replace("Controller", ""),
+                    View = "SystemAdmin",
+                    Icon = "system-admin",
+                });
+            }
+
+            // Conditionally add the Client Admin Element
+            AuthorizationResult ClientAdminResult1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, null));
+            AuthorizationResult ClientAdminResult2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin, null));
+            if (ClientAdminResult1.Succeeded || ClientAdminResult2.Succeeded)
+            {
+                NavBarElements.Add(new NavBarElementModel
+                {
+                    Order = order++,
+                    Label = "Manage Clients",
+                    URL = nameof(ClientAdminController).Replace("Controller", ""),
+                    View = "ClientAdmin",
+                    Icon = "client-admin",
+                });
+            }
+
+            // Conditionally add the Content Access Element
+            AuthorizationResult ContentAccessResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin, null));
+            if (ContentAccessResult.Succeeded)
+            {
+                NavBarElements.Add(new NavBarElementModel
+                {
+                    Order = order++,
+                    Label = "Manage Access",
+                    URL = nameof(ContentAccessAdminController).Replace("Controller", ""),
+                    View = "ContentAccessAdmin",
+                    Icon = "content-access",
+                });
+            }
+
+            // Conditionally add the Content Publishing Element
+            AuthorizationResult ContentPublishResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher, null));
+            if (ContentPublishResult.Succeeded)
+            {
+                NavBarElements.Add(new NavBarElementModel
+                {
+                    Order = order++,
+                    Label = "Publish Content",
+                    URL = nameof(ContentPublishingController).Replace("Controller", ""),
+                    View = "ContentPublishing",
+                    Icon = "content-publishing",
+                });
+            }
+
+            // Add the Account Settings Element
+            NavBarElements.Add(new NavBarElementModel
+            {
+                Order = order++,
+                Label = "Account Settings",
+                URL = nameof(AccountController).Replace("Controller", "/Settings"),
+                View = "AccountSettings",
+                Icon = "user-settings",
+            });
+
+            return Json(NavBarElements);
         }
 
         //

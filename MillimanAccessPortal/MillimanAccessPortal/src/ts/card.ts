@@ -1,21 +1,21 @@
+import '../images/add-circle.svg';
+import '../images/add.svg';
+import '../images/cancel.svg';
+import '../images/checkmark.svg';
+import '../images/delete.svg';
+import '../images/edit.svg';
+import '../images/expand-card.svg';
+import '../images/group.svg';
+import '../images/remove-circle.svg';
+import '../images/reports.svg';
+import '../images/upload.svg';
+import '../images/user.svg';
+
 import * as toastr from 'toastr';
 
 import * as shared from './shared';
 import { SelectionGroupSummary } from './view-models/content-access-admin';
-import { RootContentItemSummary, UserInfo } from './view-models/content-publishing';
-
-import '../images/user.svg';
-import '../images/remove-circle.svg';
-import '../images/add-circle.svg';
-import '../images/expand-card.svg';
-import '../images/cancel.svg';
-import '../images/group.svg';
-import '../images/reports.svg';
-import '../images/delete.svg';
-import '../images/edit.svg';
-import '../images/add.svg';
-import '../images/upload.svg';
-import '../images/checkmark.svg';
+import { UserInfo } from './view-models/content-publishing';
 
 const card = {};
 
@@ -422,6 +422,11 @@ const components = Object.assign(
           this.verify(component);
           if (Object.hasOwnProperty.call(properties, 'id')) {
             this.addClass(component, 'card-100 action-card');
+          }
+          if (Object.hasOwnProperty.call(properties, 'suspended')) {
+            if (properties.suspended) {
+              this.addClass(component, 'suspended');
+            }
           }
         };
       },
@@ -855,7 +860,12 @@ export function RootContentItemCard(
 ) {
   Card.call(this);
 
-  this.addComponent('primaryText', { text: rootContentItemDetail.ContentName });
+  this.addComponent('body', { suspended: rootContentItemDetail.IsSuspended });
+  this.addComponent('primaryText', {
+    text: rootContentItemDetail.ContentName + (rootContentItemDetail.IsSuspended
+      ? ' (Suspended)'
+      : ''),
+  });
   this.addComponent('secondaryText', { text: rootContentItemDetail.ContentTypeName });
   this.addComponent('statistic', {
     icon: 'group',
@@ -937,7 +947,12 @@ export function SelectionGroupCard(
     return acc.concat(cur);
   }, []);
 
-  this.addComponent('primaryTextBox', { text: selectionGroup.Name });
+  this.addComponent('body', { suspended: selectionGroup.IsSuspended });
+  this.addComponent('primaryTextBox', {
+    text: selectionGroup.Name + (selectionGroup.IsSuspended
+      ? ' (Suspended)'
+      : ''),
+  });
   this.addComponent('secondaryText', { text: selectionGroup.RootContentItemName });
   this.addComponent('statistic', {
     icon: 'group',
@@ -1084,9 +1099,14 @@ export function UserCard(
   }
   names.push(user.Email);
 
+  this.addComponent('body', { suspended: user.IsSuspended });
   this.addComponent('icon', { icon: 'user', class: 'card-user-icon' });
   this.addComponent('icon', { icon: 'add', class: 'card-user-role-indicator' });
-  this.addComponent('primaryText', { text: names[0] });
+  this.addComponent('primaryText', {
+    text: names[0] + (user.IsSuspended
+      ? ' (Suspended)'
+      : ''),
+  });
   names.slice(1).forEach(function(name) {
     this.addComponent('secondaryText', { text: name });
   }, this);

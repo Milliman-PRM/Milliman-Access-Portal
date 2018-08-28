@@ -1,4 +1,4 @@
-import { Promise } from 'es6-promise';
+import 'promise-polyfill/dist/polyfill';
 
 interface FileReaderOnLoadEventTarget extends EventTarget {
   result: ArrayBuffer;

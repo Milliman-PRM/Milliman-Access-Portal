@@ -4,33 +4,33 @@
  * DEVELOPER NOTES: 
  */
 
+using MapDbContextLib.Identity;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using MillimanAccessPortal.DataQueries;
+using MillimanAccessPortal.Services;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using EmailQueue;
-using Microsoft.Extensions.Logging;
-using MillimanAccessPortal.Services;
-using MillimanAccessPortal.DataQueries;
-using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Identity;
-using MapDbContextLib.Identity;
 
 namespace MillimanAccessPortal.Controllers
 {
     public class MessageController : Controller
     {
+        private readonly IConfiguration _configuration;
         IMessageQueue _mailSender { get; set; }
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly StandardQueries Queries;
         
         public MessageController(
+            IConfiguration configuration,
             IMessageQueue mailSenderArg,
             UserManager<ApplicationUser> UserManagerArg,
             StandardQueries QueriesArg)
         {
+            _configuration = configuration;
             _mailSender = mailSenderArg;
             UserManager = UserManagerArg;
             Queries = QueriesArg;
@@ -88,6 +88,28 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendSupportEmail(string subject, string message)
+        {
+            var user = await Queries.GetCurrentApplicationUser(User);
+            var senderAddress = user.Email;
+            var senderName = $"{user.FirstName} {user.LastName}";
+            var recipient = _configuration.GetValue<string>("SupportEmailAddress");
+
+            bool result = _mailSender.QueueEmail(new List<string> { recipient }, subject, message, senderAddress, senderName);
+
+            if (result)
+            {
+                return Ok();
+            }
+            else
+            {
+                // Send attempt failed. Log failure and return failure code.
+                return BadRequest();
+            }
+        }
+
         /// <summary>
         /// Send a message to the specified recipient from the current user
         /// </summary>
@@ -114,7 +136,7 @@ namespace MillimanAccessPortal.Controllers
             // Get the current user's name and email address
             var user = await Queries.GetCurrentApplicationUser(User);
             string senderAddress = user.Email;
-            string senderName = user.UserName;
+            string senderName = $"{user.FirstName} {user.LastName}";
 
             bool Result = _mailSender.QueueEmail(new List<string> { recipient }, subject, message, senderAddress, senderName);
 

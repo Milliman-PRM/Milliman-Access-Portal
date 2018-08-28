@@ -1,0 +1,38 @@
+﻿@import "../../map_modules/variables";
+
+.content-options {
+    display: flex;
+    flex-flow: row nowrap;
+    flex: 0 0 auto;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-bottom: .5em;
+
+    .content-option {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex: 1 1 auto;
+        margin: 0;
+        height: 2.5em;
+        font-weight: bold;
+        background-color: $light-grey;
+        color: $charcoal;
+        text-align: center;
+        cursor: pointer;
+        padding: 0;
+        border: 2px solid transparent;
+
+        &:last-child {
+            /* border-right: none; */
+        }
+
+        &.selected {
+            background-color: $blue;
+            color: $white;
+            border: 2px solid $charcoal;
+            cursor: default;
+        }
+    }
+}

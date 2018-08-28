@@ -1,9 +1,9 @@
-interface Nestable {
+export interface Nestable {
   Id: number;
   ParentId?: number;
 }
 
-interface BasicTree<T extends Nestable> {
+export interface BasicTree<T extends Nestable> {
   Root: BasicNode<T>;
 }
 export interface BasicNode<T extends Nestable> {
@@ -17,6 +17,7 @@ export interface UserInfo {
   FirstName: string;
   Email: string;
   UserName: string;
+  IsSuspended: boolean;
 }
 export interface ClientSummary extends Nestable {
   Name: string;
@@ -67,6 +68,7 @@ export interface RootContentItemSummary {
   ContentName: string;
   ContentTypeName: string;
   GroupCount: number;
+  IsSuspended: boolean;
   EligibleUserList: UserInfo[];
   PublicationDetails: PublicationSummary;
 }
@@ -91,6 +93,7 @@ export interface RootContentItemDetail {
   RelatedFiles: ContentRelatedFile[];
   Description: string;
   Notes: string;
+  IsSuspended: boolean;
 }
 
 export interface RootContentItemSummaryAndDetail {

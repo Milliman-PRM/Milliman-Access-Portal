@@ -6,14 +6,13 @@
     @RenderSection("CSS", required: false)
 }
 
-
-@await Html.PartialAsync("_Navbar")
+@Html.AntiForgeryToken()
 
 <div id="content-wrapper" class="navbar-offset">
     @Html.Partial("_Header")
     <div id="content-container">
         @RenderBody()
-    </div>    
+    </div>
     @Html.Partial("_Footer")
 </div>
 

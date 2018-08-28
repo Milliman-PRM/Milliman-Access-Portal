@@ -290,7 +290,7 @@ namespace MillimanAccessPortal.Controllers
                             ? RequestedClient.NewUserWelcomeText
                             : ApplicationConfig["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
 
-                        _accountController.SendNewAccountWelcomeEmail(RequestedUser, Url, welcomeText);
+                        await _accountController.SendNewAccountWelcomeEmail(RequestedUser, Url, welcomeText);
                     }
                     else
                     {
@@ -497,7 +497,7 @@ namespace MillimanAccessPortal.Controllers
                         }
                     }
                     DbContext.SaveChanges();
-                    AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(RequestedClient, RequestedUser, RequestedRole.RoleEnum));
+                    AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(RequestedClient, RequestedUser, new List<RoleEnum> { RequestedRole.RoleEnum }));
                 }
             }
             else
@@ -521,7 +521,7 @@ namespace MillimanAccessPortal.Controllers
 
                 foreach (var existingRecord in ExistingRecords)
                 {
-                    AuditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(existingRecord));
+                    AuditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(existingRecord.Client, existingRecord.User, new List<RoleEnum> { existingRecord.Role.RoleEnum }));
                 }
             }
             #endregion
@@ -790,7 +790,7 @@ namespace MillimanAccessPortal.Controllers
 
             // Log new client store and ClientAdministrator role authorization events
             AuditLogger.Log(AuditEventType.ClientCreated.ToEvent(Model));
-            AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(Model, CurrentApplicationUser, RoleEnum.Admin));
+            AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(Model, CurrentApplicationUser, new List<RoleEnum> { RoleEnum.Admin, RoleEnum.UserCreator }));
 
             ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(CurrentApplicationUser, UserManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
             ModelToReturn.RelevantClientId = Model.Id;

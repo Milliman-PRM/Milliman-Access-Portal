@@ -288,6 +288,8 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<bool>("DoesReduce");
 
+                    b.Property<bool>("IsSuspended");
+
                     b.Property<string>("Notes");
 
                     b.Property<string>("TypeSpecificDetail")
@@ -454,6 +456,8 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("Employer");
 
                     b.Property<string>("FirstName");
+
+                    b.Property<bool>("IsSuspended");
 
                     b.Property<string>("LastName");
 

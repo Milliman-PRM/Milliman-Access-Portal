@@ -43,7 +43,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
             {
                 //await Queries.GetDescendentFamilyOfClient(RootClient, CurrentUser, RoleEnum.Admin, true, true);
                 ClientAndChildrenModel ClientModel = new ClientAndChildrenModel(RootClient);
-                await ClientModel.GenerateSupportingProperties(DbContext, UserManager, CurrentUser, RoleEnum.Admin, true, true);
+                await ClientModel.GenerateSupportingProperties(DbContext, UserManager, CurrentUser, RoleEnum.Admin, false, true);
                 if (ClientModel.IsThisOrAnyChildManageable())
                 {
                     ModelToReturn.ClientTreeList.Add(ClientModel);

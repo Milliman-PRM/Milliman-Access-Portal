@@ -9,8 +9,13 @@ import 'tooltipster/src/css/tooltipster.css';
 
 import '../../../images/cancel.svg';
 
-
 export class ContentContainer extends React.Component<ContentContainerProps, {}> {
+
+  public constructor(props) {
+    super(props);
+
+    this.close = this.close.bind(this);
+  }
 
   public componentDidMount() {
     history.pushState({ content: this.props.contentURL }, null);
@@ -21,18 +26,21 @@ export class ContentContainer extends React.Component<ContentContainerProps, {}>
       <div id="iframe-container">
         <div
           id="close-content-container"
-          className='tooltip'
+          className="tooltip"
           title="Close"
-          onClick={(event) => {
-            event.stopPropagation();
-            this.props.closeAction(null);
-          }}>
+          onClick={this.close}
+        >
           <svg>
-            <use xlinkHref='#cancel' />
+            <use xlinkHref="#cancel" />
           </svg>
         </div>
-        <iframe id="content-iframe" src={this.props.contentURL}></iframe>
+        <iframe id="content-iframe" src={this.props.contentURL} />
       </div>
     );
+  }
+
+  private close(event: React.MouseEvent<HTMLElement>) {
+    event.preventDefault();
+    this.props.closeAction(null);
   }
 }
