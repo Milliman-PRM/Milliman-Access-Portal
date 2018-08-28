@@ -36,6 +36,7 @@ namespace MillimanAccessPortal.Controllers
     {
         private readonly ApplicationDbContext DbContext;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<ApplicationRole> _roleManager
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IMessageQueue _messageSender;
         private readonly ILogger _logger;
@@ -47,6 +48,7 @@ namespace MillimanAccessPortal.Controllers
         public AccountController(
             ApplicationDbContext ContextArg,
             UserManager<ApplicationUser> userManager,
+            RoleManager<ApplicationRole> roleManager,
             SignInManager<ApplicationUser> signInManager,
             IMessageQueue messageSender,
             ILoggerFactory loggerFactory,
@@ -57,6 +59,7 @@ namespace MillimanAccessPortal.Controllers
         {
             DbContext = ContextArg;
             _userManager = userManager;
+            _roleManager = roleManager;
             _signInManager = signInManager;
             _messageSender = messageSender;
             _logger = loggerFactory.CreateLogger<AccountController>();
@@ -213,6 +216,17 @@ namespace MillimanAccessPortal.Controllers
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
+                    _auditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(user));
+
+                    // Grant the System Admin role
+                     ApplicationRole adminRole = await _roleManager.FindByIdAsync(RoleEnum.Admin.ToString());
+                    var roleGrantResult = await _userManager.AddToRoleAsync(user, adminRole.Name);
+
+                    if (roleGrantResult == IdentityResult.Success)
+                    {
+                        _auditLogger.Log(AuditEventType.SystemRoleAssigned.ToEvent(user, RoleEnum.Admin ));
+                    }
+
                     // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=532713
                     // Send an email with this link
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
