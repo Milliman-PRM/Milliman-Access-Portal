@@ -232,16 +232,20 @@ function userCardRoleToggleClickHandler(event) {
   const $clickedInput = $(event.target);
   event.preventDefault();
 
+  if ($clickedInput.data().disabled) {
+    return;
+  }
+
   setUserRole(
     $clickedInput.closest('.card-container').attr('data-client-id'),
     $clickedInput.closest('.card-container').attr('data-user-id'),
     $clickedInput.attr('data-role-enum'),
     $clickedInput.prop('checked'),
     function onDone() {
-      $('#client-users ul.admin-panel-content .toggle-switch-checkbox').removeAttr('disabled');
+      $clickedInput.data('disabled', false);
     },
   );
-  $('#client-users ul.admin-panel-content .toggle-switch-checkbox').attr('disabled', '');
+  $clickedInput.data('disabled', true);
 }
 
 function renderUserNode(client, user) {

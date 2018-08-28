@@ -119,7 +119,7 @@ namespace MillimanAccessPortal.Controllers
                     _logger.LogWarning($"PasswordExpirationDays value not found or cannot be cast to an integer. The default value of { expirationDays } will be used.");
                 }
                                 
-                if (user.LastPasswordChangeDateTimeUtc.AddDays(expirationDays) < DateTime.UtcNow && passwordSuccess)
+                if (passwordSuccess && user.LastPasswordChangeDateTimeUtc.AddDays(expirationDays) < DateTime.UtcNow)
                 {
                     ModelState.AddModelError(string.Empty, "Password Has Expired.");
                     return View("ResetPassword");

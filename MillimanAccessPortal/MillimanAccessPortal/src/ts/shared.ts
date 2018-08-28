@@ -79,7 +79,7 @@ export function toggleExpanded($panel, $this) {
       disabled = (data.rv === '')
         ? null
         : '';
-      $this.find('.tooltip').tooltipster('content', data.text);
+      $this.tooltipster('content', data.text);
       return data.rv;
     });
   updateToolbarIcons($panel);
