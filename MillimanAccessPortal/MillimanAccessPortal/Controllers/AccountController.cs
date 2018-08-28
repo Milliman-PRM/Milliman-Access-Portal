@@ -181,10 +181,10 @@ namespace MillimanAccessPortal.Controllers
         }
 
         //
-        // GET: /Account/Register
+        // GET: /Account/CreateInitialUser
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Register(string returnUrl = null)
+        public IActionResult CreateInitialUser(string returnUrl = null)
         {
             // If any users exist, return 404. We don't want to event hint that this URL is valid.
             if (_userManager.Users.Any())
@@ -197,11 +197,11 @@ namespace MillimanAccessPortal.Controllers
         }
 
         //
-        // POST: /Account/Register
+        // POST: /Account/CreateInitialUser
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterViewModel model, string returnUrl = null)
+        public async Task<IActionResult> CreateInitialUser(RegisterViewModel model, string returnUrl = null)
         {
             // If any users exist, return 404. We don't want to event hint that this URL is valid.
             if (_userManager.Users.Any())
