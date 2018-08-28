@@ -41,6 +41,7 @@ namespace MapTests
             var accountController = new AccountController(
                 _testResources.DbContextObject,
                 _testResources.UserManagerObject,
+                _testResources.RoleManagerObject,
                 null,
                 _testResources.MessageQueueServicesObject,
                 _testResources.LoggerFactory,
