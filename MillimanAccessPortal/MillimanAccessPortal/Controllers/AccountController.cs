@@ -219,7 +219,7 @@ namespace MillimanAccessPortal.Controllers
                     _auditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(user));
 
                     // Grant the System Admin role
-                     ApplicationRole adminRole = await _roleManager.FindByIdAsync(RoleEnum.Admin.ToString());
+                    ApplicationRole adminRole = await _roleManager.FindByIdAsync(RoleEnum.Admin.ToString());
                     var roleGrantResult = await _userManager.AddToRoleAsync(user, adminRole.Name);
 
                     if (roleGrantResult == IdentityResult.Success)
