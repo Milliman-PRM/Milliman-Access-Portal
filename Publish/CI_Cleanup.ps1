@@ -25,8 +25,9 @@ $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
 $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
 $dbPassword = $env:db_deploy_password
-$appDbName = "appdb_$BranchName".Replace("_","").Replace("-","").ToLower()
-$logDbName = "auditlogdb_$BranchName".Replace("_","").Replace("-","").ToLower()
+$TrimmedBranch = $BranchName.Replace("_","").Replace("-","").ToLower()
+$appDbName = "appdb_$TrimmedBranch"
+$logDbName = "auditlogdb_$TrimmedBranch"
 
 $rootPath = (get-location).Path
 $nugetDestination = "$rootPath\nugetPackages"
