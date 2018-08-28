@@ -43,6 +43,12 @@ namespace MapDbContextLib.Identity
         public static Dictionary<RoleEnum, Guid> RoleIds = new Dictionary<RoleEnum, Guid>();
 
         /// <summary>
+        /// This must be declared to support mocking (All foreign keys are expected to reference a property with [KeyAttribute], which the base class does not have). 
+        /// </summary>
+        [Key]
+        public override Guid Id { get; set; }
+
+        /// <summary>
         /// Used for initialization to ensure explicit assignment of role names to enumeration values
         /// </summary>
         public ApplicationRole() : base() { }

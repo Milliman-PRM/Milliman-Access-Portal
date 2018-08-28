@@ -67,7 +67,7 @@ namespace MapTests
             #region Arrange
             AccountController controller = await GetController("user1");
             string TestCode = "Code123";
-            string TestUserId = "1";
+            string TestUserId = new Guid(1,1,1,1,1,1,1,1,1,1,1).ToString();
             #endregion
 
             #region Act

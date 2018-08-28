@@ -24,6 +24,12 @@ namespace MapDbContextLib.Identity
         public ApplicationUser(string userName) : base(userName)
         {}
 
+        /// <summary>
+        /// This must be declared to support mocking (All foreign keys are expected to reference a property with [KeyAttribute], which the base class does not have). 
+        /// </summary>
+        [Key]
+        public override Guid Id { get; set; }
+
         //
         // Summary:
         //     Gets or sets the user's most recent password change date
