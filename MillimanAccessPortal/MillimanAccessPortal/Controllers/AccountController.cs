@@ -201,7 +201,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateInitialUser(RegisterViewModel model, string returnUrl = null)
+        public async Task<IActionResult> CreateInitialUser(CreateInitialUserViewModel model, string returnUrl = null)
         {
             // If any users exist, return 404. We don't want to even hint that this URL is valid.
             if (_userManager.Users.Any())
@@ -213,7 +213,7 @@ namespace MillimanAccessPortal.Controllers
             if (ModelState.IsValid)
             {
                 var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
-                var result = await _userManager.CreateAsync(user, model.Password);
+                var result = await _userManager.CreateAsync(user);
                 if (result.Succeeded)
                 {
                     _auditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(user));

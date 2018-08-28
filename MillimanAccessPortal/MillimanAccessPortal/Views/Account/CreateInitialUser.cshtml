@@ -1,4 +1,4 @@
-﻿@model RegisterViewModel
+﻿@model CreateInitialUserViewModel
 @{
     ViewData["Title"] = "";
     Layout = "_Layout_w_H_F";
@@ -25,25 +25,11 @@
                                     <span asp-validation-for="Email" class="text-danger"></span>
                                 </div>
                             </div>
-                            <div class="form-input form-input-text flex-item-12-12">
-                                <label asp-for="Password" class="form-input-text-title"></label>
-                                <div class="col-md-10">
-                                    <input asp-for="Password" class="form-control" />
-                                    <span asp-validation-for="Password" class="text-danger"></span>
-                                </div>
-                            </div>
-                            <div class="form-input form-input-text flex-item-12-12">
-                                <label asp-for="ConfirmPassword" class="form-input-text-title"></label>
-                                <div class="col-md-10">
-                                    <input asp-for="ConfirmPassword" class="form-control" />
-                                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-                                </div>
-                            </div>
                         </div>
                     </div>
                     <div class="form-submission-section">
                         <div class="button-container button-container-update">
-                            <button type="submit" class="button-submit blue-button">Register</button>
+                            <button type="submit" class="button-submit blue-button">Create User</button>
                         </div>
                     </div>
                 </div>
