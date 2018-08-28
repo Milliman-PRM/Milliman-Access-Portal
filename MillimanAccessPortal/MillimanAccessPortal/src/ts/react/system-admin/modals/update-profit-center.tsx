@@ -1,10 +1,15 @@
+import '../../../../scss/react/shared-components/modal.scss';
+
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
-import '../../../../scss/react/shared-components/modal.scss';
-import { postData } from '../../../shared';
+import { getData, postData } from '../../../shared';
+import { ProfitCenterDetail } from '../interfaces';
 
-interface CreateProfitCenterModalState {
+interface UpdateProfitCenterModalProps extends Modal.Props {
+  profitCenterId?: number;
+}
+interface UpdateProfitCenterModalState {
   name: string;
   code: string;
   office: string;
@@ -13,9 +18,10 @@ interface CreateProfitCenterModalState {
   phone: string;
 }
 
-export class CreateProfitCenterModal extends React.Component<Modal.Props, CreateProfitCenterModalState> {
+export class UpdateProfitCenterModal
+    extends React.Component<UpdateProfitCenterModalProps, UpdateProfitCenterModalState> {
 
-  private url: string = 'SystemAdmin/CreateProfitCenter';
+  private url: string = 'SystemAdmin/UpdateProfitCenter';
 
   public constructor(props) {
     super(props);
@@ -39,6 +45,24 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
     this.cancel = this.cancel.bind(this);
   }
 
+  public componentDidMount() {
+    if (this.props.profitCenterId) {
+      getData('SystemAdmin/ProfitCenterDetail', {
+        profitCenterId: this.props.profitCenterId,
+      })
+      .then((response: ProfitCenterDetail) => {
+        this.setState({
+          name: response.Name,
+          code: response.Code,
+          office: response.Office,
+          contact: response.ContactName,
+          email: response.ContactEmail,
+          phone: response.ContactPhone,
+        });
+      });
+    }
+  }
+
   public render() {
     return (
       <Modal
@@ -47,7 +71,7 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
         className="modal"
         overlayClassName="modal-overlay"
       >
-        <h3 className="title blue">Create New Profit Center</h3>
+        <h3 className="title blue">Update Existing Profit Center</h3>
         <span className="modal-text">Profit Center Information</span>
         <form onSubmit={this.handleSubmit}>
           <span>
@@ -56,6 +80,7 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
               name="pcName"
               type="text"
               onChange={this.handleChangeName}
+              value={this.state.name || ''}
             />
           </span>
           <span>
@@ -64,6 +89,7 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
               name="pcCode"
               type="text"
               onChange={this.handleChangeCode}
+              value={this.state.code || ''}
             />
           </span>
           <span>
@@ -72,6 +98,7 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
               name="pcOffice"
               type="text"
               onChange={this.handleChangeOffice}
+              value={this.state.office || ''}
             />
           </span>
           <span>
@@ -80,6 +107,7 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
               name="pcContact"
               type="text"
               onChange={this.handleChangeContact}
+              value={this.state.contact || ''}
             />
           </span>
           <span>
@@ -88,6 +116,7 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
               name="pcEmail"
               type="text"
               onChange={this.handleChangeEmail}
+              value={this.state.email || ''}
             />
           </span>
           <span>
@@ -96,6 +125,7 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
               name="pcPhone"
               type="text"
               onChange={this.handleChangePhone}
+              value={this.state.phone || ''}
             />
           </span>
           <div className="button-container">
@@ -110,7 +140,7 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
               className="blue-button"
               type="submit"
             >
-              Create Profit Center
+              Update Profit Center
             </button>
           </div>
         </form>
@@ -157,6 +187,7 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
   private handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     postData(this.url, {
+      Id: this.props.profitCenterId,
       Name: this.state.name,
       ProfitCenterCode: this.state.code,
       MillimanOffice: this.state.office,
@@ -165,7 +196,7 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
       ContactPhone: this.state.phone,
     })
     .then(() => {
-      alert('Profit center created.');
+      alert('Profit center updated.');
       this.props.onRequestClose(null);
     });
   }

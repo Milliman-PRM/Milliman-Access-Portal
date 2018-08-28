@@ -623,9 +623,9 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 transaction.Commit();
-            }
 
-            _auditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(client, user));
+                _auditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(client, user));
+            }
 
             return Json(user);
         }
