@@ -113,7 +113,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> RootContentItems(long clientId)
+        public async Task<IActionResult> RootContentItems(Guid clientId)
         {
             Client client = DbContext.Client.Find(clientId);
 
@@ -143,7 +143,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> RootContentItemDetail(long rootContentItemId)
+        public async Task<IActionResult> RootContentItemDetail(Guid rootContentItemId)
         {
             RootContentItem rootContentItem = DbContext.RootContentItem.Find(rootContentItemId);
 
@@ -230,12 +230,12 @@ namespace MillimanAccessPortal.Controllers
                 {
                     var inheritedRoles = DbContext.UserRoleInClient
                         .Where(r => r.ClientId == rootContentItem.ClientId)
-                        .Where(r => r.RoleId == ((long)role))
+                        .Where(r => r.RoleId == ApplicationRole.RoleIds[role])
                         .Select(r => new UserRoleInRootContentItem
                         {
                             UserId = r.UserId,
                             RootContentItemId = rootContentItem.Id,
-                            RoleId = ((long)role),
+                            RoleId = ApplicationRole.RoleIds[role],
                         });
                     DbContext.UserRoleInRootContentItem.AddRange(inheritedRoles);
                 }
@@ -311,7 +311,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpDelete]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteRootContentItem(long rootContentItemId)
+        public async Task<IActionResult> DeleteRootContentItem(Guid rootContentItemId)
         {
             var rootContentItem = DbContext.RootContentItem
                 .Include(x => x.Client)
@@ -565,7 +565,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="RootContentItemId"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<IActionResult> PreLiveSummary(long RootContentItemId)
+        public async Task<IActionResult> PreLiveSummary(Guid RootContentItemId)
         {
             #region Authorization
             AuthorizationResult roleInRootContentItem = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, RootContentItemId));
@@ -606,7 +606,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> GoLive(long rootContentItemId, long publicationRequestId, string validationSummaryId)
+        public async Task<IActionResult> GoLive(Guid rootContentItemId, Guid publicationRequestId, string validationSummaryId)
         {
             #region Authorization
             AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItemId));
@@ -855,7 +855,7 @@ namespace MillimanAccessPortal.Controllers
                 DbContext.SaveChanges();
 
                 //3.4  Update SelectionGroup SelectedHierarchyFieldValueList due to hierarchy changes
-                List<long> AllRemainingFieldValues = DbContext.HierarchyFieldValue.Where(v => v.HierarchyField.RootContentItemId == PubRequest.RootContentItemId)
+                List<Guid> AllRemainingFieldValues = DbContext.HierarchyFieldValue.Where(v => v.HierarchyField.RootContentItemId == PubRequest.RootContentItemId)
                                                                                   .Select(v => v.Id)
                                                                                   .ToList();
                 foreach (SelectionGroup Group in DbContext.SelectionGroup.Where(g => g.RootContentItemId == PubRequest.RootContentItemId && !g.IsMaster))
@@ -906,7 +906,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Reject(long rootContentItemId, long publicationRequestId)
+        public async Task<IActionResult> Reject(Guid rootContentItemId, Guid publicationRequestId)
         {
             // TODO Could/should this be handled in the Cancel action?
             #region Authorization

@@ -22,7 +22,7 @@ namespace MapDbContextLib.Context
     public class ContentType
     {
         [Key]
-        public long Id { get; set; }
+        public Guid Id { get; set; }
 
         /// <summary>
         /// Convenience property to automatically translate between persisted string and enumeration
@@ -62,8 +62,8 @@ namespace MapDbContextLib.Context
         {
             List<ContentType> AllProposedContentTypes = new List<ContentType>
             {
-                new ContentType { Id = 1, TypeEnum=ContentTypeEnum.Qlikview, CanReduce = true, DefaultIconName = "QlikView_Icon.png" },
-                //new ContentType { Id = 2, TypeEnum = ContentTypeEnum.AnotherType, CanReduce = trueorfalse, DefaultIconName = ""},
+                new ContentType { TypeEnum=ContentTypeEnum.Qlikview, CanReduce = true, DefaultIconName = "QlikView_Icon.png" },
+                //new ContentType { TypeEnum = ContentTypeEnum.AnotherType, CanReduce = trueorfalse, DefaultIconName = ""},
             };
 
             ApplicationDbContext Db = serviceProvider.GetService<Context.ApplicationDbContext>();

@@ -32,6 +32,7 @@ using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Models.SystemAdmin;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -171,7 +172,7 @@ namespace MillimanAccessPortal.Controllers
 
             ApplicationUser user = null;
             #region Validation
-            user = _dbContext.ApplicationUser.SingleOrDefault(u => u.Id == (filter.UserId ?? 0));
+            user = _dbContext.ApplicationUser.SingleOrDefault(u => u.Id == (filter.UserId ?? Guid.Empty));
             if (user == null)
             {
                 Response.Headers.Add("Warning", "The specified user does not exist.");
@@ -219,7 +220,7 @@ namespace MillimanAccessPortal.Controllers
                 var clientIds = _dbContext.UserClaims
                     .Where(claim => claim.ClaimType == ClaimNames.ClientMembership.ToString())
                     .Where(claim => claim.UserId == filter.UserId.Value)
-                    .Select(claim => long.Parse(claim.ClaimValue))
+                    .Select(claim => Guid.Parse(claim.ClaimValue))
                     .ToList();
                 query = query.Where(client => clientIds.Contains(client.Id));
             }
@@ -275,7 +276,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             client = _dbContext.Client
                 .Include(c => c.ProfitCenter)
-                .SingleOrDefault(c => c.Id == (filter.ClientId ?? 0));
+                .SingleOrDefault(c => c.Id == (filter.ClientId ?? Guid.Empty));
 
             if (client == null)
             {
@@ -352,7 +353,7 @@ namespace MillimanAccessPortal.Controllers
 
             ProfitCenter pc = null;
             #region Validation
-            pc = _dbContext.ProfitCenter.SingleOrDefault(c => c.Id == (filter.ProfitCenterId ?? 0));
+            pc = _dbContext.ProfitCenter.SingleOrDefault(c => c.Id == (filter.ProfitCenterId ?? Guid.Empty));
             if (pc == null)
             {
                 Response.Headers.Add("Warning", "The specified profit center does not exist.");
@@ -434,7 +435,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             item = _dbContext.RootContentItem
                 .Include(i => i.ContentType)
-                .SingleOrDefault(i => i.Id == (filter.RootContentItemId ?? 0));
+                .SingleOrDefault(i => i.Id == (filter.RootContentItemId ?? Guid.Empty));
             if (item == null)
             {
                 Response.Headers.Add("Warning", "The specified root content item does not exist.");
@@ -625,7 +626,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="profitCenterId">Profit center to which the user is to become an admin.</param>
         /// <returns>Json</returns>
         [HttpPost]
-        public async Task<ActionResult> AddUserToProfitCenter(string email, long profitCenterId)
+        public async Task<ActionResult> AddUserToProfitCenter(string email, Guid profitCenterId)
         {
             #region Authorization
             // User must have a global Admin role
@@ -683,7 +684,7 @@ namespace MillimanAccessPortal.Controllers
                 _dbContext.UserRoleInProfitCenter.Add(new UserRoleInProfitCenter
                 {
                     ProfitCenterId = profitCenterId,
-                    RoleId = (long)RoleEnum.Admin,
+                    RoleId = ApplicationRole.RoleIds[RoleEnum.Admin],
                     UserId = user.Id,
                 });
                 _dbContext.SaveChanges();
@@ -701,7 +702,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="role">Role to check</param>
         /// <returns>true if the user has the role; false otherwise</returns>
         [HttpGet]
-        public async Task<ActionResult> SystemRole(long userId, RoleEnum role)
+        public async Task<ActionResult> SystemRole(Guid userId, RoleEnum role)
         {
             #region Authorization
             // User must have a global Admin role
@@ -733,7 +734,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var roleId = (long)role;
+            var roleId = ApplicationRole.RoleIds[role];
             var roleExists = _dbContext.UserRoles.Any(ur => ur.UserId == userId && ur.RoleId == roleId);
 
             return Json(roleExists);
@@ -747,7 +748,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>true if the user has the role; false otherwise</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> SystemRole(long userId, RoleEnum role, bool value)
+        public async Task<ActionResult> SystemRole(Guid userId, RoleEnum role, bool value)
         {
             #region Authorization
             // User must have a global Admin role
@@ -786,7 +787,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var roleId = (long)role;
+            var roleId = ApplicationRole.RoleIds[role];
             var roleQuery = _dbContext.UserRoles.Where(ur => ur.UserId == userId && ur.RoleId == roleId);
             var roleExists = roleQuery.Any();
 
@@ -804,7 +805,7 @@ namespace MillimanAccessPortal.Controllers
             }
             else
             {
-                var roleToAdd = new IdentityUserRole<long>
+                var roleToAdd = new IdentityUserRole<Guid>
                 {
                     UserId = user.Id,
                     RoleId = roleId,
@@ -824,7 +825,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="userId">User whose suspension status is to be checked.</param>
         /// <returns>true if the user is suspended; false otherwise</returns>
         [HttpGet]
-        public async Task<ActionResult> UserSuspension(long userId)
+        public async Task<ActionResult> UserSuspension(Guid userId)
         {
             #region Authorization
             // User must have a global Admin role
@@ -856,7 +857,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>true if the user is suspended; false otherwise</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> UserSuspension(long userId, bool value)
+        public async Task<ActionResult> UserSuspension(Guid userId, bool value)
         {
             #region Authorization
             // User must have a global Admin role
@@ -902,7 +903,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="role">Role to check</param>
         /// <returns>true if the user has the role in the client; false otherwise</returns>
         [HttpGet]
-        public async Task<ActionResult> UserClientRoles(long userId, long clientId, RoleEnum role)
+        public async Task<ActionResult> UserClientRoles(Guid userId, Guid clientId, RoleEnum role)
         {
             #region Authorization
             // User must have a global Admin role
@@ -968,7 +969,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>true if the user has the role in the client; false otherwise</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> UserClientRoles(long userId, long clientId, RoleEnum role, bool value)
+        public async Task<ActionResult> UserClientRoles(Guid userId, Guid clientId, RoleEnum role, bool value)
         {
             #region Authorization
             // User must have a global Admin role
@@ -1047,7 +1048,7 @@ namespace MillimanAccessPortal.Controllers
                     {
                         UserId = user.Id,
                         ClientId = client.Id,
-                        RoleId = (long)roleToAdd,
+                        RoleId = ApplicationRole.RoleIds[roleToAdd],
                     };
                     _dbContext.UserRoleInClient.Add(userRole);
                 }
@@ -1065,7 +1066,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="rootContentItemId">Root content item whose suspension status is to be checked.</param>
         /// <returns>true is the root content item is suspended; false otherwise</returns>
         [HttpGet]
-        public async Task<ActionResult> ContentSuspension(long rootContentItemId)
+        public async Task<ActionResult> ContentSuspension(Guid rootContentItemId)
         {
             #region Authorization
             // User must have a global Admin role
@@ -1097,7 +1098,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>true is the root content item is suspended; false otherwise</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> ContentSuspension(long rootContentItemId, bool value)
+        public async Task<ActionResult> ContentSuspension(Guid rootContentItemId, bool value)
         {
             #region Authorization
             // User must have a global Admin role

@@ -4,6 +4,7 @@
  * DEVELOPER NOTES:
  */
 
+using System;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MillimanAccessPortal.Models.AccountViewModels;
@@ -16,7 +17,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
         public PublicationStatus StatusEnum { get; set; }
         public string StatusName { get => ContentPublicationRequest.PublicationStatusString[StatusEnum]; }
         public string StatusMessage { get; set; } = string.Empty;
-        public long RootContentItemId { get; set; }
+        public Guid RootContentItemId { get; set; }
 
         public static explicit operator PublicationSummary(ContentPublicationRequest contentPublicationRequest)
         {

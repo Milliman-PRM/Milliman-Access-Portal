@@ -1,10 +1,11 @@
-﻿using MapDbContextLib.Identity;
+﻿using System;
+using MapDbContextLib.Identity;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {
     public class UserDetail
     {
-        public long Id { get; set; }
+        public Guid Id { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Employer { get; set; }

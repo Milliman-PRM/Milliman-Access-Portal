@@ -1,10 +1,11 @@
 ﻿using MapDbContextLib.Context;
+using System;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {
     public class ProfitCenterDetail
     {
-        public long Id { get; set; }
+        public Guid Id { get; set; }
         public string Name { get; set; }
         public string Office { get; set; }
         public string ContactName { get; set; }

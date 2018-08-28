@@ -89,7 +89,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="selectionGroupId">The primary key value of the SelectionGroup authorizing this user to the requested content</param>
         /// <returns>A View (and model) that displays the requested content</returns>
         [Authorize]
-        public async Task<IActionResult> WebHostedContent(long selectionGroupId)
+        public async Task<IActionResult> WebHostedContent(Guid selectionGroupId)
         {
             var selectionGroup = DataContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
@@ -177,7 +177,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="selectionGroupId">The primary key value of the SelectionGroup authorizing this user to the requested content</param>
         /// <returns>A View (and model) that displays the requested content</returns>
         [Authorize]
-        public IActionResult Thumbnail(long selectionGroupId)
+        public IActionResult Thumbnail(Guid selectionGroupId)
         {
             var selectionGroup = DataContext.SelectionGroup
                                             .Include(sg => sg.RootContentItem)
@@ -231,7 +231,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [Authorize]
-        public async Task<IActionResult> RelatedPdf(string purpose, long selectionGroupId)
+        public async Task<IActionResult> RelatedPdf(string purpose, Guid selectionGroupId)
         {
             var selectionGroup = DataContext.SelectionGroup
                                             .Include(sg => sg.RootContentItem)

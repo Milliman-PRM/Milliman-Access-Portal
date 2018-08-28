@@ -13,7 +13,7 @@ using System.Linq;
 
 namespace MapDbContextLib.Context
 {
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, long>
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>
     {
         public DbSet<Client> Client { get; set; }
         public DbSet<UserRoleInClient> UserRoleInClient { get; set; }
@@ -77,12 +77,12 @@ namespace MapDbContextLib.Context
                 .HasDefaultValueSql("uuid_generate_v4()");
         }
 
-        public bool ClientExists(long id)
+        public bool ClientExists(Guid id)
         {
             return Client.Any(e => e.Id == id);
         }
 
-        private bool ProfitCenterExists(long id)
+        private bool ProfitCenterExists(Guid id)
         {
             return ProfitCenter.Any(pc => pc.Id == id);
         }

@@ -8,6 +8,7 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.DataQueries;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -52,13 +53,13 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
             var liveHierarchy = ContentReductionHierarchy<ReductionFieldValueSelection>
                 .GetFieldSelectionsForSelectionGroup(dbContext, selectionGroup.Id);
 
-            var liveSelectionSet = selectionGroup.SelectedHierarchyFieldValueList?.ToHashSet() ?? new HashSet<long>();
+            var liveSelectionSet = selectionGroup.SelectedHierarchyFieldValueList?.ToHashSet() ?? new HashSet<Guid>();
 
             // Convert the serialized content reduction hierarchy into a list of selected values
-            HashSet<long> pendingSelectionSet = null;
+            HashSet<Guid> pendingSelectionSet = null;
             if (latestTask != null && outstandingStatus.Contains(latestTask.ReductionStatus))
             {
-                pendingSelectionSet = new HashSet<long>();
+                pendingSelectionSet = new HashSet<Guid>();
                 if (latestTask.SelectionCriteria != null)
                 {
                     foreach (var field in latestTask.SelectionCriteriaObj.Fields)
@@ -144,7 +145,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
 
     public class SelectionDetails
     {
-        public long Id { get; set; }
+        public Guid Id { get; set; }
         public bool Marked { get; set; }
     }
 }

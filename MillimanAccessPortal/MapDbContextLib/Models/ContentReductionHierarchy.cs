@@ -31,7 +31,7 @@ namespace MapDbContextLib.Models
 
         public List<ReductionField<T>> Fields { get; set; } = new List<ReductionField<T>>();
 
-        public long RootContentItemId { get; set; }
+        public Guid RootContentItemId { get; set; }
 
         public static ContentReductionHierarchy<T> DeserializeJson(string JsonString)
         {
@@ -55,7 +55,7 @@ namespace MapDbContextLib.Models
         /// <param name="SelectionGroupId">The selection group whose selections are to be gathered</param>
         /// <param name="Selections">Any changes to the current selections to effect in the returned hierarchy</param>
         /// <returns>ContentReductionHierarchy</returns>
-        public static ContentReductionHierarchy<ReductionFieldValueSelection> GetFieldSelectionsForSelectionGroup(ApplicationDbContext DbContext, long SelectionGroupId, long[] Selections = null)
+        public static ContentReductionHierarchy<ReductionFieldValueSelection> GetFieldSelectionsForSelectionGroup(ApplicationDbContext DbContext, Guid SelectionGroupId, Guid[] Selections = null)
         {
             SelectionGroup SelectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
@@ -122,7 +122,7 @@ namespace MapDbContextLib.Models
         /// <param name="DbContext"></param>
         /// <param name="RootContentItemId">The </param>
         /// <returns>ContentReductionHierarchy</returns>
-        public static ContentReductionHierarchy<ReductionFieldValue> GetHierarchyForRootContentItem(ApplicationDbContext DbContext, long RootContentItemId)
+        public static ContentReductionHierarchy<ReductionFieldValue> GetHierarchyForRootContentItem(ApplicationDbContext DbContext, Guid RootContentItemId)
         {
             RootContentItem ContentItem = DbContext.RootContentItem
                                                      .Include(rc => rc.ContentType)

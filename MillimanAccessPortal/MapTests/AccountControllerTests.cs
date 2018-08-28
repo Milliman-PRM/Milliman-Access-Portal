@@ -104,7 +104,7 @@ namespace MapTests
             string Phone = "3173171212";
             EnableAccountViewModel model = new EnableAccountViewModel
             {
-                Id = 1,
+                Id = new Guid(1,1,1,1,1,1,1,1,1,1,1),
                 Code = NewToken,
                 NewPassword = NewPass,
                 ConfirmNewPassword = NewPass,

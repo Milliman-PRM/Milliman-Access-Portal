@@ -15,7 +15,7 @@ namespace MapDbContextLib.Context
     public class SelectionGroup
     {
         [Key]
-        public long Id { get; set; }
+        public Guid Id { get; set; }
 
         [Required]
         public string GroupName { get; set; }
@@ -23,13 +23,13 @@ namespace MapDbContextLib.Context
         public string ContentInstanceUrl { get; set; }
 
         [ForeignKey("RootContentItem")]
-        public long RootContentItemId { get; set; }
+        public Guid RootContentItemId { get; set; }
         public RootContentItem RootContentItem { get; set; }
 
         /// <summary>
         /// This can't be a foreign key due to use of collection type
         /// </summary>
-        public long[] SelectedHierarchyFieldValueList { get; set; }
+        public Guid[] SelectedHierarchyFieldValueList { get; set; }
 
         [Required]
         public bool IsMaster { get; set; }

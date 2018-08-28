@@ -6,6 +6,7 @@
 
 using MapCommonLib;
 using MapDbContextLib.Context;
+using System;
 using System.Linq;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
@@ -34,7 +35,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             };
         }
 
-        public void QueryRelatedEntityCounts(ApplicationDbContext dbContext, long? userId, long? profitCenterId)
+        public void QueryRelatedEntityCounts(ApplicationDbContext dbContext, Guid? userId, Guid? profitCenterId)
         {
             if (userId.HasValue)
             {

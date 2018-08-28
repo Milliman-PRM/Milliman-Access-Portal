@@ -5,6 +5,7 @@
  */
 
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -21,7 +22,7 @@ namespace MapDbContextLib.Context
         [Key]
         [HiddenInput]
         [Display(Name = "Client ID")]
-        public long Id { get; set; }
+        public Guid Id { get; set; }
 
         [Required]
         [Display(Name = "Client Name")]
@@ -69,14 +70,14 @@ namespace MapDbContextLib.Context
         [ForeignKey("ParentClient")]
         [HiddenInput]
         [Display(Name = "Parent Client ID")]
-        public long? ParentClientId { get; set; }
+        public Guid? ParentClientId { get; set; }
 
         public Client ParentClient { get; set; }
 
         [Required]
         [ForeignKey("ProfitCenter")]
         [Display(Name = "Profit Center")]
-        public long ProfitCenterId { get; set; }
+        public Guid ProfitCenterId { get; set; }
         public ProfitCenter ProfitCenter { get; set; }
     }
 }

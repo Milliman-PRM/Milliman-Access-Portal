@@ -7,7 +7,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
 {
     public class RootContentItemDetailForClient
     {
-        public long Id { get; set; }
+        public Guid Id { get; set; }
         public string ContentName { get; set; }
         public string ContentType { get; set; }
         public string Description { get; set; }
@@ -33,7 +33,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             };
         }
 
-        public void QueryRelatedEntities(ApplicationDbContext dbContext, long clientId)
+        public void QueryRelatedEntities(ApplicationDbContext dbContext, Guid clientId)
         {
             var groups = dbContext.UserInSelectionGroup
                 .Where(g => g.SelectionGroup.RootContentItemId == Id)

@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using MapDbContextLib.Identity;
@@ -14,14 +15,14 @@ namespace MillimanAccessPortal.Authorization
 {
     public class UserInSelectionGroupRequirement : MapAuthorizationRequirementBase
     {
-        private long SelectionGroupId { get; set; }
+        private Guid SelectionGroupId { get; set; }
 
         /// <summary>
         /// Constructor; the only way to instantiate this type
         /// </summary>
         /// <param name="RoleEnumArg"></param>
         /// <param name="ClientIdArg">null or &lt;= 0 to evaluate for ANY Client</param>
-        public UserInSelectionGroupRequirement(long SelectionGroupIdArg)
+        public UserInSelectionGroupRequirement(Guid SelectionGroupIdArg)
         {
             SelectionGroupId = SelectionGroupIdArg;
         }

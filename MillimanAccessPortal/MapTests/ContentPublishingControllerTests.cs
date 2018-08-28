@@ -80,9 +80,11 @@ namespace MapTests
         [InlineData(999, 1, true)]
         [InlineData(1, 999, true)]
         [InlineData(1, 1, false)]
-        public async Task CreateRootContentItem_ErrorInvalid(long clientId, long contentTypeId, bool useContentName)
+        public async Task CreateRootContentItem_ErrorInvalid(int clientIdArg, int contentTypeIdArg, bool useContentName)
         {
             #region Arrange
+            Guid clientId = new Guid(clientIdArg, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+            Guid contentTypeId = new Guid(contentTypeIdArg, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
             ContentPublishingController controller = await GetControllerForUser("user1");
             var validRootContentItem = new RootContentItem
             {
@@ -112,14 +114,15 @@ namespace MapTests
         [Theory]
         [InlineData("user2", 1)]  // User is not content publisher
         [InlineData("user1", 2)]  // User has no role in the client
-        public async Task CreateRootContentItem_ErrorUnauthorized(String userName, long clientId)
+        public async Task CreateRootContentItem_ErrorUnauthorized(String userName, int clientIdArg)
         {
             #region Arrange
+            Guid clientId = new Guid(clientIdArg, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
             ContentPublishingController controller = await GetControllerForUser(userName);
             var validRootContentItem = new RootContentItem
             {
                 ClientId = clientId,
-                ContentTypeId = 1,
+                ContentTypeId = new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
                 ContentName = "",
                 DoesReduce = false,
             };
@@ -144,8 +147,8 @@ namespace MapTests
             ContentPublishingController controller = await GetControllerForUser("user1");
             var validRootContentItem = new RootContentItem
             {
-                ClientId = 1,
-                ContentTypeId = 1,
+                ClientId = new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+                ContentTypeId = new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
                 ContentName = "",
                 DoesReduce = false,
             };
@@ -167,8 +170,8 @@ namespace MapTests
             ContentPublishingController controller = await GetControllerForUser("user1");
             var validRootContentItem = new RootContentItem
             {
-                ClientId = 1,
-                ContentTypeId = 1,
+                ClientId = new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+                ContentTypeId = new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
                 ContentName = "",
                 DoesReduce = false,
             };
@@ -187,13 +190,14 @@ namespace MapTests
 
         [Theory]
         [InlineData(999)]
-        public async Task DeleteRootContentItem_ErrorInvalid(long rootContentItemId)
+        public async Task DeleteRootContentItem_ErrorInvalid(int rootContentItemIdArg)
         {
             #region Arrange
             ContentPublishingController controller = await GetControllerForUser("user1");
             #endregion
 
             #region Act
+            Guid rootContentItemId = new Guid(rootContentItemIdArg, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
             var view = await controller.DeleteRootContentItem(rootContentItemId);
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
@@ -209,13 +213,14 @@ namespace MapTests
         [Theory]
         [InlineData("user2", 1)]  // User is not content publisher
         [InlineData("user1", 2)]  // User has no role in the client
-        public async Task DeleteRootContentItem_ErrorUnauthorized(String userName, long rootContentItemId)
+        public async Task DeleteRootContentItem_ErrorUnauthorized(String userName, int rootContentItemIdArg)
         {
             #region Arrange
             ContentPublishingController controller = await GetControllerForUser(userName);
             #endregion
 
             #region Act
+            Guid rootContentItemId = new Guid(rootContentItemIdArg, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
             var view = await controller.DeleteRootContentItem(rootContentItemId);
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
@@ -235,7 +240,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.DeleteRootContentItem(3);
+            var view = await controller.DeleteRootContentItem(new Guid(3,1,1,1,1,1,1,1,1,1,1));
             #endregion
 
             #region Assert
@@ -252,7 +257,7 @@ namespace MapTests
 
             #region Act
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
-            var view = await controller.DeleteRootContentItem(3);
+            var view = await controller.DeleteRootContentItem(new Guid(3,1,1,1,1,1,1,1,1,1,1));
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
             #endregion
 
@@ -287,7 +292,7 @@ namespace MapTests
             ContentPublishingController controller = await GetControllerForUser("user1");
             PublishRequest RequestArg = new PublishRequest
             {
-                RootContentItemId = 3,
+                RootContentItemId = new Guid(3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
                 RelatedFiles = new UploadedRelatedFile[]
                 {
                     new UploadedRelatedFile
@@ -319,13 +324,15 @@ namespace MapTests
             ContentPublishingController controller = await GetControllerForUser("user1");
             PublishRequest RequestArg = new PublishRequest
             {
-                RootContentItemId = 3,
+                RootContentItemId = new Guid(3,1,1,1,1,1,1,1,1,1,1),
                 RelatedFiles = new UploadedRelatedFile[0],
             };
             // Create a new publicationrequest record with blocking status
             TestResources.DbContextObject.ContentPublicationRequest.Add(new ContentPublicationRequest
             {
-                Id = 999, ApplicationUserId=1, RootContentItemId = 3,
+                Id = new Guid(999,1,1,1,1,1,1,1,1,1,1),
+                ApplicationUserId = new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+                RootContentItemId = new Guid(3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
                 RequestStatus = ExistingRequestStatus,
                 ReductionRelatedFilesObj = new List<ReductionRelatedFiles>{ },
                 CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0,1,0),
@@ -352,15 +359,15 @@ namespace MapTests
             ContentPublishingController controller = await GetControllerForUser("user1");
             PublishRequest RequestArg = new PublishRequest
             {
-                RootContentItemId = 3,
+                RootContentItemId = new Guid(3,1,1,1,1,1,1,1,1,1,1),
                 RelatedFiles = new UploadedRelatedFile[0],
             };
             // Create a new publicationrequest record with blocking status
             TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
             {
                 Id = Guid.NewGuid(),
-                SelectionGroup = TestResources.DbContextObject.SelectionGroup.Single(g => g.RootContentItemId == 3),
-                ApplicationUserId = 1,
+                SelectionGroup = TestResources.DbContextObject.SelectionGroup.Single(g => g.RootContentItemId == new Guid(3,1,1,1,1,1,1,1,1,1,1)),
+                ApplicationUserId = new Guid(1,1,1,1,1,1,1,1,1,1,1),
                 ReductionStatus = ExistingTaskStatus,
                 CreateDateTimeUtc = DateTime.UtcNow,
             });
@@ -384,7 +391,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.GoLive(1, 1, "");
+            var view = await controller.GoLive(new Guid(1,1,1,1,1,1,1,1,1,1,1), new Guid(1,1,1,1,1,1,1,1,1,1,1), "");
             #endregion
 
             #region Assert
@@ -401,9 +408,9 @@ namespace MapTests
             // Create a new publicationrequest record with blocking status
             TestResources.DbContextObject.ContentPublicationRequest.Add(new ContentPublicationRequest
             {
-                Id = 999,
-                ApplicationUserId = 1,
-                RootContentItemId = 3,
+                Id = new Guid(999,1,1,1,1,1,1,1,1,1,1),
+                ApplicationUserId = new Guid(1,1,1,1,1,1,1,1,1,1,1),
+                RootContentItemId = new Guid(3,1,1,1,1,1,1,1,1,1,1),
                 RequestStatus = PublicationStatus.Processing,
                 ReductionRelatedFilesObj = new List<ReductionRelatedFiles> { },
                 CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0),
@@ -411,7 +418,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.GoLive(3, 999, "");
+            var view = await controller.GoLive(new Guid(3,1,1,1,1,1,1,1,1,1,1), new Guid(999,1,1,1,1,1,1,1,1,1,1), "");
             #endregion
 
             #region Assert
@@ -429,7 +436,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.Reject(1, 1);
+            var view = await controller.Reject(new Guid(1,1,1,1,1,1,1,1,1,1,1), new Guid(1,1,1,1,1,1,1,1,1,1,1));
             #endregion
 
             #region Assert
@@ -441,21 +448,21 @@ namespace MapTests
         [Theory]
         [InlineData(3, 999, PublicationStatus.Queued, "user1", "The requested publication request does not exist.")]
         [InlineData(3, 3, PublicationStatus.Processing, "user1", "The specified publication request is not currently queued.")]
-        public async Task Reject_BadRequest(long rootContentItemId, long pubRequestId, PublicationStatus initialPubRequestStatus, string UserName, string ExpectedHeaderString)
+        public async Task Reject_BadRequest(int rootContentItemId, int pubRequestId, PublicationStatus initialPubRequestStatus, string UserName, string ExpectedHeaderString)
         {
             #region Arrange
             ContentPublishingController controller = await GetControllerForUser(UserName);
-            ContentPublicationRequest pubRequest = TestResources.DbContextObject.ContentPublicationRequest.SingleOrDefault(r => r.RootContentItemId == rootContentItemId);
+            ContentPublicationRequest pubRequest = TestResources.DbContextObject.ContentPublicationRequest.SingleOrDefault(r => r.RootContentItemId == new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1));
             if (pubRequest != null)
             {
-                pubRequest.RootContentItemId = rootContentItemId;
-                pubRequest.RootContentItem = TestResources.DbContextObject.RootContentItem.SingleOrDefault(rc => rc.Id == rootContentItemId);
+                pubRequest.RootContentItemId = new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1);
+                pubRequest.RootContentItem = TestResources.DbContextObject.RootContentItem.SingleOrDefault(rc => rc.Id == new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1));
                 pubRequest.RequestStatus = initialPubRequestStatus;
             }
             #endregion
 
             #region Act
-            var view = await controller.Reject(rootContentItemId, pubRequestId);
+            var view = await controller.Reject(new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1), new Guid(pubRequestId,1,1,1,1,1,1,1,1,1,1));
             #endregion
 
             #region Assert

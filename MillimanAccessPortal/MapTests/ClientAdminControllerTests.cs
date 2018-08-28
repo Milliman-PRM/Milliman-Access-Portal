@@ -57,7 +57,7 @@ namespace MapTests
         public Client GetValidClient()
         {
             return new Client {
-                Id = 0,
+                Id = Guid.Empty,
                 Name = "Placeholder Test Client",
                 ClientCode = "Test Client 0001",
                 ContactName = "Contact person",
@@ -69,8 +69,8 @@ namespace MapTests
                 ConsultantOffice = "Indy PRM Testing",
                 AcceptedEmailAddressExceptionList = new string[] { },
                 AcceptedEmailDomainList = new string[] { "placeholder.com" },
-                ParentClientId = 2,
-                ProfitCenterId = 1
+                ParentClientId = new Guid(2,1,1,1,1,1,1,1,1,1,1),
+                ProfitCenterId = new Guid(1,1,1,1,1,1,1,1,1,1,1)
             };
         }
 
@@ -161,7 +161,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.ClientDetail(-100);
+            var view = await controller.ClientDetail(new Guid(-100,1,1,1,1,1,1,1,1,1,1));
             #endregion
 
             #region Assert
@@ -175,14 +175,14 @@ namespace MapTests
         [Theory]
         [InlineData("ClientAdmin1", 3)] // Authorized to client admin, but not the specified client
         [InlineData("test1", 1)] // Not authorized to perform client admin
-        public async Task ClientDetail_ErrorWhenUnauthorized(string userArg, long clientIdArg)
+        public async Task ClientDetail_ErrorWhenUnauthorized(string userArg, int clientIdArg)
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser(userArg);
             #endregion
 
             #region Act
-            var view = await controller.ClientDetail(clientIdArg);
+            var view = await controller.ClientDetail(new Guid(clientIdArg,1,1,1,1,1,1,1,1,1,1));
             #endregion
 
             #region Assert
@@ -196,14 +196,14 @@ namespace MapTests
         [Theory]
         [InlineData("ClientAdmin1", 1)] // Directly authorized to this client
         [InlineData("ClientAdmin1", 2)] // Authorized to a related (parent) client
-        public async Task ClientDetail_ReturnsDetails(string userArg, long clientIdArg)
+        public async Task ClientDetail_ReturnsDetails(string userArg, int clientIdArg)
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser(userArg);
             #endregion
 
             #region Act
-            var view = await controller.ClientDetail(clientIdArg);
+            var view = await controller.ClientDetail(new Guid(clientIdArg,1,1,1,1,1,1,1,1,1,1));
             #endregion
 
             #region Assert
@@ -218,11 +218,11 @@ namespace MapTests
         [Theory]
         [InlineData("ClientAdmin1", 3, 1)] // User isn't admin on the requested client but is admin on the requested client's profit center
         [InlineData("ClientAdmin1", 4, 1)] // User is admin on the requested client but isn't admin on the requested client's profit center
-        public async Task AssignUserToClient_ErrorWhenUnauthorized(string userArg, long clientIdArg, long userIdArg)
+        public async Task AssignUserToClient_ErrorWhenUnauthorized(string userArg, int clientIdArg, int userIdArg)
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser(userArg);
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = clientIdArg, UserId = userIdArg };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = new Guid(clientIdArg,1,1,1,1,1,1,1,1,1,1), UserId = new Guid(userIdArg,1,1,1,1,1,1,1,1,1,1) };
             #endregion
 
             #region Act
@@ -240,11 +240,11 @@ namespace MapTests
         [Theory]
         [InlineData("ClientAdmin1", -1, 1)] // User exists, but client does not
         [InlineData("ClientAdmin1", 1, -1)] // Client exists, but user does not (User is authorized to specified client & its profit center)
-        public async Task AssignUserToClient_ErrorWhenNotFound(string userArg, long clientIdArg, long userIdArg)
+        public async Task AssignUserToClient_ErrorWhenNotFound(string userArg, int clientIdArg, int userIdArg)
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser(userArg);
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = clientIdArg, UserId = userIdArg };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = new Guid(clientIdArg,1,1,1,1,1,1,1,1,1,1), UserId = new Guid(userIdArg,1,1,1,1,1,1,1,1,1,1) };
             #endregion
 
             #region Act
@@ -264,7 +264,7 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 1, UserId = 1 };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = new Guid(1,1,1,1,1,1,1,1,1,1,1), UserId = new Guid(1,1,1,1,1,1,1,1,1,1,1) };
 
             // Count users assigned to the client before attempting change
             int preActionCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()).Count();
@@ -291,7 +291,7 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 5, UserId = 1 };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = new Guid(5,1,1,1,1,1,1,1,1,1,1), UserId = new Guid(1,1,1,1,1,1,1,1,1,1,1) };
             #endregion
 
             #region Act
@@ -312,7 +312,7 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 5, UserId = 4 };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = new Guid(5,1,1,1,1,1,1,1,1,1,1), UserId = new Guid(4,1,1,1,1,1,1,1,1,1,1) };
 
             // Before acting on the input data, we need to gather initial data to compare the result to
             int beforeCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()).Count();
@@ -334,14 +334,14 @@ namespace MapTests
         [Theory]
         [InlineData(1, "test2")]
         [InlineData(2, "ClientAdmin1")]
-        public async Task SetUserRoleInClient_ErrorWhenUnauthorized(long clientId, string userName)
+        public async Task SetUserRoleInClient_ErrorWhenUnauthorized(int clientId, string userName)
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser(userName);
             var clientUserModel = new ClientUserAssociationViewModel
             {
-                ClientId = clientId,
-                UserId = 1,
+                ClientId = new Guid(clientId,1,1,1,1,1,1,1,1,1,1),
+                UserId = new Guid(1,1,1,1,1,1,1,1,1,1,1),
             };
             var roleModel = new AssignedRoleInfo
             {
@@ -366,14 +366,14 @@ namespace MapTests
         [InlineData(0, 1)]
         [InlineData(1, 0)]
         [InlineData(1, 2)]
-        public async Task SetUserRoleInClient_ErrorWhenInvalid(long clientId, long userId)
+        public async Task SetUserRoleInClient_ErrorWhenInvalid(int clientId, int userId)
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             var clientUserModel = new ClientUserAssociationViewModel
             {
-                ClientId = clientId,
-                UserId = userId,
+                ClientId = new Guid(clientId,1,1,1,1,1,1,1,1,1,1),
+                UserId = new Guid(userId,1,1,1,1,1,1,1,1,1,1),
             };
             var roleModel = new AssignedRoleInfo
             {
@@ -397,14 +397,14 @@ namespace MapTests
 
         [Theory]
         [InlineData(1, 5, RoleEnum.ContentUser)]
-        public async Task SetUserRoleInClient_Success(long clientId, long userId, RoleEnum role)
+        public async Task SetUserRoleInClient_Success(int clientId, int userId, RoleEnum role)
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             var clientUserModel = new ClientUserAssociationViewModel
             {
-                ClientId = clientId,
-                UserId = userId,
+                ClientId = new Guid(clientId,1,1,1,1,1,1,1,1,1,1),
+                UserId = new Guid(userId,1,1,1,1,1,1,1,1,1,1),
             };
             var roleModelAdd = new AssignedRoleInfo
             {
@@ -438,14 +438,14 @@ namespace MapTests
 
         [Theory]
         [InlineData(1, 5, RoleEnum.Admin)]
-        public async Task SetUserRoleInClient_Success_Pair(long clientId, long userId, RoleEnum role)
+        public async Task SetUserRoleInClient_Success_Pair(int clientId, int userId, RoleEnum role)
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             var clientUserModel = new ClientUserAssociationViewModel
             {
-                ClientId = clientId,
-                UserId = userId,
+                ClientId = new Guid(clientId,1,1,1,1,1,1,1,1,1,1),
+                UserId = new Guid(userId,1,1,1,1,1,1,1,1,1,1),
             };
             var roleModelAdd = new AssignedRoleInfo
             {
@@ -480,14 +480,14 @@ namespace MapTests
         [Theory]
         [InlineData(1, 5, RoleEnum.ContentAccessAdmin)]
         [InlineData(1, 5, RoleEnum.ContentPublisher)]
-        public async Task SetUserRoleInClient_Success_Content(long clientId, long userId, RoleEnum role)
+        public async Task SetUserRoleInClient_Success_Content(int clientId, int userId, RoleEnum role)
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             var clientUserModel = new ClientUserAssociationViewModel
             {
-                ClientId = clientId,
-                UserId = userId,
+                ClientId = new Guid(clientId,1,1,1,1,1,1,1,1,1,1),
+                UserId = new Guid(userId,1,1,1,1,1,1,1,1,1,1),
             };
             var roleModelAdd = new AssignedRoleInfo
             {
@@ -500,7 +500,7 @@ namespace MapTests
                 IsAssigned = false,
             };
 
-            int relatedRootContentItemCount = TestResources.DbContextObject.RootContentItem.Count(i => i.ClientId == clientId);
+            int relatedRootContentItemCount = TestResources.DbContextObject.RootContentItem.Count(i => i.ClientId == new Guid(clientId,1,1,1,1,1,1,1,1,1,1));
             #endregion
 
             #region Act
@@ -533,11 +533,11 @@ namespace MapTests
         /// </summary>
         [Theory]
         [InlineData("ClientAdmin1", 3, 1)] // User isn't admin on the requested client
-        public async Task RemoveUserFromClient_ErrorWhenUnauthorized(string userArg, long clientIdArg, long userIdArg)
+        public async Task RemoveUserFromClient_ErrorWhenUnauthorized(string userArg, int clientIdArg, int userIdArg)
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser(userArg);
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = clientIdArg, UserId = userIdArg };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = new Guid(clientIdArg,1,1,1,1,1,1,1,1,1,1), UserId = new Guid(userIdArg,1,1,1,1,1,1,1,1,1,1) };
             #endregion
 
             #region Act
@@ -555,11 +555,11 @@ namespace MapTests
         [Theory]
         [InlineData("ClientAdmin1", -1, 1)] // User exists, but client does not
         [InlineData("ClientAdmin1", 1, -1)] // Client exists, but user does not (User is authorized to specified client & its profit center)
-        public async Task RemoveUserFromClient_ErrorWhenNotFound(string userArg, long clientIdArg, long userIdArg)
+        public async Task RemoveUserFromClient_ErrorWhenNotFound(string userArg, int clientIdArg, int userIdArg)
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser(userArg);
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = clientIdArg, UserId = userIdArg };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = new Guid(clientIdArg,1,1,1,1,1,1,1,1,1,1), UserId = new Guid(userIdArg,1,1,1,1,1,1,1,1,1,1) };
             #endregion
 
             #region Act
@@ -581,7 +581,7 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = 5, UserId = 2 };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = new Guid(5,1,1,1,1,1,1,1,1,1,1), UserId = new Guid(2,1,1,1,1,1,1,1,1,1,1) };
 
             int preActionCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString() && c.UserId == viewModel.UserId).Count();
             #endregion
@@ -656,7 +656,7 @@ namespace MapTests
         [InlineData("test1", null, 1)]// Request new root client; user is not an admin of requested profit center
         [InlineData("ClientAdmin1", 4, 2)]// Request new child client; user is admin of parent client but not profit center
         [InlineData("ClientAdmin1", 3, 1)]// Request new child client; user is admin of profit center but not parent client
-        public async Task SaveNewClient_ErrorWhenNotAuthorized(string userArg, long? parentClientIdArg, long? profitCenterIdArg)
+        public async Task SaveNewClient_ErrorWhenNotAuthorized(string userArg, int? parentClientIdArg, int profitCenterIdArg)
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser(userArg);
@@ -664,8 +664,8 @@ namespace MapTests
             #endregion
 
             #region Act
-            testClient.ParentClientId = parentClientIdArg;
-            testClient.ProfitCenterId = (long)profitCenterIdArg;
+            testClient.ParentClientId = parentClientIdArg.HasValue ? new Guid(parentClientIdArg.Value,1,1,1,1,1,1,1,1,1,1) : (Guid?)null;
+            testClient.ProfitCenterId = new Guid(profitCenterIdArg,1,1,1,1,1,1,1,1,1,1);
             var view = await controller.SaveNewClient(testClient);
             #endregion
 
@@ -724,7 +724,7 @@ namespace MapTests
 
             #region Act
             testClient.ParentClientId = null;
-            testClient.ProfitCenterId = 1;
+            testClient.ProfitCenterId = new Guid(1,1,1,1,1,1,1,1,1,1,1);
             var view = await controller.SaveNewClient(testClient);
             #endregion
 
@@ -743,7 +743,7 @@ namespace MapTests
         [InlineData(-1,1)]// Client ID less than 0
         [InlineData(1,1)]// Parent client ID matches client ID
         [InlineData(424242,1)]// Attempt to edit a non-existent client
-        public async Task EditClient_ErrorWhenInvalidRequest(long clientIdArg, long parentClientIdArg)
+        public async Task EditClient_ErrorWhenInvalidRequest(int clientIdArg, int parentClientIdArg)
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
@@ -751,8 +751,8 @@ namespace MapTests
             #endregion
 
             #region Act
-            testClient.ParentClientId = parentClientIdArg;
-            testClient.Id = clientIdArg;
+            testClient.ParentClientId = new Guid(parentClientIdArg,1,1,1,1,1,1,1,1,1,1);
+            testClient.Id = new Guid(clientIdArg,1,1,1,1,1,1,1,1,1,1);
             var view = await controller.EditClient(testClient);
             #endregion
 
@@ -768,7 +768,7 @@ namespace MapTests
         [Theory]
         [InlineData(2, 1)] // User is not an admin on the edited client
         [InlineData(5, 2)] // User is not an admin on the new profit center
-        public async Task EditClient_ErrorWhenUnauthorized(long clientIdArg, long profitCenterIdArg)
+        public async Task EditClient_ErrorWhenUnauthorized(int clientIdArg, int profitCenterIdArg)
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
@@ -782,10 +782,10 @@ namespace MapTests
              *       The parent client must not be null
              *       The parent client specified must be the current parent of the test client
              */
-            testClient.Id = clientIdArg;
+            testClient.Id = new Guid(clientIdArg,1,1,1,1,1,1,1,1,1,1);
             // Ensure we're passing the current parent client, whatever it is
-            testClient.ParentClientId = TestResources.DbContextObject.Client.Single(c => c.Id == clientIdArg).ParentClientId;
-            testClient.ProfitCenterId = profitCenterIdArg;
+            testClient.ParentClientId = TestResources.DbContextObject.Client.Single(c => c.Id == new Guid(clientIdArg,1,1,1,1,1,1,1,1,1,1)).ParentClientId;
+            testClient.ProfitCenterId = new Guid(profitCenterIdArg,1,1,1,1,1,1,1,1,1,1);
 
             var view = await controller.EditClient(testClient);
             #endregion
@@ -813,8 +813,8 @@ namespace MapTests
              *       The parent client must not be null
              *       The parent client specified must be changed from the client's current parent
              */
-            testClient.Id = 6;
-            testClient.ParentClientId = 2; // Original value was 1
+            testClient.Id = new Guid(6,1,1,1,1,1,1,1,1,1,1);
+            testClient.ParentClientId = new Guid(2,1,1,1,1,1,1,1,1,1,1); // Original value was 1
             
             var view = await controller.EditClient(testClient);
             #endregion
@@ -850,8 +850,8 @@ namespace MapTests
              *       The parent client must not be null
              *       The parent client specified must be the current parent of the test client
              */
-            testClient.Id = 6;
-            testClient.ParentClientId = 1;
+            testClient.Id = new Guid(6,1,1,1,1,1,1,1,1,1,1);
+            testClient.ParentClientId = new Guid(1,1,1,1,1,1,1,1,1,1,1);
 
             #region Manipulate data for test scenarios
             if (!String.IsNullOrEmpty(clientNameArg))
@@ -897,8 +897,8 @@ namespace MapTests
              *       The parent client must not be null
              *       The parent client specified must be the current parent of the test client
              */
-            testClient.Id = 6;
-            testClient.ParentClientId = 1;
+            testClient.Id = new Guid(6,1,1,1,1,1,1,1,1,1,1);
+            testClient.ParentClientId = new Guid(1,1,1,1,1,1,1,1,1,1,1);
 
             // Change some data that can be validated after the edit
             #region Manipulate model data
@@ -950,7 +950,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(424242, "password");
+            var view = await controller.DeleteClient(new Guid(424242,1,1,1,1,1,1,1,1,1,1), "password");
             #endregion
 
             #region Assert
@@ -965,14 +965,14 @@ namespace MapTests
         [InlineData(6, null)]// Password check fails
         [InlineData(3, "password")]// User is not authorized as Admin of the client
         [InlineData(4, "password")]// User is not authorized as Admin of the client's profit center
-        public async Task DeleteClient_ErrorWhenUnauthorized(long clientIdArg, string passwordArg)
+        public async Task DeleteClient_ErrorWhenUnauthorized(int clientIdArg, string passwordArg)
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(clientIdArg, passwordArg);
+            var view = await controller.DeleteClient(new Guid(clientIdArg,1,1,1,1,1,1,1,1,1,1), passwordArg);
             #endregion
 
             #region Assert
@@ -993,7 +993,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(7, "password");
+            var view = await controller.DeleteClient(new Guid(7,1,1,1,1,1,1,1,1,1,1), "password");
             #endregion
 
             #region Assert
@@ -1015,7 +1015,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(8, "password");
+            var view = await controller.DeleteClient(new Guid(8,1,1,1,1,1,1,1,1,1,1), "password");
             #endregion
 
             #region Assert
@@ -1040,7 +1040,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(6, "password");
+            var view = await controller.DeleteClient(new Guid(6,1,1,1,1,1,1,1,1,1,1), "password");
             #endregion
 
             #region Assert

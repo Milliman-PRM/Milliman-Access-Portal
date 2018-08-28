@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: 
  */
 
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Collections.Generic;
@@ -15,17 +16,17 @@ namespace MapDbContextLib.Context
     public class RootContentItem
     {
         [Key]
-        public long Id { get; set; }
+        public Guid Id { get; set; }
 
         [Required]
         public string ContentName { get; set; }
 
         [ForeignKey("ContentType")]
-        public long ContentTypeId { get; set; }
+        public Guid ContentTypeId { get; set; }
         public ContentType ContentType { get; set; }
 
         [ForeignKey("Client")]
-        public long ClientId { get; set; }
+        public Guid ClientId { get; set; }
         public Client Client { get; set; }
 
         [Required]

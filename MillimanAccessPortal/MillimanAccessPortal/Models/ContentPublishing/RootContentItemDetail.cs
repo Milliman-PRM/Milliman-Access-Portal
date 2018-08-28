@@ -16,18 +16,18 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 {
     public class RootContentItemDetail
     {
-        public long Id { get; set; }
+        public Guid Id { get; set; }
 
         [HiddenInput]
-        public long ClientId { get; set; }
+        public Guid ClientId { get; set; }
 
         [Required]
         [Display(Name = "Content Name")]
         public string ContentName { get; set; }
 
-        [Range(1, Int64.MaxValue, ErrorMessage = "You must select a content type")]
+        [Range(1, Int64.MaxValue, ErrorMessage = "You must select a content type")]  // TODO fix this range
         [Display(Name = "Content Type")]
-        public long ContentTypeId { get; set; }
+        public Guid ContentTypeId { get; set; }
 
         [Display(Name = "Does Reduce")]
         public bool DoesReduce { get; set; }

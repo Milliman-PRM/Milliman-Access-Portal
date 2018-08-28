@@ -4,6 +4,7 @@
  * DEVELOPER NOTES:
  */
 
+using System;
 using System.Security.Claims;
 using System.Linq;
 using System.Collections.Generic;
@@ -33,7 +34,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
 
         public string Employer { get; set; }
 
-        public long? MemberOfClientId { get; set; } = null;
+        public Guid MemberOfClientId { get; set; }
 
     }
 }

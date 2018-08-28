@@ -16,21 +16,13 @@ using MapDbContextLib.Models;
 namespace MapDbContextLib.Identity
 {
     // Add profile data for application users by adding properties to the ApplicationUser class
-    public class ApplicationUser : IdentityUser<long>
+    public class ApplicationUser : IdentityUser<Guid>
     {
         public ApplicationUser() : base()
-        {
-        }
+        {}
 
-        public ApplicationUser(string userName) // : base(userName)
-        {
-            // The base class does not have a constructor taking an argument.  
-            base.UserName = userName;
-        }
-
-        /// This overide is here only to apply the explicit [Key] attribute, required in unit tests
-        [Key]
-        public override long Id { get; set; }
+        public ApplicationUser(string userName) : base(userName)
+        {}
 
         //
         // Summary:

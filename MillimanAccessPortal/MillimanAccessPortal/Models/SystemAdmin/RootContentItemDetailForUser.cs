@@ -1,10 +1,11 @@
-﻿using MapDbContextLib.Context;
+﻿using System;
+using MapDbContextLib.Context;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {
     public class RootContentItemDetailForUser
     {
-        public long Id { get; set; }
+        public Guid Id { get; set; }
         public string ContentName { get; set; }
         public string ContentType { get; set; }
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace MillimanAccessPortal.Models.AccountViewModels
@@ -7,7 +8,7 @@ namespace MillimanAccessPortal.Models.AccountViewModels
     {
         [Required]
         [HiddenInput]
-        public long Id { get; set; }
+        public Guid Id { get; set; }
 
         [Required]
         [HiddenInput]

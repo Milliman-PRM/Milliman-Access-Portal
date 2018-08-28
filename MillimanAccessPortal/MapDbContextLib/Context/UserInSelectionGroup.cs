@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: 
  */
 
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using MapDbContextLib.Identity;
@@ -13,14 +14,14 @@ namespace MapDbContextLib.Context
     public class UserInSelectionGroup
     {
         [Key]
-        public long Id { get; set; }
+        public Guid Id { get; set; }
 
         [ForeignKey("SelectionGroup")]
-        public long SelectionGroupId { get; set; }
+        public Guid SelectionGroupId { get; set; }
         public SelectionGroup SelectionGroup { get; set; }
 
         [ForeignKey("User")]
-        public long UserId { get; set; }
+        public Guid UserId { get; set; }
         public ApplicationUser User { get; set; }
     }
 }

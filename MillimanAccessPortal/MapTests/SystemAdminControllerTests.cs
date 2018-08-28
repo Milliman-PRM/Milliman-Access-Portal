@@ -129,13 +129,13 @@ namespace MapTests
         [Theory]
         [InlineData(1, 2)]
         [InlineData(2, 0)]
-        public async Task Users_Success_FilterClient(long clientId, int expectedUsers)
+        public async Task Users_Success_FilterClient(int clientId, int expectedUsers)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                ClientId = clientId,
+                ClientId = new Guid(clientId,1,1,1,1,1,1,1,1,1,1),
             };
             #endregion
 
@@ -151,13 +151,13 @@ namespace MapTests
         [Theory]
         [InlineData(1, 2)]
         [InlineData(2, 0)]
-        public async Task Users_Success_FilterProfitCenter(long profitCenterId, int expectedUsers)
+        public async Task Users_Success_FilterProfitCenter(int profitCenterId, int expectedUsers)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                ProfitCenterId = profitCenterId,
+                ProfitCenterId = new Guid(profitCenterId,1,1,1,1,1,1,1,1,1,1),
             };
             #endregion
 
@@ -174,13 +174,13 @@ namespace MapTests
         [Theory]
         [InlineData(null)]
         [InlineData(-1)]
-        public async Task UserDetail_Invalid(long? userId)
+        public async Task UserDetail_Invalid(int? userId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                UserId = userId,
+                UserId = userId.HasValue ? new Guid(userId.Value,1,1,1,1,1,1,1,1,1,1) : (Guid?)null,
             };
             #endregion
 
@@ -195,13 +195,13 @@ namespace MapTests
         }
         [Theory]
         [InlineData(1)]
-        public async Task UserDetail_Success_FilterNone(long userId)
+        public async Task UserDetail_Success_FilterNone(int userId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                UserId = userId,
+                UserId = new Guid(userId,1,1,1,1,1,1,1,1,1,1),
             };
             #endregion
 
@@ -216,14 +216,14 @@ namespace MapTests
         }
         [Theory]
         [InlineData(1, 1)]
-        public async Task UserDetail_Success_FilterClient(long userId, long clientId)
+        public async Task UserDetail_Success_FilterClient(int userId, int clientId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                UserId = userId,
-                ClientId = clientId,
+                UserId = new Guid(userId,1,1,1,1,1,1,1,1,1,1),
+                ClientId = new Guid(clientId,1,1,1,1,1,1,1,1,1,1),
             };
             #endregion
 
@@ -238,14 +238,14 @@ namespace MapTests
         }
         [Theory]
         [InlineData(1, 1)]
-        public async Task UserDetail_Success_FilterProfitCenter(long userId, long profitCenterId)
+        public async Task UserDetail_Success_FilterProfitCenter(int userId, int profitCenterId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                UserId = userId,
-                ProfitCenterId = profitCenterId,
+                UserId = new Guid(userId,1,1,1,1,1,1,1,1,1,1),
+                ProfitCenterId = new Guid(profitCenterId,1,1,1,1,1,1,1,1,1,1),
             };
             #endregion
 
@@ -282,13 +282,13 @@ namespace MapTests
         [Theory]
         [InlineData(1, 1)]
         [InlineData(2, 0)]
-        public async Task Clients_Success_FilterUser(long userId, int expectedClients)
+        public async Task Clients_Success_FilterUser(int userId, int expectedClients)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                UserId = userId,
+                UserId = new Guid(userId,1,1,1,1,1,1,1,1,1,1),
             };
             #endregion
 
@@ -304,13 +304,13 @@ namespace MapTests
         [Theory]
         [InlineData(1, 2)]
         [InlineData(2, 0)]
-        public async Task Clients_Success_FilterProfitCenter(long profitCenterId, int expectedClients)
+        public async Task Clients_Success_FilterProfitCenter(int profitCenterId, int expectedClients)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                ProfitCenterId = profitCenterId,
+                ProfitCenterId = new Guid(profitCenterId,1,1,1,1,1,1,1,1,1,1),
             };
             #endregion
 
@@ -327,13 +327,13 @@ namespace MapTests
         [Theory]
         [InlineData(null)]
         [InlineData(-1)]
-        public async Task ClientDetail_Invalid(long? clientId)
+        public async Task ClientDetail_Invalid(int? clientId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                ClientId = clientId,
+                ClientId = clientId.HasValue ? new Guid(clientId.Value,1,1,1,1,1,1,1,1,1,1) : (Guid?)null,
             };
             #endregion
 
@@ -348,13 +348,13 @@ namespace MapTests
         }
         [Theory]
         [InlineData(1)]
-        public async Task ClientDetail_Success_FilterNone(long clientId)
+        public async Task ClientDetail_Success_FilterNone(int clientId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                ClientId = clientId,
+                ClientId = new Guid(clientId,1,1,1,1,1,1,1,1,1,1),
             };
             #endregion
 
@@ -369,14 +369,14 @@ namespace MapTests
         }
         [Theory]
         [InlineData(1, 1)]
-        public async Task ClientDetail_Success_FilterUser(long clientId, long userId)
+        public async Task ClientDetail_Success_FilterUser(int clientId, int userId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                ClientId = clientId,
-                UserId = userId,
+                ClientId = new Guid(clientId,1,1,1,1,1,1,1,1,1,1),
+                UserId = new Guid(userId,1,1,1,1,1,1,1,1,1,1),
             };
             #endregion
 
@@ -391,14 +391,14 @@ namespace MapTests
         }
         [Theory]
         [InlineData(1, 1)]
-        public async Task ClientDetail_Success_FilterProfitCenter(long clientId, long profitCenterId)
+        public async Task ClientDetail_Success_FilterProfitCenter(int clientId, int profitCenterId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                ClientId = clientId,
-                ProfitCenterId = profitCenterId,
+                ClientId = new Guid(clientId,1,1,1,1,1,1,1,1,1,1),
+                ProfitCenterId = new Guid(profitCenterId,1,1,1,1,1,1,1,1,1,1),
             };
             #endregion
 
@@ -436,13 +436,13 @@ namespace MapTests
         [Theory]
         [InlineData(null)]
         [InlineData(-1)]
-        public async Task ProfitCenterDetail_Invalid(long? profitCenterId)
+        public async Task ProfitCenterDetail_Invalid(int? profitCenterId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                ProfitCenterId = profitCenterId,
+                ProfitCenterId = profitCenterId.HasValue ? new Guid(profitCenterId.Value,1,1,1,1,1,1,1,1,1,1) : (Guid?)null,
             };
             #endregion
 
@@ -457,13 +457,13 @@ namespace MapTests
         }
         [Theory]
         [InlineData(1)]
-        public async Task ProfitCenterDetail_Success_FilterNone(long profitCenterId)
+        public async Task ProfitCenterDetail_Success_FilterNone(int profitCenterId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                ProfitCenterId = profitCenterId,
+                ProfitCenterId = new Guid(profitCenterId,1,1,1,1,1,1,1,1,1,1),
             };
             #endregion
 
@@ -482,13 +482,13 @@ namespace MapTests
         [Theory]
         [InlineData( 1, 0)]
         [InlineData(11, 1)]
-        public async Task RootContentItems_Success_FilterUser(long userId, int expectedRootContentItems)
+        public async Task RootContentItems_Success_FilterUser(int userId, int expectedRootContentItems)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                UserId = userId,
+                UserId = new Guid(userId,1,1,1,1,1,1,1,1,1,1),
             };
             #endregion
 
@@ -504,13 +504,13 @@ namespace MapTests
         [Theory]
         [InlineData(1, 2)]
         [InlineData(2, 0)]
-        public async Task RootContentItems_Success_FilterClient(long clientId, int expectedRootContentItems)
+        public async Task RootContentItems_Success_FilterClient(int clientId, int expectedRootContentItems)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                ClientId = clientId,
+                ClientId = new Guid(clientId,1,1,1,1,1,1,1,1,1,1),
             };
             #endregion
 
@@ -527,13 +527,13 @@ namespace MapTests
         [Theory]
         [InlineData(null)]
         [InlineData(-1)]
-        public async Task RootContentItemDetail_Invalid(long? rootContentItemId)
+        public async Task RootContentItemDetail_Invalid(int? rootContentItemId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                RootContentItemId = rootContentItemId,
+                RootContentItemId = rootContentItemId.HasValue ? new Guid(rootContentItemId.Value,1,1,1,1,1,1,1,1,1,1) : (Guid?)null,
             };
             #endregion
 
@@ -548,14 +548,14 @@ namespace MapTests
         }
         [Theory]
         [InlineData(1, 1)]
-        public async Task RootContentItemDetail_Success_FilterUser(long rootContentItemId, long userId)
+        public async Task RootContentItemDetail_Success_FilterUser(int rootContentItemId, int userId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                RootContentItemId = rootContentItemId,
-                UserId = userId,
+                RootContentItemId = new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1),
+                UserId = new Guid(userId,1,1,1,1,1,1,1,1,1,1),
             };
             #endregion
 
@@ -570,14 +570,14 @@ namespace MapTests
         }
         [Theory]
         [InlineData(1, 1)]
-        public async Task RootContentItemDetail_Success_FilterRootContentItem(long rootContentItemId, long clientId)
+        public async Task RootContentItemDetail_Success_FilterRootContentItem(int rootContentItemId, int clientId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                RootContentItemId = rootContentItemId,
-                ClientId = clientId,
+                RootContentItemId = new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1),
+                ClientId = new Guid(clientId,1,1,1,1,1,1,1,1,1,1),
             };
             #endregion
 
@@ -733,7 +733,7 @@ namespace MapTests
         [Theory]
         [InlineData("invalid_email_address", 1)]
         [InlineData("sysUser1@site.domain", 99)]
-        public async Task AddUserToProfitCenter_Invalid(string email, long profitCenterId)
+        public async Task AddUserToProfitCenter_Invalid(string email, int profitCenterId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
@@ -741,7 +741,7 @@ namespace MapTests
 
             #region Act
             var preCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
-            var json = await controller.AddUserToProfitCenter(email, profitCenterId);
+            var json = await controller.AddUserToProfitCenter(email, new Guid(profitCenterId,1,1,1,1,1,1,1,1,1,1));
             var postCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
             #endregion
 
@@ -755,7 +755,7 @@ namespace MapTests
         [Theory]
         [InlineData("sysUser1@site.domain", 1)]
         // [InlineData("sysUser3@site.domain", 1)]  // Disabled until mail sender is testable.
-        public async Task AddUserToProfitCenter_Success(string email, long profitCenterId)
+        public async Task AddUserToProfitCenter_Success(string email, int profitCenterId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
@@ -763,7 +763,7 @@ namespace MapTests
 
             #region Act
             var preCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
-            var json = await controller.AddUserToProfitCenter(email, profitCenterId);
+            var json = await controller.AddUserToProfitCenter(email, new Guid(profitCenterId,1,1,1,1,1,1,1,1,1,1));
             var postCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
             #endregion
 
@@ -775,7 +775,7 @@ namespace MapTests
 
         [Theory]
         [InlineData("sysAdmin1@site.domain", 1)]
-        public async Task AddUserToProfitCenter_NoOp(string email, long profitCenterId)
+        public async Task AddUserToProfitCenter_NoOp(string email, int profitCenterId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
@@ -783,7 +783,7 @@ namespace MapTests
 
             #region Act
             var preCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
-            var json = await controller.AddUserToProfitCenter(email, profitCenterId);
+            var json = await controller.AddUserToProfitCenter(email, new Guid(profitCenterId,1,1,1,1,1,1,1,1,1,1));
             var postCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
             #endregion
 
@@ -798,14 +798,14 @@ namespace MapTests
         [Theory]
         [InlineData(-1, RoleEnum.Admin)]
         [InlineData(1, RoleEnum.UserCreator)]
-        public async Task SystemRole_Invalid(long userId, RoleEnum role)
+        public async Task SystemRole_Invalid(int userId, RoleEnum role)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             #endregion
 
             #region Act
-            var json = await controller.SystemRole(userId, role);
+            var json = await controller.SystemRole(new Guid(userId,1,1,1,1,1,1,1,1,1,1), role);
             #endregion
 
             #region Assert
@@ -815,15 +815,15 @@ namespace MapTests
         }
         [Theory]
         [InlineData(1, RoleEnum.Admin, true)]
-        public async Task SystemRole_Success(long userId, RoleEnum role, bool expectedValue)
+        public async Task SystemRole_Success(int userId, RoleEnum role, bool expectedValue)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             #endregion
 
             #region Act
-            var json1 = await controller.SystemRole(userId, role);
-            var json2 = await controller.SystemRole(userId, role, !expectedValue);
+            var json1 = await controller.SystemRole(new Guid(userId,1,1,1,1,1,1,1,1,1,1), role);
+            var json2 = await controller.SystemRole(new Guid(userId,1,1,1,1,1,1,1,1,1,1), role, !expectedValue);
             #endregion
 
             #region Assert
@@ -836,14 +836,14 @@ namespace MapTests
 
         [Theory]
         [InlineData(-1)]
-        public async Task UserSuspension_Invalid(long userId)
+        public async Task UserSuspension_Invalid(int userId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             #endregion
 
             #region Act
-            var json = await controller.UserSuspension(userId);
+            var json = await controller.UserSuspension(new Guid(userId,1,1,1,1,1,1,1,1,1,1));
             #endregion
 
             #region Assert
@@ -853,15 +853,15 @@ namespace MapTests
         }
         [Theory]
         [InlineData(1, false)]
-        public async Task UserSuspension_Success(long userId, bool expectedValue)
+        public async Task UserSuspension_Success(int userId, bool expectedValue)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             #endregion
 
             #region Act
-            var json1 = await controller.UserSuspension(userId);
-            var json2 = await controller.UserSuspension(userId, !expectedValue);
+            var json1 = await controller.UserSuspension(new Guid(userId,1,1,1,1,1,1,1,1,1,1));
+            var json2 = await controller.UserSuspension(new Guid(userId,1,1,1,1,1,1,1,1,1,1), !expectedValue);
             #endregion
 
             #region Assert
@@ -876,14 +876,14 @@ namespace MapTests
         [InlineData(-1, 1, RoleEnum.Admin)]
         [InlineData(1, -1, RoleEnum.Admin)]
         [InlineData(1, 1, RoleEnum.UserCreator)]
-        public async Task UserClientRoles_Invalid(long userId, long clientId, RoleEnum role)
+        public async Task UserClientRoles_Invalid(int userId, int clientId, RoleEnum role)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             #endregion
 
             #region Act
-            var json = await controller.UserClientRoles(userId, clientId, role);
+            var json = await controller.UserClientRoles(new Guid(userId,1,1,1,1,1,1,1,1,1,1), new Guid(clientId,1,1,1,1,1,1,1,1,1,1), role);
             #endregion
 
             #region Assert
@@ -896,15 +896,15 @@ namespace MapTests
         [InlineData(1, 1, RoleEnum.ContentAccessAdmin, false)]
         [InlineData(1, 1, RoleEnum.ContentPublisher, false)]
         [InlineData(1, 1, RoleEnum.ContentUser, false)]
-        public async Task UserClientRoles_Success(long userId, long clientId, RoleEnum role, bool expectedValue)
+        public async Task UserClientRoles_Success(int userId, int clientId, RoleEnum role, bool expectedValue)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             #endregion
 
             #region Act
-            var json1 = await controller.UserClientRoles(userId, clientId, role);
-            var json2 = await controller.UserClientRoles(userId, clientId, role, !expectedValue);
+            var json1 = await controller.UserClientRoles(new Guid(userId,1,1,1,1,1,1,1,1,1,1), new Guid(clientId,1,1,1,1,1,1,1,1,1,1), role);
+            var json2 = await controller.UserClientRoles(new Guid(userId,1,1,1,1,1,1,1,1,1,1), new Guid(clientId,1,1,1,1,1,1,1,1,1,1), role, !expectedValue);
             #endregion
 
             #region Assert
@@ -917,14 +917,14 @@ namespace MapTests
 
         [Theory]
         [InlineData(-1)]
-        public async Task ContentSuspension_Invalid(long rootContentItemId)
+        public async Task ContentSuspension_Invalid(int rootContentItemId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             #endregion
 
             #region Act
-            var json = await controller.ContentSuspension(rootContentItemId);
+            var json = await controller.ContentSuspension(new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1));
             #endregion
 
             #region Assert
@@ -934,15 +934,15 @@ namespace MapTests
         }
         [Theory]
         [InlineData(1, false)]
-        public async Task ContentSuspension_Success(long rootContentItemId, bool expectedValue)
+        public async Task ContentSuspension_Success(int rootContentItemId, bool expectedValue)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             #endregion
 
             #region Act
-            var json1 = await controller.ContentSuspension(rootContentItemId);
-            var json2 = await controller.ContentSuspension(rootContentItemId, !expectedValue);
+            var json1 = await controller.ContentSuspension(new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1));
+            var json2 = await controller.ContentSuspension(new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1), !expectedValue);
             #endregion
 
             #region Assert

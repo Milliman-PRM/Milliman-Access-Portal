@@ -60,7 +60,7 @@ namespace MillimanAccessPortal
             }
         }
 
-        internal static void MonitorPublicationRequestForQueueing(long publicationRequestId, UploadedRelatedFile[] files, string connectionString, string contentItemRootPath, string exchangePath)
+        internal static void MonitorPublicationRequestForQueueing(Guid publicationRequestId, UploadedRelatedFile[] files, string connectionString, string contentItemRootPath, string exchangePath)
         {
             bool validationWindowComplete = false;
 
@@ -130,7 +130,7 @@ namespace MillimanAccessPortal
             }
         }
 
-        private static ContentRelatedFile HandleRelatedFile(ApplicationDbContext Db, UploadedRelatedFile RelatedFile, RootContentItem ContentItem, long PubRequestId, string contentItemRootPath)
+        private static ContentRelatedFile HandleRelatedFile(ApplicationDbContext Db, UploadedRelatedFile RelatedFile, RootContentItem ContentItem, Guid PubRequestId, string contentItemRootPath)
         {
             ContentRelatedFile ReturnObj = null;
 
