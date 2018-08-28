@@ -1,18 +1,17 @@
+import '../images/map-logo.svg';
+
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
-import { NavBar } from './react/shared-components/navbar';
-
 import { FormBase } from './form/form-base';
 import { SubmissionGroup } from './form/form-submission';
+import { NavBar } from './react/shared-components/navbar';
 
 import $ = require('jquery');
 import toastr = require('toastr');
 
 require('toastr/toastr.scss');
 require('../scss/map.scss');
-
-import '../images/map-logo.svg';
 
 document.addEventListener('DOMContentLoaded', () => {
   const view = document.getElementsByTagName('body')[0].getAttribute('data-nav-location');

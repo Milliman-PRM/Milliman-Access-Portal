@@ -1,3 +1,3 @@
-﻿require('../scss/map.scss');
+﻿import '../images/map-logo.svg';
 
-import '../images/map-logo.svg';
+require('../scss/map.scss');

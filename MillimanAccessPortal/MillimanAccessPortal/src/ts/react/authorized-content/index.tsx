@@ -1,7 +1,7 @@
+import '../../../images/map-logo.svg';
+
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-
-import '../../../images/map-logo.svg';
 
 import { AuthorizedContent } from './authorized-content';
 

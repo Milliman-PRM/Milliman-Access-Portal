@@ -1,3 +1,6 @@
+import 'promise-polyfill/dist/polyfill';
+import 'whatwg-fetch';
+
 import * as $ from 'jquery';
 import * as toastr from 'toastr';
 
@@ -5,9 +8,6 @@ import { DiscardConfirmationDialog, ResetConfirmationDialog } from './dialog';
 import { FormBase } from './form/form-base';
 import { SelectionGroupSummary } from './view-models/content-access-admin';
 import { PublicationStatus, UserInfo } from './view-models/content-publishing';
-
-import 'promise-polyfill/dist/polyfill';
-import 'whatwg-fetch';
 
 const SHOW_DURATION = 50;
 const ajaxStatus = [];

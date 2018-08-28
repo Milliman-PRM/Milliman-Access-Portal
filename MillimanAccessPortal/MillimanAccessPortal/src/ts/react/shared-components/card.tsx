@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { postData } from '../../shared';
 
+import { postData } from '../../shared';
 import { Entity } from './entity';
 
 export interface CardProps extends Entity {

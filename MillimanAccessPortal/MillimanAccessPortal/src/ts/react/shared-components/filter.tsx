@@ -1,8 +1,8 @@
-﻿import '../../../scss/react/shared-components/filter.scss';
+﻿import '../../../images/filter.svg';
+
+import '../../../scss/react/shared-components/filter.scss';
 
 import * as React from 'react';
-
-import '../../../images/filter.svg';
 
 export interface FilterProps {
   filterText: string;
