@@ -98,10 +98,11 @@ $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
 $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
 $dbPassword = $env:db_deploy_password
-$appDbName = "appdb_$BranchName".Replace("_","").Replace("-","").ToLower()
+$TrimmedBranch = $BranchName.Replace("_","").Replace("-","").ToLower()
+$appDbName = "appdb_$TrimmedBranch"
 $appDbTemplateName = "appdb_ci_template"
 $appDbOwner = "appdb_admin"
-$logDbName = "auditlogdb_$BranchName".Replace("_","").Replace("-","").ToLower()
+$logDbName = "auditlogdb_$TrimmedBranch"
 $logDbTemplateName = "auditlogdb_ci_template"
 $logDbOwner = "logdb_admin"
 $dbCreationRetries = 5 # The number of times the script will attempt to create a new database before throwing an error
@@ -208,6 +209,17 @@ yarn build
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: yarn build failed"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
+log_statement "Building documentation"
+
+cd "$rootpath\Documentation\"
+cmd /c "compileUserDocs.bat"
+
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: failed to build documentation"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
