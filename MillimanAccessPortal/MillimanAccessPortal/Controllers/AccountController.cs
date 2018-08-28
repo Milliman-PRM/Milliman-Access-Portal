@@ -183,6 +183,12 @@ namespace MillimanAccessPortal.Controllers
         [AllowAnonymous]
         public IActionResult Register(string returnUrl = null)
         {
+            // If any users exist, return 404. We don't want to event hint that this URL is valid.
+            if (_userManager.Users.Any())
+            {
+                return NotFound();
+            }
+
             ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
@@ -194,6 +200,12 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model, string returnUrl = null)
         {
+            // If any users exist, return 404. We don't want to event hint that this URL is valid.
+            if (_userManager.Users.Any())
+            {
+                return NotFound();
+            }
+
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
