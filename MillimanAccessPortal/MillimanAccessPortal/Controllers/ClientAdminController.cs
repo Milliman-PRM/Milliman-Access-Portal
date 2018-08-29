@@ -516,6 +516,17 @@ namespace MillimanAccessPortal.Controllers
                         .ToList();
                     DbContext.UserRoleInRootContentItem.RemoveRange(existingRolesInRootContentItem);
                 }
+                if (RequestedRole.RoleEnum == RoleEnum.ContentUser)
+                {
+                    var existingSelectionGroupAssignments = DbContext.UserInSelectionGroup
+                        .Where(usg => usg.UserId == RequestedUser.Id)
+                        .Where(usg => usg.SelectionGroup.RootContentItem.ClientId == RequestedClient.Id)
+                        .ToList();
+                    foreach (var existingSelectionGroupAssignment in existingSelectionGroupAssignments)
+                    {
+                        DbContext.Remove(existingSelectionGroupAssignment);
+                    }
+                }
                 DbContext.UserRoleInClient.RemoveRange(ExistingRecords);
                 DbContext.SaveChanges();
 

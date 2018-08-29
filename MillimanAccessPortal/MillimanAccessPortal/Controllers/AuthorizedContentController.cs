@@ -95,9 +95,11 @@ namespace MillimanAccessPortal.Controllers
                 .Include(sg => sg.RootContentItem)
                     .ThenInclude(rc => rc.ContentType)
                 .Where(sg => sg.Id == selectionGroupId)
+                .Where(sg => !sg.IsSuspended)
+                .Where(sg => !sg.RootContentItem.IsSuspended)
                 .FirstOrDefault();
             #region Validation
-            if (selectionGroup == null || selectionGroup.RootContentItem == null || selectionGroup.RootContentItem.ContentType == null)
+            if (selectionGroup?.RootContentItem?.ContentType == null)
             {
                 string ErrMsg = $"Failed to obtain the requested selection group, root content item, or content type";
                 Logger.LogError(ErrMsg);
@@ -108,11 +110,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
-                {
-                    new UserInSelectionGroupRequirement(selectionGroupId),
-                    new RoleInClientRequirement(RoleEnum.ContentUser, selectionGroup.RootContentItem.ClientId),
-                });
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new UserInSelectionGroupRequirement(selectionGroupId));
             if (!Result1.Succeeded)
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
