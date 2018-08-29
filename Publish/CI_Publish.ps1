@@ -103,13 +103,11 @@ if ($Action.ToLower() -eq 'closed') {
         } else {
             exit $LASTEXITCODE
         }
-    }
-    else {
+    } else {
         log_statement "Branch closed without merging, nothing to do"
         exit 0
     }
-}
-else {
+} else {
     log_statement "Building CI normally"
 }
 #endregion
