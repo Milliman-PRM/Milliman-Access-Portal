@@ -821,6 +821,45 @@ namespace MillimanAccessPortal.Controllers
             return Ok();
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<ActionResult> CheckPasswordValidity(CheckPasswordViewModel Model)
+        {
+            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+            List<string> passwordValidationErrors = new List<string>();
+
+            if (ModelState.IsValid)
+            {
+
+                foreach (IPasswordValidator<ApplicationUser> passwordValidator in _userManager.PasswordValidators)
+                {
+                    IdentityResult result = await passwordValidator.ValidateAsync(_userManager, user, Model.ProposedPassword);
+
+                    if (!result.Succeeded)
+                    {
+                        foreach (var errorResult in result.Errors)
+                        {
+                            passwordValidationErrors.Add(errorResult.Description);
+                        }
+                        //passwordValidationErrors.Add(string.Join("<br /><br />", result.Errors.Select(x => x.Description)));
+                    }
+                }
+            }
+            
+            if (passwordValidationErrors.Count == 0)
+            {
+                return Ok();
+            }
+            else
+            {
+                string errorMessage = string.Join("<br /><br />", passwordValidationErrors);
+                Response.Headers.Add("Warning", errorMessage);
+                return StatusCode(StatusCodes.Status406NotAcceptable);
+            }
+
+        }
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> UpdatePassword([Bind("UserName,CurrentPassword,NewPassword,ConfirmNewPassword")]AccountSettingsViewModel Model)
