@@ -89,6 +89,20 @@ function create_db { # Attempt to create a database by copying another one; retr
 }
 #endregion
 
+#region Decide to publish or cleanup
+$Action = $env:action
+$IsMerged = $env:IsMerged
+if ($Action.ToLower() -eq 'closed') {
+    if ($IsMerged.ToLower -eq 'true') {
+        log_statement "PR has been merged, run CI Cleanup"
+        & ((get-location).Path + "\CI_Cleanup.ps1")
+    }
+    else {
+        log_statement "Branch closed without merging, nothing to do"
+    }
+}
+#endregion
+
 #region Configure environment properties
 $BranchName = $env:git_branch # Will be used in the version string of the octopus package & appended to database names
 
