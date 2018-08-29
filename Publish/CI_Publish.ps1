@@ -100,8 +100,7 @@ if ($Action.ToLower() -eq 'closed') {
             log_statement "ERROR: yarn package restore failed"
             log_statement "errorlevel was $LASTEXITCODE"
             exit $LASTEXITCODE
-        }
-        else {
+        } else {
             exit $LASTEXITCODE
         }
     }
