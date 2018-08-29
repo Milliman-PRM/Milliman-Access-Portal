@@ -261,7 +261,7 @@ const components = Object.assign(
             '.toggle-switch-checkbox',
           );
           this.prop(component, { checked: properties.checked }, '.toggle-switch-checkbox');
-          this.click(component, properties.callback, '.toggle-switch-checkbox');
+          this.click(component, properties.callback, '.toggle-switch');
           this.attr(component, { for: properties.id }, '.toggle-switch-label');
           this.html(component, properties.text, '.switch-label');
         };
@@ -1084,7 +1084,7 @@ SelectionGroupCard.prototype = Object.create(Card.prototype);
 SelectionGroupCard.prototype.constructor = SelectionGroupCard;
 
 export function UserCard(
-  user, client,
+  user, client, canManage,
   roleCallback, removeCallback,
 ) {
   const names = [];
@@ -1110,30 +1110,32 @@ export function UserCard(
   names.slice(1).forEach(function(name) {
     this.addComponent('secondaryText', { text: name });
   }, this);
-  this.addComponent('button', {
-    callback: removeCallback,
-    color: 'red',
-    icon: 'remove-circle',
-    tooltip: 'Remove user',
-  });
-  this.addComponent('detailText', { text: 'User roles' });
-  user.UserRoles.forEach(function(role) {
-    this.addComponent('toggle', {
-      callback: roleCallback,
-      checked: role.IsAssigned,
-      data: {
-        'role-enum': role.RoleEnum,
-      },
-      id: 'user-role-' + user.Id + '-' + role.RoleEnum,
-      text: role.RoleDisplayValue,
-    });
-  }, this);
   this.data = {
     'client-id': client.Id,
     'filter-string': names.join('|').toUpperCase(),
     'user-id': user.Id,
   };
-  this.callback = shared.toggleExpandedListener;
+  if (canManage) {
+    this.addComponent('button', {
+      callback: removeCallback,
+      color: 'red',
+      icon: 'remove-circle',
+      tooltip: 'Remove user',
+    });
+    this.addComponent('detailText', { text: 'User roles' });
+    user.UserRoles.forEach(function(role) {
+      this.addComponent('toggle', {
+        callback: roleCallback,
+        checked: role.IsAssigned,
+        data: {
+          'role-enum': role.RoleEnum,
+        },
+        id: 'user-role-' + user.Id + '-' + role.RoleEnum,
+        text: role.RoleDisplayValue,
+      });
+    }, this);
+    this.callback = shared.toggleExpandedListener;
+  }
 }
 UserCard.prototype = Object.create(Card.prototype);
 UserCard.prototype.constructor = UserCard;

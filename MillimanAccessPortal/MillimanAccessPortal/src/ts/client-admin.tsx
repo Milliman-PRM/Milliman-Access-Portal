@@ -229,8 +229,9 @@ function setUserRole(clientId, userId, roleEnum, isAssigned, onResponse) {
 }
 
 function userCardRoleToggleClickHandler(event) {
-  const $clickedInput = $(event.target);
+  const $clickedInput = $(event.target).closest('.toggle-switch').find('.toggle-switch-checkbox');
   event.preventDefault();
+  event.stopPropagation();
 
   if ($clickedInput.data().disabled) {
     return;
@@ -240,7 +241,7 @@ function userCardRoleToggleClickHandler(event) {
     $clickedInput.closest('.card-container').attr('data-client-id'),
     $clickedInput.closest('.card-container').attr('data-user-id'),
     $clickedInput.attr('data-role-enum'),
-    $clickedInput.prop('checked'),
+    !$clickedInput.prop('checked'),
     function onDone() {
       $clickedInput.data('disabled', false);
     },
@@ -252,6 +253,7 @@ function renderUserNode(client, user) {
   const $card = new card.UserCard(
     user,
     client.ClientEntity,
+    client.CanManage,
     userCardRoleToggleClickHandler,
     userCardRemoveClickHandler,
   );
@@ -270,10 +272,14 @@ function renderUserList(response) {
   $clientUserList.find('.tooltip').tooltipster();
   eligibleUsers = client.EligibleUsers;
 
-  if (client.CanManage) {
-    $('#add-user-icon').show();
-    $('#client-users ul.admin-panel-content').append(new card.AddUserActionCard(addUserClickHandler).build());
-  }
+  $('#client-users .admin-panel-action-icons-container .action-icon')
+    .hide()
+    .filter('.action-icon-expand,.action-icon-add')
+    .filter(() => client.CanManage)
+    .show();
+  $('#client-users ul.admin-panel-content')
+    .filter(() => client.CanManage)
+    .append(new card.AddUserActionCard(addUserClickHandler).build());
 }
 
 function setupChildClientForm($parentClientDiv: JQuery<HTMLElement>) {
