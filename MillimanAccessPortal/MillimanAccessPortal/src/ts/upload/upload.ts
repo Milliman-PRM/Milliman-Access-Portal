@@ -153,12 +153,17 @@ export class Upload {
         this.setChecksum(null);
       });
     });
+
+    this.resumable.on('error', () => {
+      this.onError();
+    });
   }
 
   public getUID: (file: File, event: Event) => string = () => '';
   public onChecksumProgress: (progress: ProgressSummary) => void = () => undefined;
   public onUploadProgress: (progress: ProgressSummary) => void = () => undefined;
   public onProgressMessage: (message: string) => void = () => undefined;
+  public onError: () => void = () => undefined;
 
   public onFileAdded: (resumableFile: any) => void = () => undefined;
   public onFileSuccess: (fileGUID: string) => void = () => undefined;

@@ -40,6 +40,10 @@ export class FileUploadInput extends FormInput {
       progressBar.width(progress.percentage);
     };
     this.upload.onProgressMessage = (message: string) => undefined;
+    this.upload.onError = () => {
+      const errorBar = this.$entryPoint.find('div.progress-bar-3');
+      errorBar.width('100%');
+    };
 
     this.upload.onFileAdded = (resumableFile: any) => {
       this.originalName = resumableFile.fileName;
@@ -47,7 +51,7 @@ export class FileUploadInput extends FormInput {
       if (this.component === UploadComponent.Image) {
         const reader = new FileReader();
         reader.onload = (event) => {
-          this.$entryPoint.find('img.image-preview').attr('src', reader.result);
+          this.$entryPoint.find('img.image-preview').attr('src', reader.result.toString());
         };
         reader.readAsDataURL(resumableFile.file);
       }
@@ -72,6 +76,7 @@ export class FileUploadInput extends FormInput {
     this.$entryPoint.find('.cancel-icon').click((event) => {
       event.stopPropagation();
       this.upload.cancel();
+      this.$entryPoint.find('div.progress-bar-3').width('0');
       this.reset();
     });
   }
