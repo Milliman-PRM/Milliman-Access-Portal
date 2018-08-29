@@ -130,7 +130,7 @@ export class FileUploadInput extends FormInput {
 
 const fileTypes = new Map<UploadComponent, string[]>([
   [UploadComponent.Image, ['jpg', 'jpeg', 'png', 'gif']],
-  [UploadComponent.Content, []],
+  [UploadComponent.Content, ['qvw']],
   [UploadComponent.UserGuide, ['pdf']],
   [UploadComponent.ReleaseNotes, ['pdf']],
 ]);
