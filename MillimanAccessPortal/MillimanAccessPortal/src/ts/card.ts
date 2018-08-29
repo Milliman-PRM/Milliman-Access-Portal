@@ -1007,7 +1007,7 @@ export function SelectionGroupCard(
       $.post({
         data: {
           SelectionGroupId: $ttInput.closest('.card-container').data().selectionGroupId,
-          email: data,
+          username: data,
         },
         headers: {
           RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),

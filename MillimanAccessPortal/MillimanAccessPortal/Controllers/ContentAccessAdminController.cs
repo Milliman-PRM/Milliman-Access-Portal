@@ -288,11 +288,11 @@ namespace MillimanAccessPortal.Controllers
         /// </summary>
         /// <remarks>This is a temporary helper action to be used until content access admin is rewritten in React.</remarks>
         /// <param name="SelectionGroupId">The selection group to be updated.</param>
-        /// <param name="email">The email of the user to add.</param>
+        /// <param name="username">The username of the user to add.</param>
         /// <returns>Ok, or UnprocessableEntity if a user with the provided email does not exist.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddUserToSelectionGroup(long SelectionGroupId, string email)
+        public async Task<IActionResult> AddUserToSelectionGroup(long SelectionGroupId, string username)
         {
             SelectionGroup selectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
@@ -318,7 +318,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var user = DbContext.ApplicationUser
-                .Where(u => u.Email == email)
+                .Where(u => u.UserName == username)
                 .SingleOrDefault();
 
             #region Validation
