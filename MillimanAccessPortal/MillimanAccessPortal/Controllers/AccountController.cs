@@ -403,7 +403,7 @@ namespace MillimanAccessPortal.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return View();
+                return View(model);
             }
             var user = await _userManager.FindByIdAsync(model.Id.ToString());
             if (user == null)
