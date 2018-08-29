@@ -19,7 +19,11 @@ namespace AuditLogLib.Event
 
         #region User activity [1000 - 1999]
         public static readonly AuditEventType LoginSuccess = new AuditEventType(1001, "Login success");
-        public static readonly AuditEventType LoginFailure = new AuditEventType(1002, "Login failure");
+        public static readonly AuditEventType<string> LoginFailure = new AuditEventType<string>(
+            1002, "Login failure", (attemptedUsername) => new
+            {
+                AttemptedUsername = attemptedUsername,
+            });
         public static readonly AuditEventType<RoleEnum> Unauthorized = new AuditEventType<RoleEnum>(
             1003, "Unauthorized request", (role) => new
             {
