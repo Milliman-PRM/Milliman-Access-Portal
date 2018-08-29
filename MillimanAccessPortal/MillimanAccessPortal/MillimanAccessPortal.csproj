@@ -56,6 +56,7 @@
     <ProjectReference Include="..\QlikviewLib\QlikviewLib.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Migrations\" />
     <Folder Include="Properties\PublishProfiles\" />
     <Folder Include="wwwroot\" /> 
     <Folder Include="node_modules\" />

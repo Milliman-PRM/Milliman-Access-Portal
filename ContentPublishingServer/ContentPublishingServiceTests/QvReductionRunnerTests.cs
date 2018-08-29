@@ -24,7 +24,7 @@ namespace ContentPublishingServiceTests
             #region Arrange
             ApplicationDbContext MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus).Object;
             Guid TaskGuid = Guid.NewGuid();
-            ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1));
+            ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == new Guid(1,1,1,1,1,1,1,1,1,1,1));
 
             string ExchangeFolder = $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{TaskGuid}\";
             string MasterContentFileName = $"MasterContent.Content[{DbTask.SelectionGroup.RootContentItemId}].qvw";

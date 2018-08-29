@@ -53,7 +53,7 @@ namespace ContentPublishingServiceTests
             Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
 
             // Modify the task to be tested
-            ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == 1);
+            ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == new Guid(1,1,1,1,1,1,1,1,1,1,1));
             DbRequest.LiveReadyFilesObj = new List<ContentRelatedFile>
             {
                 new ContentRelatedFile
@@ -79,7 +79,7 @@ namespace ContentPublishingServiceTests
             TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);           
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
-            Assert.Equal(1, MockContext.Object.SelectionGroup.Count(g => g.RootContentItemId == 1));  // check before
+            Assert.Equal(1, MockContext.Object.SelectionGroup.Count(g => g.RootContentItemId == new Guid(1,1,1,1,1,1,1,1,1,1,1)));  // check before
             #endregion
 
             #region Act
@@ -101,8 +101,8 @@ namespace ContentPublishingServiceTests
             Assert.Equal(string.Empty, TaskResult.StatusMessage);
             Assert.NotNull(TaskResult.ResultingRelatedFiles);
             Assert.Empty(TaskResult.ResultingRelatedFiles);
-            Assert.Equal(1, MockContext.Object.SelectionGroup.Count(g => g.RootContentItemId == 1));  // check after
-            Assert.True(MockContext.Object.SelectionGroup.Single(g => g.RootContentItemId == 1).IsMaster);
+            Assert.Equal(1, MockContext.Object.SelectionGroup.Count(g => g.RootContentItemId == new Guid(1,1,1,1,1,1,1,1,1,1,1)));  // check after
+            Assert.True(MockContext.Object.SelectionGroup.Single(g => g.RootContentItemId == new Guid(1,1,1,1,1,1,1,1,1,1,1)).IsMaster);
             Assert.Empty(MockContext.Object.ContentReductionTask.Where(t => t.ContentPublicationRequestId == DbRequest.Id));
             #endregion
         }
@@ -116,8 +116,8 @@ namespace ContentPublishingServiceTests
         public async Task DoesNotReduce_NoSelectionGroupExists()
         {
             #region Arrange
-            long ContentItemIdOfThisTest = 2;
-            long PubRequestIdOfThisTest = 2;
+            Guid ContentItemIdOfThisTest = new Guid(2,1,1,1,1,1,1,1,1,1,1);
+            Guid PubRequestIdOfThisTest = new Guid(2,1,1,1,1,1,1,1,1,1,1);
 
             string ContentFolder = $@"\\indy-syn01\prm_test\ContentRoot\{ContentItemIdOfThisTest}";
             string MasterContentFileName = $"MasterContent.Pub[{ContentItemIdOfThisTest}].Content[{PubRequestIdOfThisTest}].qvw";
@@ -203,8 +203,8 @@ namespace ContentPublishingServiceTests
         public async Task DoesReduce_NoSelectionGroupExistsDoesReduceTrue()
         {
             #region Arrange
-            long ContentItemIdOfThisTest = 3;
-            long PubRequestIdOfThisTest = 3;
+            Guid ContentItemIdOfThisTest = new Guid(3,1,1,1,1,1,1,1,1,1,1);
+            Guid PubRequestIdOfThisTest = new Guid(3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
             Guid RequestGuid = Guid.NewGuid();
 
             string ProposedRequestExchangeFolder = $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{RequestGuid}\";
