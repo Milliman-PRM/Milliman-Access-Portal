@@ -645,6 +645,12 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
+            if (!selectionGroup.RootContentItem.DoesReduce)
+            {
+                Response.Headers.Add("Warning", "The requested selection group belongs to a root content item that cannot be reduced.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
             var currentLivePublication = DbContext.ContentPublicationRequest
                 .Where(request => request.RootContentItemId == selectionGroup.RootContentItemId)
                 .Where(request => request.RequestStatus == PublicationStatus.Confirmed)
