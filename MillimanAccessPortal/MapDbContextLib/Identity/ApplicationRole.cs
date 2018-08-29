@@ -76,7 +76,12 @@ namespace MapDbContextLib.Identity
                 ApplicationRole RecordFromDb = dbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == Role);
                 if (RecordFromDb == null)
                 {
-                    await roleManager.CreateAsync(new ApplicationRole { RoleEnum = Role, Name = RoleName, DisplayName = RoleDisplayNames[Role] });
+                    RecordFromDb = new ApplicationRole { RoleEnum = Role, Name = RoleName, DisplayName = RoleDisplayNames[Role] };
+                    var createResult = await roleManager.CreateAsync(RecordFromDb);
+                    if (!createResult.Succeeded)
+                    {
+                        throw new Exception($"Failed to INSERT new ApplicationRole {RecordFromDb.Name} in database.");
+                    }
                 }
                 else if (RecordFromDb.Name != RoleName)
                 {
