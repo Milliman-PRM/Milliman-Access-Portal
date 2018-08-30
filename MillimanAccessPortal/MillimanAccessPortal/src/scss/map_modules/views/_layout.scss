@@ -6,7 +6,6 @@
     overflow: hidden;
 
     @include for-tablet-down() {
-        height: auto !important;
         overflow: auto !important;
     }
 
