@@ -41,6 +41,7 @@ namespace MapTests
             var accountController = new AccountController(
                 _testResources.DbContextObject,
                 _testResources.UserManagerObject,
+                _testResources.RoleManagerObject,
                 null,
                 _testResources.MessageQueueServicesObject,
                 _testResources.LoggerFactory,
@@ -480,7 +481,7 @@ namespace MapTests
 
         #region root content item queries
         [Theory]
-        [InlineData( 1, 0)]
+        [InlineData(1, 0)]
         [InlineData(11, 1)]
         public async Task RootContentItems_Success_FilterUser(int userId, int expectedRootContentItems)
         {
@@ -794,10 +795,151 @@ namespace MapTests
         }
         #endregion
 
+        #region update action tests
+        [Theory]
+        [InlineData(-1, "Name")]
+        public async Task UpdateProfitCenter_Invalid(long profitCenterId, string profitCenterName)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var profitCenter = new ProfitCenter
+            {
+                Id = profitCenterId,
+                Name = profitCenterName,
+                ProfitCenterCode = "PC",
+            };
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.ProfitCenter.Count();
+            var json = await controller.UpdateProfitCenter(profitCenter);
+            var postCount = _testResources.DbContextObject.ProfitCenter.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(json);
+            Assert.Equal(422, ((StatusCodeResult)json).StatusCode);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
+        [Fact]
+        public async Task UpdateProfitCenter_Success()
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            var profitCenter = new ProfitCenter
+            {
+                Id = 1,
+                Name = "Name",
+                ProfitCenterCode = "PC",
+            };
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.ProfitCenter.Count();
+            var json = await controller.UpdateProfitCenter(profitCenter);
+            var postCount = _testResources.DbContextObject.ProfitCenter.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+        #endregion
+
+        #region Remove/delete action tests
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(1)]  // Cannot delete if there are referencing clients
+        public async Task DeleteProfitCenter_Invalid(long profitCenterId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.ProfitCenter.Count();
+            var json = await controller.DeleteProfitCenter(profitCenterId);
+            var postCount = _testResources.DbContextObject.ProfitCenter.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(json);
+            Assert.Equal(422, ((StatusCodeResult)json).StatusCode);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(2)]
+        public async Task DeleteProfitCenter_Success(long profitCenterId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.ProfitCenter.Count();
+            var json = await controller.DeleteProfitCenter(profitCenterId);
+            var postCount = _testResources.DbContextObject.ProfitCenter.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.Equal(preCount - 1, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(-1, 1)]
+        [InlineData(1, -1)]
+        public async Task RemoveUserFromProfitCenter_Invalid(long userId, long profitCenterId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
+            var json = await controller.RemoveUserFromProfitCenter(userId, profitCenterId);
+            var postCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(json);
+            Assert.Equal(422, ((StatusCodeResult)json).StatusCode);
+            Assert.Equal(preCount, postCount);
+            #endregion
+        }
+
+        [Theory]
+        [InlineData(1, 1)]
+        public async Task RemoveUserFromProfitCenter_Success(long userId, long profitCenterId)
+        {
+            #region Arrange
+            var controller = await GetControllerForUser("sysAdmin1");
+            #endregion
+
+            #region Act
+            var preCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
+            var json = await controller.RemoveUserFromProfitCenter(userId, profitCenterId);
+            var postCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
+            #endregion
+
+            #region Assert
+            Assert.IsType<JsonResult>(json);
+            Assert.Equal(preCount - 1, postCount);
+            #endregion
+        }
+        #endregion
+
         #region Immediate toggle action tests
         [Theory]
         [InlineData(-1, RoleEnum.Admin)]
-        [InlineData(1, RoleEnum.UserCreator)]
+        [InlineData(1, RoleEnum.Admin)]  // Cannot remove self as admin
+        [InlineData(2, RoleEnum.UserCreator)]
         public async Task SystemRole_Invalid(int userId, RoleEnum role)
         {
             #region Arrange
@@ -805,7 +947,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json = await controller.SystemRole(new Guid(userId,1,1,1,1,1,1,1,1,1,1), role);
+            var json = await controller.SystemRole(new Guid(userId,1,1,1,1,1,1,1,1,1,1), role, false);
             #endregion
 
             #region Assert
@@ -814,7 +956,7 @@ namespace MapTests
             #endregion
         }
         [Theory]
-        [InlineData(1, RoleEnum.Admin, true)]
+        [InlineData(2, RoleEnum.Admin, false)]
         public async Task SystemRole_Success(int userId, RoleEnum role, bool expectedValue)
         {
             #region Arrange
@@ -836,6 +978,7 @@ namespace MapTests
 
         [Theory]
         [InlineData(-1)]
+        [InlineData(1)]  // Cannot suspend self
         public async Task UserSuspension_Invalid(int userId)
         {
             #region Arrange
@@ -843,7 +986,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json = await controller.UserSuspension(new Guid(userId,1,1,1,1,1,1,1,1,1,1));
+            var json = await controller.UserSuspension(new Guid(userId,1,1,1,1,1,1,1,1,1,1), true);
             #endregion
 
             #region Assert
@@ -852,7 +995,7 @@ namespace MapTests
             #endregion
         }
         [Theory]
-        [InlineData(1, false)]
+        [InlineData(2, false)]
         public async Task UserSuspension_Success(int userId, bool expectedValue)
         {
             #region Arrange
@@ -860,8 +1003,8 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json1 = await controller.UserSuspension(new Guid(userId,1,1,1,1,1,1,1,1,1,1));
-            var json2 = await controller.UserSuspension(new Guid(userId,1,1,1,1,1,1,1,1,1,1), !expectedValue);
+            var json1 = await controller.UserSuspendedStatus Guid(userId,1,1,1,1,1,1,1,1,1,1));
+            var json2 = await controller.UserSuspendedStatus Guid(userId,1,1,1,1,1,1,1,1,1,1), !expectedValue);
             #endregion
 
             #region Assert
@@ -883,7 +1026,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json = await controller.UserClientRoles(new Guid(userId,1,1,1,1,1,1,1,1,1,1), new Guid(clientId,1,1,1,1,1,1,1,1,1,1), role);
+            var json = await controller.UserClientRoleAssignment(new Guid(userId,1,1,1,1,1,1,1,1,1,1), new Guid(clientId,1,1,1,1,1,1,1,1,1,1), role);
             #endregion
 
             #region Assert
@@ -903,8 +1046,8 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json1 = await controller.UserClientRoles(new Guid(userId,1,1,1,1,1,1,1,1,1,1), new Guid(clientId,1,1,1,1,1,1,1,1,1,1), role);
-            var json2 = await controller.UserClientRoles(new Guid(userId,1,1,1,1,1,1,1,1,1,1), new Guid(clientId,1,1,1,1,1,1,1,1,1,1), role, !expectedValue);
+            var json1 = await controller.UserClientRoleAssignment(new Guid(userId,1,1,1,1,1,1,1,1,1,1), new Guid(clientId,1,1,1,1,1,1,1,1,1,1), role);
+            var json2 = await controller.UserClientRoleAssignment(new Guid(userId,1,1,1,1,1,1,1,1,1,1), new Guid(clientId,1,1,1,1,1,1,1,1,1,1), role, !expectedValue);
             #endregion
 
             #region Assert
@@ -924,7 +1067,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json = await controller.ContentSuspension(new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1));
+            var json = await controller.ContentSuspendedStatus Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1));
             #endregion
 
             #region Assert
@@ -941,8 +1084,8 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json1 = await controller.ContentSuspension(new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1));
-            var json2 = await controller.ContentSuspension(new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1), !expectedValue);
+            var json1 = await controller.ContentSuspendedStatus(new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1));
+            var json2 = await controller.ContentSuspendedStatus(new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1), !expectedValue);
             #endregion
 
             #region Assert

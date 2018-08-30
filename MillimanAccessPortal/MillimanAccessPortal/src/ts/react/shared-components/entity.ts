@@ -18,6 +18,8 @@ export interface Entity {
   activated?: boolean;
   suspended?: boolean;
   email?: string;
+  isProfitCenter?: boolean;
+  isUserInProfitCenter?: number;
 }
 
 export class EntityHelper {

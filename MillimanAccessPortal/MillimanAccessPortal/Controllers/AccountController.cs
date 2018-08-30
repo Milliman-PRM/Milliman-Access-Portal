@@ -36,6 +36,7 @@ namespace MillimanAccessPortal.Controllers
     {
         private readonly ApplicationDbContext DbContext;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IMessageQueue _messageSender;
         private readonly ILogger _logger;
@@ -47,6 +48,7 @@ namespace MillimanAccessPortal.Controllers
         public AccountController(
             ApplicationDbContext ContextArg,
             UserManager<ApplicationUser> userManager,
+            RoleManager<ApplicationRole> roleManager,
             SignInManager<ApplicationUser> signInManager,
             IMessageQueue messageSender,
             ILoggerFactory loggerFactory,
@@ -57,6 +59,7 @@ namespace MillimanAccessPortal.Controllers
         {
             DbContext = ContextArg;
             _userManager = userManager;
+            _roleManager = roleManager;
             _signInManager = signInManager;
             _messageSender = messageSender;
             _logger = loggerFactory.CreateLogger<AccountController>();
@@ -119,7 +122,7 @@ namespace MillimanAccessPortal.Controllers
                     _logger.LogWarning($"PasswordExpirationDays value not found or cannot be cast to an integer. The default value of { expirationDays } will be used.");
                 }
                                 
-                if (user.LastPasswordChangeDateTimeUtc.AddDays(expirationDays) < DateTime.UtcNow && passwordSuccess)
+                if (passwordSuccess && user.LastPasswordChangeDateTimeUtc.AddDays(expirationDays) < DateTime.UtcNow)
                 {
                     ModelState.AddModelError(string.Empty, "Password Has Expired.");
                     return View("ResetPassword");
@@ -178,42 +181,67 @@ namespace MillimanAccessPortal.Controllers
         }
 
         //
-        // GET: /Account/Register
+        // GET: /Account/CreateInitialUser
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Register(string returnUrl = null)
+        public IActionResult CreateInitialUser(string returnUrl = null)
         {
+            // If any users exist, return 404. We don't want to even hint that this URL is valid.
+            if (_userManager.Users.Any())
+            {
+                return NotFound();
+            }
+
             ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
 
         //
-        // POST: /Account/Register
+        // POST: /Account/CreateInitialUser
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterViewModel model, string returnUrl = null)
+        public async Task<IActionResult> CreateInitialUser(CreateInitialUserViewModel model, string returnUrl = null)
         {
+            IdentityResult createUserResult = null;
+            IdentityResult roleGrantResult = null;
+
+            // If any users exist, return 404. We don't want to even hint that this URL is valid.
+            if (_userManager.Users.Any())
+            {
+                return NotFound();
+            }
+
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
-                var result = await _userManager.CreateAsync(user, model.Password);
-                if (result.Succeeded)
+                ApplicationUser newUser = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                ApplicationRole adminRole = await _roleManager.FindByNameAsync(RoleEnum.Admin.ToString());
+
+                using (var txn = DbContext.Database.BeginTransaction())
                 {
-                    // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=532713
-                    // Send an email with this link
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var callbackUrl = Url.Action(nameof(EnableAccount), "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
-                    _messageSender.QueueEmail(model.Email, "Confirm your account",
-                        $"Please confirm your account by clicking this link: <a href='{callbackUrl}'>link</a>");
-                    _logger.LogInformation(3, "User created a new account with password.");
-                    return RedirectToLocal(returnUrl);
+                    createUserResult = await _userManager.CreateAsync(newUser);
+                    roleGrantResult = await _userManager.AddToRoleAsync(newUser, adminRole.Name);
+
+                    if (createUserResult.Succeeded && roleGrantResult.Succeeded)
+                    {
+                        txn.Commit();
+
+                        _auditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(newUser));
+                        _auditLogger.Log(AuditEventType.SystemRoleAssigned.ToEvent(newUser, RoleEnum.Admin));
+                        _logger.LogInformation(3, "User created a new account with password.");
+
+                        // Send the confirmation message
+                        string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
+                        await SendNewAccountWelcomeEmail(newUser, Url, welcomeText);
+
+                        return RedirectToLocal(returnUrl);
+                    }
                 }
-                AddErrors(result);
             }
 
             // If we got this far, something failed, redisplay form
+            AddErrors(createUserResult);
             return View(model);
         }
 
@@ -375,7 +403,7 @@ namespace MillimanAccessPortal.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return View();
+                return View(model);
             }
             var user = await _userManager.FindByIdAsync(model.Id.ToString());
             if (user == null)

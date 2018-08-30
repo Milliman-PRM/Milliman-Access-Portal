@@ -1,10 +1,18 @@
+import '../../../images/delete.svg';
+import '../../../images/edit.svg';
+import '../../../images/email.svg';
+import '../../../images/expand-card.svg';
+import '../../../images/remove-circle.svg';
+
 import * as React from 'react';
 
 import { postData } from '../../shared';
+import { UpdateProfitCenterModal } from '../system-admin/modals/update-profit-center';
 import { Entity } from './entity';
 
 export interface CardProps extends Entity {
   selected: boolean;
+  setSelected: () => void;
   resetButton?: boolean;
   sublistInfo: {
     title: string;
@@ -15,6 +23,7 @@ export interface CardProps extends Entity {
 
 interface CardState {
   expanded: boolean;
+  updateProfitCenterModalOpen: boolean;
 }
 
 export class Card extends React.Component<CardProps, CardState> {
@@ -29,10 +38,17 @@ export class Card extends React.Component<CardProps, CardState> {
 
     this.state = {
       expanded: false,
+      updateProfitCenterModalOpen: false,
     };
 
     this.sendPasswordReset = this.sendPasswordReset.bind(this);
+    this.deleteAsProfitCenter = this.deleteAsProfitCenter.bind(this);
+    this.editAsProfitCenter = this.editAsProfitCenter.bind(this);
+    this.removeAsUser = this.removeAsUser.bind(this);
     this.toggleExpansion = this.toggleExpansion.bind(this);
+    this.openUpdateModal = this.openUpdateModal.bind(this);
+    this.closeModal = this.closeModal.bind(this);
+    this.handleUpdate = this.handleUpdate.bind(this);
   }
 
   public render() {
@@ -50,7 +66,7 @@ export class Card extends React.Component<CardProps, CardState> {
           <h4 className="card-stat-value">{stat.value}</h4>
         </div>
       ));
-    const sideButtons = this.props.resetButton
+    const resetButton = this.props.resetButton
       ? (
         <div
           className="card-button-background card-button-blue"
@@ -59,6 +75,45 @@ export class Card extends React.Component<CardProps, CardState> {
         >
           <svg className="card-button-icon">
             <use xlinkHref="#email" />
+          </svg>
+        </div>
+      )
+      : null;
+    const deleteAsProfitCenterButton = this.props.isProfitCenter
+      ? (
+        <div
+          className="card-button-background card-button-red"
+          title="Delete profit center"
+          onClick={this.deleteAsProfitCenter}
+        >
+          <svg className="card-button-icon">
+            <use xlinkHref="#delete" />
+          </svg>
+        </div>
+      )
+      : null;
+    const editAsProfitCenterButton = this.props.isProfitCenter
+      ? (
+        <div
+          className="card-button-background card-button-blue"
+          title="Update profit center"
+          onClick={this.editAsProfitCenter}
+        >
+          <svg className="card-button-icon">
+            <use xlinkHref="#edit" />
+          </svg>
+        </div>
+      )
+      : null;
+    const removeAsUserButton = this.props.isUserInProfitCenter
+      ? (
+        <div
+          className="card-button-background card-button-red"
+          title="Remove from profit center"
+          onClick={this.removeAsUser}
+        >
+          <svg className="card-button-icon">
+            <use xlinkHref="#remove-circle" />
           </svg>
         </div>
       )
@@ -104,30 +159,48 @@ export class Card extends React.Component<CardProps, CardState> {
       this.props.selected ? ' selected' : '',
       this.props.suspended ? ' suspended' : '',
     ].join('');
+    const updateProfitCenterModal = this.props.isProfitCenter
+      ? (
+        <UpdateProfitCenterModal
+          isOpen={this.state.updateProfitCenterModalOpen}
+          onRequestClose={this.closeModal}
+          profitCenterId={this.props.id}
+        />
+      )
+      : null;
     return (
-      <div className={`card-container ${this.indentClasses[this.props.indent] || ''}`}>
+      <>
         <div
-          className={`card-body-container${additionalClasses}`}
+          className={`card-container ${this.indentClasses[this.props.indent] || ''}`}
+          onClick={this.props.setSelected}
         >
-          <div className="card-body-main-container">
-            <div className="card-body-primary-container">
-              <h2 className="card-body-primary-text">
-                {this.props.primaryText + (this.props.suspended ? ' (Suspended)' : '')}
-              </h2>
-              <p className="card-body-secondary-text">
-                {this.props.secondaryText}
-              </p>
+          <div
+            className={`card-body-container${additionalClasses}`}
+          >
+            <div className="card-body-main-container">
+              <div className="card-body-primary-container">
+                <h2 className="card-body-primary-text">
+                  {this.props.primaryText + (this.props.suspended ? ' (Suspended)' : '')}
+                </h2>
+                <p className="card-body-secondary-text">
+                  {this.props.secondaryText}
+                </p>
+              </div>
+              <div className="card-stats-container">
+                {stats}
+              </div>
+              <div className="card-button-side-container">
+                {deleteAsProfitCenterButton}
+                {editAsProfitCenterButton}
+                {removeAsUserButton}
+                {resetButton}
+              </div>
             </div>
-            <div className="card-stats-container">
-              {stats}
-            </div>
-            <div className="card-button-side-container">
-              {sideButtons}
-            </div>
+            {expansion}
           </div>
-          {expansion}
         </div>
-      </div>
+        {updateProfitCenterModal}
+      </>
     );
   }
 
@@ -135,6 +208,37 @@ export class Card extends React.Component<CardProps, CardState> {
     event.stopPropagation();
     postData('Account/ForgotPassword', {
       Email: this.props.email,
+    })
+    .then(() => {
+      alert('Password reset email sent.');
+    });
+  }
+
+  private deleteAsProfitCenter(event: React.MouseEvent<HTMLDivElement>) {
+    event.stopPropagation();
+    postData('SystemAdmin/DeleteProfitCenter', {
+      profitCenterId: this.props.id,
+    })
+    .then(() => {
+      alert('Profit center deleted.');
+    });
+  }
+
+  private editAsProfitCenter(event: React.MouseEvent<HTMLDivElement>) {
+    event.stopPropagation();
+    this.setState({
+      updateProfitCenterModalOpen: true,
+    });
+  }
+
+  private removeAsUser(event: React.MouseEvent<HTMLDivElement>) {
+    event.stopPropagation();
+    postData('SystemAdmin/RemoveUserFromProfitCenter', {
+      userId: this.props.id,
+      profitCenterId: this.props.isUserInProfitCenter,
+    })
+    .then(() => {
+      alert('User removed from profit center.');
     });
   }
 
@@ -143,6 +247,26 @@ export class Card extends React.Component<CardProps, CardState> {
     this.setState((prevState) => ({
       expanded: !prevState.expanded,
     }));
+  }
+
+  private openUpdateModal() {
+    this.setState({
+      updateProfitCenterModalOpen: true,
+    });
+  }
+
+  private closeModal() {
+    this.setState({
+      updateProfitCenterModalOpen: false,
+    });
+  }
+
+  private handleUpdate() {
+    postData('SystemAdmin/UpdateProfitCenter', this.props)
+    .then(() => {
+      alert('Profit center updated.');
+      this.closeModal();
+    });
   }
 }
 

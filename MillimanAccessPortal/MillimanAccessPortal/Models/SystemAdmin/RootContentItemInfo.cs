@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Joseph Sweeney,
- * OBJECTIVE:
+ * OBJECTIVE: Provide root content item information for presentation on a root content item card.
  * DEVELOPER NOTES:
  */
 

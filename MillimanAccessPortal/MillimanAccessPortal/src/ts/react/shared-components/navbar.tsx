@@ -96,7 +96,7 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
   }
 
   private logout() {
-    postData('/Account/Logout', {}, false)
+    postData('/Account/Logout', {}, true)
     .then(() => {
       window.location.replace('/');
     })

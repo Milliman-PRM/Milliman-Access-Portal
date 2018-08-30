@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Joseph Sweeney,
- * OBJECTIVE:
+ * OBJECTIVE: Provide user information for presentation on a user card.
  * DEVELOPER NOTES:
  */
 
@@ -24,6 +24,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public int? ClientCount { get; set; } = null;
         public int? RootContentItemCount { get; set; } = null;
         public List<RootContentItemInfo> RootContentItems { get; set; }
+        public Guid? ProfitCenterId { get; set; } = null;
 
         public static explicit operator UserInfo(ApplicationUser user)
         {
@@ -61,6 +62,8 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             }
             else if (profitCenterId.HasValue)
             {
+                ProfitCenterId = profitCenterId.Value;
+
                 // only count clients that are under the specified profit center
                 var clientIdList = dbContext.UserClaims
                     .Where(claim => claim.ClaimType == ClaimNames.ClientMembership.ToString())

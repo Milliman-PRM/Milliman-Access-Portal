@@ -1,5 +1,11 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Joseph Sweeney,
+ * OBJECTIVE: Provide root content item information for display in the system admin detail panel
+ * DEVELOPER NOTES:
+ */
+
 using MapDbContextLib.Context;
+using System;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {

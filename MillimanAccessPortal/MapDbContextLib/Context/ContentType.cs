@@ -70,7 +70,7 @@ namespace MapDbContextLib.Context
 
             foreach (ContentType type in AllProposedContentTypes)
             {
-                ContentType fromDb = Db.ContentType.Find(type.Id);
+                ContentType fromDb = Db.ContentType.SingleOrDefault(t => t.TypeEnum == type.TypeEnum);
                 if (fromDb == null)
                 {
                     Db.ContentType.Add(type);

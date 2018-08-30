@@ -37,13 +37,15 @@
             }
 
             .nested-list-section {
+                margin-bottom: .5em;
+
                 .nested-list-section-title {
                     margin: 0;
-                    margin-left: 0.4em;
+                    margin-left: 0.5em;
                 }
                 .nested-list-value {
                     margin: 0;
-                    margin-left: 0.8em;
+                    margin-left: 1em;
                 }
             }
         }
