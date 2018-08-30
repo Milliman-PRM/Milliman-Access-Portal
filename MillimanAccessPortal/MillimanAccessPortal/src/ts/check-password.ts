@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
             toastr.warning(response.headers.get('Warning') || 'Unknown error');
             newPasswordInput.removeAttribute('Validated');
             newPasswordInput.setAttribute('Warning', 'Warning');
-            newPasswordInput.focus();
           } else {
             newPasswordInput.removeAttribute('Warning');
             newPasswordInput.setAttribute('Validated', 'Validated');
