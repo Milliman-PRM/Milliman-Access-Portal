@@ -747,9 +747,19 @@ namespace MillimanAccessPortal.Controllers
                     UpdatedContentFilesList.RemoveAll(f => f.FilePurpose.ToLower() == Crf.FilePurpose.ToLower());
                     UpdatedContentFilesList.Add(new ContentRelatedFile { FilePurpose = Crf.FilePurpose, FullPath = TargetFilePath, Checksum = Crf.Checksum });
 
+                    // Set content URL in each master SelectionGroup
                     if (Crf.FilePurpose.ToLower() == "mastercontent")
                     {
-                        foreach (SelectionGroup MasterContentGroup in RelatedReductionTasks.Select(t => t.SelectionGroup).Where(g => g.IsMaster))
+                        IEnumerable<SelectionGroup> MasterSelectionGroupQuery = null;
+                        if (PubRequest.RootContentItem.DoesReduce)
+                        {
+                            MasterSelectionGroupQuery = RelatedReductionTasks.Select(t => t.SelectionGroup).Where(g => g.IsMaster);
+                        }
+                        else
+                        {
+                            MasterSelectionGroupQuery = DbContext.SelectionGroup.Where(g => g.RootContentItemId == PubRequest.RootContentItemId).Where(g => g.IsMaster);
+                        }
+                        foreach (SelectionGroup MasterContentGroup in MasterSelectionGroupQuery)
                         {
                             MasterContentGroup.SetContentUrl(TargetFileName);
                             DbContext.SelectionGroup.Update(MasterContentGroup);
