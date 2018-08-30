@@ -83,8 +83,8 @@ namespace MapTests
         public async Task CreateRootContentItem_ErrorInvalid(int clientIdArg, int contentTypeIdArg, bool useContentName)
         {
             #region Arrange
-            Guid clientId = new Guid(clientIdArg, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
-            Guid contentTypeId = new Guid(contentTypeIdArg, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+            Guid clientId = MakeGuid(clientIdArg);
+            Guid contentTypeId = MakeGuid(contentTypeIdArg);
             ContentPublishingController controller = await GetControllerForUser("user1");
             var validRootContentItem = new RootContentItem
             {
@@ -117,12 +117,12 @@ namespace MapTests
         public async Task CreateRootContentItem_ErrorUnauthorized(String userName, int clientIdArg)
         {
             #region Arrange
-            Guid clientId = new Guid(clientIdArg, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+            Guid clientId = MakeGuid(clientIdArg);
             ContentPublishingController controller = await GetControllerForUser(userName);
             var validRootContentItem = new RootContentItem
             {
                 ClientId = clientId,
-                ContentTypeId = new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+                ContentTypeId = MakeGuid(1),
                 ContentName = "",
                 DoesReduce = false,
             };
@@ -147,8 +147,8 @@ namespace MapTests
             ContentPublishingController controller = await GetControllerForUser("user1");
             var validRootContentItem = new RootContentItem
             {
-                ClientId = new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-                ContentTypeId = new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+                ClientId = MakeGuid(1),
+                ContentTypeId = MakeGuid(1),
                 ContentName = "",
                 DoesReduce = false,
             };
@@ -170,8 +170,8 @@ namespace MapTests
             ContentPublishingController controller = await GetControllerForUser("user1");
             var validRootContentItem = new RootContentItem
             {
-                ClientId = new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-                ContentTypeId = new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+                ClientId = MakeGuid(1),
+                ContentTypeId = MakeGuid(1),
                 ContentName = "",
                 DoesReduce = false,
             };
@@ -197,7 +197,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            Guid rootContentItemId = new Guid(rootContentItemIdArg, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+            Guid rootContentItemId = MakeGuid(rootContentItemIdArg);
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
             var view = await controller.DeleteRootContentItem(rootContentItemId);
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
@@ -220,7 +220,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            Guid rootContentItemId = new Guid(rootContentItemIdArg, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+            Guid rootContentItemId = MakeGuid(rootContentItemIdArg);
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
             var view = await controller.DeleteRootContentItem(rootContentItemId);
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
@@ -240,7 +240,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.DeleteRootContentItem(new Guid(3,1,1,1,1,1,1,1,1,1,1));
+            var view = await controller.DeleteRootContentItem(MakeGuid(3));
             #endregion
 
             #region Assert
@@ -257,7 +257,7 @@ namespace MapTests
 
             #region Act
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
-            var view = await controller.DeleteRootContentItem(new Guid(3,1,1,1,1,1,1,1,1,1,1));
+            var view = await controller.DeleteRootContentItem(MakeGuid(3));
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
             #endregion
 
@@ -292,13 +292,13 @@ namespace MapTests
             ContentPublishingController controller = await GetControllerForUser("user1");
             PublishRequest RequestArg = new PublishRequest
             {
-                RootContentItemId = new Guid(3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+                RootContentItemId = MakeGuid(3),
                 RelatedFiles = new UploadedRelatedFile[]
                 {
                     new UploadedRelatedFile
                     {  // does not exist in initialized FileUpload entity. 
                         FilePurpose = "MasterContent",
-                        FileUploadId = new Guid(99,99,99,99,99,99,99,99,99,99,99),
+                        FileUploadId = MakeGuid(99),
                     }
                 }
             };
@@ -324,15 +324,15 @@ namespace MapTests
             ContentPublishingController controller = await GetControllerForUser("user1");
             PublishRequest RequestArg = new PublishRequest
             {
-                RootContentItemId = new Guid(3,1,1,1,1,1,1,1,1,1,1),
+                RootContentItemId = MakeGuid(3),
                 RelatedFiles = new UploadedRelatedFile[0],
             };
             // Create a new publicationrequest record with blocking status
             TestResources.DbContextObject.ContentPublicationRequest.Add(new ContentPublicationRequest
             {
-                Id = new Guid(999,1,1,1,1,1,1,1,1,1,1),
-                ApplicationUserId = new Guid(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-                RootContentItemId = new Guid(3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+                Id = MakeGuid(999),
+                ApplicationUserId = MakeGuid(1),
+                RootContentItemId = MakeGuid(3),
                 RequestStatus = ExistingRequestStatus,
                 ReductionRelatedFilesObj = new List<ReductionRelatedFiles>{ },
                 CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0,1,0),
@@ -359,15 +359,15 @@ namespace MapTests
             ContentPublishingController controller = await GetControllerForUser("user1");
             PublishRequest RequestArg = new PublishRequest
             {
-                RootContentItemId = new Guid(3,1,1,1,1,1,1,1,1,1,1),
+                RootContentItemId = MakeGuid(3),
                 RelatedFiles = new UploadedRelatedFile[0],
             };
             // Create a new publicationrequest record with blocking status
             TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
             {
                 Id = Guid.NewGuid(),
-                SelectionGroup = TestResources.DbContextObject.SelectionGroup.Single(g => g.RootContentItemId == new Guid(3,1,1,1,1,1,1,1,1,1,1)),
-                ApplicationUserId = new Guid(1,1,1,1,1,1,1,1,1,1,1),
+                SelectionGroup = TestResources.DbContextObject.SelectionGroup.Single(g => g.RootContentItemId == MakeGuid(3)),
+                ApplicationUserId = MakeGuid(1),
                 ReductionStatus = ExistingTaskStatus,
                 CreateDateTimeUtc = DateTime.UtcNow,
             });
@@ -391,7 +391,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.GoLive(new Guid(1,1,1,1,1,1,1,1,1,1,1), new Guid(1,1,1,1,1,1,1,1,1,1,1), "");
+            var view = await controller.GoLive(MakeGuid(1), MakeGuid(1), "");
             #endregion
 
             #region Assert
@@ -408,9 +408,9 @@ namespace MapTests
             // Create a new publicationrequest record with blocking status
             TestResources.DbContextObject.ContentPublicationRequest.Add(new ContentPublicationRequest
             {
-                Id = new Guid(999,1,1,1,1,1,1,1,1,1,1),
-                ApplicationUserId = new Guid(1,1,1,1,1,1,1,1,1,1,1),
-                RootContentItemId = new Guid(3,1,1,1,1,1,1,1,1,1,1),
+                Id = MakeGuid(999),
+                ApplicationUserId = MakeGuid(1),
+                RootContentItemId = MakeGuid(3),
                 RequestStatus = PublicationStatus.Processing,
                 ReductionRelatedFilesObj = new List<ReductionRelatedFiles> { },
                 CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0),
@@ -418,7 +418,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.GoLive(new Guid(3,1,1,1,1,1,1,1,1,1,1), new Guid(999,1,1,1,1,1,1,1,1,1,1), "");
+            var view = await controller.GoLive(MakeGuid(3), MakeGuid(999), "");
             #endregion
 
             #region Assert
@@ -436,7 +436,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.Reject(new Guid(1,1,1,1,1,1,1,1,1,1,1), new Guid(1,1,1,1,1,1,1,1,1,1,1));
+            var view = await controller.Reject(MakeGuid(1), MakeGuid(1));
             #endregion
 
             #region Assert
@@ -452,17 +452,17 @@ namespace MapTests
         {
             #region Arrange
             ContentPublishingController controller = await GetControllerForUser(UserName);
-            ContentPublicationRequest pubRequest = TestResources.DbContextObject.ContentPublicationRequest.SingleOrDefault(r => r.RootContentItemId == new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1));
+            ContentPublicationRequest pubRequest = TestResources.DbContextObject.ContentPublicationRequest.SingleOrDefault(r => r.RootContentItemId == MakeGuid(rootContentItemId));
             if (pubRequest != null)
             {
-                pubRequest.RootContentItemId = new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1);
-                pubRequest.RootContentItem = TestResources.DbContextObject.RootContentItem.SingleOrDefault(rc => rc.Id == new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1));
+                pubRequest.RootContentItemId = MakeGuid(rootContentItemId);
+                pubRequest.RootContentItem = TestResources.DbContextObject.RootContentItem.SingleOrDefault(rc => rc.Id == MakeGuid(rootContentItemId));
                 pubRequest.RequestStatus = initialPubRequestStatus;
             }
             #endregion
 
             #region Act
-            var view = await controller.Reject(new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1), new Guid(pubRequestId,1,1,1,1,1,1,1,1,1,1));
+            var view = await controller.Reject(MakeGuid(rootContentItemId), MakeGuid(pubRequestId));
             #endregion
 
             #region Assert
@@ -471,5 +471,9 @@ namespace MapTests
             #endregion
         }
 
+        private Guid MakeGuid(int Val)
+        {
+            return new Guid(Val, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+        }
     }
 }

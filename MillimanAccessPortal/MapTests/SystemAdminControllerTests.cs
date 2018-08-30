@@ -136,7 +136,7 @@ namespace MapTests
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                ClientId = new Guid(clientId,1,1,1,1,1,1,1,1,1,1),
+                ClientId = MakeGuid(clientId),
             };
             #endregion
 
@@ -158,7 +158,7 @@ namespace MapTests
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                ProfitCenterId = new Guid(profitCenterId,1,1,1,1,1,1,1,1,1,1),
+                ProfitCenterId = MakeGuid(profitCenterId),
             };
             #endregion
 
@@ -181,7 +181,7 @@ namespace MapTests
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                UserId = userId.HasValue ? new Guid(userId.Value,1,1,1,1,1,1,1,1,1,1) : (Guid?)null,
+                UserId = userId.HasValue ? MakeGuid(userId.Value) : (Guid?)null,
             };
             #endregion
 
@@ -202,7 +202,7 @@ namespace MapTests
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                UserId = new Guid(userId,1,1,1,1,1,1,1,1,1,1),
+                UserId = MakeGuid(userId),
             };
             #endregion
 
@@ -223,8 +223,8 @@ namespace MapTests
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                UserId = new Guid(userId,1,1,1,1,1,1,1,1,1,1),
-                ClientId = new Guid(clientId,1,1,1,1,1,1,1,1,1,1),
+                UserId = MakeGuid(userId),
+                ClientId = MakeGuid(clientId),
             };
             #endregion
 
@@ -245,8 +245,8 @@ namespace MapTests
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                UserId = new Guid(userId,1,1,1,1,1,1,1,1,1,1),
-                ProfitCenterId = new Guid(profitCenterId,1,1,1,1,1,1,1,1,1,1),
+                UserId = MakeGuid(userId),
+                ProfitCenterId = MakeGuid(profitCenterId),
             };
             #endregion
 
@@ -289,7 +289,7 @@ namespace MapTests
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                UserId = new Guid(userId,1,1,1,1,1,1,1,1,1,1),
+                UserId = MakeGuid(userId),
             };
             #endregion
 
@@ -311,7 +311,7 @@ namespace MapTests
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                ProfitCenterId = new Guid(profitCenterId,1,1,1,1,1,1,1,1,1,1),
+                ProfitCenterId = MakeGuid(profitCenterId),
             };
             #endregion
 
@@ -334,7 +334,7 @@ namespace MapTests
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                ClientId = clientId.HasValue ? new Guid(clientId.Value,1,1,1,1,1,1,1,1,1,1) : (Guid?)null,
+                ClientId = clientId.HasValue ? MakeGuid(clientId.Value) : (Guid?)null,
             };
             #endregion
 
@@ -355,7 +355,7 @@ namespace MapTests
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                ClientId = new Guid(clientId,1,1,1,1,1,1,1,1,1,1),
+                ClientId = MakeGuid(clientId),
             };
             #endregion
 
@@ -376,8 +376,8 @@ namespace MapTests
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                ClientId = new Guid(clientId,1,1,1,1,1,1,1,1,1,1),
-                UserId = new Guid(userId,1,1,1,1,1,1,1,1,1,1),
+                ClientId = MakeGuid(clientId),
+                UserId = MakeGuid(userId),
             };
             #endregion
 
@@ -398,8 +398,8 @@ namespace MapTests
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                ClientId = new Guid(clientId,1,1,1,1,1,1,1,1,1,1),
-                ProfitCenterId = new Guid(profitCenterId,1,1,1,1,1,1,1,1,1,1),
+                ClientId = MakeGuid(clientId),
+                ProfitCenterId = MakeGuid(profitCenterId),
             };
             #endregion
 
@@ -443,7 +443,7 @@ namespace MapTests
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                ProfitCenterId = profitCenterId.HasValue ? new Guid(profitCenterId.Value,1,1,1,1,1,1,1,1,1,1) : (Guid?)null,
+                ProfitCenterId = profitCenterId.HasValue ? MakeGuid(profitCenterId.Value) : (Guid?)null,
             };
             #endregion
 
@@ -464,7 +464,7 @@ namespace MapTests
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                ProfitCenterId = new Guid(profitCenterId,1,1,1,1,1,1,1,1,1,1),
+                ProfitCenterId = MakeGuid(profitCenterId),
             };
             #endregion
 
@@ -489,7 +489,7 @@ namespace MapTests
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                UserId = new Guid(userId,1,1,1,1,1,1,1,1,1,1),
+                UserId = MakeGuid(userId),
             };
             #endregion
 
@@ -511,7 +511,7 @@ namespace MapTests
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                ClientId = new Guid(clientId,1,1,1,1,1,1,1,1,1,1),
+                ClientId = MakeGuid(clientId),
             };
             #endregion
 
@@ -534,7 +534,7 @@ namespace MapTests
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                RootContentItemId = rootContentItemId.HasValue ? new Guid(rootContentItemId.Value,1,1,1,1,1,1,1,1,1,1) : (Guid?)null,
+                RootContentItemId = rootContentItemId.HasValue ? MakeGuid(rootContentItemId.Value) : (Guid?)null,
             };
             #endregion
 
@@ -555,8 +555,8 @@ namespace MapTests
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                RootContentItemId = new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1),
-                UserId = new Guid(userId,1,1,1,1,1,1,1,1,1,1),
+                RootContentItemId = MakeGuid(rootContentItemId),
+                UserId = MakeGuid(userId),
             };
             #endregion
 
@@ -577,8 +577,8 @@ namespace MapTests
             var controller = await GetControllerForUser("sysAdmin1");
             var queryFilter = new QueryFilter
             {
-                RootContentItemId = new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1),
-                ClientId = new Guid(clientId,1,1,1,1,1,1,1,1,1,1),
+                RootContentItemId = MakeGuid(rootContentItemId),
+                ClientId = MakeGuid(clientId),
             };
             #endregion
 
@@ -679,7 +679,7 @@ namespace MapTests
 
             #region Act
             var preCount = _testResources.DbContextObject.UserClaims.Count();
-            var json = await controller.AddUserToClient(email, new Guid(clientId,1,1,1,1,1,1,1,1,1,1));
+            var json = await controller.AddUserToClient(email, MakeGuid(clientId));
             var postCount = _testResources.DbContextObject.UserClaims.Count();
             #endregion
 
@@ -701,7 +701,7 @@ namespace MapTests
 
             #region Act
             var preCount = _testResources.DbContextObject.UserClaims.Count();
-            var json = await controller.AddUserToClient(email, new Guid(clientId,1,1,1,1,1,1,1,1,1,1));
+            var json = await controller.AddUserToClient(email, MakeGuid(clientId));
             var postCount = _testResources.DbContextObject.UserClaims.Count();
             #endregion
 
@@ -721,7 +721,7 @@ namespace MapTests
 
             #region Act
             var preCount = _testResources.DbContextObject.UserClaims.Count();
-            var json = await controller.AddUserToClient(email, new Guid(clientId,1,1,1,1,1,1,1,1,1,1));
+            var json = await controller.AddUserToClient(email, MakeGuid(clientId));
             var postCount = _testResources.DbContextObject.UserClaims.Count();
             #endregion
 
@@ -742,7 +742,7 @@ namespace MapTests
 
             #region Act
             var preCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
-            var json = await controller.AddUserToProfitCenter(email, new Guid(profitCenterId,1,1,1,1,1,1,1,1,1,1));
+            var json = await controller.AddUserToProfitCenter(email, MakeGuid(profitCenterId));
             var postCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
             #endregion
 
@@ -764,7 +764,7 @@ namespace MapTests
 
             #region Act
             var preCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
-            var json = await controller.AddUserToProfitCenter(email, new Guid(profitCenterId,1,1,1,1,1,1,1,1,1,1));
+            var json = await controller.AddUserToProfitCenter(email, MakeGuid(profitCenterId));
             var postCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
             #endregion
 
@@ -784,7 +784,7 @@ namespace MapTests
 
             #region Act
             var preCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
-            var json = await controller.AddUserToProfitCenter(email, new Guid(profitCenterId,1,1,1,1,1,1,1,1,1,1));
+            var json = await controller.AddUserToProfitCenter(email, MakeGuid(profitCenterId));
             var postCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
             #endregion
 
@@ -798,13 +798,13 @@ namespace MapTests
         #region update action tests
         [Theory]
         [InlineData(-1, "Name")]
-        public async Task UpdateProfitCenter_Invalid(long profitCenterId, string profitCenterName)
+        public async Task UpdateProfitCenter_Invalid(int profitCenterId, string profitCenterName)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
             var profitCenter = new ProfitCenter
             {
-                Id = profitCenterId,
+                Id = MakeGuid(profitCenterId),
                 Name = profitCenterName,
                 ProfitCenterCode = "PC",
             };
@@ -830,7 +830,7 @@ namespace MapTests
             var controller = await GetControllerForUser("sysAdmin1");
             var profitCenter = new ProfitCenter
             {
-                Id = 1,
+                Id = MakeGuid(1),
                 Name = "Name",
                 ProfitCenterCode = "PC",
             };
@@ -853,7 +853,7 @@ namespace MapTests
         [Theory]
         [InlineData(-1)]
         [InlineData(1)]  // Cannot delete if there are referencing clients
-        public async Task DeleteProfitCenter_Invalid(long profitCenterId)
+        public async Task DeleteProfitCenter_Invalid(int profitCenterId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
@@ -861,7 +861,7 @@ namespace MapTests
 
             #region Act
             var preCount = _testResources.DbContextObject.ProfitCenter.Count();
-            var json = await controller.DeleteProfitCenter(profitCenterId);
+            var json = await controller.DeleteProfitCenter(MakeGuid(profitCenterId));
             var postCount = _testResources.DbContextObject.ProfitCenter.Count();
             #endregion
 
@@ -874,7 +874,7 @@ namespace MapTests
 
         [Theory]
         [InlineData(2)]
-        public async Task DeleteProfitCenter_Success(long profitCenterId)
+        public async Task DeleteProfitCenter_Success(int profitCenterId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
@@ -882,7 +882,7 @@ namespace MapTests
 
             #region Act
             var preCount = _testResources.DbContextObject.ProfitCenter.Count();
-            var json = await controller.DeleteProfitCenter(profitCenterId);
+            var json = await controller.DeleteProfitCenter(MakeGuid(profitCenterId));
             var postCount = _testResources.DbContextObject.ProfitCenter.Count();
             #endregion
 
@@ -895,7 +895,7 @@ namespace MapTests
         [Theory]
         [InlineData(-1, 1)]
         [InlineData(1, -1)]
-        public async Task RemoveUserFromProfitCenter_Invalid(long userId, long profitCenterId)
+        public async Task RemoveUserFromProfitCenter_Invalid(int userId, int profitCenterId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
@@ -903,7 +903,7 @@ namespace MapTests
 
             #region Act
             var preCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
-            var json = await controller.RemoveUserFromProfitCenter(userId, profitCenterId);
+            var json = await controller.RemoveUserFromProfitCenter(MakeGuid(userId), MakeGuid(profitCenterId));
             var postCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
             #endregion
 
@@ -916,7 +916,7 @@ namespace MapTests
 
         [Theory]
         [InlineData(1, 1)]
-        public async Task RemoveUserFromProfitCenter_Success(long userId, long profitCenterId)
+        public async Task RemoveUserFromProfitCenter_Success(int userId, int profitCenterId)
         {
             #region Arrange
             var controller = await GetControllerForUser("sysAdmin1");
@@ -924,7 +924,7 @@ namespace MapTests
 
             #region Act
             var preCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
-            var json = await controller.RemoveUserFromProfitCenter(userId, profitCenterId);
+            var json = await controller.RemoveUserFromProfitCenter(MakeGuid(userId), MakeGuid(profitCenterId));
             var postCount = _testResources.DbContextObject.UserRoleInProfitCenter.Count();
             #endregion
 
@@ -947,7 +947,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json = await controller.SystemRole(new Guid(userId,1,1,1,1,1,1,1,1,1,1), role, false);
+            var json = await controller.SystemRole(MakeGuid(userId), role, false);
             #endregion
 
             #region Assert
@@ -964,8 +964,8 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json1 = await controller.SystemRole(new Guid(userId,1,1,1,1,1,1,1,1,1,1), role);
-            var json2 = await controller.SystemRole(new Guid(userId,1,1,1,1,1,1,1,1,1,1), role, !expectedValue);
+            var json1 = await controller.SystemRole(MakeGuid(userId), role);
+            var json2 = await controller.SystemRole(MakeGuid(userId), role, !expectedValue);
             #endregion
 
             #region Assert
@@ -986,7 +986,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json = await controller.UserSuspension(new Guid(userId,1,1,1,1,1,1,1,1,1,1), true);
+            var json = await controller.UserSuspendedStatus(MakeGuid(userId), true);
             #endregion
 
             #region Assert
@@ -1003,8 +1003,8 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json1 = await controller.UserSuspendedStatus Guid(userId,1,1,1,1,1,1,1,1,1,1));
-            var json2 = await controller.UserSuspendedStatus Guid(userId,1,1,1,1,1,1,1,1,1,1), !expectedValue);
+            var json1 = await controller.UserSuspendedStatus(MakeGuid(userId));
+            var json2 = await controller.UserSuspendedStatus(MakeGuid(userId), !expectedValue);
             #endregion
 
             #region Assert
@@ -1026,7 +1026,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json = await controller.UserClientRoleAssignment(new Guid(userId,1,1,1,1,1,1,1,1,1,1), new Guid(clientId,1,1,1,1,1,1,1,1,1,1), role);
+            var json = await controller.UserClientRoleAssignment(MakeGuid(userId), MakeGuid(clientId), role);
             #endregion
 
             #region Assert
@@ -1046,8 +1046,8 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json1 = await controller.UserClientRoleAssignment(new Guid(userId,1,1,1,1,1,1,1,1,1,1), new Guid(clientId,1,1,1,1,1,1,1,1,1,1), role);
-            var json2 = await controller.UserClientRoleAssignment(new Guid(userId,1,1,1,1,1,1,1,1,1,1), new Guid(clientId,1,1,1,1,1,1,1,1,1,1), role, !expectedValue);
+            var json1 = await controller.UserClientRoleAssignment(MakeGuid(userId), MakeGuid(clientId), role);
+            var json2 = await controller.UserClientRoleAssignment(MakeGuid(userId), MakeGuid(clientId), role, !expectedValue);
             #endregion
 
             #region Assert
@@ -1067,7 +1067,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json = await controller.ContentSuspendedStatus Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1));
+            var json = await controller.ContentSuspendedStatus(MakeGuid(rootContentItemId));
             #endregion
 
             #region Assert
@@ -1084,8 +1084,8 @@ namespace MapTests
             #endregion
 
             #region Act
-            var json1 = await controller.ContentSuspendedStatus(new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1));
-            var json2 = await controller.ContentSuspendedStatus(new Guid(rootContentItemId,1,1,1,1,1,1,1,1,1,1), !expectedValue);
+            var json1 = await controller.ContentSuspendedStatus(MakeGuid(rootContentItemId));
+            var json2 = await controller.ContentSuspendedStatus(MakeGuid(rootContentItemId), !expectedValue);
             #endregion
 
             #region Assert
@@ -1096,5 +1096,10 @@ namespace MapTests
             #endregion
         }
         #endregion
+
+        private Guid MakeGuid(int Val)
+        {
+            return new Guid(Val, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+        }
     }
 }
