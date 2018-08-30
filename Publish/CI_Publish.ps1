@@ -145,6 +145,7 @@ $nugetDestination = "$rootPath\nugetPackages"
 $octopusURL = "https://indy-prmdeploy.milliman.com"
 $octopusAPIKey = $env:octopus_api_key
 
+mkdir ${rootPath}\_test_results
 #endregion
 
 
