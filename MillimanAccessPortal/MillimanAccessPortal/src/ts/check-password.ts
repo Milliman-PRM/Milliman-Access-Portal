@@ -8,6 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const newPasswordInput = document.getElementById('NewPassword');
   const confirmPasswordInput = document.getElementById('ConfirmNewPassword');
 
+  newPasswordInput.addEventListener('keyup', () => {
+      newPasswordInput.removeAttribute('Warning');
+      newPasswordInput.removeAttribute('Validated');
+      confirmPasswordInput.removeAttribute('Validated');
+  })
+
   newPasswordInput.addEventListener('blur', () => {
     const proposedPassword = (newPasswordInput as HTMLInputElement).value;
 
