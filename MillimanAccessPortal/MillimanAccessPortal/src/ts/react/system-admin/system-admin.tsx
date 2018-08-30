@@ -21,8 +21,8 @@ import { SecondaryDetailPanel } from './secondary-detail-panel';
 export interface SystemAdminState {
   primaryDataSource: string;
   secondaryDataSource: string;
-  primarySelectedCard: number;
-  secondarySelectedCard: number;
+  primarySelectedCard: string;
+  secondarySelectedCard: string;
 }
 
 export class SystemAdmin extends React.Component<{}, SystemAdminState> {
@@ -92,7 +92,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         suspended: user.IsSuspended,
         isUserInProfitCenter: user.ProfitCenterId,
       })),
-      assignQueryFilter: (userId: number) => ({ userId }),
+      assignQueryFilter: (userId: string) => ({ userId }),
     },
     {
       name: 'client',
@@ -143,7 +143,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           readOnly: cd.client.ParentOnly,
         }));
       },
-      assignQueryFilter: (clientId: number) => ({ clientId }),
+      assignQueryFilter: (clientId: string) => ({ clientId }),
     },
     {
       name: 'profitCenter',
@@ -171,7 +171,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         },
         isProfitCenter: true,
       })),
-      assignQueryFilter: (profitCenterId: number) => ({ profitCenterId }),
+      assignQueryFilter: (profitCenterId: string) => ({ profitCenterId }),
     },
     {
       name: 'rootContentItem',
@@ -215,7 +215,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         })),
         suspended: item.IsSuspended,
       })),
-      assignQueryFilter: (rootContentItemId: number) => ({ rootContentItemId }),
+      assignQueryFilter: (rootContentItemId: string) => ({ rootContentItemId }),
     },
   ];
 
@@ -326,7 +326,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     }));
   }
 
-  private setPrimarySelectedCard(cardId: number) {
+  private setPrimarySelectedCard(cardId: string) {
     this.setState((prevState) => ({
       primarySelectedCard: prevState.primarySelectedCard === cardId
         ? null
@@ -335,7 +335,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     }));
   }
 
-  private setSecondarySelectedCard(cardId: number) {
+  private setSecondarySelectedCard(cardId: string) {
     this.setState((prevState) => ({
       secondarySelectedCard: prevState.secondarySelectedCard === cardId
         ? null

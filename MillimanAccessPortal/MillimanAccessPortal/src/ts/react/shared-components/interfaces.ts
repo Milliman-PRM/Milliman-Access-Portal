@@ -1,8 +1,8 @@
 ﻿export interface QueryFilter {
-  userId?: number;
-  clientId?: number;
-  profitCenterId?: number;
-  rootContentItemId?: number;
+  userId?: string;
+  clientId?: string;
+  profitCenterId?: string;
+  rootContentItemId?: string;
 }
 
 export enum Structure {
@@ -24,7 +24,7 @@ export interface DataSource<T> {
     emptyText: string;
   };
   processInfo: (response: any) => T[];
-  assignQueryFilter: (id: number) => Partial<QueryFilter>;
+  assignQueryFilter: (id: string) => Partial<QueryFilter>;
 }
 
 export interface DataSourceOverride<T> {

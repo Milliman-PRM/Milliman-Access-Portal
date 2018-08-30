@@ -5,15 +5,13 @@ import * as $ from 'jquery';
 import * as toastr from 'toastr';
 
 import { AddRootContentItemActionCard, ClientCard, RootContentItemCard } from '../card';
-import {
-  CancelContentPublicationRequestDialog, DeleteRootContentItemDialog, DiscardConfirmationDialog,
-} from '../dialog';
+import { CancelContentPublicationRequestDialog, DeleteRootContentItemDialog } from '../dialog';
 import { FormBase } from '../form/form-base';
 import { AccessMode } from '../form/form-modes';
 import { SubmissionGroup } from '../form/form-submission';
 import {
   collapseAllListener, expandAllListener, filterFormListener, filterTreeListener, get,
-  hideButtonSpinner, post, showButtonSpinner, updateCardStatus, updateCardStatusButtons,
+  hideButtonSpinner, showButtonSpinner, updateCardStatus, updateCardStatusButtons,
   updateFormStatusButtons, wrapCardCallback, wrapCardIconCallback,
 } from '../shared';
 import { setUnloadAlert } from '../unload-alerts';
@@ -40,6 +38,7 @@ function deleteRootContentItem(
   $.ajax({
     data: {
       rootContentItemId,
+      password,
     },
     headers: {
       RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val().toString(),
@@ -49,7 +48,7 @@ function deleteRootContentItem(
   }).done(function onDone(response: RootContentItemDetail) {
     $('#content-publishing-form').hide();
     $('#root-content-items .card-container')
-      .filter((i, card) => $(card).data().rootContentItemId === response.Id)
+      .filter((_, card) => $(card).data().rootContentItemId === response.Id)
       .remove();
     addToDocumentCount(response.ClientId, -1);
     callback();
@@ -118,7 +117,7 @@ export function openNewRootContentItemForm() {
     ContentTypeId: '0',
     Description: '',
     DoesReduce: false,
-    Id: 0,
+    Id: '0',
     Notes: '',
     RelatedFiles: [],
     IsSuspended: false,
@@ -167,9 +166,9 @@ function mapRootContentItemDetail(item: RootContentItemDetail) {
   return formMap;
 }
 
-function addToDocumentCount(clientId: number, offset: number) {
+function addToDocumentCount(clientId: string, offset: number) {
   const itemCount = $('#client-tree .card-container')
-    .filter((i, card) => $(card).data().clientId === clientId)
+    .filter((_, card) => $(card).data().clientId === clientId)
     .find('use[href="#reports"]').closest('div').find('h4');
   itemCount.html(`${parseInt(itemCount.html(), 10) + offset}`);
 }
@@ -302,7 +301,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
       // Add the new content item as a card and select it
       renderRootContentItem(response.summary);
       $('#root-content-items .card-container')
-        .filter((i, card) => $(card).data().rootContentItemId === response.detail.Id)
+        .filter((_, card) => $(card).data().rootContentItemId === response.detail.Id)
         .children().click();
       // Update the root content item count stat on the client card
       addToDocumentCount(response.detail.ClientId, 1);
@@ -325,7 +324,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
       renderRootContentItemForm(response.detail);
       // Update related root content item card
       const $card = $('#root-content-items .card-container')
-        .filter((i, card) => $(card).data().rootContentItemId === response.detail.Id);
+        .filter((_, card) => $(card).data().rootContentItemId === response.detail.Id);
       $card.find('.card-body-primary-text').html(response.summary.ContentName);
       $card.find('.card-body-secondary-text').html(response.summary.ContentTypeName);
       toastr.success('Root content item updated');
@@ -341,7 +340,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
     ],
     'ContentPublishing/Publish',
     'POST',
-    (response) => {
+    () => {
       renderRootContentItemForm();
       toastr.success('Publication request submitted');
     },
@@ -361,7 +360,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
             };
           })
           .filter((file) => file.FileUploadId),
-        RootContentItemId: parseInt(dataArray.Id, 10),
+        RootContentItemId: dataArray.Id,
       };
       return publishRequest;
     },
@@ -402,7 +401,6 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
 }
 
 function renderRootContentItem(item: RootContentItemSummary) {
-  const $panel = $('#content-publishing-form');
   const $rootContentItemCard = new RootContentItemCard(
     item,
     wrapCardCallback(get(
@@ -436,13 +434,13 @@ function renderRootContentItem(item: RootContentItemSummary) {
   $rootContentItemCard.data('statusEnum', item.PublicationDetails && item.PublicationDetails.StatusEnum);
   $('#root-content-items ul.admin-panel-content').append($rootContentItemCard);
 }
-function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: number) {
+function renderRootContentItemList(response: RootContentItemList, rootContentItemId?: string) {
   const $rootContentItemList = $('#root-content-items ul.admin-panel-content');
   $rootContentItemList.empty();
   response.SummaryList.forEach(renderRootContentItem);
   $rootContentItemList.find('.tooltip').tooltipster();
 
-  if (!isNaN(rootContentItemId)) {
+  if (rootContentItemId !== null) {
     $(`[data-root-content-item-id=${rootContentItemId}]`).click();
   }
 }
@@ -466,7 +464,7 @@ function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
     renderClientNode(childNode, level + 1);
   });
 }
-function renderClientTree(response: ClientTree, clientId?: number) {
+function renderClientTree(response: ClientTree, clientId?: string) {
   const $clientTreeList = $('#client-tree ul.admin-panel-content');
   $clientTreeList.empty();
   response.Root.Children.forEach((rootClient) => {
@@ -476,7 +474,7 @@ function renderClientTree(response: ClientTree, clientId?: number) {
   $clientTreeList.find('.hr').last().remove();
   $clientTreeList.find('.tooltip').tooltipster();
 
-  if (!isNaN(clientId)) {
+  if (clientId !== null) {
     $(`[data-client-id=${clientId}]`).click();
   }
 }

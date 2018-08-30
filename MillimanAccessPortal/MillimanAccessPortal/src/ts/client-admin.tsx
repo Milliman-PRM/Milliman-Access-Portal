@@ -39,7 +39,7 @@ let eligibleUsers;
 let formObject: FormBase;
 let defaultWelcomeText: string;
 
-document.addEventListener('DOMContentLoaded', (event) => {
+document.addEventListener('DOMContentLoaded', () => {
   const view = document.getElementsByTagName('body')[0].getAttribute('data-nav-location');
   ReactDOM.render(<NavBar currentView={view} />, document.getElementById('navbar'));
 });
@@ -97,7 +97,7 @@ function populateClientForm(response) {
       } else if (field.hasClass('selectize-custom-input')) {
         field[0].selectize.clear();
         field[0].selectize.clearOptions();
-        $.each(value, function addItem(index, item) {
+        $.each(value, function addItem(_, item) {
           field[0].selectize.addOption({ value: item, text: item });
           field[0].selectize.addItem(item);
         });
@@ -207,7 +207,7 @@ function setUserRole(clientId, userId, roleEnum, isAssigned, onResponse) {
     url: 'ClientAdmin/SetUserRoleInClient',
   }).done(function onDone(response) {
     // Set checkbox states to match the response
-    $.each(response, function setToggle(index, roleAssignment) {
+    $.each(response, function setToggle(_, roleAssignment) {
       $cardContainer.find('input[data-role-enum=' + roleAssignment.RoleEnum + ']')
         .prop('checked', roleAssignment.IsAssigned);
     });
@@ -298,7 +298,6 @@ function setupChildClientForm($parentClientDiv: JQuery<HTMLElement>) {
 
 // TODO
 function setupClientForm() {
-  const $clientForm = $('#client-info form.admin-panel-content');
   shared.clearForm($('#client-info'));
   bindForm();
   formObject.submissionMode = 'new';
@@ -389,7 +388,7 @@ function userCardRemoveClickHandler(event) {
   const $clickedCard = $(this).closest('.card-container');
   const userName = $clickedCard.find('.card-body-primary-text').html();
   event.stopPropagation();
-  new dialog.RemoveUserDialog(userName, function removeUser(value, callback) {
+  new dialog.RemoveUserDialog(userName, function removeUser(_, callback) {
     const clientId = $clickedCard.attr('data-client-id');
     const userId = $clickedCard.attr('data-user-id');
     removeUserFromClient(clientId, userId, callback);

@@ -18,14 +18,14 @@ export interface ReductionSummary {
   User: UserInfo;
   StatusEnum: ReductionStatus;
   StatusName: string;
-  SelectionGroupId: number;
-  RootContentItemId?: number;
+  SelectionGroupId: string;
+  RootContentItemId?: string;
 }
 export interface SelectionGroupStatus {
   Status: ReductionSummary[];
 }
 export interface SelectionDetails {
-  Id: number;
+  Id: string;
   Marked: boolean;
 }
 export interface SelectionComparison {
@@ -45,7 +45,7 @@ export interface SelectionsDetail {
 }
 
 export interface SelectionGroupSummary {
-  Id: number;
+  Id: string;
   Name: string;
   MemberList: UserInfo[];
   ReductionDetails: ReductionSummary;
@@ -54,7 +54,7 @@ export interface SelectionGroupSummary {
 }
 export interface SelectionGroupList {
   SelectionGroups: SelectionGroupSummary[];
-  RelevantRootContentItemId: number;
+  RelevantRootContentItemId: string;
 }
 
 export interface ContentAccessStatus {

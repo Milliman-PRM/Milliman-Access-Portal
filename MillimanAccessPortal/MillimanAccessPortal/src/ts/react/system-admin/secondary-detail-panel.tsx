@@ -14,7 +14,7 @@ interface SecondaryDetailPanelProps {
   controller: string;
   primarySelectedDataSource: DataSource<Entity>;
   secondarySelectedDataSource: DataSource<Entity>;
-  selectedCard: number;
+  selectedCard: string;
   queryFilter: QueryFilter;
 }
 
@@ -22,7 +22,7 @@ interface SecondaryDetailPanelState {
   detail: SecondaryDetail;
   prevQuery: {
     dataSource: string;
-    entityId: number;
+    entityId: string;
   };
 }
 
