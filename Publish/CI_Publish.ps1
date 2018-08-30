@@ -92,6 +92,7 @@ function create_db { # Attempt to create a database by copying another one; retr
 #region Decide to publish or cleanup
 $Action = $env:action
 $IsMerged = $env:IsMerged
+
 if ($Action.ToLower() -eq 'closed') {
     if ($IsMerged.ToLower -eq 'true') {
         log_statement "PR has been merged, run CI Cleanup"
@@ -264,7 +265,7 @@ log_statement "Performing MAP unit tests"
 
  Set-Location $rootPath\MillimanAccessPortal\MapTests
 
- dotnet test --no-build
+ dotnet test --no-build "--logger:trx;LogFileName=${rootPath}\_test_results\MAP-tests.trx"
 
  if ($LASTEXITCODE -ne 0) {
      log_statement "ERROR: One or more MAP xUnit tests failed"
@@ -291,7 +292,7 @@ log_statement "Performing content publishing unit tests"
 
 Set-Location $rootPath\ContentPublishingServer\ContentPublishingServiceTests
 
-dotnet test --no-build
+dotnet test --no-build "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: One or more content publishing xUnit tests failed"
