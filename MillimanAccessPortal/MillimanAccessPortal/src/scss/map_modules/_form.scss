@@ -274,11 +274,16 @@ label.input-with-upload {
     border: solid 2px $red !important;
 }
 
-span.field-validation-error {
+span.field-validation-error,
+span.form-validation-error {
     color: $red;
     font-weight: bold;
     font-style: italic;
     font-size: .75em;
+}
+
+span.form-validation-error {
+    margin-left: 1em;
 }
 
 /* Contact Form */
