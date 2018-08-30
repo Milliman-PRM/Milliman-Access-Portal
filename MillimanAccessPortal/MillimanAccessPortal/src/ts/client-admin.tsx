@@ -362,6 +362,7 @@ function openClientCardReadOnly($clientCard) {
 function openNewClientForm() {
   clearClientSelection();
   setupClientForm();
+  formObject.accessMode = AccessMode.Write;
   $('#new-client-card').find('div.card-body-container').attr('selected', '');
   hideClientUsers();
   showClientDetails();
@@ -597,7 +598,11 @@ function getClientTree(clientId?) {
 $(document).ready(function onReady() {
   getClientTree();
 
-  $('#client-tree .action-icon-add').click(newClientClickHandler);
+  $('#client-tree .action-icon-add').click(() => {
+    if (!$('#new-client-card .card-body-container').is('[selected]')) {
+      openNewClientForm();
+    }
+  });
   $('#client-info .action-icon-edit').click(() => {
     formObject.accessMode = AccessMode.Write;
     displayActionPanelIcons(true);
