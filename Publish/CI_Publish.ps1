@@ -96,7 +96,7 @@ log_statement "Action is $Action, IsMerged is $IsMerged"
 
 if ($Action.ToLower() -eq 'closed') {
     log_statement "PR has been merged, run CI Cleanup"
-    & ((get-location).Path + "\CI_Cleanup.ps1")
+    & ($rootPath + "\Puiblish\CI_Cleanup.ps1")
     if ($LASTEXITCODE -ne 0) {
         log_statement "ERROR: Call to cleanup script failed"
         log_statement "errorlevel was $LASTEXITCODE"
