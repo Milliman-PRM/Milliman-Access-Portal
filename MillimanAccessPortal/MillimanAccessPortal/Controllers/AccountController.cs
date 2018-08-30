@@ -383,6 +383,11 @@ namespace MillimanAccessPortal.Controllers
                 return View("Error");
             }
 
+            if (user.EmailConfirmed)
+            {
+                return View("Error");
+            }
+
             // Prompt for the user's password
             var model = new EnableAccountViewModel
             {
@@ -820,6 +825,45 @@ namespace MillimanAccessPortal.Controllers
 
             return Ok();
         }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> CheckPasswordValidity([FromBody] CheckPasswordViewModel Model)
+        {
+            var passwordValidationErrors = new List<string>();
+
+            if (ModelState.IsValid)
+            {
+                ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
+
+                foreach (IPasswordValidator<ApplicationUser> passwordValidator in _userManager.PasswordValidators)
+                {
+                    IdentityResult result = await passwordValidator.ValidateAsync(_userManager, user, Model.ProposedPassword);
+
+                    if (!result.Succeeded)
+                    {
+                        foreach (var errorResult in result.Errors)
+                        {
+                            passwordValidationErrors.Add(errorResult.Description);
+                        }
+                    }
+                }
+            }
+            
+            if (!passwordValidationErrors.Any())
+            {
+                return Ok();
+            }
+            else
+            {
+                string errorMessage = string.Join("<br /><br />", passwordValidationErrors);
+                Response.Headers.Add("Warning", errorMessage);
+                return StatusCode(StatusCodes.Status418ImATeapot);
+            }
+
+        }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]

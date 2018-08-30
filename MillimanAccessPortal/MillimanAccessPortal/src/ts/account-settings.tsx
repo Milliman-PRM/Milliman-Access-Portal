@@ -6,6 +6,7 @@ import { NavBar } from './react/shared-components/navbar';
 import { FormBase } from './form/form-base';
 import { AccessMode, SubmissionMode } from './form/form-modes';
 import { SubmissionGroup } from './form/form-submission';
+import './check-password';
 
 import $ = require('jquery');
 import toastr = require('toastr');

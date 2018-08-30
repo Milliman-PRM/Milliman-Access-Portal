@@ -20,6 +20,12 @@ namespace MillimanAccessPortal.Services
 
         public Task<IdentityResult> ValidateAsync(UserManager<TUser> manager, TUser user, string password)
         {
+            // If user is null, this check is likely for the account activation view
+            if (user == null)
+            {
+                return Task.FromResult(IdentityResult.Success);
+            }
+
             DateTime Cutoff = DateTime.UtcNow - new TimeSpan(numberOfDays, 0, 0, 0);
             
             // Check the specified number of days of history
