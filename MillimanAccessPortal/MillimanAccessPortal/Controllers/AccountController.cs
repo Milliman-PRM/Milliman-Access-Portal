@@ -831,11 +831,11 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> CheckPasswordValidity([FromBody] CheckPasswordViewModel Model)
         {
-            ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
-            List<string> passwordValidationErrors = new List<string>();
+            var passwordValidationErrors = new List<string>();
 
             if (ModelState.IsValid)
             {
+                ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
 
                 foreach (IPasswordValidator<ApplicationUser> passwordValidator in _userManager.PasswordValidators)
                 {
@@ -851,7 +851,7 @@ namespace MillimanAccessPortal.Controllers
                 }
             }
             
-            if (Model.ProposedPassword.Length > 0 && passwordValidationErrors.Count == 0)
+            if (!passwordValidationErrors.Any())
             {
                 return Ok();
             }
