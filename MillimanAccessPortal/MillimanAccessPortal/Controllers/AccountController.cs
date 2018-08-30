@@ -383,6 +383,11 @@ namespace MillimanAccessPortal.Controllers
                 return View("Error");
             }
 
+            if (user.EmailConfirmed)
+            {
+                return View("Error");
+            }
+
             // Prompt for the user's password
             var model = new EnableAccountViewModel
             {
