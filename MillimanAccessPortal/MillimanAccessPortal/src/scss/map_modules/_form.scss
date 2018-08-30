@@ -106,6 +106,16 @@ select {
         border: solid 1px $blue;
     }
 
+    &[validated] {
+        border: solid 2px $green;
+        outline-color: $green !important;
+    }
+
+    &[warning] {
+        border: solid 2px $red;
+        outline-color: $red !important;
+    }
+
     &[disabled],
     &[readonly] {
         border: solid 1px $grey;
@@ -268,6 +278,7 @@ span.field-validation-error {
     color: $red;
     font-weight: bold;
     font-style: italic;
+    font-size: .75em;
 }
 
 /* Contact Form */
