@@ -112,10 +112,6 @@ if ($Action.ToLower() -eq 'closed') {
 }
 #endregion
 
-# Do some BS to get all the vars printed out
-Get-Variable |%{ "Name : {0}`r`nValue: {1}`r`n" -f $_.Name,$_.Value }
-Get-ChildItem env:
-
 #region Configure environment properties
 $BranchName = $env:git_branch_name # Will be used in the version string of the octopus package & appended to database names
 
