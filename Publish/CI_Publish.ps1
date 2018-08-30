@@ -1,20 +1,20 @@
 <#
     .SYNOPSIS
         Run unit tests and deploy MAP
- 
+
     .DESCRIPTION
         This script assumes the repository has already been cloned to $rootPath
 
     .PARAMETER targetFolder
         The fully-qualified path to a folder where the MAP repository has been cloned
-    
+
     .PARAMETER deployEnvironment
         The ASPNETCORE_ENVIRONMENT value for the environment being targeted for deployment
         This environment will be used to perform database migrations
 
     .PARAMETER testEnvironment
         The ASPNETCORE_ENVIRONMENT value for the environment where unit tests are being run
-        
+
     .NOTES
         AUTHORS - Ben Wyatt, Steve Gredell
 #>
@@ -98,10 +98,11 @@ $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
 $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
 $dbPassword = $env:db_deploy_password
-$appDbName = "appdb_$BranchName".Replace("_","").Replace("-","").ToLower()
+$TrimmedBranch = $BranchName.Replace("_","").Replace("-","").ToLower()
+$appDbName = "appdb_$TrimmedBranch"
 $appDbTemplateName = "appdb_ci_template"
 $appDbOwner = "appdb_admin"
-$logDbName = "auditlogdb_$BranchName".Replace("_","").Replace("-","").ToLower()
+$logDbName = "auditlogdb_$TrimmedBranch"
 $logDbTemplateName = "auditlogdb_ci_template"
 $logDbOwner = "logdb_admin"
 $dbCreationRetries = 5 # The number of times the script will attempt to create a new database before throwing an error
@@ -212,6 +213,17 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+log_statement "Building documentation"
+
+cd "$rootpath\Documentation\"
+cmd /c "compileUserDocs.bat"
+
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: failed to build documentation"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
 cd $rootpath\ContentPublishingServer
 
 log_statement "Building content publishing server"
@@ -225,11 +237,11 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 log_statement "Performing MAP unit tests"
- 
+
  cd $rootPath\MillimanAccessPortal\MapTests
 
  dotnet test --no-build
- 
+
  if ($LASTEXITCODE -ne 0) {
      log_statement "ERROR: One or more MAP xUnit tests failed"
      log_statement "errorlevel was $LASTEXITCODE"
