@@ -25,3 +25,9 @@
         }
     }
 }
+
+@include for-tablet-down() {
+    .hide-on-tablet-down {
+        display: none !important;
+    }
+}
