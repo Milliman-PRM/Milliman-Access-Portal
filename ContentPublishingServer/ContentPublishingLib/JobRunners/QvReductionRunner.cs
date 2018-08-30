@@ -30,7 +30,7 @@ namespace ContentPublishingLib.JobRunners
         public QvReductionRunner()
         {
             // Initialize members
-            QmsUrl = Configuration.ApplicationConfiguration["IQmsUrl"];
+            QmsUrl = Configuration.ApplicationConfiguration["QdsQmsApiUrl"];
 
             IQMS Client = QmsClientCreator.New(QmsUrl);
             QdsServiceInfo = Client.GetServicesAsync(ServiceTypes.QlikViewDistributionService).Result[0];
