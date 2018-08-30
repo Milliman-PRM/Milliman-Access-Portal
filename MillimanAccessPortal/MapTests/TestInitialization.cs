@@ -193,6 +193,8 @@ namespace MapTests
                 QvServerAdminUserName = configuration["QvServerAdminUserName"],
                 QvServerAdminUserPassword = configuration["QvServerAdminUserPassword"],
                 QvServerContentUriSubfolder = configuration["QvServerContentUriSubfolder"],
+                QdsQmsApiUrl = configuration["QdsQmsApiUrl"],
+                QvsQmsApiUrl = configuration["QvsQmsApiUrl"]
             });
         }
 
