@@ -92,22 +92,16 @@ function create_db { # Attempt to create a database by copying another one; retr
 #region Decide to publish or cleanup
 $Action = $env:action
 $IsMerged = $env:IsMerged
+log_statement "Action is $Action, IsMerged is $IsMerged"
 
 if ($Action.ToLower() -eq 'closed') {
-    if ($IsMerged.ToLower -eq 'true') {
-        log_statement "PR has been merged, run CI Cleanup"
-        & ((get-location).Path + "\CI_Cleanup.ps1")
-        if ($LASTEXITCODE -ne 0) {
-            log_statement "ERROR: yarn package restore failed"
-            log_statement "errorlevel was $LASTEXITCODE"
-            exit $LASTEXITCODE
-        } else {
-            exit $LASTEXITCODE
-        }
-    } else {
-        log_statement "Branch closed without merging, nothing to do"
-        exit 0
+    log_statement "PR has been merged, run CI Cleanup"
+    & ((get-location).Path + "\CI_Cleanup.ps1")
+    if ($LASTEXITCODE -ne 0) {
+        log_statement "ERROR: Call to cleanup script failed"
+        log_statement "errorlevel was $LASTEXITCODE"
     }
+    exit $LASTEXITCODE
 } else {
     log_statement "Building CI normally"
 }
