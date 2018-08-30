@@ -821,9 +821,10 @@ namespace MillimanAccessPortal.Controllers
             return Ok();
         }
 
-        [HttpGet]
+        [HttpPost]
         [AllowAnonymous]
-        public async Task<ActionResult> CheckPasswordValidity(CheckPasswordViewModel Model)
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> CheckPasswordValidity([FromBody] CheckPasswordViewModel Model)
         {
             ApplicationUser user = await Queries.GetCurrentApplicationUser(User);
             List<string> passwordValidationErrors = new List<string>();
@@ -841,12 +842,11 @@ namespace MillimanAccessPortal.Controllers
                         {
                             passwordValidationErrors.Add(errorResult.Description);
                         }
-                        //passwordValidationErrors.Add(string.Join("<br /><br />", result.Errors.Select(x => x.Description)));
                     }
                 }
             }
             
-            if (passwordValidationErrors.Count == 0)
+            if (Model.ProposedPassword.Length > 0 && passwordValidationErrors.Count == 0)
             {
                 return Ok();
             }
