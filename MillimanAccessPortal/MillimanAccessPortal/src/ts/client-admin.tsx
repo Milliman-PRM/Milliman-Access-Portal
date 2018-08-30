@@ -365,6 +365,7 @@ function openNewClientForm() {
   formObject.accessMode = AccessMode.Write;
   $('#new-client-card').find('div.card-body-container').attr('selected', '');
   hideClientUsers();
+  displayActionPanelIcons(true);
   showClientDetails();
 }
 
