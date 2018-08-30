@@ -188,6 +188,7 @@ if ($IsMerged) {
         Set-Location $checkoutPath
     }
     $env:git_branch = $MergeBase
+    $env:Action = "opened"
     & $gitExePath checkout $MergeBase
     & "$checkoutPath\Publish\CI_Publish.ps1"
 

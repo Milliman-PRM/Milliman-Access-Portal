@@ -89,8 +89,26 @@ function create_db { # Attempt to create a database by copying another one; retr
 }
 #endregion
 
+#region Decide to publish or cleanup
+$Action = $env:action
+$IsMerged = $env:IsMerged
+log_statement "Action is $Action, IsMerged is $IsMerged"
+
+if ($Action.ToLower() -eq 'closed') {
+    log_statement "PR has been merged, run CI Cleanup"
+    & ((get-location).Path + "\CI_Cleanup.ps1")
+    if ($LASTEXITCODE -ne 0) {
+        log_statement "ERROR: Call to cleanup script failed"
+        log_statement "errorlevel was $LASTEXITCODE"
+    }
+    exit $LASTEXITCODE
+} else {
+    log_statement "Building CI normally"
+}
+#endregion
+
 #region Configure environment properties
-$BranchName = $env:git_branch # Will be used in the version string of the octopus package & appended to database names
+$BranchName = $env:git_branch_name # Will be used in the version string of the octopus package & appended to database names
 
 $gitExePath = "git"
 $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
@@ -99,6 +117,7 @@ $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
 $dbPassword = $env:db_deploy_password
 $TrimmedBranch = $BranchName.Replace("_","").Replace("-","").ToLower()
+log_statement "$BranchName trimmed to $TrimmedBranch"
 $appDbName = "appdb_$TrimmedBranch"
 $appDbTemplateName = "appdb_ci_template"
 $appDbOwner = "appdb_admin"
@@ -120,6 +139,7 @@ $nugetDestination = "$rootPath\nugetPackages"
 $octopusURL = "https://indy-prmdeploy.milliman.com"
 $octopusAPIKey = $env:octopus_api_key
 
+mkdir ${rootPath}\_test_results
 #endregion
 
 
@@ -179,7 +199,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-cd $rootpath\MillimanAccessPortal\MillimanAccessPortal
+Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
 $command = "yarn install --frozen-lockfile"
 invoke-expression "&$command"
@@ -190,7 +210,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-cd $rootpath\MillimanAccessPortal\
+Set-Location $rootpath\MillimanAccessPortal\
 
 MSBuild /restore:true /verbosity:quiet
 
@@ -201,7 +221,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 
-cd $rootpath\MillimanAccessPortal\MillimanAccessPortal
+Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
 log_statement "Building yarn packages"
 
@@ -215,7 +235,7 @@ if ($LASTEXITCODE -ne 0) {
 
 log_statement "Building documentation"
 
-cd "$rootpath\Documentation\"
+Set-Location "$rootpath\Documentation\"
 cmd /c "compileUserDocs.bat"
 
 if ($LASTEXITCODE -ne 0) {
@@ -224,7 +244,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-cd $rootpath\ContentPublishingServer
+Set-Location $rootpath\ContentPublishingServer
 
 log_statement "Building content publishing server"
 
@@ -238,9 +258,9 @@ if ($LASTEXITCODE -ne 0) {
 
 log_statement "Performing MAP unit tests"
 
- cd $rootPath\MillimanAccessPortal\MapTests
+ Set-Location $rootPath\MillimanAccessPortal\MapTests
 
- dotnet test --no-build
+ dotnet test --no-build "--logger:trx;LogFileName=${rootPath}\_test_results\MAP-tests.trx"
 
  if ($LASTEXITCODE -ne 0) {
      log_statement "ERROR: One or more MAP xUnit tests failed"
@@ -250,7 +270,7 @@ log_statement "Performing MAP unit tests"
 
 log_statement "Peforming Jest tests"
 
-cd $rootPath\MillimanAccessPortal\MillimanAccessPortal
+Set-Location $rootPath\MillimanAccessPortal\MillimanAccessPortal
 
 $env:JEST_JUNIT_OUTPUT = $jUnitOutputJest
 
@@ -265,9 +285,9 @@ if ($LASTEXITCODE -ne 0) {
 
 log_statement "Performing content publishing unit tests"
 
-cd $rootPath\ContentPublishingServer\ContentPublishingServiceTests
+Set-Location $rootPath\ContentPublishingServer\ContentPublishingServiceTests
 
-dotnet test --no-build
+dotnet test --no-build "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: One or more content publishing xUnit tests failed"
@@ -326,7 +346,7 @@ log_statement "Performing database migrations"
 
 $env:ASPNETCORE_ENVIRONMENT = $deployEnvironment
 
-cd $rootpath\MillimanAccessPortal\MillimanAccessPortal
+Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
 dotnet ef database update
 
@@ -353,7 +373,7 @@ log_statement "Publishing and packaging web application"
 
 #region Publish web application to a folder
 
-cd $rootpath\MillimanAccessPortal\MillimanAccessPortal
+Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
 msbuild /t:publish /p:PublishDir=$webBuildTarget /verbosity:quiet
 
@@ -372,9 +392,9 @@ Get-ChildItem -path "$rootPath\Publish\*" -include *.ps1 | Copy-Item -Destinatio
 
 #region package the web application for nuget
 
-cd $webBuildTarget
+Set-Location $webBuildTarget
 
-$webVersion = get-childitem "MillimanAccessPortal.dll" | select -expandproperty VersionInfo | select -expandproperty ProductVersion
+$webVersion = get-childitem "MillimanAccessPortal.dll" | Select-Object -expandproperty VersionInfo | Select-Object -expandproperty ProductVersion
 $webVersion = "$webVersion-$branchName"
 
 octo pack --id MillimanAccessPortal --version $webVersion --basepath $webBuildTarget --outfolder $nugetDestination\web
@@ -392,9 +412,9 @@ if ($LASTEXITCODE -ne 0) {
 
 log_statement "Packaging publication server"
 
-cd $serviceBuildTarget
+Set-Location $serviceBuildTarget
 
-$serviceVersion = get-childitem "ContentPublishingService.exe" | select -expandproperty VersionInfo | select -expandproperty ProductVersion
+$serviceVersion = get-childitem "ContentPublishingService.exe" | Select-Object -expandproperty VersionInfo | Select-Object -expandproperty ProductVersion
 $serviceVersion = "$serviceVersion-$branchName"
 
 octo pack --id ContentPublishingServer --version $serviceVersion --outfolder $nugetDestination\service
@@ -412,7 +432,7 @@ if ($LASTEXITCODE -ne 0) {
 
 log_statement "Deploying packages to Octopus"
 
-cd $nugetDestination
+Set-Location $nugetDestination
 
 octo push --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
 
