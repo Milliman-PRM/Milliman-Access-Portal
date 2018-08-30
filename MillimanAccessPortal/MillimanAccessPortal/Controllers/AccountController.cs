@@ -859,7 +859,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 string errorMessage = string.Join("<br /><br />", passwordValidationErrors);
                 Response.Headers.Add("Warning", errorMessage);
-                return StatusCode(StatusCodes.Status406NotAcceptable);
+                return StatusCode(StatusCodes.Status418ImATeapot);
             }
 
         }
