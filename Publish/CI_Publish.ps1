@@ -125,6 +125,7 @@ $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
 $dbPassword = $env:db_deploy_password
 $TrimmedBranch = $BranchName.Replace("_","").Replace("-","").ToLower()
+log_statement "$BranchName trimmed to $TrimmedBranch"
 $appDbName = "appdb_$TrimmedBranch"
 $appDbTemplateName = "appdb_ci_template"
 $appDbOwner = "appdb_admin"
