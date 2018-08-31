@@ -13,7 +13,7 @@ using System.Linq;
 
 namespace MapDbContextLib.Context
 {
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, long>
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>
     {
         public DbSet<Client> Client { get; set; }
         public DbSet<UserRoleInClient> UserRoleInClient { get; set; }
@@ -48,46 +48,87 @@ namespace MapDbContextLib.Context
             // For example, you can rename the ASP.NET Identity table names and more.
             // Add your customizations after calling base.OnModelCreating(builder);
 
-            builder.HasPostgresExtension("uuid-ossp");  // for server side guid generation
+            builder.HasPostgresExtension("uuid-ossp");  // enable server extension to support uuid generation functions
 
-            builder.Entity<ApplicationUser>()
-                        .HasIndex(b => b.NormalizedEmail)
-                        .IsUnique();
+            builder.Entity<ApplicationUser>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+                b.HasIndex("NormalizedEmail").IsUnique();
+            });
+            builder.Entity<ApplicationRole>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+            });
 
-            builder.Entity<ContentPublicationRequest>()
-                .ForNpgsqlUseXminAsConcurrencyToken();
-
-            builder.Entity<ContentReductionTask>()
-                .Property(b => b.Id)
-                .HasDefaultValueSql("uuid_generate_v4()");
-
-            builder.Entity<ContentReductionTask>()
-                .Property(b => b.ReductionStatus)
-                .HasDefaultValue(ReductionStatusEnum.Unspecified);
-
-            builder.Entity<ContentReductionTask>()
-                .HasOne(t => t.ContentPublicationRequest)
-                .WithMany()
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.Entity<ContentReductionTask>()
-                .ForNpgsqlUseXminAsConcurrencyToken();
-
-            builder.Entity<HierarchyField>()
-                .Property(b => b.StructureType)
-                .HasDefaultValue(FieldStructureType.Unknown);
-
-            builder.Entity<FileUpload>()
-                .Property(b => b.Id)
-                .HasDefaultValueSql("uuid_generate_v4()");
+            builder.Entity<Client>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+            });
+            builder.Entity<UserRoleInClient>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+            });
+            builder.Entity<UserRoleInProfitCenter>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+            });
+            builder.Entity<UserRoleInRootContentItem>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+            });
+            builder.Entity<UserInSelectionGroup>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+            });
+            builder.Entity<SelectionGroup>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+            });
+            builder.Entity<RootContentItem>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+            });
+            builder.Entity<HierarchyField>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+                b.Property(x => x.StructureType).HasDefaultValue(FieldStructureType.Unknown);
+            });
+            builder.Entity<HierarchyFieldValue>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+            });
+            builder.Entity<ContentType>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+            });
+            builder.Entity<ProfitCenter>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+            });
+            builder.Entity<ContentReductionTask>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+                b.Property(x => x.ReductionStatus).HasDefaultValue(ReductionStatusEnum.Unspecified);
+                b.HasOne(x => x.ContentPublicationRequest).WithMany().OnDelete(DeleteBehavior.Cascade);
+                b.ForNpgsqlUseXminAsConcurrencyToken();
+            });
+            builder.Entity<ContentPublicationRequest>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+                b.ForNpgsqlUseXminAsConcurrencyToken();
+            });
+            builder.Entity<FileUpload>(b =>
+            {
+                b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+            });
         }
 
-        public bool ClientExists(long id)
+        public bool ClientExists(Guid id)
         {
             return Client.Any(e => e.Id == id);
         }
 
-        private bool ProfitCenterExists(long id)
+        private bool ProfitCenterExists(Guid id)
         {
             return ProfitCenter.Any(pc => pc.Id == id);
         }

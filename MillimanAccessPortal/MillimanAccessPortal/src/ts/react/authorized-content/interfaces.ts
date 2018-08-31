@@ -3,7 +3,7 @@
 }
 
 export interface ContentItem {
-  Id: number;
+  Id: string;
   Name: string;
   Description: string;
   ContentURL: string;
@@ -13,7 +13,7 @@ export interface ContentItem {
 }
 
 export interface ContentItemGroup {
-  Id: number;
+  Id: string;
   Name: string;
   Items: ContentItem[];
 }

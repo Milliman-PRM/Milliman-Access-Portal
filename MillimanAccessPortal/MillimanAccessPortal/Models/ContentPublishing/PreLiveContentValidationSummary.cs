@@ -13,7 +13,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
     public class PreLiveContentValidationSummary
     {
         public string ValidationSummaryId { get; set; }
-        public long PublicationRequestId { get; set; }
+        public Guid PublicationRequestId { get; set; }
         public string RootContentName { get; set; }
         public string ContentTypeName { get; set; }
         public string ContentDescription { get; set; }
@@ -29,7 +29,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public ContentReductionHierarchy<ReductionFieldValue> NewHierarchy { get; set; }
         public List<SelectionGroupSummary> SelectionGroups { get; set; }
 
-        public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, long RootContentItemId, IConfiguration ApplicationConfig)
+        public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig)
         {
             ContentPublicationRequest PubRequest = Db.ContentPublicationRequest
                                                      .Include(r => r.RootContentItem).ThenInclude(c => c.ContentType)

@@ -11,7 +11,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 {
     public class PublishRequest
     {
-        public long RootContentItemId { get; set; }
+        public Guid RootContentItemId { get; set; }
 
         [Required]
         public UploadedRelatedFile[] RelatedFiles { get; set; }

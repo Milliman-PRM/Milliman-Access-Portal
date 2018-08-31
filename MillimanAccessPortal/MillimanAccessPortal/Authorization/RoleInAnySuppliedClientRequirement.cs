@@ -11,14 +11,14 @@ namespace MillimanAccessPortal.Authorization
     public class RoleInAnySuppliedClientRequirement : MapAuthorizationRequirementBase
     {
         private RoleEnum SuppliedRoleEnum { get; set; }
-        private List<long> SuppliedClientList { get; set; }
+        private List<Guid> SuppliedClientList { get; set; }
 
         /// <summary>
         /// Constructor; the only way to instantiate this type
         /// </summary>
         /// <param name="RoleEnumArg"></param>
         /// <param name="ClientIdArg">null or &lt;= 0 to evaluate for ANY Client</param>
-        public RoleInAnySuppliedClientRequirement(RoleEnum RoleEnumArg, List<long>ClientListArg)
+        public RoleInAnySuppliedClientRequirement(RoleEnum RoleEnumArg, List<Guid>ClientListArg)
         {
             SuppliedRoleEnum = RoleEnumArg;
             SuppliedClientList = ClientListArg;

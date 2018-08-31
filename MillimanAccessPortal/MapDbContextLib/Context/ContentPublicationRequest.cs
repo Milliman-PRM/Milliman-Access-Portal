@@ -48,14 +48,14 @@ namespace MapDbContextLib.Context
         };
 
         [Key]
-        public long Id { get; set; }
+        public Guid Id { get; set; }
 
         [ForeignKey("RootContentItem")]
-        public long RootContentItemId { get; set; }
+        public Guid RootContentItemId { get; set; }
         public RootContentItem RootContentItem { get; set; }
 
         [ForeignKey("ApplicationUser")]
-        public long ApplicationUserId { get; set; }
+        public Guid ApplicationUserId { get; set; }
         public ApplicationUser ApplicationUser { get; set; }
 
         [Column(TypeName = "jsonb")]

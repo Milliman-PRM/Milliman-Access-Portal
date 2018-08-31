@@ -6,6 +6,7 @@
 
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,7 +14,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
 {
     public class UserInfo
     {
-        public long Id { get; set; }
+        public Guid Id { get; set; }
         public bool Activated { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -23,7 +24,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public int? ClientCount { get; set; } = null;
         public int? RootContentItemCount { get; set; } = null;
         public List<RootContentItemInfo> RootContentItems { get; set; }
-        public long ProfitCenterId { get; set; } = 0;
+        public Guid? ProfitCenterId { get; set; } = null;
 
         public static explicit operator UserInfo(ApplicationUser user)
         {
@@ -44,7 +45,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             };
         }
 
-        public void QueryRelatedEntityCounts(ApplicationDbContext dbContext, long? clientId, long? profitCenterId)
+        public void QueryRelatedEntityCounts(ApplicationDbContext dbContext, Guid? clientId, Guid? profitCenterId)
         {
             if (clientId.HasValue)
             {
@@ -67,7 +68,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 var clientIdList = dbContext.UserClaims
                     .Where(claim => claim.ClaimType == ClaimNames.ClientMembership.ToString())
                     .Where(claim => claim.UserId == Id)
-                    .Select(claim => long.Parse(claim.ClaimValue))
+                    .Select(claim => Guid.Parse(claim.ClaimValue))
                     .ToList();
                 ClientCount = dbContext.Client
                     .Where(client => clientIdList.Contains(client.Id))
@@ -91,7 +92,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             }
         }
 
-        private void _assignRootContentItemList(ApplicationDbContext dbContext, long clientId)
+        private void _assignRootContentItemList(ApplicationDbContext dbContext, Guid clientId)
         {
             var query = dbContext.UserInSelectionGroup
                 .Where(usg => usg.UserId == Id)

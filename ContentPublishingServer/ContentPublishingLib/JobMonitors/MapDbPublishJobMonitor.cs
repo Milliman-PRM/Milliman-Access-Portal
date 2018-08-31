@@ -255,7 +255,7 @@ namespace ContentPublishingLib.JobMonitors
         /// <returns></returns>
         private bool UpdateRequest(PublishJobDetail JobDetail)
         {
-            if (JobDetail == null || JobDetail.Result == null || JobDetail.JobId == -1)
+            if (JobDetail == null || JobDetail.Result == null || JobDetail.JobId == Guid.Empty)
             {
                 MethodBase Method = MethodBase.GetCurrentMethod();
                 string Msg = $"{Method.ReflectedType.Name}.{Method.Name} unusable argument";

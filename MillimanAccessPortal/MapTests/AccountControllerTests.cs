@@ -68,7 +68,7 @@ namespace MapTests
             #region Arrange
             AccountController controller = await GetController("user1");
             string TestCode = "Code123";
-            string TestUserId = "1";
+            string TestUserId = TestUtil.MakeTestGuid(1).ToString();
             #endregion
 
             #region Act
@@ -105,7 +105,7 @@ namespace MapTests
             string Phone = "3173171212";
             EnableAccountViewModel model = new EnableAccountViewModel
             {
-                Id = 1,
+                Id = TestUtil.MakeTestGuid(1),
                 Code = NewToken,
                 NewPassword = NewPass,
                 ConfirmNewPassword = NewPass,
@@ -538,5 +538,6 @@ namespace MapTests
             Assert.IsType<UnauthorizedResult>(view);
             #endregion
         }
+
     }
 }

@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: 
  */
 
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -12,13 +13,13 @@ namespace MapDbContextLib.Context
     public class HierarchyFieldValue
     {
         [Key]
-        public long Id { get; set; }
+        public Guid Id { get; set; }
 
         [Required]
         public string Value { get; set; }
 
         [ForeignKey("HierarchyField")]
-        public long HierarchyFieldId { get; set; }
+        public Guid HierarchyFieldId { get; set; }
         public HierarchyField HierarchyField { get; set; }
 
     }

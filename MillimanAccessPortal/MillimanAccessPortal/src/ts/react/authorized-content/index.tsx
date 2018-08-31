@@ -1,7 +1,7 @@
+import '../../../images/map-logo.svg';
+
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-
-import '../../../images/map-logo.svg';
 
 import { AuthorizedContent } from './authorized-content';
 
@@ -17,6 +17,6 @@ require('vex-js/sass/vex.sass');
 require('../../../scss/map.scss');
 // # sourceMappingURL=authorized-content.js.map
 
-document.addEventListener('DOMContentLoaded', (event) => {
+document.addEventListener('DOMContentLoaded', () => {
   ReactDOM.render(<AuthorizedContent />, document.getElementById('content-container'));
 });

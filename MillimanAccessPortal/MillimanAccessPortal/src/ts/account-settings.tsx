@@ -1,11 +1,12 @@
+import '../images/map-logo.svg';
+
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
+import { FormBase } from './form/form-base';
+import { SubmissionGroup } from './form/form-submission';
 import { NavBar } from './react/shared-components/navbar';
 
-import { FormBase } from './form/form-base';
-import { AccessMode, SubmissionMode } from './form/form-modes';
-import { SubmissionGroup } from './form/form-submission';
 import './check-password';
 
 import $ = require('jquery');
@@ -13,8 +14,6 @@ import toastr = require('toastr');
 
 require('toastr/toastr.scss');
 require('../scss/map.scss');
-
-import '../images/map-logo.svg';
 
 document.addEventListener('DOMContentLoaded', () => {
   const view = document.getElementsByTagName('body')[0].getAttribute('data-nav-location');
@@ -30,7 +29,7 @@ $(document).ready(() => {
     [ 'username', 'account' ],
     'AccountSettings',
     'POST',
-    (response) => {
+    () => {
       toastr.success('Your account has been updated');
     },
   );
@@ -38,7 +37,7 @@ $(document).ready(() => {
     [ 'username', 'password' ],
     'UpdatePassword',
     'POST',
-    (response) => {
+    () => {
       $('input[type="password"]').val('');
       toastr.success('Your password has been updated');
     },

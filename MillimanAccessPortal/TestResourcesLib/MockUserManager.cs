@@ -17,7 +17,7 @@ namespace TestResourcesLib
     {
         public static Mock<UserManager<ApplicationUser>> New(Mock<ApplicationDbContext> MockDbContextArg)
         {
-            Mock<UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long>> UserStore = MockUserStore.New(MockDbContextArg);
+            Mock<UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, Guid>> UserStore = MockUserStore.New(MockDbContextArg);
             Mock<UserManager<ApplicationUser>> ReturnMockUserManager = new Mock<UserManager<ApplicationUser>>(UserStore.Object, null, null, null, null, null, null, null, null);
 
             // Re-create methods we're calling against the UserManager
@@ -87,7 +87,7 @@ namespace TestResourcesLib
         /// <param name="userArg"></param>
         /// <param name="claimsArg"></param>
         /// <returns></returns>
-        public static IdentityResult AddClaims(UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long> userStoreArg, ApplicationUser userArg, IEnumerable<Claim> claimsArg)
+        public static IdentityResult AddClaims(UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, Guid> userStoreArg, ApplicationUser userArg, IEnumerable<Claim> claimsArg)
         {
 
             int beforeCount = Queryable.Count(userStoreArg.Context.UserClaims);
@@ -112,7 +112,7 @@ namespace TestResourcesLib
                 return IdentityResult.Failed();
         }
 
-        public static IdentityResult RemoveClaims(UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, long> userStoreArg, ApplicationUser userArg, IEnumerable<Claim> claimsArg)
+        public static IdentityResult RemoveClaims(UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, Guid> userStoreArg, ApplicationUser userArg, IEnumerable<Claim> claimsArg)
         {
             int beforeCount = Queryable.Count(userStoreArg.Context.UserClaims);
             int removingCount = claimsArg.Count();
@@ -130,9 +130,9 @@ namespace TestResourcesLib
                 return IdentityResult.Failed();
         }
 
-        public static IdentityUserClaim<long> BuildClaim(ApplicationUser userArg, Claim claimArg)
+        public static IdentityUserClaim<Guid> BuildClaim(ApplicationUser userArg, Claim claimArg)
         {
-            return new IdentityUserClaim<long> { UserId = userArg.Id, ClaimType = claimArg.Type, ClaimValue = claimArg.Value };
+            return new IdentityUserClaim<Guid> { UserId = userArg.Id, ClaimType = claimArg.Type, ClaimValue = claimArg.Value };
         }
     }
 }

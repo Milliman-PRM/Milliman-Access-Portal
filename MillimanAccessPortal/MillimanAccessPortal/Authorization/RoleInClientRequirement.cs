@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using MapDbContextLib.Identity;
@@ -15,16 +16,16 @@ namespace MillimanAccessPortal.Authorization
     public class RoleInClientRequirement : MapAuthorizationRequirementBase
     {
         private RoleEnum RoleEnum { get; set; }
-        private long ClientId { get; set; }
+        private Guid ClientId { get; set; }
 
         /// <summary>
         /// Constructor; the only way to instantiate this type
         /// </summary>
         /// <param name="RoleEnumArg"></param>
-        /// <param name="ClientIdArg">null or &lt;= 0 to evaluate for ANY Client</param>
-        public RoleInClientRequirement(RoleEnum RoleEnumArg, long? ClientIdArg)
+        /// <param name="ClientIdArg">null to evaluate for ANY Client</param>
+        public RoleInClientRequirement(RoleEnum RoleEnumArg, Guid? ClientIdArg)
         {
-            ClientId = ClientIdArg.HasValue ? ClientIdArg.Value : -1;
+            ClientId = ClientIdArg.HasValue ? ClientIdArg.Value : Guid.Empty;
             RoleEnum = RoleEnumArg;
         }
 
@@ -41,7 +42,7 @@ namespace MillimanAccessPortal.Authorization
                            .Where(urc => urc.Role.RoleEnum == RoleEnum &&
                                          urc.UserId == User.Id);
 
-            if (ClientId > 0)
+            if (ClientId != Guid.Empty)
             {
                 Query = Query.Where (urc => urc.ClientId == ClientId);
             }

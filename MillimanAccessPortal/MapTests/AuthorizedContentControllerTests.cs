@@ -97,7 +97,7 @@ namespace MapTests
 
 
             #region Act
-            var view = await sut.WebHostedContent(3); // User "test1" is not authorized to RootContentItem for SelectionGroup w/ ID 3
+            var view = await sut.WebHostedContent(TestUtil.MakeTestGuid(3)); // User "test1" is not authorized to RootContentItem for SelectionGroup w/ ID 3
             #endregion
 
             #region Assert
@@ -139,7 +139,7 @@ namespace MapTests
 
             #region Act
             // Attempt to load the content view for authorized content
-            var actionResult = await sut.WebHostedContent(1); // User "test1" is authorized to RootContentItem w/ ID 1
+            var actionResult = await sut.WebHostedContent(TestUtil.MakeTestGuid(1)); // User "test1" is authorized to RootContentItem w/ ID 1
             #endregion
 
             #region Assert
@@ -192,7 +192,7 @@ namespace MapTests
 
             #region Act
             // Attempt to load the content view for authorized content
-            var actionResult = await sut.WebHostedContent(999);
+            var actionResult = await sut.WebHostedContent(TestUtil.MakeTestGuid(999));
             #endregion
 
             #region Assert
@@ -238,7 +238,7 @@ namespace MapTests
 
             #region Act
             // Attempt to load the content view for authorized content
-            var actionResult = await sut.WebHostedContent(4); // user1 is NOT assigned to SelectionGroup 4
+            var actionResult = await sut.WebHostedContent(TestUtil.MakeTestGuid(4)); // user1 is NOT assigned to SelectionGroup 4
             #endregion
 
             #region Assert
@@ -283,7 +283,7 @@ namespace MapTests
             string UserGuideSourcePath = Path.Combine(@"\\indy-syn01\prm_test\Sample Data", "IHopeSo.pdf");
             string UserGuideTestPath = Path.Combine(@"\\indy-syn01\prm_test\ContentRoot", purpose + ".pdf");
             File.Copy(UserGuideSourcePath, UserGuideTestPath, true);
-            RootContentItem ThisItem = TestResources.DbContextObject.RootContentItem.Single(rci => rci.Id == 1);
+            RootContentItem ThisItem = TestResources.DbContextObject.RootContentItem.Single(rci => rci.Id == TestUtil.MakeTestGuid(1));
             ThisItem.ContentFilesList = new List<MapDbContextLib.Models.ContentRelatedFile>
             {
                 new MapDbContextLib.Models.ContentRelatedFile { Checksum = "", FileOriginalName = "", FilePurpose = purpose, FullPath = UserGuideTestPath, }
@@ -292,7 +292,7 @@ namespace MapTests
 
             #region Act
             // Attempt to load the content view for authorized content
-            var result = await sut.RelatedPdf(purpose, 1); // user1 is assigned to SelectionGroup 1
+            var result = await sut.RelatedPdf(purpose, TestUtil.MakeTestGuid(1)); // user1 is assigned to SelectionGroup 1
             #endregion
 
             #region Assert
@@ -345,7 +345,7 @@ namespace MapTests
             string UserGuideSourcePath = Path.Combine(@"\\indy-syn01\prm_test\Sample Data", "IHopeSo.pdf");
             string UserGuideTestPath = Path.Combine(@"\\indy-syn01\prm_test\ContentRoot", purpose + ".pdf");
             File.Copy(UserGuideSourcePath, UserGuideTestPath, true);
-            RootContentItem ThisItem = TestResources.DbContextObject.RootContentItem.Single(rci => rci.Id == 1);
+            RootContentItem ThisItem = TestResources.DbContextObject.RootContentItem.Single(rci => rci.Id == TestUtil.MakeTestGuid(1));
             ThisItem.ContentFilesList = new List<MapDbContextLib.Models.ContentRelatedFile>
             {
                 new MapDbContextLib.Models.ContentRelatedFile { Checksum = "", FileOriginalName = "", FilePurpose = purpose, FullPath = UserGuideTestPath, }
@@ -354,7 +354,7 @@ namespace MapTests
 
             #region Act
             // Attempt to load the content view for authorized content
-            var result = await sut.RelatedPdf(purpose, 999); // SelectionGroup 999 does not exist
+            var result = await sut.RelatedPdf(purpose, TestUtil.MakeTestGuid(999)); // SelectionGroup 999 does not exist
             #endregion
 
             #region Assert
@@ -406,7 +406,7 @@ namespace MapTests
             string UserGuideSourcePath = Path.Combine(@"\\indy-syn01\prm_test\Sample Data", "IHopeSo.pdf");
             string UserGuideTestPath = Path.Combine(@"\\indy-syn01\prm_test\ContentRoot", purpose + ".pdf");
             File.Copy(UserGuideSourcePath, UserGuideTestPath, true);
-            RootContentItem ThisItem = TestResources.DbContextObject.RootContentItem.Single(rci => rci.Id == 1);
+            RootContentItem ThisItem = TestResources.DbContextObject.RootContentItem.Single(rci => rci.Id == TestUtil.MakeTestGuid(1));
             ThisItem.ContentFilesList = new List<MapDbContextLib.Models.ContentRelatedFile>
             {
                 new MapDbContextLib.Models.ContentRelatedFile { Checksum = "", FileOriginalName = "", FilePurpose = purpose, FullPath = UserGuideTestPath, }
@@ -415,7 +415,7 @@ namespace MapTests
 
             #region Act
             // Attempt to load the content view for authorized content
-            var result = await sut.RelatedPdf(purpose, 2); // user1 is NOT assigned to SelectionGroup 2
+            var result = await sut.RelatedPdf(purpose, TestUtil.MakeTestGuid(2)); // user1 is NOT assigned to SelectionGroup 2
             #endregion
 
             #region Assert
@@ -430,6 +430,7 @@ namespace MapTests
             }
             #endregion
         }
+
     }
 }
 

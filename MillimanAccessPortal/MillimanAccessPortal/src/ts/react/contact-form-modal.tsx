@@ -1,9 +1,9 @@
+import '../../scss/react/shared-components/modal.scss';
+
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
 import { postData } from '../shared';
-
-import '../../scss/react/shared-components/modal.scss';
 
 interface ContactFormModalState {
   topic: string;

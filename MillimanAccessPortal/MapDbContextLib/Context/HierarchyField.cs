@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: 
  */
 
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using MapDbContextLib.Models;
@@ -13,7 +14,7 @@ namespace MapDbContextLib.Context
     public class HierarchyField
     {
         [Key]
-        public long Id { get; set; }
+        public Guid Id { get; set; }
 
         [Required]
         public string FieldName { get; set; }
@@ -28,7 +29,7 @@ namespace MapDbContextLib.Context
         public string FieldDelimiter { get; set; } = null;
 
         [ForeignKey("RootContentItem")]
-        public long RootContentItemId { get; set; }
+        public Guid RootContentItemId { get; set; }
         public RootContentItem RootContentItem { get; set; }
 
     }
