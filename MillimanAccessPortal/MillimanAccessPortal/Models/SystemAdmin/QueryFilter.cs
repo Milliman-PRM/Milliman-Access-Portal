@@ -6,14 +6,15 @@
  *      In most use cases, none or one of the properties should be set to a value.
  */
 
+using System;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {
     public class QueryFilter
     {
-        public long? UserId { get; set; } = null;
-        public long? ClientId { get; set; } = null;
-        public long? ProfitCenterId { get; set; } = null;
-        public long? RootContentItemId { get; set; } = null;
+        public Guid? UserId { get; set; } = null;
+        public Guid? ClientId { get; set; } = null;
+        public Guid? ProfitCenterId { get; set; } = null;
+        public Guid? RootContentItemId { get; set; } = null;
     }
 }

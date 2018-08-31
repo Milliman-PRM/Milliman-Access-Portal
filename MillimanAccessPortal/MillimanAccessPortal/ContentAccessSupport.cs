@@ -63,7 +63,7 @@ namespace MillimanAccessPortal
         /// <param name="crf"></param>
         /// <param name="rootContentItemId"></param>
         /// <returns></returns>
-        internal static string GenerateContentFileName(ContentRelatedFile crf, long rootContentItemId)
+        internal static string GenerateContentFileName(ContentRelatedFile crf, Guid rootContentItemId)
         {
             return $"{crf.FilePurpose}.Content[{rootContentItemId}]{Path.GetExtension(crf.FullPath)}";
         }
@@ -75,7 +75,7 @@ namespace MillimanAccessPortal
         /// <param name="rootContentItemId"></param>
         /// <param name="extensionWithDot"></param>
         /// <returns></returns>
-        internal static string GenerateReducedContentFileName(long selectionGroupId, long rootContentItemId, string extensionWithDot)
+        internal static string GenerateReducedContentFileName(Guid selectionGroupId, Guid rootContentItemId, string extensionWithDot)
         {
             return $"ReducedContent.SelGrp[{selectionGroupId}].Content[{rootContentItemId}]{extensionWithDot}";
         }
@@ -192,7 +192,7 @@ namespace MillimanAccessPortal
             File.Copy(reductionTask.ResultFilePath, targetFilePath);
 
             // update selection group
-            List<long> ValueIdList = new List<long>();
+            List<Guid> ValueIdList = new List<Guid>();
             reductionTask.SelectionCriteriaObj.Fields.ForEach(f => ValueIdList.AddRange(f.Values.Where(v => v.SelectionStatus).Select(v => v.Id)));
             reductionTask.SelectionGroup.SelectedHierarchyFieldValueList = ValueIdList.ToArray();
             reductionTask.SelectionGroup.IsMaster = false;

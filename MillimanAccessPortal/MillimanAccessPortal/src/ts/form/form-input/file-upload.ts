@@ -1,7 +1,11 @@
+import * as toastr from 'toastr';
+
 import { ProgressSummary } from '../../upload/progress-monitor';
 import { Upload, UploadComponent } from '../../upload/upload';
 import { AccessMode } from '../form-modes';
 import { FormInput } from './input';
+
+import 'toastr/toastr.scss';
 
 export class FileUploadInput extends FormInput {
   protected _cssClasses = {
@@ -24,7 +28,7 @@ export class FileUploadInput extends FormInput {
   public configure(token: string) {
     this.upload.setFileTypes(fileTypes.get(this.component));
 
-    this.upload.getUID = (file: File, event: Event) => {
+    this.upload.getUID = () => {
       return `publication-${this.component}-${token}`;
     };
     this.upload.onChecksumProgress = (progress: ProgressSummary) => {
@@ -39,23 +43,29 @@ export class FileUploadInput extends FormInput {
       progressBar.toggleClass('progress-easing', !isEndpoint);
       progressBar.width(progress.percentage);
     };
-    this.upload.onProgressMessage = (message: string) => undefined;
+    this.upload.onProgressMessage = () => undefined;
+    this.upload.onError = () => {
+      const errorBar = this.$entryPoint.find('div.progress-bar-3');
+      errorBar.width('100%');
+      toastr.error('An error occurred during upload.');
+    };
 
     this.upload.onFileAdded = (resumableFile: any) => {
       this.originalName = resumableFile.fileName;
       this.$entryPoint.find('input.file-upload').val(this.originalName);
       if (this.component === UploadComponent.Image) {
         const reader = new FileReader();
-        reader.onload = (event) => {
-          this.$entryPoint.find('img.image-preview').attr('src', reader.result);
+        reader.onload = () => {
+          this.$entryPoint.find('img.image-preview').attr('src', reader.result.toString());
         };
         reader.readAsDataURL(resumableFile.file);
       }
     };
     this.upload.onFileSuccess = (fileGUID: string) => {
       this.value = `${this.originalName}|${fileGUID}`;
+      toastr.success('File uploaded successfully.');
     };
-    this.upload.onStateChange = (alertUnload: boolean, cancelable: boolean) => {
+    this.upload.onStateChange = (alertUnload: boolean) => {
       this.uploadInProgress = alertUnload;
       this.setCancelable(alertUnload);
       this.$entryPoint.change(); // trigger a change event
@@ -72,6 +82,7 @@ export class FileUploadInput extends FormInput {
     this.$entryPoint.find('.cancel-icon').click((event) => {
       event.stopPropagation();
       this.upload.cancel();
+      this.$entryPoint.find('div.progress-bar-3').width('0');
       this.reset();
     });
   }
@@ -100,7 +111,7 @@ export class FileUploadInput extends FormInput {
 
   protected comparator = (a: string, b: string) => (a === b) && !this.uploadInProgress;
 
-  protected validFn = ($input: JQuery<HTMLElement>) => this.upload && this.upload.valid();
+  protected validFn = () => this.upload && this.upload.valid();
 
   public get component(): UploadComponent {
     return this.name as UploadComponent;
@@ -125,7 +136,7 @@ export class FileUploadInput extends FormInput {
 
 const fileTypes = new Map<UploadComponent, string[]>([
   [UploadComponent.Image, ['jpg', 'jpeg', 'png', 'gif']],
-  [UploadComponent.Content, []],
+  [UploadComponent.Content, ['qvw']],
   [UploadComponent.UserGuide, ['pdf']],
   [UploadComponent.ReleaseNotes, ['pdf']],
 ]);

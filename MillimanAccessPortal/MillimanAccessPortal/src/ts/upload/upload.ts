@@ -1,7 +1,6 @@
 import { resumableOptions } from '../lib-options';
 import { FileScanner } from './file-scanner';
 import { ProgressMonitor, ProgressSummary } from './progress-monitor';
-import { RetainedValue } from './retained-value';
 
 import $ = require('jquery');
 import forge = require('node-forge');
@@ -116,13 +115,13 @@ export class Upload {
           url: 'FileUpload/CancelUpload',
         }).fail((response) => {
           throw new Error(`Something went wrong. Response: ${JSON.stringify(response)}`);
-        }).always((response) => {
+        }).always(() => {
           this.setChecksum(null);
         });
       });
     });
 
-    this.resumable.on('fileSuccess', (file, message) => {
+    this.resumable.on('fileSuccess', (file) => {
       this.setCancelable(false);
       this.onUploadProgress(ProgressSummary.full());
       const finalizeInfo: ResumableInfo = {
@@ -149,9 +148,13 @@ export class Upload {
         this.onFileSuccess(this.fileGUID);
       }).fail((response) => {
         throw new Error(`Something went wrong. Response: ${response}`);
-      }).always((response) => {
+      }).always(() => {
         this.setChecksum(null);
       });
+    });
+
+    this.resumable.on('error', () => {
+      this.onError();
     });
   }
 
@@ -159,6 +162,7 @@ export class Upload {
   public onChecksumProgress: (progress: ProgressSummary) => void = () => undefined;
   public onUploadProgress: (progress: ProgressSummary) => void = () => undefined;
   public onProgressMessage: (message: string) => void = () => undefined;
+  public onError: () => void = () => undefined;
 
   public onFileAdded: (resumableFile: any) => void = () => undefined;
   public onFileSuccess: (fileGUID: string) => void = () => undefined;

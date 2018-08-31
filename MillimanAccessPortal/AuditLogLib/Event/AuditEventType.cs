@@ -19,7 +19,11 @@ namespace AuditLogLib.Event
 
         #region User activity [1000 - 1999]
         public static readonly AuditEventType LoginSuccess = new AuditEventType(1001, "Login success");
-        public static readonly AuditEventType LoginFailure = new AuditEventType(1002, "Login failure");
+        public static readonly AuditEventType<string> LoginFailure = new AuditEventType<string>(
+            1002, "Login failure", (attemptedUsername) => new
+            {
+                AttemptedUsername = attemptedUsername,
+            });
         public static readonly AuditEventType<RoleEnum> Unauthorized = new AuditEventType<RoleEnum>(
             1003, "Unauthorized request", (role) => new
             {
@@ -134,13 +138,13 @@ namespace AuditLogLib.Event
             {
                 SelectionGroupId = selectionGroup.Id,
             });
-        public static readonly AuditEventType<SelectionGroup, long> SelectionGroupUserAssigned = new AuditEventType<SelectionGroup, long>(
+        public static readonly AuditEventType<SelectionGroup, Guid> SelectionGroupUserAssigned = new AuditEventType<SelectionGroup, Guid>(
             4003, "User assigned to selection group", (selectionGroup, userId) => new
             {
                 SelectionGroupId = selectionGroup.Id,
                 UserId = userId,
             });
-        public static readonly AuditEventType<SelectionGroup, long> SelectionGroupUserRemoved = new AuditEventType<SelectionGroup, long>(
+        public static readonly AuditEventType<SelectionGroup, Guid> SelectionGroupUserRemoved = new AuditEventType<SelectionGroup, Guid>(
             4004, "User removed from selection group", (selectionGroup, userId) => new
             {
                 SelectionGroupId = selectionGroup.Id,
@@ -223,8 +227,8 @@ namespace AuditLogLib.Event
             6106, "Content publication pre-golive summary", (preliveSummary) => preliveSummary);
         public class PreLiveSummaryLogObject
         {
-            public long ValidationSummaryId { get; set; }
-            public long PublicationRequestId { get; set; }
+            public Guid ValidationSummaryId { get; set; }
+            public Guid PublicationRequestId { get; set; }
             public string AttestationLanguage { get; set; }
             public string ContentDescription { get; set; }
             public string RootContentName { get; set; }
@@ -302,9 +306,9 @@ namespace AuditLogLib.Event
         #region Common loggable object declarations
         public class SelectionGroupLogObject
         {
-            public long ClientId { get; set; }
-            public long RootContentItemId { get; set; }
-            public long SelectionGroupId { get; set; }
+            public Guid ClientId { get; set; }
+            public Guid RootContentItemId { get; set; }
+            public Guid SelectionGroupId { get; set; }
         }
         #endregion
 

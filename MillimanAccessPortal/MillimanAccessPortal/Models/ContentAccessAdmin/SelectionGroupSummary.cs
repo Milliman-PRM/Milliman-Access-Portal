@@ -8,6 +8,7 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.AccountViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,7 +16,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
 {
     public class SelectionGroupSummary
     {
-        public long Id { get; set; }
+        public Guid Id { get; set; }
         public string Name { get; set; }
         public List<UserInfoViewModel> MemberList { get; set; } = new List<UserInfoViewModel>();
         public ReductionSummary ReductionDetails { get; set; }
@@ -60,7 +61,7 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
             return model;
         }
 
-        internal static SelectionGroupSummary Build(long selectionGroupId, ApplicationDbContext dbContext)
+        internal static SelectionGroupSummary Build(Guid selectionGroupId, ApplicationDbContext dbContext)
         {
             SelectionGroup selectionGroup = dbContext.SelectionGroup
                 .Single(rci => rci.Id == selectionGroupId);

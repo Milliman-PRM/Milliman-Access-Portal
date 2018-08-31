@@ -12,7 +12,7 @@ import { ClientDetail, PrimaryDetail, ProfitCenterDetail, UserDetail } from './i
 interface PrimaryDetailPanelProps {
   controller: string;
   selectedDataSource: DataSource<Entity>;
-  selectedCard: number;
+  selectedCard: string;
   queryFilter: QueryFilter;
 }
 
@@ -20,7 +20,7 @@ interface PrimaryDetailPanelState {
   detail: PrimaryDetail;
   prevQuery: {
     dataSource: string;
-    entityId: number;
+    entityId: string;
   };
 }
 

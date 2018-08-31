@@ -4,7 +4,7 @@ import { QueryFilter } from '../shared-components/interfaces';
 export interface ContentPanelProps<T> {
   onFetch: (data: T[]) => void;
   data: T[];
-  select: (id: number) => void;
+  select: (id: string) => void;
   selected: number;
   queryFilter: QueryFilter;
 }
@@ -18,7 +18,7 @@ export interface NestedListSection {
 }
 
 export interface UserInfo {
-  Id: number;
+  Id: string;
   Activated: boolean;
   FirstName: string;
   LastName: string;
@@ -38,7 +38,7 @@ export interface ClientInfo extends Nestable {
   ParentOnly: boolean;
 }
 export interface ProfitCenterInfo {
-  Id: number;
+  Id: string;
   Name: string;
   Code: string;
   Office: string;
@@ -46,7 +46,7 @@ export interface ProfitCenterInfo {
   ClientCount: number;
 }
 export interface RootContentItemInfo {
-  Id: number;
+  Id: string;
   Name: string;
   ClientName: string;
   UserCount?: number;
@@ -56,7 +56,7 @@ export interface RootContentItemInfo {
 }
 
 export interface UserDetail {
-  Id: number;
+  Id: string;
   FirstName: string;
   LastName: string;
   Employer: string;
@@ -66,7 +66,7 @@ export interface UserDetail {
   IsSuspended: boolean;
 }
 export interface ClientDetail {
-  Id: number;
+  Id: string;
   ClientName: string;
   ClientCode: string;
   ClientContactName: string;
@@ -78,7 +78,7 @@ export interface ClientDetail {
   ConsultantEmail: string;
 }
 export interface ProfitCenterDetail {
-  Id: number;
+  Id: string;
   Name: string;
   Code: string;
   Office: string;
@@ -89,7 +89,7 @@ export interface ProfitCenterDetail {
 export type PrimaryDetail = UserDetail | ClientDetail | ProfitCenterDetail;
 
 export interface UserDetailForClient {
-  Id: number;
+  Id: string;
   FirstName: string;
   LastName: string;
   Employer: string;
@@ -98,7 +98,7 @@ export interface UserDetailForClient {
   Phone: string;
 }
 export interface UserDetailForProfitCenter {
-    Id: number;
+    Id: string;
     FirstName: string;
     LastName: string;
     Email: string;
@@ -106,12 +106,12 @@ export interface UserDetailForProfitCenter {
     AssignedClients: NestedList;
 }
 export interface ClientDetailForUser {
-    Id: number;
+    Id: string;
     ClientName: string;
     ClientCode: string;
 }
 export interface ClientDetailForProfitCenter {
-    Id: number;
+    Id: string;
     Name: string;
     Code: string;
     ContactName: string;
@@ -120,7 +120,7 @@ export interface ClientDetailForProfitCenter {
     AuthorizedUsers: NestedList;
 }
 export interface RootContentItemDetailForUser {
-    Id: number;
+    Id: string;
     ContentName: string;
     ContentType: string;
 }

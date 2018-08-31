@@ -16,7 +16,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
     {
         public static AuthorizedContentViewModel Build(ApplicationDbContext dbContext, ApplicationUser user, HttpContext Context)
         {
-            // All selection groups of which the current user is a member 
+            // All selection groups of which user is a member
             var selectionGroupsQuery = dbContext.UserInSelectionGroup
                 .Where(usg => usg.UserId == user.Id)
                 .Where(usg => !usg.SelectionGroup.IsSuspended)
@@ -34,7 +34,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
             {
                 Host = Context.Request.Host.Host,
                 Scheme = Context.Request.Scheme,
-                Port = Context.Request.Host.Port.HasValue ? Context.Request.Host.Port.Value : -1,
+                Port = Context.Request.Host.Port ?? -1,
                 Path = "/AuthorizedContent/WebHostedContent",
                 Query = $"selectionGroupId=",
             };
@@ -44,7 +44,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
             {
                 Host = Context.Request.Host.Host,
                 Scheme = Context.Request.Scheme,
-                Port = Context.Request.Host.Port.HasValue ? Context.Request.Host.Port.Value : -1,
+                Port = Context.Request.Host.Port ?? -1,
                 Path = "/AuthorizedContent/Thumbnail",
                 Query = $"selectionGroupId=",
             };
@@ -53,7 +53,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
             {
                 Host = Context.Request.Host.Host,
                 Scheme = Context.Request.Scheme,
-                Port = Context.Request.Host.Port.HasValue ? Context.Request.Host.Port.Value : -1,
+                Port = Context.Request.Host.Port ?? -1,
                 Path = "/AuthorizedContent/RelatedPdf",
                 Query = $"purpose=userguide&selectionGroupId=",
             };
@@ -62,7 +62,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
             {
                 Host = Context.Request.Host.Host,
                 Scheme = Context.Request.Scheme,
-                Port = Context.Request.Host.Port.HasValue ? Context.Request.Host.Port.Value : -1,
+                Port = Context.Request.Host.Port ?? -1,
                 Path = "/AuthorizedContent/RelatedPdf",
                 Query = $"purpose=releasenotes&selectionGroupId=",
             };
@@ -78,10 +78,17 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                         Id = sg.Id,
                         Name = sg.RootContentItem.ContentName,
                         Description = sg.RootContentItem.Description,
-                        ImageURL = (sg.RootContentItem.ContentFilesList.Any(cf => cf.FilePurpose.ToLower() == "thumbnail")) ? $"{thumbnailUrlBuilder.Uri.AbsoluteUri}{sg.Id}" : null,
-                        ContentURL = $"{contentUrlBuilder.Uri.AbsoluteUri}{sg.Id}",  // must be absolute because it is used in iframe element
-                        UserguideURL = (sg.RootContentItem.ContentFilesList.Any(cf => cf.FilePurpose.ToLower() == "userguide")) ? $"{userGuideUrlBuilder.Uri.AbsoluteUri}{sg.Id}" : null,
-                        ReleaseNotesURL = (sg.RootContentItem.ContentFilesList.Any(cf => cf.FilePurpose.ToLower() == "releasenotes")) ? $"{releaseNotesUrlBuilder.Uri.AbsoluteUri}{sg.Id}" : null,
+                        ImageURL = (sg.RootContentItem.ContentFilesList.Any(cf => cf.FilePurpose.ToLower() == "thumbnail"))
+                            ? $"{thumbnailUrlBuilder.Uri.AbsoluteUri}{sg.Id}"
+                            : null,
+                        // must be absolute because it is used in iframe element
+                        ContentURL = $"{contentUrlBuilder.Uri.AbsoluteUri}{sg.Id}",
+                        UserguideURL = (sg.RootContentItem.ContentFilesList.Any(cf => cf.FilePurpose.ToLower() == "userguide"))
+                            ? $"{userGuideUrlBuilder.Uri.AbsoluteUri}{sg.Id}"
+                            : null,
+                        ReleaseNotesURL = (sg.RootContentItem.ContentFilesList.Any(cf => cf.FilePurpose.ToLower() == "releasenotes"))
+                            ? $"{releaseNotesUrlBuilder.Uri.AbsoluteUri}{sg.Id}"
+                            : null,
                     }).OrderBy(item => item.Name).ToList(),
                 }).OrderBy(group => group.Name).ToList(),
             };
@@ -92,14 +99,14 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
 
     public class ContentItemGroup
     {
-        public long Id { get; set; }
+        public Guid Id { get; set; }
         public string Name { get; set; }
         public List<ContentItem> Items { get; set; }
     }
 
     public class ContentItem
     {
-        public long Id { get; set; }
+        public Guid Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public string ImageURL { get; set; }

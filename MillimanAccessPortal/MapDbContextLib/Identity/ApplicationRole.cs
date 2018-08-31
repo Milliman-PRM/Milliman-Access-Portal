@@ -19,7 +19,7 @@ using MapDbContextLib.Context;
 
 namespace MapDbContextLib.Identity
 {
-    public enum RoleEnum : long  // Inherited type must be same as ApplicationRole.Id
+    public enum RoleEnum
     {
         // Important: Existing numeric values must never be reassigned to a new meaning.  Always add a new role as a new, explicit, higher value. 
         Admin = 1,
@@ -29,7 +29,7 @@ namespace MapDbContextLib.Identity
         ContentUser = 5,
     };
 
-    public class ApplicationRole : IdentityRole<long>
+    public class ApplicationRole : IdentityRole<Guid>
     {
         public static Dictionary<RoleEnum, string> RoleDisplayNames = new Dictionary<RoleEnum, string>
         {
@@ -40,6 +40,14 @@ namespace MapDbContextLib.Identity
             { RoleEnum.ContentUser, "Content User"},
         };
 
+        public static Dictionary<RoleEnum, Guid> RoleIds = new Dictionary<RoleEnum, Guid>();
+
+        /// <summary>
+        /// This must be declared to support mocking (All foreign keys are expected to reference a property with [KeyAttribute], which the base class does not have). 
+        /// </summary>
+        [Key]
+        public override Guid Id { get; set; }
+
         /// <summary>
         /// Used for initialization to ensure explicit assignment of role names to enumeration values
         /// </summary>
@@ -47,24 +55,9 @@ namespace MapDbContextLib.Identity
 
         public ApplicationRole(string RoleName) : base(RoleName) { }
 
-        /// This overide is here only to apply the explicit [Key] attribute, required in unit tests
-        [Key]
-        public override long Id { get; set; }
+        public RoleEnum RoleEnum { get; set; }
 
         public string DisplayName { get; set; }
-
-        [NotMapped]
-        public RoleEnum RoleEnum
-        {
-            get
-            {
-                return (RoleEnum)Id;
-            }
-            set
-            {
-                Id = (long)value;  // Cast must be to type of this.Id
-            }
-        }
 
         #region Database initialization and validation
         /// <summary>
@@ -80,20 +73,27 @@ namespace MapDbContextLib.Identity
             foreach (RoleEnum Role in Enum.GetValues(typeof(RoleEnum)))
             {
                 string RoleName = Role.ToString();
-                ApplicationRole RoleFromDb = await roleManager.FindByIdAsync(((long)Role).ToString());
-                if (RoleFromDb == null)
+                ApplicationRole RecordFromDb = dbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == Role);
+                if (RecordFromDb == null)
                 {
-                    await roleManager.CreateAsync(new ApplicationRole { Name = RoleName, RoleEnum = Role, DisplayName = RoleDisplayNames[Role] });
+                    RecordFromDb = new ApplicationRole { RoleEnum = Role, Name = RoleName, DisplayName = RoleDisplayNames[Role] };
+                    var createResult = await roleManager.CreateAsync(RecordFromDb);
+                    if (!createResult.Succeeded)
+                    {
+                        throw new Exception($"Failed to INSERT new ApplicationRole {RecordFromDb.Name} in database.");
+                    }
                 }
-                else if (RoleFromDb.Name != RoleName)
+                else if (RecordFromDb.Name != RoleName)
                 {
-                    throw new Exception($"It is not possible to change ApplicationRole name in database from {RoleFromDb.Name} to {RoleName}.");
+                    throw new Exception($"It is not possible to change ApplicationRole name in database from {RecordFromDb.Name} to {RoleName}.");
                 }
-                else if (RoleFromDb.DisplayName != RoleDisplayNames[Role])
+                else if (RecordFromDb.DisplayName != RoleDisplayNames[Role])
                 {
-                    RoleFromDb.DisplayName = RoleDisplayNames[Role];
-                    roleManager.UpdateAsync(RoleFromDb).Wait();
+                    RecordFromDb.DisplayName = RoleDisplayNames[Role];
+                    roleManager.UpdateAsync(RecordFromDb).Wait();
                 }
+
+                RoleIds[Role] = RecordFromDb.Id;
             }
 
             // Read back all role records from persistence

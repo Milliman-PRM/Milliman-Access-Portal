@@ -60,18 +60,18 @@ namespace MillimanAccessPortal
             }
         }
 
-        internal static void MonitorPublicationRequestForQueueing(long publicationRequestId, UploadedRelatedFile[] files, string connectionString, string contentItemRootPath, string exchangePath)
+        internal static void MonitorPublicationRequestForQueueing(Guid publicationRequestId, UploadedRelatedFile[] files, string connectionString, string contentItemRootPath, string exchangePath)
         {
             bool validationWindowComplete = false;
 
             DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(connectionString);
             DbContextOptions<ApplicationDbContext> ContextOptions = ContextBuilder.Options;
 
+            var fileIds = files.Select(f => f.FileUploadId).ToList();
             while (!validationWindowComplete)
             {
                 using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
-                    var fileIds = files.Select(f => f.FileUploadId).ToList();
                     validationWindowComplete = Db.FileUpload
                         .Where(u => fileIds.Contains(u.Id))
                         .All(u => u.VirusScanWindowComplete);
@@ -106,7 +106,7 @@ namespace MillimanAccessPortal
                             {
                                 publicationRequest.LiveReadyFilesObj = publicationRequest.LiveReadyFilesObj.Append(Crf).ToList();
 
-                                if (Crf.FilePurpose.ToLower() == "mastercontent" && rootContentItem.DoesReduce)
+                                if (Crf.FilePurpose.ToLower() == "mastercontent")
                                 {
                                     ContentRelatedFile MasterCrf = ProcessMasterContentFile(Crf, ThisRequestGuid, rootContentItem.DoesReduce, exchangePath);
                                     publicationRequest.ReductionRelatedFilesObj = publicationRequest.ReductionRelatedFilesObj.Append(new ReductionRelatedFiles { MasterContentFile = MasterCrf }).ToList();
@@ -130,7 +130,7 @@ namespace MillimanAccessPortal
             }
         }
 
-        private static ContentRelatedFile HandleRelatedFile(ApplicationDbContext Db, UploadedRelatedFile RelatedFile, RootContentItem ContentItem, long PubRequestId, string contentItemRootPath)
+        private static ContentRelatedFile HandleRelatedFile(ApplicationDbContext Db, UploadedRelatedFile RelatedFile, RootContentItem ContentItem, Guid PubRequestId, string contentItemRootPath)
         {
             ContentRelatedFile ReturnObj = null;
 
@@ -139,10 +139,12 @@ namespace MillimanAccessPortal
                 FileUpload FileUploadRecord = Db.FileUpload.Find(RelatedFile.FileUploadId);
 
                 #region Validate the file referenced by the FileUpload record
+                // The file must exist
                 if (!System.IO.File.Exists(FileUploadRecord.StoragePath))
                 {
                     throw new ApplicationException($"While publishing for content {ContentItem.Id}, uploaded file not found at path [{FileUploadRecord.StoragePath}].");
                 }
+                // The checksum must be correct
                 if (FileUploadRecord.Checksum.ToLower() != GlobalFunctions.GetFileChecksum(FileUploadRecord.StoragePath).ToLower())
                 {
                     throw new ApplicationException($"While publishing for content {ContentItem.Id}, checksum validation failed for file [{FileUploadRecord.StoragePath}].");
@@ -169,9 +171,8 @@ namespace MillimanAccessPortal
 
                 // Remove FileUpload record(s) for this file path
                 List<FileUpload> Uploads = Db.FileUpload.Where(f => f.StoragePath == FileUploadRecord.StoragePath).ToList();
-                System.IO.File.Delete(FileUploadRecord.StoragePath);
-                Db.FileUpload.RemoveRange(Uploads);
-                //Uploads.ForEach(u => Db.FileUpload.r.Remove(u));
+                System.IO.File.Delete(FileUploadRecord.StoragePath);  // delete the file
+                Db.FileUpload.RemoveRange(Uploads);  // remove the record
 
                 Db.SaveChanges();
                 Txn.Commit();
@@ -194,10 +195,13 @@ namespace MillimanAccessPortal
                     FullPath = DestinationFullPath,
                     FilePurpose = FileDetails.FilePurpose,
                     Checksum = FileDetails.Checksum,
+                    FileOriginalName = FileDetails.FileOriginalName,
                 };
             }
-
-            return null;
+            else
+            {
+                return FileDetails;
+            }
         }
     }
 }

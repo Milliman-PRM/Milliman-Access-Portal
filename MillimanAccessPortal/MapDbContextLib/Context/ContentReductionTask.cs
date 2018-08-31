@@ -63,15 +63,15 @@ namespace MapDbContextLib.Context
         public Guid Id { get; set; }
 
         [ForeignKey("ContentPublicationRequest")]
-        public long? ContentPublicationRequestId { get; set; }
+        public Guid? ContentPublicationRequestId { get; set; }
         public ContentPublicationRequest ContentPublicationRequest { get; set; }
 
         [ForeignKey("ApplicationUser")]
-        public long ApplicationUserId { get; set; }
+        public Guid ApplicationUserId { get; set; }
         public ApplicationUser ApplicationUser { get; set; }
 
         [ForeignKey("SelectionGroup")]
-        public long SelectionGroupId { get; set; }
+        public Guid SelectionGroupId { get; set; }
         public SelectionGroup SelectionGroup { get; set; }
 
         [Required]

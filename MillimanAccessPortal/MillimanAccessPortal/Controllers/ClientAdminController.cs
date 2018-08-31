@@ -129,7 +129,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="clientId"></param>
         /// <returns>JsonResult or UnauthorizedResult</returns>
         [HttpGet]
-        public async Task<IActionResult> ClientDetail(long? clientId)
+        public async Task<IActionResult> ClientDetail(Guid clientId)
         {
             Client ThisClient = DbContext.Client.Include(c => c.ProfitCenter).FirstOrDefault(c => c.Id == clientId);
 
@@ -143,7 +143,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             // Check current user's authorization to manage the requested Client
-            List<long> AllRelatedClientsList = Queries.GetAllRelatedClients(ThisClient).Select(c => c.Id).ToList();
+            List<Guid> AllRelatedClientsList = Queries.GetAllRelatedClients(ThisClient).Select(c => c.Id).ToList();
 
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInAnySuppliedClientRequirement(RoleEnum.Admin, AllRelatedClientsList));
             if (!Result1.Succeeded)
@@ -190,7 +190,7 @@ namespace MillimanAccessPortal.Controllers
             // If creating a new user, current user must either have global UserCreator role or UserCreator role for requested client
             if (RequestedUserIsNew)
             {
-                if (!Model.MemberOfClientId.HasValue)
+                if (Model.MemberOfClientId == null)
                 {
                     AuthorizationResult GlobalUserCreatorResult = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.UserCreator));
                     if (!GlobalUserCreatorResult.Succeeded)
@@ -206,7 +206,7 @@ namespace MillimanAccessPortal.Controllers
                 }
                 else
                 {
-                    AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserCreator, Model.MemberOfClientId.Value));
+                    AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.UserCreator, Model.MemberOfClientId));
                     if (!Result1.Succeeded)
                     {
                             // also logged:
@@ -221,9 +221,9 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // If a client assignment is requested, user must be admin for the requested client
-            if (Model.MemberOfClientId.HasValue)
+            if (Model.MemberOfClientId != null)
             {
-                AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, Model.MemberOfClientId.Value));
+                AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, Model.MemberOfClientId));
                 if (!Result2.Succeeded)
                 {
                     // also logged:
@@ -448,7 +448,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // requested role must exist
-            ApplicationRole RequestedRole = RoleManager.FindByIdAsync(((long)AssignedRoleInfoArg.RoleEnum).ToString()).Result;
+            ApplicationRole RequestedRole = RoleManager.FindByIdAsync(ApplicationRole.RoleIds[AssignedRoleInfoArg.RoleEnum].ToString()).Result;
             if (RequestedRole == null)
             {
                 Response.Headers.Add("Warning", $"The requested role was not found");
@@ -516,6 +516,17 @@ namespace MillimanAccessPortal.Controllers
                         .ToList();
                     DbContext.UserRoleInRootContentItem.RemoveRange(existingRolesInRootContentItem);
                 }
+                if (RequestedRole.RoleEnum == RoleEnum.ContentUser)
+                {
+                    var existingSelectionGroupAssignments = DbContext.UserInSelectionGroup
+                        .Where(usg => usg.UserId == RequestedUser.Id)
+                        .Where(usg => usg.SelectionGroup.RootContentItem.ClientId == RequestedClient.Id)
+                        .ToList();
+                    foreach (var existingSelectionGroupAssignment in existingSelectionGroupAssignments)
+                    {
+                        DbContext.Remove(existingSelectionGroupAssignment);
+                    }
+                }
                 DbContext.UserRoleInClient.RemoveRange(ExistingRecords);
                 DbContext.SaveChanges();
 
@@ -538,7 +549,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     RoleEnum = x,
                     RoleDisplayValue = ApplicationRole.RoleDisplayNames[x],
-                    IsAssigned = ExistingRecords.Any(urc => urc.RoleId == (long)x),
+                    IsAssigned = ExistingRecords.Any(urc => urc.RoleId == ApplicationRole.RoleIds[x]),
                 });
             }
             #endregion
@@ -583,7 +594,7 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest("The requested user does not exist");
             }
 
-            List<IdentityUserClaim<long>> UserClaims = DbContext.UserClaims
+            List<IdentityUserClaim<Guid>> UserClaims = DbContext.UserClaims
                                                                 .Where(uc => uc.ClaimType == "ClientMembership")
                                                                 .Where(uc => uc.ClaimValue == Model.ClientId.ToString())
                                                                 .Where(uc => uc.UserId == Model.UserId)
@@ -759,7 +770,7 @@ namespace MillimanAccessPortal.Controllers
                     DbContext.Client.Add(Model);
                     DbContext.SaveChanges();
 
-                    DbContext.UserClaims.Add(new IdentityUserClaim<long> { UserId = CurrentApplicationUser.Id, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = Model.Id.ToString() });
+                    DbContext.UserClaims.Add(new IdentityUserClaim<Guid> { UserId = CurrentApplicationUser.Id, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = Model.Id.ToString() });
                     DbContext.SaveChanges();
 
                     // Add current user's role as ClientAdministrator of new Client to local context
@@ -812,7 +823,7 @@ namespace MillimanAccessPortal.Controllers
                                               "ConsultantOffice,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId,ProfitCenterId,NewUserWelcomeText")] Client Model)
         {
             #region Preliminary Validation
-            if (Model.Id <= 0)
+            if (Model.Id == null || Model.Id == Guid.Empty)
             {
                 return BadRequest($"Requested Client.Id ({Model.Id}) not valid");
             }
@@ -992,7 +1003,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         [HttpDelete]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteClient(long? Id, string Password)
+        public async Task<IActionResult> DeleteClient(Guid Id, string Password)
         {
             // Query for the existing record to be modified
             Client ExistingClient = DbContext.Client.Find(Id);
@@ -1014,7 +1025,7 @@ namespace MillimanAccessPortal.Controllers
 
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
                 {
-                    new RoleInClientRequirement(RoleEnum.Admin, Id.Value),
+                    new RoleInClientRequirement(RoleEnum.Admin, Id),
                     new RoleInProfitCenterRequirement(RoleEnum.Admin, ExistingClient.ProfitCenterId)
                 });
             if (!Result1.Succeeded)
@@ -1026,7 +1037,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Validation
             // Client must not be parent of any other Client
-            List<string> Children = DbContext.Client.Where(c => c.ParentClientId == Id.Value).Select(c => c.Name).ToList();
+            List<string> Children = DbContext.Client.Where(c => c.ParentClientId == Id).Select(c => c.Name).ToList();
             if (Children.Count > 0)
             {
                 Response.Headers.Add("Warning", $"Can't delete Client {ExistingClient.Name}. The client has child client(s): {string.Join(", ", Children)}");
@@ -1035,7 +1046,7 @@ namespace MillimanAccessPortal.Controllers
 
             // Client must not have any root content items
             var ItemCount = DbContext.RootContentItem
-                .Where(i => i.ClientId == Id.Value)
+                .Where(i => i.ClientId == Id)
                 .Count();
             if (ItemCount > 0)
             {

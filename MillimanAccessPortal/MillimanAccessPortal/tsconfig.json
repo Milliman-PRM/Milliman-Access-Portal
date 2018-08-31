@@ -8,6 +8,7 @@
       "scripthost"
     ],
     "noImplicitAny": false,
+    "noUnusedParameters": true,
     "sourceMap": true,
     "target": "es5",
     "outDir": "src/js",

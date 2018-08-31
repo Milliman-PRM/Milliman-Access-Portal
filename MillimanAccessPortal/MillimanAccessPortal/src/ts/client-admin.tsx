@@ -39,7 +39,7 @@ let eligibleUsers;
 let formObject: FormBase;
 let defaultWelcomeText: string;
 
-document.addEventListener('DOMContentLoaded', (event) => {
+document.addEventListener('DOMContentLoaded', () => {
   const view = document.getElementsByTagName('body')[0].getAttribute('data-nav-location');
   ReactDOM.render(<NavBar currentView={view} />, document.getElementById('navbar'));
 });
@@ -97,7 +97,7 @@ function populateClientForm(response) {
       } else if (field.hasClass('selectize-custom-input')) {
         field[0].selectize.clear();
         field[0].selectize.clearOptions();
-        $.each(value, function addItem(index, item) {
+        $.each(value, function addItem(_, item) {
           field[0].selectize.addOption({ value: item, text: item });
           field[0].selectize.addItem(item);
         });
@@ -207,7 +207,7 @@ function setUserRole(clientId, userId, roleEnum, isAssigned, onResponse) {
     url: 'ClientAdmin/SetUserRoleInClient',
   }).done(function onDone(response) {
     // Set checkbox states to match the response
-    $.each(response, function setToggle(index, roleAssignment) {
+    $.each(response, function setToggle(_, roleAssignment) {
       $cardContainer.find('input[data-role-enum=' + roleAssignment.RoleEnum + ']')
         .prop('checked', roleAssignment.IsAssigned);
     });
@@ -229,8 +229,9 @@ function setUserRole(clientId, userId, roleEnum, isAssigned, onResponse) {
 }
 
 function userCardRoleToggleClickHandler(event) {
-  const $clickedInput = $(event.target);
+  const $clickedInput = $(event.target).closest('.toggle-switch').find('.toggle-switch-checkbox');
   event.preventDefault();
+  event.stopPropagation();
 
   if ($clickedInput.data().disabled) {
     return;
@@ -240,7 +241,7 @@ function userCardRoleToggleClickHandler(event) {
     $clickedInput.closest('.card-container').attr('data-client-id'),
     $clickedInput.closest('.card-container').attr('data-user-id'),
     $clickedInput.attr('data-role-enum'),
-    $clickedInput.prop('checked'),
+    !$clickedInput.prop('checked'),
     function onDone() {
       $clickedInput.data('disabled', false);
     },
@@ -252,6 +253,7 @@ function renderUserNode(client, user) {
   const $card = new card.UserCard(
     user,
     client.ClientEntity,
+    client.CanManage,
     userCardRoleToggleClickHandler,
     userCardRemoveClickHandler,
   );
@@ -270,10 +272,14 @@ function renderUserList(response) {
   $clientUserList.find('.tooltip').tooltipster();
   eligibleUsers = client.EligibleUsers;
 
-  if (client.CanManage) {
-    $('#add-user-icon').show();
-    $('#client-users ul.admin-panel-content').append(new card.AddUserActionCard(addUserClickHandler).build());
-  }
+  $('#client-users .admin-panel-action-icons-container .action-icon')
+    .hide()
+    .filter('.action-icon-expand,.action-icon-add')
+    .filter(() => client.CanManage)
+    .show();
+  $('#client-users ul.admin-panel-content')
+    .filter(() => client.CanManage)
+    .append(new card.AddUserActionCard(addUserClickHandler).build());
 }
 
 function setupChildClientForm($parentClientDiv: JQuery<HTMLElement>) {
@@ -298,7 +304,6 @@ function setupChildClientForm($parentClientDiv: JQuery<HTMLElement>) {
 
 // TODO
 function setupClientForm() {
-  const $clientForm = $('#client-info form.admin-panel-content');
   shared.clearForm($('#client-info'));
   bindForm();
   formObject.submissionMode = 'new';
@@ -356,8 +361,10 @@ function openClientCardReadOnly($clientCard) {
 function openNewClientForm() {
   clearClientSelection();
   setupClientForm();
+  formObject.accessMode = AccessMode.Write;
   $('#new-client-card').find('div.card-body-container').attr('selected', '');
   hideClientUsers();
+  displayActionPanelIcons(true);
   showClientDetails();
 }
 
@@ -389,7 +396,7 @@ function userCardRemoveClickHandler(event) {
   const $clickedCard = $(this).closest('.card-container');
   const userName = $clickedCard.find('.card-body-primary-text').html();
   event.stopPropagation();
-  new dialog.RemoveUserDialog(userName, function removeUser(value, callback) {
+  new dialog.RemoveUserDialog(userName, function removeUser(_, callback) {
     const clientId = $clickedCard.attr('data-client-id');
     const userId = $clickedCard.attr('data-user-id');
     removeUserFromClient(clientId, userId, callback);
@@ -591,7 +598,11 @@ function getClientTree(clientId?) {
 $(document).ready(function onReady() {
   getClientTree();
 
-  $('#client-tree .action-icon-add').click(newClientClickHandler);
+  $('#client-tree .action-icon-add').click(() => {
+    if (!$('#new-client-card .card-body-container').is('[selected]')) {
+      openNewClientForm();
+    }
+  });
   $('#client-info .action-icon-edit').click(() => {
     formObject.accessMode = AccessMode.Write;
     displayActionPanelIcons(true);

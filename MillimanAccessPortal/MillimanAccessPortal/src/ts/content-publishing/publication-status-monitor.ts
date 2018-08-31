@@ -30,7 +30,6 @@ export class PublicationStatusMonitor {
 }
 
 function statusCallback(response: RootContentItemStatus) {
-  const $panel = $('#content-publishing-form');
   $('#root-content-items').find('.card-container')
     .toArray().forEach((cardContainer: HTMLElement) => {
       const $cardContainer = $(cardContainer);

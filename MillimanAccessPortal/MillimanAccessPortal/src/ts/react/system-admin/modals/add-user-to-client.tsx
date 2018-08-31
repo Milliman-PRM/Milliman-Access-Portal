@@ -1,11 +1,12 @@
+import '../../../../scss/react/shared-components/modal.scss';
+
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
-import '../../../../scss/react/shared-components/modal.scss';
 import { postData } from '../../../shared';
 
 export interface AddUserToClientModalProps extends Modal.Props {
-  clientId: number;
+  clientId: string;
 }
 
 interface AddUserToClientModalState {

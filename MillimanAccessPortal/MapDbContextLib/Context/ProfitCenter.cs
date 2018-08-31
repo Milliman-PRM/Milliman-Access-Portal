@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: 
  */
 
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -12,7 +13,7 @@ namespace MapDbContextLib.Context
     public class ProfitCenter
     {
         [Key]
-        public long Id { get; set; }
+        public Guid Id { get; set; }
 
         [Required]
         public string Name { get; set; }

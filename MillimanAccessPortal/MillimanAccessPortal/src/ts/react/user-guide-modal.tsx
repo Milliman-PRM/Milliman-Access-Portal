@@ -1,16 +1,13 @@
+import '../../scss/react/shared-components/modal.scss';
+
 import * as React from 'react';
 import * as Modal from 'react-modal';
-
-import '../../scss/react/shared-components/modal.scss';
 
 interface UserGuideModalProps extends Modal.Props {
   source: string;
 }
 
 export class UserGuideModal extends React.Component<UserGuideModalProps, {}> {
-
-  private readonly recipient: string = 'support.78832.5ad4ee0bf11242a6@helpscout.net';
-
   public render() {
     return (
       <Modal

@@ -260,7 +260,7 @@ namespace ContentPublishingLib.JobRunners
                     // for Mocked DbSet (unit testing) there is no default expression for Id 
                     if (MockContext != null)  
                     {
-                        NewMasterSelectionGroup.Id = Db.SelectionGroup.Max(sg => sg.Id) + 1;
+                        NewMasterSelectionGroup.Id = Guid.NewGuid();
                     }
                     Db.SelectionGroup.Add(NewMasterSelectionGroup);
                     Db.SaveChanges();

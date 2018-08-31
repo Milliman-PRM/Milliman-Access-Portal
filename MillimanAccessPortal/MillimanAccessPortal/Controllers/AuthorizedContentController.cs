@@ -89,15 +89,17 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="selectionGroupId">The primary key value of the SelectionGroup authorizing this user to the requested content</param>
         /// <returns>A View (and model) that displays the requested content</returns>
         [Authorize]
-        public async Task<IActionResult> WebHostedContent(long selectionGroupId)
+        public async Task<IActionResult> WebHostedContent(Guid selectionGroupId)
         {
             var selectionGroup = DataContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
                     .ThenInclude(rc => rc.ContentType)
                 .Where(sg => sg.Id == selectionGroupId)
+                .Where(sg => !sg.IsSuspended)
+                .Where(sg => !sg.RootContentItem.IsSuspended)
                 .FirstOrDefault();
             #region Validation
-            if (selectionGroup == null || selectionGroup.RootContentItem == null || selectionGroup.RootContentItem.ContentType == null)
+            if (selectionGroup?.RootContentItem?.ContentType == null)
             {
                 string ErrMsg = $"Failed to obtain the requested selection group, root content item, or content type";
                 Logger.LogError(ErrMsg);
@@ -108,11 +110,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new MapAuthorizationRequirementBase[]
-                {
-                    new UserInSelectionGroupRequirement(selectionGroupId),
-                    new RoleInClientRequirement(RoleEnum.ContentUser, selectionGroup.RootContentItem.ClientId),
-                });
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new UserInSelectionGroupRequirement(selectionGroupId));
             if (!Result1.Succeeded)
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
@@ -177,7 +175,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="selectionGroupId">The primary key value of the SelectionGroup authorizing this user to the requested content</param>
         /// <returns>A View (and model) that displays the requested content</returns>
         [Authorize]
-        public IActionResult Thumbnail(long selectionGroupId)
+        public IActionResult Thumbnail(Guid selectionGroupId)
         {
             var selectionGroup = DataContext.SelectionGroup
                                             .Include(sg => sg.RootContentItem)
@@ -231,7 +229,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [Authorize]
-        public async Task<IActionResult> RelatedPdf(string purpose, long selectionGroupId)
+        public async Task<IActionResult> RelatedPdf(string purpose, Guid selectionGroupId)
         {
             var selectionGroup = DataContext.SelectionGroup
                                             .Include(sg => sg.RootContentItem)

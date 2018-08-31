@@ -8,6 +8,7 @@ module.exports = {
   entry: {
     'create-initial-user': './src/js/create-initial-user.js',
     'forgot-password': './src/js/forgot-password.js',
+    'forgot-password-confirmation': './src/js/forgot-password-confirmation.js',
     'reset-password': './src/js/reset-password.js',
     'enable-account': './src/js/enable-account.js',
     'account-settings': './src/js/account-settings.js',

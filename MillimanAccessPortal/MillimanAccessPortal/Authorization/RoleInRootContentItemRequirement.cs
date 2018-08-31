@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using System;
 using System.Linq;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
@@ -14,16 +15,16 @@ namespace MillimanAccessPortal.Authorization
     public class RoleInRootContentItemRequirement : MapAuthorizationRequirementBase
     {
         private RoleEnum RoleEnum { get; set; }
-        private long RootContentItemId { get; set; }
+        private Guid RootContentItemId { get; set; }
 
         /// <summary>
         /// Constructor; the only way to instantiate this type
         /// </summary>
         /// <param name="RoleEnumArg"></param>
         /// <param name="ClientIdArg">null or &lt;= 0 to evaluate for ANY Client</param>
-        public RoleInRootContentItemRequirement(RoleEnum RoleEnumArg, long? RootContentItemIdArg)
+        public RoleInRootContentItemRequirement(RoleEnum RoleEnumArg, Guid? RootContentItemIdArg)
         {
-            RootContentItemId = RootContentItemIdArg.HasValue ? RootContentItemIdArg.Value : -1;
+            RootContentItemId = RootContentItemIdArg.HasValue ? RootContentItemIdArg.Value : Guid.Empty;
             RoleEnum = RoleEnumArg;
         }
 
@@ -40,7 +41,7 @@ namespace MillimanAccessPortal.Authorization
                            .Where(urc => urc.Role.RoleEnum == RoleEnum &&
                                          urc.UserId == User.Id);
 
-            if (RootContentItemId > 0)
+            if (RootContentItemId != Guid.Empty)
             {
                 Query = Query.Where(urc => urc.RootContentItemId == RootContentItemId);
             }
