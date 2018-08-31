@@ -182,12 +182,12 @@ if ($IsMerged.ToLower() -eq 'true' -and $env:Action.ToLower() -eq 'closed') {
     if ($MergeBase -eq 'develop') {
         $checkoutPath = $rootPath
     } elseif ($MergeBase -eq 'master') {
-        $checkoutPath = "$env:TEMP\$env:repo_name\"
+        $checkoutPath = "$env:TEMP\master\"
         Set-Location $env:TEMP
         & $gitExePath clone $CloneURL
         Set-Location $checkoutPath
     }
-    $env:git_branch = $MergeBase
+    $env:git_branch_name = $MergeBase
     $env:Action = "opened"
     & $gitExePath checkout $MergeBase
     & "$checkoutPath\Publish\CI_Publish.ps1"
