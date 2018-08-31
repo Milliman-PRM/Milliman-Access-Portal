@@ -24,7 +24,7 @@ namespace ContentPublishingServiceTests
             #region Arrange
             ApplicationDbContext MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus).Object;
             Guid TaskGuid = Guid.NewGuid();
-            ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == new Guid(1,1,1,1,1,1,1,1,1,1,1));
+            ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(1));
 
             string ExchangeFolder = $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{TaskGuid}\";
             string MasterContentFileName = $"MasterContent.Content[{DbTask.SelectionGroup.RootContentItemId}].qvw";
@@ -96,7 +96,7 @@ namespace ContentPublishingServiceTests
             ApplicationDbContext MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus).Object;
 
             // Modify the task to be tested
-            ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == new Guid(4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4));
+            ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(4));
             DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
 
             QvReductionRunner TestRunner = new QvReductionRunner
@@ -147,7 +147,7 @@ namespace ContentPublishingServiceTests
             ApplicationDbContext MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus).Object;
 
             // Modify the task to be tested
-            ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == new Guid(2,2,2,2,2,2,2,2,2,2,2));
+            ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(2));
             DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
 
             QvReductionRunner TestRunner = new QvReductionRunner
@@ -195,7 +195,7 @@ namespace ContentPublishingServiceTests
             ApplicationDbContext MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus).Object;
 
             // Modify the task to be tested
-            ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == new Guid(3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3));
+            ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(3));
             DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
 
             QvReductionRunner TestRunner = new QvReductionRunner
@@ -253,7 +253,7 @@ namespace ContentPublishingServiceTests
             ApplicationDbContext MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus).Object;
 
             // Modify the task to be tested
-            ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == new Guid(1,1,1,1,1,1,1,1,1,1,1));
+            ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(1));
             DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
             DbTask.MasterFilePath = Path.ChangeExtension(DbTask.MasterFilePath, "xyz");
 
