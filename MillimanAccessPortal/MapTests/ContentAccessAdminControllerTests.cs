@@ -132,7 +132,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.RootContentItems(MakeGuid(999));
+            var view = await controller.RootContentItems(TestUtil.MakeTestGuid(999));
             #endregion
 
             #region Assert
@@ -149,7 +149,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.RootContentItems(MakeGuid(1));
+            var view = await controller.RootContentItems(TestUtil.MakeTestGuid(1));
             #endregion
 
             #region Assert
@@ -165,7 +165,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.RootContentItems(MakeGuid(1));
+            var view = await controller.RootContentItems(TestUtil.MakeTestGuid(1));
             #endregion
 
             #region Assert
@@ -182,7 +182,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.SelectionGroups(MakeGuid(RootContentItemId));
+            var view = await controller.SelectionGroups(TestUtil.MakeTestGuid(RootContentItemId));
             #endregion
 
             #region Assert
@@ -201,7 +201,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.SelectionGroups(MakeGuid(RootContentItemId));
+            var view = await controller.SelectionGroups(TestUtil.MakeTestGuid(RootContentItemId));
             #endregion
 
             #region Assert
@@ -217,7 +217,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.SelectionGroups(MakeGuid(1));
+            var view = await controller.SelectionGroups(TestUtil.MakeTestGuid(1));
             #endregion
 
             #region Assert
@@ -235,7 +235,7 @@ namespace MapTests
 
             #region Act
             int preCount = TestResources.DbContextObject.SelectionGroup.Count();
-            var view = await controller.CreateSelectionGroup(MakeGuid(RootContentItemId), "GroupName");
+            var view = await controller.CreateSelectionGroup(TestUtil.MakeTestGuid(RootContentItemId), "GroupName");
             int postCount = TestResources.DbContextObject.SelectionGroup.Count();
             #endregion
 
@@ -257,7 +257,7 @@ namespace MapTests
 
             #region Act
             int preCount = TestResources.DbContextObject.SelectionGroup.Count();
-            var view = await controller.CreateSelectionGroup(MakeGuid(RootContentItemId), "GroupName");
+            var view = await controller.CreateSelectionGroup(TestUtil.MakeTestGuid(RootContentItemId), "GroupName");
             int postCount = TestResources.DbContextObject.SelectionGroup.Count();
             #endregion
 
@@ -275,7 +275,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.CreateSelectionGroup(MakeGuid(1), "GroupName");
+            var view = await controller.CreateSelectionGroup(TestUtil.MakeTestGuid(1), "GroupName");
             #endregion
 
             #region Assert
@@ -292,7 +292,7 @@ namespace MapTests
 
             #region Act
             int preCount = TestResources.DbContextObject.SelectionGroup.Count();
-            var view = await controller.CreateSelectionGroup(MakeGuid(1), "GroupName");
+            var view = await controller.CreateSelectionGroup(TestUtil.MakeTestGuid(1), "GroupName");
             int postCount = TestResources.DbContextObject.SelectionGroup.Count();
             #endregion
 
@@ -312,14 +312,14 @@ namespace MapTests
             ContentAccessAdminController controller = await GetControllerForUser("user1");
             Dictionary<Guid, bool> MembershipSet = new Dictionary<Guid, bool>
             {
-                { MakeGuid(UserId), MembershipStatus },
-                { MakeGuid(1), true }
+                { TestUtil.MakeTestGuid(UserId), MembershipStatus },
+                { TestUtil.MakeTestGuid(1), true }
             };
             #endregion
 
             #region Act
             int preCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
-            var view = await controller.UpdateSelectionGroupUserAssignments(MakeGuid(SelectionGroupId), MembershipSet);
+            var view = await controller.UpdateSelectionGroupUserAssignments(TestUtil.MakeTestGuid(SelectionGroupId), MembershipSet);
             int postCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
             #endregion
 
@@ -339,14 +339,14 @@ namespace MapTests
             ContentAccessAdminController controller = await GetControllerForUser(UserName);
             Dictionary<Guid, bool> MembershipSet = new Dictionary<Guid, bool>
             {
-                { MakeGuid(2), true },
-                { MakeGuid(1), true }
+                { TestUtil.MakeTestGuid(2), true },
+                { TestUtil.MakeTestGuid(1), true }
             };
             #endregion
 
             #region Act
             int preCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
-            var view = await controller.UpdateSelectionGroupUserAssignments(MakeGuid(SelectionGroupId), MembershipSet);
+            var view = await controller.UpdateSelectionGroupUserAssignments(TestUtil.MakeTestGuid(SelectionGroupId), MembershipSet);
             int postCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
             #endregion
 
@@ -363,13 +363,13 @@ namespace MapTests
             ContentAccessAdminController controller = await GetControllerForUser("user1");
             Dictionary<Guid, bool> MembershipSet = new Dictionary<Guid, bool>
             {
-                { MakeGuid(2), true },
-                { MakeGuid(1), false }
+                { TestUtil.MakeTestGuid(2), true },
+                { TestUtil.MakeTestGuid(1), false }
             };
             #endregion
 
             #region Act
-            var view = await controller.UpdateSelectionGroupUserAssignments(MakeGuid(1), MembershipSet);
+            var view = await controller.UpdateSelectionGroupUserAssignments(TestUtil.MakeTestGuid(1), MembershipSet);
             #endregion
 
             #region Assert
@@ -386,14 +386,14 @@ namespace MapTests
             ContentAccessAdminController controller = await GetControllerForUser("user1");
             Dictionary<Guid, bool> MembershipSet = new Dictionary<Guid, bool>
             {
-                { MakeGuid(2), MembershipStatus },
-                { MakeGuid(1), MembershipStatus },
+                { TestUtil.MakeTestGuid(2), MembershipStatus },
+                { TestUtil.MakeTestGuid(1), MembershipStatus },
             };
             #endregion
 
             #region Act
             int preCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
-            var view = await controller.UpdateSelectionGroupUserAssignments(MakeGuid(1), MembershipSet);
+            var view = await controller.UpdateSelectionGroupUserAssignments(TestUtil.MakeTestGuid(1), MembershipSet);
             int postCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
             #endregion
 
@@ -414,7 +414,7 @@ namespace MapTests
             int groupsPreCount = TestResources.DbContextObject.SelectionGroup.Count();
             int userPreCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
 
-            var view = await controller.DeleteSelectionGroup(MakeGuid(SelectionGroupId));
+            var view = await controller.DeleteSelectionGroup(TestUtil.MakeTestGuid(SelectionGroupId));
 
             int groupsPostCount = TestResources.DbContextObject.SelectionGroup.Count();
             int userPostCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
@@ -441,7 +441,7 @@ namespace MapTests
             int groupsPreCount = TestResources.DbContextObject.SelectionGroup.Count();
             int userPreCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
 
-            var view = await controller.DeleteSelectionGroup(MakeGuid(SelectionGroupId));
+            var view = await controller.DeleteSelectionGroup(TestUtil.MakeTestGuid(SelectionGroupId));
 
             int groupsPostCount = TestResources.DbContextObject.SelectionGroup.Count();
             int userPostCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
@@ -462,7 +462,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.DeleteSelectionGroup(MakeGuid(1));
+            var view = await controller.DeleteSelectionGroup(TestUtil.MakeTestGuid(1));
             #endregion
 
             #region Assert
@@ -481,7 +481,7 @@ namespace MapTests
             int groupsPreCount = TestResources.DbContextObject.SelectionGroup.Count();
             int userPreCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
 
-            var view = await controller.DeleteSelectionGroup(MakeGuid(1));
+            var view = await controller.DeleteSelectionGroup(TestUtil.MakeTestGuid(1));
 
             int groupsPostCount = TestResources.DbContextObject.SelectionGroup.Count();
             int userPostCount = TestResources.DbContextObject.UserInSelectionGroup.Count();
@@ -502,7 +502,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.SelectionGroups(MakeGuid(SelectionGroupId));
+            var view = await controller.SelectionGroups(TestUtil.MakeTestGuid(SelectionGroupId));
             #endregion
 
             #region Assert
@@ -521,7 +521,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.Selections(MakeGuid(SelectionGroupId));
+            var view = await controller.Selections(TestUtil.MakeTestGuid(SelectionGroupId));
             #endregion
 
             #region Assert
@@ -537,7 +537,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.Selections(MakeGuid(1));
+            var view = await controller.Selections(TestUtil.MakeTestGuid(1));
             #endregion
 
             #region Assert
@@ -557,12 +557,12 @@ namespace MapTests
         public async Task SingleReduction_ErrorInvalid(int SelectionGroupIdArg, int? HierarchyFieldValueIdArg, ReductionStatusEnum[] Tasks)
         {
             #region Arrange
-            Guid SelectionGroupId = MakeGuid(SelectionGroupIdArg);
+            Guid SelectionGroupId = TestUtil.MakeTestGuid(SelectionGroupIdArg);
             ContentAccessAdminController controller = await GetControllerForUser("user1");
             var Selections = HierarchyFieldValueIdArg.HasValue
                 ? new Guid[]
                 {
-                    MakeGuid(HierarchyFieldValueIdArg.Value),
+                    TestUtil.MakeTestGuid(HierarchyFieldValueIdArg.Value),
                 }
                 : new Guid[] { };
 
@@ -573,7 +573,7 @@ namespace MapTests
                     ReductionStatus = Status,
                     ContentPublicationRequestId = null,
                     SelectionGroupId = SelectionGroupId,
-                    ApplicationUserId = MakeGuid(1)
+                    ApplicationUserId = TestUtil.MakeTestGuid(1)
                 });
             }
             #endregion
@@ -602,21 +602,21 @@ namespace MapTests
             ContentAccessAdminController controller = await GetControllerForUser(UserName);
             var Selections = new Guid[]
             {
-                MakeGuid(2),
+                TestUtil.MakeTestGuid(2),
             };
             TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
             {
                 ReductionStatus = ReductionStatusEnum.Live,
                 ContentPublicationRequestId = null,
-                SelectionGroupId = MakeGuid(SelectionGroupId),
-                ApplicationUserId = MakeGuid(1)
+                SelectionGroupId = TestUtil.MakeTestGuid(SelectionGroupId),
+                ApplicationUserId = TestUtil.MakeTestGuid(1)
             });
             #endregion
 
             #region Act
             int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
 
-            var view = await controller.UpdateSelections(MakeGuid(SelectionGroupId), false, Selections);
+            var view = await controller.UpdateSelections(TestUtil.MakeTestGuid(SelectionGroupId), false, Selections);
 
             int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
             #endregion
@@ -645,9 +645,9 @@ namespace MapTests
                 TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
                 {
                     ReductionStatus = Status,
-                    ContentPublicationRequestId = ContentPublicationRequestId.HasValue ? MakeGuid(ContentPublicationRequestId.Value) : (Guid?)null,
-                    SelectionGroupId = MakeGuid(SelectionGroupId),
-                    ApplicationUserId = MakeGuid(1)
+                    ContentPublicationRequestId = ContentPublicationRequestId.HasValue ? TestUtil.MakeTestGuid(ContentPublicationRequestId.Value) : (Guid?)null,
+                    SelectionGroupId = TestUtil.MakeTestGuid(SelectionGroupId),
+                    ApplicationUserId = TestUtil.MakeTestGuid(1)
                 });
             }
             #endregion
@@ -655,7 +655,7 @@ namespace MapTests
             #region Act
             int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
 
-            var view = await controller.CancelReduction(MakeGuid(SelectionGroupId));
+            var view = await controller.CancelReduction(TestUtil.MakeTestGuid(SelectionGroupId));
 
             int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
             #endregion
@@ -678,15 +678,15 @@ namespace MapTests
             {
                 ReductionStatus = ReductionStatusEnum.Queued,
                 ContentPublicationRequestId = null,
-                SelectionGroupId = MakeGuid(SelectionGroupId),
-                ApplicationUserId = MakeGuid(1)
+                SelectionGroupId = TestUtil.MakeTestGuid(SelectionGroupId),
+                ApplicationUserId = TestUtil.MakeTestGuid(1)
             });
             #endregion
 
             #region Act
             int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
 
-            var view = await controller.CancelReduction(MakeGuid(SelectionGroupId));
+            var view = await controller.CancelReduction(TestUtil.MakeTestGuid(SelectionGroupId));
 
             int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
             #endregion
@@ -706,13 +706,13 @@ namespace MapTests
             {
                 ReductionStatus = ReductionStatusEnum.Queued,
                 ContentPublicationRequestId = null,
-                SelectionGroupId = MakeGuid(1),
-                ApplicationUserId = MakeGuid(1)
+                SelectionGroupId = TestUtil.MakeTestGuid(1),
+                ApplicationUserId = TestUtil.MakeTestGuid(1)
             });
             #endregion
 
             #region Act
-            var view = await controller.CancelReduction(MakeGuid(1));
+            var view = await controller.CancelReduction(TestUtil.MakeTestGuid(1));
             #endregion
 
             #region Assert
@@ -734,8 +734,8 @@ namespace MapTests
                 {
                     ReductionStatus = Status,
                     ContentPublicationRequestId = null,
-                    SelectionGroupId = MakeGuid(SelectionGroupId),
-                    ApplicationUserId = MakeGuid(UserId),
+                    SelectionGroupId = TestUtil.MakeTestGuid(SelectionGroupId),
+                    ApplicationUserId = TestUtil.MakeTestGuid(UserId),
                 });
             }
             #endregion
@@ -743,15 +743,15 @@ namespace MapTests
             #region Act
             int tasksPreCount = TestResources.DbContextObject.ContentReductionTask.Count();
             int queuedPreCount = TestResources.DbContextObject.ContentReductionTask
-                .Where(crt => crt.SelectionGroupId == MakeGuid(SelectionGroupId))
+                .Where(crt => crt.SelectionGroupId == TestUtil.MakeTestGuid(SelectionGroupId))
                 .Where(crt => crt.ReductionStatus == ReductionStatusEnum.Queued)
                 .Count();
 
-            var view = await controller.CancelReduction(MakeGuid(SelectionGroupId));
+            var view = await controller.CancelReduction(TestUtil.MakeTestGuid(SelectionGroupId));
 
             int tasksPostCount = TestResources.DbContextObject.ContentReductionTask.Count();
             int queuedPostCount = TestResources.DbContextObject.ContentReductionTask
-                .Where(crt => crt.SelectionGroupId == MakeGuid(SelectionGroupId))
+                .Where(crt => crt.SelectionGroupId == TestUtil.MakeTestGuid(SelectionGroupId))
                 .Where(crt => crt.ReductionStatus == ReductionStatusEnum.Queued)
                 .Count();
             #endregion
@@ -763,9 +763,5 @@ namespace MapTests
             #endregion
         }
 
-        private Guid MakeGuid(int Val)
-        {
-            return new Guid(Val, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
-        }
     }
 }

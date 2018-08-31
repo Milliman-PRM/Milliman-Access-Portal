@@ -83,8 +83,8 @@ namespace MapTests
         public async Task CreateRootContentItem_ErrorInvalid(int clientIdArg, int contentTypeIdArg, bool useContentName)
         {
             #region Arrange
-            Guid clientId = MakeGuid(clientIdArg);
-            Guid contentTypeId = MakeGuid(contentTypeIdArg);
+            Guid clientId = TestUtil.MakeTestGuid(clientIdArg);
+            Guid contentTypeId = TestUtil.MakeTestGuid(contentTypeIdArg);
             ContentPublishingController controller = await GetControllerForUser("user1");
             var validRootContentItem = new RootContentItem
             {
@@ -117,12 +117,12 @@ namespace MapTests
         public async Task CreateRootContentItem_ErrorUnauthorized(String userName, int clientIdArg)
         {
             #region Arrange
-            Guid clientId = MakeGuid(clientIdArg);
+            Guid clientId = TestUtil.MakeTestGuid(clientIdArg);
             ContentPublishingController controller = await GetControllerForUser(userName);
             var validRootContentItem = new RootContentItem
             {
                 ClientId = clientId,
-                ContentTypeId = MakeGuid(1),
+                ContentTypeId = TestUtil.MakeTestGuid(1),
                 ContentName = "",
                 DoesReduce = false,
             };
@@ -147,8 +147,8 @@ namespace MapTests
             ContentPublishingController controller = await GetControllerForUser("user1");
             var validRootContentItem = new RootContentItem
             {
-                ClientId = MakeGuid(1),
-                ContentTypeId = MakeGuid(1),
+                ClientId = TestUtil.MakeTestGuid(1),
+                ContentTypeId = TestUtil.MakeTestGuid(1),
                 ContentName = "",
                 DoesReduce = false,
             };
@@ -170,8 +170,8 @@ namespace MapTests
             ContentPublishingController controller = await GetControllerForUser("user1");
             var validRootContentItem = new RootContentItem
             {
-                ClientId = MakeGuid(1),
-                ContentTypeId = MakeGuid(1),
+                ClientId = TestUtil.MakeTestGuid(1),
+                ContentTypeId = TestUtil.MakeTestGuid(1),
                 ContentName = "",
                 DoesReduce = false,
             };
@@ -197,7 +197,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            Guid rootContentItemId = MakeGuid(rootContentItemIdArg);
+            Guid rootContentItemId = TestUtil.MakeTestGuid(rootContentItemIdArg);
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
             var view = await controller.DeleteRootContentItem(rootContentItemId);
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
@@ -220,7 +220,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            Guid rootContentItemId = MakeGuid(rootContentItemIdArg);
+            Guid rootContentItemId = TestUtil.MakeTestGuid(rootContentItemIdArg);
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
             var view = await controller.DeleteRootContentItem(rootContentItemId);
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
@@ -240,7 +240,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.DeleteRootContentItem(MakeGuid(3));
+            var view = await controller.DeleteRootContentItem(TestUtil.MakeTestGuid(3));
             #endregion
 
             #region Assert
@@ -257,7 +257,7 @@ namespace MapTests
 
             #region Act
             int preCount = TestResources.DbContextObject.RootContentItem.Count();
-            var view = await controller.DeleteRootContentItem(MakeGuid(3));
+            var view = await controller.DeleteRootContentItem(TestUtil.MakeTestGuid(3));
             int postCount = TestResources.DbContextObject.RootContentItem.Count();
             #endregion
 
@@ -292,13 +292,13 @@ namespace MapTests
             ContentPublishingController controller = await GetControllerForUser("user1");
             PublishRequest RequestArg = new PublishRequest
             {
-                RootContentItemId = MakeGuid(3),
+                RootContentItemId = TestUtil.MakeTestGuid(3),
                 RelatedFiles = new UploadedRelatedFile[]
                 {
                     new UploadedRelatedFile
                     {  // does not exist in initialized FileUpload entity. 
                         FilePurpose = "MasterContent",
-                        FileUploadId = MakeGuid(99),
+                        FileUploadId = TestUtil.MakeTestGuid(99),
                     }
                 }
             };
@@ -324,15 +324,15 @@ namespace MapTests
             ContentPublishingController controller = await GetControllerForUser("user1");
             PublishRequest RequestArg = new PublishRequest
             {
-                RootContentItemId = MakeGuid(3),
+                RootContentItemId = TestUtil.MakeTestGuid(3),
                 RelatedFiles = new UploadedRelatedFile[0],
             };
             // Create a new publicationrequest record with blocking status
             TestResources.DbContextObject.ContentPublicationRequest.Add(new ContentPublicationRequest
             {
-                Id = MakeGuid(999),
-                ApplicationUserId = MakeGuid(1),
-                RootContentItemId = MakeGuid(3),
+                Id = TestUtil.MakeTestGuid(999),
+                ApplicationUserId = TestUtil.MakeTestGuid(1),
+                RootContentItemId = TestUtil.MakeTestGuid(3),
                 RequestStatus = ExistingRequestStatus,
                 ReductionRelatedFilesObj = new List<ReductionRelatedFiles>{ },
                 CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0,1,0),
@@ -359,15 +359,15 @@ namespace MapTests
             ContentPublishingController controller = await GetControllerForUser("user1");
             PublishRequest RequestArg = new PublishRequest
             {
-                RootContentItemId = MakeGuid(3),
+                RootContentItemId = TestUtil.MakeTestGuid(3),
                 RelatedFiles = new UploadedRelatedFile[0],
             };
             // Create a new publicationrequest record with blocking status
             TestResources.DbContextObject.ContentReductionTask.Add(new ContentReductionTask
             {
                 Id = Guid.NewGuid(),
-                SelectionGroup = TestResources.DbContextObject.SelectionGroup.Single(g => g.RootContentItemId == MakeGuid(3)),
-                ApplicationUserId = MakeGuid(1),
+                SelectionGroup = TestResources.DbContextObject.SelectionGroup.Single(g => g.RootContentItemId == TestUtil.MakeTestGuid(3)),
+                ApplicationUserId = TestUtil.MakeTestGuid(1),
                 ReductionStatus = ExistingTaskStatus,
                 CreateDateTimeUtc = DateTime.UtcNow,
             });
@@ -391,7 +391,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.GoLive(MakeGuid(1), MakeGuid(1), "");
+            var view = await controller.GoLive(TestUtil.MakeTestGuid(1), TestUtil.MakeTestGuid(1), "");
             #endregion
 
             #region Assert
@@ -408,9 +408,9 @@ namespace MapTests
             // Create a new publicationrequest record with blocking status
             TestResources.DbContextObject.ContentPublicationRequest.Add(new ContentPublicationRequest
             {
-                Id = MakeGuid(999),
-                ApplicationUserId = MakeGuid(1),
-                RootContentItemId = MakeGuid(3),
+                Id = TestUtil.MakeTestGuid(999),
+                ApplicationUserId = TestUtil.MakeTestGuid(1),
+                RootContentItemId = TestUtil.MakeTestGuid(3),
                 RequestStatus = PublicationStatus.Processing,
                 ReductionRelatedFilesObj = new List<ReductionRelatedFiles> { },
                 CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0),
@@ -418,7 +418,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.GoLive(MakeGuid(3), MakeGuid(999), "");
+            var view = await controller.GoLive(TestUtil.MakeTestGuid(3), TestUtil.MakeTestGuid(999), "");
             #endregion
 
             #region Assert
@@ -436,7 +436,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.Reject(MakeGuid(1), MakeGuid(1));
+            var view = await controller.Reject(TestUtil.MakeTestGuid(1), TestUtil.MakeTestGuid(1));
             #endregion
 
             #region Assert
@@ -452,17 +452,17 @@ namespace MapTests
         {
             #region Arrange
             ContentPublishingController controller = await GetControllerForUser(UserName);
-            ContentPublicationRequest pubRequest = TestResources.DbContextObject.ContentPublicationRequest.SingleOrDefault(r => r.RootContentItemId == MakeGuid(rootContentItemId));
+            ContentPublicationRequest pubRequest = TestResources.DbContextObject.ContentPublicationRequest.SingleOrDefault(r => r.RootContentItemId == TestUtil.MakeTestGuid(rootContentItemId));
             if (pubRequest != null)
             {
-                pubRequest.RootContentItemId = MakeGuid(rootContentItemId);
-                pubRequest.RootContentItem = TestResources.DbContextObject.RootContentItem.SingleOrDefault(rc => rc.Id == MakeGuid(rootContentItemId));
+                pubRequest.RootContentItemId = TestUtil.MakeTestGuid(rootContentItemId);
+                pubRequest.RootContentItem = TestResources.DbContextObject.RootContentItem.SingleOrDefault(rc => rc.Id == TestUtil.MakeTestGuid(rootContentItemId));
                 pubRequest.RequestStatus = initialPubRequestStatus;
             }
             #endregion
 
             #region Act
-            var view = await controller.Reject(MakeGuid(rootContentItemId), MakeGuid(pubRequestId));
+            var view = await controller.Reject(TestUtil.MakeTestGuid(rootContentItemId), TestUtil.MakeTestGuid(pubRequestId));
             #endregion
 
             #region Assert
@@ -471,9 +471,5 @@ namespace MapTests
             #endregion
         }
 
-        private Guid MakeGuid(int Val)
-        {
-            return new Guid(Val, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
-        }
     }
 }

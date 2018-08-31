@@ -283,7 +283,7 @@ namespace MapTests
             DbContextObject.ApplicationUser.AddRange(new List<ApplicationUser>
                 {
                     new ApplicationUser {
-                        Id = MakeGuid(1),
+                        Id = TestUtil.MakeTestGuid(1),
                         UserName = "test1",
                         Email = "test1@example.com",
                         Employer = "example",
@@ -293,7 +293,7 @@ namespace MapTests
                         PhoneNumber = "3171234567"
                     },
                     new ApplicationUser {
-                        Id = MakeGuid(2),
+                        Id = TestUtil.MakeTestGuid(2),
                         UserName = "test2",
                         Email = "test2@example.com",
                         Employer = "example",
@@ -303,7 +303,7 @@ namespace MapTests
                         PhoneNumber = "3171234567",
                     },
                     new ApplicationUser {
-                        Id = MakeGuid(3),
+                        Id = TestUtil.MakeTestGuid(3),
                         UserName = "ClientAdmin1",
                         Email = "clientadmin1@example2.com",
                         Employer = "example",
@@ -313,7 +313,7 @@ namespace MapTests
                         PhoneNumber = "3171234567",
                     },
                     new ApplicationUser {
-                        Id = MakeGuid(4),
+                        Id = TestUtil.MakeTestGuid(4),
                         UserName = "test3",
                         Email = "test3@example2.com",
                         Employer = "example",
@@ -323,7 +323,7 @@ namespace MapTests
                         PhoneNumber = "3171234567",
                     },
                     new ApplicationUser {
-                        Id = MakeGuid(5),
+                        Id = TestUtil.MakeTestGuid(5),
                         UserName = "user5",
                         Email = "user5@example.com",
                         Employer = "example",
@@ -333,7 +333,7 @@ namespace MapTests
                         PhoneNumber = "1234567890",
                     },
                     new ApplicationUser {
-                        Id = MakeGuid(6),
+                        Id = TestUtil.MakeTestGuid(6),
                         UserName = "user6",
                         Email = "user6@example.com",
                         Employer = "example",
@@ -348,22 +348,22 @@ namespace MapTests
             #region Initialize ContentType
             DbContextObject.ContentType.AddRange(new List<ContentType>
                 { 
-                    new ContentType{ Id=MakeGuid(1), Name="Qlikview", CanReduce=true },
+                    new ContentType{ Id=TestUtil.MakeTestGuid(1), Name="Qlikview", CanReduce=true },
                 });
             #endregion
 
             #region Initialize ProfitCenters
             DbContextObject.ProfitCenter.AddRange(new List<ProfitCenter>
                 { 
-                    new ProfitCenter { Id=MakeGuid(1), Name="Profit Center 1", ProfitCenterCode="pc1" },
-                    new ProfitCenter { Id=MakeGuid(2), Name="Profit Center 2", ProfitCenterCode="pc2" },
+                    new ProfitCenter { Id=TestUtil.MakeTestGuid(1), Name="Profit Center 1", ProfitCenterCode="pc1" },
+                    new ProfitCenter { Id=TestUtil.MakeTestGuid(2), Name="Profit Center 2", ProfitCenterCode="pc2" },
                 });
             #endregion
 
             #region Initialize UserRoleInProfitCenter
             DbContextObject.UserRoleInProfitCenter.AddRange(new List<UserRoleInProfitCenter>
             { 
-                new UserRoleInProfitCenter { Id=MakeGuid(1), ProfitCenterId=MakeGuid(1), UserId=MakeGuid(3), RoleId=MakeGuid(1) }
+                new UserRoleInProfitCenter { Id=TestUtil.MakeTestGuid(1), ProfitCenterId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(3), RoleId=TestUtil.MakeTestGuid(1) }
             });
             MockDbSet<UserRoleInProfitCenter>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInProfitCenter, "RoleId", DbContextObject.ApplicationRole);
             MockDbSet<UserRoleInProfitCenter>.AssignNavigationProperty<ProfitCenter>(DbContextObject.UserRoleInProfitCenter, "ProfitCenterId", DbContextObject.ProfitCenter);
@@ -373,14 +373,14 @@ namespace MapTests
             #region Initialize Clients
             DbContextObject.Client.AddRange(new List<Client>
                 { 
-                    new Client { Id=MakeGuid(1), Name="Name1", ClientCode="ClientCode1", ProfitCenterId=MakeGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
-                    new Client { Id=MakeGuid(2), Name="Name2", ClientCode="ClientCode2", ProfitCenterId=MakeGuid(1), ParentClientId=MakeGuid(1),    AcceptedEmailDomainList=new string[] { "example.com" }  },
-                    new Client { Id=MakeGuid(3), Name="Name3", ClientCode="ClientCode3", ProfitCenterId=MakeGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example2.com" } },
-                    new Client { Id=MakeGuid(4), Name="Name4", ClientCode="ClientCode4", ProfitCenterId=MakeGuid(2), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example2.com" } },
-                    new Client { Id=MakeGuid(5), Name="Name5", ClientCode="ClientCode5", ProfitCenterId=MakeGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example2.com" } },
-                    new Client { Id=MakeGuid(6), Name="Name6", ClientCode="ClientCode6", ProfitCenterId=MakeGuid(1), ParentClientId=MakeGuid(1),    AcceptedEmailDomainList=new string[] { "example2.com" } },
-                    new Client { Id=MakeGuid(7), Name="Name7", ClientCode="ClientCode7", ProfitCenterId=MakeGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" } },
-                    new Client { Id=MakeGuid(8), Name="Name8", ClientCode="ClientCode8", ProfitCenterId=MakeGuid(1), ParentClientId=MakeGuid(7),    AcceptedEmailDomainList=new string[] { "example.com" } },
+                    new Client { Id=TestUtil.MakeTestGuid(1), Name="Name1", ClientCode="ClientCode1", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
+                    new Client { Id=TestUtil.MakeTestGuid(2), Name="Name2", ClientCode="ClientCode2", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=TestUtil.MakeTestGuid(1),    AcceptedEmailDomainList=new string[] { "example.com" }  },
+                    new Client { Id=TestUtil.MakeTestGuid(3), Name="Name3", ClientCode="ClientCode3", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example2.com" } },
+                    new Client { Id=TestUtil.MakeTestGuid(4), Name="Name4", ClientCode="ClientCode4", ProfitCenterId=TestUtil.MakeTestGuid(2), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example2.com" } },
+                    new Client { Id=TestUtil.MakeTestGuid(5), Name="Name5", ClientCode="ClientCode5", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example2.com" } },
+                    new Client { Id=TestUtil.MakeTestGuid(6), Name="Name6", ClientCode="ClientCode6", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=TestUtil.MakeTestGuid(1),    AcceptedEmailDomainList=new string[] { "example2.com" } },
+                    new Client { Id=TestUtil.MakeTestGuid(7), Name="Name7", ClientCode="ClientCode7", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" } },
+                    new Client { Id=TestUtil.MakeTestGuid(8), Name="Name8", ClientCode="ClientCode8", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=TestUtil.MakeTestGuid(7),    AcceptedEmailDomainList=new string[] { "example.com" } },
                 });
             MockDbSet<Client>.AssignNavigationProperty<ProfitCenter>(DbContextObject.Client, "ProfitCenterId", DbContextObject.ProfitCenter);
             #endregion
@@ -396,18 +396,18 @@ namespace MapTests
                 #region Initialize UserRoleInClient
                 DbContextObject.UserRoleInClient.AddRange(new List<UserRoleInClient>
                     { 
-                        new UserRoleInClient { Id=MakeGuid(1), ClientId=MakeGuid(1), RoleId=MakeGuid(2), UserId=MakeGuid(1) },
-                        new UserRoleInClient { Id=MakeGuid(2), ClientId=MakeGuid(1), RoleId=MakeGuid(1), UserId=MakeGuid(3) },
-                        new UserRoleInClient { Id=MakeGuid(3), ClientId=MakeGuid(4), RoleId=MakeGuid(1), UserId=MakeGuid(3) },
-                        new UserRoleInClient { Id=MakeGuid(4), ClientId=MakeGuid(5), RoleId=MakeGuid(1), UserId=MakeGuid(3) },
-                        new UserRoleInClient { Id=MakeGuid(5), ClientId=MakeGuid(6), RoleId=MakeGuid(1), UserId=MakeGuid(3) },
-                        new UserRoleInClient { Id=MakeGuid(6), ClientId=MakeGuid(5), RoleId=MakeGuid(5), UserId=MakeGuid(2) },
-                        new UserRoleInClient { Id=MakeGuid(7), ClientId=MakeGuid(7), RoleId=MakeGuid(1), UserId=MakeGuid(3) },
-                        new UserRoleInClient { Id=MakeGuid(8), ClientId=MakeGuid(8), RoleId=MakeGuid(1), UserId=MakeGuid(3) },
-                        new UserRoleInClient { Id=MakeGuid(9), ClientId=MakeGuid(8), RoleId=MakeGuid(3), UserId=MakeGuid(5) },
-                        new UserRoleInClient { Id=MakeGuid(10), ClientId=MakeGuid(8), RoleId=MakeGuid(3), UserId=MakeGuid(6) },
-                        new UserRoleInClient { Id=MakeGuid(11), ClientId=MakeGuid(1), RoleId=MakeGuid(2), UserId=MakeGuid(2) }, // this record is intentionally without a respective claim
-                        new UserRoleInClient { Id=MakeGuid(12), ClientId=MakeGuid(1), RoleId=MakeGuid(5), UserId=MakeGuid(1) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(2), UserId=TestUtil.MakeTestGuid(1) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(3) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(4), RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(3) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(5), RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(3) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(5), ClientId=TestUtil.MakeTestGuid(6), RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(3) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(6), ClientId=TestUtil.MakeTestGuid(5), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(2) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(7), ClientId=TestUtil.MakeTestGuid(7), RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(3) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(8), ClientId=TestUtil.MakeTestGuid(8), RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(3) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(9), ClientId=TestUtil.MakeTestGuid(8), RoleId=TestUtil.MakeTestGuid(3), UserId=TestUtil.MakeTestGuid(5) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(10), ClientId=TestUtil.MakeTestGuid(8), RoleId=TestUtil.MakeTestGuid(3), UserId=TestUtil.MakeTestGuid(6) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(11), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(2), UserId=TestUtil.MakeTestGuid(2) }, // this record is intentionally without a respective claim
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(12), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(1) },
                     });
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
                 MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
@@ -417,17 +417,17 @@ namespace MapTests
                 #region Initialize UserClaims
                 DbContextObject.UserClaims.AddRange(new List<IdentityUserClaim<Guid>>
                 { 
-                    new IdentityUserClaim<Guid>{ Id=1, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=MakeGuid(1).ToString(), UserId=MakeGuid(3) },
-                    new IdentityUserClaim<Guid>{ Id=2, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=MakeGuid(4).ToString(), UserId=MakeGuid(3) },
-                    new IdentityUserClaim<Guid>{ Id=3, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=MakeGuid(5).ToString(), UserId=MakeGuid(3) },
-                    new IdentityUserClaim<Guid>{ Id=4, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=MakeGuid(1).ToString(), UserId=MakeGuid(1) },
-                    new IdentityUserClaim<Guid>{ Id=5, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=MakeGuid(5).ToString(), UserId=MakeGuid(2) },
-                    new IdentityUserClaim<Guid>{ Id=6, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=MakeGuid(6).ToString(), UserId=MakeGuid(3) },
-                    new IdentityUserClaim<Guid>{ Id=7, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=MakeGuid(7).ToString(), UserId=MakeGuid(3) },
-                    new IdentityUserClaim<Guid>{ Id=8, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=MakeGuid(8).ToString(), UserId=MakeGuid(3) },
-                    new IdentityUserClaim<Guid>{ Id=9, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=MakeGuid(8).ToString(), UserId=MakeGuid(5) },
-                    new IdentityUserClaim<Guid>{ Id=10, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=MakeGuid(8).ToString(), UserId=MakeGuid(6) },
-                    new IdentityUserClaim<Guid>{ Id=11, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=MakeGuid(1).ToString(), UserId=MakeGuid(5) },
+                    new IdentityUserClaim<Guid>{ Id=1, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(1).ToString(), UserId=TestUtil.MakeTestGuid(3) },
+                    new IdentityUserClaim<Guid>{ Id=2, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(4).ToString(), UserId=TestUtil.MakeTestGuid(3) },
+                    new IdentityUserClaim<Guid>{ Id=3, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(5).ToString(), UserId=TestUtil.MakeTestGuid(3) },
+                    new IdentityUserClaim<Guid>{ Id=4, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(1).ToString(), UserId=TestUtil.MakeTestGuid(1) },
+                    new IdentityUserClaim<Guid>{ Id=5, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(5).ToString(), UserId=TestUtil.MakeTestGuid(2) },
+                    new IdentityUserClaim<Guid>{ Id=6, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(6).ToString(), UserId=TestUtil.MakeTestGuid(3) },
+                    new IdentityUserClaim<Guid>{ Id=7, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(7).ToString(), UserId=TestUtil.MakeTestGuid(3) },
+                    new IdentityUserClaim<Guid>{ Id=8, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(8).ToString(), UserId=TestUtil.MakeTestGuid(3) },
+                    new IdentityUserClaim<Guid>{ Id=9, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(8).ToString(), UserId=TestUtil.MakeTestGuid(5) },
+                    new IdentityUserClaim<Guid>{ Id=10, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(8).ToString(), UserId=TestUtil.MakeTestGuid(6) },
+                    new IdentityUserClaim<Guid>{ Id=11, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(1).ToString(), UserId=TestUtil.MakeTestGuid(5) },
                 });
                 #endregion
             #endregion 
@@ -435,11 +435,11 @@ namespace MapTests
             #region Initialize RootContentItem
             DbContextObject.RootContentItem.AddRange(new List<RootContentItem>
                 { 
-                    new RootContentItem{ Id=MakeGuid(1), ClientId=MakeGuid(1), ContentName="RootContent 1", ContentTypeId=MakeGuid(1) },
-                    new RootContentItem{ Id=MakeGuid(2), ClientId=MakeGuid(2), ContentName="RootContent 2", ContentTypeId=MakeGuid(1) },
-                    new RootContentItem{ Id=MakeGuid(3), ClientId=MakeGuid(8), ContentName="RootContent 3", ContentTypeId=MakeGuid(1) },
-                    new RootContentItem{ Id=MakeGuid(4), ClientId=MakeGuid(1), ContentName="RootContent 4", ContentTypeId=MakeGuid(1) },
-                    new RootContentItem{ Id=MakeGuid(5), ClientId=MakeGuid(1), ContentName="RootContent 5", ContentTypeId=MakeGuid(1) },
+                    new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=TestUtil.MakeTestGuid(1) },
+                    new RootContentItem{ Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(2), ContentName="RootContent 2", ContentTypeId=TestUtil.MakeTestGuid(1) },
+                    new RootContentItem{ Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(8), ContentName="RootContent 3", ContentTypeId=TestUtil.MakeTestGuid(1) },
+                    new RootContentItem{ Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 4", ContentTypeId=TestUtil.MakeTestGuid(1) },
+                    new RootContentItem{ Id=TestUtil.MakeTestGuid(5), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 5", ContentTypeId=TestUtil.MakeTestGuid(1) },
                 });
             MockDbSet<RootContentItem>.AssignNavigationProperty<ContentType>(DbContextObject.RootContentItem, "ContentTypeId", DbContextObject.ContentType);
             MockDbSet<RootContentItem>.AssignNavigationProperty<Client>(DbContextObject.RootContentItem, "ClientId", DbContextObject.Client);
@@ -448,7 +448,7 @@ namespace MapTests
             #region Initialize HierarchyField
             DbContextObject.HierarchyField.AddRange(new List<HierarchyField>
                 {
-                    new HierarchyField { Id=MakeGuid(1), RootContentItemId=MakeGuid(1), FieldName="Field1", FieldDisplayName="DisplayName1", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
+                    new HierarchyField { Id=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1), FieldName="Field1", FieldDisplayName="DisplayName1", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
                 });
             MockDbSet<HierarchyField>.AssignNavigationProperty<RootContentItem>(DbContextObject.HierarchyField, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
@@ -456,7 +456,7 @@ namespace MapTests
             #region Initialize HierarchyFieldValue
             DbContextObject.HierarchyFieldValue.AddRange(new List<HierarchyFieldValue>
                 { 
-                    new HierarchyFieldValue { Id=MakeGuid(1), HierarchyFieldId=MakeGuid(1),  Value="Value 1" },
+                    new HierarchyFieldValue { Id=TestUtil.MakeTestGuid(1), HierarchyFieldId=TestUtil.MakeTestGuid(1),  Value="Value 1" },
                 });
             MockDbSet<HierarchyFieldValue>.AssignNavigationProperty<HierarchyField>(DbContextObject.HierarchyFieldValue, "HierarchyFieldId", DbContextObject.HierarchyField);
             #endregion
@@ -464,11 +464,11 @@ namespace MapTests
             #region Initialize SelectionGroups
             DbContextObject.SelectionGroup.AddRange(new List<SelectionGroup>
                 {
-                    new SelectionGroup { Id=MakeGuid(1), ContentInstanceUrl="Folder1/File1", RootContentItemId=MakeGuid(1), GroupName="Group1 For Content1" },
-                    new SelectionGroup { Id=MakeGuid(2), ContentInstanceUrl="Folder1/File2", RootContentItemId=MakeGuid(1), GroupName="Group2 For Content1" },
-                    new SelectionGroup { Id=MakeGuid(3), ContentInstanceUrl="Folder2/File1", RootContentItemId=MakeGuid(1), GroupName="Group1 For Content2" },
-                    new SelectionGroup { Id=MakeGuid(4), ContentInstanceUrl="Folder3/File1", RootContentItemId=MakeGuid(3), GroupName="Group1 For Content3" },
-                    new SelectionGroup { Id=MakeGuid(5), ContentInstanceUrl="Folder3/File2", RootContentItemId=MakeGuid(3), GroupName="Group2 For Content3" },
+                    new SelectionGroup { Id=TestUtil.MakeTestGuid(1), ContentInstanceUrl="Folder1/File1", RootContentItemId=TestUtil.MakeTestGuid(1), GroupName="Group1 For Content1" },
+                    new SelectionGroup { Id=TestUtil.MakeTestGuid(2), ContentInstanceUrl="Folder1/File2", RootContentItemId=TestUtil.MakeTestGuid(1), GroupName="Group2 For Content1" },
+                    new SelectionGroup { Id=TestUtil.MakeTestGuid(3), ContentInstanceUrl="Folder2/File1", RootContentItemId=TestUtil.MakeTestGuid(1), GroupName="Group1 For Content2" },
+                    new SelectionGroup { Id=TestUtil.MakeTestGuid(4), ContentInstanceUrl="Folder3/File1", RootContentItemId=TestUtil.MakeTestGuid(3), GroupName="Group1 For Content3" },
+                    new SelectionGroup { Id=TestUtil.MakeTestGuid(5), ContentInstanceUrl="Folder3/File2", RootContentItemId=TestUtil.MakeTestGuid(3), GroupName="Group2 For Content3" },
                 });
             MockDbSet<SelectionGroup>.AssignNavigationProperty<RootContentItem>(DbContextObject.SelectionGroup, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
@@ -476,8 +476,8 @@ namespace MapTests
             #region Initialize UserInSelectionGroups
             DbContextObject.UserInSelectionGroup.AddRange(new List<UserInSelectionGroup>
                 { 
-                    new UserInSelectionGroup { Id=MakeGuid(1), SelectionGroupId=MakeGuid(1), UserId=MakeGuid(1) },
-                    new UserInSelectionGroup { Id=MakeGuid(2), SelectionGroupId=MakeGuid(4), UserId=MakeGuid(3) },
+                    new UserInSelectionGroup { Id=TestUtil.MakeTestGuid(1), SelectionGroupId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(1) },
+                    new UserInSelectionGroup { Id=TestUtil.MakeTestGuid(2), SelectionGroupId=TestUtil.MakeTestGuid(4), UserId=TestUtil.MakeTestGuid(3) },
                 });
             MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<SelectionGroup>(DbContextObject.UserInSelectionGroup, "SelectionGroupId", DbContextObject.SelectionGroup);
             MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserInSelectionGroup, "UserId", DbContextObject.ApplicationUser);
@@ -487,20 +487,20 @@ namespace MapTests
             DbContextObject.UserRoles.AddRange(new List<IdentityUserRole<Guid>>
                 { 
                 // TODO Undo this
-                    //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=MakeGuid(1) },
-                    new IdentityUserRole<Guid> { RoleId=MakeGuid(1), UserId=MakeGuid(1) },
+                    //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=TestUtil.MakeTestGuid(1) },
+                    new IdentityUserRole<Guid> { RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(1) },
                 });
             #endregion
 
             #region Initialize UserRoleInRootContentItem
             DbContextObject.UserRoleInRootContentItem.AddRange(new List<UserRoleInRootContentItem>
             { 
-                new UserRoleInRootContentItem { Id=MakeGuid(1), RoleId=MakeGuid(5), UserId=MakeGuid(1), RootContentItemId=MakeGuid(1) },
-                new UserRoleInRootContentItem { Id=MakeGuid(2), RoleId=MakeGuid(5), UserId=MakeGuid(3), RootContentItemId=MakeGuid(3) },
-                new UserRoleInRootContentItem { Id=MakeGuid(3), RoleId=MakeGuid(5), UserId=MakeGuid(5), RootContentItemId=MakeGuid(3) },
-                new UserRoleInRootContentItem { Id=MakeGuid(4), RoleId=MakeGuid(3), UserId=MakeGuid(5), RootContentItemId=MakeGuid(3) },
-                new UserRoleInRootContentItem { Id=MakeGuid(5), RoleId=MakeGuid(5), UserId=MakeGuid(6), RootContentItemId=MakeGuid(3) },
-                new UserRoleInRootContentItem { Id=MakeGuid(6), RoleId=MakeGuid(4), UserId=MakeGuid(1), RootContentItemId=MakeGuid(1) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(2), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(3), RootContentItemId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(3), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(5), RootContentItemId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(4), RoleId=TestUtil.MakeTestGuid(3), UserId=TestUtil.MakeTestGuid(5), RootContentItemId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(5), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(6), RootContentItemId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(6), RoleId=TestUtil.MakeTestGuid(4), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
             });
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInRootContentItem, "RoleId", DbContextObject.ApplicationRole);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInRootContentItem, "UserId", DbContextObject.ApplicationUser);
@@ -513,31 +513,31 @@ namespace MapTests
             #region Initialize Users
             DbContextObject.ApplicationUser.AddRange(new List<ApplicationUser>
                 {
-                    new ApplicationUser { Id=MakeGuid(1), UserName="user1", Email="user1@example.com" },
-                    new ApplicationUser { Id=MakeGuid(2), UserName="user2", Email="user2@example.com" },
-                    new ApplicationUser { Id=MakeGuid(3), UserName="user3", Email="user3@example.com" },
+                    new ApplicationUser { Id=TestUtil.MakeTestGuid(1), UserName="user1", Email="user1@example.com" },
+                    new ApplicationUser { Id=TestUtil.MakeTestGuid(2), UserName="user2", Email="user2@example.com" },
+                    new ApplicationUser { Id=TestUtil.MakeTestGuid(3), UserName="user3", Email="user3@example.com" },
             });
             #endregion
 
             #region Initialize ContentType
             DbContextObject.ContentType.AddRange(new List<ContentType>
                 {
-                    new ContentType{ Id=MakeGuid(1), Name="Qlikview", CanReduce=true },
+                    new ContentType{ Id=TestUtil.MakeTestGuid(1), Name="Qlikview", CanReduce=true },
                 });
             #endregion
 
             #region Initialize ProfitCenters
             DbContextObject.ProfitCenter.AddRange(new List<ProfitCenter>
                 {
-                    new ProfitCenter { Id=MakeGuid(1), Name="Profit Center 1", ProfitCenterCode="pc1" },
+                    new ProfitCenter { Id=TestUtil.MakeTestGuid(1), Name="Profit Center 1", ProfitCenterCode="pc1" },
                 });
             #endregion
 
             #region Initialize Clients
             DbContextObject.Client.AddRange(new List<Client>
                 {
-                    new Client { Id=MakeGuid(1), Name="Client 1", ClientCode="C1", ProfitCenterId=MakeGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
-                    new Client { Id=MakeGuid(2), Name="Client 2", ClientCode="C2", ProfitCenterId=MakeGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
+                    new Client { Id=TestUtil.MakeTestGuid(1), Name="Client 1", ClientCode="C1", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
+                    new Client { Id=TestUtil.MakeTestGuid(2), Name="Client 2", ClientCode="C2", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
                 });
             MockDbSet<Client>.AssignNavigationProperty<ProfitCenter>(DbContextObject.Client, "ProfitCenterId", DbContextObject.ProfitCenter);
             #endregion
@@ -553,10 +553,10 @@ namespace MapTests
             #region Initialize UserRoleInClient
             DbContextObject.UserRoleInClient.AddRange(new List<UserRoleInClient>
             {
-                new UserRoleInClient { Id=MakeGuid(1), ClientId=MakeGuid(1), RoleId=MakeGuid(3), UserId=MakeGuid(1) },
-                new UserRoleInClient { Id=MakeGuid(2), ClientId=MakeGuid(1), RoleId=MakeGuid(4), UserId=MakeGuid(1) },
-                new UserRoleInClient { Id=MakeGuid(3), ClientId=MakeGuid(1), RoleId=MakeGuid(5), UserId=MakeGuid(1) },
-                new UserRoleInClient { Id=MakeGuid(4), ClientId=MakeGuid(1), RoleId=MakeGuid(5), UserId=MakeGuid(2) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(3), UserId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(4), UserId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(2) },
             });
             MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
             MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
@@ -566,8 +566,8 @@ namespace MapTests
             #region Initialize UserClaims
             DbContextObject.UserClaims.AddRange(new List<IdentityUserClaim<Guid>>
                 {
-                    new IdentityUserClaim<Guid>{ Id=1, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=MakeGuid(1).ToString(), UserId=MakeGuid(1) },
-                    new IdentityUserClaim<Guid>{ Id=2, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=MakeGuid(1).ToString(), UserId=MakeGuid(2) },
+                    new IdentityUserClaim<Guid>{ Id=1, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(1).ToString(), UserId=TestUtil.MakeTestGuid(1) },
+                    new IdentityUserClaim<Guid>{ Id=2, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(1).ToString(), UserId=TestUtil.MakeTestGuid(2) },
                 });
             #endregion
             #endregion
@@ -575,9 +575,9 @@ namespace MapTests
             #region Initialize RootContentItem
             DbContextObject.RootContentItem.AddRange(new List<RootContentItem>
             {
-                new RootContentItem{ Id=MakeGuid(1), ClientId=MakeGuid(1), ContentName="RootContent 1", ContentTypeId=MakeGuid(1) },
-                new RootContentItem{ Id=MakeGuid(2), ClientId=MakeGuid(1), ContentName="RootContent 2", ContentTypeId=MakeGuid(1) },
-                new RootContentItem{ Id=MakeGuid(3), ClientId=MakeGuid(1), ContentName="RootContent 3", ContentTypeId=MakeGuid(1) },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=TestUtil.MakeTestGuid(1) },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 2", ContentTypeId=TestUtil.MakeTestGuid(1) },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 3", ContentTypeId=TestUtil.MakeTestGuid(1) },
             });
             MockDbSet<RootContentItem>.AssignNavigationProperty<ContentType>(DbContextObject.RootContentItem, "ContentTypeId", DbContextObject.ContentType);
             MockDbSet<RootContentItem>.AssignNavigationProperty<Client>(DbContextObject.RootContentItem, "ClientId", DbContextObject.Client);
@@ -586,9 +586,9 @@ namespace MapTests
             #region Initialize HierarchyField
             DbContextObject.HierarchyField.AddRange(new List<HierarchyField>
                 {
-                    new HierarchyField { Id=MakeGuid(1), RootContentItemId=MakeGuid(1), FieldName="Field1", FieldDisplayName="DisplayName1", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
-                    new HierarchyField { Id=MakeGuid(2), RootContentItemId=MakeGuid(2), FieldName="Field2", FieldDisplayName="DisplayName2", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
-                    new HierarchyField { Id=MakeGuid(3), RootContentItemId=MakeGuid(1), FieldName="Field1", FieldDisplayName="DisplayName3", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
+                    new HierarchyField { Id=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1), FieldName="Field1", FieldDisplayName="DisplayName1", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
+                    new HierarchyField { Id=TestUtil.MakeTestGuid(2), RootContentItemId=TestUtil.MakeTestGuid(2), FieldName="Field2", FieldDisplayName="DisplayName2", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
+                    new HierarchyField { Id=TestUtil.MakeTestGuid(3), RootContentItemId=TestUtil.MakeTestGuid(1), FieldName="Field1", FieldDisplayName="DisplayName3", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
                 });
             MockDbSet<HierarchyField>.AssignNavigationProperty<RootContentItem>(DbContextObject.HierarchyField, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
@@ -596,11 +596,11 @@ namespace MapTests
             #region Initialize HierarchyFieldValue
             DbContextObject.HierarchyFieldValue.AddRange(new List<HierarchyFieldValue>
                 {
-                    new HierarchyFieldValue { Id=MakeGuid(1), HierarchyFieldId=MakeGuid(1),  Value="Value 1" },
-                    new HierarchyFieldValue { Id=MakeGuid(2), HierarchyFieldId=MakeGuid(1),  Value="Value 2" },
-                    new HierarchyFieldValue { Id=MakeGuid(3), HierarchyFieldId=MakeGuid(2),  Value="Value 1" },
-                    new HierarchyFieldValue { Id=MakeGuid(4), HierarchyFieldId=MakeGuid(2),  Value="Value 2" },
-                    new HierarchyFieldValue { Id=MakeGuid(5), HierarchyFieldId=MakeGuid(3),  Value="Value 1" },
+                    new HierarchyFieldValue { Id=TestUtil.MakeTestGuid(1), HierarchyFieldId=TestUtil.MakeTestGuid(1),  Value="Value 1" },
+                    new HierarchyFieldValue { Id=TestUtil.MakeTestGuid(2), HierarchyFieldId=TestUtil.MakeTestGuid(1),  Value="Value 2" },
+                    new HierarchyFieldValue { Id=TestUtil.MakeTestGuid(3), HierarchyFieldId=TestUtil.MakeTestGuid(2),  Value="Value 1" },
+                    new HierarchyFieldValue { Id=TestUtil.MakeTestGuid(4), HierarchyFieldId=TestUtil.MakeTestGuid(2),  Value="Value 2" },
+                    new HierarchyFieldValue { Id=TestUtil.MakeTestGuid(5), HierarchyFieldId=TestUtil.MakeTestGuid(3),  Value="Value 1" },
                 });
             MockDbSet<HierarchyFieldValue>.AssignNavigationProperty<HierarchyField>(DbContextObject.HierarchyFieldValue, "HierarchyFieldId", DbContextObject.HierarchyField);
             #endregion
@@ -608,10 +608,10 @@ namespace MapTests
             #region Initialize SelectionGroups
             DbContextObject.SelectionGroup.AddRange(new List<SelectionGroup>
                 {
-                    new SelectionGroup { Id=MakeGuid(1), ContentInstanceUrl="Folder1/File1", RootContentItemId=MakeGuid(1), GroupName="Group1 For Content1", SelectedHierarchyFieldValueList=new Guid[] { } },
-                    new SelectionGroup { Id=MakeGuid(2), ContentInstanceUrl="Folder1/File2", RootContentItemId=MakeGuid(1), GroupName="Group2 For Content1", SelectedHierarchyFieldValueList=new Guid[] { } },
-                    new SelectionGroup { Id=MakeGuid(3), ContentInstanceUrl="Folder2/File1", RootContentItemId=MakeGuid(2), GroupName="Group1 For Content2", SelectedHierarchyFieldValueList=new Guid[] { } },
-                    new SelectionGroup { Id=MakeGuid(4), ContentInstanceUrl="Folder2/File1", RootContentItemId=MakeGuid(3), GroupName="Group1 For Content3", SelectedHierarchyFieldValueList=new Guid[] { } },
+                    new SelectionGroup { Id=TestUtil.MakeTestGuid(1), ContentInstanceUrl="Folder1/File1", RootContentItemId=TestUtil.MakeTestGuid(1), GroupName="Group1 For Content1", SelectedHierarchyFieldValueList=new Guid[] { } },
+                    new SelectionGroup { Id=TestUtil.MakeTestGuid(2), ContentInstanceUrl="Folder1/File2", RootContentItemId=TestUtil.MakeTestGuid(1), GroupName="Group2 For Content1", SelectedHierarchyFieldValueList=new Guid[] { } },
+                    new SelectionGroup { Id=TestUtil.MakeTestGuid(3), ContentInstanceUrl="Folder2/File1", RootContentItemId=TestUtil.MakeTestGuid(2), GroupName="Group1 For Content2", SelectedHierarchyFieldValueList=new Guid[] { } },
+                    new SelectionGroup { Id=TestUtil.MakeTestGuid(4), ContentInstanceUrl="Folder2/File1", RootContentItemId=TestUtil.MakeTestGuid(3), GroupName="Group1 For Content3", SelectedHierarchyFieldValueList=new Guid[] { } },
                 });
             MockDbSet<SelectionGroup>.AssignNavigationProperty<RootContentItem>(DbContextObject.SelectionGroup, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
@@ -619,7 +619,7 @@ namespace MapTests
             #region Initialize UserInSelectionGroups
             DbContextObject.UserInSelectionGroup.AddRange(new List<UserInSelectionGroup>
                 {
-                    new UserInSelectionGroup { Id=MakeGuid(1), SelectionGroupId=MakeGuid(1), UserId=MakeGuid(2) },
+                    new UserInSelectionGroup { Id=TestUtil.MakeTestGuid(1), SelectionGroupId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(2) },
                 });
             MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<SelectionGroup>(DbContextObject.UserInSelectionGroup, "SelectionGroupId", DbContextObject.SelectionGroup);
             MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserInSelectionGroup, "UserId", DbContextObject.ApplicationUser);
@@ -629,20 +629,20 @@ namespace MapTests
             DbContextObject.UserRoles.AddRange(new List<IdentityUserRole<Guid>>
                 {
                 // TODO Undo this
-                    //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=MakeGuid(1) },
-                    new IdentityUserRole<Guid> { RoleId=MakeGuid(1), UserId=MakeGuid(1) },
+                    //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=TestUtil.MakeTestGuid(1) },
+                    new IdentityUserRole<Guid> { RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(1) },
                 });
             #endregion
 
             #region Initialize UserRoleInRootContentItem
             DbContextObject.UserRoleInRootContentItem.AddRange(new List<UserRoleInRootContentItem>
             {
-                new UserRoleInRootContentItem { Id=MakeGuid(1), RoleId=MakeGuid(3), UserId=MakeGuid(1), RootContentItemId=MakeGuid(1) },
-                new UserRoleInRootContentItem { Id=MakeGuid(2), RoleId=MakeGuid(5), UserId=MakeGuid(1), RootContentItemId=MakeGuid(1) },
-                new UserRoleInRootContentItem { Id=MakeGuid(3), RoleId=MakeGuid(3), UserId=MakeGuid(1), RootContentItemId=MakeGuid(3) },
-                new UserRoleInRootContentItem { Id=MakeGuid(4), RoleId=MakeGuid(4), UserId=MakeGuid(1), RootContentItemId=MakeGuid(3) },
-                new UserRoleInRootContentItem { Id=MakeGuid(5), RoleId=MakeGuid(5), UserId=MakeGuid(1), RootContentItemId=MakeGuid(3) },
-                new UserRoleInRootContentItem { Id=MakeGuid(6), RoleId=MakeGuid(5), UserId=MakeGuid(2), RootContentItemId=MakeGuid(1) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(3), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(2), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(3), RoleId=TestUtil.MakeTestGuid(3), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(4), RoleId=TestUtil.MakeTestGuid(4), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(5), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(6), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(2), RootContentItemId=TestUtil.MakeTestGuid(1) },
             });
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInRootContentItem, "RoleId", DbContextObject.ApplicationRole);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInRootContentItem, "UserId", DbContextObject.ApplicationUser);
@@ -654,27 +654,27 @@ namespace MapTests
             {
                 new ContentPublicationRequest
                 {
-                    Id = MakeGuid(1),
-                    ApplicationUserId =MakeGuid(1),
-                    RootContentItemId = MakeGuid(1),
+                    Id = TestUtil.MakeTestGuid(1),
+                    ApplicationUserId =TestUtil.MakeTestGuid(1),
+                    RootContentItemId = TestUtil.MakeTestGuid(1),
                     RequestStatus = PublicationStatus.Confirmed,
                     ReductionRelatedFilesObj = new List<ReductionRelatedFiles>{ },
                     CreateDateTimeUtc = DateTime.FromFileTimeUtc(100),
                 },
                 new ContentPublicationRequest
                 {
-                    Id = MakeGuid(2),
-                    ApplicationUserId = MakeGuid(1),
-                    RootContentItemId = MakeGuid(2),
+                    Id = TestUtil.MakeTestGuid(2),
+                    ApplicationUserId = TestUtil.MakeTestGuid(1),
+                    RootContentItemId = TestUtil.MakeTestGuid(2),
                     RequestStatus = PublicationStatus.Unknown,
                     ReductionRelatedFilesObj = new List<ReductionRelatedFiles> { },
                     CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0),
                 },
                 new ContentPublicationRequest
                 {
-                    Id = MakeGuid(3),
-                    ApplicationUserId = MakeGuid(1),
-                    RootContentItemId = MakeGuid(3),
+                    Id = TestUtil.MakeTestGuid(3),
+                    ApplicationUserId = TestUtil.MakeTestGuid(1),
+                    RootContentItemId = TestUtil.MakeTestGuid(3),
                     RequestStatus = PublicationStatus.Unknown,
                     ReductionRelatedFilesObj = new List<ReductionRelatedFiles> { },
                     CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0),
@@ -687,7 +687,7 @@ namespace MapTests
             #region Initialize FileUpload
             DbContextObject.FileUpload.AddRange(new List<FileUpload>
             {
-                new FileUpload { Id=MakeGuid(1) },
+                new FileUpload { Id=TestUtil.MakeTestGuid(1) },
             });
             #endregion
         }
@@ -697,7 +697,7 @@ namespace MapTests
             #region Initialize Users
             DbContextObject.ApplicationUser.AddRange(new List<ApplicationUser>
             {
-                new ApplicationUser { Id=MakeGuid(1), UserName="user1", Email="user1@example.com", NormalizedEmail="USER1@EXAMPLE.COM", NormalizedUserName="USER1" },
+                new ApplicationUser { Id=TestUtil.MakeTestGuid(1), UserName="user1", Email="user1@example.com", NormalizedEmail="USER1@EXAMPLE.COM", NormalizedUserName="USER1" },
             });
             #endregion
         }
@@ -707,30 +707,30 @@ namespace MapTests
             #region Initialize Users
             DbContextObject.ApplicationUser.AddRange(new List<ApplicationUser>
             {
-                new ApplicationUser { Id=MakeGuid(1), UserName="user1", Email="user1@example.com" },
-                new ApplicationUser { Id=MakeGuid(2), UserName="user2", Email="user2@example.com" },
+                new ApplicationUser { Id=TestUtil.MakeTestGuid(1), UserName="user1", Email="user1@example.com" },
+                new ApplicationUser { Id=TestUtil.MakeTestGuid(2), UserName="user2", Email="user2@example.com" },
             });
             #endregion
 
             #region Initialize ContentType
             DbContextObject.ContentType.AddRange(new List<ContentType>
                 {
-                    new ContentType{ Id=MakeGuid(1), Name="Qlikview", CanReduce=true },
+                    new ContentType{ Id=TestUtil.MakeTestGuid(1), Name="Qlikview", CanReduce=true },
                 });
             #endregion
 
             #region Initialize ProfitCenters
             DbContextObject.ProfitCenter.AddRange(new List<ProfitCenter>
                 {
-                    new ProfitCenter { Id=MakeGuid(1), Name="Profit Center 1", ProfitCenterCode="pc1" },
+                    new ProfitCenter { Id=TestUtil.MakeTestGuid(1), Name="Profit Center 1", ProfitCenterCode="pc1" },
                 });
             #endregion
 
             #region Initialize Clients
             DbContextObject.Client.AddRange(new List<Client>
                 {
-                    new Client { Id=MakeGuid(1), Name="Client 1", ClientCode="C1", ProfitCenterId=MakeGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
-                    new Client { Id=MakeGuid(2), Name="Client 2", ClientCode="C2", ProfitCenterId=MakeGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
+                    new Client { Id=TestUtil.MakeTestGuid(1), Name="Client 1", ClientCode="C1", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
+                    new Client { Id=TestUtil.MakeTestGuid(2), Name="Client 2", ClientCode="C2", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new string[] { "example.com" }  },
                 });
             MockDbSet<Client>.AssignNavigationProperty<ProfitCenter>(DbContextObject.Client, "ProfitCenterId", DbContextObject.ProfitCenter);
             #endregion
@@ -746,10 +746,10 @@ namespace MapTests
             #region Initialize UserRoleInClient
             DbContextObject.UserRoleInClient.AddRange(new List<UserRoleInClient>
             {
-                new UserRoleInClient { Id=MakeGuid(1), ClientId=MakeGuid(1), RoleId=MakeGuid(3), UserId=MakeGuid(1) },
-                new UserRoleInClient { Id=MakeGuid(2), ClientId=MakeGuid(1), RoleId=MakeGuid(4), UserId=MakeGuid(1) },
-                new UserRoleInClient { Id=MakeGuid(3), ClientId=MakeGuid(1), RoleId=MakeGuid(5), UserId=MakeGuid(1) },
-                //new UserRoleInClient { Id=MakeGuid(4), ClientId=MakeGuid(1), RoleId=MakeGuid(5), UserId=MakeGuid(2) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(3), UserId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(4), UserId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(1) },
+                //new UserRoleInClient { Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(2) },
             });
             MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
             MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
@@ -759,8 +759,8 @@ namespace MapTests
             #region Initialize UserClaims
             DbContextObject.UserClaims.AddRange(new List<IdentityUserClaim<Guid>>
                 {
-                    new IdentityUserClaim<Guid>{ Id=1, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=MakeGuid(1).ToString(), UserId=MakeGuid(1) },
-                    new IdentityUserClaim<Guid>{ Id=2, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=MakeGuid(1).ToString(), UserId=MakeGuid(2) },
+                    new IdentityUserClaim<Guid>{ Id=1, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(1).ToString(), UserId=TestUtil.MakeTestGuid(1) },
+                    new IdentityUserClaim<Guid>{ Id=2, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(1).ToString(), UserId=TestUtil.MakeTestGuid(2) },
                 });
             #endregion
             #endregion
@@ -768,9 +768,9 @@ namespace MapTests
             #region Initialize RootContentItem
             DbContextObject.RootContentItem.AddRange(new List<RootContentItem>
             {
-                new RootContentItem{ Id=MakeGuid(1), ClientId=MakeGuid(1), ContentName="RootContent 1", ContentTypeId=MakeGuid(1) },
-                new RootContentItem{ Id=MakeGuid(2), ClientId=MakeGuid(1), ContentName="RootContent 2", ContentTypeId=MakeGuid(1) },
-                new RootContentItem{ Id=MakeGuid(3), ClientId=MakeGuid(1), ContentName="RootContent 3", ContentTypeId=MakeGuid(1) },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=TestUtil.MakeTestGuid(1) },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 2", ContentTypeId=TestUtil.MakeTestGuid(1) },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 3", ContentTypeId=TestUtil.MakeTestGuid(1) },
             });
             MockDbSet<RootContentItem>.AssignNavigationProperty<ContentType>(DbContextObject.RootContentItem, "ContentTypeId", DbContextObject.ContentType);
             MockDbSet<RootContentItem>.AssignNavigationProperty<Client>(DbContextObject.RootContentItem, "ClientId", DbContextObject.Client);
@@ -779,9 +779,9 @@ namespace MapTests
             #region Initialize HierarchyField
             DbContextObject.HierarchyField.AddRange(new List<HierarchyField>
                 {
-                    new HierarchyField { Id=MakeGuid(1), RootContentItemId=MakeGuid(1), FieldName="Field1", FieldDisplayName="DisplayName1", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
-                    new HierarchyField { Id=MakeGuid(2), RootContentItemId=MakeGuid(2), FieldName="Field2", FieldDisplayName="DisplayName2", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
-                    new HierarchyField { Id=MakeGuid(3), RootContentItemId=MakeGuid(1), FieldName="Field1", FieldDisplayName="DisplayName3", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
+                    new HierarchyField { Id=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1), FieldName="Field1", FieldDisplayName="DisplayName1", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
+                    new HierarchyField { Id=TestUtil.MakeTestGuid(2), RootContentItemId=TestUtil.MakeTestGuid(2), FieldName="Field2", FieldDisplayName="DisplayName2", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
+                    new HierarchyField { Id=TestUtil.MakeTestGuid(3), RootContentItemId=TestUtil.MakeTestGuid(1), FieldName="Field1", FieldDisplayName="DisplayName3", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
                 });
             MockDbSet<HierarchyField>.AssignNavigationProperty<RootContentItem>(DbContextObject.HierarchyField, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
@@ -789,11 +789,11 @@ namespace MapTests
             #region Initialize HierarchyFieldValue
             DbContextObject.HierarchyFieldValue.AddRange(new List<HierarchyFieldValue>
                 {
-                    new HierarchyFieldValue { Id=MakeGuid(1), HierarchyFieldId=MakeGuid(1),  Value="Value 1" },
-                    new HierarchyFieldValue { Id=MakeGuid(2), HierarchyFieldId=MakeGuid(1),  Value="Value 2" },
-                    new HierarchyFieldValue { Id=MakeGuid(3), HierarchyFieldId=MakeGuid(2),  Value="Value 1" },
-                    new HierarchyFieldValue { Id=MakeGuid(4), HierarchyFieldId=MakeGuid(2),  Value="Value 2" },
-                    new HierarchyFieldValue { Id=MakeGuid(5), HierarchyFieldId=MakeGuid(3),  Value="Value 1" },
+                    new HierarchyFieldValue { Id=TestUtil.MakeTestGuid(1), HierarchyFieldId=TestUtil.MakeTestGuid(1),  Value="Value 1" },
+                    new HierarchyFieldValue { Id=TestUtil.MakeTestGuid(2), HierarchyFieldId=TestUtil.MakeTestGuid(1),  Value="Value 2" },
+                    new HierarchyFieldValue { Id=TestUtil.MakeTestGuid(3), HierarchyFieldId=TestUtil.MakeTestGuid(2),  Value="Value 1" },
+                    new HierarchyFieldValue { Id=TestUtil.MakeTestGuid(4), HierarchyFieldId=TestUtil.MakeTestGuid(2),  Value="Value 2" },
+                    new HierarchyFieldValue { Id=TestUtil.MakeTestGuid(5), HierarchyFieldId=TestUtil.MakeTestGuid(3),  Value="Value 1" },
                 });
             MockDbSet<HierarchyFieldValue>.AssignNavigationProperty<HierarchyField>(DbContextObject.HierarchyFieldValue, "HierarchyFieldId", DbContextObject.HierarchyField);
             #endregion
@@ -801,10 +801,10 @@ namespace MapTests
             #region Initialize SelectionGroups
             DbContextObject.SelectionGroup.AddRange(new List<SelectionGroup>
                 {
-                    new SelectionGroup { Id=MakeGuid(1), ContentInstanceUrl="Folder1/File1", RootContentItemId=MakeGuid(1), GroupName="Group1 For Content1", SelectedHierarchyFieldValueList=new Guid[] { } },
-                    new SelectionGroup { Id=MakeGuid(2), ContentInstanceUrl="Folder1/File2", RootContentItemId=MakeGuid(1), GroupName="Group2 For Content1", SelectedHierarchyFieldValueList=new Guid[] { } },
-                    new SelectionGroup { Id=MakeGuid(3), ContentInstanceUrl="Folder2/File1", RootContentItemId=MakeGuid(2), GroupName="Group1 For Content2", SelectedHierarchyFieldValueList=new Guid[] { } },
-                    new SelectionGroup { Id=MakeGuid(4), ContentInstanceUrl="Folder2/File1", RootContentItemId=MakeGuid(3), GroupName="Group1 For Content3", SelectedHierarchyFieldValueList=new Guid[] { } },
+                    new SelectionGroup { Id=TestUtil.MakeTestGuid(1), ContentInstanceUrl="Folder1/File1", RootContentItemId=TestUtil.MakeTestGuid(1), GroupName="Group1 For Content1", SelectedHierarchyFieldValueList=new Guid[] { } },
+                    new SelectionGroup { Id=TestUtil.MakeTestGuid(2), ContentInstanceUrl="Folder1/File2", RootContentItemId=TestUtil.MakeTestGuid(1), GroupName="Group2 For Content1", SelectedHierarchyFieldValueList=new Guid[] { } },
+                    new SelectionGroup { Id=TestUtil.MakeTestGuid(3), ContentInstanceUrl="Folder2/File1", RootContentItemId=TestUtil.MakeTestGuid(2), GroupName="Group1 For Content2", SelectedHierarchyFieldValueList=new Guid[] { } },
+                    new SelectionGroup { Id=TestUtil.MakeTestGuid(4), ContentInstanceUrl="Folder2/File1", RootContentItemId=TestUtil.MakeTestGuid(3), GroupName="Group1 For Content3", SelectedHierarchyFieldValueList=new Guid[] { } },
                 });
             MockDbSet<SelectionGroup>.AssignNavigationProperty<RootContentItem>(DbContextObject.SelectionGroup, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
@@ -812,7 +812,7 @@ namespace MapTests
             #region Initialize UserInSelectionGroups
             DbContextObject.UserInSelectionGroup.AddRange(new List<UserInSelectionGroup>
                 {
-                    new UserInSelectionGroup { Id=MakeGuid(1), SelectionGroupId=MakeGuid(1), UserId=MakeGuid(2) },
+                    new UserInSelectionGroup { Id=TestUtil.MakeTestGuid(1), SelectionGroupId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(2) },
                 });
             MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<SelectionGroup>(DbContextObject.UserInSelectionGroup, "SelectionGroupId", DbContextObject.SelectionGroup);
             MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserInSelectionGroup, "UserId", DbContextObject.ApplicationUser);
@@ -822,20 +822,20 @@ namespace MapTests
             DbContextObject.UserRoles.AddRange(new List<IdentityUserRole<Guid>>
                 {
                 // TODO Undo this
-                    //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=MakeGuid(1) },
-                    new IdentityUserRole<Guid> { RoleId=MakeGuid(1), UserId=MakeGuid(1) },
+                    //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=TestUtil.MakeTestGuid(1) },
+                    new IdentityUserRole<Guid> { RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(1) },
                 });
             #endregion
 
             #region Initialize UserRoleInRootContentItem
             DbContextObject.UserRoleInRootContentItem.AddRange(new List<UserRoleInRootContentItem>
             {
-                new UserRoleInRootContentItem { Id=MakeGuid(1), RoleId=MakeGuid(3), UserId=MakeGuid(1), RootContentItemId=MakeGuid(1) },
-                new UserRoleInRootContentItem { Id=MakeGuid(2), RoleId=MakeGuid(5), UserId=MakeGuid(1), RootContentItemId=MakeGuid(1) },
-                new UserRoleInRootContentItem { Id=MakeGuid(3), RoleId=MakeGuid(3), UserId=MakeGuid(1), RootContentItemId=MakeGuid(3) },
-                new UserRoleInRootContentItem { Id=MakeGuid(4), RoleId=MakeGuid(4), UserId=MakeGuid(1), RootContentItemId=MakeGuid(3) },
-                new UserRoleInRootContentItem { Id=MakeGuid(5), RoleId=MakeGuid(5), UserId=MakeGuid(1), RootContentItemId=MakeGuid(3) },
-                new UserRoleInRootContentItem { Id=MakeGuid(6), RoleId=MakeGuid(5), UserId=MakeGuid(2), RootContentItemId=MakeGuid(1) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(3), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(2), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(3), RoleId=TestUtil.MakeTestGuid(3), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(4), RoleId=TestUtil.MakeTestGuid(4), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(5), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(6), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(2), RootContentItemId=TestUtil.MakeTestGuid(1) },
             });
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationRole>(DbContextObject.UserRoleInRootContentItem, "RoleId", DbContextObject.ApplicationRole);
             MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty<ApplicationUser>(DbContextObject.UserRoleInRootContentItem, "UserId", DbContextObject.ApplicationUser);
@@ -847,9 +847,9 @@ namespace MapTests
             {
                 new ContentPublicationRequest
                 {
-                    Id = MakeGuid(1),
-                    ApplicationUserId =MakeGuid(1),
-                    RootContentItemId = MakeGuid(1),
+                    Id = TestUtil.MakeTestGuid(1),
+                    ApplicationUserId =TestUtil.MakeTestGuid(1),
+                    RootContentItemId = TestUtil.MakeTestGuid(1),
                     RequestStatus = PublicationStatus.Confirmed,
                     ReductionRelatedFilesObj = new List<ReductionRelatedFiles>{ },
                     CreateDateTimeUtc = DateTime.FromFileTimeUtc(100),
@@ -860,7 +860,7 @@ namespace MapTests
             #region Initialize FileUpload
             DbContextObject.FileUpload.AddRange(new List<FileUpload>
             {
-                new FileUpload { Id=MakeGuid(1) },
+                new FileUpload { Id=TestUtil.MakeTestGuid(1) },
             });
             #endregion
         }
@@ -870,33 +870,33 @@ namespace MapTests
             #region Initialize Users
             DbContextObject.ApplicationUser.AddRange(new List<ApplicationUser>
             {
-                    new ApplicationUser { Id =  MakeGuid(1), UserName = "sysAdmin1", Email = "sysAdmin1@site.domain", },
-                    new ApplicationUser { Id =  MakeGuid(2), UserName = "sysAdmin2", Email = "sysAdmin2@site.domain", },
-                    new ApplicationUser { Id = MakeGuid(11), UserName = "sysUser1",  Email = "sysUser1@site.domain",  },
-                    new ApplicationUser { Id = MakeGuid(12), UserName = "sysUser2",  Email = "sysUser2@site.domain",  },
+                    new ApplicationUser { Id =  TestUtil.MakeTestGuid(1), UserName = "sysAdmin1", Email = "sysAdmin1@site.domain", },
+                    new ApplicationUser { Id =  TestUtil.MakeTestGuid(2), UserName = "sysAdmin2", Email = "sysAdmin2@site.domain", },
+                    new ApplicationUser { Id = TestUtil.MakeTestGuid(11), UserName = "sysUser1",  Email = "sysUser1@site.domain",  },
+                    new ApplicationUser { Id = TestUtil.MakeTestGuid(12), UserName = "sysUser2",  Email = "sysUser2@site.domain",  },
             });
             #endregion
 
             #region Initialize ContentType
             DbContextObject.ContentType.AddRange(new List<ContentType>
             { 
-                new ContentType{ Id = MakeGuid(1), Name = "Qlikview", CanReduce = true },
+                new ContentType{ Id = TestUtil.MakeTestGuid(1), Name = "Qlikview", CanReduce = true },
             });
             #endregion
 
             #region Initialize ProfitCenters
             DbContextObject.ProfitCenter.AddRange(new List<ProfitCenter>
             { 
-                new ProfitCenter { Id = MakeGuid(1), },
-                new ProfitCenter { Id = MakeGuid(2), },
+                new ProfitCenter { Id = TestUtil.MakeTestGuid(1), },
+                new ProfitCenter { Id = TestUtil.MakeTestGuid(2), },
             });
             #endregion
 
             #region Initialize UserRoleInProfitCenter
             DbContextObject.UserRoleInProfitCenter.AddRange(new List<UserRoleInProfitCenter>
             { 
-                new UserRoleInProfitCenter { Id = MakeGuid(1), ProfitCenterId = MakeGuid(1), UserId = MakeGuid(1), RoleId = MakeGuid(1) },
-                new UserRoleInProfitCenter { Id = MakeGuid(2), ProfitCenterId = MakeGuid(1), UserId = MakeGuid(2), RoleId = MakeGuid(1) }
+                new UserRoleInProfitCenter { Id = TestUtil.MakeTestGuid(1), ProfitCenterId = TestUtil.MakeTestGuid(1), UserId = TestUtil.MakeTestGuid(1), RoleId = TestUtil.MakeTestGuid(1) },
+                new UserRoleInProfitCenter { Id = TestUtil.MakeTestGuid(2), ProfitCenterId = TestUtil.MakeTestGuid(1), UserId = TestUtil.MakeTestGuid(2), RoleId = TestUtil.MakeTestGuid(1) }
             });
             MockDbSet<UserRoleInProfitCenter>.AssignNavigationProperty(DbContextObject.UserRoleInProfitCenter, "RoleId", DbContextObject.ApplicationRole);
             MockDbSet<UserRoleInProfitCenter>.AssignNavigationProperty(DbContextObject.UserRoleInProfitCenter, "ProfitCenterId", DbContextObject.ProfitCenter);
@@ -906,8 +906,8 @@ namespace MapTests
             #region Initialize Clients
             DbContextObject.Client.AddRange(new List<Client>
             { 
-                new Client { Id = MakeGuid(1), ProfitCenterId = MakeGuid(1), ParentClientId = null, },
-                new Client { Id = MakeGuid(2), ProfitCenterId = MakeGuid(1), ParentClientId = null, },
+                new Client { Id = TestUtil.MakeTestGuid(1), ProfitCenterId = TestUtil.MakeTestGuid(1), ParentClientId = null, },
+                new Client { Id = TestUtil.MakeTestGuid(2), ProfitCenterId = TestUtil.MakeTestGuid(1), ParentClientId = null, },
             });
             MockDbSet<Client>.AssignNavigationProperty(DbContextObject.Client, "ProfitCenterId", DbContextObject.ProfitCenter);
             #endregion
@@ -923,8 +923,8 @@ namespace MapTests
             #region Initialize UserRoleInClient
             DbContextObject.UserRoleInClient.AddRange(new List<UserRoleInClient>
             { 
-                new UserRoleInClient { Id = MakeGuid(1), ClientId = MakeGuid(1), RoleId = MakeGuid(1), UserId =  MakeGuid(1) },
-                new UserRoleInClient { Id = MakeGuid(2), ClientId = MakeGuid(1), RoleId = MakeGuid(5), UserId = MakeGuid(11) },
+                new UserRoleInClient { Id = TestUtil.MakeTestGuid(1), ClientId = TestUtil.MakeTestGuid(1), RoleId = TestUtil.MakeTestGuid(1), UserId =  TestUtil.MakeTestGuid(1) },
+                new UserRoleInClient { Id = TestUtil.MakeTestGuid(2), ClientId = TestUtil.MakeTestGuid(1), RoleId = TestUtil.MakeTestGuid(5), UserId = TestUtil.MakeTestGuid(11) },
             });
             MockDbSet<UserRoleInClient>.AssignNavigationProperty(DbContextObject.UserRoleInClient, "ClientId", DbContextObject.Client);
             MockDbSet<UserRoleInClient>.AssignNavigationProperty(DbContextObject.UserRoleInClient, "UserId", DbContextObject.ApplicationUser);
@@ -934,8 +934,8 @@ namespace MapTests
             #region Initialize UserClaims
             DbContextObject.UserClaims.AddRange(new List<IdentityUserClaim<Guid>>
             { 
-                new IdentityUserClaim<Guid>{ Id = 1, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = MakeGuid(1).ToString(), UserId = MakeGuid(1) },
-                new IdentityUserClaim<Guid>{ Id = 2, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = MakeGuid(1).ToString(), UserId = MakeGuid(11) },
+                new IdentityUserClaim<Guid>{ Id = 1, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(1).ToString(), UserId = TestUtil.MakeTestGuid(1) },
+                new IdentityUserClaim<Guid>{ Id = 2, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(1).ToString(), UserId = TestUtil.MakeTestGuid(11) },
             });
             #endregion
             #endregion 
@@ -943,8 +943,8 @@ namespace MapTests
             #region Initialize RootContentItem
             DbContextObject.RootContentItem.AddRange(new List<RootContentItem>
             { 
-                new RootContentItem{ Id = MakeGuid(1), ClientId = MakeGuid(1), ContentTypeId = MakeGuid(1) },
-                new RootContentItem{ Id = MakeGuid(2), ClientId = MakeGuid(1), ContentTypeId = MakeGuid(1) },
+                new RootContentItem{ Id = TestUtil.MakeTestGuid(1), ClientId = TestUtil.MakeTestGuid(1), ContentTypeId = TestUtil.MakeTestGuid(1) },
+                new RootContentItem{ Id = TestUtil.MakeTestGuid(2), ClientId = TestUtil.MakeTestGuid(1), ContentTypeId = TestUtil.MakeTestGuid(1) },
             });
             MockDbSet<RootContentItem>.AssignNavigationProperty(DbContextObject.RootContentItem, "ContentTypeId", DbContextObject.ContentType);
             MockDbSet<RootContentItem>.AssignNavigationProperty(DbContextObject.RootContentItem, "ClientId", DbContextObject.Client);
@@ -953,8 +953,8 @@ namespace MapTests
             #region Initialize SelectionGroups
             DbContextObject.SelectionGroup.AddRange(new List<SelectionGroup>
             {
-                new SelectionGroup { Id = MakeGuid(1), ContentInstanceUrl = "Folder1/File1", RootContentItemId = MakeGuid(1), GroupName = "Group1 For Content1" },
-                new SelectionGroup { Id = MakeGuid(2), ContentInstanceUrl = "Folder1/File2", RootContentItemId = MakeGuid(1), GroupName = "Group2 For Content1" },
+                new SelectionGroup { Id = TestUtil.MakeTestGuid(1), ContentInstanceUrl = "Folder1/File1", RootContentItemId = TestUtil.MakeTestGuid(1), GroupName = "Group1 For Content1" },
+                new SelectionGroup { Id = TestUtil.MakeTestGuid(2), ContentInstanceUrl = "Folder1/File2", RootContentItemId = TestUtil.MakeTestGuid(1), GroupName = "Group2 For Content1" },
             });
             MockDbSet<SelectionGroup>.AssignNavigationProperty(DbContextObject.SelectionGroup, "RootContentItemId", DbContextObject.RootContentItem);
             #endregion
@@ -962,8 +962,8 @@ namespace MapTests
             #region Initialize UserInSelectionGroups
             DbContextObject.UserInSelectionGroup.AddRange(new List<UserInSelectionGroup>
             { 
-                new UserInSelectionGroup { Id = MakeGuid(1), SelectionGroupId = MakeGuid(1), UserId = MakeGuid(11) },
-                new UserInSelectionGroup { Id = MakeGuid(2), SelectionGroupId = MakeGuid(1), UserId = MakeGuid(12) },
+                new UserInSelectionGroup { Id = TestUtil.MakeTestGuid(1), SelectionGroupId = TestUtil.MakeTestGuid(1), UserId = TestUtil.MakeTestGuid(11) },
+                new UserInSelectionGroup { Id = TestUtil.MakeTestGuid(2), SelectionGroupId = TestUtil.MakeTestGuid(1), UserId = TestUtil.MakeTestGuid(12) },
             });
             MockDbSet<UserInSelectionGroup>.AssignNavigationProperty(DbContextObject.UserInSelectionGroup, "SelectionGroupId", DbContextObject.SelectionGroup);
             MockDbSet<UserInSelectionGroup>.AssignNavigationProperty(DbContextObject.UserInSelectionGroup, "UserId", DbContextObject.ApplicationUser);
@@ -973,8 +973,8 @@ namespace MapTests
             DbContextObject.UserRoles.AddRange(new List<IdentityUserRole<Guid>>
             { 
                 // TODO Undo this
-                    //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=MakeGuid(1) },
-                    new IdentityUserRole<Guid> { RoleId=MakeGuid(1), UserId=MakeGuid(1) },
+                    //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=TestUtil.MakeTestGuid(1) },
+                    new IdentityUserRole<Guid> { RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(1) },
             });
             #endregion
 
@@ -988,9 +988,5 @@ namespace MapTests
             #endregion
         }
 
-        private Guid MakeGuid(int Val)
-        {
-            return new Guid(Val, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
-        }
     }
 }

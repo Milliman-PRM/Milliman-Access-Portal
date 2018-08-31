@@ -68,7 +68,7 @@ namespace MapTests
             #region Arrange
             AccountController controller = await GetController("user1");
             string TestCode = "Code123";
-            string TestUserId = MakeGuid(1).ToString();
+            string TestUserId = TestUtil.MakeTestGuid(1).ToString();
             #endregion
 
             #region Act
@@ -105,7 +105,7 @@ namespace MapTests
             string Phone = "3173171212";
             EnableAccountViewModel model = new EnableAccountViewModel
             {
-                Id = MakeGuid(1),
+                Id = TestUtil.MakeTestGuid(1),
                 Code = NewToken,
                 NewPassword = NewPass,
                 ConfirmNewPassword = NewPass,
@@ -539,9 +539,5 @@ namespace MapTests
             #endregion
         }
 
-        private Guid MakeGuid(int Val)
-        {
-            return new Guid(Val, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
-        }
     }
 }

@@ -69,8 +69,8 @@ namespace MapTests
                 ConsultantOffice = "Indy PRM Testing",
                 AcceptedEmailAddressExceptionList = new string[] { },
                 AcceptedEmailDomainList = new string[] { "placeholder.com" },
-                ParentClientId = MakeGuid(2),
-                ProfitCenterId = MakeGuid(1)
+                ParentClientId = TestUtil.MakeTestGuid(2),
+                ProfitCenterId = TestUtil.MakeTestGuid(1)
             };
         }
 
@@ -161,7 +161,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.ClientDetail(MakeGuid(-100));
+            var view = await controller.ClientDetail(TestUtil.MakeTestGuid(-100));
             #endregion
 
             #region Assert
@@ -182,7 +182,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.ClientDetail(MakeGuid(clientIdArg));
+            var view = await controller.ClientDetail(TestUtil.MakeTestGuid(clientIdArg));
             #endregion
 
             #region Assert
@@ -203,7 +203,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.ClientDetail(MakeGuid(clientIdArg));
+            var view = await controller.ClientDetail(TestUtil.MakeTestGuid(clientIdArg));
             #endregion
 
             #region Assert
@@ -222,7 +222,7 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser(userArg);
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = MakeGuid(clientIdArg), UserId = MakeGuid(userIdArg) };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(clientIdArg), UserId = TestUtil.MakeTestGuid(userIdArg) };
             #endregion
 
             #region Act
@@ -244,7 +244,7 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser(userArg);
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = MakeGuid(clientIdArg), UserId = MakeGuid(userIdArg) };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(clientIdArg), UserId = TestUtil.MakeTestGuid(userIdArg) };
             #endregion
 
             #region Act
@@ -264,7 +264,7 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = MakeGuid(1), UserId = MakeGuid(1) };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(1), UserId = TestUtil.MakeTestGuid(1) };
 
             // Count users assigned to the client before attempting change
             int preActionCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()).Count();
@@ -291,7 +291,7 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = MakeGuid(5), UserId = MakeGuid(1) };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(5), UserId = TestUtil.MakeTestGuid(1) };
             #endregion
 
             #region Act
@@ -312,7 +312,7 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = MakeGuid(5), UserId = MakeGuid(4) };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(5), UserId = TestUtil.MakeTestGuid(4) };
 
             // Before acting on the input data, we need to gather initial data to compare the result to
             int beforeCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()).Count();
@@ -341,8 +341,8 @@ namespace MapTests
             ClientAdminController controller = await GetControllerForUser(userName);
             var clientUserModel = new ClientUserAssociationViewModel
             {
-                ClientId = MakeGuid(clientId),
-                UserId = MakeGuid(1),
+                ClientId = TestUtil.MakeTestGuid(clientId),
+                UserId = TestUtil.MakeTestGuid(1),
             };
             var roleModel = new AssignedRoleInfo
             {
@@ -372,8 +372,8 @@ namespace MapTests
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             var clientUserModel = new ClientUserAssociationViewModel
             {
-                ClientId = MakeGuid(clientId),
-                UserId = MakeGuid(userId),
+                ClientId = TestUtil.MakeTestGuid(clientId),
+                UserId = TestUtil.MakeTestGuid(userId),
             };
             var roleModel = new AssignedRoleInfo
             {
@@ -403,8 +403,8 @@ namespace MapTests
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             var clientUserModel = new ClientUserAssociationViewModel
             {
-                ClientId = MakeGuid(clientId),
-                UserId = MakeGuid(userId),
+                ClientId = TestUtil.MakeTestGuid(clientId),
+                UserId = TestUtil.MakeTestGuid(userId),
             };
             var roleModelAdd = new AssignedRoleInfo
             {
@@ -444,8 +444,8 @@ namespace MapTests
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             var clientUserModel = new ClientUserAssociationViewModel
             {
-                ClientId = MakeGuid(clientId),
-                UserId = MakeGuid(userId),
+                ClientId = TestUtil.MakeTestGuid(clientId),
+                UserId = TestUtil.MakeTestGuid(userId),
             };
             var roleModelAdd = new AssignedRoleInfo
             {
@@ -486,8 +486,8 @@ namespace MapTests
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
             var clientUserModel = new ClientUserAssociationViewModel
             {
-                ClientId = MakeGuid(clientId),
-                UserId = MakeGuid(userId),
+                ClientId = TestUtil.MakeTestGuid(clientId),
+                UserId = TestUtil.MakeTestGuid(userId),
             };
             var roleModelAdd = new AssignedRoleInfo
             {
@@ -500,7 +500,7 @@ namespace MapTests
                 IsAssigned = false,
             };
 
-            int relatedRootContentItemCount = TestResources.DbContextObject.RootContentItem.Count(i => i.ClientId == MakeGuid(clientId));
+            int relatedRootContentItemCount = TestResources.DbContextObject.RootContentItem.Count(i => i.ClientId == TestUtil.MakeTestGuid(clientId));
             #endregion
 
             #region Act
@@ -537,7 +537,7 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser(userArg);
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = MakeGuid(clientIdArg), UserId = MakeGuid(userIdArg) };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(clientIdArg), UserId = TestUtil.MakeTestGuid(userIdArg) };
             #endregion
 
             #region Act
@@ -559,7 +559,7 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser(userArg);
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = MakeGuid(clientIdArg), UserId = MakeGuid(userIdArg) };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(clientIdArg), UserId = TestUtil.MakeTestGuid(userIdArg) };
             #endregion
 
             #region Act
@@ -581,7 +581,7 @@ namespace MapTests
         {
             #region Arrange
             ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = MakeGuid(5), UserId = MakeGuid(2) };
+            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(5), UserId = TestUtil.MakeTestGuid(2) };
 
             int preActionCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString() && c.UserId == viewModel.UserId).Count();
             #endregion
@@ -664,8 +664,8 @@ namespace MapTests
             #endregion
 
             #region Act
-            testClient.ParentClientId = parentClientIdArg.HasValue ? MakeGuid(parentClientIdArg.Value) : (Guid?)null;
-            testClient.ProfitCenterId = MakeGuid(profitCenterIdArg);
+            testClient.ParentClientId = parentClientIdArg.HasValue ? TestUtil.MakeTestGuid(parentClientIdArg.Value) : (Guid?)null;
+            testClient.ProfitCenterId = TestUtil.MakeTestGuid(profitCenterIdArg);
             var view = await controller.SaveNewClient(testClient);
             #endregion
 
@@ -724,7 +724,7 @@ namespace MapTests
 
             #region Act
             testClient.ParentClientId = null;
-            testClient.ProfitCenterId = MakeGuid(1);
+            testClient.ProfitCenterId = TestUtil.MakeTestGuid(1);
             var view = await controller.SaveNewClient(testClient);
             #endregion
 
@@ -751,8 +751,8 @@ namespace MapTests
             #endregion
 
             #region Act
-            testClient.ParentClientId = MakeGuid(parentClientIdArg);
-            testClient.Id = MakeGuid(clientIdArg);
+            testClient.ParentClientId = TestUtil.MakeTestGuid(parentClientIdArg);
+            testClient.Id = TestUtil.MakeTestGuid(clientIdArg);
             var view = await controller.EditClient(testClient);
             #endregion
 
@@ -782,10 +782,10 @@ namespace MapTests
              *       The parent client must not be null
              *       The parent client specified must be the current parent of the test client
              */
-            testClient.Id = MakeGuid(clientIdArg);
+            testClient.Id = TestUtil.MakeTestGuid(clientIdArg);
             // Ensure we're passing the current parent client, whatever it is
-            testClient.ParentClientId = TestResources.DbContextObject.Client.Single(c => c.Id == MakeGuid(clientIdArg)).ParentClientId;
-            testClient.ProfitCenterId = MakeGuid(profitCenterIdArg);
+            testClient.ParentClientId = TestResources.DbContextObject.Client.Single(c => c.Id == TestUtil.MakeTestGuid(clientIdArg)).ParentClientId;
+            testClient.ProfitCenterId = TestUtil.MakeTestGuid(profitCenterIdArg);
 
             var view = await controller.EditClient(testClient);
             #endregion
@@ -813,8 +813,8 @@ namespace MapTests
              *       The parent client must not be null
              *       The parent client specified must be changed from the client's current parent
              */
-            testClient.Id = MakeGuid(6);
-            testClient.ParentClientId = MakeGuid(2); // Original value was 1
+            testClient.Id = TestUtil.MakeTestGuid(6);
+            testClient.ParentClientId = TestUtil.MakeTestGuid(2); // Original value was 1
             
             var view = await controller.EditClient(testClient);
             #endregion
@@ -850,8 +850,8 @@ namespace MapTests
              *       The parent client must not be null
              *       The parent client specified must be the current parent of the test client
              */
-            testClient.Id = MakeGuid(6);
-            testClient.ParentClientId = MakeGuid(1);
+            testClient.Id = TestUtil.MakeTestGuid(6);
+            testClient.ParentClientId = TestUtil.MakeTestGuid(1);
 
             #region Manipulate data for test scenarios
             if (!String.IsNullOrEmpty(clientNameArg))
@@ -897,8 +897,8 @@ namespace MapTests
              *       The parent client must not be null
              *       The parent client specified must be the current parent of the test client
              */
-            testClient.Id = MakeGuid(6);
-            testClient.ParentClientId = MakeGuid(1);
+            testClient.Id = TestUtil.MakeTestGuid(6);
+            testClient.ParentClientId = TestUtil.MakeTestGuid(1);
 
             // Change some data that can be validated after the edit
             #region Manipulate model data
@@ -950,7 +950,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(MakeGuid(424242), "password");
+            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(424242), "password");
             #endregion
 
             #region Assert
@@ -972,7 +972,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(MakeGuid(clientIdArg), passwordArg);
+            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(clientIdArg), passwordArg);
             #endregion
 
             #region Assert
@@ -993,7 +993,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(MakeGuid(7), "password");
+            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(7), "password");
             #endregion
 
             #region Assert
@@ -1015,7 +1015,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(MakeGuid(8), "password");
+            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(8), "password");
             #endregion
 
             #region Assert
@@ -1040,7 +1040,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(MakeGuid(6), "password");
+            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(6), "password");
             #endregion
 
             #region Assert
@@ -1053,9 +1053,5 @@ namespace MapTests
             #endregion
         }
 
-        private Guid MakeGuid(int Val)
-        {
-            return new Guid(Val, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
-        }
     }
 }
