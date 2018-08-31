@@ -1,5 +1,6 @@
 import $ = require('jquery');
 import toastr = require('toastr');
+import shared = require('./shared');
 const vex = require('vex-js');
 require('typeahead.js');
 

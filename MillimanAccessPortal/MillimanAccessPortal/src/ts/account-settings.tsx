@@ -6,6 +6,7 @@ import * as ReactDOM from 'react-dom';
 import { FormBase } from './form/form-base';
 import { SubmissionGroup } from './form/form-submission';
 import { NavBar } from './react/shared-components/navbar';
+
 import './check-password';
 
 import $ = require('jquery');
