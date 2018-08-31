@@ -17,8 +17,6 @@ import * as shared from './shared';
 import { SelectionGroupSummary } from './view-models/content-access-admin';
 import { UserInfo } from './view-models/content-publishing';
 
-const card = {};
-
 const cardLayout = {
   card: {
     body: {
@@ -277,7 +275,7 @@ const components = Object.assign(
         '<stub />',
       ].join(''),
       render(component) {
-        return function(properties) {
+        return function() {
           this.verify(component);
         };
       },
@@ -935,12 +933,10 @@ FileUploadCard.prototype.constructor = FileUploadCard;
 
 export function SelectionGroupCard(
   selectionGroup: SelectionGroupSummary,
-  eligibleUsers: UserInfo[],
   callback, deleteCallback, editCallback, confirmCallback,
 ) {
   Card.call(this);
 
-  const self = this;
   const memberInfo = $.map(selectionGroup.MemberList, function toString(member) {
     return [member.FirstName + ' ' + member.LastName, member.Email, member.UserName];
   }).reduce(function concat(acc, cur) {

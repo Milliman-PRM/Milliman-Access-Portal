@@ -116,7 +116,7 @@ namespace MillimanAccessPortal.DataQueries
             return ReturnList;
         }
 
-        public Client GetRootClientOfClient(long id)
+        public Client GetRootClientOfClient(Guid id)
         {
             // Execute query here so there is only one db query and the rest is done locally in memory
             List<Client> AllClients = DbContext.Client.ToList();
@@ -144,7 +144,7 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="UserId"></param>
         /// <param name="ClientId"></param>
         /// <returns></returns>
-        public List<AssignedRoleInfo> GetUserRolesForClient(long UserId, long ClientId)
+        public List<AssignedRoleInfo> GetUserRolesForClient(Guid UserId, Guid ClientId)
         {
             IQueryable<AssignedRoleInfo> Query = DbContext.UserRoleInClient
                                                             .Include(urc => urc.Role)

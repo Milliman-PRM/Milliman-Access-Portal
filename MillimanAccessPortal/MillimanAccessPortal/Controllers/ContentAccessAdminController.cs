@@ -116,7 +116,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="ClientId">The client whose root content items are to be returned.</param>
         /// <returns>JsonResult</returns>
         [HttpGet]
-        public async Task<IActionResult> RootContentItems(long ClientId)
+        public async Task<IActionResult> RootContentItems(Guid ClientId)
         {
             Client Client = DbContext.Client.Find(ClientId);
 
@@ -150,7 +150,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="RootContentItemId">The root content item whose selection groups are to be returned.</param>
         /// <returns>JsonResult</returns>
         [HttpGet]
-        public async Task<IActionResult> SelectionGroups(long RootContentItemId)
+        public async Task<IActionResult> SelectionGroups(Guid RootContentItemId)
         {
             RootContentItem RootContentItem = DbContext.RootContentItem.Find(RootContentItemId);
 
@@ -186,7 +186,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>JsonResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateSelectionGroup(long RootContentItemId, String SelectionGroupName)
+        public async Task<IActionResult> CreateSelectionGroup(Guid RootContentItemId, String SelectionGroupName)
         {
             RootContentItem rootContentItem = DbContext.RootContentItem
                 .Where(item => item.Id == RootContentItemId)
@@ -218,7 +218,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 RootContentItemId = rootContentItem.Id,
                 GroupName = SelectionGroupName,
-                SelectedHierarchyFieldValueList = new long[] { },
+                SelectedHierarchyFieldValueList = new Guid[] { },
                 ContentInstanceUrl = ""
             };
 
@@ -250,7 +250,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>JsonResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RenameSelectionGroup(long selectionGroupId, string name)
+        public async Task<IActionResult> RenameSelectionGroup(Guid selectionGroupId, string name)
         {
             var selectionGroup = DbContext.SelectionGroup
                 .Where(sg => sg.Id == selectionGroupId)
@@ -292,7 +292,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>Ok, or UnprocessableEntity if a user with the provided email does not exist.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddUserToSelectionGroup(long SelectionGroupId, string username)
+        public async Task<IActionResult> AddUserToSelectionGroup(Guid SelectionGroupId, string username)
         {
             SelectionGroup selectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
@@ -329,7 +329,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            return await UpdateSelectionGroupUserAssignments(SelectionGroupId, new Dictionary<long, bool> { { user.Id, true } });
+            return await UpdateSelectionGroupUserAssignments(SelectionGroupId, new Dictionary<Guid, bool> { { user.Id, true } });
         }
 
         /// <summary>Updates the users assigned to a selection group.</summary>
@@ -339,7 +339,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>JsonResult</returns>
         [HttpPut]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateSelectionGroupUserAssignments(long SelectionGroupId, Dictionary<long, Boolean> UserAssignments)
+        public async Task<IActionResult> UpdateSelectionGroupUserAssignments(Guid SelectionGroupId, Dictionary<Guid, Boolean> UserAssignments)
         {
             SelectionGroup SelectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
@@ -391,7 +391,7 @@ namespace MillimanAccessPortal.Controllers
             var Permissioned = DbContext.UserRoleInClient
                 .Where(ur => UserAdditions.Contains(ur.UserId))
                 .Where(ur => ur.ClientId == SelectionGroup.RootContentItem.ClientId)
-                .Where(ur => ur.RoleId == ((long) RoleEnum.ContentUser));
+                .Where(ur => ur.RoleId == (ApplicationRole.RoleIds[RoleEnum.ContentUser]));
             if (Permissioned.Count() < UserAdditions.Count())
             {
                 Response.Headers.Add("Warning", "One or more requested users do not have permission to use this content.");
@@ -467,7 +467,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>JsonResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SetSuspendedSelectionGroup(long selectionGroupId, bool isSuspended)
+        public async Task<IActionResult> SetSuspendedSelectionGroup(Guid selectionGroupId, bool isSuspended)
         {
             SelectionGroup selectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
@@ -508,7 +508,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>JsonResult</returns>
         [HttpDelete]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteSelectionGroup(long SelectionGroupId)
+        public async Task<IActionResult> DeleteSelectionGroup(Guid SelectionGroupId)
         {
             SelectionGroup SelectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
@@ -536,7 +536,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             #endregion
 
-            List<long> RemovedUsers = new List<long>();
+            List<Guid> RemovedUsers = new List<Guid>();
 
             try
             {
@@ -582,7 +582,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="SelectionGroupId">The selection group whose selections are to be returned.</param>
         /// <returns>JsonResult</returns>
         [HttpGet]
-        public async Task<IActionResult> Selections(long SelectionGroupId)
+        public async Task<IActionResult> Selections(Guid SelectionGroupId)
         {
             SelectionGroup SelectionGroup = DbContext.SelectionGroup.Find(SelectionGroupId);
 
@@ -618,7 +618,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>JsonResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateSelections(long selectionGroupId, bool isMaster, long[] selections)
+        public async Task<IActionResult> UpdateSelections(Guid selectionGroupId, bool isMaster, Guid[] selections)
         {
             var selectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
@@ -723,7 +723,7 @@ namespace MillimanAccessPortal.Controllers
             if (isMaster)
             {
                 selectionGroup.IsMaster = true;
-                selectionGroup.SelectedHierarchyFieldValueList = new long[0];
+                selectionGroup.SelectedHierarchyFieldValueList = new Guid[0];
                 selectionGroup.SetContentUrl(Path.GetFileName(LiveMasterFile.FullPath));
                 DbContext.SelectionGroup.Update(selectionGroup);
                 DbContext.SaveChanges();
@@ -785,7 +785,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>JsonResult</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CancelReduction(long SelectionGroupId)
+        public async Task<IActionResult> CancelReduction(Guid SelectionGroupId)
         {
             SelectionGroup SelectionGroup = DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)

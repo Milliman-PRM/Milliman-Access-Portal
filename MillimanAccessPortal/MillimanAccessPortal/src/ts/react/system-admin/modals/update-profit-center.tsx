@@ -7,7 +7,7 @@ import { getData, postData } from '../../../shared';
 import { ProfitCenterDetail } from '../interfaces';
 
 interface UpdateProfitCenterModalProps extends Modal.Props {
-  profitCenterId?: number;
+  profitCenterId?: string;
 }
 interface UpdateProfitCenterModalState {
   name: string;

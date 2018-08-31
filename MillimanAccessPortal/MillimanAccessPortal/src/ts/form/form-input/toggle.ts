@@ -17,5 +17,5 @@ export class ToggleInput extends FormInput {
 
   protected comparator = (a: string, b: string) => a === b;
 
-  protected validFn = ($input: JQuery<HTMLElement>) => true;
+  protected validFn = () => true;
 }

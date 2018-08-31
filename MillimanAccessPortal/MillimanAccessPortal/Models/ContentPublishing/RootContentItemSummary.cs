@@ -9,6 +9,7 @@ using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Models.ContentAccessAdmin;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -16,7 +17,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 {
     public class RootContentItemSummary
     {
-        public long Id { get; set; }
+        public Guid Id { get; set; }
         public string ContentName { get; set; }
         public string ContentTypeName { get; set; }
         public int GroupCount { get; set; }

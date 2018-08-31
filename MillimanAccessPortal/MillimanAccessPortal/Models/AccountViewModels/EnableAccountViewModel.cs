@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace MillimanAccessPortal.Models.AccountViewModels
@@ -7,7 +8,7 @@ namespace MillimanAccessPortal.Models.AccountViewModels
     {
         [Required]
         [HiddenInput]
-        public long Id { get; set; }
+        public Guid Id { get; set; }
 
         [Required]
         [HiddenInput]
@@ -28,10 +29,12 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         [Required]
         public string Employer { get; set; }
 
+        [Required]
         [DataType(DataType.Password)]
         [Display(Name = "New Password")]
         public string NewPassword { get; set; }
 
+        [Required]
         [DataType(DataType.Password)]
         [Display(Name = "Confirm password")]
         [Compare("NewPassword", ErrorMessage = "The password and confirmation password do not match.")]

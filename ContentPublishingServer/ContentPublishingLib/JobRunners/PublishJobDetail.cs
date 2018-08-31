@@ -26,7 +26,7 @@ namespace ContentPublishingLib.JobRunners
 
         public PublishJobRequest Request;
         public PublishJobResult Result;
-        public long JobId { get; set; } = -1;
+        public Guid JobId { get; set; } = Guid.Empty;
         public JobStatusEnum Status { get; set; } = JobStatusEnum.Unspecified;
 
         // cast operator to convert a MAP ContentReductionTask to this type
@@ -57,8 +57,8 @@ namespace ContentPublishingLib.JobRunners
         {
             public bool DoesReduce { get; set; }
             public ContentRelatedFile MasterContentFile { get; set; }
-            public long RootContentId { get; set; }
-            public long ApplicationUserId { get; set; }
+            public Guid RootContentId { get; set; }
+            public Guid ApplicationUserId { get; set; }
         }
 
     }

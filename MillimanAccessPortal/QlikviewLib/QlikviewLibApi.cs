@@ -58,7 +58,7 @@ namespace QlikviewLib
         /// <returns></returns>
         public async Task AuthorizeUserDocumentsInFolder(string ContentPathRelativeToNamedUserDocFolder, QlikviewConfig ConfigInfo)
         {
-            IQMS Client = QmsClientCreator.New(ConfigInfo.IQmsUrl);
+            IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
 
             ServiceInfo[] QvsServicesArrray = await Client.GetServicesAsync(ServiceTypes.QlikViewServer);
             ServiceInfo QvsServiceInfo = QvsServicesArrray[0];

@@ -3,7 +3,6 @@ require('jquery-validation');
 import toastr = require('toastr');
 const vex = require('vex-js');
 vex.registerPlugin(require('vex-dialog'));
-const resumable = require('resumablejs');
 const initialAppSettings = require('../../appsettings.json');
 
 interface GlobalSettings {

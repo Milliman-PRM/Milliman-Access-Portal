@@ -99,14 +99,14 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
 
     public class ContentItemGroup
     {
-        public long Id { get; set; }
+        public Guid Id { get; set; }
         public string Name { get; set; }
         public List<ContentItem> Items { get; set; }
     }
 
     public class ContentItem
     {
-        public long Id { get; set; }
+        public Guid Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public string ImageURL { get; set; }

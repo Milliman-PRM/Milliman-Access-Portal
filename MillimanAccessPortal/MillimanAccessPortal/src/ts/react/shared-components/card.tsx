@@ -5,7 +5,6 @@ import '../../../images/expand-card.svg';
 import '../../../images/remove-circle.svg';
 
 import * as React from 'react';
-import * as Modal from 'react-modal';
 
 import { postData } from '../../shared';
 import { UpdateProfitCenterModal } from '../system-admin/modals/update-profit-center';

@@ -6,13 +6,14 @@
 
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using System;
 using System.Linq;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {
     public class ProfitCenterInfo
     {
-        public long Id { get; set; }
+        public Guid Id { get; set; }
         public string Name { get; set; }
         public string Code { get; set; }
         public string Office { get; set; }

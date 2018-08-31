@@ -1,4 +1,4 @@
-import { updateCardStatus, updateCardStatusButtons, updateFormStatusButtons } from '../shared';
+import { updateCardStatus } from '../shared';
 import { StatusMonitor } from '../status-monitor';
 import { ContentAccessStatus } from '../view-models/content-access-admin';
 

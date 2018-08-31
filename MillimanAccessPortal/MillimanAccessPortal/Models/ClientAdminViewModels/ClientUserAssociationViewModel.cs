@@ -12,7 +12,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
 {
     public class ClientUserAssociationViewModel
     {
-        public long ClientId { get; set; }
-        public long UserId { get; set; }
+        public Guid ClientId { get; set; }
+        public Guid UserId { get; set; }
     }
 }

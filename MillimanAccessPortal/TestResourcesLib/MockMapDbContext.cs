@@ -38,11 +38,11 @@ namespace TestResourcesLib
             ReturnMockContext.Object.Client = MockDbSet<Client>.New(new List<Client>()).Object;
             ReturnMockContext.Object.HierarchyFieldValue = MockDbSet<HierarchyFieldValue>.New(new List<HierarchyFieldValue>()).Object;
             ReturnMockContext.Object.HierarchyField = MockDbSet<HierarchyField>.New(new List<HierarchyField>()).Object;
-            ReturnMockContext.Object.UserRoles = MockDbSet<IdentityUserRole<long>>.New(new List<IdentityUserRole<long>>()).Object;
-            ReturnMockContext.Object.UserClaims = MockDbSet<IdentityUserClaim<long>>.New(new List<IdentityUserClaim<long>>()).Object;
+            ReturnMockContext.Object.UserRoles = MockDbSet<IdentityUserRole<Guid>>.New(new List<IdentityUserRole<Guid>>()).Object;
+            ReturnMockContext.Object.UserClaims = MockDbSet<IdentityUserClaim<Guid>>.New(new List<IdentityUserClaim<Guid>>()).Object;
             ReturnMockContext.Object.Users = ReturnMockContext.Object.ApplicationUser;
             ReturnMockContext.Object.Roles = ReturnMockContext.Object.ApplicationRole;
-            ReturnMockContext.Object.FileUpload = MockDbSet<FileUpload>.New(new List<FileUpload>()).Object; ;
+            ReturnMockContext.Object.FileUpload = MockDbSet<FileUpload>.New(new List<FileUpload>()).Object;
             
             List<ContentPublicationRequest> ContentPublicationRequestData = new List<ContentPublicationRequest>();
             Mock<DbSet<ContentPublicationRequest>> MockContentPublicationRequest = MockDbSet<ContentPublicationRequest>.New(ContentPublicationRequestData);
@@ -142,15 +142,31 @@ namespace TestResourcesLib
             return ReturnMockContext;
         }
 
+        static object LockObject = new object();
         private static List<ApplicationRole> GetSystemRolesList()
         {
-            List<ApplicationRole> ReturnList = new List<ApplicationRole>();
-
-            foreach (RoleEnum Role in Enum.GetValues(typeof(RoleEnum)))
+            lock (LockObject)
             {
-                ReturnList.Add(new ApplicationRole { Id = (long)Role, RoleEnum = Role, Name = Role.ToString(), NormalizedName = Role.ToString().ToUpper() });
+                bool ResetRoles = ApplicationRole.RoleIds.Count != Enum.GetValues(typeof(RoleEnum)).Length;
+
+                List<ApplicationRole> ReturnList = new List<ApplicationRole>();
+                if (ResetRoles)
+                {
+                    ApplicationRole.RoleIds.Clear();
+                }
+
+                foreach (RoleEnum Role in Enum.GetValues(typeof(RoleEnum)))
+                {
+                    ApplicationRole NewRole = new ApplicationRole { Id = new Guid((int)Role,1,1,1,1,1,1,1,1,1,1), RoleEnum = Role, Name = Role.ToString(), NormalizedName = Role.ToString().ToUpper(), DisplayName = ApplicationRole.RoleDisplayNames[Role] };
+
+                    ReturnList.Add(NewRole);
+                    if (ResetRoles)
+                    {
+                        ApplicationRole.RoleIds.Add(Role, NewRole.Id);
+                    }
+                }
+                return ReturnList;
             }
-            return ReturnList;
         }
     }
 }

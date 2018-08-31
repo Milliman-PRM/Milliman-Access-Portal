@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
     {
         public List<ClientAndChildrenModel> ClientTreeList { get; set; } = new List<ClientAndChildrenModel>();
         public List<AuthorizedProfitCenterModel> AuthorizedProfitCenterList { get; set; } = new List<AuthorizedProfitCenterModel>();
-        public long RelevantClientId { get; set; } = -1;
+        public Guid RelevantClientId { get; set; } = Guid.Empty;
         public string SystemDefaultWelcomeEmailText { get; set; }
 
         public static async Task<ClientAdminIndexViewModel> GetClientAdminIndexModelForUser(ApplicationUser CurrentUser, UserManager<ApplicationUser> UserManager, ApplicationDbContext DbContext, string SystemDefaultWelcomeEmailTextArg = null)
@@ -71,7 +72,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
 
     public class AuthorizedProfitCenterModel
     {
-        public long Id { get; set; }
+        public Guid Id { get; set; }
         public string Name { get; set; }
         public string Code { get; set; }
 
