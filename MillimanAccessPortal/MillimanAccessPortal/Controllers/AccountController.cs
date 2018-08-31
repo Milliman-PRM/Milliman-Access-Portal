@@ -242,6 +242,7 @@ namespace MillimanAccessPortal.Controllers
 
             // If we got this far, something failed, redisplay form
             AddErrors(createUserResult);
+            AddErrors(roleGrantResult);
             return View(model);
         }
 

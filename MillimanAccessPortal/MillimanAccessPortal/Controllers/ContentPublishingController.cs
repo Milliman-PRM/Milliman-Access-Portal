@@ -500,7 +500,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CancelContentPublicationRequest(long rootContentItemId)
+        public async Task<IActionResult> CancelContentPublicationRequest(Guid rootContentItemId)
         {
             #region Preliminary validation
             var rootContentItem = DbContext.RootContentItem.Find(rootContentItemId);
