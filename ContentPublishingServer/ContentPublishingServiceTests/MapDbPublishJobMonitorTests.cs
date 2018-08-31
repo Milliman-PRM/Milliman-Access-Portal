@@ -67,8 +67,8 @@ namespace ContentPublishingServiceTests
         public void CorrectResultsAfterSuccessfulRunDoesReduceFalse()
         {
             #region arrange
-            long ContentItemIdOfThisTest = 1;
-            long PubRequestIdOfThisTest = 1;
+            Guid ContentItemIdOfThisTest = TestUtil.MakeTestGuid(1);
+            Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(1);
             Guid RequestGuid = Guid.NewGuid();
 
             string ProposedRequestExchangeFolder = $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{RequestGuid}\";
@@ -91,7 +91,7 @@ namespace ContentPublishingServiceTests
             Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
 
             // Modify the request to be tested
-            ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == 1);
+            ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == TestUtil.MakeTestGuid(1));
             DbRequest.LiveReadyFilesObj = new List<ContentRelatedFile>
             {
                 new ContentRelatedFile
@@ -138,7 +138,7 @@ namespace ContentPublishingServiceTests
                 Assert.Equal(TaskStatus.Running, MonitorTask.Status);
                 Assert.Equal(PublicationStatus.Processed, DbRequest.RequestStatus);
                 Assert.Equal(string.Empty, DbRequest.StatusMessage);
-                Assert.Equal(0, MockContext.Object.ContentReductionTask.Where(t => t.ContentPublicationRequestId == 1).Count());
+                Assert.Equal(0, MockContext.Object.ContentReductionTask.Where(t => t.ContentPublicationRequestId == TestUtil.MakeTestGuid(1)).Count());
             }
             finally
             {
@@ -181,7 +181,7 @@ namespace ContentPublishingServiceTests
             Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
 
             // Modify the request to be tested
-            ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == 4);
+            ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == TestUtil.MakeTestGuid(4));
             DbRequest.ReductionRelatedFilesObj = new List<ReductionRelatedFiles>
             {
                 new ReductionRelatedFiles
@@ -243,7 +243,7 @@ namespace ContentPublishingServiceTests
 
             #region Assert
             var Tasks = MockContext.Object.ContentReductionTask
-                                          .Where(t => t.ContentPublicationRequestId == 4
+                                          .Where(t => t.ContentPublicationRequestId == TestUtil.MakeTestGuid(4)
                                                    && t.ReductionStatus == ReductionStatusEnum.Reduced)
                                           .ToList();
             try

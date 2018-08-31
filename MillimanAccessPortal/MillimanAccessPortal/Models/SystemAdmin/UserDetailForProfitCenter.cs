@@ -6,6 +6,7 @@
 
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,7 +14,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
 {
     public class UserDetailForProfitCenter
     {
-        public long Id { get; set; }
+        public Guid Id { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
@@ -37,7 +38,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             };
         }
 
-        public void QueryRelatedEntities(ApplicationDbContext dbContext, long profitCenterId)
+        public void QueryRelatedEntities(ApplicationDbContext dbContext, Guid profitCenterId)
         {
             var roles = dbContext.UserRoleInClient
                 .Where(r => r.UserId == Id)

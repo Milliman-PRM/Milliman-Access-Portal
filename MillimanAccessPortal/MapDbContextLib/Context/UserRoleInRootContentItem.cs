@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: 
  */
 
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using MapDbContextLib.Identity;
@@ -13,18 +14,18 @@ namespace MapDbContextLib.Context
     public class UserRoleInRootContentItem
     {
         [Key]
-        public long Id { get; set; }
+        public Guid Id { get; set; }
 
         [ForeignKey("RootContentItem")]
-        public long RootContentItemId { get; set; }
+        public Guid RootContentItemId { get; set; }
         public RootContentItem RootContentItem { get; set; }
 
         [ForeignKey("Role")]
-        public long RoleId { get; set; }
+        public Guid RoleId { get; set; }
         public ApplicationRole Role { get; set; }
 
         [ForeignKey("User")]
-        public long UserId { get; set; }
+        public Guid UserId { get; set; }
         public ApplicationUser User { get; set; }
     }
 }

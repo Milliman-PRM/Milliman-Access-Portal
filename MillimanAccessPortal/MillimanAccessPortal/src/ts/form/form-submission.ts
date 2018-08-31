@@ -1,6 +1,6 @@
 import * as toastr from 'toastr';
 
-import { confirmAndContinueForm, hideButtonSpinner, showButtonSpinner } from '../shared';
+import { confirmAndContinueForm } from '../shared';
 import { FormBase } from './form-base';
 import { FormElement } from './form-element';
 import { SubmissionMode } from './form-modes';

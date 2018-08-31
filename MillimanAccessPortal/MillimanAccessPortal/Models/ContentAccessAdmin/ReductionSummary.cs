@@ -4,6 +4,7 @@
  * DEVELOPER NOTES:
  */
 
+using System;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MillimanAccessPortal.Models.AccountViewModels;
@@ -15,8 +16,8 @@ namespace MillimanAccessPortal.Models.ContentAccessAdmin
         public UserInfoViewModel User { get; set; }
         public ReductionStatusEnum StatusEnum { get; set; }
         public string StatusName { get; set; }
-        public long SelectionGroupId { get; set; }
-        public long? RootContentItemId { get; set; }
+        public Guid SelectionGroupId { get; set; }
+        public Guid? RootContentItemId { get; set; }
 
         public static explicit operator ReductionSummary(ContentReductionTask contentReductionTask)
         {

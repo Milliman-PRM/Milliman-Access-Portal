@@ -203,6 +203,9 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateInitialUser(CreateInitialUserViewModel model, string returnUrl = null)
         {
+            IdentityResult createUserResult = null;
+            IdentityResult roleGrantResult = null;
+
             // If any users exist, return 404. We don't want to even hint that this URL is valid.
             if (_userManager.Users.Any())
             {
@@ -212,33 +215,34 @@ namespace MillimanAccessPortal.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
-                var result = await _userManager.CreateAsync(user);
-                if (result.Succeeded)
+                ApplicationUser newUser = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                ApplicationRole adminRole = await _roleManager.FindByNameAsync(RoleEnum.Admin.ToString());
+
+                using (var txn = DbContext.Database.BeginTransaction())
                 {
-                    _auditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(user));
+                    createUserResult = await _userManager.CreateAsync(newUser);
+                    roleGrantResult = await _userManager.AddToRoleAsync(newUser, adminRole.Name);
 
-                    // Grant the System Admin role
-                    ApplicationRole adminRole = await _roleManager.FindByNameAsync(RoleEnum.Admin.ToString());
-                    var roleGrantResult = await _userManager.AddToRoleAsync(user, adminRole.Name);
-
-                    if (roleGrantResult == IdentityResult.Success)
+                    if (createUserResult.Succeeded && roleGrantResult.Succeeded)
                     {
-                        _auditLogger.Log(AuditEventType.SystemRoleAssigned.ToEvent(user, RoleEnum.Admin ));
+                        txn.Commit();
+
+                        _auditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(newUser));
+                        _auditLogger.Log(AuditEventType.SystemRoleAssigned.ToEvent(newUser, RoleEnum.Admin));
+                        _logger.LogInformation(3, "User created a new account with password.");
+
+                        // Send the confirmation message
+                        string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
+                        await SendNewAccountWelcomeEmail(newUser, Url, welcomeText);
+
+                        return RedirectToLocal(returnUrl);
                     }
-
-                    _logger.LogInformation(3, "User created a new account with password.");
-
-                    // Send the confirmation message
-                    string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
-                    await SendNewAccountWelcomeEmail(user, Url, welcomeText);
-
-                    return RedirectToLocal(returnUrl);
                 }
-                AddErrors(result);
             }
 
             // If we got this far, something failed, redisplay form
+            AddErrors(createUserResult);
+            AddErrors(roleGrantResult);
             return View(model);
         }
 
@@ -405,7 +409,7 @@ namespace MillimanAccessPortal.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return View();
+                return View(model);
             }
             var user = await _userManager.FindByIdAsync(model.Id.ToString());
             if (user == null)

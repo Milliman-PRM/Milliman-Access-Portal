@@ -42,7 +42,7 @@ namespace MapCommonLib
         /// </summary>
         /// <param name="values">List of values to add as children recursively</param>
         /// <param name="parentId">ID of the current value</param>
-        private void Populate(ref List<T> values, long? parentId)
+        private void Populate(ref List<T> values, Guid? parentId)
         {
             var nodeValues = values.Where(v => v.ParentId == parentId).ToList();
             values.RemoveAll(v => nodeValues.Contains(v));
@@ -119,7 +119,7 @@ namespace MapCommonLib
     /// </summary>
     public abstract class Nestable
     {
-        public long Id { get; set; }
-        public long? ParentId { get; set; } = null;
+        public Guid Id { get; set; }
+        public Guid? ParentId { get; set; } = null;
     }
 }

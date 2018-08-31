@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using System;
 using System.Linq;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
@@ -14,15 +15,15 @@ namespace MillimanAccessPortal.Authorization
     public class RoleInProfitCenterRequirement : MapAuthorizationRequirementBase
     {
         private RoleEnum RoleEnum { get; set; }
-        private long ProfitCenterId { get; set; }
+        private Guid ProfitCenterId { get; set; }
 
         /// <summary>
         /// Constructor; the only way to instantiate this type
         /// </summary>
         /// <param name="ProfitCenterIdArg">Unset or &lt;= 0 to require test for authorization to any ProfitCenter.</param>
-        public RoleInProfitCenterRequirement(RoleEnum RoleEnumArg, long? ProfitCenterIdArg)
+        public RoleInProfitCenterRequirement(RoleEnum RoleEnumArg, Guid? ProfitCenterIdArg)
         {
-            ProfitCenterId = ProfitCenterIdArg.HasValue ? ProfitCenterIdArg.Value : -1;
+            ProfitCenterId = ProfitCenterIdArg.HasValue ? ProfitCenterIdArg.Value : Guid.Empty;
             RoleEnum = RoleEnumArg;
         }
 
@@ -40,7 +41,7 @@ namespace MillimanAccessPortal.Authorization
                            .Where(urp => urp.Role.RoleEnum == RoleEnum
                                       && urp.UserId == User.Id);
 
-            if (ProfitCenterId > 0)
+            if (ProfitCenterId != Guid.Empty)
             {
                 Query = Query.Where(urp => urp.ProfitCenterId == ProfitCenterId);
             }
