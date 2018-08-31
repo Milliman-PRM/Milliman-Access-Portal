@@ -275,7 +275,8 @@ label.input-with-upload {
 }
 
 span.field-validation-error,
-span.form-validation-error {
+span.form-validation-error,
+.validation-summary-errors {
     color: $red;
     font-weight: bold;
     font-style: italic;
@@ -284,6 +285,10 @@ span.form-validation-error {
 
 span.form-validation-error {
     margin-left: 1em;
+}
+
+.validation-summary-errors > ul {
+    list-style: none;
 }
 
 /* Contact Form */
