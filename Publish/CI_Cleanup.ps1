@@ -171,7 +171,7 @@ else {
 
 #region Modify Environment to push base branch to Dev
 
-if ($IsMerged.ToLower() -eq 'false' -and $env:Action.ToLower() -eq 'closed') {
+if ($IsMerged.ToLower() -eq 'true' -and $env:Action.ToLower() -eq 'closed') {
 
     log_statement "Deploying $MergeBase to dev infrastructure"
 
