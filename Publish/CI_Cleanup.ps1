@@ -18,7 +18,7 @@ function log_statement {
 #endregion
 
 #region Configure environment properties
-$BranchName = $env:git_branch # Will be used as the name of the deployment slot & appended to database names
+$BranchName = $env:git_branch_name # Will be used as the name of the deployment slot & appended to database names
 
 
 $gitExePath = "git"
@@ -171,7 +171,7 @@ else {
 
 #region Modify Environment to push base branch to Dev
 
-if ($IsMerged) {
+if ($IsMerged.ToLower() -eq 'false' -and $env:Action.ToLower() -eq 'closed') {
 
     log_statement "Deploying $MergeBase to dev infrastructure"
 
