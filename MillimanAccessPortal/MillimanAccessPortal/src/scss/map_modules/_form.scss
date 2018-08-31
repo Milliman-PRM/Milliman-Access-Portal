@@ -106,6 +106,16 @@ select {
         border: solid 1px $blue;
     }
 
+    &[validated] {
+        border: solid 2px $green;
+        outline-color: $green !important;
+    }
+
+    &[warning] {
+        border: solid 2px $red;
+        outline-color: $red !important;
+    }
+
     &[disabled],
     &[readonly] {
         border: solid 1px $grey;
@@ -265,10 +275,16 @@ label.input-with-upload {
 }
 
 span.field-validation-error,
+span.form-validation-error,
 .validation-summary-errors {
     color: $red;
     font-weight: bold;
     font-style: italic;
+    font-size: .75em;
+}
+
+span.form-validation-error {
+    margin-left: 1em;
 }
 
 .validation-summary-errors > ul {
