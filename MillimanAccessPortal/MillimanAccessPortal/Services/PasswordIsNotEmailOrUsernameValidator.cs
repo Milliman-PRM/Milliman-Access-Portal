@@ -12,6 +12,12 @@ namespace MillimanAccessPortal.Services
     {
         public Task<IdentityResult> ValidateAsync(UserManager<TUser> manager, TUser user, string password)
         {
+            // If user is null, this check is likely for the account activation view
+            if (user == null)
+            {
+                return Task.FromResult(IdentityResult.Success);
+            }
+
             string upperPassword = password.ToUpper();
             
             // This case covers the user's initial password - May only be used by ~/Account/CreateInitialUser

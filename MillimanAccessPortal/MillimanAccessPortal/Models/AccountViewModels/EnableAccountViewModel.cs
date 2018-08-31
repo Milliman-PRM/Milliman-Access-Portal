@@ -29,10 +29,12 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         [Required]
         public string Employer { get; set; }
 
+        [Required]
         [DataType(DataType.Password)]
         [Display(Name = "New Password")]
         public string NewPassword { get; set; }
 
+        [Required]
         [DataType(DataType.Password)]
         [Display(Name = "Confirm password")]
         [Compare("NewPassword", ErrorMessage = "The password and confirmation password do not match.")]

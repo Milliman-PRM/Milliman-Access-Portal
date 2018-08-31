@@ -81,6 +81,8 @@ export abstract class FormInput extends FormElement {
       .find('.input-validation-error').removeClass('input-validation-error');
     this.$entryPoint
       .find('span.field-validation-error > span').remove();
+    this.$entryPoint
+      .find('input,textarea,select').removeAttr('validated warning');
   }
 
   public get name(): string {

@@ -14,7 +14,8 @@
     "QvSourceDocumentsPath": ""
   },
   "QvServerHost": "",
-  "IQmsUrl": "",
+  "QvsQmsApiUrl": "",
+  "QdsQmsApiUrl": "",
   "TaskAgeBeforeExecutionSeconds": 20,
   "StopWaitTimeSeconds": 180,
   "MaxParallelTasks": 1,
