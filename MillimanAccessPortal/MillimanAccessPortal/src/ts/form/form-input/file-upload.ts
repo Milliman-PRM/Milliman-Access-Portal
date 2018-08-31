@@ -1,7 +1,11 @@
+import * as toastr from 'toastr';
+
 import { ProgressSummary } from '../../upload/progress-monitor';
 import { Upload, UploadComponent } from '../../upload/upload';
 import { AccessMode } from '../form-modes';
 import { FormInput } from './input';
+
+import 'toastr/toastr.scss';
 
 export class FileUploadInput extends FormInput {
   protected _cssClasses = {
@@ -40,6 +44,11 @@ export class FileUploadInput extends FormInput {
       progressBar.width(progress.percentage);
     };
     this.upload.onProgressMessage = () => undefined;
+    this.upload.onError = () => {
+      const errorBar = this.$entryPoint.find('div.progress-bar-3');
+      errorBar.width('100%');
+      toastr.error('An error occurred during upload.');
+    };
 
     this.upload.onFileAdded = (resumableFile: any) => {
       this.originalName = resumableFile.fileName;
@@ -54,6 +63,7 @@ export class FileUploadInput extends FormInput {
     };
     this.upload.onFileSuccess = (fileGUID: string) => {
       this.value = `${this.originalName}|${fileGUID}`;
+      toastr.success('File uploaded successfully.');
     };
     this.upload.onStateChange = (alertUnload: boolean) => {
       this.uploadInProgress = alertUnload;
@@ -72,6 +82,7 @@ export class FileUploadInput extends FormInput {
     this.$entryPoint.find('.cancel-icon').click((event) => {
       event.stopPropagation();
       this.upload.cancel();
+      this.$entryPoint.find('div.progress-bar-3').width('0');
       this.reset();
     });
   }
@@ -125,7 +136,7 @@ export class FileUploadInput extends FormInput {
 
 const fileTypes = new Map<UploadComponent, string[]>([
   [UploadComponent.Image, ['jpg', 'jpeg', 'png', 'gif']],
-  [UploadComponent.Content, []],
+  [UploadComponent.Content, ['qvw']],
   [UploadComponent.UserGuide, ['pdf']],
   [UploadComponent.ReleaseNotes, ['pdf']],
 ]);

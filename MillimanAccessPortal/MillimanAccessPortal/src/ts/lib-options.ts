@@ -68,6 +68,7 @@ export const resumableOptions = {
   currentChunkSizeParameterName: '',
   fileNameParameterName: 'fileName',
   identifierParameterName: 'uid',
+  maxChunkRetries: 3,
   maxFileSize: globalSettings.maxFileUploadSize,
   maxFiles: 1,
   permanentErrors: [400, 401, 404, 409, 415, 500, 501],

@@ -101,7 +101,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                     _logger.LogWarning(2, "User login failed.");
-                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(), model.Username);
+                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username));
                     return View(model);
                 }
                 
@@ -169,7 +169,7 @@ namespace MillimanAccessPortal.Controllers
                     {
                         ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                         _logger.LogWarning(2, "User login failed.");
-                        _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(), model.Username);
+                        _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username));
                         return View(model);
                     }
                 }

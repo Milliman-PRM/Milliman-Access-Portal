@@ -75,7 +75,7 @@ export function toggleExpanded($panel, $this) {
       const data = (attr === '')
         ? { text: 'Expand card', rv: null }
         : { text: 'Collapse card', rv: '' };
-      $this.find('.tooltip').tooltipster('content', data.text);
+      $this.filter('.tooltipstered').tooltipster('content', data.text);
       return data.rv;
     });
   updateToolbarIcons($panel);
