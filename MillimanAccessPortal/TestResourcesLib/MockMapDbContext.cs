@@ -145,17 +145,25 @@ namespace TestResourcesLib
         static object LockObject = new object();
         private static List<ApplicationRole> GetSystemRolesList()
         {
-            lock(LockObject)
+            lock (LockObject)
             {
+                bool ResetRoles = ApplicationRole.RoleIds.Count != Enum.GetValues(typeof(RoleEnum)).Length;
+
                 List<ApplicationRole> ReturnList = new List<ApplicationRole>();
-                ApplicationRole.RoleIds = new Dictionary<RoleEnum, Guid>();
+                if (ResetRoles)
+                {
+                    ApplicationRole.RoleIds.Clear();
+                }
 
                 foreach (RoleEnum Role in Enum.GetValues(typeof(RoleEnum)))
                 {
                     ApplicationRole NewRole = new ApplicationRole { Id = new Guid((int)Role,1,1,1,1,1,1,1,1,1,1), RoleEnum = Role, Name = Role.ToString(), NormalizedName = Role.ToString().ToUpper(), DisplayName = ApplicationRole.RoleDisplayNames[Role] };
 
                     ReturnList.Add(NewRole);
-                    ApplicationRole.RoleIds.Add(Role, NewRole.Id);
+                    if (ResetRoles)
+                    {
+                        ApplicationRole.RoleIds.Add(Role, NewRole.Id);
+                    }
                 }
                 return ReturnList;
             }
