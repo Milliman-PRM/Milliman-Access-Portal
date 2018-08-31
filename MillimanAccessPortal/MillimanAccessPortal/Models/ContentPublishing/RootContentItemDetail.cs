@@ -25,7 +25,6 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         [Display(Name = "Content Name")]
         public string ContentName { get; set; }
 
-        [Range(1, Int64.MaxValue, ErrorMessage = "You must select a content type")]  // TODO fix this range
         [Display(Name = "Content Type")]
         public Guid ContentTypeId { get; set; }
 
