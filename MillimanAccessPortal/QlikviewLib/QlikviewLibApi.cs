@@ -17,11 +17,12 @@ namespace QlikviewLib
 {
     public class QlikviewLibApi : ContentTypeSpecificApiBase
     {
-        public override async Task<UriBuilder> GetContentUri(string SelectionGroupUrl, string UserName, object ConfigInfoArg)
+        public override async Task<UriBuilder> GetContentUri(string FilePathRelativeToContentRoot, string UserName, object ConfigInfoArg)
         {
             QlikviewConfig ConfigInfo = (QlikviewConfig)ConfigInfoArg;
-            string ContentUrl = string.IsNullOrWhiteSpace(ConfigInfo.QvServerContentUriSubfolder) ?
-                SelectionGroupUrl : Path.Combine(ConfigInfo.QvServerContentUriSubfolder, SelectionGroupUrl) ;
+            string ContentUrl = string.IsNullOrWhiteSpace(ConfigInfo.QvServerContentUriSubfolder) 
+                ? FilePathRelativeToContentRoot 
+                : Path.Combine(ConfigInfo.QvServerContentUriSubfolder, FilePathRelativeToContentRoot);
 
             string QvServerUriScheme = "https";  // Scheme of the iframe should match scheme of the top page
 
@@ -55,8 +56,9 @@ namespace QlikviewLib
         /// </summary>
         /// <param name="ContentPathRelativeToNamedUserDocFolder"></param>
         /// <param name="ConfigInfo"></param>
+        /// <param name="SpecificFileName">If provided, authorizes only the named file in the designated path</param>
         /// <returns></returns>
-        public async Task AuthorizeUserDocumentsInFolder(string ContentPathRelativeToNamedUserDocFolder, QlikviewConfig ConfigInfo)
+        public async Task AuthorizeUserDocumentsInFolder(string ContentPathRelativeToNamedUserDocFolder, QlikviewConfig ConfigInfo, string SpecificFileName = null)
         {
             IQMS Client = QmsClientCreator.New(ConfigInfo.QvsQmsApiUrl);
 
@@ -71,6 +73,9 @@ namespace QlikviewLib
             DocumentNode[] AllDocNodesInRequestedFolder = await Client.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, ContentPathRelativeToNamedUserDocFolder);
             foreach (DocumentNode DocNode in AllDocNodesInRequestedFolder)
             {
+                if (!string.IsNullOrEmpty(SpecificFileName) && DocNode.Name != SpecificFileName)
+                    continue;
+
                 var DocAuthorizationMetadata = await Client.GetDocumentMetaDataAsync(DocNode, DocumentMetaDataScope.Authorization);
 
                 if (!DocAuthorizationMetadata.Authorization.Access.Any(a => a.UserName == ""))

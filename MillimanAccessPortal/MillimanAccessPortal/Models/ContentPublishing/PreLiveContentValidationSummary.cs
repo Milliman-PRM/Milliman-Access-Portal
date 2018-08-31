@@ -7,6 +7,7 @@ using MapDbContextLib.Models;
 using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using QlikviewLib;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
 {
@@ -29,7 +30,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public ContentReductionHierarchy<ReductionFieldValue> NewHierarchy { get; set; }
         public List<SelectionGroupSummary> SelectionGroups { get; set; }
 
-        public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig)
+        public static async Task<PreLiveContentValidationSummary> Build(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig, string UserName, object ContentTypeConfig)
         {
             ContentPublicationRequest PubRequest = Db.ContentPublicationRequest
                                                      .Include(r => r.RootContentItem).ThenInclude(c => c.ContentType)
@@ -103,7 +104,19 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 switch (RelatedFile.FilePurpose.ToLower())
                 {
                     case "mastercontent":
-                        ReturnObj.MasterContentLink = Link;
+                        switch (PubRequest.RootContentItem.ContentType.TypeEnum)
+                        {
+                            case ContentTypeEnum.Qlikview:
+                                // TODO authorize this document.  This is not the production file name.
+                                await new QlikviewLibApi().AuthorizeUserDocumentsInFolder(Path.GetDirectoryName(Link), ContentTypeConfig as QlikviewConfig, Path.GetFileName(Link));
+
+                                UriBuilder QvwUri = await new QlikviewLibApi().GetContentUri(Link, UserName, ContentTypeConfig);
+                                ReturnObj.MasterContentLink = QvwUri.Uri.AbsoluteUri;
+                                break;
+
+                            default:
+                                break;
+                        }
                         break;
 
                     case "thumbnail":

@@ -584,9 +584,9 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            PreLiveContentValidationSummary ReturnObj = PreLiveContentValidationSummary.Build(DbContext, RootContentItemId, ApplicationConfig);
+            PreLiveContentValidationSummary ReturnObj = await PreLiveContentValidationSummary.Build(DbContext, RootContentItemId, ApplicationConfig, User.Identity.Name, QlikviewConfig);
 
-            var preGoLiveSummary = new
+            var preGoLiveSummaryLog = new
             {
                 ReturnObj.ValidationSummaryId,
                 ReturnObj.PublicationRequestId,
@@ -599,7 +599,7 @@ namespace MillimanAccessPortal.Controllers
                 ReturnObj.DoesReduce,
                 ReturnObj.ClientName,
             };
-            AuditLogger.Log(AuditEventType.PreGoLiveSummary.ToEvent(preGoLiveSummary));
+            AuditLogger.Log(AuditEventType.PreGoLiveSummary.ToEvent(preGoLiveSummaryLog));
 
             return new JsonResult(ReturnObj);
         }
