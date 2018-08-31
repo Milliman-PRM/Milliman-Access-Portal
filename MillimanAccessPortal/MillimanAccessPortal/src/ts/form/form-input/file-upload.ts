@@ -1,7 +1,11 @@
+import * as toastr from 'toastr';
+
 import { ProgressSummary } from '../../upload/progress-monitor';
 import { Upload, UploadComponent } from '../../upload/upload';
 import { AccessMode } from '../form-modes';
 import { FormInput } from './input';
+
+import 'toastr/toastr.scss';
 
 export class FileUploadInput extends FormInput {
   protected _cssClasses = {
@@ -43,6 +47,7 @@ export class FileUploadInput extends FormInput {
     this.upload.onError = () => {
       const errorBar = this.$entryPoint.find('div.progress-bar-3');
       errorBar.width('100%');
+      toastr.error('An error occurred during upload.');
     };
 
     this.upload.onFileAdded = (resumableFile: any) => {
@@ -58,6 +63,7 @@ export class FileUploadInput extends FormInput {
     };
     this.upload.onFileSuccess = (fileGUID: string) => {
       this.value = `${this.originalName}|${fileGUID}`;
+      toastr.success('File uploaded successfully.');
     };
     this.upload.onStateChange = (alertUnload: boolean) => {
       this.uploadInProgress = alertUnload;
