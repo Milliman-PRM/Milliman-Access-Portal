@@ -80,12 +80,15 @@ export class Submission extends FormElement {
         $button.html($button.data().submitText || 'Submitting');
         $button.append('<div class="spinner-small"></div>');
         $button.attr('disabled', '');
-        for (const group of mode.groups) {
-          await group.submit(form, mode.sparse);
+        try {
+          for (const group of mode.groups) {
+            await group.submit(form, mode.sparse);
+          }
+        } finally {
+          // hide button spinner
+          $button.html($button.data().originalText);
+          $button.removeAttr('disabled');
         }
-        // hide button spinner
-        $button.html($button.data().originalText);
-        $button.removeAttr('disabled');
       });
 
     // Set reset callback
