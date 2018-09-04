@@ -73,9 +73,19 @@ export class Submission extends FormElement {
       .off('click')
       .on('click', async (event) => {
         event.preventDefault();
+        // show button spinner
+        const $button = this.$entryPoint.find('button.button-submit');
+        if ($button.find('.spinner-small').length) { return; }
+        $button.data('originalText', $button.html());
+        $button.html($button.data().submitText || 'Submitting');
+        $button.append('<div class="spinner-small"></div>');
+        $button.attr('disabled', '');
         for (const group of mode.groups) {
           await group.submit(form, mode.sparse);
         }
+        // hide button spinner
+        $button.html($button.data().originalText);
+        $button.removeAttr('disabled');
       });
 
     // Set reset callback
