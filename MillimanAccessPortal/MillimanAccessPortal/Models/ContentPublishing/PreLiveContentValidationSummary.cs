@@ -5,8 +5,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using MapDbContextLib.Models;
 using MapDbContextLib.Context;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using QlikviewLib;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
 {
@@ -29,7 +31,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public ContentReductionHierarchy<ReductionFieldValue> NewHierarchy { get; set; }
         public List<SelectionGroupSummary> SelectionGroups { get; set; }
 
-        public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig)
+        public static async Task<PreLiveContentValidationSummary> Build(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig, HttpContext Context, object ContentTypeConfig)
         {
             ContentPublicationRequest PubRequest = Db.ContentPublicationRequest
                                                      .Include(r => r.RootContentItem).ThenInclude(c => c.ContentType)
@@ -103,19 +105,56 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 switch (RelatedFile.FilePurpose.ToLower())
                 {
                     case "mastercontent":
-                        ReturnObj.MasterContentLink = Link;
+                        switch (PubRequest.RootContentItem.ContentType.TypeEnum)
+                        {
+                            case ContentTypeEnum.Qlikview:
+                                // TODO authorize this document.  This is not the production file name.
+                                await new QlikviewLibApi().AuthorizeUserDocumentsInFolder(Path.GetDirectoryName(Link), ContentTypeConfig as QlikviewConfig, Path.GetFileName(Link));
+
+                                UriBuilder QvwUri = await new QlikviewLibApi().GetContentUri(Link, Context.User.Identity.Name, ContentTypeConfig);
+                                ReturnObj.MasterContentLink = QvwUri.Uri.AbsoluteUri;
+                                break;
+
+                            default:
+                                break;
+                        }
                         break;
 
                     case "thumbnail":
-                        ReturnObj.ThumbnailLink = Link;
+                        UriBuilder thumbnailUrlBuilder = new UriBuilder
+                        {
+                            Host = Context.Request.Host.Host,
+                            Scheme = Context.Request.Scheme,
+                            Port = Context.Request.Host.Port ?? -1,
+                            Path = "/AuthorizedContent/ThumbnailPreview",
+                            Query = $"publicationRequestId={PubRequest.Id}",
+                        };
+                        // this doesn't happen
+                        ReturnObj.ThumbnailLink = thumbnailUrlBuilder.Uri.AbsoluteUri;
                         break;
 
                     case "userguide":
-                        ReturnObj.UserGuideLink = Link;
+                        UriBuilder userGuideUrlBuilder = new UriBuilder
+                        {
+                            Host = Context.Request.Host.Host,
+                            Scheme = Context.Request.Scheme,
+                            Port = Context.Request.Host.Port ?? -1,
+                            Path = "/AuthorizedContent/PdfPreview",
+                            Query = $"purpose=userguide&publicationRequestId={PubRequest.Id}",
+                        };
+                        ReturnObj.UserGuideLink = userGuideUrlBuilder.Uri.AbsoluteUri;
                         break;
 
                     case "releasenotes":
-                        ReturnObj.ReleaseNotesLink = Link;
+                        UriBuilder releaseNotesUrlBuilder = new UriBuilder
+                        {
+                            Host = Context.Request.Host.Host,
+                            Scheme = Context.Request.Scheme,
+                            Port = Context.Request.Host.Port ?? -1,
+                            Path = "/AuthorizedContent/PdfPreview",
+                            Query = $"purpose=releasenotes&publicationRequestId={PubRequest.Id}",
+                        };
+                        ReturnObj.ReleaseNotesLink = releaseNotesUrlBuilder.Uri.AbsoluteUri;
                         break;
                 }
             }
