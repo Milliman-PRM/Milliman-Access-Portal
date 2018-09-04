@@ -127,7 +127,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             Scheme = Context.Request.Scheme,
                             Port = Context.Request.Host.Port.HasValue ? Context.Request.Host.Port.Value : -1,
                             Path = "/AuthorizedContent/ThumbnailPreview",
-                            Query = $"fileName={Path.GetFileName(RelatedFile.FullPath)}&rootContentItemId={PubRequest.RootContentItemId}",
+                            Query = $"publicationRequestId={PubRequest.Id}",
                         };
                         // this doesn't happen
                         ReturnObj.ThumbnailLink = thumbnailUrlBuilder.Uri.AbsoluteUri;
@@ -139,8 +139,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             Host = Context.Request.Host.Host,
                             Scheme = Context.Request.Scheme,
                             Port = Context.Request.Host.Port.HasValue ? Context.Request.Host.Port.Value : -1,
-                            Path = "/AuthorizedContent/PreviewPdf",
-                            Query = $"fileName={Path.GetFileName(RelatedFile.FullPath)}&rootContentItemId={PubRequest.RootContentItemId}",
+                            Path = "/AuthorizedContent/PdfPreview",
+                            Query = $"purpose=userguide&publicationRequestId={PubRequest.Id}",
                         };
                         ReturnObj.UserGuideLink = userGuideUrlBuilder.Uri.AbsoluteUri;
                         break;
@@ -151,8 +151,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             Host = Context.Request.Host.Host,
                             Scheme = Context.Request.Scheme,
                             Port = Context.Request.Host.Port.HasValue ? Context.Request.Host.Port.Value : -1,
-                            Path = "/AuthorizedContent/PreviewPdf",
-                            Query = $"fileName={Path.GetFileName(RelatedFile.FullPath)}&rootContentItemId={PubRequest.RootContentItemId}",
+                            Path = "/AuthorizedContent/PdfPreview",
+                            Query = $"purpose=releasenotes&publicationRequestId={PubRequest.Id}",
                         };
                         ReturnObj.ReleaseNotesLink = releaseNotesUrlBuilder.Uri.AbsoluteUri;
                         break;

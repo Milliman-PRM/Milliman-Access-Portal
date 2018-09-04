@@ -236,6 +236,64 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
+        /// <summary>
+        /// Handles a request to display a pre-production thumbnail 
+        /// </summary>
+        /// <param name="publicationRequestId">The primary key value of the ContentPublicationRequest associated with this request</param>
+        /// <returns>A View (and model) that displays the requested content</returns>
+        [Authorize]
+        public IActionResult ThumbnailPreview(Guid publicationRequestId)
+        {
+            var PubRequest = DataContext.ContentPublicationRequest
+                                        .Include(r => r.RootContentItem)
+                                        .FirstOrDefault(r => r.Id == publicationRequestId);
+
+            #region Validation
+            if (PubRequest == null || PubRequest.RootContentItem == null || PubRequest.RootContentItem.ContentType == null)
+            {
+                string Msg = $"Failed to obtain the requested publication request, root content item, or content type";
+                Logger.LogError(Msg);
+                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
+            }
+            #endregion
+
+            try
+            {
+                ContentRelatedFile contentRelatedThumbnail = PubRequest.LiveReadyFilesObj.SingleOrDefault(cf => cf.FilePurpose.ToLower() == "thumbnail");
+
+                if (contentRelatedThumbnail != null && System.IO.File.Exists(contentRelatedThumbnail.FullPath))
+                {
+                    switch (Path.GetExtension(contentRelatedThumbnail.FullPath).ToLower())
+                    {
+                        case ".png":
+                            return File(System.IO.File.OpenRead(contentRelatedThumbnail.FullPath), "image/png");
+
+                        case ".gif":
+                            return File(System.IO.File.OpenRead(contentRelatedThumbnail.FullPath), "image/gif");
+
+                        case ".jpg":
+                        case ".jpeg":
+                            return File(System.IO.File.OpenRead(contentRelatedThumbnail.FullPath), "image/jpeg");
+
+                        default:
+                            throw new Exception();
+                    }
+                }
+                else
+                {
+                    // when the content item has no thumbnail, return the default image for the ContentType
+                    return Redirect($"/images/{PubRequest.RootContentItem.ContentType.DefaultIconName}");
+                }
+            }
+            catch
+            {
+                // ControllerBase.File does not throw, but the Stream can throw all sorts of things.
+                string ErrMsg = $"Failed to obtain preview image for ContentPublicationRequest {publicationRequestId}";
+                Logger.LogError(ErrMsg);
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
+            }
+        }
+
         [Authorize]
         public async Task<IActionResult> RelatedPdf(string purpose, Guid selectionGroupId)
         {
@@ -280,22 +338,23 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [Authorize]
-        public async Task<IActionResult> PreviewPdf(string fileName, Guid rootContentItemId)
+        public async Task<IActionResult> PdfPreview(string purpose, Guid publicationRequestId)
         {
-            var rootContentItem = DataContext.RootContentItem
-                                             .FirstOrDefault(c => c.Id == rootContentItemId);
+            var PubRequest = DataContext.ContentPublicationRequest
+                                        .Include(r => r.RootContentItem)
+                                        .FirstOrDefault(r => r.Id == publicationRequestId);
 
             #region Validation
-            if (rootContentItem == null)
+            if (PubRequest == null || PubRequest.RootContentItem == null)
             {
-                string Msg = $"Failed to obtain the requested root content item";
+                string Msg = $"Failed to obtain the requested publicatio request or related root content item";
                 Logger.LogError(Msg);
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
             #endregion
 
             #region Authorization
-            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItemId));
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
             if (!Result1.Succeeded)
             {
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
@@ -307,14 +366,18 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                string FullFilePath = Path.Combine(ApplicationConfig["Storage:ContentItemRootPath"], rootContentItemId.ToString(), fileName);
+                string FullFilePath = Path.Combine(
+                    ApplicationConfig["Storage:ContentItemRootPath"], 
+                    PubRequest.RootContentItemId.ToString(), 
+                    PubRequest.LiveReadyFilesObj.Single(f => f.FilePurpose.ToLower() == purpose).FullPath
+                );
                 FileStream fileStream = System.IO.File.OpenRead(FullFilePath);
 
                 return File(fileStream, "application/pdf");
             }
             catch (Exception e)
             {
-                string ErrMsg = $"Failed to load requested PDF for RootContentItem {rootContentItemId}";
+                string ErrMsg = $"Failed to load requested PDF for RootContentItem {PubRequest.RootContentItemId}";
                 Logger.LogError(GlobalFunctions.LoggableExceptionString(e, ErrMsg, true));
                 Response.Headers.Add("Warning", ErrMsg);
                 return StatusCode(StatusCodes.Status500InternalServerError);
