@@ -457,7 +457,7 @@ function renderClientNode(client: BasicNode<ClientSummary>, level: number = 0) {
     wrapCardCallback(get(
       'ContentPublishing/RootContentItems',
       [ renderRootContentItemList ],
-    )),
+    ), () => formObject),
   );
   $card.disabled = !client.Value.CanManage;
   $('#client-tree ul.admin-panel-content').append($card.build());

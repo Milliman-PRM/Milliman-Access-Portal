@@ -139,6 +139,7 @@ export function wrapCardCallback(
 
     const clearSelection = () => {
       $panel.find('.card-body-container').removeAttr('editing selected');
+      $nextPanels.find('.card-body-container').removeAttr('editing selected');
     };
     const openCard = () => {
       $panel.find('.insert-card').remove();
