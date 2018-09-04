@@ -255,10 +255,13 @@ label.input-with-upload {
             transition: 1.0s linear;
         }
         .progress-bar-1 {
-            background-color: rgb(100, 200, 255);
+            background-color: $blue;
         }
         .progress-bar-2 {
-            background-color: rgb(0, 235, 0);
+            background-color: $green;
+        }
+        .progress-bar-3 {
+            background-color: $red;
         }
     }
 
@@ -275,7 +278,8 @@ label.input-with-upload {
 }
 
 span.field-validation-error,
-span.form-validation-error {
+span.form-validation-error,
+.validation-summary-errors {
     color: $red;
     font-weight: bold;
     font-style: italic;
@@ -284,6 +288,10 @@ span.form-validation-error {
 
 span.form-validation-error {
     margin-left: 1em;
+}
+
+.validation-summary-errors > ul {
+    list-style: none;
 }
 
 /* Contact Form */
