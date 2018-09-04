@@ -110,6 +110,9 @@ export function rootContentItemCancelClickHandler(event) {
   new CancelContentPublicationRequestDialog(rootContentItemId, rootContentItemName, cancelContentPublication).open();
 }
 export function openNewRootContentItemForm() {
+  if (formObject && formObject.submissionMode === 'new') {
+    return;
+  }
   const clientId = $('#client-tree [selected]').parent().data().clientId;
   renderRootContentItemForm({
     ClientId: clientId,
