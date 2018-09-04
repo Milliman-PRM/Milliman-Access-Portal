@@ -79,6 +79,13 @@ namespace MapDbContextLib.Context
         [Column(TypeName = "jsonb")]
         public string ReductionRelatedFiles { get; set; } = "[]";
 
+        /// <summary>
+        /// May also be accessed through [NotMapped] property UploadedRelatedFilesObj
+        /// Intended to be serialization of type List<UploadedRelatedFile>
+        /// </summary>
+        [Column(TypeName = "jsonb")]
+        public string UploadedRelatedFiles { get; set; } = "[]";
+
         [Required]
         public PublicationStatus RequestStatus { get; set; }
 
@@ -113,6 +120,25 @@ namespace MapDbContextLib.Context
             set
             {
                 LiveReadyFiles = value != null
+                    ? JsonConvert.SerializeObject(value)
+                    : "[]";
+            }
+        }
+
+        /// <summary>
+        /// Identifies files uploaded as part of a publication request
+        /// </summary>
+        /// <remarks>This field is expected to be empty once uploaded files have been processed.</remarks>
+        [NotMapped]
+        public List<UploadedRelatedFile> UploadedRelatedFilesObj
+        {
+            get
+            {
+                return JsonConvert.DeserializeObject<List<UploadedRelatedFile>>(UploadedRelatedFiles);
+            }
+            set
+            {
+                UploadedRelatedFiles = value != null
                     ? JsonConvert.SerializeObject(value)
                     : "[]";
             }
