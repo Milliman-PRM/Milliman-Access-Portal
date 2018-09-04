@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MapDbContextLib.Models;
 using MapDbContextLib.Context;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using QlikviewLib;
@@ -30,7 +31,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public ContentReductionHierarchy<ReductionFieldValue> NewHierarchy { get; set; }
         public List<SelectionGroupSummary> SelectionGroups { get; set; }
 
-        public static async Task<PreLiveContentValidationSummary> Build(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig, string UserName, object ContentTypeConfig)
+        public static async Task<PreLiveContentValidationSummary> Build(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig, HttpContext Context, object ContentTypeConfig)
         {
             ContentPublicationRequest PubRequest = Db.ContentPublicationRequest
                                                      .Include(r => r.RootContentItem).ThenInclude(c => c.ContentType)
@@ -110,7 +111,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                 // TODO authorize this document.  This is not the production file name.
                                 await new QlikviewLibApi().AuthorizeUserDocumentsInFolder(Path.GetDirectoryName(Link), ContentTypeConfig as QlikviewConfig, Path.GetFileName(Link));
 
-                                UriBuilder QvwUri = await new QlikviewLibApi().GetContentUri(Link, UserName, ContentTypeConfig);
+                                UriBuilder QvwUri = await new QlikviewLibApi().GetContentUri(Link, Context.User.Identity.Name, ContentTypeConfig);
                                 ReturnObj.MasterContentLink = QvwUri.Uri.AbsoluteUri;
                                 break;
 
@@ -120,15 +121,40 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         break;
 
                     case "thumbnail":
-                        ReturnObj.ThumbnailLink = Link;
+                        UriBuilder thumbnailUrlBuilder = new UriBuilder
+                        {
+                            Host = Context.Request.Host.Host,
+                            Scheme = Context.Request.Scheme,
+                            Port = Context.Request.Host.Port.HasValue ? Context.Request.Host.Port.Value : -1,
+                            Path = "/AuthorizedContent/ThumbnailPreview",
+                            Query = $"fileName={Path.GetFileName(RelatedFile.FullPath)}&rootContentItemId={PubRequest.RootContentItemId}",
+                        };
+                        // this doesn't happen
+                        ReturnObj.ThumbnailLink = thumbnailUrlBuilder.Uri.AbsoluteUri;
                         break;
 
                     case "userguide":
-                        ReturnObj.UserGuideLink = Link;
+                        UriBuilder userGuideUrlBuilder = new UriBuilder
+                        {
+                            Host = Context.Request.Host.Host,
+                            Scheme = Context.Request.Scheme,
+                            Port = Context.Request.Host.Port.HasValue ? Context.Request.Host.Port.Value : -1,
+                            Path = "/AuthorizedContent/PreviewPdf",
+                            Query = $"fileName={Path.GetFileName(RelatedFile.FullPath)}&rootContentItemId={PubRequest.RootContentItemId}",
+                        };
+                        ReturnObj.UserGuideLink = userGuideUrlBuilder.Uri.AbsoluteUri;
                         break;
 
                     case "releasenotes":
-                        ReturnObj.ReleaseNotesLink = Link;
+                        UriBuilder releaseNotesUrlBuilder = new UriBuilder
+                        {
+                            Host = Context.Request.Host.Host,
+                            Scheme = Context.Request.Scheme,
+                            Port = Context.Request.Host.Port.HasValue ? Context.Request.Host.Port.Value : -1,
+                            Path = "/AuthorizedContent/PreviewPdf",
+                            Query = $"fileName={Path.GetFileName(RelatedFile.FullPath)}&rootContentItemId={PubRequest.RootContentItemId}",
+                        };
+                        ReturnObj.ReleaseNotesLink = releaseNotesUrlBuilder.Uri.AbsoluteUri;
                         break;
                 }
             }

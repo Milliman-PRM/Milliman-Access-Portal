@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
@@ -41,14 +42,19 @@ namespace MillimanAccessPortal.Controllers
         private readonly QlikviewConfig QlikviewConfig;
         private readonly StandardQueries Queries;
         private readonly UserManager<ApplicationUser> UserManager;
+        private readonly IConfiguration ApplicationConfig;
 
         /// <summary>
         /// Constructor.  Makes instance copies of injected resources from the application. 
         /// </summary>
-        /// <param name="UserManagerArg"></param>
-        /// <param name="LoggerFactoryArg"></param>
+        /// <param name="AuditLoggerArg"></param>
+        /// <param name="AuthorizationServiceArg"></param>
         /// <param name="DataContextArg"></param>
+        /// <param name="LoggerFactoryArg"></param>
         /// <param name="QlikviewOptionsAccessorArg"></param>
+        /// <param name="QueryArg"></param>
+        /// <param name="UserManagerArg"></param>
+        /// <param name="AppConfigurationArg"></param>
         public AuthorizedContentController(
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
@@ -56,7 +62,8 @@ namespace MillimanAccessPortal.Controllers
             ILoggerFactory LoggerFactoryArg,
             IOptions<QlikviewConfig> QlikviewOptionsAccessorArg,
             StandardQueries QueryArg,
-            UserManager<ApplicationUser> UserManagerArg)
+            UserManager<ApplicationUser> UserManagerArg,
+            IConfiguration AppConfigurationArg)
         {
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
@@ -65,6 +72,7 @@ namespace MillimanAccessPortal.Controllers
             QlikviewConfig = QlikviewOptionsAccessorArg.Value;
             Queries = QueryArg;
             UserManager = UserManagerArg;
+            ApplicationConfig = AppConfigurationArg;
         }
 
         /// <summary>
@@ -268,6 +276,48 @@ namespace MillimanAccessPortal.Controllers
             {
                 string ErrMsg = $"Failed to load requested {purpose} PDF for SelectionGroup {selectionGroupId}";
                 Logger.LogError(ErrMsg);
+                Response.Headers.Add("Warning", ErrMsg);
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        [Authorize]
+        public async Task<IActionResult> PreviewPdf(string fileName, Guid rootContentItemId)
+        {
+            var rootContentItem = DataContext.RootContentItem
+                                             .FirstOrDefault(c => c.Id == rootContentItemId);
+
+            #region Validation
+            if (rootContentItem == null)
+            {
+                string Msg = $"Failed to obtain the requested root content item";
+                Logger.LogError(Msg);
+                return StatusCode(StatusCodes.Status500InternalServerError, Msg);
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, rootContentItemId));
+            if (!Result1.Succeeded)
+            {
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+
+                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
+                return Unauthorized();
+            }
+            #endregion
+
+            try
+            {
+                string FullFilePath = Path.Combine(ApplicationConfig["Storage:ContentItemRootPath"], rootContentItemId.ToString(), fileName);
+                FileStream fileStream = System.IO.File.OpenRead(FullFilePath);
+
+                return File(fileStream, "application/pdf");
+            }
+            catch (Exception e)
+            {
+                string ErrMsg = $"Failed to load requested PDF for RootContentItem {rootContentItemId}";
+                Logger.LogError(GlobalFunctions.LoggableExceptionString(e, ErrMsg, true));
                 Response.Headers.Add("Warning", ErrMsg);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }

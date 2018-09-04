@@ -584,7 +584,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            PreLiveContentValidationSummary ReturnObj = await PreLiveContentValidationSummary.Build(DbContext, RootContentItemId, ApplicationConfig, User.Identity.Name, QlikviewConfig);
+            PreLiveContentValidationSummary ReturnObj = await PreLiveContentValidationSummary.Build(DbContext, RootContentItemId, ApplicationConfig, HttpContext, QlikviewConfig);
 
             var preGoLiveSummaryLog = new
             {
