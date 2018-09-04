@@ -81,13 +81,20 @@ namespace MillimanAccessPortal
             services.AddIdentity<ApplicationUser, ApplicationRole>(config =>
                 {
                     config.SignIn.RequireConfirmedEmail = true;
+                    config.Tokens.EmailConfirmationTokenProvider = "ConfirmEmail";
                 })
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders()
                 .AddTop100000PasswordValidator<ApplicationUser>()
                 .AddRecentPasswordInDaysValidator<ApplicationUser>(passwordHistoryDays)
                 .AddPasswordValidator<PasswordIsNotEmailOrUsernameValidator<ApplicationUser>>()
-                .AddCommonWordsValidator<ApplicationUser>(commonWords);
+                .AddCommonWordsValidator<ApplicationUser>(commonWords)
+                .AddTokenProvider<ConfirmEmailTokenProvider<ApplicationUser>>("ConfirmEmail");
+
+            services.Configure<ConfirmEmailDataProtectionTokenProviderOptions>(options =>
+            {
+                options.TokenLifespan = TimeSpan.FromMilliseconds(1);
+            });
 
             services.Configure<PasswordHasherOptions>(options => options.IterationCount = passwordHashingIterations);
 
