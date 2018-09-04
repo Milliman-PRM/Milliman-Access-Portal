@@ -117,35 +117,5 @@ namespace MapDbContextLib.Context
                     : "[]";
             }
         }
-
-        public static PublicationStatus GetPublicationStatus(List<ReductionStatusEnum> TaskStatusList)
-        {
-            List<ReductionStatusEnum> CompleteList = new List<ReductionStatusEnum> { ReductionStatusEnum.Reduced, ReductionStatusEnum.Canceled, ReductionStatusEnum.Live };
-            List<ReductionStatusEnum> QueuedList = new List<ReductionStatusEnum> { ReductionStatusEnum.Queued };
-
-            if (TaskStatusList.TrueForAll(s => CompleteList.Contains(s)))
-            {
-                return PublicationStatus.Processed;
-            }
-
-            else if (TaskStatusList.TrueForAll(s => s == ReductionStatusEnum.Queued))
-            {
-                return PublicationStatus.Queued;
-            }
-
-            else if (TaskStatusList.All(s => s == ReductionStatusEnum.Queued
-                                          || s == ReductionStatusEnum.Reducing
-                                          || s == ReductionStatusEnum.Reduced
-                                          || s == ReductionStatusEnum.Replaced
-                                          || s == ReductionStatusEnum.Canceled
-                                          || s == ReductionStatusEnum.Rejected
-                                          || s == ReductionStatusEnum.Live)
-                  && TaskStatusList.Count(s => s == ReductionStatusEnum.Queued || s == ReductionStatusEnum.Reducing) > 0)
-            {
-                return PublicationStatus.Processing;
-            }
-
-            return PublicationStatus.Unknown;
-        }
     }
 }
