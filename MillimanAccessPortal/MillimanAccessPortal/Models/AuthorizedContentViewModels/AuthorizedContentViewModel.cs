@@ -39,7 +39,6 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                 Query = $"selectionGroupId=",
             };
 
-            // TODO each of the below UrlBuilders should be conditional on the existence of the related file
             UriBuilder thumbnailUrlBuilder = new UriBuilder
             {
                 Host = Context.Request.Host.Host,
