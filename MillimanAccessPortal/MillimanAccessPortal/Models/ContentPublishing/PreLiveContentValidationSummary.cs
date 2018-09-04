@@ -125,7 +125,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         {
                             Host = Context.Request.Host.Host,
                             Scheme = Context.Request.Scheme,
-                            Port = Context.Request.Host.Port.HasValue ? Context.Request.Host.Port.Value : -1,
+                            Port = Context.Request.Host.Port ?? -1,
                             Path = "/AuthorizedContent/ThumbnailPreview",
                             Query = $"publicationRequestId={PubRequest.Id}",
                         };
@@ -138,7 +138,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         {
                             Host = Context.Request.Host.Host,
                             Scheme = Context.Request.Scheme,
-                            Port = Context.Request.Host.Port.HasValue ? Context.Request.Host.Port.Value : -1,
+                            Port = Context.Request.Host.Port ?? -1,
                             Path = "/AuthorizedContent/PdfPreview",
                             Query = $"purpose=userguide&publicationRequestId={PubRequest.Id}",
                         };
@@ -150,7 +150,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         {
                             Host = Context.Request.Host.Host,
                             Scheme = Context.Request.Scheme,
-                            Port = Context.Request.Host.Port.HasValue ? Context.Request.Host.Port.Value : -1,
+                            Port = Context.Request.Host.Port ?? -1,
                             Path = "/AuthorizedContent/PdfPreview",
                             Query = $"purpose=releasenotes&publicationRequestId={PubRequest.Id}",
                         };

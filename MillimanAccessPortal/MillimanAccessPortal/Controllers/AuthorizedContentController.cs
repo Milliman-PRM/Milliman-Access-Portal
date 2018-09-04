@@ -347,7 +347,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (PubRequest == null || PubRequest.RootContentItem == null)
             {
-                string Msg = $"Failed to obtain the requested publicatio request or related root content item";
+                string Msg = $"Failed to obtain the requested publication request or related root content item";
                 Logger.LogError(Msg);
                 return StatusCode(StatusCodes.Status500InternalServerError, Msg);
             }
