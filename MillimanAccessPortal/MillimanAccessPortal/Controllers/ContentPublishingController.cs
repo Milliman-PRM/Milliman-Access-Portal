@@ -477,6 +477,7 @@ namespace MillimanAccessPortal.Controllers
                 RootContentItemId = ContentItem.Id,
                 LiveReadyFilesObj = new List<ContentRelatedFile>(),
                 ReductionRelatedFilesObj = new List<ReductionRelatedFiles>(),
+                UploadedRelatedFilesObj = Arg.RelatedFiles.ToList(),
             };
             try
             {
@@ -493,7 +494,7 @@ namespace MillimanAccessPortal.Controllers
             string exchangePath = ApplicationConfig.GetSection("Storage")["MapPublishingServerExchangePath"];
             string CxnString = ApplicationConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
             ContentPublishSupport.AddPublicationMonitor(Task.Run(() =>
-                ContentPublishSupport.MonitorPublicationRequestForQueueing(NewContentPublicationRequest.Id, Arg.RelatedFiles, CxnString, rootPath, exchangePath)));
+                ContentPublishSupport.MonitorPublicationRequestForQueueing(NewContentPublicationRequest.Id, CxnString, rootPath, exchangePath)));
 
             return Ok();
         }
