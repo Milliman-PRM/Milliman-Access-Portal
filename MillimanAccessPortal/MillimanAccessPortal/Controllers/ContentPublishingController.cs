@@ -522,9 +522,14 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
+            var cancelableStatus = new List<PublicationStatus>
+            {
+                PublicationStatus.Validating,
+                PublicationStatus.Queued,
+            };
             var contentPublicationRequest = DbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == rootContentItem.Id)
-                .Where(r => r.RequestStatus == PublicationStatus.Queued)
+                .Where(r => cancelableStatus.Contains(r.RequestStatus))
                 .SingleOrDefault();
             if (contentPublicationRequest == null)
             {
