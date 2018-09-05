@@ -21,6 +21,10 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                 .Where(usg => usg.UserId == user.Id)
                 .Where(usg => !usg.SelectionGroup.IsSuspended)
                 .Where(usg => !usg.SelectionGroup.RootContentItem.IsSuspended)
+                .Where(usg => dbContext.ContentPublicationRequest
+                    .Where(pr => pr.RootContentItemId == usg.SelectionGroup.RootContentItemId)
+                    .Where(pr => pr.RequestStatus == PublicationStatus.Confirmed)
+                    .Any())
                 .Select(usg => usg.SelectionGroup);
 
             var selectionGroups = selectionGroupsQuery
