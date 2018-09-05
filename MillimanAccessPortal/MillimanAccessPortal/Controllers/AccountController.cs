@@ -365,8 +365,10 @@ namespace MillimanAccessPortal.Controllers
                 ? string.Empty
                 : SettableEmailText + $"{Environment.NewLine}{Environment.NewLine}";
 
+            string accountActivationDays = _configuration.GetValue<string>("AccountActivationTokenTimespanDays");
+
             // Non-configurable portion of email body
-            emailBody += $"To activate your new account please click the below link or paste to your web browser:{Environment.NewLine}{callbackUrl}";
+            emailBody += $"To activate your new account please click the below link or paste to your web browser. {Environment.NewLine} This link will expire in {accountActivationDays} days. {Environment.NewLine}{callbackUrl}";
             string emailSubject = "Welcome to Milliman Access Portal";
             // Send welcome email
             _messageSender.QueueEmail(RequestedUser.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
@@ -493,7 +495,9 @@ namespace MillimanAccessPortal.Controllers
                         string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
                         string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = user.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
 
-                        string emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page.{Environment.NewLine}";
+                        string expirationHours = _configuration.GetValue<string>("PasswordResetTokenTimespanHours");
+
+                        string emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}";
                         emailBody += $"Your user name is {user.UserName}{Environment.NewLine}{Environment.NewLine}";
                         emailBody += $"{linkUrl}";
                         _messageSender.QueueEmail(model.Email, "MAP password reset", emailBody);
