@@ -541,6 +541,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             contentPublicationRequest.RequestStatus = PublicationStatus.Canceled;
+            contentPublicationRequest.UploadedRelatedFilesObj = null;
             DbContext.ContentPublicationRequest.Update(contentPublicationRequest);
             try
             {

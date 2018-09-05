@@ -280,6 +280,7 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
     if (item.RelatedFiles) {
       item.RelatedFiles.forEach((relatedFile) => {
         $rootContentItemForm.find(`#${relatedFile.FilePurpose}`)
+          .val('')
           .siblings('label').find('.file-upload')
           .data('originalName', relatedFile.FileOriginalName);
       });
