@@ -75,7 +75,7 @@ namespace MillimanAccessPortal
             int passwordHistoryDays = Configuration.GetValue<int>("PasswordHistoryValidatorDays");
             List<string> commonWords = Configuration.GetSection("PasswordBannedWords").GetChildren().Select(c => c.Value).ToList<string>();
             int passwordHashingIterations = Configuration.GetValue<int>("PasswordHashingIterations");
-            int accountActivationTimespanDays = Configuration.GetValue<int>("AccountActivationTimespanDays");
+            int accountActivationTokenTimespanDays = Configuration.GetValue<int>("AccountActivationTokenTimespanDays");
             int passwordResetTokenTimespanHours = Configuration.GetValue<int>("PasswordResetTokenTimespanHours");
             string tokenProviderName = "MAPResetToken";
 
@@ -126,7 +126,7 @@ namespace MillimanAccessPortal
             // Configure the default token provider used for account activation
             services.Configure<DataProtectionTokenProviderOptions>(options =>
                 {
-                    options.TokenLifespan = TimeSpan.FromDays(accountActivationTimespanDays);
+                    options.TokenLifespan = TimeSpan.FromDays(accountActivationTokenTimespanDays);
                 }
             );
 
