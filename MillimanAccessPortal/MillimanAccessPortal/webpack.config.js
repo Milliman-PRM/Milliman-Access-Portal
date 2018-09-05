@@ -6,17 +6,18 @@ const SpriteLoaderPlugin = require('svg-sprite-loader/plugin');
 
 module.exports = {
   entry: {
-    'create-initial-user': './src/js/create-initial-user.js',
-    'forgot-password': './src/js/forgot-password.js',
-    'forgot-password-confirmation': './src/js/forgot-password-confirmation.js',
-    'reset-password': './src/js/reset-password.js',
-    'enable-account': './src/js/enable-account.js',
     'account-settings': './src/js/account-settings.js',
+    'authorized-content': './src/js/react/authorized-content/index.js',
     'client-admin': './src/js/client-admin.js',
     'content-access-admin': './src/js/content-access-admin/index.js',
     'content-publishing': './src/js/content-publishing/index.js',
-    'authorized-content': './src/js/react/authorized-content/index.js',
+    'create-initial-user': './src/js/create-initial-user.js',
+    'enable-account': './src/js/enable-account.js',
+    'forgot-password': './src/js/forgot-password.js',
+    'forgot-password-confirmation': './src/js/forgot-password-confirmation.js',
     'login': './src/js/login.js',
+    'message': './src/js/message.js',
+    'reset-password': './src/js/reset-password.js',
     'system-admin': './src/js/react/system-admin/index.js',
   },
   module: {

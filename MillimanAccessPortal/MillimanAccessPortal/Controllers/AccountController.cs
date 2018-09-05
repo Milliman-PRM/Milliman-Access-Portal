@@ -408,8 +408,8 @@ namespace MillimanAccessPortal.Controllers
                 string WelcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
                 Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, WelcomeText));
 
-                string WhatHappenedMessage = "Your previous Milliman Access Portal account activation link is invalid and may have expired.";
-                return View("ConfirmRepeatEnable", WhatHappenedMessage);
+                string WhatHappenedMessage = "Your previous account activation link is invalid or may have expired. A new welcome email has been sent, which contains a new account activation link.";
+                return View("Message", WhatHappenedMessage);
             }
 
             // Prompt for the user's password
