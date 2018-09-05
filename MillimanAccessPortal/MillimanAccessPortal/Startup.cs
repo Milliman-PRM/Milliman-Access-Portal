@@ -92,7 +92,7 @@ namespace MillimanAccessPortal
 
             services.Configure<ConfirmEmailDataProtectionTokenProviderOptions>(options =>
             {
-                options.TokenLifespan = TimeSpan.FromMilliseconds(1);
+                options.TokenLifespan = TimeSpan.FromDays(accountActivationTimespanDays);
             });
 
             services.Configure<PasswordHasherOptions>(options => options.IterationCount = passwordHashingIterations);
