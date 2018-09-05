@@ -1,9 +1,23 @@
-﻿@{
+﻿@model string;
+
+@{
     ViewData["Title"] = "ConfirmRepeatEnable";
 }
 
 <h1 class="text-danger"></h1>
 
-<p>
-    Your MAP account was not previously activated.  A new account welcome email has been sent with a new activation link.  Please activate your account using that link. 
-</p>
+@{
+    // obviously this is a hack, ready for real content and styling
+    if (!string.IsNullOrWhiteSpace(Model))
+    {
+        <p>
+            @Model
+        </p>
+    }
+    else
+    {
+        <p>
+            Your MAP account was not previously activated.  A new account welcome email has been sent with a new activation link.  Please activate your account using that link.
+        </p>
+    }
+}

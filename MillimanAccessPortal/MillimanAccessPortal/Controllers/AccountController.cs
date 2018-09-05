@@ -387,9 +387,9 @@ namespace MillimanAccessPortal.Controllers
                 return View("Error");
             }
 
-            if (user.EmailConfirmed)
+            if (user.EmailConfirmed)  // Account is already activated
             {
-                return View("Error");
+                return View("Login");
             }
 
             // Prompt for the user's password
@@ -415,6 +415,11 @@ namespace MillimanAccessPortal.Controllers
             if (user == null)
             {
                 return View("Error");
+            }
+
+            if (user.EmailConfirmed)  // Account is already activated
+            {
+                return View("Login");
             }
 
             IdentityResult identityResult = await _userManager.ConfirmEmailAsync(user, model.Code);
@@ -444,6 +449,14 @@ namespace MillimanAccessPortal.Controllers
 
                     return View("Login");
                 }
+            }
+            else if (identityResult.Errors.Any(e => e.Code == "InvalidToken"))  // Happens when token is expired. I don't know whether it could indicate anything else
+            {
+                string WelcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
+                Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, WelcomeText));
+
+                string WhatHappenedMessage = "Your previous Milliman Access Portal account activation link is invalid and may have expired.";
+                return View("ConfirmRepeatEnable", WhatHappenedMessage);
             }
 
             string Errors = string.Join($", ", identityResult.Errors.Select(e => e.Description));
@@ -489,9 +502,11 @@ namespace MillimanAccessPortal.Controllers
                     }
                     else
                     {
-                        string EmailBodyText = "Your previous Milliman Access Portal account activation link expired.  Below is a new activation link";
+                        string EmailBodyText = "Welcom to Milliman Access Portal.  Below is an activation link for your account";
                         Task NonBlockingTask = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, EmailBodyText));
-                        return View("ConfirmRepeatEnable");
+
+                        string UserMsg = "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.";
+                        return View("ConfirmRepeatEnable", UserMsg);
                     }
                 }
                 else
