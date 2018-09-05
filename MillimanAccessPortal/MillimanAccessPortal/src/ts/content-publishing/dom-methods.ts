@@ -343,8 +343,8 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
     ],
     'ContentPublishing/Publish',
     'POST',
-    () => {
-      renderRootContentItemForm();
+    (itemDetail) => {
+      renderRootContentItemForm(itemDetail);
       toastr.success('Publication request submitted');
     },
     (data) => {
