@@ -466,6 +466,14 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "A previous reduction task is pending for this content.");
                 return BadRequest();
             }
+
+            var masterContent = ContentAccessSupport.GenerateContentFileName(ContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent"), ContentItem.Id);
+            Blocked = !System.IO.File.Exists(masterContent) && !Arg.RelatedFiles.Any(f => f.FilePurpose.ToLower() == "mastercontent");
+            if (Blocked)
+            {
+                Response.Headers.Add("Warning", "New publications must include a master content file");
+                return BadRequest();
+            }
             #endregion
 
             // Insert the initial publication request (not queued yet)
