@@ -40,7 +40,9 @@ export class FormBase extends FormElement {
   private _submissionModes: SubmissionMode[] = [];
   private _submissionMode: SubmissionMode;
   public get submissionMode(): string {
-    return this._submissionMode.name;
+    return this._submissionMode
+      ? this._submissionMode.name
+      : null;
   }
   public set submissionMode(submissionMode: string) {
     const filtered = this._submissionModes.filter((mode) => mode.name === submissionMode);
