@@ -76,6 +76,8 @@ namespace MillimanAccessPortal
             List<string> commonWords = Configuration.GetSection("PasswordBannedWords").GetChildren().Select(c => c.Value).ToList<string>();
             int passwordHashingIterations = Configuration.GetValue<int>("PasswordHashingIterations");
             int accountActivationTimespanDays = Configuration.GetValue<int>("AccountActivationTimespanDays");
+            int passwordResetTokenTimespanHours = Configuration.GetValue<int>("PasswordResetTokenTimespanHours");
+            string tokenProviderName = "MAPResetToken";
 
             // Do not add AuditLogDbContext.  This context should be protected from direct access.  Use the api class instead.  -TP
 
@@ -88,13 +90,9 @@ namespace MillimanAccessPortal
                 .AddTop100000PasswordValidator<ApplicationUser>()
                 .AddRecentPasswordInDaysValidator<ApplicationUser>(passwordHistoryDays)
                 .AddPasswordValidator<PasswordIsNotEmailOrUsernameValidator<ApplicationUser>>()
-                .AddCommonWordsValidator<ApplicationUser>(commonWords);
-
-            services.Configure<ConfirmEmailDataProtectionTokenProviderOptions>(options =>
-            {
-                options.TokenLifespan = TimeSpan.FromDays(accountActivationTimespanDays);
-            });
-
+                .AddCommonWordsValidator<ApplicationUser>(commonWords)
+                .AddTokenProvider<PasswordResetSecurityTokenProvider<ApplicationUser>>(tokenProviderName);
+            
             services.Configure<PasswordHasherOptions>(options => options.IterationCount = passwordHashingIterations);
 
             services.Configure<IdentityOptions>(options =>
@@ -114,8 +112,18 @@ namespace MillimanAccessPortal
                 
                 // User settings
                 options.User.RequireUniqueEmail = true;
+
+                // Enable custom token provider for password resets
+                options.Tokens.PasswordResetTokenProvider = tokenProviderName;
             });
 
+            // Configure custom security token provider
+            services.Configure<PasswordResetSecurityTokenProviderOptions>(options =>
+            {
+                options.TokenLifespan = TimeSpan.FromHours(passwordResetTokenTimespanHours);
+            });
+
+            // Configure the default token provider used for account activation
             services.Configure<DataProtectionTokenProviderOptions>(options =>
                 {
                     options.TokenLifespan = TimeSpan.FromDays(accountActivationTimespanDays);
