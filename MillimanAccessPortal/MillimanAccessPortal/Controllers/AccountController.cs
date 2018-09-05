@@ -502,7 +502,7 @@ namespace MillimanAccessPortal.Controllers
                     }
                     else
                     {
-                        string EmailBodyText = "Welcom to Milliman Access Portal.  Below is an activation link for your account";
+                        string EmailBodyText = "Welcome to Milliman Access Portal.  Below is an activation link for your account";
                         Task NonBlockingTask = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, EmailBodyText));
 
                         string UserMsg = "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.";
