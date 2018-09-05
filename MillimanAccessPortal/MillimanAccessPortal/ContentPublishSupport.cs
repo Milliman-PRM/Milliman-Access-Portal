@@ -90,6 +90,11 @@ namespace MillimanAccessPortal
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
                 var publicationRequest = Db.ContentPublicationRequest.Single(r => r.Id == publicationRequestId);
+                if (publicationRequest.RequestStatus == PublicationStatus.Canceled)
+                {
+                    return;
+                }
+
                 var files = publicationRequest.UploadedRelatedFilesObj;
                 var rootContentItem = Db.RootContentItem
                     .Where(i => i.Id == publicationRequest.RootContentItemId)
