@@ -75,21 +75,20 @@ namespace MillimanAccessPortal
             int passwordHistoryDays = Configuration.GetValue<int>("PasswordHistoryValidatorDays");
             List<string> commonWords = Configuration.GetSection("PasswordBannedWords").GetChildren().Select(c => c.Value).ToList<string>();
             int passwordHashingIterations = Configuration.GetValue<int>("PasswordHashingIterations");
+            int accountActivationTimespanDays = Configuration.GetValue<int>("AccountActivationTimespanDays");
 
             // Do not add AuditLogDbContext.  This context should be protected from direct access.  Use the api class instead.  -TP
 
             services.AddIdentity<ApplicationUser, ApplicationRole>(config =>
                 {
                     config.SignIn.RequireConfirmedEmail = true;
-                    config.Tokens.EmailConfirmationTokenProvider = "ConfirmEmail";
                 })
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders()
                 .AddTop100000PasswordValidator<ApplicationUser>()
                 .AddRecentPasswordInDaysValidator<ApplicationUser>(passwordHistoryDays)
                 .AddPasswordValidator<PasswordIsNotEmailOrUsernameValidator<ApplicationUser>>()
-                .AddCommonWordsValidator<ApplicationUser>(commonWords)
-                .AddTokenProvider<ConfirmEmailTokenProvider<ApplicationUser>>("ConfirmEmail");
+                .AddCommonWordsValidator<ApplicationUser>(commonWords);
 
             services.Configure<ConfirmEmailDataProtectionTokenProviderOptions>(options =>
             {
@@ -116,6 +115,12 @@ namespace MillimanAccessPortal
                 // User settings
                 options.User.RequireUniqueEmail = true;
             });
+
+            services.Configure<DataProtectionTokenProviderOptions>(options =>
+                {
+                    options.TokenLifespan = TimeSpan.FromDays(accountActivationTimespanDays);
+                }
+            );
 
             // Cookie settings
             services.ConfigureApplicationCookie(options =>
