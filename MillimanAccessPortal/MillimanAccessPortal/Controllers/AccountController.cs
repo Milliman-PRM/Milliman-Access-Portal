@@ -44,6 +44,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly StandardQueries Queries;
         private readonly IAuthorizationService AuthorizationService;
         private readonly IConfiguration _configuration;
+        private readonly IServiceProvider _serviceProvider;
 
         public AccountController(
             ApplicationDbContext ContextArg,
@@ -55,7 +56,8 @@ namespace MillimanAccessPortal.Controllers
             IAuditLogger AuditLoggerArg,
             StandardQueries QueriesArg,
             IAuthorizationService AuthorizationServiceArg,
-            IConfiguration ConfigArg)
+            IConfiguration ConfigArg,
+            IServiceProvider serviceProviderArg)
         {
             DbContext = ContextArg;
             _userManager = userManager;
@@ -67,6 +69,7 @@ namespace MillimanAccessPortal.Controllers
             Queries = QueriesArg;
             AuthorizationService = AuthorizationServiceArg;
             _configuration = ConfigArg;
+            _serviceProvider = serviceProviderArg;
         }
 
         //
@@ -374,6 +377,8 @@ namespace MillimanAccessPortal.Controllers
             _messageSender.QueueEmail(RequestedUser.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
         }
 
+        
+
         // GET: /Account/EnableAccount
         [HttpGet]
         [AllowAnonymous]
@@ -392,6 +397,16 @@ namespace MillimanAccessPortal.Controllers
             if (user.EmailConfirmed)  // Account is already activated
             {
                 return View("Login");
+            }
+
+            // If the code is not valid (likely expired), re-send the welcome email and notify the user
+            DataProtectorTokenProvider<ApplicationUser> tokenValidatorService = (DataProtectorTokenProvider<ApplicationUser>) _serviceProvider.GetService(typeof(DataProtectorTokenProvider<ApplicationUser>));
+            bool tokenIsValid = await tokenValidatorService.ValidateAsync("EmailConfirmation", code, _userManager, user);
+
+            if (!tokenIsValid)
+            {
+                //TODO: Do something reasonable
+                return View("Error");
             }
 
             // Prompt for the user's password
