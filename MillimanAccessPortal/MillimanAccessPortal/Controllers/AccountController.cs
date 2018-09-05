@@ -473,17 +473,26 @@ namespace MillimanAccessPortal.Controllers
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByEmailAsync(model.Email);
-                if (user != null && (await _userManager.IsEmailConfirmedAsync(user)))
+                if (user != null)
                 {
-                    string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
-                    string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = user.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
+                    if (await _userManager.IsEmailConfirmedAsync(user))
+                    {
+                        string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+                        string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = user.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
 
-                    string emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page.{Environment.NewLine}";
-                    emailBody += $"Your user name is {user.UserName}{Environment.NewLine}{Environment.NewLine}";
-                    emailBody += $"{linkUrl}";
-                    _messageSender.QueueEmail(model.Email, "MAP password reset", emailBody);
+                        string emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page.{Environment.NewLine}";
+                        emailBody += $"Your user name is {user.UserName}{Environment.NewLine}{Environment.NewLine}";
+                        emailBody += $"{linkUrl}";
+                        _messageSender.QueueEmail(model.Email, "MAP password reset", emailBody);
 
-                    _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(user));
+                        _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(user));
+                    }
+                    else
+                    {
+                        string EmailBodyText = "Your previous Milliman Access Portal account activation link expired.  Below is a new activation link";
+                        Task NonBlockingTask = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, EmailBodyText));
+                        return View("ConfirmRepeatEnable");
+                    }
                 }
                 else
                 {
