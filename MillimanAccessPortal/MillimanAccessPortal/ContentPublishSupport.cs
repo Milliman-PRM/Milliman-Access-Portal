@@ -135,7 +135,15 @@ namespace MillimanAccessPortal
 
                 // Update the request record with file info and Queued status
                 Db.ContentPublicationRequest.Update(publicationRequest);
-                Db.SaveChanges();
+                try
+                {
+                    Db.SaveChanges();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    // PublicationRequest was set to canceled, no extra cleanup needed
+                    return;
+                }
 
                 AuditLogger Logger = new AuditLogger();
                 Logger.Log(AuditEventType.PublicationQueued.ToEvent(rootContentItem, publicationRequest));
