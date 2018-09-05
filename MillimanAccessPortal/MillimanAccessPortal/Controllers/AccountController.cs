@@ -405,8 +405,11 @@ namespace MillimanAccessPortal.Controllers
 
             if (!tokenIsValid)
             {
-                //TODO: Do something reasonable
-                return View("Error");
+                string WelcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
+                Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, WelcomeText));
+
+                string WhatHappenedMessage = "Your previous Milliman Access Portal account activation link is invalid and may have expired.";
+                return View("ConfirmRepeatEnable", WhatHappenedMessage);
             }
 
             // Prompt for the user's password
