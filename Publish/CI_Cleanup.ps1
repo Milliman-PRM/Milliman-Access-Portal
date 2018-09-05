@@ -18,7 +18,7 @@ function log_statement {
 #endregion
 
 #region Configure environment properties
-$BranchName = $env:git_branch # Will be used as the name of the deployment slot & appended to database names
+$BranchName = $env:git_branch_name # Will be used as the name of the deployment slot & appended to database names
 
 
 $gitExePath = "git"
@@ -170,8 +170,8 @@ else {
 #endregion
 
 #region Modify Environment to push base branch to Dev
-
-if ($IsMerged) {
+log_statement "IsMerged is $IsMerged and Action is $env:Action"
+if ($IsMerged.ToLower() -eq 'true' -and $env:Action.ToLower() -eq 'closed') {
 
     log_statement "Deploying $MergeBase to dev infrastructure"
 
@@ -182,12 +182,12 @@ if ($IsMerged) {
     if ($MergeBase -eq 'develop') {
         $checkoutPath = $rootPath
     } elseif ($MergeBase -eq 'master') {
-        $checkoutPath = "$env:TEMP\$env:repo_name\"
+        $checkoutPath = "$env:TEMP\master\"
         Set-Location $env:TEMP
         & $gitExePath clone $CloneURL
         Set-Location $checkoutPath
     }
-    $env:git_branch = $MergeBase
+    $env:git_branch_name = $MergeBase
     $env:Action = "opened"
     & $gitExePath checkout $MergeBase
     & "$checkoutPath\Publish\CI_Publish.ps1"
