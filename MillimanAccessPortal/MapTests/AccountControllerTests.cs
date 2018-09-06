@@ -66,7 +66,7 @@ namespace MapTests
         }
 
         [Fact]
-        public async Task EnableAccountGETReturnsRightForm()
+        public async Task EnableAccountGETReturnsEnableFormWhenNotEnabled()
         {
             #region Arrange
             AccountController controller = await GetController("user1");
@@ -92,6 +92,28 @@ namespace MapTests
             Assert.Null(viewModel.Employer);
             Assert.Null(viewModel.NewPassword);
             Assert.Null(viewModel.ConfirmNewPassword);
+            #endregion
+        }
+
+        [Fact]
+        public async Task EnableAccountGETReturnsLoginWhenEnabled()
+        {
+            #region Arrange
+            AccountController controller = await GetController("user2");
+            string TestCode = "Code123";
+            string TestUserId = TestUtil.MakeTestGuid(2).ToString();
+            #endregion
+
+            #region Act
+            var view = await controller.EnableAccount(TestUserId, TestCode);
+            #endregion
+
+            #region Assert
+            ViewResult viewAsViewResult = view as ViewResult;
+
+            Assert.IsType<ViewResult>(view);
+            Assert.Equal("Login", viewAsViewResult.ViewName);
+            
             #endregion
         }
 
@@ -137,7 +159,30 @@ namespace MapTests
         }
 
         [Fact]
-        public async Task ForgotPasswordPOSTReturnsConfirmation()
+        public async Task ForgotPasswordPOSTReturnsMessageWhenNotActivated()
+        {
+            #region Arrange
+            AccountController controller = await GetController("user1");
+            var model = new ForgotPasswordViewModel
+            {
+                Email = "user1@example.com"
+            };
+            #endregion
+
+            #region Act
+            var view = await controller.ForgotPassword(model);
+            #endregion
+
+            #region Assert
+            Assert.IsType<ViewResult>(view);
+            ViewResult viewAsViewResult = view as ViewResult;
+            Assert.Equal("Message", viewAsViewResult.ViewName);  // This one works because view is named explicitly in controller
+            #endregion
+
+        }
+
+        [Fact]
+        public async Task ForgotPasswordPOSTReturnsConfirmationWhenActivated()
         {
             #region Arrange
             AccountController controller = await GetController("user2");
