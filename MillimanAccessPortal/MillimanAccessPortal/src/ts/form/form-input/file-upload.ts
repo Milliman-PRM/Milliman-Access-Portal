@@ -1,3 +1,4 @@
+import * as $ from 'jquery';
 import * as toastr from 'toastr';
 
 import { ProgressSummary } from '../../upload/progress-monitor';
@@ -73,7 +74,7 @@ export class FileUploadInput extends FormInput {
 
     // Clone the input to clear any event listeners
     const clickableElement = this.$entryPoint.find('label')[0];
-    const $clonedInput = $(clickableElement.cloneNode(true));
+    const $clonedInput = $(clickableElement.cloneNode(true) as HTMLElement);
     $clonedInput.find('input[type="file"]').remove();
     $clonedInput.find('.file-upload').data($(clickableElement).find('.file-upload').data());
     $(clickableElement).replaceWith($clonedInput);
