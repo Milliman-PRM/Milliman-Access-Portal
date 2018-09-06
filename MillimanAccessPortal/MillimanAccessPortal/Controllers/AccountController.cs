@@ -513,7 +513,7 @@ namespace MillimanAccessPortal.Controllers
                         string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
                         string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = user.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
 
-                        string expirationHours = _configuration.GetValue<string>("PasswordResetTokenTimespanHours");
+                        string expirationHours = _configuration["PasswordResetTokenTimespanHours"];
 
                         string emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}";
                         emailBody += $"Your user name is {user.UserName}{Environment.NewLine}{Environment.NewLine}";
