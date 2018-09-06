@@ -235,7 +235,7 @@ function renderSelectionGroup(selectionGroup: SelectionGroupSummary) {
     // edit selection group click handler
     (event: Event) => {
       event.stopPropagation();
-      const $target = $(event.target).closest('.card-body-container');
+      const $target = $(event.target as HTMLElement).closest('.card-body-container');
       $target.find('.card-button-side-container .card-button-green').show();
       $target.find('.detail-item-user-icon').hide();
       $target.find('.detail-item-user-create').show();
