@@ -301,6 +301,7 @@ namespace MapTests
         private Mock<IConfiguration> GenerateMockConfiguration()
         {
             Mock<IConfiguration> mock = new Mock<IConfiguration>();
+            mock.SetupGet(m => m[It.IsAny<string>()]).Returns("");
             return mock;
         }
 
@@ -725,6 +726,7 @@ namespace MapTests
             DbContextObject.ApplicationUser.AddRange(new List<ApplicationUser>
             {
                 new ApplicationUser { Id=TestUtil.MakeTestGuid(1), UserName="user1", Email="user1@example.com", NormalizedEmail="USER1@EXAMPLE.COM", NormalizedUserName="USER1" },
+                new ApplicationUser { Id=TestUtil.MakeTestGuid(2), UserName="user2", Email="user2@example.com", NormalizedEmail="USER2@EXAMPLE.COM", NormalizedUserName="USER2", EmailConfirmed=true },
             });
             #endregion
         }

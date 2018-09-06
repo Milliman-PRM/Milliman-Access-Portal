@@ -9,9 +9,12 @@ using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Routing;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Services;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,7 +62,6 @@ namespace MapTests
                 testController.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: (await TestResources.UserManagerObject.FindByNameAsync(UserName)).UserName);
             }
             testController.HttpContext.Session = new MockSession();
-
             return testController;
         }
 
@@ -138,12 +140,27 @@ namespace MapTests
         public async Task ForgotPasswordPOSTReturnsConfirmation()
         {
             #region Arrange
-            AccountController controller = await GetController("user1");
+            AccountController controller = await GetController("user2");
             var model = new ForgotPasswordViewModel
             {
-                Email = "user1@example.com"
+                Email = "user2@example.com"
             };
 
+            // Configure controller's routing
+            // This section is required for Url.Action to execute successfully
+            var actionContext = new ActionContext()
+            {
+                HttpContext = controller.HttpContext
+            };
+
+            Dictionary<string, string> routeValues = new Dictionary<string, string>() { { "action", "ForgotPassword" }, { "controller", "Account" } };
+            RouteValueDictionary valueDictionary = new RouteValueDictionary(routeValues);
+            Mock<IRouter> mockRouter = new Mock<IRouter>();
+            mockRouter.Setup(m => m.GetVirtualPath(It.IsAny<VirtualPathContext>())).Returns(new VirtualPathData(mockRouter.Object, "/"));
+            controller.Url = new UrlHelper(actionContext);
+            controller.Url.ActionContext.RouteData = new Microsoft.AspNetCore.Routing.RouteData();
+            controller.Url.ActionContext.RouteData.PushState(mockRouter.Object, valueDictionary, null);
+            
             #endregion
 
             #region Act
@@ -159,6 +176,7 @@ namespace MapTests
             Assert.Equal(model.Email, viewModel.Email);
             #endregion
         }
+
 
         [Fact]
         public async Task ResetPasswordGETReturnsRightForm()

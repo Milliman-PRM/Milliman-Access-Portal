@@ -32,6 +32,8 @@ namespace TestResourcesLib
             ReturnMockUserManager.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).Returns(async (ApplicationUser user, string password) => await UserStore.Object.CreateAsync(user, CancellationToken.None));
             ReturnMockUserManager.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>())).Returns(async (ApplicationUser user) => await UserStore.Object.CreateAsync(user, CancellationToken.None));
             ReturnMockUserManager.Setup(m => m.UpdateAsync(It.IsAny<ApplicationUser>())).ReturnsAsync<UserManager<ApplicationUser>, IdentityResult>(IdentityResult.Success);
+            ReturnMockUserManager.Setup(m => m.IsEmailConfirmedAsync(It.IsAny<ApplicationUser>())).Returns((ApplicationUser user) => Task.Run<bool>(() => user.EmailConfirmed));
+            ReturnMockUserManager.Setup(m => m.GeneratePasswordResetTokenAsync(It.IsAny<ApplicationUser>())).ReturnsAsync<UserManager<ApplicationUser>, string>("");
 
             // Role-related methods
             ReturnMockUserManager.Setup(m => m.IsInRoleAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).Returns(async (ApplicationUser user, string role) => await UserStore.Object.IsInRoleAsync(user, role, CancellationToken.None));
