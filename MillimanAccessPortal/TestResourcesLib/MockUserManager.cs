@@ -101,6 +101,7 @@ namespace TestResourcesLib
             // For tests with a good token
             ReturnMockUserManager.Setup(m => m.ConfirmEmailAsync(It.IsAny<ApplicationUser>(), GoodToken)).Returns(async (ApplicationUser usr, string token) => await Task.FromResult(IdentityResult.Success));
 
+            // For tests with a bad token
             ReturnMockUserManager.Setup(m => m.ConfirmEmailAsync(It.IsAny<ApplicationUser>(), BadToken)).Returns(
                 async (ApplicationUser usr, string token) => 
                     await Task.FromResult(IdentityResult.Failed(new IdentityError
