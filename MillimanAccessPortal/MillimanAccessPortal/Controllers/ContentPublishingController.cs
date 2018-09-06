@@ -230,7 +230,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     var inheritedRoles = DbContext.UserRoleInClient
                         .Where(r => r.ClientId == rootContentItem.ClientId)
-                        .Where(r => r.RoleId == ApplicationRole.RoleIds[role])
+                        .Where(r => r.Role.RoleEnum == role)
                         .Select(r => new UserRoleInRootContentItem
                         {
                             UserId = r.UserId,
