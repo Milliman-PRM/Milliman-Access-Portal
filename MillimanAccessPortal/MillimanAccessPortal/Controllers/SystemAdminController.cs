@@ -1187,6 +1187,12 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            var rolesToApplyToRootContentItems = new List<RoleEnum>
+            {
+                RoleEnum.ContentAccessAdmin,
+                RoleEnum.ContentPublisher,
+            };
+
             var roleQuery = _dbContext.UserRoleInClient
                 .Where(ur => ur.UserId == user.Id)
                 .Where(ur => ur.ClientId == client.Id);
@@ -1200,6 +1206,16 @@ namespace MillimanAccessPortal.Controllers
                 foreach (var roleToRemove in rolesToRemove)
                 {
                     _dbContext.UserRoleInClient.Remove(roleToRemove);
+
+                    if (rolesToApplyToRootContentItems.Contains(roleToRemove.Role.RoleEnum))
+                    {
+                        var rootContentItemRoles = _dbContext.UserRoleInRootContentItem
+                            .Where(r => r.RootContentItem.ClientId == client.Id)
+                            .Where(r => r.UserId == user.Id)
+                            .Where(r => r.Role == roleToRemove.Role)
+                            .ToList();
+                        _dbContext.UserRoleInRootContentItem.RemoveRange(rootContentItemRoles);
+                    }
                 }
                 _dbContext.SaveChanges();
 
@@ -1220,6 +1236,19 @@ namespace MillimanAccessPortal.Controllers
                         RoleId = ApplicationRole.RoleIds[roleToAdd],
                     };
                     _dbContext.UserRoleInClient.Add(userRole);
+
+                    if (rolesToApplyToRootContentItems.Contains(roleToAdd))
+                    {
+                        var rootContentItemRoles = _dbContext.RootContentItem
+                            .Where(r => r.ClientId == client.Id)
+                            .Select(r => new UserRoleInRootContentItem
+                            {
+                                UserId = user.Id,
+                                RootContentItemId = r.Id,
+                                RoleId = ApplicationRole.RoleIds[roleToAdd],
+                            });
+                        _dbContext.UserRoleInRootContentItem.AddRange(rootContentItemRoles);
+                    }
                 }
                 _dbContext.SaveChanges();
 
