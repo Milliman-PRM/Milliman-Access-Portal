@@ -476,7 +476,7 @@ namespace MillimanAccessPortal.Controllers
                 Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, WelcomeText));
 
                 string WhatHappenedMessage = "Your previous Milliman Access Portal account activation link is invalid and may have expired.";
-                return View("ConfirmRepeatEnable", WhatHappenedMessage);
+                return View("Message", WhatHappenedMessage);
             }
 
             string Errors = string.Join($", ", identityResult.Errors.Select(e => e.Description));
@@ -528,7 +528,7 @@ namespace MillimanAccessPortal.Controllers
                         Task NonBlockingTask = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, EmailBodyText));
 
                         string UserMsg = "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.";
-                        return View("ConfirmRepeatEnable", UserMsg);
+                        return View("Message", UserMsg);
                     }
                 }
                 else
