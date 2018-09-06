@@ -70,7 +70,7 @@ namespace MapTests
         {
             #region Arrange
             AccountController controller = await GetController("user1");
-            string TestCode = "Code123";
+            string TestCode = MockUserManager.GoodToken;
             string TestUserId = TestUtil.MakeTestGuid(1).ToString();
             #endregion
 
@@ -100,7 +100,7 @@ namespace MapTests
         {
             #region Arrange
             AccountController controller = await GetController("user2");
-            string TestCode = "Code123";
+            string TestCode = MockUserManager.GoodToken;
             string TestUserId = TestUtil.MakeTestGuid(2).ToString();
             #endregion
 
@@ -122,7 +122,7 @@ namespace MapTests
         {
             #region Arrange
             AccountController controller = await GetController("user1");
-            string NewToken = "Abc123!@#";
+            string NewToken = MockUserManager.GoodToken;
             string NewPass = "TestPassword";
             string NewEmployer = "Milliman";
             string FirstName = "MyFirstName";
@@ -229,7 +229,7 @@ namespace MapTests
             #region Arrange
             AccountController controller = await GetController("user1");
             string TestEmail = "user1@example.com";
-            string TestToken = "abcdefg1234567";
+            string TestToken = MockUserManager.GoodToken;
             #endregion
 
             #region Act
@@ -257,7 +257,7 @@ namespace MapTests
             ResetPasswordViewModel model = new ResetPasswordViewModel
             {
                 Email = "user1@example.com",
-                PasswordResetToken = "abcdefg1234567",
+                PasswordResetToken = MockUserManager.GoodToken,
                 NewPassword = "Password123",
                 ConfirmNewPassword = "Password123",
             };

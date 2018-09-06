@@ -173,9 +173,11 @@ namespace MapTests
             Mock<IOptions<DataProtectionTokenProviderOptions>> options = new Mock<IOptions<DataProtectionTokenProviderOptions>>() ;
             Mock<DataProtectorTokenProvider<ApplicationUser>> newTokenProvider = new Mock<DataProtectorTokenProvider<ApplicationUser>>(provider.Object, options.Object);
 
-            // Always return true when checking the token in a test environment
-            newTokenProvider.Setup(m => m.ValidateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<UserManager<ApplicationUser>>(), It.IsAny<ApplicationUser>()))
+            // Validate tokens against TestResourcesLib.MockUserManager's static values
+            newTokenProvider.Setup(m => m.ValidateAsync(It.IsAny<string>(), TestResourcesLib.MockUserManager.GoodToken, It.IsAny<UserManager<ApplicationUser>>(), It.IsAny<ApplicationUser>()))
                 .Returns(Task.Run(() => true));
+            newTokenProvider.Setup(m => m.ValidateAsync(It.IsAny<string>(), TestResourcesLib.MockUserManager.BadToken, It.IsAny<UserManager<ApplicationUser>>(), It.IsAny<ApplicationUser>()))
+                .Returns(Task.Run(() => false));
 
             newServiceProvider.Setup(m => m.GetService(It.IsAny<Type>())).Returns(newTokenProvider.Object);
 

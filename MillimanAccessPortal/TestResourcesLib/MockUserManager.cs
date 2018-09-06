@@ -15,6 +15,9 @@ namespace TestResourcesLib
 {
     public class MockUserManager
     {
+        public static string GoodToken = "goodToken";
+        public static string BadToken = "badToken";
+
         public static Mock<UserManager<ApplicationUser>> New(Mock<ApplicationDbContext> MockDbContextArg)
         {
             Mock<UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, Guid>> UserStore = MockUserStore.New(MockDbContextArg);
@@ -53,16 +56,33 @@ namespace TestResourcesLib
             // Return true if the password is not null
             // As of 8/2018 there is no password validation built into anthing in this class so tests should no rely on it.
             ReturnMockUserManager.Setup(m => m.CheckPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).Returns(async (ApplicationUser usr, string pwd) => await Task.FromResult(usr.PasswordHash == pwd + "xyz"));
-            ReturnMockUserManager.Setup(m => m.ResetPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>(), It.IsAny<string>())).Returns(async (ApplicationUser usr, string token, string pwd) =>
+
+
+            // For tests with a good token
+            ReturnMockUserManager.Setup(m => m.ResetPasswordAsync(It.IsAny<ApplicationUser>(), GoodToken, It.IsAny<string>())).Returns(async (ApplicationUser usr, string token, string pwd) =>
             {
                 usr.PasswordHash = pwd + "xyz";
                 return await Task.FromResult(IdentityResult.Success);
             });
+
+            // For tests with a bad token
+            ReturnMockUserManager.Setup(m => m.ResetPasswordAsync(It.IsAny<ApplicationUser>(), BadToken, It.IsAny<string>())).Returns(async (ApplicationUser usr, string token, string pwd) =>
+            {
+                var result = IdentityResult.Failed(new IdentityError
+                {
+                    Code = "InvalidToken",
+                    Description = "This token was invalid for some reason."
+                });
+
+                return await Task.FromResult(result);
+            });
+
             ReturnMockUserManager.Setup(m => m.AddPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).Returns(async (ApplicationUser usr, string pw) =>
             {
                 usr.PasswordHash = pw + "xyz";  // useful enough for testing
                 return await Task.FromResult(IdentityResult.Success);
             });
+
             ReturnMockUserManager.Setup(m => m.ChangePasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>(), It.IsAny<string>())).Returns(async(ApplicationUser usr, string oldpw, string newpw) =>
             {
                 if (usr.PasswordHash == oldpw + "xyz")  // valid oldpw
@@ -77,7 +97,17 @@ namespace TestResourcesLib
             });
 
             // Account Enablement methods
-            ReturnMockUserManager.Setup(m => m.ConfirmEmailAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).Returns(async (ApplicationUser usr, string token) => await Task.FromResult(IdentityResult.Success));
+
+            // For tests with a good token
+            ReturnMockUserManager.Setup(m => m.ConfirmEmailAsync(It.IsAny<ApplicationUser>(), GoodToken)).Returns(async (ApplicationUser usr, string token) => await Task.FromResult(IdentityResult.Success));
+
+            ReturnMockUserManager.Setup(m => m.ConfirmEmailAsync(It.IsAny<ApplicationUser>(), BadToken)).Returns(
+                async (ApplicationUser usr, string token) => 
+                    await Task.FromResult(IdentityResult.Failed(new IdentityError
+                    {
+                        Code = "InvalidToken",
+                        Description = "This token was invalid for some reason."
+                    })));
 
             return ReturnMockUserManager;
         }
