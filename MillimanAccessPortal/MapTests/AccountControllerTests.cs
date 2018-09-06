@@ -118,7 +118,29 @@ namespace MapTests
         }
 
         [Fact]
-        public async Task EnableAccountPOSTUpdatesUser()
+        public async Task EnableAccountGETReturnsMessageWhenTokenIsInvalid()
+        {
+            #region Arrange
+            AccountController controller = await GetController("user1");
+            string TestCode = MockUserManager.BadToken;
+            string TestUserId = TestUtil.MakeTestGuid(1).ToString();
+            #endregion
+
+            #region Act
+            var view = await controller.EnableAccount(TestUserId, TestCode);
+            #endregion
+
+            #region Assert
+            ViewResult viewAsViewResult = view as ViewResult;
+
+            Assert.IsType<ViewResult>(view);
+            Assert.Equal("Message", viewAsViewResult.ViewName);
+
+            #endregion
+        }
+
+        [Fact]
+        public async Task EnableAccountPOSTUpdatesUserWhenTokenIsValid()
         {
             #region Arrange
             AccountController controller = await GetController("user1");
@@ -155,6 +177,42 @@ namespace MapTests
             Assert.Equal(FirstName, UserRecord.FirstName);
             Assert.Equal(LastName, UserRecord.LastName);
             Assert.Equal(Phone, UserRecord.PhoneNumber);
+            #endregion
+        }
+
+        [Fact]
+        public async Task EnableAccountPOSTReturnsMessageWhenTokenIsInvalid()
+        {
+            #region Arrange
+            AccountController controller = await GetController("user1");
+            string NewToken = MockUserManager.BadToken;
+            string NewPass = "TestPassword";
+            string NewEmployer = "Milliman";
+            string FirstName = "MyFirstName";
+            string LastName = "MyLastName";
+            string Phone = "3173171212";
+            EnableAccountViewModel model = new EnableAccountViewModel
+            {
+                Id = TestUtil.MakeTestGuid(1),
+                Code = NewToken,
+                NewPassword = NewPass,
+                ConfirmNewPassword = NewPass,
+                Employer = NewEmployer,
+                FirstName = FirstName,
+                LastName = LastName,
+                Phone = Phone,
+            };
+            #endregion
+
+            #region Act
+            var view = await controller.EnableAccount(model);
+            var UserRecord = TestResources.DbContextObject.ApplicationUser.Single(u => u.UserName == "user1");
+            #endregion
+
+            #region Assert
+            Assert.IsType<ViewResult>(view);
+            ViewResult viewAsViewResult = view as ViewResult;
+            Assert.Equal("Message", viewAsViewResult.ViewName);
             #endregion
         }
 
@@ -224,7 +282,7 @@ namespace MapTests
 
 
         [Fact]
-        public async Task ResetPasswordGETReturnsRightForm()
+        public async Task ResetPasswordGETReturnsFormWhenTokenIsValid()
         {
             #region Arrange
             AccountController controller = await GetController("user1");
@@ -250,7 +308,27 @@ namespace MapTests
         }
 
         [Fact]
-        public async Task ResetPasswordPOSTReturnsRightForm()
+        public async Task ResetPasswordGETReturnsMessageWhenTokenIsInalid()
+        {
+            #region Arrange
+            AccountController controller = await GetController("user1");
+            string TestEmail = "user1@example.com";
+            string TestToken = MockUserManager.BadToken;
+            #endregion
+
+            #region Act
+            var view = await controller.ResetPassword(TestEmail, TestToken);
+            #endregion
+
+            #region Assert
+            Assert.IsType<ViewResult>(view);
+            ViewResult viewAsViewResult = view as ViewResult;
+            Assert.Equal("Message", viewAsViewResult.ViewName);
+            #endregion
+        }
+
+        [Fact]
+        public async Task ResetPasswordPOSTReturnsRightFormWhenTokenIsValid()
         {
             #region Arrange
             AccountController controller = await GetController("user1");
@@ -272,6 +350,30 @@ namespace MapTests
             RedirectToActionResult viewAsViewResult = view as RedirectToActionResult;
             Assert.Equal("ResetPasswordConfirmation", viewAsViewResult.ActionName);
             Assert.Equal("Account", viewAsViewResult.ControllerName);
+            #endregion
+        }
+
+        [Fact]
+        public async Task ResetPasswordPOSTReturnsMessageWhenTokenIsInvalid()
+        {
+            #region Arrange
+            AccountController controller = await GetController("user1");
+            ResetPasswordViewModel model = new ResetPasswordViewModel
+            {
+                Email = "user1@example.com",
+                PasswordResetToken = MockUserManager.BadToken,
+                NewPassword = "Password123",
+                ConfirmNewPassword = "Password123",
+            };
+            #endregion
+
+            #region Act
+            var view = await controller.ResetPassword(model);
+            #endregion
+
+            #region Assert
+            var viewAsViewResult = view as ViewResult;
+            Assert.Equal("Message", viewAsViewResult.ViewName);
             #endregion
         }
 
