@@ -16,6 +16,15 @@ module.exports = merge(common, {
       }),
       new OptimizeCSSAssetsPlugin({}),
     ],
+    splitChunks: {
+      cacheGroups: {
+        commons: {
+          name: 'commons',
+          chunks: 'initial',
+          minChunks: 2,
+        },
+      },
+    },
   },
   plugins: [
     new MiniCssExtractPlugin(),
