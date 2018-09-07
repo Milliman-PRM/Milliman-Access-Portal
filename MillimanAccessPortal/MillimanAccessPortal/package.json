@@ -85,6 +85,7 @@
       "/src/browser_tests/"
     ],
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "testURL": "https://localhost:44336/",
     "moduleFileExtensions": [
       "ts",
       "tsx",
