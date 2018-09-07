@@ -47,6 +47,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 .FirstOrDefault();
             var activeStatuses = new List<PublicationStatus>
             {
+                PublicationStatus.Validating,
                 PublicationStatus.Queued,
                 PublicationStatus.Processing,
                 PublicationStatus.Processed,
@@ -56,7 +57,13 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             if (activeStatuses.Contains(publicationRequest?.RequestStatus ?? PublicationStatus.Unknown))
             {
                 var oldFiles = rootContentItem.ContentFilesList;
-                var newFiles = publicationRequest.LiveReadyFilesObj;
+                var newFiles = publicationRequest.UploadedRelatedFilesObj.Any()
+                    ? publicationRequest.UploadedRelatedFilesObj.Select(f => new ContentRelatedFile
+                    {
+                        FileOriginalName = f.FileOriginalName,
+                        FilePurpose = f.FilePurpose,
+                    }).ToList()
+                    : publicationRequest.LiveReadyFilesObj;
                 newFiles.AddRange(oldFiles.Where(f => !newFiles.Select(n => n.FilePurpose).Contains(f.FilePurpose)));
                 relatedFiles = newFiles;
             }

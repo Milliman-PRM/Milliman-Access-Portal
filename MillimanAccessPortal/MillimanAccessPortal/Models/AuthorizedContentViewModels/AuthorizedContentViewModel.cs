@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 
 namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
 {
@@ -17,16 +18,33 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
         public static AuthorizedContentViewModel Build(ApplicationDbContext dbContext, ApplicationUser user, HttpContext Context)
         {
             // All selection groups of which user is a member
-            var selectionGroupsQuery = dbContext.UserInSelectionGroup
+            var selectionGroups = dbContext.UserInSelectionGroup
                 .Where(usg => usg.UserId == user.Id)
                 .Where(usg => !usg.SelectionGroup.IsSuspended)
                 .Where(usg => !usg.SelectionGroup.RootContentItem.IsSuspended)
-                .Select(usg => usg.SelectionGroup);
-
-            var selectionGroups = selectionGroupsQuery
+                .Select(usg => usg.SelectionGroup)
                 .Include(sg => sg.RootContentItem)
                 .ToList();
-            var clients = selectionGroupsQuery
+
+            var notLive = new List<SelectionGroup>();
+            foreach (var selectionGroup in selectionGroups)
+            {
+                var masterContentFile = selectionGroup.RootContentItem.ContentFilesList.FirstOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
+                if (masterContentFile == null)
+                {
+                    notLive.Add(selectionGroup);
+                    continue;
+                }
+                var fileName = ContentAccessSupport.GenerateContentFileName(masterContentFile, selectionGroup.RootContentItemId);
+                var filePath = Path.Combine(Path.GetDirectoryName(masterContentFile.FullPath), fileName);
+                if (!File.Exists(filePath))
+                {
+                    notLive.Add(selectionGroup);
+                }
+            }
+            selectionGroups.RemoveAll(sg => notLive.Contains(sg));
+
+            var clients = selectionGroups
                 .Select(sg => sg.RootContentItem.Client)
                 .ToHashSet();
 

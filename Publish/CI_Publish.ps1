@@ -225,10 +225,10 @@ Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
 log_statement "Building yarn packages"
 
-yarn build
+yarn build-prod
 
 if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: yarn build failed"
+    log_statement "ERROR: yarn build-prod failed"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }

@@ -65,7 +65,7 @@ namespace MillimanAccessPortal
         /// <returns></returns>
         internal static string GenerateContentFileName(ContentRelatedFile crf, Guid rootContentItemId)
         {
-            return $"{crf.FilePurpose}.Content[{rootContentItemId}]{Path.GetExtension(crf.FullPath)}";
+            return $"{crf?.FilePurpose}.Content[{rootContentItemId}]{Path.GetExtension(crf?.FullPath)}";
         }
 
         /// <summary>

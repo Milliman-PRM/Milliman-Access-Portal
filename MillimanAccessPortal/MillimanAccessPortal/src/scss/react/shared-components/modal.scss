@@ -90,3 +90,8 @@
     bottom: 0;
     background-color: rgba($charcoal, .5);
 }
+
+.ReactModalPortal {
+    z-index: 10;
+    position: relative;
+}
