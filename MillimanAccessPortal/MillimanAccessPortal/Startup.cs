@@ -77,6 +77,15 @@ namespace MillimanAccessPortal
             int passwordHashingIterations = Configuration.GetValue<int>("PasswordHashingIterations");
             int accountActivationTokenTimespanDays = Configuration.GetValue<int>("AccountActivationTokenTimespanDays");
             int passwordResetTokenTimespanHours = Configuration.GetValue<int>("PasswordResetTokenTimespanHours");
+
+            // Set fallback values for int configuration values if they aren't set
+            // The default value of int is 0, per https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/default-values-table
+            passwordHistoryDays = passwordHistoryDays == 0 ? 30 : passwordHistoryDays;
+            passwordHashingIterations = passwordHashingIterations == 0 ? 100_000 : passwordHashingIterations;
+            accountActivationTokenTimespanDays = accountActivationTokenTimespanDays == 0 ? 7 : accountActivationTokenTimespanDays;
+            passwordResetTokenTimespanHours = passwordResetTokenTimespanHours == 0 ? 4 : passwordResetTokenTimespanHours;
+
+
             string tokenProviderName = "MAPResetToken";
 
             // Do not add AuditLogDbContext.  This context should be protected from direct access.  Use the api class instead.  -TP

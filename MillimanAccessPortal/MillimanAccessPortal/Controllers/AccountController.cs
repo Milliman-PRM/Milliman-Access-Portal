@@ -538,7 +538,7 @@ namespace MillimanAccessPortal.Controllers
                     else
                     {
                         string EmailBodyText = "Welcome to Milliman Access Portal.  Below is an activation link for your account";
-                        Task NonBlockingTask = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, EmailBodyText));
+                        Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Url, EmailBodyText));
 
                         string UserMsg = "Your Milliman Access Portal account has not yet been activated.  A new account welcome email is being sent to you now.  Please use the link in that email to activate your account.";
                         return View("Message", UserMsg);
@@ -574,8 +574,8 @@ namespace MillimanAccessPortal.Controllers
                 return View("Error");
             }
 
-            DataProtectorTokenProvider<ApplicationUser> tokenValidatorService = (DataProtectorTokenProvider<ApplicationUser>)_serviceProvider.GetService(typeof(DataProtectorTokenProvider<ApplicationUser>));
-            bool tokenIsValid = await tokenValidatorService.ValidateAsync("ResetPassword", passwordResetToken, _userManager, user);
+            DataProtectorTokenProvider<ApplicationUser> passwordResetTokenProvider = (DataProtectorTokenProvider<ApplicationUser>)_serviceProvider.GetService(typeof(DataProtectorTokenProvider<ApplicationUser>));
+            bool tokenIsValid = await passwordResetTokenProvider.ValidateAsync("ResetPassword", passwordResetToken, _userManager, user);
 
             if (!tokenIsValid)
             {
