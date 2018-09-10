@@ -99,7 +99,9 @@ namespace MapDbContextLib.Context
         {
             get
             {
-                return JsonConvert.DeserializeObject<List<ReductionRelatedFiles>>(ReductionRelatedFiles);
+                return string.IsNullOrWhiteSpace(ReductionRelatedFiles)
+                    ? new List<ReductionRelatedFiles>()
+                    : JsonConvert.DeserializeObject<List<ReductionRelatedFiles>>(ReductionRelatedFiles);
             }
             set
             {
@@ -115,7 +117,9 @@ namespace MapDbContextLib.Context
         {
             get
             {
-                return JsonConvert.DeserializeObject<List<ContentRelatedFile>>(LiveReadyFiles);
+                return string.IsNullOrWhiteSpace(LiveReadyFiles)
+                    ? new List<ContentRelatedFile>()
+                    : JsonConvert.DeserializeObject<List<ContentRelatedFile>>(LiveReadyFiles);
             }
             set
             {
@@ -134,7 +138,9 @@ namespace MapDbContextLib.Context
         {
             get
             {
-                return JsonConvert.DeserializeObject<List<UploadedRelatedFile>>(UploadedRelatedFiles);
+                return string.IsNullOrWhiteSpace(UploadedRelatedFiles)
+                    ? new List<UploadedRelatedFile>()
+                    : JsonConvert.DeserializeObject<List<UploadedRelatedFile>>(UploadedRelatedFiles);
             }
             set
             {

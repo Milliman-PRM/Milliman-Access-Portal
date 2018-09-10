@@ -60,12 +60,12 @@ namespace MillimanAccessPortal
         /// <summary>
         /// Returns a standardized file name for a non-reduced content or related file
         /// </summary>
-        /// <param name="crf"></param>
+        /// <param name="crf">Must not be null</param>
         /// <param name="rootContentItemId"></param>
         /// <returns></returns>
         internal static string GenerateContentFileName(ContentRelatedFile crf, Guid rootContentItemId)
         {
-            return $"{crf?.FilePurpose}.Content[{rootContentItemId}]{Path.GetExtension(crf?.FullPath)}";
+            return $"{crf.FilePurpose}.Content[{rootContentItemId}]{Path.GetExtension(crf.FullPath)}";
         }
 
         /// <summary>

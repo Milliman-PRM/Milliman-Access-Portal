@@ -467,9 +467,7 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest();
             }
 
-            var masterContent = ContentAccessSupport.GenerateContentFileName(ContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent"), ContentItem.Id);
-            Blocked = !System.IO.File.Exists(masterContent) && !Arg.RelatedFiles.Any(f => f.FilePurpose.ToLower() == "mastercontent");
-            if (Blocked)
+            if (!ContentItem.ContentFilesList.Any(f => f.FilePurpose.ToLower() == "mastercontent") && !Arg.RelatedFiles.Any(f => f.FilePurpose.ToLower() == "mastercontent"))
             {
                 Response.Headers.Add("Warning", "New publications must include a master content file");
                 return BadRequest();

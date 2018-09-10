@@ -24,6 +24,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
                 .Where(usg => !usg.SelectionGroup.RootContentItem.IsSuspended)
                 .Select(usg => usg.SelectionGroup)
                 .Include(sg => sg.RootContentItem)
+                    .ThenInclude(rc => rc.Client)
                 .ToList();
 
             var notLive = new List<SelectionGroup>();
