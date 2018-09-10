@@ -7,6 +7,7 @@
 using AuditLogLib;
 using AuditLogLib.Services;
 using EmailQueue;
+using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Authorization;
@@ -72,19 +73,11 @@ namespace MillimanAccessPortal
                 options.UseNpgsql(appConnectionString, b => b.MigrationsAssembly("MillimanAccessPortal")));
             #endregion
 
-            int passwordHistoryDays = Configuration.GetValue<int>("PasswordHistoryValidatorDays");
+            int passwordHistoryDays = Configuration.GetValue<int?>("PasswordHistoryValidatorDays") ?? GlobalFunctions.fallbackPasswordHistoryDays;
             List<string> commonWords = Configuration.GetSection("PasswordBannedWords").GetChildren().Select(c => c.Value).ToList<string>();
-            int passwordHashingIterations = Configuration.GetValue<int>("PasswordHashingIterations");
-            int accountActivationTokenTimespanDays = Configuration.GetValue<int>("AccountActivationTokenTimespanDays");
-            int passwordResetTokenTimespanHours = Configuration.GetValue<int>("PasswordResetTokenTimespanHours");
-
-            // Set fallback values for int configuration values if they aren't set
-            // The default value of int is 0, per https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/default-values-table
-            passwordHistoryDays = passwordHistoryDays == 0 ? 30 : passwordHistoryDays;
-            passwordHashingIterations = passwordHashingIterations == 0 ? 100_000 : passwordHashingIterations;
-            accountActivationTokenTimespanDays = accountActivationTokenTimespanDays == 0 ? 7 : accountActivationTokenTimespanDays;
-            passwordResetTokenTimespanHours = passwordResetTokenTimespanHours == 0 ? 4 : passwordResetTokenTimespanHours;
-
+            int passwordHashingIterations = Configuration.GetValue<int?>("PasswordHashingIterations") ?? GlobalFunctions.fallbackPasswordHashingIterations; 
+            int accountActivationTokenTimespanDays = Configuration.GetValue<int?>("AccountActivationTokenTimespanDays") ?? GlobalFunctions.fallbackAccountActivationTokenTimespanDays;
+            int passwordResetTokenTimespanHours = Configuration.GetValue<int?>("PasswordResetTokenTimespanHours") ?? GlobalFunctions.fallbackPasswordResetTokenTimespanHours;
 
             string tokenProviderName = "MAPResetToken";
 
