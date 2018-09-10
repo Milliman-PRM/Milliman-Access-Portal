@@ -89,7 +89,18 @@ label {
     font-size: .75em;
     padding-top: .25rem;
     padding-left: .25em;
-    margin-bottom: .25rem;
+    margin-bottom: 0;
+}
+
+
+input,
+select {
+    height: 2em;
+}
+
+textarea {
+    border: 1px solid $charcoal;
+    min-height: 5em;
 }
 
 input,
@@ -98,7 +109,6 @@ select {
     display: block;
     width: 100%;
     padding: .25em .5em;
-    height: 2em;
     border: none;
     outline: none;
     background-color: transparent;
@@ -121,9 +131,8 @@ select {
 
     &[disabled],
     &[readonly] {
-        border: solid 1px $grey;
-        color: $charcoal;
-        background-color: $light-grey;
+        border-bottom: solid 1px $grey;
+        color: $dark-grey;
         box-shadow: none;
         cursor: default;
         -moz-appearance: none;
@@ -158,12 +167,14 @@ input:-webkit-autofill {
         width: 100%;
         border-bottom: 2px solid $charcoal;
         padding: .5em .5em 0;
+        margin-bottom: 0;
         text-transform: uppercase
     }
 
     .form-input-container {
         display: flex;
         flex-flow: row wrap;
+        align-items: center;
         padding-left: 1.5em;
         margin-bottom: .5em;
         margin-right: -.5em;

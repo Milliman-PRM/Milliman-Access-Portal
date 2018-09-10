@@ -15,7 +15,6 @@
 
     .admin-panel-header {
         text-align: center;
-        padding: 1em;
 
         @include for-tablet-down() {
             text-align: left;
@@ -61,7 +60,7 @@
         overflow-x: hidden;
         padding-right: 1em;
         padding-left: 3px;
-        padding-top: .75em;
+        padding-top: 0;
 
         .admin-panel-content-action,
         .admin-panel-content {

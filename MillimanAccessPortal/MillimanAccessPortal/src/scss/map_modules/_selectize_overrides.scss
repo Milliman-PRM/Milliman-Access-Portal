@@ -1,6 +1,6 @@
 div.selectize-input {
     color: $charcoal;
-    border-radius: .25em;
+    border-radius: 0 !important;
     min-height: 2.6em;
     transition: border 0.2s;
     padding: .25em !important;
@@ -16,11 +16,12 @@ div.selectize-input {
     }
 
     &:focus {
-        border: solid 1px $blue;
+        border-bottom: solid 1px $blue;
     }
 
     &.disabled {
-        border: solid 1px $grey;
+        border: none;
+        border-bottom: solid 1px $grey;
         background-color: $light-grey !important;
         box-shadow: none;
         cursor: default;
