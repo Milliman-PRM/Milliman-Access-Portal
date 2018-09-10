@@ -127,8 +127,21 @@ namespace MillimanAccessPortal.Controllers
                                 
                 if (passwordSuccess && user.LastPasswordChangeDateTimeUtc.AddDays(expirationDays) < DateTime.UtcNow)
                 {
-                    ModelState.AddModelError(string.Empty, "Password Has Expired.");
-                    return View("ResetPassword");
+                    string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+                    string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = user.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
+
+                    string expirationHours = _configuration["PasswordResetTokenTimespanHours"];
+
+                    string emailBody = $"The password for your Milliman Access Portal account has expired.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}{Environment.NewLine}";
+                    emailBody += $"Your user name is {user.UserName}{Environment.NewLine}{Environment.NewLine}";
+                    emailBody += $"{linkUrl}";
+                    _messageSender.QueueEmail(user.Email, "MAP password reset", emailBody);
+
+                    _auditLogger.Log(AuditEventType.UserPasswordExpired.ToEvent(user));
+                    _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(user));
+
+                    string WhatHappenedMessage = "Your password has expired. Check your email for a link to reset your password.";
+                    return View("Message", WhatHappenedMessage);
                 }
 
                 var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: true);

@@ -91,31 +91,37 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<ApplicationUser> UserAccountModified = new AuditEventType<ApplicationUser>(
             3002, "User account modified", (user) => new
             {
+                UserId = user.Id,
                 AccountUserName = user.UserName,
             });
         public static readonly AuditEventType<ApplicationUser, string> UserAccountLockByAdmin = new AuditEventType<ApplicationUser, string>(
             3003, "User account lock by Admin", (user, reason) => new
             {
+                UserId = user.Id,
                 AccountUserName = user.UserName,
             });
         public static readonly AuditEventType<ApplicationUser> UserAccountDeleted = new AuditEventType<ApplicationUser>(
             3004, "User account deleted", (user) => new
             {
+                UserId = user.Id,
                 AccountUserName = user.UserName,
             });
         public static readonly AuditEventType<ApplicationUser> UserAccountEnabled = new AuditEventType<ApplicationUser>(
             3005, "New user account enabled", (user) => new
             {
+                UserId = user.Id,
                 AccountUserName = user.UserName,
             });
         public static readonly AuditEventType<ApplicationUser> PasswordResetRequested = new AuditEventType<ApplicationUser>(
             3006, "Account password reset requested", (user) => new
             {
+                UserId = user.Id,
                 AccountUserName = user.UserName,
             });
         public static readonly AuditEventType<ApplicationUser> PasswordResetCompleted = new AuditEventType<ApplicationUser>(
             3007, "Account password reset completed", (user) => new
             {
+                UserId = user.Id,
                 AccountUserName = user.UserName,
             });
         public static readonly AuditEventType<string> PasswordResetRequestedForInvalidEmail = new AuditEventType<string>(
