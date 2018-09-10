@@ -128,6 +128,30 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            #region File Verification 
+
+            // Get a reference to the file
+            var contentFile = selectionGroup.RootContentItem.ContentFilesList
+                .FirstOrDefault(f => f.FullPath.EndsWith(selectionGroup.ContentInstanceUrl));
+
+            if (contentFile == null)
+            {
+                Response.Headers.Add("Error", "This content could not be found. Try again in a few minutes, and Support if this error continues.");
+                return NotFound();
+            }
+
+            // Make sure the checksum currently matches the value stored at the time the file was generated or uploaded
+            if (!contentFile.ValidateChecksum())
+            {
+                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent());
+
+                Response.Headers.Add("Error", "This content could not be verified and will not be loaded. Try again in a few minutes, and Support if this error continues.");
+                return NoContent();
+            }
+
+
+            #endregion
+
             try
             {
                 // Instantiate the right content handler class
