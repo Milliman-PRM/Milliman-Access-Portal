@@ -1,7 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const SpriteLoaderPlugin = require('svg-sprite-loader/plugin');
 
 module.exports = {
@@ -19,6 +18,11 @@ module.exports = {
     'message': './src/js/message.js',
     'reset-password': './src/js/reset-password.js',
     'system-admin': './src/js/react/system-admin/index.js',
+  },
+  output: {
+    path: path.resolve(__dirname, 'wwwroot', 'js'),
+    filename: '[name].bundle.js',
+    publicPath: '/wwwroot/',
   },
   module: {
     rules: [
@@ -44,35 +48,7 @@ module.exports = {
           }
         ]
       },
-      {
-        test: /\.css$/,
-        use: [
-          { loader: 'style-loader' },
-          { loader: 'css-loader' },
-        ],
-      },
-      {
-        test: /\.less$/,
-        use: [
-          { loader: 'style-loader' },
-          { loader: 'css-loader' },
-          { loader: 'less-loader' },
-        ],
-      },
-      {
-        test: /\.s[ac]ss$/,
-        use: [
-          { loader: 'style-loader' },
-          { loader: 'css-loader' },
-          { loader: 'sass-loader' },
-        ],
-      },
     ],
-  },
-  output: {
-    path: path.resolve(__dirname, 'wwwroot', 'js'),
-    filename: '[name].bundle.js',
-    publicPath: '/wwwroot/',
   },
   plugins: [
     new CopyWebpackPlugin([
@@ -102,6 +78,4 @@ module.exports = {
       '.js',
     ],
   },
-  mode: 'development',
-  devtool: 'inline-source-map',
 };

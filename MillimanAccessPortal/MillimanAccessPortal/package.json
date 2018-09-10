@@ -5,7 +5,6 @@
   "license": "UNLICENSED",
   "dependencies": {
     "bootstrap": "4.0.0",
-    "whatwg-fetch": "2.0.4",
     "jquery": "2.2.0",
     "jquery-mask-plugin": "1.14.13",
     "jquery-validation": "1.14.0",
@@ -21,7 +20,8 @@
     "toastr": "2.1.4",
     "tooltipster": "4.2.5",
     "typeahead.js": "v0.11.1",
-    "vex-js": "v4.1.0"
+    "vex-js": "v4.1.0",
+    "whatwg-fetch": "2.0.4"
   },
   "devDependencies": {
     "@types/jest": "^22.2.2",
@@ -65,10 +65,11 @@
     "typescript": "^2.7.2",
     "webpack": "^4.2.0",
     "webpack-cli": "^2.0.13",
-    "webpack-hot-middleware": "^2.21.2"
+    "webpack-hot-middleware": "^2.21.2",
+    "webpack-merge": "^4.1.4"
   },
   "scripts": {
-    "build": "tsc & webpack",
+    "build-dev": "tsc & webpack --config=webpack.dev.js",
     "test": "jest",
     "test-browsers": "testcafe chrome,firefox,ie src/browser_tests/"
   },
