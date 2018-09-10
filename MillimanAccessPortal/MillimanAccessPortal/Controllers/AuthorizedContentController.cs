@@ -23,6 +23,8 @@ using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.AuthorizedContentViewModels;
+using MillimanAccessPortal.Services;
+using MillimanAccessPortal.Utilities;
 using QlikviewLib;
 using System;
 using System.IO;
@@ -38,6 +40,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuditLogger AuditLogger;
         private readonly IAuthorizationService AuthorizationService;
         private readonly ApplicationDbContext DataContext;
+        private readonly IMessageQueue MessageQueue;
         private readonly ILogger Logger;
         private readonly QlikviewConfig QlikviewConfig;
         private readonly StandardQueries Queries;
@@ -59,6 +62,7 @@ namespace MillimanAccessPortal.Controllers
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
             ApplicationDbContext DataContextArg,
+            IMessageQueue MessageQueueArg,
             ILoggerFactory LoggerFactoryArg,
             IOptions<QlikviewConfig> QlikviewOptionsAccessorArg,
             StandardQueries QueryArg,
@@ -68,6 +72,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
             DataContext = DataContextArg;
+            MessageQueue = MessageQueueArg;
             Logger = LoggerFactoryArg.CreateLogger<AuthorizedContentController>();
             QlikviewConfig = QlikviewOptionsAccessorArg.Value;
             Queries = QueryArg;
@@ -143,9 +148,12 @@ namespace MillimanAccessPortal.Controllers
             // Make sure the checksum currently matches the value stored at the time the file was generated or uploaded
             if (!contentFile.ValidateChecksum())
             {
-                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent());
+                string ErrMsg = $"The system could not validate the content item {selectionGroup.RootContentItem.ContentName} for selection group {selectionGroup.GroupName}. Try again in a few minutes, and contact MAP Support if this error continues.";
+                var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
 
-                Response.Headers.Add("Warning", "This content could not be verified and will not be loaded. Try again in a few minutes, and contact MAP Support if this error continues.");
+                notifier.sendSupportMail(ErrMsg);
+                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent());
+                Response.Headers.Add("Warning", ErrMsg);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
             #endregion
@@ -350,7 +358,11 @@ namespace MillimanAccessPortal.Controllers
 
             if (!contentRelatedPdf.ValidateChecksum())
             {
+                
                 string ErrMsg = $"Failed to load requested {purpose} PDF for SelectionGroup {selectionGroupId}";
+                var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
+
+                notifier.sendSupportMail(ErrMsg);
                 Logger.LogError(ErrMsg);
                 Response.Headers.Add("Warning", ErrMsg);
                 return StatusCode(StatusCodes.Status500InternalServerError);
