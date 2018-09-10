@@ -130,7 +130,7 @@ namespace MillimanAccessPortal.Controllers
                     string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
                     string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = user.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
 
-                    string expirationHours = _configuration["PasswordResetTokenTimespanHours"];
+                    string expirationHours = _configuration["PasswordResetTokenTimespanHours"] ?? "4";
 
                     string emailBody = $"The password for your Milliman Access Portal account has expired.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}{Environment.NewLine}";
                     emailBody += $"Your user name is {user.UserName}{Environment.NewLine}{Environment.NewLine}";
@@ -381,7 +381,7 @@ namespace MillimanAccessPortal.Controllers
                 ? string.Empty
                 : SettableEmailText + $"{Environment.NewLine}{Environment.NewLine}";
 
-            string accountActivationDays = _configuration["AccountActivationTokenTimespanDays"];
+            string accountActivationDays = _configuration["AccountActivationTokenTimespanDays"] ?? "7";
 
             // Non-configurable portion of email body
             emailBody += $"To activate your new account please click the below link or paste to your web browser. {Environment.NewLine} This link will expire in {accountActivationDays} days. {Environment.NewLine}{callbackUrl}";
@@ -526,7 +526,7 @@ namespace MillimanAccessPortal.Controllers
                         string PasswordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
                         string linkUrl = Url.Action(nameof(ResetPassword), "Account", new { userEmail = user.Email, passwordResetToken = PasswordResetToken }, protocol: "https");
 
-                        string expirationHours = _configuration["PasswordResetTokenTimespanHours"];
+                        string expirationHours = _configuration["PasswordResetTokenTimespanHours"] ?? "4";
 
                         string emailBody = $"A password reset was requested for your Milliman Access Portal account.  Please create a new password at the below linked page. This link will expire in {expirationHours} hours. {Environment.NewLine}";
                         emailBody += $"Your user name is {user.UserName}{Environment.NewLine}{Environment.NewLine}";
