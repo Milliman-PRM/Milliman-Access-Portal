@@ -414,8 +414,8 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // If the code is not valid (likely expired), re-send the welcome email and notify the user
-            DataProtectorTokenProvider<ApplicationUser> tokenValidatorService = (DataProtectorTokenProvider<ApplicationUser>) _serviceProvider.GetService(typeof(DataProtectorTokenProvider<ApplicationUser>));
-            bool tokenIsValid = await tokenValidatorService.ValidateAsync("EmailConfirmation", code, _userManager, user);
+            DataProtectorTokenProvider<ApplicationUser> emailConfirmationTokenProvider = (DataProtectorTokenProvider<ApplicationUser>) _serviceProvider.GetService(typeof(DataProtectorTokenProvider<ApplicationUser>));
+            bool tokenIsValid = await emailConfirmationTokenProvider.ValidateAsync("EmailConfirmation", code, _userManager, user);
 
             if (!tokenIsValid)
             {
