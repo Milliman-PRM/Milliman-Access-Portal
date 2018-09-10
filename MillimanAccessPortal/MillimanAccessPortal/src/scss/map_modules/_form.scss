@@ -98,22 +98,25 @@ select {
     display: block;
     width: 100%;
     padding: .25em .5em;
-    border: solid 1px transparent;
-    border-radius: .25em;
+    height: 2em;
+    border: none;
+    outline: none;
+    background-color: transparent;
+    border-bottom: 1px solid $charcoal;
     transition: border 0.2s;
 
     &:focus {
-        border: solid 1px $blue;
+        border-bottom: solid 1px $blue;
     }
 
     &[validated] {
-        border: solid 2px $green;
-        outline-color: $green !important;
+        border-bottom: solid 2px $green;
+        /*outline-color: $green !important;*/
     }
 
     &[warning] {
-        border: solid 2px $red;
-        outline-color: $red !important;
+        border-bottom: solid 2px $red;
+        /*outline-color: $red !important;*/
     }
 
     &[disabled],
@@ -274,7 +277,8 @@ label.input-with-upload {
 }
 /* Validation Error Styling */
 .input-validation-error {
-    border: solid 2px $red !important;
+    border-bottom: solid 2px $red !important;
+    color: $red;
 }
 
 span.field-validation-error,
