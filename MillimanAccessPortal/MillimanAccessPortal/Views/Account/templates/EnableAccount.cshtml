@@ -12,8 +12,16 @@
     ViewData["NavIcon"] = "EnableAccount";
 }
 
+@section CSS {
+  <% for (var css in htmlWebpackPlugin.files.css) { %>
+  <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet">
+  <% } %>
+}
+
 @section Scripts {
-    <script src="~/js/enable-account.bundle.js"></script>
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% } %>
 }
 
 <div id="enable-account-container">
