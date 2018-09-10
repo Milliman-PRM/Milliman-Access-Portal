@@ -131,6 +131,10 @@ namespace AuditLogLib.Event
             });
         public static readonly AuditEventType LoginNotAllowed = new AuditEventType(3009, "Login not allowed");
         public static readonly AuditEventType LoginIsLockedOut = new AuditEventType(3010, "Login account is locked out");
+
+        public static readonly AuditEventType<ApplicationUser> UserPasswordExpired =
+            new AuditEventType<ApplicationUser>(3011, "User password expired", (user) => 
+                new { userId = user.Id, userName = user.UserName, dateLastSetUtc = user.LastPasswordChangeDateTimeUtc });
         #endregion
 
         #region Content Access Admin [4000 - 4999]
