@@ -137,7 +137,7 @@ namespace MillimanAccessPortal.Controllers
             if (contentFile == null)
             {
                 Response.Headers.Add("Warning", "This content could not be found. Try again in a few minutes, and contact MAP Support if this error continues.");
-                return NotFound();
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
             // Make sure the checksum currently matches the value stored at the time the file was generated or uploaded
@@ -146,7 +146,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent());
 
                 Response.Headers.Add("Warning", "This content could not be verified and will not be loaded. Try again in a few minutes, and contact MAP Support if this error continues.");
-                return Unauthorized();
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
             #endregion
 
