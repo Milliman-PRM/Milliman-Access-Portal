@@ -53,6 +53,7 @@
     "less-loader": "^4.1.0",
     "mini-css-extract-plugin": "^0.4.2",
     "node-sass": "^4.7.2",
+    "optimize-css-assets-webpack-plugin": "^5.0.1",
     "sass-loader": "^6.0.7",
     "source-map-loader": "^0.2.3",
     "style-loader": "^0.20.3",
