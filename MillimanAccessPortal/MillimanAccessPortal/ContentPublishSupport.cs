@@ -60,14 +60,19 @@ namespace MillimanAccessPortal
             }
         }
 
-        internal static void MonitorPublicationRequestForQueueing(Guid publicationRequestId, UploadedRelatedFile[] files, string connectionString, string contentItemRootPath, string exchangePath)
+        internal static void MonitorPublicationRequestForQueueing(Guid publicationRequestId, string connectionString, string contentItemRootPath, string exchangePath)
         {
             bool validationWindowComplete = false;
 
             DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(connectionString);
             DbContextOptions<ApplicationDbContext> ContextOptions = ContextBuilder.Options;
 
-            var fileIds = files.Select(f => f.FileUploadId).ToList();
+            List<Guid> fileIds;
+            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+            {
+                var publicationRequest = Db.ContentPublicationRequest.Single(r => r.Id == publicationRequestId);
+                fileIds = publicationRequest.UploadedRelatedFilesObj.Select(f => f.FileUploadId).ToList();
+            }
             while (!validationWindowComplete)
             {
                 using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
@@ -85,6 +90,12 @@ namespace MillimanAccessPortal
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
                 var publicationRequest = Db.ContentPublicationRequest.Single(r => r.Id == publicationRequestId);
+                if (publicationRequest.RequestStatus == PublicationStatus.Canceled)
+                {
+                    return;
+                }
+
+                var files = publicationRequest.UploadedRelatedFilesObj;
                 var rootContentItem = Db.RootContentItem
                     .Where(i => i.Id == publicationRequest.RootContentItemId)
                     .Include(i => i.ContentType)
@@ -105,6 +116,7 @@ namespace MillimanAccessPortal
                             if (Crf != null)
                             {
                                 publicationRequest.LiveReadyFilesObj = publicationRequest.LiveReadyFilesObj.Append(Crf).ToList();
+                                publicationRequest.UploadedRelatedFilesObj = publicationRequest.UploadedRelatedFilesObj.Where(f => f.FileUploadId != UploadedFileRef.FileUploadId).ToList();
 
                                 if (Crf.FilePurpose.ToLower() == "mastercontent")
                                 {
@@ -123,7 +135,15 @@ namespace MillimanAccessPortal
 
                 // Update the request record with file info and Queued status
                 Db.ContentPublicationRequest.Update(publicationRequest);
-                Db.SaveChanges();
+                try
+                {
+                    Db.SaveChanges();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    // PublicationRequest was set to canceled, no extra cleanup needed
+                    return;
+                }
 
                 AuditLogger Logger = new AuditLogger();
                 Logger.Log(AuditEventType.PublicationQueued.ToEvent(rootContentItem, publicationRequest));

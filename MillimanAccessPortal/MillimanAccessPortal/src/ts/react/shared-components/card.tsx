@@ -14,6 +14,7 @@ export interface CardProps extends Entity {
   selected: boolean;
   setSelected: () => void;
   resetButton?: boolean;
+  resetButtonText?: string;
   sublistInfo: {
     title: string;
     icon: string;
@@ -70,7 +71,7 @@ export class Card extends React.Component<CardProps, CardState> {
       ? (
         <div
           className="card-button-background card-button-blue"
-          title="Send password reset email"
+          title={this.props.resetButtonText || 'Send password reset email'}
           onClick={this.sendPasswordReset}
         >
           <svg className="card-button-icon">
@@ -286,6 +287,7 @@ export function withActivated(Component: React.ComponentType<CardProps>) {
           <Component
             {...props}
             primaryText={'(Unactivated)'}
+            resetButtonText={'Resend account activation email'}
           />
         );
     }

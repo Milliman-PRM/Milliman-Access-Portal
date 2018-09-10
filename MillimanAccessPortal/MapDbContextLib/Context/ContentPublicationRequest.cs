@@ -79,6 +79,13 @@ namespace MapDbContextLib.Context
         [Column(TypeName = "jsonb")]
         public string ReductionRelatedFiles { get; set; } = "[]";
 
+        /// <summary>
+        /// May also be accessed through [NotMapped] property UploadedRelatedFilesObj
+        /// Intended to be serialization of type List<UploadedRelatedFile>
+        /// </summary>
+        [Column(TypeName = "jsonb")]
+        public string UploadedRelatedFiles { get; set; } = "[]";
+
         [Required]
         public PublicationStatus RequestStatus { get; set; }
 
@@ -92,7 +99,9 @@ namespace MapDbContextLib.Context
         {
             get
             {
-                return JsonConvert.DeserializeObject<List<ReductionRelatedFiles>>(ReductionRelatedFiles);
+                return string.IsNullOrWhiteSpace(ReductionRelatedFiles)
+                    ? new List<ReductionRelatedFiles>()
+                    : JsonConvert.DeserializeObject<List<ReductionRelatedFiles>>(ReductionRelatedFiles);
             }
             set
             {
@@ -108,7 +117,9 @@ namespace MapDbContextLib.Context
         {
             get
             {
-                return JsonConvert.DeserializeObject<List<ContentRelatedFile>>(LiveReadyFiles);
+                return string.IsNullOrWhiteSpace(LiveReadyFiles)
+                    ? new List<ContentRelatedFile>()
+                    : JsonConvert.DeserializeObject<List<ContentRelatedFile>>(LiveReadyFiles);
             }
             set
             {
@@ -118,34 +129,25 @@ namespace MapDbContextLib.Context
             }
         }
 
-        public static PublicationStatus GetPublicationStatus(List<ReductionStatusEnum> TaskStatusList)
+        /// <summary>
+        /// Identifies files uploaded as part of a publication request
+        /// </summary>
+        /// <remarks>This field is expected to be empty once uploaded files have been processed.</remarks>
+        [NotMapped]
+        public List<UploadedRelatedFile> UploadedRelatedFilesObj
         {
-            List<ReductionStatusEnum> CompleteList = new List<ReductionStatusEnum> { ReductionStatusEnum.Reduced, ReductionStatusEnum.Canceled, ReductionStatusEnum.Live };
-            List<ReductionStatusEnum> QueuedList = new List<ReductionStatusEnum> { ReductionStatusEnum.Queued };
-
-            if (TaskStatusList.TrueForAll(s => CompleteList.Contains(s)))
+            get
             {
-                return PublicationStatus.Processed;
+                return string.IsNullOrWhiteSpace(UploadedRelatedFiles)
+                    ? new List<UploadedRelatedFile>()
+                    : JsonConvert.DeserializeObject<List<UploadedRelatedFile>>(UploadedRelatedFiles);
             }
-
-            else if (TaskStatusList.TrueForAll(s => s == ReductionStatusEnum.Queued))
+            set
             {
-                return PublicationStatus.Queued;
+                UploadedRelatedFiles = value != null
+                    ? JsonConvert.SerializeObject(value)
+                    : "[]";
             }
-
-            else if (TaskStatusList.All(s => s == ReductionStatusEnum.Queued
-                                          || s == ReductionStatusEnum.Reducing
-                                          || s == ReductionStatusEnum.Reduced
-                                          || s == ReductionStatusEnum.Replaced
-                                          || s == ReductionStatusEnum.Canceled
-                                          || s == ReductionStatusEnum.Rejected
-                                          || s == ReductionStatusEnum.Live)
-                  && TaskStatusList.Count(s => s == ReductionStatusEnum.Queued || s == ReductionStatusEnum.Reducing) > 0)
-            {
-                return PublicationStatus.Processing;
-            }
-
-            return PublicationStatus.Unknown;
         }
     }
 }
