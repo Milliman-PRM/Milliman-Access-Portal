@@ -150,9 +150,9 @@
                     </div>
                 </div>
                 <div class="form-section">
-                    <h4 class="form-section-title">New User Welcome Email Settings</h4>
+                    <h4 class="form-section-title">New User Welcome Email Text</h4>
                     <div class="form-input-container">
-                        <div class="form-input form-input-nullable-textarea flex-item-for-phone-only-12-12 flex-item-for-tablet-up-12-12">
+                        <div class="form-input form-input-toggle form-input-flex content-item-flex-none">
                             <div class="switch-container">
                                 <div class="toggle-switch">
                                     <input type="checkbox" class="toggle-switch-checkbox" for="NewUserWelcomeTextToggle" name="NewUserWelcomeTextToggle" id="NewUserWelcomeTextToggle">
@@ -163,6 +163,8 @@
                                 </div>
                                 <label class="form-input-nullable-textarea-title" asp-for="NewUserWelcomeText"></label>
                             </div>
+                        </div>
+                        <div class="form-input content-item-flex-1">
                             <div>
                                 <textarea id="NewUserWelcomeText" name="NewUserWelcomeText" for="NewUserWelcomeText"></textarea>
                             </div>
