@@ -11,6 +11,7 @@
  *          - [GET] <entity>Detail: Query the database for a specific <entity>, whose PK is supplied in the
  *              query filter. If other entity IDs are provided in the query filter, return a different detail model
  *              in context of the other entities in a custom manner based on <entity>.
+ *      For each create, update, and delete action, there is a single POST action.
  *      For each set of immediate toggles available to system admins, there are two actions:
  *          - [GET]: Return the value of the toggle.
  *          - [POST]: Set the value of the toggle and return this new value.
@@ -964,25 +965,25 @@ namespace MillimanAccessPortal.Controllers
             {
                 // pass
             }
-            else if (roleExists)
+            else if (value)
             {
-                var roleToRemove = roleQuery.Single();
-                _dbContext.UserRoles.Remove(roleToRemove);
-                _dbContext.SaveChanges();
-
-                _auditLogger.Log(AuditEventType.SystemRoleRemoved.ToEvent(user, role));
-            }
-            else
-            {
-                var roleToAdd = new IdentityUserRole<Guid>
+                var userRoleToAdd = new IdentityUserRole<Guid>
                 {
                     UserId = user.Id,
                     RoleId = roleId,
                 };
-                _dbContext.UserRoles.Add(roleToAdd);
+                _dbContext.UserRoles.Add(userRoleToAdd);
                 _dbContext.SaveChanges();
 
                 _auditLogger.Log(AuditEventType.SystemRoleAssigned.ToEvent(user, role));
+            }
+            else
+            {
+                var userRoleToRemove = roleQuery.Single();
+                _dbContext.UserRoles.Remove(userRoleToRemove);
+                _dbContext.SaveChanges();
+
+                _auditLogger.Log(AuditEventType.SystemRoleRemoved.ToEvent(user, role));
             }
 
             return Json(value);
@@ -1187,32 +1188,28 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            // Specify which roles should be automatically assigned to/removed from a client's associated
+            // root content items when that role is assigned to/removed from the client
+            var rolesToApplyToRootContentItems = new List<RoleEnum>
+            {
+                RoleEnum.ContentAccessAdmin,
+                RoleEnum.ContentPublisher,
+            };
+
             var roleQuery = _dbContext.UserRoleInClient
                 .Where(ur => ur.UserId == user.Id)
                 .Where(ur => ur.ClientId == client.Id);
 
-            if (!value)
-            {
-                var rolesToRemove = roleQuery
-                    .Where(ur => userClientAssignments[role].Contains(ur.Role.RoleEnum))
-                    .ToList();
-
-                foreach (var roleToRemove in rolesToRemove)
-                {
-                    _dbContext.UserRoleInClient.Remove(roleToRemove);
-                }
-                _dbContext.SaveChanges();
-
-                _auditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(client, user, userClientAssignments[role]));
-            }
-            else
+            if (value)
             {
                 // Don't reassign any roles that are already assigned
                 var rolesToAdd = userClientAssignments[role]
                     .Except(roleQuery.Select(ur => ur.Role.RoleEnum));
 
+                // Apply all assignable roles for the specified role
                 foreach (var roleToAdd in rolesToAdd)
                 {
+                    // Assign client role
                     var userRole = new UserRoleInClient
                     {
                         UserId = user.Id,
@@ -1220,10 +1217,55 @@ namespace MillimanAccessPortal.Controllers
                         RoleId = ApplicationRole.RoleIds[roleToAdd],
                     };
                     _dbContext.UserRoleInClient.Add(userRole);
+
+                    // Assign root content item role if applicable
+                    if (rolesToApplyToRootContentItems.Contains(roleToAdd))
+                    {
+                        // Assume there is no existing role for this user, root content item, and role
+                        // If this assumption is false, no application logic should break
+                        // Duplicate roles are removed during role removal
+                        var rootContentItemRoles = _dbContext.RootContentItem
+                            .Where(r => r.ClientId == client.Id)
+                            .Select(r => new UserRoleInRootContentItem
+                            {
+                                UserId = user.Id,
+                                RootContentItemId = r.Id,
+                                RoleId = ApplicationRole.RoleIds[roleToAdd],
+                            });
+                        _dbContext.UserRoleInRootContentItem.AddRange(rootContentItemRoles);
+                    }
                 }
                 _dbContext.SaveChanges();
 
                 _auditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(client, user, userClientAssignments[role]));
+            }
+            else
+            {
+                var rolesInClientToRemove = roleQuery
+                    .Where(ur => userClientAssignments[role].Contains(ur.Role.RoleEnum))
+                    .ToList();
+
+                // Remove all assignable roles for the specified role
+                foreach (var roleInClientToRemove in rolesInClientToRemove)
+                {
+                    // Remove client role
+                    _dbContext.UserRoleInClient.Remove(roleInClientToRemove);
+
+                    // Remove root content item role if applicable
+                    if (rolesToApplyToRootContentItems.Contains(roleInClientToRemove.Role.RoleEnum))
+                    {
+                        // Remove all matching roles in case there are duplicates
+                        var rootContentItemRoles = _dbContext.UserRoleInRootContentItem
+                            .Where(r => r.RootContentItem.ClientId == client.Id)
+                            .Where(r => r.UserId == user.Id)
+                            .Where(r => r.Role == roleInClientToRemove.Role)
+                            .ToList();
+                        _dbContext.UserRoleInRootContentItem.RemoveRange(rootContentItemRoles);
+                    }
+                }
+                _dbContext.SaveChanges();
+
+                _auditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(client, user, userClientAssignments[role]));
             }
 
             return Json(value);

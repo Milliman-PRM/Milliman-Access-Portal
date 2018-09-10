@@ -230,7 +230,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     var inheritedRoles = DbContext.UserRoleInClient
                         .Where(r => r.ClientId == rootContentItem.ClientId)
-                        .Where(r => r.RoleId == ApplicationRole.RoleIds[role])
+                        .Where(r => r.Role.RoleEnum == role)
                         .Select(r => new UserRoleInRootContentItem
                         {
                             UserId = r.UserId,
@@ -466,6 +466,12 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "A previous reduction task is pending for this content.");
                 return BadRequest();
             }
+
+            if (!ContentItem.ContentFilesList.Any(f => f.FilePurpose.ToLower() == "mastercontent") && !Arg.RelatedFiles.Any(f => f.FilePurpose.ToLower() == "mastercontent"))
+            {
+                Response.Headers.Add("Warning", "New publications must include a master content file");
+                return BadRequest();
+            }
             #endregion
 
             // Insert the initial publication request (not queued yet)
@@ -477,6 +483,7 @@ namespace MillimanAccessPortal.Controllers
                 RootContentItemId = ContentItem.Id,
                 LiveReadyFilesObj = new List<ContentRelatedFile>(),
                 ReductionRelatedFilesObj = new List<ReductionRelatedFiles>(),
+                UploadedRelatedFilesObj = Arg.RelatedFiles.ToList(),
             };
             try
             {
@@ -493,9 +500,10 @@ namespace MillimanAccessPortal.Controllers
             string exchangePath = ApplicationConfig.GetSection("Storage")["MapPublishingServerExchangePath"];
             string CxnString = ApplicationConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
             ContentPublishSupport.AddPublicationMonitor(Task.Run(() =>
-                ContentPublishSupport.MonitorPublicationRequestForQueueing(NewContentPublicationRequest.Id, Arg.RelatedFiles, CxnString, rootPath, exchangePath)));
+                ContentPublishSupport.MonitorPublicationRequestForQueueing(NewContentPublicationRequest.Id, CxnString, rootPath, exchangePath)));
 
-            return Ok();
+            var rootContentItemDetail = Models.ContentPublishing.RootContentItemDetail.Build(DbContext, ContentItem);
+            return Json(rootContentItemDetail);
         }
 
         [HttpPost]
@@ -522,9 +530,14 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
+            var cancelableStatus = new List<PublicationStatus>
+            {
+                PublicationStatus.Validating,
+                PublicationStatus.Queued,
+            };
             var contentPublicationRequest = DbContext.ContentPublicationRequest
                 .Where(r => r.RootContentItemId == rootContentItem.Id)
-                .Where(r => r.RequestStatus == PublicationStatus.Queued)
+                .Where(r => cancelableStatus.Contains(r.RequestStatus))
                 .SingleOrDefault();
             if (contentPublicationRequest == null)
             {
@@ -534,6 +547,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             contentPublicationRequest.RequestStatus = PublicationStatus.Canceled;
+            contentPublicationRequest.UploadedRelatedFilesObj = null;
             DbContext.ContentPublicationRequest.Update(contentPublicationRequest);
             try
             {
