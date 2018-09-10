@@ -136,7 +136,7 @@ namespace MillimanAccessPortal.Controllers
 
             if (contentFile == null)
             {
-                Response.Headers.Add("Error", "This content could not be found. Try again in a few minutes, and Support if this error continues.");
+                Response.Headers.Add("Warning", "This content could not be found. Try again in a few minutes, and contact MAP Support if this error continues.");
                 return NotFound();
             }
 
@@ -145,11 +145,9 @@ namespace MillimanAccessPortal.Controllers
             {
                 AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent());
 
-                Response.Headers.Add("Error", "This content could not be verified and will not be loaded. Try again in a few minutes, and Support if this error continues.");
-                return NoContent();
+                Response.Headers.Add("Warning", "This content could not be verified and will not be loaded. Try again in a few minutes, and contact MAP Support if this error continues.");
+                return Unauthorized();
             }
-
-
             #endregion
 
             try
