@@ -343,11 +343,23 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+
+            #region File verification
+
+            ContentRelatedFile contentRelatedPdf = selectionGroup.RootContentItem.ContentFilesList.Single(cf => cf.FilePurpose.ToLower() == purpose.ToLower());
+
+            if (!contentRelatedPdf.ValidateChecksum())
+            {
+                string ErrMsg = $"Failed to load requested {purpose} PDF for SelectionGroup {selectionGroupId}";
+                Logger.LogError(ErrMsg);
+                Response.Headers.Add("Warning", ErrMsg);
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+            #endregion
+
             try
             {
-                ContentRelatedFile contentRelatedPdf = selectionGroup.RootContentItem.ContentFilesList.Single(cf => cf.FilePurpose.ToLower() == purpose.ToLower());
                 FileStream fileStream = System.IO.File.OpenRead(contentRelatedPdf.FullPath);
-
                 return File(fileStream, "application/pdf");
             }
             catch
