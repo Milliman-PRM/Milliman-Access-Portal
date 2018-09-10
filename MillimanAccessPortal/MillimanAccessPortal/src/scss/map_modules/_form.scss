@@ -101,7 +101,10 @@ select {
 
 textarea {
     border: 1px solid $charcoal;
-    min-height: 5em;
+
+    &:focus {
+        border: solid 1px $blue;
+    }
 }
 
 input,
@@ -233,7 +236,6 @@ label.input-with-upload {
         padding-right: 2.5em;
         position: relative;
         z-index: 1;
-        background-color: $white;
 
         &[disabled] {
             background-color: $light-grey;
