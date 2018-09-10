@@ -95,6 +95,7 @@ label {
 
 input,
 select {
+    border: none;
     height: 2em;
 }
 
@@ -109,7 +110,6 @@ select {
     display: block;
     width: 100%;
     padding: .25em .5em;
-    border: none;
     outline: none;
     background-color: transparent;
     border-bottom: 1px solid $charcoal;
@@ -244,8 +244,8 @@ label.input-with-upload {
         
         &.upload-icon,&.cancel-icon {
             color: $charcoal;
-            height: 2em;
-            width: 2em;
+            height: 1.8em;
+            width: 1.8em;
             position: absolute;
             right: .25em;
             top: 1.9em;

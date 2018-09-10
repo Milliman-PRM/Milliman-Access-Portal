@@ -1,5 +1,8 @@
 div.selectize-input {
     color: $charcoal;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid $charcoal;
     border-radius: 0 !important;
     min-height: 2.6em;
     transition: border 0.2s;
@@ -15,7 +18,8 @@ div.selectize-input {
         margin: .25em !important;
     }
 
-    &:focus {
+    &.focus {
+        box-shadow: none;
         border-bottom: solid 1px $blue;
     }
 
