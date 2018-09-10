@@ -10,6 +10,7 @@ using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -30,6 +31,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
+using System.Threading.Tasks;
 using TestResourcesLib;
 
 namespace MapTests
@@ -73,6 +75,8 @@ namespace MapTests
         public Mock<IConfiguration> MockConfiguration { get; set; }
         public IConfiguration ConfigurationObject { get => MockConfiguration.Object; }
 
+        public Mock<IServiceProvider> MockServiceProvider { get; set; }
+        public IServiceProvider ServiceProviderObject { get => MockServiceProvider.Object; }
         public IOptions<QlikviewConfig> QvConfig { get { return BuildQvConfig(); } }
 
         public DefaultAuthorizationService AuthorizationService { get; set; }
@@ -153,6 +157,31 @@ namespace MapTests
             MockAuditLogger = TestResourcesLib.MockAuditLogger.New();
             QueriesObj = new StandardQueries(DbContextObject, UserManagerObject, MockAuditLogger.Object);
             MockConfiguration = GenerateMockConfiguration();
+            MockServiceProvider = GenerateServiceProvider();
+        }
+
+        /// <summary>
+        /// Prepare a mock IServiceProvider to fake security token validation
+        /// We don't actually need to test this, since it's framework code, so returning true for ever validation should be okay.
+        /// </summary>
+        /// <returns></returns>
+        private Mock<IServiceProvider> GenerateServiceProvider()
+        {
+            Mock<IServiceProvider> newServiceProvider = new Mock<IServiceProvider>();
+            // IDataProtectionProvider dataProtectionProvider, IOptions<DataProtectionTokenProviderOptions> options
+            Mock<IDataProtectionProvider> provider = new Mock<IDataProtectionProvider>();
+            Mock<IOptions<DataProtectionTokenProviderOptions>> options = new Mock<IOptions<DataProtectionTokenProviderOptions>>() ;
+            Mock<DataProtectorTokenProvider<ApplicationUser>> newTokenProvider = new Mock<DataProtectorTokenProvider<ApplicationUser>>(provider.Object, options.Object);
+
+            // Validate tokens against TestResourcesLib.MockUserManager's static values
+            newTokenProvider.Setup(m => m.ValidateAsync(It.IsAny<string>(), TestResourcesLib.MockUserManager.GoodToken, It.IsAny<UserManager<ApplicationUser>>(), It.IsAny<ApplicationUser>()))
+                .Returns(Task.Run(() => true));
+            newTokenProvider.Setup(m => m.ValidateAsync(It.IsAny<string>(), TestResourcesLib.MockUserManager.BadToken, It.IsAny<UserManager<ApplicationUser>>(), It.IsAny<ApplicationUser>()))
+                .Returns(Task.Run(() => false));
+
+            newServiceProvider.Setup(m => m.GetService(It.IsAny<Type>())).Returns(newTokenProvider.Object);
+
+            return newServiceProvider;
         }
 
         private IOptions<QlikviewConfig> BuildQvConfig()
@@ -274,6 +303,7 @@ namespace MapTests
         private Mock<IConfiguration> GenerateMockConfiguration()
         {
             Mock<IConfiguration> mock = new Mock<IConfiguration>();
+            mock.SetupGet(m => m[It.IsAny<string>()]).Returns("");
             return mock;
         }
 
@@ -698,6 +728,7 @@ namespace MapTests
             DbContextObject.ApplicationUser.AddRange(new List<ApplicationUser>
             {
                 new ApplicationUser { Id=TestUtil.MakeTestGuid(1), UserName="user1", Email="user1@example.com", NormalizedEmail="USER1@EXAMPLE.COM", NormalizedUserName="USER1" },
+                new ApplicationUser { Id=TestUtil.MakeTestGuid(2), UserName="user2", Email="user2@example.com", NormalizedEmail="USER2@EXAMPLE.COM", NormalizedUserName="USER2", EmailConfirmed=true },
             });
             #endregion
         }

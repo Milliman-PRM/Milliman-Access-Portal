@@ -7,6 +7,7 @@
 using AuditLogLib;
 using AuditLogLib.Services;
 using EmailQueue;
+using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Authorization;
@@ -72,9 +73,13 @@ namespace MillimanAccessPortal
                 options.UseNpgsql(appConnectionString, b => b.MigrationsAssembly("MillimanAccessPortal")));
             #endregion
 
-            int passwordHistoryDays = Configuration.GetValue<int>("PasswordHistoryValidatorDays");
+            int passwordHistoryDays = Configuration.GetValue<int?>("PasswordHistoryValidatorDays") ?? GlobalFunctions.fallbackPasswordHistoryDays;
             List<string> commonWords = Configuration.GetSection("PasswordBannedWords").GetChildren().Select(c => c.Value).ToList<string>();
-            int passwordHashingIterations = Configuration.GetValue<int>("PasswordHashingIterations");
+            int passwordHashingIterations = Configuration.GetValue<int?>("PasswordHashingIterations") ?? GlobalFunctions.fallbackPasswordHashingIterations; 
+            int accountActivationTokenTimespanDays = Configuration.GetValue<int?>("AccountActivationTokenTimespanDays") ?? GlobalFunctions.fallbackAccountActivationTokenTimespanDays;
+            int passwordResetTokenTimespanHours = Configuration.GetValue<int?>("PasswordResetTokenTimespanHours") ?? GlobalFunctions.fallbackPasswordResetTokenTimespanHours;
+
+            string tokenProviderName = "MAPResetToken";
 
             // Do not add AuditLogDbContext.  This context should be protected from direct access.  Use the api class instead.  -TP
 
@@ -87,8 +92,9 @@ namespace MillimanAccessPortal
                 .AddTop100000PasswordValidator<ApplicationUser>()
                 .AddRecentPasswordInDaysValidator<ApplicationUser>(passwordHistoryDays)
                 .AddPasswordValidator<PasswordIsNotEmailOrUsernameValidator<ApplicationUser>>()
-                .AddCommonWordsValidator<ApplicationUser>(commonWords);
-
+                .AddCommonWordsValidator<ApplicationUser>(commonWords)
+                .AddTokenProvider<PasswordResetSecurityTokenProvider<ApplicationUser>>(tokenProviderName);
+            
             services.Configure<PasswordHasherOptions>(options => options.IterationCount = passwordHashingIterations);
 
             services.Configure<IdentityOptions>(options =>
@@ -108,7 +114,23 @@ namespace MillimanAccessPortal
                 
                 // User settings
                 options.User.RequireUniqueEmail = true;
+
+                // Enable custom token provider for password resets
+                options.Tokens.PasswordResetTokenProvider = tokenProviderName;
             });
+
+            // Configure custom security token provider
+            services.Configure<PasswordResetSecurityTokenProviderOptions>(options =>
+            {
+                options.TokenLifespan = TimeSpan.FromHours(passwordResetTokenTimespanHours);
+            });
+
+            // Configure the default token provider used for account activation
+            services.Configure<DataProtectionTokenProviderOptions>(options =>
+                {
+                    options.TokenLifespan = TimeSpan.FromDays(accountActivationTokenTimespanDays);
+                }
+            );
 
             // Cookie settings
             services.ConfigureApplicationCookie(options =>

@@ -15,6 +15,11 @@ namespace MapCommonLib
         public static ulong maxFileUploadSize { get; set; } = 5368709120;
         public static ulong virusScanWindowSeconds { get; set; } = 30;
 
+        public static readonly int fallbackPasswordHistoryDays = 30;
+        public static readonly int fallbackPasswordHashingIterations= 100_000;
+        public static readonly int fallbackAccountActivationTokenTimespanDays = 7;
+        public static readonly int fallbackPasswordResetTokenTimespanHours = 4;
+
         static Regex EmailAddressValidationRegex = new Regex (emailValRegex, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
 
         public static bool IsValidEmail(string TestAddress)
