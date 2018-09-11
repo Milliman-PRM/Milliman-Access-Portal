@@ -101,6 +101,7 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
       window.location.replace('/');
     })
     .catch((e) => {
+      window.location.replace('/');
       throw new Error(e);
     });
   }
