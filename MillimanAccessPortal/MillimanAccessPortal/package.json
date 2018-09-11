@@ -43,6 +43,7 @@
     "@types/webpack-env": "^1.13.5",
     "aspnet-webpack": "^2.0.3",
     "awesome-typescript-loader": "^4.0.1",
+    "clean-webpack-plugin": "^0.1.19",
     "copy-webpack-plugin": "^4.5.1",
     "css-loader": "^0.28.11",
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
