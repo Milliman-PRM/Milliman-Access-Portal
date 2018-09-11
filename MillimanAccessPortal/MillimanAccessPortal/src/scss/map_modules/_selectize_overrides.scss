@@ -4,9 +4,9 @@ div.selectize-input {
     border: none;
     border-bottom: 1px solid $charcoal;
     border-radius: 0 !important;
-    min-height: 2.6em;
+    min-height: 2em;
     transition: border 0.2s;
-    padding: .25em !important;
+    padding: 0 !important;
     font-size: 1rem;
     box-shadow: none;
     -webkit-box-shadow: none;
@@ -26,7 +26,7 @@ div.selectize-input {
     &.disabled {
         border: none;
         border-bottom: solid 1px $grey;
-        background-color: $light-grey !important;
+        background-color: transparent !important;
         box-shadow: none;
         cursor: default;
         -moz-appearance: none;
@@ -36,7 +36,7 @@ div.selectize-input {
         div.item {
             background: $grey;
             color: $charcoal !important;
-            border: none;
+            border: none !important;
             font-size: 1em;
             z-index: 10;
             opacity: 1;
