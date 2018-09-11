@@ -108,10 +108,13 @@ select {
 }
 
 textarea {
-    border: 1px solid $charcoal;
+    border: none;
+    border-right: 1px dashed $charcoal;
+    border-bottom: 1px solid $charcoal;
 
     &:focus {
-        border: solid 1px $blue;
+        border-right: 1px dashed $blue;
+        border-bottom: 1px solid $blue;
     }
 }
 
@@ -187,8 +190,8 @@ input.filter-input {
     .form-section-title {
         width: 100%;
         border-bottom: 2px solid $charcoal;
-        padding: .5em .5em 0;
-        margin-bottom: 0;
+        padding: 0 .5em;
+        margin-bottom: .75em;
         text-transform: uppercase
     }
 
