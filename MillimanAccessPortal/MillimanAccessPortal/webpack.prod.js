@@ -27,10 +27,6 @@ module.exports = merge(common, {
       },
     },
   },
-  plugins: [
-    new webpack.HashedModuleIdsPlugin(),
-    new MiniCssExtractPlugin(),
-  ],
   module: {
     rules: [
       {
@@ -58,6 +54,12 @@ module.exports = merge(common, {
       },
     ],
   },
+  plugins: [
+    new webpack.HashedModuleIdsPlugin(),
+    new MiniCssExtractPlugin({
+      filename: 'css/[name].[contenthash].css',
+    }),
+  ],
   mode: 'development',
   devtool:' inline-source-map',
 });
