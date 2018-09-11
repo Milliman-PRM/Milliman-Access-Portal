@@ -107,6 +107,8 @@ namespace MillimanAccessPortal.Controllers
             var selectionGroup = DataContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
                     .ThenInclude(rc => rc.ContentType)
+                .Include(sg => sg.RootContentItem)
+                    .ThenInclude(rc => rc.Client)
                 .Where(sg => sg.Id == selectionGroupId)
                 .Where(sg => !sg.IsSuspended)
                 .Where(sg => !sg.RootContentItem.IsSuspended)
