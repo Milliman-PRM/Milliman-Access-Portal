@@ -367,8 +367,8 @@ namespace MillimanAccessPortal.Controllers
 
                 notifier.sendSupportMail(MailMsg, $"Checksum verification ({purpose})");
                 Logger.LogError(ErrMsg);
-                Response.Headers.Add("Warning", ErrMsg);
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent());
+                return View("Message", ErrMsg);
             }
             #endregion
 

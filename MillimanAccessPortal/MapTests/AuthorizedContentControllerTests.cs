@@ -452,10 +452,10 @@ namespace MapTests
             #region Assert
             try
             {
-                // Test that a content view was returned
-                Assert.IsType<StatusCodeResult>(result);
-                StatusCodeResult resultAsStatusCodeResult = result as StatusCodeResult;
-                Assert.Equal<int>(500, resultAsStatusCodeResult.StatusCode);
+                // Test that a content view was not returned
+                Assert.IsType<ViewResult>(result);
+                ViewResult viewResult = result as ViewResult;
+                Assert.Equal("Message", viewResult.ViewName);
             }
             finally
             {
