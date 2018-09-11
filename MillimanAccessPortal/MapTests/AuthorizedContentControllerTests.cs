@@ -181,6 +181,68 @@ namespace MapTests
         }
 
         /// <summary>
+        /// Test that WebHostedContent(id) returns an error message when the checksum does not validate
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task WebHostedContent_DisplaysMessageWhenChecksumIsInvalid()
+        {
+            #region Arrange
+            // initialize dependencies
+            TestInitialization TestResources = new TestInitialization();
+
+            // initialize data
+            TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
+
+            // Create the system under test (sut)
+            AuthorizedContentController sut = new AuthorizedContentController(
+                TestResources.AuditLoggerObject,
+                TestResources.AuthorizationService,
+                TestResources.DbContextObject,
+                TestResources.MessageQueueServicesObject,
+                TestResources.LoggerFactory,
+                TestResources.QvConfig,
+                TestResources.QueriesObj,
+                TestResources.UserManagerObject,
+                TestResources.ConfigurationObject);
+
+            // For illustration only, the same result comes from either of the following techniques:
+            // This one should never throw even if the user name is not in the context data
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+
+            // Add a file to the root content item and a content url to the selection group
+            string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
+            string TestFileSourcePath = Path.Combine(@"\\indy-syn01\prm_test\Sample Data", FileName);
+            string TestFileTargetPath = Path.Combine(@"\\indy-syn01\prm_test\ContentRoot", TestUtil.MakeTestGuid(1).ToString(), FileName);
+            File.Copy(TestFileSourcePath, TestFileTargetPath, true);
+            SelectionGroup ThisGroup = TestResources.DbContextObject.SelectionGroup.Single(sg => sg.Id == TestUtil.MakeTestGuid(1));
+            RootContentItem ThisItem = TestResources.DbContextObject.RootContentItem.FirstOrDefault(rci => rci.Id == TestUtil.MakeTestGuid(1));
+            ThisItem.ContentFilesList = new List<MapDbContextLib.Models.ContentRelatedFile>
+            {
+                new MapDbContextLib.Models.ContentRelatedFile { Checksum = "Bad Checksum Will Not Validate", FileOriginalName = "", FilePurpose = "mastercontent", FullPath = TestFileTargetPath, }
+            };
+            ThisGroup.ContentInstanceUrl = $"\\{ThisItem.Id}\\{FileName}";
+
+            #endregion
+
+            #region Act
+            // Attempt to load the content view for authorized content
+            var result = await sut.WebHostedContent(TestUtil.MakeTestGuid(1)); // User "test1" is authorized to RootContentItem w/ ID 1
+            #endregion
+
+            #region Assert
+            // Test that a ViewResult was returned instead of a RedirectResult
+            Assert.IsType<ViewResult>(result);
+
+            // Test that the Message view was returned
+            ViewResult viewResult = result as ViewResult;
+            Assert.Equal("Message", viewResult.ViewName);
+            #endregion
+        }
+
+        /// <summary>
         /// Thumbnail error for invalid SelectionGroup
         /// </summary>
         /// <returns></returns>
@@ -330,6 +392,70 @@ namespace MapTests
                 FileStreamResult fileResult = result as FileStreamResult;
                 Assert.Equal(UserGuideTestPath, ((System.IO.FileStream)fileResult.FileStream).Name);
                 fileResult.FileStream.Close();
+            }
+            finally
+            {
+                File.Delete(UserGuideTestPath);
+            }
+            #endregion
+        }
+
+        /// <summary>
+        /// Related PDF load (e.g. release notes or user guide
+        /// 
+        /// Validate that an incorrect checksum will not return a file result
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task RelatedPdfInvalidChecksum()
+        {
+            #region Arrange
+            // initialize dependencies
+            TestInitialization TestResources = new TestInitialization();
+
+            // initialize data
+            TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
+
+            // Create the system under test (sut)
+            AuthorizedContentController sut = new AuthorizedContentController(
+                TestResources.AuditLoggerObject,
+                TestResources.AuthorizationService,
+                TestResources.DbContextObject,
+                TestResources.MessageQueueServicesObject,
+                TestResources.LoggerFactory,
+                TestResources.QvConfig,
+                TestResources.QueriesObj,
+                TestResources.UserManagerObject,
+                TestResources.ConfigurationObject);
+
+            // For illustration only, the same result comes from either of the following techniques:
+            // This one should never throw even if the user name is not in the context data
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
+            // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
+            sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+            string purpose = "UserGuide";
+            string UserGuideSourcePath = Path.Combine(@"\\indy-syn01\prm_test\Sample Data", "IHopeSo.pdf");
+            string UserGuideTestPath = Path.Combine(@"\\indy-syn01\prm_test\ContentRoot", purpose + ".pdf");
+            File.Copy(UserGuideSourcePath, UserGuideTestPath, true);
+            RootContentItem ThisItem = TestResources.DbContextObject.RootContentItem.Single(rci => rci.Id == TestUtil.MakeTestGuid(1));
+            ThisItem.ContentFilesList = new List<MapDbContextLib.Models.ContentRelatedFile>
+            {
+                new MapDbContextLib.Models.ContentRelatedFile { Checksum = "Bad Checksum Will Not Validate", FileOriginalName = "", FilePurpose = purpose, FullPath = UserGuideTestPath, }
+            };
+            #endregion
+
+            #region Act
+            // Attempt to load the content view for authorized content
+            var result = await sut.RelatedPdf(purpose, TestUtil.MakeTestGuid(1)); // user1 is assigned to SelectionGroup 1
+            #endregion
+
+            #region Assert
+            try
+            {
+                // Test that a content view was returned
+                Assert.IsType<StatusCodeResult>(result);
+                StatusCodeResult resultAsStatusCodeResult = result as StatusCodeResult;
+                Assert.Equal<int>(500, resultAsStatusCodeResult.StatusCode);
             }
             finally
             {
