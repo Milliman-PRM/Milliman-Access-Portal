@@ -60,6 +60,6 @@ module.exports = merge(common, {
       filename: 'css/[name].[contenthash].css',
     }),
   ],
-  mode: 'development',
-  devtool:' inline-source-map',
+  mode: 'production',
+  devtool:' source-map',
 });
