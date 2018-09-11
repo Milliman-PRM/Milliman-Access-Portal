@@ -24,11 +24,11 @@ namespace MillimanAccessPortal.Utilities
         /// </summary>
         /// <param name="messageArg"></param>
         /// <returns></returns>
-        public bool sendSupportMail(string messageArg)
+        public bool sendSupportMail(string messageArg, string reason)
         {
             string supportAddress = _configuration["SupportEmailAddress"] ?? "map.support@milliman.com";
             string sender = _configuration["SmtpFromAddress"] ?? "map.support@milliman.com";
-            return _messageSender.QueueEmail(supportAddress, "Automated support notification", messageArg, sender);
+            return _messageSender.QueueEmail(supportAddress, $"Automated support notification - {reason}", messageArg, sender);
         }
     }
 }
