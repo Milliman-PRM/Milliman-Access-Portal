@@ -22,7 +22,7 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, 'wwwroot', 'js'),
-    filename: '[name].bundle.js',
+    filename: '[name].[contenthash].js',
     publicPath: '~/js/',
   },
   module: {
