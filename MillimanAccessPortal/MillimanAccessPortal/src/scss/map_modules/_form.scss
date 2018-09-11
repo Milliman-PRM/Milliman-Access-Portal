@@ -1,5 +1,12 @@
 ﻿/* Form Elements */
 
+.admin-panel-content-container form {
+    padding: 1em !important;
+    background-color: $white;
+    border-radius: 1em !important;
+    border: 1px solid $charcoal !important;
+}
+
 a,
 .link-button {
     color: $blue;
