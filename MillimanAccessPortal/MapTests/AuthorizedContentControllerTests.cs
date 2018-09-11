@@ -14,6 +14,7 @@ using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.AuthorizedContentViewModels;
 using TestResourcesLib;
 using MapDbContextLib.Context;
+using MapCommonLib;
 
 namespace MapTests
 {
@@ -141,6 +142,20 @@ namespace MapTests
             sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: "test1");
             // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
             sut.ControllerContext = TestInitialization.GenerateControllerContext(UserAsUserName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+
+            // Add a file to the root content item and a content url to the selection group
+            string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
+            string TestFileSourcePath = Path.Combine(@"\\indy-syn01\prm_test\Sample Data", FileName);
+            string TestFileTargetPath = Path.Combine(@"\\indy-syn01\prm_test\ContentRoot", TestUtil.MakeTestGuid(1).ToString(), FileName);
+            File.Copy(TestFileSourcePath, TestFileTargetPath, true);
+            SelectionGroup ThisGroup = TestResources.DbContextObject.SelectionGroup.Single(sg => sg.Id == TestUtil.MakeTestGuid(1));
+            RootContentItem ThisItem = TestResources.DbContextObject.RootContentItem.FirstOrDefault(rci => rci.Id == TestUtil.MakeTestGuid(1));
+            ThisItem.ContentFilesList = new List<MapDbContextLib.Models.ContentRelatedFile>
+            {
+                new MapDbContextLib.Models.ContentRelatedFile { Checksum = GlobalFunctions.GetFileChecksum(TestFileTargetPath), FileOriginalName = "", FilePurpose = "mastercontent", FullPath = TestFileTargetPath, }
+            };
+            ThisGroup.ContentInstanceUrl = $"\\{ThisItem.Id}\\{FileName}";
+
             #endregion
 
             #region Act
@@ -298,7 +313,7 @@ namespace MapTests
             RootContentItem ThisItem = TestResources.DbContextObject.RootContentItem.Single(rci => rci.Id == TestUtil.MakeTestGuid(1));
             ThisItem.ContentFilesList = new List<MapDbContextLib.Models.ContentRelatedFile>
             {
-                new MapDbContextLib.Models.ContentRelatedFile { Checksum = "", FileOriginalName = "", FilePurpose = purpose, FullPath = UserGuideTestPath, }
+                new MapDbContextLib.Models.ContentRelatedFile { Checksum = GlobalFunctions.GetFileChecksum(UserGuideTestPath), FileOriginalName = "", FilePurpose = purpose, FullPath = UserGuideTestPath, }
             };
             #endregion
 
