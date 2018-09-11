@@ -149,9 +149,10 @@ namespace MillimanAccessPortal.Controllers
             if (!contentFile.ValidateChecksum())
             {
                 string ErrMsg = $"The system could not validate the content item {selectionGroup.RootContentItem.ContentName} for selection group {selectionGroup.GroupName}. Try again in a few minutes, and contact MAP Support if this error continues.";
+                string MailMsg = $"The content item below failed checksum validation and may have been altered improperly.{Environment.NewLine}{Environment.NewLine}Root content: {selectionGroup.RootContentItem.ContentName}{Environment.NewLine}Selection group: {selectionGroup.GroupName}{Environment.NewLine}Client: {selectionGroup.RootContentItem.Client.Name}";
                 var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
 
-                notifier.sendSupportMail(ErrMsg);
+                notifier.sendSupportMail(MailMsg);
                 AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent());
                 Response.Headers.Add("Warning", ErrMsg);
                 return StatusCode(StatusCodes.Status500InternalServerError);
@@ -360,9 +361,10 @@ namespace MillimanAccessPortal.Controllers
             {
                 
                 string ErrMsg = $"Failed to load requested {purpose} PDF for SelectionGroup {selectionGroupId}";
+                string MailMsg = $"The {purpose} PDF for the below content item failed checksum validation and may have been altered improperly.{Environment.NewLine}{Environment.NewLine}Root content: {selectionGroup.RootContentItem.ContentName}{Environment.NewLine}Selection group: {selectionGroup.GroupName}{Environment.NewLine}Client: {selectionGroup.RootContentItem.Client.Name}";
                 var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
 
-                notifier.sendSupportMail(ErrMsg);
+                notifier.sendSupportMail(MailMsg);
                 Logger.LogError(ErrMsg);
                 Response.Headers.Add("Warning", ErrMsg);
                 return StatusCode(StatusCodes.Status500InternalServerError);
