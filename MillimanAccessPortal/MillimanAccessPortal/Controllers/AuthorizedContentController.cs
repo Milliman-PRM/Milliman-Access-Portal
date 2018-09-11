@@ -156,8 +156,7 @@ namespace MillimanAccessPortal.Controllers
 
                 notifier.sendSupportMail(MailMsg);
                 AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent());
-                Response.Headers.Add("Warning", ErrMsg);
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                return View("Message", ErrMsg);
             }
             #endregion
 
