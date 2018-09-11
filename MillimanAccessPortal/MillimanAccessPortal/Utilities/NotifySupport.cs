@@ -5,10 +5,6 @@
  */
 using Microsoft.Extensions.Configuration;
 using MillimanAccessPortal.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Utilities
 {
@@ -30,17 +26,9 @@ namespace MillimanAccessPortal.Utilities
         /// <returns></returns>
         public bool sendSupportMail(string messageArg)
         {
-            return _messageSender.QueueEmail(supportAddress(), "Automated support notification", messageArg, supportSender());
-        }
-
-        private string supportAddress()
-        {
-            return _configuration["SupportEmailAddress"] ?? "map.support@milliman.com";
-        }
-
-        private string supportSender()
-        {
-            return _configuration["SmtpFromAddress"] ?? "map.support@milliman.com";
+            string supportAddress = _configuration["SupportEmailAddress"] ?? "map.support@milliman.com";
+            string sender = _configuration["SmtpFromAddress"] ?? "map.support@milliman.com";
+            return _messageSender.QueueEmail(supportAddress, "Automated support notification", messageArg, sender);
         }
     }
 }
