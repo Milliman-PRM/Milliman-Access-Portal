@@ -27,6 +27,7 @@ using MillimanAccessPortal.Services;
 using MillimanAccessPortal.Utilities;
 using QlikviewLib;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -150,7 +151,11 @@ namespace MillimanAccessPortal.Controllers
             // Make sure the checksum currently matches the value stored at the time the file was generated or uploaded
             if (!contentFile.ValidateChecksum())
             {
-                string ErrMsg = $"The system could not validate the content item {selectionGroup.RootContentItem.ContentName} for selection group {selectionGroup.GroupName}. Try again in a few minutes, and contact MAP Support if this error continues.";
+                var ErrMsg = new List<string>
+                {
+                    $"The system could not validate the content item {selectionGroup.RootContentItem.ContentName} for selection group {selectionGroup.GroupName}.",
+                    $"Try again in a few minutes, and contact MAP Support if this error continues.",
+                };
                 string MailMsg = $"The content item below failed checksum validation and may have been altered improperly.{Environment.NewLine}{Environment.NewLine}Root content: {selectionGroup.RootContentItem.ContentName}{Environment.NewLine}Selection group: {selectionGroup.GroupName}{Environment.NewLine}Client: {selectionGroup.RootContentItem.Client.Name}{Environment.NewLine}User: {HttpContext.User.Identity.Name}";
                 var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
 

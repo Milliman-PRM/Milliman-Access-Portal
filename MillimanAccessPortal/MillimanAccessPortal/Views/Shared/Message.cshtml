@@ -1,16 +1,20 @@
-﻿@model string;
+﻿@model List<string>;
 
 @{
     ViewData["Title"] = "";
-    Layout = "_Layout_w_H_F";
+    Layout = "_Layout";
 }
 
 @section Scripts {
     <script src="~/js/message.bundle.js"></script>
 }
 
-<div id="message-container">
-    <h3>
-        @Model
-    </h3>
+<div id="message-container" class="screen-center screen-center-text">
+    @foreach (var line in Model)
+    {
+        <h3>
+            @line
+        </h3>
+        <br>
+    }
 </div>
