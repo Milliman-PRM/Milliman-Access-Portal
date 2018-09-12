@@ -6,6 +6,16 @@
     border-radius: 1em !important;
     border: 1px solid $charcoal !important;
     box-shadow: rgba(0, 0, 0, .3) .2em .2em .75em;
+
+    &.form-disabled {
+        background-color: transparent;
+        border: none !important;
+        box-shadow: none;
+
+        .form-submission-section {
+            display: none;
+        }
+    }
 }
 
 a,
@@ -174,6 +184,7 @@ input:-webkit-autofill {
 input[type="search"],
 input.filter-input {
     border: solid 1px $charcoal;
+    border-radius: .25em;
     background-color: $white;
 
     &:focus {
@@ -191,7 +202,7 @@ input.filter-input {
         width: 100%;
         border-bottom: 2px solid $charcoal;
         padding: 0 .5em;
-        margin-bottom: .75em;
+        margin-bottom: .25em;
         text-transform: uppercase
     }
 
@@ -210,6 +221,16 @@ input.filter-input {
 
         .form-input-file-upload {
             width: 100%;
+        }
+
+        .switch-container.content-item-flex-none {
+            margin-bottom: 0;
+
+            label.switch-label {
+                width: 7em;
+                margin-right: 1em;
+                margin-right: 1em;
+            }
         }
 
         .form-input-flex {
