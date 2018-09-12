@@ -20,7 +20,7 @@ text box. A form will open allowing for client information to be input.
 ## Adding Users to a Client
 1. Click on the Client card that you wish to add users to
 1. Click on the plus icon in the upper right corner of the furthest right column
-1. Enter the users email address in the Add User pop up (**Note that the domain of the user's email address must be in the Approved Email Domain List for the specified Client**
+1. Enter the users email address in the Add User pop up (**Note that the domain of the user's email address must be in the Approved Email Domain List for the specified Client**)
 
 ## Adjusting User Roles
 1. Click on a user card within the Client
