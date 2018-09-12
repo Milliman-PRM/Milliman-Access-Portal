@@ -218,7 +218,18 @@ namespace MillimanAccessPortal
                 app.UseExceptionHandler("/Home/Error");
             }
 
-            app.UseStaticFiles();
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                OnPrepareResponse = (context) =>
+                {
+                    // Only cache static files with content hashes in the filename
+                    var cacheableFileTypes = new List<string> { ".js", ".css" };
+                    if (cacheableFileTypes.Contains(Path.GetExtension(context.File.PhysicalPath)))
+                    {
+                        context.Context.Response.Headers[HeaderNames.CacheControl] = "max-age=31536000";
+                    }
+                },
+            });
 
             // Conditionally omit auth cookie
             app.Use(next => context =>
