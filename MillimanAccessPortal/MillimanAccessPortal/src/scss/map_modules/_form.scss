@@ -31,6 +31,10 @@ a,
 
 .link-button {
     text-transform: uppercase;
+
+    &[disabled] {
+        display: none;
+    }
 }
 
 button,
