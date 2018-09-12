@@ -41,7 +41,7 @@
         </div>
     </div>
     <div class="admin-panel-content-container">
-        <form class="admin-panel-content">
+        <form class="admin-panel-content form-disabled">
             <div class="form-section-container">
                 <div class="form-section">
                     <h4 class="form-section-title">Client Information</h4>
@@ -152,8 +152,8 @@
                 <div class="form-section">
                     <h4 class="form-section-title">New User Welcome Text</h4>
                     <div class="form-input-container">
-                        <div class="form-input form-input-nullable-textarea">
-                            <div class="switch-container">
+                        <div class="form-input-container form-input form-input-nullable-textarea content-item-flex-1">
+                            <div class="switch-container flex-item-for-phone-only-12-12 content-item-flex-none">
                                 <div class="toggle-switch">
                                     <input type="checkbox" class="toggle-switch-checkbox" for="NewUserWelcomeTextToggle" name="NewUserWelcomeTextToggle" id="NewUserWelcomeTextToggle">
                                     <label class="toggle-switch-label" for="NewUserWelcomeTextToggle">
@@ -163,10 +163,8 @@
                                 </div>
                                 <label class="form-input-nullable-textarea-title switch-label" asp-for="NewUserWelcomeText"></label>
                             </div>
-                            <div class="content-item-flex-1">
-                                <div>
-                                    <textarea id="NewUserWelcomeText" name="NewUserWelcomeText" for="NewUserWelcomeText"></textarea>
-                                </div>
+                            <div class="flex-item-for-phone-only-12-12 content-item-flex-1">
+                                <textarea id="NewUserWelcomeText" name="NewUserWelcomeText" for="NewUserWelcomeText"></textarea>
                             </div>
                         </div>
                     </div>
