@@ -1,3 +1,2 @@
 # Content Publishing
 
-### Description
