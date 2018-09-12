@@ -158,6 +158,13 @@ export class SubmissionGroup<T> {
 
     form.validate();
 
+    if (this.url === null) {
+      return new Promise(async (resolve) => {
+        await this.callback(null);
+        resolve();
+      });
+    }
+
     return new Promise((resolve, reject) => {
       $.ajax({
         data: this.transform(form.serialize(this.sections)),
