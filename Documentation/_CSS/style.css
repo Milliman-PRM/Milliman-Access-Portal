@@ -3,9 +3,24 @@ body {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
+h2 {
+    margin: 1em 0 .25em 0;
+}
+
+ol li {
+    list-style-type: decimal;
+}
+
+ol li ol li {
+    list-style-type: lower-alpha;
+}
+
+ul li {
+    list-style: none;
+}
+
 li {
     padding: 6px 0;
-    list-style: none;
 }
 
 a {
@@ -14,5 +29,5 @@ a {
 }
 
 a:hover {
-    color: #0086e6;
+    color: #0068B2;
 }
