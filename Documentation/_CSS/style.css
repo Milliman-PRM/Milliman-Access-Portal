@@ -1,3 +1,23 @@
 body {
     padding: 1em 5em;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+
+/*********************/
+/********Links********/
+/*********************/
+
+li {
+    padding: 6px 0;
+    list-style: none;
+}
+
+a {
+    text-decoration: none;
+    color: #0095FF;
+}
+
+a:hover {
+    color: #0086e6;
 }
