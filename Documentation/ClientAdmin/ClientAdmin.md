@@ -15,7 +15,9 @@ text box. A form will open allowing for client information to be input.
 1. Select the desired text box and input the updated information
 
 ## Deleting a Client
-1. Click on the red trash icon on the card of the Client that you want to delete
+1. Click on the red trash icon on the card of the Client to delete
+1. Press "Delete"
+1. Enter password to confirm deletion and press "Delete"
 
 ## Adding Users to a Client
 1. Click on the Client card that you wish to add users to
