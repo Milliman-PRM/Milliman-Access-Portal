@@ -24,6 +24,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.AzureAppServices.HostingStartup" Version="2.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="2.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.HttpsPolicy" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="2.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Rewrite" Version="2.0.1" />

@@ -12,6 +12,7 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -214,6 +215,8 @@ namespace MillimanAccessPortal
             }
             else
             {
+                app.UseHttpsRedirection();
+                app.UseHsts();
                 app.UseExceptionHandler("/Home/Error");
             }
 
