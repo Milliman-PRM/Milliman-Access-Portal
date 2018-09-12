@@ -54,6 +54,7 @@ $(document).ready(() => {
       },
     ]);
     formObject.submissionMode = 'update';
+    formObject.accessMode = AccessMode.Write;
     $('#FirstName').change();
   });
 

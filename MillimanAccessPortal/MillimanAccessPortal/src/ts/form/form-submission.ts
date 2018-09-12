@@ -99,7 +99,6 @@ export class Submission extends FormElement {
         } finally {
           // hide button spinner
           $button.html($button.data().originalText);
-          $button.removeAttr('disabled');
         }
       });
 
