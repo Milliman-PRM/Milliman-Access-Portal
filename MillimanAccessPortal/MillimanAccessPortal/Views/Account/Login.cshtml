@@ -23,7 +23,7 @@
                     <use xlink:href="#map-logo"></use>
                 </svg>
             </div>
-            <form id="login-form" asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
+            <form id="login-form" autocomplete="off" asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
                 <div class="login-form-input-container">
                     <input asp-for="Username" id="username" placeholder="Username" autofocus>
                     <span asp-validation-for="Username" class="text-danger"></span>
