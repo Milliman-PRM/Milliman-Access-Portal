@@ -3,7 +3,7 @@ import * as toastr from 'toastr';
 import { confirmAndContinueForm } from '../shared';
 import { FormBase } from './form-base';
 import { FormElement } from './form-element';
-import { SubmissionMode } from './form-modes';
+import { AccessMode, SubmissionMode } from './form-modes';
 
 export class Submission extends FormElement {
   public form: FormBase;
@@ -14,6 +14,18 @@ export class Submission extends FormElement {
     extension: '',
   };
 
+  private _accessMode: AccessMode;
+  public get accessMode(): AccessMode {
+    return this._accessMode;
+  }
+  public set accessMode(mode: AccessMode) {
+    this._accessMode = mode;
+    if (this.anyValidAndModified()) {
+      this.$entryPoint.find('button').removeAttr('disabled');
+    } else {
+      this.$entryPoint.find('button').attr('disabled', '');
+    }
+  }
   private _submissionMode: SubmissionMode;
   public get submissionMode(): SubmissionMode {
     return this._submissionMode;
@@ -21,9 +33,9 @@ export class Submission extends FormElement {
   public set submissionMode(submissionMode: SubmissionMode) {
     this._submissionMode = submissionMode;
     if (this.$entryPoint.is(this.activeButtonSelector)) {
-      this.$entryPoint.find('button').show();
+      this.$entryPoint.show();
     } else {
-      this.$entryPoint.find('button').hide();
+      this.$entryPoint.hide();
     }
   }
   private get activeButtonSelector(): string {
@@ -37,9 +49,9 @@ export class Submission extends FormElement {
   public set modified(value: boolean) {
     this._modified = value;
     if (this.anyValidAndModified()) {
-      this.$entryPoint.show();
+      this.$entryPoint.find('button').removeAttr('disabled');
     } else {
-      this.$entryPoint.hide();
+      this.$entryPoint.find('button').attr('disabled', '');
     }
   }
 
@@ -50,9 +62,9 @@ export class Submission extends FormElement {
   public set valid(value: boolean) {
     this._valid = value;
     if (this.anyValidAndModified()) {
-      this.$entryPoint.show();
+      this.$entryPoint.find('button').removeAttr('disabled');
     } else {
-      this.$entryPoint.hide();
+      this.$entryPoint.find('button').attr('disabled', '');
     }
   }
 
@@ -110,13 +122,14 @@ export class Submission extends FormElement {
       return false;
     }
     return this.submissionMode.groups.map((group) => {
-      const modified = group.url === null || this.form.inputSections
+      const modified = this.form.inputSections
         .filter((inputSection) => group.sections === undefined || group.sections.indexOf(inputSection.name) !== -1)
         .map((inputSection) => inputSection.modified)
         .reduce((cum, cur) => cum || cur, false);
       const valid = this.form.valid(group.sections);
       return modified && valid;
-    }).reduce((cum, cur) => this.submissionMode.sparse ? cum || cur : cum && cur, !this.submissionMode.sparse);
+    }).reduce((cum, cur) => this.submissionMode.sparse ? cum || cur : cum && cur, !this.submissionMode.sparse)
+    && (this._accessMode === AccessMode.Defer || this._accessMode === AccessMode.Write);
   }
 }
 
