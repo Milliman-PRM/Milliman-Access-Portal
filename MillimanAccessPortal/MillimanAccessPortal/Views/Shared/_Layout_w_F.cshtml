@@ -7,6 +7,10 @@
     @Html.Partial("_Footer")
 </div>
 
+@section CSS {
+    @RenderSection("CSS", required: false)
+}
+
 @section Scripts {
     @RenderSection("Scripts", required: false)
 }
