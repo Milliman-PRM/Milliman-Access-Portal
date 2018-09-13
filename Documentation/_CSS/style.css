@@ -23,7 +23,7 @@ body {
 }
 
 .content {
-    padding: 0 18px;
+    padding: 0 24px;
     max-height: 0;
     background-color: white;
     overflow: hidden;
@@ -35,6 +35,13 @@ body {
     max-height:50em;
 }
 
+h3 {
+    font-size: 16px;
+    color: #444;
+    font-weight: bold;
+    border-bottom: 1px solid #DFE8E8;
+    padding-bottom: 6px;
+}
 
 ol li {
     list-style-type: decimal;

@@ -1,27 +1,90 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="pandoc" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>System Administration - User Guide</title>
-  <style type="text/css">
-      code{white-space: pre-wrap;}
-      span.smallcaps{font-variant: small-caps;}
-      span.underline{text-decoration: underline;}
-      div.column{display: inline-block; vertical-align: top; width: 50%;}
-  </style>
-  <!--[if lt IE 9]>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
-  <![endif]-->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+    <title>System Administration - User Guide</title>
+    <link rel="stylesheet" href="_CSS\style.css">
 </head>
 <body>
-<h1 id="system-administration">System Administration</h1>
-<h2 id="creating-a-new-user">Creating a New User</h2>
-<h2 id="managing-user-roles">Managing User Roles</h2>
-<h2 id="creating-new-profit-centers">Creating New Profit Centers</h2>
-<h2 id="managing-profit-centers">Managing Profit Centers</h2>
-<h2 id="suspending-users">Suspending Users</h2>
-<h2 id="suspending-content">Suspending Content</h2>
+    <h1>System Administration</h1>
+    <button class="accordion">Creating a New User</button>
+    <div class="content">
+        <ol>
+            <li>Click on <strong>Users</strong> tab</li>
+            <li>Click the plus sign near the search bar</li>
+            <li>Fill in user email</li>
+            <li>Click "Create User"</li>
+        </ol>
+    </div>
+    <button class="accordion">Managing User Roles</button>
+    <div class="content">
+        <ol>
+            <li>Click on <strong>Users</strong> tab</li>
+            <li>Choose a user</li>
+            <li>Toggle System Permissions and User Settings in the far right section</li>
+        </ol>
+        <h3>Managing User Roles at Client Level</h3>
+        <ol>
+            <li>Click on <strong>Users</strong> tab</li>
+            <li>Choose a user</li>
+            <li>Click on <strong>Clients</strong> tab</li>
+            <li>Click on the Client card</li>
+            <li>Toggle Client/User Roles in far right section</li>
+        </ol>
+    </div>
+    <button class="accordion">Adding Users to a Client</button>
+    <div class="content">
+        <ol>
+            <li>Click on <strong>Clients</strong> tab</li>
+            <li>Choose a Client</li>
+            <li>Click on <strong>Users</strong> tab</li>
+            <li>Click on plus sign next to users search bar</li>
+            <li>Add the users email address</li>
+            <li>Click "Add User"</li>
+        </ol>
+    </div>
+    <button class="accordion">Creating New Profit Centers</button>
+    <div class="content">
+        <ol>
+            <li></li>
+        </ol>
+    </div>
+    <button class="accordion">Managing Profit Centers</button>
+    <div class="content">
+        <h3>Creating a Profit Center</h3>
+        <ol>
+            <li>Click on <strong>Profit Center</strong> tab</li>
+            <li>Click on the plus sign next to the searh bar for Profit Center</li>
+            <li>Fill in new Profit Center information</li>
+            <li>Click on "Create Profit Center"</li>
+        </ol>
+        <h3>Adding Authorized Users to a Profit Center</h3>
+        <ol>
+            <li>Click on <strong>Profit Center</strong> tab</li>
+            <li>Choose a Profit Center to add an authorized user to</li>
+            <li>Click on <strong>Authorized Users</strong> tab</li>
+            <li>Click on the plus sign next to the Authorized Users search bar</li>
+            <li>Input the authorized user's email address</li>
+            <li>Click on "Add User"</li>
+        </ol>
+        <h3>Adding Clients to a Profit Center</h3>
+        <ol>
+            <li></li>
+        </ol>
+    </div>
+    <button class="accordion">Suspending Users</button>
+    <div class="content">
+        <ol>
+            <li></li>
+        </ol>
+    </div>
+    <button class="accordion">Suspending Content</button>
+    <div class="content">
+        <ol>
+            <li></li>
+        </ol>
+    </div>
+    <script src="_JS\accordion.js"></script>
 </body>
 </html>
