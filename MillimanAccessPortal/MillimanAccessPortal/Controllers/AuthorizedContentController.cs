@@ -161,7 +161,7 @@ namespace MillimanAccessPortal.Controllers
 
                 notifier.sendSupportMail(MailMsg, "Checksum verification (content item)");
                 AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent());
-                return View("Message", ErrMsg);
+                return View("ContentMessage", ErrMsg);
             }
             #endregion
 
