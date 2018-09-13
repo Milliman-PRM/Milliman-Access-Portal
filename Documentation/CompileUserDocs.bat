@@ -15,17 +15,17 @@ if not exist "../MillimanAccessPortal/MillimanAccessPortal/wwwroot/Documentation
 REM Compile Release Notes
 pandoc --self-contained --css=".\_CSS\style.css" --metadata=pagetitle:"Milliman Access Portal - Release Notes" -o "../MillimanAccessPortal/MillimanAccessPortal/wwwroot/Documentation/ReleaseNotes.html" "ReleaseNotes.md"
 
-REM Compile all user guides
+xcopy /I "_CSS" "..\MillimanAccessPortal\MillimanAccessPortal\wwwroot\Documentation\_CSS"
+xcopy /I "_JS" "..\MillimanAccessPortal\MillimanAccessPortal\wwwroot\Documentation\_JS"
+
+echo Copying user guides
 for %%x in (
 	AuthorizedContent
-	AccountSettings
-	ContentAccessAdmin
-	ContentPublishing
-	ClientAdmin
-	SystemAdmin
-	) do (
-		echo Compiling documentation for %%x
-		pandoc -o "%%x\%%x_Header.html" "%%x\%%x_Header.md" 
-		pandoc --self-contained --css=".\_CSS\style.css" -B "%%x\%%x_Header.html" --toc -o "../MillimanAccessPortal/MillimanAccessPortal/wwwroot/Documentation/%%x.html" "%%x\%%x.yaml" "%%x\%%x.md"
-		DEL "%%x\%%x_Header.html"
-	)
+ 	AccountSettings
+ 	ContentAccessAdmin
+ 	ContentPublishing
+ 	ClientAdmin
+ 	SystemAdmin
+ 	) do (
+ 		copy ".\%%x.html" "..\MillimanAccessPortal\MillimanAccessPortal\wwwroot\Documentation\"
+ 	)
