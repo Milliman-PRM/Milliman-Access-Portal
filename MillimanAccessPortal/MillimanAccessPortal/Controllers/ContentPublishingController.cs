@@ -760,7 +760,7 @@ namespace MillimanAccessPortal.Controllers
                     FilesToDelete.Add(Crf.FullPath);
 
                     UpdatedContentFilesList.RemoveAll(f => f.FilePurpose.ToLower() == Crf.FilePurpose.ToLower());
-                    UpdatedContentFilesList.Add(new ContentRelatedFile { FilePurpose = Crf.FilePurpose, FullPath = TargetFilePath, Checksum = Crf.Checksum });
+                    UpdatedContentFilesList.Add(new ContentRelatedFile { FilePurpose = Crf.FilePurpose, FullPath = TargetFilePath, Checksum = Crf.Checksum, FileOriginalName = Crf.FileOriginalName });
 
                     // Set content URL in each master SelectionGroup
                     if (Crf.FilePurpose.ToLower() == "mastercontent")
