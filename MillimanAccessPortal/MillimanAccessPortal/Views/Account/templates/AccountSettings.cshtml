@@ -31,7 +31,7 @@
             @Html.Partial("~/Views/Shared/_Loader.cshtml")
         </div>
         <div class="admin-panel-content-container">
-            <form id="account-settings-form" class="admin-panel-content" autocomplete="off">
+            <form id="account-settings-form" autocomplete="off" class="admin-panel-content">
                 <div class="form-section-container">
                     <div class="form-section" data-section="username">
                         <h4 class="form-section-title">User Information</h4>
@@ -110,8 +110,8 @@
                     </div>
                     <div class="form-submission-section">
                         <div class="button-container button-container-update" style="display: none;">
-                            <button type="button" class="button-reset link-button">Discard Changes</button>
-                            <button type="submit" class="button-submit blue-button">Update Account</button>
+                            <button type="button" class="button-reset link-button" disabled >Discard Changes</button>
+                            <button type="submit" class="button-submit blue-button" disabled >Update Account</button>
                         </div>
                         <div class="form-antiforgery-token" style="display: none;">
                             @Html.AntiForgeryToken()

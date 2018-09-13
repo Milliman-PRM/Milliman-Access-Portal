@@ -33,6 +33,9 @@ export class FormBase extends FormElement {
       this.submissionSection.submissions
         .forEach((submission) => submission.modified = this.modified);
       this.resetValidation();
+      this.submissionSection.submissions
+        .forEach((submission) => submission.accessMode = mode);
+      this.$entryPoint.toggleClass('form-disabled', mode === AccessMode.Read);
     }, mode === AccessMode.Read && this.modified);
     this._accessMode = mode;
   }

@@ -129,6 +129,7 @@ export function openNewRootContentItemForm() {
 }
 
 function setFormReadOnly() {
+  formObject.submissionMode = 'hidden';
   formObject.accessMode = AccessMode.Read;
   $('#root-content-items [selected]').removeAttr('editing');
   $('#content-publishing-form .admin-panel-toolbar .action-icon').show();
@@ -380,6 +381,11 @@ function renderRootContentItemForm(item?: RootContentItemDetail) {
   formObject.bindToDOM($rootContentItemForm[0]);
   formObject.configure(
     [
+      {
+        groups: [],
+        name: 'hidden',
+        sparse: false,
+      },
       {
         groups: [ createContentGroup, submitPublication, readOnlyGroup ],
         name: 'new',

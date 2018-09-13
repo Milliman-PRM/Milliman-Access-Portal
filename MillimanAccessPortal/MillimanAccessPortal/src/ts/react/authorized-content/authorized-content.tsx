@@ -6,7 +6,7 @@ import { getData } from '../../shared';
 import { ContentContainer } from '../shared-components/content-container';
 import { NavBar } from '../shared-components/navbar';
 import { ContentCard } from './content-card';
-import { FilterBar } from './filter-bar';
+import { Filter } from '../shared-components/filter';
 import { ContentItem, ContentItemGroup, ContentItemGroupList, Filterable } from './interfaces';
 
 interface AuthorizedContentState extends ContentItemGroupList, Filterable { }
@@ -94,7 +94,11 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
         {contentContainer}
         <div id="authorized-content-container">
           <div id="authorized-content-header">
-            <FilterBar onFilterStringChanged={this.setFilterString} />
+            <Filter
+              filterText={this.state.filterString}
+              setFilterText={this.setFilterString}
+              placeholderText="Filter content"
+            />
           </div>
           <div id="authorized-content-items">
             {clientGroups}
