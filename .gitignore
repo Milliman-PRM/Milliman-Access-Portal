@@ -17,6 +17,15 @@
 !/packages/*/lib/*/*.dll
 # Include dlls if they're in the CommonReferences directory
 !*CommonReferences/*.dll
+########################
+# Compiled Razor pages #
+########################
+**/Account/*.cshtml
+**/AuthorizedContent/*.cshtml
+**/ClientAdmin/*.cshtml
+**/ContentAccessAdmin/*.cshtml
+**/ContentPublishing/*.cshtml
+**/SystemAdmin/*.cshtml
 ####################
 # VS Upgrade stuff #
 ####################

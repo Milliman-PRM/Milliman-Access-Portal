@@ -265,7 +265,7 @@ label.input-with-upload {
         display: flex;
         flex-flow: column nowrap;
         height: 100%;
-        width: 100%;
+        width: 15em;
 
         .image-preview {
             width: 100%;
@@ -280,12 +280,14 @@ label.input-with-upload {
     }
 
     input {
+        font-size: 1rem;
         padding-right: 2.5em;
         position: relative;
         z-index: 1;
 
         &[disabled] {
             background-color: $light-grey;
+            padding-right: .25em;
         }
     }
 

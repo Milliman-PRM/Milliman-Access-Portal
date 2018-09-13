@@ -6,6 +6,18 @@
     ViewData["NavIcon"] = "ClientAdmin";
 }
 
+@section CSS {
+  <% for (var css in htmlWebpackPlugin.files.css) { %>
+  <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet">
+  <% } %>
+}
+
+@section Scripts {
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% } %>
+}
+
 <div id="navbar"></div>
 <div id="client-tree" class="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-3-12">
     <div class="loading-wrapper" style="display: none;">
@@ -209,7 +221,3 @@
         <ul class="admin-panel-content"></ul>
     </div>
 </div>
-
-@section Scripts {
-    <script src="~/js/client-admin.bundle.js"></script>
-}

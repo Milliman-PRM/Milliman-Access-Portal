@@ -515,6 +515,7 @@ export function getData(url = '', data = {}) {
   url = `${url}?${queryParams.join('&')}`;
   return fetch(url, {
     method: 'GET',
+    cache: 'no-cache',
     credentials: 'same-origin',
   })
   .then((response) => {
@@ -535,6 +536,7 @@ export function postData(url: string = '', data: object = {}, rawResponse: boole
   }).filter((kvp) => kvp !== null).join('&');
   return fetch(url, {
     method: 'POST',
+    cache: 'no-cache',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       'RequestVerificationToken': antiforgeryToken,
