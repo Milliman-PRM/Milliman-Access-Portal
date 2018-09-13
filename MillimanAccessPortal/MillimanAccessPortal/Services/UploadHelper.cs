@@ -204,6 +204,15 @@ namespace MillimanAccessPortal.Services
             #endregion
 
             #region Verify upload
+            using (var fileStream = File.OpenRead(concatenationFilePath))
+            {
+                if (!resumableInfo.MatchesInitialBytes(fileStream))
+                {
+                    throw new FileUploadException(StatusCodes.Status415UnsupportedMediaType, "File contents do not match extension.");
+                }
+            }
+
+            // Compute and compare checksum
             var computedChecksum = GlobalFunctions.GetFileChecksum(concatenationFilePath);
             if (!Info.Checksum.Equals(computedChecksum, StringComparison.OrdinalIgnoreCase))
             {

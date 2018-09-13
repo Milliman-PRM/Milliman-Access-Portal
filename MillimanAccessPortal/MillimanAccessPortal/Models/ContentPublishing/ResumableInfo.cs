@@ -5,7 +5,9 @@
  *      Must match data sent by resumable.js, which is defined in src/ts/lib-options.ts
  */
 
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
 {
@@ -64,5 +66,52 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 return resumableInfo.ChunkSize;
             }
         }
+
+        public static bool MatchesInitialBytes(this ResumableInfo resumableInfo, FileStream fileStream, int initialByteCount = 0x10)
+        {
+            // Read the initial bytes from the file stream
+            byte[] initialBytes = new byte[initialByteCount];
+            fileStream.Read(initialBytes, 0, initialByteCount);
+
+            // Represent acceptable starting byte sequences as a list of byte arrays
+            List<byte[]> expectedInitialBytes = new List<byte[]>();
+            switch(resumableInfo.FileExt.ToLower())
+            {
+                case ".jpg":
+                case ".jpeg":
+                    expectedInitialBytes.Add(new byte[] { 0xFF, 0xD8, 0xFF });
+                    break;
+                case ".png":
+                    expectedInitialBytes.Add(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A });
+                    break;
+                case ".gif":
+                    expectedInitialBytes.Add(new byte[] { 0x47, 0x49, 0x46, 0x38, 0x37, 0x61 });
+                    expectedInitialBytes.Add(new byte[] { 0x47, 0x49, 0x46, 0x38, 0x39, 0x61 });
+                    break;
+                case ".pdf":
+                    expectedInitialBytes.Add(new byte[] { 0x25, 0x50, 0x44, 0x46, 0x2D });
+                    break;
+                case ".qvw":
+                    expectedInitialBytes.Add(new byte[] { 0x70, 0x17 });
+                    break;
+            }
+
+            return expectedInitialBytes.Any((byteSequence) =>
+            {
+                var initialBytesTrimmed = initialBytes.Take(byteSequence.Count());
+                return initialBytesTrimmed.SequenceEqual(byteSequence);
+            });
+        }
+
+    }
+
+    public enum AcceptedFileType
+    {
+        Default = 0,
+        JPEG = 1,
+        PNG = 2,
+        GIF = 3,
+        PDF = 4,
+        QVW = 5,
     }
 }
