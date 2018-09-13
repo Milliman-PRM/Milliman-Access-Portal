@@ -15,7 +15,6 @@
 
     .admin-panel-header {
         text-align: center;
-        padding: 1em;
 
         @include for-tablet-down() {
             text-align: left;
@@ -30,7 +29,7 @@
         flex-flow: row nowrap;
         flex: none;
         align-items: center;
-        padding-bottom: 1em;
+        padding-bottom: .25em;
 
         .admin-panel-searchbar {
             width: 60%;
@@ -57,11 +56,12 @@
     }
 
     .admin-panel-content-container {
+        flex: 1;
         overflow-y: auto;
         overflow-x: hidden;
         padding-right: 1em;
         padding-left: 3px;
-        padding-top: .75em;
+        padding-top: 0;
 
         .admin-panel-content-action,
         .admin-panel-content {

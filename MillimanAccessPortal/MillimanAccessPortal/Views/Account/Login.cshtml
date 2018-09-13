@@ -7,36 +7,39 @@
 
 @{
     ViewData["Title"] = "Log in";
-    Layout = "_Layout_w_F";
+    Layout = "_Layout";
 }
 
 @section Scripts {
     <script src="~/js/login.bundle.js"></script>
 }
 
-<section id="login-container">
-    <div id="login-logo-container">
-        <svg id="login-logo" alt="Milliman Access Portal">
-            <use xlink:href="#map-logo"></use>
-        </svg>
-    </div>
-    <div id="login-form-container">
-        <form id="login-form" asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
-            <div class="login-form-input-container">
-                <label asp-for="Username">Username</label>
-                <input asp-for="Username" id="username" placeholder="Username" autofocus>
-                <span asp-validation-for="Username" class="text-danger"></span>
+<div id="login-wrapper">
+
+    <section id="login-container">
+        <div id="login-form-container">
+            <div id="login-logo-container">
+                <svg id="login-logo" alt="Milliman Access Portal">
+                    <use xlink:href="#map-logo"></use>
+                </svg>
             </div>
-            <div class="login-form-input-container">
-                <label asp-for="Password">Password</label>
-                <input asp-for="Password" id="password" placeholder="Password">
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
-            <div asp-validation-summary="All" class="text-danger"></div>
-            <div class="login-form-button-container">
-                <a asp-action="ForgotPassword" class="link-button">Forgot Password</a>
-                <button type="submit" class="blue-button">Login</button>
-            </div>
-        </form>
-    </div>
-</section>
+            <form id="login-form" autocomplete="off" asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
+                <div class="login-form-input-container">
+                    <input asp-for="Username" id="username" placeholder="Username" autofocus>
+                    <span asp-validation-for="Username" class="text-danger"></span>
+                </div>
+                <div class="login-form-input-container">
+                    <input asp-for="Password" id="password" placeholder="Password">
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <div class="login-form-button-container">
+                    <a asp-action="ForgotPassword" class="link-button">Forgot Password</a>
+                    <button type="submit" class="blue-button">Login</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    @Html.Partial("_Footer")
+</div>
