@@ -54,7 +54,7 @@ export class Upload {
       target: '/FileUpload/UploadChunk',
     }));
     if (!this.resumable.support) {
-      throw new Error('This browser does not support resumable file uploads.');
+      this.onError('This browser does not support resumable file uploads.');
     }
     this.scanner = new FileScanner();
 
@@ -114,7 +114,8 @@ export class Upload {
           type: 'POST',
           url: 'FileUpload/CancelUpload',
         }).fail((response) => {
-          throw new Error(`Something went wrong. Response: ${JSON.stringify(response)}`);
+          this.onError(response.getResponseHeader('Warning')
+            || 'Something went wrong during upload. Please try again.');
         }).always(() => {
           this.setChecksum(null);
         });
@@ -147,14 +148,16 @@ export class Upload {
         this.setFileGUID(response);
         this.onFileSuccess(this.fileGUID);
       }).fail((response) => {
-        throw new Error(`Something went wrong. Response: ${response}`);
+        this.setCancelable(true);
+        this.onError(response.getResponseHeader('Warning')
+          || 'Something went wrong during upload. Please try again.');
       }).always(() => {
         this.setChecksum(null);
       });
     });
 
     this.resumable.on('error', () => {
-      this.onError();
+      this.onError('An error occurred during upload.');
     });
   }
 
@@ -162,7 +165,7 @@ export class Upload {
   public onChecksumProgress: (progress: ProgressSummary) => void = () => undefined;
   public onUploadProgress: (progress: ProgressSummary) => void = () => undefined;
   public onProgressMessage: (message: string) => void = () => undefined;
-  public onError: () => void = () => undefined;
+  public onError: (message: string) => void = () => undefined;
 
   public onFileAdded: (resumableFile: any) => void = () => undefined;
   public onFileSuccess: (fileGUID: string) => void = () => undefined;
