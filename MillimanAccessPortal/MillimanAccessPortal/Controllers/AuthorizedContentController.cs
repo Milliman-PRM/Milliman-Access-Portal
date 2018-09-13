@@ -336,6 +336,7 @@ namespace MillimanAccessPortal.Controllers
         {
             var selectionGroup = DataContext.SelectionGroup
                                             .Include(sg => sg.RootContentItem)
+                                                .ThenInclude(rc => rc.Client)
                                             .FirstOrDefault(sg => sg.Id == selectionGroupId);
 
             #region Validation
@@ -366,14 +367,18 @@ namespace MillimanAccessPortal.Controllers
             if (!contentRelatedPdf.ValidateChecksum())
             {
                 
-                string ErrMsg = $"Failed to load requested {purpose} PDF for SelectionGroup {selectionGroupId}";
+                var ErrMsg = new List<string>
+                {
+                    $"The system could not validate the {purpose} PDF for selection group {selectionGroup.GroupName}.",
+                    $"Try again in a few minutes, and contact MAP Support if this error continues.",
+                };
                 string MailMsg = $"The {purpose} PDF for the below content item failed checksum validation and may have been altered improperly.{Environment.NewLine}{Environment.NewLine}Root content: {selectionGroup.RootContentItem.ContentName}{Environment.NewLine}Selection group: {selectionGroup.GroupName}{Environment.NewLine}Client: {selectionGroup.RootContentItem.Client.Name}{Environment.NewLine}User: {HttpContext.User.Identity.Name}";
                 var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
 
                 notifier.sendSupportMail(MailMsg, $"Checksum verification ({purpose})");
-                Logger.LogError(ErrMsg);
+                Logger.LogError(String.Join(" ", ErrMsg));
                 AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent());
-                return View("Message", ErrMsg);
+                return View("ContentMessage", ErrMsg);
             }
             #endregion
 
